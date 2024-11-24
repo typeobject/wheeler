@@ -2,7 +2,7 @@
 
 A reversible, concurrent virtual machine and programming language.
 
-**This project is just an experiment and is still in the early stages of development.**
+**This project is just an experiment and is still in the early stages of development. You should probably come back later once I'm sure it'll work at al You should probably come back later once I'm sure it'll work at all.**
 
 ## Overview
 
