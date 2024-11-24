@@ -1,3 +1,4 @@
+// WheelerThread.java
 package com.typeobject.wheeler.core.thread;
 
 import com.typeobject.wheeler.core.instruction.Instruction;
@@ -58,9 +59,12 @@ public class WheelerThread {
   }
 
   public Instruction fetchInstruction() {
-    // Read instruction from memory at PC
-    long instructionWord = memory.readWord(pc);
-    return new Instruction(instructionWord);
+    // Read instruction bytes from memory at PC
+    byte[] instructionBytes = new byte[Instruction.SIZE];
+    for (int i = 0; i < Instruction.SIZE; i++) {
+      instructionBytes[i] = (byte) (memory.readWord(pc + i/8) >> ((7 - i%8) * 8));
+    }
+    return Instruction.fromBytes(instructionBytes);
   }
 
   public void setState(WheelerThreadState state) {

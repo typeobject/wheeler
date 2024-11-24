@@ -1,7 +1,6 @@
+// WheelerThreadState.java
 package com.typeobject.wheeler.core.thread;
 
-import com.typeobject.wheeler.core.instruction.WheelerThread;
-import com.typeobject.wheeler.core.instruction.WheelerThreadStatus;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -27,12 +26,12 @@ public class WheelerThreadState implements Cloneable {
   }
 
   private WheelerThreadState(
-      long id,
-      long pc,
-      Stack<Long> stack,
-      Stack<Long> historyStack,
-      Map<Long, Long> localStorage,
-      WheelerThreadStatus status) {
+          long id,
+          long pc,
+          Stack<Long> stack,
+          Stack<Long> historyStack,
+          Map<Long, Long> localStorage,
+          WheelerThreadStatus status) {
     this.id = id;
     this.pc = pc;
     this.stack = stack;
@@ -82,11 +81,11 @@ public class WheelerThreadState implements Cloneable {
     if (!(o instanceof WheelerThreadState)) return false;
     WheelerThreadState that = (WheelerThreadState) o;
     return id == that.id
-        && pc == that.pc
-        && stack.equals(that.stack)
-        && historyStack.equals(that.historyStack)
-        && localStorage.equals(that.localStorage)
-        && status == that.status;
+            && pc == that.pc
+            && stack.equals(that.stack)
+            && historyStack.equals(that.historyStack)
+            && localStorage.equals(that.localStorage)
+            && status == that.status;
   }
 
   @Override

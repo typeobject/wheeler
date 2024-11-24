@@ -1,3 +1,4 @@
+// WVM.java
 package com.typeobject.wheeler.core;
 
 import com.typeobject.wheeler.core.history.ExecutionHistory;
@@ -37,10 +38,10 @@ public class WVM {
   private void executeInstruction(WheelerThread thread, Instruction inst) {
     InstructionHandler handler = InstructionSet.getHandler(inst.getOpcode());
     if (inst.isForward()) {
-      history.recordState(thread.getState());
+      history.recordState(thread.getId(), thread.getState());
       handler.executeForward(thread, inst);
     } else {
-      WheelerThreadState state = history.getLastState();
+      WheelerThreadState state = history.getLastState(thread.getId());
       thread.setState(state);
       handler.executeReverse(thread, inst);
     }

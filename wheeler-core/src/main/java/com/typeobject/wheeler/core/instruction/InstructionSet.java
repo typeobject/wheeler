@@ -153,7 +153,7 @@ public class InstructionSet {
     }
 
     // Let the handler perform specific verification
-    handler.verify(new Instruction(opcode, flags, operand));
+    handler.verify(new Instruction(opcode, flags, (short)0, operand, 0));
   }
 
   // Check if an instruction requires history tracking

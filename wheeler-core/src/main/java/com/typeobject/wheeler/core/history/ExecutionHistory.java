@@ -18,8 +18,8 @@ public class ExecutionHistory {
     writeLock.lock();
     try {
       Deque<HistoryEntry> history =
-          threadHistory.computeIfAbsent(threadId, k -> new ConcurrentLinkedDeque<>());
-      history.push(new HistoryEntry(state));
+              threadHistory.computeIfAbsent(threadId, k -> new ConcurrentLinkedDeque<>());
+      history.push(new StateHistoryEntry(state));
     } finally {
       writeLock.unlock();
     }
@@ -33,14 +33,30 @@ public class ExecutionHistory {
       if (history == null || history.isEmpty()) {
         throw new NoHistoryException("No history available for thread " + threadId);
       }
-      return history.pop().getState();
+
+      // Keep popping until we find a state entry
+      while (!history.isEmpty()) {
+        HistoryEntry entry = history.pop();
+        if (entry instanceof StateHistoryEntry) {
+          return ((StateHistoryEntry) entry).getState();
+        }
+      }
+      throw new NoHistoryException("No state found in history for thread " + threadId);
     } finally {
       readLock.unlock();
     }
   }
 
   public void pushHistoryMarker(long threadId, String marker) {
-    recordState(threadId, new HistoryMarker(marker));
+    Lock writeLock = lock.writeLock();
+    writeLock.lock();
+    try {
+      Deque<HistoryEntry> history =
+              threadHistory.computeIfAbsent(threadId, k -> new ConcurrentLinkedDeque<>());
+      history.push(new MarkerHistoryEntry(marker));
+    } finally {
+      writeLock.unlock();
+    }
   }
 
   public void revertToMarker(long threadId, String marker) {
@@ -55,7 +71,8 @@ public class ExecutionHistory {
       // Pop entries until we find the marker
       while (!history.isEmpty()) {
         HistoryEntry entry = history.peek();
-        if (entry instanceof HistoryMarker && ((HistoryMarker) entry).getMarker().equals(marker)) {
+        if (entry instanceof MarkerHistoryEntry &&
+                ((MarkerHistoryEntry) entry).getMarker().equals(marker)) {
           return;
         }
         history.pop();
@@ -66,13 +83,24 @@ public class ExecutionHistory {
     }
   }
 
-  private static class HistoryEntry {
-    private final WheelerThreadState state;
+  private abstract static class HistoryEntry {
     private final long timestamp;
 
-    public HistoryEntry(WheelerThreadState state) {
-      this.state = state;
+    protected HistoryEntry() {
       this.timestamp = System.nanoTime();
+    }
+
+    public long getTimestamp() {
+      return timestamp;
+    }
+  }
+
+  private static class StateHistoryEntry extends HistoryEntry {
+    private final WheelerThreadState state;
+
+    public StateHistoryEntry(WheelerThreadState state) {
+      super();
+      this.state = state;
     }
 
     public WheelerThreadState getState() {
@@ -80,11 +108,11 @@ public class ExecutionHistory {
     }
   }
 
-  private static class HistoryMarker extends HistoryEntry {
+  private static class MarkerHistoryEntry extends HistoryEntry {
     private final String marker;
 
-    public HistoryMarker(String marker) {
-      super(null);
+    public MarkerHistoryEntry(String marker) {
+      super();
       this.marker = marker;
     }
 

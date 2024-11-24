@@ -54,9 +54,6 @@ subprojects {
         checkers = [
             'org.checkerframework.checker.nullness.NullnessChecker'
         ]
-        extraJavacArgs = [
-            '-AskipDefs=^build/'
-        ]
     }
 
     test {

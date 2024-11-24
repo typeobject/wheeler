@@ -79,10 +79,4 @@ project(':wheeler-compiler') {
             targetExclude 'build/**', '**/generated-src/**'
         }
     }
-
-    checkerFramework {
-        extraJavacArgs += [
-            '-AskipDefs=^com\\.typeobject\\.wheeler\\.compiler\\.antlr\\.'
-        ]
-    }
 }
