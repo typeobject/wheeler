@@ -1,42 +1,42 @@
-.gradle
+# Gradle
+.gradle/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
+# IntelliJ IDEA
+.idea/
 *.iws
 *.iml
 *.ipr
 out/
-!**/src/main/**/out/
-!**/src/test/**/out/
 
-### Eclipse ###
-.apt_generated
-.classpath
-.factorypath
+# Eclipse
 .project
-.settings
-.springBeans
-.sts4-cache
+.classpath
+.settings/
 bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-
-### VS Code ###
+# VS Code
 .vscode/
 
-### Mac OS ###
+# Mac
 .DS_Store
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+
+# Project specific
+*.wheel
+
+# Logs
+logs/
+*.log
+
+# Code coverage
+jacoco/
