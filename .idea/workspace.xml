@@ -5,15 +5,32 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="72d83d44-56a6-4135-a1ad-865d108c0a5b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradlew" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/settings.gradle" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wheeler-core/src/main/java/com/typeobject/wheeler/core/exceptions/InvalidInstructionException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wheeler-core/src/main/java/com/typeobject/wheeler/core/exceptions/MemoryException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wheeler-core/src/main/java/com/typeobject/wheeler/core/exceptions/NoHistoryException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wheeler-core/src/main/java/com/typeobject/wheeler/core/exceptions/WheelerExecutionException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wheeler-core/src/main/java/com/typeobject/wheeler/core/history/ExecutionHistory.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wheeler-core/src/main/java/com/typeobject/wheeler/core/instruction/InstructionHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wheeler-core/src/main/java/com/typeobject/wheeler/core/instruction/handlers/IncrementHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wheeler-core/src/main/java/com/typeobject/wheeler/core/thread/WheelerThread.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wheeler-core/src/main/java/com/typeobject/wheeler/core/thread/WheelerThreadState.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wheeler-core/src/main/java/com/typeobject/wheeler/core/thread/WheelerThreadStatus.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wheeler-compiler/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-compiler/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/WheelerCompiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/WheelerCompiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wheeler-core/src/main/java/com/typeobject/wheeler/core/Thread.java" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-examples/src/main/resources/Counter.wb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wheeler-core/src/main/java/com/typeobject/wheeler/core/WVM.java" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-core/src/main/java/com/typeobject/wheeler/core/WVM.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wheeler-core/src/main/java/com/typeobject/wheeler/core/history/History.java" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-examples/src/main/wheeler/Counter.w" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wheeler-core/src/main/java/com/typeobject/wheeler/core/history/HistoryEntry.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wheeler-core/src/main/java/com/typeobject/wheeler/core/instruction/Instruction.java" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-core/src/main/java/com/typeobject/wheeler/core/instruction/Instruction.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wheeler-core/src/main/java/com/typeobject/wheeler/core/instruction/InstructionSet.java" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-core/src/main/java/com/typeobject/wheeler/core/instruction/InstructionSet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wheeler-core/src/main/java/com/typeobject/wheeler/core/memory/AddressSpace.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wheeler-core/src/main/java/com/typeobject/wheeler/core/memory/MemoryManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-core/src/main/java/com/typeobject/wheeler/core/memory/MemoryManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wheeler-runtime/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-runtime/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wheeler-tools/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-tools/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wheeler-tools/src/test/java/com/typeobject/wheeler/wheel/WheelerVM.java" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-tools/src/main/java/com/typeobject/wheeler/tools/wheel/WheelerVM.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wheeler-tools/src/test/java/com/typeobject/wheeler/wheelc/WheelerCompilerTool.java" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-tools/src/main/java/com/typeobject/wheeler/tools/wheelc/WheelerCompilerTool.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wheeler-tools/src/test/java/com/typeobject/wheeler/wheeldis/WheelerDissembler.java" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-tools/src/main/java/com/typeobject/wheeler/tools/wheeldis/WheelerDissembler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,6 +41,30 @@
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
     </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="wheeler" type="f1a62948:ProjectNode" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -40,6 +81,11 @@
     "kotlin-language-version-configured": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/wheeler-tools/src/main/java/com/typeobject/wheeler/tools" />
+    </key>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">

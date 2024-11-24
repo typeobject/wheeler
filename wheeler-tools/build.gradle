@@ -1,7 +1,7 @@
 dependencies {
-    implementation project(':wvm-core')
-    implementation project(':wvm-compiler')
-    implementation project(':wvm-runtime')
+    implementation project(':wheeler-core')
+    implementation project(':wheeler-compiler')
+    implementation project(':wheeler-runtime')
     implementation 'info.picocli:picocli:4.7.4'
 }
 

@@ -1,5 +1,5 @@
 dependencies {
-    implementation project(':wvm-core')
+    implementation project(':wheeler-core')
     implementation 'org.antlr:antlr4-runtime:4.13.0'
     implementation 'org.ow2.asm:asm:9.5'
 }

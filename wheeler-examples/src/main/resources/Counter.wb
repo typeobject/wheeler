@@ -1,0 +1,25 @@
+57 48 45 45 4C 00 01    // Magic number: "WHEEL\0\1"
+00 01                   // Version: 1.0
+00 0A                   // Constant pool count
+// Constant pool entries...
+00 01                   // Class: Counter
+00 02                   // Fields: count
+00 04                   // Methods: increment, decrement, get, main
+// Method increment:
+    RLOAD    0    count
+    RINC
+    RSTORE   0    count
+// Method decrement:
+    RLOAD    0    count
+    RDEC
+    RSTORE   0    count
+// Method main:
+    RNEW     Counter
+    RCALL    increment
+    RCALL    increment
+    RLOAD    0    count
+    SYSCALL  print
+    RHIST    mark    h1
+    RCALL    increment
+    RCALL    increment
+    RHIST    reverse h1
