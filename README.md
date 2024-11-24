@@ -17,8 +17,8 @@ Key features:
 
 ## Requirements
 
-- Java 17 or higher
-- Gradle 8.0 or higher
+- Java 22 or higher
+- Gradle 8.5 or higher
 
 ## Quick Start
 
@@ -39,11 +39,11 @@ Run a Wheeler program:
 
 ## Project Structure
 
-- `wvm-core`: Core virtual machine implementation
-- `wvm-compiler`: Wheeler language compiler
-- `wvm-runtime`: Runtime libraries and support
-- `wvm-tools`: Development and debugging tools
-- `wvm-examples`: Example programs and tests
+- `wheeler-core`: Core virtual machine implementation
+- `wheeler-compiler`: Wheeler language compiler
+- `wheeler-runtime`: Runtime libraries and support
+- `wheeler-tools`: Development and debugging tools
+- `wheeler-examples`: Example programs and tests
 
 ## Documentation
 
