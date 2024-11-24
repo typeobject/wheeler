@@ -57,6 +57,14 @@ public class InstructionSet {
   public static final byte HGC = (byte) 0x82;
   public static final byte HQUERY = (byte) 0x83;
 
+  public static final byte HADAMARD = (byte) 0x90;
+    public static final byte PAULIX = (byte) 0x91;
+    public static final byte PAULIY = (byte) 0x92;
+    public static final byte PAULIZ = (byte) 0x93;
+    public static final byte CNOT = (byte) 0x94;
+    public static final byte TOFFOLI = (byte) 0x95;
+    public static final byte MEASURE = (byte) 0x96;
+
   static {
     // Initialize handlers map
     // registerHandler(PUSH, new PushHandler());

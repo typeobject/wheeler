@@ -34,4 +34,10 @@ public abstract class ClassicalType extends Type {
   public boolean isClassical() {
     return true;
   }
+
+  public abstract boolean isNumeric();
+
+  public abstract boolean isIntegral();
+
+  public abstract boolean isBoolean();
 }

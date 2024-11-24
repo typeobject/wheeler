@@ -103,7 +103,7 @@ public class WheelerCompiler {
   private boolean generateCode(CompilationUnit ast) {
     try {
       // Generate bytecode
-      BytecodeGenerator generator = new BytecodeGenerator(options);
+      BytecodeGenerator generator = new BytecodeGenerator(options, errorReporter);
       byte[] bytecode = generator.generate(ast);
 
       // Write class file

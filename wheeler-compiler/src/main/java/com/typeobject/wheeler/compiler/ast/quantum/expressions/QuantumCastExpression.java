@@ -28,6 +28,6 @@ public final class QuantumCastExpression extends QubitExpression {
 
     @Override
     public <T> T accept(NodeVisitor<T> visitor) {
-        return visitor.visitQuantumCast(this);
+        return visitor.visitQuantumCastExpression(this);
     }
 }
