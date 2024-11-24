@@ -5,50 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="72d83d44-56a6-4135-a1ad-865d108c0a5b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/antlr/grammer/WheelerParser.g4" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/ASTBuilder.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/Node.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/NodeVisitor.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/Position.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/base/Declaration.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/base/Expression.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/base/Statement.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/base/Type.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/classical/Block.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/classical/declarations/ClassDeclaration.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/classical/declarations/MethodDeclaration.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/classical/types/ClassicalType.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/hybrid/HybridBlock.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/memory/CleanBlock.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/memory/UncomputeBlock.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/quantum/declarations/Parameter.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/quantum/declarations/Reversible.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/quantum/expressions/QubitExpression.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/quantum/expressions/QubitReference.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/quantum/expressions/StateExpression.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/quantum/expressions/TensorProduct.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/quantum/gates/GateType.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/quantum/gates/QuantumGate.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/quantum/gates/StandardGate.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/quantum/statements/Measurable.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/quantum/statements/QuantumBlock.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/quantum/statements/QuantumGateApplication.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/quantum/statements/QuantumIfStatement.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/quantum/statements/QuantumMeasurement.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/quantum/statements/QuantumStatePreparation.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/quantum/statements/QuantumStatement.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/quantum/statements/QuantumWhileStatement.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/quantum/types/QuantumType.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/quantum/types/QuantumTypeKind.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/visitors/TypeCheckingVisitor.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/test/java/com/typeobject/wheeler/compiler/ast/ASTTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-compiler/src/test/java/com/typeobject/wheeler/compiler/ast/TestUtils.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-examples/src/main/wheeler/BinaryTree.w" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-examples/src/main/wheeler/QFT.w" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-examples/src/main/wheeler/QuantumNeuralNetwork.w" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-examples/src/main/wheeler/QuantumOptimizer.w" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wheeler-examples/src/main/wheeler/SurfaceCode.w" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/WheelerCompiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/WheelerCompiler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

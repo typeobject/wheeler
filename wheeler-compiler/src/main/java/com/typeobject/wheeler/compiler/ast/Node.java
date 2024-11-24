@@ -8,7 +8,8 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 
 // Base Node
-public abstract sealed class Node permits Declaration, Expression, Statement, Type {
+public abstract sealed class Node
+    permits CompilationUnit, Declaration, Expression, Statement, Type {
 
   private final Position position;
   private final List<Annotation> annotations;
