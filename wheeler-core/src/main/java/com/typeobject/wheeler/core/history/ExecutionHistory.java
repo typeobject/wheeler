@@ -90,6 +90,7 @@ public class ExecutionHistory {
       this.timestamp = System.nanoTime();
     }
 
+    @SuppressWarnings("unused")
     public long getTimestamp() {
       return timestamp;
     }

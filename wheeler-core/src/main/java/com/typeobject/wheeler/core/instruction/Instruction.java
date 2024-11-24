@@ -1,6 +1,8 @@
 package com.typeobject.wheeler.core.instruction;
 
 import com.typeobject.wheeler.core.exceptions.InvalidInstructionException;
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import java.util.Objects;
 
 /**
@@ -130,15 +132,15 @@ public class Instruction {
   }
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(@Nullable Object o) {
     if (this == o) return true;
     if (!(o instanceof Instruction)) return false;
     Instruction that = (Instruction) o;
     return opcode == that.opcode
-        && flags == that.flags
-        && registers == that.registers
-        && operand == that.operand
-        && history == that.history;
+            && flags == that.flags
+            && registers == that.registers
+            && operand == that.operand
+            && history == that.history;
   }
 
   @Override

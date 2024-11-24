@@ -1,26 +1,27 @@
 // WheelerThreadState.java
 package com.typeobject.wheeler.core.thread;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Stack;
 
 public class WheelerThreadState implements Cloneable {
   private final long id;
   private final long pc;
-  private final Stack<Long> stack;
-  private final Stack<Long> historyStack;
+  private final Deque<Long> stack;
+  private final Deque<Long> historyStack;
   private final Map<Long, Long> localStorage;
   private final WheelerThreadStatus status;
 
   public WheelerThreadState(WheelerThread thread) {
     this.id = thread.getId();
     this.pc = thread.getPc();
-    this.stack = new Stack<>();
-    this.stack.addAll(thread.getStack());
-    this.historyStack = new Stack<>();
-    this.historyStack.addAll(thread.getHistoryStack());
+    this.stack = new ArrayDeque<>(thread.getStack());
+    this.historyStack = new ArrayDeque<>(thread.getHistoryStack());
     this.localStorage = new HashMap<>(thread.getLocalStorage());
     this.status = thread.getStatus();
   }
@@ -28,8 +29,8 @@ public class WheelerThreadState implements Cloneable {
   private WheelerThreadState(
           long id,
           long pc,
-          Stack<Long> stack,
-          Stack<Long> historyStack,
+          Deque<Long> stack,
+          Deque<Long> historyStack,
           Map<Long, Long> localStorage,
           WheelerThreadStatus status) {
     this.id = id;
@@ -48,11 +49,11 @@ public class WheelerThreadState implements Cloneable {
     return pc;
   }
 
-  public Stack<Long> getStack() {
+  public Deque<Long> getStack() {
     return stack;
   }
 
-  public Stack<Long> getHistoryStack() {
+  public Deque<Long> getHistoryStack() {
     return historyStack;
   }
 
@@ -66,17 +67,15 @@ public class WheelerThreadState implements Cloneable {
 
   @Override
   public WheelerThreadState clone() {
-    Stack<Long> stackCopy = new Stack<>();
-    stackCopy.addAll(stack);
-    Stack<Long> historyStackCopy = new Stack<>();
-    historyStackCopy.addAll(historyStack);
+    Deque<Long> stackCopy = new ArrayDeque<>(stack);
+    Deque<Long> historyStackCopy = new ArrayDeque<>(historyStack);
     Map<Long, Long> localStorageCopy = new HashMap<>(localStorage);
 
     return new WheelerThreadState(id, pc, stackCopy, historyStackCopy, localStorageCopy, status);
   }
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(@Nullable Object o) {
     if (this == o) return true;
     if (!(o instanceof WheelerThreadState)) return false;
     WheelerThreadState that = (WheelerThreadState) o;

@@ -3,15 +3,16 @@ package com.typeobject.wheeler.core.thread;
 
 import com.typeobject.wheeler.core.instruction.Instruction;
 import com.typeobject.wheeler.core.memory.MemoryManager;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Stack;
 
 public class WheelerThread {
   private final long id;
   private long pc;
-  private final Stack<Long> stack;
-  private final Stack<Long> historyStack;
+  private final Deque<Long> stack;
+  private final Deque<Long> historyStack;
   private final Map<Long, Long> localStorage;
   private WheelerThreadStatus status;
   private final MemoryManager memory;
@@ -19,8 +20,8 @@ public class WheelerThread {
   public WheelerThread(long id, MemoryManager memory) {
     this.id = id;
     this.pc = 0;
-    this.stack = new Stack<>();
-    this.historyStack = new Stack<>();
+    this.stack = new ArrayDeque<>();
+    this.historyStack = new ArrayDeque<>();
     this.localStorage = new HashMap<>();
     this.status = WheelerThreadStatus.RUNNING;
     this.memory = memory;
@@ -34,11 +35,11 @@ public class WheelerThread {
     return pc;
   }
 
-  public Stack<Long> getStack() {
+  public Deque<Long> getStack() {
     return stack;
   }
 
-  public Stack<Long> getHistoryStack() {
+  public Deque<Long> getHistoryStack() {
     return historyStack;
   }
 
@@ -59,7 +60,6 @@ public class WheelerThread {
   }
 
   public Instruction fetchInstruction() {
-    // Read instruction bytes from memory at PC
     byte[] instructionBytes = new byte[Instruction.SIZE];
     for (int i = 0; i < Instruction.SIZE; i++) {
       instructionBytes[i] = (byte) (memory.readWord(pc + i/8) >> ((7 - i%8) * 8));
