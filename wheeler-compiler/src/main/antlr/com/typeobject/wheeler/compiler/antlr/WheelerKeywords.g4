@@ -1,5 +1,9 @@
 lexer grammar WheelerKeywords;
 
+@header {
+package com.typeobject.wheeler.compiler.antlr;
+}
+
 // Program structure
 PACKAGE: 'package';
 IMPORT: 'import';

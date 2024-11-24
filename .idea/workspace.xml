@@ -5,7 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="72d83d44-56a6-4135-a1ad-865d108c0a5b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/WheelerCompiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/WheelerCompiler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wheeler-compiler/src/main/antlr/grammer/WheelerKeywords.g4" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/antlr/com/typeobject/wheeler/compiler/antlr/WheelerKeywords.g4" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wheeler-compiler/src/main/antlr/grammer/WheelerLexer.g4" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/antlr/com/typeobject/wheeler/compiler/antlr/WheelerLexer.g4" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wheeler-compiler/src/main/antlr/grammer/WheelerOperators.g4" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/antlr/com/typeobject/wheeler/compiler/antlr/WheelerOperators.g4" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wheeler-compiler/src/main/antlr/grammer/WheelerParser.g4" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/antlr/com/typeobject/wheeler/compiler/antlr/WheelerParser.g4" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wheeler-compiler/src/main/antlr/grammer/WheelerTypes.g4" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/antlr/com/typeobject/wheeler/compiler/antlr/WheelerTypes.g4" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,20 +51,26 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 2
+}</component>
+  <component name="ProjectId" id="2ozxDcy78qoNaKpXzYkhFUwGbS0" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
-    "kotlin-language-version-configured": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/wheeler-compiler/src/main/antlr/com/typeobject/wheeler/compiler/antlr" />
       <recent name="$PROJECT_DIR$/wheeler-compiler/src/main/antlr/grammer" />
       <recent name="$PROJECT_DIR$/wheeler-tools/src/main/java/com/typeobject/wheeler/tools" />
     </key>

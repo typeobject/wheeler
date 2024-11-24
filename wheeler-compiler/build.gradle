@@ -1,11 +1,49 @@
-dependencies {
-    implementation project(':wheeler-core')
-    implementation 'org.antlr:antlr4-runtime:4.13.0'
-    implementation 'org.ow2.asm:asm:9.5'
-}
+project(':wheeler-compiler') {
+    configurations {
+        antlrGenerator
+    }
 
-tasks.register('generateParser', JavaExec) {
-    mainClass = 'org.antlr.v4.Tool'
-    args = ['-o', 'src/main/java/com/typeobject/wheeler/compiler/parser',
-            'src/main/antlr/Wheeler.g4']
+    dependencies {
+        antlr 'org.antlr:antlr4:4.13.1'
+        implementation project(':wheeler-core')
+    }
+
+    generateGrammarSource {
+        maxHeapSize = "64m"
+        arguments += ['-visitor', '-package', 'com.typeobject.wheeler.compiler.antlr']
+        outputDirectory = file("${buildDir}/generated-src/antlr/main/com/typeobject/wheeler/compiler/antlr")
+        source = fileTree("${projectDir}/src/main/antlr") {
+            include "**/*.g4"
+        }
+    }
+
+    sourceSets {
+        main {
+            java {
+                srcDirs += [
+                    "${buildDir}/generated-src/antlr/main"
+                ]
+            }
+        }
+    }
+
+    // Ensure ANTLR files are generated before compilation
+    compileJava.dependsOn generateGrammarSource
+
+    // Exclude generated ANTLR files from code quality checks
+    tasks.withType(JavaCompile).configureEach {
+        options.errorprone.excludedPaths = '.*/generated-src/.*'
+    }
+
+    spotless {
+        java {
+            targetExclude 'build/**', '**/generated-src/**'
+        }
+    }
+
+    checkerFramework {
+        extraJavacArgs += [
+            '-AskipDefs=^com\\.typeobject\\.wheeler\\.compiler\\.antlr\\.'
+        ]
+    }
 }

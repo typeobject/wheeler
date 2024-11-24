@@ -2,6 +2,11 @@ lexer grammar WheelerLexer;
 
 import WheelerKeywords, WheelerOperators, WheelerTypes;
 
+
+@header {
+package com.typeobject.wheeler.compiler.antlr;
+}
+
 // Whitespace and comments
 WS: [ \t\r\n\u000C]+ -> skip;
 LINE_COMMENT: '//' ~[\r\n]* -> skip;

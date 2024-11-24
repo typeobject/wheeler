@@ -1,9 +1,13 @@
 plugins {
-    id 'com.diffplug.spotless' version '6.25.0' apply false
     id 'net.ltgt.errorprone' version '3.1.0' apply false
+    id 'com.diffplug.spotless' version '6.25.0' apply false
+    id 'org.checkerframework' version '0.6.37' apply false
 }
 
 allprojects {
+    group = 'com.typeobject.wheeler'
+    version = '0.1.0-SNAPSHOT'
+
     repositories {
         mavenCentral()
     }
@@ -11,32 +15,23 @@ allprojects {
 
 subprojects {
     apply plugin: 'java'
-    apply plugin: 'com.diffplug.spotless'
+    apply plugin: 'antlr'
     apply plugin: 'net.ltgt.errorprone'
-
-    group = 'com.typeobject.wheeler'
-    version = '0.1.0-SNAPSHOT'
+    apply plugin: 'com.diffplug.spotless'
+    apply plugin: 'org.checkerframework'
 
     java {
         toolchain {
-            languageVersion = JavaLanguageVersion.of(22)
+            languageVersion = JavaLanguageVersion.of(21)
         }
     }
 
     dependencies {
         annotationProcessor 'org.checkerframework:checker:3.42.0'
-        compileOnly 'org.checkerframework:checker-qual:3.42.0'
-        
         errorprone 'com.google.errorprone:error_prone_core:2.24.1'
-        errorproneJavac 'com.google.errorprone:javac:9+'
-    }
-
-    spotless {
-        java {
-            importOrder()
-            removeUnusedImports()
-            googleJavaFormat()
-        }
+        
+        testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     }
 
     tasks.withType(JavaCompile).configureEach {
@@ -44,13 +39,23 @@ subprojects {
         options.errorprone {
             disableWarningsInGeneratedCode = true
         }
-        options.compilerArgs += [
-            '-Xmaxwarns', '10000',
-            '-Xmaxerrs', '10000',
-            '-Werror',
-            '-Xlint:unchecked',
-            '-Xlint:deprecation',
-            '-processor', 'org.checkerframework.checker.nullness.NullnessChecker'
+    }
+
+    spotless {
+        java {
+            targetExclude 'build/**'
+            importOrder()
+            removeUnusedImports()
+            googleJavaFormat()
+        }
+    }
+
+    checkerFramework {
+        checkers = [
+            'org.checkerframework.checker.nullness.NullnessChecker'
+        ]
+        extraJavacArgs = [
+            '-AskipDefs=^build/'
         ]
     }
 

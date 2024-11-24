@@ -1,5 +1,9 @@
 parser grammar WheelerParser;
 
+@header {
+package com.typeobject.wheeler.compiler.antlr;
+}
+
 options { tokenVocab=WheelerLexer; }
 
 // Top Level Structure
