@@ -1,25 +1,26 @@
+// QuantumType.java
 package com.typeobject.wheeler.compiler.ast.quantum.types;
 
-import com.typeobject.wheeler.compiler.ast.QuantumTypeKind;
-import com.typeobject.wheeler.compiler.ast.base.Type;
 import java.util.List;
+import com.typeobject.wheeler.compiler.ast.Position;
+import com.typeobject.wheeler.compiler.ast.Annotation;
+import com.typeobject.wheeler.compiler.ast.base.Type;
+import com.typeobject.wheeler.compiler.ast.NodeVisitor;
 
 public final class QuantumType extends Type {
-  private final QuantumTypeKind kind; // QUBIT, QUREG, STATE, ORACLE
-  private final List<Type> typeArguments;
+  private final QuantumTypeKind kind;
 
-  @Override
-  public boolean isQuantum() {
-    return true;
+  public QuantumType(Position position, List<Annotation> annotations, QuantumTypeKind kind) {
+    super(position, annotations);
+    this.kind = kind;
+  }
+
+  public QuantumTypeKind getKind() {
+    return kind;
   }
 
   @Override
-  public boolean isClassical() {
-    return false;
-  }
-
-  @Override
-  public boolean isHybrid() {
-    return false;
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitQuantumType(this);
   }
 }

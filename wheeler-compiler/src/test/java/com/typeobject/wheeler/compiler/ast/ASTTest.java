@@ -2,7 +2,20 @@ package com.typeobject.wheeler.compiler.ast;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.typeobject.wheeler.compiler.ast.base.Type;
+import com.typeobject.wheeler.compiler.ast.classical.declarations.MethodDeclaration;
+import com.typeobject.wheeler.compiler.ast.classical.types.ClassicalType;
+import com.typeobject.wheeler.compiler.ast.hybrid.HybridBlock;
+import com.typeobject.wheeler.compiler.ast.memory.UncomputeBlock;
+import com.typeobject.wheeler.compiler.ast.quantum.declarations.Parameter;
+import com.typeobject.wheeler.compiler.ast.quantum.expressions.QubitReference;
+import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumBlock;
+import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumGateApplication;
+import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumMeasurement;
+import com.typeobject.wheeler.compiler.ast.visitors.TypeCheckingVisitor;
 import org.junit.jupiter.api.*;
+
+import java.util.List;
 
 @DisplayName("AST Construction and Validation")
 class ASTTest {
@@ -21,7 +34,7 @@ class ASTTest {
     @Test
     @DisplayName("Should create a simple class declaration")
     void testClassDeclaration() {
-      ClassDeclaration classDecl =
+      ASTBuilder.ClassDeclaration classDecl =
           builder
               .classDeclaration("MyClass")
               .addModifier(Modifier.PUBLIC)

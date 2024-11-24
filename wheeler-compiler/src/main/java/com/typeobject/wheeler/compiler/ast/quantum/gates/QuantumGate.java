@@ -1,18 +1,29 @@
+
+// QuantumGate.java
 package com.typeobject.wheeler.compiler.ast.quantum.gates;
 
-public abstract sealed class QuantumGate permits StandardGate, CustomGate {
+import java.util.List;
+import com.typeobject.wheeler.compiler.ast.quantum.expressions.QubitExpression;
 
-  private final String name;
-  private final int arity;
-  private final boolean isParameterized;
+public abstract sealed class QuantumGate
+        permits StandardGate {
 
-  protected QuantumGate(String name, int arity, boolean isParameterized) {
-    this.name = name;
-    this.arity = arity;
-    this.isParameterized = isParameterized;
+  private final GateType type;
+  private final int numQubits;
+
+  protected QuantumGate(GateType type, int numQubits) {
+    this.type = type;
+    this.numQubits = numQubits;
+  }
+
+  public GateType getType() {
+    return type;
+  }
+
+  public int getNumQubits() {
+    return numQubits;
   }
 
   public abstract void validate(List<QubitExpression> targets);
-
   public abstract String toQASM();
 }

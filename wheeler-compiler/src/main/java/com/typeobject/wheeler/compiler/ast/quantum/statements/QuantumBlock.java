@@ -1,14 +1,24 @@
+// QuantumBlock.java
 package com.typeobject.wheeler.compiler.ast.quantum.statements;
 
+import java.util.List;
+import java.util.ArrayList;
+import com.typeobject.wheeler.compiler.ast.Position;
+import com.typeobject.wheeler.compiler.ast.Annotation;
+import com.typeobject.wheeler.compiler.ast.NodeVisitor;
 import com.typeobject.wheeler.compiler.ast.base.Statement;
-import com.typeobject.wheeler.compiler.ast.visitors.NodeVisitor;
 
-public final class QuantumBlock extends Statement {
+public final class QuantumBlock extends QuantumStatement {
   private final List<Statement> statements;
 
-  public QuantumBlock(Position position, List<Annotation> annotations, List<Statement> statements) {
+  public QuantumBlock(Position position, List<Annotation> annotations,
+                      List<Statement> statements) {
     super(position, annotations);
-    this.statements = statements;
+    this.statements = statements != null ? statements : new ArrayList<>();
+  }
+
+  public List<Statement> getStatements() {
+    return statements;
   }
 
   @Override
@@ -25,8 +35,8 @@ public final class QuantumBlock extends Statement {
       this.position = position;
     }
 
-    public Builder addStatement(Statement stmt) {
-      statements.add(stmt);
+    public Builder addStatement(Statement statement) {
+      statements.add(statement);
       return this;
     }
 

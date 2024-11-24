@@ -1,12 +1,20 @@
 package com.typeobject.wheeler.compiler;
 
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.tree.ParseTree;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.typeobject.wheeler.compiler.analysis.FlowAnalyzer;
+import com.typeobject.wheeler.compiler.analysis.TypeChecker;
+import com.typeobject.wheeler.compiler.antlr.WheelerLexer;
+import com.typeobject.wheeler.compiler.antlr.WheelerParser;
 import com.typeobject.wheeler.compiler.ast.ASTBuilder;
 import com.typeobject.wheeler.compiler.ast.CompilationUnit;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.List;
-import org.antlr.v4.runtime.*;
+import com.typeobject.wheeler.compiler.bytecode.BytecodeGenerator;
+import com.typeobject.wheeler.compiler.bytecode.ClassWriter;
 
 public class WheelerCompiler {
   private final CompilerOptions options;
@@ -17,53 +25,114 @@ public class WheelerCompiler {
     this.errorReporter = new ErrorReporter();
   }
 
-  public boolean compile(List<File> sourceFiles) {
-    boolean success = true;
-
-    for (File source : sourceFiles) {
-      try {
-        String sourceText = Files.readString(source.toPath());
-        CompilationUnit ast = parseSource(source.getName(), sourceText);
-
-        if (ast != null) {
-          printAST(ast);
-        } else {
-          success = false;
-        }
-      } catch (IOException e) {
-        errorReporter.reportError("Error reading file: " + source.getName());
-        success = false;
+  public boolean compile(String source, String fileName) {
+    try {
+      // 1. Lexical and Syntax Analysis
+      CompilationUnit ast = parse(source, fileName);
+      if (errorReporter.hasErrors()) {
+        return false;
       }
-    }
 
-    return success;
+      // 2. Semantic Analysis
+      if (!performSemanticAnalysis(ast)) {
+        return false;
+      }
+
+      // 3. Code Generation
+      if (!generateCode(ast)) {
+        return false;
+      }
+
+      return !errorReporter.hasErrors();
+    } catch (Exception e) {
+      errorReporter.report("Internal compiler error: " + e.getMessage(), null);
+      if (options.isDebugMode()) {
+        e.printStackTrace();
+      }
+      return false;
+    }
   }
 
-  private CompilationUnit parseSource(String fileName, String source) {
+  private CompilationUnit parse(String source, String fileName) {
+    // Create char stream from input
     CharStream input = CharStreams.fromString(source);
-    WheelerLexer lexer = new WheelerLexer(input);
-    CommonTokenStream tokens = new CommonTokenStream(lexer);
-    WheelerParser parser = new WheelerParser(tokens);
 
-    // Set error handlers
+    // Create lexer
+    WheelerLexer lexer = new WheelerLexer(input);
     lexer.removeErrorListeners();
     lexer.addErrorListener(new CompilerErrorListener(errorReporter));
+
+    // Create token stream
+    CommonTokenStream tokens = new CommonTokenStream(lexer);
+
+    // Create parser
+    WheelerParser parser = new WheelerParser(tokens);
     parser.removeErrorListeners();
     parser.addErrorListener(new CompilerErrorListener(errorReporter));
 
-    // Parse and build AST
-    WheelerParser.CompilationUnitContext tree = parser.compilationUnit();
+    // Parse the input
+    WheelerParser.CompilationUnitContext parseTree = parser.compilationUnit();
+
     if (errorReporter.hasErrors()) {
       return null;
     }
 
-    // Convert parse tree to AST
-    ASTBuilder builder = new ASTBuilder(fileName, errorReporter);
-    return builder.visitCompilationUnit(tree);
+    // Build AST
+    ASTBuilder builder = new ASTBuilder(Path.of(fileName), errorReporter);
+    return builder.buildCompilationUnit(parseTree);
   }
 
+  private boolean performSemanticAnalysis(CompilationUnit ast) {
+    // Type checking
+    TypeChecker typeChecker = new TypeChecker(errorReporter);
+    typeChecker.check(ast);
+    if (errorReporter.hasErrors()) {
+      return false;
+    }
+
+    // Control flow analysis
+    FlowAnalyzer flowAnalyzer = new FlowAnalyzer(errorReporter);
+    flowAnalyzer.analyze(ast);
+    if (errorReporter.hasErrors()) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private boolean generateCode(CompilationUnit ast) {
+    try {
+      // Generate bytecode
+      BytecodeGenerator generator = new BytecodeGenerator(options);
+      byte[] bytecode = generator.generate(ast);
+
+      // Write class file
+      ClassWriter writer = new ClassWriter(options.getOutputPath());
+      writer.writeClass(ast.getPackage(), ast.getDeclarations().get(0).getName(), bytecode);
+
+      return true;
+    } catch (IOException e) {
+      errorReporter.report("Failed to write class file: " + e.getMessage(), null);
+      return false;
+    } catch (Exception e) {
+      errorReporter.report("Code generation error: " + e.getMessage(), null);
+      return false;
+    }
+  }
+
+  public List<CompilerError> getErrors() {
+    return errorReporter.getErrors();
+  }
+
+  public List<CompilerError> getWarnings() {
+    return errorReporter.getWarnings();
+  }
+
+  // Helper method to print the AST (useful for debugging)
   private void printAST(CompilationUnit ast) {
-    ASTPrinter printer = new ASTPrinter();
-    System.out.println(printer.print(ast));
+    if (options.isPrintAST()) {
+      ASTPrinter printer = new ASTPrinter();
+      System.out.println(printer.print(ast));
+    }
   }
 }

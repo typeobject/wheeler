@@ -1,12 +1,29 @@
+// Type.java
 package com.typeobject.wheeler.compiler.ast.base;
 
+import java.util.List;
 import com.typeobject.wheeler.compiler.ast.Node;
+import com.typeobject.wheeler.compiler.ast.Position;
+import com.typeobject.wheeler.compiler.ast.Annotation;
+import com.typeobject.wheeler.compiler.ast.classical.types.ClassicalType;
+import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumType;
 
-// Type System
-public abstract sealed class Type extends Node {
-  public abstract boolean isQuantum();
+public abstract sealed class Type extends Node
+        permits ClassicalType, QuantumType {
 
-  public abstract boolean isClassical();
+  protected Type(Position position, List<Annotation> annotations) {
+    super(position, annotations);
+  }
 
-  public abstract boolean isHybrid();
+  public boolean isQubit() {
+    return false;
+  }
+
+  public boolean isQuantum() {
+    return false;
+  }
+
+  public boolean isClassical() {
+    return false;
+  }
 }

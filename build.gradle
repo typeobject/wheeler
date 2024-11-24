@@ -46,7 +46,6 @@ subprojects {
             targetExclude 'build/**'
             importOrder()
             removeUnusedImports()
-            googleJavaFormat()
         }
     }
 

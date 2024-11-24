@@ -1,10 +1,26 @@
+// Position.java
 package com.typeobject.wheeler.compiler.ast;
 
-public record Position(String sourceFile, int line, int column) {
-  public static final Position UNKNOWN = new Position("<unknown>", 0, 0);
+public class Position {
+  private final int line;
+  private final int column;
+  private final String source;
 
-  @Override
-  public String toString() {
-    return String.format("%s:%d:%d", sourceFile, line, column);
+  public Position(int line, int column, String source) {
+    this.line = line;
+    this.column = column;
+    this.source = source;
+  }
+
+  public int getLine() {
+    return line;
+  }
+
+  public int getColumn() {
+    return column;
+  }
+
+  public String getSource() {
+    return source;
   }
 }

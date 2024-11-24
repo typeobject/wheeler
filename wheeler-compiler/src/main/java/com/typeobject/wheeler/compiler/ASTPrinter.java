@@ -1,5 +1,13 @@
 package com.typeobject.wheeler.compiler;
 
+import com.typeobject.wheeler.compiler.ast.CompilationUnit;
+import com.typeobject.wheeler.compiler.ast.Node;
+import com.typeobject.wheeler.compiler.ast.NodeVisitor;
+import com.typeobject.wheeler.compiler.ast.base.Declaration;
+import com.typeobject.wheeler.compiler.ast.base.Statement;
+import com.typeobject.wheeler.compiler.ast.classical.declarations.ClassDeclaration;
+import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumBlock;
+
 public class ASTPrinter implements NodeVisitor<String> {
   private int indentLevel = 0;
 
