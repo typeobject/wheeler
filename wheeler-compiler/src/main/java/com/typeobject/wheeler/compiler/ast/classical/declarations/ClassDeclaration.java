@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.compiler.ast.classical.declarations;
 
+import com.typeobject.wheeler.compiler.ast.ComputationType;
 import com.typeobject.wheeler.compiler.ast.base.Declaration;
 import com.typeobject.wheeler.compiler.ast.base.Type;
 import java.util.List;

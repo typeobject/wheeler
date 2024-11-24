@@ -1,4 +1,3 @@
-// QuantumStatement.java
 package com.typeobject.wheeler.compiler.ast.quantum.statements;
 
 import java.util.List;

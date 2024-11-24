@@ -1,4 +1,3 @@
-// QubitExpression.java
 package com.typeobject.wheeler.compiler.ast.quantum.expressions;
 
 import java.util.List;

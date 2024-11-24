@@ -1,14 +1,11 @@
 package com.typeobject.wheeler.compiler.ast;
 
 import com.typeobject.wheeler.compiler.ast.classical.Block;
-import com.typeobject.wheeler.compiler.ast.classical.declarations.ClassDeclaration;
-import com.typeobject.wheeler.compiler.ast.classical.declarations.MethodDeclaration;
-import com.typeobject.wheeler.compiler.ast.classical.statements.IfStatement;
-import com.typeobject.wheeler.compiler.ast.classical.statements.WhileStatement;
-import com.typeobject.wheeler.compiler.ast.classical.statements.ReturnStatement;
-import com.typeobject.wheeler.compiler.ast.classical.statements.VariableDeclaration;
+import com.typeobject.wheeler.compiler.ast.classical.declarations.*;
+import com.typeobject.wheeler.compiler.ast.classical.statements.*;
 import com.typeobject.wheeler.compiler.ast.classical.expressions.*;
 import com.typeobject.wheeler.compiler.ast.classical.types.*;
+import com.typeobject.wheeler.compiler.ast.hybrid.*;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.*;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.*;
 import com.typeobject.wheeler.compiler.ast.quantum.types.*;
