@@ -10,11 +10,9 @@ project(':wheeler-compiler') {
 
     generateGrammarSource {
         maxHeapSize = "64m"
-        arguments += ['-visitor', '-package', 'com.typeobject.wheeler.compiler.antlr']
-        outputDirectory = file("${buildDir}/generated-src/antlr/main/com/typeobject/wheeler/compiler/antlr")
-        source = fileTree("${projectDir}/src/main/antlr") {
-            include "**/*.g4"
-        }
+        arguments += ['-visitor',
+            '-package', 'com.typeobject.wheeler.compiler.antlr',
+            '-lib', 'src/main/antlr/com/typeobject/wheeler/compiler/antlr']
     }
 
     sourceSets {
