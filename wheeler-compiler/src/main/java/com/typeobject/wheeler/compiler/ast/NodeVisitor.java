@@ -6,6 +6,7 @@ import com.typeobject.wheeler.compiler.ast.classical.statements.*;
 import com.typeobject.wheeler.compiler.ast.classical.expressions.*;
 import com.typeobject.wheeler.compiler.ast.classical.types.*;
 import com.typeobject.wheeler.compiler.ast.hybrid.*;
+import com.typeobject.wheeler.compiler.ast.quantum.declarations.Parameter;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.*;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.*;
 import com.typeobject.wheeler.compiler.ast.quantum.types.*;
