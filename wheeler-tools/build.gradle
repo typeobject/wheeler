@@ -1,0 +1,14 @@
+dependencies {
+    implementation project(':wvm-core')
+    implementation project(':wvm-compiler')
+    implementation project(':wvm-runtime')
+    implementation 'info.picocli:picocli:4.7.4'
+}
+
+tasks.register('wheelc', JavaExec) {
+    mainClass = 'com.typeobject.wheeler.tools.wheelc.WheelerCompilerTool'
+}
+
+tasks.register('wheel', JavaExec) {
+    mainClass = 'com.typeobject.wheeler.tools.wheel.WheelerVM'
+}

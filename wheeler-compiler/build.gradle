@@ -1,0 +1,11 @@
+dependencies {
+    implementation project(':wvm-core')
+    implementation 'org.antlr:antlr4-runtime:4.13.0'
+    implementation 'org.ow2.asm:asm:9.5'
+}
+
+tasks.register('generateParser', JavaExec) {
+    mainClass = 'org.antlr.v4.Tool'
+    args = ['-o', 'src/main/java/com/typeobject/wheeler/compiler/parser',
+            'src/main/antlr/Wheeler.g4']
+}

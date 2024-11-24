@@ -1,0 +1,7 @@
+rootProject.name = 'wheeler'
+
+include 'wheeler-core'
+include 'wheeler-compiler'
+include 'wheeler-runtime'
+include 'wheeler-tools'
+include 'wheeler-examples'
