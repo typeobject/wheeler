@@ -1,9 +1,5 @@
 lexer grammar WheelerTypes;
 
-@header {
-package com.typeobject.wheeler.compiler.antlr;
-}
-
 // Classical primitive types
 BOOLEAN_T: 'boolean';
 BYTE_T: 'byte';

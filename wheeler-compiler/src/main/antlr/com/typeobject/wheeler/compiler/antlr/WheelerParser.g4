@@ -2,10 +2,6 @@ parser grammar WheelerParser;
 
 options { tokenVocab=WheelerLexer; }
 
-@header {
-package com.typeobject.wheeler.compiler.antlr;
-}
-
 // Top Level Structure
 compilationUnit
     : packageDeclaration?

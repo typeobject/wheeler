@@ -1,9 +1,5 @@
 lexer grammar WheelerOperators;
 
-@header {
-package com.typeobject.wheeler.compiler.antlr;
-}
-
 // Separators
 LPAREN: '(';
 RPAREN: ')';

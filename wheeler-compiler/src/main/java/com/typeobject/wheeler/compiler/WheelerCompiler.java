@@ -1,5 +1,7 @@
 package com.typeobject.wheeler.compiler;
 
+import com.typeobject.wheeler.compiler.antlr.WheelerLexer;
+import com.typeobject.wheeler.compiler.antlr.WheelerParser;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 import java.io.IOException;
