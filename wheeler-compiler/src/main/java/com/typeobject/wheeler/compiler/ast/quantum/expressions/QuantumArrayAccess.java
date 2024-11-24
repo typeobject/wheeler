@@ -5,6 +5,8 @@ import com.typeobject.wheeler.compiler.ast.Annotation;
 import com.typeobject.wheeler.compiler.ast.NodeVisitor;
 import com.typeobject.wheeler.compiler.ast.base.Expression;
 
+import java.util.List;
+
 public final class QuantumArrayAccess extends QubitExpression {
     private final Expression array;
     private final Expression index;

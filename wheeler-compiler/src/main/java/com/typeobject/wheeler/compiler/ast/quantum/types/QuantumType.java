@@ -7,7 +7,7 @@ import com.typeobject.wheeler.compiler.ast.Annotation;
 import com.typeobject.wheeler.compiler.ast.base.Type;
 import com.typeobject.wheeler.compiler.ast.NodeVisitor;
 
-public final class QuantumType extends Type {
+public class QuantumType extends Type {
   private final QuantumTypeKind kind;
 
   public QuantumType(Position position, List<Annotation> annotations, QuantumTypeKind kind) {

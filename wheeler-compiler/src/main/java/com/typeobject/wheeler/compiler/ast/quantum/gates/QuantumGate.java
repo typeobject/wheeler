@@ -1,13 +1,9 @@
-
-// QuantumGate.java
 package com.typeobject.wheeler.compiler.ast.quantum.gates;
 
 import java.util.List;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QubitExpression;
 
-public abstract sealed class QuantumGate
-        permits StandardGate {
-
+public abstract class QuantumGate {
   private final GateType type;
   private final int numQubits;
 

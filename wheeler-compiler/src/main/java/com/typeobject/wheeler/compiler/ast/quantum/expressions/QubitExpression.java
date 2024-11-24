@@ -5,9 +5,7 @@ import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.Annotation;
 import com.typeobject.wheeler.compiler.ast.base.Expression;
 
-public abstract sealed class QubitExpression extends Expression
-        permits QubitReference, TensorProduct {
-
+public abstract class QubitExpression extends Expression {
   protected QubitExpression(Position position, List<Annotation> annotations) {
     super(position, annotations);
   }

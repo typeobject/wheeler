@@ -1,4 +1,3 @@
-// Block.java
 package com.typeobject.wheeler.compiler.ast.classical;
 
 import java.util.List;
@@ -8,7 +7,7 @@ import com.typeobject.wheeler.compiler.ast.Annotation;
 import com.typeobject.wheeler.compiler.ast.base.Statement;
 import com.typeobject.wheeler.compiler.ast.NodeVisitor;
 
-public non-sealed class Block extends Statement {
+public class Block extends Statement {
   private final List<Statement> statements;
 
   public Block(Position position, List<Annotation> annotations, List<Statement> statements) {

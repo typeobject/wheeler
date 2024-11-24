@@ -1,17 +1,12 @@
-// Node.java
 package com.typeobject.wheeler.compiler.ast;
 
-import com.typeobject.wheeler.compiler.ast.base.Declaration;
-import com.typeobject.wheeler.compiler.ast.base.Expression;
-import com.typeobject.wheeler.compiler.ast.base.Statement;
-import com.typeobject.wheeler.compiler.ast.base.Type;
-
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
-public abstract sealed class Node
-        permits CompilationUnit, Declaration, Expression, Statement, Type {
-
+/**
+ * Base class for all AST nodes.
+ */
+public abstract class Node {
   private final Position position;
   private final List<Annotation> annotations;
 

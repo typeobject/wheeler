@@ -1,8 +1,30 @@
 package com.typeobject.wheeler.compiler;
 
-record CompilerError(String message, int line, int column) {
-  CompilerError(String message) {
+public class CompilerError {
+  private final String message;
+  private final int line;
+  private final int column;
+
+  public CompilerError(String message) {
     this(message, -1, -1);
+  }
+
+  public CompilerError(String message, int line, int column) {
+    this.message = message;
+    this.line = line;
+    this.column = column;
+  }
+
+  public String getMessage() {
+    return message;
+  }
+
+  public int getLine() {
+    return line;
+  }
+
+  public int getColumn() {
+    return column;
   }
 
   @Override

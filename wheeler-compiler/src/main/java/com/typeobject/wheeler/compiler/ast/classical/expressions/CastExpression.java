@@ -6,6 +6,8 @@ import com.typeobject.wheeler.compiler.ast.NodeVisitor;
 import com.typeobject.wheeler.compiler.ast.base.Expression;
 import com.typeobject.wheeler.compiler.ast.base.Type;
 
+import java.util.List;
+
 public final class CastExpression extends ClassicalExpression {
     private final Type type;
     private final Expression expression;

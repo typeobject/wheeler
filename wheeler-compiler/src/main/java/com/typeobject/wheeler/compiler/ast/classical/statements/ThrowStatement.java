@@ -6,6 +6,8 @@ import com.typeobject.wheeler.compiler.ast.NodeVisitor;
 import com.typeobject.wheeler.compiler.ast.base.Statement;
 import com.typeobject.wheeler.compiler.ast.base.Expression;
 
+import java.util.List;
+
 public final class ThrowStatement extends Statement {
     private final Expression exception;
 

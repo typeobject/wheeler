@@ -3,6 +3,8 @@ package com.typeobject.wheeler.compiler.ast.classical.types;
 import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.Annotation;
 import com.typeobject.wheeler.compiler.ast.NodeVisitor;
+import com.typeobject.wheeler.compiler.ast.base.Type;
+
 import java.util.List;
 
 public final class TypeParameter extends ClassicalType {

@@ -9,8 +9,6 @@ import java.util.List;
 
 import com.typeobject.wheeler.compiler.analysis.FlowAnalyzer;
 import com.typeobject.wheeler.compiler.analysis.TypeChecker;
-import com.typeobject.wheeler.compiler.antlr.WheelerLexer;
-import com.typeobject.wheeler.compiler.antlr.WheelerParser;
 import com.typeobject.wheeler.compiler.ast.ASTBuilder;
 import com.typeobject.wheeler.compiler.ast.CompilationUnit;
 import com.typeobject.wheeler.compiler.bytecode.BytecodeGenerator;
