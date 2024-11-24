@@ -4,33 +4,22 @@ lexer grammar WheelerTypes;
 package com.typeobject.wheeler.compiler.antlr;
 }
 
-// Classical primitive types
-BOOLEAN: 'boolean';
-BYTE: 'byte';
-SHORT: 'short';
-INT: 'int';
-LONG: 'long';
-FLOAT: 'float';
-DOUBLE: 'double';
-CHAR: 'char';
-VOID: 'void';
-
-// Quantum types
-QUBIT_T: 'qubit';
-QUREG_T: 'qureg';
-STATE_T: 'state';
-ORACLE_T: 'oracle';
+// Classical primitive types - renamed to avoid conflicts
+BOOLEAN_T: 'boolean';
+BYTE_T: 'byte';
+SHORT_T: 'short';
+INT_T: 'int';
+LONG_T: 'long';
+FLOAT_T: 'float';
+DOUBLE_T: 'double';
+CHAR_T: 'char';
+VOID_T: 'void';
 
 // Container types
-ARRAY: 'array';
-LIST: 'list';
-MAP: 'map';
-SET: 'set';
-
-// Special types
-HIST_T: 'hist';      // Historical type
-REV_T: 'rev';        // Reversible type
-PURE_T: 'pure';      // Pure type
+ARRAY_T: 'array';
+LIST_T: 'list';
+MAP_T: 'map';
+SET_T: 'set';
 
 // Type parameters
 TYPE_PARAM: [A-Z];

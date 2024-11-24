@@ -2,7 +2,6 @@ lexer grammar WheelerLexer;
 
 import WheelerKeywords, WheelerOperators, WheelerTypes;
 
-
 @header {
 package com.typeobject.wheeler.compiler.antlr;
 }
@@ -14,20 +13,21 @@ BLOCK_COMMENT: '/*' .*? '*/' -> skip;
 
 // Classical literals
 INTEGER_LITERAL
-    : [0-9]+ [lL]?                               // Regular integer
-    | '0x' [0-9a-fA-F]+ [lL]?                    // Hex
-    | '0b' [01]+ [lL]?                           // Binary
+    : [0-9]+ [lL]?
+    | '0x' [0-9a-fA-F]+ [lL]?
+    | '0b' [01]+ [lL]?
     ;
 
 FLOAT_LITERAL
-    : [0-9]+ '.' [0-9]* ExponentPart? [fFdD]?    // Regular float
-    | '.' [0-9]+ ExponentPart? [fFdD]?           // No leading digit
-    | [0-9]+ ExponentPart [fFdD]?                // Scientific notation
+    : [0-9]+ '.' [0-9]* ExponentPart? [fFdD]?
+    | '.' [0-9]+ ExponentPart? [fFdD]?
+    | [0-9]+ ExponentPart [fFdD]?
     ;
 
 BOOL_LITERAL: 'true' | 'false';
 CHAR_LITERAL: '\'' (~['\\\r\n] | EscapeSequence) '\'';
 STRING_LITERAL: '"' (~["\\\r\n] | EscapeSequence)* '"';
+NULL_LITERAL: 'null';
 
 // Quantum literals
 QUBIT_KET: '|' ([01] | '+' | '-') '⟩';

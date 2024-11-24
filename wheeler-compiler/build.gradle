@@ -8,27 +8,68 @@ project(':wheeler-compiler') {
         implementation project(':wheeler-core')
     }
 
-    generateGrammarSource {
-        maxHeapSize = "64m"
-        arguments += ['-visitor',
-            '-package', 'com.typeobject.wheeler.compiler.antlr',
-            '-lib', 'src/main/antlr/com/typeobject/wheeler/compiler/antlr']
-    }
+    def antlrOutputDir = file("${buildDir}/generated-src/antlr/main")
+    def antlrPath = 'com/typeobject/wheeler/compiler/antlr'
+    def antlrSourceDir = file("wheeler-compiler/src/main/antlr")
 
-    sourceSets {
-        main {
-            java {
-                srcDirs += [
-                    "${buildDir}/generated-src/antlr/main"
-                ]
+    // Generate lexer and tokens first
+    task generateLexerGrammarSource(type: AntlrTask) {
+        maxHeapSize = "64m"
+        arguments += [
+            '-visitor',
+            '-package', 'com.typeobject.wheeler.compiler.antlr'
+        ]
+        source = fileTree(antlrSourceDir) {
+            include "**/${antlrPath}/Wheeler{Types,Keywords,Operators,Lexer}.g4"
+        }
+        outputDirectory = antlrOutputDir
+
+        // Copy tokens file to source directory for parser
+        doLast {
+            copy {
+                from("${antlrOutputDir}/${antlrPath}") {
+                    include 'WheelerLexer.tokens'
+                }
+                into "${antlrSourceDir}/${antlrPath}"
             }
         }
     }
 
-    // Ensure ANTLR files are generated before compilation
+    // Generate parser using tokens file
+    task generateParserGrammarSource(type: AntlrTask) {
+        dependsOn generateLexerGrammarSource
+        maxHeapSize = "64m"
+        arguments += [
+            '-visitor',
+            '-package', 'com.typeobject.wheeler.compiler.antlr'
+        ]
+        source = fileTree(antlrSourceDir) {
+            include "**/${antlrPath}/WheelerParser.g4"
+        }
+        outputDirectory = antlrOutputDir
+    }
+
+    // Cleanup tokens file after build
+    task cleanupTokens(type: Delete) {
+        delete "${antlrSourceDir}/${antlrPath}/WheelerLexer.tokens"
+    }
+
+    generateGrammarSource {
+        enabled = false
+    }
+    generateGrammarSource.dependsOn generateParserGrammarSource
+    generateParserGrammarSource.finalizedBy cleanupTokens
+
+    sourceSets {
+        main {
+            java {
+                srcDirs += [antlrOutputDir]
+            }
+        }
+    }
+
     compileJava.dependsOn generateGrammarSource
 
-    // Exclude generated ANTLR files from code quality checks
     tasks.withType(JavaCompile).configureEach {
         options.errorprone.excludedPaths = '.*/generated-src/.*'
     }

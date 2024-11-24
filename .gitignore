@@ -34,6 +34,9 @@ hs_err_pid*
 # Project specific
 *.wheel
 
+# Antlr
+/wheeler-compiler/src/main/gen/
+
 # Logs
 logs/
 *.log

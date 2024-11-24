@@ -1,3 +1,4 @@
+// WheelerOperators.g4
 lexer grammar WheelerOperators;
 
 @header {
@@ -14,6 +15,12 @@ RBRACK: ']';
 SEMI: ';';
 COMMA: ',';
 DOT: '.';
+ELLIPSIS: '...';
+AT: '@';
+DOUBLECOLON: '::';
+PIPE: '|';              // Added for pattern matching
+UNDERSCORE: '_';        // Added for pattern matching
+AMPERSAND: '&';         // Added for type bounds
 
 // Operators
 ASSIGN: '=';
@@ -25,8 +32,12 @@ QUESTION: '?';
 COLON: ':';
 ARROW: '->';
 DOUBLE_ARROW: '=>';
-TENSOR: '⊗';        // Quantum tensor product
-CONJUGATE: '†';     // Quantum conjugate
+TENSOR: '⊗';
+CONJUGATE: '†';
+MUL: '*';
+DIV: '/';
+ADD: '+';
+SUB: '-';
 
 // Comparison
 EQUAL: '==';
@@ -45,12 +56,7 @@ CARET: '^';
 MOD: '%';
 LSHIFT: '<<';
 RSHIFT: '>>';
-
-// Arithmetic
-ADD: '+';
-SUB: '-';
-MUL: '*';
-DIV: '/';
+URSHIFT: '>>>';
 
 // Increment/decrement
 INC: '++';
@@ -67,3 +73,4 @@ XOR_ASSIGN: '^=';
 MOD_ASSIGN: '%=';
 LSHIFT_ASSIGN: '<<=';
 RSHIFT_ASSIGN: '>>=';
+URSHIFT_ASSIGN: '>>>=';

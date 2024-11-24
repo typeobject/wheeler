@@ -8,6 +8,10 @@ package com.typeobject.wheeler.compiler.antlr;
 PACKAGE: 'package';
 IMPORT: 'import';
 MODULE: 'module';
+EXPORTS: 'exports';
+REQUIRES: 'requires';
+USES: 'uses';
+TO: 'to';
 
 // Class-related
 CLASS: 'class';
@@ -15,6 +19,8 @@ INTERFACE: 'interface';
 EXTENDS: 'extends';
 IMPLEMENTS: 'implements';
 NEW: 'new';
+THIS: 'this';
+SUPER: 'super';
 
 // Modifiers
 PUBLIC: 'public';
@@ -24,33 +30,34 @@ STATIC: 'static';
 FINAL: 'final';
 ABSTRACT: 'abstract';
 SYNCHRONIZED: 'synchronized';
+DEFAULT: 'default';
 
 // Computation types
-REV: 'rev';              // Reversible
-PURE: 'pure';            // Pure function
-CLASSICAL: 'classical';   // Classical computation
-QUANTUM: 'quantum';      // Quantum computation
-HYBRID: 'hybrid';        // Hybrid computation
+REV: 'rev';
+PURE: 'pure';
+CLASSICAL: 'classical';
+QUANTUM: 'quantum';
+HYBRID: 'hybrid';
 
 // Variable declaration
-VAR: 'var';              // Mutable variable
-LET: 'let';              // Immutable variable
-HIST: 'hist';            // Historical value
+VAR: 'var';
+LET: 'let';
+HIST: 'hist';
 
 // Quantum specific
-QUBIT: 'qubit';          // Single qubit
-QUREG: 'qureg';          // Quantum register
-STATE: 'state';          // Quantum state
-ORACLE: 'oracle';        // Quantum oracle
-MEASURE: 'measure';      // Measurement
-PREPARE: 'prepare';      // State preparation
+QUBIT: 'qubit';
+QUREG: 'qureg';
+STATE: 'state';
+ORACLE: 'oracle';
+MEASURE: 'measure';
+PREPARE: 'prepare';
+SUPERPOSITION: 'superposition';
 
 // Control flow
 IF: 'if';
 ELSE: 'else';
 SWITCH: 'switch';
 CASE: 'case';
-DEFAULT: 'default';
 FOR: 'for';
 WHILE: 'while';
 DO: 'do';
@@ -60,15 +67,16 @@ RETURN: 'return';
 MATCH: 'match';
 
 // Quantum control
-QIF: 'qif';              // Quantum conditional
-QWHILE: 'qwhile';        // Quantum loop
-UNTIL: 'until';          // Quantum termination
+QIF: 'qif';
+QWHILE: 'qwhile';
+UNTIL: 'until';
 
 // Error handling
 TRY: 'try';
 CATCH: 'catch';
 FINALLY: 'finally';
 THROW: 'throw';
+THROWS: 'throws';
 
 // Memory management
 UNCOMPUTE: 'uncompute';
@@ -88,3 +96,6 @@ CNOT: 'CNOT';
 TOFFOLI: 'TOFFOLI';
 PHASE: 'PHASE';
 ROTATE: 'ROTATE';
+
+// Additional keywords needed
+ENUM: 'enum';

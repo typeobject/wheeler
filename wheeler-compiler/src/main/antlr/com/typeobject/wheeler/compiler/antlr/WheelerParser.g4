@@ -1,10 +1,10 @@
 parser grammar WheelerParser;
 
+options { tokenVocab=WheelerLexer; }
+
 @header {
 package com.typeobject.wheeler.compiler.antlr;
 }
-
-options { tokenVocab=WheelerLexer; }
 
 // Top Level Structure
 compilationUnit
@@ -53,6 +53,55 @@ classDeclaration
       (EXTENDS typeType)?
       (IMPLEMENTS typeList)?
       classBody
+    ;
+
+interfaceDeclaration
+    : annotation* INTERFACE IDENTIFIER typeParameters?
+      (EXTENDS typeList)? interfaceBody
+    ;
+
+interfaceBody
+    : LBRACE interfaceBodyDeclaration* RBRACE
+    ;
+
+interfaceBodyDeclaration
+    : interfaceMethodDeclaration
+    | interfaceFieldDeclaration
+    | classDeclaration
+    | interfaceDeclaration
+    | enumDeclaration
+    | SEMI
+    ;
+
+interfaceMethodDeclaration
+    : annotation* interfaceMethodModifier*
+      (typeTypeOrVoid | quantumType) IDENTIFIER formalParameters
+      (THROWS qualifiedNameList)? SEMI
+    ;
+
+interfaceFieldDeclaration
+    : annotation* (PUBLIC | PRIVATE | PROTECTED)? STATIC? FINAL?
+      typeType variableDeclarators SEMI
+    ;
+
+enumDeclaration
+    : annotation* ENUM IDENTIFIER (IMPLEMENTS typeList)? enumBody
+    ;
+
+enumBody
+    : LBRACE enumConstants? ','? enumBodyDeclarations? RBRACE
+    ;
+
+enumConstants
+    : enumConstant (',' enumConstant)*
+    ;
+
+enumConstant
+    : annotation* IDENTIFIER arguments? classBody?
+    ;
+
+enumBodyDeclarations
+    : SEMI classBodyDeclaration*
     ;
 
 classBody
@@ -114,6 +163,10 @@ superpositionExpression
     : SUPERPOSITION LPAREN stateList RPAREN
     ;
 
+stateList
+    : stateExpression (',' stateExpression)*
+    ;
+
 // Method Declarations
 methodDeclaration
     : annotation* methodModifier*
@@ -152,6 +205,14 @@ blockStatement
     | statement
     ;
 
+classicalStatement
+    : variableDeclaration
+    | expressionStatement
+    | selectionStatement
+    | iterationStatement
+    | jumpStatement
+    ;
+
 statement
     : blockLabel=block
     | IF parExpression statement (ELSE statement)?
@@ -180,57 +241,114 @@ quantumStatement
     | quantumUncomputation
     ;
 
-// Quantum Operations
-quantumGateApplication
-    : quantumGate
-      LPAREN qubitExpression (COMMA qubitExpression)* RPAREN
-      (LBRACK expression RBRACK)?  // For parameterized gates
-      SEMI
+// Supporting declarations
+annotation
+    : '@' qualifiedName ('(' ( elementValuePairs | elementValue )? ')')?
     ;
 
-quantumGate
-    : HADAMARD
-    | PAULIX
-    | PAULIY
-    | PAULIZ
-    | CNOT
-    | TOFFOLI
-    | PHASE
-    | ROTATE
-    | IDENTIFIER  // Custom gates
+elementValuePairs
+    : elementValuePair (',' elementValuePair)*
     ;
 
-qubitExpression
-    : IDENTIFIER                              // Single qubit
-    | IDENTIFIER LBRACK expression RBRACK     // Qubit from register
-    | qubitExpression TENSOR qubitExpression  // Tensor product
+elementValuePair
+    : IDENTIFIER '=' elementValue
     ;
 
-quantumMeasurement
-    : MEASURE qubitExpression
-      (ARROW IDENTIFIER)?  // Optional classical result
-      SEMI
+elementValue
+    : expression
+    | annotation
+    | elementValueArrayInitializer
     ;
 
-quantumStatePreparation
-    : PREPARE qubitExpression stateExpression SEMI
+elementValueArrayInitializer
+    : '{' (elementValue (',' elementValue)*)? (',')? '}'
     ;
 
-quantumControlFlow
-    : QIF LPAREN qubitExpression RPAREN
-      quantumBlock
-      (ELSE quantumBlock)?
-    | QWHILE LPAREN qubitExpression RPAREN
-      quantumBlock
-      UNTIL LPAREN expression RPAREN
+typeParameters
+    : '<' typeParameter (',' typeParameter)* '>'
     ;
 
-quantumUncomputation
-    : UNCOMPUTE LBRACE quantumStatement* RBRACE
-    | CLEAN LBRACE qubitExpression* RBRACE
+typeParameter
+    : annotation* IDENTIFIER (EXTENDS typeBound)?
     ;
 
-// Expressions
+typeBound
+    : typeType ('&' typeType)*
+    ;
+
+typeList
+    : typeType (',' typeType)*
+    ;
+
+formalParameters
+    : '(' formalParameterList? ')'
+    ;
+
+formalParameterList
+    : formalParameter (',' formalParameter)* (',' lastFormalParameter)?
+    | lastFormalParameter
+    ;
+
+formalParameter
+    : variableModifier* typeType variableDeclaratorId
+    ;
+
+lastFormalParameter
+    : variableModifier* typeType '...' variableDeclaratorId
+    ;
+
+variableModifier
+    : FINAL
+    | annotation
+    ;
+
+fieldDeclaration
+    : typeType variableDeclarators SEMI
+    ;
+
+constructorDeclaration
+    : annotation* constructorModifier* IDENTIFIER formalParameters
+      (THROWS qualifiedNameList)? constructorBody
+    ;
+
+constructorBody
+    : '{' explicitConstructorInvocation? blockStatement* '}'
+    ;
+
+explicitConstructorInvocation
+    : nonWildcardTypeArguments? THIS arguments SEMI
+    | nonWildcardTypeArguments? SUPER arguments SEMI
+    | expressionName '.' nonWildcardTypeArguments? SUPER arguments SEMI
+    ;
+
+// Control flow and expressions
+parExpression
+    : '(' expression ')'
+    ;
+
+forControl
+    : enhancedForControl
+    | forInit? SEMI expression? SEMI forUpdate?
+    ;
+
+forInit
+    : localVariableDeclaration
+    | expressionList
+    ;
+
+enhancedForControl
+    : variableModifier* typeType variableDeclaratorId ':' expression
+    ;
+
+forUpdate
+    : expressionList
+    ;
+
+expressionList
+    : expression (',' expression)*
+    ;
+
+// Expression handling
 expression
     : primary
     | expression bop='.'
@@ -266,43 +384,126 @@ expression
     | lambdaExpression
     ;
 
-// Type System
-typeType
-    : (classicalType | quantumType)
-      (LBRACK RBRACK)*
+primary
+    : '(' expression ')'
+    | THIS
+    | SUPER
+    | literal
+    | IDENTIFIER
+    | typeTypeOrVoid '.' CLASS
+    | nonWildcardTypeArguments (explicitGenericInvocationSuffix | THIS arguments)
     ;
 
-classicalType
-    : annotation* (
-      primitiveType |
-      IDENTIFIER typeArguments? |
-      qualifiedName typeArguments?
-    )
+creator
+    : nonWildcardTypeArguments? createdName classCreatorRest
+    | createdName arrayCreatorRest
     ;
 
-quantumType
-    : QUBIT_T
-    | QUREG_T typeArguments?  // For size specification
-    | STATE_T
-    | ORACLE_T typeArguments? // For input/output types
+createdName
+    : IDENTIFIER typeArgumentsOrDiamond? ('.' IDENTIFIER typeArgumentsOrDiamond?)*
+    | primitiveType
+    ;
+
+classCreatorRest
+    : arguments classBody?
+    ;
+
+arrayCreatorRest
+    : '[' (']' ('[' ']')* arrayInitializer | expression ']' ('[' expression ']')* ('[' ']')*)
+    ;
+
+methodCall
+    : IDENTIFIER '(' expressionList? ')'
+    | THIS '(' expressionList? ')'
+    | SUPER '(' expressionList? ')'
+    ;
+
+typeArgumentsOrDiamond
+    : '<' '>'
+    | typeArguments
+    ;
+
+nonWildcardTypeArguments
+    : '<' typeList '>'
+    ;
+
+arrayDimensions
+    : '[' expression? ']'
+    ;
+
+quantumModifier
+    : QUANTUM
+    | REV
+    | PURE
+    ;
+
+matchBlock
+    : '{' matchEntry* '}'
+    ;
+
+matchEntry
+    : expression ARROW statement
+    | DEFAULT ARROW statement
+    ;
+
+statementExpression
+    : expression
+    ;
+
+variableDeclarators
+    : variableDeclarator (',' variableDeclarator)*
+    ;
+
+variableDeclarator
+    : variableDeclaratorId ('=' variableInitializer)?
+    ;
+
+variableDeclaratorId
+    : IDENTIFIER ('[' ']')*
+    ;
+
+variableInitializer
+    : arrayInitializer
+    | expression
+    ;
+
+arrayInitializer
+    : '{' (variableInitializer (',' variableInitializer)* (',')?)? '}'
     ;
 
 typeArguments
-    : LT typeArgument (COMMA typeArgument)* GT
+    : '<' typeArgument (',' typeArgument)* '>'
     ;
 
 typeArgument
     : typeType
-    | annotation* QUESTION (
-        (EXTENDS | SUPER) typeType
-      )?
+    | annotation* QUESTION (EXTENDS | SUPER)? typeType?
     ;
 
 qualifiedName
-    : IDENTIFIER (DOT IDENTIFIER)*
+    : IDENTIFIER ('.' IDENTIFIER)*
     ;
 
-// Modifiers
+// Method and constructor modifiers
+constructorModifier
+    : annotation
+    | PUBLIC
+    | PROTECTED
+    | PRIVATE
+    ;
+
+interfaceMethodModifier
+    : annotation
+    | PUBLIC
+    | ABSTRACT
+    | DEFAULT
+    | STATIC
+    | QUANTUM
+    | REV
+    | PURE
+    ;
+
+// Class member modifiers
 classModifier
     : annotation
     | PUBLIC
@@ -332,22 +533,217 @@ methodModifier
     | HYBRID
     ;
 
-// Additional supporting rules...
-variableDeclarator
-    : variableDeclaratorId (ASSIGN variableInitializer)?
+// Additional quantum-specific rules
+quantumCircuit
+    : '{' quantumStatement* '}'
     ;
 
-variableDeclaratorId
-    : IDENTIFIER (LBRACK RBRACK)*
+parameterList
+    : '(' parameter (',' parameter)* ')'
     ;
 
-variableInitializer
-    : arrayInitializer
-    | expression
+parameter
+    : typeType variableDeclaratorId
     ;
 
-arrayInitializer
-    : LBRACE
-      (variableInitializer (COMMA variableInitializer)* (COMMA)?)?
-      RBRACE
+quantumGateApplication
+    : quantumGate arguments SEMI
+    ;
+
+quantumGate
+    : HADAMARD
+    | PAULIX
+    | PAULIY
+    | PAULIZ
+    | CNOT
+    | TOFFOLI
+    | PHASE
+    | ROTATE
+    | IDENTIFIER  // Custom gates
+    ;
+
+quantumMeasurement
+    : MEASURE qubitExpression (ARROW IDENTIFIER)? SEMI
+    ;
+
+qubitExpression
+    : IDENTIFIER
+    | IDENTIFIER '[' expression ']'
+    | qubitExpression TENSOR qubitExpression
+    ;
+
+quantumStatePreparation
+    : PREPARE qubitExpression stateExpression SEMI
+    ;
+
+quantumControlFlow
+    : QIF parExpression quantumBlock (ELSE quantumBlock)?
+    | QWHILE parExpression quantumBlock UNTIL parExpression
+    ;
+
+quantumUncomputation
+    : UNCOMPUTE '{' quantumStatement* '}'
+    | CLEAN '{' qubitExpression* '}'
+    ;
+
+// Exception handling
+catchClause
+    : CATCH '(' variableModifier* catchType IDENTIFIER ')' block
+    ;
+
+catchType
+    : qualifiedName ('|' qualifiedName)*
+    ;
+
+finallyBlock
+    : FINALLY block
+    ;
+
+// Lambda expressions
+lambdaExpression
+    : lambdaParameters ARROW lambdaBody
+    ;
+
+lambdaParameters
+    : IDENTIFIER
+    | '(' formalParameterList? ')'
+    | '(' IDENTIFIER (',' IDENTIFIER)* ')'
+    ;
+
+lambdaBody
+    : expression
+    | block
+    ;
+
+// Type system additions
+primitiveType
+    : BOOLEAN_T
+    | BYTE_T
+    | SHORT_T
+    | INT_T
+    | LONG_T
+    | FLOAT_T
+    | DOUBLE_T
+    | CHAR_T
+    ;
+
+typeType
+    : annotation* (
+      classicalType
+      | quantumType
+      ) (LBRACK RBRACK)*
+    ;
+
+classicalType
+    : primitiveType
+    | IDENTIFIER typeArguments?
+    | qualifiedName typeArguments?
+    ;
+
+quantumType
+    : QUBIT_T
+    | QUREG_T typeArguments?
+    | STATE_T
+    | ORACLE_T typeArguments?
+    ;
+
+typeTypeOrVoid
+    : typeType
+    | VOID_T
+    ;
+
+// Additional utility rules
+qualifiedNameList
+    : qualifiedName (',' qualifiedName)*
+    ;
+
+explicitGenericInvocationSuffix
+    : SUPER superSuffix
+    | IDENTIFIER arguments
+    ;
+
+superSuffix
+    : arguments
+    | '.' IDENTIFIER arguments?
+    ;
+
+arguments
+    : '(' expressionList? ')'
+    ;
+
+// Local variable handling
+localVariableDeclaration
+    : variableModifier* typeType variableDeclarators
+    ;
+
+// Support for expression names
+expressionName
+    : IDENTIFIER
+    | ambiguousName '.' IDENTIFIER
+    ;
+
+ambiguousName
+    : IDENTIFIER
+    | ambiguousName '.' IDENTIFIER
+    ;
+
+// Add literal rule
+literal
+    : INTEGER_LITERAL
+    | FLOAT_LITERAL
+    | BOOL_LITERAL
+    | CHAR_LITERAL
+    | STRING_LITERAL
+    | NULL_LITERAL
+    | QUBIT_KET
+    | STATE_LITERAL
+    | MATRIX_LITERAL
+    ;
+
+innerCreator
+    : IDENTIFIER nonWildcardTypeArgumentsOrDiamond? classCreatorRest
+    ;
+
+nonWildcardTypeArgumentsOrDiamond
+    : '<' '>'
+    | nonWildcardTypeArguments
+    ;
+
+variableDeclaration
+    : typeType variableDeclarators SEMI
+    ;
+
+expressionStatement
+    : expression SEMI
+    ;
+
+selectionStatement
+    : IF parExpression statement (ELSE statement)?
+    | SWITCH parExpression '{' switchBlockStatementGroup* switchLabel* '}'
+    ;
+
+switchBlockStatementGroup
+    : switchLabel+ blockStatement+
+    ;
+
+switchLabel
+    : CASE constantExpression ':'
+    | DEFAULT ':'
+    ;
+
+constantExpression
+    : expression
+    ;
+
+iterationStatement
+    : WHILE parExpression statement
+    | DO statement WHILE parExpression SEMI
+    | FOR '(' forControl ')' statement
+    ;
+
+jumpStatement
+    : BREAK IDENTIFIER? SEMI
+    | CONTINUE IDENTIFIER? SEMI
+    | RETURN expression? SEMI
+    | THROW expression SEMI
     ;
