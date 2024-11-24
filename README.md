@@ -2,6 +2,8 @@
 
 A reversible, concurrent virtual machine and programming language.
 
+**This project is just an experiment and is still in the early stages of development.**
+
 ## Overview
 
 The Wheeler Virtual Machine provides a platform for writing and executing perfectly reversible programs, including support for concurrent execution. Every operation can be reversed, enabling exact reconstruction of previous program states.
