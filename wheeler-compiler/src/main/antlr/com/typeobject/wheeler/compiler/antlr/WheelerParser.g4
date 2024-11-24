@@ -273,7 +273,7 @@ typeParameter
     ;
 
 typeBound
-    : typeType ('&' typeType)*
+    : typeType (AMPERSAND typeType)*
     ;
 
 typeList
@@ -361,7 +361,7 @@ expression
     | expression LBRACK expression RBRACK
     | methodCall
     | NEW creator
-    | LPAREN annotation* typeType (BITAND typeType)* RPAREN expression
+    | LPAREN annotation* typeType (AMPERSAND typeType)* RPAREN expression
     | expression postfix=(INC | DEC)
     | prefix=(ADD | SUB | INC | DEC) expression
     | prefix=(TILDE | BANG) expression
@@ -370,9 +370,9 @@ expression
     | expression bop=(LSHIFT | RSHIFT) expression
     | expression bop=(LE | GE | GT | LT) expression
     | expression bop=(EQUAL | NOTEQUAL) expression
-    | expression bop=BITAND expression
+    | expression bop=AMPERSAND expression
     | expression bop=CARET expression
-    | expression bop=BITOR expression
+    | expression bop=PIPE expression
     | expression bop=AND expression
     | expression bop=OR expression
     | <assoc=right> expression bop=QUESTION expression COLON expression
@@ -592,7 +592,7 @@ catchClause
     ;
 
 catchType
-    : qualifiedName ('|' qualifiedName)*
+    : qualifiedName (PIPE qualifiedName)*
     ;
 
 finallyBlock
@@ -641,10 +641,10 @@ classicalType
     ;
 
 quantumType
-    : QUBIT_T
-    | QUREG_T typeArguments?
-    | STATE_T
-    | ORACLE_T typeArguments?
+    : QUBIT typeArguments?
+    | QUREG typeArguments?
+    | STATE
+    | ORACLE typeArguments?
     ;
 
 typeTypeOrVoid

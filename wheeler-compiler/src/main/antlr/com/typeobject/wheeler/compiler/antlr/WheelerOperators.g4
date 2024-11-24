@@ -1,4 +1,3 @@
-// WheelerOperators.g4
 lexer grammar WheelerOperators;
 
 @header {
@@ -18,9 +17,6 @@ DOT: '.';
 ELLIPSIS: '...';
 AT: '@';
 DOUBLECOLON: '::';
-PIPE: '|';              // Added for pattern matching
-UNDERSCORE: '_';        // Added for pattern matching
-AMPERSAND: '&';         // Added for type bounds
 
 // Operators
 ASSIGN: '=';
@@ -32,8 +28,10 @@ QUESTION: '?';
 COLON: ':';
 ARROW: '->';
 DOUBLE_ARROW: '=>';
-TENSOR: '⊗';
-CONJUGATE: '†';
+TENSOR: '\u2297';
+CONJUGATE: '\u2020';
+
+// Basic operators
 MUL: '*';
 DIV: '/';
 ADD: '+';
@@ -49,20 +47,18 @@ NOTEQUAL: '!=';
 AND: '&&';
 OR: '||';
 
-// Bitwise
-BITAND: '&';
-BITOR: '|';
+// Bitwise and type operators
+AMPERSAND: '&';  // Used for both bitwise AND and type bounds
+PIPE: '|';       // Used for both bitwise OR and catch type alternatives
 CARET: '^';
 MOD: '%';
 LSHIFT: '<<';
 RSHIFT: '>>';
 URSHIFT: '>>>';
 
-// Increment/decrement
+// Compound operators
 INC: '++';
 DEC: '--';
-
-// Compound assignment
 ADD_ASSIGN: '+=';
 SUB_ASSIGN: '-=';
 MUL_ASSIGN: '*=';

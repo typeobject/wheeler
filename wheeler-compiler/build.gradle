@@ -5,46 +5,52 @@ project(':wheeler-compiler') {
 
     dependencies {
         antlr 'org.antlr:antlr4:4.13.1'
+        implementation 'org.antlr:antlr4-runtime:4.13.1'
         implementation project(':wheeler-core')
     }
 
-    def antlrOutputDir = file("${buildDir}/generated-src/antlr/main")
+    def antlrOutputDir = file("${buildDir}/generated-src/antlr/main/com/typeobject/wheeler/compiler/antlr")
     def antlrPath = 'com/typeobject/wheeler/compiler/antlr'
-    def antlrSourceDir = file("wheeler-compiler/src/main/antlr")
+    def antlrSourceDir = file("src/main/antlr")
 
     // Generate lexer and tokens first
     task generateLexerGrammarSource(type: AntlrTask) {
         maxHeapSize = "64m"
         arguments += [
             '-visitor',
+            '-no-listener',
             '-package', 'com.typeobject.wheeler.compiler.antlr'
         ]
         source = fileTree(antlrSourceDir) {
-            include "**/${antlrPath}/Wheeler{Types,Keywords,Operators,Lexer}.g4"
+            include "${antlrPath}/WheelerTypes.g4"
+            include "${antlrPath}/WheelerKeywords.g4"
+            include "${antlrPath}/WheelerOperators.g4"
+            include "${antlrPath}/WheelerLexer.g4"
         }
         outputDirectory = antlrOutputDir
+    }
 
-        // Copy tokens file to source directory for parser
-        doLast {
-            copy {
-                from("${antlrOutputDir}/${antlrPath}") {
-                    include 'WheelerLexer.tokens'
-                }
-                into "${antlrSourceDir}/${antlrPath}"
-            }
+    // Copy tokens file - separate task to ensure it completes
+    task copyTokensFile(type: Copy) {
+        dependsOn generateLexerGrammarSource
+        from(antlrOutputDir) {
+            include 'WheelerLexer.tokens'
         }
+        into "${antlrSourceDir}/${antlrPath}"
     }
 
     // Generate parser using tokens file
     task generateParserGrammarSource(type: AntlrTask) {
-        dependsOn generateLexerGrammarSource
+        dependsOn copyTokensFile
+        inputs.files copyTokensFile.outputs.files
         maxHeapSize = "64m"
         arguments += [
             '-visitor',
+            '-no-listener',
             '-package', 'com.typeobject.wheeler.compiler.antlr'
         ]
         source = fileTree(antlrSourceDir) {
-            include "**/${antlrPath}/WheelerParser.g4"
+            include "${antlrPath}/WheelerParser.g4"
         }
         outputDirectory = antlrOutputDir
     }
@@ -54,24 +60,31 @@ project(':wheeler-compiler') {
         delete "${antlrSourceDir}/${antlrPath}/WheelerLexer.tokens"
     }
 
+    // Disable default ANTLR task
     generateGrammarSource {
         enabled = false
     }
+
+    // Set up task dependencies
     generateGrammarSource.dependsOn generateParserGrammarSource
     generateParserGrammarSource.finalizedBy cleanupTokens
 
     sourceSets {
         main {
             java {
-                srcDirs += [antlrOutputDir]
+                srcDirs += ["${buildDir}/generated-src/antlr/main"]
             }
         }
     }
 
-    compileJava.dependsOn generateGrammarSource
+    compileJava {
+        dependsOn generateGrammarSource
+    }
 
     tasks.withType(JavaCompile).configureEach {
-        options.errorprone.excludedPaths = '.*/generated-src/.*'
+        options.errorprone {
+            excludedPaths = '.*/generated-src/.*'
+        }
     }
 
     spotless {

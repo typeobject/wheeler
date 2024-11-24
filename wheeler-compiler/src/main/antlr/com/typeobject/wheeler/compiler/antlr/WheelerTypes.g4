@@ -4,7 +4,7 @@ lexer grammar WheelerTypes;
 package com.typeobject.wheeler.compiler.antlr;
 }
 
-// Classical primitive types - renamed to avoid conflicts
+// Classical primitive types
 BOOLEAN_T: 'boolean';
 BYTE_T: 'byte';
 SHORT_T: 'short';
