@@ -1,8 +1,21 @@
-// Classical reversible binary search tree
-classical class BinaryTree<T> {
-    let Node<T> root;
-    hist<TreeState> history;
+// Classical reversible binary tree
+classical class BinaryTree<T extends Comparable<T>> {
+    // State
+    private let Node<T> root = null;
+    private hist<TreeState> history;
 
+    // Node class
+    private static class Node<T> {
+        let T value;
+        let Node<T> left = null;
+        let Node<T> right = null;
+
+        pure Node(T value) {
+            this.value = value;
+        }
+    }
+
+    // Reversible insertion
     rev void insert(T value) {
         if (root == null) {
             root = new Node<T>(value);
@@ -11,7 +24,7 @@ classical class BinaryTree<T> {
 
         rev Node<T> current = root;
         while (true) {
-            if (value < current.value) {
+            if (value.compareTo(current.value) < 0) {
                 if (current.left == null) {
                     current.left = new Node<T>(value);
                     break;
@@ -41,7 +54,7 @@ classical class BinaryTree<T> {
         return removedNode.value;
     }
 
-    // Clean old history periodically
+    // Clean history periodically
     pure void maintenance() {
         uncompute {
             clean history before timestamp - 24h;

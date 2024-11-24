@@ -1,10 +1,10 @@
-// Hybrid quantum-classical optimization
+// Hybrid quantum-classical optimizer
 hybrid class QuantumOptimizer {
-    // Quantum resources
-    qureg ansatz;        // Quantum state preparation circuit
-    qureg measurement;   // Measurement qubits
+    // Quantum registers
+    qureg ansatz;
+    qureg measurement;
 
-    // Classical resources
+    // Classical parameters
     classical let double[] parameters;
     classical let double bestCost = Double.MAX_VALUE;
     hist<OptimizationStep> history;
@@ -12,24 +12,24 @@ hybrid class QuantumOptimizer {
     // Hybrid optimization loop
     hybrid void optimize(int iterations) {
         for (int i = 0; i < iterations; i++) {
-            // Quantum part: Prepare and measure state
+            // Quantum section
             quantum {
-                // Prepare quantum state with current parameters
+                // Prepare quantum state
                 prepareAnsatz(ansatz, parameters);
 
-                // Perform measurements
-                let results = measure ansatz;
+                // Measure results
+                let measurementResults = measure ansatz;
 
-                // Store in quantum-classical register
-                writeResults(measurement, results);
+                // Store classically
+                writeResults(measurement, measurementResults);
             }
 
-            // Classical part: Update parameters
+            // Classical section
             classical {
-                // Calculate cost function
+                // Calculate cost
                 double cost = calculateCost(measurement);
 
-                // Update parameters using classical optimizer
+                // Update parameters
                 parameters = classicalOptimizer.update(parameters, cost);
 
                 // Track best solution
@@ -41,17 +41,17 @@ hybrid class QuantumOptimizer {
         }
     }
 
-    // Quantum state preparation
+    // Quantum circuit preparation
     quantum void prepareAnsatz(qureg q, classical double[] params) {
         quantum {
+            // Single qubit rotations
             for (int i = 0; i < q.size; i++) {
-                // Apply parametrized quantum gates
                 Rx(q[i], params[i * 3]);
                 Ry(q[i], params[i * 3 + 1]);
                 Rz(q[i], params[i * 3 + 2]);
             }
 
-            // Add entanglement layers
+            // Entangling layer
             for (int i = 0; i < q.size - 1; i++) {
                 CNOT(q[i], q[i + 1]);
             }
