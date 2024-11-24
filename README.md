@@ -70,6 +70,8 @@ rev class Counter {
 }
 ```
 
+For additional examples, see [wheeler-examples](wheeler-examples/src/main/wheeler).
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute to the project.
