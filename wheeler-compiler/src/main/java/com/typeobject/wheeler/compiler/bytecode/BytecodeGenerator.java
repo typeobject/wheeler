@@ -447,7 +447,7 @@ public class BytecodeGenerator implements NodeVisitor<Void> {
         if (node.getKind() == QuantumTypeKind.QUREG) {
             desc = "[" + desc + node.getSize();
         }
-        emitType(desc);
+        emitPush(symbolTable.computeIfAbsent(desc, k -> allocateRegister()));
         return null;
     }
 
