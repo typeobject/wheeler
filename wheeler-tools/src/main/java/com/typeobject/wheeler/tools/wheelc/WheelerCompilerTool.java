@@ -3,41 +3,54 @@ package com.typeobject.wheeler.tools.wheelc;
 import com.typeobject.wheeler.compiler.CompilerOptions;
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
-public class WheelerCompilerTool {
-  public static void main(String[] args) {
-    if (args.length == 0) {
-      System.err.println("Usage: wheelc [options] <source files>");
-      System.exit(1);
-    }
+@Command(
+        name = "wheelc",
+        description = "Compiles Wheeler source files",
+        mixinStandardHelpOptions = true,
+        version = "wheelc 1.0"
+)
+public class WheelerCompilerTool implements Callable<Integer> {
 
-    // Parse command line arguments
-    List<File> sourceFiles = new ArrayList<>();
-    boolean printAST = false;
-    boolean verbose = false;
+  @Option(
+          names = {"--print-ast"},
+          description = "Print the AST for each source file"
+  )
+  private boolean printAST;
 
-    for (String arg : args) {
-      if (arg.startsWith("-")) {
-        switch (arg) {
-          case "--print-ast" -> printAST = true;
-          case "--verbose" -> verbose = true;
-          default -> {
-            System.err.println("Unknown option: " + arg);
-            System.exit(1);
-          }
-        }
-      } else {
-        sourceFiles.add(new File(arg));
+  @Parameters(
+          paramLabel = "FILES",
+          description = "Wheeler source files to compile"
+  )
+  private List<File> sourceFiles;
+
+  @Override
+  public Integer call() {
+    CompilerOptions options = new CompilerOptions();
+    options.setPrintAST(printAST);
+
+    WheelerCompiler compiler = new WheelerCompiler(options);
+
+    // Process each source file
+    for (File sourceFile : sourceFiles) {
+      String sourcePath = sourceFile.getAbsolutePath();
+      boolean success = compiler.compile(sourcePath, sourcePath);
+      if (!success) {
+        return 1; // Return non-zero exit code on failure
       }
     }
 
-    // Create and run compiler
-    CompilerOptions options = new CompilerOptions(printAST, verbose);
-    WheelerCompiler compiler = new WheelerCompiler(options);
-    boolean success = compiler.compile(sourceFiles);
+    return 0; // Return zero on success
+  }
 
-    System.exit(success ? 0 : 1);
+  public static void main(String[] args) {
+    int exitCode = new CommandLine(new WheelerCompilerTool()).execute(args);
+    System.exit(exitCode);
   }
 }
