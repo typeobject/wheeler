@@ -14,11 +14,14 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
+          cache-dependency-path: docs/package-lock.json
           node-version: 18
           cache: yarn
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+        working-directory: docs
 
       - name: Test build website
         run: yarn build
+        working-directory: docs
