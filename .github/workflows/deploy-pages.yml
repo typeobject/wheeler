@@ -5,6 +5,10 @@ on:
     branches:
       - master
 
+defaults:
+  run:
+    working-directory: ./docs
+
 jobs:
   build:
     name: Build Docusaurus
@@ -19,7 +23,6 @@ jobs:
           cache: yarn
 
       - name: Install dependencies
-        working-directory: ./docs
         run: yarn install --frozen-lockfile
       - name: Build website
         run: yarn build
