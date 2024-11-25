@@ -39,6 +39,7 @@ import com.typeobject.wheeler.compiler.ast.classical.statements.TryStatement;
 import com.typeobject.wheeler.compiler.ast.classical.statements.VariableDeclaration;
 import com.typeobject.wheeler.compiler.ast.classical.statements.WhileStatement;
 import com.typeobject.wheeler.compiler.ast.classical.types.ArrayType;
+import com.typeobject.wheeler.compiler.ast.classical.types.ClassType;
 import com.typeobject.wheeler.compiler.ast.classical.types.ClassicalType;
 import com.typeobject.wheeler.compiler.ast.classical.types.PrimitiveType;
 import com.typeobject.wheeler.compiler.ast.classical.types.TypeParameter;
@@ -48,6 +49,7 @@ import com.typeobject.wheeler.compiler.ast.memory.CleanBlock;
 import com.typeobject.wheeler.compiler.ast.memory.DeallocationStatement;
 import com.typeobject.wheeler.compiler.ast.memory.GarbageCollectionStatement;
 import com.typeobject.wheeler.compiler.ast.memory.UncomputeBlock;
+import com.typeobject.wheeler.compiler.ast.quantum.declarations.Parameter;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QuantumArrayAccess;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QuantumCastExpression;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QuantumRegisterAccess;
@@ -486,6 +488,26 @@ public class TypeCheckingVisitor implements NodeVisitor<Type> {
     }
 
     // Quantum expressions
+
+    @Override
+    public Type visitQuantumType(QuantumType node) {
+        // Perform quantum type validation
+        switch (node.getKind()) {
+            case QUREG:
+                if (node.getSize() <= 0) {
+                    errors.report("Quantum register size must be positive", node.getPosition());
+                }
+                break;
+            case STATE:
+                // State size validation will be done during initialization
+                break;
+            case QUBIT:
+                // Single qubits don't need size validation
+                break;
+        }
+        return node;
+    }
+
     @Override
     public Type visitQubitReference(QubitReference node) {
         Type type = env.lookup(node.getIdentifier());

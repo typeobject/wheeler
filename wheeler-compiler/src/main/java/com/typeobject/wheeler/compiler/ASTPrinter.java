@@ -36,6 +36,7 @@ import com.typeobject.wheeler.compiler.ast.classical.statements.TryStatement;
 import com.typeobject.wheeler.compiler.ast.classical.statements.VariableDeclaration;
 import com.typeobject.wheeler.compiler.ast.classical.statements.WhileStatement;
 import com.typeobject.wheeler.compiler.ast.classical.types.ArrayType;
+import com.typeobject.wheeler.compiler.ast.classical.types.ClassType;
 import com.typeobject.wheeler.compiler.ast.classical.types.PrimitiveType;
 import com.typeobject.wheeler.compiler.ast.classical.types.TypeParameter;
 import com.typeobject.wheeler.compiler.ast.classical.types.WildcardType;
@@ -56,6 +57,8 @@ import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumIfStatement
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumMeasurement;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumStatePreparation;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumWhileStatement;
+import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumType;
+import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumTypeKind;
 
 public class ASTPrinter implements NodeVisitor<String> {
     private int indentLevel = 0;
@@ -310,6 +313,19 @@ public class ASTPrinter implements NodeVisitor<String> {
     @Override
     public String visitQuantumStatePreparation(QuantumStatePreparation node) {
         return "";
+    }
+
+    @Override
+    public String visitQuantumType(QuantumType node) {
+        StringBuilder sb = new StringBuilder();
+        if (!node.getAnnotations().isEmpty()) {
+            node.getAnnotations().forEach(a -> sb.append(indent()).append(a).append(" "));
+        }
+        sb.append(node.getKind().toString().toLowerCase());
+        if (node.getKind() == QuantumTypeKind.QUREG) {
+            sb.append("[").append(node.getSize()).append("]");
+        }
+        return sb.toString();
     }
 
     @Override

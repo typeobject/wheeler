@@ -1,9 +1,9 @@
 package com.typeobject.wheeler.compiler.analysis;
 
-import com.sun.jdi.ClassType;
 import com.typeobject.wheeler.compiler.ast.Modifier;
 import com.typeobject.wheeler.compiler.ast.base.Type;
 import com.typeobject.wheeler.compiler.ast.classical.types.ArrayType;
+import com.typeobject.wheeler.compiler.ast.classical.types.ClassType;
 import com.typeobject.wheeler.compiler.ast.classical.types.PrimitiveType;
 import com.typeobject.wheeler.compiler.ast.quantum.declarations.Parameter;
 import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumType;

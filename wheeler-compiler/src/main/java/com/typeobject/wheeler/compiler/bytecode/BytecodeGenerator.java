@@ -36,6 +36,7 @@ import com.typeobject.wheeler.compiler.ast.classical.statements.TryStatement;
 import com.typeobject.wheeler.compiler.ast.classical.statements.VariableDeclaration;
 import com.typeobject.wheeler.compiler.ast.classical.statements.WhileStatement;
 import com.typeobject.wheeler.compiler.ast.classical.types.ArrayType;
+import com.typeobject.wheeler.compiler.ast.classical.types.ClassType;
 import com.typeobject.wheeler.compiler.ast.classical.types.PrimitiveType;
 import com.typeobject.wheeler.compiler.ast.classical.types.TypeParameter;
 import com.typeobject.wheeler.compiler.ast.classical.types.WildcardType;
@@ -56,6 +57,8 @@ import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumIfStatement
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumMeasurement;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumStatePreparation;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumWhileStatement;
+import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumType;
+import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumTypeKind;
 import com.typeobject.wheeler.core.instruction.Instruction;
 import com.typeobject.wheeler.core.instruction.InstructionSet;
 
@@ -433,6 +436,17 @@ public class BytecodeGenerator implements NodeVisitor<Void> {
 
     @Override
     public Void visitQuantumStatePreparation(QuantumStatePreparation node) {
+        return null;
+    }
+
+    @Override
+    public Void visitQuantumType(QuantumType node) {
+        // Generate type descriptor for quantum type
+        String desc = "L" + node.getKind().toString().toLowerCase() + ";";
+        if (node.getKind() == QuantumTypeKind.QUREG) {
+            desc = "[" + desc + node.getSize();
+        }
+        emitType(desc);
         return null;
     }
 

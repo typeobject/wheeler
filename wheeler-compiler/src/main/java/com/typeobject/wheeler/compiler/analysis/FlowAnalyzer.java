@@ -34,6 +34,7 @@ import com.typeobject.wheeler.compiler.ast.classical.statements.TryStatement;
 import com.typeobject.wheeler.compiler.ast.classical.statements.VariableDeclaration;
 import com.typeobject.wheeler.compiler.ast.classical.statements.WhileStatement;
 import com.typeobject.wheeler.compiler.ast.classical.types.ArrayType;
+import com.typeobject.wheeler.compiler.ast.classical.types.ClassType;
 import com.typeobject.wheeler.compiler.ast.classical.types.PrimitiveType;
 import com.typeobject.wheeler.compiler.ast.classical.types.TypeParameter;
 import com.typeobject.wheeler.compiler.ast.classical.types.WildcardType;
@@ -54,6 +55,7 @@ import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumIfStatement
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumMeasurement;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumStatePreparation;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumWhileStatement;
+import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumType;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -281,6 +283,11 @@ public class FlowAnalyzer implements NodeVisitor<Void> {
 
     @Override
     public Void visitQuantumIfStatement(QuantumIfStatement node) {
+        return null;
+    }
+
+    @Override
+    public Void visitQuantumType(QuantumType node) {
         return null;
     }
 
