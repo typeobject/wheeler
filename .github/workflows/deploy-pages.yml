@@ -25,10 +25,9 @@ jobs:
         run: yarn build
 
       - name: Upload Build Artifact
-        working-directory: ./docs
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build
+          path: docs/build
 
   deploy:
     name: Deploy to GitHub Pages
