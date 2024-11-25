@@ -7,7 +7,6 @@ import com.typeobject.wheeler.compiler.ast.base.Expression;
 import com.typeobject.wheeler.compiler.ast.base.Type;
 import com.typeobject.wheeler.compiler.ast.classical.types.ClassType;
 import com.typeobject.wheeler.compiler.ast.classical.types.ClassicalType;
-
 import java.util.List;
 import java.util.Objects;
 

@@ -6,7 +6,6 @@ import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.base.Declaration;
 import com.typeobject.wheeler.compiler.ast.classical.Block;
 import com.typeobject.wheeler.compiler.ast.quantum.declarations.Parameter;
-
 import java.util.List;
 
 public final class ConstructorDeclaration extends Declaration {

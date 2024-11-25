@@ -8,13 +8,12 @@ import com.typeobject.wheeler.compiler.ast.ASTBuilder;
 import com.typeobject.wheeler.compiler.ast.CompilationUnit;
 import com.typeobject.wheeler.compiler.bytecode.BytecodeGenerator;
 import com.typeobject.wheeler.compiler.bytecode.ClassWriter;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 
 public class WheelerCompiler {
     private final CompilerOptions options;

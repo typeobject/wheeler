@@ -6,7 +6,6 @@ import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.base.Declaration;
 import com.typeobject.wheeler.compiler.ast.base.Expression;
 import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumType;
-
 import java.util.List;
 
 public final class QuantumRegisterDeclaration extends Declaration {

@@ -4,7 +4,6 @@ import com.typeobject.wheeler.compiler.ast.Annotation;
 import com.typeobject.wheeler.compiler.ast.Modifier;
 import com.typeobject.wheeler.compiler.ast.Node;
 import com.typeobject.wheeler.compiler.ast.Position;
-
 import java.util.ArrayList;
 import java.util.List;
 

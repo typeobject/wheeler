@@ -4,7 +4,6 @@ package com.typeobject.wheeler.compiler.ast.quantum.expressions;
 import com.typeobject.wheeler.compiler.ast.Annotation;
 import com.typeobject.wheeler.compiler.ast.NodeVisitor;
 import com.typeobject.wheeler.compiler.ast.Position;
-
 import java.util.List;
 
 public final class QubitReference extends QubitExpression {

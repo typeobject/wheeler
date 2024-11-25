@@ -1,7 +1,6 @@
 package com.typeobject.wheeler.compiler;
 
 import com.typeobject.wheeler.compiler.ast.Position;
-
 import java.util.ArrayList;
 import java.util.List;
 

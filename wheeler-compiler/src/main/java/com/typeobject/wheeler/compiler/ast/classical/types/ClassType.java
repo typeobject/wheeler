@@ -6,7 +6,6 @@ import com.typeobject.wheeler.compiler.ast.NodeVisitor;
 import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.base.Type;
 import com.typeobject.wheeler.compiler.ast.classical.declarations.MethodDeclaration;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;

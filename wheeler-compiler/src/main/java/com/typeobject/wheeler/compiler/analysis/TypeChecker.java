@@ -94,7 +94,6 @@ import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumArrayType;
 import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumRegisterType;
 import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumType;
 import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumTypeKind;
-
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;

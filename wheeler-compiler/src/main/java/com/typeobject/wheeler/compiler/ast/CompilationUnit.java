@@ -2,7 +2,6 @@
 package com.typeobject.wheeler.compiler.ast;
 
 import com.typeobject.wheeler.compiler.ast.base.Declaration;
-
 import java.util.ArrayList;
 import java.util.List;
 

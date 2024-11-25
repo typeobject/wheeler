@@ -4,7 +4,6 @@ import com.typeobject.wheeler.compiler.ast.Annotation;
 import com.typeobject.wheeler.compiler.ast.NodeVisitor;
 import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.base.Expression;
-
 import java.util.List;
 
 public final class HybridIfStatement extends HybridStatement {

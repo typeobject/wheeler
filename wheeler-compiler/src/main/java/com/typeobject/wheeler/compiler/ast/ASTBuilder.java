@@ -3,7 +3,6 @@ package com.typeobject.wheeler.compiler.ast;
 import com.typeobject.wheeler.compiler.ErrorReporter;
 import com.typeobject.wheeler.compiler.antlr.WheelerParser.CompilationUnitContext;
 import com.typeobject.wheeler.compiler.ast.classical.declarations.ClassDeclaration;
-
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;

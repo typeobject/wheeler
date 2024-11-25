@@ -1,13 +1,12 @@
 // WheelerThreadState.java
 package com.typeobject.wheeler.core.thread;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 public class WheelerThreadState implements Cloneable {
   private final long id;

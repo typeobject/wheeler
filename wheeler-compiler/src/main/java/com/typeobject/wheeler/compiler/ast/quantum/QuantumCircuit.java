@@ -5,7 +5,6 @@ import com.typeobject.wheeler.compiler.ast.Node;
 import com.typeobject.wheeler.compiler.ast.NodeVisitor;
 import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumStatement;
-
 import java.util.List;
 
 public final class QuantumCircuit extends Node {

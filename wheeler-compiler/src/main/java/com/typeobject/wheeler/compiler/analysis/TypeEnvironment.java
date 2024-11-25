@@ -7,7 +7,6 @@ import com.typeobject.wheeler.compiler.ast.classical.types.PrimitiveType;
 import com.typeobject.wheeler.compiler.ast.quantum.declarations.Parameter;
 import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumType;
 import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumTypeKind;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;

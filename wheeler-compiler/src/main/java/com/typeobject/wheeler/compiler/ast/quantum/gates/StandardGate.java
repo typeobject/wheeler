@@ -2,7 +2,6 @@
 package com.typeobject.wheeler.compiler.ast.quantum.gates;
 
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QubitExpression;
-
 import java.util.List;
 
 public final class StandardGate extends QuantumGate {

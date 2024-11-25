@@ -5,7 +5,6 @@ import com.typeobject.wheeler.compiler.ast.NodeVisitor;
 import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.base.Expression;
 import com.typeobject.wheeler.compiler.ast.base.Statement;
-
 import java.util.List;
 
 public final class AllocationStatement extends Statement {

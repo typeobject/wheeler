@@ -8,7 +8,6 @@ import com.typeobject.wheeler.compiler.ast.base.Declaration;
 import com.typeobject.wheeler.compiler.ast.base.Type;
 import com.typeobject.wheeler.compiler.ast.classical.Block;
 import com.typeobject.wheeler.compiler.ast.quantum.declarations.Parameter;
-
 import java.util.List;
 
 public final class MethodDeclaration extends Declaration {

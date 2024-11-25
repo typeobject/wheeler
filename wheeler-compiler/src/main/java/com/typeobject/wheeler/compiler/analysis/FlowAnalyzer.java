@@ -82,7 +82,6 @@ import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumWhileStatem
 import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumArrayType;
 import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumRegisterType;
 import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumType;
-
 import java.util.HashSet;
 import java.util.Set;
 

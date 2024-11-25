@@ -4,7 +4,6 @@ import com.typeobject.wheeler.compiler.ast.Annotation;
 import com.typeobject.wheeler.compiler.ast.Modifier;
 import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.base.Type;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;

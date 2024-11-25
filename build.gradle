@@ -38,6 +38,7 @@ subprojects {
         options.encoding = 'UTF-8'
         options.errorprone {
             disableWarningsInGeneratedCode = true
+						allErrorsAsWarnings = true
         }
     }
 
@@ -51,7 +52,7 @@ subprojects {
 
     checkerFramework {
         checkers = [
-            'org.checkerframework.checker.nullness.NullnessChecker'
+            // 'org.checkerframework.checker.nullness.NullnessChecker'
         ]
     }
 

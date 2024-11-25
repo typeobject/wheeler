@@ -6,7 +6,6 @@ import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.base.Declaration;
 import com.typeobject.wheeler.compiler.ast.base.Expression;
 import com.typeobject.wheeler.compiler.ast.base.Type;
-
 import java.util.List;
 
 public final class FieldDeclaration extends Declaration {

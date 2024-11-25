@@ -1,9 +1,8 @@
 package com.typeobject.wheeler.core.instruction;
 
 import com.typeobject.wheeler.core.exceptions.InvalidInstructionException;
-import org.checkerframework.checker.nullness.qual.Nullable;
-
 import java.util.Objects;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Represents a Wheeler VM instruction.

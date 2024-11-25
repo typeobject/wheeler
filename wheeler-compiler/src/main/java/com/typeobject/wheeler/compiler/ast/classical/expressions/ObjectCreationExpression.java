@@ -6,7 +6,6 @@ import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.base.Expression;
 import com.typeobject.wheeler.compiler.ast.base.Type;
 import com.typeobject.wheeler.compiler.ast.classical.declarations.ClassDeclaration;
-
 import java.util.List;
 
 public final class ObjectCreationExpression extends ClassicalExpression {
