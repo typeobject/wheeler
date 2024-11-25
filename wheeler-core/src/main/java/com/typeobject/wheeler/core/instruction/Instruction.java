@@ -133,8 +133,7 @@ public class Instruction {
   @Override
   public boolean equals(@Nullable Object o) {
     if (this == o) return true;
-    if (!(o instanceof Instruction)) return false;
-    Instruction that = (Instruction) o;
+    if (!(o instanceof Instruction that)) return false;
     return opcode == that.opcode
             && flags == that.flags
             && registers == that.registers
