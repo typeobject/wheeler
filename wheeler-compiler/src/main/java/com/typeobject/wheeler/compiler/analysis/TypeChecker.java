@@ -7,6 +7,7 @@ import com.typeobject.wheeler.compiler.ast.Documentation;
 import com.typeobject.wheeler.compiler.ast.ImportDeclaration;
 import com.typeobject.wheeler.compiler.ast.Modifier;
 import com.typeobject.wheeler.compiler.ast.Node;
+import com.typeobject.wheeler.compiler.ast.NodeVisitor;
 import com.typeobject.wheeler.compiler.ast.base.Declaration;
 import com.typeobject.wheeler.compiler.ast.base.Expression;
 import com.typeobject.wheeler.compiler.ast.base.Statement;
@@ -76,7 +77,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TypeChecker {
+public class TypeChecker implements NodeVisitor<Type> {
     private final ErrorReporter errors;
     private final Map<String, TypeEnvironment> typeEnvironments;
     private final Deque<String> scopeStack;
@@ -134,6 +135,13 @@ public class TypeChecker {
         }
 
         return node;
+    }
+
+    @Override
+    public Type visitParameter(Parameter parameter) {
+        Type paramType = parameter.getType().accept(this);
+        currentEnv.define(parameter.getName(), paramType);
+        return paramType;
     }
 
 

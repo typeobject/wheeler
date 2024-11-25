@@ -57,6 +57,8 @@ public interface NodeVisitor<T> {
     // Documentation
     T visitDocumentation(Documentation node);
 
+    T visitErrorNode(ErrorNode errorNode);
+
     // Top-level declarations
     T visitCompilationUnit(CompilationUnit node);
 
@@ -173,5 +175,4 @@ public interface NodeVisitor<T> {
     T visitDeallocationStatement(DeallocationStatement node);
 
     T visitGarbageCollection(GarbageCollectionStatement node);
-
 }

@@ -17,7 +17,6 @@ public class TypeEnvironment {
     private final TypeEnvironment parent;
     private final Map<String, Type> types;
     private final Map<String, Type> variables;
-    private final Map<String, List<MethodSymbol>> methods;
     private final Type unitType;
 
     private final PrimitiveType booleanType;
@@ -39,7 +38,6 @@ public class TypeEnvironment {
         this.parent = parent;
         this.types = new HashMap<>();
         this.variables = new HashMap<>();
-        this.methods = new HashMap<>();
         this.unitType = unitType;
 
         // Initialize primitive types

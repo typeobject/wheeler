@@ -43,6 +43,7 @@ import com.typeobject.wheeler.compiler.ast.memory.CleanBlock;
 import com.typeobject.wheeler.compiler.ast.memory.DeallocationStatement;
 import com.typeobject.wheeler.compiler.ast.memory.GarbageCollectionStatement;
 import com.typeobject.wheeler.compiler.ast.memory.UncomputeBlock;
+import com.typeobject.wheeler.compiler.ast.quantum.declarations.Parameter;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QuantumArrayAccess;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QuantumCastExpression;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QuantumRegisterAccess;
@@ -288,6 +289,11 @@ public class FlowAnalyzer implements NodeVisitor<Void> {
 
     @Override
     public Void visitQuantumType(QuantumType node) {
+        return null;
+    }
+
+    @Override
+    public Void visitParameter(Parameter parameter) {
         return null;
     }
 
