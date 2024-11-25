@@ -38,7 +38,7 @@ subprojects {
         options.encoding = 'UTF-8'
         options.errorprone {
             disableWarningsInGeneratedCode = true
-						allErrorsAsWarnings = true
+            allErrorsAsWarnings = true
         }
     }
 
