@@ -8,6 +8,8 @@ import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.base.Declaration;
 import com.typeobject.wheeler.compiler.ast.base.Type;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public final class ClassDeclaration extends Declaration {
@@ -16,13 +18,19 @@ public final class ClassDeclaration extends Declaration {
     private final List<Declaration> members;
     private final ComputationType computationType;
 
-    public ClassDeclaration(Position position, List<Annotation> annotations, List<Modifier> modifiers,
-                            String name, Type superClass, List<Type> interfaces,
-                            List<Declaration> members, ComputationType computationType) {
+    private ClassDeclaration(
+            Position position,
+            List<Annotation> annotations,
+            List<Modifier> modifiers,
+            String name,
+            Type superClass,
+            List<Type> interfaces,
+            List<Declaration> members,
+            ComputationType computationType) {
         super(position, annotations, modifiers, name);
         this.superClass = superClass;
-        this.interfaces = interfaces;
-        this.members = members;
+        this.interfaces = new ArrayList<>(interfaces);
+        this.members = new ArrayList<>(members);
         this.computationType = computationType;
     }
 
@@ -31,11 +39,11 @@ public final class ClassDeclaration extends Declaration {
     }
 
     public List<Type> getInterfaces() {
-        return interfaces;
+        return Collections.unmodifiableList(interfaces);
     }
 
     public List<Declaration> getMembers() {
-        return members;
+        return Collections.unmodifiableList(members);
     }
 
     public boolean isQuantum() {
@@ -45,5 +53,68 @@ public final class ClassDeclaration extends Declaration {
     @Override
     public <T> T accept(NodeVisitor<T> visitor) {
         return visitor.visitClassDeclaration(this);
+    }
+
+    public static class Builder {
+        private Position position;
+        private final List<Annotation> annotations = new ArrayList<>();
+        private final List<Modifier> modifiers = new ArrayList<>();
+        private final String name;
+        private Type superClass;
+        private final List<Type> interfaces = new ArrayList<>();
+        private final List<Declaration> members = new ArrayList<>();
+        private ComputationType computationType = ComputationType.CLASSICAL;
+
+        public Builder(String name) {
+            this.name = name;
+        }
+
+        public Builder position(Position position) {
+            this.position = position;
+            return this;
+        }
+
+        public Builder addAnnotation(Annotation annotation) {
+            annotations.add(annotation);
+            return this;
+        }
+
+        public Builder addModifier(Modifier modifier) {
+            modifiers.add(modifier);
+            return this;
+        }
+
+        public Builder superClass(Type superClass) {
+            this.superClass = superClass;
+            return this;
+        }
+
+        public Builder addInterface(Type interfaceType) {
+            interfaces.add(interfaceType);
+            return this;
+        }
+
+        public Builder addMember(Declaration member) {
+            members.add(member);
+            return this;
+        }
+
+        public Builder computationType(ComputationType computationType) {
+            this.computationType = computationType;
+            return this;
+        }
+
+        public ClassDeclaration build() {
+            return new ClassDeclaration(
+                    position,
+                    annotations,
+                    modifiers,
+                    name,
+                    superClass,
+                    interfaces,
+                    members,
+                    computationType
+            );
+        }
     }
 }

@@ -5,15 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="72d83d44-56a6-4135-a1ad-865d108c0a5b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ASTPrinter.java" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ASTPrinter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/analysis/FlowAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/analysis/FlowAnalyzer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/analysis/TypeEnvironment.java" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/analysis/TypeEnvironment.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/ASTBuilder.java" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/ASTBuilder.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/NodeVisitor.java" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/NodeVisitor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/quantum/types/QuantumType.java" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/quantum/types/QuantumType.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/visitors/TypeCheckingVisitor.java" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/visitors/TypeCheckingVisitor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/bytecode/BytecodeGenerator.java" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/bytecode/BytecodeGenerator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/classical/declarations/ClassDeclaration.java" beforeDir="false" afterPath="$PROJECT_DIR$/wheeler-compiler/src/main/java/com/typeobject/wheeler/compiler/ast/classical/declarations/ClassDeclaration.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

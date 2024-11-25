@@ -2,8 +2,8 @@ package com.typeobject.wheeler.compiler.ast;
 
 import com.typeobject.wheeler.compiler.ErrorReporter;
 import com.typeobject.wheeler.compiler.antlr.WheelerParser.CompilationUnitContext;
-import com.typeobject.wheeler.compiler.ast.classical.declarations.MethodDeclaration;
 import com.typeobject.wheeler.compiler.ast.classical.declarations.ClassDeclaration;
+import com.typeobject.wheeler.compiler.ast.classical.declarations.MethodDeclaration;
 import com.typeobject.wheeler.compiler.ast.quantum.gates.QuantumGate;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumGateApplication;
 
