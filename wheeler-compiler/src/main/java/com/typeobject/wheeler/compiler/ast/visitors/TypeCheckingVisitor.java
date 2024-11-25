@@ -830,7 +830,7 @@ public class TypeCheckingVisitor implements NodeVisitor<Type> {
     }
 
     private MethodDeclaration lookupMethod(Type receiverType, String methodName) {
-        if (!(receiverType instanceof ClassicalType classType)) {
+        if (!(receiverType instanceof ClassType classType)) {
             return null;
         }
         return classType.lookupMethod(methodName);

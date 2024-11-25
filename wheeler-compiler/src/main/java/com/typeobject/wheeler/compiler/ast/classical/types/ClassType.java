@@ -5,8 +5,6 @@ import com.typeobject.wheeler.compiler.ast.Modifier;
 import com.typeobject.wheeler.compiler.ast.NodeVisitor;
 import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.base.Type;
-import com.typeobject.wheeler.compiler.ast.classical.declarations.ConstructorDeclaration;
-import com.typeobject.wheeler.compiler.ast.classical.declarations.FieldDeclaration;
 import com.typeobject.wheeler.compiler.ast.classical.declarations.MethodDeclaration;
 
 import java.util.ArrayList;
@@ -18,45 +16,106 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-
 public final class ClassType extends ClassicalType {
-    private final String name;
-    private final List<Type> typeArguments;
+    private final Map<String, List<MethodDeclaration>> methods = new HashMap<>();
     private final ClassType supertype;
     private final List<ClassType> interfaces;
     private final Set<Modifier> modifiers;
-    private final Map<String, FieldDeclaration> fields;
-    private final Map<String, List<MethodDeclaration>> methods;
-    private final List<ConstructorDeclaration> constructors;
     private final boolean isInterface;
 
-    public ClassType(Position position,
-                     List<Annotation> annotations,
-                     String name,
-                     List<Type> typeArguments,
-                     ClassType supertype,
-                     List<ClassType> interfaces,
-                     Set<Modifier> modifiers,
-                     boolean isInterface) {
+    public ClassType(Position position, List<Annotation> annotations,
+                     String name, List<Type> typeArguments,
+                     ClassType supertype, List<ClassType> interfaces,
+                     Set<Modifier> modifiers, boolean isInterface) {
         super(position, annotations, name, typeArguments, false);
-        this.name = name;
-        this.typeArguments = new ArrayList<>(typeArguments);
         this.supertype = supertype;
-        this.interfaces = new ArrayList<>(interfaces);
-        this.modifiers = new HashSet<>(modifiers);
-        this.fields = new HashMap<>();
-        this.methods = new HashMap<>();
-        this.constructors = new ArrayList<>();
+        this.interfaces = interfaces != null ? new ArrayList<>(interfaces) : new ArrayList<>();
+        this.modifiers = modifiers != null ? new HashSet<>(modifiers) : new HashSet<>();
         this.isInterface = isInterface;
     }
 
-    // Basic getters
-    public String getName() {
-        return name;
+    private static ClassType findCommonSupertype(ClassType type1, ClassType type2) {
+        Set<ClassType> type1Supertypes = getAllSupertypes(type1);
+        Set<ClassType> type2Supertypes = getAllSupertypes(type2);
+        type1Supertypes.retainAll(type2Supertypes);
+
+        if (type1Supertypes.isEmpty()) {
+            return null;
+        }
+
+        // Find most specific common supertype
+        return type1Supertypes.stream()
+                .reduce((t1, t2) -> t1.isSubtypeOf(t2) ? t1 : t2)
+                .orElse(null);
     }
 
-    public List<Type> getTypeArguments() {
-        return Collections.unmodifiableList(typeArguments);
+    private static Set<ClassType> getAllSupertypes(ClassType type) {
+        Set<ClassType> supertypes = new HashSet<>();
+        supertypes.add(type);
+
+        if (type.supertype != null) {
+            supertypes.addAll(getAllSupertypes(type.supertype));
+        }
+
+        for (ClassType iface : type.interfaces) {
+            supertypes.addAll(getAllSupertypes(iface));
+        }
+
+        return supertypes;
+    }
+
+    public void addMethod(MethodDeclaration method) {
+        methods.computeIfAbsent(method.getName(), k -> new ArrayList<>()).add(method);
+    }
+
+    public List<MethodDeclaration> getMethods(String name) {
+        List<MethodDeclaration> result = methods.get(name);
+        if (result != null) {
+            return Collections.unmodifiableList(result);
+        }
+
+        // Check supertype methods
+        if (supertype != null) {
+            result = supertype.getMethods(name);
+            if (!result.isEmpty()) {
+                return result;
+            }
+        }
+
+        // Check interface methods
+        for (ClassType iface : interfaces) {
+            result = iface.getMethods(name);
+            if (!result.isEmpty()) {
+                return result;
+            }
+        }
+
+        return Collections.emptyList();
+    }
+
+    public List<MethodDeclaration> getMethods() {
+        List<MethodDeclaration> allMethods = new ArrayList<>();
+        methods.values().forEach(allMethods::addAll);
+
+        // Add supertype methods
+        if (supertype != null) {
+            allMethods.addAll(supertype.getMethods());
+        }
+
+        // Add interface methods
+        for (ClassType iface : interfaces) {
+            allMethods.addAll(iface.getMethods());
+        }
+
+        return Collections.unmodifiableList(allMethods);
+    }
+
+    public MethodDeclaration lookupMethod(String name) {
+        List<MethodDeclaration> methodList = getMethods(name);
+        if (!methodList.isEmpty()) {
+            return methodList.get(0);
+        }
+        return null;
     }
 
     public ClassType getSupertype() {
@@ -75,94 +134,6 @@ public final class ClassType extends ClassicalType {
         return isInterface;
     }
 
-    // Member management
-    public void addField(FieldDeclaration field) {
-        fields.put(field.getName(), field);
-    }
-
-    public void addMethod(MethodDeclaration method) {
-        methods.computeIfAbsent(method.getName(), k -> new ArrayList<>()).add(method);
-    }
-
-    public void addConstructor(ConstructorDeclaration constructor) {
-        constructors.add(constructor);
-    }
-
-    public FieldDeclaration getField(String name) {
-        FieldDeclaration field = fields.get(name);
-        if (field != null) return field;
-        if (supertype != null) return supertype.getField(name);
-        return null;
-    }
-
-    public List<MethodDeclaration> getMethods(String name) {
-        List<MethodDeclaration> result = new ArrayList<>();
-
-        // Add methods from this class
-        List<MethodDeclaration> localMethods = methods.get(name);
-        if (localMethods != null) {
-            result.addAll(localMethods);
-        }
-
-        // Add methods from superclass
-        if (supertype != null) {
-            List<MethodDeclaration> superMethods = supertype.getMethods(name);
-            for (MethodDeclaration superMethod : superMethods) {
-                if (!isOverridden(superMethod, result)) {
-                    result.add(superMethod);
-                }
-            }
-        }
-
-        // Add methods from interfaces
-        for (ClassType iface : interfaces) {
-            List<MethodDeclaration> ifaceMethods = iface.getMethods(name);
-            for (MethodDeclaration ifaceMethod : ifaceMethods) {
-                if (!isOverridden(ifaceMethod, result)) {
-                    result.add(ifaceMethod);
-                }
-            }
-        }
-
-        return result;
-    }
-
-    public List<ConstructorDeclaration> getConstructors() {
-        return Collections.unmodifiableList(constructors);
-    }
-
-    // Method lookup and override checking
-    private boolean isOverridden(MethodDeclaration method, List<MethodDeclaration> methods) {
-        for (MethodDeclaration existing : methods) {
-            if (overrides(existing, method)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean overrides(MethodDeclaration method1, MethodDeclaration method2) {
-        if (!method1.getName().equals(method2.getName())) return false;
-
-        List<Type> params1 = getParameterTypes(method1);
-        List<Type> params2 = getParameterTypes(method2);
-
-        if (params1.size() != params2.size()) return false;
-
-        for (int i = 0; i < params1.size(); i++) {
-            if (!params1.get(i).equals(params2.get(i))) return false;
-        }
-
-        return true;
-    }
-
-    private List<Type> getParameterTypes(MethodDeclaration method) {
-        return method.getParameters().stream()
-                .map(p -> p.getType())
-                .toList();
-    }
-
-    // Type system implementation
     @Override
     public boolean isNumeric() {
         return false;
@@ -180,206 +151,115 @@ public final class ClassType extends ClassicalType {
 
     @Override
     public boolean isOrdered() {
-        // Check if this type implements Comparable
-        return interfaces.stream().anyMatch(i -> i.getName().equals("Comparable"));
+        return interfaces.stream()
+                .anyMatch(i -> i.getName().equals("Comparable"));
     }
 
     @Override
     public boolean isComparableTo(ClassicalType other) {
-        if (equals(other)) return true;
-        if (other instanceof ClassType otherClass) {
-            // Check if this type is assignable to the other type or vice versa
-            return isAssignableFrom(otherClass) || otherClass.isAssignableFrom(this);
+        if (equals(other)) {
+            return true;
+        }
+        if (other instanceof ClassType) {
+            return isSubtypeOf((ClassType) other) || ((ClassType) other).isSubtypeOf(this);
         }
         return false;
     }
 
     @Override
     public boolean isAssignableFrom(ClassicalType source) {
-        if (!(source instanceof ClassType sourceClass)) return false;
+        if (equals(source)) {
+            return true;
+        }
+        if (source instanceof ClassType) {
+            return ((ClassType) source).isSubtypeOf(this);
+        }
+        return false;
+    }
 
-        // Same type
-        if (this.equals(sourceClass)) return true;
+    @Override
+    public Type promoteWith(ClassicalType other) {
+        if (isAssignableFrom(other)) {
+            return this;
+        }
+        if (other instanceof ClassType && other.isAssignableFrom(this)) {
+            return other;
+        }
+        return findCommonSupertype(this, (ClassType) other);
+    }
 
-        // Check superclass hierarchy
-        if (isAssignableFrom(sourceClass.supertype)) {
+    private boolean isSubtypeOf(ClassType other) {
+        if (this.equals(other)) {
+            return true;
+        }
+
+        // Check supertype hierarchy
+        if (supertype != null && supertype.isSubtypeOf(other)) {
             return true;
         }
 
         // Check interfaces
-        for (ClassType iface : sourceClass.interfaces) {
-            if (isAssignableFrom(iface)) return true;
+        for (ClassType iface : interfaces) {
+            if (iface.isSubtypeOf(other)) {
+                return true;
+            }
         }
 
         return false;
     }
 
     @Override
-    public Type promoteWith(ClassicalType other) {
-        if (isAssignableFrom(other)) return this;
-        if (other instanceof ClassType && other.isAssignableFrom(this)) {
-            return other;
-        }
-        // Find least common supertype
-        if (other instanceof ClassType) {
-            return findCommonSupertype(this, (ClassType) other);
-        }
-        return null;
-    }
-
-    private ClassType findCommonSupertype(ClassType type1, ClassType type2) {
-        Set<ClassType> type1Supertypes = getAllSupertypes(type1);
-        Set<ClassType> type2Supertypes = getAllSupertypes(type2);
-
-        type1Supertypes.retainAll(type2Supertypes);
-
-        if (type1Supertypes.isEmpty()) return null;
-
-        // Find most specific common supertype
-        return type1Supertypes.stream()
-                .reduce((t1, t2) -> t1.isAssignableFrom(t2) ? t2 : t1)
-                .orElse(null);
-    }
-
-    private Set<ClassType> getAllSupertypes(ClassType type) {
-        Set<ClassType> supertypes = new HashSet<>();
-        supertypes.add(type);
-
-        if (type.supertype != null) {
-            supertypes.addAll(getAllSupertypes(type.supertype));
-        }
-
-        for (ClassType iface : type.interfaces) {
-            supertypes.addAll(getAllSupertypes(iface));
-        }
-
-        return supertypes;
-    }
-
-    // Type substitution for generics
-    public ClassType substitute(Map<TypeParameter, Type> substitutions) {
-        List<Type> newTypeArgs = new ArrayList<>();
-        for (Type arg : typeArguments) {
-            if (arg instanceof TypeParameter) {
-                Type substitution = substitutions.get(arg);
-                newTypeArgs.add(substitution != null ? substitution : arg);
-            } else {
-                newTypeArgs.add(arg);
-            }
-        }
-
-        return new ClassType(
-                getPosition(),
-                getAnnotations(),
-                name,
-                newTypeArgs,
-                supertype != null ? supertype.substitute(substitutions) : null,
-                interfaces.stream()
-                        .map(i -> i.substitute(substitutions))
-                        .toList(),
-                modifiers,
-                isInterface
-        );
-    }
-
-    // Equality and hashing
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ClassType that)) return false;
-
-        return name.equals(that.name) &&
-                typeArguments.equals(that.typeArguments) &&
-                Objects.equals(supertype, that.supertype) &&
-                interfaces.equals(that.interfaces);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, typeArguments, supertype, interfaces);
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder(name);
-        if (!typeArguments.isEmpty()) {
-            sb.append('<');
-            for (int i = 0; i < typeArguments.size(); i++) {
-                if (i > 0) sb.append(", ");
-                sb.append(typeArguments.get(i));
-            }
-            sb.append('>');
-        }
-        return sb.toString();
-    }
-
-    // Visitor pattern implementation
-    @Override
     public <T> T accept(NodeVisitor<T> visitor) {
         return visitor.visitClassType(this);
     }
 
-    // Builder pattern for convenient instantiation
-    public static class Builder {
-        private final List<Annotation> annotations = new ArrayList<>();
-        private final String name;
-        private final List<Type> typeArguments = new ArrayList<>();
-        private final List<ClassType> interfaces = new ArrayList<>();
-        private final Set<Modifier> modifiers = new HashSet<>();
-        private Position position;
-        private ClassType supertype;
-        private boolean isInterface;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ClassType classType)) return false;
+        if (!super.equals(o)) return false;
 
-        public Builder(String name) {
-            this.name = name;
+        return isInterface == classType.isInterface &&
+                Objects.equals(supertype, classType.supertype) &&
+                interfaces.equals(classType.interfaces) &&
+                modifiers.equals(classType.modifiers);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), supertype, interfaces, modifiers, isInterface);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        if (!modifiers.isEmpty()) {
+            sb.append(modifiers).append(" ");
+        }
+        sb.append(isInterface ? "interface " : "class ").append(getName());
+
+        List<Type> typeArgs = getTypeArguments();
+        if (!typeArgs.isEmpty()) {
+            sb.append('<');
+            for (int i = 0; i < typeArgs.size(); i++) {
+                if (i > 0) sb.append(", ");
+                sb.append(typeArgs.get(i));
+            }
+            sb.append('>');
         }
 
-        public Builder position(Position position) {
-            this.position = position;
-            return this;
+        if (supertype != null) {
+            sb.append(" extends ").append(supertype.getName());
         }
 
-        public Builder addAnnotation(Annotation annotation) {
-            this.annotations.add(annotation);
-            return this;
+        if (!interfaces.isEmpty()) {
+            sb.append(isInterface ? " extends " : " implements ");
+            for (int i = 0; i < interfaces.size(); i++) {
+                if (i > 0) sb.append(", ");
+                sb.append(interfaces.get(i).getName());
+            }
         }
 
-        public Builder addTypeArgument(Type typeArg) {
-            this.typeArguments.add(typeArg);
-            return this;
-        }
-
-        public Builder supertype(ClassType supertype) {
-            this.supertype = supertype;
-            return this;
-        }
-
-        public Builder addInterface(ClassType iface) {
-            this.interfaces.add(iface);
-            return this;
-        }
-
-        public Builder addModifier(Modifier modifier) {
-            this.modifiers.add(modifier);
-            return this;
-        }
-
-        public Builder setInterface(boolean isInterface) {
-            this.isInterface = isInterface;
-            return this;
-        }
-
-        public ClassType build() {
-            return new ClassType(
-                    position,
-                    annotations,
-                    name,
-                    typeArguments,
-                    supertype,
-                    interfaces,
-                    modifiers,
-                    isInterface
-            );
-        }
+        return sb.toString();
     }
 }

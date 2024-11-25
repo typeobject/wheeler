@@ -2,17 +2,23 @@ package com.typeobject.wheeler.compiler.analysis;
 
 import com.typeobject.wheeler.compiler.ast.Modifier;
 import com.typeobject.wheeler.compiler.ast.base.Type;
-import com.typeobject.wheeler.compiler.ast.classical.types.ArrayType;
 import com.typeobject.wheeler.compiler.ast.classical.types.ClassType;
 import com.typeobject.wheeler.compiler.ast.classical.types.PrimitiveType;
+import com.typeobject.wheeler.compiler.ast.quantum.declarations.Parameter;
+import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumType;
+import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumTypeKind;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Maintains type information and provides type lookup functionality.
+ */
 public class TypeEnvironment {
     private final TypeEnvironment parent;
     private final Map<String, Type> types;
@@ -66,25 +72,86 @@ public class TypeEnvironment {
         initializeBuiltinTypes();
     }
 
-    // Define a type in the environment
+    private void initializeBuiltinTypes() {
+        // Add primitive types
+        types.put("boolean", booleanType);
+        types.put("byte", byteType);
+        types.put("short", shortType);
+        types.put("int", intType);
+        types.put("long", longType);
+        types.put("float", floatType);
+        types.put("double", doubleType);
+        types.put("char", charType);
+        types.put("void", voidType);
+        types.put("Object", objectType);
+        types.put("String", stringType);
+        types.put("Throwable", throwableType);
+        types.put("Error", errorType);
+
+        // Add quantum types
+        types.put("qubit", new QuantumType(null, List.of(), QuantumTypeKind.QUBIT));
+        types.put("qureg", new QuantumType(null, List.of(), QuantumTypeKind.QUREG));
+        types.put("state", new QuantumType(null, List.of(), QuantumTypeKind.STATE));
+    }
+
     public void define(String name, Type type) {
         if (name == null) throw new IllegalArgumentException("Name cannot be null");
         if (type == null) throw new IllegalArgumentException("Type cannot be null");
         variables.put(name, type);
     }
 
-    // Look up a type in the environment
     public Type lookup(String name) {
         if (name == null) throw new IllegalArgumentException("Name cannot be null");
 
         Type type = variables.get(name);
         if (type != null) return type;
 
-        if (parent != null) {
-            return parent.lookup(name);
+        if (type == null) {
+            type = types.get(name);
         }
 
-        return null;
+        if (type == null && parent != null) {
+            type = parent.lookup(name);
+        }
+
+        return type;
+    }
+
+    public Type getQuantumRegisterType(int size) {
+        return new QuantumType(null, List.of(), QuantumTypeKind.QUREG, size);
+    }
+
+    public Type getQuantumStateType(int numQubits) {
+        return new QuantumType(null, List.of(), QuantumTypeKind.STATE, numQubits);
+    }
+
+    public Type getFunctionalInterfaceType(List<Parameter> parameters, Type returnType) {
+        String name = "Function" + parameters.size();
+        List<Type> typeArguments = new ArrayList<>();
+
+        for (Parameter param : parameters) {
+            typeArguments.add(param.getType());
+        }
+        typeArguments.add(returnType);
+
+        Set<Modifier> modifiers = new HashSet<>();
+        modifiers.add(Modifier.PUBLIC);
+        modifiers.add(Modifier.ABSTRACT);
+
+        return new ClassType(null, List.of(), name, typeArguments,
+                (ClassType) getObjectType(), List.of(), modifiers, true);
+    }
+
+    public Map<String, Type> getTypes() {
+        return Collections.unmodifiableMap(types);
+    }
+
+    public Map<String, Type> getVariables() {
+        return Collections.unmodifiableMap(variables);
+    }
+
+    public Type getUnitType() {
+        return unitType;
     }
 
     public Type getObjectType() {
@@ -143,68 +210,24 @@ public class TypeEnvironment {
         return voidType;
     }
 
-    public Type getUnitType() {
-        return unitType;
+    public TypeEnvironment getParent() {
+        return parent;
     }
 
-    // Initialize built-in types in the type environment
-    private void initializeBuiltinTypes() {
-        types.put("boolean", booleanType);
-        types.put("byte", byteType);
-        types.put("short", shortType);
-        types.put("int", intType);
-        types.put("long", longType);
-        types.put("float", floatType);
-        types.put("double", doubleType);
-        types.put("char", charType);
-        types.put("void", voidType);
-        types.put("Object", objectType);
-        types.put("String", stringType);
-        types.put("Throwable", throwableType);
-        types.put("Error", errorType);
+    public boolean isDefined(String name) {
+        if (variables.containsKey(name) || types.containsKey(name)) {
+            return true;
+        }
+        return parent != null && parent.isDefined(name);
     }
 
-    // Type compatibility checking
-    public boolean isAssignable(Type target, Type source) {
-        if (target == null || source == null) return false;
-        if (target.equals(source)) return true;
-
-        // Handle null type
-        if (source.equals(nullType)) {
-            return !isPrimitive(target);
+    public TypeEnvironment getDefiningEnvironment(String name) {
+        if (variables.containsKey(name) || types.containsKey(name)) {
+            return this;
         }
-
-        if (target instanceof ClassType && source instanceof ClassType) {
-            return isClassAssignable((ClassType) target, (ClassType) source);
+        if (parent != null) {
+            return parent.getDefiningEnvironment(name);
         }
-
-        if (target instanceof ArrayType targetArray && source instanceof ArrayType sourceArray) {
-            return targetArray.getDimensions() == sourceArray.getDimensions()
-                    && isAssignable(targetArray.getElementType(), sourceArray.getElementType());
-        }
-
-        return false;
-    }
-
-    private boolean isPrimitive(Type type) {
-        return type instanceof PrimitiveType;
-    }
-
-    private boolean isClassAssignable(ClassType target, ClassType source) {
-        if (target.equals(source)) return true;
-
-        // Check superclass chain
-        ClassType current = source;
-        while (current.getSupertype() != null) {
-            if (target.equals(current.getSupertype())) return true;
-            current = current.getSupertype();
-        }
-
-        // Check interfaces
-        for (ClassType iface : source.getInterfaces()) {
-            if (isClassAssignable(target, iface)) return true;
-        }
-
-        return false;
+        return null;
     }
 }

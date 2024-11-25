@@ -3,9 +3,6 @@ package com.typeobject.wheeler.compiler.ast;
 import com.typeobject.wheeler.compiler.ErrorReporter;
 import com.typeobject.wheeler.compiler.antlr.WheelerParser.CompilationUnitContext;
 import com.typeobject.wheeler.compiler.ast.classical.declarations.ClassDeclaration;
-import com.typeobject.wheeler.compiler.ast.classical.declarations.MethodDeclaration;
-import com.typeobject.wheeler.compiler.ast.quantum.gates.QuantumGate;
-import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumGateApplication;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -22,14 +19,6 @@ public class ASTBuilder {
 
     public ClassDeclaration.Builder classDeclaration(Position position, String name) {
         return new ClassDeclaration.Builder(name).position(position);
-    }
-
-    public MethodDeclaration.Builder methodDeclaration(String name) {
-        return new MethodDeclaration.Builder(name);
-    }
-
-    public QuantumGateApplication.Builder gateApplication(QuantumGate gate) {
-        return new QuantumGateApplication.Builder(gate);
     }
 
     public CompilationUnit buildCompilationUnit(CompilationUnitContext ctx) {

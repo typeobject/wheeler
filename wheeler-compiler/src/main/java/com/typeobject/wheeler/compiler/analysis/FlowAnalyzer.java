@@ -1,8 +1,10 @@
 package com.typeobject.wheeler.compiler.analysis;
 
 import com.typeobject.wheeler.compiler.ErrorReporter;
+import com.typeobject.wheeler.compiler.ast.CommentNode;
 import com.typeobject.wheeler.compiler.ast.CompilationUnit;
 import com.typeobject.wheeler.compiler.ast.Documentation;
+import com.typeobject.wheeler.compiler.ast.ErrorNode;
 import com.typeobject.wheeler.compiler.ast.ImportDeclaration;
 import com.typeobject.wheeler.compiler.ast.NodeVisitor;
 import com.typeobject.wheeler.compiler.ast.classical.Block;
@@ -26,10 +28,17 @@ import com.typeobject.wheeler.compiler.ast.classical.expressions.ObjectCreationE
 import com.typeobject.wheeler.compiler.ast.classical.expressions.TernaryExpression;
 import com.typeobject.wheeler.compiler.ast.classical.expressions.UnaryExpression;
 import com.typeobject.wheeler.compiler.ast.classical.expressions.VariableReference;
+import com.typeobject.wheeler.compiler.ast.classical.statements.AssertStatement;
+import com.typeobject.wheeler.compiler.ast.classical.statements.BreakStatement;
 import com.typeobject.wheeler.compiler.ast.classical.statements.CatchClause;
+import com.typeobject.wheeler.compiler.ast.classical.statements.ContinueStatement;
 import com.typeobject.wheeler.compiler.ast.classical.statements.DoWhileStatement;
+import com.typeobject.wheeler.compiler.ast.classical.statements.ExpressionStatement;
 import com.typeobject.wheeler.compiler.ast.classical.statements.ForStatement;
 import com.typeobject.wheeler.compiler.ast.classical.statements.IfStatement;
+import com.typeobject.wheeler.compiler.ast.classical.statements.ReturnStatement;
+import com.typeobject.wheeler.compiler.ast.classical.statements.SynchronizedStatement;
+import com.typeobject.wheeler.compiler.ast.classical.statements.ThrowStatement;
 import com.typeobject.wheeler.compiler.ast.classical.statements.TryStatement;
 import com.typeobject.wheeler.compiler.ast.classical.statements.VariableDeclaration;
 import com.typeobject.wheeler.compiler.ast.classical.statements.WhileStatement;
@@ -38,24 +47,40 @@ import com.typeobject.wheeler.compiler.ast.classical.types.ClassType;
 import com.typeobject.wheeler.compiler.ast.classical.types.PrimitiveType;
 import com.typeobject.wheeler.compiler.ast.classical.types.TypeParameter;
 import com.typeobject.wheeler.compiler.ast.classical.types.WildcardType;
+import com.typeobject.wheeler.compiler.ast.hybrid.ClassicalToQuantumConversion;
+import com.typeobject.wheeler.compiler.ast.hybrid.HybridBlock;
+import com.typeobject.wheeler.compiler.ast.hybrid.HybridIfStatement;
+import com.typeobject.wheeler.compiler.ast.hybrid.HybridWhileStatement;
+import com.typeobject.wheeler.compiler.ast.hybrid.QuantumToClassicalConversion;
 import com.typeobject.wheeler.compiler.ast.memory.AllocationStatement;
 import com.typeobject.wheeler.compiler.ast.memory.CleanBlock;
 import com.typeobject.wheeler.compiler.ast.memory.DeallocationStatement;
 import com.typeobject.wheeler.compiler.ast.memory.GarbageCollectionStatement;
 import com.typeobject.wheeler.compiler.ast.memory.UncomputeBlock;
+import com.typeobject.wheeler.compiler.ast.quantum.EntanglementOperation;
+import com.typeobject.wheeler.compiler.ast.quantum.QuantumCircuit;
+import com.typeobject.wheeler.compiler.ast.quantum.QuantumFunction;
+import com.typeobject.wheeler.compiler.ast.quantum.QuantumOracle;
+import com.typeobject.wheeler.compiler.ast.quantum.QuantumTeleport;
 import com.typeobject.wheeler.compiler.ast.quantum.declarations.Parameter;
+import com.typeobject.wheeler.compiler.ast.quantum.declarations.QuantumAncillaDeclaration;
+import com.typeobject.wheeler.compiler.ast.quantum.declarations.QuantumRegisterDeclaration;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QuantumArrayAccess;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QuantumCastExpression;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QuantumRegisterAccess;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QubitReference;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.StateExpression;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.TensorProduct;
+import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumBarrier;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumBlock;
+import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumForStatement;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumGateApplication;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumIfStatement;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumMeasurement;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumStatePreparation;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumWhileStatement;
+import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumArrayType;
+import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumRegisterType;
 import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumType;
 
 import java.util.HashSet;
@@ -82,6 +107,16 @@ public class FlowAnalyzer implements NodeVisitor<Void> {
 
     @Override
     public Void visitDocumentation(Documentation node) {
+        return null;
+    }
+
+    @Override
+    public Void visitErrorNode(ErrorNode errorNode) {
+        return null;
+    }
+
+    @Override
+    public Void visitComment(CommentNode commentNode) {
         return null;
     }
 
@@ -323,12 +358,67 @@ public class FlowAnalyzer implements NodeVisitor<Void> {
     }
 
     @Override
+    public Void visitQuantumArrayType(QuantumArrayType quantumArrayType) {
+        return null;
+    }
+
+    @Override
+    public Void visitQuantumRegisterType(QuantumRegisterType quantumRegisterType) {
+        return null;
+    }
+
+    @Override
     public Void visitQuantumArrayAccess(QuantumArrayAccess node) {
         return null;
     }
 
     @Override
     public Void visitQuantumCastExpression(QuantumCastExpression node) {
+        return null;
+    }
+
+    @Override
+    public Void visitQuantumCircuit(QuantumCircuit quantumCircuit) {
+        return null;
+    }
+
+    @Override
+    public Void visitEntanglementOperation(EntanglementOperation entanglementOperation) {
+        return null;
+    }
+
+    @Override
+    public Void visitQuantumFunction(QuantumFunction quantumFunction) {
+        return null;
+    }
+
+    @Override
+    public Void visitQuantumOracle(QuantumOracle quantumOracle) {
+        return null;
+    }
+
+    @Override
+    public Void visitQuantumTeleport(QuantumTeleport quantumTeleport) {
+        return null;
+    }
+
+    @Override
+    public Void visitQuantumForStatement(QuantumForStatement quantumForStatement) {
+        return null;
+    }
+
+    @Override
+    public Void visitQuantumAncillaDeclaration(QuantumAncillaDeclaration quantumAncillaDeclaration) {
+        return null;
+    }
+
+    @Override
+    public Void visitQuantumRegisterDeclaration(QuantumRegisterDeclaration quantumRegisterDeclaration) {
+        return null;
+    }
+
+    @Override
+    public Void visitQuantumBarrier(QuantumBarrier quantumBarrier) {
         return null;
     }
 
@@ -354,6 +444,66 @@ public class FlowAnalyzer implements NodeVisitor<Void> {
 
     @Override
     public Void visitGarbageCollection(GarbageCollectionStatement node) {
+        return null;
+    }
+
+    @Override
+    public Void visitQuantumToClassical(QuantumToClassicalConversion quantumToClassicalConversion) {
+        return null;
+    }
+
+    @Override
+    public Void visitHybridWhileStatement(HybridWhileStatement hybridWhileStatement) {
+        return null;
+    }
+
+    @Override
+    public Void visitHybridIfStatement(HybridIfStatement hybridIfStatement) {
+        return null;
+    }
+
+    @Override
+    public Void visitHybridBlock(HybridBlock hybridBlock) {
+        return null;
+    }
+
+    @Override
+    public Void visitClassicalToQuantum(ClassicalToQuantumConversion classicalToQuantumConversion) {
+        return null;
+    }
+
+    @Override
+    public Void visitThrowStatement(ThrowStatement throwStatement) {
+        return null;
+    }
+
+    @Override
+    public Void visitSynchronizedStatement(SynchronizedStatement synchronizedStatement) {
+        return null;
+    }
+
+    @Override
+    public Void visitReturnStatement(ReturnStatement returnStatement) {
+        return null;
+    }
+
+    @Override
+    public Void visitExpressionStatement(ExpressionStatement expressionStatement) {
+        return null;
+    }
+
+    @Override
+    public Void visitContinueStatement(ContinueStatement continueStatement) {
+        return null;
+    }
+
+    @Override
+    public Void visitBreakStatement(BreakStatement breakStatement) {
+        return null;
+    }
+
+    @Override
+    public Void visitAssertStatement(AssertStatement assertStatement) {
         return null;
     }
 

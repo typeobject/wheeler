@@ -9,6 +9,7 @@ public enum Modifier {
     FINAL,
     ABSTRACT,
     SYNCHRONIZED,
+    QUANTUM,
     NATIVE,
     STRICTFP
 }

@@ -1,39 +1,32 @@
 package com.typeobject.wheeler.compiler.ast.classical.types;
 
 import com.typeobject.wheeler.compiler.ast.Annotation;
+import com.typeobject.wheeler.compiler.ast.Modifier;
 import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.base.Type;
-import com.typeobject.wheeler.compiler.ast.classical.declarations.MethodDeclaration;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 /**
  * Base class for all classical (non-quantum) types in the Wheeler language.
- * This includes primitive types, class types, array types, and type parameters.
  */
 public abstract class ClassicalType extends Type {
     private final String name;
     private final List<Type> typeArguments;
     private final boolean isPrimitive;
-    private final Map<String, List<MethodDeclaration>> methods;
 
-    protected ClassicalType(Position position,
-                            List<Annotation> annotations,
-                            String name,
-                            List<Type> typeArguments,
+    protected ClassicalType(Position position, List<Annotation> annotations,
+                            String name, List<Type> typeArguments,
                             boolean isPrimitive) {
         super(position, annotations);
         this.name = name;
-        this.typeArguments = new ArrayList<>(typeArguments);
+        this.typeArguments = new ArrayList<>(typeArguments != null ? typeArguments : Collections.emptyList());
         this.isPrimitive = isPrimitive;
-        this.methods = new HashMap<>();
     }
 
     /**
@@ -54,8 +47,9 @@ public abstract class ClassicalType extends Type {
                                             List<Type> typeArguments,
                                             ClassType supertype,
                                             List<ClassType> interfaces) {
+        Set<Modifier> modifiers = new HashSet<>();
         return new ClassType(position, annotations, name, typeArguments,
-                supertype, interfaces);
+                supertype, interfaces, modifiers, false);
     }
 
     /**
@@ -163,12 +157,12 @@ public abstract class ClassicalType extends Type {
     }
 
     /**
-     * Returns true if this type represents a numeric type (int, long, float, etc).
+     * Returns true if this type represents a numeric type.
      */
     public abstract boolean isNumeric();
 
     /**
-     * Returns true if this type represents an integral type (byte, short, int, long).
+     * Returns true if this type represents an integral type.
      */
     public abstract boolean isIntegral();
 
@@ -178,7 +172,7 @@ public abstract class ClassicalType extends Type {
     public abstract boolean isBoolean();
 
     /**
-     * Returns true if values of this type can be ordered (compared with <, >, etc).
+     * Returns true if values of this type can be ordered.
      */
     public abstract boolean isOrdered();
 
@@ -198,112 +192,14 @@ public abstract class ClassicalType extends Type {
      */
     public abstract Type promoteWith(ClassicalType other);
 
-    /**
-     * Add a method to this type's method table.
-     */
-    public void addMethod(MethodDeclaration method) {
-        methods.computeIfAbsent(method.getName(), k -> new ArrayList<>())
-                .add(method);
-    }
-
-    /**
-     * Look up methods by name.
-     */
-    public List<MethodDeclaration> getMethods(String name) {
-        List<MethodDeclaration> result = methods.get(name);
-        return result != null ? Collections.unmodifiableList(result) : Collections.emptyList();
-    }
-
-    /**
-     * Find a method that matches the given argument types.
-     */
-    public MethodDeclaration findMethod(String name, List<Type> argumentTypes) {
-        List<MethodDeclaration> candidates = getMethods(name);
-        List<MethodDeclaration> matches = new ArrayList<>();
-
-        // Find methods with matching parameter counts
-        for (MethodDeclaration method : candidates) {
-            if (method.getParameters().size() == argumentTypes.size()) {
-                matches.add(method);
-            }
-        }
-
-        // Find methods with compatible parameter types
-        List<MethodDeclaration> compatibleMethods = new ArrayList<>();
-        for (MethodDeclaration method : matches) {
-            boolean isCompatible = true;
-            for (int i = 0; i < argumentTypes.size(); i++) {
-                Type paramType = method.getParameters().get(i).getType();
-                Type argType = argumentTypes.get(i);
-                if (!(paramType instanceof ClassicalType &&
-                        argType instanceof ClassicalType &&
-                        ((ClassicalType) paramType).isAssignableFrom((ClassicalType) argType))) {
-                    isCompatible = false;
-                    break;
-                }
-            }
-            if (isCompatible) {
-                compatibleMethods.add(method);
-            }
-        }
-
-        if (compatibleMethods.isEmpty()) {
-            return null;
-        }
-
-        // Find most specific method
-        MethodDeclaration mostSpecific = compatibleMethods.get(0);
-        for (int i = 1; i < compatibleMethods.size(); i++) {
-            MethodDeclaration current = compatibleMethods.get(i);
-            if (isMoreSpecific(current, mostSpecific)) {
-                mostSpecific = current;
-            }
-        }
-
-        return mostSpecific;
-    }
-
-    /**
-     * Determines if one method is more specific than another.
-     */
-    private boolean isMoreSpecific(MethodDeclaration m1, MethodDeclaration m2) {
-        boolean m1MoreSpecific = true;
-        boolean m2MoreSpecific = true;
-
-        for (int i = 0; i < m1.getParameters().size(); i++) {
-            Type t1 = m1.getParameters().get(i).getType();
-            Type t2 = m2.getParameters().get(i).getType();
-
-            if (t1 instanceof ClassicalType ct1 && t2 instanceof ClassicalType ct2) {
-
-                if (!ct2.isAssignableFrom(ct1)) {
-                    m1MoreSpecific = false;
-                }
-                if (!ct1.isAssignableFrom(ct2)) {
-                    m2MoreSpecific = false;
-                }
-            }
-        }
-
-        return m1MoreSpecific && !m2MoreSpecific;
-    }
-
-    /**
-     * Substitutes type parameters with actual types based on the given substitution map.
-     */
-    public ClassicalType substitute(Map<TypeParameter, Type> substitutions) {
-        // Default implementation returns this type unchanged
-        return this;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof ClassicalType that)) return false;
 
-        return name.equals(that.name) &&
-                typeArguments.equals(that.typeArguments) &&
-                isPrimitive == that.isPrimitive;
+        return isPrimitive == that.isPrimitive &&
+                Objects.equals(name, that.name) &&
+                Objects.equals(typeArguments, that.typeArguments);
     }
 
     @Override

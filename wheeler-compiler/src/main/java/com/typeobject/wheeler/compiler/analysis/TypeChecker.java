@@ -1229,10 +1229,42 @@ public class TypeChecker implements NodeVisitor<Type> {
 
     @Override
     public Type visitTypeParameter(TypeParameter node) {
-        // Check bounds
-        for (Type bound : node.getBounds()) {
-            bound.accept(this);
+        if (!node.getBounds().isEmpty()) {
+            // Check each bound for validity
+            for (Type boundType : node.getBounds()) {
+                Type checkedBound = boundType.accept(this);
+
+                // Ensure bound is a class or interface type
+                if (!(checkedBound instanceof ClassicalType classicalBound)) {
+                    errors.report("Type parameter bound must be a classical type",
+                            boundType.getPosition());
+                    continue;
+                }
+
+                // Verify bound is not a final class if it's a class bound
+                if (classicalBound instanceof ClassType classBound) {
+                    if (!classBound.isInterface() &&
+                            classBound.getModifiers().contains(Modifier.FINAL)) {
+                        errors.report("Type parameter cannot have a final class as a bound",
+                                boundType.getPosition());
+                    }
+                }
+
+                // Check for primitive type bounds
+                if (classicalBound.isPrimitive()) {
+                    errors.report("Type parameter bound cannot be a primitive type",
+                            boundType.getPosition());
+                }
+
+                // Verify array bounds
+                if (classicalBound instanceof ArrayType) {
+                    errors.report("Type parameter bound cannot be an array type",
+                            boundType.getPosition());
+                }
+            }
         }
+
+        // Return the type parameter itself
         return node;
     }
 
@@ -1380,6 +1412,7 @@ public class TypeChecker implements NodeVisitor<Type> {
 
     @Override
     public Type visitInstanceOf(InstanceOfExpression node) {
+        // Check the expression being tested
         Type expressionType = node.getExpression().accept(this);
         Type testType = node.getType().accept(this);
 
@@ -1396,16 +1429,145 @@ public class TypeChecker implements NodeVisitor<Type> {
             return currentEnv.getErrorType();
         }
 
-        // Check if the instanceof test could ever succeed
-        if (expressionType instanceof ClassType exprClass && testType instanceof ClassType testClass) {
-            if (!couldBeInstance(exprClass, testClass)) {
-                errors.report("Expression of type " + exprClass + " can never be an instance of " + testClass,
+        // Check if the expression is a final class
+        if (expressionType instanceof ClassType exprClass) {
+            if (exprClass.getModifiers().contains(Modifier.FINAL)) {
+                // For final classes, we can statically determine if the instanceof will always be true or false
+                if (testType instanceof ClassType testClass) {
+                    if (!couldBeInstance(exprClass, testClass)) {
+                        errors.report("Expression of type " + exprClass +
+                                        " will never be an instance of " + testClass,
+                                node.getPosition());
+                    }
+                }
+            }
+        }
+
+        // Check if the test type is a final class
+        if (testType instanceof ClassType testClass) {
+            if (testClass.getModifiers().contains(Modifier.FINAL)) {
+                // For final test types, verify compatibility
+                if (expressionType instanceof ClassType exprClass) {
+                    if (!couldBeInstance(exprClass, testClass)) {
+                        errors.report("Expression of type " + exprClass +
+                                        " cannot be an instance of final class " + testClass,
+                                node.getPosition());
+                    }
+                }
+            }
+        }
+
+        // Check for array types
+        if (expressionType instanceof ArrayType exprArray && testType instanceof ArrayType testArray) {
+
+            // Array types must have compatible element types
+            if (!couldBeInstance(exprArray.getElementType(), testArray.getElementType())) {
+                errors.report("Array types are incompatible for instanceof check",
                         node.getPosition());
             }
         }
 
+        // Check for interface types
+        if (testType instanceof ClassType && ((ClassType) testType).isInterface()) {
+            // Any reference type could potentially implement an interface
+            // No additional checks needed
+        }
+
+        // Instanceof always returns boolean
         return currentEnv.getBooleanType();
     }
+
+    /**
+     * Determines if there's any possibility that an object of type sub could be an instance of type sup
+     */
+    private boolean couldBeInstance(Type sub, Type sup) {
+        if (sub.equals(sup)) {
+            return true;
+        }
+
+        // Handle class types
+        if (sub instanceof ClassType subClass && sup instanceof ClassType supClass) {
+
+            // Check class hierarchy
+            if (isInHierarchy(subClass, supClass)) {
+                return true;
+            }
+
+            // Check interfaces
+            if (supClass.isInterface()) {
+                return couldImplementInterface(subClass, supClass);
+            }
+
+            // If neither is final, there could be an unexamined subclass relationship
+            if (!subClass.getModifiers().contains(Modifier.FINAL) &&
+                    !supClass.getModifiers().contains(Modifier.FINAL)) {
+                return true;
+            }
+        }
+
+        // Handle array types
+        if (sub instanceof ArrayType subArray && sup instanceof ArrayType supArray) {
+
+            // Array types must have same number of dimensions
+            if (subArray.getDimensions() != supArray.getDimensions()) {
+                return false;
+            }
+
+            // Check element types
+            return couldBeInstance(subArray.getElementType(), supArray.getElementType());
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if sub is in the class hierarchy of sup
+     */
+    private boolean isInHierarchy(ClassType sub, ClassType sup) {
+        if (sub.equals(sup)) {
+            return true;
+        }
+
+        // Check superclass chain
+        ClassType current = sub;
+        while (current.getSupertype() != null) {
+            if (current.getSupertype().equals(sup)) {
+                return true;
+            }
+            current = current.getSupertype();
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if a class could potentially implement an interface
+     */
+    private boolean couldImplementInterface(ClassType type, ClassType iface) {
+        if (!iface.isInterface()) {
+            return false;
+        }
+
+        // Check directly implemented interfaces
+        for (ClassType implemented : type.getInterfaces()) {
+            if (implemented.equals(iface)) {
+                return true;
+            }
+            // Check super-interfaces
+            if (couldImplementInterface(implemented, iface)) {
+                return true;
+            }
+        }
+
+        // Check interfaces from superclass
+        if (type.getSupertype() != null) {
+            return couldImplementInterface(type.getSupertype(), iface);
+        }
+
+        // If not final, could have unexamined implementations
+        return !type.getModifiers().contains(Modifier.FINAL);
+    }
+
 
     @Override
     public Type visitMethodReference(MethodReferenceExpression node) {
