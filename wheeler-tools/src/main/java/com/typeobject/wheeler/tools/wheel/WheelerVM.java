@@ -1,6 +1,5 @@
 package com.typeobject.wheeler.tools.wheel;
 
-import com.typeobject.wheeler.core.WVM;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,7 +13,7 @@ public class WheelerVM {
 
     try {
       byte[] bytecode = Files.readAllBytes(Path.of(args[0]));
-      WVM vm = new WVM();
+      com.typeobject.wheeler.core.WheelerVM vm = new com.typeobject.wheeler.core.WheelerVM();
       vm.loadProgram(bytecode);
       vm.execute();
     } catch (IOException e) {

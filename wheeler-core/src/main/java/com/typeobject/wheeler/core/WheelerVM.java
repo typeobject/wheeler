@@ -11,12 +11,12 @@ import com.typeobject.wheeler.core.thread.WheelerThreadState;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class WVM {
+public class WheelerVM {
   private final MemoryManager memory;
   private final Map<Long, WheelerThread> threads;
   private final ExecutionHistory history;
 
-  public WVM() {
+  public WheelerVM() {
     this.memory = new MemoryManager();
     this.threads = new ConcurrentHashMap<>();
     this.history = new ExecutionHistory();
