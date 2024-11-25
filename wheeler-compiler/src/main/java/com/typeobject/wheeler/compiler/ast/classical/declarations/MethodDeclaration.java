@@ -46,12 +46,12 @@ public final class MethodDeclaration extends Declaration implements Reversible {
     }
 
     public static class Builder {
-        private Position position;
         private final List<Annotation> annotations = new ArrayList<>();
         private final List<Modifier> modifiers = new ArrayList<>();
         private final String name;
-        private Type returnType;
         private final List<Parameter> parameters = new ArrayList<>();
+        private Position position;
+        private Type returnType;
         private Block body;
         private ComputationType computationType = ComputationType.CLASSICAL;
         private boolean isPure;

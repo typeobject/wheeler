@@ -64,6 +64,7 @@ import com.typeobject.wheeler.compiler.ast.quantum.expressions.QuantumRegisterAc
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QubitReference;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.StateExpression;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.TensorProduct;
+import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumBarrier;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumBlock;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumForStatement;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumGateApplication;
@@ -209,6 +210,7 @@ public interface NodeVisitor<T> {
 
     T visitQuantumRegisterDeclaration(QuantumRegisterDeclaration quantumRegisterDeclaration);
 
+    T visitQuantumBarrier(QuantumBarrier quantumBarrier);
 
     // Memory management
     T visitCleanBlock(CleanBlock node);

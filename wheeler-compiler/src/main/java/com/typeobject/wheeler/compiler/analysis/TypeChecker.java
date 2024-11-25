@@ -82,6 +82,7 @@ import com.typeobject.wheeler.compiler.ast.quantum.expressions.QubitExpression;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QubitReference;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.StateExpression;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.TensorProduct;
+import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumBarrier;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumBlock;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumForStatement;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumGateApplication;
@@ -1119,6 +1120,11 @@ public class TypeChecker implements NodeVisitor<Type> {
 
     @Override
     public Type visitQuantumRegisterDeclaration(QuantumRegisterDeclaration quantumRegisterDeclaration) {
+        return null;
+    }
+
+    @Override
+    public Type visitQuantumBarrier(QuantumBarrier quantumBarrier) {
         return null;
     }
 

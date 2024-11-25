@@ -321,13 +321,13 @@ public final class ClassType extends ClassicalType {
 
     // Builder pattern for convenient instantiation
     public static class Builder {
-        private Position position;
         private final List<Annotation> annotations = new ArrayList<>();
         private final String name;
         private final List<Type> typeArguments = new ArrayList<>();
-        private ClassType supertype;
         private final List<ClassType> interfaces = new ArrayList<>();
         private final Set<Modifier> modifiers = new HashSet<>();
+        private Position position;
+        private ClassType supertype;
         private boolean isInterface;
 
         public Builder(String name) {

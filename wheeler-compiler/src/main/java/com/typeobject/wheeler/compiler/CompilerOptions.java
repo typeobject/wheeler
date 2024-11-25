@@ -5,14 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CompilerOptions {
+    private final List<String> includePaths = new ArrayList<>();
+    private final List<String> defines = new ArrayList<>();
     private Path outputPath = Path.of(".");
     private boolean debugMode = false;
     private boolean printAST = false;
     private boolean optimizationEnabled = true;
     private int optimizationLevel = 1;
-    private final List<String> includePaths = new ArrayList<>();
-    private final List<String> defines = new ArrayList<>();
-
     // Support for quantum simulation mode
     private boolean simulationMode = false;
     private int numQubits = 32; // Maximum number of qubits to simulate
