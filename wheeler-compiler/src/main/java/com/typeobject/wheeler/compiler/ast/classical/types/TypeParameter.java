@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.compiler.ast.classical.types;
 
 import com.typeobject.wheeler.compiler.ast.Annotation;
+import com.typeobject.wheeler.compiler.ast.NodeVisitor;
 import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.base.Type;
 
@@ -63,5 +64,10 @@ public final class TypeParameter extends ClassicalType {
     public Type promoteWith(ClassicalType other) {
         if (isAssignableFrom(other)) return this;
         return null;
+    }
+
+    @Override
+    public <T> T accept(NodeVisitor<T> visitor) {
+        return visitor.visitTypeParameter(this);
     }
 }

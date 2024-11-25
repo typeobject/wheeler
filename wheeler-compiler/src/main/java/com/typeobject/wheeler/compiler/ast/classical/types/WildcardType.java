@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.compiler.ast.classical.types;
 
 import com.typeobject.wheeler.compiler.ast.Annotation;
+import com.typeobject.wheeler.compiler.ast.NodeVisitor;
 import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.base.Type;
 
@@ -9,6 +10,11 @@ import java.util.List;
 public final class WildcardType extends ClassicalType {
     private final BoundKind boundKind;
     private final Type bound;
+
+    @Override
+    public <T> T accept(NodeVisitor<T> visitor) {
+        return visitor.visitWildcardType(this);
+    }
 
     public enum BoundKind {
         NONE,

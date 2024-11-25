@@ -7,7 +7,6 @@ import com.typeobject.wheeler.compiler.ast.Documentation;
 import com.typeobject.wheeler.compiler.ast.ImportDeclaration;
 import com.typeobject.wheeler.compiler.ast.Modifier;
 import com.typeobject.wheeler.compiler.ast.Node;
-import com.typeobject.wheeler.compiler.ast.NodeVisitor;
 import com.typeobject.wheeler.compiler.ast.base.Declaration;
 import com.typeobject.wheeler.compiler.ast.base.Expression;
 import com.typeobject.wheeler.compiler.ast.base.Statement;
@@ -52,6 +51,7 @@ import com.typeobject.wheeler.compiler.ast.memory.CleanBlock;
 import com.typeobject.wheeler.compiler.ast.memory.DeallocationStatement;
 import com.typeobject.wheeler.compiler.ast.memory.GarbageCollectionStatement;
 import com.typeobject.wheeler.compiler.ast.memory.UncomputeBlock;
+import com.typeobject.wheeler.compiler.ast.quantum.ComplexNumber;
 import com.typeobject.wheeler.compiler.ast.quantum.declarations.Parameter;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QuantumArrayAccess;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QuantumCastExpression;
@@ -76,14 +76,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TypeChecker implements NodeVisitor<Type> {
+public class TypeChecker {
     private final ErrorReporter errors;
-    private final Map<String, TypeEnvironment> typeEnvironments;  // Scoped type environments
-    private final Deque<String> scopeStack;  // For managing nested scopes
-    private TypeEnvironment currentEnv;  // Current type environment
-    private Type currentReturnType;  // Expected return type for current method
-    private boolean inQuantumContext;  // Whether we're in a quantum block
-    private boolean inCleanBlock;  // Whether we're in a clean block
+    private final Map<String, TypeEnvironment> typeEnvironments;
+    private final Deque<String> scopeStack;
+    private TypeEnvironment currentEnv;
+    private Type currentReturnType;
+    private boolean inQuantumContext;
+    private boolean inCleanBlock;
 
     public TypeChecker(ErrorReporter errors) {
         this.errors = errors;
@@ -112,6 +112,53 @@ public class TypeChecker implements NodeVisitor<Type> {
         currentEnv.define("qubit", new QuantumType(null, List.of(), QuantumTypeKind.QUBIT));
         currentEnv.define("qureg", new QuantumType(null, List.of(), QuantumTypeKind.QUREG));
         currentEnv.define("state", new QuantumType(null, List.of(), QuantumTypeKind.STATE));
+    }
+
+    public Type visitQuantumType(QuantumType node) {
+        QuantumTypeKind kind = node.getKind();
+
+        // Validate quantum type based on kind
+        switch (kind) {
+            case QUBIT:
+                // Single qubit validation
+                break;
+            case QUREG:
+                // Check register size
+                if (node.getSize() <= 0) {
+                    errors.report("Quantum register must have positive size", node.getPosition());
+                }
+                break;
+            case STATE:
+                // Validate state vector properties
+                break;
+        }
+
+        return node;
+    }
+
+
+    // Quantum-specific validations
+    private void validateQuantumOperation(QubitExpression expr) {
+        if (!inQuantumContext) {
+            errors.report("Quantum operations must be within a quantum context", expr.getPosition());
+        }
+    }
+
+    private void validateStateVector(List<ComplexNumber> coefficients, int numQubits) {
+        int expectedDimension = 1 << numQubits;
+        if (coefficients.size() != expectedDimension) {
+            errors.report("Invalid state vector dimension", null);
+            return;
+        }
+
+        // Check normalization
+        double sumSquared = coefficients.stream()
+                .mapToDouble(c -> c.magnitudeSquared())
+                .sum();
+
+        if (Math.abs(sumSquared - 1.0) > 1e-10) {
+            errors.report("State vector is not normalized", null);
+        }
     }
 
     private void enterScope(String scopeName) {

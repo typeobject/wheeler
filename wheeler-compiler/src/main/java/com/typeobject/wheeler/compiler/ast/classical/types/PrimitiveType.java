@@ -3,6 +3,7 @@ package com.typeobject.wheeler.compiler.ast.classical.types;
 import com.typeobject.wheeler.compiler.ast.Annotation;
 import com.typeobject.wheeler.compiler.ast.NodeVisitor;
 import com.typeobject.wheeler.compiler.ast.Position;
+import com.typeobject.wheeler.compiler.ast.base.Type;
 
 import java.util.List;
 
@@ -44,6 +45,26 @@ public final class PrimitiveType extends ClassicalType {
     @Override
     public boolean isBoolean() {
         return kind == Kind.BOOLEAN;
+    }
+
+    @Override
+    public boolean isOrdered() {
+        return kind != Kind.VOID;
+    }
+
+    @Override
+    public boolean isComparableTo(ClassicalType other) {
+        return false;
+    }
+
+    @Override
+    public boolean isAssignableFrom(ClassicalType source) {
+        return false;
+    }
+
+    @Override
+    public Type promoteWith(ClassicalType other) {
+        return null;
     }
 
     @Override

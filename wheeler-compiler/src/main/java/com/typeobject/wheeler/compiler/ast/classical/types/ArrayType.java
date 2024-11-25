@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.compiler.ast.classical.types;
 
 import com.typeobject.wheeler.compiler.ast.Annotation;
+import com.typeobject.wheeler.compiler.ast.NodeVisitor;
 import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.base.Type;
 
@@ -16,6 +17,14 @@ public final class ArrayType extends ClassicalType {
                 List.of(), false);
         this.elementType = elementType;
         this.dimensions = dimensions;
+    }
+
+    public Type getElementType() {
+        return elementType;
+    }
+
+    public int getDimensions() {
+        return dimensions;
     }
 
     @Override
@@ -60,5 +69,29 @@ public final class ArrayType extends ClassicalType {
     public Type promoteWith(ClassicalType other) {
         if (equals(other)) return this;
         return null;
+    }
+
+    @Override
+    public <T> T accept(NodeVisitor<T> visitor) {
+        return visitor.visitArrayType(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ArrayType)) return false;
+        if (!super.equals(o)) return false;
+
+        ArrayType arrayType = (ArrayType) o;
+        return dimensions == arrayType.dimensions &&
+                elementType.equals(arrayType.elementType);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + elementType.hashCode();
+        result = 31 * result + dimensions;
+        return result;
     }
 }

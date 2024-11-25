@@ -38,6 +38,7 @@ import com.typeobject.wheeler.compiler.ast.memory.CleanBlock;
 import com.typeobject.wheeler.compiler.ast.memory.DeallocationStatement;
 import com.typeobject.wheeler.compiler.ast.memory.GarbageCollectionStatement;
 import com.typeobject.wheeler.compiler.ast.memory.UncomputeBlock;
+import com.typeobject.wheeler.compiler.ast.quantum.declarations.Parameter;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QuantumArrayAccess;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QuantumCastExpression;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QuantumRegisterAccess;
@@ -134,6 +135,9 @@ public interface NodeVisitor<T> {
     T visitQuantumType(QuantumType node);  // Added new visitor method
 
     // Quantum statements
+
+    T visitParameter(Parameter parameter);
+
     T visitQuantumBlock(QuantumBlock node);
 
     T visitQuantumGateApplication(QuantumGateApplication node);
@@ -169,4 +173,5 @@ public interface NodeVisitor<T> {
     T visitDeallocationStatement(DeallocationStatement node);
 
     T visitGarbageCollection(GarbageCollectionStatement node);
+
 }

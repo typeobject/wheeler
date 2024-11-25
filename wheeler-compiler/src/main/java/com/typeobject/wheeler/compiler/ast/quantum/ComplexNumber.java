@@ -52,4 +52,8 @@ public class ComplexNumber {
         if (real == 0) return imaginary + "i";
         return String.format("%f%+fi", real, imaginary);
     }
+
+    public double magnitudeSquared() {
+        return real * real + imaginary * imaginary;
+    }
 }
