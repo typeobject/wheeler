@@ -1,8 +1,7 @@
 package com.typeobject.wheeler.compiler.ast.classical.types;
 
-import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.Annotation;
-import com.typeobject.wheeler.compiler.ast.NodeVisitor;
+import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.base.Type;
 
 import java.util.List;
@@ -18,16 +17,51 @@ public final class TypeParameter extends ClassicalType {
         this.bounds = bounds;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public List<Type> getBounds() {
-        return bounds;
+    @Override
+    public boolean isNumeric() {
+        return false;
     }
 
     @Override
-    public <T> T accept(NodeVisitor<T> visitor) {
-        return visitor.visitTypeParameter(this);
+    public boolean isIntegral() {
+        return false;
+    }
+
+    @Override
+    public boolean isBoolean() {
+        return false;
+    }
+
+    @Override
+    public boolean isOrdered() {
+        return false;
+    }
+
+    @Override
+    public boolean isComparableTo(ClassicalType other) {
+        // A type parameter is comparable if its bounds are comparable
+        for (Type bound : bounds) {
+            if (bound instanceof ClassicalType && ((ClassicalType) bound).isComparableTo(other)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isAssignableFrom(ClassicalType source) {
+        // A type parameter can be assigned from types that satisfy its bounds
+        for (Type bound : bounds) {
+            if (bound instanceof ClassicalType && !((ClassicalType) bound).isAssignableFrom(source)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public Type promoteWith(ClassicalType other) {
+        if (isAssignableFrom(other)) return this;
+        return null;
     }
 }

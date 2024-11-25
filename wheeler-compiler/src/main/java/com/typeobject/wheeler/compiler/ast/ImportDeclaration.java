@@ -1,5 +1,3 @@
-
-
 // ImportDeclaration.java
 package com.typeobject.wheeler.compiler.ast;
 

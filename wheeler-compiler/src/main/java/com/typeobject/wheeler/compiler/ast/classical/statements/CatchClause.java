@@ -1,12 +1,13 @@
 package com.typeobject.wheeler.compiler.ast.classical.statements;
 
-import java.util.List;
-import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.Annotation;
 import com.typeobject.wheeler.compiler.ast.NodeVisitor;
-import com.typeobject.wheeler.compiler.ast.base.Type;
+import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.base.Statement;
+import com.typeobject.wheeler.compiler.ast.base.Type;
 import com.typeobject.wheeler.compiler.ast.classical.Block;
+
+import java.util.List;
 
 public final class CatchClause extends Statement {
     private final Type exceptionType;

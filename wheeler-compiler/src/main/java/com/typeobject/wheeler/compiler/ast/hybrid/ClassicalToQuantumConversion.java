@@ -1,11 +1,12 @@
 package com.typeobject.wheeler.compiler.ast.hybrid;
 
-import java.util.List;
-import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.Annotation;
 import com.typeobject.wheeler.compiler.ast.NodeVisitor;
+import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.base.Expression;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QubitExpression;
+
+import java.util.List;
 
 public final class ClassicalToQuantumConversion extends HybridStatement {
     private final Expression classical;

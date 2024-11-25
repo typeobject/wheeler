@@ -1,64 +1,47 @@
 package com.typeobject.wheeler.compiler.ast;
 
-import com.typeobject.wheeler.compiler.ast.classical.declarations.MethodDeclaration;
+import com.typeobject.wheeler.compiler.ErrorReporter;
+import com.typeobject.wheeler.compiler.antlr.WheelerParser.CompilationUnitContext;
 import com.typeobject.wheeler.compiler.ast.quantum.gates.QuantumGate;
-import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumGateApplication;
-import java.util.ArrayList;
-import java.util.List;
 
-// Builder pattern for creating AST nodes
+import java.nio.file.Path;
+
 public class ASTBuilder {
-  private final SourcePosition position;
+    private final Path sourcePath;
+    private final ErrorReporter errorReporter;
 
-  public ClassDeclaration.Builder classDeclaration(String name) {
-    return new ClassDeclaration.Builder(position, name);
-  }
-
-  public MethodDeclaration.Builder methodDeclaration(String name) {
-    return new MethodDeclaration.Builder(position, name);
-  }
-
-  public QuantumGateApplication.Builder gateApplication(QuantumGate gate) {
-    return new QuantumGateApplication.Builder(position, gate);
-  }
-
-  // Additional builder methods...
-
-  // Example builder inner class
-  public static class ClassDeclaration {
-    public static class Builder {
-      private final Position position;
-      private final String name;
-      private List<Modifier> modifiers = new ArrayList<>();
-      private ComputationType computationType = ComputationType.CLASSICAL;
-
-      public Builder(Position position, String name) {
-        this.position = position;
-        this.name = name;
-      }
-
-      public Builder addModifier(Modifier modifier) {
-        modifiers.add(modifier);
-        return this;
-      }
-
-      public Builder setComputationType(ComputationType type) {
-        this.computationType = type;
-        return this;
-      }
-
-      public ClassDeclaration build() {
-        return new ClassDeclaration(
-            position,
-            new ArrayList<>(), // annotations
-            modifiers,
-            name,
-            computationType,
-            null, // superClass
-            new ArrayList<>(), // interfaces
-            new ArrayList<>() // members
-            );
-      }
+    public ASTBuilder(Path sourcePath, ErrorReporter errorReporter) {
+        this.sourcePath = sourcePath;
+        this.errorReporter = errorReporter;
     }
-  }
+
+    public ClassDeclaration.Builder classDeclaration(Position position, String name) {
+        return new ClassDeclaration.Builder(name).position(position);
+    }
+
+    public MethodDeclaration.Builder methodDeclaration(String name) {
+        return new MethodDeclaration.Builder(name);
+    }
+
+    public QuantumGateApplication.Builder gateApplication(QuantumGate gate) {
+        return new QuantumGateApplication.Builder(gate);
+    }
+
+    public CompilationUnit buildCompilationUnit(CompilationUnitContext ctx) {
+        // Create position from context
+        Position position = new Position(
+                ctx.getStart().getLine(),
+                ctx.getStart().getCharPositionInLine(),
+                sourcePath.toString()
+        );
+
+        // Build the compilation unit
+        return new CompilationUnit(
+                position,
+                List.of(), // annotations
+                null, // package name will be filled from context
+                new ArrayList<>(), // imports will be filled from context
+                new ArrayList<>() // declarations will be filled from context
+        );
+    }
 }

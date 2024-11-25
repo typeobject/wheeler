@@ -1,9 +1,10 @@
 package com.typeobject.wheeler.compiler.ast.classical.expressions;
 
-import java.util.List;
-import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.Annotation;
 import com.typeobject.wheeler.compiler.ast.NodeVisitor;
+import com.typeobject.wheeler.compiler.ast.Position;
+
+import java.util.List;
 
 public final class VariableReference extends ClassicalExpression {
     private final String name;

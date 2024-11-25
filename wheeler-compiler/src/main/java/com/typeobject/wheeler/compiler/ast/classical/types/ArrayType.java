@@ -1,9 +1,9 @@
 package com.typeobject.wheeler.compiler.ast.classical.types;
 
-import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.Annotation;
-import com.typeobject.wheeler.compiler.ast.NodeVisitor;
+import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.base.Type;
+
 import java.util.List;
 
 public final class ArrayType extends ClassicalType {
@@ -18,16 +18,47 @@ public final class ArrayType extends ClassicalType {
         this.dimensions = dimensions;
     }
 
-    public Type getElementType() {
-        return elementType;
-    }
-
-    public int getDimensions() {
-        return dimensions;
+    @Override
+    public boolean isNumeric() {
+        return false;
     }
 
     @Override
-    public <T> T accept(NodeVisitor<T> visitor) {
-        return visitor.visitArrayType(this);
+    public boolean isIntegral() {
+        return false;
+    }
+
+    @Override
+    public boolean isBoolean() {
+        return false;
+    }
+
+    @Override
+    public boolean isOrdered() {
+        return false;
+    }
+
+    @Override
+    public boolean isComparableTo(ClassicalType other) {
+        if (!(other instanceof ArrayType)) return false;
+        ArrayType otherArray = (ArrayType) other;
+        if (dimensions != otherArray.dimensions) return false;
+        if (!(elementType instanceof ClassicalType)) return false;
+        return ((ClassicalType) elementType).isComparableTo((ClassicalType) otherArray.elementType);
+    }
+
+    @Override
+    public boolean isAssignableFrom(ClassicalType source) {
+        if (!(source instanceof ArrayType)) return false;
+        ArrayType sourceArray = (ArrayType) source;
+        if (dimensions != sourceArray.dimensions) return false;
+        if (!(elementType instanceof ClassicalType)) return false;
+        return ((ClassicalType) elementType).isAssignableFrom((ClassicalType) sourceArray.elementType);
+    }
+
+    @Override
+    public Type promoteWith(ClassicalType other) {
+        if (equals(other)) return this;
+        return null;
     }
 }

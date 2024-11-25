@@ -1,12 +1,13 @@
 package com.typeobject.wheeler.compiler.ast.classical.declarations;
 
-import java.util.List;
-import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.Annotation;
 import com.typeobject.wheeler.compiler.ast.NodeVisitor;
+import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.base.Declaration;
-import com.typeobject.wheeler.compiler.ast.base.Type;
 import com.typeobject.wheeler.compiler.ast.base.Expression;
+import com.typeobject.wheeler.compiler.ast.base.Type;
+
+import java.util.List;
 
 public final class FieldDeclaration extends Declaration {
     private final Type type;

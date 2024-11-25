@@ -1,10 +1,11 @@
 package com.typeobject.wheeler.compiler.ast.classical.declarations;
 
-import java.util.List;
-import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.Annotation;
 import com.typeobject.wheeler.compiler.ast.NodeVisitor;
+import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.base.Declaration;
+
+import java.util.List;
 
 public final class PackageDeclaration extends Declaration {
     private final String packageName;

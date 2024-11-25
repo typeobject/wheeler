@@ -1,10 +1,11 @@
 package com.typeobject.wheeler.compiler.ast.classical.expressions;
 
-import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.Annotation;
 import com.typeobject.wheeler.compiler.ast.NodeVisitor;
+import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.base.Expression;
 import com.typeobject.wheeler.compiler.ast.quantum.declarations.Parameter;
+
 import java.util.List;
 
 public final class LambdaExpression extends ClassicalExpression {

@@ -1,9 +1,10 @@
 package com.typeobject.wheeler.compiler.ast.quantum.statements;
 
-import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.Annotation;
 import com.typeobject.wheeler.compiler.ast.NodeVisitor;
+import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QubitExpression;
+
 import java.util.List;
 
 public final class QuantumBarrier extends QuantumStatement {

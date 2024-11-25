@@ -2,22 +2,67 @@
 package com.typeobject.wheeler.compiler.bytecode;
 
 import com.typeobject.wheeler.compiler.CompilerOptions;
+import com.typeobject.wheeler.compiler.ErrorReporter;
 import com.typeobject.wheeler.compiler.ast.CompilationUnit;
 import com.typeobject.wheeler.compiler.ast.Documentation;
 import com.typeobject.wheeler.compiler.ast.ImportDeclaration;
 import com.typeobject.wheeler.compiler.ast.NodeVisitor;
-import com.typeobject.wheeler.compiler.ErrorReporter;
 import com.typeobject.wheeler.compiler.ast.classical.Block;
-import com.typeobject.wheeler.compiler.ast.classical.declarations.*;
-import com.typeobject.wheeler.compiler.ast.classical.expressions.*;
-import com.typeobject.wheeler.compiler.ast.classical.statements.*;
-import com.typeobject.wheeler.compiler.ast.classical.types.*;
-import com.typeobject.wheeler.compiler.ast.memory.*;
-import com.typeobject.wheeler.compiler.ast.quantum.expressions.*;
-import com.typeobject.wheeler.compiler.ast.quantum.statements.*;
+import com.typeobject.wheeler.compiler.ast.classical.declarations.ClassDeclaration;
+import com.typeobject.wheeler.compiler.ast.classical.declarations.ConstructorDeclaration;
+import com.typeobject.wheeler.compiler.ast.classical.declarations.FieldDeclaration;
+import com.typeobject.wheeler.compiler.ast.classical.declarations.MethodDeclaration;
+import com.typeobject.wheeler.compiler.ast.classical.declarations.PackageDeclaration;
+import com.typeobject.wheeler.compiler.ast.classical.expressions.ArrayAccess;
+import com.typeobject.wheeler.compiler.ast.classical.expressions.ArrayCreationExpression;
+import com.typeobject.wheeler.compiler.ast.classical.expressions.ArrayInitializer;
+import com.typeobject.wheeler.compiler.ast.classical.expressions.Assignment;
+import com.typeobject.wheeler.compiler.ast.classical.expressions.BinaryExpression;
+import com.typeobject.wheeler.compiler.ast.classical.expressions.CastExpression;
+import com.typeobject.wheeler.compiler.ast.classical.expressions.InstanceOfExpression;
+import com.typeobject.wheeler.compiler.ast.classical.expressions.LambdaExpression;
+import com.typeobject.wheeler.compiler.ast.classical.expressions.LiteralExpression;
+import com.typeobject.wheeler.compiler.ast.classical.expressions.MethodCall;
+import com.typeobject.wheeler.compiler.ast.classical.expressions.MethodReferenceExpression;
+import com.typeobject.wheeler.compiler.ast.classical.expressions.ObjectCreationExpression;
+import com.typeobject.wheeler.compiler.ast.classical.expressions.TernaryExpression;
+import com.typeobject.wheeler.compiler.ast.classical.expressions.UnaryExpression;
+import com.typeobject.wheeler.compiler.ast.classical.expressions.VariableReference;
+import com.typeobject.wheeler.compiler.ast.classical.statements.CatchClause;
+import com.typeobject.wheeler.compiler.ast.classical.statements.DoWhileStatement;
+import com.typeobject.wheeler.compiler.ast.classical.statements.ForStatement;
+import com.typeobject.wheeler.compiler.ast.classical.statements.IfStatement;
+import com.typeobject.wheeler.compiler.ast.classical.statements.TryStatement;
+import com.typeobject.wheeler.compiler.ast.classical.statements.VariableDeclaration;
+import com.typeobject.wheeler.compiler.ast.classical.statements.WhileStatement;
+import com.typeobject.wheeler.compiler.ast.classical.types.ArrayType;
+import com.typeobject.wheeler.compiler.ast.classical.types.PrimitiveType;
+import com.typeobject.wheeler.compiler.ast.classical.types.TypeParameter;
+import com.typeobject.wheeler.compiler.ast.classical.types.WildcardType;
+import com.typeobject.wheeler.compiler.ast.memory.AllocationStatement;
+import com.typeobject.wheeler.compiler.ast.memory.CleanBlock;
+import com.typeobject.wheeler.compiler.ast.memory.DeallocationStatement;
+import com.typeobject.wheeler.compiler.ast.memory.GarbageCollectionStatement;
+import com.typeobject.wheeler.compiler.ast.memory.UncomputeBlock;
+import com.typeobject.wheeler.compiler.ast.quantum.expressions.QuantumArrayAccess;
+import com.typeobject.wheeler.compiler.ast.quantum.expressions.QuantumCastExpression;
+import com.typeobject.wheeler.compiler.ast.quantum.expressions.QuantumRegisterAccess;
+import com.typeobject.wheeler.compiler.ast.quantum.expressions.QubitReference;
+import com.typeobject.wheeler.compiler.ast.quantum.expressions.StateExpression;
+import com.typeobject.wheeler.compiler.ast.quantum.expressions.TensorProduct;
+import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumBlock;
+import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumGateApplication;
+import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumIfStatement;
+import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumMeasurement;
+import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumStatePreparation;
+import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumWhileStatement;
 import com.typeobject.wheeler.core.instruction.Instruction;
 import com.typeobject.wheeler.core.instruction.InstructionSet;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class BytecodeGenerator implements NodeVisitor<Void> {
     private static final int STACK_SIZE = 1 << 20;  // 1MB stack
@@ -65,7 +110,7 @@ public class BytecodeGenerator implements NodeVisitor<Void> {
     // Helper methods for generating instructions
 
     private void emit(byte opcode) {
-        emit(opcode, (byte)0, (short)0, 0L, 0);
+        emit(opcode, (byte) 0, (short) 0, 0L, 0);
     }
 
     private void emit(byte opcode, byte flags, short registers, long operand, int history) {
@@ -73,7 +118,7 @@ public class BytecodeGenerator implements NodeVisitor<Void> {
     }
 
     private void emitPush(long value) {
-        emit(InstructionSet.PUSH, (byte)0, (short)0, value, 0);
+        emit(InstructionSet.PUSH, (byte) 0, (short) 0, value, 0);
     }
 
     private void emitPop() {
@@ -81,19 +126,19 @@ public class BytecodeGenerator implements NodeVisitor<Void> {
     }
 
     private void emitStore(int register) {
-        emit(InstructionSet.STORE, (byte)0, (short)register, 0L, 0);
+        emit(InstructionSet.STORE, (byte) 0, (short) register, 0L, 0);
     }
 
     private void emitLoad(int register) {
-        emit(InstructionSet.LOAD, (byte)0, (short)register, 0L, 0);
+        emit(InstructionSet.LOAD, (byte) 0, (short) register, 0L, 0);
     }
 
     private void emitJump(int label) {
-        emit(InstructionSet.JUMP, (byte)0, (short)0, label, 0);
+        emit(InstructionSet.JUMP, (byte) 0, (short) 0, label, 0);
     }
 
     private void emitBranch(int trueLabel, int falseLabel) {
-        emit(InstructionSet.BRANCH, (byte)0, (short)0, ((long)trueLabel << 32) | falseLabel, 0);
+        emit(InstructionSet.BRANCH, (byte) 0, (short) 0, ((long) trueLabel << 32) | falseLabel, 0);
     }
 
     private void emitAdd() {
@@ -115,76 +160,76 @@ public class BytecodeGenerator implements NodeVisitor<Void> {
     // Quantum instruction methods
 
     private void emitHadamard(int qubit) {
-        emit(InstructionSet.HADAMARD, (byte)0, (short)qubit, 0L, 0);
+        emit(InstructionSet.HADAMARD, (byte) 0, (short) qubit, 0L, 0);
     }
 
     private void emitPauliX(int qubit) {
-        emit(InstructionSet.PAULIX, (byte)0, (short)qubit, 0L, 0);
+        emit(InstructionSet.PAULIX, (byte) 0, (short) qubit, 0L, 0);
     }
 
     private void emitPauliY(int qubit) {
-        emit(InstructionSet.PAULIY, (byte)0, (short)qubit, 0L, 0);
+        emit(InstructionSet.PAULIY, (byte) 0, (short) qubit, 0L, 0);
     }
 
     private void emitPauliZ(int qubit) {
-        emit(InstructionSet.PAULIZ, (byte)0, (short)qubit, 0L, 0);
+        emit(InstructionSet.PAULIZ, (byte) 0, (short) qubit, 0L, 0);
     }
 
     private void emitCNOT(int control, int target) {
-        emit(InstructionSet.CNOT, (byte)0, (short)((control << 8) | target), 0L, 0);
+        emit(InstructionSet.CNOT, (byte) 0, (short) ((control << 8) | target), 0L, 0);
     }
 
     private void emitToffoli(int control1, int control2, int target) {
-        emit(InstructionSet.TOFFOLI, (byte)0,
-                (short)((control1 << 8) | control2), target, 0);
+        emit(InstructionSet.TOFFOLI, (byte) 0,
+                (short) ((control1 << 8) | control2), target, 0);
     }
 
     private void emitMeasure(int qubit, int classicalBit) {
         byte flags = InstructionSet.Flags.HISTORY;  // Measurement needs history for reversibility
-        emit(InstructionSet.MEASURE, flags, (short)((qubit << 8) | classicalBit), 0L, 0);
+        emit(InstructionSet.MEASURE, flags, (short) ((qubit << 8) | classicalBit), 0L, 0);
     }
 
     // Thread and memory management instructions
 
     private void emitThreadNew(long entryPoint) {
-        emit(InstructionSet.THNEW, (byte)0, (short)0, entryPoint, 0);
+        emit(InstructionSet.THNEW, (byte) 0, (short) 0, entryPoint, 0);
     }
 
     private void emitThreadJoin(long threadId) {
-        emit(InstructionSet.THJOIN, (byte)0, (short)0, threadId, 0);
+        emit(InstructionSet.THJOIN, (byte) 0, (short) 0, threadId, 0);
     }
 
     private void emitAlloc(int register, long size) {
-        emit(InstructionSet.ALLOC, (byte)0, (short)register, size, 0);
+        emit(InstructionSet.ALLOC, (byte) 0, (short) register, size, 0);
     }
 
     private void emitFree(int register) {
-        emit(InstructionSet.FREE, (byte)0, (short)register, 0L, 0);
+        emit(InstructionSet.FREE, (byte) 0, (short) register, 0L, 0);
     }
 
     // Transaction handling
 
     private void emitTxBegin() {
-        emit(InstructionSet.TXBEGIN, InstructionSet.Flags.HISTORY, (short)0, 0L, 0);
+        emit(InstructionSet.TXBEGIN, InstructionSet.Flags.HISTORY, (short) 0, 0L, 0);
     }
 
     private void emitTxCommit() {
-        emit(InstructionSet.TXCOMMIT, InstructionSet.Flags.HISTORY, (short)0, 0L, 0);
+        emit(InstructionSet.TXCOMMIT, InstructionSet.Flags.HISTORY, (short) 0, 0L, 0);
     }
 
     private void emitTxAbort() {
-        emit(InstructionSet.TXABORT, InstructionSet.Flags.HISTORY, (short)0, 0L, 0);
+        emit(InstructionSet.TXABORT, InstructionSet.Flags.HISTORY, (short) 0, 0L, 0);
     }
 
     // History management
 
     private void emitHistorySave(String marker) {
-        emit(InstructionSet.HSAVE, InstructionSet.Flags.HISTORY, (short)0,
+        emit(InstructionSet.HSAVE, InstructionSet.Flags.HISTORY, (short) 0,
                 marker.hashCode(), 0);
     }
 
     private void emitHistoryRestore(String marker) {
-        emit(InstructionSet.HRESTORE, InstructionSet.Flags.HISTORY, (short)0,
+        emit(InstructionSet.HRESTORE, InstructionSet.Flags.HISTORY, (short) 0,
                 marker.hashCode(), 0);
     }
 

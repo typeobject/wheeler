@@ -1,7 +1,8 @@
 package com.typeobject.wheeler.compiler.ast.quantum.gates;
 
-import java.util.List;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QubitExpression;
+
+import java.util.List;
 
 public final class ParameterizedGate extends QuantumGate {
     private final List<Double> parameters;

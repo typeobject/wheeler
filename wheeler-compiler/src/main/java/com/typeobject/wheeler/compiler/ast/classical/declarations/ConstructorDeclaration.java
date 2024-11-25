@@ -1,12 +1,13 @@
 package com.typeobject.wheeler.compiler.ast.classical.declarations;
 
-import java.util.List;
-import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.Annotation;
 import com.typeobject.wheeler.compiler.ast.NodeVisitor;
+import com.typeobject.wheeler.compiler.ast.Position;
 import com.typeobject.wheeler.compiler.ast.base.Declaration;
 import com.typeobject.wheeler.compiler.ast.classical.Block;
 import com.typeobject.wheeler.compiler.ast.quantum.declarations.Parameter;
+
+import java.util.List;
 
 public final class ConstructorDeclaration extends Declaration {
     private final List<Parameter> parameters;
