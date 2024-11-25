@@ -178,9 +178,7 @@ public class TypeEnvironment {
             return isClassAssignable((ClassType) target, (ClassType) source);
         }
 
-        if (target instanceof ArrayType && source instanceof ArrayType) {
-            ArrayType targetArray = (ArrayType) target;
-            ArrayType sourceArray = (ArrayType) source;
+        if (target instanceof ArrayType targetArray && source instanceof ArrayType sourceArray) {
             return targetArray.getDimensions() == sourceArray.getDimensions()
                     && isAssignable(targetArray.getElementType(), sourceArray.getElementType());
         }

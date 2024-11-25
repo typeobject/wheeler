@@ -2,8 +2,10 @@ package com.typeobject.wheeler.compiler.analysis;
 
 
 import com.typeobject.wheeler.compiler.ErrorReporter;
+import com.typeobject.wheeler.compiler.ast.CommentNode;
 import com.typeobject.wheeler.compiler.ast.CompilationUnit;
 import com.typeobject.wheeler.compiler.ast.Documentation;
+import com.typeobject.wheeler.compiler.ast.ErrorNode;
 import com.typeobject.wheeler.compiler.ast.ImportDeclaration;
 import com.typeobject.wheeler.compiler.ast.Modifier;
 import com.typeobject.wheeler.compiler.ast.Node;
@@ -34,10 +36,17 @@ import com.typeobject.wheeler.compiler.ast.classical.expressions.ObjectCreationE
 import com.typeobject.wheeler.compiler.ast.classical.expressions.TernaryExpression;
 import com.typeobject.wheeler.compiler.ast.classical.expressions.UnaryExpression;
 import com.typeobject.wheeler.compiler.ast.classical.expressions.VariableReference;
+import com.typeobject.wheeler.compiler.ast.classical.statements.AssertStatement;
+import com.typeobject.wheeler.compiler.ast.classical.statements.BreakStatement;
 import com.typeobject.wheeler.compiler.ast.classical.statements.CatchClause;
+import com.typeobject.wheeler.compiler.ast.classical.statements.ContinueStatement;
 import com.typeobject.wheeler.compiler.ast.classical.statements.DoWhileStatement;
+import com.typeobject.wheeler.compiler.ast.classical.statements.ExpressionStatement;
 import com.typeobject.wheeler.compiler.ast.classical.statements.ForStatement;
 import com.typeobject.wheeler.compiler.ast.classical.statements.IfStatement;
+import com.typeobject.wheeler.compiler.ast.classical.statements.ReturnStatement;
+import com.typeobject.wheeler.compiler.ast.classical.statements.SynchronizedStatement;
+import com.typeobject.wheeler.compiler.ast.classical.statements.ThrowStatement;
 import com.typeobject.wheeler.compiler.ast.classical.statements.TryStatement;
 import com.typeobject.wheeler.compiler.ast.classical.statements.VariableDeclaration;
 import com.typeobject.wheeler.compiler.ast.classical.statements.WhileStatement;
@@ -47,13 +56,25 @@ import com.typeobject.wheeler.compiler.ast.classical.types.ClassicalType;
 import com.typeobject.wheeler.compiler.ast.classical.types.PrimitiveType;
 import com.typeobject.wheeler.compiler.ast.classical.types.TypeParameter;
 import com.typeobject.wheeler.compiler.ast.classical.types.WildcardType;
+import com.typeobject.wheeler.compiler.ast.hybrid.ClassicalToQuantumConversion;
+import com.typeobject.wheeler.compiler.ast.hybrid.HybridBlock;
+import com.typeobject.wheeler.compiler.ast.hybrid.HybridIfStatement;
+import com.typeobject.wheeler.compiler.ast.hybrid.HybridWhileStatement;
+import com.typeobject.wheeler.compiler.ast.hybrid.QuantumToClassicalConversion;
 import com.typeobject.wheeler.compiler.ast.memory.AllocationStatement;
 import com.typeobject.wheeler.compiler.ast.memory.CleanBlock;
 import com.typeobject.wheeler.compiler.ast.memory.DeallocationStatement;
 import com.typeobject.wheeler.compiler.ast.memory.GarbageCollectionStatement;
 import com.typeobject.wheeler.compiler.ast.memory.UncomputeBlock;
 import com.typeobject.wheeler.compiler.ast.quantum.ComplexNumber;
+import com.typeobject.wheeler.compiler.ast.quantum.EntanglementOperation;
+import com.typeobject.wheeler.compiler.ast.quantum.QuantumCircuit;
+import com.typeobject.wheeler.compiler.ast.quantum.QuantumFunction;
+import com.typeobject.wheeler.compiler.ast.quantum.QuantumOracle;
+import com.typeobject.wheeler.compiler.ast.quantum.QuantumTeleport;
 import com.typeobject.wheeler.compiler.ast.quantum.declarations.Parameter;
+import com.typeobject.wheeler.compiler.ast.quantum.declarations.QuantumAncillaDeclaration;
+import com.typeobject.wheeler.compiler.ast.quantum.declarations.QuantumRegisterDeclaration;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QuantumArrayAccess;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QuantumCastExpression;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.QuantumRegisterAccess;
@@ -62,11 +83,14 @@ import com.typeobject.wheeler.compiler.ast.quantum.expressions.QubitReference;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.StateExpression;
 import com.typeobject.wheeler.compiler.ast.quantum.expressions.TensorProduct;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumBlock;
+import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumForStatement;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumGateApplication;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumIfStatement;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumMeasurement;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumStatePreparation;
 import com.typeobject.wheeler.compiler.ast.quantum.statements.QuantumWhileStatement;
+import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumArrayType;
+import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumRegisterType;
 import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumType;
 import com.typeobject.wheeler.compiler.ast.quantum.types.QuantumTypeKind;
 
@@ -488,9 +512,7 @@ public class TypeChecker implements NodeVisitor<Type> {
         if (target instanceof ClassicalType && source instanceof ClassicalType) {
             return ((ClassicalType) target).isAssignableFrom((ClassicalType) source);
         }
-        if (target instanceof QuantumType && source instanceof QuantumType) {
-            QuantumType qt1 = (QuantumType) target;
-            QuantumType qt2 = (QuantumType) source;
+        if (target instanceof QuantumType qt1 && source instanceof QuantumType qt2) {
             return qt1.getKind() == qt2.getKind();
         }
         return false;
@@ -505,10 +527,9 @@ public class TypeChecker implements NodeVisitor<Type> {
 
 
     private MethodDeclaration lookupMethod(Type receiverType, String methodName) {
-        if (!(receiverType instanceof ClassType)) {
+        if (!(receiverType instanceof ClassType classType)) {
             return null;
         }
-        ClassType classType = (ClassType) receiverType;
         return classType.getMethods().stream()
                 .filter(m -> m.getName().equals(methodName))
                 .findFirst()
@@ -604,9 +625,7 @@ public class TypeChecker implements NodeVisitor<Type> {
 
     private boolean isCastable(Type source, Type target) {
         if (isAssignable(target, source)) return true;
-        if (source instanceof ClassicalType && target instanceof ClassicalType) {
-            ClassicalType cs = (ClassicalType) source;
-            ClassicalType ct = (ClassicalType) target;
+        if (source instanceof ClassicalType cs && target instanceof ClassicalType ct) {
             return cs.isNumeric() && ct.isNumeric();
         }
         return false;
@@ -855,6 +874,66 @@ public class TypeChecker implements NodeVisitor<Type> {
     }
 
     @Override
+    public Type visitQuantumToClassical(QuantumToClassicalConversion quantumToClassicalConversion) {
+        return null;
+    }
+
+    @Override
+    public Type visitHybridWhileStatement(HybridWhileStatement hybridWhileStatement) {
+        return null;
+    }
+
+    @Override
+    public Type visitHybridIfStatement(HybridIfStatement hybridIfStatement) {
+        return null;
+    }
+
+    @Override
+    public Type visitHybridBlock(HybridBlock hybridBlock) {
+        return null;
+    }
+
+    @Override
+    public Type visitClassicalToQuantum(ClassicalToQuantumConversion classicalToQuantumConversion) {
+        return null;
+    }
+
+    @Override
+    public Type visitThrowStatement(ThrowStatement throwStatement) {
+        return null;
+    }
+
+    @Override
+    public Type visitSynchronizedStatement(SynchronizedStatement synchronizedStatement) {
+        return null;
+    }
+
+    @Override
+    public Type visitReturnStatement(ReturnStatement returnStatement) {
+        return null;
+    }
+
+    @Override
+    public Type visitExpressionStatement(ExpressionStatement expressionStatement) {
+        return null;
+    }
+
+    @Override
+    public Type visitContinueStatement(ContinueStatement continueStatement) {
+        return null;
+    }
+
+    @Override
+    public Type visitBreakStatement(BreakStatement breakStatement) {
+        return null;
+    }
+
+    @Override
+    public Type visitAssertStatement(AssertStatement assertStatement) {
+        return null;
+    }
+
+    @Override
     public Type visitQubitReference(QubitReference node) {
         Type type = currentEnv.lookup(node.getIdentifier());
         if (type == null) {
@@ -878,13 +957,12 @@ public class TypeChecker implements NodeVisitor<Type> {
         int totalQubits = 0;
         for (QubitExpression factor : node.getFactors()) {
             Type factorType = factor.accept(this);
-            if (!(factorType instanceof QuantumType)) {
+            if (!(factorType instanceof QuantumType qType)) {
                 errors.report("Tensor product factor must be quantum type",
                         factor.getPosition());
                 return currentEnv.getErrorType();
             }
 
-            QuantumType qType = (QuantumType) factorType;
             if (qType.getKind() == QuantumTypeKind.QUBIT) {
                 totalQubits += 1;
             } else if (qType.getKind() == QuantumTypeKind.QUREG) {
@@ -947,6 +1025,16 @@ public class TypeChecker implements NodeVisitor<Type> {
     }
 
     @Override
+    public Type visitQuantumArrayType(QuantumArrayType quantumArrayType) {
+        return null;
+    }
+
+    @Override
+    public Type visitQuantumRegisterType(QuantumRegisterType quantumRegisterType) {
+        return null;
+    }
+
+    @Override
     public Type visitQuantumArrayAccess(QuantumArrayAccess node) {
         Type arrayType = node.getArray().accept(this);
         if (!(arrayType instanceof ArrayType)) {
@@ -977,15 +1065,12 @@ public class TypeChecker implements NodeVisitor<Type> {
         Type sourceType = node.getExpression().accept(this);
         Type targetType = node.getTargetType();
 
-        if (!(sourceType instanceof QuantumType) ||
-                !(targetType instanceof QuantumType)) {
+        if (!(sourceType instanceof QuantumType qSource) ||
+                !(targetType instanceof QuantumType qTarget)) {
             errors.report("Quantum cast requires quantum types",
                     node.getPosition());
             return currentEnv.getErrorType();
         }
-
-        QuantumType qSource = (QuantumType) sourceType;
-        QuantumType qTarget = (QuantumType) targetType;
 
         // Check valid quantum type conversions
         if (!isValidQuantumCast(qSource, qTarget)) {
@@ -995,6 +1080,46 @@ public class TypeChecker implements NodeVisitor<Type> {
         }
 
         return targetType;
+    }
+
+    @Override
+    public Type visitQuantumCircuit(QuantumCircuit quantumCircuit) {
+        return null;
+    }
+
+    @Override
+    public Type visitEntanglementOperation(EntanglementOperation entanglementOperation) {
+        return null;
+    }
+
+    @Override
+    public Type visitQuantumFunction(QuantumFunction quantumFunction) {
+        return null;
+    }
+
+    @Override
+    public Type visitQuantumOracle(QuantumOracle quantumOracle) {
+        return null;
+    }
+
+    @Override
+    public Type visitQuantumTeleport(QuantumTeleport quantumTeleport) {
+        return null;
+    }
+
+    @Override
+    public Type visitQuantumForStatement(QuantumForStatement quantumForStatement) {
+        return null;
+    }
+
+    @Override
+    public Type visitQuantumAncillaDeclaration(QuantumAncillaDeclaration quantumAncillaDeclaration) {
+        return null;
+    }
+
+    @Override
+    public Type visitQuantumRegisterDeclaration(QuantumRegisterDeclaration quantumRegisterDeclaration) {
+        return null;
     }
 
     private boolean isValidQuantumCast(QuantumType source, QuantumType target) {
@@ -1117,6 +1242,16 @@ public class TypeChecker implements NodeVisitor<Type> {
     public Type visitDocumentation(Documentation node) {
         // No type checking needed for documentation
         return currentEnv.getUnitType();
+    }
+
+    @Override
+    public Type visitErrorNode(ErrorNode errorNode) {
+        return null;
+    }
+
+    @Override
+    public Type visitComment(CommentNode commentNode) {
+        return null;
     }
 
     // Helper methods for quantum-specific validation
@@ -1256,9 +1391,7 @@ public class TypeChecker implements NodeVisitor<Type> {
         }
 
         // Check if the instanceof test could ever succeed
-        if (expressionType instanceof ClassType && testType instanceof ClassType) {
-            ClassType exprClass = (ClassType) expressionType;
-            ClassType testClass = (ClassType) testType;
+        if (expressionType instanceof ClassType exprClass && testType instanceof ClassType testClass) {
             if (!couldBeInstance(exprClass, testClass)) {
                 errors.report("Expression of type " + exprClass + " can never be an instance of " + testClass,
                         node.getPosition());
@@ -1326,13 +1459,11 @@ public class TypeChecker implements NodeVisitor<Type> {
     public Type visitObjectCreation(ObjectCreationExpression node) {
         Type type = node.getType().accept(this);
 
-        if (!(type instanceof ClassType)) {
+        if (!(type instanceof ClassType classType)) {
             errors.report("Cannot create instance of non-class type",
                     node.getPosition());
             return currentEnv.getErrorType();
         }
-
-        ClassType classType = (ClassType) type;
 
         // Check constructor arguments
         List<Type> argTypes = new ArrayList<>();
@@ -1378,10 +1509,7 @@ public class TypeChecker implements NodeVisitor<Type> {
             return true;
         }
         // Check for interface implementation
-        if (testType.isInterface() || exprType.isInterface()) {
-            return true;
-        }
-        return false;
+        return testType.isInterface() || exprType.isInterface();
     }
 
     private void verifyConstructorReference(ClassType classType, MethodReferenceExpression node) {

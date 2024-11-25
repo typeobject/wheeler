@@ -65,8 +65,8 @@ public class FlowAnalyzer implements NodeVisitor<Void> {
     private final ErrorReporter errors;
     private final Set<String> declaredVariables;
     private final Set<String> initializedVariables;
-    private boolean inLoop;
-    private boolean inTry;
+    private final boolean inLoop;
+    private final boolean inTry;
 
     public FlowAnalyzer(ErrorReporter errors) {
         this.errors = errors;

@@ -37,6 +37,103 @@ public abstract class ClassicalType extends Type {
     }
 
     /**
+     * Factory method for creating primitive types.
+     */
+    public static ClassicalType createPrimitive(Position position,
+                                                List<Annotation> annotations,
+                                                PrimitiveType.Kind kind) {
+        return new PrimitiveType(position, annotations, kind);
+    }
+
+    /**
+     * Factory method for creating class types.
+     */
+    public static ClassicalType createClass(Position position,
+                                            List<Annotation> annotations,
+                                            String name,
+                                            List<Type> typeArguments,
+                                            ClassType supertype,
+                                            List<ClassType> interfaces) {
+        return new ClassType(position, annotations, name, typeArguments,
+                supertype, interfaces);
+    }
+
+    /**
+     * Factory method for creating array types.
+     */
+    public static ClassicalType createArray(Position position,
+                                            List<Annotation> annotations,
+                                            Type elementType,
+                                            int dimensions) {
+        return new ArrayType(position, annotations, elementType, dimensions);
+    }
+
+    /**
+     * Factory method for creating type parameters.
+     */
+    public static ClassicalType createTypeParameter(Position position,
+                                                    List<Annotation> annotations,
+                                                    String name,
+                                                    List<Type> bounds) {
+        return new TypeParameter(position, annotations, name, bounds);
+    }
+
+    /**
+     * Factory method for creating wildcard types.
+     */
+    public static ClassicalType createWildcard(Position position,
+                                               List<Annotation> annotations,
+                                               WildcardType.BoundKind boundKind,
+                                               Type bound) {
+        return new WildcardType(position, annotations, boundKind, bound);
+    }
+
+    /**
+     * Helper method to determine if a type is a subtype of another.
+     */
+    public static boolean isSubtype(ClassicalType sub, ClassicalType sup) {
+        return sup.isAssignableFrom(sub);
+    }
+
+    /**
+     * Helper method to find the least upper bound of two types.
+     */
+    public static ClassicalType leastUpperBound(ClassicalType t1, ClassicalType t2) {
+        if (t1.isAssignableFrom(t2)) return t1;
+        if (t2.isAssignableFrom(t1)) return t2;
+
+        // For class types, find the most specific common supertype
+        if (t1 instanceof ClassType && t2 instanceof ClassType) {
+            Set<ClassType> t1Supertypes = getAllSupertypes((ClassType) t1);
+            Set<ClassType> t2Supertypes = getAllSupertypes((ClassType) t2);
+            t1Supertypes.retainAll(t2Supertypes);
+
+            return t1Supertypes.stream()
+                    .filter(t -> t instanceof ClassicalType)
+                    .map(t -> (ClassicalType) t)
+                    .reduce((c1, c2) -> c1.isAssignableFrom(c2) ? c2 : c1)
+                    .orElse(null);
+        }
+
+        return null;
+    }
+
+    private static Set<ClassType> getAllSupertypes(ClassType type) {
+        Set<ClassType> supertypes = new HashSet<>();
+        supertypes.add(type);
+
+        if (type.getSupertype() != null) {
+            supertypes.addAll(getAllSupertypes(type.getSupertype()));
+        }
+
+        for (ClassType iface : type.getInterfaces()) {
+            supertypes.addAll(getAllSupertypes(iface));
+        }
+
+        return supertypes;
+    }
+
+    /**
      * Gets the name of this type.
      */
     public String getName() {
@@ -177,9 +274,7 @@ public abstract class ClassicalType extends Type {
             Type t1 = m1.getParameters().get(i).getType();
             Type t2 = m2.getParameters().get(i).getType();
 
-            if (t1 instanceof ClassicalType && t2 instanceof ClassicalType) {
-                ClassicalType ct1 = (ClassicalType) t1;
-                ClassicalType ct2 = (ClassicalType) t2;
+            if (t1 instanceof ClassicalType ct1 && t2 instanceof ClassicalType ct2) {
 
                 if (!ct2.isAssignableFrom(ct1)) {
                     m1MoreSpecific = false;
@@ -204,9 +299,8 @@ public abstract class ClassicalType extends Type {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ClassicalType)) return false;
+        if (!(o instanceof ClassicalType that)) return false;
 
-        ClassicalType that = (ClassicalType) o;
         return name.equals(that.name) &&
                 typeArguments.equals(that.typeArguments) &&
                 isPrimitive == that.isPrimitive;
@@ -240,102 +334,5 @@ public abstract class ClassicalType extends Type {
     @Override
     public String toString() {
         return getQualifiedName();
-    }
-
-    /**
-     * Factory method for creating primitive types.
-     */
-    public static ClassicalType createPrimitive(Position position,
-                                                List<Annotation> annotations,
-                                                PrimitiveType.Kind kind) {
-        return new PrimitiveType(position, annotations, kind);
-    }
-
-    /**
-     * Factory method for creating class types.
-     */
-    public static ClassicalType createClass(Position position,
-                                            List<Annotation> annotations,
-                                            String name,
-                                            List<Type> typeArguments,
-                                            ClassType supertype,
-                                            List<ClassType> interfaces) {
-        return new ClassType(position, annotations, name, typeArguments,
-                supertype, interfaces);
-    }
-
-    /**
-     * Factory method for creating array types.
-     */
-    public static ClassicalType createArray(Position position,
-                                            List<Annotation> annotations,
-                                            Type elementType,
-                                            int dimensions) {
-        return new ArrayType(position, annotations, elementType, dimensions);
-    }
-
-    /**
-     * Factory method for creating type parameters.
-     */
-    public static ClassicalType createTypeParameter(Position position,
-                                                    List<Annotation> annotations,
-                                                    String name,
-                                                    List<Type> bounds) {
-        return new TypeParameter(position, annotations, name, bounds);
-    }
-
-    /**
-     * Factory method for creating wildcard types.
-     */
-    public static ClassicalType createWildcard(Position position,
-                                               List<Annotation> annotations,
-                                               WildcardType.BoundKind boundKind,
-                                               Type bound) {
-        return new WildcardType(position, annotations, boundKind, bound);
-    }
-
-    /**
-     * Helper method to determine if a type is a subtype of another.
-     */
-    public static boolean isSubtype(ClassicalType sub, ClassicalType sup) {
-        return sup.isAssignableFrom(sub);
-    }
-
-    /**
-     * Helper method to find the least upper bound of two types.
-     */
-    public static ClassicalType leastUpperBound(ClassicalType t1, ClassicalType t2) {
-        if (t1.isAssignableFrom(t2)) return t1;
-        if (t2.isAssignableFrom(t1)) return t2;
-
-        // For class types, find the most specific common supertype
-        if (t1 instanceof ClassType && t2 instanceof ClassType) {
-            Set<ClassType> t1Supertypes = getAllSupertypes((ClassType) t1);
-            Set<ClassType> t2Supertypes = getAllSupertypes((ClassType) t2);
-            t1Supertypes.retainAll(t2Supertypes);
-
-            return t1Supertypes.stream()
-                    .filter(t -> t instanceof ClassicalType)
-                    .map(t -> (ClassicalType) t)
-                    .reduce((c1, c2) -> c1.isAssignableFrom(c2) ? c2 : c1)
-                    .orElse(null);
-        }
-
-        return null;
-    }
-
-    private static Set<ClassType> getAllSupertypes(ClassType type) {
-        Set<ClassType> supertypes = new HashSet<>();
-        supertypes.add(type);
-
-        if (type.getSupertype() != null) {
-            supertypes.addAll(getAllSupertypes(type.getSupertype()));
-        }
-
-        for (ClassType iface : type.getInterfaces()) {
-            supertypes.addAll(getAllSupertypes(iface));
-        }
-
-        return supertypes;
     }
 }

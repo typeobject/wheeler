@@ -11,22 +11,16 @@ public final class WildcardType extends ClassicalType {
     private final BoundKind boundKind;
     private final Type bound;
 
-    @Override
-    public <T> T accept(NodeVisitor<T> visitor) {
-        return visitor.visitWildcardType(this);
-    }
-
-    public enum BoundKind {
-        NONE,
-        EXTENDS,
-        SUPER
-    }
-
     public WildcardType(Position position, List<Annotation> annotations,
                         BoundKind boundKind, Type bound) {
         super(position, annotations, "?", List.of(), false);
         this.boundKind = boundKind;
         this.bound = bound;
+    }
+
+    @Override
+    public <T> T accept(NodeVisitor<T> visitor) {
+        return visitor.visitWildcardType(this);
     }
 
     @Override
@@ -71,5 +65,11 @@ public final class WildcardType extends ClassicalType {
     public Type promoteWith(ClassicalType other) {
         if (isAssignableFrom(other)) return this;
         return null;
+    }
+
+    public enum BoundKind {
+        NONE,
+        EXTENDS,
+        SUPER
     }
 }

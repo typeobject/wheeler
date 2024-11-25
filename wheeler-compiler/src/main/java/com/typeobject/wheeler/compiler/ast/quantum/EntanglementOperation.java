@@ -12,13 +12,6 @@ public final class EntanglementOperation extends Node {
     private final List<QubitExpression> qubits;
     private final EntanglementType type;
 
-    public enum EntanglementType {
-        BELL_PAIR,
-        GHZ_STATE,
-        W_STATE,
-        CLUSTER_STATE
-    }
-
     public EntanglementOperation(Position position, List<Annotation> annotations,
                                  List<QubitExpression> qubits,
                                  EntanglementType type) {
@@ -38,5 +31,12 @@ public final class EntanglementOperation extends Node {
     @Override
     public <T> T accept(NodeVisitor<T> visitor) {
         return visitor.visitEntanglementOperation(this);
+    }
+
+    public enum EntanglementType {
+        BELL_PAIR,
+        GHZ_STATE,
+        W_STATE,
+        CLUSTER_STATE
     }
 }

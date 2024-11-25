@@ -93,11 +93,7 @@ public class WheelerCompiler {
         // Control flow analysis
         FlowAnalyzer flowAnalyzer = new FlowAnalyzer(errorReporter);
         flowAnalyzer.analyze(ast);
-        if (errorReporter.hasErrors()) {
-            return false;
-        }
-
-        return true;
+        return !errorReporter.hasErrors();
     }
 
     private boolean generateCode(CompilationUnit ast) {

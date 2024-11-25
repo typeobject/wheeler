@@ -8,18 +8,6 @@ import com.typeobject.wheeler.compiler.ast.base.Type;
 import java.util.List;
 
 public final class PrimitiveType extends ClassicalType {
-    public enum Kind {
-        BOOLEAN,
-        BYTE,
-        SHORT,
-        INT,
-        LONG,
-        FLOAT,
-        DOUBLE,
-        CHAR,
-        VOID
-    }
-
     private final Kind kind;
 
     public PrimitiveType(Position position, List<Annotation> annotations, Kind kind) {
@@ -70,5 +58,17 @@ public final class PrimitiveType extends ClassicalType {
     @Override
     public <T> T accept(NodeVisitor<T> visitor) {
         return visitor.visitPrimitiveType(this);
+    }
+
+    public enum Kind {
+        BOOLEAN,
+        BYTE,
+        SHORT,
+        INT,
+        LONG,
+        FLOAT,
+        DOUBLE,
+        CHAR,
+        VOID
     }
 }

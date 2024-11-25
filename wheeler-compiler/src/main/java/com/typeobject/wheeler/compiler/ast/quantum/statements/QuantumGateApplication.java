@@ -27,9 +27,9 @@ public final class QuantumGateApplication extends QuantumStatement {
 
     public static class Builder {
         private Position position;
-        private List<Annotation> annotations = new ArrayList<>();
-        private QuantumGate gate;
-        private List<QubitExpression> targets = new ArrayList<>();
+        private final List<Annotation> annotations = new ArrayList<>();
+        private final QuantumGate gate;
+        private final List<QubitExpression> targets = new ArrayList<>();
 
         public Builder(QuantumGate gate) {
             this.gate = gate;

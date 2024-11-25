@@ -55,9 +55,8 @@ public class QuantumType extends Type {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof QuantumType)) return false;
+        if (!(o instanceof QuantumType that)) return false;
 
-        QuantumType that = (QuantumType) o;
         return size == that.size && kind == that.kind;
     }
 

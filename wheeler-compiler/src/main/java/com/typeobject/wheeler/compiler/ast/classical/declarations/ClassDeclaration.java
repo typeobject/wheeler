@@ -56,13 +56,13 @@ public final class ClassDeclaration extends Declaration {
     }
 
     public static class Builder {
-        private Position position;
         private final List<Annotation> annotations = new ArrayList<>();
         private final List<Modifier> modifiers = new ArrayList<>();
         private final String name;
-        private Type superClass;
         private final List<Type> interfaces = new ArrayList<>();
         private final List<Declaration> members = new ArrayList<>();
+        private Position position;
+        private Type superClass;
         private ComputationType computationType = ComputationType.CLASSICAL;
 
         public Builder(String name) {

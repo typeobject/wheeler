@@ -187,8 +187,7 @@ public final class ClassType extends ClassicalType {
     @Override
     public boolean isComparableTo(ClassicalType other) {
         if (equals(other)) return true;
-        if (other instanceof ClassType) {
-            ClassType otherClass = (ClassType) other;
+        if (other instanceof ClassType otherClass) {
             // Check if this type is assignable to the other type or vice versa
             return isAssignableFrom(otherClass) || otherClass.isAssignableFrom(this);
         }
@@ -197,14 +196,13 @@ public final class ClassType extends ClassicalType {
 
     @Override
     public boolean isAssignableFrom(ClassicalType source) {
-        if (!(source instanceof ClassType)) return false;
-        ClassType sourceClass = (ClassType) source;
+        if (!(source instanceof ClassType sourceClass)) return false;
 
         // Same type
         if (this.equals(sourceClass)) return true;
 
         // Check superclass hierarchy
-        if (sourceClass.supertype != null && isAssignableFrom(sourceClass.supertype)) {
+        if (isAssignableFrom(sourceClass.supertype)) {
             return true;
         }
 
@@ -219,7 +217,7 @@ public final class ClassType extends ClassicalType {
     @Override
     public Type promoteWith(ClassicalType other) {
         if (isAssignableFrom(other)) return this;
-        if (other instanceof ClassType && ((ClassType) other).isAssignableFrom(this)) {
+        if (other instanceof ClassType && other.isAssignableFrom(this)) {
             return other;
         }
         // Find least common supertype
@@ -288,9 +286,8 @@ public final class ClassType extends ClassicalType {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ClassType)) return false;
+        if (!(o instanceof ClassType that)) return false;
 
-        ClassType that = (ClassType) o;
         return name.equals(that.name) &&
                 typeArguments.equals(that.typeArguments) &&
                 Objects.equals(supertype, that.supertype) &&
@@ -325,12 +322,12 @@ public final class ClassType extends ClassicalType {
     // Builder pattern for convenient instantiation
     public static class Builder {
         private Position position;
-        private List<Annotation> annotations = new ArrayList<>();
-        private String name;
-        private List<Type> typeArguments = new ArrayList<>();
+        private final List<Annotation> annotations = new ArrayList<>();
+        private final String name;
+        private final List<Type> typeArguments = new ArrayList<>();
         private ClassType supertype;
-        private List<ClassType> interfaces = new ArrayList<>();
-        private Set<Modifier> modifiers = new HashSet<>();
+        private final List<ClassType> interfaces = new ArrayList<>();
+        private final Set<Modifier> modifiers = new HashSet<>();
         private boolean isInterface;
 
         public Builder(String name) {

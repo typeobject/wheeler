@@ -49,8 +49,7 @@ public final class ArrayType extends ClassicalType {
 
     @Override
     public boolean isComparableTo(ClassicalType other) {
-        if (!(other instanceof ArrayType)) return false;
-        ArrayType otherArray = (ArrayType) other;
+        if (!(other instanceof ArrayType otherArray)) return false;
         if (dimensions != otherArray.dimensions) return false;
         if (!(elementType instanceof ClassicalType)) return false;
         return ((ClassicalType) elementType).isComparableTo((ClassicalType) otherArray.elementType);
@@ -58,8 +57,7 @@ public final class ArrayType extends ClassicalType {
 
     @Override
     public boolean isAssignableFrom(ClassicalType source) {
-        if (!(source instanceof ArrayType)) return false;
-        ArrayType sourceArray = (ArrayType) source;
+        if (!(source instanceof ArrayType sourceArray)) return false;
         if (dimensions != sourceArray.dimensions) return false;
         if (!(elementType instanceof ClassicalType)) return false;
         return ((ClassicalType) elementType).isAssignableFrom((ClassicalType) sourceArray.elementType);
@@ -79,10 +77,9 @@ public final class ArrayType extends ClassicalType {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ArrayType)) return false;
+        if (!(o instanceof ArrayType arrayType)) return false;
         if (!super.equals(o)) return false;
 
-        ArrayType arrayType = (ArrayType) o;
         return dimensions == arrayType.dimensions &&
                 elementType.equals(arrayType.elementType);
     }
