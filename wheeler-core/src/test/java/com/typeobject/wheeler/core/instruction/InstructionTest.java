@@ -5,12 +5,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+
 class InstructionTest {
     @Test
     @DisplayName("Instruction encoding/decoding")
     void testInstructionEncodingDecoding() {
         byte opcode = InstructionSet.PUSH;
-        byte flags = InstructionSet.Flags.FORWARD;
+        byte flags = (byte)(InstructionSet.Flags.FORWARD | InstructionSet.Flags.HISTORY);
         short registers = (short)0x1234;
         long operand = 42L;
         int history = 0x5678;
@@ -29,9 +30,12 @@ class InstructionTest {
     @Test
     @DisplayName("Instruction flags")
     void testInstructionFlags() {
+        byte forwardFlags = (byte)(InstructionSet.Flags.FORWARD | InstructionSet.Flags.HISTORY);
+        byte reverseFlags = (byte)(InstructionSet.Flags.REVERSE | InstructionSet.Flags.HISTORY);
+
         Instruction forward = new Instruction(
                 InstructionSet.ADD,
-                InstructionSet.Flags.FORWARD,
+                forwardFlags,
                 (short)0,
                 0L,
                 0
@@ -39,7 +43,7 @@ class InstructionTest {
 
         Instruction reverse = new Instruction(
                 InstructionSet.ADD,
-                InstructionSet.Flags.REVERSE,
+                reverseFlags,
                 (short)0,
                 0L,
                 0
@@ -47,5 +51,31 @@ class InstructionTest {
 
         assertTrue(forward.isForward(), "Instruction should be forward");
         assertFalse(reverse.isForward(), "Instruction should be reverse");
+    }
+
+    @Test
+    @DisplayName("History flag verification")
+    void testHistoryFlags() {
+        byte noHistoryFlags = InstructionSet.Flags.FORWARD;
+        byte withHistoryFlags = (byte)(InstructionSet.Flags.FORWARD | InstructionSet.Flags.HISTORY);
+
+        Instruction noHistory = new Instruction(
+                InstructionSet.ADD,
+                noHistoryFlags,
+                (short)0,
+                0L,
+                0
+        );
+
+        Instruction withHistory = new Instruction(
+                InstructionSet.ADD,
+                withHistoryFlags,
+                (short)0,
+                0L,
+                0
+        );
+
+        assertFalse(noHistory.tracksHistory(), "Instruction should not track history");
+        assertTrue(withHistory.tracksHistory(), "Instruction should track history");
     }
 }

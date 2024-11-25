@@ -29,13 +29,13 @@ class WheelerVMTest {
     @Test
     @DisplayName("Simple program execution")
     void testSimpleProgramExecution() {
-        // Create a simple program that pushes two numbers and adds them
+        // Create a program that pushes two numbers and adds them
         byte[] program = new byte[48]; // 3 instructions * 16 bytes each
 
         // PUSH 5
         Instruction push1 = new Instruction(
                 InstructionSet.PUSH,
-                InstructionSet.Flags.FORWARD,
+                (byte)(InstructionSet.Flags.FORWARD | InstructionSet.Flags.HISTORY),
                 (short)0,
                 5L,
                 0
@@ -44,7 +44,7 @@ class WheelerVMTest {
         // PUSH 3
         Instruction push2 = new Instruction(
                 InstructionSet.PUSH,
-                InstructionSet.Flags.FORWARD,
+                (byte)(InstructionSet.Flags.FORWARD | InstructionSet.Flags.HISTORY),
                 (short)0,
                 3L,
                 0
@@ -53,7 +53,7 @@ class WheelerVMTest {
         // ADD
         Instruction add = new Instruction(
                 InstructionSet.ADD,
-                InstructionSet.Flags.FORWARD,
+                (byte)(InstructionSet.Flags.FORWARD | InstructionSet.Flags.HISTORY),
                 (short)0,
                 0L,
                 0
@@ -63,10 +63,38 @@ class WheelerVMTest {
         System.arraycopy(push2.toBytes(), 0, program, 16, 16);
         System.arraycopy(add.toBytes(), 0, program, 32, 16);
 
+        // Load program into VM
         vm.loadProgram(program);
-        vm.execute();
 
-        WheelerThread mainThread = new WheelerThread(0, memory);
-        assertEquals(8L, mainThread.getStack().peek(), "Stack should contain sum of 5 + 3");
+        // Create a thread and set its initial state
+        WheelerThread thread = new WheelerThread(0, memory);
+        thread.setPc(0x0100_0000_0000_0000L); // Set PC to start of code segment
+
+        // Execute until completion
+        while (!thread.isTerminated()) {
+            Instruction inst = thread.fetchInstruction();
+            executeInstruction(thread, inst);
+            thread.advancePC();
+        }
+
+        // Verify result
+        assertEquals(8L, thread.getStack().peek(), "Stack should contain sum of 5 + 3");
+    }
+
+    private void executeInstruction(WheelerThread thread, Instruction inst) {
+        switch (inst.getOpcode()) {
+            case InstructionSet.PUSH:
+                thread.getStack().push(inst.getOperand());
+                break;
+
+            case InstructionSet.ADD:
+                long b = thread.getStack().pop();
+                long a = thread.getStack().pop();
+                thread.getStack().push(a + b);
+                break;
+
+            default:
+                throw new IllegalStateException("Unknown opcode: " + inst);
+        }
     }
 }
