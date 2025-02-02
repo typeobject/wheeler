@@ -14,7 +14,7 @@ import BitwiseOps;          // Bitwise operators
 import ComparisonOps;       // Comparison operators
 import AssignmentOps;       // Assignment operators
 import QuantumOps;          // Quantum operators
-import Seperators;          // Note: Keeping original typo
+import Separators;          // Separator operators
 
 // Types
 import PrimitiveTypes;      // Basic types
@@ -29,6 +29,3 @@ import BooleanLiterals;     // Booleans
 import QuantumLiterals;     // Quantum states
 import ComplexLiterals;     // Complex numbers
 
-// Formatting
-import Whitespace;          // Whitespace handling
-import Comments;            // Comments
