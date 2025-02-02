@@ -7,7 +7,7 @@ compilationUnit
     : packageDeclaration?
       importDeclaration*
       moduleDeclaration?
-      typeDeclaration*
+      (typeDeclaration | proofDeclaration)*
       EOF
     ;
 
@@ -33,13 +33,82 @@ moduleDirective
     | USES qualifiedName SEMI
     ;
 
-// Type Declarations
+// Type and Proof Declarations
 typeDeclaration
     : classDeclaration
     | interfaceDeclaration
     | enumDeclaration
     | annotation* SEMI
     ;
+
+proofDeclaration
+    : proofClassDeclaration
+    | theoremDeclaration
+    | lemmaDeclaration
+    ;
+
+ // Proof-specific declarations
+ proofClassDeclaration
+     : classModifier*
+       PROOF CLASS IDENTIFIER
+       FOR qualifiedName
+       proofClassBody
+     ;
+
+ proofClassBody
+     : LBRACE
+         (theoremDeclaration | lemmaDeclaration)*
+       RBRACE
+     ;
+
+ theoremDeclaration
+     : (CLASSICAL | QUANTUM | HYBRID)?
+       THEOREM IDENTIFIER
+       typeParameters?
+       parameterList?
+       (GIVEN expression)?
+       (SHOWS expression)?
+       theoremBody
+     ;
+
+ lemmaDeclaration
+     : (CLASSICAL | QUANTUM | HYBRID)?
+       LEMMA IDENTIFIER
+       typeParameters?
+       parameterList?
+       (GIVEN expression)?
+       (SHOWS expression)?
+       theoremBody
+     ;
+
+ theoremBody
+     : LBRACE
+         proofStatement*
+         QED SEMI
+       RBRACE
+     ;
+
+ letDeclaration
+     : LET variableDeclarator (SEMI | COMMA variableDeclarator)* SEMI
+     ;
+
+ proofStatement
+     : verifyStatement
+     | letDeclaration
+     | quantumStatement
+     | statement
+     | proofBlock
+     ;
+
+ verifyStatement
+     : VERIFY expression (BECAUSE expression)? SEMI
+     ;
+
+ proofBlock
+     : PROOF LBRACE
+         proofStatement*
+       RBRACE
+     ;
 
 classDeclaration
     : annotation* classModifier*
@@ -296,6 +365,7 @@ lastFormalParameter
 variableModifier
     : FINAL
     | annotation
+    | PURE
     ;
 
 fieldDeclaration
@@ -378,6 +448,9 @@ expression
            LSHIFT_ASSIGN | MOD_ASSIGN)
       expression
     | lambdaExpression
+    | FORALL expression
+    | EXISTS expression
+    | expression IMPLIES expression
     ;
 
 primary
@@ -388,6 +461,16 @@ primary
     | IDENTIFIER
     | typeTypeOrVoid '.' CLASS
     | nonWildcardTypeArguments (explicitGenericInvocationSuffix | THIS arguments)
+    | proofReference
+    | theoremReference
+    ;
+
+proofReference
+    : PROOF_REF LPAREN IDENTIFIER RPAREN
+    ;
+
+theoremReference
+    : THEOREM_REF LPAREN IDENTIFIER RPAREN
     ;
 
 creator

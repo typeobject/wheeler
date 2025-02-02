@@ -93,5 +93,15 @@ TOFFOLI: 'TOFFOLI';
 PHASE: 'PHASE';
 ROTATE: 'ROTATE';
 
+// Proof keywords
+THEOREM: 'theorem';
+LEMMA: 'lemma';
+PROOF: 'proof';
+VERIFY: 'verify';
+BECAUSE: 'because';
+QED: 'qed';
+GIVEN: 'given';
+SHOWS: 'shows';
+
 // Additional keywords needed
 ENUM: 'enum';
