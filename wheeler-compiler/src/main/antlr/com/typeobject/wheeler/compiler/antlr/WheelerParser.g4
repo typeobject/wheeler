@@ -1,3 +1,5 @@
+// WARNING: Deprecated. This is getting replaced by the new grammar structure.
+
 parser grammar WheelerParser;
 
 options { tokenVocab=WheelerLexer; }

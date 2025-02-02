@@ -1,3 +1,5 @@
+// WARNING: Deprecated. This is getting replaced by the new grammar structure.
+
 lexer grammar WheelerKeywords;
 
 // Program structure
