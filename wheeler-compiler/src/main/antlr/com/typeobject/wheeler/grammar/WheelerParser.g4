@@ -2,52 +2,53 @@ parser grammar WheelerParser;
 
 options { tokenVocab=WheelerLexer; }
 
-// Program structure
-import CompilationUnit;    // Top-level structure
-import PackageDecl;        // Package declarations
-import ImportDecl;         // Import statements
-import ModuleDecl;         // Module system
+import
+   // Program structure
+   RulesStructureCompilationUnit,    // Top-level structure
+   RulesStructurePackageDecl,        // Package declarations
+   RulesStructureImportDecl,         // Import statements
+   RulesStructureModuleDecl,         // Module system
 
-// Declarations
-import ClassDecl;          // Class declarations
-import InterfaceDecl;      // Interface declarations
-import EnumDecl;           // Enum declarations
-import AnnotationDecl;     // Annotation declarations
+   // Declarations
+   RulesDeclarationsClassDecl,          // Class declarations
+   RulesDeclarationsInterfaceDecl,      // Interface declarations
+   RulesDeclarationsEnumDecl,           // Enum declarations
+   RulesDeclarationsAnnotationDecl,     // Annotation declarations
 
-// Class members
-import MethodDecl;         // Method declarations
-import FieldDecl;          // Field declarations
-import ConstructorDecl;    // Constructor declarations
-import PropertyDecl;       // Property declarations
+   // Class members
+   RulesMembersMethodDecl,         // Method declarations
+   RulesMembersFieldDecl,          // Field declarations
+   RulesMembersConstructorDecl,    // Constructor declarations
+   RulesMembersPropertyDecl,       // Property declarations
 
-// Statements
-import BasicStmt;          // Basic statements
-import ControlFlow;        // Control flow
-import ExceptionHandling;  // Exception handling
-import Transactions;       // Transaction handling
+   // Statements
+   RulesStatementsBasicStmt,          // Basic statements
+   RulesStatementsControlFlow,        // Control flow
+   RulesStatementsExceptionHandling,  // Exception handling
+   RulesStatementsTransactions,       // Transaction handling
 
-// Expressions
-import PrimaryExpr;        // Primary expressions
-import OperatorExpr;       // Operator expressions
-import MethodCall;         // Method calls
-import ObjectCreation;     // Object creation
-import LambdaExpr;         // Lambda expressions
+   // Expressions
+   RulesExpressionsPrimaryExpr,        // Primary expressions
+   RulesExpressionsOperatorExpr,       // Operator expressions
+   RulesExpressionsMethodCall,         // Method calls
+   RulesExpressionsObjectCreation,     // Object creation
+   RulesExpressionsLambdaExpr,         // Lambda expressions
 
-// Type system
-import TypeSystem;         // Type system core
-import Generics;           // Generics handling
-import TypeBounds;         // Type bounds
-import TypeInference;      // Type inference
+   // Type system
+   RulesTypesTypeSystem,         // Type system core
+   RulesTypesGenerics,           // Generics handling
+   RulesTypesTypeBounds,         // Type bounds
+   RulesTypesTypeInference,      // Type inference
 
-// Quantum features
-import CircuitDecl;        // Circuit declarations
-import GateApplication;    // Gate applications
-import Measurement;        // Measurements
-import StatePrep;          // State preparation
-import QuantumControl;     // Quantum control flow
+   // Quantum features
+   RulesQuantumCircuitDecl,        // Circuit declarations
+   RulesQuantumGateApplication,    // Gate applications
+   RulesQuantumMeasurement,        // Measurements
+   RulesQuantumStatePrep,          // State preparation
+   RulesQuantumQuantumControl,     // Quantum control flow
 
-// Proof system
-import TheoremDecl;        // Theorem declarations
-import ProofStructure;     // Proof structure
-import VerificationStmt;   // Verification statements
-import ProofSteps;         // Proof steps
+   // Proof system
+   RulesProofsTheoremDecl,        // Theorem declarations
+   RulesProofsProofStructure,     // Proof structure
+   RulesProofsVerificationStmt,   // Verification statements
+   RulesProofsProofSteps;         // Proof steps
