@@ -10,43 +10,33 @@ repositories {
     mavenCentral()
 }
 
-configurations {
-    antlr4 {
-        description = 'ANTLR4 grammar files'
-    }
-}
-
 dependencies {
-    antlr 'org.antlr:antlr4:4.13.1'  // Latest stable version of ANTLR4
+    antlr 'org.antlr:antlr4:4.13.1'
     implementation 'org.antlr:antlr4-runtime:4.13.1'
 
-    // Testing dependencies
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.1'
 }
 
 def grammarPath = 'src/main/antlr/com/typeobject/wheeler/grammar'
 
+generateGrammarSource {
+    arguments += [
+            '-visitor',
+            '-listener',
+            '-package', 'com.typeobject.wheeler.grammar',
+            '-lib', "${projectDir}/${grammarPath}/fragments".toString()
+    ]
+
+    outputDirectory = file("${project.buildDir}/generated-src/antlr/main/com/typeobject/wheeler/grammar")
+}
+
 sourceSets {
     main {
         antlr {
             srcDir grammarPath
-            include '*.g4'  // All grammar files are now in the same directory
         }
     }
-}
-
-generateGrammarSource {
-    maxHeapSize = "64m"
-    arguments += [
-            '-visitor',                // Generate parse tree visitor classes
-            '-listener',               // Generate parse tree listener classes
-            '-package', 'com.typeobject.wheeler.grammar',
-            '-encoding', 'UTF-8',
-            '-lib', grammarPath       // All grammar files are in the same directory now
-    ]
-
-    outputDirectory = file("${project.buildDir}/generated-src/antlr/main/com/typeobject/wheeler/grammar")
 }
 
 compileJava {
@@ -54,23 +44,10 @@ compileJava {
     source generateGrammarSource
 }
 
-clean {
-    delete "${project.buildDir}/generated-src"
-}
-
 test {
     useJUnitPlatform()
 }
 
-task verifyGrammars(type: JavaExec) {
-    dependsOn configurations.antlr
-    main = 'org.antlr.v4.Tool'
-    classpath = configurations.antlr
-    args = [
-            '-o', "${project.buildDir}/grammar-verification",
-            file("${grammarPath}/WheelerLexer.g4").path,
-            file("${grammarPath}/WheelerParser.g4").path
-    ]
+clean {
+    delete "${project.buildDir}/generated-src"
 }
-
-build.dependsOn verifyGrammars
