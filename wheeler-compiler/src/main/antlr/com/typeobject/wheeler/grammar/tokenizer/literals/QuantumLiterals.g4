@@ -1,25 +1,36 @@
 // Defines quantum state literals
 lexer grammar QuantumLiterals;
 
-// Quantum state literals
+// Basic quantum states (|0⟩, |1⟩)
 QUBIT_KET
-    : '|' [01] '⟩'                 // Basic qubit states
-    | '|+⟩'                        // Plus state
-    | '|-⟩'                        // Minus state
+    : '|' ([01] | '+' | '-') '⟩'
     ;
 
-QUBIT_BRA
-    : '⟨' [01] '|'                 // Dual states
-    | '⟨+|'
-    | '⟨-|'
-    ;
-
+// State with optional coefficient
 STATE_LITERAL
-    : StateCoefficient? QUBIT_KET  // State with optional coefficient
+    : StateCoefficient? QUBIT_KET
     ;
 
-// Fragment rules for quantum components
+// Matrix representation
+MATRIX_LITERAL
+    : '[[' ComplexNumber (',' ComplexNumber)* ']]'
+    ;
+
+// Complex numbers for quantum states
+fragment ComplexNumber
+    : [0-9]+ ('.' [0-9]*)?                         // Real part
+    | [0-9]+ ('.' [0-9]*)? 'i'                     // Imaginary part
+    | [0-9]+ ('.' [0-9]*)? [+-] [0-9]+
+      ('.' [0-9]*)? 'i'                            // Both parts
+    ;
+
+// State coefficients
 fragment StateCoefficient
-    : ('√'? [0-9]+ '/' [0-9]+)    // Rational coefficients
-    | ComplexNumber                // Complex coefficients
+    : ('√'? [0-9]+ '/' [0-9]+)                     // Rational coefficient
+    | ComplexNumber                                // Complex coefficient
+    ;
+
+// Bra notation
+QUBIT_BRA
+    : '⟨' ([01] | '+' | '-') '|'
     ;

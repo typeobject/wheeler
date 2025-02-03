@@ -1,44 +1,56 @@
 // Defines string and character literal formats
+// ===================================================================
+// StringLiterals.g4
+// Defines string and character literal tokens
+// ===================================================================
+
 lexer grammar StringLiterals;
 
-// String literals
+// String literal (handles escapes)
 STRING_LITERAL
-    : '"' StringCharacter* '"'     // Regular string
-    | '"""' MultiLineString '"""'   // Multi-line string
+    : '"'
+      ( EscapeSequence
+      | ~["\\\r\n]            // Any char except " \ CR LF
+      )*
+      '"'
     ;
 
-// Character literals
+// Character literal
 CHAR_LITERAL
-    : '\'' SingleCharacter '\''     // Single character
-    | '\'' EscapeSequence '\''      // Escaped character
+    : '\''
+      ( EscapeSequence
+      | ~['\\\r\n]           // Any char except ' \ CR LF
+      )
+      '\''
     ;
 
-// Fragment rules for string components
-fragment StringCharacter
-    : ~["\\\r\n]                   // Any non-special character
-    | EscapeSequence               // Escaped character sequence
+// Raw string literal (no escape processing)
+RAW_STRING_LITERAL
+    : 'r"'
+      .*?
+      '"'
     ;
 
-fragment MultiLineString
-    : .*?                          // Any characters until """
-    ;
-
-fragment SingleCharacter
-    : ~['\\\r\n]                   // Any non-special character
-    ;
-
+// Escape sequences in strings
 fragment EscapeSequence
-    : '\\' [btnfr"'\\]            // Common escapes
-    | OctalEscape                  // Octal escape
-    | UnicodeEscape               // Unicode escape
+    : '\\' [btnfr"'\\]       // Simple escapes
+    | OctalEscape           // Octal escapes
+    | UnicodeEscape         // Unicode escapes
     ;
 
+// Octal escape sequence
 fragment OctalEscape
-    : '\\' [0-3] [0-7] [0-7]      // Octal escape sequence
+    : '\\' [0-3] [0-7] [0-7]
     | '\\' [0-7] [0-7]
     | '\\' [0-7]
     ;
 
+// Unicode escape sequence
 fragment UnicodeEscape
-    : '\\' 'u'+ HexDigit HexDigit HexDigit HexDigit  // Unicode escape
+    : '\\' 'u'+ HexDigit HexDigit HexDigit HexDigit
+    ;
+
+// Hexadecimal digit
+fragment HexDigit
+    : [0-9a-fA-F]
     ;

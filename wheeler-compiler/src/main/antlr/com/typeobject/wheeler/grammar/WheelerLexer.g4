@@ -29,3 +29,7 @@ import BooleanLiterals;     // Booleans
 import QuantumLiterals;     // Quantum states
 import ComplexLiterals;     // Complex numbers
 
+// Identifier must come after all keywords to avoid conflicts
+IDENTIFIER
+    : [a-zA-Z_] [a-zA-Z0-9_]*    // Letters and digits, must start with letter/underscore
+    ;
