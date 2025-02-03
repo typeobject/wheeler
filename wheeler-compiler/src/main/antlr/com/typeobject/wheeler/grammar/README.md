@@ -5,7 +5,7 @@ grammar/
 ├── WheelerLexer.g4               # Main lexer combining all token definitions
 ├── WheelerParser.g4              # Main parser combining all grammar rules
 │
-├── lexer/
+├── tokenizer/
 │   ├── keywords/
 │   │   ├── BasicKeywords.g4      # Basic programming keywords (if, while, for...)
 │   │   ├── ModifierKeywords.g4   # Access and state modifiers (public, static...)
@@ -39,7 +39,7 @@ grammar/
 │       ├── Whitespace.g4         # Whitespace handling rules
 │       └── Comments.g4           # Comment handling rules
 │
-└── parser/
+└── rules/
     ├── structure/
     │   ├── CompilationUnit.g4    # Top-level program structure
     │   ├── PackageDecl.g4        # Package declaration rules
