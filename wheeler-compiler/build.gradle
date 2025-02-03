@@ -1,95 +1,76 @@
-project(':wheeler-compiler') {
-    configurations {
-        antlrGenerator
+plugins {
+    id 'java'
+    id 'antlr'
+}
+
+group = 'com.typeobject'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    antlr4 {
+        description = 'ANTLR4 grammar files'
     }
+}
 
-    dependencies {
-        antlr 'org.antlr:antlr4:4.13.1'
-        implementation 'org.antlr:antlr4-runtime:4.13.1'
-        implementation project(':wheeler-core')
-    }
+dependencies {
+    antlr 'org.antlr:antlr4:4.13.1'  // Latest stable version of ANTLR4
+    implementation 'org.antlr:antlr4-runtime:4.13.1'
 
-    def antlrOutputDir = file("${buildDir}/generated-src/antlr/main/com/typeobject/wheeler/compiler/antlr")
-    def antlrPath = 'com/typeobject/wheeler/compiler/antlr'
-    def antlrSourceDir = file("src/main/antlr")
+    // Testing dependencies
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.1'
+}
 
-    // Generate lexer and tokens first
-    task generateLexerGrammarSource(type: AntlrTask) {
-        maxHeapSize = "64m"
-        arguments += [
-            '-visitor',
-            '-no-listener',
-            '-package', 'com.typeobject.wheeler.compiler.antlr'
-        ]
-        source = fileTree(antlrSourceDir) {
-            include "${antlrPath}/WheelerTypes.g4"
-            include "${antlrPath}/WheelerKeywords.g4"
-            include "${antlrPath}/WheelerOperators.g4"
-            include "${antlrPath}/WheelerLexer.g4"
-        }
-        outputDirectory = antlrOutputDir
-    }
+def grammarPath = 'src/main/antlr/com/typeobject/wheeler/grammar'
 
-    // Copy tokens file - separate task to ensure it completes
-    task copyTokensFile(type: Copy) {
-        dependsOn generateLexerGrammarSource
-        from(antlrOutputDir) {
-            include 'WheelerLexer.tokens'
-        }
-        into "${antlrSourceDir}/${antlrPath}"
-    }
-
-    // Generate parser using tokens file
-    task generateParserGrammarSource(type: AntlrTask) {
-        dependsOn copyTokensFile
-        inputs.files copyTokensFile.outputs.files
-        maxHeapSize = "64m"
-        arguments += [
-            '-visitor',
-            '-no-listener',
-            '-package', 'com.typeobject.wheeler.compiler.antlr'
-        ]
-        source = fileTree(antlrSourceDir) {
-            include "${antlrPath}/WheelerParser.g4"
-        }
-        outputDirectory = antlrOutputDir
-    }
-
-    // Cleanup tokens file after build
-    task cleanupTokens(type: Delete) {
-        delete "${antlrSourceDir}/${antlrPath}/WheelerLexer.tokens"
-    }
-
-    // Disable default ANTLR task
-    generateGrammarSource {
-        enabled = false
-    }
-
-    // Set up task dependencies
-    generateGrammarSource.dependsOn generateParserGrammarSource
-    generateParserGrammarSource.finalizedBy cleanupTokens
-
-    sourceSets {
-        main {
-            java {
-                srcDirs += ["${buildDir}/generated-src/antlr/main"]
-            }
-        }
-    }
-
-    compileJava {
-        dependsOn generateGrammarSource
-    }
-
-    tasks.withType(JavaCompile).configureEach {
-        options.errorprone {
-            excludedPaths = '.*/generated-src/.*'
-        }
-    }
-
-    spotless {
-        java {
-            targetExclude 'build/**', '**/generated-src/**'
+sourceSets {
+    main {
+        antlr {
+            srcDir grammarPath
+            include '*.g4'  // All grammar files are now in the same directory
         }
     }
 }
+
+generateGrammarSource {
+    maxHeapSize = "64m"
+    arguments += [
+            '-visitor',                // Generate parse tree visitor classes
+            '-listener',               // Generate parse tree listener classes
+            '-package', 'com.typeobject.wheeler.grammar',
+            '-encoding', 'UTF-8',
+            '-lib', grammarPath       // All grammar files are in the same directory now
+    ]
+
+    outputDirectory = file("${project.buildDir}/generated-src/antlr/main/com/typeobject/wheeler/grammar")
+}
+
+compileJava {
+    dependsOn generateGrammarSource
+    source generateGrammarSource
+}
+
+clean {
+    delete "${project.buildDir}/generated-src"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+task verifyGrammars(type: JavaExec) {
+    dependsOn configurations.antlr
+    main = 'org.antlr.v4.Tool'
+    classpath = configurations.antlr
+    args = [
+            '-o', "${project.buildDir}/grammar-verification",
+            file("${grammarPath}/WheelerLexer.g4").path,
+            file("${grammarPath}/WheelerParser.g4").path
+    ]
+}
+
+build.dependsOn verifyGrammars
