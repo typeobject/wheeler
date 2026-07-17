@@ -52,6 +52,7 @@ Run a Wheeler program:
 - [VM Specification](docs/vm-spec.md)
 - [Bytecode Format](docs/bytecode-format.md)
 - [Development Guide](docs/development-guide.md)
+- [Wheeler Improvement Proposals](docs/docs/proposals/README.md)
 
 ## Example
 
