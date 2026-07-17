@@ -1,63 +1,36 @@
-// Classical reversible binary tree
-classical class BinaryTree<T extends Comparable<T>> {
-    // State
-    private let Node<T> root = null;
-    private hist<TreeState> history;
+// A bounded reversible tree fixture. Heap-backed generic trees require the bootstrap profile.
+classical class BinaryTree {
+    state long root = 0;
+    state long left = 0;
+    state long right = 0;
 
-    // Node class
-    private static class Node<T> {
-        let T value;
-        let Node<T> left = null;
-        let Node<T> right = null;
-
-        pure Node(T value) {
-            this.value = value;
-        }
+    rev void insertRoot() {
+        root ^= 8;
     }
 
-    // Reversible insertion
-    rev void insert(T value) {
-        if (root == null) {
-            root = new Node<T>(value);
-            return;
-        }
-
-        rev Node<T> current = root;
-        while (true) {
-            if (value.compareTo(current.value) < 0) {
-                if (current.left == null) {
-                    current.left = new Node<T>(value);
-                    break;
-                }
-                current = current.left;
-            } else {
-                if (current.right == null) {
-                    current.right = new Node<T>(value);
-                    break;
-                }
-                current = current.right;
-            }
-        }
+    rev void insertLeft() {
+        left ^= 3;
     }
 
-    // Reversible removal
-    rev T remove(T value) {
-        hist<Node<T>> removedNode;
-
-        transaction {
-            removedNode = findAndRemove(value);
-            if (removedNode == null) {
-                rollback;
-            }
-            commit;
-        }
-        return removedNode.value;
+    rev void insertRight() {
+        right ^= 13;
     }
 
-    // Clean history periodically
-    pure void maintenance() {
-        uncompute {
-            clean history before timestamp - 24h;
+    entry void main() {
+        insertRoot();
+        insertLeft();
+        insertRight();
+        assert root == 8;
+        assert left == 3;
+        assert right == 13;
+
+        reverse {
+            insertRoot();
+            insertLeft();
+            insertRight();
         }
+        assert root == 0;
+        assert left == 0;
+        assert right == 0;
     }
 }

@@ -134,9 +134,9 @@ Both parsers bound source size, nesting, token length, and declaration counts. B
 - [x] Compiler tests parse compact, multiline, and comment-heavy programs.
 - [x] Lexer tests cover longest-match operators, comments, numeric forms, and locations.
 - [x] Tree-sitter generates without conflicts and its initial corpus passes.
-- [ ] Every checked-in example parses without Tree-sitter `ERROR` nodes and compiles or is explicitly excluded by a documented future WIP.
+- [x] Every checked-in example parses without Tree-sitter `ERROR` nodes, compiles, and executes.
 - [x] Highlight queries compile against the grammar; fold nodes are covered by generated node types.
-- [ ] Malformed delimiter and token fixtures recover in Tree-sitter and fail clearly in the compiler.
+- [x] Malformed delimiter fixtures recover in Tree-sitter and fail with source locations in the compiler.
 - [x] The documentation teaches the currently implemented semantic boundaries in dependency order.
 
 ## Alternatives

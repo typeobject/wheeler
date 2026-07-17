@@ -145,3 +145,36 @@ quantum class Bell {
                     (argument_list
                       (expression
                         (identifier)))))))))))))
+
+==================
+Malformed delimiter recovery
+==================
+
+classical class Broken {
+  state long value = 0
+  entry void main() {
+    value ^= 1;
+}
+
+---
+
+(source_file
+  (class_declaration
+    (computation_domain)
+    (identifier)
+    (class_body
+      (ERROR
+        (identifier)
+        (integer_literal)
+        (identifier))
+      (member_declaration
+        (method_declaration
+          (identifier)
+          (parameter_list)
+          (block
+            (statement
+              (assignment_statement
+                (identifier)
+                (expression
+                  (integer_literal)))))))
+      (MISSING "}"))))

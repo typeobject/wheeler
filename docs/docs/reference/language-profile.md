@@ -131,10 +131,11 @@ See [WIP-0007](../proposals/WIP-0007-self-hosting-compiler-and-bootstrap.md), [W
 
 ## Teaching path
 
-1. `Counter.w`: classical state, reversible methods, assertions, and reverse blocks.
-2. `CoherentOracle.w`: one XOR permutation on classical and coherent data.
-3. `QFT.w`: unitary regions and generated adjoints.
-4. Measured hybrid optimizers: observations and repeated target execution.
-5. Dynamic correction: target capabilities and low-latency feedback.
+1. `Counter.w` and `BinaryTree.w`: classical state, reversible methods, assertions, reverse blocks, and fixed-capacity data layout.
+2. `CoherentOracle.w` and `QuantumNeuralNetwork.w`: exact XOR permutations over classical and coherent data.
+3. `QFT.w` and `QFTProof.w`: unitary regions, generated adjoints, and executable inverse laws.
+4. `QuantumOptimizer.w`: repeated target observations, classical acceptance, commit, and target-free replay.
+5. `QuantumCompiler.w`: semantic comparison of source and normalized circuits.
+6. `SurfaceCode.w`: a static correction kernel whose documentation states the dynamic-target boundary.
 
-Every teaching example is compiled and executed in the test suite when its profile is implemented.
+See [executable examples](../examples.md) for exact results and scope. Every checked-in example compiles, executes, and parses without Tree-sitter error nodes in the ordinary test gate.

@@ -85,9 +85,20 @@ final class QuantumLowerer {
     List<QuantumCircuit> result = new ArrayList<>();
     for (Circuit sourceCircuit : source.circuits()) {
       int register = require(registers, sourceCircuit.registerName(), sourceCircuit.line(), "qreg");
+      int qubits = source.quantumRegisters().stream()
+          .filter(candidate -> candidate.name().equals(sourceCircuit.registerName()))
+          .findFirst()
+          .orElseThrow()
+          .qubits();
       List<QuantumOperation> operations = new ArrayList<>();
       for (Statement statement : sourceCircuit.statements()) {
-        operations.add(lowerQuantumOperation(statement, classical));
+        QuantumOperation operation = lowerQuantumOperation(statement, classical);
+        if (operation instanceof GateOperation gate
+            && gate.qubits().stream().anyMatch(qubit -> qubit >= qubits)) {
+          throw new CompilerException(
+              statement.line(), "qubit index exceeds register " + sourceCircuit.registerName());
+        }
+        operations.add(operation);
       }
       result.add(new QuantumCircuit(
           circuitIds.get(sourceCircuit.name()), sourceCircuit.name(), register, operations));

@@ -37,7 +37,7 @@ The compiler generates `increment`'s inverse. The reverse block executes those i
 1. Read the [language profile](reference/language-profile.md).
 2. Inspect the [bytecode contract](reference/bytecode.md) and [virtual machine](reference/virtual-machine.md).
 3. Read [quantum targets](reference/quantum-targets.md) and [hybrid runs](reference/hybrid-runs.md).
-4. Run `Counter.w`, `CoherentOracle.w`, and `QFT.w` from `wheeler-examples`.
+4. Work through the [executable examples](examples.md), all of which compile and run in CI.
 5. Use the [development guide](reference/development.md) to run every test.
 6. Read the [WIP index](proposals/README.md) for design status and future boundaries.
 

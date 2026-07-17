@@ -181,13 +181,13 @@ The parser bounds source bytes, lines, declarations, methods, statements, regist
 
 ## Testing and acceptance
 
-- [ ] Parser tests cover every accepted declaration and statement.
-- [ ] Negative tests cover unsupported Java syntax, malformed blocks, unresolved names, illegal inverse calls, and invalid quantum references.
+- [x] Parser and executable-example tests cover every accepted declaration and statement.
+- [x] Negative tests cover unsupported Java syntax, malformed blocks, unresolved names, illegal inverse calls, and invalid quantum references.
 - [x] Source diagnostics identify stable line numbers and lexical columns.
 - [x] Counter compiles and executes forward and inverse.
 - [x] QFT followed by its generated adjoint restores the input state.
 - [x] One `coherent rev` method gives matching classical and quantum basis behavior.
-- [ ] Every checked-in `.w` file compiles in CI.
+- [x] Every checked-in `.w` file compiles and executes in CI.
 - [x] Current language reference contains no temporary declaration syntax.
 
 ## Alternatives

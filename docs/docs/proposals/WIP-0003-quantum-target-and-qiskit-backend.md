@@ -255,7 +255,7 @@ Structured failures distinguish invalid Wheeler IR, missing target capability, l
 - [x] Asynchronous jobs cover successful ideal and OpenQASM execution plus malformed results; cancellation and recovery remain.
 - [x] Static OpenQASM 3 lowering and executor submission work; parameterized sampling remains.
 - [ ] Static capability rejection works; dynamic capability discovery remains.
-- [ ] QFT runs on the ideal target; OpenQASM executor parity and optimizer execution remain.
+- [ ] QFT, inverse QFT, and the bounded optimizer run on the ideal target; OpenQASM executor parity and parameterized optimization remain.
 
 ## Testing and acceptance
 

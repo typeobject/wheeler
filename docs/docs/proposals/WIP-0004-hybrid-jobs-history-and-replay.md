@@ -258,7 +258,7 @@ Retries are never infinite by default. Compensation and cancellation failures ar
 - [ ] Recovery handles every provider lifecycle and ambiguous acknowledgement state.
 - [x] Replay and fresh retry lineages are distinct and tested.
 - [x] Reversible, prepared-external, observed, and committed transaction phases are implemented.
-- [ ] Optimizer, QNN, cleanup, compensation, and dynamic-circuit fixtures satisfy acceptance tests.
+- [ ] Optimizer and coherent-layer fixtures execute with replay coverage; cleanup, compensation, batches, and dynamic-circuit fixtures remain.
 
 ## Testing and acceptance
 
@@ -266,12 +266,12 @@ Retries are never infinite by default. Compensation and cancellation failures ar
 - [ ] Local immediate completion and remote delayed completion produce identical semantic event sequences modulo operational metadata.
 - [ ] Recovery resumes queued, running, succeeded, failed, cancelled, and unknown provider states without double submission or result application.
 - [ ] Result validation rejects wrong artifacts, regions, targets, bindings, schemas, branches, shot counts, and oversized payloads; content-identified tasks cover artifacts, regions, requests, targets, branches, shots, seeds, and outcome widths, while symbolic bindings remain.
-- [x] Replay reproduces recorded classical state without calling a target; optimizer execution remains.
+- [x] Replay reproduces classical optimizer state without calling a target.
 - [x] Fresh retry creates a distinct submission lineage.
 - [x] Rollback before submission, after acknowledgement, and after measurement follows the declared transaction phase without claiming physical reversal.
 - [x] Late results from cancelled or discarded branches cannot mutate active state.
 - [ ] Commit and cleanup make earlier rewind/replay availability explicit and respect live references.
-- [ ] Optimizer and QNN fixtures do not retain quantum handles across ordinary remote job boundaries.
+- [x] Optimizer and coherent-layer fixtures do not retain quantum handles across ordinary target-job boundaries.
 - [ ] Surface-code fixtures require target-resident capabilities when host latency would violate the plan.
 - [ ] Persistence corruption, truncation, unknown required events, and target restarts have bounded failure tests; corruption, truncation, and unknown enums are covered.
 - [x] Credentials and unrestricted provider payloads never enter persistence.

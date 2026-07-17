@@ -1,60 +1,32 @@
-// Hybrid quantum-classical optimizer
+// Two deterministic candidate evaluations with a committed classical update.
 hybrid class QuantumOptimizer {
-    // Quantum registers
-    qureg ansatz;
-    qureg measurement;
+    state long sample = 0;
+    state long bestCost = 2;
+    state long accepted = 0;
+    qreg candidate = new qreg(1);
 
-    // Classical parameters
-    classical let double[] parameters;
-    classical let double bestCost = Double.MAX_VALUE;
-    hist<OptimizationStep> history;
-
-    // Hybrid optimization loop
-    hybrid void optimize(int iterations) {
-        for (int i = 0; i < iterations; i++) {
-            // Quantum section
-            quantum {
-                // Prepare quantum state
-                prepareAnsatz(ansatz, parameters);
-
-                // Measure results
-                let measurementResults = measure ansatz;
-
-                // Store classically
-                writeResults(measurement, measurementResults);
-            }
-
-            // Classical section
-            classical {
-                // Calculate cost
-                double cost = calculateCost(measurement);
-
-                // Update parameters
-                parameters = classicalOptimizer.update(parameters, cost);
-
-                // Track best solution
-                if (cost < bestCost) {
-                    bestCost = cost;
-                    history.recordBest(parameters, cost);
-                }
-            }
-        }
+    unitary void candidateOne() {
+        X(candidate[0]);
     }
 
-    // Quantum circuit preparation
-    quantum void prepareAnsatz(qureg q, classical double[] params) {
-        quantum {
-            // Single qubit rotations
-            for (int i = 0; i < q.size; i++) {
-                Rx(q[i], params[i * 3]);
-                Ry(q[i], params[i * 3 + 1]);
-                Rz(q[i], params[i * 3 + 2]);
-            }
+    rev void acceptCandidate() {
+        bestCost -= 1;
+        accepted ^= 1;
+    }
 
-            // Entangling layer
-            for (int i = 0; i < q.size - 1; i++) {
-                CNOT(q[i], q[i + 1]);
-            }
-        }
+    entry void main() {
+        prepare(candidate, 0);
+        sample = measure(candidate);
+        assert sample == 0;
+
+        prepare(candidate, 0);
+        candidateOne();
+        sample = measure(candidate);
+        assert sample == 1;
+
+        acceptCandidate();
+        assert bestCost == 1;
+        assert accepted == 1;
+        commit();
     }
 }
