@@ -185,7 +185,7 @@ The launcher grants read-only source inputs and one atomic artifact destination.
 1. Freeze the current Java stage-0 profile and document its accepted grammar as the bootstrap baseline.
 2. Add typed parameters, returns, locals, conditionals, bounded loops, records, variants, strings, bytes, and deterministic collections in vertical parser-to-VM slices.
 3. Add module manifests and explicit source/artifact effects.
-4. Implement `.wbc` decoding and encoding in Wheeler and compare it against stage 0.
+4. Implement `.wbc` and proof-certificate decoding and encoding in Wheeler and compare them against stage 0.
 5. Port lexer and parser, then resolution, checking, lowering, verification, and the driver.
 6. Produce stage 1 and stage 2; require fixed-point and differential conformance tests in CI.
 7. Switch ordinary builds to the Wheeler compiler artifact.
@@ -255,5 +255,6 @@ Rejected. The canonical executable is `.wbc`; provider formats and host-native i
 - [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md)
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0010](WIP-0010-executable-application-portfolio.md)
+- [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
 - [Wheeler source language profile](../reference/language-profile.md)
 - [Ken Thompson, “Reflections on Trusting Trust”](https://dl.acm.org/doi/10.1145/358198.358210)

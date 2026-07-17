@@ -152,7 +152,7 @@ The initial profile has no Java threads, monitors, volatile fields, or asynchron
 
 Quantum register references are affine semantic values even when field syntax resembles Java. Gate calls do not expose provider qubit objects. Measurement produces classical state through an explicit operation.
 
-Proof syntax remains deferred until the accepted source profile can attach checkable claims to stable functions, circuits, and resource identities.
+WIP-0011 integrates contracts, theorems, structured proof blocks, experiments, and certificates with stable function, circuit, resource, and package identities.
 
 ## Bytecode, persistence, and compatibility
 
@@ -215,4 +215,5 @@ Rejected. Reversibility, affine quantum resources, reverse blocks, and measureme
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0010](WIP-0010-executable-application-portfolio.md)
+- [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
 - [Language profile](../reference/language-profile.md)

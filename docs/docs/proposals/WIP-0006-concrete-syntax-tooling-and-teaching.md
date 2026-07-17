@@ -102,7 +102,7 @@ Parsing is deterministic. The first teaching levels avoid concurrency. Later job
 
 ## Quantum and proof implications
 
-Gate names are ordinary ASCII identifiers and qreg indexing is Java-shaped. Dirac notation may be added as optional sugar only with a canonical ASCII equivalent and tooling coverage. Proof syntax must expose checkable claims as stable nodes rather than free-form justification text.
+Gate names are ordinary ASCII identifiers and qreg indexing is Java-shaped. Dirac notation may be added as optional sugar only with a canonical ASCII equivalent and tooling coverage. WIP-0011 proof syntax exposes contracts, theorem statements, propositions, proof terms, and experiment declarations as stable nodes; free-form justification text is not proof evidence.
 
 ## Bytecode, persistence, and compatibility
 
@@ -161,5 +161,6 @@ Rejected. ASCII Java-shaped syntax is easier to type, teach, search, and support
 ## References
 
 - [WIP-0005](WIP-0005-wheeler-source-language.md)
+- [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
 - [Language profile](../reference/language-profile.md)
 - [`tree-sitter-wheeler`](../../../tree-sitter-wheeler/grammar.js)

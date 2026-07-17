@@ -427,4 +427,5 @@ Rejected. Deterministic simulators and lifecycle mocks establish semantics. Opt-
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md)
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
+- [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
 - [Executable examples](../examples.md)

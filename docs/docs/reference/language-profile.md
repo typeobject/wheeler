@@ -129,6 +129,12 @@ After native runtime conformance, the Java compiler, VM, tools, Gradle build, an
 
 See [WIP-0007](../proposals/WIP-0007-self-hosting-compiler-and-bootstrap.md), [WIP-0008](../proposals/WIP-0008-java-free-runtime-and-native-bootstrap.md), and the Wheeler-native package/build contract in [WIP-0009](../proposals/WIP-0009-wheeler-package-and-build-system.md).
 
+## Proof direction
+
+Proofs will use integrated Wheeler syntax and semantics. Contracts attach to executable declarations; theorem and experiment declarations resolve through ordinary modules; structured proof blocks elaborate to canonical terms checked by a small trusted kernel. Formal theorem evidence remains distinct from simulator tests and sampled hardware results.
+
+The current `QFTProof.w` is an executable inverse law, not a formal theorem. The proof language, certificate format, quantum propositions, resource claims, and tooling contract are specified in [WIP-0011](../proposals/WIP-0011-integrated-proofs-and-certificates.md).
+
 ## Teaching path
 
 1. `Counter.w` and `BinaryTree.w`: classical state, reversible methods, assertions, reverse blocks, and fixed-capacity data layout.

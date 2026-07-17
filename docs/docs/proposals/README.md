@@ -87,3 +87,4 @@ Use “Not applicable” with a reason for unaffected template sections. Split w
 | [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md) | Draft | Java-free runtime and native bootstrap | Runtime, native code, distribution |
 | [WIP-0009](WIP-0009-wheeler-package-and-build-system.md) | Draft | Wheeler package and build system | Packages, builds, registry, tooling |
 | [WIP-0010](WIP-0010-executable-application-portfolio.md) | Draft | Executable application portfolio | Examples, conformance, applications |
+| [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md) | Draft | Integrated proofs and certificates | Language, proofs, trusted kernel |
