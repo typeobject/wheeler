@@ -14,10 +14,11 @@ import com.typeobject.wheeler.core.quantum.GateOperation;
 import com.typeobject.wheeler.core.quantum.LiftedCall;
 import com.typeobject.wheeler.core.quantum.QuantumCircuit;
 import com.typeobject.wheeler.core.quantum.QuantumRegister;
+import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-class StateVectorSimulatorTest {
+class StateVectorTargetTest {
   @Test
   void gateAndGeneratedAdjointRestoreState() {
     QuantumRegister register = new QuantumRegister(0, "q", 2);
@@ -27,7 +28,7 @@ class StateVectorSimulatorTest {
         0,
         List.of(GateOperation.of(Gate.H, 0), GateOperation.of(Gate.CNOT, 0, 1)));
     Program program = program(register, circuit, List.of());
-    StateVectorSimulator simulator = new StateVectorSimulator(1);
+    StateVectorEngine simulator = new StateVectorEngine(1);
 
     simulator.prepare(register, 0);
     simulator.apply(program, circuit, false);
@@ -35,6 +36,42 @@ class StateVectorSimulatorTest {
     simulator.apply(program, circuit, true);
 
     assertArrayEquals(new double[] {1, 0, 0, 0}, simulator.probabilities(register), 1e-12);
+  }
+
+  @Test
+  void openQasmLoweringIsPortableAndDeterministic() {
+    QuantumRegister register = new QuantumRegister(0, "q", 1);
+    QuantumCircuit circuit = new QuantumCircuit(0, "flip", 0, List.of(GateOperation.of(Gate.X, 0)));
+    Program program = program(register, circuit, List.of());
+    QuantumTask task = new QuantumTask(
+        program, 0, 0, List.of(new CircuitApplication(0, false)), 1, 0);
+
+    String qasm = new OpenQasm3Emitter().emit(task);
+
+    assertEquals("""
+        OPENQASM 3.0;
+        include "stdgates.inc";
+        bit[1] c;
+        qubit[1] q;
+        x q[0];
+        c = measure q;
+        """, qasm);
+  }
+
+  @Test
+  void targetSubmitsACompleteAsynchronousTask() {
+    QuantumRegister register = new QuantumRegister(0, "q", 1);
+    QuantumCircuit circuit = new QuantumCircuit(0, "flip", 0, List.of(GateOperation.of(Gate.X, 0)));
+    Program program = program(register, circuit, List.of());
+    QuantumTask task = new QuantumTask(
+        program, 0, 0, List.of(new CircuitApplication(0, false)), 4, 9);
+
+    QuantumJob job = new StateVectorTarget().submit(task);
+    QuantumResult result = job.await(Duration.ofSeconds(1));
+
+    assertEquals(JobState.SUCCEEDED, job.state());
+    assertEquals(List.of(1L, 1L, 1L, 1L), result.outcomes());
+    assertEquals(4L, result.counts().get(1L));
   }
 
   @Test
@@ -48,14 +85,14 @@ class StateVectorSimulatorTest {
     QuantumRegister register = new QuantumRegister(0, "q", 1);
     QuantumCircuit circuit = new QuantumCircuit(0, "oracle", 0, List.of(new LiftedCall(1, false)));
     Program program = program(register, circuit, List.of(flip));
-    StateVectorSimulator simulator = new StateVectorSimulator(2);
+    StateVectorEngine simulator = new StateVectorEngine(2);
 
     simulator.prepare(register, 0);
     simulator.apply(program, circuit, false);
     assertEquals(1, simulator.measure(register));
   }
 
-  private static Program program(
+  static Program program(
       QuantumRegister register, QuantumCircuit circuit, List<FunctionBody> additionalFunctions) {
     FunctionBody main = new FunctionBody(
         0, "main", false, List.of(Instruction.of(Opcode.HALT)), List.of());

@@ -15,18 +15,17 @@ import java.util.Map;
 import java.util.Random;
 
 /** Bounded ideal little-endian state-vector reference target. */
-public final class StateVectorSimulator implements QuantumTarget {
+final class StateVectorEngine {
   public static final int MAX_QUBITS = 20;
 
   private final Map<Integer, RegisterState> states = new HashMap<>();
   private final Random random;
 
-  public StateVectorSimulator(long seed) {
+  StateVectorEngine(long seed) {
     this.random = new Random(seed);
   }
 
-  @Override
-  public void prepare(QuantumRegister register, long basisState) {
+  void prepare(QuantumRegister register, long basisState) {
     if (register.qubits() > MAX_QUBITS) {
       throw new QuantumExecutionException(
           "State-vector simulator supports at most " + MAX_QUBITS + " qubits");
@@ -40,8 +39,7 @@ public final class StateVectorSimulator implements QuantumTarget {
     states.put(register.id(), state);
   }
 
-  @Override
-  public void apply(Program program, QuantumCircuit circuit, boolean inverse) {
+  void apply(Program program, QuantumCircuit circuit, boolean inverse) {
     RegisterState state = state(program.quantumRegister(circuit.registerId()));
     List<QuantumOperation> operations = inverse
         ? circuit.inverseOperations()
@@ -57,8 +55,7 @@ public final class StateVectorSimulator implements QuantumTarget {
     }
   }
 
-  @Override
-  public long measure(QuantumRegister register) {
+  long measure(QuantumRegister register) {
     RegisterState state = state(register);
     double sample = random.nextDouble();
     double cumulative = 0;
@@ -76,8 +73,7 @@ public final class StateVectorSimulator implements QuantumTarget {
     return selected;
   }
 
-  @Override
-  public double[] probabilities(QuantumRegister register) {
+  double[] probabilities(QuantumRegister register) {
     RegisterState state = state(register);
     double[] result = new double[state.real.length];
     for (int basis = 0; basis < result.length; basis++) {

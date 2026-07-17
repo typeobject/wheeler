@@ -18,3 +18,8 @@ tasks.register('wheeldis', JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.typeobject.wheeler.tools.Wheeldis'
 }
+
+tasks.register('wheelqasm', JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.typeobject.wheeler.tools.Wheelqasm'
+}

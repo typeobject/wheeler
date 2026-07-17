@@ -10,9 +10,11 @@ public record ExecutionResult(
     ProgramKind kind,
     Map<String, Long> globals,
     List<Long> measurements,
+    List<String> quantumJobs,
     long workflowSteps) {
   public ExecutionResult {
     globals = Map.copyOf(globals);
     measurements = List.copyOf(measurements);
+    quantumJobs = List.copyOf(quantumJobs);
   }
 }

@@ -1,12 +1,12 @@
-# WIP-0003: Quantum target contract and Qiskit-compatible backend
+# WIP-0003: Quantum target contract and OpenQASM interoperability
 
 | Field | Value |
 | --- | --- |
-| Status | Draft |
+| Status | Implementing |
 | Owners | Wheeler runtime and quantum backend maintainers |
 | Created | 2026-07-17 |
 | Updated | 2026-07-17 |
-| Area | Quantum targets, Qiskit, simulators, hardware capabilities |
+| Area | Quantum targets, OpenQASM, simulators, hardware capabilities |
 | Depends on | WIP-0002 |
 | Supersedes | None |
 | Superseded by | None |
@@ -15,7 +15,7 @@
 
 Wheeler executes WIP-0002 quantum regions through a capability-based `QuantumTarget` contract. Targets describe semantic operations, topology, qubit kind, dynamic control, reset, parameter binding, sampling, expectation estimation, limits, timing, and result guarantees without exposing provider objects to Wheeler programs. Lowering produces a target-qualified derived executable; asynchronous submission produces versioned results and provenance.
 
-The first implementations are a deterministic semantic simulator and a Qiskit-compatible adapter. The adapter translates supported region IR into Qiskit circuits or lossless interchange accepted by Qiskit, delegates physical mapping and provider-native lowering through an explicit policy, and supports local simulators and provider backends. The core contract also accommodates future fault-tolerant logical targets, target-resident classical kernels, and tightly coupled processors without making today's coupling maps or cloud queues permanent language concepts.
+The first implementations are a deterministic semantic simulator and an OpenQASM 3 target boundary. Wheeler lowers supported static regions to portable OpenQASM and submits them through an application-supplied executor that may use a provider REST API, appliance SDK, queue, local engine, or external tool. Qiskit remains one possible OpenQASM consumer rather than a Wheeler runtime dependency. The core contract also accommodates future fault-tolerant logical targets, target-resident classical kernels, and tightly coupled processors without making today's coupling maps or cloud queues permanent language concepts.
 
 ## Motivation
 
@@ -35,11 +35,11 @@ A durable boundary must make capability differences explicit, preserve the ideal
 
 ### Local development
 
-A developer runs QFT and hybrid optimizer fixtures against a semantic simulator with explicit seeds, no credentials, and full traceability. The same `.wbc` region later targets Qiskit without source changes.
+A developer runs QFT and hybrid optimizer fixtures against a semantic simulator with explicit seeds, no credentials, and full traceability. The same `.wbc` region later lowers to OpenQASM for a conforming consumer without source changes.
 
-### Qiskit simulator or hardware
+### OpenQASM consumer or hardware
 
-The runtime discovers a Qiskit target, obtains its capability snapshot, lowers a Wheeler region, binds parameters, submits shots or an expectation request, and maps results back to typed WIP-0002 observations.
+The runtime obtains a target capability snapshot, lowers a Wheeler region to OpenQASM when lossless, submits shots through the host executor, and maps validated results back to typed WIP-0002 observations. Qiskit may be that consumer, but it is not embedded in Wheeler.
 
 ### Unsupported dynamic circuit
 
@@ -56,8 +56,8 @@ A cached target executable identifies the semantic region hash, target descripto
 ## Goals
 
 - Define a provider-neutral target descriptor, lowering contract, job API, and result model.
-- Run a useful WIP-0002 subset through current Qiskit simulators and compatible hardware.
-- Keep credentials, queues, provider objects, and Python dependencies outside language semantics and `.wbc` canonical quantum bodies.
+- Run a useful WIP-0002 subset through current OpenQASM consumers and compatible hardware.
+- Keep credentials, queues, provider objects, and provider SDK dependencies outside language semantics and `.wbc` canonical quantum bodies.
 - Negotiate capabilities before submission and preserve actionable diagnostics.
 - Support static circuits, parameterized sampling, expectation estimation, and optional dynamic circuits.
 - Make local simulation and remote hardware share lifecycle semantics even when one completes immediately.
@@ -96,7 +96,7 @@ A **job** has an asynchronous lifecycle and may outlive the process that submitt
 
 Target adapters own provider translation, native decomposition assigned to them, provider job handles, polling, cancellation requests, and provider metadata normalization.
 
-The Qiskit adapter owns Qiskit version compatibility and Python integration. Qiskit types do not cross the adapter boundary.
+The OpenQASM executor owner handles provider compatibility and transport. Provider SDK types do not cross the target boundary.
 
 Hosts own target selection, credentials, network policy, account configuration, and authorization. Credentials never enter `.wbc`, job results, debug dumps, or replay logs.
 
@@ -174,22 +174,15 @@ The reference simulator implements ideal semantics for the accepted gate and con
 
 Seeded simulation records algorithm, seed, and version. Exact amplitudes are a simulator-only diagnostic capability and are never portable hardware program output.
 
-### Qiskit-compatible adapter
+### OpenQASM interoperability
 
-The initial adapter translates Wheeler resources, parameters, gates, controls, measurements, and supported dynamic control into Qiskit circuit constructs or a lossless interchange path supported by the selected Qiskit version. It supports:
+The initial portable adapter translates Wheeler resources, gates, coherent calls, generated adjoints, preparation, and full-register measurement to OpenQASM 3. `OpenQasmTarget` accepts an application-owned executor and retains Wheeler's asynchronous job and result validation around it.
 
-- local ideal simulation for parity tests;
-- provider/backend descriptor discovery;
-- static circuit submission;
-- parameterized batches used by optimizers and parameter-shift workflows;
-- sampling and expectation-style result requests when the provider supports them;
-- dynamic circuits only when descriptor inspection confirms every required construct;
-- explicit pass-manager or provider-transpilation policy;
-- provider job recovery by durable external job ID.
+An executor may submit through a provider REST API, appliance SDK, queue service, local engine, or external application. It receives canonical QASM, shot count, and seed policy and returns one bounded little-endian outcome per shot. Wheeler validates count and width before accepting the result.
 
-The adapter may run in a separate Python worker so Wheeler's Java runtime does not embed Python. Transport is adapter-private but begins with a version handshake, bounded messages, structured errors, timeouts, and redacted logs. A future in-process or service adapter must pass the same conformance suite and cannot alter program semantics.
+Qiskit can import emitted OpenQASM, but Wheeler does not embed Python or Qiskit. `wheelqasm` emits a static submission for external tools. Future Java or native provider adapters implement the same executor contract without changing source or bytecode.
 
-OpenQASM 3 or QIR may be used as interchange when they preserve the complete selected region and metadata. Neither format is assumed to represent every future target capability, and neither replaces the canonical Wheeler region IR.
+OpenQASM 3 does not replace canonical Wheeler region IR. Regions requiring dynamic feedback, future logical operations, or semantics not represented losslessly require another capability-specific lowering rather than provider text hidden in source.
 
 ### Future target evolution
 
@@ -248,42 +241,42 @@ Structured failures distinguish invalid Wheeler IR, missing target capability, l
 1. Define immutable target, plan, executable, job, and result interfaces plus mock-target tests.
 2. Implement the ideal semantic simulator as the reference target.
 3. Add target-requirement inference and pre-submission capability diagnostics.
-4. Implement Qiskit translation for the initial static gate and measurement subset.
+4. Implement OpenQASM 3 translation and an application-supplied executor for the initial static gate and measurement subset.
 5. Add parameterized batch sampling and expectation result support.
-6. Add descriptor-gated dynamic circuit support for available Qiskit targets.
-7. Run QFT and optimizer fixtures against the semantic simulator and Qiskit local simulation.
-8. Add opt-in live hardware smoke tests that never gate ordinary CI.
+6. Add descriptor-gated dynamic circuit support for capable targets.
+7. Run QFT and optimizer fixtures against the semantic simulator and a conforming OpenQASM executor.
+8. Keep live hardware smoke tests opt-in so ordinary CI remains deterministic.
 9. Rewrite example code that reads topology or noise through undeclared globals to consume target descriptors or explicit compile inputs.
 
 ## Progress
 
-- [ ] Target descriptor and requirement matching are implemented.
-- [ ] Semantic simulator passes the region conformance suite.
-- [ ] Mock asynchronous jobs cover lifecycle and failure behavior.
-- [ ] Qiskit static circuit and parameterized sampling adapters work.
-- [ ] Dynamic capability discovery and rejection work.
-- [ ] QFT and optimizer examples run on both local target implementations.
+- [x] Target descriptor, independent capabilities, limits, and requirement matching are implemented.
+- [x] The ideal state-vector target passes the implemented region conformance suite.
+- [x] Asynchronous jobs cover successful ideal and OpenQASM execution plus malformed results; cancellation and recovery remain.
+- [x] Static OpenQASM 3 lowering and executor submission work; parameterized sampling remains.
+- [ ] Static capability rejection works; dynamic capability discovery remains.
+- [ ] QFT runs on the ideal target; OpenQASM executor parity and optimizer execution remain.
 
 ## Testing and acceptance
 
 - [ ] Descriptor canonicalization and fingerprints are stable and bounded.
-- [ ] Capability matching reports every missing requirement before submission.
-- [ ] Semantic simulator and Qiskit local simulation agree on basis-state results and statistically agree on representative sampled circuits.
-- [ ] QFT and inverse-QFT circuits preserve expected ideal behavior after target lowering.
-- [ ] Parameter order, register order, endianness, shot counts, and result identity survive Qiskit round trips.
+- [x] Capability matching rejects a missing required capability before submission.
+- [ ] The semantic simulator and a conforming OpenQASM executor agree on basis-state results and representative sampled circuits.
+- [x] QFT and inverse-QFT circuits preserve expected behavior on the ideal target.
+- [x] Static register order, little-endian outcomes, shot counts, and result identity survive OpenQASM executor round trips; symbolic parameters remain.
 - [ ] Mock jobs cover queueing, success, provider failure, cancellation request races, late results, recovery, timeout, malformed result, and adapter restart.
 - [ ] Cached target executables invalidate on descriptor, policy, adapter, parameter-schema, or semantic-region changes.
 - [ ] A static target rejects the dynamic surface-code fixture with actionable missing capabilities.
 - [ ] A dynamic simulator executes a bounded syndrome/conditional fixture without a host split.
-- [ ] Credentials never appear in artifacts, snapshots, results, traces, or test golden files.
+- [x] The executor boundary and documentation keep credentials outside artifacts, QASM, results, and traces.
 - [ ] Live hardware tests are opt-in, budget-capped, and do not make deterministic CI claims.
-- [ ] Current target documentation explains simulator, Qiskit, hardware, and future logical capability boundaries.
+- [x] Current target documentation explains simulator, OpenQASM, hardware, and future logical capability boundaries.
 
 ## Alternatives
 
 ### Make Qiskit the Wheeler execution model
 
-Rejected. Qiskit is an important adapter and ecosystem, but its APIs, providers, and circuit capabilities are not a 20–30 year language contract.
+Rejected. Qiskit is an important OpenQASM consumer and ecosystem, but its APIs, providers, and circuit capabilities are not Wheeler's long-term language contract.
 
 ### Standardize only OpenQASM 3
 
@@ -303,8 +296,7 @@ Rejected. Decomposition must preserve semantics and error budgets; host splittin
 
 ## Open questions
 
-- Which Qiskit package/version range and simulator establish the first supported adapter baseline? — **Owner:** Qiskit adapter maintainers — **Decide by:** before adapter implementation
-- Should the initial out-of-process adapter transport use generated protobuf, canonical CBOR, or another bounded schema? — **Owner:** runtime maintainers — **Decide by:** before the worker protocol is implemented
+- Which provider REST executor should be the first maintained live-hardware adapter? — **Owner:** target maintainers — **Decide by:** before live hardware enters CI documentation
 - Which expectation and observable model belongs in the first result contract rather than a later extension? — **Owner:** quantum API maintainers — **Decide by:** before this WIP enters Review
 
 ## References

@@ -9,7 +9,7 @@ import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.runtime.ExecutionResult;
 import com.typeobject.wheeler.runtime.WheelerRuntime;
-import com.typeobject.wheeler.runtime.quantum.StateVectorSimulator;
+import com.typeobject.wheeler.runtime.quantum.StateVectorTarget;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
@@ -27,7 +27,7 @@ class QuantumExamplesTest {
     Program decoded = new BytecodeReader().read(first);
     byte[] second = new BytecodeWriter().write(decoded);
 
-    ExecutionResult result = new WheelerRuntime().execute(decoded, new StateVectorSimulator(7));
+    ExecutionResult result = new WheelerRuntime().execute(decoded, new StateVectorTarget());
 
     assertArrayEquals(first, second);
     assertEquals(expected, result.globals().get(global));
