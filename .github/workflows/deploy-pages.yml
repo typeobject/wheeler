@@ -18,15 +18,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           cache-dependency-path: docs/package-lock.json
-          node-version: 18
-          cache: yarn
+          node-version: 22
+          cache: npm
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: npm ci
         working-directory: docs
 
       - name: Build website
-        run: yarn build
+        run: npm run build
         working-directory: docs
 
       - name: Upload Build Artifact
