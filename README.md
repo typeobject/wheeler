@@ -2,8 +2,6 @@
 
 Wheeler is an experimental [reversible computing](https://en.wikipedia.org/wiki/Reversible_computing) and [quantum computing](https://en.wikipedia.org/wiki/Quantum_computing) system. Its central goal is to let one verified reversible function execute as ordinary classical bytecode or lower coherently to a quantum target without duplicating the algorithm.
 
-Java and Gradle are temporary stage-0 infrastructure. The production compiler will be a Wheeler program, the runtime and tools will move to native Wheeler code, and a Wheeler-written `wheel` package/build system will replace Gradle. The Java path will be deleted after reproducible bootstrap and differential conformance.
-
 The repository currently implements:
 
 - a canonical, versioned Wheeler Bytecode Container (`.wbc`);
@@ -20,8 +18,6 @@ The repository currently implements:
 - formatting-independent Wheeler parsing and [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) tooling;
 - `wheelc`, `wheel`, and `wheeldis` command-line tools;
 - executable Counter, coherent-oracle, and [quantum Fourier transform](https://en.wikipedia.org/wiki/Quantum_Fourier_transform) examples.
-
-Parameterized target batches, dynamic circuits, durable hybrid replay, self-hosting, native execution, and Wheeler-native package management remain in active design or implementation.
 
 ## Requirements
 
