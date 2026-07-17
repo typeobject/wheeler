@@ -88,7 +88,7 @@ Deterministic shared-memory concurrency and a trusted proof/certificate system s
 
 | WIP | Status | Decision | Area |
 | --- | --- | --- | --- |
-| [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md) | Draft | Reversible bytecode and machine-state contract | VM, bytecode, artifacts, history |
+| [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md) | Implementing | Reversible bytecode and machine-state contract | VM, bytecode, artifacts, history |
 | [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md) | Draft | Unified classical and quantum semantics | Language, hybrid execution, quantum IR |
 | [WIP-0003](WIP-0003-quantum-target-and-qiskit-backend.md) | Draft | Quantum target contract and Qiskit-compatible backend | Targets, Qiskit, simulators, hardware |
 | [WIP-0004](WIP-0004-hybrid-jobs-history-and-replay.md) | Draft | Hybrid jobs, history, and replay | Runtime, jobs, transactions, replay |

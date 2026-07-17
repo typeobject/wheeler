@@ -1,133 +1,243 @@
 package com.typeobject.wheeler.compiler;
 
-import com.typeobject.wheeler.compiler.analysis.FlowAnalyzer;
-import com.typeobject.wheeler.compiler.analysis.TypeChecker;
-import com.typeobject.wheeler.compiler.antlr.WheelerLexer;
-import com.typeobject.wheeler.compiler.antlr.WheelerParser;
-import com.typeobject.wheeler.compiler.ast.ASTBuilder;
-import com.typeobject.wheeler.compiler.ast.CompilationUnit;
-import com.typeobject.wheeler.compiler.bytecode.BytecodeGenerator;
-import com.typeobject.wheeler.compiler.bytecode.ClassWriter;
+import com.typeobject.wheeler.compiler.SourceModel.SourceProgram;
+import com.typeobject.wheeler.compiler.SourceModel.Statement;
+import com.typeobject.wheeler.core.bytecode.BytecodeVerifier;
+import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
+import com.typeobject.wheeler.core.bytecode.FunctionBody;
+import com.typeobject.wheeler.core.bytecode.Global;
+import com.typeobject.wheeler.core.bytecode.Instruction;
+import com.typeobject.wheeler.core.bytecode.Opcode;
+import com.typeobject.wheeler.core.bytecode.Program;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
+import java.util.Map;
+import java.util.Set;
 
-public class WheelerCompiler {
-    private final CompilerOptions options;
-    private final ErrorReporter errorReporter;
-
-    public WheelerCompiler(CompilerOptions options) {
-        this.options = options;
-        this.errorReporter = new ErrorReporter();
+/** Compiler for Wheeler's executable version-1 source profile. */
+public final class WheelerCompiler {
+  public Program compile(String source) {
+    SourceProgram parsed = new SourceParser().parse(source);
+    if (!parsed.kind().equals("classical")) {
+      throw new CompilerException(
+          1, "the WIP-0001 compiler supports classical programs; quantum and hybrid arrive in WIP-0002");
     }
+    return lower(parsed);
+  }
 
-    public boolean compile(String source, String fileName) {
-        try {
-            // 1. Lexical and Syntax Analysis
-            CompilationUnit ast = parse(source, fileName);
-            if (errorReporter.hasErrors()) {
-                return false;
-            }
+  public Program compile(Path source) throws IOException {
+    return compile(Files.readString(source));
+  }
 
-            // 2. Semantic Analysis
-            if (!performSemanticAnalysis(ast)) {
-                return false;
-            }
+  public byte[] compileToBytecode(String source) {
+    return new BytecodeWriter().write(compile(source));
+  }
 
-            // 3. Code Generation
-            if (!generateCode(ast)) {
-                return false;
-            }
+  public byte[] compileToBytecode(Path source) throws IOException {
+    return new BytecodeWriter().write(compile(source));
+  }
 
-            return !errorReporter.hasErrors();
-        } catch (Exception e) {
-            errorReporter.report("Internal compiler error: " + e.getMessage(), null);
-            if (options.isDebugMode()) {
-                e.printStackTrace();
-            }
-            return false;
+  private static Program lower(SourceProgram source) {
+    List<Global> globals = lowerGlobals(source);
+    Map<String, Integer> globalIds = indexGlobals(globals);
+    Map<String, Integer> functionIds = indexFunctions(source);
+    Map<String, Boolean> reversibleFunctions = new HashMap<>();
+    source.functions().forEach(function -> reversibleFunctions.put(function.name(), function.reversible()));
+
+    List<FunctionBody> functions = new ArrayList<>();
+    int entryId = -1;
+    for (SourceModel.Function sourceFunction : source.functions()) {
+      int id = functionIds.get(sourceFunction.name());
+      if (sourceFunction.entry()) {
+        entryId = id;
+      }
+      List<Instruction> forward = lowerStatements(
+          sourceFunction, globalIds, functionIds, reversibleFunctions);
+      if (sourceFunction.entry()) {
+        if (forward.stream().noneMatch(instruction -> instruction.opcode() == Opcode.HALT)) {
+          throw new CompilerException(sourceFunction.line(), "entry block must contain halt");
         }
-    }
-
-    private CompilationUnit parse(String source, String fileName) {
-        // Create char stream from input
-        CharStream input = CharStreams.fromString(source);
-
-        // Create lexer
-        WheelerLexer lexer = new WheelerLexer(input);
-        lexer.removeErrorListeners();
-        lexer.addErrorListener(new CompilerErrorListener(errorReporter));
-
-        // Create token stream
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-
-        // Create parser
-        WheelerParser parser = new WheelerParser(tokens);
-        parser.removeErrorListeners();
-        parser.addErrorListener(new CompilerErrorListener(errorReporter));
-
-        // Parse the input
-        WheelerParser.CompilationUnitContext parseTree = parser.compilationUnit();
-
-        if (errorReporter.hasErrors()) {
-            return null;
+      } else {
+        if (forward.stream().anyMatch(instruction -> instruction.opcode() == Opcode.HALT)) {
+          throw new CompilerException(sourceFunction.line(), "only the entry block may halt");
         }
+        forward = appendReturn(forward);
+      }
 
-        // Build AST
-        ASTBuilder builder = new ASTBuilder(Path.of(fileName), errorReporter);
-        return builder.buildCompilationUnit(parseTree);
-    }
-
-    private boolean performSemanticAnalysis(CompilationUnit ast) {
-        // Type checking
-        TypeChecker typeChecker = new TypeChecker(errorReporter);
-        typeChecker.check(ast);
-        if (errorReporter.hasErrors()) {
-            return false;
+      List<Instruction> inverse = List.of();
+      if (sourceFunction.reversible()) {
+        inverse = generateInverse(sourceFunction, forward);
+        if (sourceFunction.coherent()) {
+          verifyCoherent(sourceFunction, forward);
         }
-
-        // Control flow analysis
-        FlowAnalyzer flowAnalyzer = new FlowAnalyzer(errorReporter);
-        flowAnalyzer.analyze(ast);
-        return !errorReporter.hasErrors();
+      }
+      functions.add(new FunctionBody(
+          id, sourceFunction.name(), sourceFunction.coherent(), forward, inverse));
     }
 
-    private boolean generateCode(CompilationUnit ast) {
-        try {
-            // Generate bytecode
-            BytecodeGenerator generator = new BytecodeGenerator(options, errorReporter);
-            byte[] bytecode = generator.generate(ast);
+    Program result = new Program(source.name(), entryId, globals, functions);
+    BytecodeVerifier.verify(result);
+    return result;
+  }
 
-            // Write class file
-            ClassWriter writer = new ClassWriter(options.getOutputPath());
-            writer.writeClass(ast.getPackage(), ast.getDeclarations().get(0).getName(), bytecode);
+  private static List<Global> lowerGlobals(SourceProgram source) {
+    Set<String> names = new HashSet<>();
+    List<Global> result = new ArrayList<>();
+    for (SourceModel.State state : source.states()) {
+      if (!names.add(state.name())) {
+        throw new CompilerException(state.line(), "duplicate state: " + state.name());
+      }
+      result.add(new Global(state.name(), state.initialValue()));
+    }
+    return List.copyOf(result);
+  }
 
-            return true;
-        } catch (IOException e) {
-            errorReporter.report("Failed to write class file: " + e.getMessage(), null);
-            return false;
-        } catch (Exception e) {
-            errorReporter.report("Code generation error: " + e.getMessage(), null);
-            return false;
+  private static Map<String, Integer> indexGlobals(List<Global> globals) {
+    Map<String, Integer> result = new HashMap<>();
+    for (int i = 0; i < globals.size(); i++) {
+      result.put(globals.get(i).name(), i);
+    }
+    return Map.copyOf(result);
+  }
+
+  private static Map<String, Integer> indexFunctions(SourceProgram source) {
+    Map<String, Integer> result = new HashMap<>();
+    for (int i = 0; i < source.functions().size(); i++) {
+      SourceModel.Function function = source.functions().get(i);
+      if (result.put(function.name(), i) != null) {
+        throw new CompilerException(function.line(), "duplicate function: " + function.name());
+      }
+    }
+    return Map.copyOf(result);
+  }
+
+  private static List<Instruction> lowerStatements(
+      SourceModel.Function owner,
+      Map<String, Integer> globals,
+      Map<String, Integer> functions,
+      Map<String, Boolean> reversibleFunctions) {
+    List<Instruction> result = new ArrayList<>();
+    for (Statement statement : owner.statements()) {
+      result.add(lowerStatement(statement, globals, functions, reversibleFunctions));
+    }
+    return List.copyOf(result);
+  }
+
+  private static Instruction lowerStatement(
+      Statement statement,
+      Map<String, Integer> globals,
+      Map<String, Integer> functions,
+      Map<String, Boolean> reversibleFunctions) {
+    List<String> arguments = statement.arguments();
+    return switch (statement.operation()) {
+      case "nop" -> noArguments(statement, Opcode.NOP);
+      case "halt" -> noArguments(statement, Opcode.HALT);
+      case "checkpoint" -> noArguments(statement, Opcode.CHECKPOINT);
+      case "commit" -> noArguments(statement, Opcode.COMMIT);
+      case "add" -> globalAndInteger(statement, Opcode.ADD_CONST, globals);
+      case "sub" -> globalAndInteger(statement, Opcode.SUB_CONST, globals);
+      case "xor" -> globalAndInteger(statement, Opcode.XOR_CONST, globals);
+      case "set" -> globalAndInteger(statement, Opcode.SET_LOGGED, globals);
+      case "expect" -> globalAndInteger(statement, Opcode.EXPECT_EQ, globals);
+      case "swap" -> {
+        requireArguments(statement, 2);
+        yield Instruction.of(
+            Opcode.SWAP,
+            global(arguments.get(0), globals, statement.line()),
+            global(arguments.get(1), globals, statement.line()));
+      }
+      case "call", "uncall" -> {
+        requireArguments(statement, 1);
+        String target = arguments.getFirst();
+        Integer id = functions.get(target);
+        if (id == null) {
+          throw new CompilerException(statement.line(), "unknown function: " + target);
         }
-    }
-
-    public List<CompilerError> getErrors() {
-        return errorReporter.getErrors();
-    }
-
-    public List<CompilerError> getWarnings() {
-        return errorReporter.getWarnings();
-    }
-
-    // Helper method to print the AST (useful for debugging)
-    private void printAST(CompilationUnit ast) {
-        if (options.isPrintAST()) {
-            ASTPrinter printer = new ASTPrinter();
-            System.out.println(printer.print(ast));
+        if (statement.operation().equals("uncall")
+            && !reversibleFunctions.getOrDefault(target, false)) {
+          throw new CompilerException(statement.line(), "function is not reversible: " + target);
         }
+        yield Instruction.of(statement.operation().equals("call") ? Opcode.CALL : Opcode.UNCALL, id);
+      }
+      default -> throw new CompilerException(
+          statement.line(), "unknown classical operation: " + statement.operation());
+    };
+  }
+
+  private static Instruction noArguments(Statement statement, Opcode opcode) {
+    requireArguments(statement, 0);
+    return Instruction.of(opcode);
+  }
+
+  private static Instruction globalAndInteger(
+      Statement statement, Opcode opcode, Map<String, Integer> globals) {
+    requireArguments(statement, 2);
+    return Instruction.of(
+        opcode,
+        global(statement.arguments().get(0), globals, statement.line()),
+        SourceParser.parseInteger(statement.arguments().get(1), statement.line()));
+  }
+
+  private static long global(String name, Map<String, Integer> globals, int line) {
+    Integer id = globals.get(name);
+    if (id == null) {
+      throw new CompilerException(line, "unknown state: " + name);
     }
+    return id;
+  }
+
+  private static void requireArguments(Statement statement, int count) {
+    if (statement.arguments().size() != count) {
+      throw new CompilerException(
+          statement.line(),
+          "%s expects %d arguments, got %d"
+              .formatted(statement.operation(), count, statement.arguments().size()));
+    }
+  }
+
+  private static List<Instruction> appendReturn(List<Instruction> body) {
+    List<Instruction> result = new ArrayList<>(body);
+    result.add(Instruction.of(Opcode.RETURN));
+    return List.copyOf(result);
+  }
+
+  private static List<Instruction> generateInverse(
+      SourceModel.Function function, List<Instruction> forward) {
+    List<Instruction> result = new ArrayList<>();
+    for (int i = forward.size() - 2; i >= 0; i--) {
+      Instruction instruction = forward.get(i);
+      if (!instruction.opcode().supportsGeneratedInverse()) {
+        throw new CompilerException(
+            function.line(),
+            "reversible function contains " + instruction.opcode() + ", which has no generated inverse");
+      }
+      result.add(instruction.inverse());
+    }
+    result.add(Instruction.of(Opcode.RETURN));
+    return List.copyOf(result);
+  }
+
+  private static void verifyCoherent(
+      SourceModel.Function function, List<Instruction> forward) {
+    Set<Opcode> coherent = Set.of(
+        Opcode.NOP,
+        Opcode.ADD_CONST,
+        Opcode.SUB_CONST,
+        Opcode.XOR_CONST,
+        Opcode.SWAP,
+        Opcode.CALL,
+        Opcode.UNCALL,
+        Opcode.RETURN);
+    for (Instruction instruction : forward) {
+      if (!coherent.contains(instruction.opcode())) {
+        throw new CompilerException(
+            function.line(), "coherent function contains " + instruction.opcode());
+      }
+    }
+  }
 }

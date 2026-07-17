@@ -1,32 +1,22 @@
-// Basic counter example demonstrating reversibility
-classical class Counter {
-    rev int count = 0;
+// The first complete Wheeler program: one reversible function used in both directions.
+wheeler 1
+program Counter
+kind classical
 
-    rev void increment() {
-        count++;
-    }
+state count = 0
 
-    rev void decrement() {
-        count--;
-    }
+rev coherent increment {
+  add count 1
+}
 
-    pure int get() {
-        return count;
-    }
+entry {
+  call increment
+  call increment
+  expect count 2
 
-    rev static void main(String[] args) {
-        Counter c = new Counter();
-
-        // Forward execution
-        c.increment();
-        c.increment();
-        System.out.println(c.get()); // 2
-
-        // Reverse execution
-        reverse {
-            c.increment();
-            c.increment();
-        }
-        System.out.println(c.get()); // 0
-    }
+  // Language-level inverse invocation is new execution, not debugger rewind.
+  uncall increment
+  uncall increment
+  expect count 0
+  halt
 }

@@ -2,13 +2,19 @@ dependencies {
     implementation project(':wheeler-core')
     implementation project(':wheeler-compiler')
     implementation project(':wheeler-runtime')
-    implementation 'info.picocli:picocli:4.7.4'
 }
 
 tasks.register('wheelc', JavaExec) {
-    mainClass = 'com.typeobject.wheeler.tools.wheelc.WheelerCompilerTool'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.typeobject.wheeler.tools.Wheelc'
 }
 
 tasks.register('wheel', JavaExec) {
-    mainClass = 'com.typeobject.wheeler.tools.wheel.WheelerVM'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.typeobject.wheeler.tools.Wheel'
+}
+
+tasks.register('wheeldis', JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.typeobject.wheeler.tools.Wheeldis'
 }

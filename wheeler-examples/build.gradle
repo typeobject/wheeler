@@ -1,0 +1,5 @@
+dependencies {
+    testImplementation project(':wheeler-core')
+    testImplementation project(':wheeler-compiler')
+    testImplementation project(':wheeler-runtime')
+}

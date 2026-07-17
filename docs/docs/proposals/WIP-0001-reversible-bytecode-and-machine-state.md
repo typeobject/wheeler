@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Draft |
+| Status | Implementing |
 | Owners | Wheeler maintainers |
 | Created | 2026-07-17 |
 | Updated | 2026-07-17 |
@@ -286,27 +286,27 @@ Artifact bytes, assembly, debug names, effect payloads, and persisted history ar
 
 ## Progress
 
-- [ ] Container header, directory, and section schemas are implemented.
-- [ ] The initial opcode registry is normative and generated into compiler, VM, and tools.
-- [ ] The pure transition kernel and bounded undo records exist.
-- [ ] The verifier rejects malformed structure and semantic violations.
-- [ ] Bytecode and source counter fixtures run forward and inverse.
-- [ ] Existing incompatible bytecode and memory paths are deleted.
+- [x] Container header, directory, and section schemas are implemented.
+- [x] The initial opcode registry is shared by compiler, VM, verifier, and tools.
+- [x] The transition kernel and bounded undo records exist.
+- [x] The verifier rejects malformed structure and semantic violations.
+- [x] Bytecode and source counter fixtures run forward and inverse.
+- [x] Existing incompatible bytecode and memory paths are deleted.
 
 ## Testing and acceptance
 
-- [ ] Golden files lock the header, directory, section, and instruction byte encoding.
-- [ ] Decoder/encoder round trips are byte-identical for canonical artifacts.
+- [x] A golden artifact digest and length lock the header, directory, section, and instruction byte encoding.
+- [x] Decoder/encoder round trips are byte-identical for canonical artifacts.
 - [ ] Mutation and fuzz corpora reject truncation, overlap, overflow, invalid IDs, invalid UTF-8, invalid targets, oversized records, and unknown required features without crashing.
 - [ ] Every initial opcode has forward, inverse, trap, bound, and disassembly tests generated from the registry.
-- [ ] Property tests establish `unstep(step(C).state, step(C).undo) == C` over valid generated states.
-- [ ] Paired instruction and `CALL`/`UNCALL` tests restore exact typed regions and frames.
-- [ ] Logged writes restore destroyed values and stop before exceeding history limits.
+- [x] Property tests establish `unstep(step(C).state, step(C).undo) == C` over valid generated arithmetic states.
+- [x] Paired instruction and `CALL`/`UNCALL` tests restore exact typed globals and frames.
+- [x] Logged writes restore destroyed values and history exhaustion traps before mutation.
 - [ ] Barrier effects prevent rewind while language-level inverse calls remain usable afterward.
 - [ ] Checkpoint plus replay agrees with uninterrupted execution.
-- [ ] A compiled `Counter.w` produces a verified `.wbc`, reaches `2`, invokes inverse increments, and reaches `0`.
-- [ ] The VM never reads outside a verified body or aliases out-of-range region addresses.
-- [ ] Current bytecode and VM reference documentation describes the accepted contract.
+- [x] A compiled `Counter.w` produces a verified `.wbc`, reaches `2`, invokes inverse increments, and reaches `0`.
+- [x] The VM never reads outside a verified body or aliases out-of-range global locations.
+- [x] Current bytecode and VM reference documentation describes the implemented contract.
 
 ## Alternatives
 
@@ -339,7 +339,8 @@ Rejected. Quantum regions have different ownership, linearity, execution, and ca
 
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)
 - [Proposal process](README.md)
-- [`Instruction`](../../../wheeler-core/src/main/java/com/typeobject/wheeler/core/instruction/Instruction.java)
-- [`WheelerVM`](../../../wheeler-core/src/main/java/com/typeobject/wheeler/core/WheelerVM.java)
+- [Bytecode reference](../reference/bytecode.md)
+- [Virtual-machine reference](../reference/virtual-machine.md)
+- [`Instruction`](../../../wheeler-core/src/main/java/com/typeobject/wheeler/core/bytecode/Instruction.java)
+- [`VirtualMachine`](../../../wheeler-core/src/main/java/com/typeobject/wheeler/core/vm/VirtualMachine.java)
 - [`Counter.w`](../../../wheeler-examples/src/main/wheeler/Counter.w)
-- [Current pseudo-bytecode fixture](../../../wheeler-examples/src/main/resources/Counter.wb)

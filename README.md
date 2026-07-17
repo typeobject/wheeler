@@ -1,130 +1,127 @@
-# Wheeler Virtual Machine (WVM)
+# Wheeler
 
-A reversible, concurrent virtual machine and programming language.
+Wheeler is an experimental reversible classical and quantum programming system. Its central goal is to let one verified reversible function execute as ordinary classical bytecode or lower coherently to a quantum target without duplicating the algorithm.
 
-**This project is just an experiment and is still in the early stages of development. You should probably come back later once I'm sure it'll work at all.**
+The repository currently implements the first classical slice of [WIP-0001](docs/docs/proposals/WIP-0001-reversible-bytecode-and-machine-state.md):
 
-## Overview
+- a canonical, versioned Wheeler Bytecode Container (`.wbc`);
+- a strict decoder and semantic verifier;
+- a deterministic typed-global virtual machine;
+- intrinsic, checked, logged, and barrier-classified instructions;
+- exact per-step rewind records;
+- compiler-generated inverse function bodies;
+- `wheelc`, `wheel`, and `wheeldis` command-line tools;
+- a checked-in `Counter.w` source-to-bytecode-to-VM example.
 
-The Wheeler Virtual Machine provides a platform for writing and executing perfectly reversible programs, including support for concurrent execution. Every operation can be reversed, enabling exact reconstruction of previous program states.
-
-Key features:
-- Perfect reversibility of all operations.
-- Concurrent execution with reversible synchronization.
-- Quantum-inspired instruction set.
-- Modern Java implementation.
-- Comprehensive testing framework.
+Quantum region IR, coherent lifting, target adapters, and durable hybrid jobs are specified in WIP-0002 through WIP-0004 and are being implemented in that order.
 
 ## Requirements
 
-- Java 22 or higher
-- Gradle 8.5 or higher
+- JDK 26
+- No system Gradle installation is required; use the wrapper.
 
-## Quick Start
+On macOS with Homebrew:
 
-Build the project:
 ```bash
-./gradlew build
+export JAVA_HOME="$(brew --prefix openjdk)/libexec/openjdk.jdk/Contents/Home"
+export PATH="$JAVA_HOME/bin:$PATH"
 ```
 
-Compile a Wheeler program:
+## Build and test
+
 ```bash
-./gradlew wheelc -Psource=examples/HelloWorld.w
+./gradlew clean check
 ```
 
-Run a Wheeler program:
+The build treats Java compiler warnings as errors. Tests include canonical bytecode round trips, malformed artifacts, generated inverse calls, logged mutation, commit horizons, randomized rewind laws, and the checked-in example.
+
+## Compile and run the example
+
+Build the classes:
+
 ```bash
-./gradlew wheel -Pfile=HelloWorld.wc
+./gradlew classes
 ```
 
-## Project Structure
+The Gradle tasks can be run from an interactive Gradle invocation, while the direct development commands are:
 
-- `wheeler-core`: Core virtual machine implementation
-- `wheeler-compiler`: Wheeler language compiler
-- `wheeler-runtime`: Runtime libraries and support
-- `wheeler-tools`: Development and debugging tools
-- `wheeler-examples`: Example programs and tests
+```bash
+CP="wheeler-tools/build/classes/java/main:\
+wheeler-compiler/build/classes/java/main:\
+wheeler-core/build/classes/java/main:\
+wheeler-runtime/build/classes/java/main"
+
+java -cp "$CP" com.typeobject.wheeler.tools.Wheelc \
+  wheeler-examples/src/main/wheeler/Counter.w -o /tmp/Counter.wbc
+java -cp "$CP" com.typeobject.wheeler.tools.Wheeldis /tmp/Counter.wbc
+java -cp "$CP" com.typeobject.wheeler.tools.Wheel /tmp/Counter.wbc
+```
+
+Expected final output includes:
+
+```text
+Counter halted after 15 steps
+count = 0
+```
+
+## Executable source profile
+
+The current profile is deliberately small and complete:
+
+```wheeler
+wheeler 1
+program Counter
+kind classical
+state count = 0
+
+rev coherent increment {
+  add count 1
+}
+
+entry {
+  call increment
+  call increment
+  expect count 2
+  uncall increment
+  uncall increment
+  expect count 0
+  halt
+}
+```
+
+See the [language profile](docs/docs/reference/language-profile.md) for the supported declarations and operations.
+
+## Project structure
+
+- `wheeler-core` — bytecode model, codec, verifier, disassembler, and reversible VM.
+- `wheeler-compiler` — source parser, diagnostics, lowering, and inverse generation.
+- `wheeler-runtime` — quantum targets and hybrid runtime as WIP-0002 onward lands.
+- `wheeler-tools` — command-line compiler, runner, and disassembler.
+- `wheeler-examples` — executable acceptance programs and integration tests.
+- `docs/docs/proposals` — Wheeler Improvement Proposals (WIPs).
 
 ## Documentation
 
-- [User Guide](docs/user-guide.md)
-- [Language Reference](docs/language-reference.md)
-- [VM Specification](docs/vm-spec.md)
-- [Bytecode Format](docs/bytecode-format.md)
-- [Development Guide](docs/development-guide.md)
-- [Wheeler Improvement Proposals](docs/docs/proposals/README.md)
+- [Proposal index](docs/docs/proposals/README.md)
+- [Language profile](docs/docs/reference/language-profile.md)
+- [Bytecode format](docs/docs/reference/bytecode.md)
+- [Virtual machine](docs/docs/reference/virtual-machine.md)
+- [Development guide](docs/docs/reference/development.md)
 
-## Example
+## Status and scope
 
-```wheeler
-// Basic counter example demonstrating reversibility
-classical class Counter {
-    rev int count = 0;
+Wheeler is pre-release research software. The reference documentation describes implemented behavior. Draft WIPs describe intended contracts and must not be read as existing functionality.
 
-    rev void increment() {
-        count++;
-    }
+The long-term architecture distinguishes:
 
-    rev void decrement() {
-        count--;
-    }
+- classical inverse execution;
+- VM history rewind;
+- quantum adjoints and uncomputation;
+- measurement observations;
+- replay and fresh hardware retry.
 
-    pure int get() {
-        return count;
-    }
-
-    rev static void main(String[] args) {
-        Counter c = new Counter();
-
-        // Forward execution
-        c.increment();
-        c.increment();
-        System.out.println(c.get()); // 2
-
-        // Reverse execution 
-        reverse {
-            c.increment();
-            c.increment();
-        }
-        System.out.println(c.get()); // 0
-    }
-}
-```
-
-For additional examples, see [wheeler-examples](wheeler-examples/src/main/wheeler).
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute to the project.
+Those operations are related, but they are not falsely presented as one physical notion of reversing time.
 
 ## License
 
-Wheeler is licensed under the Apache License 2.0 - see [LICENSE](LICENSE) for details.
-
-## Acknowledgments
-
-Inspired by:
-- John Wheeler's "It from Bit" concept.
-- Bennett's work on reversible computation.
-- The Java Virtual Machine.
-
-## Status
-
-Wheeler is currently in early development. The API and bytecode format are subject to change.
-
-## Getting Help
-
-- [Issue Tracker](https://github.com/typeobject/wheeler/issues)
-- [Discussion Forum](https://github.com/typeobject/wheeler/discussions)
-
-## Citation
-
-If you use Wheeler in your research, please cite:
-```bibtex
-@software{wheeler_vm_2024,
-  title = {Wheeler Virtual Machine},
-  author = {TypeObject},
-  year = {2024},
-  url = {https://github.com/typeobject/wheeler}
-}
-```
+Wheeler is licensed under the Apache License 2.0; see [LICENSE.md](LICENSE.md).
