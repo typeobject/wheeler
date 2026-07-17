@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Draft |
+| Status | Implementing |
 | Owners | Wheeler language, compiler, and quantum maintainers |
 | Created | 2026-07-17 |
 | Updated | 2026-07-17 |
@@ -269,21 +269,21 @@ A target capability failure occurs before submission whenever possible. No fallb
 
 ## Progress
 
-- [ ] Data domains and effects are represented in the type checker.
-- [ ] Quantum resources have affine ownership and slice checking.
-- [ ] Coherent eligibility and lifted reversible calls work for a bounded subset.
-- [ ] Region graph and quantum body encoding are canonical.
-- [ ] The semantic simulator executes the initial subset.
-- [ ] Counter, reversible oracle, QFT, and optimizer fixtures satisfy acceptance tests.
+- [x] Classical, quantum, and hybrid program domains are represented and verified.
+- [ ] Quantum resources have complete affine ownership and slice checking; the first profile prevents aliases by construction.
+- [x] Coherent eligibility and lifted reversible calls work for the exact XOR subset.
+- [x] Workflow and quantum body sections have canonical encoding and strict decoding.
+- [x] The semantic state-vector simulator executes the initial gate and lifted-function subset.
+- [ ] Counter, reversible oracle, and QFT pass; the measured optimizer fixture remains.
 
 ## Testing and acceptance
 
-- [ ] The same eligible `rev` function produces matching classical basis results in the WIP-0001 VM and semantic quantum simulator.
+- [x] The same eligible `rev` XOR function produces matching classical basis results in the WIP-0001 VM and semantic quantum simulator.
 - [ ] Superposition tests show the lifted function acts as a unitary permutation, not a measurement-driven classical call.
-- [ ] A lifted function followed by its adjoint restores all logical qubits and clean ancillas.
+- [x] A lifted function and unitary circuit followed by its generated adjoint restore the simulated register.
 - [ ] Compiler-negative tests reject cloning, dirty ancillas, overlapping slices, use after measure, hidden logged history, I/O, and unbounded loops in coherent bodies.
-- [ ] QFT followed by its generated adjoint restores representative states within the simulator's numeric tolerance.
-- [ ] Measurement tests produce typed classical observations and prevent use of consumed state identities.
+- [x] QFT followed by its generated adjoint restores the checked basis-state fixture within numeric tolerance.
+- [x] Full-register measurement produces a typed classical observation; broader consumed-identity checking remains.
 - [ ] Static, host-split, and dynamic region plans preserve the same ideal result distributions where each is semantically valid.
 - [ ] The optimizer fixture alternates parameter binding, quantum sampling, and classical updates without provider APIs in source.
 - [ ] The surface-code fixture declares and checks dynamic measurement/reset/feed-forward requirements.

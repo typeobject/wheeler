@@ -1,0 +1,26 @@
+{
+  "name": "tree-sitter-wheeler",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Incremental parser grammar for the Wheeler language",
+  "license": "Apache-2.0",
+  "main": "bindings/node",
+  "scripts": {
+    "generate": "tree-sitter generate",
+    "test": "tree-sitter generate && tree-sitter test && tree-sitter parse --config-path test/config.json -p . ../wheeler-examples/src/main/wheeler/Counter.w ../wheeler-examples/src/main/wheeler/CoherentOracle.w ../wheeler-examples/src/main/wheeler/QFT.w --quiet && tree-sitter query --config-path test/config.json -p . queries/highlights.scm ../wheeler-examples/src/main/wheeler/Counter.w >/dev/null && tree-sitter query --config-path test/config.json -p . queries/folds.scm ../wheeler-examples/src/main/wheeler/Counter.w >/dev/null"
+  },
+  "devDependencies": {
+    "tree-sitter-cli": "0.26.11"
+  },
+  "tree-sitter": [
+    {
+      "scope": "source.wheeler",
+      "file-types": [
+        "w"
+      ]
+    }
+  ],
+  "allowScripts": {
+    "tree-sitter-cli@0.26.11": true
+  }
+}

@@ -35,14 +35,14 @@ class BytecodeCodecTest {
     String digest = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(artifact));
 
     assertEquals(552, artifact.length);
-    assertEquals("1d411809a4a1038336212b21d1da8f4431ceadcd5bdcca4e9321555d41971d47", digest);
+    assertEquals("927fd446699b35213d56f357ce542afe624dc874ed57c32050bb7dc0f9456f04", digest);
   }
 
   @Test
   void disassemblyContainsBothDirections() {
     String text = new Disassembler().disassemble(reader.read(writer.write(ProgramFixtures.counter())));
 
-    assertTrue(text.contains("function 1 increment coherent reversible"));
+    assertTrue(text.contains("function 1 increment reversible"));
     assertTrue(text.contains("ADD_CONST"));
     assertTrue(text.contains("SUB_CONST"));
   }

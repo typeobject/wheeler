@@ -1,22 +1,21 @@
-// The first complete Wheeler program: one reversible function used in both directions.
-wheeler 1
-program Counter
-kind classical
+// A complete classical reversible Wheeler program.
+classical class Counter {
+    state long count = 0;
 
-state count = 0
+    rev void increment() {
+        count += 1;
+    }
 
-rev coherent increment {
-  add count 1
-}
+    entry void main() {
+        increment();
+        increment();
+        assert count == 2;
 
-entry {
-  call increment
-  call increment
-  expect count 2
-
-  // Language-level inverse invocation is new execution, not debugger rewind.
-  uncall increment
-  uncall increment
-  expect count 0
-  halt
+        // A reverse block invokes method inverses in reverse lexical order.
+        reverse {
+            increment();
+            increment();
+        }
+        assert count == 0;
+    }
 }

@@ -5,6 +5,12 @@ import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.FUNCTIONS;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.MANIFEST;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.STRINGS;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.TYPES;
+import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.WORKFLOW;
+import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.QUANTUM;
+
+import com.typeobject.wheeler.core.quantum.QuantumCircuit;
+import com.typeobject.wheeler.core.quantum.QuantumRegister;
+import com.typeobject.wheeler.core.workflow.WorkflowStep;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -22,7 +28,8 @@ import java.util.Set;
 /** Strict Wheeler Bytecode Container decoder. */
 public final class BytecodeReader {
   private record Section(int type, int flags, int offset, int length, int alignment) {}
-  private record Manifest(int nameId, int entryId, int maxHistory, long maxSteps) {}
+  private record Manifest(
+      int nameId, int entryId, int maxHistory, ProgramKind kind, long maxSteps) {}
   private record FunctionDescriptor(
       int id,
       int nameId,
@@ -105,12 +112,29 @@ public final class BytecodeReader {
     List<FunctionDescriptor> descriptors = readFunctionDescriptors(slice(input, sections.get(FUNCTIONS)));
     ByteBuffer code = slice(input, sections.get(CODE));
     List<FunctionBody> functions = readFunctions(descriptors, strings, code);
+    List<QuantumRegister> registers = List.of();
+    List<QuantumCircuit> circuits = List.of();
+    List<WorkflowStep> workflow = List.of();
+    if (manifest.kind() != ProgramKind.CLASSICAL) {
+      if (!sections.containsKey(WORKFLOW) || !sections.containsKey(QUANTUM)) {
+        fail("Quantum and hybrid artifacts require workflow and quantum sections");
+      }
+      QuantumSectionCodec.QuantumContent quantum =
+          QuantumSectionCodec.read(slice(input, sections.get(QUANTUM)), strings);
+      registers = quantum.registers();
+      circuits = quantum.circuits();
+      workflow = WorkflowSectionCodec.read(slice(input, sections.get(WORKFLOW)));
+    }
 
     Program program = new Program(
         strings.get(manifest.nameId()),
+        manifest.kind(),
         manifest.entryId(),
         globals,
         functions,
+        registers,
+        circuits,
+        workflow,
         manifest.maxHistory(),
         manifest.maxSteps());
     BytecodeVerifier.verify(program);
@@ -118,8 +142,9 @@ public final class BytecodeReader {
   }
 
   private static void requireSections(Map<Integer, Section> sections) {
-    Set<Integer> known = Set.of(MANIFEST, STRINGS, TYPES, FUNCTIONS, CODE);
-    for (int required : known) {
+    Set<Integer> known = Set.of(MANIFEST, STRINGS, TYPES, FUNCTIONS, CODE, WORKFLOW, QUANTUM);
+    Set<Integer> base = Set.of(MANIFEST, STRINGS, TYPES, FUNCTIONS, CODE);
+    for (int required : base) {
       if (!sections.containsKey(required)) {
         fail("Missing required section " + required);
       }
@@ -159,13 +184,10 @@ public final class BytecodeReader {
     int nameId = section.getInt();
     int entry = section.getInt();
     int history = section.getInt();
-    int reserved = section.getInt();
+    ProgramKind kind = ProgramKind.fromCode(section.getInt());
     long steps = section.getLong();
     checkStringId(nameId, stringCount);
-    if (reserved != 0) {
-      fail("Invalid manifest reserved field");
-    }
-    return new Manifest(nameId, entry, history, steps);
+    return new Manifest(nameId, entry, history, kind, steps);
   }
 
   private static List<String> readStrings(ByteBuffer section) {

@@ -92,6 +92,45 @@ public final class VirtualMachine {
     return globals[program.globalIndex(name)];
   }
 
+  public long global(int index) {
+    return globals[checkedGlobalIndex(index)];
+  }
+
+  /** Executes one function from a hybrid workflow boundary. WIP-0004 records this boundary. */
+  public void invoke(int functionId, boolean inverse) {
+    if (status == MachineStatus.HALTED || status == MachineStatus.TRAPPED) {
+      throw new VmTrap("Cannot invoke a function on a finished machine");
+    }
+    FunctionBody function = program.function(functionId);
+    if (inverse && !function.reversible()) {
+      throw new VmTrap("Function has no inverse: " + function.name());
+    }
+    history.clear();
+    int callerDepth = frames.size();
+    frames.add(new Frame(functionId, inverse, 0));
+    while (frames.size() > callerDepth) {
+      step();
+    }
+    history.clear();
+  }
+
+  /** Applies a measured or external value and establishes an irreversible workflow boundary. */
+  public void setGlobalFromEffect(int index, long value) {
+    globals[checkedGlobalIndex(index)] = value;
+    history.clear();
+  }
+
+  public void expectGlobal(int index, long expected) {
+    long actual = globals[checkedGlobalIndex(index)];
+    if (actual != expected) {
+      trap("Expectation failed: expected %d, got %d".formatted(expected, actual));
+    }
+  }
+
+  public void commitHistory() {
+    history.clear();
+  }
+
   public MachineSnapshot snapshot() {
     Map<String, Long> values = new LinkedHashMap<>();
     for (int i = 0; i < globals.length; i++) {
@@ -259,7 +298,14 @@ public final class VirtualMachine {
   }
 
   private int globalIndex(Instruction instruction, int operandIndex) {
-    return Math.toIntExact(operand(instruction, operandIndex));
+    return checkedGlobalIndex(Math.toIntExact(operand(instruction, operandIndex)));
+  }
+
+  private int checkedGlobalIndex(int index) {
+    if (index < 0 || index >= globals.length) {
+      throw new VmTrap("Invalid global index " + index);
+    }
+    return index;
   }
 
   private static long operand(Instruction instruction, int index) {

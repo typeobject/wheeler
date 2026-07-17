@@ -1,36 +1,23 @@
-// QFT.wheeler - Implementation
+// A three-qubit QFT region followed by its compiler-generated adjoint.
 quantum class QFT {
-    qureg register;
-    let int size;
+    state long measured = 0;
+    qreg q = new qreg(3);
 
-    // Apply QFT circuit
-    quantum void applyQFT() {
-        quantum {
-            for (int i = 0; i < size; i++) {
-                H(register[i]);
-                for (int j = i + 1; j < size; j++) {
-                    Phase(register[i], register[j], π/(2**(j-i)));
-                }
-            }
-
-            for (int i = 0; i < size/2; i++) {
-                swap(register[i], register[size-1-i]);
-            }
-        }
+    unitary void qft() {
+        H(q[0]);
+        CPhase(q[1], q[0], 1.5707963267948966);
+        CPhase(q[2], q[0], 0.7853981633974483);
+        H(q[1]);
+        CPhase(q[2], q[1], 1.5707963267948966);
+        H(q[2]);
+        Swap(q[0], q[2]);
     }
 
-    quantum void applyInverseQFT() {
-        quantum {
-            for (int i = 0; i < size/2; i++) {
-                swap(register[i], register[size-1-i]);
-            }
-
-            for (int i = size-1; i >= 0; i--) {
-                for (int j = size-1; j > i; j--) {
-                    Phase(register[i], register[j], -π/(2**(j-i)));
-                }
-                H(register[i]);
-            }
-        }
+    entry void main() {
+        prepare(q, 5);
+        qft();
+        reverse qft();
+        measured = measure(q);
+        assert measured == 5;
     }
 }

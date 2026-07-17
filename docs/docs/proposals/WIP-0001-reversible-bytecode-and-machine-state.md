@@ -19,7 +19,7 @@ The bytecode is a typed slot-and-region machine rather than JVM bytecode or an u
 
 ## Motivation
 
-Wheeler currently has several incompatible sketches of bytecode. `Instruction` encodes every operation as 128 bits with a static `history` field, `ClassWriter` writes those bytes with a JVM `.class` suffix, the runner expects `.wb`, the README mentions `.wc`, and the example `.wb` is annotated text. The VM starts its program counter outside the code segment, only `INC` has a handler, and forward execution combines whole-thread snapshots with handler-specific undo in a way that cannot reverse correctly.
+Before this WIP, Wheeler had several incompatible bytecode sketches. `Instruction` encoded every operation as 128 bits with a static `history` field, `ClassWriter` wrote those bytes with a JVM `.class` suffix, the runner expected `.wb`, the README mentioned `.wc`, and the example `.wb` was annotated text. The VM started its program counter outside the code segment, only `INC` had a handler, and forward execution combined whole-thread snapshots with handler-specific undo in a way that could not reverse correctly. Those paths have now been deleted; the remaining work is tracked by the acceptance checklist.
 
 Reversibility cannot be added after the instruction set is filled in. The machine must first decide what state exists, what an instruction may destroy, where undo information lives, how effects limit rewind, and how malformed programs are rejected. The binary format must also leave room for the classical/quantum region model without pretending that a remote quantum device is ordinary mutable memory.
 

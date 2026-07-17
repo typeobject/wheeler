@@ -1,47 +1,43 @@
 ---
 sidebar_position: 1
+slug: /intro
 ---
 
-# Tutorial Intro
+# Start with Wheeler
 
-Let's discover **Docusaurus in less than 5 minutes**.
+Wheeler is a reversible classical and quantum programming language. It uses familiar classes and methods while making inverse execution, coherent lifting, unitary regions, measurement, and target jobs explicit.
 
-## Getting Started
+## Begin with reversible state
 
-Get started by **creating a new site**.
+```java
+classical class Counter {
+    state long count = 0;
 
-Or **try Docusaurus immediately** with **[docusaurus.new](https://docusaurus.new)**.
+    rev void increment() {
+        count += 1;
+    }
 
-### What you'll need
-
-- [Node.js](https://nodejs.org/en/download/) version 18.0 or above:
-  - When installing Node.js, you are recommended to check all checkboxes related to dependencies.
-
-## Generate a new site
-
-Generate a new Docusaurus site using the **classic template**.
-
-The classic template will automatically be added to your project after you run the command:
-
-```bash
-npm init docusaurus@latest my-website classic
+    entry void main() {
+        increment();
+        increment();
+        assert count == 2;
+        reverse {
+            increment();
+            increment();
+        }
+        assert count == 0;
+    }
+}
 ```
 
-You can type this command into Command Prompt, Powershell, Terminal, or any other integrated terminal of your code editor.
+The compiler generates `increment`'s inverse. The reverse block executes those inverses in reverse lexical order. This is new inverse execution, not debugger rewind.
 
-The command also installs all necessary dependencies you need to run Docusaurus.
+## Continue through the teaching path
 
-## Start your site
+1. Read the [language profile](reference/language-profile.md).
+2. Inspect the [bytecode contract](reference/bytecode.md) and [virtual machine](reference/virtual-machine.md).
+3. Run `Counter.w`, `CoherentOracle.w`, and `QFT.w` from `wheeler-examples`.
+4. Use the [development guide](reference/development.md) to run every test.
+5. Read the [WIP index](proposals/README.md) for design status and future boundaries.
 
-Run the development server:
-
-```bash
-cd my-website
-npm run start
-```
-
-The `cd` command changes the directory you're working with. In order to work with your newly created Docusaurus site, you'll need to navigate the terminal there.
-
-The `npm run start` command builds your website locally and serves it through a development server, ready for you to view at http://localhost:3000/.
-
-Open `docs/intro.md` (this page) and edit some lines: the site **reloads automatically** and displays your changes.
+The reference manual describes implemented behavior. Draft and Implementing WIPs describe contracts still being completed.

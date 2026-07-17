@@ -1,41 +1,21 @@
-# Website
+# Wheeler documentation harness
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+The manual uses a deliberately small Docusaurus configuration. Content lives under `docs/docs`; site code is limited to the landing page and shared styling.
 
-### Installation
+## Local development
 
-```sh
+```bash
 npm ci
-```
-
-### Local Development
-
-```sh
 npm start
 ```
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+## Release build
 
-### Build
-
-```sh
+```bash
+npm ci
 npm run build
 ```
 
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
+Docusaurus writes the static site to `docs/build`. The build fails on broken links or malformed MDX. GitHub Actions uses the committed npm lockfile and deploys that directory.
 
-### Deployment
-
-Using SSH:
-
-```sh
-USE_SSH=true npm run deploy
-```
-
-Not using SSH:
-
-```sh
-GIT_USER=<your GitHub username> npm run deploy
-```
-
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+Reference pages describe implemented contracts. WIPs contain designs, migrations, and implementation status. Do not use a draft proposal as current user documentation.

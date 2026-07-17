@@ -27,7 +27,7 @@ public final class ProgramFixtures {
     FunctionBody increment = new FunctionBody(
         1,
         "increment",
-        true,
+        false,
         List.of(Instruction.of(Opcode.ADD_CONST, 0, 1), Instruction.of(Opcode.RETURN)),
         List.of(Instruction.of(Opcode.SUB_CONST, 0, 1), Instruction.of(Opcode.RETURN)));
     return new Program("Counter", 0, List.of(new Global("count", 0)), List.of(main, increment));

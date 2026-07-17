@@ -1,0 +1,147 @@
+==================
+Classical reversible class
+==================
+
+classical class Counter {
+  state long count = 0;
+  rev void increment() { count += 1; }
+  entry void main() {
+    increment();
+    reverse { increment(); }
+    assert count == 0;
+  }
+}
+
+---
+
+(source_file
+  (class_declaration
+    (computation_domain)
+    (identifier)
+    (class_body
+      (member_declaration
+        (state_declaration
+          (identifier)
+          (integer_literal)))
+      (member_declaration
+        (method_declaration
+          (method_modifier)
+          (identifier)
+          (parameter_list)
+          (block
+            (statement
+              (assignment_statement
+                (identifier)
+                (expression
+                  (integer_literal)))))))
+      (member_declaration
+        (method_declaration
+          (method_modifier)
+          (identifier)
+          (parameter_list)
+          (block
+            (statement
+              (call_statement
+                (call_expression
+                  (identifier))))
+            (statement
+              (reverse_statement
+                (block
+                  (statement
+                    (call_statement
+                      (call_expression
+                        (identifier)))))))
+            (statement
+              (assert_statement
+                (identifier)
+                (integer_literal)))))))))
+
+==================
+Quantum class
+==================
+
+quantum class Bell {
+  state long measured = 0;
+  qreg q = new qreg(2);
+  unitary void bell() {
+    H(q[0]);
+    CNOT(q[0], q[1]);
+  }
+  entry void main() {
+    prepare(q, 0);
+    bell();
+    measured = measure(q);
+  }
+}
+
+---
+
+(source_file
+  (class_declaration
+    (computation_domain)
+    (identifier)
+    (class_body
+      (member_declaration
+        (state_declaration
+          (identifier)
+          (integer_literal)))
+      (member_declaration
+        (qreg_declaration
+          (identifier)
+          (integer_literal)))
+      (member_declaration
+        (method_declaration
+          (method_modifier)
+          (identifier)
+          (parameter_list)
+          (block
+            (statement
+              (call_statement
+                (call_expression
+                  (identifier)
+                  (argument_list
+                    (expression
+                      (qubit_reference
+                        (identifier)
+                        (integer_literal)))))))
+            (statement
+              (call_statement
+                (call_expression
+                  (identifier)
+                  (argument_list
+                    (expression
+                      (qubit_reference
+                        (identifier)
+                        (integer_literal)))
+                    (expression
+                      (qubit_reference
+                        (identifier)
+                        (integer_literal))))))))))
+      (member_declaration
+        (method_declaration
+          (method_modifier)
+          (identifier)
+          (parameter_list)
+          (block
+            (statement
+              (call_statement
+                (call_expression
+                  (identifier)
+                  (argument_list
+                    (expression
+                      (identifier))
+                    (expression
+                      (integer_literal))))))
+            (statement
+              (call_statement
+                (call_expression
+                  (identifier))))
+            (statement
+              (assignment_statement
+                (identifier)
+                (expression
+                  (call_expression
+                    (identifier)
+                    (argument_list
+                      (expression
+                        (identifier)))))))))))))

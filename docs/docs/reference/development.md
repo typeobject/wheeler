@@ -7,10 +7,10 @@ Use JDK 26 and the checked-in Gradle wrapper:
 ```bash
 export JAVA_HOME="$(brew --prefix openjdk)/libexec/openjdk.jdk/Contents/Home"
 export PATH="$JAVA_HOME/bin:$PATH"
-./gradlew clean check
+./gradlew clean check treeSitterTest
 ```
 
-Java compilation enables all lint warnings and treats warnings as errors. `check` runs JUnit and generates JaCoCo reports for modules with tests.
+Java compilation enables all lint warnings and treats warnings as errors. `check` runs JUnit and generates JaCoCo reports for modules with tests. `treeSitterTest` installs the pinned CLI, regenerates the parser, runs the syntax corpus, and compiles editor queries.
 
 ## Design workflow
 

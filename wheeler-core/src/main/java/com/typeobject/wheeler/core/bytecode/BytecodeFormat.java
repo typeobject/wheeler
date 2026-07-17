@@ -17,6 +17,8 @@ public final class BytecodeFormat {
   public static final int TYPES = 3;
   public static final int FUNCTIONS = 5;
   public static final int CODE = 6;
+  public static final int WORKFLOW = 7;
+  public static final int QUANTUM = 8;
 
   private BytecodeFormat() {}
 

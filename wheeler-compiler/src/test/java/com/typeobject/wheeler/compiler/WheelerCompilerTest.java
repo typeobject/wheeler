@@ -14,25 +14,37 @@ import org.junit.jupiter.api.Test;
 
 class WheelerCompilerTest {
   private static final String COUNTER = """
-      wheeler 1
-      program Counter
-      kind classical
-      state count = 0
+      classical class Counter {
+        state long count = 0;
 
-      rev coherent increment {
-        add count 1
-      }
+        rev void increment() {
+          count += 1;
+        }
 
-      entry {
-        call increment
-        call increment
-        expect count 2
-        uncall increment
-        uncall increment
-        expect count 0
-        halt
+        entry void main() {
+          increment();
+          increment();
+          assert count == 2;
+          reverse {
+            increment();
+            increment();
+          }
+          assert count == 0;
+        }
       }
       """;
+
+  @Test
+  void compactFormattingHasTheSameSemantics() {
+    String compact = "classical class Tiny{state long x=0;rev void flip(){x^=1;}"
+        + "entry void main(){flip();reverse flip();assert x==0;}}";
+
+    Program program = new WheelerCompiler().compile(compact);
+    VirtualMachine machine = new VirtualMachine(program);
+    machine.run();
+
+    assertEquals(0, machine.global("x"));
+  }
 
   @Test
   void compilesAndRunsCounter() {
@@ -57,15 +69,24 @@ class WheelerCompilerTest {
   }
 
   @Test
+  void rejectsCheckedArithmeticFromTheCoherentSubset() {
+    CompilerException exception = assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compile(COUNTER.replace("rev void increment", "coherent rev void increment")));
+
+    assertTrue(exception.getMessage().contains("coherent function contains ADD_CONST"));
+  }
+
+  @Test
   void reportsSourceErrorsWithLines() {
     CompilerException unknown = assertThrows(
         CompilerException.class,
-        () -> new WheelerCompiler().compile(COUNTER.replace("add count 1", "add missing 1")));
+        () -> new WheelerCompiler().compile(COUNTER.replace("count += 1", "missing += 1")));
     CompilerException irreversible = assertThrows(
         CompilerException.class,
-        () -> new WheelerCompiler().compile(COUNTER.replace("add count 1", "set count 1")));
+        () -> new WheelerCompiler().compile(COUNTER.replace("count += 1", "count = 1")));
 
-    assertTrue(unknown.getMessage().contains("line 7"));
+    assertTrue(unknown.getMessage().contains("line 5"));
     assertTrue(irreversible.getMessage().contains("no generated inverse"));
   }
 }

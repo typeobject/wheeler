@@ -7,6 +7,17 @@ allprojects {
     }
 }
 
+tasks.register('treeSitterInstall', Exec) {
+    workingDir 'tree-sitter-wheeler'
+    commandLine 'npm', 'ci'
+}
+
+tasks.register('treeSitterTest', Exec) {
+    dependsOn treeSitterInstall
+    workingDir 'tree-sitter-wheeler'
+    commandLine 'npm', 'test'
+}
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'jacoco'

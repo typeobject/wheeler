@@ -1,114 +1,58 @@
 // @ts-check
-// `@type` JSDoc annotations allow editor autocompletion and type checking
-// (when paired with `@ts-check`).
-// There are various equivalent ways to declare your Docusaurus config.
-// See: https://docusaurus.io/docs/api/docusaurus-config
-
 import {themes as prismThemes} from 'prism-react-renderer';
-
-// This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Wheeler',
-  tagline: 'Dinosaurs are cool',
-  favicon: 'img/favicon.ico',
-
-  // Set the production url of your site here
+  tagline: 'Reversible classical and quantum programming',
   url: 'https://wheeler.typeobject.com',
-  // Set the /<baseUrl>/ pathname under which your site is served
-  // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/',
-
-  // GitHub pages deployment config.
-  // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'typeobject', // Usually your GitHub org/user name.
-  projectName: 'wheeler', // Usually your repo name.
-
+  organizationName: 'typeobject',
+  projectName: 'wheeler',
   onBrokenLinks: 'throw',
-  markdown: {hooks: {onBrokenMarkdownLinks: 'warn'}},
-
-  // Even if you don't use internationalization, you can use this field to set
-  // useful metadata like html lang. For example, if your site is Chinese, you
-  // may want to replace "en" with "zh-Hans".
-  i18n: {
-    defaultLocale: 'en',
-    locales: ['en'],
-  },
-
+  markdown: {hooks: {onBrokenMarkdownLinks: 'throw'}},
+  i18n: {defaultLocale: 'en', locales: ['en']},
   presets: [
     [
       'classic',
-      /** @type {import('@docusaurus/preset-classic').Options} */
-      ({
+      {
         docs: {
           sidebarPath: './sidebars.js',
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/typeobject/wheeler/tree/master/docs/',
+          editUrl: 'https://github.com/typeobject/wheeler/tree/master/docs/',
         },
-        theme: {
-          customCss: './src/css/custom.css',
-        },
-      }),
+        blog: false,
+        theme: {customCss: './src/css/custom.css'},
+      },
     ],
   ],
-
-  themeConfig:
-    /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
-    ({
-      // Replace with your project's social card
-      image: 'img/docusaurus-social-card.jpg',
-      navbar: {
-        title: 'My Site',
-        logo: {
-          alt: 'My Site Logo',
-          src: 'img/logo.svg',
+  themeConfig: {
+    navbar: {
+      title: 'Wheeler',
+      items: [
+        {type: 'docSidebar', sidebarId: 'manual', position: 'left', label: 'Manual'},
+        {to: '/docs/proposals/', label: 'WIPs', position: 'left'},
+        {href: 'https://github.com/typeobject/wheeler', label: 'GitHub', position: 'right'},
+      ],
+    },
+    footer: {
+      style: 'dark',
+      links: [
+        {
+          title: 'Wheeler',
+          items: [
+            {label: 'Language profile', to: '/docs/reference/language-profile'},
+            {label: 'Improvement proposals', to: '/docs/proposals/'},
+          ],
         },
-        items: [
-          {
-            type: 'docSidebar',
-            sidebarId: 'tutorialSidebar',
-            position: 'left',
-            label: 'Tutorial',
-          },
-          {
-            href: 'https://github.com/typeobject/wheeler',
-            label: 'GitHub',
-            position: 'right',
-          },
-        ],
-      },
-      footer: {
-        style: 'dark',
-        links: [
-          {
-            title: 'Docs',
-            items: [
-              {
-                label: 'Tutorial',
-                to: '/docs/intro',
-              },
-            ],
-          },
-          {
-            title: 'More',
-            items: [
-              {
-                label: 'GitHub',
-                href: 'https://github.com/typeobject/wheeler',
-              },
-            ],
-          },
-        ],
-        copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
-      },
-      prism: {
-        theme: prismThemes.github,
-        darkTheme: prismThemes.dracula,
-      },
-    }),
+        {
+          title: 'Project',
+          items: [{label: 'GitHub', href: 'https://github.com/typeobject/wheeler'}],
+        },
+      ],
+      copyright: `Copyright © ${new Date().getFullYear()} Wheeler contributors.`,
+    },
+    prism: {theme: prismThemes.github, darkTheme: prismThemes.dracula},
+  },
 };
 
 export default config;

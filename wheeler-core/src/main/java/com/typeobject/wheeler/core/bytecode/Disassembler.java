@@ -1,5 +1,8 @@
 package com.typeobject.wheeler.core.bytecode;
 
+import com.typeobject.wheeler.core.quantum.GateOperation;
+import com.typeobject.wheeler.core.quantum.LiftedCall;
+import com.typeobject.wheeler.core.quantum.QuantumOperation;
 import java.util.StringJoiner;
 
 /** Produces deterministic human-readable Wheeler assembly. */
@@ -7,6 +10,7 @@ public final class Disassembler {
   public String disassemble(Program program) {
     StringBuilder output = new StringBuilder();
     output.append("program ").append(program.name()).append('\n');
+    output.append("kind ").append(program.kind().name().toLowerCase()).append('\n');
     output.append("entry ").append(program.entryFunctionId()).append("\n\n");
     for (int i = 0; i < program.globals().size(); i++) {
       Global global = program.globals().get(i);
@@ -27,7 +31,34 @@ public final class Disassembler {
         appendBody(output, "inverse", function.inverse());
       }
     }
+    if (!program.quantumRegisters().isEmpty()) {
+      output.append("\nquantum registers:\n");
+      program.quantumRegisters().forEach(register -> output.append("  ")
+          .append(register.id()).append(' ').append(register.name())
+          .append(" qubits=").append(register.qubits()).append('\n'));
+      for (var circuit : program.quantumCircuits()) {
+        output.append("\ncircuit ").append(circuit.id()).append(' ')
+            .append(circuit.name()).append(" register=").append(circuit.registerId()).append('\n');
+        for (QuantumOperation operation : circuit.operations()) {
+          output.append("  ").append(quantumOperation(operation)).append('\n');
+        }
+      }
+      output.append("\nworkflow:\n");
+      for (int step = 0; step < program.workflow().size(); step++) {
+        var operation = program.workflow().get(step);
+        output.append("  %04d  %-18s %d, %d, %d%n".formatted(
+            step, operation.opcode(), operation.first(), operation.second(), operation.third()));
+      }
+    }
     return output.toString();
+  }
+
+  private static String quantumOperation(QuantumOperation operation) {
+    if (operation instanceof GateOperation gate) {
+      return gate.gate() + " " + gate.qubits() + (gate.parameter() == 0 ? "" : " " + gate.parameter());
+    }
+    LiftedCall lifted = (LiftedCall) operation;
+    return (lifted.inverseDirection() ? "UNLIFT " : "LIFT ") + lifted.functionId();
   }
 
   private static void appendBody(StringBuilder output, String label, java.util.List<Instruction> body) {

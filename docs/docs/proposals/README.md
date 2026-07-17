@@ -79,8 +79,9 @@ The first proposals deliberately establish semantics before broad language imple
 
 1. **Make the reversible core executable.** WIP-0001 defines the artifact, verifier, machine state, instruction reversal, bounded history, and a bytecode-to-VM acceptance path.
 2. **Unify classical and quantum programming.** WIP-0002 lets a coherently eligible `rev` function execute as classical bytecode or lower to a unitary operation, while keeping preparation and measurement explicit.
-3. **Run on real targets without making one provider the language.** WIP-0003 defines capability-based targets, a semantic simulator, and a Qiskit-compatible adapter for current systems.
-4. **Make hybrid execution durable and honest about irreversibility.** WIP-0004 defines asynchronous jobs, continuations, result provenance, rollback, replay, retry, and history horizons.
+3. **Make Wheeler source familiar and teachable.** WIP-0005 gives those semantics readable classes, fields, methods, calls, reverse blocks, gates, and measurements. WIP-0006 fixes formatting-independent syntax, incremental editor tooling, and the teaching progression.
+4. **Run on real targets without making one provider the language.** WIP-0003 defines capability-based targets, a semantic simulator, and a Qiskit-compatible adapter for current systems.
+5. **Make hybrid execution durable and honest about irreversibility.** WIP-0004 defines asynchronous jobs, continuations, result provenance, rollback, replay, retry, and history horizons.
 
 Deterministic shared-memory concurrency and a trusted proof/certificate system should be proposed after these contracts are stable. They depend on the state, effect, quantum-resource, and history definitions rather than defining competing versions of them.
 
@@ -89,6 +90,8 @@ Deterministic shared-memory concurrency and a trusted proof/certificate system s
 | WIP | Status | Decision | Area |
 | --- | --- | --- | --- |
 | [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md) | Implementing | Reversible bytecode and machine-state contract | VM, bytecode, artifacts, history |
-| [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md) | Draft | Unified classical and quantum semantics | Language, hybrid execution, quantum IR |
+| [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md) | Implementing | Unified classical and quantum semantics | Language, hybrid execution, quantum IR |
 | [WIP-0003](WIP-0003-quantum-target-and-qiskit-backend.md) | Draft | Quantum target contract and Qiskit-compatible backend | Targets, Qiskit, simulators, hardware |
 | [WIP-0004](WIP-0004-hybrid-jobs-history-and-replay.md) | Draft | Hybrid jobs, history, and replay | Runtime, jobs, transactions, replay |
+| [WIP-0005](WIP-0005-wheeler-source-language.md) | Implementing | Wheeler source language profile | Language, compiler, ergonomics |
+| [WIP-0006](WIP-0006-concrete-syntax-tooling-and-teaching.md) | Implementing | Concrete syntax, editor tooling, and teaching profile | Parser, Tree-sitter, documentation |

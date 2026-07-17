@@ -8,6 +8,8 @@ import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.MANIFEST;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.REQUIRED_SECTION;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.STRINGS;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.TYPES;
+import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.WORKFLOW;
+import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.QUANTUM;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
@@ -37,6 +39,10 @@ public final class BytecodeWriter {
     sections.add(new Section(TYPES, types(program, strings), 0));
     sections.add(new Section(FUNCTIONS, functions(program, strings, offsets), 0));
     sections.add(new Section(CODE, code, 0));
+    if (program.kind() != ProgramKind.CLASSICAL) {
+      sections.add(new Section(WORKFLOW, WorkflowSectionCodec.write(program.workflow()), 0));
+      sections.add(new Section(QUANTUM, QuantumSectionCodec.write(program, strings), 0));
+    }
     sections.sort(Comparator.comparingInt(Section::type));
 
     int directoryOffset = HEADER_SIZE;
@@ -82,6 +88,8 @@ public final class BytecodeWriter {
     values.add(program.name());
     program.globals().forEach(global -> values.add(global.name()));
     program.functions().forEach(function -> values.add(function.name()));
+    program.quantumRegisters().forEach(register -> values.add(register.name()));
+    program.quantumCircuits().forEach(circuit -> values.add(circuit.name()));
     Map<String, Integer> result = new LinkedHashMap<>();
     values.forEach(value -> result.put(value, result.size()));
     return result;
@@ -92,7 +100,7 @@ public final class BytecodeWriter {
     buffer.putInt(strings.get(program.name()));
     buffer.putInt(program.entryFunctionId());
     buffer.putInt(program.maxHistoryRecords());
-    buffer.putInt(0);
+    buffer.putInt(program.kind().code());
     buffer.putLong(program.maxSteps());
     return buffer.array();
   }

@@ -1,0 +1,35 @@
+{
+  "grammars": [
+    {
+      "name": "wheeler",
+      "camelcase": "Wheeler",
+      "scope": "source.wheeler",
+      "path": ".",
+      "file-types": ["w"],
+      "highlights": "queries/highlights.scm",
+      "injection-regex": "^wheeler$"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "Apache-2.0",
+    "description": "Wheeler source language grammar",
+    "authors": [
+      {
+        "name": "Wheeler maintainers"
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/typeobject/wheeler"
+    }
+  },
+  "bindings": {
+    "c": true,
+    "go": false,
+    "node": false,
+    "python": false,
+    "rust": false,
+    "swift": false,
+    "zig": false
+  }
+}

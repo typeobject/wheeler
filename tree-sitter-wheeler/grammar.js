@@ -1,0 +1,110 @@
+/// <reference types="tree-sitter-cli/dsl" />
+// @ts-check
+
+module.exports = grammar({
+  name: 'wheeler',
+
+  extras: $ => [/[\s\uFEFF\u2060\u200B]/, $.line_comment, $.block_comment],
+  word: $ => $.identifier,
+
+  rules: {
+    source_file: $ => $.class_declaration,
+
+    class_declaration: $ => seq(
+      optional('public'),
+      field('domain', $.computation_domain),
+      'class',
+      field('name', $.identifier),
+      field('body', $.class_body),
+    ),
+
+    computation_domain: _ => choice('classical', 'quantum', 'hybrid'),
+    class_body: $ => seq('{', repeat($.member_declaration), '}'),
+    member_declaration: $ => seq(
+      repeat($.visibility_modifier),
+      choice($.state_declaration, $.qreg_declaration, $.method_declaration),
+    ),
+
+    state_declaration: $ => seq(
+      'state',
+      'long',
+      field('name', $.identifier),
+      '=',
+      field('value', $.integer_literal),
+      ';',
+    ),
+
+    qreg_declaration: $ => seq(
+      'qreg',
+      field('name', $.identifier),
+      '=',
+      'new',
+      'qreg',
+      '(',
+      field('size', $.integer_literal),
+      ')',
+      ';',
+    ),
+
+    method_declaration: $ => seq(
+      repeat($.method_modifier),
+      'void',
+      field('name', $.identifier),
+      field('parameters', $.parameter_list),
+      field('body', $.block),
+    ),
+
+    visibility_modifier: _ => choice('public', 'private', 'protected'),
+    method_modifier: _ => choice('static', 'entry', 'rev', 'coherent', 'unitary'),
+    parameter_list: _ => seq('(', ')'),
+    block: $ => seq('{', repeat($.statement), '}'),
+
+    statement: $ => choice(
+      $.assignment_statement,
+      $.assert_statement,
+      $.call_statement,
+      $.coherent_apply_statement,
+      $.reverse_statement,
+    ),
+
+    assignment_statement: $ => seq(
+      field('left', $.identifier),
+      field('operator', choice('=', '+=', '-=', '^=')),
+      field('right', $.expression),
+      ';',
+    ),
+
+    assert_statement: $ => seq('assert', $.identifier, '==', $.integer_literal, ';'),
+    call_statement: $ => seq($.call_expression, ';'),
+    coherent_apply_statement: $ => seq(
+      field('register', $.identifier),
+      '.',
+      'apply',
+      '(',
+      field('method', $.identifier),
+      ')',
+      ';',
+    ),
+    reverse_statement: $ => seq('reverse', choice($.block, seq($.call_expression, ';'))),
+
+    expression: $ => choice($.integer_literal, $.number_literal, $.identifier, $.call_expression, $.qubit_reference),
+    call_expression: $ => seq(
+      field('function', $.identifier),
+      '(',
+      optional($.argument_list),
+      ')',
+    ),
+    argument_list: $ => seq($.expression, repeat(seq(',', $.expression))),
+    qubit_reference: $ => seq(field('register', $.identifier), '[', field('index', $.integer_literal), ']'),
+
+    integer_literal: _ => token(choice(
+      /-?[0-9][0-9_]*/,
+      /-?0[xX][0-9a-fA-F][0-9a-fA-F_]*/,
+      /-?0[bB][01][01_]*/,
+    )),
+    number_literal: _ => token(/-?[0-9][0-9_]*\.[0-9][0-9_]*(?:[eE][+-]?[0-9]+)?/),
+    identifier: _ => /[A-Za-z_][A-Za-z0-9_]*/,
+    line_comment: _ => token(seq('//', /[^\n]*/)),
+    block_comment: _ => token(seq('/*', /[^*]*\*+([^/*][^*]*\*+)*/, '/')),
+  },
+});

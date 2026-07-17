@@ -28,10 +28,14 @@ Directory entries contain section type, flags, offset, length, alignment, and a 
 | 3 | Signed 64-bit global descriptors. |
 | 5 | Function and inverse-body descriptors. |
 | 6 | Classical code records. |
+| 7 | Ordered classical/quantum workflow records. |
+| 8 | Quantum-register, circuit, gate, and coherently lifted call records. |
 
-Unknown required sections are rejected. WIP-0002 and WIP-0003 reserve sections for quantum regions and target requirements.
+Sections 7 and 8 are required for quantum and hybrid artifacts and absent from canonical classical artifacts. Unknown required sections are rejected. WIP-0003 reserves a later section for target requirements; provider executables are derived artifacts, not semantic bytecode.
 
-## Instructions
+The manifest records the program kind (`classical`, `quantum`, or `hybrid`) in addition to its name, entry function, history ceiling, and step ceiling.
+
+## Classical instructions
 
 Each instruction is independently bounded:
 
@@ -43,6 +47,12 @@ u64 operands[operand_count]
 ```
 
 The opcode fixes the canonical operand count and semantic rule. Branches and variable records are not in the first slice. Dynamic undo data never appears in an instruction; it belongs to runtime step records.
+
+## Quantum and workflow records
+
+Quantum bodies declare affine logical registers, unitary circuits, semantic gates, and references to compiler-validated coherent functions. Workflow records describe preparation, circuit/adjoint application, measurement into classical state, classical call/inverse, assertion, commit, and halt.
+
+Quantum operations do not masquerade as mutable classical addresses. The decoder preserves their domain so runtime target selection cannot reinterpret an ordinary opcode as a provider gate.
 
 ## Verification
 

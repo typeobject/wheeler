@@ -1,66 +1,132 @@
-# Executable language profile
+# Wheeler source language profile
 
-Wheeler's executable profile grows only when a construct has parser, verifier, runtime, negative, and end-to-end tests. The current profile is classical and implements the first WIP-0001 slice.
+Wheeler uses familiar class, field, method, call, assignment, and block forms while giving reversibility and quantum resources explicit semantics. The profile grows only when a construct has parser, verifier, runtime, negative, editor-grammar, and end-to-end tests.
 
-## File structure
+Whitespace and line breaks are not semantic. Simple statements end in semicolons. `//` and `/* ... */` comments are supported.
 
-A source file contains:
+## Classes and state
 
-```text
-wheeler 1
-program <Identifier>
-kind classical
-state <Identifier> = <i64>
-...
-<function declarations>
-entry { ... }
-```
+A file contains one computation-domain class:
 
-Comments begin with `//`. Statements may end in a semicolon. Integers are signed 64-bit decimal, hexadecimal (`0x`), or binary (`0b`) values and may contain underscores.
-
-## Functions
-
-```text
-fn helper {
-  ...
-}
-
-rev update {
-  ...
-}
-
-rev coherent permutation {
-  ...
+```java
+classical class Counter {
+    state long count = 0;
 }
 ```
 
-A normal `fn` has only a forward body. A `rev` function receives a compiler-generated inverse body. A `rev coherent` declaration additionally requires the current coherent subset; WIP-0002 will lower eligible functions to unitary quantum operations.
+The available domains are `classical`, `quantum`, and `hybrid`. Version 1 supports signed 64-bit classical state and affine logical quantum registers:
 
-Non-entry functions return automatically. The single `entry` block must halt explicitly.
+```java
+state long measured = 0;
+qreg q = new qreg(3);
+```
 
-## Operations
+Raw provider qubits are never source values.
+
+## Methods
+
+```java
+void helper() { ... }
+rev void increment() { ... }
+coherent rev void flip() { ... }
+unitary void qft() { ... }
+entry void main() { ... }
+```
+
+- A normal method has a forward classical body.
+- A `rev` method receives a compiler-validated inverse.
+- A `coherent rev` method also satisfies the exact finite subset that can become a unitary operation.
+- A `unitary` method lowers to backend-neutral quantum region IR and receives a generated adjoint.
+- Exactly one zero-argument `entry void main()` method defines execution.
+
+`public`, `private`, `protected`, and `static` are accepted where meaningful for familiar organization. The first profile has zero-argument methods; parameters and locals will be added with corresponding bytecode and ownership semantics.
+
+## Classical statements
 
 | Source | Meaning |
 | --- | --- |
-| `add state value` | Checked signed addition; inverse is subtraction. |
-| `sub state value` | Checked signed subtraction; inverse is addition. |
-| `xor state value` | Bitwise XOR; self-inverse. |
-| `swap left right` | Swap two state locations; self-inverse. |
-| `set state value` | Logged overwrite; valid in non-reversible functions. |
-| `call function` | Invoke a forward body. |
-| `uncall function` | Invoke a verified inverse body. |
-| `expect state value` | Trap without data mutation when unequal. |
-| `checkpoint` | Add a reversible checkpoint marker. |
-| `commit` | Advance the rewind horizon and clear prior step records. |
-| `nop` | No operation. |
-| `halt` | Halt the entry function. |
+| `count += 1;` | Checked signed addition; inverse is subtraction. |
+| `count -= 1;` | Checked signed subtraction; inverse is addition. |
+| `bit ^= 1;` | Bitwise XOR; self-inverse and coherently eligible. |
+| `count = 7;` | Logged overwrite; rejected from generated-inverse methods. |
+| `increment();` | Invoke a forward method or unitary region. |
+| `reverse increment();` | Invoke a method inverse or unitary adjoint. |
+| `assert count == 2;` | Trap before mutation when unequal. |
+| `checkpoint();` | Add a reversible checkpoint marker. |
+| `commit();` | Advance the local rewind horizon. |
 
-Generated inverse bodies reverse statement order and pair each operation with its declared inverse. Logged overwrite, commit, halt, and other operations without generated inverses are rejected in `rev` functions.
+A reverse block invokes supported calls in reverse lexical order:
 
-## Three meanings that must stay separate
+```java
+reverse {
+    first();
+    second();
+}
+```
 
-- `uncall f` is new execution of `f`'s inverse body.
-- VM rewind consumes existing step records.
-- A future quantum adjoint reverses a live unitary region.
+This executes `reverse second();` and then `reverse first();`.
 
-External observations and measurement require replay, compensation, or retry rather than pretending they can always be undone.
+## Quantum statements
+
+Unitary methods use Java-shaped gate calls over indexed registers:
+
+```java
+unitary void bell() {
+    H(q[0]);
+    CNOT(q[0], q[1]);
+}
+```
+
+The current semantic gates are `H`, `X`, `Z`, `Phase`, `CPhase`, `CNOT`, `CZ`, and `Swap`. Target adapters may decompose them but cannot change their ideal meaning.
+
+Preparation and measurement are explicit:
+
+```java
+prepare(q, 0);
+bell();
+measured = measure(q);
+```
+
+Measurement creates a classical observation and cannot be hidden in a `pure`, `rev`, or `unitary` method.
+
+## Coherent lifting
+
+The first coherent subset supports finite XOR permutations. The same checked method may run on classical state and be referenced from a quantum register:
+
+```java
+coherent rev void flip() {
+    bit ^= 1;
+}
+
+unitary void oracle() {
+    q.apply(flip);
+}
+```
+
+The compiler rejects checked arithmetic, logged writes, measurement, I/O, and other non-unitary operations from this subset. Broader exact finite arithmetic will be added with explicit width semantics.
+
+## Distinct meanings of reverse
+
+- `reverse method();` is new execution of a verified inverse or adjoint.
+- VM rewind consumes prior classical step records.
+- Uncomputation returns temporary coherent state to its required clean value.
+- Replay reuses recorded observations.
+- Retry performs a fresh preparation and target execution.
+
+These operations are related but not interchangeable.
+
+## Parser and editor tooling
+
+The compiler lexer records line, column, and source offset. The parser is formatting-independent and rejects unsupported constructs rather than dropping them.
+
+`tree-sitter-wheeler` provides an incremental grammar, corpus, highlighting, and fold queries for `.w` files. Its concrete syntax tree does not attempt type checking; method and gate meaning are resolved by the compiler.
+
+## Teaching path
+
+1. `Counter.w`: classical state, reversible methods, assertions, and reverse blocks.
+2. `CoherentOracle.w`: one XOR permutation on classical and coherent data.
+3. `QFT.w`: unitary regions and generated adjoints.
+4. Measured hybrid optimizers: observations and repeated target execution.
+5. Dynamic correction: target capabilities and low-latency feedback.
+
+Every teaching example is compiled and executed in the test suite when its profile is implemented.

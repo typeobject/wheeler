@@ -2,7 +2,7 @@
 
 Wheeler is an experimental reversible classical and quantum programming system. Its central goal is to let one verified reversible function execute as ordinary classical bytecode or lower coherently to a quantum target without duplicating the algorithm.
 
-The repository currently implements the first classical slice of [WIP-0001](docs/docs/proposals/WIP-0001-reversible-bytecode-and-machine-state.md):
+The repository implements the executable foundations of [WIP-0001](docs/docs/proposals/WIP-0001-reversible-bytecode-and-machine-state.md), [WIP-0002](docs/docs/proposals/WIP-0002-unified-classical-quantum-semantics.md), and the Wheeler source/tooling profiles in [WIP-0005](docs/docs/proposals/WIP-0005-wheeler-source-language.md) and [WIP-0006](docs/docs/proposals/WIP-0006-concrete-syntax-tooling-and-teaching.md):
 
 - a canonical, versioned Wheeler Bytecode Container (`.wbc`);
 - a strict decoder and semantic verifier;
@@ -10,10 +10,14 @@ The repository currently implements the first classical slice of [WIP-0001](docs
 - intrinsic, checked, logged, and barrier-classified instructions;
 - exact per-step rewind records;
 - compiler-generated inverse function bodies;
+- backend-neutral quantum regions and generated adjoints;
+- an ideal state-vector reference target;
+- coherent lifting for exact XOR permutations;
+- formatting-independent Wheeler parsing and Tree-sitter tooling;
 - `wheelc`, `wheel`, and `wheeldis` command-line tools;
-- a checked-in `Counter.w` source-to-bytecode-to-VM example.
+- executable Counter, coherent-oracle, and QFT examples.
 
-Quantum region IR, coherent lifting, target adapters, and durable hybrid jobs are specified in WIP-0002 through WIP-0004 and are being implemented in that order.
+Asynchronous target adapters and durable hybrid jobs remain specified by WIP-0003 and WIP-0004.
 
 ## Requirements
 
@@ -60,7 +64,7 @@ java -cp "$CP" com.typeobject.wheeler.tools.Wheel /tmp/Counter.wbc
 Expected final output includes:
 
 ```text
-Counter halted after 15 steps
+Counter (classical) halted after 15 steps
 count = 0
 ```
 
@@ -68,24 +72,24 @@ count = 0
 
 The current profile is deliberately small and complete:
 
-```wheeler
-wheeler 1
-program Counter
-kind classical
-state count = 0
+```java
+classical class Counter {
+    state long count = 0;
 
-rev coherent increment {
-  add count 1
-}
+    rev void increment() {
+        count += 1;
+    }
 
-entry {
-  call increment
-  call increment
-  expect count 2
-  uncall increment
-  uncall increment
-  expect count 0
-  halt
+    entry void main() {
+        increment();
+        increment();
+        assert count == 2;
+        reverse {
+            increment();
+            increment();
+        }
+        assert count == 0;
+    }
 }
 ```
 
@@ -99,6 +103,7 @@ See the [language profile](docs/docs/reference/language-profile.md) for the supp
 - `wheeler-tools` — command-line compiler, runner, and disassembler.
 - `wheeler-examples` — executable acceptance programs and integration tests.
 - `docs/docs/proposals` — Wheeler Improvement Proposals (WIPs).
+- `tree-sitter-wheeler` — incremental grammar and editor queries.
 
 ## Documentation
 

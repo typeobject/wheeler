@@ -1,42 +1,26 @@
-import clsx from 'clsx';
 import Link from '@docusaurus/Link';
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
-import HomepageFeatures from '@site/src/components/HomepageFeatures';
-
 import Heading from '@theme/Heading';
 import styles from './index.module.css';
 
-function HomepageHeader() {
-  const {siteConfig} = useDocusaurusContext();
+export default function Home() {
   return (
-    <header className={clsx('hero hero--primary', styles.heroBanner)}>
-      <div className="container">
-        <Heading as="h1" className="hero__title">
-          {siteConfig.title}
-        </Heading>
-        <p className="hero__subtitle">{siteConfig.tagline}</p>
-        <div className={styles.buttons}>
-          <Link
-            className="button button--secondary button--lg"
-            to="/docs/intro">
-            Docusaurus Tutorial - 5min ⏱️
+    <Layout title="Wheeler" description="Reversible classical and quantum programming">
+      <main className={styles.hero}>
+        <p className={styles.eyebrow}>REVERSIBLE · COHERENT · PORTABLE</p>
+        <Heading as="h1">One language across classical and quantum systems</Heading>
+        <p className={styles.summary}>
+          Wheeler makes inverse execution, coherent computation, measurement, and replay
+          explicit while keeping source familiar, readable, and teachable.
+        </p>
+        <div className={styles.actions}>
+          <Link className="button button--primary button--lg" to="/docs/intro">
+            Start with Wheeler
+          </Link>
+          <Link className="button button--secondary button--lg" to="/docs/proposals/">
+            Read the WIPs
           </Link>
         </div>
-      </div>
-    </header>
-  );
-}
-
-export default function Home() {
-  const {siteConfig} = useDocusaurusContext();
-  return (
-    <Layout
-      title={`Hello from ${siteConfig.title}`}
-      description="Description will go into a meta tag in <head />">
-      <HomepageHeader />
-      <main>
-        <HomepageFeatures />
       </main>
     </Layout>
   );
