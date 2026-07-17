@@ -1,10 +1,10 @@
 # Wheeler
 
-Wheeler is an experimental reversible classical and quantum programming system. Its central goal is to let one verified reversible function execute as ordinary classical bytecode or lower coherently to a quantum target without duplicating the algorithm.
+Wheeler is an experimental [reversible computing](https://en.wikipedia.org/wiki/Reversible_computing) and [quantum computing](https://en.wikipedia.org/wiki/Quantum_computing) system. Its central goal is to let one verified reversible function execute as ordinary classical bytecode or lower coherently to a quantum target without duplicating the algorithm.
 
 Java and Gradle are temporary stage-0 infrastructure. The production compiler will be a Wheeler program, the runtime and tools will move to native Wheeler code, and a Wheeler-written `wheel` package/build system will replace Gradle. The Java path will be deleted after reproducible bootstrap and differential conformance.
 
-The repository implements the executable foundations of [WIP-0001](docs/docs/proposals/WIP-0001-reversible-bytecode-and-machine-state.md), [WIP-0002](docs/docs/proposals/WIP-0002-unified-classical-quantum-semantics.md), and the Wheeler source/tooling profiles in [WIP-0005](docs/docs/proposals/WIP-0005-wheeler-source-language.md) and [WIP-0006](docs/docs/proposals/WIP-0006-concrete-syntax-tooling-and-teaching.md):
+The repository currently implements:
 
 - a canonical, versioned Wheeler Bytecode Container (`.wbc`);
 - a strict decoder and semantic verifier;
@@ -15,18 +15,18 @@ The repository implements the executable foundations of [WIP-0001](docs/docs/pro
 - backend-neutral quantum regions and generated adjoints;
 - an ideal state-vector reference target;
 - asynchronous capability-based quantum jobs;
-- OpenQASM 3 lowering and an asynchronous provider-executor SPI;
+- [OpenQASM 3](https://openqasm.com/) lowering and an asynchronous provider-executor SPI;
 - coherent lifting for exact XOR permutations;
-- formatting-independent Wheeler parsing and Tree-sitter tooling;
+- formatting-independent Wheeler parsing and [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) tooling;
 - `wheelc`, `wheel`, and `wheeldis` command-line tools;
-- executable Counter, coherent-oracle, and QFT examples.
+- executable Counter, coherent-oracle, and [quantum Fourier transform](https://en.wikipedia.org/wiki/Quantum_Fourier_transform) examples.
 
-Parameterized target batches, dynamic circuits, and durable hybrid replay remain under WIP-0003 and WIP-0004.
+Parameterized target batches, dynamic circuits, durable hybrid replay, self-hosting, native execution, and Wheeler-native package management remain in active design or implementation.
 
 ## Requirements
 
-- JDK 26
-- No system Gradle installation is required; use the wrapper.
+- [JDK 26](https://openjdk.org/projects/jdk/26/)
+- No system [Gradle](https://gradle.org/) installation is required; use the wrapper.
 
 On macOS with Homebrew:
 
@@ -109,7 +109,7 @@ See the [language profile](docs/docs/reference/language-profile.md) for the supp
 
 - `wheeler-core` — bytecode model, codec, verifier, disassembler, and reversible VM.
 - `wheeler-compiler` — source parser, diagnostics, lowering, and inverse generation.
-- `wheeler-runtime` — quantum targets and hybrid runtime as WIP-0002 onward lands.
+- `wheeler-runtime` — quantum targets and durable hybrid execution.
 - `wheeler-tools` — command-line compiler, runner, disassembler, and OpenQASM emitter.
 - `wheeler-examples` — executable acceptance programs and integration tests.
 - `docs/docs/proposals` — Wheeler Improvement Proposals (WIPs).
@@ -123,9 +123,6 @@ See the [language profile](docs/docs/reference/language-profile.md) for the supp
 - [Virtual machine](docs/docs/reference/virtual-machine.md)
 - [Quantum targets](docs/docs/reference/quantum-targets.md)
 - [Development guide](docs/docs/reference/development.md)
-- [Self-hosting compiler plan](docs/docs/proposals/WIP-0007-self-hosting-compiler-and-bootstrap.md)
-- [Java-free native bootstrap plan](docs/docs/proposals/WIP-0008-java-free-runtime-and-native-bootstrap.md)
-- [Wheeler package and build system plan](docs/docs/proposals/WIP-0009-wheeler-package-and-build-system.md)
 
 ## Status and scope
 

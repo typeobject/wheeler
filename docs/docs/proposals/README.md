@@ -73,21 +73,6 @@ Wheeler proposals should:
 
 Use “Not applicable” with a reason for unaffected template sections. Split work that can be accepted, implemented, or rolled back independently. Exact API reference belongs in the manual after implementation; task-level planning belongs in issues.
 
-## Initial sequence
-
-The first proposals deliberately establish semantics before broad language implementation:
-
-1. **Make the reversible core executable.** WIP-0001 defines the artifact, verifier, machine state, instruction reversal, bounded history, and a bytecode-to-VM acceptance path.
-2. **Unify classical and quantum programming.** WIP-0002 lets a coherently eligible `rev` function execute as classical bytecode or lower to a unitary operation, while keeping preparation and measurement explicit.
-3. **Make Wheeler source familiar and teachable.** WIP-0005 gives those semantics readable classes, fields, methods, calls, reverse blocks, gates, and measurements. WIP-0006 fixes formatting-independent syntax, incremental editor tooling, and the teaching progression.
-4. **Run on real targets without making one provider the language.** WIP-0003 defines capability-based targets, a semantic simulator, and portable OpenQASM 3 execution for current systems.
-5. **Make hybrid execution durable and honest about irreversibility.** WIP-0004 defines asynchronous jobs, continuations, result provenance, rollback, replay, retry, and history horizons.
-6. **Make the compiler prove the language is usable.** WIP-0007 makes the production compiler a Wheeler program and requires a byte-identical bootstrap fixed point.
-7. **Remove the host-language dependency.** WIP-0008 moves the compiler, runtime, and tools to a native Wheeler toolchain and deletes Java after differential conformance.
-8. **Own packages and builds in Wheeler.** WIP-0009 defines the Wheeler-written `wheel` workflow, canonical manifests and lockfiles, content-addressed packages, capability-scoped build tools, and final Gradle deletion.
-
-Deterministic shared-memory concurrency and a trusted proof/certificate system should be proposed after these contracts are stable. They depend on the state, effect, quantum-resource, and history definitions rather than defining competing versions of them.
-
 ## Proposals
 
 | WIP | Status | Decision | Area |
