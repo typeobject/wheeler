@@ -5,6 +5,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 const config = {
   title: 'Wheeler',
   tagline: 'Reversible classical and quantum programming',
+  favicon: 'img/wheeler-mark.svg',
   url: 'https://wheeler.typeobject.com',
   baseUrl: '/',
   organizationName: 'typeobject',
@@ -17,6 +18,7 @@ const config = {
       'classic',
       {
         docs: {
+          routeBasePath: '/',
           sidebarPath: './sidebars.js',
           editUrl: 'https://github.com/typeobject/wheeler/tree/master/docs/',
         },
@@ -26,30 +28,33 @@ const config = {
     ],
   ],
   themeConfig: {
+    colorMode: {
+      defaultMode: 'light',
+      disableSwitch: true,
+      respectPrefersColorScheme: false,
+    },
+    docs: {
+      sidebar: {
+        hideable: true,
+        autoCollapseCategories: true,
+      },
+    },
     navbar: {
       title: 'Wheeler',
+      logo: {
+        alt: 'Wheeler quantum orbit',
+        src: 'img/wheeler-mark.svg',
+      },
       items: [
         {type: 'docSidebar', sidebarId: 'manual', position: 'left', label: 'Manual'},
-        {to: '/docs/proposals/', label: 'WIPs', position: 'left'},
-        {href: 'https://github.com/typeobject/wheeler', label: 'GitHub', position: 'right'},
+        {to: '/reference/language-profile', label: 'Language', position: 'left'},
+        {to: '/proposals/', label: 'WIPs', position: 'left'},
+        {href: 'https://github.com/typeobject/wheeler', label: 'GitHub ↗', position: 'right'},
       ],
     },
     footer: {
       style: 'dark',
-      links: [
-        {
-          title: 'Wheeler',
-          items: [
-            {label: 'Language profile', to: '/docs/reference/language-profile'},
-            {label: 'Improvement proposals', to: '/docs/proposals/'},
-          ],
-        },
-        {
-          title: 'Project',
-          items: [{label: 'GitHub', href: 'https://github.com/typeobject/wheeler'}],
-        },
-      ],
-      copyright: `Copyright © ${new Date().getFullYear()} Wheeler contributors.`,
+      copyright: `Wheeler / reversible by design / © ${new Date().getFullYear()} contributors`,
     },
     prism: {theme: prismThemes.github, darkTheme: prismThemes.dracula},
   },
