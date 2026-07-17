@@ -1,6 +1,6 @@
 # Wheeler
 
-Wheeler is a programming language for [reversible computing](https://en.wikipedia.org/wiki/Reversible_computing) and [quantum computing](https://en.wikipedia.org/wiki/Quantum_computing). One verified reversible function can execute as classical code or lower coherently to a quantum target without duplicating the algorithm.
+Wheeler is a programming language for [reversible computing](https://en.wikipedia.org/wiki/Reversible_computing) and [quantum computing](https://en.wikipedia.org/wiki/Quantum_computing). A verified reversible function can run as ordinary classical code or be lifted coherently for quantum execution, so the same implementation serves both domains.
 
 The language keeps inverse execution, VM rewind, quantum adjoints, measurement, replay, and retry distinct. It uses familiar class and method syntax while making irreversible effects and affine quantum resources explicit.
 
