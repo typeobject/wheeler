@@ -21,7 +21,7 @@ The implementation grows as complete executable profiles rather than accepting b
 
 Wheeler should feel like a plausible evolution of Java for reversible and quantum systems. The first executable implementation used a temporary line-oriented declaration format to validate bytecode. Keeping that format would make the VM testable but would not satisfy the language's purpose or the ergonomics demonstrated by the original examples.
 
-At the same time, copying all of Java's grammar before semantics exist recreates the deleted placeholder compiler. The project needs a Java-shaped subset whose every construct has parsing, diagnostics, lowering, verification, execution, and example coverage.
+At the same time, copying all of Java's grammar before semantics exist recreates the deleted placeholder compiler. The project needs a Java-shaped subset whose every construct has parsing, diagnostics, lowering, verification, execution, and example coverage. It must grow toward the WIP-0007 bootstrap profile: the compiler is a Wheeler acceptance program, not a permanent Java service.
 
 ## Use cases
 
@@ -81,7 +81,8 @@ A `coherent rev` method is callable normally from classical code and may be refe
 - Give every accepted construct complete parser-to-runtime coverage.
 - Produce line-numbered diagnostics for unsupported syntax and semantic violations.
 - Migrate every checked-in example to the accepted profile.
-- Avoid permanent compatibility with the temporary declaration syntax.
+- Grow typed locals, control flow, aggregate values, modules, and effects far enough to express the Wheeler compiler.
+- Avoid permanent compatibility with the temporary declaration syntax or Java stage-0 internals.
 
 ## Non-goals
 
@@ -123,7 +124,7 @@ The first profile supports:
 - `prepare`, full-register computational-basis measurement, unitary call/adjoint, and coherent method reference;
 - comments and conventional semicolons/indentation.
 
-Each later profile must update this WIP or a successor with syntax, semantics, migration, and tests.
+Each later profile must update this WIP or a successor with syntax, semantics, migration, and tests. Feature order is driven by executable examples and the WIP-0007 self-hosting compiler, not by copying the Java grammar.
 
 ### Parsing strategy
 
@@ -205,11 +206,12 @@ Rejected. Reversibility, affine quantum resources, reverse blocks, and measureme
 
 ## Open questions
 
-- Which exact Java local-variable and parameter profile should follow zero-argument field-oriented methods? — **Owner:** language maintainers — **Decide by:** before the BinaryTree migration
+- Which exact local-variable, parameter, and aggregate profile is the smallest complete WIP-0007 bootstrap subset? — **Owner:** language and compiler maintainers — **Decide by:** before the BinaryTree migration
 - Should coherent invocation eventually use ordinary overload resolution on coherent value types, method references, or both? — **Owner:** language and quantum maintainers — **Decide by:** before parameters are added
 
 ## References
 
 - [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)
+- [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [Language profile](../reference/language-profile.md)

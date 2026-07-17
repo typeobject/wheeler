@@ -2,6 +2,8 @@
 
 Wheeler is an experimental reversible classical and quantum programming system. Its central goal is to let one verified reversible function execute as ordinary classical bytecode or lower coherently to a quantum target without duplicating the algorithm.
 
+Java and Gradle are temporary stage-0 infrastructure. The production compiler will be a Wheeler program, the runtime and tools will move to native Wheeler code, and the Java path will be deleted after reproducible bootstrap and differential conformance.
+
 The repository implements the executable foundations of [WIP-0001](docs/docs/proposals/WIP-0001-reversible-bytecode-and-machine-state.md), [WIP-0002](docs/docs/proposals/WIP-0002-unified-classical-quantum-semantics.md), and the Wheeler source/tooling profiles in [WIP-0005](docs/docs/proposals/WIP-0005-wheeler-source-language.md) and [WIP-0006](docs/docs/proposals/WIP-0006-concrete-syntax-tooling-and-teaching.md):
 
 - a canonical, versioned Wheeler Bytecode Container (`.wbc`);
@@ -121,6 +123,8 @@ See the [language profile](docs/docs/reference/language-profile.md) for the supp
 - [Virtual machine](docs/docs/reference/virtual-machine.md)
 - [Quantum targets](docs/docs/reference/quantum-targets.md)
 - [Development guide](docs/docs/reference/development.md)
+- [Self-hosting compiler plan](docs/docs/proposals/WIP-0007-self-hosting-compiler-and-bootstrap.md)
+- [Java-free native bootstrap plan](docs/docs/proposals/WIP-0008-java-free-runtime-and-native-bootstrap.md)
 
 ## Status and scope
 

@@ -121,6 +121,14 @@ The compiler lexer records line, column, and source offset. The parser is format
 
 `tree-sitter-wheeler` provides an incremental grammar, corpus, highlighting, and fold queries for `.w` files. Its concrete syntax tree does not attempt type checking; method and gate meaning are resolved by the compiler.
 
+## Bootstrap direction
+
+The current compiler and VM use Java only as stage-0 infrastructure. The production compiler will be Wheeler source and must compile itself to a byte-identical second-stage `.wbc` artifact. Typed locals, parameters, returns, control flow, records, variants, strings, bytes, deterministic collections, modules, and explicit file effects will be added as complete vertical slices to support that compiler.
+
+After native runtime conformance, the Java compiler, VM, tools, Gradle build, and JVM deployment path will be deleted. A cold build will use a content-addressed prior native Wheeler release and `.wbc` recovery seed. Java APIs and object semantics are therefore not prospective Wheeler contracts.
+
+See [WIP-0007](../proposals/WIP-0007-self-hosting-compiler-and-bootstrap.md) and [WIP-0008](../proposals/WIP-0008-java-free-runtime-and-native-bootstrap.md).
+
 ## Teaching path
 
 1. `Counter.w`: classical state, reversible methods, assertions, and reverse blocks.
