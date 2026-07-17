@@ -310,6 +310,7 @@ Rejected as the semantic model. Typed continuations plus WIP-0001 checkpoints an
 - [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)
 - [WIP-0003](WIP-0003-quantum-target-and-qiskit-backend.md)
+- [WIP-0010](WIP-0010-executable-application-portfolio.md)
 - [`QuantumOptimizer.w`](../../../wheeler-examples/src/main/wheeler/QuantumOptimizer.w)
 - [`QuantumNeuralNetwork.w`](../../../wheeler-examples/src/main/wheeler/QuantumNeuralNetwork.w)
 - [`SurfaceCode.w`](../../../wheeler-examples/src/main/wheeler/SurfaceCode.w)

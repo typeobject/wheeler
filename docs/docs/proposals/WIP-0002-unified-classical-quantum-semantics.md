@@ -274,7 +274,7 @@ A target capability failure occurs before submission whenever possible. No fallb
 - [x] Coherent eligibility and lifted reversible calls work for the exact XOR subset.
 - [x] Workflow and quantum body sections have canonical encoding and strict decoding.
 - [x] The semantic state-vector simulator executes the initial gate and lifted-function subset.
-- [ ] Counter, reversible oracle, and QFT pass; the measured optimizer fixture remains.
+- [x] Counter, coherent oracle, QFT, and the bounded measured optimizer pass end to end.
 
 ## Testing and acceptance
 
@@ -287,8 +287,8 @@ A target capability failure occurs before submission whenever possible. No fallb
 - [ ] Static, host-split, and dynamic region plans preserve the same ideal result distributions where each is semantically valid.
 - [ ] The optimizer fixture alternates parameter binding, quantum sampling, and classical updates without provider APIs in source.
 - [ ] The surface-code fixture declares and checks dynamic measurement/reset/feed-forward requirements.
-- [ ] Every current example either compiles under the accepted subset or carries an explicit documentation marker naming the later required WIP; examples never masquerade as working code.
-- [ ] Current language reference distinguishes inverse, uncompute, rewind, replay, and retry.
+- [x] Every current example compiles, round-trips, parses with Tree-sitter, and executes in CI.
+- [x] Current language and hybrid references distinguish inverse, uncompute, rewind, replay, and retry.
 
 ## Alternatives
 
@@ -327,6 +327,7 @@ Rejected by no-cloning. It copies known basis information in a restricted case a
 - [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
 - [WIP-0003](WIP-0003-quantum-target-and-qiskit-backend.md)
 - [WIP-0004](WIP-0004-hybrid-jobs-history-and-replay.md)
+- [WIP-0010](WIP-0010-executable-application-portfolio.md)
 - [`Counter.w`](../../../wheeler-examples/src/main/wheeler/Counter.w)
 - [`QFT.w`](../../../wheeler-examples/src/main/wheeler/QFT.w)
 - [`QuantumOptimizer.w`](../../../wheeler-examples/src/main/wheeler/QuantumOptimizer.w)

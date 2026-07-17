@@ -369,3 +369,4 @@ Rejected. Credentials, queue selection, calibration, budgets, and hardware avail
 - [WIP-0004](WIP-0004-hybrid-jobs-history-and-replay.md)
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md)
+- [WIP-0010](WIP-0010-executable-application-portfolio.md)

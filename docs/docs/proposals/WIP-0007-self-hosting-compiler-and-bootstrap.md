@@ -254,5 +254,6 @@ Rejected. The canonical executable is `.wbc`; provider formats and host-native i
 - [WIP-0006](WIP-0006-concrete-syntax-tooling-and-teaching.md)
 - [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md)
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
+- [WIP-0010](WIP-0010-executable-application-portfolio.md)
 - [Wheeler source language profile](../reference/language-profile.md)
 - [Ken Thompson, “Reflections on Trusting Trust”](https://dl.acm.org/doi/10.1145/358198.358210)

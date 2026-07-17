@@ -303,6 +303,7 @@ Rejected. Decomposition must preserve semantics and error budgets; host splittin
 
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)
 - [WIP-0004](WIP-0004-hybrid-jobs-history-and-replay.md)
+- [WIP-0010](WIP-0010-executable-application-portfolio.md)
 - [`QFT.w`](../../../wheeler-examples/src/main/wheeler/QFT.w)
 - [`QuantumOptimizer.w`](../../../wheeler-examples/src/main/wheeler/QuantumOptimizer.w)
 - [`SurfaceCode.w`](../../../wheeler-examples/src/main/wheeler/SurfaceCode.w)

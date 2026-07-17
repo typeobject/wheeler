@@ -214,4 +214,5 @@ Rejected. Reversibility, affine quantum resources, reverse blocks, and measureme
 - [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
+- [WIP-0010](WIP-0010-executable-application-portfolio.md)
 - [Language profile](../reference/language-profile.md)

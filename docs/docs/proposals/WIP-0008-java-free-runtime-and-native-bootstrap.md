@@ -225,3 +225,4 @@ Rejected. The current implementation is the executable migration oracle. It is t
 - [WIP-0004](WIP-0004-hybrid-jobs-history-and-replay.md)
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
+- [WIP-0010](WIP-0010-executable-application-portfolio.md)
