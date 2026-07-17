@@ -120,6 +120,22 @@ public final class VirtualMachine {
     history.clear();
   }
 
+  /** Restores a typed workflow checkpoint; this does not claim to reverse external effects. */
+  public void restoreEffectCheckpoint(Map<String, Long> checkpoint) {
+    if (checkpoint.size() != globals.length) {
+      throw new VmTrap("Checkpoint global schema mismatch");
+    }
+    for (int i = 0; i < globals.length; i++) {
+      String name = program.globals().get(i).name();
+      Long value = checkpoint.get(name);
+      if (value == null) {
+        throw new VmTrap("Checkpoint is missing global " + name);
+      }
+      globals[i] = value;
+    }
+    history.clear();
+  }
+
   public void expectGlobal(int index, long expected) {
     long actual = globals[checkedGlobalIndex(index)];
     if (actual != expected) {

@@ -17,6 +17,8 @@ The runtime submits an immutable `QuantumTask` containing the verified artifact,
 
 `QuantumJob` is asynchronous even when a local simulator completes immediately. It reports identity and lifecycle, accepts a cancellation request, and returns a bounded `QuantumResult`. Results use canonical little-endian integer outcomes and carry target identity. The runtime rejects job or target identity mismatches before updating classical state.
 
+`QuantumTarget.recover(jobId, task)` reconciles an acknowledged job without submitting it again. The local targets recover jobs retained by the target instance. A remote adapter must map the durable external identity and reject unknown or mismatched tasks; it must not interpret recovery as permission to resubmit.
+
 ## Ideal state-vector target
 
 `StateVectorTarget` is the semantic reference for the current static gate subset. It supports up to 20 qubits and reruns a complete prepare-unitary-measure task for every shot. Explicit seeds make its samples repeatable; those seeds do not imply deterministic hardware.

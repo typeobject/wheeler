@@ -2,6 +2,7 @@ package com.typeobject.wheeler.runtime.quantum;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.typeobject.wheeler.core.bytecode.FunctionBody;
 import com.typeobject.wheeler.core.bytecode.Global;
@@ -66,12 +67,18 @@ class StateVectorTargetTest {
     QuantumTask task = new QuantumTask(
         program, 0, 0, List.of(new CircuitApplication(0, false)), 4, 9);
 
-    QuantumJob job = new StateVectorTarget().submit(task);
+    StateVectorTarget target = new StateVectorTarget();
+    QuantumJob job = target.submit(task);
     QuantumResult result = job.await(Duration.ofSeconds(1));
 
     assertEquals(JobState.SUCCEEDED, job.state());
+    assertEquals(task.identity(), result.taskIdentity());
     assertEquals(List.of(1L, 1L, 1L, 1L), result.outcomes());
     assertEquals(4L, result.counts().get(1L));
+    assertEquals(job.id(), target.recover(job.id(), task).id());
+    QuantumTask mismatched = new QuantumTask(
+        program, 0, 0, List.of(new CircuitApplication(0, false)), 4, 10);
+    assertThrows(QuantumExecutionException.class, () -> target.recover(job.id(), mismatched));
   }
 
   @Test

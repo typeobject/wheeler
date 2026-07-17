@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -19,6 +21,7 @@ public final class OpenQasmTarget implements QuantumTarget {
 
   private final OpenQasmExecutor executor;
   private final TargetDescriptor descriptor;
+  private final ConcurrentMap<String, StoredJob> jobs = new ConcurrentHashMap<>();
 
   public OpenQasmTarget(
       String target, int maxQubits, int maxShots, OpenQasmExecutor executor) {
@@ -44,8 +47,21 @@ public final class OpenQasmTarget implements QuantumTarget {
     }
     String id = "openqasm-" + JOB_SEQUENCE.incrementAndGet();
     String qasm = new OpenQasm3Emitter().emit(task);
-    return new OpenQasmJob(id, task, qasm);
+    QuantumJob job = new OpenQasmJob(id, task, qasm);
+    jobs.put(id, new StoredJob(task.identity(), job));
+    return job;
   }
+
+  @Override
+  public QuantumJob recover(String jobId, QuantumTask task) {
+    StoredJob stored = jobs.get(jobId);
+    if (stored == null || !stored.taskIdentity().equals(task.identity())) {
+      throw new QuantumExecutionException("Unknown or mismatched OpenQASM job " + jobId);
+    }
+    return stored.job();
+  }
+
+  private record StoredJob(String taskIdentity, QuantumJob job) {}
 
   private final class OpenQasmJob implements QuantumJob {
     private final String id;
@@ -106,7 +122,7 @@ public final class OpenQasmTarget implements QuantumTarget {
         Map<Long, Long> counts = new LinkedHashMap<>();
         outcomes.forEach(value -> counts.merge(value, 1L, Long::sum));
         state.set(JobState.SUCCEEDED);
-        return new QuantumResult(id, outcomes, counts, descriptor.target());
+        return new QuantumResult(id, task.identity(), outcomes, counts, descriptor.target());
       } catch (QuantumExecutionException exception) {
         state.set(JobState.FAILED);
         throw exception;

@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Draft |
+| Status | Implementing |
 | Owners | Wheeler runtime, history, and quantum maintainers |
 | Created | 2026-07-17 |
 | Updated | 2026-07-17 |
@@ -49,7 +49,7 @@ A supported target executes gates, syndrome measurement, reset, bounded decoding
 
 ## Goals
 
-- Give hybrid source one lifecycle across local simulation, Qiskit, remote hardware, and future targets.
+- Give hybrid source one lifecycle across local simulation, OpenQASM executors, remote hardware, and future targets.
 - Persist bounded continuations and recover jobs without duplicate result application.
 - Record nondeterministic observations and target provenance for deterministic classical replay.
 - Define transaction rollback before and after submission, measurement, reset, and external effects.
@@ -252,30 +252,30 @@ Retries are never infinite by default. Compensation and cancellation failures ar
 
 ## Progress
 
-- [ ] Hybrid run and event reducer exist in memory.
-- [ ] Typed continuations suspend and resume one quantum job.
-- [ ] Result identity and exactly-once application are enforced.
-- [ ] Persistence and recovery handle ambiguous provider states.
-- [ ] Replay and retry lineages are distinct and tested.
-- [ ] Transaction effect phases and commit horizons are implemented.
-- [ ] Optimizer, QNN, and dynamic-circuit fixtures satisfy acceptance tests.
+- [x] Hybrid run and deterministic event reducer exist in memory.
+- [x] Typed continuations suspend, persist, recover, and resume one acknowledged quantum job.
+- [x] Result identity and exactly-once application are enforced before classical mutation.
+- [ ] Recovery handles every provider lifecycle and ambiguous acknowledgement state.
+- [x] Replay and fresh retry lineages are distinct and tested.
+- [x] Reversible, prepared-external, observed, and committed transaction phases are implemented.
+- [ ] Optimizer, QNN, cleanup, compensation, and dynamic-circuit fixtures satisfy acceptance tests.
 
 ## Testing and acceptance
 
-- [ ] Event reduction is deterministic under reordered and duplicated delivery.
+- [x] Event reduction is deterministic under reordered and duplicated delivery.
 - [ ] Local immediate completion and remote delayed completion produce identical semantic event sequences modulo operational metadata.
 - [ ] Recovery resumes queued, running, succeeded, failed, cancelled, and unknown provider states without double submission or result application.
-- [ ] Result validation rejects wrong artifacts, regions, targets, bindings, schemas, branches, shot counts, and oversized payloads.
-- [ ] Replay reproduces classical optimizer state without calling a target.
-- [ ] Fresh retry creates a distinct lineage and may accept a different valid sample.
-- [ ] Rollback before submission, after acknowledgement, and after measurement follows the declared transaction phase without claiming physical reversal.
-- [ ] Late results from cancelled or discarded branches cannot mutate active state.
+- [ ] Result validation rejects wrong artifacts, regions, targets, bindings, schemas, branches, shot counts, and oversized payloads; content-identified tasks cover artifacts, regions, requests, targets, branches, shots, seeds, and outcome widths, while symbolic bindings remain.
+- [x] Replay reproduces recorded classical state without calling a target; optimizer execution remains.
+- [x] Fresh retry creates a distinct submission lineage.
+- [x] Rollback before submission, after acknowledgement, and after measurement follows the declared transaction phase without claiming physical reversal.
+- [x] Late results from cancelled or discarded branches cannot mutate active state.
 - [ ] Commit and cleanup make earlier rewind/replay availability explicit and respect live references.
 - [ ] Optimizer and QNN fixtures do not retain quantum handles across ordinary remote job boundaries.
 - [ ] Surface-code fixtures require target-resident capabilities when host latency would violate the plan.
-- [ ] Persistence corruption, truncation, unknown required events, and adapter restarts have bounded failure tests.
-- [ ] Credentials and unrestricted provider payloads never enter persistence.
-- [ ] Current runtime documentation explains rewind, inverse, uncompute, replay, retry, cancel, compensate, and discard.
+- [ ] Persistence corruption, truncation, unknown required events, and target restarts have bounded failure tests; corruption, truncation, and unknown enums are covered.
+- [x] Credentials and unrestricted provider payloads never enter persistence.
+- [x] Current runtime documentation explains rewind, inverse, uncompute, replay, retry, cancel, compensate, and discard.
 
 ## Alternatives
 

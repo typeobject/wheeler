@@ -80,7 +80,7 @@ Use “Not applicable” with a reason for unaffected template sections. Split w
 | [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md) | Implementing | Reversible bytecode and machine-state contract | VM, bytecode, artifacts, history |
 | [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md) | Implementing | Unified classical and quantum semantics | Language, hybrid execution, quantum IR |
 | [WIP-0003](WIP-0003-quantum-target-and-qiskit-backend.md) | Implementing | Quantum target contract and OpenQASM interoperability | Targets, OpenQASM, simulators, hardware |
-| [WIP-0004](WIP-0004-hybrid-jobs-history-and-replay.md) | Draft | Hybrid jobs, history, and replay | Runtime, jobs, transactions, replay |
+| [WIP-0004](WIP-0004-hybrid-jobs-history-and-replay.md) | Implementing | Hybrid jobs, history, and replay | Runtime, jobs, transactions, replay |
 | [WIP-0005](WIP-0005-wheeler-source-language.md) | Implementing | Wheeler source language profile | Language, compiler, ergonomics |
 | [WIP-0006](WIP-0006-concrete-syntax-tooling-and-teaching.md) | Implementing | Concrete syntax, editor tooling, and teaching profile | Parser, Tree-sitter, documentation |
 | [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md) | Draft | Self-hosting compiler and reproducible bootstrap | Compiler, language, trust chain |

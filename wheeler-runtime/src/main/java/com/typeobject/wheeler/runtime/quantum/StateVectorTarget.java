@@ -6,6 +6,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /** Asynchronous target facade over the ideal bounded state-vector engine. */
@@ -13,6 +15,7 @@ public final class StateVectorTarget implements QuantumTarget {
   public static final int MAX_QUBITS = StateVectorEngine.MAX_QUBITS;
   private static final AtomicLong JOB_SEQUENCE = new AtomicLong();
 
+  private final ConcurrentMap<String, StoredJob> jobs = new ConcurrentHashMap<>();
   private final TargetDescriptor descriptor = new TargetDescriptor(
       "wheeler-state-vector",
       "ideal-local",
@@ -52,7 +55,20 @@ public final class StateVectorTarget implements QuantumTarget {
       counts.merge(outcome, 1L, Long::sum);
     }
     String id = "state-vector-" + JOB_SEQUENCE.incrementAndGet();
-    return new CompletedQuantumJob(
-        new QuantumResult(id, outcomes, counts, descriptor.target()));
+    QuantumJob job = new CompletedQuantumJob(
+        new QuantumResult(id, task.identity(), outcomes, counts, descriptor.target()));
+    jobs.put(id, new StoredJob(task.identity(), job));
+    return job;
   }
+
+  @Override
+  public QuantumJob recover(String jobId, QuantumTask task) {
+    StoredJob stored = jobs.get(jobId);
+    if (stored == null || !stored.taskIdentity().equals(task.identity())) {
+      throw new QuantumExecutionException("Unknown or mismatched state-vector job " + jobId);
+    }
+    return stored.job();
+  }
+
+  private record StoredJob(String taskIdentity, QuantumJob job) {}
 }
