@@ -34,7 +34,7 @@ Wheeler currently includes canonical `.wbc` artifacts, strict verification, a re
 
 ## Read next
 
-- [Documentation](https://wheeler.typeobject.com/)
+- [Full documentation](https://wheeler.typeobject.com/)
 - [Language profile](docs/docs/reference/language-profile.md)
 - [Bytecode format](docs/docs/reference/bytecode.md)
 - [Virtual machine](docs/docs/reference/virtual-machine.md)
