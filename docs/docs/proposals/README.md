@@ -83,7 +83,8 @@ The first proposals deliberately establish semantics before broad language imple
 4. **Run on real targets without making one provider the language.** WIP-0003 defines capability-based targets, a semantic simulator, and portable OpenQASM 3 execution for current systems.
 5. **Make hybrid execution durable and honest about irreversibility.** WIP-0004 defines asynchronous jobs, continuations, result provenance, rollback, replay, retry, and history horizons.
 6. **Make the compiler prove the language is usable.** WIP-0007 makes the production compiler a Wheeler program and requires a byte-identical bootstrap fixed point.
-7. **Remove the host-language dependency.** WIP-0008 moves the compiler, runtime, tools, and build to a native Wheeler toolchain and deletes Java and Gradle after differential conformance.
+7. **Remove the host-language dependency.** WIP-0008 moves the compiler, runtime, and tools to a native Wheeler toolchain and deletes Java after differential conformance.
+8. **Own packages and builds in Wheeler.** WIP-0009 defines the Wheeler-written `wheel` workflow, canonical manifests and lockfiles, content-addressed packages, capability-scoped build tools, and final Gradle deletion.
 
 Deterministic shared-memory concurrency and a trusted proof/certificate system should be proposed after these contracts are stable. They depend on the state, effect, quantum-resource, and history definitions rather than defining competing versions of them.
 
@@ -99,3 +100,4 @@ Deterministic shared-memory concurrency and a trusted proof/certificate system s
 | [WIP-0006](WIP-0006-concrete-syntax-tooling-and-teaching.md) | Implementing | Concrete syntax, editor tooling, and teaching profile | Parser, Tree-sitter, documentation |
 | [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md) | Draft | Self-hosting compiler and reproducible bootstrap | Compiler, language, trust chain |
 | [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md) | Draft | Java-free runtime and native bootstrap | Runtime, native code, distribution |
+| [WIP-0009](WIP-0009-wheeler-package-and-build-system.md) | Draft | Wheeler package and build system | Packages, builds, registry, tooling |

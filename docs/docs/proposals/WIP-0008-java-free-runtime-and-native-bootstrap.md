@@ -13,7 +13,7 @@
 
 ## Summary
 
-Wheeler's production toolchain and runtime shall have no Java dependency. The current Java compiler, VM, runtime, and Gradle build are stage-0 infrastructure. They exist to establish semantics and seed the self-hosted implementation; they are deleted after a conforming Wheeler-written toolchain can rebuild and test itself from a pinned native recovery release.
+Wheeler's production toolchain and runtime shall have no Java dependency. The current Java compiler, VM, runtime, and Gradle build are stage-0 infrastructure. They exist to establish semantics and seed the self-hosted implementation; they are deleted after a conforming Wheeler-written toolchain can rebuild and test itself from a pinned native recovery release. WIP-0009 supplies the Wheeler-native package and build system that replaces Gradle.
 
 Canonical `.wbc` remains the portable executable and semantic boundary. A native backend lowers verified `.wbc` to host code for distribution and bootstrapping. The Wheeler compiler, verifier, VM or execution runtime, disassembler, OpenQASM emitter, and build driver become Wheeler programs. A narrow platform ABI supplies memory, process arguments, bounded file operations, and other explicitly granted host effects. It does not expose JVM objects or reproduce the Java class library.
 
@@ -155,7 +155,7 @@ Migration proceeds in replaceable slices:
 6. Port quantum IR, ideal simulator, OpenQASM emission, and hybrid runtime.
 7. Run every corpus and example on Java interpretation, Wheeler interpretation, and native execution; compare semantic traces and artifacts.
 8. Bootstrap from a prior native release in clean CI with no Java on `PATH`.
-9. Replace Gradle orchestration with the Wheeler build driver and minimal platform packaging.
+9. Replace Gradle orchestration with the WIP-0009 `wheel` package and build driver plus minimal platform packaging.
 10. Delete all production and test Java sources, Gradle files, Java CI setup, and JVM documentation in one cutover series.
 
 A temporary differential harness is migration code. It is removed after native fixtures and trace readers become authoritative.
@@ -224,3 +224,4 @@ Rejected. The current implementation is the executable migration oracle. It is t
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)
 - [WIP-0004](WIP-0004-hybrid-jobs-history-and-replay.md)
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
+- [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)

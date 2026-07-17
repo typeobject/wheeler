@@ -116,7 +116,7 @@ The first collector may reclaim an entire compilation region at run completion. 
 
 ### Modules and effects
 
-Compiler sources require modules, imports, private declarations, and explicit exported entry points. Module resolution uses a canonical manifest and normalized logical paths; it never depends on directory enumeration order.
+Compiler sources require modules, imports, private declarations, and explicit exported entry points. Module resolution uses the WIP-0009 canonical package manifest and normalized logical paths; it never depends on directory enumeration order.
 
 The compiler entry receives bounded `SourceInput` values and `CompilerOptions` and returns an `Artifact` or diagnostics. A launcher owns filesystem access. Reads and writes are explicit effects with normalized bytes, declared encoding, size ceilings, and atomic output replacement.
 
@@ -253,5 +253,6 @@ Rejected. The canonical executable is `.wbc`; provider formats and host-native i
 - [WIP-0005](WIP-0005-wheeler-source-language.md)
 - [WIP-0006](WIP-0006-concrete-syntax-tooling-and-teaching.md)
 - [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md)
+- [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [Wheeler source language profile](../reference/language-profile.md)
 - [Ken Thompson, “Reflections on Trusting Trust”](https://dl.acm.org/doi/10.1145/358198.358210)

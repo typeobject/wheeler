@@ -127,7 +127,7 @@ The current compiler and VM use Java only as stage-0 infrastructure. The product
 
 After native runtime conformance, the Java compiler, VM, tools, Gradle build, and JVM deployment path will be deleted. A cold build will use a content-addressed prior native Wheeler release and `.wbc` recovery seed. Java APIs and object semantics are therefore not prospective Wheeler contracts.
 
-See [WIP-0007](../proposals/WIP-0007-self-hosting-compiler-and-bootstrap.md) and [WIP-0008](../proposals/WIP-0008-java-free-runtime-and-native-bootstrap.md).
+See [WIP-0007](../proposals/WIP-0007-self-hosting-compiler-and-bootstrap.md), [WIP-0008](../proposals/WIP-0008-java-free-runtime-and-native-bootstrap.md), and the Wheeler-native package/build contract in [WIP-0009](../proposals/WIP-0009-wheeler-package-and-build-system.md).
 
 ## Teaching path
 
