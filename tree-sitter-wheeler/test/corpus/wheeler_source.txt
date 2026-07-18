@@ -782,3 +782,47 @@ classical class Arrays {
                       (identifier))
                     (expression
                       (integer_literal))))))))))))
+
+==================
+Generated inverse theorem
+==================
+
+classical class Certified {
+  state long value = 0;
+  rev void increment() { value += 1; }
+  theorem incrementInverse proves inverse(increment);
+  entry void main() { }
+}
+
+---
+
+(source_file
+  (class_declaration
+    (computation_domain)
+    (identifier)
+    (class_body
+      (member_declaration
+        (state_declaration
+          (identifier)
+          (integer_literal)))
+      (member_declaration
+        (method_declaration
+          (method_modifier)
+          (identifier)
+          (parameter_list)
+          (block
+            (statement
+              (assignment_statement
+                (identifier)
+                (expression
+                  (integer_literal)))))))
+      (member_declaration
+        (theorem_declaration
+          (identifier)
+          (identifier)))
+      (member_declaration
+        (method_declaration
+          (method_modifier)
+          (identifier)
+          (parameter_list)
+          (block))))))

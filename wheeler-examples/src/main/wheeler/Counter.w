@@ -6,6 +6,8 @@ classical class Counter {
         count += 1;
     }
 
+    theorem incrementInverse proves inverse(increment);
+
     entry void main() {
         increment();
         increment();

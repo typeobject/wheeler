@@ -160,6 +160,18 @@ The constructor retains the array origin plus start and length, rejects negative
 
 Equal arrays and slices are interned in deterministic construction order under separate 65,535-value machine ceilings. Handles remain unobservable and type-specific. Snapshots and rewind include both tables.
 
+## Generated-inverse theorems
+
+The initial proof slice accepts one closed theorem form over a declared reversible function:
+
+```java
+theorem incrementInverse proves inverse(increment);
+```
+
+The compiler resolves the subject, requires a `rev` declaration, and emits a canonical `GENERATED_INVERSE` certificate tied to the function ID. The trusted `ProofKernel` reconstructs the expected inverse from the forward opcodes and rejects unsupported operations, nonreversible subjects, changed inverse bodies, duplicate IDs, unknown rules, and malformed metadata before execution. This is formal proof evidence, unlike an executable round-trip test.
+
+The current rule proves only exact compiler-generated inverses for the straight-line reversible subset. General propositions, contracts, proof terms, quantum equivalence, resource certificates, assumptions, and experiments remain WIP-0011 work.
+
 ## Quantum statements
 
 Unitary methods use Java-shaped gate calls over indexed registers:

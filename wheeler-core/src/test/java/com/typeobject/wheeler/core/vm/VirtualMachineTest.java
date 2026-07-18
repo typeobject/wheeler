@@ -286,7 +286,11 @@ class VirtualMachineTest {
         0,
         List.of(new Global("result", 0)),
         List.of(point),
+        List.of(),
+        List.of(),
+        List.of(),
         List.of(main),
+        List.of(),
         List.of(),
         List.of(),
         List.of(),
@@ -336,8 +340,9 @@ class VirtualMachineTest {
             Instruction.of(Opcode.LOCAL_EQ, 5, 1, 4),
             Instruction.of(Opcode.HALT)),
         List.of());
-    Program program = new Program(
-        "Variants", 0, List.of(), List.of(), List.of(option), List.of(main));
+    Program program = Program.classical(
+        "Variants", 0, List.of(), List.of(), List.of(option),
+        List.of(), List.of(), List.of(main), List.of());
     VirtualMachine machine = new VirtualMachine(program);
 
     machine.run();
@@ -382,8 +387,9 @@ class VirtualMachineTest {
             Instruction.of(Opcode.LOCAL_EQ, 7, 3, 6),
             Instruction.of(Opcode.HALT)),
         List.of());
-    Program program = new Program(
-        "Arrays", 0, List.of(), List.of(), List.of(), List.of(triple), List.of(main));
+    Program program = Program.classical(
+        "Arrays", 0, List.of(), List.of(), List.of(), List.of(triple),
+        List.of(), List.of(main), List.of());
     VirtualMachine machine = new VirtualMachine(program);
     MachineSnapshot initial = machine.snapshot();
 
@@ -416,8 +422,9 @@ class VirtualMachineTest {
             Instruction.of(Opcode.ARRAY_GET, 5, 3, 4),
             Instruction.of(Opcode.HALT)),
         List.of());
-    VirtualMachine trapped = new VirtualMachine(new Program(
-        "Bounds", 0, List.of(), List.of(), List.of(), List.of(triple), List.of(outOfBounds)));
+    VirtualMachine trapped = new VirtualMachine(Program.classical(
+        "Bounds", 0, List.of(), List.of(), List.of(), List.of(triple),
+        List.of(), List.of(outOfBounds), List.of()));
     assertThrows(VmTrap.class, trapped::run);
     assertEquals(MachineStatus.TRAPPED, trapped.status());
     assertEquals(1, trapped.snapshot().arrays().size());
@@ -450,7 +457,7 @@ class VirtualMachineTest {
             Instruction.of(Opcode.SLICE_GET, 9, 7, 8),
             Instruction.of(Opcode.HALT)),
         List.of());
-    Program program = new Program(
+    Program program = Program.classical(
         "Slices",
         0,
         List.of(),
@@ -458,7 +465,8 @@ class VirtualMachineTest {
         List.of(),
         List.of(values),
         List.of(slice),
-        List.of(main));
+        List.of(main),
+        List.of());
     VirtualMachine machine = new VirtualMachine(program);
     MachineSnapshot initial = machine.snapshot();
 
@@ -489,7 +497,7 @@ class VirtualMachineTest {
             Instruction.of(Opcode.SLICE_NEW, 7, 0, 4, 5, 6),
             Instruction.of(Opcode.HALT)),
         List.of());
-    VirtualMachine trapped = new VirtualMachine(new Program(
+    VirtualMachine trapped = new VirtualMachine(Program.classical(
         "SliceBounds",
         0,
         List.of(),
@@ -497,7 +505,8 @@ class VirtualMachineTest {
         List.of(),
         List.of(values),
         List.of(slice),
-        List.of(invalid)));
+        List.of(invalid),
+        List.of()));
     assertThrows(VmTrap.class, trapped::run);
     assertTrue(trapped.snapshot().slices().isEmpty());
   }

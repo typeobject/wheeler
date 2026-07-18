@@ -11,7 +11,9 @@ import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.TYPES;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.VARIANTS;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.WORKFLOW;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.QUANTUM;
+import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.PROOFS;
 
+import com.typeobject.wheeler.core.proof.ProofCertificate;
 import com.typeobject.wheeler.core.quantum.ParameterizedGateOperation;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
@@ -42,6 +44,9 @@ public final class BytecodeWriter {
     sections.add(new Section(VARIANTS, variants(program, strings), 0));
     sections.add(new Section(FUNCTIONS, functions(program, strings, offsets), 0));
     sections.add(new Section(CODE, code, 0));
+    if (!program.proofCertificates().isEmpty()) {
+      sections.add(new Section(PROOFS, proofs(program, strings), 0));
+    }
     if (program.kind() != ProgramKind.CLASSICAL) {
       sections.add(new Section(WORKFLOW, WorkflowSectionCodec.write(program.workflow()), 0));
       sections.add(new Section(QUANTUM, QuantumSectionCodec.write(program, strings), 0));
@@ -102,6 +107,7 @@ public final class BytecodeWriter {
       });
     });
     program.functions().forEach(function -> values.add(function.name()));
+    program.proofCertificates().forEach(proof -> values.add(proof.name()));
     program.quantumRegisters().forEach(register -> values.add(register.name()));
     program.quantumCircuits().forEach(circuit -> {
       values.add(circuit.name());
@@ -193,6 +199,18 @@ public final class BytecodeWriter {
       }
     }
     return output.toByteArray();
+  }
+
+  private static byte[] proofs(Program program, Map<String, Integer> strings) {
+    ByteBuffer buffer = little(4 + program.proofCertificates().size() * 16);
+    buffer.putInt(program.proofCertificates().size());
+    for (ProofCertificate proof : program.proofCertificates()) {
+      buffer.putInt(proof.id());
+      buffer.putInt(strings.get(proof.name()));
+      buffer.putInt(proof.rule().code());
+      buffer.putInt(proof.subjectFunctionId());
+    }
+    return buffer.array();
   }
 
   private static byte[] encodeCode(Program program, Map<Integer, FunctionOffsets> offsets) {

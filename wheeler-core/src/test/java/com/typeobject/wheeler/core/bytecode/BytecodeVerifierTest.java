@@ -86,18 +86,9 @@ class BytecodeVerifierTest {
         "Later",
         List.of(new RecordType.Field("value", ValueType.SIGNED)));
     FunctionBody main = typedMain(List.of(), List.of(Instruction.of(Opcode.HALT)));
-    Program invalid = new Program(
-        "InvalidRecords",
-        ProgramKind.CLASSICAL,
-        0,
-        List.of(),
-        List.of(forward, later),
-        List.of(main),
-        List.of(),
-        List.of(),
-        List.of(),
-        Program.DEFAULT_MAX_HISTORY,
-        Program.DEFAULT_MAX_STEPS);
+    Program invalid = Program.classical(
+        "InvalidRecords", 0, List.of(), List.of(forward, later),
+        List.of(), List.of(), List.of(), List.of(main), List.of());
 
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(invalid));
 
@@ -114,18 +105,9 @@ class BytecodeVerifierTest {
             Instruction.of(Opcode.LOCAL_CONST, 1, 1),
             Instruction.of(Opcode.RECORD_NEW, 2, 0, 0, 1),
             Instruction.of(Opcode.HALT)));
-    Program malformed = new Program(
-        "MalformedRecord",
-        ProgramKind.CLASSICAL,
-        0,
-        List.of(),
-        List.of(pair),
-        List.of(badConstruction),
-        List.of(),
-        List.of(),
-        List.of(),
-        Program.DEFAULT_MAX_HISTORY,
-        Program.DEFAULT_MAX_STEPS);
+    Program malformed = Program.classical(
+        "MalformedRecord", 0, List.of(), List.of(pair),
+        List.of(), List.of(), List.of(), List.of(badConstruction), List.of());
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(malformed));
 
     VariantType option = new VariantType(
@@ -135,8 +117,9 @@ class BytecodeVerifierTest {
         List.of(
             Instruction.of(Opcode.VARIANT_NEW, 0, 0, 1, 0, 0),
             Instruction.of(Opcode.HALT)));
-    Program malformedVariant = new Program(
-        "MalformedVariant", 0, List.of(), List.of(), List.of(option), List.of(badTag));
+    Program malformedVariant = Program.classical(
+        "MalformedVariant", 0, List.of(), List.of(), List.of(option),
+        List.of(), List.of(), List.of(badTag), List.of());
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(malformedVariant));
     assertEquals(ValueType.variant(3), ValueType.fromCode(ValueType.variant(3).code()));
 
@@ -147,14 +130,9 @@ class BytecodeVerifierTest {
             Instruction.of(Opcode.LOCAL_CONST, 0, 1),
             Instruction.of(Opcode.ARRAY_NEW, 1, 0, 0, 1),
             Instruction.of(Opcode.HALT)));
-    Program malformedArray = new Program(
-        "MalformedArray",
-        0,
-        List.of(),
-        List.of(),
-        List.of(),
-        List.of(pairArray),
-        List.of(badArray));
+    Program malformedArray = Program.classical(
+        "MalformedArray", 0, List.of(), List.of(), List.of(),
+        List.of(pairArray), List.of(), List.of(badArray), List.of());
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(malformedArray));
     assertEquals(ValueType.array(4), ValueType.fromCode(ValueType.array(4).code()));
 
@@ -168,15 +146,9 @@ class BytecodeVerifierTest {
         ValueType.slice(0),
         List.of(Instruction.of(Opcode.RETURN_VALUE, 0)),
         List.of());
-    Program malformedSlice = new Program(
-        "MalformedSlice",
-        0,
-        List.of(),
-        List.of(),
-        List.of(),
-        List.of(),
-        List.of(signedSlice),
-        List.of(escapingSlice));
+    Program malformedSlice = Program.classical(
+        "MalformedSlice", 0, List.of(), List.of(), List.of(), List.of(),
+        List.of(signedSlice), List.of(escapingSlice), List.of());
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(malformedSlice));
     assertEquals(ValueType.slice(5), ValueType.fromCode(ValueType.slice(5).code()));
   }

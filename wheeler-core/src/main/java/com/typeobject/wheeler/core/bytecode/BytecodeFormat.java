@@ -20,6 +20,7 @@ public final class BytecodeFormat {
   public static final int CODE = 6;
   public static final int WORKFLOW = 7;
   public static final int QUANTUM = 8;
+  public static final int PROOFS = 10;
 
   private BytecodeFormat() {}
 

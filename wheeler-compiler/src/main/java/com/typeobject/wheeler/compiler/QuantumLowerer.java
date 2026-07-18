@@ -42,6 +42,7 @@ final class QuantumLowerer {
         classical.arrayTypes(),
         classical.sliceTypes(),
         classical.functions(),
+        classical.proofs(),
         registers,
         circuits,
         workflow,

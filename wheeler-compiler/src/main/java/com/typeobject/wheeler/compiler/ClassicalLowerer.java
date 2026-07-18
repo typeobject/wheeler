@@ -11,6 +11,8 @@ import com.typeobject.wheeler.core.bytecode.RecordType;
 import com.typeobject.wheeler.core.bytecode.SliceType;
 import com.typeobject.wheeler.core.bytecode.ValueType;
 import com.typeobject.wheeler.core.bytecode.VariantType;
+import com.typeobject.wheeler.core.proof.ProofCertificate;
+import com.typeobject.wheeler.core.proof.ProofRule;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,6 +29,7 @@ final class ClassicalLowerer {
       List<ArrayType> arrayTypes,
       List<SliceType> sliceTypes,
       List<FunctionBody> functions,
+      List<ProofCertificate> proofs,
       int entryId,
       Map<String, Integer> globalIds,
       Map<String, Integer> functionIds) {}
@@ -131,6 +134,8 @@ final class ClassicalLowerer {
           forward,
           inverse));
     }
+    List<ProofCertificate> proofs = lowerProofs(
+        source, functionIds, reversibleFunctions);
     return new ClassicalContent(
         globals,
         recordTypes,
@@ -138,9 +143,31 @@ final class ClassicalLowerer {
         arrayTypes,
         sliceTypes,
         List.copyOf(functions),
+        proofs,
         entryId,
         globalIds,
         functionIds);
+  }
+
+  private static List<ProofCertificate> lowerProofs(
+      SourceProgram source,
+      Map<String, Integer> functions,
+      Map<String, Boolean> reversibleFunctions) {
+    List<ProofCertificate> result = new ArrayList<>();
+    Set<String> names = new HashSet<>();
+    for (SourceModel.ProofDeclaration proof : source.proofs()) {
+      Integer function = functions.get(proof.subjectFunction());
+      if (!names.add(proof.name())) {
+        throw new CompilerException(proof.line(), "duplicate theorem: " + proof.name());
+      }
+      if (function == null || !reversibleFunctions.getOrDefault(proof.subjectFunction(), false)) {
+        throw new CompilerException(
+            proof.line(), "inverse theorem requires a reversible function");
+      }
+      result.add(new ProofCertificate(
+          result.size(), proof.name(), ProofRule.GENERATED_INVERSE, function));
+    }
+    return List.copyOf(result);
   }
 
   private static List<Global> lowerGlobals(SourceProgram source) {

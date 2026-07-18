@@ -33,6 +33,8 @@ final class SourceModel {
     }
   }
 
+  record ProofDeclaration(String name, String subjectFunction, int line) {}
+
   record Statement(String operation, List<String> arguments, int line) {
     Statement {
       arguments = List.copyOf(arguments);
@@ -72,6 +74,7 @@ final class SourceModel {
       List<VariantDefinition> variants,
       List<ArrayDefinition> arrays,
       List<SliceDefinition> slices,
+      List<ProofDeclaration> proofs,
       List<Function> functions,
       List<QuantumRegisterSource> quantumRegisters,
       List<Circuit> circuits) {
@@ -81,6 +84,7 @@ final class SourceModel {
       variants = List.copyOf(variants);
       arrays = List.copyOf(arrays);
       slices = List.copyOf(slices);
+      proofs = List.copyOf(proofs);
       functions = List.copyOf(functions);
       quantumRegisters = List.copyOf(quantumRegisters);
       circuits = List.copyOf(circuits);

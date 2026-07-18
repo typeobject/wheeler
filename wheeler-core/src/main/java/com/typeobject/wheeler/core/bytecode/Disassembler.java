@@ -73,6 +73,11 @@ public final class Disassembler {
         appendBody(output, "inverse", function.inverse());
       }
     }
+    for (var proof : program.proofCertificates()) {
+      output.append("\nproof ").append(proof.id()).append(' ')
+          .append(proof.name()).append(" rule=").append(proof.rule())
+          .append(" function=").append(proof.subjectFunctionId()).append('\n');
+    }
     if (!program.quantumRegisters().isEmpty()) {
       output.append("\nquantum registers:\n");
       program.quantumRegisters().forEach(register -> output.append("  ")

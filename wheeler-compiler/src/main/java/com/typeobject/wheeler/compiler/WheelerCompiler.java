@@ -19,7 +19,7 @@ public final class WheelerCompiler {
     }
     ClassicalContent classicalContent = new ClassicalLowerer().lower(parsed, classical);
     Program program = classical
-        ? new Program(
+        ? Program.classical(
             parsed.name(),
             classicalContent.entryId(),
             classicalContent.globals(),
@@ -27,7 +27,8 @@ public final class WheelerCompiler {
             classicalContent.variantTypes(),
             classicalContent.arrayTypes(),
             classicalContent.sliceTypes(),
-            classicalContent.functions())
+            classicalContent.functions(),
+            classicalContent.proofs())
         : new QuantumLowerer().lower(parsed, classicalContent);
     BytecodeVerifier.verify(program);
     return program;

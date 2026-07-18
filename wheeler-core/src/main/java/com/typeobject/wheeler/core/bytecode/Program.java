@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.core.bytecode;
 
+import com.typeobject.wheeler.core.proof.ProofCertificate;
 import com.typeobject.wheeler.core.quantum.QuantumCircuit;
 import com.typeobject.wheeler.core.quantum.QuantumRegister;
 import com.typeobject.wheeler.core.workflow.WorkflowStep;
@@ -8,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-/** Immutable decoded Wheeler program across classical and quantum regions. */
+/** Immutable decoded Wheeler program across classical, quantum, and proof regions. */
 public final class Program {
   public static final int DEFAULT_MAX_HISTORY = 100_000;
   public static final long DEFAULT_MAX_STEPS = 1_000_000L;
@@ -22,6 +23,7 @@ public final class Program {
   private final List<ArrayType> arrayTypes;
   private final List<SliceType> sliceTypes;
   private final List<FunctionBody> functions;
+  private final List<ProofCertificate> proofCertificates;
   private final List<QuantumRegister> quantumRegisters;
   private final List<QuantumCircuit> quantumCircuits;
   private final List<WorkflowStep> workflow;
@@ -32,6 +34,7 @@ public final class Program {
   private final Map<Integer, ArrayType> arrayTypesById;
   private final Map<Integer, SliceType> sliceTypesById;
   private final Map<Integer, FunctionBody> functionsById;
+  private final Map<Integer, ProofCertificate> proofsById;
   private final Map<Integer, QuantumRegister> registersById;
   private final Map<Integer, QuantumCircuit> circuitsById;
 
@@ -45,6 +48,7 @@ public final class Program {
       List<ArrayType> arrayTypes,
       List<SliceType> sliceTypes,
       List<FunctionBody> functions,
+      List<ProofCertificate> proofCertificates,
       List<QuantumRegister> quantumRegisters,
       List<QuantumCircuit> quantumCircuits,
       List<WorkflowStep> workflow,
@@ -59,6 +63,7 @@ public final class Program {
     this.arrayTypes = List.copyOf(arrayTypes);
     this.sliceTypes = List.copyOf(sliceTypes);
     this.functions = List.copyOf(functions);
+    this.proofCertificates = List.copyOf(proofCertificates);
     this.quantumRegisters = List.copyOf(quantumRegisters);
     this.quantumCircuits = List.copyOf(quantumCircuits);
     this.workflow = List.copyOf(workflow);
@@ -69,99 +74,13 @@ public final class Program {
     this.arrayTypesById = index(this.arrayTypes, ArrayType::id, "array type");
     this.sliceTypesById = index(this.sliceTypes, SliceType::id, "slice type");
     this.functionsById = index(this.functions, FunctionBody::id, "function");
+    this.proofsById = index(this.proofCertificates, ProofCertificate::id, "proof");
     this.registersById = index(this.quantumRegisters, QuantumRegister::id, "quantum register");
     this.circuitsById = index(this.quantumCircuits, QuantumCircuit::id, "quantum circuit");
   }
 
   public Program(
       String name,
-      ProgramKind kind,
-      int entryFunctionId,
-      List<Global> globals,
-      List<RecordType> recordTypes,
-      List<VariantType> variantTypes,
-      List<FunctionBody> functions,
-      List<QuantumRegister> quantumRegisters,
-      List<QuantumCircuit> quantumCircuits,
-      List<WorkflowStep> workflow,
-      int maxHistoryRecords,
-      long maxSteps) {
-    this(
-        name,
-        kind,
-        entryFunctionId,
-        globals,
-        recordTypes,
-        variantTypes,
-        List.of(),
-        List.of(),
-        functions,
-        quantumRegisters,
-        quantumCircuits,
-        workflow,
-        maxHistoryRecords,
-        maxSteps);
-  }
-
-  public Program(
-      String name,
-      ProgramKind kind,
-      int entryFunctionId,
-      List<Global> globals,
-      List<RecordType> recordTypes,
-      List<FunctionBody> functions,
-      List<QuantumRegister> quantumRegisters,
-      List<QuantumCircuit> quantumCircuits,
-      List<WorkflowStep> workflow,
-      int maxHistoryRecords,
-      long maxSteps) {
-    this(
-        name,
-        kind,
-        entryFunctionId,
-        globals,
-        recordTypes,
-        List.of(),
-        List.of(),
-        List.of(),
-        functions,
-        quantumRegisters,
-        quantumCircuits,
-        workflow,
-        maxHistoryRecords,
-        maxSteps);
-  }
-
-  public Program(
-      String name,
-      ProgramKind kind,
-      int entryFunctionId,
-      List<Global> globals,
-      List<FunctionBody> functions,
-      List<QuantumRegister> quantumRegisters,
-      List<QuantumCircuit> quantumCircuits,
-      List<WorkflowStep> workflow,
-      int maxHistoryRecords,
-      long maxSteps) {
-    this(
-        name,
-        kind,
-        entryFunctionId,
-        globals,
-        List.of(),
-        List.of(),
-        List.of(),
-        List.of(),
-        functions,
-        quantumRegisters,
-        quantumCircuits,
-        workflow,
-        maxHistoryRecords,
-        maxSteps);
-  }
-
-  public Program(
-      String name,
       int entryFunctionId,
       List<Global> globals,
       List<FunctionBody> functions,
@@ -180,83 +99,16 @@ public final class Program {
         List.of(),
         List.of(),
         List.of(),
+        List.of(),
         maxHistoryRecords,
         maxSteps);
   }
 
-  public Program(
-      String name,
-      int entryFunctionId,
-      List<Global> globals,
-      List<RecordType> recordTypes,
-      List<FunctionBody> functions) {
-    this(
-        name,
-        ProgramKind.CLASSICAL,
-        entryFunctionId,
-        globals,
-        recordTypes,
-        List.of(),
-        List.of(),
-        List.of(),
-        functions,
-        List.of(),
-        List.of(),
-        List.of(),
-        DEFAULT_MAX_HISTORY,
-        DEFAULT_MAX_STEPS);
+  public Program(String name, int entryFunctionId, List<Global> globals, List<FunctionBody> functions) {
+    this(name, entryFunctionId, globals, functions, DEFAULT_MAX_HISTORY, DEFAULT_MAX_STEPS);
   }
 
-  public Program(
-      String name,
-      int entryFunctionId,
-      List<Global> globals,
-      List<RecordType> recordTypes,
-      List<VariantType> variantTypes,
-      List<FunctionBody> functions) {
-    this(
-        name,
-        ProgramKind.CLASSICAL,
-        entryFunctionId,
-        globals,
-        recordTypes,
-        variantTypes,
-        List.of(),
-        List.of(),
-        functions,
-        List.of(),
-        List.of(),
-        List.of(),
-        DEFAULT_MAX_HISTORY,
-        DEFAULT_MAX_STEPS);
-  }
-
-  public Program(
-      String name,
-      int entryFunctionId,
-      List<Global> globals,
-      List<RecordType> recordTypes,
-      List<VariantType> variantTypes,
-      List<ArrayType> arrayTypes,
-      List<FunctionBody> functions) {
-    this(
-        name,
-        ProgramKind.CLASSICAL,
-        entryFunctionId,
-        globals,
-        recordTypes,
-        variantTypes,
-        arrayTypes,
-        List.of(),
-        functions,
-        List.of(),
-        List.of(),
-        List.of(),
-        DEFAULT_MAX_HISTORY,
-        DEFAULT_MAX_STEPS);
-  }
-
-  public Program(
+  public static Program classical(
       String name,
       int entryFunctionId,
       List<Global> globals,
@@ -264,8 +116,9 @@ public final class Program {
       List<VariantType> variantTypes,
       List<ArrayType> arrayTypes,
       List<SliceType> sliceTypes,
-      List<FunctionBody> functions) {
-    this(
+      List<FunctionBody> functions,
+      List<ProofCertificate> proofCertificates) {
+    return new Program(
         name,
         ProgramKind.CLASSICAL,
         entryFunctionId,
@@ -275,15 +128,12 @@ public final class Program {
         arrayTypes,
         sliceTypes,
         functions,
+        proofCertificates,
         List.of(),
         List.of(),
         List.of(),
         DEFAULT_MAX_HISTORY,
         DEFAULT_MAX_STEPS);
-  }
-
-  public Program(String name, int entryFunctionId, List<Global> globals, List<FunctionBody> functions) {
-    this(name, entryFunctionId, globals, functions, DEFAULT_MAX_HISTORY, DEFAULT_MAX_STEPS);
   }
 
   private static <T> Map<Integer, T> index(
@@ -334,6 +184,10 @@ public final class Program {
     return functions;
   }
 
+  public List<ProofCertificate> proofCertificates() {
+    return proofCertificates;
+  }
+
   public List<QuantumRegister> quantumRegisters() {
     return quantumRegisters;
   }
@@ -374,6 +228,10 @@ public final class Program {
     return require(functionsById, id, "function");
   }
 
+  public ProofCertificate proofCertificate(int id) {
+    return require(proofsById, id, "proof");
+  }
+
   public QuantumRegister quantumRegister(int id) {
     return require(registersById, id, "quantum register");
   }
@@ -391,9 +249,9 @@ public final class Program {
   }
 
   public int globalIndex(String globalName) {
-    for (int i = 0; i < globals.size(); i++) {
-      if (globals.get(i).name().equals(globalName)) {
-        return i;
+    for (int index = 0; index < globals.size(); index++) {
+      if (globals.get(index).name().equals(globalName)) {
+        return index;
       }
     }
     throw new BytecodeException("Unknown global: " + globalName);

@@ -6,7 +6,7 @@ The examples are deliberately bounded. They demonstrate implemented semantics an
 
 | Example | Contract | Expected final state |
 | --- | --- | --- |
-| [`Counter.w`](../../wheeler-examples/src/main/wheeler/Counter.w) | Generated inverse calls and reverse-block order | `count = 0` |
+| [`Counter.w`](../../wheeler-examples/src/main/wheeler/Counter.w) | Generated inverse calls, reverse-block order, and a kernel-checked generated-inverse theorem | `count = 0` |
 | [`BinaryTree.w`](../../wheeler-examples/src/main/wheeler/BinaryTree.w) | Fixed-capacity reversible tree slots | `root = left = right = 0` |
 | [`BootstrapControl.w`](../../wheeler-examples/src/main/wheeler/BootstrapControl.w) | Typed signed and Boolean locals, expressions, branch joins, and a bounded counted `for` | `sum = 10`, `branch = 1` |
 | [`FixedArrays.w`](../../wheeler-examples/src/main/wheeler/FixedArrays.w) | Fixed immutable arrays, nonescaping borrowed slices, typed calls/results, checked indexing, and structural equality | `selected = 6`, `sum = 20`, `middleSum = 10`, `equal = 1` |

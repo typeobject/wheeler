@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.core.bytecode;
 
+import com.typeobject.wheeler.core.proof.ProofKernel;
 import com.typeobject.wheeler.core.quantum.GateOperation;
 import com.typeobject.wheeler.core.quantum.LiftedCall;
 import com.typeobject.wheeler.core.quantum.ParameterizedGateOperation;
@@ -30,6 +31,7 @@ public final class BytecodeVerifier {
     verifyArrayTypes(program);
     verifySliceTypes(program);
     verifyFunctions(program);
+    verifyProofs(program);
     verifyQuantum(program);
     verifyWorkflow(program);
 
@@ -58,6 +60,7 @@ public final class BytecodeVerifier {
         || program.arrayTypes().size() > 65_535
         || program.sliceTypes().size() > 65_535
         || program.functions().size() > 65_535
+        || program.proofCertificates().size() > 65_535
         || program.quantumRegisters().size() > 65_535
         || program.quantumCircuits().size() > 65_535) {
       fail("Program exceeds format table limits");
@@ -161,7 +164,7 @@ public final class BytecodeVerifier {
       verifyBody(program, function, function.forward(), false);
       if (function.reversible()) {
         verifyBody(program, function, function.inverse(), true);
-        verifyGeneratedInverse(function);
+        ProofKernel.verifyGeneratedInverse(function);
       }
       if (function.coherent()) {
         if (!function.reversible()) {
@@ -199,21 +202,6 @@ public final class BytecodeVerifier {
     if (type.kind() == ValueType.Kind.SLICE
         && type.descriptorId() >= program.sliceTypes().size()) {
       fail("Unknown slice type " + type.displayName() + " in " + owner);
-    }
-  }
-
-  private static void verifyGeneratedInverse(FunctionBody function) {
-    List<Instruction> expected = new ArrayList<>();
-    for (int i = function.forward().size() - 2; i >= 0; i--) {
-      Instruction forward = function.forward().get(i);
-      if (!forward.opcode().supportsGeneratedInverse()) {
-        fail("Reversible function contains noninvertible opcode: " + function.name());
-      }
-      expected.add(forward.inverse());
-    }
-    expected.add(Instruction.of(Opcode.RETURN));
-    if (!expected.equals(function.inverse())) {
-      fail("Inverse body does not match forward body: " + function.name());
     }
   }
 
@@ -681,6 +669,17 @@ public final class BytecodeVerifier {
       FunctionBody owner, long operand, int pc, List<Instruction> body) {
     if (operand < 0 || operand >= body.size()) {
       fail(location(owner, pc) + " invalid jump target " + operand);
+    }
+  }
+
+  private static void verifyProofs(Program program) {
+    Set<String> names = new HashSet<>();
+    for (int index = 0; index < program.proofCertificates().size(); index++) {
+      var proof = program.proofCertificates().get(index);
+      if (proof.id() != index || !names.add(proof.name())) {
+        fail("Noncanonical or duplicate proof " + proof.name());
+      }
+      ProofKernel.verify(program, proof);
     }
   }
 

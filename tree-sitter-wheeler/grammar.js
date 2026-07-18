@@ -25,6 +25,7 @@ module.exports = grammar({
       choice(
         $.record_declaration,
         $.variant_declaration,
+        $.theorem_declaration,
         $.state_declaration,
         $.qreg_declaration,
         $.method_declaration,
@@ -58,6 +59,17 @@ module.exports = grammar({
       field('name', $.identifier),
       '(',
       optional(seq($.record_component, repeat(seq(',', $.record_component)))),
+      ')',
+      ';',
+    ),
+
+    theorem_declaration: $ => seq(
+      'theorem',
+      field('name', $.identifier),
+      'proves',
+      'inverse',
+      '(',
+      field('function', $.identifier),
       ')',
       ';',
     ),

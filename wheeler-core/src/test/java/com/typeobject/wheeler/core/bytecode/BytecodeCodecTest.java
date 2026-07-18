@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.core.ProgramFixtures;
+import com.typeobject.wheeler.core.proof.ProofCertificate;
+import com.typeobject.wheeler.core.proof.ProofRule;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.MessageDigest;
@@ -138,6 +140,7 @@ class BytecodeCodecTest {
         java.util.List.of(),
         java.util.List.of(),
         java.util.List.of(),
+        java.util.List.of(),
         Program.DEFAULT_MAX_HISTORY,
         Program.DEFAULT_MAX_STEPS);
 
@@ -153,6 +156,58 @@ class BytecodeCodecTest {
     assertTrue(disassembly.contains("variant 0 Option None() Some(point:record#0)"));
     assertTrue(disassembly.contains("array 0 element=record#0 length=2"));
     assertTrue(disassembly.contains("slice 0 element=record#0"));
+  }
+
+  @Test
+  void generatedInverseProofCertificatesRoundTripAndFailClosed() {
+    FunctionBody main = new FunctionBody(
+        0,
+        "main",
+        false,
+        0,
+        java.util.List.of(),
+        null,
+        java.util.List.of(
+            Instruction.of(Opcode.CALL, 1),
+            Instruction.of(Opcode.HALT)),
+        java.util.List.of());
+    FunctionBody increment = new FunctionBody(
+        1,
+        "increment",
+        false,
+        0,
+        java.util.List.of(),
+        null,
+        java.util.List.of(
+            Instruction.of(Opcode.ADD_CONST, 0, 1),
+            Instruction.of(Opcode.RETURN)),
+        java.util.List.of(
+            Instruction.of(Opcode.SUB_CONST, 0, 1),
+            Instruction.of(Opcode.RETURN)));
+    ProofCertificate proof = new ProofCertificate(
+        0, "incrementInverse", ProofRule.GENERATED_INVERSE, 1);
+    Program valid = Program.classical(
+        "Proof", 0, java.util.List.of(new Global("value", 0)),
+        java.util.List.of(), java.util.List.of(), java.util.List.of(), java.util.List.of(),
+        java.util.List.of(main, increment), java.util.List.of(proof));
+
+    byte[] artifact = writer.write(valid);
+    Program decoded = reader.read(artifact);
+
+    assertEquals(java.util.List.of(proof), decoded.proofCertificates());
+    assertArrayEquals(artifact, writer.write(decoded));
+    assertTrue(new Disassembler().disassemble(decoded).contains(
+        "proof 0 incrementInverse rule=GENERATED_INVERSE function=1"));
+
+    FunctionBody plain = new FunctionBody(
+        0, "main", false, 0, java.util.List.of(), null,
+        java.util.List.of(Instruction.of(Opcode.HALT)), java.util.List.of());
+    Program forged = Program.classical(
+        "Forged", 0, java.util.List.of(), java.util.List.of(), java.util.List.of(),
+        java.util.List.of(), java.util.List.of(), java.util.List.of(plain),
+        java.util.List.of(new ProofCertificate(
+            0, "falseClaim", ProofRule.GENERATED_INVERSE, 0)));
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(forged));
   }
 
   @Test

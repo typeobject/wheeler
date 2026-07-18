@@ -31,6 +31,7 @@ Directory entries contain section type, flags, offset, length, alignment, and a 
 | 6 | Classical code records. |
 | 7 | Ordered classical/quantum workflow records. |
 | 8 | Quantum-register, circuit, literal or symbolic gate, and coherently lifted call records. |
+| 10 | Optional canonical proof certificates checked by the trusted finite kernel. |
 
 Sections 7 and 8 are required for quantum and hybrid artifacts and absent from canonical classical artifacts. Unknown required sections are rejected. WIP-0003 reserves a later section for target requirements; provider executables are derived artifacts, not semantic bytecode.
 
@@ -52,6 +53,12 @@ u64 operands[operand_count]
 The opcode fixes the canonical operand count and semantic rule. Each 40-byte function descriptor declares parameter and local counts, an optional typed result, code ranges, and a canonical offset into the trailing signature-type table. A present result type appears first at that offset, followed by local types; parameter registers are the first locals. Type offsets are contiguous in function order. One little-endian `u32` per register denotes signed 64-bit (`1`), Boolean (`2`), or a tagged aggregate type-table reference. Record references use tag `0x1` in the high nibble, variant references use tag `0x2`, and fixed-array references use tag `0x3`, and borrowed-slice references use tag `0x4`; each carries a 28-bit descriptor ID. Unknown codes, unresolved descriptor IDs, and noncanonical table lengths fail before execution. Parameter registers occupy the first frame slots and carry their declared signed or Boolean type. Result-presence flag `4` denotes one result type in the signature table.
 
 Local instructions cover constants, state load/store, move, checked add/subtract, typed XOR, structural equality, less-than, conditional/unconditional branch, loop-limit check, static value call, value return, nominal aggregate construction, and checked payload access. `RECORD_NEW` consumes an exact contiguous field window and interns one immutable value; `RECORD_GET` reads one descriptor-checked field. `VARIANT_NEW` adds a verified case tag, `VARIANT_TAG_EQ` tests it, and `VARIANT_GET` requires that exact tag before reading a payload field. `ARRAY_NEW` consumes exactly the descriptor length from a homogeneous local window; `ARRAY_GET` consumes a signed dynamic index and traps before mutation when it is outside the value. `SLICE_NEW` verifies an array origin and signed start/length range; `SLICE_GET` checks a relative index and reads through the retained origin. Boolean registers contain only `0` or `1`. Equality and ordering produce Boolean values, and branch conditions consume them. A call identifies a contiguous initialized argument window, exact argument count, and caller result register. Dynamic undo data never appears in an instruction; it belongs to runtime step records.
+
+## Proof certificates
+
+Section 10 is present only when a program carries proof evidence. It begins with a bounded count followed by fixed records containing canonical proof ID, proof-name string ID, trusted rule code, and subject function ID. The initial rule is `GENERATED_INVERSE`. The kernel reconstructs the inverse body from the exact forward instruction sequence and accepts only the checked reversible opcode subset. Unknown rules, unresolved subjects, noncanonical IDs, nonreversible functions, malformed lengths, duplicate names, or changed inverse bodies reject the artifact.
+
+Proof metadata cannot weaken ordinary bytecode verification or change execution. Omitting the section makes no theorem claim.
 
 ## Quantum and workflow records
 

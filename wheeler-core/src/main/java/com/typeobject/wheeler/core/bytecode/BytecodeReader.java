@@ -8,7 +8,10 @@ import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.TYPES;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.VARIANTS;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.WORKFLOW;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.QUANTUM;
+import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.PROOFS;
 
+import com.typeobject.wheeler.core.proof.ProofCertificate;
+import com.typeobject.wheeler.core.proof.ProofRule;
 import com.typeobject.wheeler.core.quantum.QuantumCircuit;
 import com.typeobject.wheeler.core.quantum.QuantumRegister;
 import com.typeobject.wheeler.core.workflow.WorkflowStep;
@@ -134,6 +137,9 @@ public final class BytecodeReader {
     List<FunctionDescriptor> descriptors = readFunctionDescriptors(slice(input, sections.get(FUNCTIONS)));
     ByteBuffer code = slice(input, sections.get(CODE));
     List<FunctionBody> functions = readFunctions(descriptors, strings, code);
+    List<ProofCertificate> proofs = sections.containsKey(PROOFS)
+        ? readProofs(slice(input, sections.get(PROOFS)), strings)
+        : List.of();
     List<QuantumRegister> registers = List.of();
     List<QuantumCircuit> circuits = List.of();
     List<WorkflowStep> workflow = List.of();
@@ -158,6 +164,7 @@ public final class BytecodeReader {
         types.arrays(),
         types.slices(),
         functions,
+        proofs,
         registers,
         circuits,
         workflow,
@@ -169,7 +176,7 @@ public final class BytecodeReader {
 
   private static void requireSections(Map<Integer, Section> sections) {
     Set<Integer> known = Set.of(
-        MANIFEST, STRINGS, TYPES, VARIANTS, FUNCTIONS, CODE, WORKFLOW, QUANTUM);
+        MANIFEST, STRINGS, TYPES, VARIANTS, FUNCTIONS, CODE, WORKFLOW, QUANTUM, PROOFS);
     Set<Integer> base = Set.of(MANIFEST, STRINGS, TYPES, VARIANTS, FUNCTIONS, CODE);
     for (int required : base) {
       if (!sections.containsKey(required)) {
@@ -354,6 +361,23 @@ public final class BytecodeReader {
       fail("Trailing data in variant descriptor section");
     }
     return List.copyOf(variants);
+  }
+
+  private static List<ProofCertificate> readProofs(
+      ByteBuffer section, List<String> strings) {
+    int count = readBoundedCount(section, "proof", 65_535);
+    if (section.remaining() != Math.multiplyExact(count, 16)) {
+      fail("Invalid proof section length");
+    }
+    List<ProofCertificate> proofs = new ArrayList<>(count);
+    for (int index = 0; index < count; index++) {
+      int id = section.getInt();
+      int nameId = section.getInt();
+      checkStringId(nameId, strings.size());
+      proofs.add(new ProofCertificate(
+          id, strings.get(nameId), ProofRule.fromCode(section.getInt()), section.getInt()));
+    }
+    return List.copyOf(proofs);
   }
 
   private static List<FunctionDescriptor> readFunctionDescriptors(ByteBuffer section) {

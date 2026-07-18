@@ -336,7 +336,7 @@ Each fixture first lands as an executable law if necessary, then gains a formal 
 - [ ] Proposition and proof-term schemas are accepted.
 - [ ] Contract and theorem syntax parses and resolves.
 - [ ] Finite classical proof kernel checks canonical terms.
-- [ ] Straight-line reversible functions emit checked inverse certificates.
+- [x] Explicit generated-inverse theorems over straight-line reversible functions emit canonical certificates checked independently from compiler lowering.
 - [ ] Quantum composition and adjoint rules check QFT certificates.
 - [ ] Resource-bound certificates integrate with target planning.
 - [ ] Experiment declarations integrate with hybrid provenance without inhabiting theorem types.
@@ -345,11 +345,11 @@ Each fixture first lands as an executable law if necessary, then gains a formal 
 
 ## Testing and acceptance
 
-- [ ] Parser and Tree-sitter corpora cover every contract, proposition, theorem, proof, and experiment construct.
+- [ ] Parser and Tree-sitter corpora cover the initial generated-inverse theorem form; contracts, general propositions, proof blocks, and experiments remain.
 - [ ] Negative syntax and type tests reject free-form justification, unresolved theorem names, malformed goals, effectful proofs, and invalid `old` or `result` use.
 - [ ] Kernel malformed-input corpus rejects forged, cyclic, noncanonical, stale, oversized, and unknown-rule certificates.
 - [ ] An independent checker agrees with the Wheeler kernel on the canonical certificate corpus.
-- [ ] Generated inverse certificates cover straight-line intrinsic and checked operations and reject logged or barrier effects without explicit premises.
+- [x] Generated-inverse certificates reconstruct the straight-line intrinsic subset and reject nonreversible subjects, unsupported/logged/barrier operations, changed inverse bodies, unknown rules, and malformed metadata.
 - [ ] Coherent certificates prove exact finite permutation and reject nonunitary or hidden-measurement bodies.
 - [ ] QFT certificate proves composition with generated adjoint is identity within the exact scalar profile.
 - [ ] Circuit rewrite certificate rejects one deliberately changed gate or parameter.

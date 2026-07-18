@@ -260,6 +260,31 @@ class SourceProfileNegativeTest {
   }
 
   @Test
+  void rejectsInvalidInverseTheoremsAndFreeFormProofText() {
+    String nonreversible = """
+        classical class BadTheorem {
+          void ordinary() { }
+          theorem falseClaim proves inverse(ordinary);
+          entry void main() { }
+        }
+        """;
+    String freeForm = """
+        classical class FreeForm {
+          rev void change() { }
+          theorem handwave proves because(change);
+          entry void main() { }
+        }
+        """;
+
+    CompilerException subject = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(nonreversible));
+    CompilerException syntax = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(freeForm));
+    assertTrue(subject.getMessage().contains("requires a reversible function"));
+    assertTrue(syntax.getMessage().contains("expected 'inverse'"));
+  }
+
+  @Test
   void rejectsOutOfRangeQuantumReference() {
     String source = """
         quantum class BrokenQubit {

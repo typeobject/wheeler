@@ -4,6 +4,7 @@ import com.typeobject.wheeler.compiler.SourceModel.ArrayDefinition;
 import com.typeobject.wheeler.compiler.SourceModel.Circuit;
 import com.typeobject.wheeler.compiler.SourceModel.Function;
 import com.typeobject.wheeler.compiler.SourceModel.Parameter;
+import com.typeobject.wheeler.compiler.SourceModel.ProofDeclaration;
 import com.typeobject.wheeler.compiler.SourceModel.QuantumRegisterSource;
 import com.typeobject.wheeler.compiler.SourceModel.RecordDefinition;
 import com.typeobject.wheeler.compiler.SourceModel.RecordField;
@@ -31,6 +32,7 @@ final class SourceParser extends SourceStatementParser {
   private final List<VariantDefinition> variants = new ArrayList<>();
   private final List<ArrayDefinition> arrays = new ArrayList<>();
   private final List<SliceDefinition> slices = new ArrayList<>();
+  private final List<ProofDeclaration> proofs = new ArrayList<>();
   private final List<QuantumRegisterSource> registers = new ArrayList<>();
   private final List<Circuit> circuits = new ArrayList<>();
   private String domain;
@@ -48,6 +50,7 @@ final class SourceParser extends SourceStatementParser {
     variants.clear();
     arrays.clear();
     slices.clear();
+    proofs.clear();
     registers.clear();
     circuits.clear();
     loops.clear();
@@ -77,6 +80,7 @@ final class SourceParser extends SourceStatementParser {
         variants,
         arrays,
         slices,
+        proofs,
         functions,
         registers,
         circuits);
@@ -92,6 +96,10 @@ final class SourceParser extends SourceStatementParser {
     }
     if (matchText("variant")) {
       parseVariant(previous());
+      return;
+    }
+    if (matchText("theorem")) {
+      parseTheorem(previous());
       return;
     }
     if (matchText("state")) {
@@ -175,6 +183,17 @@ final class SourceParser extends SourceStatementParser {
     }
     expect(Type.RIGHT_BRACE, "'}' after variant declaration");
     variants.add(new VariantDefinition(name, cases, start.line()));
+  }
+
+  private void parseTheorem(SourceToken start) {
+    String name = expect(Type.IDENTIFIER, "theorem name").text();
+    expectText("proves");
+    expectText("inverse");
+    expect(Type.LEFT_PAREN, "'(' after inverse");
+    String function = expect(Type.IDENTIFIER, "reversible function name").text();
+    expect(Type.RIGHT_PAREN, "')' after reversible function name");
+    expect(Type.SEMICOLON, "';' after theorem");
+    proofs.add(new ProofDeclaration(name, function, start.line()));
   }
 
   private void parseState(SourceToken start) {

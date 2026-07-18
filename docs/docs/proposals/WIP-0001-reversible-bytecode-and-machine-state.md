@@ -156,7 +156,7 @@ The first format reserves these section types:
 | 7 | Ordered classical/quantum workflow | Required for quantum and hybrid artifacts |
 | 8 | Quantum registers and circuit bodies | Required for quantum and hybrid artifacts |
 | 9 | Target requirements | Reserved for WIP-0003 |
-| 10 | Proof certificates | Reserved for a later WIP |
+| 10 | Proof certificates | Optional; initial generated-inverse rule from WIP-0011 |
 | 11 | Source and debug maps | Optional and non-semantic |
 
 The manifest declares artifact identity inputs, minimum runtime version, entry points, required section features, and global resource ceilings. A function descriptor declares its stable function ID, type signature, effect set, computation domain, frame-slot schema, forward body range, inverse body range when present, and declared bounds.
