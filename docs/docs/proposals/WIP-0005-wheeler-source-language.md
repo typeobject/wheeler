@@ -216,4 +216,5 @@ Rejected. Reversibility, affine quantum resources, reverse blocks, and measureme
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0010](WIP-0010-executable-application-portfolio.md)
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
+- [WIP-0012](WIP-0012-wheeler-standard-library.md)
 - [Language profile](../reference/language-profile.md)

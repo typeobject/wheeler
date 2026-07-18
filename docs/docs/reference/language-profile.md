@@ -135,6 +135,10 @@ Proofs will use integrated Wheeler syntax and semantics. Contracts attach to exe
 
 The current `QFTProof.w` is an executable inverse law, not a formal theorem. The proof language, certificate format, quantum propositions, resource claims, and tooling contract are specified in [WIP-0011](../proposals/WIP-0011-integrated-proofs-and-certificates.md).
 
+## Standard library direction
+
+The Wheeler-written standard library will provide allocation-free core values, owned deterministic collections, bytes and UTF-8, explicit host capabilities, reversible data structures with honest inverse contracts, affine logical qubits and registers, circuits, observables, target jobs, proof support, and test utilities. Its package layering and ownership rules are specified in [WIP-0012](../proposals/WIP-0012-wheeler-standard-library.md).
+
 ## Teaching path
 
 1. `Counter.w` and `BinaryTree.w`: classical state, reversible methods, assertions, reverse blocks, and fixed-capacity data layout.

@@ -400,3 +400,4 @@ Rejected. Simulation can establish exact finite cases under its model or provide
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0010](WIP-0010-executable-application-portfolio.md)
+- [WIP-0012](WIP-0012-wheeler-standard-library.md)

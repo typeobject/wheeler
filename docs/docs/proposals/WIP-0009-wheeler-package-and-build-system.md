@@ -371,3 +371,4 @@ Rejected. Credentials, queue selection, calibration, budgets, and hardware avail
 - [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md)
 - [WIP-0010](WIP-0010-executable-application-portfolio.md)
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
+- [WIP-0012](WIP-0012-wheeler-standard-library.md)
