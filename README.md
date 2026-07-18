@@ -32,6 +32,8 @@ The compiler generates `increment`'s inverse. The `reverse` block executes new i
 
 Wheeler currently includes canonical `.wbc` artifacts, strict verification, a reversible VM, backend-neutral quantum regions, an ideal state-vector target, asynchronous target jobs, [OpenQASM 3](https://openqasm.com/) lowering, and [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) tooling.
 
+Package targets have exactly three kinds: `deployable`, `library`, and `tool`. A runnable target may carry the orthogonal `test` selector; examples need no ceremonial fourth kind. The Wheeler-written core, compiler, runtime, and package-codec slices are ordinary entryless packages with exact committed locks and vendor archives. `wheeler-examples` consumes those archives and retains executable roots, not spare implementation copies kept “just in case.”
+
 ## Read next
 
 - [Full documentation](https://wheeler.typeobject.com/)
