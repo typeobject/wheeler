@@ -6,7 +6,8 @@ classical class Parser {
     public record MinimalProgram(
         SourceRange name,
         SourceRange global,
-        long initialValue
+        long initialValue,
+        long delta
     ) {}
 
     public variant MinimalProgramResult {
@@ -35,6 +36,19 @@ classical class Parser {
         return hash;
     }
 
+    private boolean punctuationAt(
+        utf8 source,
+        words tokenKinds,
+        words tokenStarts,
+        long token,
+        long scalar
+    ) {
+        if (tokenKinds[token] == 3) {
+            return utf8Scalar(source, tokenStarts[token]) == scalar;
+        }
+        return false;
+    }
+
     private boolean canonicalMinimalNames(
         utf8 source,
         words tokenKinds,
@@ -45,8 +59,101 @@ classical class Parser {
             long first = utf8Scalar(source, tokenStarts[2]);
             if (64 < first) {
                 if (first < 91) {
-                    return tokenHash(
-                        source, tokenStarts, tokenLengths, 6) == 111972721;
+                    if (tokenHash(
+                            source, tokenStarts, tokenLengths, 6)
+                            == 111972721) {
+                        return tokenHash(
+                            source, tokenStarts, tokenLengths, 16)
+                            == 111972721;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean minimalHeaderValid(
+        utf8 source,
+        words tokenKinds,
+        words tokenStarts,
+        words tokenLengths
+    ) {
+        if (tokenHash(source, tokenStarts, tokenLengths, 0)
+                == 87497064671293) {
+            if (tokenHash(source, tokenStarts, tokenLengths, 1) == 94742904) {
+                if (canonicalMinimalNames(
+                        source, tokenKinds, tokenStarts, tokenLengths)) {
+                    if (punctuationAt(source, tokenKinds, tokenStarts, 3, 123)) {
+                        if (tokenHash(source, tokenStarts, tokenLengths, 4)
+                                == 109757585) {
+                            if (tokenHash(source, tokenStarts, tokenLengths, 5)
+                                    == 3327612) {
+                                if (punctuationAt(
+                                        source, tokenKinds, tokenStarts, 7, 61)) {
+                                    if (tokenKinds[8] == 2) {
+                                        return punctuationAt(
+                                            source,
+                                            tokenKinds,
+                                            tokenStarts,
+                                            9,
+                                            59);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean minimalEntryValid(
+        utf8 source,
+        words tokenKinds,
+        words tokenStarts,
+        words tokenLengths
+    ) {
+        if (tokenHash(source, tokenStarts, tokenLengths, 10) == 96667762) {
+            if (tokenHash(source, tokenStarts, tokenLengths, 11) == 3625364) {
+                if (tokenHash(source, tokenStarts, tokenLengths, 12) == 3343801) {
+                    if (punctuationAt(
+                            source, tokenKinds, tokenStarts, 13, 40)) {
+                        if (punctuationAt(
+                                source, tokenKinds, tokenStarts, 14, 41)) {
+                            if (punctuationAt(
+                                    source, tokenKinds, tokenStarts, 15, 123)) {
+                                if (punctuationAt(
+                                        source, tokenKinds, tokenStarts, 17, 43)) {
+                                    if (punctuationAt(
+                                            source, tokenKinds, tokenStarts, 18, 61)) {
+                                        if (tokenKinds[19] == 2) {
+                                            if (punctuationAt(
+                                                    source,
+                                                    tokenKinds,
+                                                    tokenStarts,
+                                                    20,
+                                                    59)) {
+                                                if (punctuationAt(
+                                                        source,
+                                                        tokenKinds,
+                                                        tokenStarts,
+                                                        21,
+                                                        125)) {
+                                                    return punctuationAt(
+                                                        source,
+                                                        tokenKinds,
+                                                        tokenStarts,
+                                                        22,
+                                                        125);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -60,91 +167,29 @@ classical class Parser {
         words tokenLengths,
         long count
     ) {
-        if (count == 18) {
-            if (tokenHash(source, tokenStarts, tokenLengths, 0)
-                    == 87497064671293) {
-                if (tokenHash(source, tokenStarts, tokenLengths, 1) == 94742904) {
-                    if (canonicalMinimalNames(
-                            source, tokenKinds, tokenStarts, tokenLengths)) {
-                        if (utf8Scalar(source, tokenStarts[3]) == 123) {
-                            if (tokenHash(source, tokenStarts, tokenLengths, 4)
-                                    == 109757585) {
-                                if (tokenHash(source, tokenStarts, tokenLengths, 5)
-                                        == 3327612) {
-                                    if (tokenKinds[6] == 1) {
-                                        if (utf8Scalar(source, tokenStarts[7]) == 61) {
-                                            if (tokenKinds[8] == 2) {
-                                                if (utf8Scalar(
-                                                        source, tokenStarts[9]) == 59) {
-                                                    if (tokenHash(
-                                                            source,
-                                                            tokenStarts,
-                                                            tokenLengths,
-                                                            10) == 96667762) {
-                                                        if (tokenHash(
-                                                                source,
-                                                                tokenStarts,
-                                                                tokenLengths,
-                                                                11) == 3625364) {
-                                                            if (tokenHash(
-                                                                    source,
-                                                                    tokenStarts,
-                                                                    tokenLengths,
-                                                                    12) == 3343801) {
-                                                                if (utf8Scalar(
-                                                                        source,
-                                                                        tokenStarts[13]) == 40) {
-                                                                    if (utf8Scalar(
-                                                                            source,
-                                                                            tokenStarts[14]) == 41) {
-                                                                        if (utf8Scalar(
-                                                                                source,
-                                                                                tokenStarts[15]) == 123) {
-                                                                            if (utf8Scalar(
-                                                                                    source,
-                                                                                    tokenStarts[16]) == 125) {
-                                                                                if (utf8Scalar(
-                                                                                        source,
-                                                                                        tokenStarts[17]) == 125) {
-                                                                                    long end = tokenStarts[8]
-                                                                                        + tokenLengths[8];
-                                                                                    long initial = parseNumber(
-                                                                                        source,
-                                                                                        tokenStarts[8],
-                                                                                        end);
-                                                                                    if (0 < initial) {
-                                                                                        SourceRange name =
-                                                                                            new SourceRange(
-                                                                                                tokenStarts[2],
-                                                                                                tokenLengths[2]);
-                                                                                        SourceRange global =
-                                                                                            new SourceRange(
-                                                                                                tokenStarts[6],
-                                                                                                tokenLengths[6]);
-                                                                                        MinimalProgram program =
-                                                                                            new MinimalProgram(
-                                                                                                name,
-                                                                                                global,
-                                                                                                initial);
-                                                                                        return new MinimalProgramResult.Value(
-                                                                                            program);
-                                                                                    }
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+        if (count == 23) {
+            if (minimalHeaderValid(
+                    source, tokenKinds, tokenStarts, tokenLengths)) {
+                if (minimalEntryValid(
+                        source, tokenKinds, tokenStarts, tokenLengths)) {
+                    long initialEnd = tokenStarts[8] + tokenLengths[8];
+                    long initial = parseNumber(
+                        source, tokenStarts[8], initialEnd);
+                    if (initial < 0) {
+                        return new MinimalProgramResult.Error(tokenStarts[8]);
                     }
+                    long deltaEnd = tokenStarts[19] + tokenLengths[19];
+                    long delta = parseNumber(source, tokenStarts[19], deltaEnd);
+                    if (delta < 0) {
+                        return new MinimalProgramResult.Error(tokenStarts[19]);
+                    }
+                    SourceRange name = new SourceRange(
+                        tokenStarts[2], tokenLengths[2]);
+                    SourceRange global = new SourceRange(
+                        tokenStarts[6], tokenLengths[6]);
+                    MinimalProgram program = new MinimalProgram(
+                        name, global, initial, delta);
+                    return new MinimalProgramResult.Value(program);
                 }
             }
         }
@@ -179,24 +224,22 @@ classical class Parser {
         if (count == 6) {
             if (isLongKeyword(source, tokenStarts, tokenLengths)) {
                 if (tokenKinds[1] == 1) {
-                    if (tokenKinds[2] == 3) {
-                        if (utf8Scalar(source, tokenStarts[2]) == 61) {
-                            if (tokenKinds[3] == 2) {
-                                if (tokenKinds[4] == 3) {
-                                    if (utf8Scalar(source, tokenStarts[4]) == 59) {
-                                        if (3 < tokenKinds[5]) {
-                                            if (tokenKinds[5] < 6) {
-                                                long end = tokenStarts[3]
-                                                    + tokenLengths[3];
-                                                long value = parseNumber(
-                                                    source, tokenStarts[3], end);
-                                                if (value < 0) {
-                                                    return new DeclarationResult.Error(
-                                                        tokenStarts[3]);
-                                                }
-                                                return new DeclarationResult.Value(value);
-                                            }
+                    if (punctuationAt(
+                            source, tokenKinds, tokenStarts, 2, 61)) {
+                        if (tokenKinds[3] == 2) {
+                            if (punctuationAt(
+                                    source, tokenKinds, tokenStarts, 4, 59)) {
+                                if (3 < tokenKinds[5]) {
+                                    if (tokenKinds[5] < 6) {
+                                        long end = tokenStarts[3]
+                                            + tokenLengths[3];
+                                        long value = parseNumber(
+                                            source, tokenStarts[3], end);
+                                        if (value < 0) {
+                                            return new DeclarationResult.Error(
+                                                tokenStarts[3]);
                                         }
+                                        return new DeclarationResult.Value(value);
                                     }
                                 }
                             }

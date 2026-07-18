@@ -4,6 +4,7 @@ import examples.lexer.parser;
 import examples.lexer.scanner;
 classical class MinimalCompiler {
     state long finalCursor = 0;
+    state long codeStart = 0;
 
     private MinimalProgram requireMinimalProgram(
         utf8 source,
@@ -18,7 +19,7 @@ classical class MinimalCompiler {
                 assert finalCursor == 1;
                 SourceRange scanName = new SourceRange(scanOffset, 0);
                 SourceRange scanGlobal = new SourceRange(scanOffset, 0);
-                return new MinimalProgram(scanName, scanGlobal, 0);
+                return new MinimalProgram(scanName, scanGlobal, 0, 0);
             }
             case ScanResult.Value(long count) {
                 MinimalProgramResult parsed = parseMinimalProgram(
@@ -28,7 +29,7 @@ classical class MinimalCompiler {
                         assert finalCursor == 1;
                         SourceRange parseName = new SourceRange(parseOffset, 0);
                         SourceRange parseGlobal = new SourceRange(parseOffset, 0);
-                        return new MinimalProgram(parseName, parseGlobal, 0);
+                        return new MinimalProgram(parseName, parseGlobal, 0, 0);
                     }
                     case MinimalProgramResult.Value(MinimalProgram program) {
                         return program;
@@ -53,8 +54,10 @@ classical class MinimalCompiler {
         long typesOffset = align8(stringsOffset + stringsLength);
         long variantsOffset = align8(typesOffset + 32);
         long functionsOffset = align8(variantsOffset + 4);
-        long codeOffset = align8(functionsOffset + 44);
-        long fileLength = align8(codeOffset + 8);
+        long codeLength = 112;
+        long codeOffset = align8(functionsOffset + 52);
+        long fileLength = align8(codeOffset + codeLength);
+        codeStart = codeOffset;
 
         writeAscii(output, 0, "WHEELBC");
         long cursor = 8;
@@ -75,9 +78,9 @@ classical class MinimalCompiler {
         cursor = writeDirectoryEntry(
             output, cursor, 4, variantsOffset, 4);
         cursor = writeDirectoryEntry(
-            output, cursor, 5, functionsOffset, 44);
+            output, cursor, 5, functionsOffset, 52);
         cursor = writeDirectoryEntry(
-            output, cursor, 6, codeOffset, 8);
+            output, cursor, 6, codeOffset, codeLength);
 
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
@@ -113,14 +116,29 @@ classical class MinimalCompiler {
         cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
-        cursor = writeUnsignedLittleEndian(output, cursor, 8, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, codeLength, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 4294967295, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, 2, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
-        cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
         cursor = align8(cursor);
 
+        cursor = writeInstructionHeader(output, cursor, 1024, 2);
+        cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+        cursor = writeUnsignedLittleEndian(output, cursor, program.delta, 8);
+        cursor = writeInstructionHeader(output, cursor, 1025, 2);
+        cursor = writeUnsignedLittleEndian(output, cursor, 1, 8);
+        cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+        cursor = writeInstructionHeader(output, cursor, 1040, 3);
+        cursor = writeUnsignedLittleEndian(output, cursor, 1, 8);
+        cursor = writeUnsignedLittleEndian(output, cursor, 1, 8);
+        cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+        cursor = writeInstructionHeader(output, cursor, 1026, 2);
+        cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+        cursor = writeUnsignedLittleEndian(output, cursor, 1, 8);
         cursor = writeUnsignedLittleEndian(output, cursor, 1, 2);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 2);
         cursor = writeUnsignedLittleEndian(output, cursor, 8, 4);

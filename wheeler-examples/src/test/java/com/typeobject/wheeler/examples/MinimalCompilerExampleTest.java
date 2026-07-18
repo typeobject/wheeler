@@ -31,7 +31,8 @@ class MinimalCompilerExampleTest {
             "Scanner.w", scanner),
         "examples.compiler.seed");
     String source =
-        "classical class LongClass { state long value = 7; entry void main() { } }";
+        "classical class LongClass { state long value = 7; "
+            + "entry void main() { value += 5; } }";
     VirtualMachine writer = new VirtualMachine(
         writerProgram, source.getBytes(StandardCharsets.UTF_8), 512);
     var initial = writer.snapshot();
@@ -40,8 +41,9 @@ class MinimalCompilerExampleTest {
 
     byte[] emitted = writer.hostOutput();
     byte[] stageZero = new WheelerCompiler().compileToBytecode(source);
-    assertEquals(392, emitted.length);
-    assertEquals(392, writer.global("finalCursor"));
+    assertEquals(392, writer.global("codeStart"));
+    assertEquals(504, writer.global("finalCursor"));
+    assertEquals(504, emitted.length);
     assertArrayEquals(stageZero, emitted);
 
     var decoded = new BytecodeReader().read(emitted);
@@ -49,16 +51,27 @@ class MinimalCompilerExampleTest {
     VirtualMachine seed = new VirtualMachine(decoded);
     seed.run();
     assertEquals(MachineStatus.HALTED, seed.status());
-    assertEquals(7, seed.global("value"));
+    assertEquals(12, seed.global("value"));
 
     while (writer.historySize() > 0) {
       writer.rewindOne();
     }
     assertEquals(initial, writer.snapshot());
 
+    String zeroSource =
+        "classical class LongClass { state long value = 0; "
+            + "entry void main() { value += 0; } }";
+    VirtualMachine zeroWriter = new VirtualMachine(
+        writerProgram, zeroSource.getBytes(StandardCharsets.UTF_8), 512);
+    zeroWriter.run();
+    assertArrayEquals(
+        new WheelerCompiler().compileToBytecode(zeroSource),
+        zeroWriter.hostOutput());
+
     VirtualMachine invalid = new VirtualMachine(
         writerProgram,
-        "classical class Caf\u00e9 { state long value = 7; entry void main() { } }"
+        ("classical class Caf\u00e9 { state long value = 7; "
+            + "entry void main() { value += 5; } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
     assertThrows(VmTrap.class, invalid::run);

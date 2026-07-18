@@ -50,6 +50,18 @@ classical class Encoding {
         return offset + length;
     }
 
+    public long writeInstructionHeader(
+        bytes output,
+        long offset,
+        long opcode,
+        long operandCount
+    ) {
+        offset = writeUnsignedLittleEndian(output, offset, opcode, 2);
+        offset = writeUnsignedLittleEndian(output, offset, operandCount, 2);
+        return writeUnsignedLittleEndian(
+            output, offset, 8 + operandCount * 8, 4);
+    }
+
     public long align8(long value) {
         if (value < 0) {
             return -1;
