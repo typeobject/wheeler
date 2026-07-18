@@ -3,4 +3,15 @@ module examples.compiler.type_codes;
 classical class TypeCodes {
     public const long TYPE_SIGNED = 1;
     public const long TYPE_BOOLEAN = 2;
+    public const long TYPE_DESCRIPTOR_MASK = 0x0fffffff;
+    public const long TYPE_KIND_MASK = 0xf0000000;
+    public const long TYPE_RECORD = 0x10000000;
+
+    public boolean isRecordType(long typeCode) {
+        return (typeCode & TYPE_KIND_MASK) == TYPE_RECORD;
+    }
+
+    public long recordTypeId(long typeCode) {
+        return typeCode & TYPE_DESCRIPTOR_MASK;
+    }
 }

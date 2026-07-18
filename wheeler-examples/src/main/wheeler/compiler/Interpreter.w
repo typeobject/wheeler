@@ -1,4 +1,5 @@
 module examples.compiler.interpreter;
+import examples.compiler.aggregate_interpreter;
 import examples.compiler.opcodes;
 import examples.compiler.verifier;
 import examples.packages.binary;
@@ -68,7 +69,11 @@ classical class Interpreter {
         words returnCursors,
         words returnStarts,
         words returnEnds,
-        words returnDestinations
+        words returnDestinations,
+        words aggregateTypes,
+        words aggregateStarts,
+        words aggregateCounts,
+        words aggregateFields
     ) {
         long fileLength = bufferLength(artifact);
         if (verifyArtifact(artifact, fileLength) == 1) {
@@ -101,6 +106,8 @@ classical class Interpreter {
         long end = cursor
             + readUnsigned(artifact, entryDescriptor + 16, 4);
         long depth = 0;
+        long aggregateCount = 0;
+        long aggregateFieldCursor = 0;
         long steps = 0;
         long clear = 0;
         while (clear < INTERPRETER_LOCAL_WIDTH)
@@ -415,6 +422,56 @@ classical class Interpreter {
                             result = rotateRight32(leftValue, rightValue);
                         }
                         set(locals, localIndex(depth, mathDestination), result);
+                    }
+                    if (opcode == OPCODE_RECORD_NEW) {
+                        long recordDestination = readUnsigned(
+                            artifact, cursor + 8, 8);
+                        long recordType = readUnsigned(
+                            artifact, cursor + 16, 8);
+                        long recordBase = readUnsigned(
+                            artifact, cursor + 24, 8);
+                        long recordCount = readUnsigned(
+                            artifact, cursor + 32, 8);
+                        AggregateAllocation allocation = internRecord(
+                            aggregateTypes,
+                            aggregateStarts,
+                            aggregateCounts,
+                            aggregateFields,
+                            locals,
+                            depth * INTERPRETER_LOCAL_WIDTH,
+                            recordType,
+                            recordBase,
+                            recordCount,
+                            aggregateCount,
+                            aggregateFieldCursor);
+                        if (allocation.handle < 1) {
+                            return new ExecutionResult.Error(cursor);
+                        }
+                        aggregateCount = allocation.aggregateCount;
+                        aggregateFieldCursor = allocation.fieldCursor;
+                        set(
+                            locals,
+                            localIndex(depth, recordDestination),
+                            allocation.handle);
+                    }
+                    if (opcode == OPCODE_RECORD_GET) {
+                        long fieldDestination = readUnsigned(
+                            artifact, cursor + 8, 8);
+                        long recordSource = readUnsigned(
+                            artifact, cursor + 16, 8);
+                        long recordFieldIndex = readUnsigned(
+                            artifact, cursor + 24, 8);
+                        long recordHandle = locals[localIndex(
+                            depth, recordSource)];
+                        set(
+                            locals,
+                            localIndex(depth, fieldDestination),
+                            recordField(
+                                aggregateStarts,
+                                aggregateCounts,
+                                aggregateFields,
+                                recordHandle,
+                                recordFieldIndex));
                     }
                     if (opcode == OPCODE_LOCAL_EQ) {
                         long equalityDestination = readUnsigned(

@@ -24,19 +24,27 @@ class NativeVmExampleTest {
   void wheelerInterpretsBoundedArtifactsIncludingCounter() throws Exception {
     Path root = Path.of("src/main/wheeler");
     Program interpreter = new WheelerCompiler().compileModuleFiles(
-        Map.of(
-            "Binary.w", Files.readString(root.resolve("packages/Binary.w")),
-            "FunctionVerifier.w",
-            Files.readString(root.resolve("compiler/FunctionVerifier.w")),
-            "InstructionVerifier.w",
-            Files.readString(root.resolve("compiler/InstructionVerifier.w")),
-            "Interpreter.w", Files.readString(root.resolve("compiler/Interpreter.w")),
-            "NativeVm.w", Files.readString(root.resolve("NativeVm.w")),
-            "Opcodes.w", Files.readString(root.resolve("compiler/Opcodes.w")),
-            "ProofRules.w", Files.readString(root.resolve("compiler/ProofRules.w")),
-            "ProofVerifier.w", Files.readString(root.resolve("compiler/ProofVerifier.w")),
-            "TypeCodes.w", Files.readString(root.resolve("compiler/TypeCodes.w")),
-            "Verifier.w", Files.readString(root.resolve("compiler/Verifier.w"))),
+        Map.ofEntries(
+            Map.entry(
+                "AggregateInterpreter.w",
+                Files.readString(root.resolve("compiler/AggregateInterpreter.w"))),
+            Map.entry("Binary.w", Files.readString(root.resolve("packages/Binary.w"))),
+            Map.entry(
+                "FunctionVerifier.w",
+                Files.readString(root.resolve("compiler/FunctionVerifier.w"))),
+            Map.entry(
+                "InstructionVerifier.w",
+                Files.readString(root.resolve("compiler/InstructionVerifier.w"))),
+            Map.entry(
+                "Interpreter.w", Files.readString(root.resolve("compiler/Interpreter.w"))),
+            Map.entry("NativeVm.w", Files.readString(root.resolve("NativeVm.w"))),
+            Map.entry("Opcodes.w", Files.readString(root.resolve("compiler/Opcodes.w"))),
+            Map.entry("ProofRules.w", Files.readString(root.resolve("compiler/ProofRules.w"))),
+            Map.entry(
+                "ProofVerifier.w",
+                Files.readString(root.resolve("compiler/ProofVerifier.w"))),
+            Map.entry("TypeCodes.w", Files.readString(root.resolve("compiler/TypeCodes.w"))),
+            Map.entry("Verifier.w", Files.readString(root.resolve("compiler/Verifier.w")))),
         "examples.runtime.native_vm");
     WheelerCompiler compiler = new WheelerCompiler();
     byte[] update = compiler.compileToBytecode(
@@ -119,6 +127,14 @@ class NativeVmExampleTest {
         12,
         "selected",
         7);
+    String records = Files.readString(root.resolve("Records.w"));
+    assertInterpretedTwoGlobals(
+        interpreter, records, "width", 5, "equal", 1);
+    byte[] forgedRecord = withBadRecordField(
+        compiler.compileToBytecode(records));
+    assertThrows(
+        VmTrap.class,
+        () -> VirtualMachine.withBinaryInput(interpreter, forgedRecord).run());
     byte[] forgedBound = withForgedProofBound(
         compiler.compileToBytecode(functionValues));
     assertThrows(
@@ -233,6 +249,23 @@ class NativeVmExampleTest {
       cursor += bytes.getInt(cursor + 4);
     }
     throw new AssertionError("call fixture has no argument call");
+  }
+
+  private static byte[] withBadRecordField(byte[] artifact) {
+    byte[] damaged = artifact.clone();
+    ByteBuffer bytes = ByteBuffer.wrap(damaged).order(ByteOrder.LITTLE_ENDIAN);
+    int codeDirectory = 40 + 5 * 32;
+    int cursor = Math.toIntExact(bytes.getLong(codeDirectory + 8));
+    int end = cursor + Math.toIntExact(bytes.getLong(codeDirectory + 16));
+    while (cursor < end) {
+      int opcode = Short.toUnsignedInt(bytes.getShort(cursor));
+      if (opcode == Opcode.RECORD_GET.code()) {
+        bytes.putLong(cursor + 24, Long.MAX_VALUE);
+        return damaged;
+      }
+      cursor += bytes.getInt(cursor + 4);
+    }
+    throw new AssertionError("record fixture has no field read");
   }
 
   private static byte[] withForgedInverseOpcode(byte[] artifact) {

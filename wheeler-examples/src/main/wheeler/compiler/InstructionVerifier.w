@@ -82,6 +82,38 @@ classical class InstructionVerifier {
             4);
     }
 
+    private long recordDescriptor(
+        byteview artifact,
+        long typesOffset,
+        long globalCount,
+        long recordCount,
+        long recordId
+    ) {
+        long cursor = typesOffset + 8 + globalCount * 16;
+        long record = 0;
+        while (record < recordCount) limit INTERPRETER_AGGREGATE_COUNT {
+            if (differs(readUnsigned(artifact, cursor, 4), record)) {
+                return -1;
+            }
+            if (record == recordId) {
+                return cursor;
+            }
+            long fieldCount = readUnsigned(artifact, cursor + 8, 4);
+            cursor += 12 + fieldCount * 8;
+            record += 1;
+        }
+        return -1;
+    }
+
+    private long recordFieldType(
+        byteview artifact,
+        long descriptor,
+        long field
+    ) {
+        return readUnsigned(
+            artifact, descriptor + 16 + field * 8, 4);
+    }
+
     private long callArgumentsValid(
         byteview artifact,
         long functionsOffset,
@@ -177,6 +209,12 @@ classical class InstructionVerifier {
         if (opcode == OPCODE_LOCAL_LOOP_CHECK) {
             return 2;
         }
+        if (opcode == OPCODE_RECORD_NEW) {
+            return 4;
+        }
+        if (opcode == OPCODE_RECORD_GET) {
+            return 3;
+        }
         return -1;
     }
 
@@ -211,7 +249,9 @@ classical class InstructionVerifier {
         byteview artifact,
         long cursor,
         long opcode,
+        long typesOffset,
         long globalCount,
+        long recordCount,
         long functionCount,
         long localCount,
         long activeStart,
@@ -489,6 +529,86 @@ classical class InstructionVerifier {
             }
             return 0;
         }
+        if (opcode == OPCODE_RECORD_NEW) {
+            long typeId = readUnsigned(artifact, cursor + 16, 8);
+            long fieldBase = readUnsigned(artifact, cursor + 24, 8);
+            long fieldCount = readUnsigned(artifact, cursor + 32, 8);
+            long descriptor = recordDescriptor(
+                artifact,
+                typesOffset,
+                globalCount,
+                recordCount,
+                typeId);
+            if (descriptor < 0) {
+                return 0;
+            }
+            if (differs(
+                    readUnsigned(artifact, descriptor + 8, 4),
+                    fieldCount)) {
+                return 0;
+            }
+            if (localCount < fieldBase + fieldCount) {
+                return 0;
+            }
+            if (first < localCount) {
+                if (differs(
+                        localType(artifact, activeTypes, first),
+                        TYPE_RECORD + typeId)) {
+                    return 0;
+                }
+            } else {
+                return 0;
+            }
+            long field = 0;
+            while (field < fieldCount) limit INTERPRETER_LOCAL_WIDTH {
+                if (differs(
+                        localType(
+                            artifact, activeTypes, fieldBase + field),
+                        recordFieldType(artifact, descriptor, field))) {
+                    return 0;
+                }
+                field += 1;
+            }
+            return 1;
+        }
+        if (opcode == OPCODE_RECORD_GET) {
+            long recordSource = readUnsigned(
+                artifact, cursor + 16, 8);
+            long recordField = readUnsigned(
+                artifact, cursor + 24, 8);
+            if (first < localCount) {
+                if (recordSource < localCount) {
+                    long sourceType = localType(
+                        artifact, activeTypes, recordSource);
+                    if (isRecordType(sourceType)) {
+                        long getDescriptor = recordDescriptor(
+                            artifact,
+                            typesOffset,
+                            globalCount,
+                            recordCount,
+                            recordTypeId(sourceType));
+                        if (0 < getDescriptor) {
+                            if (recordField < readUnsigned(
+                                    artifact, getDescriptor + 8, 4)) {
+                                if (differs(
+                                        localType(
+                                            artifact,
+                                            activeTypes,
+                                            first),
+                                        recordFieldType(
+                                            artifact,
+                                            getDescriptor,
+                                            recordField))) {
+                                } else {
+                                    return 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
         return 1;
     }
 
@@ -497,7 +617,9 @@ classical class InstructionVerifier {
         long codeStart,
         long codeLength,
         long functionsOffset,
+        long typesOffset,
         long globalCount,
+        long recordCount,
         long functionCount,
         long localCount,
         long activeTypes,
@@ -533,7 +655,9 @@ classical class InstructionVerifier {
                     artifact,
                     cursor,
                     opcode,
+                    typesOffset,
                     globalCount,
+                    recordCount,
                     functionCount,
                     localCount,
                     codeStart,

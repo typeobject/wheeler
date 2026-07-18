@@ -11,7 +11,7 @@ classical class NativeVm {
     state long artifactLength = 0;
 
     entry void main(byteview artifact) {
-        region arena = new region(2368, 6);
+        region arena = new region(4160, 10);
         words globals = allocate(arena, INTERPRETER_GLOBAL_COUNT);
         words locals = allocate(arena, INTERPRETER_LOCAL_CAPACITY);
         words returnCursors = allocate(arena, INTERPRETER_FRAME_COUNT);
@@ -19,6 +19,14 @@ classical class NativeVm {
         words returnEnds = allocate(arena, INTERPRETER_FRAME_COUNT);
         words returnDestinations = allocate(
             arena, INTERPRETER_FRAME_COUNT);
+        words aggregateTypes = allocate(
+            arena, INTERPRETER_AGGREGATE_COUNT);
+        words aggregateStarts = allocate(
+            arena, INTERPRETER_AGGREGATE_COUNT);
+        words aggregateCounts = allocate(
+            arena, INTERPRETER_AGGREGATE_COUNT);
+        words aggregateFields = allocate(
+            arena, INTERPRETER_AGGREGATE_FIELDS);
         ExecutionResult result = executeArtifact(
             artifact,
             globals,
@@ -26,7 +34,11 @@ classical class NativeVm {
             returnCursors,
             returnStarts,
             returnEnds,
-            returnDestinations);
+            returnDestinations,
+            aggregateTypes,
+            aggregateStarts,
+            aggregateCounts,
+            aggregateFields);
         match (result) {
             case ExecutionResult.Value(Execution execution) {
                 finalGlobal = execution.globalZero;
@@ -39,6 +51,10 @@ classical class NativeVm {
             }
         }
         artifactLength = bufferLength(artifact);
+        drop(aggregateFields);
+        drop(aggregateCounts);
+        drop(aggregateStarts);
+        drop(aggregateTypes);
         drop(returnDestinations);
         drop(returnEnds);
         drop(returnStarts);

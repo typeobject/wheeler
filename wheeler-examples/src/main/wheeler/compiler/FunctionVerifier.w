@@ -12,22 +12,30 @@ classical class FunctionVerifier {
         return right < left;
     }
 
-    private boolean scalarType(long typeCode) {
+    private boolean validValueType(long typeCode, long recordCount) {
         if (typeCode == TYPE_SIGNED) {
             return true;
         }
-        return typeCode == TYPE_BOOLEAN;
+        if (typeCode == TYPE_BOOLEAN) {
+            return true;
+        }
+        if (isRecordType(typeCode)) {
+            return recordTypeId(typeCode) < recordCount;
+        }
+        return false;
     }
 
     private long verifyTypeWindow(
         byteview artifact,
         long start,
-        long count
+        long count,
+        long recordCount
     ) {
         long index = 0;
         while (index < count) limit INTERPRETER_LOCAL_WIDTH + 1 {
-            if (scalarType(readUnsigned(
-                    artifact, start + index * 4, 4))) {
+            if (validValueType(
+                    readUnsigned(artifact, start + index * 4, 4),
+                    recordCount)) {
             } else {
                 return 0;
             }
@@ -42,7 +50,9 @@ classical class FunctionVerifier {
         long functionsLength,
         long codeOffset,
         long codeLength,
+        long typesOffset,
         long globalCount,
+        long recordCount,
         long functionCount,
         long entryFunction,
         long stringCount
@@ -141,7 +151,7 @@ classical class FunctionVerifier {
             if (resultCount == 1) {
                 resultType = readUnsigned(
                     artifact, typeTable + typeOffset * 4, 4);
-                if (scalarType(resultType)) {
+                if (validValueType(resultType, recordCount)) {
                 } else {
                     return 0;
                 }
@@ -149,7 +159,10 @@ classical class FunctionVerifier {
             long activeTypes = typeTable
                 + (typeOffset + resultCount) * 4;
             if (verifyTypeWindow(
-                    artifact, activeTypes, localCount) == 0) {
+                    artifact,
+                    activeTypes,
+                    localCount,
+                    recordCount) == 0) {
                 return 0;
             }
             long entryBody = 0;
@@ -161,7 +174,9 @@ classical class FunctionVerifier {
                     codeOffset + forwardOffset,
                     forwardLength,
                     functionsOffset,
+                    typesOffset,
                     globalCount,
+                    recordCount,
                     functionCount,
                     localCount,
                     activeTypes,
@@ -175,7 +190,9 @@ classical class FunctionVerifier {
                         codeOffset + inverseOffset,
                         inverseLength,
                         functionsOffset,
+                        typesOffset,
                         globalCount,
+                        recordCount,
                         functionCount,
                         localCount,
                         activeTypes,

@@ -32,7 +32,11 @@ classical class Opcodes {
     public const long OPCODE_JUMP = 0x0430;
     public const long OPCODE_JUMP_IF_ZERO = 0x0431;
     public const long OPCODE_LOCAL_LOOP_CHECK = 0x0432;
+    public const long OPCODE_RECORD_NEW = 0x0500;
+    public const long OPCODE_RECORD_GET = 0x0501;
 
+    public const long INTERPRETER_AGGREGATE_COUNT = 32;
+    public const long INTERPRETER_AGGREGATE_FIELDS = 128;
     public const long INTERPRETER_LOCAL_WIDTH = 32;
     public const long INTERPRETER_FRAME_COUNT = 8;
     public const long INTERPRETER_FUNCTION_COUNT = 8;

@@ -129,11 +129,7 @@ classical class Verifier {
         if (differs(directoryField(artifact, 0, 16, 8), 24)) {
             return 0;
         }
-        if (differs(
-                directoryField(artifact, 2, 16, 8),
-                16 + globalCount * 16)) {
-            return 0;
-        }
+        long typesLength = directoryField(artifact, 2, 16, 8);
         if (differs(directoryField(artifact, 3, 16, 8), 4)) {
             return 0;
         }
@@ -151,19 +147,62 @@ classical class Verifier {
             }
             global += 1;
         }
-        if (differs(
-                stringCount,
-                globalCount + 1 + functionCount + sectionCount - 6)) {
+        long typeCursor = typesOffset + 4 + globalCount * 16;
+        long recordCount = readUnsigned(artifact, typeCursor, 4);
+        if (INTERPRETER_AGGREGATE_COUNT < recordCount) {
             return 0;
         }
-        long typeCounts = typesOffset + 4 + globalCount * 16;
-        if (differs(readUnsigned(artifact, typeCounts, 4), 0)) {
+        typeCursor += 4;
+        long record = 0;
+        while (record < recordCount) limit INTERPRETER_AGGREGATE_COUNT {
+            if (differs(readUnsigned(artifact, typeCursor, 4), record)) {
+                return 0;
+            }
+            if (readUnsigned(artifact, typeCursor + 4, 4) < stringCount) {
+            } else {
+                return 0;
+            }
+            long fieldCount = readUnsigned(artifact, typeCursor + 8, 4);
+            if (INTERPRETER_LOCAL_WIDTH < fieldCount) {
+                return 0;
+            }
+            long field = 0;
+            while (field < fieldCount) limit INTERPRETER_LOCAL_WIDTH {
+                long fieldName = readUnsigned(
+                    artifact, typeCursor + 12 + field * 8, 4);
+                if (fieldName < stringCount) {
+                } else {
+                    return 0;
+                }
+                long fieldType = readUnsigned(
+                    artifact, typeCursor + 16 + field * 8, 4);
+                if (fieldType == TYPE_SIGNED) {
+                } else {
+                    if (fieldType == TYPE_BOOLEAN) {
+                    } else {
+                        if (isRecordType(fieldType)) {
+                            if (recordTypeId(fieldType) < record) {
+                            } else {
+                                return 0;
+                            }
+                        } else {
+                            return 0;
+                        }
+                    }
+                }
+                field += 1;
+            }
+            typeCursor += 12 + fieldCount * 8;
+            record += 1;
+        }
+        if (differs(readUnsigned(artifact, typeCursor, 4), 0)) {
             return 0;
         }
-        if (differs(readUnsigned(artifact, typeCounts + 4, 4), 0)) {
+        if (differs(readUnsigned(artifact, typeCursor + 4, 4), 0)) {
             return 0;
         }
-        if (differs(readUnsigned(artifact, typeCounts + 8, 4), 0)) {
+        typeCursor += 8;
+        if (differs(typeCursor, typesOffset + typesLength)) {
             return 0;
         }
         if (differs(readUnsigned(artifact, variantsOffset, 4), 0)) {
@@ -175,7 +214,9 @@ classical class Verifier {
                 functionsLength,
                 codeOffset,
                 codeLength,
+                typesOffset,
                 globalCount,
+                recordCount,
                 functionCount,
                 entryFunction,
                 stringCount) == 0) {
