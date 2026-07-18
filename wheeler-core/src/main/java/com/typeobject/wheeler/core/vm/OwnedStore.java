@@ -9,6 +9,7 @@ final class OwnedStore {
   static final int MAX_REGIONS = 65_535;
   static final int MAX_BUFFERS = 65_535;
   static final long MAX_REGION_BYTES = 1L << 30;
+  static final long MAX_TOTAL_LIVE_BYTES = 16L * 1024 * 1024;
 
   record Change(
       int previousRegionCount,
@@ -58,6 +59,7 @@ final class OwnedStore {
     long bytes = Math.multiplyExact((long) length, Long.BYTES);
     if (length <= 0
         || bytes > region.maxBytes() - region.usedBytes()
+        || bytes > MAX_TOTAL_LIVE_BYTES - liveBytes()
         || region.liveObjects() >= region.maxObjects()
         || buffers.size() >= MAX_BUFFERS) {
       throw new VmTrap("Region allocation limit exceeded");
@@ -97,7 +99,7 @@ final class OwnedStore {
     long bytes = Math.multiplyExact((long) buffer.elements().size(), Long.BYTES);
     Change updated = change.region(region.id(), region).buffer(buffer.id(), buffer);
     buffers.set(buffer.id(), new BufferValue(
-        buffer.id(), buffer.regionId(), buffer.elements(), true));
+        buffer.id(), buffer.regionId(), List.of(), true));
     regions.set(region.id(), new RegionValue(
         region.id(), region.maxBytes(), region.maxObjects(),
         region.usedBytes() - bytes, region.liveObjects() - 1, false));
@@ -132,10 +134,19 @@ final class OwnedStore {
     }
     if (length <= 0
         || bytes > region.maxBytes() - region.usedBytes()
+        || bytes > MAX_TOTAL_LIVE_BYTES - liveBytes()
         || region.liveObjects() >= region.maxObjects()
         || buffers.size() >= MAX_BUFFERS) {
       throw new VmTrap("Region allocation limit exceeded");
     }
+  }
+
+  private long liveBytes() {
+    long total = 0;
+    for (RegionValue region : regions) {
+      total = Math.addExact(total, region.usedBytes());
+    }
+    return total;
   }
 
   void validateGet(long bufferHandle, int index) {

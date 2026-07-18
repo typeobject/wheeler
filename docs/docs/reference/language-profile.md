@@ -173,7 +173,7 @@ drop(data);
 drop(arena);
 ```
 
-A region declares hard byte and live-object ceilings. A `words` allocation is zero-initialized, charges eight bytes per element, and traps before mutation on a zero/negative length, byte exhaustion, object exhaustion, invalid handle, dropped owner, or checked-index failure. `set` and indexing accept signed words. Buffers must be dropped before their region; dropping returns their byte and object charge.
+A region declares hard byte and live-object ceilings; the VM also caps total live region storage at 16 MiB. A `words` allocation is zero-initialized, charges eight bytes per element, and traps before mutation on a zero/negative length, byte exhaustion, object exhaustion, invalid handle, dropped owner, or checked-index failure. `set` and indexing accept signed words. Buffers must be dropped before their region; dropping returns their byte and object charge and releases visible contents, while rewind data retains only what is required until commit.
 
 `region` and `words` are affine local types. Binding one moves the handle and invalidates the source; ordinary copy and equality are rejected. They cannot be parameters, results, aggregate elements, arrays, or slices. Definite-ownership dataflow rejects use after move/drop, live-owner overwrite, control-flow joins with different ownership states, and any function exit with a live owned local. Runtime dropped-state and owner checks remain defense in depth. Snapshots expose canonical region/buffer state, and rewind restores allocation, mutation, move, and drop exactly.
 

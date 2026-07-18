@@ -596,6 +596,7 @@ class VirtualMachineTest {
     assertEquals(5, machine.global("result"));
     assertTrue(machine.snapshot().regions().getFirst().dropped());
     assertTrue(machine.snapshot().buffers().getFirst().dropped());
+    assertTrue(machine.snapshot().buffers().getFirst().elements().isEmpty());
     while (machine.historySize() > 0) {
       machine.rewindOne();
     }
