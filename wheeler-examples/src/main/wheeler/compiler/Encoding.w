@@ -27,6 +27,17 @@ classical class Encoding {
         return -1;
     }
 
+    public long align8(long value) {
+        if (value < 0) {
+            return -1;
+        }
+        long remainder = value % 8;
+        if (remainder == 0) {
+            return value;
+        }
+        return value + (8 - remainder);
+    }
+
     public long writeDirectoryEntry(
         bytes output,
         long cursor,

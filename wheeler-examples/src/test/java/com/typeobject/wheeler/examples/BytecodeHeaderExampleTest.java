@@ -27,7 +27,7 @@ class BytecodeHeaderExampleTest {
 
     assertEquals(256, machine.global("finalCursor"));
     byte[] stageZeroArtifact = new BytecodeWriter().write(program);
-    assertEquals(10_560, stageZeroArtifact.length);
+    assertEquals(12_696, stageZeroArtifact.length);
     assertArrayEquals(
         Arrays.copyOf(stageZeroArtifact, 256), machine.hostOutput());
     while (machine.historySize() > 0) {
