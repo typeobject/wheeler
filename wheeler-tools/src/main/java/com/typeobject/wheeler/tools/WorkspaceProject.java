@@ -80,10 +80,12 @@ final class WorkspaceProject {
     return executed;
   }
 
-  BuildPlan plan(String compilerIdentity) throws IOException {
+  BuildPlan plan(String compilerIdentity, boolean grantRequestedCapabilities)
+      throws IOException {
     List<BuildPlan.Node> nodes = new ArrayList<>();
     for (MemberProject member : members) {
-      nodes.addAll(member.project().planNodes(member.name()));
+      nodes.addAll(member.project().planNodes(
+          member.name(), grantRequestedCapabilities));
     }
     return new BuildPlan(
         BuildPlan.SCHEMA_VERSION,

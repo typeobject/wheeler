@@ -128,7 +128,8 @@ final class LockedPackageSet {
     return Map.copyOf(artifacts);
   }
 
-  List<BuildPlan.Node> planNodes(String prefix) {
+  List<BuildPlan.Node> planNodes(
+      String prefix, boolean grantRequestedCapabilities) {
     List<BuildPlan.Node> result = new ArrayList<>();
     Map<String, PackageLock.Entry> locked = lockEntries(lock);
     for (String name : buildOrder) {
@@ -148,7 +149,9 @@ final class LockedPackageSet {
             PackageProject.sha256(source),
             prefix + "/dependencies/" + name + "/" + target.name() + ".wbc",
             inputs,
-            dependency.manifest().capabilities()));
+            dependency.manifest().capabilities(),
+            BuildPlan.ExecutionLimits.DEFAULT,
+            grantRequestedCapabilities ? dependency.manifest().capabilities() : List.of()));
       }
     }
     return List.copyOf(result);

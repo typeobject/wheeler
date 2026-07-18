@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.packageformat;
 
+import com.typeobject.wheeler.packageformat.BuildPlan.ExecutionLimits;
 import com.typeobject.wheeler.packageformat.BuildPlan.Node;
 import com.typeobject.wheeler.packageformat.BuildPlan.PackageInput;
 import com.typeobject.wheeler.packageformat.PackageManifest.Capability;
@@ -44,11 +45,13 @@ public final class BuildPlanCodec {
         string(body, input.name());
         body.writeBytes(hashBytes(input.archiveIdentity()));
       }
-      integer(body, node.capabilities().size());
-      for (Capability capability : node.capabilities()) {
-        string(body, capability.name());
-        string(body, capability.pattern());
-      }
+      capabilities(body, node.capabilityRequests());
+      longInteger(body, node.executionLimits().maxSteps());
+      longInteger(body, node.executionLimits().maxMemoryBytes());
+      longInteger(body, node.executionLimits().maxInputBytes());
+      longInteger(body, node.executionLimits().maxOutputBytes());
+      longInteger(body, node.executionLimits().timeoutMillis());
+      capabilities(body, node.capabilityGrants());
     }
     byte[] payload = body.toByteArray();
     ByteArrayOutputStream result = new ByteArrayOutputStream();
@@ -106,11 +109,14 @@ public final class BuildPlanCodec {
       for (int item = 0; item < inputCount; item++) {
         inputs.add(new PackageInput(string(body), hash(body)));
       }
-      int capabilityCount = count(body, "capability");
-      List<Capability> capabilities = new ArrayList<>(capabilityCount);
-      for (int item = 0; item < capabilityCount; item++) {
-        capabilities.add(new Capability(string(body), string(body)));
-      }
+      List<Capability> requests = capabilities(body, "capability request");
+      ExecutionLimits limits = new ExecutionLimits(
+          longInteger(body, "step limit"),
+          longInteger(body, "memory limit"),
+          longInteger(body, "input limit"),
+          longInteger(body, "output limit"),
+          longInteger(body, "timeout"));
+      List<Capability> grants = capabilities(body, "capability grant");
       nodes.add(new Node(
           identity,
           packageName,
@@ -121,7 +127,9 @@ public final class BuildPlanCodec {
           source,
           output,
           inputs,
-          capabilities));
+          requests,
+          limits,
+          grants));
     }
     if (body.hasRemaining()) {
       throw new PackageFormatException("Trailing build plan payload data");
@@ -136,6 +144,25 @@ public final class BuildPlanCodec {
   public String identity(byte[] canonicalPlan) {
     decode(canonicalPlan);
     return HexFormat.of().formatHex(digest(canonicalPlan));
+  }
+
+  private static void capabilities(
+      ByteArrayOutputStream output, List<Capability> capabilities) {
+    integer(output, capabilities.size());
+    for (Capability capability : capabilities) {
+      string(output, capability.name());
+      string(output, capability.pattern());
+    }
+  }
+
+  private static List<Capability> capabilities(
+      ByteBuffer input, String description) {
+    int capabilityCount = count(input, description);
+    List<Capability> capabilities = new ArrayList<>(capabilityCount);
+    for (int item = 0; item < capabilityCount; item++) {
+      capabilities.add(new Capability(string(input), string(input)));
+    }
+    return List.copyOf(capabilities);
   }
 
   private static int targetKindCode(TargetKind kind) {
@@ -219,6 +246,19 @@ public final class BuildPlanCodec {
     output.write(value >>> 8);
     output.write(value >>> 16);
     output.write(value >>> 24);
+  }
+
+  private static long longInteger(ByteBuffer input, String description) {
+    if (input.remaining() < Long.BYTES) {
+      throw new PackageFormatException("Truncated build plan " + description);
+    }
+    return input.getLong();
+  }
+
+  private static void longInteger(ByteArrayOutputStream output, long value) {
+    for (int shift = 0; shift < Long.SIZE; shift += Byte.SIZE) {
+      output.write((int) (value >>> shift));
+    }
   }
 
   private static byte[] digest(byte[] bytes) {

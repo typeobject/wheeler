@@ -64,7 +64,9 @@ public record BuildPlan(
       String sourceIdentity,
       String outputPath,
       List<PackageInput> packageInputs,
-      List<Capability> capabilities) {
+      List<Capability> capabilityRequests,
+      ExecutionLimits executionLimits,
+      List<Capability> capabilityGrants) {
     public Node {
       requireName(packageName, "package");
       SemanticVersion.parse(packageVersion);
@@ -81,12 +83,14 @@ public record BuildPlan(
         throw new PackageFormatException("Duplicate package input for " + packageName);
       }
       packageInputs = List.copyOf(inputs);
-      List<Capability> grants = new ArrayList<>(List.copyOf(capabilities));
-      grants.sort(Comparator.comparing(Capability::name).thenComparing(Capability::pattern));
-      if (new HashSet<>(grants).size() != grants.size()) {
-        throw new PackageFormatException("Duplicate capability for " + packageName);
+      capabilityRequests = canonicalCapabilities(
+          capabilityRequests, "request", packageName);
+      Objects.requireNonNull(executionLimits, "executionLimits");
+      capabilityGrants = canonicalCapabilities(capabilityGrants, "grant", packageName);
+      if (!capabilityRequests.containsAll(capabilityGrants)) {
+        throw new PackageFormatException(
+            "Capability grant exceeds requests for " + packageName);
       }
-      capabilities = List.copyOf(grants);
       String expected = nodeIdentity(
           packageName,
           packageVersion,
@@ -96,7 +100,9 @@ public record BuildPlan(
           sourceIdentity,
           outputPath,
           packageInputs,
-          capabilities);
+          capabilityRequests,
+          executionLimits,
+          capabilityGrants);
       if (!expected.equals(identity)) {
         throw new PackageFormatException("Build node identity mismatch for " + packageName
             + ":" + targetName);
@@ -112,13 +118,16 @@ public record BuildPlan(
         String sourceIdentity,
         String outputPath,
         List<PackageInput> packageInputs,
-        List<Capability> capabilities) {
+        List<Capability> capabilityRequests,
+        ExecutionLimits executionLimits,
+        List<Capability> capabilityGrants) {
       List<PackageInput> inputs = packageInputs.stream()
           .sorted(Comparator.comparing(PackageInput::name))
           .toList();
-      List<Capability> grants = capabilities.stream()
-          .sorted(Comparator.comparing(Capability::name).thenComparing(Capability::pattern))
-          .toList();
+      List<Capability> requests = canonicalCapabilities(
+          capabilityRequests, "request", packageName);
+      List<Capability> grants = canonicalCapabilities(
+          capabilityGrants, "grant", packageName);
       return new Node(
           nodeIdentity(
               packageName,
@@ -129,6 +138,8 @@ public record BuildPlan(
               sourceIdentity,
               outputPath,
               inputs,
+              requests,
+              executionLimits,
               grants),
           packageName,
           packageVersion,
@@ -138,7 +149,33 @@ public record BuildPlan(
           sourceIdentity,
           outputPath,
           inputs,
+          requests,
+          executionLimits,
           grants);
+    }
+  }
+
+  public record ExecutionLimits(
+      long maxSteps,
+      long maxMemoryBytes,
+      long maxInputBytes,
+      long maxOutputBytes,
+      long timeoutMillis) {
+    public static final ExecutionLimits DEFAULT = new ExecutionLimits(
+        10_000_000L,
+        256L * 1024 * 1024,
+        64L * 1024 * 1024,
+        64L * 1024 * 1024,
+        60_000L);
+
+    public ExecutionLimits {
+      if (maxSteps <= 0 || maxSteps > 1_000_000_000_000L
+          || maxMemoryBytes <= 0 || maxMemoryBytes > (1L << 40)
+          || maxInputBytes <= 0 || maxInputBytes > (1L << 40)
+          || maxOutputBytes <= 0 || maxOutputBytes > (1L << 40)
+          || timeoutMillis <= 0 || timeoutMillis > 86_400_000L) {
+        throw new PackageFormatException("Invalid build execution limits");
+      }
     }
   }
 
@@ -160,8 +197,11 @@ public record BuildPlan(
       String sourceIdentity,
       String outputPath,
       List<PackageInput> inputs,
-      List<Capability> capabilities) {
+      List<Capability> requests,
+      ExecutionLimits limits,
+      List<Capability> grants) {
     ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    field(bytes, "wheeler-build-node-1");
     field(bytes, packageName);
     field(bytes, packageVersion);
     field(bytes, manifestIdentity);
@@ -169,11 +209,23 @@ public record BuildPlan(
     field(bytes, targetKind.name());
     field(bytes, sourceIdentity);
     field(bytes, outputPath);
+    field(bytes, Integer.toString(inputs.size()));
     for (PackageInput input : inputs) {
       field(bytes, input.name());
       field(bytes, input.archiveIdentity());
     }
-    for (Capability capability : capabilities) {
+    field(bytes, Integer.toString(requests.size()));
+    for (Capability capability : requests) {
+      field(bytes, capability.name());
+      field(bytes, capability.pattern());
+    }
+    field(bytes, Long.toString(limits.maxSteps()));
+    field(bytes, Long.toString(limits.maxMemoryBytes()));
+    field(bytes, Long.toString(limits.maxInputBytes()));
+    field(bytes, Long.toString(limits.maxOutputBytes()));
+    field(bytes, Long.toString(limits.timeoutMillis()));
+    field(bytes, Integer.toString(grants.size()));
+    for (Capability capability : grants) {
       field(bytes, capability.name());
       field(bytes, capability.pattern());
     }
@@ -183,6 +235,17 @@ public record BuildPlan(
     } catch (NoSuchAlgorithmException exception) {
       throw new IllegalStateException("SHA-256 is unavailable", exception);
     }
+  }
+
+  private static List<Capability> canonicalCapabilities(
+      List<Capability> capabilities, String description, String packageName) {
+    List<Capability> result = new ArrayList<>(List.copyOf(capabilities));
+    result.sort(Comparator.comparing(Capability::name).thenComparing(Capability::pattern));
+    if (new HashSet<>(result).size() != result.size()) {
+      throw new PackageFormatException(
+          "Duplicate capability " + description + " for " + packageName);
+    }
+    return List.copyOf(result);
   }
 
   private static void field(ByteArrayOutputStream output, String value) {

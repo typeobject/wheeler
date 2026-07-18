@@ -108,6 +108,9 @@ class WheelerCommandTest {
     BuildPlan plan = new BuildPlanCodec().decode(Files.readAllBytes(planPath));
     assertEquals(List.of("first/main.wbc", "second/main.wbc"),
         plan.nodes().stream().map(BuildPlan.Node::outputPath).toList());
+    assertTrue(plan.nodes().stream().allMatch(
+        node -> node.executionLimits().equals(BuildPlan.ExecutionLimits.DEFAULT)));
+    assertTrue(plan.nodes().stream().allMatch(node -> node.capabilityGrants().isEmpty()));
     assertEquals(0, Wheeler.execute(
         new String[] {"verify-plan", planPath.toString()}, new PrintStream(stdout), sink));
     assertTrue(stdout.toString(StandardCharsets.UTF_8).contains("checked workspace demo (2 targets)"));
@@ -236,7 +239,7 @@ class WheelerCommandTest {
     assertEquals(0, Wheeler.execute(
         new String[] {
             "plan", temporary.toString(), "--compiler", "b".repeat(64),
-            "-o", planPath.toString()
+            "--grant-requested", "-o", planPath.toString()
         },
         output,
         sink));
@@ -246,6 +249,8 @@ class WheelerCommandTest {
         .filter(node -> node.packageName().equals("demo.application"))
         .findFirst().orElseThrow().packageInputs().stream()
         .map(BuildPlan.PackageInput::name).toList());
+    assertTrue(dependencyPlan.nodes().stream().allMatch(
+        node -> node.capabilityGrants().equals(node.capabilityRequests())));
 
     Path vendoredArchive;
     try (var files = Files.list(vendor)) {
@@ -331,6 +336,7 @@ class WheelerCommandTest {
     Files.writeString(root.resolve("wheeler.package"), """
         package "%s" version "1.0.0" profile "bootstrap-1";
         target example "main" root "src/Main.w";
+        capability "build.read" path "src/**";
         """.formatted(packageName));
     Files.writeString(root.resolve("src/Main.w"), """
         classical class %s {

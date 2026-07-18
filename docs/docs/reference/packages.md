@@ -57,9 +57,9 @@ Package records and edges are sorted. `PackageLockParser` accepts only the canon
 
 ## Build plan
 
-A `wheeler.plan` file fixes the workspace identity, compiler artifact identity, profile, target source identities, output paths, exact package inputs, and requested capabilities. The stage-0 command requires the compiler SHA-256 explicitly; an ambient compiler installation never enters a plan by implication.
+A `wheeler.plan` file fixes the workspace identity, compiler artifact identity, profile, target source identities, output paths, exact package inputs, requested capabilities, execution limits, and explicit capability grants. The stage-0 command requires the compiler SHA-256 explicitly; an ambient compiler installation never enters a plan by implication.
 
-Each node identity is SHA-256 over length-prefixed canonical fields. Nodes sort by package and target name. Package inputs sort by package name, capabilities sort by name and path, and output paths must be unique. Duplicate coordinates, outputs, node identities, inputs, and capabilities fail closed.
+Each node identity is SHA-256 over length-prefixed canonical fields. Nodes sort by package and target name. Package inputs sort by package name; capability requests and grants each sort by name and path; grants must be a subset of requests; execution limits are positive and hard-bounded; output paths must be unique. Duplicate coordinates, outputs, node identities, inputs, and capabilities fail closed.
 
 The binary encoding is little-endian and bounded:
 
@@ -83,12 +83,21 @@ payload {
         string output_path
         u32 package_input_count
         repeated package_input { string name; byte[32] archive_sha256; }
-        u32 capability_count
+        u32 capability_request_count
         repeated capability_request { string name; string path_pattern; }
+        u64 max_steps
+        u64 max_memory_bytes
+        u64 max_input_bytes
+        u64 max_output_bytes
+        u64 timeout_millis
+        u32 capability_grant_count
+        repeated capability_grant { string name; string path_pattern; }
     }
 }
 byte[32] payload_sha256
 ```
+
+The stage-0 default grants 10,000,000 steps, 256 MiB memory, 64 MiB input, 64 MiB output, and a 60-second timeout to each node. Limits are semantic plan inputs, not suggestions. The present planner emits and verifies them; bounded plan execution remains work for the Wheeler-native build engine.
 
 A string is a `u32` byte length followed by strict UTF-8 and is limited to 4,096 bytes. Lists carry bounded `u32` counts. Target kind codes 1 through 5 denote library, binary, tool, test, and example. The complete plan is limited to 16 MiB. Decoding verifies the payload digest, every embedded identity and invariant, complete consumption, and byte-for-byte canonical re-encoding.
 
@@ -146,7 +155,7 @@ wheeler verify <package.wpk>
 wheeler resolve <package-directory> --catalog <archive-directory> [-o wheeler.lock] [--development]
 wheeler verify-lock <wheeler.lock>
 wheeler vendor <wheeler.lock> --catalog <archive-directory> -o <vendor-directory>
-wheeler plan <workspace-directory> --compiler <sha256> [-o wheeler.plan]
+wheeler plan <workspace-directory> --compiler <sha256> [--grant-requested] [-o wheeler.plan]
 wheeler verify-plan <wheeler.plan>
 wheeler compile <source.w> [-o program.wbc]
 wheeler run <program.wbc>
@@ -155,7 +164,7 @@ wheeler disassemble <program.wbc>
 wheeler qasm <program.wbc> <output.qasm>
 ```
 
-`check` compiles and verifies every declared target without writing outputs. `build` writes one canonical `.wbc` per target, named from the target. Locked dependency outputs reside under `dependencies/<package-name>/`; workspace builds place each root package and its dependency tree in the member-named output directory. `test` compiles and executes only targets declared with kind `test`, in canonical workspace/package/target order, using the same ideal state-vector target as ordinary deterministic CI. A package with no test targets succeeds with a zero-target report. `clean` removes only the default physical `out` tree and rejects files or symbolic links at any level before deleting anything. `package` includes canonical manifest data and every declared target root. `verify` performs strict archive decoding before printing identity. `resolve` selects from an explicit verified archive catalog and atomically writes canonical lock data; development dependencies enter only with `--development`. `verify-lock` accepts only canonical lock encoding before printing identity. `vendor` materializes exactly the locked archive set plus the canonical lockfile from an explicit verified catalog. `plan` hashes declared workspace sources and emits a canonical build plan with an explicit compiler identity. `verify-plan` validates all structural and content identities before printing plan identity. `run` accepts either a verified artifact or an explicitly selected binary, tool, or example package target; library and test targets use their dedicated operations. Output replacement uses a sibling temporary file and atomic move when the host supports it.
+`check` compiles and verifies every declared target without writing outputs. `build` writes one canonical `.wbc` per target, named from the target. Locked dependency outputs reside under `dependencies/<package-name>/`; workspace builds place each root package and its dependency tree in the member-named output directory. `test` compiles and executes only targets declared with kind `test`, in canonical workspace/package/target order, using the same ideal state-vector target as ordinary deterministic CI. A package with no test targets succeeds with a zero-target report. `clean` removes only the default physical `out` tree and rejects files or symbolic links at any level before deleting anything. `package` includes canonical manifest data and every declared target root. `verify` performs strict archive decoding before printing identity. `resolve` selects from an explicit verified archive catalog and atomically writes canonical lock data; development dependencies enter only with `--development`. `verify-lock` accepts only canonical lock encoding before printing identity. `vendor` materializes exactly the locked archive set plus the canonical lockfile from an explicit verified catalog. `plan` hashes declared workspace sources and emits a canonical build plan with an explicit compiler identity, fixed conservative per-node limits, separated capability requests and grants, and no ambient authority. Grants are empty unless the caller explicitly supplies `--grant-requested`; that switch grants exactly the declared requests and nothing else. `verify-plan` validates all structural and content identities before printing plan identity. `run` accepts either a verified artifact or an explicitly selected binary, tool, or example package target; library and test targets use their dedicated operations. Output replacement uses a sibling temporary file and atomic move when the host supports it.
 
 ## Vendored inputs
 

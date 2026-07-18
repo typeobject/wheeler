@@ -122,12 +122,13 @@ final class PackageProject {
     }
   }
 
-  List<BuildPlan.Node> planNodes(String memberName) throws IOException {
+  List<BuildPlan.Node> planNodes(
+      String memberName, boolean grantRequestedCapabilities) throws IOException {
     LockedPackageSet dependencies = dependencies();
     List<BuildPlan.Node> nodes = new ArrayList<>();
     List<BuildPlan.PackageInput> inputs = List.of();
     if (dependencies != null) {
-      nodes.addAll(dependencies.planNodes(memberName));
+      nodes.addAll(dependencies.planNodes(memberName, grantRequestedCapabilities));
       inputs = dependencies.rootInputs(manifest);
     }
     for (PackageManifest.Target target : manifest.targets()) {
@@ -140,7 +141,9 @@ final class PackageProject {
           sha256(Files.readAllBytes(source(target))),
           memberName + "/" + target.name() + ".wbc",
           inputs,
-          manifest.capabilities()));
+          manifest.capabilities(),
+          BuildPlan.ExecutionLimits.DEFAULT,
+          grantRequestedCapabilities ? manifest.capabilities() : List.of()));
     }
     return List.copyOf(nodes);
   }

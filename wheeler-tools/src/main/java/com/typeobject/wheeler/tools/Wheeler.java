@@ -311,16 +311,53 @@ public final class Wheeler {
 
   private static int plan(
       String[] args, PrintStream out, PrintStream error) throws Exception {
-    if ((args.length != 4 && args.length != 6) || !args[2].equals("--compiler")
-        || (args.length == 6 && !args[4].equals("-o"))) {
-      error.println(
-          "Usage: wheeler plan <workspace-directory> --compiler <sha256> [-o wheeler.plan]");
+    if (args.length < 4) {
+      planUsage(error);
+      return 2;
+    }
+    String compiler = null;
+    Path output = null;
+    boolean grantRequested = false;
+    for (int index = 2; index < args.length; index++) {
+      switch (args[index]) {
+        case "--compiler" -> {
+          if (compiler != null || index + 1 >= args.length) {
+            planUsage(error);
+            return 2;
+          }
+          compiler = args[++index];
+        }
+        case "--grant-requested" -> {
+          if (grantRequested) {
+            planUsage(error);
+            return 2;
+          }
+          grantRequested = true;
+        }
+        case "-o" -> {
+          if (output != null || index + 1 >= args.length) {
+            planUsage(error);
+            return 2;
+          }
+          output = Path.of(args[++index]);
+        }
+        default -> {
+          error.println("Unknown plan option: " + args[index]);
+          planUsage(error);
+          return 2;
+        }
+      }
+    }
+    if (compiler == null) {
+      planUsage(error);
       return 2;
     }
     WorkspaceProject workspace = WorkspaceProject.load(Path.of(args[1]));
-    Path output = args.length == 6 ? Path.of(args[5]) : workspace.defaultPlanPath();
+    if (output == null) {
+      output = workspace.defaultPlanPath();
+    }
     BuildPlanCodec codec = new BuildPlanCodec();
-    byte[] encoded = codec.encode(workspace.plan(args[3]));
+    byte[] encoded = codec.encode(workspace.plan(compiler, grantRequested));
     PackageProject.writeAtomically(output, encoded);
     out.println("planned " + workspace.targetCount() + " targets into " + output
         + " (" + codec.identity(encoded) + ")");
@@ -425,6 +462,12 @@ public final class Wheeler {
     error.println(
         "Usage: wheeler resolve <package-directory> --catalog <archive-directory>"
             + " [-o wheeler.lock] [--development]");
+  }
+
+  private static void planUsage(PrintStream error) {
+    error.println(
+        "Usage: wheeler plan <workspace-directory> --compiler <sha256>"
+            + " [--grant-requested] [-o wheeler.plan]");
   }
 
   private static void usage(PrintStream error) {
