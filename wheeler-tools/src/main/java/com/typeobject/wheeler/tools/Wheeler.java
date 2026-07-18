@@ -5,6 +5,8 @@ import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.Disassembler;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.workflow.WorkflowOpcode;
+import com.typeobject.wheeler.packageformat.BuildPlan;
+import com.typeobject.wheeler.packageformat.BuildPlanCodec;
 import com.typeobject.wheeler.packageformat.PackageArchive;
 import com.typeobject.wheeler.packageformat.PackageArchive.DecodedPackage;
 import com.typeobject.wheeler.packageformat.PackageLock;
@@ -55,6 +57,8 @@ public final class Wheeler {
       case "qasm" -> qasm(args, out, error);
       case "resolve" -> resolve(args, out, error);
       case "verify-lock" -> verifyLock(args, out, error);
+      case "plan" -> plan(args, out, error);
+      case "verify-plan" -> verifyPlan(args, out, error);
       default -> {
         error.println("Unknown Wheeler command: " + args[0]);
         usage(error);
@@ -234,6 +238,37 @@ public final class Wheeler {
     return 0;
   }
 
+  private static int plan(
+      String[] args, PrintStream out, PrintStream error) throws Exception {
+    if ((args.length != 4 && args.length != 6) || !args[2].equals("--compiler")
+        || (args.length == 6 && !args[4].equals("-o"))) {
+      error.println(
+          "Usage: wheeler plan <workspace-directory> --compiler <sha256> [-o wheeler.plan]");
+      return 2;
+    }
+    WorkspaceProject workspace = WorkspaceProject.load(Path.of(args[1]));
+    Path output = args.length == 6 ? Path.of(args[5]) : workspace.defaultPlanPath();
+    BuildPlanCodec codec = new BuildPlanCodec();
+    byte[] encoded = codec.encode(workspace.plan(args[3]));
+    PackageProject.writeAtomically(output, encoded);
+    out.println("planned " + workspace.targetCount() + " targets into " + output
+        + " (" + codec.identity(encoded) + ")");
+    return 0;
+  }
+
+  private static int verifyPlan(
+      String[] args, PrintStream out, PrintStream error) throws Exception {
+    if (args.length != 2) {
+      error.println("Usage: wheeler verify-plan <wheeler.plan>");
+      return 2;
+    }
+    byte[] encoded = Files.readAllBytes(Path.of(args[1]));
+    BuildPlanCodec codec = new BuildPlanCodec();
+    BuildPlan plan = codec.decode(encoded);
+    out.println("plan " + plan.nodes().size() + " targets " + codec.identity(encoded));
+    return 0;
+  }
+
   private static int disassemble(
       String[] args, PrintStream out, PrintStream error) throws Exception {
     if (args.length != 2) {
@@ -324,6 +359,6 @@ public final class Wheeler {
   private static void usage(PrintStream error) {
     error.println(
         "Usage: wheeler <run|compile|check|build|package|verify|resolve|verify-lock|"
-            + "disassemble|qasm> ...");
+            + "plan|verify-plan|disassemble|qasm> ...");
   }
 }

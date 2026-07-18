@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
+import com.typeobject.wheeler.packageformat.BuildPlan;
+import com.typeobject.wheeler.packageformat.BuildPlanCodec;
 import com.typeobject.wheeler.packageformat.PackageArchive;
 import com.typeobject.wheeler.packageformat.PackageArchive.DecodedPackage;
 import com.typeobject.wheeler.packageformat.PackageLock;
@@ -88,6 +90,19 @@ class WheelerCommandTest {
 
     assertTrue(Files.isRegularFile(output.resolve("first/main.wbc")));
     assertTrue(Files.isRegularFile(output.resolve("second/main.wbc")));
+    Path planPath = temporary.resolve("build.plan");
+    assertEquals(0, Wheeler.execute(
+        new String[] {
+            "plan", temporary.toString(), "--compiler", "a".repeat(64),
+            "-o", planPath.toString()
+        },
+        new PrintStream(stdout),
+        sink));
+    BuildPlan plan = new BuildPlanCodec().decode(Files.readAllBytes(planPath));
+    assertEquals(List.of("first/main.wbc", "second/main.wbc"),
+        plan.nodes().stream().map(BuildPlan.Node::outputPath).toList());
+    assertEquals(0, Wheeler.execute(
+        new String[] {"verify-plan", planPath.toString()}, new PrintStream(stdout), sink));
     assertTrue(stdout.toString(StandardCharsets.UTF_8).contains("checked workspace demo (2 targets)"));
   }
 

@@ -1,6 +1,6 @@
 # Package format
 
-Wheeler package metadata uses its own declarative syntax and canonical archive. The current stage-0 implementation parses `wheeler.workspace` and `wheeler.package`, resolves an immutable package catalog, reads and writes canonical `wheeler.lock`, and reads and writes content-addressed `.wpk` archives. Build plans, registry transport, and the Wheeler-written native implementation remain package-system work.
+Wheeler package metadata uses its own declarative syntax and canonical archive. The current stage-0 implementation parses `wheeler.workspace` and `wheeler.package`, resolves an immutable package catalog, reads and writes canonical `wheeler.lock`, emits verified build plans, and reads and writes content-addressed `.wpk` archives. Locked dependency loading, registry transport, and the Wheeler-written native implementation remain package-system work.
 
 ## Workspace manifest
 
@@ -32,7 +32,7 @@ capability "build.read" path "src/**";
 capability "build.write" path "out/**";
 ```
 
-Target kinds are `library`, `binary`, `tool`, `test`, and `example`. Dependency kinds are `normal`, `development`, and `build`. Versions are three-part semantic versions with an optional prerelease. Constraints currently accept exact, `=`, `^`, and `~` spelling as canonical data; resolution semantics are not implemented yet.
+Target kinds are `library`, `binary`, `tool`, `test`, and `example`. Dependency kinds are `normal`, `development`, and `build`. Versions are three-part semantic versions with an optional prerelease. Constraints accept exact, `=`, `^`, and `~` spelling; the resolver applies the semantics described below.
 
 The grammar has words, quoted strings, semicolons, and `//` comments. Strings support only `\\` and `\"` escapes and cannot cross line boundaries. Unknown declarations and fields fail closed with line and column.
 
@@ -54,6 +54,45 @@ edge "wheeler.compiler" "wheeler.bytecode";
 ```
 
 Package records and edges are sorted. `PackageLockParser` accepts only the canonical UTF-8 encoding with a final newline, known records, valid identities, and edges whose endpoints exist. Lock identity is SHA-256 over those canonical bytes.
+
+## Build plan
+
+A `wheeler.plan` file fixes the workspace identity, compiler artifact identity, profile, target source identities, output paths, exact package inputs, and requested capabilities. The stage-0 command requires the compiler SHA-256 explicitly; an ambient compiler installation never enters a plan by implication.
+
+Each node identity is SHA-256 over length-prefixed canonical fields. Nodes sort by package and target name. Package inputs sort by package name, capabilities sort by name and path, and output paths must be unique. Duplicate coordinates, outputs, node identities, inputs, and capabilities fail closed.
+
+The binary encoding is little-endian and bounded:
+
+```text
+byte[8] magic = "WPLN\0\0\0\1"
+u32 schema = 1
+u32 payload_length
+payload {
+    byte[32] workspace_sha256
+    byte[32] compiler_sha256
+    string profile
+    u32 node_count
+    repeated node {
+        byte[32] node_sha256
+        string package_name
+        string package_version
+        byte[32] manifest_sha256
+        string target_name
+        u32 target_kind
+        byte[32] source_sha256
+        string output_path
+        u32 package_input_count
+        repeated package_input { string name; byte[32] archive_sha256; }
+        u32 capability_count
+        repeated capability_request { string name; string path_pattern; }
+    }
+}
+byte[32] payload_sha256
+```
+
+A string is a `u32` byte length followed by strict UTF-8 and is limited to 4,096 bytes. Lists carry bounded `u32` counts. Target kind codes 1 through 5 denote library, binary, tool, test, and example. The complete plan is limited to 16 MiB. Decoding verifies the payload digest, every embedded identity and invariant, complete consumption, and byte-for-byte canonical re-encoding.
+
+The current workspace planner accepts packages without dependencies and hashes only declared physical target roots. A package with dependencies fails until exact locked archive inputs can be attached; dependencies are never silently omitted. Capability records are requests for root policy, not grants.
 
 ## Canonicalization
 
@@ -104,13 +143,15 @@ wheeler package <package-directory> [-o package.wpk]
 wheeler verify <package.wpk>
 wheeler resolve <package-directory> --catalog <archive-directory> [-o wheeler.lock] [--development]
 wheeler verify-lock <wheeler.lock>
+wheeler plan <workspace-directory> --compiler <sha256> [-o wheeler.plan]
+wheeler verify-plan <wheeler.plan>
 wheeler compile <source.w> [-o program.wbc]
 wheeler run <program.wbc>
 wheeler disassemble <program.wbc>
 wheeler qasm <program.wbc> <output.qasm>
 ```
 
-`check` compiles and verifies every declared target without writing outputs. `build` writes one canonical `.wbc` per target, named from the target. Workspace builds place each package in its member-named output directory. `package` includes canonical manifest data and every declared target root. `verify` performs strict archive decoding before printing identity. `resolve` selects from an explicit verified archive catalog and atomically writes canonical lock data; development dependencies enter only with `--development`. `verify-lock` accepts only canonical lock encoding before printing identity. Output replacement uses a sibling temporary file and atomic move when the host supports it.
+`check` compiles and verifies every declared target without writing outputs. `build` writes one canonical `.wbc` per target, named from the target. Workspace builds place each package in its member-named output directory. `package` includes canonical manifest data and every declared target root. `verify` performs strict archive decoding before printing identity. `resolve` selects from an explicit verified archive catalog and atomically writes canonical lock data; development dependencies enter only with `--development`. `verify-lock` accepts only canonical lock encoding before printing identity. `plan` hashes declared workspace sources and emits a canonical build plan with an explicit compiler identity. `verify-plan` validates all structural and content identities before printing plan identity. Output replacement uses a sibling temporary file and atomic move when the host supports it.
 
 The local host adapter requires a physical package directory, manifest, and target files. A target path that crosses a symbolic link or resolves outside the package fails before compilation. It reads only the manifest and declared target roots; capability requests remain policy data and do not grant broader host access.
 
@@ -128,4 +169,4 @@ Archive signatures and registry namespace authorization are separate layers. Con
 
 ## Implementation direction
 
-The manifest parser, resolver, lock codec, and archive codec are stage-0 conformance implementations. Their malformed-input, resolution, and ordering suites define executable schemas for the Wheeler implementation. The package manager, standard library, and self-hosted compiler will consume the same canonical records; the Java implementation is removed at native cutover rather than retained as a second resolver.
+The workspace and package parsers, resolver, lock codec, build-plan codec, and archive codec are stage-0 conformance implementations. Their malformed-input, resolution, and ordering suites define executable schemas for the Wheeler implementation. The package manager, standard library, and self-hosted compiler will consume the same canonical records; the Java implementation is removed at native cutover rather than retained as a second resolver.

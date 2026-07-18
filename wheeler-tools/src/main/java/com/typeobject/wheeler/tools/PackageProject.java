@@ -1,7 +1,9 @@
 package com.typeobject.wheeler.tools;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
+import com.typeobject.wheeler.packageformat.BuildPlan;
 import com.typeobject.wheeler.packageformat.PackageArchive;
+import com.typeobject.wheeler.packageformat.PackageFormatException;
 import com.typeobject.wheeler.packageformat.PackageManifest;
 import com.typeobject.wheeler.packageformat.PackageManifestParser;
 import java.io.IOException;
@@ -9,6 +11,11 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.HexFormat;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -69,6 +76,27 @@ final class PackageProject {
     }
   }
 
+  List<BuildPlan.Node> planNodes(String memberName) throws IOException {
+    if (!manifest.dependencies().isEmpty()) {
+      throw new PackageFormatException(
+          "Build planning requires locked inputs for " + manifest.name());
+    }
+    List<BuildPlan.Node> nodes = new ArrayList<>();
+    for (PackageManifest.Target target : manifest.targets()) {
+      nodes.add(BuildPlan.Node.create(
+          manifest.name(),
+          manifest.version(),
+          manifest.identity(),
+          target.name(),
+          target.kind(),
+          sha256(Files.readAllBytes(source(target))),
+          memberName + "/" + target.name() + ".wbc",
+          List.of(),
+          manifest.capabilities()));
+    }
+    return List.copyOf(nodes);
+  }
+
   byte[] archive() throws IOException {
     Map<String, byte[]> entries = new TreeMap<>();
     for (PackageManifest.Target target : manifest.targets()) {
@@ -100,6 +128,14 @@ final class PackageProject {
       throw new IOException("Target root is not a physical package file: " + target.root());
     }
     return source;
+  }
+
+  private static String sha256(byte[] bytes) {
+    try {
+      return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
+    } catch (NoSuchAlgorithmException exception) {
+      throw new IllegalStateException("SHA-256 is unavailable", exception);
+    }
   }
 
   static void writeAtomically(Path destination, byte[] bytes) throws IOException {

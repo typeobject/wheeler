@@ -296,12 +296,12 @@ Secrets are opaque host-owned handles and are prohibited from canonical output, 
 
 - [x] Canonical `.wbc` provides a portable artifact identity for package outputs.
 - [x] WIP-0007 and WIP-0008 define compiler and native recovery requirements.
-- [ ] Workspace, package, lockfile, and archive schemas have strict stage-0 codecs; build-plan schema remains.
-- [ ] Stage-0 manifest, resolution, lockfile, and archive output is content-addressed and reproducible; workspace builds remain.
+- [ ] Workspace, package, lockfile, and archive schemas have strict stage-0 codecs; the initial build-plan codec covers compiler, source, package-input, output, and capability-request identities, while execution limits and grants remain.
+- [ ] Stage-0 manifests, resolution, lockfiles, build plans, and archives are content-addressed and reproducible; dependency-aware workspace builds remain.
 - [x] The stage-0 in-memory resolver deterministically selects one version per package with bounded backtracking, explicit development scope, and cycle rejection.
 - [ ] Physical local archive catalogs are sorted, bounded, integrity-checked, and covered end to end; vendored layouts and registry catalog loading remain.
 - [x] The root `wheeler.workspace` and example package manifest form an executable stage-0 workspace.
-- [x] The unified stage-0 `wheeler` command checks and builds canonical local workspaces; packages and verifies local artifacts; resolves explicit verified archive catalogs; verifies locks; and compiles, runs, disassembles, and emits OpenQASM.
+- [x] The unified stage-0 `wheeler` command checks and builds canonical local workspaces; packages and verifies local artifacts; resolves explicit verified archive catalogs; emits and verifies dependency-free build plans; verifies locks; and compiles, runs, disassembles, and emits OpenQASM.
 - [ ] Wheeler-written `wheeler` loads locked dependencies and builds and tests the complete workspace.
 - [ ] Native no-Java recovery uses only committed manifests, lockfile, and vendor inputs.
 - [ ] Gradle and duplicate build paths are deleted.
@@ -312,7 +312,7 @@ Secrets are opaque host-owned handles and are prohibited from canonical output, 
 - [ ] Manifest and lock parsers reject malformed UTF-8, duplicates, unknown required fields, traversal, excessive nesting, and oversized values; both stage-0 parsers fail closed and broader generative coverage remains.
 - [ ] Resolution is identical under catalog and manifest insertion order with bounded backtracking; filesystem, registry transport, and task completion inputs remain to test.
 - [ ] Locked and offline builds never perform resolution or network access.
-- [ ] Two clean builds produce identical `.wbc`, lockfile, package archive, plan, and provenance identities.
+- [ ] Build-plan codecs are order-independent and reject corruption and forged node identities; two complete clean builds must still prove identical `.wbc`, lockfile, package archive, plan, and provenance identities.
 - [ ] Cache deletion, cache poisoning, mirror selection, and vendor relocation cannot alter verified output.
 - [ ] Build tools cannot observe or mutate undeclared files, environment, network, clock, random state, credentials, or quantum targets.
 - [ ] Cyclic package dependencies produce stable diagnostics; cyclic modules, profile conflicts, feature conflicts, and ABI conflicts remain.

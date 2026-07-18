@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.tools;
 
+import com.typeobject.wheeler.packageformat.BuildPlan;
 import com.typeobject.wheeler.packageformat.PackageFormatException;
 import com.typeobject.wheeler.packageformat.WorkspaceManifest;
 import com.typeobject.wheeler.packageformat.WorkspaceManifestParser;
@@ -71,6 +72,19 @@ final class WorkspaceProject {
     }
   }
 
+  BuildPlan plan(String compilerIdentity) throws IOException {
+    List<BuildPlan.Node> nodes = new ArrayList<>();
+    for (MemberProject member : members) {
+      nodes.addAll(member.project().planNodes(member.name()));
+    }
+    return new BuildPlan(
+        BuildPlan.SCHEMA_VERSION,
+        manifest.identity(),
+        compilerIdentity,
+        manifest.profile(),
+        nodes);
+  }
+
   void build(Path requestedOutput) throws IOException {
     Path output = requestedOutput.toAbsolutePath().normalize();
     Files.createDirectories(output);
@@ -84,6 +98,10 @@ final class WorkspaceProject {
 
   Path defaultBuildDirectory() {
     return root.resolve("out");
+  }
+
+  Path defaultPlanPath() {
+    return root.resolve("wheeler.plan");
   }
 
   private static Path physicalMember(Path root, String logicalPath) throws IOException {
