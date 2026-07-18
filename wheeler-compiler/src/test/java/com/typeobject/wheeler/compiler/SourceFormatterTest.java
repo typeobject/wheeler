@@ -119,21 +119,24 @@ class SourceFormatterTest {
   }
 
   @Test
-  void roundTripsEveryCheckedExampleTokenAndCommentAttachment() throws Exception {
-    Path examples = Path.of("../wheeler-examples/src/main/wheeler");
-    try (var paths = Files.walk(examples)) {
-      for (Path source : paths.filter(path -> path.toString().endsWith(".w")).toList()) {
-        String original = Files.readString(source);
-        String formatted = SourceFormatter.format(original);
-        assertEquals(original, formatted, source.toString());
-        assertEquals(formatted, SourceFormatter.format(formatted), source.toString());
-        assertEquals(tokens(original), tokens(formatted), source.toString());
-        assertEquals(comments(original), comments(formatted), source.toString());
-        assertEquals(attachments(original), attachments(formatted), source.toString());
-        assertTrue(formatted.lines()
-            .filter(line -> !line.stripLeading().startsWith("//"))
-            .allMatch(line -> line.codePointCount(0, line.length()) <= 100),
-            source.toString());
+  void roundTripsEveryCanonicalSourceTokenAndCommentAttachment() throws Exception {
+    for (Path root : List.of(
+        Path.of("src/main/wheeler"),
+        Path.of("../wheeler-examples/src/main/wheeler"))) {
+      try (var paths = Files.walk(root)) {
+        for (Path source : paths.filter(path -> path.toString().endsWith(".w")).toList()) {
+          String original = Files.readString(source);
+          String formatted = SourceFormatter.format(original);
+          assertEquals(original, formatted, source.toString());
+          assertEquals(formatted, SourceFormatter.format(formatted), source.toString());
+          assertEquals(tokens(original), tokens(formatted), source.toString());
+          assertEquals(comments(original), comments(formatted), source.toString());
+          assertEquals(attachments(original), attachments(formatted), source.toString());
+          assertTrue(formatted.lines()
+              .filter(line -> !line.stripLeading().startsWith("//"))
+              .allMatch(line -> line.codePointCount(0, line.length()) <= 100),
+              source.toString());
+        }
       }
     }
   }

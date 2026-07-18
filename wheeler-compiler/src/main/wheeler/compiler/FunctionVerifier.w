@@ -1,9 +1,9 @@
 //! Verifies bounded function descriptors, scalar type windows, and code ranges.
-module examples.compiler.function_verifier;
-import examples.compiler.instruction_verifier;
-import examples.compiler.opcodes;
-import examples.compiler.type_codes;
-import examples.packages.binary;
+module wheeler.compiler.function_verifier;
+import wheeler.compiler.instruction_verifier;
+import wheeler.compiler.opcodes;
+import wheeler.compiler.type_codes;
+import wheeler.packages.binary;
 classical class FunctionVerifier {
     private boolean differs(long left, long right) {
         if (left < right) {

@@ -30,7 +30,7 @@ class NativePlanExampleTest {
     Path root = Path.of("src/main/wheeler");
     Program inspector = new WheelerCompiler().compileModuleFiles(
         Map.of(
-            "Binary.w", Files.readString(root.resolve("packages/Binary.w")),
+            "Binary.w", CompilerSources.read("packages/Binary.w"),
             "NativePlan.w", Files.readString(root.resolve("NativePlan.w")),
             "Plan.w", Files.readString(root.resolve("packages/Plan.w")),
             "PlanIdentity.w", Files.readString(root.resolve("packages/PlanIdentity.w")),
@@ -41,7 +41,7 @@ class NativePlanExampleTest {
         "1.2.3",
         "1".repeat(64),
         "main",
-        TargetKind.BINARY,
+        TargetKind.DEPLOYABLE,
         "2".repeat(64),
         "out/main.wbc",
         List.of(),
@@ -81,7 +81,7 @@ class NativePlanExampleTest {
         "1.2.3",
         "1".repeat(64),
         "main",
-        TargetKind.BINARY,
+        TargetKind.DEPLOYABLE,
         "2".repeat(64),
         "out/main.wbc",
         List.of(new PackageInput("demo.input", "3".repeat(64))),

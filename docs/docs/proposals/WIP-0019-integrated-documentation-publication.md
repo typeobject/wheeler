@@ -39,7 +39,7 @@ Javadoc and Docusaurus solve useful presentation problems. Neither owns Wheeler'
 
 2. A stage-0 Java class implements the canonical bytecode reader. A pinned doclet emits a Java API node under the stage-0 namespace. The generated page links to the bytecode manual but is visibly implementation API; deleting Java at native cutover removes the node without changing Wheeler symbol URLs.
 
-3. A Markdown tutorial contains a fenced Wheeler example. WIP-0018 compiles and runs the declared example target. The documentation bundle records artifact and test-result identities. A prose edit does not rerun hardware jobs; a changed executable snippet does.
+3. A Markdown tutorial contains a fenced Wheeler example. WIP-0018 compiles and runs the declared test-selected runnable target. The documentation bundle records artifact and test-result identities. A prose edit does not rerun hardware jobs; a changed executable snippet does.
 
 4. Two packages export declarations named `Result`. Cross-package links use exact package, version, module, and symbol identities. An unqualified ambiguous link fails rather than choosing whichever page was visited first.
 

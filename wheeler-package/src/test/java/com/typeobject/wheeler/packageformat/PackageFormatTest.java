@@ -35,10 +35,24 @@ class PackageFormatTest {
         """);
 
     assertEquals(first, second);
+    assertArrayEquals(
+        new PackageManifest.TargetKind[] {
+            PackageManifest.TargetKind.DEPLOYABLE,
+            PackageManifest.TargetKind.LIBRARY,
+            PackageManifest.TargetKind.TOOL
+        },
+        PackageManifest.TargetKind.values());
     assertEquals(first.identity(), second.identity());
     assertEquals(first, parser.parse(first.canonicalText()));
     assertTrue(first.canonicalText().indexOf("build.read")
         < first.canonicalText().indexOf("build.write"));
+    PackageManifest testTarget = parser.parse(MANIFEST.replace(
+        "target tool \"compiler\" root \"src/compiler.w\";",
+        "target tool \"compiler\" root \"src/compiler.w\" test;"));
+    assertTrue(testTarget.targets().getFirst().test());
+    assertTrue(parser.parse(testTarget.canonicalText().replace(
+        "target tool", "target deployable")).targets().getFirst().test());
+    assertEquals(testTarget, parser.parse(testTarget.canonicalText()));
   }
 
   @Test
@@ -60,6 +74,18 @@ class PackageFormatTest {
         PackageFormatException.class,
         () -> parser.parse(MANIFEST.replace("\"compiler\"", "\"../compiler\"")));
     assertTrue(targetName.getMessage().contains("Invalid target name"));
+    assertThrows(
+        PackageFormatException.class,
+        () -> parser.parse(MANIFEST.replace(
+            "target tool", "target library").replace("root \"src/compiler.w\";",
+            "root \"src/compiler.w\" test;")));
+    assertThrows(
+        PackageFormatException.class,
+        () -> parser.parse(MANIFEST.replace("target tool", "target example")));
+    assertThrows(
+        PackageFormatException.class,
+        () -> parser.parse(MANIFEST.replace("root \"src/compiler.w\";",
+            "root \"src/compiler.w\" test test;")));
   }
 
   @Test

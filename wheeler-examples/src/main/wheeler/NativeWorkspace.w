@@ -1,9 +1,9 @@
 //! Parses and re-emits a canonical workspace manifest in Wheeler.
 
 module examples.packages.workspace_main;
-import examples.lexer.scanner;
 import examples.packages.line_emitter;
 import examples.packages.workspace;
+import wheeler.lexer.scanner;
 classical class NativeWorkspace {
     state long nameStart = 0;
     state long nameLength = 0;

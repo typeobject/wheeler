@@ -40,7 +40,7 @@ class WheelerCommandTest {
     Files.createDirectories(project.resolve("src"));
     Files.writeString(project.resolve("wheeler.package"), """
         package "demo.counter" version "1.0.0" profile "bootstrap-1";
-        target example "counter" root "src/Counter.w";
+        target deployable "counter" root "src/Counter.w";
         capability "build.read" path "src/**";
         capability "build.write" path "out/**";
         """);
@@ -292,7 +292,7 @@ class WheelerCommandTest {
     Files.createDirectories(project.resolve("src"));
     Files.writeString(project.resolve("wheeler.package"), """
         package "demo.modules" version "1.0.0" profile "bootstrap-1";
-        target example "main" root "src/Main.w" module "demo.main"
+        target deployable "main" root "src/Main.w" module "demo.main"
             source "src/Arithmetic.w" source "src/Main.w";
         """);
     Files.writeString(project.resolve("src/Arithmetic.w"), """
@@ -422,13 +422,13 @@ class WheelerCommandTest {
   }
 
   @Test
-  void testSubcommandExecutesOnlyDeclaredTestTargets() throws Exception {
+  void testSubcommandExecutesOnlyTestSelectedTargets() throws Exception {
     Path project = temporary.resolve("tests");
     Files.createDirectories(project.resolve("src"));
     Files.writeString(project.resolve("wheeler.package"), """
         package "demo.tests" version "1.0.0" profile "bootstrap-1";
-        target example "example" root "src/Example.w";
-        target test "law" root "src/Law.w";
+        target deployable "example" root "src/Example.w";
+        target tool "law" root "src/Law.w" test;
         """);
     Files.writeString(project.resolve("src/Example.w"), """
         classical class Example {
@@ -457,6 +457,12 @@ class WheelerCommandTest {
         new PrintStream(stdout),
         new PrintStream(new ByteArrayOutputStream())));
     assertEquals(firstReport, stdout.toString(StandardCharsets.UTF_8));
+    stdout.reset();
+    assertEquals(0, Wheeler.execute(
+        new String[] {"run", project.toString(), "--target", "law"},
+        new PrintStream(stdout),
+        new PrintStream(new ByteArrayOutputStream())));
+    assertTrue(stdout.toString(StandardCharsets.UTF_8).contains("value = 2"));
   }
 
   @Test
@@ -465,8 +471,8 @@ class WheelerCommandTest {
     Files.createDirectories(project.resolve("src"));
     Files.writeString(project.resolve("wheeler.package"), """
         package "demo.failures" version "1.0.0" profile "bootstrap-1";
-        target test "compile" root "src/Compile.w";
-        target test "runtime" root "src/Runtime.w";
+        target tool "compile" root "src/Compile.w" test;
+        target tool "runtime" root "src/Runtime.w" test;
         """);
     Files.writeString(project.resolve("src/Compile.w"),
         "classical class Compile { entry void main(] {} }");
@@ -496,7 +502,7 @@ class WheelerCommandTest {
     Files.createDirectories(project.resolve("src"));
     Files.writeString(project.resolve("wheeler.package"), """
         package "demo.input" version "1.0.0" profile "bootstrap-1";
-        target example "main" root "src/Main.w";
+        target deployable "main" root "src/Main.w";
         """);
     Files.writeString(project.resolve("src/Main.w"), """
         classical class Main {
@@ -545,7 +551,7 @@ class WheelerCommandTest {
     Files.createDirectories(project.resolve("src"));
     Files.writeString(project.resolve("wheeler.package"), """
         package "demo.binaryinput" version "1.0.0" profile "bootstrap-1";
-        target example "main" root "src/Main.w";
+        target deployable "main" root "src/Main.w";
         """);
     Files.writeString(project.resolve("src/Main.w"), """
         classical class Main {
@@ -611,7 +617,7 @@ class WheelerCommandTest {
     Files.createDirectories(project.resolve("src/packages"));
     Files.writeString(project.resolve("wheeler.package"), """
         package "demo.seedwriter" version "1.0.0" profile "bootstrap-1";
-        target example "compiler" root "src/MinimalCompiler.w" module "examples.compiler.seed"
+        target deployable "compiler" root "src/MinimalCompiler.w" module "wheeler.compiler.driver"
             source "src/MinimalCompiler.w" source "src/compiler/AggregateVerifier.w"
             source "src/compiler/Codegen.w"
             source "src/compiler/Encoding.w" source "src/compiler/FunctionVerifier.w"
@@ -625,65 +631,66 @@ class WheelerCommandTest {
             source "src/lexer/Scanner.w" source "src/packages/Binary.w";
         """);
     Path examples = Path.of("../wheeler-examples/src/main/wheeler");
+    Path compilerSources = Path.of("../wheeler-compiler/src/main/wheeler");
     Files.copy(
-        examples.resolve("MinimalCompiler.w"), project.resolve("src/MinimalCompiler.w"));
+        compilerSources.resolve("MinimalCompiler.w"), project.resolve("src/MinimalCompiler.w"));
     Files.copy(
-        examples.resolve("compiler/AggregateVerifier.w"),
+        compilerSources.resolve("compiler/AggregateVerifier.w"),
         project.resolve("src/compiler/AggregateVerifier.w"));
     Files.copy(
-        examples.resolve("compiler/Codegen.w"),
+        compilerSources.resolve("compiler/Codegen.w"),
         project.resolve("src/compiler/Codegen.w"));
     Files.copy(
-        examples.resolve("compiler/Encoding.w"),
+        compilerSources.resolve("compiler/Encoding.w"),
         project.resolve("src/compiler/Encoding.w"));
     Files.copy(
-        examples.resolve("compiler/FunctionVerifier.w"),
+        compilerSources.resolve("compiler/FunctionVerifier.w"),
         project.resolve("src/compiler/FunctionVerifier.w"));
     Files.copy(
-        examples.resolve("compiler/HelperParser.w"),
+        compilerSources.resolve("compiler/HelperParser.w"),
         project.resolve("src/compiler/HelperParser.w"));
     Files.copy(
-        examples.resolve("compiler/InstructionVerifier.w"),
+        compilerSources.resolve("compiler/InstructionVerifier.w"),
         project.resolve("src/compiler/InstructionVerifier.w"));
     Files.copy(
-        examples.resolve("compiler/Ir.w"),
+        compilerSources.resolve("compiler/Ir.w"),
         project.resolve("src/compiler/Ir.w"));
     Files.copy(
-        examples.resolve("compiler/Opcodes.w"),
+        compilerSources.resolve("compiler/Opcodes.w"),
         project.resolve("src/compiler/Opcodes.w"));
     Files.copy(
-        examples.resolve("compiler/Parser.w"),
+        compilerSources.resolve("compiler/Parser.w"),
         project.resolve("src/compiler/Parser.w"));
     Files.copy(
-        examples.resolve("compiler/ProofRules.w"),
+        compilerSources.resolve("compiler/ProofRules.w"),
         project.resolve("src/compiler/ProofRules.w"));
     Files.copy(
-        examples.resolve("compiler/ProofVerifier.w"),
+        compilerSources.resolve("compiler/ProofVerifier.w"),
         project.resolve("src/compiler/ProofVerifier.w"));
     Files.copy(
-        examples.resolve("compiler/Statements.w"),
+        compilerSources.resolve("compiler/Statements.w"),
         project.resolve("src/compiler/Statements.w"));
     Files.copy(
-        examples.resolve("compiler/StorageVerifier.w"),
+        compilerSources.resolve("compiler/StorageVerifier.w"),
         project.resolve("src/compiler/StorageVerifier.w"));
     Files.copy(
-        examples.resolve("compiler/StringTable.w"),
+        compilerSources.resolve("compiler/StringTable.w"),
         project.resolve("src/compiler/StringTable.w"));
     Files.copy(
-        examples.resolve("compiler/Structure.w"),
+        compilerSources.resolve("compiler/Structure.w"),
         project.resolve("src/compiler/Structure.w"));
     Files.copy(
-        examples.resolve("compiler/Tokens.w"),
+        compilerSources.resolve("compiler/Tokens.w"),
         project.resolve("src/compiler/Tokens.w"));
     Files.copy(
-        examples.resolve("compiler/TypeCodes.w"),
+        compilerSources.resolve("compiler/TypeCodes.w"),
         project.resolve("src/compiler/TypeCodes.w"));
     Files.copy(
-        examples.resolve("compiler/Verifier.w"),
+        compilerSources.resolve("compiler/Verifier.w"),
         project.resolve("src/compiler/Verifier.w"));
-    Files.copy(examples.resolve("lexer/Scanner.w"), project.resolve("src/lexer/Scanner.w"));
+    Files.copy(compilerSources.resolve("lexer/Scanner.w"), project.resolve("src/lexer/Scanner.w"));
     Files.copy(
-        examples.resolve("packages/Binary.w"),
+        compilerSources.resolve("packages/Binary.w"),
         project.resolve("src/packages/Binary.w"));
     Path className = temporary.resolve("class-name.txt");
     Files.writeString(
@@ -783,7 +790,7 @@ class WheelerCommandTest {
     Files.createDirectories(application.resolve("src"));
     Files.writeString(application.resolve("wheeler.package"), """
         package "demo.application" version "1.0.0" profile "bootstrap-1";
-        target binary "main" root "src/Main.w" module "demo.application.main"
+        target deployable "main" root "src/Main.w" module "demo.application.main"
             source "src/Main.w";
         dependency normal "demo.library" version "^1.0.0";
         """);
@@ -942,7 +949,7 @@ class WheelerCommandTest {
     Files.createDirectories(root.resolve("src"));
     Files.writeString(root.resolve("wheeler.package"), """
         package "%s" version "1.0.0" profile "bootstrap-1";
-        target example "main" root "src/Main.w";
+        target deployable "main" root "src/Main.w";
         capability "build.read" path "src/**";
         """.formatted(packageName));
     Files.writeString(root.resolve("src/Main.w"), """

@@ -50,3 +50,5 @@ wheeler-core + compiler + runtime + package <- wheeler-examples tests
 ```
 
 Core has no runtime dependencies. Source parsing does not depend on a provider. Quantum adapters will implement runtime contracts rather than entering language semantics.
+
+The Java project name does double duty during stage 0, but the Wheeler-written compiler sources have one authority: `wheeler-compiler/src/main/wheeler`. Its package exposes a `compiler` tool and an entryless `library`. `wheeler-examples` consumes the latter from its exact committed lock and vendor archive; tests resolve canonical compiler source fixtures through that root rather than keeping a pet copy under examples.

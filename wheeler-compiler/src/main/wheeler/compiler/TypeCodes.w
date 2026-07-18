@@ -1,5 +1,5 @@
 //! Defines canonical scalar type codes for Wheeler-written bytecode tools.
-module examples.compiler.type_codes;
+module wheeler.compiler.type_codes;
 classical class TypeCodes {
     /// Names the compile-time `TYPE_SIGNED` value owned by this module.
     public const long TYPE_SIGNED = 1;

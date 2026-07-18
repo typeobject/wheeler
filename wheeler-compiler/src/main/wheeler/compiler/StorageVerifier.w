@@ -1,8 +1,8 @@
 //! Verifies bounded owned-region and word-buffer instruction operands.
-module examples.compiler.storage_verifier;
-import examples.compiler.opcodes;
-import examples.compiler.type_codes;
-import examples.packages.binary;
+module wheeler.compiler.storage_verifier;
+import wheeler.compiler.opcodes;
+import wheeler.compiler.type_codes;
+import wheeler.packages.binary;
 classical class StorageVerifier {
     private long localType(byteview artifact, long activeTypes, long local) {
         return readUnsigned(artifact, activeTypes + local * 4, 4);

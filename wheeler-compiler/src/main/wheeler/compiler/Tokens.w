@@ -1,7 +1,7 @@
 //! Classifies and decodes bounded source token ranges.
 
-module examples.compiler.tokens;
-import examples.lexer.scanner;
+module wheeler.compiler.tokens;
+import wheeler.lexer.scanner;
 classical class Tokens {
     /// Computes the stable hash of one bounded source token.
     public long tokenHash(utf8 source, words tokenStarts, words tokenLengths, long token) {

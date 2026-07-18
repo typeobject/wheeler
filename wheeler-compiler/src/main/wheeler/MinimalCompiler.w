@@ -1,13 +1,13 @@
 //! Compiles the bounded bootstrap source profile to canonical `.wbc`.
 
-module examples.compiler.seed;
-import examples.compiler.codegen;
-import examples.compiler.encoding;
-import examples.compiler.ir;
-import examples.compiler.parser;
-import examples.compiler.string_table;
-import examples.compiler.verifier;
-import examples.lexer.scanner;
+module wheeler.compiler.driver;
+import wheeler.compiler.codegen;
+import wheeler.compiler.encoding;
+import wheeler.compiler.ir;
+import wheeler.compiler.parser;
+import wheeler.compiler.string_table;
+import wheeler.compiler.verifier;
+import wheeler.lexer.scanner;
 classical class MinimalCompiler {
     state long finalCursor = 0;
     state long codeStart = 0;

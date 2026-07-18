@@ -2,3 +2,8 @@
 dependencies {
     implementation project(':wheeler-core')
 }
+
+tasks.named('test') {
+    inputs.files(fileTree('src/main/wheeler') { include '**/*.w' }, file('wheeler.package'))
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+}

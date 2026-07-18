@@ -1,5 +1,5 @@
 //! Defines canonical proof-rule codes for Wheeler-written bytecode tools.
-module examples.compiler.proof_rules;
+module wheeler.compiler.proof_rules;
 classical class ProofRules {
     /// Names the compile-time `PROOF_GENERATED_INVERSE` value owned by this module.
     public const long PROOF_GENERATED_INVERSE = 1;

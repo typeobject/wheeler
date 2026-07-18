@@ -1,10 +1,10 @@
 //! Parses helper functions in the bounded bootstrap source profile.
 
-module examples.compiler.helper_parser;
-import examples.compiler.ir;
-import examples.compiler.statements;
-import examples.compiler.structure;
-import examples.compiler.tokens;
+module wheeler.compiler.helper_parser;
+import wheeler.compiler.ir;
+import wheeler.compiler.statements;
+import wheeler.compiler.structure;
+import wheeler.compiler.tokens;
 classical class HelperParser {
     private boolean reversibleBodyValid(
         utf8 source,

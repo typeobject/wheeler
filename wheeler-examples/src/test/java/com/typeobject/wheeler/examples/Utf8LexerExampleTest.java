@@ -17,7 +17,7 @@ class Utf8LexerExampleTest {
   void scannerParsesSignedMaximumAndReportsDecimalOverflow() throws Exception {
     String rootSource = """
         module examples.lexer.test;
-        import examples.lexer.scanner;
+        import wheeler.lexer.scanner;
         classical class ScannerTest {
           state long parsed = 0;
           entry void main(utf8 source) {
@@ -26,7 +26,7 @@ class Utf8LexerExampleTest {
         }
         """;
     String scanner = Files.readString(
-        Path.of("src/main/wheeler/lexer/Scanner.w"));
+        CompilerSources.path("lexer/Scanner.w"));
     var program = new WheelerCompiler().compileModuleFiles(
         Map.of("Scanner.w", scanner, "ScannerTest.w", rootSource),
         "examples.lexer.test");
@@ -46,7 +46,7 @@ class Utf8LexerExampleTest {
   void scannerReportsUnterminatedBlockCommentsWithoutReadingPastInput() throws Exception {
     String rootSource = """
         module examples.lexer.blocktest;
-        import examples.lexer.scanner;
+        import wheeler.lexer.scanner;
         classical class BlockTest {
           state long commentEnd = 0;
           entry void main(utf8 source) {
@@ -54,7 +54,7 @@ class Utf8LexerExampleTest {
           }
         }
         """;
-    String scanner = Files.readString(Path.of("src/main/wheeler/lexer/Scanner.w"));
+    String scanner = Files.readString(CompilerSources.path("lexer/Scanner.w"));
     var program = new WheelerCompiler().compileModuleFiles(
         Map.of("Scanner.w", scanner, "BlockTest.w", rootSource),
         "examples.lexer.blocktest");
@@ -74,7 +74,7 @@ class Utf8LexerExampleTest {
   void scannerAcceptsOnlyClosedPrintableRawAsciiLiterals() throws Exception {
     String rootSource = """
         module examples.lexer.literaltest;
-        import examples.lexer.scanner;
+        import wheeler.lexer.scanner;
         classical class LiteralTest {
           state long literalEnd = 0;
           entry void main(utf8 source) {
@@ -82,7 +82,7 @@ class Utf8LexerExampleTest {
           }
         }
         """;
-    String scanner = Files.readString(Path.of("src/main/wheeler/lexer/Scanner.w"));
+    String scanner = Files.readString(CompilerSources.path("lexer/Scanner.w"));
     var program = new WheelerCompiler().compileModuleFiles(
         Map.of("Scanner.w", scanner, "LiteralTest.w", rootSource),
         "examples.lexer.literaltest");
@@ -106,7 +106,7 @@ class Utf8LexerExampleTest {
   void scannerReturnsStableDiagnosticCodesAndOffsets() throws Exception {
     String rootSource = """
         module examples.lexer.diagnostictest;
-        import examples.lexer.scanner;
+        import wheeler.lexer.scanner;
         classical class DiagnosticTest {
           state long code = 0;
           state long offset = 0;
@@ -134,7 +134,7 @@ class Utf8LexerExampleTest {
           }
         }
         """;
-    String scanner = Files.readString(Path.of("src/main/wheeler/lexer/Scanner.w"));
+    String scanner = Files.readString(CompilerSources.path("lexer/Scanner.w"));
     var program = new WheelerCompiler().compileModuleFiles(
         Map.of("Scanner.w", scanner, "DiagnosticTest.w", rootSource),
         "examples.lexer.diagnostictest");
@@ -173,7 +173,7 @@ class Utf8LexerExampleTest {
             "src/main/wheeler/lexer/Parser.w",
             Files.readString(root.resolve("lexer/Parser.w")),
             "src/main/wheeler/lexer/Scanner.w",
-            Files.readString(root.resolve("lexer/Scanner.w"))),
+            CompilerSources.read("lexer/Scanner.w")),
         "examples.lexer.main");
     VirtualMachine machine = new VirtualMachine(
         program, "long x2=123;/*c*/".getBytes(StandardCharsets.UTF_8), 3);

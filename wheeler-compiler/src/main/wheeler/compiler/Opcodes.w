@@ -1,5 +1,5 @@
 //! Defines canonical opcode identities for Wheeler-written bytecode tools.
-module examples.compiler.opcodes;
+module wheeler.compiler.opcodes;
 classical class Opcodes {
     /// Names the compile-time `OPCODE_HALT` value owned by this module.
     public const long OPCODE_HALT = 0x0001;

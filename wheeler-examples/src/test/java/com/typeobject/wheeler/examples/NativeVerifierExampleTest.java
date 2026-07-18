@@ -20,26 +20,26 @@ class NativeVerifierExampleTest {
         Map.ofEntries(
             Map.entry(
                 "AggregateVerifier.w",
-                Files.readString(root.resolve("compiler/AggregateVerifier.w"))),
-            Map.entry("Binary.w", Files.readString(root.resolve("packages/Binary.w"))),
+                CompilerSources.read("compiler/AggregateVerifier.w")),
+            Map.entry("Binary.w", CompilerSources.read("packages/Binary.w")),
             Map.entry(
                 "FunctionVerifier.w",
-                Files.readString(root.resolve("compiler/FunctionVerifier.w"))),
+                CompilerSources.read("compiler/FunctionVerifier.w")),
             Map.entry(
                 "InstructionVerifier.w",
-                Files.readString(root.resolve("compiler/InstructionVerifier.w"))),
+                CompilerSources.read("compiler/InstructionVerifier.w")),
             Map.entry(
                 "NativeVerifier.w", Files.readString(root.resolve("NativeVerifier.w"))),
-            Map.entry("Opcodes.w", Files.readString(root.resolve("compiler/Opcodes.w"))),
-            Map.entry("ProofRules.w", Files.readString(root.resolve("compiler/ProofRules.w"))),
+            Map.entry("Opcodes.w", CompilerSources.read("compiler/Opcodes.w")),
+            Map.entry("ProofRules.w", CompilerSources.read("compiler/ProofRules.w")),
             Map.entry(
                 "ProofVerifier.w",
-                Files.readString(root.resolve("compiler/ProofVerifier.w"))),
+                CompilerSources.read("compiler/ProofVerifier.w")),
             Map.entry(
                 "StorageVerifier.w",
-                Files.readString(root.resolve("compiler/StorageVerifier.w"))),
-            Map.entry("TypeCodes.w", Files.readString(root.resolve("compiler/TypeCodes.w"))),
-            Map.entry("Verifier.w", Files.readString(root.resolve("compiler/Verifier.w")))),
+                CompilerSources.read("compiler/StorageVerifier.w")),
+            Map.entry("TypeCodes.w", CompilerSources.read("compiler/TypeCodes.w")),
+            Map.entry("Verifier.w", CompilerSources.read("compiler/Verifier.w"))),
         "examples.compiler.native_verifier");
     byte[] artifact = new WheelerCompiler().compileToBytecode(
         "classical class NativeSubject { state long value = 4; "

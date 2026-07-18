@@ -1,7 +1,7 @@
 //! Parses and sizes bounded bootstrap statements.
 
-module examples.compiler.statements;
-import examples.compiler.tokens;
+module wheeler.compiler.statements;
+import wheeler.compiler.tokens;
 classical class Statements {
     /// Returns the token width of one bounded source statement.
     public long statementWidth(

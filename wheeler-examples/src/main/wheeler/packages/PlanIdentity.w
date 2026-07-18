@@ -112,23 +112,13 @@ classical class PlanIdentity {
             return cursor + 7;
         }
         if (kind == 2) {
-            cursor = writeLength(output, cursor, 6);
-            writeAscii(output, cursor, "BINARY");
-            return cursor + 6;
+            cursor = writeLength(output, cursor, 10);
+            writeAscii(output, cursor, "DEPLOYABLE");
+            return cursor + 10;
         }
-        if (kind == 3) {
-            cursor = writeLength(output, cursor, 4);
-            writeAscii(output, cursor, "TOOL");
-            return cursor + 4;
-        }
-        if (kind == 4) {
-            cursor = writeLength(output, cursor, 4);
-            writeAscii(output, cursor, "TEST");
-            return cursor + 4;
-        }
-        cursor = writeLength(output, cursor, 7);
-        writeAscii(output, cursor, "EXAMPLE");
-        return cursor + 7;
+        cursor = writeLength(output, cursor, 4);
+        writeAscii(output, cursor, "TOOL");
+        return cursor + 4;
     }
 
     /// Checks one build-plan node against its content-derived identity.

@@ -105,12 +105,15 @@ class SourceDocumentationTest {
   }
 
   @Test
-  void everyCheckedExampleCarriesValidFileAndDeclarationDocumentation() throws Exception {
-    Path examples = Path.of("../wheeler-examples/src/main/wheeler");
-    try (var paths = Files.walk(examples)) {
-      for (Path source : paths.filter(path -> path.toString().endsWith(".w")).toList()) {
-        assertEquals(List.of(), SourceDocumentation.checkFile(Files.readString(source)),
-            source.toString());
+  void everyCanonicalSourceCarriesValidFileAndDeclarationDocumentation() throws Exception {
+    for (Path root : List.of(
+        Path.of("src/main/wheeler"),
+        Path.of("../wheeler-examples/src/main/wheeler"))) {
+      try (var paths = Files.walk(root)) {
+        for (Path source : paths.filter(path -> path.toString().endsWith(".w")).toList()) {
+          assertEquals(List.of(), SourceDocumentation.checkFile(Files.readString(source)),
+              source.toString());
+        }
       }
     }
   }

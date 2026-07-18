@@ -168,20 +168,16 @@ public final class BuildPlanCodec {
   private static int targetKindCode(TargetKind kind) {
     return switch (kind) {
       case LIBRARY -> 1;
-      case BINARY -> 2;
+      case DEPLOYABLE -> 2;
       case TOOL -> 3;
-      case TEST -> 4;
-      case EXAMPLE -> 5;
     };
   }
 
   private static TargetKind targetKind(int code) {
     return switch (code) {
       case 1 -> TargetKind.LIBRARY;
-      case 2 -> TargetKind.BINARY;
+      case 2 -> TargetKind.DEPLOYABLE;
       case 3 -> TargetKind.TOOL;
-      case 4 -> TargetKind.TEST;
-      case 5 -> TargetKind.EXAMPLE;
       default -> throw new PackageFormatException("Invalid build target kind");
     };
   }

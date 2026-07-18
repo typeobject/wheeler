@@ -26,12 +26,12 @@ class NativeManifestExampleTest {
             "Names.w", Files.readString(root.resolve("packages/Names.w")),
             "NativeManifest.w", Files.readString(root.resolve("NativeManifest.w")),
             "Paths.w", Files.readString(root.resolve("packages/Paths.w")),
-            "Scanner.w", Files.readString(root.resolve("lexer/Scanner.w")),
+            "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
             "Semver.w", Files.readString(root.resolve("packages/Semver.w"))),
         "examples.packages.main");
     String source =
         "package \"demo.native\" version \"1.2.3-rc.1\" profile \"boot\\\"strap\"; "
-            + "target example \"app\" root \"src/A\\\"pp.w\" "
+            + "target deployable \"app\" root \"src/A\\\"pp.w\" "
             + "module \"demo.app\" source \"src/A\\\"pp.w\" "
             + "source \"src/Helper.w\"; "
             + "target tool \"tool\" root \"src/Tool.w\"; "
@@ -78,10 +78,10 @@ class NativeManifestExampleTest {
     }
     assertEquals(initial, machine.snapshot());
 
-    for (String kind : new String[] {"binary", "library", "tool", "test"}) {
+    for (String kind : new String[] {"deployable", "library", "tool"}) {
       assertRunsCanonical(
           program,
-          source.replace("target example", "target " + kind));
+          source.replace("target deployable", "target " + kind));
     }
     for (String kind : new String[] {"development", "build"}) {
       assertRunsCanonical(
@@ -103,7 +103,7 @@ class NativeManifestExampleTest {
 
     String malformedSource =
         "project \"demo.native\" version \"1.2.3\" profile \"bootstrap-1\"; "
-            + "target example \"app\" root \"src/App.w\"; "
+            + "target deployable \"app\" root \"src/App.w\"; "
             + "dependency normal \"demo.base\" version \"^1.0.0\"; "
             + "capability \"fixture\" path \"test-data\";";
     assertTraps(program, malformedSource);
@@ -122,13 +122,13 @@ class NativeManifestExampleTest {
                 + "dependency development \"demo.extra\" version \"~2.1.0\";",
             "dependency development \"demo.extra\" version \"~2.1.0\"; "
                 + "dependency normal \"demo.base\" version \"^1.0.0\";"));
-    assertTraps(program, source.replace("target example", "target app"));
+    assertTraps(program, source.replace("target deployable", "target app"));
     assertTraps(program, source.replace("\"tool\" root", "\"app\" root"));
     assertTraps(
         program,
         source.replace(
-            "target example \"app\"",
-            "target example \"zoo\""));
+            "target deployable \"app\"",
+            "target deployable \"zoo\""));
     assertTraps(program, source.replace("demo.app", "demo.-app"));
     assertTraps(
         program,

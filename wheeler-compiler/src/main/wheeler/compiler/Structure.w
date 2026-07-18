@@ -1,7 +1,7 @@
 //! Computes canonical section offsets for bootstrap artifacts.
 
-module examples.compiler.structure;
-import examples.compiler.tokens;
+module wheeler.compiler.structure;
+import wheeler.compiler.tokens;
 classical class Structure {
     private boolean canonicalMinimalNames(words tokenKinds, words tokenLengths) {
         if (tokenKinds[2] == 1) {

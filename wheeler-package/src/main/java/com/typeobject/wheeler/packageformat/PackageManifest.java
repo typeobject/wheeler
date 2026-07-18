@@ -68,6 +68,9 @@ public record PackageManifest(
           text.append(" source ").append(quoted(source));
         }
       }
+      if (target.test()) {
+        text.append(" test");
+      }
       text.append(";\n");
     }
     for (Dependency dependency : dependencies) {
@@ -96,12 +99,22 @@ public record PackageManifest(
   }
 
   public record Target(
-      TargetKind kind, String name, String root, String module, List<String> sources) {
+      TargetKind kind,
+      String name,
+      String root,
+      String module,
+      List<String> sources,
+      boolean test) {
     private static final Pattern MODULE = Pattern.compile(
         "[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*");
 
     public Target(TargetKind kind, String name, String root) {
-      this(kind, name, root, null, List.of(root));
+      this(kind, name, root, null, List.of(root), false);
+    }
+
+    public Target(
+        TargetKind kind, String name, String root, String module, List<String> sources) {
+      this(kind, name, root, module, sources, false);
     }
 
     public Target {
@@ -111,6 +124,10 @@ public record PackageManifest(
         throw new PackageFormatException("Invalid target name " + name);
       }
       root = logicalPath(root);
+      if (test && kind == TargetKind.LIBRARY) {
+        throw new PackageFormatException(
+            "Entryless library target cannot be test-selected: " + name);
+      }
       if (module == null) {
         sources = List.of(root);
       } else {
@@ -155,11 +172,9 @@ public record PackageManifest(
   }
 
   public enum TargetKind {
+    DEPLOYABLE,
     LIBRARY,
-    BINARY,
-    TOOL,
-    TEST,
-    EXAMPLE;
+    TOOL;
 
     public String keyword() {
       return name().toLowerCase(java.util.Locale.ROOT);

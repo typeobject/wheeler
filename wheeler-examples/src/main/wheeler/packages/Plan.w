@@ -2,8 +2,8 @@
 
 module examples.packages.plan;
 import examples.crypto.sha256;
-import examples.packages.binary;
 import examples.packages.plan_identity;
+import wheeler.packages.binary;
 classical class Plan {
     /// Defines immutable `PlanModel` values for this module.
     public record PlanModel(
@@ -144,7 +144,7 @@ classical class Plan {
         if (targetKind < 1) {
             return new PlanResult.Error(cursor);
         }
-        if (5 < targetKind) {
+        if (3 < targetKind) {
             return new PlanResult.Error(cursor);
         }
         cursor += 4;

@@ -1,6 +1,6 @@
 //! Executes deterministic bounded signed-map operations.
-module examples.compiler.map_interpreter;
-import examples.compiler.opcodes;
+module wheeler.compiler.map_interpreter;
+import wheeler.compiler.opcodes;
 classical class MapInterpreter {
     /// Checks one map index against its live bounded allocation.
     public boolean mapValid(words kinds, words live, long handle) {

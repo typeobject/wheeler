@@ -1,6 +1,6 @@
 //! Defines the bounded source IR exchanged by parser and code generator.
 
-module examples.compiler.ir;
+module wheeler.compiler.ir;
 classical class CompilerIr {
     /// Defines immutable `SourceRange` values for this module.
     public record SourceRange(long start, long length) {}

@@ -26,7 +26,7 @@ class NativeWorkspaceExampleTest {
             "Names.w", Files.readString(root.resolve("packages/Names.w")),
             "NativeWorkspace.w", Files.readString(root.resolve("NativeWorkspace.w")),
             "Paths.w", Files.readString(root.resolve("packages/Paths.w")),
-            "Scanner.w", Files.readString(root.resolve("lexer/Scanner.w")),
+            "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
             "Workspace.w", Files.readString(root.resolve("packages/Workspace.w"))),
         "examples.packages.workspace_main");
     String canonical =

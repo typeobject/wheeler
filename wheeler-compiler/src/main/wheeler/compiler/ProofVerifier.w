@@ -1,8 +1,8 @@
 //! Checks the bounded classical proof records accepted by native bootstrap tools.
-module examples.compiler.proof_verifier;
-import examples.compiler.opcodes;
-import examples.compiler.proof_rules;
-import examples.packages.binary;
+module wheeler.compiler.proof_verifier;
+import wheeler.compiler.opcodes;
+import wheeler.compiler.proof_rules;
+import wheeler.packages.binary;
 classical class ProofVerifier {
     private boolean differs(long left, long right) {
         if (left < right) {

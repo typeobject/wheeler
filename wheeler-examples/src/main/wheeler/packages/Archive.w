@@ -2,10 +2,10 @@
 
 module examples.packages.archive;
 import examples.crypto.sha256;
-import examples.lexer.scanner;
-import examples.packages.binary;
 import examples.packages.line_emitter;
 import examples.packages.manifest;
+import wheeler.lexer.scanner;
+import wheeler.packages.binary;
 classical class Archive {
     /// Defines immutable `ArchiveModel` values for this module.
     public record ArchiveModel(

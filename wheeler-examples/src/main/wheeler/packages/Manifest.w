@@ -1,11 +1,11 @@
 //! Parses bounded canonical package manifests.
 
 module examples.packages.manifest;
-import examples.lexer.scanner;
 import examples.packages.names;
 import examples.packages.paths;
 import examples.packages.semver;
 import examples.packages.tokens;
+import wheeler.lexer.scanner;
 classical class Manifest {
     /// Defines immutable `QuotedRange` values for this module.
     public record QuotedRange(long start, long length) {}
@@ -73,19 +73,13 @@ classical class Manifest {
 
     private boolean targetKindValid(utf8 source, words starts, words lengths, long recordStart) {
         long hash = tokenHash(source, starts, lengths, recordStart + 1);
-        if (hash == 2906000385) {
+        if (hash == 2733284766595777) {
             return true;
         }
         if (hash == 98950456507) {
             return true;
         }
-        if (hash == 3565976) {
-            return true;
-        }
-        if (hash == 3556498) {
-            return true;
-        }
-        return hash == 93166309738;
+        return hash == 3565976;
     }
 
     private boolean dependencyKindValid(

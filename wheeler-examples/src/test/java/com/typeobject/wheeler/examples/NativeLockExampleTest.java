@@ -26,7 +26,7 @@ class NativeLockExampleTest {
             "ManifestTokens.w", Files.readString(root.resolve("packages/ManifestTokens.w")),
             "Names.w", Files.readString(root.resolve("packages/Names.w")),
             "NativeLock.w", Files.readString(root.resolve("NativeLock.w")),
-            "Scanner.w", Files.readString(root.resolve("lexer/Scanner.w")),
+            "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
             "Semver.w", Files.readString(root.resolve("packages/Semver.w"))),
         "examples.packages.lock_main");
     String a = "a".repeat(64);

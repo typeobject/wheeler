@@ -23,38 +23,38 @@ import org.junit.jupiter.api.Test;
 class MinimalCompilerExampleTest {
   @Test
   void wheelerCompilesMinimalSourceToACanonicalExecutableArtifact() throws Exception {
-    String root = Files.readString(Path.of("src/main/wheeler/MinimalCompiler.w"));
+    String root = CompilerSources.read("MinimalCompiler.w");
     String aggregateVerifier = Files.readString(
-        Path.of("src/main/wheeler/compiler/AggregateVerifier.w"));
-    String codegen = Files.readString(Path.of("src/main/wheeler/compiler/Codegen.w"));
-    String encoding = Files.readString(Path.of("src/main/wheeler/compiler/Encoding.w"));
+        CompilerSources.path("compiler/AggregateVerifier.w"));
+    String codegen = Files.readString(CompilerSources.path("compiler/Codegen.w"));
+    String encoding = Files.readString(CompilerSources.path("compiler/Encoding.w"));
     String functionVerifier = Files.readString(
-        Path.of("src/main/wheeler/compiler/FunctionVerifier.w"));
+        CompilerSources.path("compiler/FunctionVerifier.w"));
     String helperParser = Files.readString(
-        Path.of("src/main/wheeler/compiler/HelperParser.w"));
+        CompilerSources.path("compiler/HelperParser.w"));
     String instructionVerifier = Files.readString(
-        Path.of("src/main/wheeler/compiler/InstructionVerifier.w"));
-    String ir = Files.readString(Path.of("src/main/wheeler/compiler/Ir.w"));
-    String opcodes = Files.readString(Path.of("src/main/wheeler/compiler/Opcodes.w"));
-    String parser = Files.readString(Path.of("src/main/wheeler/compiler/Parser.w"));
+        CompilerSources.path("compiler/InstructionVerifier.w"));
+    String ir = Files.readString(CompilerSources.path("compiler/Ir.w"));
+    String opcodes = Files.readString(CompilerSources.path("compiler/Opcodes.w"));
+    String parser = Files.readString(CompilerSources.path("compiler/Parser.w"));
     String proofRules = Files.readString(
-        Path.of("src/main/wheeler/compiler/ProofRules.w"));
+        CompilerSources.path("compiler/ProofRules.w"));
     String proofVerifier = Files.readString(
-        Path.of("src/main/wheeler/compiler/ProofVerifier.w"));
+        CompilerSources.path("compiler/ProofVerifier.w"));
     String statements = Files.readString(
-        Path.of("src/main/wheeler/compiler/Statements.w"));
+        CompilerSources.path("compiler/Statements.w"));
     String storageVerifier = Files.readString(
-        Path.of("src/main/wheeler/compiler/StorageVerifier.w"));
+        CompilerSources.path("compiler/StorageVerifier.w"));
     String stringTable = Files.readString(
-        Path.of("src/main/wheeler/compiler/StringTable.w"));
+        CompilerSources.path("compiler/StringTable.w"));
     String structure = Files.readString(
-        Path.of("src/main/wheeler/compiler/Structure.w"));
-    String tokens = Files.readString(Path.of("src/main/wheeler/compiler/Tokens.w"));
+        CompilerSources.path("compiler/Structure.w"));
+    String tokens = Files.readString(CompilerSources.path("compiler/Tokens.w"));
     String typeCodes = Files.readString(
-        Path.of("src/main/wheeler/compiler/TypeCodes.w"));
-    String verifier = Files.readString(Path.of("src/main/wheeler/compiler/Verifier.w"));
-    String scanner = Files.readString(Path.of("src/main/wheeler/lexer/Scanner.w"));
-    String binary = Files.readString(Path.of("src/main/wheeler/packages/Binary.w"));
+        CompilerSources.path("compiler/TypeCodes.w"));
+    String verifier = Files.readString(CompilerSources.path("compiler/Verifier.w"));
+    String scanner = Files.readString(CompilerSources.path("lexer/Scanner.w"));
+    String binary = Files.readString(CompilerSources.path("packages/Binary.w"));
     var writerProgram = new WheelerCompiler().compileModuleFiles(
         Map.ofEntries(
             Map.entry("AggregateVerifier.w", aggregateVerifier),
@@ -78,7 +78,7 @@ class MinimalCompilerExampleTest {
             Map.entry("TypeCodes.w", typeCodes),
             Map.entry("Verifier.w", verifier),
             Map.entry("Binary.w", binary)),
-        "examples.compiler.seed");
+        "wheeler.compiler.driver");
     String source =
         "classical class LongClass { state long value = 7; "
             + "entry void main() { value += 5; } }";
@@ -337,7 +337,7 @@ class MinimalCompilerExampleTest {
   void wheelerVerifierRejectsMalformedArtifactOperands() throws Exception {
     String root = """
         module examples.compiler.verifiertest;
-        import examples.compiler.verifier;
+        import wheeler.compiler.verifier;
         classical class VerifierTest {
           state long result = 0;
 
@@ -376,25 +376,25 @@ class MinimalCompilerExampleTest {
         }
         """;
     String binary = Files.readString(
-        Path.of("src/main/wheeler/packages/Binary.w"));
+        CompilerSources.path("packages/Binary.w"));
     String aggregateVerifier = Files.readString(
-        Path.of("src/main/wheeler/compiler/AggregateVerifier.w"));
+        CompilerSources.path("compiler/AggregateVerifier.w"));
     String functionVerifier = Files.readString(
-        Path.of("src/main/wheeler/compiler/FunctionVerifier.w"));
+        CompilerSources.path("compiler/FunctionVerifier.w"));
     String instructionVerifier = Files.readString(
-        Path.of("src/main/wheeler/compiler/InstructionVerifier.w"));
+        CompilerSources.path("compiler/InstructionVerifier.w"));
     String opcodes = Files.readString(
-        Path.of("src/main/wheeler/compiler/Opcodes.w"));
+        CompilerSources.path("compiler/Opcodes.w"));
     String proofRules = Files.readString(
-        Path.of("src/main/wheeler/compiler/ProofRules.w"));
+        CompilerSources.path("compiler/ProofRules.w"));
     String proofVerifier = Files.readString(
-        Path.of("src/main/wheeler/compiler/ProofVerifier.w"));
+        CompilerSources.path("compiler/ProofVerifier.w"));
     String storageVerifier = Files.readString(
-        Path.of("src/main/wheeler/compiler/StorageVerifier.w"));
+        CompilerSources.path("compiler/StorageVerifier.w"));
     String typeCodes = Files.readString(
-        Path.of("src/main/wheeler/compiler/TypeCodes.w"));
+        CompilerSources.path("compiler/TypeCodes.w"));
     String verifier = Files.readString(
-        Path.of("src/main/wheeler/compiler/Verifier.w"));
+        CompilerSources.path("compiler/Verifier.w"));
     Program program = new WheelerCompiler().compileModuleFiles(
         Map.ofEntries(
             Map.entry("AggregateVerifier.w", aggregateVerifier),

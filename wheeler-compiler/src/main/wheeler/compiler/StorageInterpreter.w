@@ -1,9 +1,9 @@
 //! Executes bounded owned-region and word-buffer operations.
-module examples.compiler.storage_interpreter;
-import examples.compiler.map_interpreter;
-import examples.compiler.opcodes;
-import examples.compiler.utf8_interpreter;
-import examples.packages.binary;
+module wheeler.compiler.storage_interpreter;
+import wheeler.compiler.map_interpreter;
+import wheeler.compiler.opcodes;
+import wheeler.compiler.utf8_interpreter;
+import wheeler.packages.binary;
 classical class StorageInterpreter {
     /// Defines immutable `StorageAllocation` values for this module.
     public record StorageAllocation(long handle, long storageCount, long dataCursor) {}

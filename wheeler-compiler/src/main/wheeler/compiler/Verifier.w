@@ -1,10 +1,10 @@
 //! Coordinates Wheeler-native verification of canonical bytecode.
 
-module examples.compiler.verifier;
-import examples.compiler.function_verifier;
-import examples.compiler.opcodes;
-import examples.compiler.proof_verifier;
-import examples.compiler.type_codes;
+module wheeler.compiler.verifier;
+import wheeler.compiler.function_verifier;
+import wheeler.compiler.opcodes;
+import wheeler.compiler.proof_verifier;
+import wheeler.compiler.type_codes;
 classical class Verifier {
     private boolean differs(long left, long right) {
         if (left < right) {

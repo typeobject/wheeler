@@ -1,7 +1,7 @@
 //! Recognizes bounded declarations over scanner metadata.
 
 module examples.lexer.parser;
-import examples.lexer.scanner;
+import wheeler.lexer.scanner;
 classical class Parser {
     /// Defines the closed `DeclarationResult` cases exported by this module.
     public variant DeclarationResult {

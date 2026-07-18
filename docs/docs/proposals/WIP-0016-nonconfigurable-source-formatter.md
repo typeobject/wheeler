@@ -277,7 +277,7 @@ Example:
 //! This module converts strict UTF-8 source into token metadata.
 //! It owns lexical limits and source diagnostics; name resolution belongs to the compiler.
 
-module examples.lexer.scanner;
+module wheeler.lexer.scanner;
 ```
 
 The first paragraph states the file or module responsibility. Additional paragraphs should explain boundaries, owned state or resources, public surface, important invariants, or what the module deliberately does not own. They should not repeat the module name, import list, changelog, or repository path.

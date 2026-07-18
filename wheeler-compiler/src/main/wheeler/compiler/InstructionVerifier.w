@@ -1,10 +1,10 @@
 //! Verifies bounded instruction streams, operands, local types, and branch targets.
-module examples.compiler.instruction_verifier;
-import examples.compiler.aggregate_verifier;
-import examples.compiler.opcodes;
-import examples.compiler.storage_verifier;
-import examples.compiler.type_codes;
-import examples.packages.binary;
+module wheeler.compiler.instruction_verifier;
+import wheeler.compiler.aggregate_verifier;
+import wheeler.compiler.opcodes;
+import wheeler.compiler.storage_verifier;
+import wheeler.compiler.type_codes;
+import wheeler.packages.binary;
 classical class InstructionVerifier {
     private boolean differs(long left, long right) {
         if (left < right) {

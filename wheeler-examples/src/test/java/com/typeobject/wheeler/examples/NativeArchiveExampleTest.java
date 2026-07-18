@@ -11,6 +11,7 @@ import com.typeobject.wheeler.packageformat.PackageArchive;
 import com.typeobject.wheeler.packageformat.PackageManifestParser;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -25,20 +26,20 @@ class NativeArchiveExampleTest {
     Program inspector = new WheelerCompiler().compileModuleFiles(
         Map.ofEntries(
             Map.entry("Archive.w", Files.readString(root.resolve("packages/Archive.w"))),
-            Map.entry("Binary.w", Files.readString(root.resolve("packages/Binary.w"))),
+            Map.entry("Binary.w", CompilerSources.read("packages/Binary.w")),
             Map.entry("LineEmitter.w", Files.readString(root.resolve("packages/LineEmitter.w"))),
             Map.entry("Manifest.w", Files.readString(root.resolve("packages/Manifest.w"))),
             Map.entry("ManifestTokens.w", Files.readString(root.resolve("packages/ManifestTokens.w"))),
             Map.entry("Names.w", Files.readString(root.resolve("packages/Names.w"))),
             Map.entry("NativeArchive.w", Files.readString(root.resolve("NativeArchive.w"))),
             Map.entry("Paths.w", Files.readString(root.resolve("packages/Paths.w"))),
-            Map.entry("Scanner.w", Files.readString(root.resolve("lexer/Scanner.w"))),
+            Map.entry("Scanner.w", CompilerSources.read("lexer/Scanner.w")),
             Map.entry("Semver.w", Files.readString(root.resolve("packages/Semver.w"))),
             Map.entry("Sha256.w", Files.readString(root.resolve("crypto/Sha256.w")))),
         "examples.packages.archive_main");
     String manifestText =
         "package \"demo.archive\" version \"1.0.0\" profile \"bootstrap-1\";\n"
-            + "target example \"main\" root \"src/Main.w\";\n";
+            + "target deployable \"main\" root \"src/Main.w\";\n";
     var manifest = new PackageManifestParser().parse(manifestText);
     byte[] encoded = new PackageArchive().encode(
         manifest, Map.of("src/Main.w", new byte[] {1, 2, 3, (byte) 255}));
@@ -47,7 +48,9 @@ class NativeArchiveExampleTest {
 
     machine.run();
 
-    assertEquals(103, machine.global("manifestLength"));
+    assertEquals(
+        manifest.canonicalText().getBytes(StandardCharsets.UTF_8).length,
+        machine.global("manifestLength"));
     assertEquals(1, machine.global("entryCount"));
     assertEquals(10, machine.global("pathLength"));
     assertEquals(4, machine.global("dataLength"));
@@ -62,7 +65,7 @@ class NativeArchiveExampleTest {
 
     String modularManifestText =
         "package \"a\" version \"1.0.0\" profile \"b\";\n"
-            + "target example \"m\" root \"a\" module \"a.b\" "
+            + "target deployable \"m\" root \"a\" module \"a.b\" "
             + "source \"a\" source \"b\";\n";
     byte[] modular = new PackageArchive().encode(
         new PackageManifestParser().parse(modularManifestText),

@@ -1,8 +1,8 @@
 //! Plans and emits the canonical artifact string table.
 
-module examples.compiler.string_table;
-import examples.compiler.encoding;
-import examples.compiler.ir;
+module wheeler.compiler.string_table;
+import wheeler.compiler.encoding;
+import wheeler.compiler.ir;
 classical class StringTable {
     /// Defines immutable `StringTablePlan` values for this module.
     public record StringTablePlan(

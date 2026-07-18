@@ -73,19 +73,35 @@ public final class PackageManifestParser {
       String name = expect(Type.STRING, "target name").text();
       expectWord("root");
       String root = expect(Type.STRING, "target root").text();
-      if (check(Type.SEMICOLON)) {
-        current++;
-        return new Target(kind, name, root);
-      }
-      expectWord("module");
-      String module = expect(Type.STRING, "target root module").text();
+      String module = null;
       List<String> sources = new ArrayList<>();
+      boolean test = false;
       while (!check(Type.SEMICOLON)) {
-        expectWord("source");
-        sources.add(expect(Type.STRING, "target source").text());
+        Token field = expect(Type.WORD, "target field");
+        switch (field.text()) {
+          case "module" -> {
+            if (module != null) {
+              fail(field, "duplicate target module");
+            }
+            module = expect(Type.STRING, "target root module").text();
+          }
+          case "source" -> {
+            if (module == null) {
+              fail(field, "target source requires a root module");
+            }
+            sources.add(expect(Type.STRING, "target source").text());
+          }
+          case "test" -> {
+            if (test) {
+              fail(field, "duplicate target test selector");
+            }
+            test = true;
+          }
+          default -> fail(field, "unknown target field " + field.text());
+        }
       }
       expect(Type.SEMICOLON, "';' after target");
-      return new Target(kind, name, root, module, sources);
+      return new Target(kind, name, root, module, sources, test);
     }
 
     private Dependency parseDependency() {

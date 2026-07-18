@@ -28,39 +28,39 @@ class NativeVmExampleTest {
         Map.ofEntries(
             Map.entry(
                 "AggregateInterpreter.w",
-                Files.readString(root.resolve("compiler/AggregateInterpreter.w"))),
+                CompilerSources.read("compiler/AggregateInterpreter.w")),
             Map.entry(
                 "AggregateVerifier.w",
-                Files.readString(root.resolve("compiler/AggregateVerifier.w"))),
-            Map.entry("Binary.w", Files.readString(root.resolve("packages/Binary.w"))),
+                CompilerSources.read("compiler/AggregateVerifier.w")),
+            Map.entry("Binary.w", CompilerSources.read("packages/Binary.w")),
             Map.entry(
                 "FunctionVerifier.w",
-                Files.readString(root.resolve("compiler/FunctionVerifier.w"))),
+                CompilerSources.read("compiler/FunctionVerifier.w")),
             Map.entry(
                 "InstructionVerifier.w",
-                Files.readString(root.resolve("compiler/InstructionVerifier.w"))),
+                CompilerSources.read("compiler/InstructionVerifier.w")),
             Map.entry(
-                "Interpreter.w", Files.readString(root.resolve("compiler/Interpreter.w"))),
+                "Interpreter.w", CompilerSources.read("compiler/Interpreter.w")),
             Map.entry(
                 "MapInterpreter.w",
-                Files.readString(root.resolve("compiler/MapInterpreter.w"))),
+                CompilerSources.read("compiler/MapInterpreter.w")),
             Map.entry("NativeVm.w", Files.readString(root.resolve("NativeVm.w"))),
-            Map.entry("Opcodes.w", Files.readString(root.resolve("compiler/Opcodes.w"))),
-            Map.entry("ProofRules.w", Files.readString(root.resolve("compiler/ProofRules.w"))),
+            Map.entry("Opcodes.w", CompilerSources.read("compiler/Opcodes.w")),
+            Map.entry("ProofRules.w", CompilerSources.read("compiler/ProofRules.w")),
             Map.entry(
                 "ProofVerifier.w",
-                Files.readString(root.resolve("compiler/ProofVerifier.w"))),
+                CompilerSources.read("compiler/ProofVerifier.w")),
             Map.entry(
                 "StorageInterpreter.w",
-                Files.readString(root.resolve("compiler/StorageInterpreter.w"))),
+                CompilerSources.read("compiler/StorageInterpreter.w")),
             Map.entry(
                 "StorageVerifier.w",
-                Files.readString(root.resolve("compiler/StorageVerifier.w"))),
-            Map.entry("TypeCodes.w", Files.readString(root.resolve("compiler/TypeCodes.w"))),
+                CompilerSources.read("compiler/StorageVerifier.w")),
+            Map.entry("TypeCodes.w", CompilerSources.read("compiler/TypeCodes.w")),
             Map.entry(
                 "Utf8Interpreter.w",
-                Files.readString(root.resolve("compiler/Utf8Interpreter.w"))),
-            Map.entry("Verifier.w", Files.readString(root.resolve("compiler/Verifier.w")))),
+                CompilerSources.read("compiler/Utf8Interpreter.w")),
+            Map.entry("Verifier.w", CompilerSources.read("compiler/Verifier.w"))),
         "examples.runtime.native_vm");
     WheelerCompiler compiler = new WheelerCompiler();
     byte[] update = compiler.compileToBytecode(
@@ -616,41 +616,41 @@ class NativeVmExampleTest {
         Map.ofEntries(
             Map.entry(
                 "AggregateVerifier.w",
-                Files.readString(root.resolve("compiler/AggregateVerifier.w"))),
-            Map.entry("Codegen.w", Files.readString(root.resolve("compiler/Codegen.w"))),
-            Map.entry("Encoding.w", Files.readString(root.resolve("compiler/Encoding.w"))),
+                CompilerSources.read("compiler/AggregateVerifier.w")),
+            Map.entry("Codegen.w", CompilerSources.read("compiler/Codegen.w")),
+            Map.entry("Encoding.w", CompilerSources.read("compiler/Encoding.w")),
             Map.entry(
                 "FunctionVerifier.w",
-                Files.readString(root.resolve("compiler/FunctionVerifier.w"))),
+                CompilerSources.read("compiler/FunctionVerifier.w")),
             Map.entry(
                 "HelperParser.w",
-                Files.readString(root.resolve("compiler/HelperParser.w"))),
+                CompilerSources.read("compiler/HelperParser.w")),
             Map.entry(
                 "InstructionVerifier.w",
-                Files.readString(root.resolve("compiler/InstructionVerifier.w"))),
-            Map.entry("Ir.w", Files.readString(root.resolve("compiler/Ir.w"))),
+                CompilerSources.read("compiler/InstructionVerifier.w")),
+            Map.entry("Ir.w", CompilerSources.read("compiler/Ir.w")),
             Map.entry(
-                "MinimalCompiler.w", Files.readString(root.resolve("MinimalCompiler.w"))),
-            Map.entry("Opcodes.w", Files.readString(root.resolve("compiler/Opcodes.w"))),
-            Map.entry("Parser.w", Files.readString(root.resolve("compiler/Parser.w"))),
-            Map.entry("ProofRules.w", Files.readString(root.resolve("compiler/ProofRules.w"))),
+                "MinimalCompiler.w", CompilerSources.read("MinimalCompiler.w")),
+            Map.entry("Opcodes.w", CompilerSources.read("compiler/Opcodes.w")),
+            Map.entry("Parser.w", CompilerSources.read("compiler/Parser.w")),
+            Map.entry("ProofRules.w", CompilerSources.read("compiler/ProofRules.w")),
             Map.entry(
                 "ProofVerifier.w",
-                Files.readString(root.resolve("compiler/ProofVerifier.w"))),
-            Map.entry("Scanner.w", Files.readString(root.resolve("lexer/Scanner.w"))),
+                CompilerSources.read("compiler/ProofVerifier.w")),
+            Map.entry("Scanner.w", CompilerSources.read("lexer/Scanner.w")),
             Map.entry(
-                "Statements.w", Files.readString(root.resolve("compiler/Statements.w"))),
+                "Statements.w", CompilerSources.read("compiler/Statements.w")),
             Map.entry(
                 "StorageVerifier.w",
-                Files.readString(root.resolve("compiler/StorageVerifier.w"))),
+                CompilerSources.read("compiler/StorageVerifier.w")),
             Map.entry(
-                "StringTable.w", Files.readString(root.resolve("compiler/StringTable.w"))),
-            Map.entry("Structure.w", Files.readString(root.resolve("compiler/Structure.w"))),
-            Map.entry("Tokens.w", Files.readString(root.resolve("compiler/Tokens.w"))),
-            Map.entry("TypeCodes.w", Files.readString(root.resolve("compiler/TypeCodes.w"))),
-            Map.entry("Verifier.w", Files.readString(root.resolve("compiler/Verifier.w"))),
-            Map.entry("Binary.w", Files.readString(root.resolve("packages/Binary.w")))),
-        "examples.compiler.seed");
+                "StringTable.w", CompilerSources.read("compiler/StringTable.w")),
+            Map.entry("Structure.w", CompilerSources.read("compiler/Structure.w")),
+            Map.entry("Tokens.w", CompilerSources.read("compiler/Tokens.w")),
+            Map.entry("TypeCodes.w", CompilerSources.read("compiler/TypeCodes.w")),
+            Map.entry("Verifier.w", CompilerSources.read("compiler/Verifier.w")),
+            Map.entry("Binary.w", CompilerSources.read("packages/Binary.w"))),
+        "wheeler.compiler.driver");
     VirtualMachine machine = new VirtualMachine(
         compiler, source.getBytes(StandardCharsets.UTF_8), 1024);
     machine.run();

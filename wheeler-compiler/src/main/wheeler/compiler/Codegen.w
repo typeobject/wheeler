@@ -1,7 +1,7 @@
 //! Encodes the bounded bootstrap IR as canonical Wheeler bytecode.
 
-module examples.compiler.codegen;
-import examples.compiler.encoding;
+module wheeler.compiler.codegen;
+import wheeler.compiler.encoding;
 classical class Codegen {
     /// Maps a parsed global update to its canonical bytecode opcode.
     public long globalOpcode(long opcode) {

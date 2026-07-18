@@ -1,6 +1,6 @@
 //! Decodes strict bounded UTF-8 for the Wheeler-written interpreter.
-module examples.compiler.utf8_interpreter;
-import examples.compiler.opcodes;
+module wheeler.compiler.utf8_interpreter;
+import wheeler.compiler.opcodes;
 classical class Utf8Interpreter {
     private boolean byteBetween(long value, long low, long high) {
         if (value < low) {

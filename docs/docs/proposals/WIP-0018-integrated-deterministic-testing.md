@@ -76,7 +76,7 @@ Leaving these rules in helper libraries would create several discovery mechanism
 
 ## Terms and semantic model
 
-A **test declaration** is a named source declaration admitted only in a package test target. It has a body, tags, limits, fixture requirements, and zero or more parameter sources.
+A **test declaration** is a named source declaration admitted only in a deployable or tool target carrying the manifest's `test` selector. It has a body, tags, limits, fixture requirements, and zero or more parameter sources.
 
 A **test descriptor** is canonical verified metadata containing the declaration identity, executable function identity, parameter schema, tags, limits, and required capabilities.
 
@@ -121,7 +121,7 @@ parameterized test void roundTrip(long value)
 
 Exact grammar is accepted with WIP-0005 review. The semantic requirements do not depend on whether the final introducer is `test`, an attribute, or a manifest-bound descriptor declaration.
 
-Discovery reads only the exact source set of a package test target. It does not scan classpaths, process resources, current directories, or loaded modules. Descriptors are sorted by canonical qualified declaration identity. Parameter cases are sorted by canonical encoded value unless the source declares an already canonical finite sequence.
+Discovery reads only the exact source set of a test-selected runnable package target. It does not scan classpaths, process resources, current directories, or loaded modules. Descriptors are sorted by canonical qualified declaration identity. Parameter cases are sorted by canonical encoded value unless the source declares an already canonical finite sequence.
 
 Duplicate qualified names, duplicate case identities, unstable encodings, unsupported parameter types, and cases exceeding declared limits fail compilation or discovery before execution.
 
@@ -256,7 +256,7 @@ JUnit adapters consume semantic reports during migration. They do not discover W
 
 1. Define test values, stable diagnostics, descriptor identities, and the runner event reducer.
 2. Add a bounded classical test declaration and fresh-VM runner vertical slice.
-3. Add package test targets, exact discovery, tags, parameter rows, and canonical reports.
+3. Add test selection to runnable package targets, exact discovery, tags, parameter rows, and canonical reports.
 4. Add inverse, rewind, trap, malformed-artifact, package, and recovery assertions.
 5. Add deterministic generators and shrinking.
 6. Add exact-simulator, sampled-target, replay, and proof assertions.
@@ -267,7 +267,7 @@ JUnit adapters consume semantic reports during migration. They do not discover W
 
 ## Progress
 
-- [x] The stage-0 package runner discovers only exact `target test` source sets, derives domain-separated case/source/artifact/execution/report identities, executes each target with a fresh runtime and state-vector target, reduces compile failures and VM traps to `WTEST001..002`, sorts cases canonically, and emits a rerun-stable terminal report. This is the executable seed, not the proposed declaration model in a false moustache.
+- [x] The stage-0 package runner discovers only exact `target tool ... test` source sets, derives domain-separated case/source/artifact/execution/report identities, executes each target with a fresh runtime and state-vector target, reduces compile failures and VM traps to `WTEST001..002`, sorts cases canonically, and emits a rerun-stable terminal report. This is the executable seed, not the proposed declaration model in a false moustache.
 - [ ] Test declaration and descriptor semantics are accepted.
 - [ ] One Wheeler case compiles, is discovered through an exact package target, runs in a fresh VM, and emits a canonical result.
 - [ ] Parameter rows, lifecycle fixtures, tags, and deterministic sharding execute.
@@ -283,7 +283,7 @@ JUnit adapters consume semantic reports during migration. They do not discover W
 - [ ] Lifecycle acquire/release ordering is exact across pass, assertion fail, trap, cancel, and process recovery.
 - [ ] Language inverse, VM rewind, uncomputation, replay, and retry tests distinguish every boundary.
 - [ ] Exact simulator tests cover amplitudes, global phase, generated adjoints, and clean ancillas.
-- [ ] Sampled target tests retain evidence and cannot satisfy exact or proof assertions.
+- [ ] Sampled tests retain evidence and cannot satisfy exact or proof assertions.
 - [ ] Proof tests accept valid certificates and reject forged subjects, rules, arguments, and payloads.
 - [ ] Malformed descriptors, duplicate cases, unknown tags, exhausted limits, and oversized reports fail closed.
 - [ ] Parallel shards merge to the byte-identical semantic report produced by serial execution.

@@ -1,6 +1,6 @@
 //! Scans strict UTF-8 into bounded token metadata.
 
-module examples.lexer.scanner;
+module wheeler.lexer.scanner;
 classical class Scanner {
     /// Defines immutable `ScanDiagnostic` values for this module.
     public record ScanDiagnostic(long code, long offset, long line, long column) {}

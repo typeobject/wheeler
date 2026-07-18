@@ -1,11 +1,11 @@
 //! Parses the bounded Wheeler bootstrap source profile into IR.
 
-module examples.compiler.parser;
-import examples.compiler.helper_parser;
-import examples.compiler.ir;
-import examples.compiler.statements;
-import examples.compiler.structure;
-import examples.compiler.tokens;
+module wheeler.compiler.parser;
+import wheeler.compiler.helper_parser;
+import wheeler.compiler.ir;
+import wheeler.compiler.statements;
+import wheeler.compiler.structure;
+import wheeler.compiler.tokens;
 classical class Parser {
 
     private MinimalProgramResult minimalProgramValue(

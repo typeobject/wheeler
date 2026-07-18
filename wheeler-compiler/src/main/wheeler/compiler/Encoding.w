@@ -1,6 +1,6 @@
 //! Writes and compares bounded canonical binary fields.
 
-module examples.compiler.encoding;
+module wheeler.compiler.encoding;
 classical class Encoding {
     /// Writes `unsignedLittleEndian` into caller-owned bounded output.
     public long writeUnsignedLittleEndian(bytes output, long offset, long value, long width) {

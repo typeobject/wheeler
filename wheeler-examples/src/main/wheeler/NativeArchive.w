@@ -3,7 +3,7 @@
 module examples.packages.archive_main;
 import examples.crypto.sha256;
 import examples.packages.archive;
-import examples.packages.binary;
+import wheeler.packages.binary;
 classical class NativeArchive {
     state long manifestLength = 0;
     state long entryCount = 0;

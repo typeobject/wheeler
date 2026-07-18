@@ -79,7 +79,7 @@ final class PackageProject {
         .filter(target -> target.name().equals(targetName))
         .findFirst()
         .orElseThrow(() -> new PackageFormatException("Unknown package target " + targetName));
-    if (selected.kind() == TargetKind.LIBRARY || selected.kind() == TargetKind.TEST) {
+    if (selected.kind() == TargetKind.LIBRARY) {
       throw new PackageFormatException(
           "Target is not directly runnable: " + selected.name());
     }
@@ -99,7 +99,7 @@ final class PackageProject {
         ? Map.of() : dependencies.moduleSources();
     List<TestReport.CaseResult> cases = new ArrayList<>();
     for (PackageManifest.Target target : manifest.targets()) {
-      if (target.kind() != TargetKind.TEST) {
+      if (!target.test()) {
         continue;
       }
       String sourceIdentity = sha256(readPlanInput(target));

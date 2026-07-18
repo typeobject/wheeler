@@ -1,8 +1,8 @@
 //! Verifies bounded record and finite-variant instruction operands.
-module examples.compiler.aggregate_verifier;
-import examples.compiler.opcodes;
-import examples.compiler.type_codes;
-import examples.packages.binary;
+module wheeler.compiler.aggregate_verifier;
+import wheeler.compiler.opcodes;
+import wheeler.compiler.type_codes;
+import wheeler.packages.binary;
 classical class AggregateVerifier {
     private boolean differs(long left, long right) {
         if (left < right) {

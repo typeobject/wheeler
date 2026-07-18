@@ -1,7 +1,7 @@
 //! Bounded parser over token metadata produced by an imported scanner module.
 module examples.lexer.main;
 import examples.lexer.parser;
-import examples.lexer.scanner;
+import wheeler.lexer.scanner;
 classical class Utf8Lexer {
 
     state long tokenCount = 0;
