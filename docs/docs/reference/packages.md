@@ -1,6 +1,6 @@
 # Package format
 
-Wheeler package metadata uses its own declarative syntax and canonical archive. The current stage-0 implementation parses `wheeler.workspace` and `wheeler.package`, resolves an immutable package catalog, reads and writes canonical `wheeler.lock`, loads exact offline dependencies, emits verified build plans, and reads and writes content-addressed `.wpk` archives. Registry transport, source module imports, and the Wheeler-written native implementation remain package-system work.
+Wheeler package metadata uses its own declarative syntax and canonical archive. The current stage-0 implementation parses `wheeler.workspace` and `wheeler.package`, resolves an immutable package catalog, reads and writes canonical `wheeler.lock`, loads exact offline dependencies, emits verified build plans, and reads and writes content-addressed `.wpk` archives. A physical local registry supports immutable publish/fetch transport. Network transport, namespace authorization, source module imports, and the Wheeler-written native implementation remain package-system work.
 
 ## Workspace manifest
 
@@ -155,6 +155,8 @@ wheeler verify <package.wpk>
 wheeler resolve <package-directory> --catalog <archive-directory> [-o wheeler.lock] [--development]
 wheeler verify-lock <wheeler.lock>
 wheeler vendor <wheeler.lock> --catalog <archive-directory> -o <vendor-directory>
+wheeler publish <package.wpk> --registry <directory>
+wheeler fetch <package> <version> --registry <directory> -o <package.wpk>
 wheeler plan <workspace-directory> --compiler <sha256> [--grant-requested] [-o wheeler.plan]
 wheeler verify-plan <wheeler.plan>
 wheeler compile <source.w> [-o program.wbc]
@@ -164,7 +166,7 @@ wheeler disassemble <program.wbc>
 wheeler qasm <program.wbc> <output.qasm>
 ```
 
-`check` compiles and verifies every declared target without writing outputs. `build` writes one canonical `.wbc` per target, named from the target. Locked dependency outputs reside under `dependencies/<package-name>/`; workspace builds place each root package and its dependency tree in the member-named output directory. `test` compiles and executes only targets declared with kind `test`, in canonical workspace/package/target order, using the same ideal state-vector target as ordinary deterministic CI. A package with no test targets succeeds with a zero-target report. `clean` removes only the default physical `out` tree and rejects files or symbolic links at any level before deleting anything. `package` includes canonical manifest data and every declared target root. `verify` performs strict archive decoding before printing identity. `resolve` selects from an explicit verified archive catalog and atomically writes canonical lock data; development dependencies enter only with `--development`. `verify-lock` accepts only canonical lock encoding before printing identity. `vendor` materializes exactly the locked archive set plus the canonical lockfile from an explicit verified catalog. `plan` hashes declared workspace sources and emits a canonical build plan with an explicit compiler identity, fixed conservative per-node limits, separated capability requests and grants, and no ambient authority. Grants are empty unless the caller explicitly supplies `--grant-requested`; that switch grants exactly the declared requests and nothing else. `verify-plan` validates all structural and content identities before printing plan identity. `run` accepts either a verified artifact or an explicitly selected binary, tool, or example package target; library and test targets use their dedicated operations. Output replacement uses a sibling temporary file and atomic move when the host supports it.
+`check` compiles and verifies every declared target without writing outputs. `build` writes one canonical `.wbc` per target, named from the target. Locked dependency outputs reside under `dependencies/<package-name>/`; workspace builds place each root package and its dependency tree in the member-named output directory. `test` compiles and executes only targets declared with kind `test`, in canonical workspace/package/target order, using the same ideal state-vector target as ordinary deterministic CI. A package with no test targets succeeds with a zero-target report. `clean` removes only the default physical `out` tree and rejects files or symbolic links at any level before deleting anything. `package` includes canonical manifest data and every declared target root. `verify` performs strict archive decoding before printing identity. `resolve` selects from an explicit verified archive catalog and atomically writes canonical lock data; development dependencies enter only with `--development`. `verify-lock` accepts only canonical lock encoding before printing identity. `vendor` materializes exactly the locked archive set plus the canonical lockfile from an explicit verified catalog. `publish` validates an archive and idempotently installs its content plus one immutable name/version mapping in an explicit physical local registry. `fetch` verifies that mapping and the complete archive before atomically writing output. `plan` hashes declared workspace sources and emits a canonical build plan with an explicit compiler identity, fixed conservative per-node limits, separated capability requests and grants, and no ambient authority. Grants are empty unless the caller explicitly supplies `--grant-requested`; that switch grants exactly the declared requests and nothing else. `verify-plan` validates all structural and content identities before printing plan identity. `run` accepts either a verified artifact or an explicitly selected binary, tool, or example package target; library and test targets use their dedicated operations. Output replacement uses a sibling temporary file and atomic move when the host supports it.
 
 ## Vendored inputs
 
@@ -185,6 +187,19 @@ From a source checkout, invoke it through the stage-0 Gradle launcher:
 ```bash
 ./gradlew :wheeler-tools:wheeler --args='check .'
 ```
+
+## Local registry transport
+
+A local registry is an explicit physical directory with two internal trees:
+
+```text
+archives/<archive-sha256>.wpk
+releases/<package-name>/<version>.release
+```
+
+A release record is strict canonical UTF-8 containing schema, package, version, archive SHA-256, and manifest SHA-256. Publication decodes the archive first, stores bytes by complete content identity, and creates the version mapping atomically. Repeating the same publication is a cache hit. Reusing a package/version for different content fails without rewriting the existing mapping. An unreferenced content object left by a conflicting publication is harmless and may be garbage-collected only by a separate audited operation.
+
+Fetch parses the mapping, reads only the named content object, strictly decodes it, and rechecks package, version, archive, and manifest identities. Missing, linked, nonregular, malformed, corrupt, or mismatched paths fail before output replacement. Registry roots must already exist and be physical directories. This transport intentionally has no network, ambient cache, credentials, mutable overwrite, yanking, signing, or namespace-ownership policy; those remain requirements for a public registry.
 
 ## Security boundary
 

@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.tools;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -63,6 +64,54 @@ class WheelerCommandTest {
     DecodedPackage archive = new PackageArchive().decode(Files.readAllBytes(archivePath));
     assertEquals("demo.counter", archive.manifest().name());
     assertEquals(0, Wheeler.execute(new String[] {"verify", archivePath.toString()}, stdout, stderr));
+
+    Path registry = temporary.resolve("registry");
+    Files.createDirectory(registry);
+    String[] publish = {
+        "publish", archivePath.toString(), "--registry", registry.toString()
+    };
+    assertEquals(0, Wheeler.execute(publish, stdout, stderr));
+    assertEquals(0, Wheeler.execute(publish, stdout, stderr));
+    Path fetched = temporary.resolve("fetched.wpk");
+    assertEquals(0, Wheeler.execute(
+        new String[] {
+            "fetch", "demo.counter", "1.0.0", "--registry", registry.toString(),
+            "-o", fetched.toString()
+        },
+        stdout,
+        stderr));
+    assertArrayEquals(Files.readAllBytes(archivePath), Files.readAllBytes(fetched));
+
+    Files.writeString(project.resolve("src/Counter.w"), """
+        classical class Counter {
+            state long count = 0;
+            entry void main() { count += 2; }
+        }
+        """);
+    Path conflicting = temporary.resolve("conflicting.wpk");
+    assertEquals(0, Wheeler.execute(
+        new String[] {"package", project.toString(), "-o", conflicting.toString()},
+        stdout,
+        stderr));
+    assertThrows(
+        com.typeobject.wheeler.packageformat.PackageFormatException.class,
+        () -> Wheeler.execute(
+            new String[] {"publish", conflicting.toString(), "--registry", registry.toString()},
+            stdout,
+            stderr));
+    Files.write(
+        registry.resolve("archives").resolve(archive.identity() + ".wpk"),
+        new byte[] {1});
+    assertThrows(
+        com.typeobject.wheeler.packageformat.PackageFormatException.class,
+        () -> Wheeler.execute(
+            new String[] {
+                "fetch", "demo.counter", "1.0.0", "--registry", registry.toString(),
+                "-o", temporary.resolve("corrupt.wpk").toString()
+            },
+            stdout,
+            stderr));
+
     assertEquals(0, Wheeler.execute(new String[] {"clean", project.toString()}, stdout, stderr));
     assertTrue(Files.notExists(project.resolve("out")));
     assertTrue(Files.isRegularFile(project.resolve("src/Counter.w")));

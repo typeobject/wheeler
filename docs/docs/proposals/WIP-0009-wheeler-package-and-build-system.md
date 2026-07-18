@@ -299,13 +299,13 @@ Secrets are opaque host-owned handles and are prohibited from canonical output, 
 - [ ] Workspace, package, lockfile, and archive schemas have strict stage-0 codecs; build plans now cover compiler, source, package-input, output, capability-request, execution-limit, and explicit grant identities, while native plan execution remains.
 - [ ] Stage-0 manifests, resolution, lockfiles, build plans, and archives are content-addressed and reproducible; exact offline dependency targets now build in dependency-first order, while module linking and native build execution remain.
 - [x] The stage-0 in-memory resolver deterministically selects one version per package with bounded backtracking, explicit development scope, and cycle rejection.
-- [ ] Physical local catalogs and idempotent exact vendor trees are sorted, bounded, integrity-checked, and covered end to end; registry catalog loading remains.
+- [ ] Physical catalogs, exact vendor trees, and immutable local registry publish/fetch transport are bounded, integrity-checked, and covered end to end; signed network registry snapshots remain.
 - [x] The root `wheeler.workspace` and example package manifest form an executable stage-0 workspace.
-- [x] The unified stage-0 `wheeler` command checks, builds, executes declared test targets, and safely cleans canonical local workspaces; packages and verifies local artifacts; resolves explicit verified archive catalogs and materializes exact offline vendor trees; emits and verifies plans with exact package inputs, bounded execution policy, and request-scoped grants; verifies locks; and compiles, runs, disassembles, and emits OpenQASM.
+- [x] The unified stage-0 `wheeler` command checks, builds, executes declared test targets, and safely cleans canonical local workspaces; packages and verifies local artifacts; resolves explicit verified archive catalogs, materializes exact offline vendor trees, publishes/fetches immutable local registry releases; emits and verifies plans with exact package inputs, bounded execution policy, and request-scoped grants; verifies locks; and compiles, runs, disassembles, and emits OpenQASM.
 - [ ] Stage 0 loads and validates exact locked offline dependency graphs for check, build, test, selected-target run, and planning; Wheeler-written execution, exported module linking, and migration of the complete workspace remain.
 - [ ] Native no-Java recovery uses only committed manifests, lockfile, and vendor inputs.
 - [ ] Gradle and duplicate build paths are deleted.
-- [ ] Registry publication and immutable namespace ownership are operational.
+- [ ] Local publication is content-addressed, immutable, idempotent, and fail-closed; authenticated network publication, signing, yanking, and namespace ownership remain.
 
 ## Testing and acceptance
 
@@ -318,7 +318,7 @@ Secrets are opaque host-owned handles and are prohibited from canonical output, 
 - [ ] Cyclic package dependencies produce stable diagnostics; cyclic modules, profile conflicts, feature conflicts, and ABI conflicts remain.
 - [ ] Declared Wheeler test targets execute through `wheeler`; compiler, runtime, package manager, tools, docs, and negative fixtures still require package migration.
 - [x] Package archives verify without extraction and reject duplicate, unordered, escaping, corrupt, oversized, malformed, and trailing members; links and special files are unrepresentable.
-- [ ] Publication is idempotent by content identity and cannot overwrite an existing version.
+- [ ] Local publication is idempotent by content identity and cannot overwrite an existing version; authenticated remote acknowledgement and retry remain.
 - [ ] Live target tests are opt-in, budgeted, capability-gated, and excluded from package output identities.
 - [ ] A clean bootstrap with no Java, Gradle, Rust, Cargo, or network rebuilds and tests the recovery workspace.
 - [ ] No second package resolver or build-graph authority remains after cutover.

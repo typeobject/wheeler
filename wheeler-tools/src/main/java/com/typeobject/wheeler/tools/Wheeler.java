@@ -61,6 +61,8 @@ public final class Wheeler {
       case "resolve" -> resolve(args, out, error);
       case "verify-lock" -> verifyLock(args, out, error);
       case "vendor" -> vendor(args, out, error);
+      case "publish" -> publish(args, out, error);
+      case "fetch" -> fetch(args, out, error);
       case "plan" -> plan(args, out, error);
       case "verify-plan" -> verifyPlan(args, out, error);
       default -> {
@@ -309,6 +311,34 @@ public final class Wheeler {
     return 0;
   }
 
+  private static int publish(
+      String[] args, PrintStream out, PrintStream error) throws Exception {
+    if (args.length != 4 || !args[2].equals("--registry")) {
+      error.println("Usage: wheeler publish <package.wpk> --registry <directory>");
+      return 2;
+    }
+    PackageRegistry registry = PackageRegistry.open(Path.of(args[3]));
+    DecodedPackage published = registry.publish(Files.readAllBytes(Path.of(args[1])));
+    out.println("published " + published.manifest().name() + " "
+        + published.manifest().version() + " (" + published.identity() + ")");
+    return 0;
+  }
+
+  private static int fetch(
+      String[] args, PrintStream out, PrintStream error) throws Exception {
+    if (args.length != 7 || !args[3].equals("--registry") || !args[5].equals("-o")) {
+      error.println(
+          "Usage: wheeler fetch <package> <version> --registry <directory> -o <package.wpk>");
+      return 2;
+    }
+    byte[] bytes = PackageRegistry.open(Path.of(args[4])).fetch(args[1], args[2]);
+    PackageProject.writeAtomically(Path.of(args[6]), bytes);
+    DecodedPackage fetched = new PackageArchive().decode(bytes);
+    out.println("fetched " + fetched.manifest().name() + " "
+        + fetched.manifest().version() + " (" + fetched.identity() + ")");
+    return 0;
+  }
+
   private static int plan(
       String[] args, PrintStream out, PrintStream error) throws Exception {
     if (args.length < 4) {
@@ -473,6 +503,6 @@ public final class Wheeler {
   private static void usage(PrintStream error) {
     error.println(
         "Usage: wheeler <run|compile|check|build|test|clean|package|verify|resolve|verify-lock|vendor|"
-            + "plan|verify-plan|disassemble|qasm> ...");
+            + "publish|fetch|plan|verify-plan|disassemble|qasm> ...");
   }
 }
