@@ -695,7 +695,8 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 
 ## Progress
 
-- [ ] Lossless concrete syntax retains all comments and trivia with stable attachment.
+- [x] The authoritative compiler lexer exposes an ordered lossless stream of exact token, whitespace, line-comment, and block-comment ranges with one-based locations; reconstruction is byte-for-byte, including CRLF and comment payloads, and malformed comments fail through the compiler diagnostic boundary.
+- [ ] Lossless concrete syntax attaches those retained comments and trivia stably to syntax nodes. A token stream is necessary; calling it a tree would merely annoy the branches.
 - [ ] Golden fixed-style and minimal-diff corpora are accepted.
 - [ ] `//!` and `///` attachment fixtures are accepted.
 - [ ] Documentation summary, coverage, and semantic-facet diagnostics are stable.

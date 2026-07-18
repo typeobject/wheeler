@@ -122,7 +122,7 @@ The compiler bounds input bytes and characters, token and line counts, token wid
 
 ## Progress
 
-- [x] Compiler lexer records line, column, and offset.
+- [x] Compiler lexer records line, column, and offset and exposes one authoritative lossless token/trivia/comment range stream with exact reconstruction; syntax-node attachment and formatting remain WIP-0016.
 - [x] Compiler parsing is formatting-independent.
 - [x] Tree-sitter grammar, corpus, highlights, and folds exist.
 - [x] The Gradle/CI gate runs both compiler and Tree-sitter corpus tests.

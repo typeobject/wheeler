@@ -14,6 +14,7 @@ final class SourceLexer {
 
   private final String source;
   private final List<SourceToken> tokens = new ArrayList<>();
+  private final List<SourcePiece> pieces = new ArrayList<>();
   private int offset;
   private int line = 1;
   private int column = 1;
@@ -48,20 +49,37 @@ final class SourceLexer {
     return List.copyOf(tokens);
   }
 
+  List<SourcePiece> lexPieces() {
+    lex();
+    return List.copyOf(pieces);
+  }
+
   private void whitespace() {
+    int start = offset;
+    int startLine = line;
+    int startColumn = column;
     while (!atEnd() && Character.isWhitespace(peek())) {
       advance();
     }
+    emitPiece(
+        SourcePiece.Kind.WHITESPACE, start, startLine, startColumn);
   }
 
   private void lineComment() {
+    int start = offset;
+    int startLine = line;
+    int startColumn = column;
     while (!atEnd() && peek() != '\n') {
       advance();
     }
+    emitPiece(
+        SourcePiece.Kind.LINE_COMMENT, start, startLine, startColumn);
   }
 
   private void blockComment() {
+    int start = offset;
     int startLine = line;
+    int startColumn = column;
     advance();
     advance();
     while (!atEnd() && !(peek() == '*' && peekNext() == '/')) {
@@ -72,6 +90,8 @@ final class SourceLexer {
     }
     advance();
     advance();
+    emitPiece(
+        SourcePiece.Kind.BLOCK_COMMENT, start, startLine, startColumn);
   }
 
   private void identifier() {
@@ -181,6 +201,26 @@ final class SourceLexer {
       throw new CompilerException(token.line(), "source exceeds the 1,000,000-token limit");
     }
     tokens.add(token);
+    if (token.type() != Type.END) {
+      emitPiece(
+          SourcePiece.Kind.TOKEN,
+          token.offset(),
+          token.line(),
+          token.column());
+    }
+  }
+
+  private void emitPiece(
+      SourcePiece.Kind kind,
+      int start,
+      int startLine,
+      int startColumn) {
+    pieces.add(new SourcePiece(
+        kind,
+        source.substring(start, offset),
+        start,
+        startLine,
+        startColumn));
   }
 
   private boolean match(char expected) {
