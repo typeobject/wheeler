@@ -328,3 +328,5 @@ Rejected. Assertions, event recording, target submission, fixture I/O, and repor
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
 - [WIP-0013](WIP-0013-typed-frames-control-flow-and-storage.md)
 - [WIP-0015](WIP-0015-certified-adversarial-schedule-exploration.md)
+- [WIP-0019](WIP-0019-integrated-documentation-publication.md)
+- [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md)

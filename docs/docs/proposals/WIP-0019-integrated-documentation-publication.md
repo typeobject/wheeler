@@ -124,7 +124,7 @@ When a Java subsystem is deleted, its nodes disappear. Stable Wheeler API and ma
 
 ### Generated reference
 
-Bytecode tables, opcode lists, package schemas, diagnostics, and proof-rule catalogs are generated from their authoritative registries. Hand-maintained copies are deleted after generator parity. Generated tables include source authority and generator identity; HTML upholstery remains optional.
+Bytecode tables, opcode lists, package schemas, diagnostics, and proof-rule catalogs are generated from their authoritative registries. Test summaries and WIP-0020 coverage pages are rendered from exact semantic reports and retain report/policy identities; the website never recomputes their outcomes. Hand-maintained copies are deleted after generator parity. Generated tables include source authority and generator identity; HTML upholstery remains optional.
 
 ## Stable identities and links
 
@@ -319,4 +319,5 @@ Deferred. Docusaurus already serves the current site. The urgent boundary is a r
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
 - [WIP-0016](WIP-0016-nonconfigurable-source-formatter.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
+- [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md)
 - [Development guide](../reference/development.md)

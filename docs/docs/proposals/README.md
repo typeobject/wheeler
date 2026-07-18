@@ -96,3 +96,4 @@ Use “Not applicable” with a reason for unaffected template sections. Split w
 | [WIP-0017](WIP-0017-compile-time-constants-and-finite-enums.md) | Implementing | Compile-time constants and finite enums | Named values, finite types, reversible and coherent semantics |
 | [WIP-0018](WIP-0018-integrated-deterministic-testing.md) | Draft | Integrated deterministic testing | Test declarations, runners, fixtures, replay, quantum and proof assertions |
 | [WIP-0019](WIP-0019-integrated-documentation-publication.md) | Draft | Integrated documentation publication | Wheeler API docs, Markdown, Javadoc, Docusaurus, links and search |
+| [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md) | Draft | Semantic coverage and evidence accounting | Classical, reversible, quantum, workflow and proof coverage |
