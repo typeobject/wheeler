@@ -1,11 +1,29 @@
 module examples.compiler.verifier;
 import examples.compiler.opcodes;
+import examples.compiler.type_codes;
 classical class Verifier {
     private boolean differs(long left, long right) {
         if (left < right) {
             return true;
         }
         return right < left;
+    }
+
+    private long localType(
+        byteview artifact,
+        long activeTypes,
+        long local
+    ) {
+        return readUnsigned(artifact, activeTypes + local * 4, 4);
+    }
+
+    private boolean localHasType(
+        byteview artifact,
+        long activeTypes,
+        long local,
+        long expected
+    ) {
+        return localType(artifact, activeTypes, local) == expected;
     }
 
     private long align8(long value) {
@@ -97,7 +115,49 @@ classical class Verifier {
         if (isLocalMathOpcode(opcode)) {
             return 3;
         }
+        if (opcode == OPCODE_LOCAL_EQ) {
+            return 3;
+        }
+        if (opcode == OPCODE_LOCAL_LT) {
+            return 3;
+        }
+        if (opcode == OPCODE_JUMP) {
+            return 1;
+        }
+        if (opcode == OPCODE_JUMP_IF_ZERO) {
+            return 2;
+        }
+        if (opcode == OPCODE_LOCAL_LOOP_CHECK) {
+            return 2;
+        }
         return -1;
+    }
+
+    private long instructionCount(
+        byteview artifact,
+        long start,
+        long end
+    ) {
+        long cursor = start;
+        long count = 0;
+        while (cursor < end) limit MAX_CODE_INSTRUCTIONS {
+            if (end - cursor < 8) {
+                return -1;
+            }
+            long length = readUnsigned(artifact, cursor + 4, 4);
+            if (length < 8) {
+                return -1;
+            }
+            if (end < cursor + length) {
+                return -1;
+            }
+            cursor += length;
+            count += 1;
+        }
+        if (differs(cursor, end)) {
+            return -1;
+        }
+        return count;
     }
 
     private long instructionOperandsValid(
@@ -107,7 +167,10 @@ classical class Verifier {
         long globalCount,
         long functionCount,
         long localCount,
-        long reversibleHelper
+        long reversibleHelper,
+        long activeStart,
+        long activeEnd,
+        long activeTypes
     ) {
         if (opcode == OPCODE_HALT) {
             return 1;
@@ -148,7 +211,16 @@ classical class Verifier {
         }
         if (opcode == OPCODE_LOCAL_CONST) {
             if (first < localCount) {
-                return 1;
+                long destinationType = localType(
+                    artifact, activeTypes, first);
+                if (destinationType == TYPE_SIGNED) {
+                    return 1;
+                }
+                if (destinationType == TYPE_BOOLEAN) {
+                    if (readUnsigned(artifact, cursor + 16, 8) < 2) {
+                        return 1;
+                    }
+                }
             }
             return 0;
         }
@@ -156,7 +228,10 @@ classical class Verifier {
             long global = readUnsigned(artifact, cursor + 16, 8);
             if (first < localCount) {
                 if (global < globalCount) {
-                    return 1;
+                    if (localHasType(
+                            artifact, activeTypes, first, TYPE_SIGNED)) {
+                        return 1;
+                    }
                 }
             }
             return 0;
@@ -165,7 +240,10 @@ classical class Verifier {
             long local = readUnsigned(artifact, cursor + 16, 8);
             if (first < globalCount) {
                 if (local < localCount) {
-                    return 1;
+                    if (localHasType(
+                            artifact, activeTypes, local, TYPE_SIGNED)) {
+                        return 1;
+                    }
                 }
             }
             return 0;
@@ -174,7 +252,10 @@ classical class Verifier {
             long source = readUnsigned(artifact, cursor + 16, 8);
             if (first < localCount) {
                 if (source < localCount) {
-                    return 1;
+                    if (localType(artifact, activeTypes, first)
+                            == localType(artifact, activeTypes, source)) {
+                        return 1;
+                    }
                 }
             }
             return 0;
@@ -185,7 +266,99 @@ classical class Verifier {
             if (first < localCount) {
                 if (left < localCount) {
                     if (right < localCount) {
+                        if (localHasType(
+                                artifact, activeTypes, first, TYPE_SIGNED)) {
+                            if (localHasType(
+                                    artifact, activeTypes, left, TYPE_SIGNED)) {
+                                if (localHasType(
+                                        artifact, activeTypes, right, TYPE_SIGNED)) {
+                                    return 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+        if (opcode == OPCODE_LOCAL_EQ) {
+            long equalityLeft = readUnsigned(artifact, cursor + 16, 8);
+            long equalityRight = readUnsigned(artifact, cursor + 24, 8);
+            if (first < localCount) {
+                if (equalityLeft < localCount) {
+                    if (equalityRight < localCount) {
+                        if (localHasType(
+                                artifact, activeTypes, first, TYPE_BOOLEAN)) {
+                            if (localType(artifact, activeTypes, equalityLeft)
+                                    == localType(
+                                        artifact,
+                                        activeTypes,
+                                        equalityRight)) {
+                                return 1;
+                            }
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+        if (opcode == OPCODE_LOCAL_LT) {
+            long lessLeft = readUnsigned(artifact, cursor + 16, 8);
+            long lessRight = readUnsigned(artifact, cursor + 24, 8);
+            if (first < localCount) {
+                if (lessLeft < localCount) {
+                    if (lessRight < localCount) {
+                        if (localHasType(
+                                artifact, activeTypes, first, TYPE_BOOLEAN)) {
+                            if (localHasType(
+                                    artifact, activeTypes, lessLeft, TYPE_SIGNED)) {
+                                if (localHasType(
+                                        artifact,
+                                        activeTypes,
+                                        lessRight,
+                                        TYPE_SIGNED)) {
+                                    return 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+        long activeInstructions = instructionCount(
+            artifact, activeStart, activeEnd);
+        if (activeInstructions < 0) {
+            return 0;
+        }
+        if (opcode == OPCODE_JUMP) {
+            if (first < activeInstructions) {
+                return 1;
+            }
+            return 0;
+        }
+        if (opcode == OPCODE_JUMP_IF_ZERO) {
+            long target = readUnsigned(artifact, cursor + 16, 8);
+            if (first < localCount) {
+                if (target < activeInstructions) {
+                    if (localHasType(
+                            artifact, activeTypes, first, TYPE_BOOLEAN)) {
                         return 1;
+                    }
+                }
+            }
+            return 0;
+        }
+        if (opcode == OPCODE_LOCAL_LOOP_CHECK) {
+            long limit = readUnsigned(artifact, cursor + 16, 8);
+            if (first < localCount) {
+                if (limit < localCount) {
+                    if (localHasType(
+                            artifact, activeTypes, first, TYPE_SIGNED)) {
+                        if (localHasType(
+                                artifact, activeTypes, limit, TYPE_SIGNED)) {
+                            return 1;
+                        }
                     }
                 }
             }
@@ -198,16 +371,18 @@ classical class Verifier {
         byteview artifact,
         long codeOffset,
         long codeLength,
+        long functionsOffset,
         long globalCount,
         long functionCount,
-        long helperCodeLength,
+        long helperForwardLength,
+        long helperInverseLength,
         long helperLocalCount,
         long entryLocalCount,
         long reversibleHelper
     ) {
         long cursor = codeOffset;
         long end = codeOffset + codeLength;
-        while (cursor < end) limit 64 {
+        while (cursor < end) limit MAX_CODE_INSTRUCTIONS {
             if (end - cursor < 8) {
                 return 0;
             }
@@ -230,13 +405,27 @@ classical class Verifier {
                 return 0;
             }
             long activeLocalCount = helperLocalCount;
+            long activeStart = codeOffset;
+            long activeEnd = codeOffset + codeLength;
+            long activeTypes = functionsOffset + 84;
             if (functionCount == 1) {
                 activeLocalCount = entryLocalCount;
+                activeTypes = functionsOffset + 44;
             }
             if (1 < functionCount) {
-                if (cursor < codeOffset + helperCodeLength) {
+                long forwardEnd = codeOffset + helperForwardLength;
+                long inverseEnd = forwardEnd + helperInverseLength;
+                if (cursor < forwardEnd) {
+                    activeEnd = forwardEnd;
                 } else {
-                    activeLocalCount = entryLocalCount;
+                    if (cursor < inverseEnd) {
+                        activeStart = forwardEnd;
+                        activeEnd = inverseEnd;
+                    } else {
+                        activeLocalCount = entryLocalCount;
+                        activeStart = inverseEnd;
+                        activeTypes += helperLocalCount * 4;
+                    }
                 }
             }
             if (instructionOperandsValid(
@@ -246,7 +435,10 @@ classical class Verifier {
                     globalCount,
                     functionCount,
                     activeLocalCount,
-                    reversibleHelper) == 0) {
+                    reversibleHelper,
+                    activeStart,
+                    activeEnd,
+                    activeTypes) == 0) {
                 return 0;
             }
             if (opcode == OPCODE_HALT) {
@@ -320,9 +512,15 @@ classical class Verifier {
             typeCount = helperLocalCount + entryLocalCount;
         }
         long index = 0;
-        while (index < typeCount) limit 16 {
-            if (differs(readUnsigned(artifact, typeCursor, 4), 1)) {
-                return 0;
+        while (index < typeCount)
+            limit INTERPRETER_LOCAL_WIDTH * 2 {
+            long typeCode = readUnsigned(artifact, typeCursor, 4);
+            if (typeCode == TYPE_SIGNED) {
+            } else {
+                if (typeCode == TYPE_BOOLEAN) {
+                } else {
+                    return 0;
+                }
             }
             typeCursor += 4;
             index += 1;
@@ -365,21 +563,22 @@ classical class Verifier {
         if (2 < functionCount) {
             return 0;
         }
-        if (8 < localCount) {
+        if (INTERPRETER_LOCAL_WIDTH < localCount) {
             return 0;
         }
-        if (8 < entryLocalCount) {
+        if (INTERPRETER_LOCAL_WIDTH < entryLocalCount) {
             return 0;
         }
 
-        long helperCodeLength = firstForwardLength + firstInverseLength;
         if (verifyCodeStream(
                 artifact,
                 codeOffset,
                 codeLength,
+                functionsOffset,
                 globalCount,
                 functionCount,
-                helperCodeLength,
+                firstForwardLength,
+                firstInverseLength,
                 localCount,
                 entryLocalCount,
                 firstFlags) == 0) {
@@ -412,7 +611,9 @@ classical class Verifier {
             } else {
                 return 0;
             }
-            if (differs(readUnsigned(artifact, typesOffset + 8, 4), 1)) {
+            if (differs(
+                    readUnsigned(artifact, typesOffset + 8, 4),
+                    TYPE_SIGNED)) {
                 return 0;
             }
         }

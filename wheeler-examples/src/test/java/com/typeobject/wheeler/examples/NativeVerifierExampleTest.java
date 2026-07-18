@@ -19,6 +19,7 @@ class NativeVerifierExampleTest {
         Map.of(
             "NativeVerifier.w", Files.readString(root.resolve("NativeVerifier.w")),
             "Opcodes.w", Files.readString(root.resolve("compiler/Opcodes.w")),
+            "TypeCodes.w", Files.readString(root.resolve("compiler/TypeCodes.w")),
             "Verifier.w", Files.readString(root.resolve("compiler/Verifier.w"))),
         "examples.compiler.native_verifier");
     byte[] artifact = new WheelerCompiler().compileToBytecode(

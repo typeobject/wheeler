@@ -24,6 +24,20 @@ classical class Opcodes {
     public const long OPCODE_LOCAL_MOD = 0x0415;
     public const long OPCODE_LOCAL_AND = 0x0416;
     public const long OPCODE_LOCAL_ROTR32 = 0x0417;
+    public const long OPCODE_LOCAL_EQ = 0x0420;
+    public const long OPCODE_LOCAL_LT = 0x0421;
+    public const long OPCODE_JUMP = 0x0430;
+    public const long OPCODE_JUMP_IF_ZERO = 0x0431;
+    public const long OPCODE_LOCAL_LOOP_CHECK = 0x0432;
+
+    public const long INTERPRETER_LOCAL_WIDTH = 16;
+    public const long INTERPRETER_FRAME_COUNT = 8;
+    public const long INTERPRETER_LOCAL_CAPACITY =
+        INTERPRETER_LOCAL_WIDTH * INTERPRETER_FRAME_COUNT;
+    public const long INTERPRETER_MAX_CALL_DEPTH =
+        INTERPRETER_FRAME_COUNT - 1;
+    public const long MAX_CODE_INSTRUCTIONS = 64;
+    public const long MAX_INTERPRETED_STEPS = 512;
 
     /// Reports whether an opcode mutates one global with a constant operand.
     public boolean isGlobalConstantOpcode(long opcode) {

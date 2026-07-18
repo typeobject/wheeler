@@ -35,13 +35,32 @@ classical class Interpreter {
     }
 
     private long localIndex(long depth, long local) {
-        return depth * 8 + local;
+        return depth * INTERPRETER_LOCAL_WIDTH + local;
+    }
+
+    private long instructionCursor(
+        byteview artifact,
+        long start,
+        long end,
+        long target
+    ) {
+        long cursor = start;
+        long index = 0;
+        while (cursor < end) limit MAX_CODE_INSTRUCTIONS {
+            if (index == target) {
+                return cursor;
+            }
+            cursor += readUnsigned(artifact, cursor + 4, 4);
+            index += 1;
+        }
+        return -1;
     }
 
     public ExecutionResult executeArtifact(
         byteview artifact,
         words locals,
         words returnCursors,
+        words returnStarts,
         words returnEnds
     ) {
         long fileLength = bufferLength(artifact);
@@ -67,16 +86,19 @@ classical class Interpreter {
         long entryDescriptor = descriptorBase(functionsOffset, entry);
         long cursor = codeOffset
             + readUnsigned(artifact, entryDescriptor + 12, 4);
+        long start = cursor;
         long end = cursor
             + readUnsigned(artifact, entryDescriptor + 16, 4);
         long depth = 0;
         long steps = 0;
         long clear = 0;
-        while (clear < 8) limit 8 {
+        while (clear < INTERPRETER_LOCAL_WIDTH)
+            limit INTERPRETER_LOCAL_WIDTH {
             set(locals, clear, 0);
             clear += 1;
         }
-        while (steps < 512) limit 512 {
+        while (steps < MAX_INTERPRETED_STEPS)
+            limit MAX_INTERPRETED_STEPS {
             if (end - cursor < 8) {
                 return new ExecutionResult.Error(cursor);
             }
@@ -94,6 +116,7 @@ classical class Interpreter {
                 if (0 < depth) {
                     depth -= 1;
                     cursor = returnCursors[depth];
+                    start = returnStarts[depth];
                     end = returnEnds[depth];
                     steps += 1;
                 } else {
@@ -111,21 +134,24 @@ classical class Interpreter {
                 }
                 if (opcode == OPCODE_CALL) {
                     long callTarget = readUnsigned(artifact, cursor + 8, 8);
-                    if (7 < depth + 1) {
+                    if (INTERPRETER_MAX_CALL_DEPTH < depth + 1) {
                         return new ExecutionResult.Error(cursor);
                     }
                     if (callTarget < functionCount) {
                         set(returnCursors, depth, next);
+                        set(returnStarts, depth, start);
                         set(returnEnds, depth, end);
                         depth += 1;
                         long callDescriptor = descriptorBase(
                             functionsOffset, callTarget);
                         cursor = codeOffset + readUnsigned(
                             artifact, callDescriptor + 12, 4);
+                        start = cursor;
                         end = cursor + readUnsigned(
                             artifact, callDescriptor + 16, 4);
                         long clearCall = 0;
-                        while (clearCall < 8) limit 8 {
+                        while (clearCall < INTERPRETER_LOCAL_WIDTH)
+                            limit INTERPRETER_LOCAL_WIDTH {
                             set(locals, localIndex(depth, clearCall), 0);
                             clearCall += 1;
                         }
@@ -135,11 +161,12 @@ classical class Interpreter {
                 }
                 if (opcode == OPCODE_UNCALL) {
                     long uncallTarget = readUnsigned(artifact, cursor + 8, 8);
-                    if (7 < depth + 1) {
+                    if (INTERPRETER_MAX_CALL_DEPTH < depth + 1) {
                         return new ExecutionResult.Error(cursor);
                     }
                     if (uncallTarget < functionCount) {
                         set(returnCursors, depth, next);
+                        set(returnStarts, depth, start);
                         set(returnEnds, depth, end);
                         depth += 1;
                         long uncallDescriptor = descriptorBase(
@@ -149,10 +176,12 @@ classical class Interpreter {
                         long inverseOffset = readUnsigned(
                             artifact, uncallDescriptor + 20, 4);
                         cursor = codeOffset + forwardOffset + inverseOffset;
+                        start = cursor;
                         end = cursor + readUnsigned(
                             artifact, uncallDescriptor + 24, 4);
                         long clearUncall = 0;
-                        while (clearUncall < 8) limit 8 {
+                        while (clearUncall < INTERPRETER_LOCAL_WIDTH)
+                            limit INTERPRETER_LOCAL_WIDTH {
                             set(locals, localIndex(depth, clearUncall), 0);
                             clearUncall += 1;
                         }
@@ -226,6 +255,75 @@ classical class Interpreter {
                         result = rotateRight32(leftValue, rightValue);
                     }
                     set(locals, localIndex(depth, mathDestination), result);
+                }
+                if (opcode == OPCODE_LOCAL_EQ) {
+                    long equalityDestination = readUnsigned(
+                        artifact, cursor + 8, 8);
+                    long equalityLeft = readUnsigned(
+                        artifact, cursor + 16, 8);
+                    long equalityRight = readUnsigned(
+                        artifact, cursor + 24, 8);
+                    long equalityValue = 0;
+                    if (locals[localIndex(depth, equalityLeft)]
+                            == locals[localIndex(depth, equalityRight)]) {
+                        equalityValue = 1;
+                    }
+                    set(
+                        locals,
+                        localIndex(depth, equalityDestination),
+                        equalityValue);
+                }
+                if (opcode == OPCODE_LOCAL_LT) {
+                    long lessDestination = readUnsigned(
+                        artifact, cursor + 8, 8);
+                    long lessLeft = readUnsigned(artifact, cursor + 16, 8);
+                    long lessRight = readUnsigned(artifact, cursor + 24, 8);
+                    long lessValue = 0;
+                    if (locals[localIndex(depth, lessLeft)]
+                            < locals[localIndex(depth, lessRight)]) {
+                        lessValue = 1;
+                    }
+                    set(locals, localIndex(depth, lessDestination), lessValue);
+                }
+                if (opcode == OPCODE_JUMP) {
+                    long jumpTarget = readUnsigned(artifact, cursor + 8, 8);
+                    next = instructionCursor(artifact, start, end, jumpTarget);
+                    if (next < 0) {
+                        return new ExecutionResult.Error(cursor);
+                    }
+                }
+                if (opcode == OPCODE_JUMP_IF_ZERO) {
+                    long condition = readUnsigned(artifact, cursor + 8, 8);
+                    if (locals[localIndex(depth, condition)] == 0) {
+                        long conditionalTarget = readUnsigned(
+                            artifact, cursor + 16, 8);
+                        next = instructionCursor(
+                            artifact, start, end, conditionalTarget);
+                        if (next < 0) {
+                            return new ExecutionResult.Error(cursor);
+                        }
+                    }
+                }
+                if (opcode == OPCODE_LOCAL_LOOP_CHECK) {
+                    long iterationLocal = readUnsigned(
+                        artifact, cursor + 8, 8);
+                    long limitLocal = readUnsigned(artifact, cursor + 16, 8);
+                    long iteration = locals[localIndex(depth, iterationLocal)];
+                    long loopLimit = locals[localIndex(depth, limitLocal)];
+                    if (iteration < 0) {
+                        return new ExecutionResult.Error(cursor);
+                    }
+                    if (loopLimit < 0) {
+                        return new ExecutionResult.Error(cursor);
+                    }
+                    if (iteration < loopLimit) {
+                        set(
+                            locals,
+                            localIndex(depth, iterationLocal),
+                            iteration + 1);
+                    } else {
+                        return new ExecutionResult.Error(cursor);
+                    }
                 }
                 if (opcode == OPCODE_CALL) {
                 } else {

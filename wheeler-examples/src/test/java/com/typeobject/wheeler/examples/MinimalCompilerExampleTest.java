@@ -37,6 +37,8 @@ class MinimalCompilerExampleTest {
     String structure = Files.readString(
         Path.of("src/main/wheeler/compiler/Structure.w"));
     String tokens = Files.readString(Path.of("src/main/wheeler/compiler/Tokens.w"));
+    String typeCodes = Files.readString(
+        Path.of("src/main/wheeler/compiler/TypeCodes.w"));
     String verifier = Files.readString(Path.of("src/main/wheeler/compiler/Verifier.w"));
     String scanner = Files.readString(Path.of("src/main/wheeler/lexer/Scanner.w"));
     var writerProgram = new WheelerCompiler().compileModuleFiles(
@@ -53,6 +55,7 @@ class MinimalCompilerExampleTest {
             Map.entry("StringTable.w", stringTable),
             Map.entry("Structure.w", structure),
             Map.entry("Tokens.w", tokens),
+            Map.entry("TypeCodes.w", typeCodes),
             Map.entry("Verifier.w", verifier)),
         "examples.compiler.seed");
     String source =
@@ -353,10 +356,16 @@ class MinimalCompilerExampleTest {
         """;
     String opcodes = Files.readString(
         Path.of("src/main/wheeler/compiler/Opcodes.w"));
+    String typeCodes = Files.readString(
+        Path.of("src/main/wheeler/compiler/TypeCodes.w"));
     String verifier = Files.readString(
         Path.of("src/main/wheeler/compiler/Verifier.w"));
     Program program = new WheelerCompiler().compileModuleFiles(
-        Map.of("Opcodes.w", opcodes, "Verifier.w", verifier, "VerifierTest.w", root),
+        Map.of(
+            "Opcodes.w", opcodes,
+            "TypeCodes.w", typeCodes,
+            "Verifier.w", verifier,
+            "VerifierTest.w", root),
         "examples.compiler.verifiertest");
     WheelerCompiler stageZero = new WheelerCompiler();
     byte[] locals = stageZero.compileToBytecode(

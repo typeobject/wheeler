@@ -418,7 +418,7 @@ class WheelerCommandTest {
             source "src/compiler/Encoding.w" source "src/compiler/HelperParser.w" source "src/compiler/Ir.w"
             source "src/compiler/Opcodes.w" source "src/compiler/Parser.w" source "src/compiler/Statements.w"
             source "src/compiler/StringTable.w" source "src/compiler/Structure.w" source "src/compiler/Tokens.w"
-            source "src/compiler/Verifier.w"
+            source "src/compiler/TypeCodes.w" source "src/compiler/Verifier.w"
             source "src/lexer/Scanner.w";
         """);
     Path examples = Path.of("../wheeler-examples/src/main/wheeler");
@@ -454,6 +454,9 @@ class WheelerCommandTest {
     Files.copy(
         examples.resolve("compiler/Tokens.w"),
         project.resolve("src/compiler/Tokens.w"));
+    Files.copy(
+        examples.resolve("compiler/TypeCodes.w"),
+        project.resolve("src/compiler/TypeCodes.w"));
     Files.copy(
         examples.resolve("compiler/Verifier.w"),
         project.resolve("src/compiler/Verifier.w"));

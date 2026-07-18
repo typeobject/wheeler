@@ -1,5 +1,6 @@
 module examples.runtime.native_vm;
 import examples.compiler.interpreter;
+import examples.compiler.opcodes;
 import examples.compiler.verifier;
 import examples.packages.binary;
 classical class NativeVm {
@@ -8,12 +9,13 @@ classical class NativeVm {
     state long artifactLength = 0;
 
     entry void main(byteview artifact) {
-        region arena = new region(640, 3);
-        words locals = allocate(arena, 64);
-        words returnCursors = allocate(arena, 8);
-        words returnEnds = allocate(arena, 8);
+        region arena = new region(1280, 4);
+        words locals = allocate(arena, INTERPRETER_LOCAL_CAPACITY);
+        words returnCursors = allocate(arena, INTERPRETER_FRAME_COUNT);
+        words returnStarts = allocate(arena, INTERPRETER_FRAME_COUNT);
+        words returnEnds = allocate(arena, INTERPRETER_FRAME_COUNT);
         ExecutionResult result = executeArtifact(
-            artifact, locals, returnCursors, returnEnds);
+            artifact, locals, returnCursors, returnStarts, returnEnds);
         match (result) {
             case ExecutionResult.Value(Execution execution) {
                 finalGlobal = execution.globalValue;
@@ -25,6 +27,7 @@ classical class NativeVm {
         }
         artifactLength = bufferLength(artifact);
         drop(returnEnds);
+        drop(returnStarts);
         drop(returnCursors);
         drop(locals);
         drop(arena);

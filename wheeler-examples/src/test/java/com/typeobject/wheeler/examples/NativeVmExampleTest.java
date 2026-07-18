@@ -7,9 +7,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
+import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,6 +29,7 @@ class NativeVmExampleTest {
             "Interpreter.w", Files.readString(root.resolve("compiler/Interpreter.w")),
             "NativeVm.w", Files.readString(root.resolve("NativeVm.w")),
             "Opcodes.w", Files.readString(root.resolve("compiler/Opcodes.w")),
+            "TypeCodes.w", Files.readString(root.resolve("compiler/TypeCodes.w")),
             "Verifier.w", Files.readString(root.resolve("compiler/Verifier.w"))),
         "examples.runtime.native_vm");
     WheelerCompiler compiler = new WheelerCompiler();
@@ -43,6 +47,34 @@ class NativeVmExampleTest {
     VirtualMachine stageZero = new VirtualMachine(new BytecodeReader().read(update));
     stageZero.run();
     assertEquals(stageZero.global("value"), machine.global("finalGlobal"));
+    assertInterpretedGlobal(
+        interpreter,
+        "classical class Conditional { state long value = 0; "
+            + "entry void main() { long x = 3; if (x < 4) { value += 7; } "
+            + "else { value += 1; } assert value == 7; } }",
+        "value",
+        7);
+    byte[] damagedBranch = withBadJumpTarget(compiler.compileToBytecode(
+        "classical class DamagedBranch { state long value = 0; "
+            + "entry void main() { if (value == 0) { value += 1; } } }"));
+    assertThrows(
+        VmTrap.class,
+        () -> VirtualMachine.withBinaryInput(interpreter, damagedBranch).run());
+    assertInterpretedGlobal(
+        interpreter,
+        "classical class Equality { state long value = 0; "
+            + "entry void main() { long x = 3; if (x == 3) { value += 4; } "
+            + "assert value == 4; } }",
+        "value",
+        4);
+    assertInterpretedGlobal(
+        interpreter,
+        "classical class Loop { state long value = 0; "
+            + "entry void main() { long index = 0; "
+            + "while (index < 3) limit 3 { value += 2; index += 1; } "
+            + "assert value == 6; } }",
+        "value",
+        6);
     while (machine.historySize() > 0) {
       machine.rewindOne();
     }
@@ -62,6 +94,38 @@ class NativeVmExampleTest {
     VirtualMachine rejected = VirtualMachine.withBinaryInput(
         interpreter, malformed);
     assertThrows(VmTrap.class, rejected::run);
+  }
+
+  private static void assertInterpretedGlobal(
+      Program interpreter, String source, String global, long expected) {
+    byte[] artifact = new WheelerCompiler().compileToBytecode(source);
+    VirtualMachine nativeMachine = VirtualMachine.withBinaryInput(interpreter, artifact);
+    nativeMachine.run();
+    VirtualMachine stageZero = new VirtualMachine(new BytecodeReader().read(artifact));
+    stageZero.run();
+    assertEquals(expected, stageZero.global(global));
+    assertEquals(stageZero.global(global), nativeMachine.global("finalGlobal"));
+  }
+
+  private static byte[] withBadJumpTarget(byte[] artifact) {
+    byte[] damaged = artifact.clone();
+    ByteBuffer bytes = ByteBuffer.wrap(damaged).order(ByteOrder.LITTLE_ENDIAN);
+    int directory = 40 + 5 * 32;
+    int cursor = Math.toIntExact(bytes.getLong(directory + 8));
+    int end = cursor + Math.toIntExact(bytes.getLong(directory + 16));
+    while (cursor < end) {
+      int opcode = Short.toUnsignedInt(bytes.getShort(cursor));
+      if (opcode == Opcode.JUMP.code()) {
+        bytes.putLong(cursor + 8, Long.MAX_VALUE);
+        return damaged;
+      }
+      if (opcode == Opcode.JUMP_IF_ZERO.code()) {
+        bytes.putLong(cursor + 16, Long.MAX_VALUE);
+        return damaged;
+      }
+      cursor += bytes.getInt(cursor + 4);
+    }
+    throw new AssertionError("control-flow fixture has no branch");
   }
 
   private static byte[] compileInWheeler(Path root, String source) throws Exception {
@@ -84,6 +148,7 @@ class NativeVmExampleTest {
                 "StringTable.w", Files.readString(root.resolve("compiler/StringTable.w"))),
             Map.entry("Structure.w", Files.readString(root.resolve("compiler/Structure.w"))),
             Map.entry("Tokens.w", Files.readString(root.resolve("compiler/Tokens.w"))),
+            Map.entry("TypeCodes.w", Files.readString(root.resolve("compiler/TypeCodes.w"))),
             Map.entry("Verifier.w", Files.readString(root.resolve("compiler/Verifier.w")))),
         "examples.compiler.seed");
     VirtualMachine machine = new VirtualMachine(
