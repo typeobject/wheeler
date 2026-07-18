@@ -862,12 +862,14 @@ classical class Storage {
     long byteCount = bufferLength(raw);
     long firstScalar = utf8Scalar(raw, 0);
     long firstWidth = utf8Width(raw, 0);
+    utf8 text = freezeUtf8(raw);
+    long textScalars = utf8Count(text);
     longmap symbols = allocateMap(arena, 1);
     put(symbols, 1, 9);
     long symbol = mapGet(symbols, 1);
     boolean present = mapHas(symbols, 1);
     drop(symbols);
-    drop(raw);
+    drop(text);
     drop(data);
     drop(arena);
   }
@@ -1011,6 +1013,26 @@ classical class Storage {
                         (identifier))
                       (expression
                         (integer_literal)))))))
+            (statement
+              (local_declaration
+                (value_type)
+                (identifier)
+                (expression
+                  (call_expression
+                    (identifier)
+                    (argument_list
+                      (expression
+                        (identifier)))))))
+            (statement
+              (local_declaration
+                (value_type)
+                (identifier)
+                (expression
+                  (call_expression
+                    (identifier)
+                    (argument_list
+                      (expression
+                        (identifier)))))))
             (statement
               (local_declaration
                 (value_type)

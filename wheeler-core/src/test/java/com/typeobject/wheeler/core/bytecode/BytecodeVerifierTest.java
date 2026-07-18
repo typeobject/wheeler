@@ -219,6 +219,7 @@ class BytecodeVerifierTest {
     assertEquals(ValueType.WORDS, ValueType.fromCode(ValueType.WORDS.code()));
     assertEquals(ValueType.BYTES, ValueType.fromCode(ValueType.BYTES.code()));
     assertEquals(ValueType.LONG_MAP, ValueType.fromCode(ValueType.LONG_MAP.code()));
+    assertEquals(ValueType.UTF8, ValueType.fromCode(ValueType.UTF8.code()));
   }
 
   @Test

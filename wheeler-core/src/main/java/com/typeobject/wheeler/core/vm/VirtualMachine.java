@@ -399,10 +399,10 @@ public final class VirtualMachine {
       }
       case UTF8_VALID -> setLocalAndAdvance(
           localIndex(instruction, 0),
-          Utf8.analyze(owned.bytes(localValue(instruction, 1))).valid() ? 1 : 0);
+          Utf8.analyze(owned.utf8Bytes(localValue(instruction, 1))).valid() ? 1 : 0);
       case UTF8_COUNT -> setLocalAndAdvance(
           localIndex(instruction, 0),
-          Utf8.analyze(owned.bytes(localValue(instruction, 1))).scalarCount());
+          Utf8.analyze(owned.utf8Bytes(localValue(instruction, 1))).scalarCount());
       case BUFFER_LENGTH -> setLocalAndAdvance(
           localIndex(instruction, 0), owned.length(localValue(instruction, 1)));
       case UTF8_SCALAR, UTF8_WIDTH -> {
@@ -410,6 +410,14 @@ public final class VirtualMachine {
         setLocalAndAdvance(
             localIndex(instruction, 0),
             opcode == Opcode.UTF8_SCALAR ? scalar.value() : scalar.width());
+      }
+      case UTF8_FREEZE -> {
+        int destination = localIndex(instruction, 0);
+        int source = localIndex(instruction, 1);
+        long handle = currentFrame().local(source);
+        ownedChange = owned.freezeUtf8(handle, ownedChange);
+        replaceCurrentFrame(
+            currentFrame().withLocal(source, 0).withLocal(destination, handle).advance());
       }
       case MAP_ALLOC -> {
         OwnedStore.Allocation allocation = owned.allocate(
@@ -510,6 +518,10 @@ public final class VirtualMachine {
 
   private void validateBeforeMutation(Instruction instruction) {
     try {
+      if (OwnedInstructionValidator.handles(instruction.opcode())) {
+        OwnedInstructionValidator.validate(instruction, currentFrame(), owned);
+        return;
+      }
       switch (instruction.opcode()) {
         case ADD_CONST -> Math.addExact(
             globals[globalIndex(instruction, 0)], operand(instruction, 1));
@@ -664,78 +676,6 @@ public final class VirtualMachine {
             trap("Slice index out of bounds: " + index);
           }
         }
-        case REGION_NEW -> {
-          localIndex(instruction, 0);
-          owned.validateRegionLimits(
-              operand(instruction, 1), Math.toIntExact(operand(instruction, 2)));
-        }
-        case WORDS_ALLOC, BYTES_ALLOC -> {
-          localIndex(instruction, 0);
-          BufferKind kind = instruction.opcode() == Opcode.WORDS_ALLOC
-              ? BufferKind.WORDS : BufferKind.BYTES;
-          owned.validateAllocation(
-              localValue(instruction, 1),
-              Math.toIntExact(localValue(instruction, 2)),
-              kind);
-        }
-        case WORDS_GET, BYTES_GET -> {
-          localIndex(instruction, 0);
-          BufferKind kind = instruction.opcode() == Opcode.WORDS_GET
-              ? BufferKind.WORDS : BufferKind.BYTES;
-          owned.validateGet(
-              localValue(instruction, 1),
-              Math.toIntExact(localValue(instruction, 2)),
-              kind);
-        }
-        case WORDS_SET, BYTES_SET -> {
-          BufferKind kind = instruction.opcode() == Opcode.WORDS_SET
-              ? BufferKind.WORDS : BufferKind.BYTES;
-          owned.validateSet(
-              localValue(instruction, 0),
-              Math.toIntExact(localValue(instruction, 1)),
-              localValue(instruction, 2),
-              kind);
-        }
-        case UTF8_VALID -> {
-          localIndex(instruction, 0);
-          owned.validateBytes(localValue(instruction, 1));
-        }
-        case UTF8_COUNT -> {
-          localIndex(instruction, 0);
-          Utf8.Analysis analysis = Utf8.analyze(owned.bytes(localValue(instruction, 1)));
-          if (!analysis.valid()) {
-            trap("Invalid UTF-8 byte sequence");
-          }
-        }
-        case BUFFER_LENGTH -> {
-          localIndex(instruction, 0);
-          owned.validateBuffer(localValue(instruction, 1));
-        }
-        case UTF8_SCALAR, UTF8_WIDTH -> {
-          localIndex(instruction, 0);
-          if (!utf8Scalar(instruction).valid()) {
-            trap("Invalid UTF-8 scalar boundary");
-          }
-        }
-        case MAP_ALLOC -> {
-          localIndex(instruction, 0);
-          owned.validateAllocation(
-              localValue(instruction, 1),
-              Math.toIntExact(localValue(instruction, 2)),
-              BufferKind.LONG_MAP);
-        }
-        case MAP_PUT -> owned.validateMapPut(
-            localValue(instruction, 0), localValue(instruction, 1));
-        case MAP_GET -> {
-          localIndex(instruction, 0);
-          owned.validateMapGet(localValue(instruction, 1), localValue(instruction, 2));
-        }
-        case MAP_HAS -> {
-          localIndex(instruction, 0);
-          owned.validateMap(localValue(instruction, 1));
-        }
-        case BUFFER_DROP -> owned.validateDropBuffer(localValue(instruction, 0));
-        case REGION_DROP -> owned.validateDropRegion(localValue(instruction, 0));
         case CALL -> {
           requireCallCapacity();
           program.function(Math.toIntExact(operand(instruction, 0)));
@@ -931,7 +871,7 @@ public final class VirtualMachine {
 
   private Utf8.Scalar utf8Scalar(Instruction instruction) {
     return Utf8.decode(
-        owned.bytes(localValue(instruction, 1)),
+        owned.utf8Bytes(localValue(instruction, 1)),
         Math.toIntExact(localValue(instruction, 2)));
   }
 

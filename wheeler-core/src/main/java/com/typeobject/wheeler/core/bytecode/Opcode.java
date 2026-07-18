@@ -64,7 +64,8 @@ public enum Opcode {
   MAP_ALLOC(0x054f, 3, Reversibility.CHECKED),
   MAP_PUT(0x0550, 3, Reversibility.LOGGED),
   MAP_GET(0x0551, 3, Reversibility.CHECKED),
-  MAP_HAS(0x0552, 3, Reversibility.CHECKED);
+  MAP_HAS(0x0552, 3, Reversibility.CHECKED),
+  UTF8_FREEZE(0x0553, 2, Reversibility.LOGGED);
 
   private final int code;
   private final int operandCount;

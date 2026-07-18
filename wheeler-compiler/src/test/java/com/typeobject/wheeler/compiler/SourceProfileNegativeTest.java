@@ -357,6 +357,19 @@ class SourceProfileNegativeTest {
           }
         }
         """;
+    String immutableUtf8 = """
+        classical class ImmutableUtf8 {
+          entry void main() {
+            region arena = new region(1, 1);
+            bytes raw = allocateBytes(arena, 1);
+            setByte(raw, 0, 65);
+            utf8 text = freezeUtf8(raw);
+            setByte(text, 0, 66);
+            drop(text);
+            drop(arena);
+          }
+        }
+        """;
     String nested = """
         classical class NestedOwned {
           entry void main() {
@@ -373,6 +386,8 @@ class SourceProfileNegativeTest {
         CompilerException.class, () -> new WheelerCompiler().compile(escaped));
     CompilerException kind = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(wrongBufferKind));
+    CompilerException immutable = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(immutableUtf8));
     CompilerException aggregate = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(nested));
 
@@ -380,6 +395,7 @@ class SourceProfileNegativeTest {
     assertTrue(moved.getMessage().contains("reads uninitialized local"));
     assertTrue(result.getMessage().contains("cannot escape as results"));
     assertTrue(kind.getMessage().contains("expected bytes expression"));
+    assertTrue(immutable.getMessage().contains("expected bytes expression"));
     assertTrue(aggregate.getMessage().contains("cannot be array or slice elements"));
   }
 

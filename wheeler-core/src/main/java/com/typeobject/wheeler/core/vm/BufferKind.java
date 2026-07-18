@@ -4,6 +4,7 @@ package com.typeobject.wheeler.core.vm;
 public enum BufferKind {
   WORDS(Long.BYTES, Long.MIN_VALUE, Long.MAX_VALUE, 1),
   BYTES(Byte.BYTES, 0, 255, 1),
+  UTF8(Byte.BYTES, 0, 255, 1),
   LONG_MAP(3 * Long.BYTES, Long.MIN_VALUE, Long.MAX_VALUE, 3);
 
   private final int elementBytes;

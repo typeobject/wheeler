@@ -28,6 +28,7 @@ final class SourceStorageLowerer {
           lowerBufferAllocate(statement, context);
       case "words_set", "bytes_set", "map_put" -> lowerBufferSet(statement, context);
       case "owned_drop" -> lowerDrop(statement, context);
+      case "utf8_freeze" -> lowerUtf8Freeze(statement, context);
       case "utf8_valid", "utf8_count" -> lowerUtf8(statement, context);
       case "buffer_length" -> lowerLength(statement, context);
       case "utf8_scalar", "utf8_width" -> lowerUtf8Scalar(statement, context);
@@ -124,11 +125,20 @@ final class SourceStorageLowerer {
     context.emit(Instruction.of(opcode, buffer, index, value));
   }
 
+  private static void lowerUtf8Freeze(Statement statement, Context context) {
+    requireArguments(statement, 3);
+    int source = context.requireLocal(statement.arguments().get(2), statement.line());
+    context.requireType(source, ValueType.BYTES, statement.line());
+    int destination = context.declareInternal(
+        statement.arguments().get(0), statement.line(), ValueType.UTF8);
+    context.emit(Instruction.of(Opcode.UTF8_FREEZE, destination, source));
+  }
+
   private static void lowerUtf8Scalar(Statement statement, Context context) {
     requireArguments(statement, 4);
     int bytes = context.requireLocal(statement.arguments().get(2), statement.line());
     int index = context.requireLocal(statement.arguments().get(3), statement.line());
-    context.requireType(bytes, ValueType.BYTES, statement.line());
+    requireUtf8Sequence(context, bytes, statement.line());
     context.requireType(index, ValueType.SIGNED, statement.line());
     int destination = context.declareInternal(
         statement.arguments().get(0), statement.line(), ValueType.SIGNED);
@@ -141,8 +151,10 @@ final class SourceStorageLowerer {
     requireArguments(statement, 3);
     int buffer = context.requireLocal(statement.arguments().get(2), statement.line());
     ValueType type = context.localType(buffer);
-    if (!type.equals(ValueType.WORDS) && !type.equals(ValueType.BYTES)) {
-      throw new CompilerException(statement.line(), "bufferLength requires words or bytes");
+    if (!type.equals(ValueType.WORDS) && !type.equals(ValueType.BYTES)
+        && !type.equals(ValueType.UTF8)) {
+      throw new CompilerException(
+          statement.line(), "bufferLength requires words, bytes, or utf8");
     }
     int destination = context.declareInternal(
         statement.arguments().get(0), statement.line(), ValueType.SIGNED);
@@ -152,7 +164,7 @@ final class SourceStorageLowerer {
   private static void lowerUtf8(Statement statement, Context context) {
     requireArguments(statement, 3);
     int bytes = context.requireLocal(statement.arguments().get(2), statement.line());
-    context.requireType(bytes, ValueType.BYTES, statement.line());
+    requireUtf8Sequence(context, bytes, statement.line());
     boolean validation = statement.operation().equals("utf8_valid");
     ValueType resultType = validation ? ValueType.BOOLEAN : ValueType.SIGNED;
     int destination = context.declareInternal(
@@ -168,13 +180,20 @@ final class SourceStorageLowerer {
     int local = context.requireLocal(statement.arguments().getFirst(), statement.line());
     ValueType type = context.localType(local);
     Opcode opcode = type.equals(ValueType.WORDS) || type.equals(ValueType.BYTES)
-        || type.equals(ValueType.LONG_MAP)
+        || type.equals(ValueType.LONG_MAP) || type.equals(ValueType.UTF8)
         ? Opcode.BUFFER_DROP
         : type.equals(ValueType.REGION) ? Opcode.REGION_DROP : null;
     if (opcode == null) {
       throw new CompilerException(statement.line(), "drop requires an owned value");
     }
     context.emit(Instruction.of(opcode, local));
+  }
+
+  private static void requireUtf8Sequence(Context context, int local, int line) {
+    ValueType type = context.localType(local);
+    if (!type.equals(ValueType.BYTES) && !type.equals(ValueType.UTF8)) {
+      throw new CompilerException(line, "UTF-8 operation requires bytes or utf8");
+    }
   }
 
   private static void requireArguments(Statement statement, int count) {

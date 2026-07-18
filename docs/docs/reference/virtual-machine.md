@@ -11,7 +11,7 @@ The machine owns:
 - a bounded stack of immutable control frames with descriptor-typed signed and Boolean local registers;
 - typed signed 64-bit global locations;
 - separate deterministic bounded tables of immutable nominal records, tagged variants, fixed arrays, and nonescaping slices;
-- bounded owned regions and mutable signed-word/byte buffers and fixed-capacity signed maps with explicit live/dropped state and byte/object accounting;
+- bounded owned regions and mutable signed-word/byte buffers, immutable frozen UTF-8 owners, and fixed-capacity signed maps with explicit live/dropped state and byte/object accounting;
 - an ordered bounded stack of step records;
 - a monotonic transition sequence within the current run.
 
@@ -40,4 +40,4 @@ Intrinsic operations recover data from their inverse operation. Logged operation
 
 ## Traps and limits
 
-Invalid expectations, overflow, missing inverses, invalid local or branch access, register type mismatches, non-Boolean conditions, exceeded source loop limits, call depth above 1,024 frames, escaped instruction pointers, exhausted history, and exceeded step limits trap deterministically. Owned moves, region/buffer exhaustion, use after move or drop, buffer kind/range/bounds, map capacity/absence, malformed UTF-8 counting, dropping an owner with live buffers, ownership-divergent joins, and leaked owned locals are also checked. A failing instruction does not partially mutate globals, frames, region accounting, or buffer contents.
+Invalid expectations, overflow, missing inverses, invalid local or branch access, register type mismatches, non-Boolean conditions, exceeded source loop limits, call depth above 1,024 frames, escaped instruction pointers, exhausted history, and exceeded step limits trap deterministically. Owned moves, region/buffer exhaustion, use after move or drop, buffer kind/range/bounds, UTF-8 freeze validity and immutability, map capacity/absence, malformed UTF-8 counting, dropping an owner with live buffers, ownership-divergent joins, and leaked owned locals are also checked. A failing instruction does not partially mutate globals, frames, region accounting, or buffer contents.

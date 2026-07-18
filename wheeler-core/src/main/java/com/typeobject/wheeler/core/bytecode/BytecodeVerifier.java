@@ -335,7 +335,7 @@ public final class BytecodeVerifier {
       case REGION_NEW, WORDS_ALLOC, WORDS_GET, WORDS_SET,
           BYTES_ALLOC, BYTES_GET, BYTES_SET, BUFFER_DROP, REGION_DROP,
           UTF8_VALID, UTF8_COUNT, BUFFER_LENGTH, UTF8_SCALAR, UTF8_WIDTH,
-          MAP_ALLOC, MAP_PUT, MAP_GET, MAP_HAS ->
+          MAP_ALLOC, MAP_PUT, MAP_GET, MAP_HAS, UTF8_FREEZE ->
           StorageInstructionVerifier.verify(owner, instruction, pc);
       case SWAP -> {
         verifyGlobal(program, instruction.operands().get(0), owner, pc);
@@ -578,7 +578,8 @@ public final class BytecodeVerifier {
         }
         assigned.set(written);
       }
-      if (instruction.opcode() == Opcode.OWNED_MOVE) {
+      if (instruction.opcode() == Opcode.OWNED_MOVE
+          || instruction.opcode() == Opcode.UTF8_FREEZE) {
         assigned.clear(Math.toIntExact(instruction.operands().get(1)));
       } else if (instruction.opcode() == Opcode.BUFFER_DROP
           || instruction.opcode() == Opcode.REGION_DROP) {
@@ -647,7 +648,7 @@ public final class BytecodeVerifier {
     }
     int[] reads = switch (instruction.opcode()) {
       case LOCAL_STORE_GLOBAL -> new int[] {1};
-      case LOCAL_MOVE, OWNED_MOVE -> new int[] {1};
+      case LOCAL_MOVE, OWNED_MOVE, UTF8_FREEZE -> new int[] {1};
       case LOCAL_ADD, LOCAL_SUB, LOCAL_XOR, LOCAL_EQ, LOCAL_LT -> new int[] {1, 2};
       case JUMP_IF_ZERO -> new int[] {0};
       case LOCAL_LOOP_CHECK -> new int[] {0, 1};
@@ -679,7 +680,7 @@ public final class BytecodeVerifier {
           ARRAY_NEW, ARRAY_GET, SLICE_NEW, SLICE_GET, REGION_NEW,
           WORDS_ALLOC, WORDS_GET, BYTES_ALLOC, BYTES_GET,
           UTF8_VALID, UTF8_COUNT, BUFFER_LENGTH, UTF8_SCALAR, UTF8_WIDTH,
-          MAP_ALLOC, MAP_GET, MAP_HAS ->
+          MAP_ALLOC, MAP_GET, MAP_HAS, UTF8_FREEZE ->
           Math.toIntExact(instruction.operands().getFirst());
       case CALL_VALUE -> Math.toIntExact(instruction.operands().get(3));
       default -> -1;

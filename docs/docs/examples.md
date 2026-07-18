@@ -10,6 +10,7 @@ The examples are deliberately bounded. They demonstrate implemented semantics an
 | [`BinaryTree.w`](../../wheeler-examples/src/main/wheeler/BinaryTree.w) | Fixed-capacity reversible tree slots | `root = left = right = 0` |
 | [`BootstrapControl.w`](../../wheeler-examples/src/main/wheeler/BootstrapControl.w) | Typed signed and Boolean locals, expressions, branch joins, and a bounded counted `for` | `sum = 10`, `branch = 1` |
 | [`FixedArrays.w`](../../wheeler-examples/src/main/wheeler/FixedArrays.w) | Fixed immutable arrays, nonescaping borrowed slices, typed calls/results, checked indexing, and structural equality | `selected = 6`, `sum = 20`, `middleSum = 10`, `equal = 1` |
+| [`FrozenUtf8.w`](../../wheeler-examples/src/main/wheeler/FrozenUtf8.w) | Strictly validated byte-owner consumption into immutable affine UTF-8 | `byteLength = 6`, `scalarCount = 3`, `middleScalar = 8364`, `valid = 1` |
 | [`FunctionValues.w`](../../wheeler-examples/src/main/wheeler/FunctionValues.w) | Signed/Boolean values, typed calls, a callee loop, and a kernel-checked straight-line step bound | `result = 10` |
 | [`LoopControl.w`](../../wheeler-examples/src/main/wheeler/LoopControl.w) | Early typed return plus bounded `break` and `continue` edges | `sum = 12`, `selected = 7` |
 | [`LongMap.w`](../../wheeler-examples/src/main/wheeler/LongMap.w) | Region-owned fixed-capacity signed map with deterministic update, lookup, membership, and drop | `selected = 17`, `zeroKey = 5`, `present = missing = 1` |

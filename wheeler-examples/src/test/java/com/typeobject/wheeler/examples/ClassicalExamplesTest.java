@@ -42,6 +42,8 @@ class ClassicalExamplesTest {
         Arguments.of("BinaryTree.w", Map.of("root", 0L, "left", 0L, "right", 0L)),
         Arguments.of("BootstrapControl.w", Map.of("sum", 10L, "branch", 1L)),
         Arguments.of("FixedArrays.w", Map.of("selected", 6L, "sum", 20L, "middleSum", 10L, "equal", 1L)),
+        Arguments.of("FrozenUtf8.w", Map.of(
+            "byteLength", 6L, "scalarCount", 3L, "middleScalar", 8364L, "valid", 1L)),
         Arguments.of("FunctionValues.w", Map.of("result", 10L)),
         Arguments.of("LoopControl.w", Map.of("sum", 12L, "selected", 7L)),
         Arguments.of("LongMap.w", Map.of(

@@ -186,7 +186,7 @@ These types drive arithmetic oracles, packet codecs, bytecode flags, proof finit
 
 Compiler phases use immutable values or phase-owned arenas so self-hosting does not require a general tracing collector initially. Values that escape a region are copied, moved to a longer-lived owner, or rejected.
 
-The current language substrate has function-local affine regions and fixed-length mutable signed-word/byte buffers and signed maps with hard byte/object ceilings, checked access, and explicit drop. It deliberately lacks `Arena`, owned UTF-8/string APIs, generic collections, scoped borrows, cross-function ownership, typed allocation failure, and collection APIs; those remain library/profile work rather than being inferred from the primitive.
+The current language substrate has function-local affine regions and fixed-length mutable signed-word/byte buffers, immutable validated UTF-8 owners, and signed maps with hard byte/object ceilings, checked access, and explicit drop. It deliberately lacks `Arena`, library `String` APIs, generic collections, scoped borrows, cross-function ownership, typed allocation failure, and collection APIs; those remain library/profile work rather than being inferred from the primitive.
 
 ## Reversible data structures
 
@@ -461,7 +461,7 @@ The standard library is accepted through concrete Wheeler programs:
 - [x] Stage-0 code has immutable provider-neutral bytecode, quantum, target, result, and hybrid event records that define initial library schemas.
 - [x] Deterministic little-endian outcomes, task identities, target capabilities, and bounded snapshots execute.
 - [ ] Core ownership/effect protocols and package layering are accepted.
-- [ ] Scalar/aggregate values, affine byte buffers, strict UTF-8 validation/scalar decoding, and fixed signed maps execute as language/VM substrate; Wheeler option/result, owned string, normalization, generic maps/sets/queues, iteration, canonical collection encoding, and packaged modules remain.
+- [ ] Scalar/aggregate values, affine byte buffers, strict UTF-8 freezing/scalar decoding, and fixed signed maps execute as language/VM substrate; Wheeler option/result, library `String`, normalization, generic maps/sets/queues, iteration, canonical collection encoding, and packaged modules remain.
 - [ ] Wheeler arenas, vectors, strings, maps, sets, queues, and diagnostics support compiler modules.
 - [ ] Reversible collection contracts and witnesses execute and carry proof obligations.
 - [ ] Affine qubit/register views and semantic circuit builders execute.

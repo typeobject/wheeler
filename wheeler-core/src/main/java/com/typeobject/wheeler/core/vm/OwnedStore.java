@@ -225,15 +225,43 @@ final class OwnedStore {
     length(bufferHandle);
   }
 
-  List<Long> bytes(long bufferHandle) {
+  List<Long> utf8Bytes(long bufferHandle) {
     BufferValue buffer = requireLiveBuffer(bufferHandle);
-    requireKind(buffer, BufferKind.BYTES);
+    if (buffer.kind() != BufferKind.BYTES && buffer.kind() != BufferKind.UTF8) {
+      throw new VmTrap("Expected bytes or frozen UTF-8 buffer");
+    }
     requireLiveRegion(buffer.regionId() + 1L);
     return buffer.elements();
   }
 
-  void validateBytes(long bufferHandle) {
-    bytes(bufferHandle);
+  Change freezeUtf8(long bufferHandle, Change change) {
+    BufferValue buffer = requireLiveBuffer(bufferHandle);
+    requireKind(buffer, BufferKind.BYTES);
+    if (!Utf8.analyze(buffer.elements()).valid()) {
+      throw new VmTrap("Invalid UTF-8 byte sequence");
+    }
+    BufferValue frozen = new BufferValue(
+        buffer.id(),
+        buffer.regionId(),
+        BufferKind.UTF8,
+        buffer.length(),
+        buffer.elements(),
+        false);
+    buffers.set(buffer.id(), frozen);
+    return change.buffer(buffer.id(), buffer);
+  }
+
+  void validateUtf8Bytes(long bufferHandle) {
+    utf8Bytes(bufferHandle);
+  }
+
+  void validateFreezeUtf8(long bufferHandle) {
+    BufferValue buffer = requireLiveBuffer(bufferHandle);
+    requireKind(buffer, BufferKind.BYTES);
+    requireLiveRegion(buffer.regionId() + 1L);
+    if (!Utf8.analyze(buffer.elements()).valid()) {
+      throw new VmTrap("Invalid UTF-8 byte sequence");
+    }
   }
 
   void validateDropBuffer(long bufferHandle) {

@@ -685,6 +685,59 @@ class VirtualMachineTest {
   }
 
   @Test
+  void utf8FreezeMovesOwnershipEnforcesKindAndRewindsExactly() {
+    FunctionBody main = new FunctionBody(
+        0,
+        "main",
+        false,
+        0,
+        List.of(
+            ValueType.REGION,
+            ValueType.SIGNED,
+            ValueType.BYTES,
+            ValueType.SIGNED,
+            ValueType.SIGNED,
+            ValueType.UTF8,
+            ValueType.SIGNED),
+        null,
+        List.of(
+            Instruction.of(Opcode.REGION_NEW, 0, 1, 1),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 1),
+            Instruction.of(Opcode.BYTES_ALLOC, 2, 0, 1),
+            Instruction.of(Opcode.LOCAL_CONST, 3, 0),
+            Instruction.of(Opcode.LOCAL_CONST, 4, 65),
+            Instruction.of(Opcode.BYTES_SET, 2, 3, 4),
+            Instruction.of(Opcode.UTF8_FREEZE, 5, 2),
+            Instruction.of(Opcode.UTF8_COUNT, 6, 5),
+            Instruction.of(Opcode.BUFFER_DROP, 5),
+            Instruction.of(Opcode.REGION_DROP, 0),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    VirtualMachine machine = new VirtualMachine(Program.classical(
+        "FrozenUtf8", 0, List.of(),
+        List.of(), List.of(), List.of(), List.of(), List.of(main), List.of()));
+    MachineSnapshot initial = machine.snapshot();
+
+    for (int step = 0; step < 7; step++) {
+      machine.step();
+    }
+    assertEquals(BufferKind.UTF8, machine.snapshot().buffers().getFirst().kind());
+    assertEquals(0, machine.snapshot().frames().getFirst().locals().get(2));
+    assertEquals(1, machine.snapshot().frames().getFirst().locals().get(5));
+
+    machine.rewindOne();
+    assertEquals(BufferKind.BYTES, machine.snapshot().buffers().getFirst().kind());
+    assertEquals(1, machine.snapshot().frames().getFirst().locals().get(2));
+    assertEquals(0, machine.snapshot().frames().getFirst().locals().get(5));
+
+    machine.run();
+    while (machine.historySize() > 0) {
+      machine.rewindOne();
+    }
+    assertEquals(initial, machine.snapshot());
+  }
+
+  @Test
   void regionExhaustionTrapsBeforeAllocationMutation() {
     FunctionBody main = new FunctionBody(
         0,

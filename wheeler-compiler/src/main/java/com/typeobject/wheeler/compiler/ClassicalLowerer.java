@@ -158,7 +158,8 @@ final class ClassicalLowerer {
     return type.kind() == ValueType.Kind.REGION
         || type.kind() == ValueType.Kind.WORDS
         || type.kind() == ValueType.Kind.BYTES
-        || type.kind() == ValueType.Kind.LONG_MAP;
+        || type.kind() == ValueType.Kind.LONG_MAP
+        || type.kind() == ValueType.Kind.UTF8;
   }
 
   private static List<Global> lowerGlobals(SourceProgram source) {
@@ -387,7 +388,7 @@ final class ClassicalLowerer {
         case "slice_new" -> lowerSliceNew(statement);
         case "region_new", "words_alloc", "bytes_alloc", "map_alloc",
             "words_set", "bytes_set", "map_put", "owned_drop", "utf8_valid",
-            "utf8_count", "buffer_length", "utf8_scalar", "utf8_width",
+            "utf8_freeze", "utf8_count", "buffer_length", "utf8_scalar", "utf8_width",
             "map_get", "map_has" ->
             SourceStorageLowerer.lower(statement, this);
         case "local_bind" -> {

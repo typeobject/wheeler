@@ -36,6 +36,28 @@ class OwnedStoreTest {
   }
 
   @Test
+  void freezingUtf8RejectsMalformedBytesPreventsMutationAndRewinds() {
+    OwnedStore store = new OwnedStore();
+    OwnedStore.Allocation region = store.createRegion(3, 1, store.mark());
+    OwnedStore.Allocation bytes = store.allocate(
+        region.handle(), 3, BufferKind.BYTES, store.mark());
+    store.set(bytes.handle(), 0, 65, BufferKind.BYTES, store.mark());
+    store.set(bytes.handle(), 1, 0xe2, BufferKind.BYTES, store.mark());
+    assertThrows(VmTrap.class, () -> store.freezeUtf8(bytes.handle(), store.mark()));
+
+    store.set(bytes.handle(), 1, 0xc2, BufferKind.BYTES, store.mark());
+    store.set(bytes.handle(), 2, 0xa2, BufferKind.BYTES, store.mark());
+    OwnedStore.Change freeze = store.freezeUtf8(bytes.handle(), store.mark());
+    assertEquals(2, Utf8.analyze(store.utf8Bytes(bytes.handle())).scalarCount());
+    assertThrows(VmTrap.class, () ->
+        store.set(bytes.handle(), 0, 66, BufferKind.BYTES, store.mark()));
+
+    store.rewind(freeze);
+    store.set(bytes.handle(), 0, 66, BufferKind.BYTES, store.mark());
+    assertEquals(66, store.get(bytes.handle(), 0, BufferKind.BYTES));
+  }
+
+  @Test
   void absentMapLookupAndWrongBufferKindsTrap() {
     OwnedStore store = new OwnedStore();
     OwnedStore.Allocation region = store.createRegion(32, 2, store.mark());

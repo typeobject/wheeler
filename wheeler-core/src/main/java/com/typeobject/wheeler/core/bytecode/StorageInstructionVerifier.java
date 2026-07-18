@@ -7,7 +7,8 @@ final class StorageInstructionVerifier {
   static boolean isOwned(ValueType type) {
     return type.kind() == ValueType.Kind.REGION
         || isBuffer(type)
-        || type.kind() == ValueType.Kind.LONG_MAP;
+        || type.kind() == ValueType.Kind.LONG_MAP
+        || type.kind() == ValueType.Kind.UTF8;
   }
 
   static boolean isBuffer(ValueType type) {
@@ -23,6 +24,7 @@ final class StorageInstructionVerifier {
       case BYTES_GET -> verifyGet(owner, instruction, pc, ValueType.BYTES);
       case WORDS_SET -> verifySet(owner, instruction, pc, ValueType.WORDS);
       case BYTES_SET -> verifySet(owner, instruction, pc, ValueType.BYTES);
+      case UTF8_FREEZE -> verifyFreeze(owner, instruction, pc);
       case UTF8_VALID -> verifyUtf8Whole(owner, instruction, pc, ValueType.BOOLEAN);
       case UTF8_COUNT -> verifyUtf8Whole(owner, instruction, pc, ValueType.SIGNED);
       case UTF8_SCALAR, UTF8_WIDTH -> verifyUtf8At(owner, instruction, pc);
@@ -71,14 +73,20 @@ final class StorageInstructionVerifier {
   private static void verifyUtf8Whole(
       FunctionBody owner, Instruction instruction, int pc, ValueType result) {
     require(owner, instruction, 0, result, pc);
-    require(owner, instruction, 1, ValueType.BYTES, pc);
+    requireUtf8Sequence(owner, instruction, 1, pc);
   }
 
   private static void verifyUtf8At(
       FunctionBody owner, Instruction instruction, int pc) {
     require(owner, instruction, 0, ValueType.SIGNED, pc);
-    require(owner, instruction, 1, ValueType.BYTES, pc);
+    requireUtf8Sequence(owner, instruction, 1, pc);
     require(owner, instruction, 2, ValueType.SIGNED, pc);
+  }
+
+  private static void verifyFreeze(
+      FunctionBody owner, Instruction instruction, int pc) {
+    require(owner, instruction, 0, ValueType.UTF8, pc);
+    require(owner, instruction, 1, ValueType.BYTES, pc);
   }
 
   private static void verifyMapPut(
@@ -98,8 +106,9 @@ final class StorageInstructionVerifier {
   private static void verifyLength(FunctionBody owner, Instruction instruction, int pc) {
     require(owner, instruction, 0, ValueType.SIGNED, pc);
     int source = local(owner, instruction.operands().get(1), pc);
-    if (!isBuffer(owner.localType(source))) {
-      fail(owner, pc, "buffer length requires words or bytes");
+    ValueType type = owner.localType(source);
+    if (!isBuffer(type) && !type.equals(ValueType.UTF8)) {
+      fail(owner, pc, "buffer length requires words, bytes, or utf8");
     }
   }
 
@@ -107,8 +116,18 @@ final class StorageInstructionVerifier {
       FunctionBody owner, Instruction instruction, int pc) {
     int source = local(owner, instruction.operands().getFirst(), pc);
     ValueType type = owner.localType(source);
-    if (!isBuffer(type) && !type.equals(ValueType.LONG_MAP)) {
-      fail(owner, pc, "buffer drop requires words, bytes, or longmap");
+    if (!isBuffer(type) && !type.equals(ValueType.LONG_MAP)
+        && !type.equals(ValueType.UTF8)) {
+      fail(owner, pc, "buffer drop requires words, bytes, longmap, or utf8");
+    }
+  }
+
+  private static void requireUtf8Sequence(
+      FunctionBody owner, Instruction instruction, int operand, int pc) {
+    int local = local(owner, instruction.operands().get(operand), pc);
+    ValueType type = owner.localType(local);
+    if (!type.equals(ValueType.BYTES) && !type.equals(ValueType.UTF8)) {
+      fail(owner, pc, "expected bytes or utf8 local " + local);
     }
   }
 

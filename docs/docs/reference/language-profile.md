@@ -183,6 +183,8 @@ A region declares hard byte and live-object ceilings; the VM also caps total liv
 
 `bufferLength(buffer)` returns the fixed element count for either buffer kind without consuming it. `utf8Valid(buffer)` performs strict RFC 3629 validation over the complete byte buffer. `utf8Count(buffer)` returns the number of Unicode scalar values and traps before destination mutation when the encoding is malformed. `utf8Scalar(buffer, index)` and `utf8Width(buffer, index)` decode one scalar at an exact leading-byte boundary; a continuation, truncation, malformed sequence, or out-of-range index traps before writing the result. The decoder rejects overlong forms, surrogate encodings, values above U+10FFFF, stray continuations, illegal leaders, and truncation; an empty buffer is valid with count zero. Neither operation normalizes text or claims grapheme indexing.
 
+`freezeUtf8(raw)` validates and consumes a `bytes` owner, yielding an affine immutable `utf8` owner over the same charged allocation. Validation failure leaves the source live and unchanged. A frozen value permits byte length, scalar count, scalar-boundary decode, validation, and drop, but no byte mutation or arbitrary string indexing. This primitive is the bootstrap representation below the future library `String`; it does not provide normalization, concatenation, comparison, grapheme segmentation, or canonical text serialization.
+
 A region can also own one fixed-capacity signed map:
 
 ```java
@@ -194,9 +196,9 @@ long value = mapGet(symbols, 7);
 
 `longmap` accepts every signed key, including zero. `put` inserts or updates in deterministic lowest-free-slot order. Capacity is charged at 24 bytes per entry when allocated. `mapHas` is total; `mapGet` traps before destination mutation when the key is absent. The first slice has no deletion or iteration, so insertion history remains internal VM state and no map encoding is yet exposed as a canonical value.
 
-`region`, `words`, `bytes`, and `longmap` are affine local types. Binding one moves the handle and invalidates the source; ordinary copy and equality are rejected. They cannot be parameters, results, aggregate elements, arrays, or slices. Definite-ownership dataflow rejects use after move/drop, live-owner overwrite, control-flow joins with different ownership states, and any function exit with a live owned local. Runtime dropped-state and owner checks remain defense in depth. Snapshots expose canonical region/buffer state, and rewind restores allocation, mutation, move, and drop exactly.
+`region`, `words`, `bytes`, `utf8`, and `longmap` are affine local types. Binding one moves the handle and invalidates the source; ordinary copy and equality are rejected. They cannot be parameters, results, aggregate elements, arrays, or slices. Definite-ownership dataflow rejects use after move/drop, live-owner overwrite, control-flow joins with different ownership states, and any function exit with a live owned local. Runtime dropped-state and owner checks remain defense in depth. Snapshots expose canonical region/buffer state, and rewind restores allocation, mutation, move, and drop exactly.
 
-This slice is enough to exercise bounded owned word/byte mutation, strict UTF-8 validation/scalar decoding, and signed symbol maps; it is not yet a compiler arena. Owned UTF-8 strings, normalization, generic maps/sets/queues, cross-function ownership, borrowing, split/join, region capabilities, recoverable allocation results, and commit-aware reclamation remain WIP-0013/WIP-0012 work.
+This slice is enough to exercise bounded owned word/byte mutation, strict UTF-8 freezing/scalar decoding, and signed symbol maps; it is not yet a compiler arena. Library strings, normalization, generic maps/sets/queues, cross-function ownership, borrowing, split/join, region capabilities, recoverable allocation results, and commit-aware reclamation remain WIP-0013/WIP-0012 work.
 
 ## Generated inverse and adjoint theorems
 
@@ -270,7 +272,7 @@ The compiler lexer records line, column, and stage-0 UTF-16 source-character off
 
 ## Bootstrap direction
 
-The current compiler and VM use Java only as stage-0 infrastructure. The production compiler will be Wheeler source and must compile itself to a byte-identical second-stage `.wbc` artifact. Signed/Boolean values, immutable records/variants/arrays/slices, typed calls and control, and function-local bounded regions with owned word/byte buffers and signed maps form the current bootstrap substrate. UTF-8 strings, generic deterministic collections, cross-function ownership, modules, and explicit file effects remain complete vertical slices.
+The current compiler and VM use Java only as stage-0 infrastructure. The production compiler will be Wheeler source and must compile itself to a byte-identical second-stage `.wbc` artifact. Signed/Boolean values, immutable records/variants/arrays/slices, typed calls and control, and function-local bounded regions with owned word/byte/UTF-8 buffers and signed maps form the current bootstrap substrate. Library strings, generic deterministic collections, cross-function ownership, modules, and explicit file effects remain complete vertical slices.
 
 After native runtime conformance, the Java compiler, VM, tools, Gradle build, and JVM deployment path will be deleted. A cold build will use a content-addressed prior native Wheeler release and `.wbc` recovery seed. Java APIs and object semantics are therefore not prospective Wheeler contracts.
 
@@ -289,7 +291,7 @@ The Wheeler-written standard library will provide allocation-free core values, o
 ## Teaching path
 
 1. `Counter.w`, `BinaryTree.w`, `BootstrapControl.w`, `FunctionValues.w`, and `RecursiveValue.w`: reversible state, fixed-capacity data, typed locals, bounded control, parameters, returns, static calls, and bounded recursion.
-2. `RegionStorage.w` and `Utf8Lexer.w`: affine bounded storage, strict UTF-8 decoding, and token-buffer scanning.
+2. `RegionStorage.w`, `FrozenUtf8.w`, and `Utf8Lexer.w`: affine bounded storage, immutable UTF-8, strict decoding, and token-buffer scanning.
 3. `CoherentOracle.w` and `QuantumNeuralNetwork.w`: exact XOR permutations over classical and coherent data.
 4. `QFT.w` and `QFTProof.w`: unitary regions, generated adjoints, and executable inverse laws.
 5. `QuantumOptimizer.w`: repeated target observations, classical acceptance, commit, and target-free replay.
