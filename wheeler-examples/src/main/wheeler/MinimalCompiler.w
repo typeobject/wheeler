@@ -3,6 +3,7 @@ import examples.compiler.codegen;
 import examples.compiler.encoding;
 import examples.compiler.ir;
 import examples.compiler.parser;
+import examples.compiler.string_table;
 import examples.compiler.verifier;
 import examples.lexer.scanner;
 classical class MinimalCompiler {
@@ -151,203 +152,19 @@ classical class MinimalCompiler {
         words tokenLengths = allocate(arena, 128);
         MinimalProgram program = requireMinimalProgram(
             source, tokenKinds, tokenStarts, tokenLengths);
-        long nameLength = program.name.length;
-        long globalLength = program.global.length;
-        long helperLength = program.helperName.length;
-        long proofLength = program.proofName.length;
-        long nameMainOrder = compareAsciiSliceToMain(
-            source, program.name.start, nameLength);
-        if (nameMainOrder == 0) {
+        StringTablePlan strings = planStringTable(source, program);
+        if (strings.valid == 0) {
             assert finalCursor == 1;
         }
-        long nameIndex = 0;
-        long globalIndex = 0;
-        long helperIndex = 0;
-        long proofIndex = 0;
-        long mainIndex = 0;
-        if (0 < nameMainOrder) {
-            nameIndex = 1;
-        }
-        if (nameMainOrder < 0) {
-            mainIndex = 1;
-        }
-        long stringCount = 2;
-        long stringsLength = 16 + nameLength;
+        long nameIndex = strings.nameIndex;
+        long globalIndex = strings.globalIndex;
+        long helperIndex = strings.helperIndex;
+        long proofIndex = strings.proofIndex;
+        long mainIndex = strings.mainIndex;
+        long stringsLength = strings.encodedLength;
         long typesLength = 16;
         if (program.globalCount == 1) {
-            long baseNameGlobalOrder = compareAsciiSlices(
-                source,
-                program.name.start,
-                nameLength,
-                program.global.start,
-                globalLength);
-            long baseGlobalMainOrder = compareAsciiSliceToMain(
-                source, program.global.start, globalLength);
-            if (baseNameGlobalOrder == 0) {
-                assert finalCursor == 1;
-            }
-            if (baseGlobalMainOrder == 0) {
-                assert finalCursor == 1;
-            }
-            nameIndex = 0;
-            globalIndex = 0;
-            mainIndex = 0;
-            if (0 < baseNameGlobalOrder) {
-                nameIndex += 1;
-            }
-            if (0 < nameMainOrder) {
-                nameIndex += 1;
-            }
-            if (baseNameGlobalOrder < 0) {
-                globalIndex += 1;
-            }
-            if (0 < baseGlobalMainOrder) {
-                globalIndex += 1;
-            }
-            if (nameMainOrder < 0) {
-                mainIndex += 1;
-            }
-            if (baseGlobalMainOrder < 0) {
-                mainIndex += 1;
-            }
-            stringCount = 3;
-            stringsLength = 20 + nameLength + globalLength;
             typesLength = 32;
-        }
-        if (program.helperCount == 1) {
-            long nameGlobalOrder = compareAsciiSlices(
-                source,
-                program.name.start,
-                nameLength,
-                program.global.start,
-                globalLength);
-            long globalMainOrder = compareAsciiSliceToMain(
-                source, program.global.start, globalLength);
-            long nameHelperOrder = compareAsciiSlices(
-                source,
-                program.name.start,
-                nameLength,
-                program.helperName.start,
-                helperLength);
-            long globalHelperOrder = compareAsciiSlices(
-                source,
-                program.global.start,
-                globalLength,
-                program.helperName.start,
-                helperLength);
-            long helperMainOrder = compareAsciiSliceToMain(
-                source, program.helperName.start, helperLength);
-            if (nameHelperOrder == 0) {
-                assert finalCursor == 1;
-            }
-            if (globalHelperOrder == 0) {
-                assert finalCursor == 1;
-            }
-            if (helperMainOrder == 0) {
-                assert finalCursor == 1;
-            }
-            nameIndex = 0;
-            globalIndex = 0;
-            helperIndex = 0;
-            mainIndex = 0;
-            if (0 < nameGlobalOrder) {
-                nameIndex += 1;
-            }
-            if (0 < nameMainOrder) {
-                nameIndex += 1;
-            }
-            if (0 < nameHelperOrder) {
-                nameIndex += 1;
-            }
-            if (nameGlobalOrder < 0) {
-                globalIndex += 1;
-            }
-            if (0 < globalMainOrder) {
-                globalIndex += 1;
-            }
-            if (0 < globalHelperOrder) {
-                globalIndex += 1;
-            }
-            if (nameMainOrder < 0) {
-                mainIndex += 1;
-            }
-            if (globalMainOrder < 0) {
-                mainIndex += 1;
-            }
-            if (helperMainOrder < 0) {
-                mainIndex += 1;
-            }
-            if (nameHelperOrder < 0) {
-                helperIndex += 1;
-            }
-            if (globalHelperOrder < 0) {
-                helperIndex += 1;
-            }
-            if (0 < helperMainOrder) {
-                helperIndex += 1;
-            }
-            stringCount = 4;
-            stringsLength = 24 + nameLength + globalLength + helperLength;
-        }
-        if (program.proofCount == 1) {
-            long proofNameOrder = compareAsciiSlices(
-                source,
-                program.name.start,
-                nameLength,
-                program.proofName.start,
-                proofLength);
-            long proofGlobalOrder = compareAsciiSlices(
-                source,
-                program.global.start,
-                globalLength,
-                program.proofName.start,
-                proofLength);
-            long proofHelperOrder = compareAsciiSlices(
-                source,
-                program.helperName.start,
-                helperLength,
-                program.proofName.start,
-                proofLength);
-            long proofMainOrder = compareAsciiSliceToMain(
-                source, program.proofName.start, proofLength);
-            if (proofNameOrder == 0) {
-                assert finalCursor == 1;
-            }
-            if (proofGlobalOrder == 0) {
-                assert finalCursor == 1;
-            }
-            if (proofHelperOrder == 0) {
-                assert finalCursor == 1;
-            }
-            if (proofMainOrder == 0) {
-                assert finalCursor == 1;
-            }
-            if (0 < proofNameOrder) {
-                nameIndex += 1;
-            } else {
-                proofIndex += 1;
-            }
-            if (0 < proofGlobalOrder) {
-                globalIndex += 1;
-            } else {
-                proofIndex += 1;
-            }
-            if (0 < proofHelperOrder) {
-                helperIndex += 1;
-            } else {
-                proofIndex += 1;
-            }
-            if (proofMainOrder < 0) {
-                mainIndex += 1;
-            } else {
-                proofIndex += 1;
-            }
-            stringCount = 5;
-            stringsLength = 28
-                + nameLength
-                + globalLength
-                + helperLength
-                + proofLength;
         }
         long sectionCount = 6 + program.proofCount;
         long manifestOffset = align8(40 + sectionCount * 32);
@@ -462,58 +279,8 @@ classical class MinimalCompiler {
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 1000000, 8);
 
-        cursor = writeUnsignedLittleEndian(output, cursor, stringCount, 4);
-        long stringIndex = 0;
-        while (stringIndex < stringCount) limit 5 {
-            if (stringIndex == nameIndex) {
-                cursor = writeUnsignedLittleEndian(
-                    output, cursor, nameLength, 4);
-                cursor = writeAsciiSlice(
-                    output, cursor, source, program.name.start, nameLength);
-            }
-            if (program.globalCount == 1) {
-                if (stringIndex == globalIndex) {
-                    cursor = writeUnsignedLittleEndian(
-                        output, cursor, globalLength, 4);
-                    cursor = writeAsciiSlice(
-                        output,
-                        cursor,
-                        source,
-                        program.global.start,
-                        globalLength);
-                }
-            }
-            if (program.helperCount == 1) {
-                if (stringIndex == helperIndex) {
-                    cursor = writeUnsignedLittleEndian(
-                        output, cursor, helperLength, 4);
-                    cursor = writeAsciiSlice(
-                        output,
-                        cursor,
-                        source,
-                        program.helperName.start,
-                        helperLength);
-                }
-            }
-            if (program.proofCount == 1) {
-                if (stringIndex == proofIndex) {
-                    cursor = writeUnsignedLittleEndian(
-                        output, cursor, proofLength, 4);
-                    cursor = writeAsciiSlice(
-                        output,
-                        cursor,
-                        source,
-                        program.proofName.start,
-                        proofLength);
-                }
-            }
-            if (stringIndex == mainIndex) {
-                cursor = writeUnsignedLittleEndian(output, cursor, 4, 4);
-                writeAscii(output, cursor, "main");
-                cursor += 4;
-            }
-            stringIndex += 1;
-        }
+        cursor = writeStringTable(
+            output, cursor, source, program, strings);
         cursor = align8(cursor);
 
         cursor = writeUnsignedLittleEndian(

@@ -353,7 +353,7 @@ class WheelerCommandTest {
             source "src/MinimalCompiler.w" source "src/compiler/Codegen.w"
             source "src/compiler/Encoding.w" source "src/compiler/HelperParser.w" source "src/compiler/Ir.w"
             source "src/compiler/Parser.w" source "src/compiler/Statements.w"
-            source "src/compiler/Structure.w" source "src/compiler/Tokens.w"
+            source "src/compiler/StringTable.w" source "src/compiler/Structure.w" source "src/compiler/Tokens.w"
             source "src/compiler/Verifier.w"
             source "src/lexer/Scanner.w";
         """);
@@ -378,6 +378,9 @@ class WheelerCommandTest {
     Files.copy(
         examples.resolve("compiler/Statements.w"),
         project.resolve("src/compiler/Statements.w"));
+    Files.copy(
+        examples.resolve("compiler/StringTable.w"),
+        project.resolve("src/compiler/StringTable.w"));
     Files.copy(
         examples.resolve("compiler/Structure.w"),
         project.resolve("src/compiler/Structure.w"));

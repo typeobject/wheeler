@@ -29,6 +29,8 @@ class MinimalCompilerExampleTest {
     String parser = Files.readString(Path.of("src/main/wheeler/compiler/Parser.w"));
     String statements = Files.readString(
         Path.of("src/main/wheeler/compiler/Statements.w"));
+    String stringTable = Files.readString(
+        Path.of("src/main/wheeler/compiler/StringTable.w"));
     String structure = Files.readString(
         Path.of("src/main/wheeler/compiler/Structure.w"));
     String tokens = Files.readString(Path.of("src/main/wheeler/compiler/Tokens.w"));
@@ -44,6 +46,7 @@ class MinimalCompilerExampleTest {
             Map.entry("Parser.w", parser),
             Map.entry("Scanner.w", scanner),
             Map.entry("Statements.w", statements),
+            Map.entry("StringTable.w", stringTable),
             Map.entry("Structure.w", structure),
             Map.entry("Tokens.w", tokens),
             Map.entry("Verifier.w", verifier)),
