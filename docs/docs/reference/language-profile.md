@@ -332,7 +332,7 @@ The VM installs both effects as externally owned baseline storage and gives the 
 
 ## Parser and editor tooling
 
-The compiler lexer records line, column, and stage-0 UTF-16 source-character offset. The Wheeler scanner slice records byte ranges and stable error code/offset pairs; codes 1, 2, and 3 mean unterminated block comment, malformed raw-ASCII literal, and exhausted token capacity. Required identifiers are ASCII letters, digits, and underscore; Unicode remains valid in comments, not names. Inputs are capped at 64 MiB and 16 Mi source characters, tokens at 4,096 characters, token and line counts at 1,000,000 each, declarations at 65,535, and structured block nesting at 256. The parser is formatting-independent and rejects unsupported constructs rather than dropping them.
+The compiler lexer records line, column, and stage-0 UTF-16 source-character offset. The Wheeler scanner slice records byte ranges and stable error records containing code, byte offset, and one-based line/column; codes 1, 2, and 3 mean unterminated block comment, malformed raw-ASCII literal, and exhausted token capacity. Required identifiers are ASCII letters, digits, and underscore; Unicode remains valid in comments, not names. Inputs are capped at 64 MiB and 16 Mi source characters, tokens at 4,096 characters, token and line counts at 1,000,000 each, declarations at 65,535, and structured block nesting at 256. The parser is formatting-independent and rejects unsupported constructs rather than dropping them.
 
 `tree-sitter-wheeler` provides an incremental grammar, corpus, highlighting, and fold queries for `.w` files. Its concrete syntax tree does not attempt type checking; method and gate meaning are resolved by the compiler.
 

@@ -15,10 +15,10 @@ classical class MinimalCompiler {
         ScanResult scanned = scan(
             source, tokenKinds, tokenStarts, tokenLengths);
         match (scanned) {
-            case ScanResult.Error(long scanCode, long scanOffset) {
+            case ScanResult.Error(ScanDiagnostic diagnostic) {
                 assert finalCursor == 1;
-                SourceRange scanName = new SourceRange(scanOffset, 0);
-                SourceRange scanGlobal = new SourceRange(scanOffset, 0);
+                SourceRange scanName = new SourceRange(diagnostic.offset, 0);
+                SourceRange scanGlobal = new SourceRange(diagnostic.offset, 0);
                 return new MinimalProgram(scanName, scanGlobal, 0, 0, 0);
             }
             case ScanResult.Value(long count) {

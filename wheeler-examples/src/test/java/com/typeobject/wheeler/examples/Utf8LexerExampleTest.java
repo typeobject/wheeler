@@ -109,6 +109,8 @@ class Utf8LexerExampleTest {
         classical class DiagnosticTest {
           state long code = 0;
           state long offset = 0;
+          state long line = 0;
+          state long column = 0;
           entry void main(utf8 source) {
             region arena = new region(96, 3);
             words kinds = allocate(arena, 4);
@@ -117,9 +119,11 @@ class Utf8LexerExampleTest {
             ScanResult result = scan(source, kinds, starts, lengths);
             match (result) {
               case ScanResult.Value(long count) { offset = count; }
-              case ScanResult.Error(long errorCode, long errorOffset) {
-                code = errorCode;
-                offset = errorOffset;
+              case ScanResult.Error(ScanDiagnostic diagnostic) {
+                code = diagnostic.code;
+                offset = diagnostic.offset;
+                line = diagnostic.line;
+                column = diagnostic.column;
               }
             }
             drop(lengths);
@@ -134,7 +138,7 @@ class Utf8LexerExampleTest {
         Map.of("Scanner.w", scanner, "DiagnosticTest.w", rootSource),
         "examples.lexer.diagnostictest");
     VirtualMachine comment = new VirtualMachine(
-        program, "x /*".getBytes(StandardCharsets.UTF_8));
+        program, "x\n /*".getBytes(StandardCharsets.UTF_8));
     VirtualMachine literal = new VirtualMachine(
         program, "\"open".getBytes(StandardCharsets.UTF_8));
     VirtualMachine capacity = new VirtualMachine(
@@ -145,11 +149,17 @@ class Utf8LexerExampleTest {
     capacity.run();
 
     assertEquals(1, comment.global("code"));
-    assertEquals(2, comment.global("offset"));
+    assertEquals(3, comment.global("offset"));
+    assertEquals(2, comment.global("line"));
+    assertEquals(2, comment.global("column"));
     assertEquals(2, literal.global("code"));
     assertEquals(0, literal.global("offset"));
+    assertEquals(1, literal.global("line"));
+    assertEquals(1, literal.global("column"));
     assertEquals(3, capacity.global("code"));
     assertEquals(8, capacity.global("offset"));
+    assertEquals(1, capacity.global("line"));
+    assertEquals(9, capacity.global("column"));
   }
 
   @Test
@@ -178,6 +188,8 @@ class Utf8LexerExampleTest {
     assertEquals(0, machine.global("parseError"));
     assertEquals(0, machine.global("lexicalCode"));
     assertEquals(0, machine.global("lexicalError"));
+    assertEquals(0, machine.global("lexicalLine"));
+    assertEquals(0, machine.global("lexicalColumn"));
     assertEquals(3, machine.global("outputLength"));
     assertEquals("123", new String(machine.hostOutput(), StandardCharsets.UTF_8));
     assertEquals(17, machine.global("finalCursor"));

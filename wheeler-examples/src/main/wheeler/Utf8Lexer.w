@@ -11,6 +11,8 @@ classical class Utf8Lexer {
     state long parseError = -1;
     state long lexicalCode = 0;
     state long lexicalError = 0;
+    state long lexicalLine = 0;
+    state long lexicalColumn = 0;
     state long outputLength = 0;
     state long finalCursor = 0;
 
@@ -43,9 +45,11 @@ classical class Utf8Lexer {
             case ScanResult.Value(long scannedCount) {
                 count = scannedCount;
             }
-            case ScanResult.Error(long scanCode, long scanOffset) {
-                lexicalCode = scanCode;
-                lexicalError = scanOffset + 1;
+            case ScanResult.Error(ScanDiagnostic diagnostic) {
+                lexicalCode = diagnostic.code;
+                lexicalError = diagnostic.offset + 1;
+                lexicalLine = diagnostic.line;
+                lexicalColumn = diagnostic.column;
             }
         }
 
@@ -78,6 +82,8 @@ classical class Utf8Lexer {
         assert parseError == 0;
         assert lexicalCode == 0;
         assert lexicalError == 0;
+        assert lexicalLine == 0;
+        assert lexicalColumn == 0;
         assert outputLength == 3;
         assert finalCursor == 17;
 

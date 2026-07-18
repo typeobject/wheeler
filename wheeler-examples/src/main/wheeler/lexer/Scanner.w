@@ -1,8 +1,38 @@
 module examples.lexer.scanner;
 classical class Scanner {
+    public record ScanDiagnostic(
+        long code,
+        long offset,
+        long line,
+        long column
+    ) {}
+
     public variant ScanResult {
         case Value(long count);
-        case Error(long code, long offset);
+        case Error(ScanDiagnostic diagnostic);
+    }
+
+    private ScanResult scanError(
+        utf8 source,
+        long code,
+        long offset
+    ) {
+        long cursor = 0;
+        long line = 1;
+        long column = 1;
+        while (cursor < offset) limit 4096 {
+            long scalar = utf8Scalar(source, cursor);
+            if (scalar == 10) {
+                line += 1;
+                column = 1;
+            } else {
+                column += 1;
+            }
+            cursor += utf8Width(source, cursor);
+        }
+        ScanDiagnostic diagnostic = new ScanDiagnostic(
+            code, offset, line, column);
+        return new ScanResult.Error(diagnostic);
     }
 
     public long tokenKind(long scalar) {
@@ -166,7 +196,7 @@ classical class Scanner {
                             long blockEnd = blockCommentEnd(
                                 source, tokenStart, sourceLength);
                             if (blockEnd < 0) {
-                                return new ScanResult.Error(1, tokenStart);
+                                return scanError(source, 1, tokenStart);
                             }
                             cursor = blockEnd;
                         }
@@ -174,14 +204,14 @@ classical class Scanner {
                             long literalEnd = asciiLiteralEnd(
                                 source, tokenStart, sourceLength);
                             if (literalEnd < 0) {
-                                return new ScanResult.Error(2, tokenStart);
+                                return scanError(source, 2, tokenStart);
                             }
                             cursor = literalEnd;
                         }
                     }
                     set(tokenLengths, tokenIndex, cursor - tokenStart);
                 } else {
-                    return new ScanResult.Error(3, cursor);
+                    return scanError(source, 3, cursor);
                 }
             }
         }
