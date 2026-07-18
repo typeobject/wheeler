@@ -355,7 +355,7 @@ Portfolio work follows these rules:
 ### Toolchain
 
 - [ ] Wheeler lexer and parser.
-- [ ] Wheeler bytecode codec and verifier: the executable writer slice emits its canonical 40-byte header and six directory entries through a bounded imported encoding module and matches stage 0; section payloads and verification remain.
+- [ ] Wheeler bytecode codec and verifier: the executable writer slice emits its canonical header, six directory entries, and manifest section through a bounded imported encoding module and matches stage 0; remaining section payloads and verification remain.
 - [ ] Self-hosting compiler fixed point.
 - [ ] Wheeler package resolver.
 - [ ] Native transition trace parity.

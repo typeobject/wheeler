@@ -20,16 +20,16 @@ class BytecodeHeaderExampleTest {
     var program = new WheelerCompiler().compileModuleFiles(
         Map.of("BytecodeHeader.w", root, "Encoding.w", encoding),
         "examples.compiler.header");
-    VirtualMachine machine = new VirtualMachine(program, null, 232);
+    VirtualMachine machine = new VirtualMachine(program, null, 256);
     var initial = machine.snapshot();
 
     machine.run();
 
-    assertEquals(232, machine.global("finalCursor"));
+    assertEquals(256, machine.global("finalCursor"));
     byte[] stageZeroArtifact = new BytecodeWriter().write(program);
-    assertEquals(9_096, stageZeroArtifact.length);
+    assertEquals(10_560, stageZeroArtifact.length);
     assertArrayEquals(
-        Arrays.copyOf(stageZeroArtifact, 232), machine.hostOutput());
+        Arrays.copyOf(stageZeroArtifact, 256), machine.hostOutput());
     while (machine.historySize() > 0) {
       machine.rewindOne();
     }

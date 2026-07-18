@@ -16,7 +16,7 @@ classical class BytecodeHeader {
         cursor = writeUnsignedLittleEndian(output, cursor, 1, 2);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 2);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
-        cursor = writeUnsignedLittleEndian(output, cursor, 9096, 8);
+        cursor = writeUnsignedLittleEndian(output, cursor, 10560, 8);
         cursor = writeUnsignedLittleEndian(output, cursor, 6, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 32, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 40, 8);
@@ -24,9 +24,14 @@ classical class BytecodeHeader {
         cursor = writeDirectoryEntry(output, cursor, 2, 256, 179);
         cursor = writeDirectoryEntry(output, cursor, 3, 440, 32);
         cursor = writeDirectoryEntry(output, cursor, 4, 472, 4);
-        cursor = writeDirectoryEntry(output, cursor, 5, 480, 1160);
-        cursor = writeDirectoryEntry(output, cursor, 6, 1640, 7456);
+        cursor = writeDirectoryEntry(output, cursor, 5, 480, 1340);
+        cursor = writeDirectoryEntry(output, cursor, 6, 1824, 8736);
+        cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, 2, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, 100000, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, 1000000, 8);
         finalCursor = cursor;
-        assert finalCursor == 232;
+        assert finalCursor == 256;
     }
 }
