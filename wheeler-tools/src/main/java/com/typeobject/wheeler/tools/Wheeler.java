@@ -7,6 +7,9 @@ import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.workflow.WorkflowOpcode;
 import com.typeobject.wheeler.packageformat.PackageArchive;
 import com.typeobject.wheeler.packageformat.PackageArchive.DecodedPackage;
+import com.typeobject.wheeler.packageformat.PackageLock;
+import com.typeobject.wheeler.packageformat.PackageLockParser;
+import com.typeobject.wheeler.packageformat.PackageResolver;
 import com.typeobject.wheeler.runtime.ExecutionResult;
 import com.typeobject.wheeler.runtime.WheelerRuntime;
 import com.typeobject.wheeler.runtime.quantum.OpenQasm3Emitter;
@@ -50,6 +53,8 @@ public final class Wheeler {
       case "verify" -> verify(args, out, error);
       case "disassemble" -> disassemble(args, out, error);
       case "qasm" -> qasm(args, out, error);
+      case "resolve" -> resolve(args, out, error);
+      case "verify-lock" -> verifyLock(args, out, error);
       default -> {
         error.println("Unknown Wheeler command: " + args[0]);
         usage(error);
@@ -162,6 +167,73 @@ public final class Wheeler {
     return 0;
   }
 
+  private static int resolve(
+      String[] args, PrintStream out, PrintStream error) throws Exception {
+    if (args.length < 4) {
+      resolveUsage(error);
+      return 2;
+    }
+    Path packageRoot = Path.of(args[1]);
+    Path catalog = null;
+    Path output = packageRoot.resolve("wheeler.lock");
+    boolean outputSpecified = false;
+    boolean development = false;
+    for (int index = 2; index < args.length; index++) {
+      switch (args[index]) {
+        case "--catalog" -> {
+          if (catalog != null || index + 1 >= args.length) {
+            resolveUsage(error);
+            return 2;
+          }
+          catalog = Path.of(args[++index]);
+        }
+        case "-o" -> {
+          if (outputSpecified || index + 1 >= args.length) {
+            resolveUsage(error);
+            return 2;
+          }
+          outputSpecified = true;
+          output = Path.of(args[++index]);
+        }
+        case "--development" -> {
+          if (development) {
+            resolveUsage(error);
+            return 2;
+          }
+          development = true;
+        }
+        default -> {
+          error.println("Unknown resolve option: " + args[index]);
+          resolveUsage(error);
+          return 2;
+        }
+      }
+    }
+    if (catalog == null) {
+      resolveUsage(error);
+      return 2;
+    }
+    PackageProject project = PackageProject.load(packageRoot);
+    PackageLock lock = new PackageResolver(PackageCatalog.load(catalog))
+        .resolve(project.manifest(), development);
+    PackageProject.writeAtomically(
+        output, lock.canonicalText().getBytes(StandardCharsets.UTF_8));
+    out.println("resolved " + lock.entries().size() + " packages into " + output
+        + " (" + lock.identity() + ")");
+    return 0;
+  }
+
+  private static int verifyLock(
+      String[] args, PrintStream out, PrintStream error) throws Exception {
+    if (args.length != 2) {
+      error.println("Usage: wheeler verify-lock <wheeler.lock>");
+      return 2;
+    }
+    PackageLock lock = new PackageLockParser().parse(Files.readAllBytes(Path.of(args[1])));
+    out.println("lock " + lock.entries().size() + " packages " + lock.identity());
+    return 0;
+  }
+
   private static int disassemble(
       String[] args, PrintStream out, PrintStream error) throws Exception {
     if (args.length != 2) {
@@ -243,8 +315,15 @@ public final class Wheeler {
     return source.resolveSibling(base + extension);
   }
 
+  private static void resolveUsage(PrintStream error) {
+    error.println(
+        "Usage: wheeler resolve <package-directory> --catalog <archive-directory>"
+            + " [-o wheeler.lock] [--development]");
+  }
+
   private static void usage(PrintStream error) {
     error.println(
-        "Usage: wheeler <run|compile|check|build|package|verify|disassemble|qasm> ...");
+        "Usage: wheeler <run|compile|check|build|package|verify|resolve|verify-lock|"
+            + "disassemble|qasm> ...");
   }
 }

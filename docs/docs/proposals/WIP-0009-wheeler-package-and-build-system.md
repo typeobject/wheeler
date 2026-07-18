@@ -299,10 +299,10 @@ Secrets are opaque host-owned handles and are prohibited from canonical output, 
 - [ ] Workspace, package, lockfile, and archive schemas have strict stage-0 codecs; build-plan schema remains.
 - [ ] Stage-0 manifest, resolution, lockfile, and archive output is content-addressed and reproducible; workspace builds remain.
 - [x] The stage-0 in-memory resolver deterministically selects one version per package with bounded backtracking, explicit development scope, and cycle rejection.
-- [ ] Local, vendored, and registry catalog loading pass conformance tests.
+- [ ] Physical local archive catalogs are sorted, bounded, integrity-checked, and covered end to end; vendored layouts and registry catalog loading remain.
 - [x] The root `wheeler.workspace` and example package manifest form an executable stage-0 workspace.
-- [x] The unified stage-0 `wheeler` command checks and builds canonical local workspaces, and packages, verifies, compiles, runs, disassembles, and emits OpenQASM for local artifacts without dependency loading.
-- [ ] Wheeler-written `wheeler` builds and tests the complete workspace.
+- [x] The unified stage-0 `wheeler` command checks and builds canonical local workspaces; packages and verifies local artifacts; resolves explicit verified archive catalogs; verifies locks; and compiles, runs, disassembles, and emits OpenQASM.
+- [ ] Wheeler-written `wheeler` loads locked dependencies and builds and tests the complete workspace.
 - [ ] Native no-Java recovery uses only committed manifests, lockfile, and vendor inputs.
 - [ ] Gradle and duplicate build paths are deleted.
 - [ ] Registry publication and immutable namespace ownership are operational.

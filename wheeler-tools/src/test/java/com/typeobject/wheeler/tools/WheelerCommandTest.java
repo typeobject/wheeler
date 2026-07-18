@@ -6,11 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.packageformat.PackageArchive;
 import com.typeobject.wheeler.packageformat.PackageArchive.DecodedPackage;
+import com.typeobject.wheeler.packageformat.PackageLock;
+import com.typeobject.wheeler.packageformat.PackageLockParser;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -111,6 +114,48 @@ class WheelerCommandTest {
         new PrintStream(disassembly),
         new PrintStream(new ByteArrayOutputStream())));
     assertTrue(disassembly.toString(StandardCharsets.UTF_8).contains("Counter"));
+  }
+
+  @Test
+  void resolveSubcommandConsumesVerifiedArchivesAndWritesCanonicalLock() throws Exception {
+    Path library = temporary.resolve("library");
+    createPackage(library, "demo.library", "Library", 1);
+    Path application = temporary.resolve("application");
+    Files.createDirectories(application.resolve("src"));
+    Files.writeString(application.resolve("wheeler.package"), """
+        package "demo.application" version "1.0.0" profile "bootstrap-1";
+        target binary "main" root "src/Main.w";
+        dependency normal "demo.library" version "^1.0.0";
+        """);
+    Files.writeString(application.resolve("src/Main.w"), """
+        classical class Main {
+            state long value = 0;
+            entry void main() { value += 1; }
+        }
+        """);
+    Path catalog = temporary.resolve("catalog");
+    Files.createDirectories(catalog);
+    Path archive = catalog.resolve("library.wpk");
+    Path lockPath = temporary.resolve("wheeler.lock");
+    ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+    PrintStream output = new PrintStream(stdout);
+    PrintStream sink = new PrintStream(new ByteArrayOutputStream());
+
+    assertEquals(0, Wheeler.execute(
+        new String[] {"package", library.toString(), "-o", archive.toString()}, output, sink));
+    assertEquals(0, Wheeler.execute(
+        new String[] {
+            "resolve", application.toString(), "--catalog", catalog.toString(),
+            "-o", lockPath.toString()
+        },
+        output,
+        sink));
+    PackageLock lock = new PackageLockParser().parse(Files.readAllBytes(lockPath));
+    assertEquals(List.of("demo.library"),
+        lock.entries().stream().map(PackageLock.Entry::name).toList());
+    assertEquals(0, Wheeler.execute(
+        new String[] {"verify-lock", lockPath.toString()}, output, sink));
+    assertTrue(stdout.toString(StandardCharsets.UTF_8).contains(lock.identity()));
   }
 
   @Test

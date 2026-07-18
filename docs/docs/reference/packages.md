@@ -40,7 +40,7 @@ A manifest must declare at least one target. Package and dependency names use lo
 
 ## Resolution and lockfiles
 
-`PackageResolver` operates only on an application-supplied immutable catalog of manifests and verified archive identities. It does not read a network, registry, clock, environment, or host package cache. It sorts package names and candidate releases, tries the highest compatible release, and performs bounded deterministic backtracking when transitive requirements conflict.
+`PackageResolver` operates only on an application-supplied immutable catalog of manifests and verified archive identities. `wheeler resolve` supplies that catalog from physical `.wpk` files in one explicit directory, sorted by file name and strictly decoded before resolution. It ignores unrelated file suffixes and rejects archive symlinks. Neither layer reads a network, registry, clock, environment, or implicit host package cache. It sorts package names and candidate releases, tries the highest compatible release, and performs bounded deterministic backtracking when transitive requirements conflict.
 
 Exact requirements select one version. Caret requirements remain below the next compatible major boundary, with the usual narrower `0.x` boundaries. Tilde requirements remain within one major/minor pair. Stable releases sort after prereleases for an equal release tuple. Duplicate catalog versions, missing solutions, root self-dependencies, cyclic selected graphs, and graphs over 10,000 packages fail closed. Development dependencies enter the graph only when explicitly requested.
 
@@ -102,13 +102,15 @@ wheeler check <package-or-workspace-directory>
 wheeler build <package-or-workspace-directory> [-o output-directory]
 wheeler package <package-directory> [-o package.wpk]
 wheeler verify <package.wpk>
+wheeler resolve <package-directory> --catalog <archive-directory> [-o wheeler.lock] [--development]
+wheeler verify-lock <wheeler.lock>
 wheeler compile <source.w> [-o program.wbc]
 wheeler run <program.wbc>
 wheeler disassemble <program.wbc>
 wheeler qasm <program.wbc> <output.qasm>
 ```
 
-`check` compiles and verifies every declared target without writing outputs. `build` writes one canonical `.wbc` per target, named from the target. Workspace builds place each package in its member-named output directory. `package` includes canonical manifest data and every declared target root. `verify` performs strict archive decoding before printing identity. Output replacement uses a sibling temporary file and atomic move when the host supports it.
+`check` compiles and verifies every declared target without writing outputs. `build` writes one canonical `.wbc` per target, named from the target. Workspace builds place each package in its member-named output directory. `package` includes canonical manifest data and every declared target root. `verify` performs strict archive decoding before printing identity. `resolve` selects from an explicit verified archive catalog and atomically writes canonical lock data; development dependencies enter only with `--development`. `verify-lock` accepts only canonical lock encoding before printing identity. Output replacement uses a sibling temporary file and atomic move when the host supports it.
 
 The local host adapter requires a physical package directory, manifest, and target files. A target path that crosses a symbolic link or resolves outside the package fails before compilation. It reads only the manifest and declared target roots; capability requests remain policy data and do not grant broader host access.
 
