@@ -1,11 +1,8 @@
 // Bounded parser over token metadata produced by an imported scanner module.
 module examples.lexer.main;
+import examples.lexer.parser;
 import examples.lexer.scanner;
 classical class Utf8Lexer {
-    variant Assignment {
-        case Value(long value);
-        case Error(long offset);
-    }
 
     state long tokenCount = 0;
     state long numberStart = 0;
@@ -30,41 +27,6 @@ classical class Utf8Lexer {
             cursor += 1;
         }
         return cursor;
-    }
-
-    Assignment parseAssignment(
-        utf8 source,
-        words tokenKinds,
-        words tokenStarts,
-        words tokenLengths,
-        long count
-    ) {
-        if (count == 5) {
-            if (tokenKinds[0] == 1) {
-                if (tokenKinds[1] == 3) {
-                    if (utf8Scalar(source, tokenStarts[1]) == 61) {
-                        if (tokenKinds[2] == 2) {
-                            if (tokenKinds[3] == 3) {
-                                if (utf8Scalar(source, tokenStarts[3]) == 59) {
-                                    if (3 < tokenKinds[4]) {
-                                        if (tokenKinds[4] < 6) {
-                                            long end = tokenStarts[2] + tokenLengths[2];
-                                            long value = parseNumber(
-                                                source, tokenStarts[2], end);
-                                            if (value < 0) {
-                                                return new Assignment.Error(tokenStarts[2]);
-                                            }
-                                            return new Assignment.Value(value);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return new Assignment.Error(0);
     }
 
     entry void main(utf8 source, bytes output) {
@@ -158,15 +120,15 @@ classical class Utf8Lexer {
         tokenCount = count;
         numberStart = tokenStarts[2];
         commentStart = tokenStarts[4];
-        Assignment parsed = parseAssignment(
+        AssignmentResult parsed = parseAssignment(
             source, tokenKinds, tokenStarts, tokenLengths, tokenCount);
         if (lexicalError == 0) {
             match (parsed) {
-                case Assignment.Value(long value) {
+                case AssignmentResult.Value(long value) {
                     numericValue = value;
                     parseError = 0;
                 }
-                case Assignment.Error(long offset) {
+                case AssignmentResult.Error(long offset) {
                     numericValue = -1;
                     parseError = offset + 1;
                 }

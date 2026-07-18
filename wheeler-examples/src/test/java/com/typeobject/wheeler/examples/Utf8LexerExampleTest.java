@@ -108,6 +108,8 @@ class Utf8LexerExampleTest {
         Map.of(
             "src/main/wheeler/Utf8Lexer.w",
             Files.readString(root.resolve("Utf8Lexer.w")),
+            "src/main/wheeler/lexer/Parser.w",
+            Files.readString(root.resolve("lexer/Parser.w")),
             "src/main/wheeler/lexer/Scanner.w",
             Files.readString(root.resolve("lexer/Scanner.w"))),
         "examples.lexer.main");

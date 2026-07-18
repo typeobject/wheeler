@@ -20,7 +20,7 @@ target example "records" root "src/main/wheeler/Records.w";
 target example "recursivevalue" root "src/main/wheeler/RecursiveValue.w";
 target example "regionstorage" root "src/main/wheeler/RegionStorage.w";
 target example "surfacecode" root "src/main/wheeler/SurfaceCode.w";
-target example "utf8lexer" root "src/main/wheeler/Utf8Lexer.w" module "examples.lexer.main" source "src/main/wheeler/Utf8Lexer.w" source "src/main/wheeler/lexer/Scanner.w";
+target example "utf8lexer" root "src/main/wheeler/Utf8Lexer.w" module "examples.lexer.main" source "src/main/wheeler/Utf8Lexer.w" source "src/main/wheeler/lexer/Parser.w" source "src/main/wheeler/lexer/Scanner.w";
 target example "variants" root "src/main/wheeler/Variants.w";
 target example "workqueue" root "src/main/wheeler/WorkQueue.w" module "examples.queue.main" source "src/main/wheeler/WorkQueue.w" source "src/main/wheeler/collections/LongQueue.w";
 capability "build.read" path "src/main/wheeler/**";
