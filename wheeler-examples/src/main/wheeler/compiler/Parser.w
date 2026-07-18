@@ -466,7 +466,7 @@ classical class Parser {
         return new MinimalProgramResult.Value(program);
     }
 
-    private MinimalProgramResult minimalNoGlobalProgram(
+    private long minimalNoGlobalBodyStart(
         utf8 source,
         words tokenKinds,
         words tokenStarts,
@@ -506,40 +506,119 @@ classical class Parser {
                                                         tokenStarts,
                                                         9,
                                                         123)) {
-                                                    if (punctuationAt(
-                                                            source,
-                                                            tokenKinds,
-                                                            tokenStarts,
-                                                            10,
-                                                            125)) {
-                                                        if (punctuationAt(
-                                                                source,
-                                                                tokenKinds,
-                                                                tokenStarts,
-                                                                11,
-                                                                125)) {
-                                                            SourceRange name =
-                                                                new SourceRange(
-                                                                    tokenStarts[2],
-                                                                    tokenLengths[2]);
-                                                            SourceRange global =
-                                                                new SourceRange(0, 0);
-                                                            MinimalProgram program =
-                                                                new MinimalProgram(
-                                                                    name,
-                                                                    global,
-                                                                    0,
-                                                                    0,
-                                                                    0,
-                                                                    -1,
-                                                                    0,
-                                                                    -1,
-                                                                    0);
-                                                            return new MinimalProgramResult.Value(
-                                                                program);
-                                                        }
-                                                    }
+                                                    return 10;
                                                 }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+
+    private MinimalProgramResult minimalNoGlobalValue(
+        words tokenStarts,
+        words tokenLengths,
+        long statementCount,
+        long operand
+    ) {
+        SourceRange name = new SourceRange(
+            tokenStarts[2], tokenLengths[2]);
+        SourceRange global = new SourceRange(0, 0);
+        long opcode = -1;
+        if (statementCount == 1) {
+            opcode = 769;
+        }
+        MinimalProgram program = new MinimalProgram(
+            name,
+            global,
+            0,
+            0,
+            statementCount,
+            opcode,
+            operand,
+            -1,
+            0);
+        return new MinimalProgramResult.Value(program);
+    }
+
+    private MinimalProgramResult minimalNoGlobalProgram(
+        utf8 source,
+        words tokenKinds,
+        words tokenStarts,
+        words tokenLengths,
+        long count
+    ) {
+        long bodyStart = minimalNoGlobalBodyStart(
+            source, tokenKinds, tokenStarts, tokenLengths);
+        if (0 < bodyStart) {
+            if (punctuationAt(
+                    source, tokenKinds, tokenStarts, bodyStart, 125)) {
+                if (punctuationAt(
+                        source, tokenKinds, tokenStarts, bodyStart + 1, 125)) {
+                    if (count == bodyStart + 2) {
+                        return minimalNoGlobalValue(
+                            tokenStarts, tokenLengths, 0, 0);
+                    }
+                }
+            }
+            if (tokenHash(
+                    source, tokenStarts, tokenLengths, bodyStart)
+                    == 3327612) {
+                if (tokenKinds[bodyStart + 1] == 1) {
+                    if (punctuationAt(
+                            source,
+                            tokenKinds,
+                            tokenStarts,
+                            bodyStart + 2,
+                            61)) {
+                        long valueToken = bodyStart + 3;
+                        long valueWidth = signedNumberWidth(
+                            source,
+                            tokenKinds,
+                            tokenStarts,
+                            valueToken);
+                        if (0 < valueWidth) {
+                            if (signedNumberValid(
+                                    source,
+                                    tokenStarts,
+                                    tokenLengths,
+                                    valueToken)) {
+                                long semicolon = valueToken + valueWidth;
+                                if (punctuationAt(
+                                        source,
+                                        tokenKinds,
+                                        tokenStarts,
+                                        semicolon,
+                                        59)) {
+                                    if (punctuationAt(
+                                            source,
+                                            tokenKinds,
+                                            tokenStarts,
+                                            semicolon + 1,
+                                            125)) {
+                                        if (punctuationAt(
+                                                source,
+                                                tokenKinds,
+                                                tokenStarts,
+                                                semicolon + 2,
+                                                125)) {
+                                            if (count == semicolon + 3) {
+                                                long operand = parsedSignedNumber(
+                                                    source,
+                                                    tokenStarts,
+                                                    tokenLengths,
+                                                    valueToken);
+                                                return minimalNoGlobalValue(
+                                                    tokenStarts,
+                                                    tokenLengths,
+                                                    1,
+                                                    operand);
                                             }
                                         }
                                     }
@@ -569,7 +648,22 @@ classical class Parser {
     ) {
         if (count == 12) {
             return minimalNoGlobalProgram(
-                source, tokenKinds, tokenStarts, tokenLengths);
+                source, tokenKinds, tokenStarts, tokenLengths, count);
+        }
+        if (count == 17) {
+            return minimalNoGlobalProgram(
+                source, tokenKinds, tokenStarts, tokenLengths, count);
+        }
+        if (count == 18) {
+            MinimalProgramResult noGlobal = minimalNoGlobalProgram(
+                source, tokenKinds, tokenStarts, tokenLengths, count);
+            match (noGlobal) {
+                case MinimalProgramResult.Value(MinimalProgram program) {
+                    return new MinimalProgramResult.Value(program);
+                }
+                case MinimalProgramResult.Error(long noGlobalOffset) {
+                }
+            }
         }
         if (minimalStateCountSupported(count)) {
             long entryStart = minimalEntryStart(

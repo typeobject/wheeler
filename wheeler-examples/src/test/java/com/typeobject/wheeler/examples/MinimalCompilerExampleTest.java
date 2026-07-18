@@ -62,6 +62,12 @@ class MinimalCompilerExampleTest {
     assertDifferentialHalt(
         writerProgram,
         "classical class Bare { entry void main() { } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class Local { entry void main() { long x = 2; } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class Local { entry void main() { long x = -2; } }");
     assertDifferentialExecution(
         writerProgram,
         "classical class Empty { state long idle = 7; "
