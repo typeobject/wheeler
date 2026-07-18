@@ -22,7 +22,7 @@ class MinimalCompilerExampleTest {
   void wheelerCompilesMinimalSourceToACanonicalExecutableArtifact() throws Exception {
     String root = Files.readString(Path.of("src/main/wheeler/MinimalCompiler.w"));
     String encoding = Files.readString(Path.of("src/main/wheeler/compiler/Encoding.w"));
-    String parser = Files.readString(Path.of("src/main/wheeler/lexer/Parser.w"));
+    String parser = Files.readString(Path.of("src/main/wheeler/compiler/Parser.w"));
     String scanner = Files.readString(Path.of("src/main/wheeler/lexer/Scanner.w"));
     var writerProgram = new WheelerCompiler().compileModuleFiles(
         Map.of(

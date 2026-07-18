@@ -350,7 +350,7 @@ class WheelerCommandTest {
         package "demo.seedwriter" version "1.0.0" profile "bootstrap-1";
         target example "compiler" root "src/MinimalCompiler.w" module "examples.compiler.seed"
             source "src/MinimalCompiler.w" source "src/compiler/Encoding.w"
-            source "src/lexer/Parser.w" source "src/lexer/Scanner.w";
+            source "src/compiler/Parser.w" source "src/lexer/Scanner.w";
         """);
     Path examples = Path.of("../wheeler-examples/src/main/wheeler");
     Files.copy(
@@ -358,7 +358,9 @@ class WheelerCommandTest {
     Files.copy(
         examples.resolve("compiler/Encoding.w"),
         project.resolve("src/compiler/Encoding.w"));
-    Files.copy(examples.resolve("lexer/Parser.w"), project.resolve("src/lexer/Parser.w"));
+    Files.copy(
+        examples.resolve("compiler/Parser.w"),
+        project.resolve("src/compiler/Parser.w"));
     Files.copy(examples.resolve("lexer/Scanner.w"), project.resolve("src/lexer/Scanner.w"));
     Path className = temporary.resolve("class-name.txt");
     Files.writeString(

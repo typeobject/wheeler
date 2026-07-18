@@ -1,6 +1,6 @@
 module examples.compiler.seed;
 import examples.compiler.encoding;
-import examples.lexer.parser;
+import examples.compiler.parser;
 import examples.lexer.scanner;
 classical class MinimalCompiler {
     state long finalCursor = 0;
