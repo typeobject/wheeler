@@ -28,6 +28,97 @@ classical class InstructionVerifier {
         return localType(artifact, activeTypes, local) == expected;
     }
 
+    private long descriptorBase(long functionsOffset, long function) {
+        return functionsOffset + 4 + function * 40;
+    }
+
+    private boolean functionHasFlag(
+        byteview artifact,
+        long functionsOffset,
+        long function,
+        long flag
+    ) {
+        long flags = readUnsigned(
+            artifact, descriptorBase(functionsOffset, function) + 8, 4);
+        return (flags & flag) == flag;
+    }
+
+    private long functionParameterCount(
+        byteview artifact,
+        long functionsOffset,
+        long function
+    ) {
+        return readUnsigned(
+            artifact, descriptorBase(functionsOffset, function) + 28, 4);
+    }
+
+    private long functionTypeStart(
+        byteview artifact,
+        long functionsOffset,
+        long functionCount,
+        long function
+    ) {
+        long descriptor = descriptorBase(functionsOffset, function);
+        long typeOffset = readUnsigned(artifact, descriptor + 36, 4);
+        long start = functionsOffset + 4 + functionCount * 40
+            + typeOffset * 4;
+        if (functionHasFlag(artifact, functionsOffset, function, 4)) {
+            start += 4;
+        }
+        return start;
+    }
+
+    private long functionResultType(
+        byteview artifact,
+        long functionsOffset,
+        long functionCount,
+        long function
+    ) {
+        long descriptor = descriptorBase(functionsOffset, function);
+        long typeOffset = readUnsigned(artifact, descriptor + 36, 4);
+        return readUnsigned(
+            artifact,
+            functionsOffset + 4 + functionCount * 40 + typeOffset * 4,
+            4);
+    }
+
+    private long callArgumentsValid(
+        byteview artifact,
+        long functionsOffset,
+        long functionCount,
+        long activeTypes,
+        long localCount,
+        long target,
+        long argumentBase,
+        long argumentCount
+    ) {
+        if (target < functionCount) {
+        } else {
+            return 0;
+        }
+        if (differs(
+                argumentCount,
+                functionParameterCount(artifact, functionsOffset, target))) {
+            return 0;
+        }
+        if (localCount < argumentBase + argumentCount) {
+            return 0;
+        }
+        long targetTypes = functionTypeStart(
+            artifact, functionsOffset, functionCount, target);
+        long argument = 0;
+        while (argument < argumentCount) limit INTERPRETER_LOCAL_WIDTH {
+            if (differs(
+                    localType(
+                        artifact, activeTypes, argumentBase + argument),
+                    localType(artifact, targetTypes, argument))) {
+                return 0;
+            }
+            argument += 1;
+        }
+        return 1;
+    }
+
     private long expectedOperandCount(long opcode) {
         if (opcode == OPCODE_HALT) {
             return 0;
@@ -43,6 +134,15 @@ classical class InstructionVerifier {
         }
         if (opcode == OPCODE_UNCALL) {
             return 1;
+        }
+        if (opcode == OPCODE_CALL_VALUE) {
+            return 4;
+        }
+        if (opcode == OPCODE_RETURN_VALUE) {
+            return 1;
+        }
+        if (opcode == OPCODE_CALL_VOID) {
+            return 3;
         }
         if (opcode == OPCODE_EXPECT_EQ) {
             return 2;
@@ -114,10 +214,11 @@ classical class InstructionVerifier {
         long globalCount,
         long functionCount,
         long localCount,
-        long reversibleHelper,
         long activeStart,
         long activeEnd,
-        long activeTypes
+        long activeTypes,
+        long activeResultType,
+        long functionsOffset
     ) {
         if (opcode == OPCODE_HALT) {
             return 1;
@@ -132,20 +233,97 @@ classical class InstructionVerifier {
             }
             return 0;
         }
-        if (opcode == OPCODE_CALL) {
-            if (first == 0) {
-                if (1 < functionCount) {
+        if (opcode == OPCODE_RETURN_VALUE) {
+            if (first < localCount) {
+                if (localType(artifact, activeTypes, first)
+                        == activeResultType) {
                     return 1;
                 }
             }
             return 0;
         }
-        if (opcode == OPCODE_UNCALL) {
-            if (reversibleHelper == 1) {
-                if (first == 0) {
-                    if (1 < functionCount) {
+        if (opcode == OPCODE_CALL) {
+            if (first < functionCount - 1) {
+                if (functionParameterCount(
+                        artifact, functionsOffset, first) == 0) {
+                    if (functionHasFlag(
+                            artifact, functionsOffset, first, 4)) {
+                    } else {
                         return 1;
                     }
+                }
+            }
+            return 0;
+        }
+        if (opcode == OPCODE_UNCALL) {
+            if (first < functionCount - 1) {
+                if (functionParameterCount(
+                        artifact, functionsOffset, first) == 0) {
+                    if (functionHasFlag(
+                            artifact, functionsOffset, first, 1)) {
+                        if (functionHasFlag(
+                                artifact, functionsOffset, first, 4)) {
+                        } else {
+                            return 1;
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+        if (opcode == OPCODE_CALL_VALUE) {
+            long valueArgumentBase = readUnsigned(
+                artifact, cursor + 16, 8);
+            long valueArgumentCount = readUnsigned(
+                artifact, cursor + 24, 8);
+            long valueDestination = readUnsigned(
+                artifact, cursor + 32, 8);
+            if (first < functionCount - 1) {
+                if (valueDestination < localCount) {
+                    if (functionHasFlag(
+                            artifact, functionsOffset, first, 4)) {
+                        if (localType(
+                                artifact,
+                                activeTypes,
+                                valueDestination)
+                                == functionResultType(
+                                    artifact,
+                                    functionsOffset,
+                                    functionCount,
+                                    first)) {
+                            return callArgumentsValid(
+                                artifact,
+                                functionsOffset,
+                                functionCount,
+                                activeTypes,
+                                localCount,
+                                first,
+                                valueArgumentBase,
+                                valueArgumentCount);
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+        if (opcode == OPCODE_CALL_VOID) {
+            long voidArgumentBase = readUnsigned(
+                artifact, cursor + 16, 8);
+            long voidArgumentCount = readUnsigned(
+                artifact, cursor + 24, 8);
+            if (first < functionCount - 1) {
+                if (functionHasFlag(
+                        artifact, functionsOffset, first, 4)) {
+                } else {
+                    return callArgumentsValid(
+                        artifact,
+                        functionsOffset,
+                        functionCount,
+                        activeTypes,
+                        localCount,
+                        first,
+                        voidArgumentBase,
+                        voidArgumentCount);
                 }
             }
             return 0;
@@ -324,8 +502,8 @@ classical class InstructionVerifier {
         long helperForwardLength,
         long helperInverseLength,
         long helperLocalCount,
-        long entryLocalCount,
-        long reversibleHelper
+        long helperResultCount,
+        long entryLocalCount
     ) {
         long cursor = codeOffset;
         long end = codeOffset + codeLength;
@@ -355,6 +533,11 @@ classical class InstructionVerifier {
             long activeStart = codeOffset;
             long activeEnd = codeOffset + codeLength;
             long activeTypes = functionsOffset + 84;
+            long activeResultType = 0;
+            if (helperResultCount == 1) {
+                activeResultType = readUnsigned(artifact, activeTypes, 4);
+                activeTypes += 4;
+            }
             if (functionCount == 1) {
                 activeLocalCount = entryLocalCount;
                 activeTypes = functionsOffset + 44;
@@ -371,6 +554,7 @@ classical class InstructionVerifier {
                     } else {
                         activeLocalCount = entryLocalCount;
                         activeStart = inverseEnd;
+                        activeResultType = 0;
                         activeTypes += helperLocalCount * 4;
                     }
                 }
@@ -382,10 +566,11 @@ classical class InstructionVerifier {
                     globalCount,
                     functionCount,
                     activeLocalCount,
-                    reversibleHelper,
                     activeStart,
                     activeEnd,
-                    activeTypes) == 0) {
+                    activeTypes,
+                    activeResultType,
+                    functionsOffset) == 0) {
                 return 0;
             }
             if (opcode == OPCODE_HALT) {

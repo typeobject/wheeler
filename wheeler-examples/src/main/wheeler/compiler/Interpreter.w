@@ -61,7 +61,8 @@ classical class Interpreter {
         words locals,
         words returnCursors,
         words returnStarts,
-        words returnEnds
+        words returnEnds,
+        words returnDestinations
     ) {
         long fileLength = bufferLength(artifact);
         if (verifyArtifact(artifact, fileLength) == 1) {
@@ -115,224 +116,349 @@ classical class Interpreter {
             if (opcode == OPCODE_RETURN) {
                 if (0 < depth) {
                     depth -= 1;
-                    cursor = returnCursors[depth];
-                    start = returnStarts[depth];
-                    end = returnEnds[depth];
-                    steps += 1;
+                    if (returnDestinations[depth] < 0) {
+                        cursor = returnCursors[depth];
+                        start = returnStarts[depth];
+                        end = returnEnds[depth];
+                        steps += 1;
+                    } else {
+                        return new ExecutionResult.Error(cursor);
+                    }
                 } else {
                     return new ExecutionResult.Error(cursor);
                 }
             } else {
-                if (opcode == OPCODE_ADD_CONST) {
-                    globalValue += readSigned(artifact, cursor + 16);
-                }
-                if (opcode == OPCODE_SUB_CONST) {
-                    globalValue -= readSigned(artifact, cursor + 16);
-                }
-                if (opcode == OPCODE_XOR_CONST) {
-                    globalValue ^= readSigned(artifact, cursor + 16);
-                }
-                if (opcode == OPCODE_CALL) {
-                    long callTarget = readUnsigned(artifact, cursor + 8, 8);
-                    if (INTERPRETER_MAX_CALL_DEPTH < depth + 1) {
-                        return new ExecutionResult.Error(cursor);
-                    }
-                    if (callTarget < functionCount) {
-                        set(returnCursors, depth, next);
-                        set(returnStarts, depth, start);
-                        set(returnEnds, depth, end);
-                        depth += 1;
-                        long callDescriptor = descriptorBase(
-                            functionsOffset, callTarget);
-                        cursor = codeOffset + readUnsigned(
-                            artifact, callDescriptor + 12, 4);
-                        start = cursor;
-                        end = cursor + readUnsigned(
-                            artifact, callDescriptor + 16, 4);
-                        long clearCall = 0;
-                        while (clearCall < INTERPRETER_LOCAL_WIDTH)
-                            limit INTERPRETER_LOCAL_WIDTH {
-                            set(locals, localIndex(depth, clearCall), 0);
-                            clearCall += 1;
+                if (opcode == OPCODE_RETURN_VALUE) {
+                    if (0 < depth) {
+                        long returnSource = readUnsigned(
+                            artifact, cursor + 8, 8);
+                        long returnValue = locals[localIndex(
+                            depth, returnSource)];
+                        depth -= 1;
+                        long returnDestination = returnDestinations[depth];
+                        if (returnDestination < 0) {
+                            return new ExecutionResult.Error(cursor);
                         }
+                        cursor = returnCursors[depth];
+                        start = returnStarts[depth];
+                        end = returnEnds[depth];
+                        set(
+                            locals,
+                            localIndex(depth, returnDestination),
+                            returnValue);
+                        steps += 1;
                     } else {
                         return new ExecutionResult.Error(cursor);
                     }
-                }
-                if (opcode == OPCODE_UNCALL) {
-                    long uncallTarget = readUnsigned(artifact, cursor + 8, 8);
-                    if (INTERPRETER_MAX_CALL_DEPTH < depth + 1) {
-                        return new ExecutionResult.Error(cursor);
+                } else {
+                    if (opcode == OPCODE_ADD_CONST) {
+                        globalValue += readSigned(artifact, cursor + 16);
                     }
-                    if (uncallTarget < functionCount) {
-                        set(returnCursors, depth, next);
-                        set(returnStarts, depth, start);
-                        set(returnEnds, depth, end);
-                        depth += 1;
-                        long uncallDescriptor = descriptorBase(
-                            functionsOffset, uncallTarget);
-                        long forwardOffset = readUnsigned(
-                            artifact, uncallDescriptor + 12, 4);
-                        long inverseOffset = readUnsigned(
-                            artifact, uncallDescriptor + 20, 4);
-                        cursor = codeOffset + forwardOffset + inverseOffset;
-                        start = cursor;
-                        end = cursor + readUnsigned(
-                            artifact, uncallDescriptor + 24, 4);
-                        long clearUncall = 0;
-                        while (clearUncall < INTERPRETER_LOCAL_WIDTH)
-                            limit INTERPRETER_LOCAL_WIDTH {
-                            set(locals, localIndex(depth, clearUncall), 0);
-                            clearUncall += 1;
+                    if (opcode == OPCODE_SUB_CONST) {
+                        globalValue -= readSigned(artifact, cursor + 16);
+                    }
+                    if (opcode == OPCODE_XOR_CONST) {
+                        globalValue ^= readSigned(artifact, cursor + 16);
+                    }
+                    if (opcode == OPCODE_CALL) {
+                        long callTarget = readUnsigned(artifact, cursor + 8, 8);
+                        if (INTERPRETER_MAX_CALL_DEPTH < depth + 1) {
+                            return new ExecutionResult.Error(cursor);
                         }
-                    } else {
-                        return new ExecutionResult.Error(cursor);
+                        if (callTarget < functionCount) {
+                            set(returnCursors, depth, next);
+                            set(returnStarts, depth, start);
+                            set(returnEnds, depth, end);
+                            set(returnDestinations, depth, -1);
+                            depth += 1;
+                            long callDescriptor = descriptorBase(
+                                functionsOffset, callTarget);
+                            cursor = codeOffset + readUnsigned(
+                                artifact, callDescriptor + 12, 4);
+                            start = cursor;
+                            end = cursor + readUnsigned(
+                                artifact, callDescriptor + 16, 4);
+                            long clearCall = 0;
+                            while (clearCall < INTERPRETER_LOCAL_WIDTH)
+                                limit INTERPRETER_LOCAL_WIDTH {
+                                set(locals, localIndex(depth, clearCall), 0);
+                                clearCall += 1;
+                            }
+                        } else {
+                            return new ExecutionResult.Error(cursor);
+                        }
                     }
-                }
-                if (opcode == OPCODE_EXPECT_EQ) {
-                    long expected = readSigned(artifact, cursor + 16);
-                    if (globalValue == expected) {
-                    } else {
-                        return new ExecutionResult.Error(cursor);
+                    if (opcode == OPCODE_UNCALL) {
+                        long uncallTarget = readUnsigned(artifact, cursor + 8, 8);
+                        if (INTERPRETER_MAX_CALL_DEPTH < depth + 1) {
+                            return new ExecutionResult.Error(cursor);
+                        }
+                        if (uncallTarget < functionCount) {
+                            set(returnCursors, depth, next);
+                            set(returnStarts, depth, start);
+                            set(returnEnds, depth, end);
+                            set(returnDestinations, depth, -1);
+                            depth += 1;
+                            long uncallDescriptor = descriptorBase(
+                                functionsOffset, uncallTarget);
+                            long forwardOffset = readUnsigned(
+                                artifact, uncallDescriptor + 12, 4);
+                            long inverseOffset = readUnsigned(
+                                artifact, uncallDescriptor + 20, 4);
+                            cursor = codeOffset + forwardOffset + inverseOffset;
+                            start = cursor;
+                            end = cursor + readUnsigned(
+                                artifact, uncallDescriptor + 24, 4);
+                            long clearUncall = 0;
+                            while (clearUncall < INTERPRETER_LOCAL_WIDTH)
+                                limit INTERPRETER_LOCAL_WIDTH {
+                                set(locals, localIndex(depth, clearUncall), 0);
+                                clearUncall += 1;
+                            }
+                        } else {
+                            return new ExecutionResult.Error(cursor);
+                        }
                     }
-                }
-                if (opcode == OPCODE_LOCAL_CONST) {
-                    long constantDestination = readUnsigned(
-                        artifact, cursor + 8, 8);
-                    set(
-                        locals,
-                        localIndex(depth, constantDestination),
-                        readSigned(artifact, cursor + 16));
-                }
-                if (opcode == OPCODE_LOCAL_LOAD_GLOBAL) {
-                    long loadDestination = readUnsigned(
-                        artifact, cursor + 8, 8);
-                    set(locals, localIndex(depth, loadDestination), globalValue);
-                }
-                if (opcode == OPCODE_LOCAL_STORE_GLOBAL) {
-                    long storeSource = readUnsigned(artifact, cursor + 16, 8);
-                    globalValue = locals[localIndex(depth, storeSource)];
-                }
-                if (opcode == OPCODE_LOCAL_MOVE) {
-                    long moveDestination = readUnsigned(
-                        artifact, cursor + 8, 8);
-                    long moveSource = readUnsigned(artifact, cursor + 16, 8);
-                    set(
-                        locals,
-                        localIndex(depth, moveDestination),
-                        locals[localIndex(depth, moveSource)]);
-                }
-                if (isLocalMathOpcode(opcode)) {
-                    long mathDestination = readUnsigned(
-                        artifact, cursor + 8, 8);
-                    long left = readUnsigned(artifact, cursor + 16, 8);
-                    long right = readUnsigned(artifact, cursor + 24, 8);
-                    long leftValue = locals[localIndex(depth, left)];
-                    long rightValue = locals[localIndex(depth, right)];
-                    long result = 0;
-                    if (opcode == OPCODE_LOCAL_ADD) {
-                        result = leftValue + rightValue;
-                    }
-                    if (opcode == OPCODE_LOCAL_SUB) {
-                        result = leftValue - rightValue;
-                    }
-                    if (opcode == OPCODE_LOCAL_XOR) {
-                        result = leftValue ^ rightValue;
-                    }
-                    if (opcode == OPCODE_LOCAL_MUL) {
-                        result = leftValue * rightValue;
-                    }
-                    if (opcode == OPCODE_LOCAL_DIV) {
-                        result = leftValue / rightValue;
-                    }
-                    if (opcode == OPCODE_LOCAL_MOD) {
-                        result = leftValue % rightValue;
-                    }
-                    if (opcode == OPCODE_LOCAL_AND) {
-                        result = leftValue & rightValue;
-                    }
-                    if (opcode == OPCODE_LOCAL_ROTR32) {
-                        result = rotateRight32(leftValue, rightValue);
-                    }
-                    set(locals, localIndex(depth, mathDestination), result);
-                }
-                if (opcode == OPCODE_LOCAL_EQ) {
-                    long equalityDestination = readUnsigned(
-                        artifact, cursor + 8, 8);
-                    long equalityLeft = readUnsigned(
-                        artifact, cursor + 16, 8);
-                    long equalityRight = readUnsigned(
-                        artifact, cursor + 24, 8);
-                    long equalityValue = 0;
-                    if (locals[localIndex(depth, equalityLeft)]
-                            == locals[localIndex(depth, equalityRight)]) {
-                        equalityValue = 1;
-                    }
-                    set(
-                        locals,
-                        localIndex(depth, equalityDestination),
-                        equalityValue);
-                }
-                if (opcode == OPCODE_LOCAL_LT) {
-                    long lessDestination = readUnsigned(
-                        artifact, cursor + 8, 8);
-                    long lessLeft = readUnsigned(artifact, cursor + 16, 8);
-                    long lessRight = readUnsigned(artifact, cursor + 24, 8);
-                    long lessValue = 0;
-                    if (locals[localIndex(depth, lessLeft)]
-                            < locals[localIndex(depth, lessRight)]) {
-                        lessValue = 1;
-                    }
-                    set(locals, localIndex(depth, lessDestination), lessValue);
-                }
-                if (opcode == OPCODE_JUMP) {
-                    long jumpTarget = readUnsigned(artifact, cursor + 8, 8);
-                    next = instructionCursor(artifact, start, end, jumpTarget);
-                    if (next < 0) {
-                        return new ExecutionResult.Error(cursor);
-                    }
-                }
-                if (opcode == OPCODE_JUMP_IF_ZERO) {
-                    long condition = readUnsigned(artifact, cursor + 8, 8);
-                    if (locals[localIndex(depth, condition)] == 0) {
-                        long conditionalTarget = readUnsigned(
+                    if (opcode == OPCODE_CALL_VALUE) {
+                        long valueTarget = readUnsigned(
+                            artifact, cursor + 8, 8);
+                        long valueArgumentBase = readUnsigned(
                             artifact, cursor + 16, 8);
-                        next = instructionCursor(
-                            artifact, start, end, conditionalTarget);
+                        long valueArgumentCount = readUnsigned(
+                            artifact, cursor + 24, 8);
+                        long valueDestination = readUnsigned(
+                            artifact, cursor + 32, 8);
+                        if (INTERPRETER_MAX_CALL_DEPTH < depth + 1) {
+                            return new ExecutionResult.Error(cursor);
+                        }
+                        if (valueTarget < functionCount) {
+                            set(returnCursors, depth, next);
+                            set(returnStarts, depth, start);
+                            set(returnEnds, depth, end);
+                            set(returnDestinations, depth, valueDestination);
+                            depth += 1;
+                            long valueDescriptor = descriptorBase(
+                                functionsOffset, valueTarget);
+                            cursor = codeOffset + readUnsigned(
+                                artifact, valueDescriptor + 12, 4);
+                            start = cursor;
+                            end = cursor + readUnsigned(
+                                artifact, valueDescriptor + 16, 4);
+                            long clearValue = 0;
+                            while (clearValue < INTERPRETER_LOCAL_WIDTH)
+                                limit INTERPRETER_LOCAL_WIDTH {
+                                set(locals, localIndex(depth, clearValue), 0);
+                                clearValue += 1;
+                            }
+                            long copyValue = 0;
+                            while (copyValue < valueArgumentCount)
+                                limit INTERPRETER_LOCAL_WIDTH {
+                                set(
+                                    locals,
+                                    localIndex(depth, copyValue),
+                                    locals[localIndex(
+                                        depth - 1,
+                                        valueArgumentBase + copyValue)]);
+                                copyValue += 1;
+                            }
+                        } else {
+                            return new ExecutionResult.Error(cursor);
+                        }
+                    }
+                    if (opcode == OPCODE_CALL_VOID) {
+                        long voidTarget = readUnsigned(artifact, cursor + 8, 8);
+                        long voidArgumentBase = readUnsigned(
+                            artifact, cursor + 16, 8);
+                        long voidArgumentCount = readUnsigned(
+                            artifact, cursor + 24, 8);
+                        if (INTERPRETER_MAX_CALL_DEPTH < depth + 1) {
+                            return new ExecutionResult.Error(cursor);
+                        }
+                        if (voidTarget < functionCount) {
+                            set(returnCursors, depth, next);
+                            set(returnStarts, depth, start);
+                            set(returnEnds, depth, end);
+                            set(returnDestinations, depth, -1);
+                            depth += 1;
+                            long voidDescriptor = descriptorBase(
+                                functionsOffset, voidTarget);
+                            cursor = codeOffset + readUnsigned(
+                                artifact, voidDescriptor + 12, 4);
+                            start = cursor;
+                            end = cursor + readUnsigned(
+                                artifact, voidDescriptor + 16, 4);
+                            long clearVoid = 0;
+                            while (clearVoid < INTERPRETER_LOCAL_WIDTH)
+                                limit INTERPRETER_LOCAL_WIDTH {
+                                set(locals, localIndex(depth, clearVoid), 0);
+                                clearVoid += 1;
+                            }
+                            long copyVoid = 0;
+                            while (copyVoid < voidArgumentCount)
+                                limit INTERPRETER_LOCAL_WIDTH {
+                                set(
+                                    locals,
+                                    localIndex(depth, copyVoid),
+                                    locals[localIndex(
+                                        depth - 1,
+                                        voidArgumentBase + copyVoid)]);
+                                copyVoid += 1;
+                            }
+                        } else {
+                            return new ExecutionResult.Error(cursor);
+                        }
+                    }
+                    if (opcode == OPCODE_EXPECT_EQ) {
+                        long expected = readSigned(artifact, cursor + 16);
+                        if (globalValue == expected) {
+                        } else {
+                            return new ExecutionResult.Error(cursor);
+                        }
+                    }
+                    if (opcode == OPCODE_LOCAL_CONST) {
+                        long constantDestination = readUnsigned(
+                            artifact, cursor + 8, 8);
+                        set(
+                            locals,
+                            localIndex(depth, constantDestination),
+                            readSigned(artifact, cursor + 16));
+                    }
+                    if (opcode == OPCODE_LOCAL_LOAD_GLOBAL) {
+                        long loadDestination = readUnsigned(
+                            artifact, cursor + 8, 8);
+                        set(locals, localIndex(depth, loadDestination), globalValue);
+                    }
+                    if (opcode == OPCODE_LOCAL_STORE_GLOBAL) {
+                        long storeSource = readUnsigned(artifact, cursor + 16, 8);
+                        globalValue = locals[localIndex(depth, storeSource)];
+                    }
+                    if (opcode == OPCODE_LOCAL_MOVE) {
+                        long moveDestination = readUnsigned(
+                            artifact, cursor + 8, 8);
+                        long moveSource = readUnsigned(artifact, cursor + 16, 8);
+                        set(
+                            locals,
+                            localIndex(depth, moveDestination),
+                            locals[localIndex(depth, moveSource)]);
+                    }
+                    if (isLocalMathOpcode(opcode)) {
+                        long mathDestination = readUnsigned(
+                            artifact, cursor + 8, 8);
+                        long left = readUnsigned(artifact, cursor + 16, 8);
+                        long right = readUnsigned(artifact, cursor + 24, 8);
+                        long leftValue = locals[localIndex(depth, left)];
+                        long rightValue = locals[localIndex(depth, right)];
+                        long result = 0;
+                        if (opcode == OPCODE_LOCAL_ADD) {
+                            result = leftValue + rightValue;
+                        }
+                        if (opcode == OPCODE_LOCAL_SUB) {
+                            result = leftValue - rightValue;
+                        }
+                        if (opcode == OPCODE_LOCAL_XOR) {
+                            result = leftValue ^ rightValue;
+                        }
+                        if (opcode == OPCODE_LOCAL_MUL) {
+                            result = leftValue * rightValue;
+                        }
+                        if (opcode == OPCODE_LOCAL_DIV) {
+                            result = leftValue / rightValue;
+                        }
+                        if (opcode == OPCODE_LOCAL_MOD) {
+                            result = leftValue % rightValue;
+                        }
+                        if (opcode == OPCODE_LOCAL_AND) {
+                            result = leftValue & rightValue;
+                        }
+                        if (opcode == OPCODE_LOCAL_ROTR32) {
+                            result = rotateRight32(leftValue, rightValue);
+                        }
+                        set(locals, localIndex(depth, mathDestination), result);
+                    }
+                    if (opcode == OPCODE_LOCAL_EQ) {
+                        long equalityDestination = readUnsigned(
+                            artifact, cursor + 8, 8);
+                        long equalityLeft = readUnsigned(
+                            artifact, cursor + 16, 8);
+                        long equalityRight = readUnsigned(
+                            artifact, cursor + 24, 8);
+                        long equalityValue = 0;
+                        if (locals[localIndex(depth, equalityLeft)]
+                                == locals[localIndex(depth, equalityRight)]) {
+                            equalityValue = 1;
+                        }
+                        set(
+                            locals,
+                            localIndex(depth, equalityDestination),
+                            equalityValue);
+                    }
+                    if (opcode == OPCODE_LOCAL_LT) {
+                        long lessDestination = readUnsigned(
+                            artifact, cursor + 8, 8);
+                        long lessLeft = readUnsigned(artifact, cursor + 16, 8);
+                        long lessRight = readUnsigned(artifact, cursor + 24, 8);
+                        long lessValue = 0;
+                        if (locals[localIndex(depth, lessLeft)]
+                                < locals[localIndex(depth, lessRight)]) {
+                            lessValue = 1;
+                        }
+                        set(locals, localIndex(depth, lessDestination), lessValue);
+                    }
+                    if (opcode == OPCODE_JUMP) {
+                        long jumpTarget = readUnsigned(artifact, cursor + 8, 8);
+                        next = instructionCursor(artifact, start, end, jumpTarget);
                         if (next < 0) {
                             return new ExecutionResult.Error(cursor);
                         }
                     }
-                }
-                if (opcode == OPCODE_LOCAL_LOOP_CHECK) {
-                    long iterationLocal = readUnsigned(
-                        artifact, cursor + 8, 8);
-                    long limitLocal = readUnsigned(artifact, cursor + 16, 8);
-                    long iteration = locals[localIndex(depth, iterationLocal)];
-                    long loopLimit = locals[localIndex(depth, limitLocal)];
-                    if (iteration < 0) {
-                        return new ExecutionResult.Error(cursor);
+                    if (opcode == OPCODE_JUMP_IF_ZERO) {
+                        long condition = readUnsigned(artifact, cursor + 8, 8);
+                        if (locals[localIndex(depth, condition)] == 0) {
+                            long conditionalTarget = readUnsigned(
+                                artifact, cursor + 16, 8);
+                            next = instructionCursor(
+                                artifact, start, end, conditionalTarget);
+                            if (next < 0) {
+                                return new ExecutionResult.Error(cursor);
+                            }
+                        }
                     }
-                    if (loopLimit < 0) {
-                        return new ExecutionResult.Error(cursor);
+                    if (opcode == OPCODE_LOCAL_LOOP_CHECK) {
+                        long iterationLocal = readUnsigned(
+                            artifact, cursor + 8, 8);
+                        long limitLocal = readUnsigned(artifact, cursor + 16, 8);
+                        long iteration = locals[localIndex(depth, iterationLocal)];
+                        long loopLimit = locals[localIndex(depth, limitLocal)];
+                        if (iteration < 0) {
+                            return new ExecutionResult.Error(cursor);
+                        }
+                        if (loopLimit < 0) {
+                            return new ExecutionResult.Error(cursor);
+                        }
+                        if (iteration < loopLimit) {
+                            set(
+                                locals,
+                                localIndex(depth, iterationLocal),
+                                iteration + 1);
+                        } else {
+                            return new ExecutionResult.Error(cursor);
+                        }
                     }
-                    if (iteration < loopLimit) {
-                        set(
-                            locals,
-                            localIndex(depth, iterationLocal),
-                            iteration + 1);
+                    if (opcode == OPCODE_CALL) {
                     } else {
-                        return new ExecutionResult.Error(cursor);
+                        if (opcode == OPCODE_UNCALL) {
+                        } else {
+                            if (opcode == OPCODE_CALL_VALUE) {
+                            } else {
+                                if (opcode == OPCODE_CALL_VOID) {
+                                } else {
+                                    cursor = next;
+                                }
+                            }
+                        }
                     }
+                    steps += 1;
                 }
-                if (opcode == OPCODE_CALL) {
-                } else {
-                    if (opcode == OPCODE_UNCALL) {
-                    } else {
-                        cursor = next;
-                    }
-                }
-                steps += 1;
             }
         }
         return new ExecutionResult.Error(cursor);

@@ -114,13 +114,16 @@ classical class Verifier {
         long functionsOffset,
         long functionCount,
         long helperLocalCount,
+        long helperResultCount,
         long entryLocalCount
     ) {
         long typeCursor = functionsOffset + 44;
         long typeCount = entryLocalCount;
         if (functionCount == 2) {
             typeCursor = functionsOffset + 84;
-            typeCount = helperLocalCount + entryLocalCount;
+            typeCount = helperResultCount
+                + helperLocalCount
+                + entryLocalCount;
         }
         long index = 0;
         while (index < typeCount)
@@ -158,6 +161,10 @@ classical class Verifier {
         }
         long firstFlags = readUnsigned(
             artifact, functionsOffset + 12, 4);
+        long helperResultCount = 0;
+        if (firstFlags == 4) {
+            helperResultCount = 1;
+        }
         long firstForwardLength = readUnsigned(
             artifact, functionsOffset + 20, 4);
         long firstInverseOffset = readUnsigned(
@@ -191,8 +198,8 @@ classical class Verifier {
                 firstForwardLength,
                 firstInverseLength,
                 localCount,
-                entryLocalCount,
-                firstFlags) == 0) {
+                helperResultCount,
+                entryLocalCount) == 0) {
             return 0;
         }
         if (differs(directoryField(artifact, 0, 16, 8), 24)) {
@@ -208,6 +215,7 @@ classical class Verifier {
         long expectedFunctionsLength = 44 + localCount * 4;
         if (functionCount == 2) {
             expectedFunctionsLength = 84
+                + helperResultCount * 4
                 + localCount * 4
                 + entryLocalCount * 4;
         }
@@ -233,6 +241,7 @@ classical class Verifier {
                 functionsOffset,
                 functionCount,
                 localCount,
+                helperResultCount,
                 entryLocalCount) == 0) {
             return 0;
         }
@@ -257,8 +266,15 @@ classical class Verifier {
         if (differs(readUnsigned(artifact, functionsOffset + 4, 4), 0)) {
             return 0;
         }
-        if (1 < firstFlags) {
-            return 0;
+        if (firstFlags == 0) {
+        } else {
+            if (firstFlags == 1) {
+            } else {
+                if (firstFlags == 4) {
+                } else {
+                    return 0;
+                }
+            }
         }
         if (functionCount == 1) {
             if (differs(firstFlags, 0)) {
@@ -284,9 +300,14 @@ classical class Verifier {
                 return 0;
             }
             if (firstFlags == 0) {
-                if (entryForwardLength < 24) {
+                if (differs(firstInverseOffset, 4294967295)) {
                     return 0;
                 }
+                if (differs(firstInverseLength, 0)) {
+                    return 0;
+                }
+            }
+            if (firstFlags == 4) {
                 if (differs(firstInverseOffset, 4294967295)) {
                     return 0;
                 }
@@ -317,8 +338,15 @@ classical class Verifier {
                 return 0;
             }
         }
-        if (differs(readUnsigned(artifact, functionsOffset + 32, 4), 0)) {
+        long firstParameterCount = readUnsigned(
+            artifact, functionsOffset + 32, 4);
+        if (localCount < firstParameterCount) {
             return 0;
+        }
+        if (firstFlags == 1) {
+            if (differs(firstParameterCount, 0)) {
+                return 0;
+            }
         }
         if (differs(readUnsigned(artifact, functionsOffset + 40, 4), 0)) {
             return 0;
@@ -361,13 +389,24 @@ classical class Verifier {
             }
             if (differs(
                     readUnsigned(artifact, functionsOffset + 80, 4),
-                    localCount)) {
+                    localCount + helperResultCount)) {
+                return 0;
+            }
+            long helperReturn = OPCODE_RETURN;
+            long helperReturnLength = 8;
+            if (firstFlags == 4) {
+                helperReturn = OPCODE_RETURN_VALUE;
+                helperReturnLength = 16;
+            }
+            if (firstForwardLength < helperReturnLength) {
                 return 0;
             }
             if (differs(
                     readUnsigned(
-                        artifact, codeOffset + firstForwardLength - 8, 2),
-                    OPCODE_RETURN)) {
+                        artifact,
+                        codeOffset + firstForwardLength - helperReturnLength,
+                        2),
+                    helperReturn)) {
                 return 0;
             }
             if (firstFlags == 1) {
@@ -380,14 +419,6 @@ classical class Verifier {
                         OPCODE_RETURN)) {
                     return 0;
                 }
-            }
-            long entryCode = codeOffset
-                + firstForwardLength
-                + firstInverseLength;
-            if (differs(
-                    readUnsigned(artifact, entryCode, 2),
-                    OPCODE_CALL)) {
-                return 0;
             }
         }
         if (differs(

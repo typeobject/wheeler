@@ -71,6 +71,27 @@ class NativeVmExampleTest {
         4);
     assertInterpretedGlobal(
         interpreter,
+        "classical class ValueCall { state long value = 0; "
+            + "long add(long left, long right) { return left + right; } "
+            + "entry void main() { value = add(4, 5); assert value == 9; } }",
+        "value",
+        9);
+    byte[] damagedCall = withBadCallTarget(compiler.compileToBytecode(
+        "classical class DamagedCall { state long value = 0; "
+            + "long identity(long input) { return input; } "
+            + "entry void main() { value = identity(3); } }"));
+    assertThrows(
+        VmTrap.class,
+        () -> VirtualMachine.withBinaryInput(interpreter, damagedCall).run());
+    assertInterpretedGlobal(
+        interpreter,
+        "classical class VoidCall { state long value = 1; "
+            + "void increase(long amount) { value += amount; } "
+            + "entry void main() { increase(6); assert value == 7; } }",
+        "value",
+        7);
+    assertInterpretedGlobal(
+        interpreter,
         "classical class Loop { state long value = 0; "
             + "entry void main() { long index = 0; "
             + "while (index < 3) limit 3 { value += 2; index += 1; } "
@@ -102,11 +123,16 @@ class NativeVmExampleTest {
       Program interpreter, String source, String global, long expected) {
     byte[] artifact = new WheelerCompiler().compileToBytecode(source);
     VirtualMachine nativeMachine = VirtualMachine.withBinaryInput(interpreter, artifact);
+    var initial = nativeMachine.snapshot();
     nativeMachine.run();
     VirtualMachine stageZero = new VirtualMachine(new BytecodeReader().read(artifact));
     stageZero.run();
     assertEquals(expected, stageZero.global(global));
     assertEquals(stageZero.global(global), nativeMachine.global("finalGlobal"));
+    while (nativeMachine.historySize() > 0) {
+      nativeMachine.rewindOne();
+    }
+    assertEquals(initial, nativeMachine.snapshot());
   }
 
   private static byte[] withBadJumpTarget(byte[] artifact) {
@@ -128,6 +154,23 @@ class NativeVmExampleTest {
       cursor += bytes.getInt(cursor + 4);
     }
     throw new AssertionError("control-flow fixture has no branch");
+  }
+
+  private static byte[] withBadCallTarget(byte[] artifact) {
+    byte[] damaged = artifact.clone();
+    ByteBuffer bytes = ByteBuffer.wrap(damaged).order(ByteOrder.LITTLE_ENDIAN);
+    int directory = 40 + 5 * 32;
+    int cursor = Math.toIntExact(bytes.getLong(directory + 8));
+    int end = cursor + Math.toIntExact(bytes.getLong(directory + 16));
+    while (cursor < end) {
+      int opcode = Short.toUnsignedInt(bytes.getShort(cursor));
+      if (opcode == Opcode.CALL_VALUE.code() || opcode == Opcode.CALL_VOID.code()) {
+        bytes.putLong(cursor + 8, Long.MAX_VALUE);
+        return damaged;
+      }
+      cursor += bytes.getInt(cursor + 4);
+    }
+    throw new AssertionError("call fixture has no argument call");
   }
 
   private static byte[] compileInWheeler(Path root, String source) throws Exception {

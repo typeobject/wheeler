@@ -10,6 +10,9 @@ classical class Opcodes {
 
     public const long OPCODE_CALL = 0x0200;
     public const long OPCODE_UNCALL = 0x0201;
+    public const long OPCODE_CALL_VALUE = 0x0202;
+    public const long OPCODE_RETURN_VALUE = 0x0203;
+    public const long OPCODE_CALL_VOID = 0x0204;
     public const long OPCODE_EXPECT_EQ = 0x0300;
 
     public const long OPCODE_LOCAL_CONST = 0x0400;

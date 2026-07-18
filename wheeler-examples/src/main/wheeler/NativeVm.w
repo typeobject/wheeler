@@ -9,13 +9,20 @@ classical class NativeVm {
     state long artifactLength = 0;
 
     entry void main(byteview artifact) {
-        region arena = new region(1280, 4);
+        region arena = new region(1280, 5);
         words locals = allocate(arena, INTERPRETER_LOCAL_CAPACITY);
         words returnCursors = allocate(arena, INTERPRETER_FRAME_COUNT);
         words returnStarts = allocate(arena, INTERPRETER_FRAME_COUNT);
         words returnEnds = allocate(arena, INTERPRETER_FRAME_COUNT);
+        words returnDestinations = allocate(
+            arena, INTERPRETER_FRAME_COUNT);
         ExecutionResult result = executeArtifact(
-            artifact, locals, returnCursors, returnStarts, returnEnds);
+            artifact,
+            locals,
+            returnCursors,
+            returnStarts,
+            returnEnds,
+            returnDestinations);
         match (result) {
             case ExecutionResult.Value(Execution execution) {
                 finalGlobal = execution.globalValue;
@@ -26,6 +33,7 @@ classical class NativeVm {
             }
         }
         artifactLength = bufferLength(artifact);
+        drop(returnDestinations);
         drop(returnEnds);
         drop(returnStarts);
         drop(returnCursors);
