@@ -10,7 +10,7 @@ The machine owns:
 - a status (`ready`, `running`, `halted`, or `trapped`);
 - a bounded stack of immutable control frames with descriptor-typed signed and Boolean local registers;
 - typed signed 64-bit global locations;
-- separate deterministic bounded tables of immutable nominal record and tagged-variant values;
+- separate deterministic bounded tables of immutable nominal records, tagged variants, and fixed arrays;
 - an ordered bounded stack of step records;
 - a monotonic transition sequence within the current run.
 
@@ -25,7 +25,7 @@ step(C, instruction) = (C', undo)
 unstep(C', undo) = C
 ```
 
-Intrinsic operations recover data from their inverse operation. Logged operations retain the value they overwrite. Local register and control operations retain the prior immutable frame needed to restore program counter and locals. Aggregate construction interns by nominal type, variant tag where present, and ordered field values; rewind restores prior record- and variant-table lengths as well as the frame. Call and return records retain the control information needed to restore frame depth. The VM never restores state and then also executes an inverse handler.
+Intrinsic operations recover data from their inverse operation. Logged operations retain the value they overwrite. Local register and control operations retain the prior immutable frame needed to restore program counter and locals. Aggregate construction interns by nominal type, variant tag where present, and ordered field values; rewind restores prior record-, variant-, and array-table lengths as well as the frame. Call and return records retain the control information needed to restore frame depth. The VM never restores state and then also executes an inverse handler.
 
 ## Function inverse versus rewind
 

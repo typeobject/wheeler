@@ -27,6 +27,7 @@ public final class BytecodeVerifier {
     verifyGlobals(program);
     verifyRecordTypes(program);
     verifyVariantTypes(program);
+    verifyArrayTypes(program);
     verifyFunctions(program);
     verifyQuantum(program);
     verifyWorkflow(program);
@@ -53,6 +54,7 @@ public final class BytecodeVerifier {
     if (program.globals().size() > 65_535
         || program.recordTypes().size() > 65_535
         || program.variantTypes().size() > 65_535
+        || program.arrayTypes().size() > 65_535
         || program.functions().size() > 65_535
         || program.quantumRegisters().size() > 65_535
         || program.quantumCircuits().size() > 65_535) {
@@ -81,8 +83,9 @@ public final class BytecodeVerifier {
             && field.type().descriptorId() >= record.id()) {
           fail("Record fields must reference an earlier record type: " + record.name());
         }
-        if (field.type().kind() == ValueType.Kind.VARIANT) {
-          fail("Record fields cannot reference later variant types: " + record.name());
+        if (field.type().kind() == ValueType.Kind.VARIANT
+            || field.type().kind() == ValueType.Kind.ARRAY) {
+          fail("Record fields cannot reference later aggregate types: " + record.name());
         }
       }
     }
@@ -99,11 +102,28 @@ public final class BytecodeVerifier {
       for (VariantType.Case variantCase : variant.cases()) {
         for (RecordType.Field field : variantCase.fields()) {
           verifyTypeReference(program, field.type(), variant.name());
+          if (field.type().kind() == ValueType.Kind.ARRAY) {
+            fail("Variant payloads cannot reference later array types: " + variant.name());
+          }
           if (field.type().kind() == ValueType.Kind.VARIANT
               && field.type().descriptorId() >= variant.id()) {
             fail("Variant payloads must reference an earlier variant type: " + variant.name());
           }
         }
+      }
+    }
+  }
+
+  private static void verifyArrayTypes(Program program) {
+    for (int index = 0; index < program.arrayTypes().size(); index++) {
+      ArrayType array = program.arrayTypes().get(index);
+      if (array.id() != index) {
+        fail("Noncanonical array type ID " + array.id());
+      }
+      verifyTypeReference(program, array.elementType(), "array#" + array.id());
+      if (array.elementType().kind() == ValueType.Kind.ARRAY
+          && array.elementType().descriptorId() >= array.id()) {
+        fail("Array elements must reference an earlier array type: " + array.id());
       }
     }
   }
@@ -152,6 +172,10 @@ public final class BytecodeVerifier {
         && type.descriptorId() >= program.variantTypes().size()) {
       fail("Unknown variant type " + type.displayName() + " in " + owner);
     }
+    if (type.kind() == ValueType.Kind.ARRAY
+        && type.descriptorId() >= program.arrayTypes().size()) {
+      fail("Unknown array type " + type.displayName() + " in " + owner);
+    }
   }
 
   private static void verifyGeneratedInverse(FunctionBody function) {
@@ -193,7 +217,8 @@ public final class BytecodeVerifier {
       case LOCAL_CONST -> {
         int destination = verifyLocal(owner, instruction.operands().getFirst(), pc);
         if (owner.localType(destination).kind() == ValueType.Kind.RECORD
-            || owner.localType(destination).kind() == ValueType.Kind.VARIANT) {
+            || owner.localType(destination).kind() == ValueType.Kind.VARIANT
+            || owner.localType(destination).kind() == ValueType.Kind.ARRAY) {
           fail(location(owner, pc) + " aggregate local requires aggregate construction");
         }
         if (owner.localType(destination).equals(ValueType.BOOLEAN)) {
@@ -230,7 +255,8 @@ public final class BytecodeVerifier {
         requireSameType(owner, destination, left, pc);
         requireSameType(owner, destination, right, pc);
         if (owner.localType(destination).kind() == ValueType.Kind.RECORD
-            || owner.localType(destination).kind() == ValueType.Kind.VARIANT) {
+            || owner.localType(destination).kind() == ValueType.Kind.VARIANT
+            || owner.localType(destination).kind() == ValueType.Kind.ARRAY) {
           fail(location(owner, pc) + " XOR does not accept aggregate values");
         }
       }
@@ -266,6 +292,8 @@ public final class BytecodeVerifier {
       case VARIANT_NEW -> verifyVariantNew(program, owner, instruction, pc);
       case VARIANT_TAG_EQ -> verifyVariantTag(program, owner, instruction, pc);
       case VARIANT_GET -> verifyVariantGet(program, owner, instruction, pc);
+      case ARRAY_NEW -> verifyArrayNew(program, owner, instruction, pc);
+      case ARRAY_GET -> verifyArrayGet(program, owner, instruction, pc);
       case SWAP -> {
         verifyGlobal(program, instruction.operands().get(0), owner, pc);
         verifyGlobal(program, instruction.operands().get(1), owner, pc);
@@ -427,6 +455,37 @@ public final class BytecodeVerifier {
     }
   }
 
+  private static void verifyArrayNew(
+      Program program, FunctionBody owner, Instruction instruction, int pc) {
+    int destination = verifyLocal(owner, instruction.operands().get(0), pc);
+    int typeId = Math.toIntExact(instruction.operands().get(1));
+    int base = Math.toIntExact(instruction.operands().get(2));
+    int count = Math.toIntExact(instruction.operands().get(3));
+    ArrayType array = program.arrayType(typeId);
+    if (!owner.localType(destination).equals(ValueType.array(typeId))
+        || count != array.length()
+        || base < 0
+        || base > owner.localCount() - count) {
+      fail(location(owner, pc) + " array construction signature mismatch");
+    }
+    for (int element = 0; element < count; element++) {
+      requireType(owner, base + element, array.elementType(), pc);
+    }
+  }
+
+  private static void verifyArrayGet(
+      Program program, FunctionBody owner, Instruction instruction, int pc) {
+    int destination = verifyLocal(owner, instruction.operands().get(0), pc);
+    int source = verifyLocal(owner, instruction.operands().get(1), pc);
+    int index = verifyLocal(owner, instruction.operands().get(2), pc);
+    ValueType sourceType = owner.localType(source);
+    if (sourceType.kind() != ValueType.Kind.ARRAY) {
+      fail(location(owner, pc) + " indexing requires an array");
+    }
+    requireType(owner, destination, program.arrayType(sourceType.descriptorId()).elementType(), pc);
+    requireType(owner, index, ValueType.SIGNED, pc);
+  }
+
   private static void verifyLocalFlow(FunctionBody owner, List<Instruction> body) {
     BitSet[] incoming = new BitSet[body.size()];
     incoming[0] = new BitSet(owner.localCount());
@@ -462,11 +521,13 @@ public final class BytecodeVerifier {
       FunctionBody owner, Instruction instruction, int pc, BitSet assigned) {
     if (instruction.opcode() == Opcode.CALL_VALUE
         || instruction.opcode() == Opcode.RECORD_NEW
-        || instruction.opcode() == Opcode.VARIANT_NEW) {
+        || instruction.opcode() == Opcode.VARIANT_NEW
+        || instruction.opcode() == Opcode.ARRAY_NEW) {
       int baseOperand = switch (instruction.opcode()) {
         case CALL_VALUE -> 1;
         case RECORD_NEW -> 2;
         case VARIANT_NEW -> 3;
+        case ARRAY_NEW -> 2;
         default -> throw new IllegalStateException();
       };
       int countOperand = baseOperand + 1;
@@ -487,6 +548,7 @@ public final class BytecodeVerifier {
       case LOCAL_LOOP_CHECK -> new int[] {0, 1};
       case RETURN_VALUE -> new int[] {0};
       case RECORD_GET, VARIANT_TAG_EQ, VARIANT_GET -> new int[] {1};
+      case ARRAY_GET -> new int[] {1, 2};
       default -> new int[0];
     };
     for (int operandIndex : reads) {
@@ -501,7 +563,7 @@ public final class BytecodeVerifier {
     return switch (instruction.opcode()) {
       case LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, LOCAL_ADD, LOCAL_SUB,
           LOCAL_XOR, LOCAL_EQ, LOCAL_LT, LOCAL_LOOP_CHECK, RECORD_NEW, RECORD_GET,
-          VARIANT_NEW, VARIANT_TAG_EQ, VARIANT_GET ->
+          VARIANT_NEW, VARIANT_TAG_EQ, VARIANT_GET, ARRAY_NEW, ARRAY_GET ->
           Math.toIntExact(instruction.operands().getFirst());
       case CALL_VALUE -> Math.toIntExact(instruction.operands().get(3));
       default -> -1;

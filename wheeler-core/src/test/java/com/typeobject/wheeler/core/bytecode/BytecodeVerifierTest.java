@@ -139,6 +139,24 @@ class BytecodeVerifierTest {
         "MalformedVariant", 0, List.of(), List.of(), List.of(option), List.of(badTag));
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(malformedVariant));
     assertEquals(ValueType.variant(3), ValueType.fromCode(ValueType.variant(3).code()));
+
+    ArrayType pairArray = new ArrayType(0, ValueType.SIGNED, 2);
+    FunctionBody badArray = typedMain(
+        List.of(ValueType.SIGNED, ValueType.array(0)),
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 1),
+            Instruction.of(Opcode.ARRAY_NEW, 1, 0, 0, 1),
+            Instruction.of(Opcode.HALT)));
+    Program malformedArray = new Program(
+        "MalformedArray",
+        0,
+        List.of(),
+        List.of(),
+        List.of(),
+        List.of(pairArray),
+        List.of(badArray));
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(malformedArray));
+    assertEquals(ValueType.array(4), ValueType.fromCode(ValueType.array(4).code()));
   }
 
   @Test

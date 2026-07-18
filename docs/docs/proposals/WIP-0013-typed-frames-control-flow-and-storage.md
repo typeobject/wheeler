@@ -244,7 +244,7 @@ A feature that cannot express or simplify one of these modules needs separate ju
 - [x] Register metadata uses bounded 32-bit scalar or aggregate references; canonical nominal record descriptors reject duplicate, forward, cyclic, and unresolved type IDs.
 - [x] Local constants, state load/store, move, arithmetic, comparison, branches, loop checks, value calls, and value returns execute and rewind.
 - [x] Typed signed/Boolean parameters, returns, local bindings, expressions, static calls, `if`/`else`, and bounded `while` compile end to end.
-- [ ] Immutable nominal records and closed tagged variants execute with canonical descriptors, typed construction/calls, structural equality, exhaustive selection, snapshots, and rewind; arrays, slices, and mutable ownership checks remain.
+- [ ] Immutable nominal records, closed tagged variants, and fixed immutable arrays execute with canonical descriptors, typed construction/calls, structural equality, exhaustive selection, checked indexing, snapshots, and rewind; slices and mutable ownership checks remain.
 - [ ] Region storage supports compiler arenas under hard limits.
 - [ ] Reversible protected control forms generate checked inverses.
 - [ ] Lexer, parser, codec, verifier, and package graph fixtures run in Wheeler.
@@ -259,7 +259,7 @@ A feature that cannot express or simplify one of these modules needs separate ju
 - [x] `while` and counted `for` tests cover zero and exact bounds, exceeded bounds, update-on-continue, innermost `break`, nested loops, and the independent global step defense.
 - [ ] Reversible methods reject unprotected branch/loop forms and accept only forms with checked inverse laws.
 - [ ] Record and variant tests cover canonical encoding, nested fields and payloads, nominal structural equality, exhaustive selection, malformed descriptors, source type errors, deterministic interning, and rewind; native layout parity remains.
-- [ ] Array/slice tests cover boundaries, split/join, overlap, escape, move, and borrow lifetime.
+- [ ] Fixed-array tests cover typed construction, dynamic boundaries, calls/results, structural equality, canonical encoding, interning, and rewind; slice split/join, overlap, escape, move, and borrow-lifetime tests remain.
 - [ ] Region tests cover exhaustion, drop, escape, dangling borrow, canonical output independence, and commit.
 - [ ] Stage-0 and Wheeler compilers produce identical typed metadata, code, diagnostics, and artifacts for the shared profile.
 - [ ] The self-host compiler modules and package resolver run under declared frame, region, stack, and step ceilings.

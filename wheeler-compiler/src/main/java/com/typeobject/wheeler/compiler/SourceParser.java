@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.compiler;
 
+import com.typeobject.wheeler.compiler.SourceModel.ArrayDefinition;
 import com.typeobject.wheeler.compiler.SourceModel.Circuit;
 import com.typeobject.wheeler.compiler.SourceModel.Function;
 import com.typeobject.wheeler.compiler.SourceModel.Parameter;
@@ -16,11 +17,10 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 /** Recursive-descent parser for Wheeler's formatting-independent source profile. */
-final class SourceParser extends SourceTokenCursor {
+final class SourceParser extends SourceStatementParser {
   private static final Set<String> DOMAINS = Set.of("classical", "quantum", "hybrid");
   private static final Set<String> VISIBILITY = Set.of("public", "private", "protected");
 
@@ -28,6 +28,7 @@ final class SourceParser extends SourceTokenCursor {
   private final List<Function> functions = new ArrayList<>();
   private final List<RecordDefinition> records = new ArrayList<>();
   private final List<VariantDefinition> variants = new ArrayList<>();
+  private final List<ArrayDefinition> arrays = new ArrayList<>();
   private final List<QuantumRegisterSource> registers = new ArrayList<>();
   private final List<Circuit> circuits = new ArrayList<>();
   private String domain;
@@ -43,6 +44,7 @@ final class SourceParser extends SourceTokenCursor {
     functions.clear();
     records.clear();
     variants.clear();
+    arrays.clear();
     registers.clear();
     circuits.clear();
     loops.clear();
@@ -65,7 +67,7 @@ final class SourceParser extends SourceTokenCursor {
       fail(domain, "exactly one 'entry void main()' method is required");
     }
     return new SourceProgram(
-        name, domain.text(), states, records, variants, functions, registers, circuits);
+        name, domain.text(), states, records, variants, arrays, functions, registers, circuits);
   }
 
   private void parseMember() {
@@ -205,23 +207,18 @@ final class SourceParser extends SourceTokenCursor {
         default -> fail(previous(), "unsupported method modifier: " + modifier);
       }
     }
-    SourceToken returnToken = expect(Type.IDENTIFIER, "method return type");
-    String returnType = returnToken.text();
-    if (!returnType.equals("void") && !isValueType(returnType)) {
-      fail(returnToken, "expected void or declared value return type");
-    }
+    String returnType = matchText("void")
+        ? "void"
+        : parseValueType("method return type");
     boolean returnsValue = !returnType.equals("void");
     String name = expect(Type.IDENTIFIER, "method name").text();
     expect(Type.LEFT_PAREN, "'(' after method name");
     List<Parameter> parameters = new ArrayList<>();
     if (!check(Type.RIGHT_PAREN)) {
       do {
-        SourceToken type = expect(Type.IDENTIFIER, "parameter type");
-        if (!isValueType(type.text())) {
-          fail(type, "expected declared parameter type");
-        }
+        String type = parseValueType("parameter type");
         parameters.add(new Parameter(
-            expect(Type.IDENTIFIER, "parameter name").text(), type.text()));
+            expect(Type.IDENTIFIER, "parameter name").text(), type));
       } while (match(Type.COMMA));
     }
     expect(Type.RIGHT_PAREN, "')' after parameters");
@@ -328,11 +325,8 @@ final class SourceParser extends SourceTokenCursor {
   }
 
   private void parseLocalDeclaration(List<Statement> body) {
-    SourceToken start = advance();
-    String type = start.text();
-    if (!isValueType(type)) {
-      fail(start, "expected declared local type");
-    }
+    SourceToken start = peek();
+    String type = parseValueType("local type");
     String name = expect(Type.IDENTIFIER, "local name").text();
     expect(Type.ASSIGN, "'=' in local declaration");
     String value = parseExpression(body);
@@ -601,7 +595,7 @@ final class SourceParser extends SourceTokenCursor {
     if (match(Type.LEFT_PAREN)) {
       String value = parseExpression(body);
       expect(Type.RIGHT_PAREN, "')' after expression");
-      return parseFieldAccess(body, value, previous().line());
+      return parsePostfix(body, value, previous().line());
     }
     SourceToken start = peek();
     if (match(Type.MINUS)) {
@@ -612,21 +606,23 @@ final class SourceParser extends SourceTokenCursor {
       return constant(body, previous(), previous().text());
     }
     if (matchText("new")) {
-      SourceToken type = expect(Type.IDENTIFIER, "aggregate type after new");
-      boolean record = records.stream().anyMatch(candidate -> candidate.name().equals(type.text()));
+      SourceToken type = peek();
+      String typeName = parseValueType("aggregate type after new");
+      boolean record = records.stream().anyMatch(candidate -> candidate.name().equals(typeName));
       VariantDefinition variant = variants.stream()
-          .filter(candidate -> candidate.name().equals(type.text()))
+          .filter(candidate -> candidate.name().equals(typeName))
           .findFirst().orElse(null);
       String caseName = null;
-      if (!record && variant != null) {
+      boolean array = arrays.stream().anyMatch(candidate -> candidate.name().equals(typeName));
+      if (!record && !array && variant != null) {
         expect(Type.DOT, "'.' before variant case");
         caseName = expect(Type.IDENTIFIER, "variant case after new").text();
         String selected = caseName;
         if (variant.cases().stream().noneMatch(candidate -> candidate.name().equals(selected))) {
-          fail(type, "unknown variant case: " + type.text() + "." + caseName);
+          fail(type, "unknown variant case: " + typeName + "." + caseName);
         }
-      } else if (!record) {
-        fail(type, "unknown aggregate type: " + type.text());
+      } else if (!record && !array) {
+        fail(type, "unknown aggregate type: " + typeName);
       }
       expect(Type.LEFT_PAREN, "'(' after aggregate constructor");
       List<String> arguments = new ArrayList<>();
@@ -639,14 +635,14 @@ final class SourceParser extends SourceTokenCursor {
       String result = temporary();
       List<String> construction = new ArrayList<>();
       construction.add(result);
-      construction.add(type.text());
+      construction.add(typeName);
       if (variant != null) {
         construction.add(caseName);
       }
       construction.addAll(arguments);
-      body.add(new Statement(
-          variant == null ? "record_new" : "variant_new", construction, start.line()));
-      return parseFieldAccess(body, result, start.line());
+      String operation = array ? "array_new" : variant == null ? "record_new" : "variant_new";
+      body.add(new Statement(operation, construction, start.line()));
+      return parsePostfix(body, result, start.line());
     }
     if (checkText("true") || checkText("false")) {
       SourceToken value = advance();
@@ -670,22 +666,29 @@ final class SourceParser extends SourceTokenCursor {
         call.add(start.text());
         call.addAll(arguments);
         body.add(new Statement("call_value", call, start.line()));
-        return parseFieldAccess(body, result, start.line());
+        return parsePostfix(body, result, start.line());
       }
       String result = temporary();
       body.add(statement("local_read", start.line(), result, start.text()));
-      return parseFieldAccess(body, result, start.line());
+      return parsePostfix(body, result, start.line());
     }
     fail(start, "expected expression");
     throw new AssertionError("unreachable");
   }
 
-  private String parseFieldAccess(List<Statement> body, String source, int line) {
+  private String parsePostfix(List<Statement> body, String source, int line) {
     String value = source;
-    while (match(Type.DOT)) {
-      String field = expect(Type.IDENTIFIER, "record field name").text();
+    while (check(Type.DOT) || check(Type.LEFT_BRACKET)) {
       String result = temporary();
-      body.add(statement("record_get", line, result, value, field));
+      if (match(Type.DOT)) {
+        String field = expect(Type.IDENTIFIER, "record field name").text();
+        body.add(statement("record_get", line, result, value, field));
+      } else {
+        expect(Type.LEFT_BRACKET, "'[' before array index");
+        String index = parseExpression(body);
+        expect(Type.RIGHT_BRACKET, "']' after array index");
+        body.add(statement("array_get", line, result, value, index));
+      }
       value = result;
     }
     return value;
@@ -704,6 +707,28 @@ final class SourceParser extends SourceTokenCursor {
     return result;
   }
 
+  private String parseValueType(String description) {
+    SourceToken element = expect(Type.IDENTIFIER, description);
+    if (!isValueType(element.text())) {
+      fail(element, "expected declared " + description);
+    }
+    if (!match(Type.LEFT_BRACKET)) {
+      return element.text();
+    }
+    SourceToken lengthToken = expect(Type.NUMBER, "fixed array length");
+    long length = parseInteger(lengthToken.text(), lengthToken.line());
+    if (length <= 0 || length > 65_535) {
+      fail(lengthToken, "fixed array length must be between 1 and 65535");
+    }
+    expect(Type.RIGHT_BRACKET, "']' after fixed array length");
+    String name = element.text() + "[" + length + "]";
+    if (arrays.stream().noneMatch(array -> array.name().equals(name))) {
+      arrays.add(new ArrayDefinition(
+          name, element.text(), Math.toIntExact(length), element.line()));
+    }
+    return name;
+  }
+
   private boolean checkLocalType() {
     return check(Type.IDENTIFIER) && isValueType(peek().text());
   }
@@ -711,7 +736,8 @@ final class SourceParser extends SourceTokenCursor {
   private boolean isValueType(String name) {
     return name.equals("long") || name.equals("boolean")
         || records.stream().anyMatch(record -> record.name().equals(name))
-        || variants.stream().anyMatch(variant -> variant.name().equals(name));
+        || variants.stream().anyMatch(variant -> variant.name().equals(name))
+        || arrays.stream().anyMatch(array -> array.name().equals(name));
   }
 
   private boolean isAssignmentStart() {
@@ -733,166 +759,6 @@ final class SourceParser extends SourceTokenCursor {
     return "$l" + labelSequence++;
   }
 
-  private Statement parseStatement() {
-    SourceToken start = expect(Type.IDENTIFIER, "statement");
-    if (start.text().equals("assert")) {
-      String state = expect(Type.IDENTIFIER, "state after assert").text();
-      expect(Type.EQUAL, "'==' in assertion");
-      String value = signedNumber();
-      expect(Type.SEMICOLON, "';' after assertion");
-      return statement("expect", start.line(), state, value);
-    }
-
-    if (match(Type.PLUS_ASSIGN, Type.MINUS_ASSIGN, Type.XOR_ASSIGN, Type.ASSIGN)) {
-      Type operator = previous().type();
-      if (operator == Type.ASSIGN && matchText("measure")) {
-        expect(Type.LEFT_PAREN, "'(' after measure");
-        String register = expect(Type.IDENTIFIER, "register to measure").text();
-        expect(Type.RIGHT_PAREN, "')' after measurement register");
-        expect(Type.SEMICOLON, "';' after measurement");
-        return statement("measure", start.line(), register, start.text());
-      }
-      String value = signedNumber();
-      expect(Type.SEMICOLON, "';' after assignment");
-      String operation = switch (operator) {
-        case PLUS_ASSIGN -> "add";
-        case MINUS_ASSIGN -> "sub";
-        case XOR_ASSIGN -> "xor";
-        case ASSIGN -> "set";
-        default -> throw new AssertionError("unhandled assignment");
-      };
-      return statement(operation, start.line(), start.text(), value);
-    }
-
-    expect(Type.LEFT_PAREN, "'(' after method name");
-    if (start.text().equals("prepare")) {
-      String register = expect(Type.IDENTIFIER, "register to prepare").text();
-      expect(Type.COMMA, "',' after preparation register");
-      String basis = signedNumber();
-      expect(Type.RIGHT_PAREN, "')' after preparation");
-      expect(Type.SEMICOLON, "';' after preparation");
-      return statement("prepare", start.line(), register, basis);
-    }
-    expect(Type.RIGHT_PAREN, "zero-argument method call");
-    expect(Type.SEMICOLON, "';' after method call");
-    if (start.text().equals("checkpoint") || start.text().equals("commit")) {
-      return statement(start.text(), start.line());
-    }
-    return statement("invoke", start.line(), start.text());
-  }
-
-  private Circuit parseCircuit(String name, int line) {
-    List<Statement> body = new ArrayList<>();
-    String register = null;
-    while (!check(Type.RIGHT_BRACE) && !check(Type.END)) {
-      SourceToken operation = expect(Type.IDENTIFIER, "gate or qreg reference");
-      if (match(Type.DOT)) {
-        expectText("apply");
-        expect(Type.LEFT_PAREN, "'(' after apply");
-        String function = expect(Type.IDENTIFIER, "coherent method reference").text();
-        expect(Type.RIGHT_PAREN, "')' after coherent method reference");
-        expect(Type.SEMICOLON, "';' after coherent application");
-        register = sameRegister(register, operation.text(), operation);
-        body.add(statement("lift", operation.line(), function));
-        continue;
-      }
-
-      String gate = operation.text().toLowerCase(Locale.ROOT);
-      expect(Type.LEFT_PAREN, "'(' after gate name");
-      QubitReference first = qubitReference();
-      register = sameRegister(register, first.register(), operation);
-      List<String> arguments = new ArrayList<>();
-      arguments.add(Integer.toString(first.index()));
-      int arity = switch (gate) {
-        case "h", "x", "z", "phase" -> 1;
-        case "cphase", "cnot", "cz", "swap" -> 2;
-        default -> throw new CompilerException(operation.line(), "unknown gate: " + operation.text());
-      };
-      if (arity == 2) {
-        expect(Type.COMMA, "',' between gate qubits");
-        QubitReference second = qubitReference();
-        register = sameRegister(register, second.register(), operation);
-        arguments.add(Integer.toString(second.index()));
-      }
-      if (gate.equals("phase") || gate.equals("cphase")) {
-        expect(Type.COMMA, "',' before gate angle");
-        arguments.add(signedNumber());
-      }
-      expect(Type.RIGHT_PAREN, "')' after gate arguments");
-      expect(Type.SEMICOLON, "';' after gate");
-      body.add(new Statement(gate.equals("swap") ? "qswap" : gate, arguments, operation.line()));
-    }
-    expect(Type.RIGHT_BRACE, "'}' after unitary method");
-    if (register == null) {
-      fail(peek(), "unitary method must operate on a qreg");
-    }
-    return new Circuit(name, register, body, line);
-  }
-
-  private QubitReference qubitReference() {
-    SourceToken register = expect(Type.IDENTIFIER, "quantum register");
-    expect(Type.LEFT_BRACKET, "'[' after quantum register");
-    long index = parseInteger(signedNumber(), register.line());
-    if (index < 0 || index > Integer.MAX_VALUE) {
-      fail(register, "invalid qubit index");
-    }
-    expect(Type.RIGHT_BRACKET, "']' after qubit index");
-    return new QubitReference(register.text(), (int) index);
-  }
-
-  private static String sameRegister(String currentRegister, String next, SourceToken source) {
-    if (currentRegister != null && !currentRegister.equals(next)) {
-      throw new CompilerException(
-          source.line(), "one unitary method cannot mix registers in the first profile");
-    }
-    return next;
-  }
-
-  private void emptyArguments() {
-    expect(Type.LEFT_PAREN, "'(' after method name");
-    expect(Type.RIGHT_PAREN, "zero-argument method call");
-  }
-
-  private String signedNumber() {
-    String sign = match(Type.MINUS) ? "-" : "";
-    return sign + expect(Type.NUMBER, "numeric literal").text();
-  }
-
-  static long parseInteger(String text, int line) {
-    try {
-      boolean negative = text.startsWith("-");
-      String magnitude = negative ? text.substring(1) : text;
-      int radix = 10;
-      if (magnitude.startsWith("0x")) {
-        radix = 16;
-        magnitude = magnitude.substring(2);
-      } else if (magnitude.startsWith("0b")) {
-        radix = 2;
-        magnitude = magnitude.substring(2);
-      }
-      long value = Long.parseLong(magnitude.replace("_", ""), radix);
-      return negative ? Math.negateExact(value) : value;
-    } catch (ArithmeticException | NumberFormatException exception) {
-      throw new CompilerException(line, "invalid 64-bit integer: " + text);
-    }
-  }
-
-  static double parseAngle(String text, int line) {
-    try {
-      double value = Double.parseDouble(text);
-      if (!Double.isFinite(value)) {
-        throw new CompilerException(line, "angle must be finite");
-      }
-      return value;
-    } catch (NumberFormatException exception) {
-      throw new CompilerException(line, "invalid angle: " + text);
-    }
-  }
-
-  private static Statement statement(String operation, int line, String... arguments) {
-    return new Statement(operation, List.of(arguments), line);
-  }
-
   private record MatchCase(
       String type, String caseName, List<Parameter> bindings, List<Statement> body, int line) {
     private MatchCase {
@@ -903,5 +769,4 @@ final class SourceParser extends SourceTokenCursor {
 
   private record LoopLabels(String repeat, String done) {}
 
-  private record QubitReference(String register, int index) {}
 }

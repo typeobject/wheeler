@@ -10,5 +10,6 @@ public record MachineSnapshot(
     Map<String, Long> globals,
     List<RecordValue> records,
     List<VariantValue> variants,
+    List<ArrayValue> arrays,
     int historyRecords,
     long sequence) {}

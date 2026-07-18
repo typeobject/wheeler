@@ -39,6 +39,11 @@ public final class Disassembler {
       });
       output.append('\n');
     }
+    for (ArrayType array : program.arrayTypes()) {
+      output.append("\narray ").append(array.id())
+          .append(" element=").append(array.elementType().displayName())
+          .append(" length=").append(array.length()).append('\n');
+    }
     for (FunctionBody function : program.functions()) {
       output.append("\nfunction ").append(function.id()).append(' ').append(function.name());
       if (function.returnsValue()) {

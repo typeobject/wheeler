@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.core.ProgramFixtures;
+import com.typeobject.wheeler.core.bytecode.ArrayType;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Disassembler;
@@ -288,6 +289,76 @@ class VirtualMachineTest {
       machine.rewindOne();
     }
     assertTrue(machine.snapshot().variants().isEmpty());
+  }
+
+  @Test
+  void fixedArrayConstructionIndexEqualityBoundsAndRewind() {
+    ArrayType triple = new ArrayType(0, ValueType.SIGNED, 3);
+    FunctionBody main = new FunctionBody(
+        0,
+        "main",
+        false,
+        0,
+        List.of(
+            ValueType.SIGNED,
+            ValueType.SIGNED,
+            ValueType.SIGNED,
+            ValueType.array(0),
+            ValueType.SIGNED,
+            ValueType.SIGNED,
+            ValueType.array(0),
+            ValueType.BOOLEAN),
+        null,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 3),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 5),
+            Instruction.of(Opcode.LOCAL_CONST, 2, 7),
+            Instruction.of(Opcode.ARRAY_NEW, 3, 0, 0, 3),
+            Instruction.of(Opcode.LOCAL_CONST, 4, 1),
+            Instruction.of(Opcode.ARRAY_GET, 5, 3, 4),
+            Instruction.of(Opcode.ARRAY_NEW, 6, 0, 0, 3),
+            Instruction.of(Opcode.LOCAL_EQ, 7, 3, 6),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    Program program = new Program(
+        "Arrays", 0, List.of(), List.of(), List.of(), List.of(triple), List.of(main));
+    VirtualMachine machine = new VirtualMachine(program);
+    MachineSnapshot initial = machine.snapshot();
+
+    machine.run();
+
+    assertEquals(1, machine.snapshot().arrays().size());
+    assertEquals(List.of(3L, 5L, 7L), machine.snapshot().arrays().getFirst().elements());
+    assertEquals(5, machine.snapshot().frames().getFirst().local(5));
+    assertEquals(1, machine.snapshot().frames().getFirst().local(7));
+    while (machine.historySize() > 0) {
+      machine.rewindOne();
+    }
+    assertEquals(initial, machine.snapshot());
+
+    FunctionBody outOfBounds = new FunctionBody(
+        0,
+        "main",
+        false,
+        0,
+        List.of(
+            ValueType.SIGNED, ValueType.SIGNED, ValueType.SIGNED,
+            ValueType.array(0), ValueType.SIGNED, ValueType.SIGNED),
+        null,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 3),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 5),
+            Instruction.of(Opcode.LOCAL_CONST, 2, 7),
+            Instruction.of(Opcode.ARRAY_NEW, 3, 0, 0, 3),
+            Instruction.of(Opcode.LOCAL_CONST, 4, 3),
+            Instruction.of(Opcode.ARRAY_GET, 5, 3, 4),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    VirtualMachine trapped = new VirtualMachine(new Program(
+        "Bounds", 0, List.of(), List.of(), List.of(), List.of(triple), List.of(outOfBounds)));
+    assertThrows(VmTrap.class, trapped::run);
+    assertEquals(MachineStatus.TRAPPED, trapped.status());
+    assertEquals(1, trapped.snapshot().arrays().size());
   }
 
   @Test

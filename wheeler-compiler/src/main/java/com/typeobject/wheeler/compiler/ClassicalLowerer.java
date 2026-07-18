@@ -2,6 +2,7 @@ package com.typeobject.wheeler.compiler;
 
 import com.typeobject.wheeler.compiler.SourceModel.SourceProgram;
 import com.typeobject.wheeler.compiler.SourceModel.Statement;
+import com.typeobject.wheeler.core.bytecode.ArrayType;
 import com.typeobject.wheeler.core.bytecode.FunctionBody;
 import com.typeobject.wheeler.core.bytecode.Global;
 import com.typeobject.wheeler.core.bytecode.Instruction;
@@ -22,6 +23,7 @@ final class ClassicalLowerer {
       List<Global> globals,
       List<RecordType> recordTypes,
       List<VariantType> variantTypes,
+      List<ArrayType> arrayTypes,
       List<FunctionBody> functions,
       int entryId,
       Map<String, Integer> globalIds,
@@ -44,7 +46,9 @@ final class ClassicalLowerer {
     List<Global> globals = lowerGlobals(source);
     List<RecordType> recordTypes = lowerRecordTypes(source);
     List<VariantType> variantTypes = lowerVariantTypes(source, recordTypes);
-    Map<String, ValueType> typeReferences = typeReferences(recordTypes, variantTypes);
+    List<ArrayType> arrayTypes = lowerArrayTypes(source, recordTypes, variantTypes);
+    Map<String, ValueType> typeReferences = typeReferences(
+        source, recordTypes, variantTypes, arrayTypes);
     Map<String, Integer> globalIds = indexGlobals(globals);
     Map<String, Integer> functionIds = indexFunctions(source);
     Map<String, Boolean> reversibleFunctions = new HashMap<>();
@@ -82,7 +86,8 @@ final class ClassicalLowerer {
             signatures,
             typeReferences,
             recordTypes,
-            variantTypes);
+            variantTypes,
+            arrayTypes);
         forward = lowered.instructions();
         localTypes = lowered.localTypes();
       }
@@ -119,6 +124,7 @@ final class ClassicalLowerer {
         globals,
         recordTypes,
         variantTypes,
+        arrayTypes,
         List.copyOf(functions),
         entryId,
         globalIds,
@@ -169,13 +175,36 @@ final class ClassicalLowerer {
     return List.copyOf(result);
   }
 
+  private static List<ArrayType> lowerArrayTypes(
+      SourceProgram source, List<RecordType> records, List<VariantType> variants) {
+    List<ArrayType> result = new ArrayList<>();
+    Map<String, ValueType> types = new LinkedHashMap<>();
+    types.put("long", ValueType.SIGNED);
+    types.put("boolean", ValueType.BOOLEAN);
+    records.forEach(record -> types.put(record.name(), ValueType.record(record.id())));
+    variants.forEach(variant -> types.put(variant.name(), ValueType.variant(variant.id())));
+    for (SourceModel.ArrayDefinition array : source.arrays()) {
+      ValueType element = sourceType(array.elementType(), array.line(), types);
+      ArrayType descriptor = new ArrayType(result.size(), element, array.length());
+      result.add(descriptor);
+      types.put(array.name(), ValueType.array(descriptor.id()));
+    }
+    return List.copyOf(result);
+  }
+
   private static Map<String, ValueType> typeReferences(
-      List<RecordType> records, List<VariantType> variants) {
+      SourceProgram source,
+      List<RecordType> records,
+      List<VariantType> variants,
+      List<ArrayType> arrays) {
     Map<String, ValueType> result = new LinkedHashMap<>();
     result.put("long", ValueType.SIGNED);
     result.put("boolean", ValueType.BOOLEAN);
     records.forEach(record -> result.put(record.name(), ValueType.record(record.id())));
     variants.forEach(variant -> result.put(variant.name(), ValueType.variant(variant.id())));
+    for (int index = 0; index < arrays.size(); index++) {
+      result.put(source.arrays().get(index).name(), ValueType.array(arrays.get(index).id()));
+    }
     return Map.copyOf(result);
   }
 
@@ -218,7 +247,8 @@ final class ClassicalLowerer {
       Map<String, FunctionSignature> signatures,
       Map<String, ValueType> typeReferences,
       List<RecordType> recordTypes,
-      List<VariantType> variantTypes) {
+      List<VariantType> variantTypes,
+      List<ArrayType> arrayTypes) {
     return new LocalAssembler(
         owner,
         globals,
@@ -227,7 +257,8 @@ final class ClassicalLowerer {
         signatures,
         typeReferences,
         recordTypes,
-        variantTypes).lower();
+        variantTypes,
+        arrayTypes).lower();
   }
 
   private static Instruction lowerStatement(
@@ -320,6 +351,7 @@ final class ClassicalLowerer {
     private final Map<String, ValueType> typeReferences;
     private final Map<String, RecordType> records;
     private final Map<String, VariantType> variants;
+    private final List<ArrayType> arrays;
     private final Map<String, Integer> locals = new LinkedHashMap<>();
     private final List<ValueType> localTypes = new ArrayList<>();
     private final Map<String, Integer> labels = new HashMap<>();
@@ -335,7 +367,8 @@ final class ClassicalLowerer {
         Map<String, FunctionSignature> signatures,
         Map<String, ValueType> typeReferences,
         List<RecordType> recordTypes,
-        List<VariantType> variantTypes) {
+        List<VariantType> variantTypes,
+        List<ArrayType> arrayTypes) {
       this.owner = owner;
       this.globals = globals;
       this.functions = functions;
@@ -348,6 +381,7 @@ final class ClassicalLowerer {
       Map<String, VariantType> variants = new HashMap<>();
       variantTypes.forEach(variant -> variants.put(variant.name(), variant));
       this.variants = Map.copyOf(variants);
+      this.arrays = List.copyOf(arrayTypes);
       for (SourceModel.Parameter parameter : owner.parameters()) {
         declareUser(parameter.name(), owner.line(), sourceType(parameter.type(), owner.line(), typeReferences));
       }
@@ -398,6 +432,8 @@ final class ClassicalLowerer {
         case "variant_new" -> lowerVariantNew(statement);
         case "variant_tag" -> lowerVariantTag(statement);
         case "variant_get" -> lowerVariantGet(statement);
+        case "array_new" -> lowerArrayNew(statement);
+        case "array_get" -> lowerArrayGet(statement);
         case "local_bind" -> {
           requireArguments(statement, 3);
           int source = requireLocal(arguments.get(1), statement.line());
@@ -490,7 +526,8 @@ final class ClassicalLowerer {
           requireSameType(left, right, statement.line());
           resultType = localTypes.get(left);
           if (resultType.kind() == ValueType.Kind.RECORD
-              || resultType.kind() == ValueType.Kind.VARIANT) {
+              || resultType.kind() == ValueType.Kind.VARIANT
+              || resultType.kind() == ValueType.Kind.ARRAY) {
             throw new CompilerException(statement.line(), "XOR does not accept aggregates");
           }
         }
@@ -623,6 +660,48 @@ final class ClassicalLowerer {
         }
       }
       throw new CompilerException(line, "unknown variant case " + name);
+    }
+
+    private void lowerArrayNew(Statement statement) {
+      if (statement.arguments().size() < 2) {
+        throw new CompilerException(statement.line(), "malformed array construction");
+      }
+      ValueType arrayType = typeReferences.get(statement.arguments().get(1));
+      if (arrayType == null || arrayType.kind() != ValueType.Kind.ARRAY) {
+        throw new CompilerException(statement.line(), "unknown fixed array type");
+      }
+      ArrayType descriptor = arrays.get(arrayType.descriptorId());
+      int count = statement.arguments().size() - 2;
+      if (count != descriptor.length()) {
+        throw new CompilerException(statement.line(), "array construction length mismatch");
+      }
+      int elementBase = locals.size();
+      for (int element = 0; element < count; element++) {
+        int source = requireLocal(statement.arguments().get(element + 2), statement.line());
+        requireType(source, descriptor.elementType(), statement.line());
+        int window = declareInternal(
+            "$array" + assemblyTemporary++, statement.line(), descriptor.elementType());
+        output.add(Instruction.of(Opcode.LOCAL_MOVE, window, source));
+      }
+      int destination = declareInternal(
+          statement.arguments().get(0), statement.line(), arrayType);
+      output.add(Instruction.of(
+          Opcode.ARRAY_NEW, destination, descriptor.id(), elementBase, count));
+    }
+
+    private void lowerArrayGet(Statement statement) {
+      requireArguments(statement, 3);
+      int source = requireLocal(statement.arguments().get(1), statement.line());
+      int index = requireLocal(statement.arguments().get(2), statement.line());
+      ValueType sourceType = localTypes.get(source);
+      if (sourceType.kind() != ValueType.Kind.ARRAY) {
+        throw new CompilerException(statement.line(), "indexing requires a fixed array");
+      }
+      requireType(index, ValueType.SIGNED, statement.line());
+      ValueType elementType = arrays.get(sourceType.descriptorId()).elementType();
+      int destination = declareInternal(
+          statement.arguments().get(0), statement.line(), elementType);
+      output.add(Instruction.of(Opcode.ARRAY_GET, destination, source, index));
     }
 
     private void lowerValueCall(Statement statement) {

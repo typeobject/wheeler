@@ -9,6 +9,7 @@ The examples are deliberately bounded. They demonstrate implemented semantics an
 | [`Counter.w`](../../wheeler-examples/src/main/wheeler/Counter.w) | Generated inverse calls and reverse-block order | `count = 0` |
 | [`BinaryTree.w`](../../wheeler-examples/src/main/wheeler/BinaryTree.w) | Fixed-capacity reversible tree slots | `root = left = right = 0` |
 | [`BootstrapControl.w`](../../wheeler-examples/src/main/wheeler/BootstrapControl.w) | Typed signed and Boolean locals, expressions, branch joins, and a bounded counted `for` | `sum = 10`, `branch = 1` |
+| [`FixedArrays.w`](../../wheeler-examples/src/main/wheeler/FixedArrays.w) | Fixed immutable arrays, typed array calls/results, checked indexing, and structural equality | `selected = 6`, `sum = 20`, `equal = 1` |
 | [`FunctionValues.w`](../../wheeler-examples/src/main/wheeler/FunctionValues.w) | Signed and Boolean parameters/results, nested expressions, typed static value calls, and callee loop | `result = 10` |
 | [`LoopControl.w`](../../wheeler-examples/src/main/wheeler/LoopControl.w) | Early typed return plus bounded `break` and `continue` edges | `sum = 12`, `selected = 7` |
 | [`Records.w`](../../wheeler-examples/src/main/wheeler/Records.w) | Nested immutable records, typed record calls, fields, and structural equality | `width = 5`, `equal = 1` |

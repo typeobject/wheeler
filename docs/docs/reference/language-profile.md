@@ -138,6 +138,19 @@ Payload types must already be declared, preventing recursive inline layouts. Con
 
 The VM interns variants separately from records under a 65,535-value ceiling. Snapshots and rewind include both tables; a checked payload read traps before mutation if its expected tag does not match.
 
+## Fixed arrays
+
+A fixed array owns an immutable, homogeneous sequence whose length is part of its type:
+
+```java
+long[4] values = new long[4](2, 4, 6, 8);
+long selected = values[2];
+```
+
+Construction requires exactly the declared number of left-to-right elements and checks every element type. Arrays may be locals, parameters, and results. Index expressions are signed values and trap before mutation when negative or at least the array length. `==` compares the complete typed value. Lengths range from 1 through 65,535; nested array syntax, mutation, and slices are not in this slice.
+
+Equal arrays are interned in deterministic construction order under a 65,535-value machine ceiling. Handles remain unobservable and type-specific. Snapshots and rewind include the array table.
+
 ## Quantum statements
 
 Unitary methods use Java-shaped gate calls over indexed registers:

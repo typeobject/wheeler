@@ -34,8 +34,8 @@ class BytecodeCodecTest {
     byte[] artifact = writer.write(ProgramFixtures.counter());
     String digest = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(artifact));
 
-    assertEquals(608, artifact.length);
-    assertEquals("c0c10385255c26dd2b08973f50d5d7c8dd2d1c521d938f4e33285d677482831d", digest);
+    assertEquals(616, artifact.length);
+    assertEquals("213755693b1cc7dff796deff044e3b6874df15aa025c781dc07dcf98a4ebcb8a", digest);
   }
 
   @Test
@@ -114,6 +114,7 @@ class BytecodeCodecTest {
             new VariantType.Case(
                 "Some",
                 java.util.List.of(new RecordType.Field("point", ValueType.record(0))))));
+    ArrayType points = new ArrayType(0, ValueType.record(0), 2);
     FunctionBody main = new FunctionBody(
         0,
         "main",
@@ -130,6 +131,7 @@ class BytecodeCodecTest {
         java.util.List.of(),
         java.util.List.of(point),
         java.util.List.of(option),
+        java.util.List.of(points),
         java.util.List.of(main),
         java.util.List.of(),
         java.util.List.of(),
@@ -142,9 +144,11 @@ class BytecodeCodecTest {
 
     assertEquals(java.util.List.of(point), decoded.recordTypes());
     assertEquals(java.util.List.of(option), decoded.variantTypes());
+    assertEquals(java.util.List.of(points), decoded.arrayTypes());
     assertArrayEquals(artifact, writer.write(decoded));
-    assertTrue(new Disassembler().disassemble(decoded)
-        .contains("variant 0 Option None() Some(point:record#0)"));
+    String disassembly = new Disassembler().disassemble(decoded);
+    assertTrue(disassembly.contains("variant 0 Option None() Some(point:record#0)"));
+    assertTrue(disassembly.contains("array 0 element=record#0 length=2"));
   }
 
   @Test

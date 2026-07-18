@@ -19,6 +19,7 @@ public final class Program {
   private final List<Global> globals;
   private final List<RecordType> recordTypes;
   private final List<VariantType> variantTypes;
+  private final List<ArrayType> arrayTypes;
   private final List<FunctionBody> functions;
   private final List<QuantumRegister> quantumRegisters;
   private final List<QuantumCircuit> quantumCircuits;
@@ -27,9 +28,45 @@ public final class Program {
   private final long maxSteps;
   private final Map<Integer, RecordType> recordTypesById;
   private final Map<Integer, VariantType> variantTypesById;
+  private final Map<Integer, ArrayType> arrayTypesById;
   private final Map<Integer, FunctionBody> functionsById;
   private final Map<Integer, QuantumRegister> registersById;
   private final Map<Integer, QuantumCircuit> circuitsById;
+
+  public Program(
+      String name,
+      ProgramKind kind,
+      int entryFunctionId,
+      List<Global> globals,
+      List<RecordType> recordTypes,
+      List<VariantType> variantTypes,
+      List<ArrayType> arrayTypes,
+      List<FunctionBody> functions,
+      List<QuantumRegister> quantumRegisters,
+      List<QuantumCircuit> quantumCircuits,
+      List<WorkflowStep> workflow,
+      int maxHistoryRecords,
+      long maxSteps) {
+    this.name = Objects.requireNonNull(name, "name");
+    this.kind = Objects.requireNonNull(kind, "kind");
+    this.entryFunctionId = entryFunctionId;
+    this.globals = List.copyOf(globals);
+    this.recordTypes = List.copyOf(recordTypes);
+    this.variantTypes = List.copyOf(variantTypes);
+    this.arrayTypes = List.copyOf(arrayTypes);
+    this.functions = List.copyOf(functions);
+    this.quantumRegisters = List.copyOf(quantumRegisters);
+    this.quantumCircuits = List.copyOf(quantumCircuits);
+    this.workflow = List.copyOf(workflow);
+    this.maxHistoryRecords = maxHistoryRecords;
+    this.maxSteps = maxSteps;
+    this.recordTypesById = index(this.recordTypes, RecordType::id, "record type");
+    this.variantTypesById = index(this.variantTypes, VariantType::id, "variant type");
+    this.arrayTypesById = index(this.arrayTypes, ArrayType::id, "array type");
+    this.functionsById = index(this.functions, FunctionBody::id, "function");
+    this.registersById = index(this.quantumRegisters, QuantumRegister::id, "quantum register");
+    this.circuitsById = index(this.quantumCircuits, QuantumCircuit::id, "quantum circuit");
+  }
 
   public Program(
       String name,
@@ -44,23 +81,20 @@ public final class Program {
       List<WorkflowStep> workflow,
       int maxHistoryRecords,
       long maxSteps) {
-    this.name = Objects.requireNonNull(name, "name");
-    this.kind = Objects.requireNonNull(kind, "kind");
-    this.entryFunctionId = entryFunctionId;
-    this.globals = List.copyOf(globals);
-    this.recordTypes = List.copyOf(recordTypes);
-    this.variantTypes = List.copyOf(variantTypes);
-    this.functions = List.copyOf(functions);
-    this.quantumRegisters = List.copyOf(quantumRegisters);
-    this.quantumCircuits = List.copyOf(quantumCircuits);
-    this.workflow = List.copyOf(workflow);
-    this.maxHistoryRecords = maxHistoryRecords;
-    this.maxSteps = maxSteps;
-    this.recordTypesById = index(this.recordTypes, RecordType::id, "record type");
-    this.variantTypesById = index(this.variantTypes, VariantType::id, "variant type");
-    this.functionsById = index(this.functions, FunctionBody::id, "function");
-    this.registersById = index(this.quantumRegisters, QuantumRegister::id, "quantum register");
-    this.circuitsById = index(this.quantumCircuits, QuantumCircuit::id, "quantum circuit");
+    this(
+        name,
+        kind,
+        entryFunctionId,
+        globals,
+        recordTypes,
+        variantTypes,
+        List.of(),
+        functions,
+        quantumRegisters,
+        quantumCircuits,
+        workflow,
+        maxHistoryRecords,
+        maxSteps);
   }
 
   public Program(
@@ -81,6 +115,7 @@ public final class Program {
         entryFunctionId,
         globals,
         recordTypes,
+        List.of(),
         List.of(),
         functions,
         quantumRegisters,
@@ -106,6 +141,7 @@ public final class Program {
         kind,
         entryFunctionId,
         globals,
+        List.of(),
         List.of(),
         List.of(),
         functions,
@@ -128,6 +164,7 @@ public final class Program {
         ProgramKind.CLASSICAL,
         entryFunctionId,
         globals,
+        List.of(),
         List.of(),
         List.of(),
         functions,
@@ -150,6 +187,7 @@ public final class Program {
         entryFunctionId,
         globals,
         recordTypes,
+        List.of(),
         List.of(),
         functions,
         List.of(),
@@ -173,6 +211,31 @@ public final class Program {
         globals,
         recordTypes,
         variantTypes,
+        List.of(),
+        functions,
+        List.of(),
+        List.of(),
+        List.of(),
+        DEFAULT_MAX_HISTORY,
+        DEFAULT_MAX_STEPS);
+  }
+
+  public Program(
+      String name,
+      int entryFunctionId,
+      List<Global> globals,
+      List<RecordType> recordTypes,
+      List<VariantType> variantTypes,
+      List<ArrayType> arrayTypes,
+      List<FunctionBody> functions) {
+    this(
+        name,
+        ProgramKind.CLASSICAL,
+        entryFunctionId,
+        globals,
+        recordTypes,
+        variantTypes,
+        arrayTypes,
         functions,
         List.of(),
         List.of(),
@@ -221,6 +284,10 @@ public final class Program {
     return variantTypes;
   }
 
+  public List<ArrayType> arrayTypes() {
+    return arrayTypes;
+  }
+
   public List<FunctionBody> functions() {
     return functions;
   }
@@ -251,6 +318,10 @@ public final class Program {
 
   public VariantType variantType(int id) {
     return require(variantTypesById, id, "variant type");
+  }
+
+  public ArrayType arrayType(int id) {
+    return require(arrayTypesById, id, "array type");
   }
 
   public FunctionBody function(int id) {

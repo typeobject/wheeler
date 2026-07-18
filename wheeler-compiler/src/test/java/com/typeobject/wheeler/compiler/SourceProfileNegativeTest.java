@@ -209,6 +209,35 @@ class SourceProfileNegativeTest {
   }
 
   @Test
+  void rejectsInvalidFixedArrayConstruction() {
+    String wrongLength = """
+        classical class WrongLength {
+          entry void main() { long[2] values = new long[2](1); }
+        }
+        """;
+    String wrongElement = """
+        classical class WrongElement {
+          entry void main() { long[2] values = new long[2](1, true); }
+        }
+        """;
+    String excessive = """
+        classical class Excessive {
+          entry void main() { long[65536] values = new long[65536](1); }
+        }
+        """;
+
+    CompilerException length = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(wrongLength));
+    CompilerException element = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(wrongElement));
+    CompilerException bound = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(excessive));
+    assertTrue(length.getMessage().contains("array construction length mismatch"));
+    assertTrue(element.getMessage().contains("expected signed expression"));
+    assertTrue(bound.getMessage().contains("fixed array length must be between"));
+  }
+
+  @Test
   void rejectsOutOfRangeQuantumReference() {
     String source = """
         quantum class BrokenQubit {

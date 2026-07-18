@@ -22,7 +22,6 @@
 (field_expression field: (identifier) @property)
 (state_declaration name: (identifier) @variable.member)
 (qreg_declaration name: (identifier) @variable.member)
-(qubit_reference register: (identifier) @variable)
 
 (boolean_literal) @constant.builtin.boolean
 (integer_literal) @number

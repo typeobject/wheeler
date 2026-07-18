@@ -101,22 +101,28 @@ quantum class Bell {
                   (identifier)
                   (argument_list
                     (expression
-                      (qubit_reference
-                        (identifier)
-                        (integer_literal)))))))
+                      (array_access_expression
+                        (expression
+                          (identifier))
+                        (expression
+                          (integer_literal))))))))
             (statement
               (call_statement
                 (call_expression
                   (identifier)
                   (argument_list
                     (expression
-                      (qubit_reference
-                        (identifier)
-                        (integer_literal)))
+                      (array_access_expression
+                        (expression
+                          (identifier))
+                        (expression
+                          (integer_literal))))
                     (expression
-                      (qubit_reference
-                        (identifier)
-                        (integer_literal))))))))))
+                      (array_access_expression
+                        (expression
+                          (identifier))
+                        (expression
+                          (integer_literal)))))))))))
       (member_declaration
         (method_declaration
           (method_modifier)
@@ -528,7 +534,8 @@ classical class Records {
               (return_statement
                 (expression
                   (record_creation
-                    (identifier)
+                    (value_type
+                      (type_identifier))
                     (argument_list
                       (expression
                         (identifier))
@@ -551,7 +558,8 @@ classical class Records {
                     (argument_list
                       (expression
                         (record_creation
-                          (identifier)
+                          (value_type
+                            (type_identifier))
                           (argument_list
                             (expression
                               (integer_literal))
@@ -632,7 +640,8 @@ classical class Variants {
                 (identifier)
                 (expression
                   (record_creation
-                    (identifier)
+                    (value_type
+                      (type_identifier))
                     (identifier)
                     (argument_list
                       (expression
@@ -664,3 +673,96 @@ classical class Variants {
                         (identifier)
                         (expression
                           (identifier))))))))))))))
+
+==================
+Fixed value arrays
+==================
+
+classical class Arrays {
+  state long selected = 0;
+  long total(long[3] values) { return values[0] + values[1] + values[2]; }
+  entry void main() {
+    long[3] values = new long[3](2, 4, 6);
+    selected = values[1];
+  }
+}
+
+---
+
+(source_file
+  (class_declaration
+    (computation_domain)
+    (identifier)
+    (class_body
+      (member_declaration
+        (state_declaration
+          (identifier)
+          (integer_literal)))
+      (member_declaration
+        (method_declaration
+          (value_type)
+          (identifier)
+          (parameter_list
+            (parameter
+              (value_type
+                (array_extent
+                  (integer_literal)))
+              (identifier)))
+          (block
+            (statement
+              (return_statement
+                (expression
+                  (binary_expression
+                    (expression
+                      (binary_expression
+                        (expression
+                          (array_access_expression
+                            (expression
+                              (identifier))
+                            (expression
+                              (integer_literal))))
+                        (expression
+                          (array_access_expression
+                            (expression
+                              (identifier))
+                            (expression
+                              (integer_literal))))))
+                    (expression
+                      (array_access_expression
+                        (expression
+                          (identifier))
+                        (expression
+                          (integer_literal)))))))))))
+      (member_declaration
+        (method_declaration
+          (method_modifier)
+          (identifier)
+          (parameter_list)
+          (block
+            (statement
+              (local_declaration
+                (value_type
+                  (array_extent
+                    (integer_literal)))
+                (identifier)
+                (expression
+                  (record_creation
+                    (value_type
+                      (array_extent
+                        (integer_literal)))
+                    (argument_list
+                      (expression
+                        (integer_literal))
+                      (expression
+                        (integer_literal))
+                      (expression
+                        (integer_literal)))))))
+            (statement
+              (assignment_statement
+                (identifier)
+                (expression
+                  (array_access_expression
+                    (expression
+                      (identifier))
+                    (expression
+                      (integer_literal))))))))))))

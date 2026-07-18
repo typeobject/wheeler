@@ -143,7 +143,8 @@ public final class BytecodeWriter {
     int recordBytes = program.recordTypes().stream()
         .mapToInt(record -> 12 + record.fields().size() * 8)
         .sum();
-    ByteBuffer buffer = little(8 + program.globals().size() * 16 + recordBytes);
+    ByteBuffer buffer = little(
+        12 + program.globals().size() * 16 + recordBytes + program.arrayTypes().size() * 12);
     buffer.putInt(program.globals().size());
     for (Global global : program.globals()) {
       buffer.putInt(strings.get(global.name()));
@@ -159,6 +160,12 @@ public final class BytecodeWriter {
         buffer.putInt(strings.get(field.name()));
         buffer.putInt(field.type().code());
       }
+    }
+    buffer.putInt(program.arrayTypes().size());
+    for (ArrayType array : program.arrayTypes()) {
+      buffer.putInt(array.id());
+      buffer.putInt(array.elementType().code());
+      buffer.putInt(array.length());
     }
     return buffer.array();
   }

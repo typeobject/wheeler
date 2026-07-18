@@ -98,7 +98,11 @@ module.exports = grammar({
       optional(seq($.parameter, repeat(seq(',', $.parameter)))),
       ')',
     ),
-    value_type: $ => choice('long', 'boolean', alias($.identifier, $.type_identifier)),
+    value_type: $ => seq(
+      choice('long', 'boolean', alias($.identifier, $.type_identifier)),
+      optional($.array_extent),
+    ),
+    array_extent: $ => seq('[', field('length', $.integer_literal), ']'),
     parameter: $ => seq(
       field('type', $.value_type),
       field('name', $.identifier),
@@ -216,7 +220,7 @@ module.exports = grammar({
       $.call_expression,
       $.record_creation,
       $.field_expression,
-      $.qubit_reference,
+      $.array_access_expression,
       $.parenthesized_expression,
       $.binary_expression,
     ),
@@ -229,7 +233,7 @@ module.exports = grammar({
     ),
     record_creation: $ => seq(
       'new',
-      field('type', $.identifier),
+      field('type', $.value_type),
       optional(seq('.', field('case', $.identifier))),
       '(',
       optional($.argument_list),
@@ -240,6 +244,12 @@ module.exports = grammar({
       '.',
       field('field', $.identifier),
     )),
+    array_access_expression: $ => prec(5, seq(
+      field('array', $.expression),
+      '[',
+      field('index', $.expression),
+      ']',
+    )),
     call_expression: $ => seq(
       field('function', $.identifier),
       '(',
@@ -247,7 +257,6 @@ module.exports = grammar({
       ')',
     ),
     argument_list: $ => seq($.expression, repeat(seq(',', $.expression))),
-    qubit_reference: $ => seq(field('register', $.identifier), '[', field('index', $.integer_literal), ']'),
 
     boolean_literal: _ => choice('true', 'false'),
     integer_literal: _ => token(choice(

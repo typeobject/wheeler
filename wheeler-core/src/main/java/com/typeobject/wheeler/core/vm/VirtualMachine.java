@@ -25,6 +25,8 @@ public final class VirtualMachine {
   private final Map<RecordValue, Integer> recordHandles = new LinkedHashMap<>();
   private final List<VariantValue> variants = new ArrayList<>();
   private final Map<VariantValue, Integer> variantHandles = new LinkedHashMap<>();
+  private final List<ArrayValue> arrays = new ArrayList<>();
+  private final Map<ArrayValue, Integer> arrayHandles = new LinkedHashMap<>();
   private final Deque<StepRecord> history = new ArrayDeque<>();
   private MachineStatus status = MachineStatus.READY;
   private long sequence;
@@ -87,6 +89,9 @@ public final class VirtualMachine {
     }
     while (variants.size() > record.previousVariantCount()) {
       variantHandles.remove(variants.removeLast());
+    }
+    while (arrays.size() > record.previousArrayCount()) {
+      arrayHandles.remove(arrays.removeLast());
     }
     switch (record.controlChange()) {
       case ADVANCE -> replaceCurrentFrame(record.previousFrame());
@@ -176,6 +181,7 @@ public final class VirtualMachine {
         Map.copyOf(values),
         List.copyOf(records),
         List.copyOf(variants),
+        List.copyOf(arrays),
         history.size(),
         sequence);
   }
@@ -198,6 +204,7 @@ public final class VirtualMachine {
     StepRecord.ControlChange control = StepRecord.ControlChange.ADVANCE;
     int previousRecordCount = records.size();
     int previousVariantCount = variants.size();
+    int previousArrayCount = arrays.size();
 
     switch (opcode) {
       case ADD_CONST -> {
@@ -323,6 +330,29 @@ public final class VirtualMachine {
             localIndex(instruction, 0),
             value.fields().get(Math.toIntExact(operand(instruction, 3))));
       }
+      case ARRAY_NEW -> {
+        int destination = localIndex(instruction, 0);
+        int typeId = Math.toIntExact(operand(instruction, 1));
+        int base = Math.toIntExact(operand(instruction, 2));
+        int count = Math.toIntExact(operand(instruction, 3));
+        List<Long> elements = new ArrayList<>(count);
+        for (int element = 0; element < count; element++) {
+          elements.add(currentFrame().local(base + element));
+        }
+        ArrayValue value = new ArrayValue(typeId, elements);
+        Integer handle = arrayHandles.get(value);
+        if (handle == null) {
+          arrays.add(value);
+          handle = arrays.size();
+          arrayHandles.put(value, handle);
+        }
+        setLocalAndAdvance(destination, handle);
+      }
+      case ARRAY_GET -> {
+        ArrayValue value = arrayValue(localValue(instruction, 1));
+        int index = Math.toIntExact(localValue(instruction, 2));
+        setLocalAndAdvance(localIndex(instruction, 0), value.elements().get(index));
+      }
       case CALL, UNCALL -> {
         int functionId = Math.toIntExact(operand(instruction, 0));
         advanceCurrentFrame();
@@ -376,7 +406,8 @@ public final class VirtualMachine {
         changedLocal,
         previousLocalValue,
         previousRecordCount,
-        previousVariantCount);
+        previousVariantCount,
+        previousArrayCount);
   }
 
   private void validateBeforeMutation(Instruction instruction) {
@@ -486,6 +517,30 @@ public final class VirtualMachine {
           int field = Math.toIntExact(operand(instruction, 3));
           if (value.tag() != tag || field < 0 || field >= value.fields().size()) {
             trap("Variant payload access mismatch");
+          }
+        }
+        case ARRAY_NEW -> {
+          localIndex(instruction, 0);
+          var type = program.arrayType(Math.toIntExact(operand(instruction, 1)));
+          int base = Math.toIntExact(operand(instruction, 2));
+          int count = Math.toIntExact(operand(instruction, 3));
+          List<Long> elements = new ArrayList<>(count);
+          for (int element = 0; element < count; element++) {
+            long value = currentFrame().local(base + element);
+            validateAggregateValue(type.elementType(), value);
+            elements.add(value);
+          }
+          if (!arrayHandles.containsKey(new ArrayValue(type.id(), elements))
+              && arrays.size() >= 65_535) {
+            trap("Array value limit exceeded");
+          }
+        }
+        case ARRAY_GET -> {
+          localIndex(instruction, 0);
+          ArrayValue value = checkedArraySource(instruction, 1);
+          long index = localValue(instruction, 2);
+          if (index < 0 || index >= value.elements().size()) {
+            trap("Array index out of bounds: " + index);
           }
         }
         case CALL -> {
@@ -653,6 +708,27 @@ public final class VirtualMachine {
         && variantValue(value).typeId() != type.descriptorId()) {
       trap("Nested variant type mismatch");
     }
+    if (type.kind() == ValueType.Kind.ARRAY
+        && arrayValue(value).typeId() != type.descriptorId()) {
+      trap("Nested array type mismatch");
+    }
+  }
+
+  private ArrayValue arrayValue(long handle) {
+    if (handle <= 0 || handle > arrays.size()) {
+      trap("Invalid array handle " + handle);
+    }
+    return arrays.get(Math.toIntExact(handle - 1));
+  }
+
+  private ArrayValue checkedArraySource(Instruction instruction, int operandIndex) {
+    int source = localIndex(instruction, operandIndex);
+    ArrayValue value = arrayValue(currentFrame().local(source));
+    ValueType type = program.function(currentFrame().functionId()).localType(source);
+    if (type.kind() != ValueType.Kind.ARRAY || value.typeId() != type.descriptorId()) {
+      trap("Array handle type mismatch");
+    }
+    return value;
   }
 
   private int checkedJumpTarget(Instruction instruction, int operandIndex) {
