@@ -70,7 +70,7 @@ classical class Opcodes {
     public const long INTERPRETER_STORAGE_WORDS = 128;
     public const long INTERPRETER_AGGREGATE_COUNT = 32;
     public const long INTERPRETER_AGGREGATE_FIELDS = 128;
-    public const long INTERPRETER_LOCAL_WIDTH = 32;
+    public const long INTERPRETER_LOCAL_WIDTH = 64;
     public const long INTERPRETER_FRAME_COUNT = 8;
     public const long INTERPRETER_FUNCTION_COUNT = 8;
     public const long INTERPRETER_GLOBAL_COUNT = 8;

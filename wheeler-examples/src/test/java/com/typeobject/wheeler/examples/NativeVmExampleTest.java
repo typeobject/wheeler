@@ -268,6 +268,8 @@ class NativeVmExampleTest {
         17,
         "present",
         1);
+    assertInterpretedGlobal(
+        interpreter, wideLocalSource(), "result", 16);
     byte[] forgedMap = withBadMapKey(
         compiler.compileToBytecode(map));
     assertThrows(
@@ -370,6 +372,15 @@ class NativeVmExampleTest {
       nativeMachine.rewindOne();
     }
     assertEquals(initial, nativeMachine.snapshot());
+  }
+
+  private static String wideLocalSource() {
+    StringBuilder source = new StringBuilder(
+        "classical class WideLocals { state long result = 0; entry void main() { ");
+    for (int local = 0; local < 17; local++) {
+      source.append("long value").append(local).append(" = ").append(local).append("; ");
+    }
+    return source.append("result = value16; assert result == 16; } }").toString();
   }
 
   private static void assertAllInterpretedGlobals(

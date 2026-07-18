@@ -130,7 +130,8 @@ classical class Interpreter {
         long storageDataCursor = 0;
         long steps = 0;
         long clear = 0;
-        while (clear < INTERPRETER_LOCAL_WIDTH)
+        while (clear < readUnsigned(
+                artifact, entryDescriptor + 32, 4))
             limit INTERPRETER_LOCAL_WIDTH {
             set(locals, clear, 0);
             clear += 1;
@@ -244,7 +245,8 @@ classical class Interpreter {
                             end = cursor + readUnsigned(
                                 artifact, callDescriptor + 16, 4);
                             long clearCall = 0;
-                            while (clearCall < INTERPRETER_LOCAL_WIDTH)
+                            while (clearCall < readUnsigned(
+                                    artifact, callDescriptor + 32, 4))
                                 limit INTERPRETER_LOCAL_WIDTH {
                                 set(locals, localIndex(depth, clearCall), 0);
                                 clearCall += 1;
@@ -275,7 +277,8 @@ classical class Interpreter {
                             end = cursor + readUnsigned(
                                 artifact, uncallDescriptor + 24, 4);
                             long clearUncall = 0;
-                            while (clearUncall < INTERPRETER_LOCAL_WIDTH)
+                            while (clearUncall < readUnsigned(
+                                    artifact, uncallDescriptor + 32, 4))
                                 limit INTERPRETER_LOCAL_WIDTH {
                                 set(locals, localIndex(depth, clearUncall), 0);
                                 clearUncall += 1;
@@ -310,7 +313,8 @@ classical class Interpreter {
                             end = cursor + readUnsigned(
                                 artifact, valueDescriptor + 16, 4);
                             long clearValue = 0;
-                            while (clearValue < INTERPRETER_LOCAL_WIDTH)
+                            while (clearValue < readUnsigned(
+                                    artifact, valueDescriptor + 32, 4))
                                 limit INTERPRETER_LOCAL_WIDTH {
                                 set(locals, localIndex(depth, clearValue), 0);
                                 clearValue += 1;
@@ -353,7 +357,8 @@ classical class Interpreter {
                             end = cursor + readUnsigned(
                                 artifact, voidDescriptor + 16, 4);
                             long clearVoid = 0;
-                            while (clearVoid < INTERPRETER_LOCAL_WIDTH)
+                            while (clearVoid < readUnsigned(
+                                    artifact, voidDescriptor + 32, 4))
                                 limit INTERPRETER_LOCAL_WIDTH {
                                 set(locals, localIndex(depth, clearVoid), 0);
                                 clearVoid += 1;
