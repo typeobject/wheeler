@@ -296,9 +296,10 @@ Secrets are opaque host-owned handles and are prohibited from canonical output, 
 
 - [x] Canonical `.wbc` provides a portable artifact identity for package outputs.
 - [x] WIP-0007 and WIP-0008 define compiler and native recovery requirements.
-- [ ] Manifest and archive schemas have strict stage-0 codecs; lockfile and build-plan schemas remain.
-- [ ] Stage-0 manifest and archive output is content-addressed and reproducible; workspace builds remain.
-- [ ] Local, vendored, and registry dependency resolution pass conformance tests.
+- [ ] Manifest, lockfile, and archive schemas have strict stage-0 codecs; workspace and build-plan schemas remain.
+- [ ] Stage-0 manifest, resolution, lockfile, and archive output is content-addressed and reproducible; workspace builds remain.
+- [x] The stage-0 in-memory resolver deterministically selects one version per package with bounded backtracking, explicit development scope, and cycle rejection.
+- [ ] Local, vendored, and registry catalog loading pass conformance tests.
 - [ ] Wheeler-written `wheeler` builds and tests the complete workspace.
 - [ ] Native no-Java recovery uses only committed manifests, lockfile, and vendor inputs.
 - [ ] Gradle and duplicate build paths are deleted.
@@ -306,13 +307,13 @@ Secrets are opaque host-owned handles and are prohibited from canonical output, 
 
 ## Testing and acceptance
 
-- [ ] Manifest and lock parsers reject malformed UTF-8, duplicates, unknown required fields, traversal, excessive nesting, and oversized values; manifest coverage is implemented.
-- [ ] Resolution is identical under randomized registry response, manifest insertion, filesystem, and task completion order.
+- [ ] Manifest and lock parsers reject malformed UTF-8, duplicates, unknown required fields, traversal, excessive nesting, and oversized values; both stage-0 parsers fail closed and broader generative coverage remains.
+- [ ] Resolution is identical under catalog and manifest insertion order with bounded backtracking; filesystem, registry transport, and task completion inputs remain to test.
 - [ ] Locked and offline builds never perform resolution or network access.
 - [ ] Two clean builds produce identical `.wbc`, lockfile, package archive, plan, and provenance identities.
 - [ ] Cache deletion, cache poisoning, mirror selection, and vendor relocation cannot alter verified output.
 - [ ] Build tools cannot observe or mutate undeclared files, environment, network, clock, random state, credentials, or quantum targets.
-- [ ] Cyclic modules, cyclic dependencies, profile conflicts, feature conflicts, and ABI conflicts produce stable diagnostics.
+- [ ] Cyclic package dependencies produce stable diagnostics; cyclic modules, profile conflicts, feature conflicts, and ABI conflicts remain.
 - [ ] Compiler, runtime, tools, examples, docs, and negative fixtures build and test through `wheeler`.
 - [x] Package archives verify without extraction and reject duplicate, unordered, escaping, corrupt, oversized, malformed, and trailing members; links and special files are unrepresentable.
 - [ ] Publication is idempotent by content identity and cannot overwrite an existing version.
@@ -344,8 +345,6 @@ Rejected. Credentials, queue selection, calibration, budgets, and hardware avail
 
 ## Open questions
 
-- Which exact declarative syntax and canonical binary schema should back the first manifests and lockfiles? — **Owner:** package and language maintainers — **Decide by:** before stage-0 manifest implementation
-- Should the first resolver permit multiple versions of one package identity? — **Owner:** package and type-system maintainers — **Decide by:** before registry resolution
 - Which signature and namespace transparency design should the first registry deploy? — **Owner:** registry and security maintainers — **Decide by:** before public publication
 - Which documentation renderer belongs in the recovery graph without expanding the bootstrap excessively? — **Owner:** documentation and build maintainers — **Decide by:** before `wheeler doc` becomes required for recovery
 

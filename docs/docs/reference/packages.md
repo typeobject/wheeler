@@ -1,6 +1,6 @@
 # Package format
 
-Wheeler package metadata uses its own declarative syntax and canonical archive. The current stage-0 implementation parses `wheeler.package`, constructs immutable manifests, and reads and writes content-addressed `.wpk` archives. Dependency resolution, lockfiles, workspaces, build plans, registries, and the Wheeler-written `wheeler` command remain package-system work.
+Wheeler package metadata uses its own declarative syntax and canonical archive. The current stage-0 implementation parses `wheeler.package`, resolves an immutable package catalog, reads and writes canonical `wheeler.lock`, and reads and writes content-addressed `.wpk` archives. Workspaces, build plans, registry transport, and the Wheeler-written `wheeler` command remain package-system work.
 
 ## Manifest
 
@@ -24,6 +24,23 @@ Target kinds are `library`, `binary`, `tool`, `test`, and `example`. Dependency 
 The grammar has words, quoted strings, semicolons, and `//` comments. Strings support only `\\` and `\"` escapes and cannot cross line boundaries. Unknown declarations and fields fail closed with line and column.
 
 A manifest must declare at least one target. Package and dependency names use lower-case dotted namespaces. Duplicate target names, dependency names, and capability-name/path pairs are rejected.
+
+## Resolution and lockfiles
+
+`PackageResolver` operates only on an application-supplied immutable catalog of manifests and verified archive identities. It does not read a network, registry, clock, environment, or host package cache. It sorts package names and candidate releases, tries the highest compatible release, and performs bounded deterministic backtracking when transitive requirements conflict.
+
+Exact requirements select one version. Caret requirements remain below the next compatible major boundary, with the usual narrower `0.x` boundaries. Tilde requirements remain within one major/minor pair. Stable releases sort after prereleases for an equal release tuple. Duplicate catalog versions, missing solutions, root self-dependencies, cyclic selected graphs, and graphs over 10,000 packages fail closed. Development dependencies enter the graph only when explicitly requested.
+
+The generated `wheeler.lock` records the schema, root manifest identity, exact selected versions, archive identities, manifest identities, and dependency edges:
+
+```text
+lock 1 root "0000000000000000000000000000000000000000000000000000000000000000";
+package "wheeler.bytecode" version "0.1.0" archive "1111111111111111111111111111111111111111111111111111111111111111" manifest "2222222222222222222222222222222222222222222222222222222222222222";
+package "wheeler.compiler" version "0.1.0" archive "3333333333333333333333333333333333333333333333333333333333333333" manifest "4444444444444444444444444444444444444444444444444444444444444444";
+edge "wheeler.compiler" "wheeler.bytecode";
+```
+
+Package records and edges are sorted. `PackageLockParser` accepts only the canonical UTF-8 encoding with a final newline, known records, valid identities, and edges whose endpoints exist. Lock identity is SHA-256 over those canonical bytes.
 
 ## Canonicalization
 
@@ -71,4 +88,4 @@ Archive signatures and registry namespace authorization are separate layers. Con
 
 ## Implementation direction
 
-The package parser and archive codec are stage-0 conformance implementations. Their malformed-input and ordering suites define executable schemas for the Wheeler implementation. The package manager, standard library, and self-hosted compiler will consume the same canonical records; the Java implementation is removed at native cutover rather than retained as a second resolver.
+The manifest parser, resolver, lock codec, and archive codec are stage-0 conformance implementations. Their malformed-input, resolution, and ordering suites define executable schemas for the Wheeler implementation. The package manager, standard library, and self-hosted compiler will consume the same canonical records; the Java implementation is removed at native cutover rather than retained as a second resolver.

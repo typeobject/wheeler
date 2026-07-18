@@ -33,8 +33,10 @@ public record PackageManifest(
     name = packageName(name);
     version = checked(version, "version");
     profile = checked(profile, "profile");
-    if (!VERSION.matcher(version).matches()) {
-      throw new PackageFormatException("Invalid package version " + version);
+    try {
+      SemanticVersion.parse(version);
+    } catch (PackageFormatException exception) {
+      throw new PackageFormatException("Invalid package version " + version, exception);
     }
     targets = sortedUnique(targets, Comparator.comparing(Target::name), Target::name, "target");
     dependencies = sortedUnique(
@@ -100,6 +102,7 @@ public record PackageManifest(
       if (!CONSTRAINT.matcher(constraint).matches()) {
         throw new PackageFormatException("Invalid dependency constraint " + constraint);
       }
+      VersionConstraint.parse(constraint);
     }
   }
 
