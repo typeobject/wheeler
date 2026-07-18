@@ -30,12 +30,12 @@ class BytecodeCodecTest {
   }
 
   @Test
-  void goldenArtifactLocksVersionTwoEncoding() throws NoSuchAlgorithmException {
+  void goldenArtifactLocksFirstFormatEncoding() throws NoSuchAlgorithmException {
     byte[] artifact = writer.write(ProgramFixtures.counter());
     String digest = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(artifact));
 
-    assertEquals(568, artifact.length);
-    assertEquals("6ab95b768055d1776d0a6195481fdd40036ba20d9f1acfa40bebd90bf9ab8950", digest);
+    assertEquals(608, artifact.length);
+    assertEquals("c0c10385255c26dd2b08973f50d5d7c8dd2d1c521d938f4e33285d677482831d", digest);
   }
 
   @Test
@@ -99,13 +99,21 @@ class BytecodeCodecTest {
   }
 
   @Test
-  void nominalRecordDescriptorsRoundTripCanonically() {
+  void nominalAggregateDescriptorsRoundTripCanonically() {
     RecordType point = new RecordType(
         0,
         "Point",
         java.util.List.of(
             new RecordType.Field("x", ValueType.SIGNED),
             new RecordType.Field("visible", ValueType.BOOLEAN)));
+    VariantType option = new VariantType(
+        0,
+        "Option",
+        java.util.List.of(
+            new VariantType.Case("None", java.util.List.of()),
+            new VariantType.Case(
+                "Some",
+                java.util.List.of(new RecordType.Field("point", ValueType.record(0))))));
     FunctionBody main = new FunctionBody(
         0,
         "main",
@@ -121,6 +129,7 @@ class BytecodeCodecTest {
         0,
         java.util.List.of(),
         java.util.List.of(point),
+        java.util.List.of(option),
         java.util.List.of(main),
         java.util.List.of(),
         java.util.List.of(),
@@ -132,9 +141,10 @@ class BytecodeCodecTest {
     Program decoded = reader.read(artifact);
 
     assertEquals(java.util.List.of(point), decoded.recordTypes());
+    assertEquals(java.util.List.of(option), decoded.variantTypes());
     assertArrayEquals(artifact, writer.write(decoded));
     assertTrue(new Disassembler().disassemble(decoded)
-        .contains("record 0 Point x:signed visible:boolean"));
+        .contains("variant 0 Option None() Some(point:record#0)"));
   }
 
   @Test

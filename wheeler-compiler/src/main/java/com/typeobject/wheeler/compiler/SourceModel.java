@@ -17,6 +17,18 @@ final class SourceModel {
     }
   }
 
+  record VariantCase(String name, List<RecordField> fields) {
+    VariantCase {
+      fields = List.copyOf(fields);
+    }
+  }
+
+  record VariantDefinition(String name, List<VariantCase> cases, int line) {
+    VariantDefinition {
+      cases = List.copyOf(cases);
+    }
+  }
+
   record Statement(String operation, List<String> arguments, int line) {
     Statement {
       arguments = List.copyOf(arguments);
@@ -53,12 +65,14 @@ final class SourceModel {
       String kind,
       List<State> states,
       List<RecordDefinition> records,
+      List<VariantDefinition> variants,
       List<Function> functions,
       List<QuantumRegisterSource> quantumRegisters,
       List<Circuit> circuits) {
     SourceProgram {
       states = List.copyOf(states);
       records = List.copyOf(records);
+      variants = List.copyOf(variants);
       functions = List.copyOf(functions);
       quantumRegisters = List.copyOf(quantumRegisters);
       circuits = List.copyOf(circuits);

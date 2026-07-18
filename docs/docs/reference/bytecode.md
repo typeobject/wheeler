@@ -1,4 +1,4 @@
-# Wheeler bytecode version 2
+# Wheeler bytecode format
 
 Wheeler executables use the `.wbc` Wheeler Bytecode Container. They are not JVM `.class` files.
 
@@ -8,7 +8,7 @@ Every artifact starts with this 40-byte little-endian header:
 
 ```text
 byte[8] magic                 "WHEELBC\0"
-u16     major_version         2
+u16     major_version         1
 u16     minor_version         0
 u32     flags                 0
 u64     file_length
@@ -17,7 +17,7 @@ u32     directory_entry_size  32
 u64     directory_offset
 ```
 
-Directory entries contain section type, flags, offset, length, alignment, and a zero reserved field. Version 2 requires eight-byte alignment, canonical type order, no overlaps, and zero-filled padding.
+Directory entries contain section type, flags, offset, length, alignment, and a zero reserved field. The first format requires eight-byte alignment, canonical type order, no overlaps, and zero-filled padding.
 
 ## Implemented sections
 
@@ -25,7 +25,8 @@ Directory entries contain section type, flags, offset, length, alignment, and a 
 | --- | --- |
 | 1 | Manifest: program name, entry function, and limits. |
 | 2 | Strict UTF-8 string table. |
-| 3 | Signed 64-bit global descriptors. |
+| 3 | Signed 64-bit global and nominal record descriptors. |
+| 4 | Nominal tagged-variant descriptors. |
 | 5 | Function, inverse-body, signature, and local-register type descriptors. |
 | 6 | Classical code records. |
 | 7 | Ordered classical/quantum workflow records. |
@@ -35,7 +36,7 @@ Sections 7 and 8 are required for quantum and hybrid artifacts and absent from c
 
 The manifest records the program kind (`classical`, `quantum`, or `hybrid`) in addition to its name, entry function, history ceiling, and step ceiling.
 
-The type section starts with fixed signed-global descriptors, followed by a bounded nominal record table. A record descriptor carries canonical ID, name, nonempty ordered fields, field names, and field type references. IDs equal table positions. A record field may refer only to a prior descriptor, which makes recursive and cyclic layouts unrepresentable in this value-record profile. Duplicate names, fields, IDs, forward references, unknown string IDs, unknown type tags, truncation, and trailing bytes fail closed.
+The type section starts with fixed signed-global descriptors, followed by a bounded nominal record table. A record descriptor carries canonical ID, name, nonempty ordered fields, field names, and field type references. The required variant section carries canonical nominal IDs and an ordered nonempty case table; each case has a name and zero or more ordered typed payload fields. IDs equal table positions. Record fields may refer only to prior records. Variant payloads may refer to records or prior variants. Recursive, cyclic, and forward inline layouts are therefore unrepresentable. Duplicate names, fields, cases, IDs, forward references, unknown string IDs, unknown type tags, truncation, and trailing bytes fail closed.
 
 ## Classical instructions
 
@@ -48,9 +49,9 @@ u32 byte_length
 u64 operands[operand_count]
 ```
 
-The opcode fixes the canonical operand count and semantic rule. Each 40-byte function descriptor declares parameter and local counts, an optional typed result, code ranges, and a canonical offset into the trailing signature-type table. A present result type appears first at that offset, followed by local types; parameter registers are the first locals. Type offsets are contiguous in function order. One little-endian `u32` per register denotes signed 64-bit (`1`), Boolean (`2`), or a tagged aggregate type-table reference. Aggregate references use tag `0x1` in the high nibble and a 28-bit descriptor ID. Unknown codes, unresolved descriptor IDs, and noncanonical table lengths fail before execution. Parameter registers occupy the first frame slots and carry their declared signed or Boolean type. Result-presence flag `4` denotes one result type in the signature table.
+The opcode fixes the canonical operand count and semantic rule. Each 40-byte function descriptor declares parameter and local counts, an optional typed result, code ranges, and a canonical offset into the trailing signature-type table. A present result type appears first at that offset, followed by local types; parameter registers are the first locals. Type offsets are contiguous in function order. One little-endian `u32` per register denotes signed 64-bit (`1`), Boolean (`2`), or a tagged aggregate type-table reference. Record references use tag `0x1` in the high nibble; variant references use tag `0x2`; each carries a 28-bit descriptor ID. Unknown codes, unresolved descriptor IDs, and noncanonical table lengths fail before execution. Parameter registers occupy the first frame slots and carry their declared signed or Boolean type. Result-presence flag `4` denotes one result type in the signature table.
 
-Local instructions cover constants, state load/store, move, checked add/subtract, typed XOR, structural equality, less-than, conditional/unconditional branch, loop-limit check, static value call, value return, nominal record construction, and checked field access. `RECORD_NEW` consumes an exact contiguous field window and interns one immutable value; `RECORD_GET` reads one descriptor-checked field. Boolean registers contain only `0` or `1`. Equality and ordering produce Boolean values, and branch conditions consume them. A call identifies a contiguous initialized argument window, exact argument count, and caller result register. Dynamic undo data never appears in an instruction; it belongs to runtime step records.
+Local instructions cover constants, state load/store, move, checked add/subtract, typed XOR, structural equality, less-than, conditional/unconditional branch, loop-limit check, static value call, value return, nominal aggregate construction, and checked payload access. `RECORD_NEW` consumes an exact contiguous field window and interns one immutable value; `RECORD_GET` reads one descriptor-checked field. `VARIANT_NEW` adds a verified case tag, `VARIANT_TAG_EQ` tests it, and `VARIANT_GET` requires that exact tag before reading a payload field. Boolean registers contain only `0` or `1`. Equality and ordering produce Boolean values, and branch conditions consume them. A call identifies a contiguous initialized argument window, exact argument count, and caller result register. Dynamic undo data never appears in an instruction; it belongs to runtime step records.
 
 ## Quantum and workflow records
 
@@ -66,4 +67,4 @@ An instruction either completes and adds one rewind record or traps before data 
 
 ## Compatibility
 
-Major versions change incompatible structure or semantics. Minor versions add optional records or capabilities that old runtimes reject canonically. Numeric opcode and section IDs are never silently reused.
+The repository defines only format `1.0`. The decoder accepts exactly that pair and contains no compatibility branch for an earlier artifact. Future incompatible work must replace the format deliberately rather than retain an unreleased legacy path. Numeric opcode and section IDs are never silently reused.

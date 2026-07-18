@@ -8,6 +8,7 @@ import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.RecordType;
 import com.typeobject.wheeler.core.bytecode.ValueType;
+import com.typeobject.wheeler.core.bytecode.VariantType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,6 +21,7 @@ final class ClassicalLowerer {
   record ClassicalContent(
       List<Global> globals,
       List<RecordType> recordTypes,
+      List<VariantType> variantTypes,
       List<FunctionBody> functions,
       int entryId,
       Map<String, Integer> globalIds,
@@ -41,7 +43,8 @@ final class ClassicalLowerer {
   ClassicalContent lower(SourceProgram source, boolean classicalEntry) {
     List<Global> globals = lowerGlobals(source);
     List<RecordType> recordTypes = lowerRecordTypes(source);
-    Map<String, ValueType> typeReferences = typeReferences(recordTypes);
+    List<VariantType> variantTypes = lowerVariantTypes(source, recordTypes);
+    Map<String, ValueType> typeReferences = typeReferences(recordTypes, variantTypes);
     Map<String, Integer> globalIds = indexGlobals(globals);
     Map<String, Integer> functionIds = indexFunctions(source);
     Map<String, Boolean> reversibleFunctions = new HashMap<>();
@@ -78,7 +81,8 @@ final class ClassicalLowerer {
             reversibleFunctions,
             signatures,
             typeReferences,
-            recordTypes);
+            recordTypes,
+            variantTypes);
         forward = lowered.instructions();
         localTypes = lowered.localTypes();
       }
@@ -112,7 +116,13 @@ final class ClassicalLowerer {
           inverse));
     }
     return new ClassicalContent(
-        globals, recordTypes, List.copyOf(functions), entryId, globalIds, functionIds);
+        globals,
+        recordTypes,
+        variantTypes,
+        List.copyOf(functions),
+        entryId,
+        globalIds,
+        functionIds);
   }
 
   private static List<RecordType> lowerRecordTypes(SourceProgram source) {
@@ -136,11 +146,36 @@ final class ClassicalLowerer {
     return List.copyOf(result);
   }
 
-  private static Map<String, ValueType> typeReferences(List<RecordType> records) {
+  private static List<VariantType> lowerVariantTypes(
+      SourceProgram source, List<RecordType> records) {
+    List<VariantType> result = new ArrayList<>();
+    Map<String, ValueType> types = new LinkedHashMap<>();
+    types.put("long", ValueType.SIGNED);
+    types.put("boolean", ValueType.BOOLEAN);
+    records.forEach(record -> types.put(record.name(), ValueType.record(record.id())));
+    for (SourceModel.VariantDefinition variant : source.variants()) {
+      List<VariantType.Case> cases = variant.cases().stream()
+          .map(variantCase -> new VariantType.Case(
+              variantCase.name(),
+              variantCase.fields().stream()
+                  .map(field -> new RecordType.Field(
+                      field.name(), sourceType(field.type(), variant.line(), types)))
+                  .toList()))
+          .toList();
+      VariantType descriptor = new VariantType(result.size(), variant.name(), cases);
+      result.add(descriptor);
+      types.put(variant.name(), ValueType.variant(descriptor.id()));
+    }
+    return List.copyOf(result);
+  }
+
+  private static Map<String, ValueType> typeReferences(
+      List<RecordType> records, List<VariantType> variants) {
     Map<String, ValueType> result = new LinkedHashMap<>();
     result.put("long", ValueType.SIGNED);
     result.put("boolean", ValueType.BOOLEAN);
     records.forEach(record -> result.put(record.name(), ValueType.record(record.id())));
+    variants.forEach(variant -> result.put(variant.name(), ValueType.variant(variant.id())));
     return Map.copyOf(result);
   }
 
@@ -182,7 +217,8 @@ final class ClassicalLowerer {
       Map<String, Boolean> reversibleFunctions,
       Map<String, FunctionSignature> signatures,
       Map<String, ValueType> typeReferences,
-      List<RecordType> recordTypes) {
+      List<RecordType> recordTypes,
+      List<VariantType> variantTypes) {
     return new LocalAssembler(
         owner,
         globals,
@@ -190,7 +226,8 @@ final class ClassicalLowerer {
         reversibleFunctions,
         signatures,
         typeReferences,
-        recordTypes).lower();
+        recordTypes,
+        variantTypes).lower();
   }
 
   private static Instruction lowerStatement(
@@ -282,6 +319,7 @@ final class ClassicalLowerer {
     private final Map<String, FunctionSignature> signatures;
     private final Map<String, ValueType> typeReferences;
     private final Map<String, RecordType> records;
+    private final Map<String, VariantType> variants;
     private final Map<String, Integer> locals = new LinkedHashMap<>();
     private final List<ValueType> localTypes = new ArrayList<>();
     private final Map<String, Integer> labels = new HashMap<>();
@@ -296,7 +334,8 @@ final class ClassicalLowerer {
         Map<String, Boolean> reversibleFunctions,
         Map<String, FunctionSignature> signatures,
         Map<String, ValueType> typeReferences,
-        List<RecordType> recordTypes) {
+        List<RecordType> recordTypes,
+        List<VariantType> variantTypes) {
       this.owner = owner;
       this.globals = globals;
       this.functions = functions;
@@ -306,6 +345,9 @@ final class ClassicalLowerer {
       Map<String, RecordType> records = new HashMap<>();
       recordTypes.forEach(record -> records.put(record.name(), record));
       this.records = Map.copyOf(records);
+      Map<String, VariantType> variants = new HashMap<>();
+      variantTypes.forEach(variant -> variants.put(variant.name(), variant));
+      this.variants = Map.copyOf(variants);
       for (SourceModel.Parameter parameter : owner.parameters()) {
         declareUser(parameter.name(), owner.line(), sourceType(parameter.type(), owner.line(), typeReferences));
       }
@@ -353,6 +395,9 @@ final class ClassicalLowerer {
         case "local_binary" -> lowerBinary(statement);
         case "record_new" -> lowerRecordNew(statement);
         case "record_get" -> lowerRecordGet(statement);
+        case "variant_new" -> lowerVariantNew(statement);
+        case "variant_tag" -> lowerVariantTag(statement);
+        case "variant_get" -> lowerVariantGet(statement);
         case "local_bind" -> {
           requireArguments(statement, 3);
           int source = requireLocal(arguments.get(1), statement.line());
@@ -444,8 +489,9 @@ final class ClassicalLowerer {
         case "xor" -> {
           requireSameType(left, right, statement.line());
           resultType = localTypes.get(left);
-          if (resultType.kind() == ValueType.Kind.RECORD) {
-            throw new CompilerException(statement.line(), "XOR does not accept records");
+          if (resultType.kind() == ValueType.Kind.RECORD
+              || resultType.kind() == ValueType.Kind.VARIANT) {
+            throw new CompilerException(statement.line(), "XOR does not accept aggregates");
           }
         }
         case "eq" -> {
@@ -510,6 +556,73 @@ final class ClassicalLowerer {
       int destination = declareInternal(
           statement.arguments().get(0), statement.line(), record.fields().get(fieldIndex).type());
       output.add(Instruction.of(Opcode.RECORD_GET, destination, source, fieldIndex));
+    }
+
+    private void lowerVariantNew(Statement statement) {
+      if (statement.arguments().size() < 3) {
+        throw new CompilerException(statement.line(), "malformed variant construction");
+      }
+      String destinationName = statement.arguments().get(0);
+      VariantType variant = variants.get(statement.arguments().get(1));
+      int tag = variantCase(variant, statement.arguments().get(2), statement.line());
+      VariantType.Case variantCase = variant.cases().get(tag);
+      int fieldCount = statement.arguments().size() - 3;
+      if (fieldCount != variantCase.fields().size()) {
+        throw new CompilerException(statement.line(), "variant construction signature mismatch");
+      }
+      int fieldBase = locals.size();
+      for (int field = 0; field < fieldCount; field++) {
+        int source = requireLocal(statement.arguments().get(field + 3), statement.line());
+        ValueType fieldType = variantCase.fields().get(field).type();
+        requireType(source, fieldType, statement.line());
+        int window = declareInternal(
+            "$variant" + assemblyTemporary++, statement.line(), fieldType);
+        output.add(Instruction.of(Opcode.LOCAL_MOVE, window, source));
+      }
+      int destination = declareInternal(
+          destinationName, statement.line(), ValueType.variant(variant.id()));
+      output.add(Instruction.of(
+          Opcode.VARIANT_NEW, destination, variant.id(), tag, fieldBase, fieldCount));
+    }
+
+    private void lowerVariantTag(Statement statement) {
+      requireArguments(statement, 4);
+      int source = requireLocal(statement.arguments().get(1), statement.line());
+      VariantType variant = variants.get(statement.arguments().get(2));
+      int tag = variantCase(variant, statement.arguments().get(3), statement.line());
+      requireType(source, ValueType.variant(variant.id()), statement.line());
+      int destination = declareInternal(
+          statement.arguments().get(0), statement.line(), ValueType.BOOLEAN);
+      output.add(Instruction.of(Opcode.VARIANT_TAG_EQ, destination, source, tag));
+    }
+
+    private void lowerVariantGet(Statement statement) {
+      requireArguments(statement, 5);
+      int source = requireLocal(statement.arguments().get(1), statement.line());
+      VariantType variant = variants.get(statement.arguments().get(2));
+      int tag = variantCase(variant, statement.arguments().get(3), statement.line());
+      int field = Math.toIntExact(
+          SourceParser.parseInteger(statement.arguments().get(4), statement.line()));
+      VariantType.Case variantCase = variant.cases().get(tag);
+      if (field < 0 || field >= variantCase.fields().size()) {
+        throw new CompilerException(statement.line(), "variant payload index out of range");
+      }
+      requireType(source, ValueType.variant(variant.id()), statement.line());
+      int destination = declareUser(
+          statement.arguments().get(0), statement.line(), variantCase.fields().get(field).type());
+      output.add(Instruction.of(Opcode.VARIANT_GET, destination, source, tag, field));
+    }
+
+    private static int variantCase(VariantType variant, String name, int line) {
+      if (variant == null) {
+        throw new CompilerException(line, "unknown variant type");
+      }
+      for (int index = 0; index < variant.cases().size(); index++) {
+        if (variant.cases().get(index).name().equals(name)) {
+          return index;
+        }
+      }
+      throw new CompilerException(line, "unknown variant case " + name);
     }
 
     private void lowerValueCall(Statement statement) {

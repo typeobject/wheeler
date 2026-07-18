@@ -15,6 +15,7 @@ import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.RecordType;
 import com.typeobject.wheeler.core.bytecode.ValueType;
+import com.typeobject.wheeler.core.bytecode.VariantType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -239,6 +240,54 @@ class VirtualMachineTest {
       machine.rewindOne();
     }
     assertEquals(initial, machine.snapshot());
+  }
+
+  @Test
+  void taggedVariantConstructionSelectionEqualityAndRewind() {
+    VariantType option = new VariantType(
+        0,
+        "Option",
+        List.of(
+            new VariantType.Case("None", List.of()),
+            new VariantType.Case(
+                "Some", List.of(new RecordType.Field("value", ValueType.SIGNED)))));
+    FunctionBody main = new FunctionBody(
+        0,
+        "main",
+        false,
+        0,
+        List.of(
+            ValueType.SIGNED,
+            ValueType.variant(0),
+            ValueType.BOOLEAN,
+            ValueType.SIGNED,
+            ValueType.variant(0),
+            ValueType.BOOLEAN),
+        null,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 7),
+            Instruction.of(Opcode.VARIANT_NEW, 1, 0, 1, 0, 1),
+            Instruction.of(Opcode.VARIANT_TAG_EQ, 2, 1, 1),
+            Instruction.of(Opcode.VARIANT_GET, 3, 1, 1, 0),
+            Instruction.of(Opcode.VARIANT_NEW, 4, 0, 1, 0, 1),
+            Instruction.of(Opcode.LOCAL_EQ, 5, 1, 4),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    Program program = new Program(
+        "Variants", 0, List.of(), List.of(), List.of(option), List.of(main));
+    VirtualMachine machine = new VirtualMachine(program);
+
+    machine.run();
+
+    assertEquals(1, machine.snapshot().variants().size());
+    assertEquals(List.of(7L), machine.snapshot().variants().getFirst().fields());
+    assertEquals(1, machine.snapshot().frames().getFirst().local(2));
+    assertEquals(7, machine.snapshot().frames().getFirst().local(3));
+    assertEquals(1, machine.snapshot().frames().getFirst().local(5));
+    for (int step = 0; step < 6; step++) {
+      machine.rewindOne();
+    }
+    assertTrue(machine.snapshot().variants().isEmpty());
   }
 
   @Test

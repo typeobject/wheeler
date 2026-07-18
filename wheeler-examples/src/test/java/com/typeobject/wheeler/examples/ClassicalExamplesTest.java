@@ -37,6 +37,7 @@ class ClassicalExamplesTest {
         Arguments.of("FunctionValues.w", Map.of("result", 10L)),
         Arguments.of("LoopControl.w", Map.of("sum", 12L, "selected", 7L)),
         Arguments.of("Records.w", Map.of("width", 5L, "equal", 1L)),
-        Arguments.of("RecursiveValue.w", Map.of("result", 6L)));
+        Arguments.of("RecursiveValue.w", Map.of("result", 6L)),
+        Arguments.of("Variants.w", Map.of("selected", 9L, "equal", 1L)));
   }
 }

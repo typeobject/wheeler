@@ -14,7 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Deterministic single-threaded Wheeler version-2 transition kernel. */
+/** Deterministic single-threaded Wheeler transition kernel. */
 public final class VirtualMachine {
   public static final int MAX_CALL_DEPTH = 1024;
 
@@ -23,6 +23,8 @@ public final class VirtualMachine {
   private final List<Frame> frames = new ArrayList<>();
   private final List<RecordValue> records = new ArrayList<>();
   private final Map<RecordValue, Integer> recordHandles = new LinkedHashMap<>();
+  private final List<VariantValue> variants = new ArrayList<>();
+  private final Map<VariantValue, Integer> variantHandles = new LinkedHashMap<>();
   private final Deque<StepRecord> history = new ArrayDeque<>();
   private MachineStatus status = MachineStatus.READY;
   private long sequence;
@@ -82,6 +84,9 @@ public final class VirtualMachine {
     undoData(record);
     while (records.size() > record.previousRecordCount()) {
       recordHandles.remove(records.removeLast());
+    }
+    while (variants.size() > record.previousVariantCount()) {
+      variantHandles.remove(variants.removeLast());
     }
     switch (record.controlChange()) {
       case ADVANCE -> replaceCurrentFrame(record.previousFrame());
@@ -170,6 +175,7 @@ public final class VirtualMachine {
         List.copyOf(frames),
         Map.copyOf(values),
         List.copyOf(records),
+        List.copyOf(variants),
         history.size(),
         sequence);
   }
@@ -191,6 +197,7 @@ public final class VirtualMachine {
     long previousLocalValue = 0;
     StepRecord.ControlChange control = StepRecord.ControlChange.ADVANCE;
     int previousRecordCount = records.size();
+    int previousVariantCount = variants.size();
 
     switch (opcode) {
       case ADD_CONST -> {
@@ -282,6 +289,40 @@ public final class VirtualMachine {
         int field = Math.toIntExact(operand(instruction, 2));
         setLocalAndAdvance(destination, value.fields().get(field));
       }
+      case VARIANT_NEW -> {
+        int destination = localIndex(instruction, 0);
+        int typeId = Math.toIntExact(operand(instruction, 1));
+        int tag = Math.toIntExact(operand(instruction, 2));
+        int base = Math.toIntExact(operand(instruction, 3));
+        int count = Math.toIntExact(operand(instruction, 4));
+        List<Long> fields = new ArrayList<>(count);
+        for (int field = 0; field < count; field++) {
+          fields.add(currentFrame().local(base + field));
+        }
+        VariantValue value = new VariantValue(typeId, tag, fields);
+        Integer handle = variantHandles.get(value);
+        if (handle == null) {
+          variants.add(value);
+          handle = variants.size();
+          variantHandles.put(value, handle);
+        }
+        setLocalAndAdvance(destination, handle);
+      }
+      case VARIANT_TAG_EQ -> {
+        VariantValue value = variantValue(localValue(instruction, 1));
+        setLocalAndAdvance(
+            localIndex(instruction, 0), value.tag() == operand(instruction, 2) ? 1 : 0);
+      }
+      case VARIANT_GET -> {
+        VariantValue value = variantValue(localValue(instruction, 1));
+        int expectedTag = Math.toIntExact(operand(instruction, 2));
+        if (value.tag() != expectedTag) {
+          throw new VmTrap("Variant payload tag mismatch");
+        }
+        setLocalAndAdvance(
+            localIndex(instruction, 0),
+            value.fields().get(Math.toIntExact(operand(instruction, 3))));
+      }
       case CALL, UNCALL -> {
         int functionId = Math.toIntExact(operand(instruction, 0));
         advanceCurrentFrame();
@@ -334,7 +375,8 @@ public final class VirtualMachine {
         previousValue,
         changedLocal,
         previousLocalValue,
-        previousRecordCount);
+        previousRecordCount,
+        previousVariantCount);
   }
 
   private void validateBeforeMutation(Instruction instruction) {
@@ -409,6 +451,41 @@ public final class VirtualMachine {
           int field = Math.toIntExact(operand(instruction, 2));
           if (field < 0 || field >= value.fields().size()) {
             trap("Record field index out of range");
+          }
+        }
+        case VARIANT_NEW -> {
+          localIndex(instruction, 0);
+          var type = program.variantType(Math.toIntExact(operand(instruction, 1)));
+          int tag = Math.toIntExact(operand(instruction, 2));
+          int base = Math.toIntExact(operand(instruction, 3));
+          int count = Math.toIntExact(operand(instruction, 4));
+          var variantCase = type.cases().get(tag);
+          List<Long> fields = new ArrayList<>(count);
+          for (int field = 0; field < count; field++) {
+            long value = currentFrame().local(base + field);
+            validateAggregateValue(variantCase.fields().get(field).type(), value);
+            fields.add(value);
+          }
+          if (!variantHandles.containsKey(new VariantValue(type.id(), tag, fields))
+              && variants.size() >= 65_535) {
+            trap("Variant value limit exceeded");
+          }
+        }
+        case VARIANT_TAG_EQ -> {
+          localIndex(instruction, 0);
+          VariantValue value = checkedVariantSource(instruction, 1);
+          if (operand(instruction, 2) < 0
+              || operand(instruction, 2) >= program.variantType(value.typeId()).cases().size()) {
+            trap("Variant tag out of range");
+          }
+        }
+        case VARIANT_GET -> {
+          localIndex(instruction, 0);
+          VariantValue value = checkedVariantSource(instruction, 1);
+          int tag = Math.toIntExact(operand(instruction, 2));
+          int field = Math.toIntExact(operand(instruction, 3));
+          if (value.tag() != tag || field < 0 || field >= value.fields().size()) {
+            trap("Variant payload access mismatch");
           }
         }
         case CALL -> {
@@ -548,6 +625,34 @@ public final class VirtualMachine {
       trap("Invalid record handle " + handle);
     }
     return records.get(Math.toIntExact(handle - 1));
+  }
+
+  private VariantValue variantValue(long handle) {
+    if (handle <= 0 || handle > variants.size()) {
+      trap("Invalid variant handle " + handle);
+    }
+    return variants.get(Math.toIntExact(handle - 1));
+  }
+
+  private VariantValue checkedVariantSource(Instruction instruction, int operandIndex) {
+    int source = localIndex(instruction, operandIndex);
+    VariantValue value = variantValue(currentFrame().local(source));
+    ValueType type = program.function(currentFrame().functionId()).localType(source);
+    if (type.kind() != ValueType.Kind.VARIANT || value.typeId() != type.descriptorId()) {
+      trap("Variant handle type mismatch");
+    }
+    return value;
+  }
+
+  private void validateAggregateValue(ValueType type, long value) {
+    if (type.kind() == ValueType.Kind.RECORD
+        && recordValue(value).typeId() != type.descriptorId()) {
+      trap("Nested record type mismatch");
+    }
+    if (type.kind() == ValueType.Kind.VARIANT
+        && variantValue(value).typeId() != type.descriptorId()) {
+      trap("Nested variant type mismatch");
+    }
   }
 
   private int checkedJumpTarget(Instruction instruction, int operandIndex) {

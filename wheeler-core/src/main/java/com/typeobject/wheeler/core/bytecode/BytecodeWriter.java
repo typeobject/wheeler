@@ -8,6 +8,7 @@ import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.MANIFEST;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.REQUIRED_SECTION;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.STRINGS;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.TYPES;
+import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.VARIANTS;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.WORKFLOW;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.QUANTUM;
 
@@ -38,6 +39,7 @@ public final class BytecodeWriter {
     sections.add(new Section(MANIFEST, manifest(program, strings), 0));
     sections.add(new Section(STRINGS, strings(strings), 0));
     sections.add(new Section(TYPES, types(program, strings), 0));
+    sections.add(new Section(VARIANTS, variants(program, strings), 0));
     sections.add(new Section(FUNCTIONS, functions(program, strings, offsets), 0));
     sections.add(new Section(CODE, code, 0));
     if (program.kind() != ProgramKind.CLASSICAL) {
@@ -56,7 +58,7 @@ public final class BytecodeWriter {
     }
     int fileLength = BytecodeFormat.align8(cursor);
     if (fileLength > BytecodeFormat.MAX_ARTIFACT_BYTES) {
-      throw new BytecodeException("Artifact exceeds version-2 size limit");
+      throw new BytecodeException("Artifact exceeds format size limit");
     }
 
     ByteBuffer output = ByteBuffer.allocate(fileLength).order(ByteOrder.LITTLE_ENDIAN);
@@ -91,6 +93,13 @@ public final class BytecodeWriter {
     program.recordTypes().forEach(record -> {
       values.add(record.name());
       record.fields().forEach(field -> values.add(field.name()));
+    });
+    program.variantTypes().forEach(variant -> {
+      values.add(variant.name());
+      variant.cases().forEach(variantCase -> {
+        values.add(variantCase.name());
+        variantCase.fields().forEach(field -> values.add(field.name()));
+      });
     });
     program.functions().forEach(function -> values.add(function.name()));
     program.quantumRegisters().forEach(register -> values.add(register.name()));
@@ -152,6 +161,25 @@ public final class BytecodeWriter {
       }
     }
     return buffer.array();
+  }
+
+  private static byte[] variants(Program program, Map<String, Integer> strings) {
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    writeInt(output, program.variantTypes().size());
+    for (VariantType variant : program.variantTypes()) {
+      writeInt(output, variant.id());
+      writeInt(output, strings.get(variant.name()));
+      writeInt(output, variant.cases().size());
+      for (VariantType.Case variantCase : variant.cases()) {
+        writeInt(output, strings.get(variantCase.name()));
+        writeInt(output, variantCase.fields().size());
+        for (RecordType.Field field : variantCase.fields()) {
+          writeInt(output, strings.get(field.name()));
+          writeInt(output, field.type().code());
+        }
+      }
+    }
+    return output.toByteArray();
   }
 
   private static byte[] encodeCode(Program program, Map<Integer, FunctionOffsets> offsets) {

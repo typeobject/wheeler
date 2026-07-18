@@ -24,6 +24,21 @@ public final class Disassembler {
           .append(field.name()).append(':').append(field.type().displayName()));
       output.append('\n');
     }
+    for (VariantType variant : program.variantTypes()) {
+      output.append("\nvariant ").append(variant.id()).append(' ').append(variant.name());
+      variant.cases().forEach(variantCase -> {
+        output.append(" ").append(variantCase.name()).append('(');
+        for (int field = 0; field < variantCase.fields().size(); field++) {
+          if (field > 0) {
+            output.append(",");
+          }
+          RecordType.Field payload = variantCase.fields().get(field);
+          output.append(payload.name()).append(':').append(payload.type().displayName());
+        }
+        output.append(')');
+      });
+      output.append('\n');
+    }
     for (FunctionBody function : program.functions()) {
       output.append("\nfunction ").append(function.id()).append(' ').append(function.name());
       if (function.returnsValue()) {

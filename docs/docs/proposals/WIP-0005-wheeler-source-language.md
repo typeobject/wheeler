@@ -96,7 +96,7 @@ A `coherent rev` method is callable normally from classical code and may be refe
 
 `classical class`, `quantum class`, and `hybrid class` select the program domain and available declarations. They do not erase WIP-0002 effects.
 
-A `state long` field is version-2 classical mutable state. A `qreg` field is an affine logical quantum resource. Ordinary Java-like local variables, parameters, object fields, and richer exact types are added only with bytecode and ownership support.
+A `state long` field is classical mutable state in the first bytecode format. A `qreg` field is an affine logical quantum resource. Ordinary Java-like local variables, parameters, object fields, and richer exact types are added only with bytecode and ownership support.
 
 A `rev` method has a compiler-validated inverse body. A `coherent rev` method additionally satisfies WIP-0002 coherent eligibility. A `unitary` method lowers to quantum region IR and receives a generated adjoint.
 
@@ -119,7 +119,7 @@ The first profile supports:
 - signed `long` and `boolean` parameters and returns for ordinary classical methods; zero-argument `void` entry, reversible, coherent, and unitary methods;
 - `rev`, `coherent rev`, `unitary`, and `entry` methods;
 - `+=`, `-=`, `^=`, direct logged assignment, method calls, assertions, checkpoint, and commit;
-- signed `long`, `boolean`, and immutable nominal record values; typed left-to-right expressions and static calls; `return`, `if`/`else`, early return, bounded `while` and counted `for`, and `break`/`continue` in ordinary classical methods;
+- signed `long`, `boolean`, immutable nominal records, and closed tagged variants with exhaustive `match`; typed left-to-right expressions and static calls; `return`, `if`/`else`, early return, bounded `while` and counted `for`, and `break`/`continue` in ordinary classical methods;
 - direct inverse calls and reverse blocks;
 - H, X, Z, phase, controlled phase, CNOT, CZ, and swap gates;
 - `prepare`, full-register computational-basis measurement, unitary call/adjoint, and coherent method reference;
@@ -174,7 +174,7 @@ The parser bounds source bytes, lines, declarations, methods, statements, regist
 ## Progress
 
 - [x] Wheeler class, field, and method declarations parse.
-- [x] Classical state, signed/Boolean/record parameters, results, locals, bounded control flow, and reverse blocks lower to WIP-0001 major version 2 typed frames.
+- [x] Classical state, signed/Boolean/record/variant parameters, results, locals, bounded control flow, exhaustive selection, and reverse blocks lower to WIP-0001 major version 1 typed frames.
 - [x] Unitary methods and quantum entry operations lower to WIP-0002.
 - [x] Coherent method references execute on classical and simulated quantum data.
 - [x] Counter, QFT, and coherent-oracle examples use only the Wheeler source profile.

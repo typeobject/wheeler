@@ -9,5 +9,6 @@ public record MachineSnapshot(
     List<Frame> frames,
     Map<String, Long> globals,
     List<RecordValue> records,
+    List<VariantValue> variants,
     int historyRecords,
     long sequence) {}

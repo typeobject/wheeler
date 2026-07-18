@@ -14,7 +14,7 @@ classical class Counter {
 }
 ```
 
-The available domains are `classical`, `quantum`, and `hybrid`. Version 2 supports signed 64-bit classical state and affine logical quantum registers:
+The available domains are `classical`, `quantum`, and `hybrid`. The first format supports signed 64-bit classical state and affine logical quantum registers:
 
 ```java
 state long measured = 0;
@@ -116,6 +116,27 @@ long width = token.span.end - token.span.start;
 A field may use a scalar or a previously declared record type. Requiring prior declaration makes recursive and cyclic inline values impossible. Construction is left to right and checks exact arity and field types. Field access is read-only. Records may be locals, parameters, and results; `==` compares nominal type and complete immutable field values.
 
 The VM interns equal immutable values in deterministic construction order. Handles are verified implementation values, not source integers or artifact identity. Rewind removes allocations made by the rewound step, and snapshots include the record table. The current hard ceiling is 65,535 distinct record values per machine.
+
+## Tagged variants
+
+A variant declares a closed ordered case set. Cases carry zero or more typed payload fields:
+
+```java
+variant Option {
+    case None();
+    case Some(long value);
+}
+
+Option option = new Option.Some(9);
+match (option) {
+    case Option.None() { result = 0; }
+    case Option.Some(long value) { result = value; }
+}
+```
+
+Payload types must already be declared, preventing recursive inline layouts. Construction checks the nominal type, case, arity, and payload types. `match` names one variant type in every arm, rejects duplicate or unknown cases, checks binding types, and requires the complete case set. The final arm is safe without a fallback because verified values can carry only descriptor tags. Bindings are typed locals in their case body. Variants may be parameters and results, and `==` uses nominal structural equality.
+
+The VM interns variants separately from records under a 65,535-value ceiling. Snapshots and rewind include both tables; a checked payload read traps before mutation if its expected tag does not match.
 
 ## Quantum statements
 

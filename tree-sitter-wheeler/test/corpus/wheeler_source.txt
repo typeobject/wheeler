@@ -578,3 +578,89 @@ classical class Records {
                               (identifier))
                             (identifier)))
                         (identifier)))))))))))))
+
+==================
+Exhaustive tagged variants
+==================
+
+classical class Variants {
+  variant Option {
+    case None();
+    case Some(long value);
+  }
+  state long selected = 0;
+  entry void main() {
+    Option value = new Option.Some(9);
+    match (value) {
+      case Option.None() { selected = 0; }
+      case Option.Some(long payload) { selected = payload; }
+    }
+  }
+}
+
+---
+
+(source_file
+  (class_declaration
+    (computation_domain)
+    (identifier)
+    (class_body
+      (member_declaration
+        (variant_declaration
+          (identifier)
+          (variant_case_declaration
+            (identifier))
+          (variant_case_declaration
+            (identifier)
+            (record_component
+              (value_type)
+              (identifier)))))
+      (member_declaration
+        (state_declaration
+          (identifier)
+          (integer_literal)))
+      (member_declaration
+        (method_declaration
+          (method_modifier)
+          (identifier)
+          (parameter_list)
+          (block
+            (statement
+              (local_declaration
+                (value_type
+                  (type_identifier))
+                (identifier)
+                (expression
+                  (record_creation
+                    (identifier)
+                    (identifier)
+                    (argument_list
+                      (expression
+                        (integer_literal)))))))
+            (statement
+              (match_statement
+                (expression
+                  (identifier))
+                (match_case
+                  (identifier)
+                  (identifier)
+                  (parameter_list)
+                  (block
+                    (statement
+                      (assignment_statement
+                        (identifier)
+                        (expression
+                          (integer_literal))))))
+                (match_case
+                  (identifier)
+                  (identifier)
+                  (parameter_list
+                    (parameter
+                      (value_type)
+                      (identifier)))
+                  (block
+                    (statement
+                      (assignment_statement
+                        (identifier)
+                        (expression
+                          (identifier))))))))))))))

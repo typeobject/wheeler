@@ -2,7 +2,7 @@ package com.typeobject.wheeler.core.bytecode;
 
 import java.util.Arrays;
 
-/** Version-2 classical Wheeler opcodes. Numeric codes are stable artifact identities. */
+/** Classical Wheeler opcodes. Numeric codes are stable first-format artifact identities. */
 public enum Opcode {
   NOP(0x0000, 0, Reversibility.INTRINSIC),
   HALT(0x0001, 0, Reversibility.CHECKED),
@@ -37,7 +37,10 @@ public enum Opcode {
   LOCAL_LOOP_CHECK(0x0432, 2, Reversibility.CHECKED),
 
   RECORD_NEW(0x0500, 4, Reversibility.CHECKED),
-  RECORD_GET(0x0501, 3, Reversibility.CHECKED);
+  RECORD_GET(0x0501, 3, Reversibility.CHECKED),
+  VARIANT_NEW(0x0510, 5, Reversibility.CHECKED),
+  VARIANT_TAG_EQ(0x0511, 3, Reversibility.CHECKED),
+  VARIANT_GET(0x0512, 4, Reversibility.CHECKED);
 
   private final int code;
   private final int operandCount;

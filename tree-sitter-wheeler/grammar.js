@@ -24,6 +24,7 @@ module.exports = grammar({
       repeat($.visibility_modifier),
       choice(
         $.record_declaration,
+        $.variant_declaration,
         $.state_declaration,
         $.qreg_declaration,
         $.method_declaration,
@@ -43,6 +44,22 @@ module.exports = grammar({
     record_component: $ => seq(
       field('type', $.value_type),
       field('name', $.identifier),
+    ),
+
+    variant_declaration: $ => seq(
+      'variant',
+      field('name', $.identifier),
+      '{',
+      repeat1($.variant_case_declaration),
+      '}',
+    ),
+    variant_case_declaration: $ => seq(
+      'case',
+      field('name', $.identifier),
+      '(',
+      optional(seq($.record_component, repeat(seq(',', $.record_component)))),
+      ')',
+      ';',
     ),
 
     state_declaration: $ => seq(
@@ -98,9 +115,28 @@ module.exports = grammar({
       $.if_statement,
       $.while_statement,
       $.for_statement,
+      $.match_statement,
       $.break_statement,
       $.continue_statement,
       $.return_statement,
+    ),
+
+    match_statement: $ => seq(
+      'match',
+      '(',
+      field('value', $.expression),
+      ')',
+      '{',
+      repeat1($.match_case),
+      '}',
+    ),
+    match_case: $ => seq(
+      'case',
+      field('type', $.identifier),
+      '.',
+      field('case', $.identifier),
+      field('bindings', $.parameter_list),
+      field('body', $.block),
     ),
 
     return_statement: $ => seq('return', $.expression, ';'),
@@ -194,6 +230,7 @@ module.exports = grammar({
     record_creation: $ => seq(
       'new',
       field('type', $.identifier),
+      optional(seq('.', field('case', $.identifier))),
       '(',
       optional($.argument_list),
       ')',

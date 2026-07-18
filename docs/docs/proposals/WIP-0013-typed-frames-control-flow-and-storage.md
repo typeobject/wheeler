@@ -243,8 +243,8 @@ A feature that cannot express or simplify one of these modules needs separate ju
 - [x] Signed and Boolean parameter, local, and optional result signatures are canonically encoded and verified.
 - [x] Register metadata uses bounded 32-bit scalar or aggregate references; canonical nominal record descriptors reject duplicate, forward, cyclic, and unresolved type IDs.
 - [x] Local constants, state load/store, move, arithmetic, comparison, branches, loop checks, value calls, and value returns execute and rewind.
-- [ ] Typed signed/Boolean parameters, returns, local bindings, expressions, static calls, `if`/`else`, and bounded `while` compile end to end; aggregate types remain.
-- [ ] Immutable nominal records execute with canonical descriptors, typed construction/access/calls, structural equality, snapshots, and rewind; variants, arrays, slices, and mutable ownership checks remain.
+- [x] Typed signed/Boolean parameters, returns, local bindings, expressions, static calls, `if`/`else`, and bounded `while` compile end to end.
+- [ ] Immutable nominal records and closed tagged variants execute with canonical descriptors, typed construction/calls, structural equality, exhaustive selection, snapshots, and rewind; arrays, slices, and mutable ownership checks remain.
 - [ ] Region storage supports compiler arenas under hard limits.
 - [ ] Reversible protected control forms generate checked inverses.
 - [ ] Lexer, parser, codec, verifier, and package graph fixtures run in Wheeler.
@@ -258,7 +258,7 @@ A feature that cannot express or simplify one of these modules needs separate ju
 - [ ] Branch tests cover both paths, join assignment, early typed return, and source diagnostics; unreachable-block diagnostics remain.
 - [x] `while` and counted `for` tests cover zero and exact bounds, exceeded bounds, update-on-continue, innermost `break`, nested loops, and the independent global step defense.
 - [ ] Reversible methods reject unprotected branch/loop forms and accept only forms with checked inverse laws.
-- [ ] Record tests cover canonical encoding, nested fields, nominal structural equality, malformed descriptors, source type errors, deterministic interning, and rewind; variants and native layout parity remain.
+- [ ] Record and variant tests cover canonical encoding, nested fields and payloads, nominal structural equality, exhaustive selection, malformed descriptors, source type errors, deterministic interning, and rewind; native layout parity remains.
 - [ ] Array/slice tests cover boundaries, split/join, overlap, escape, move, and borrow lifetime.
 - [ ] Region tests cover exhaustion, drop, escape, dangling borrow, canonical output independence, and commit.
 - [ ] Stage-0 and Wheeler compilers produce identical typed metadata, code, diagnostics, and artifacts for the shared profile.

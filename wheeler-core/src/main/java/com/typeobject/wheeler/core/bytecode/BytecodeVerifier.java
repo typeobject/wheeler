@@ -15,7 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/** Structural and semantic verification for decoded version-2 programs. */
+/** Structural and semantic verification for decoded Wheeler programs. */
 public final class BytecodeVerifier {
   private static final Set<Opcode> COHERENT_OPCODES = Set.of(
       Opcode.NOP, Opcode.XOR_CONST, Opcode.CALL, Opcode.UNCALL, Opcode.RETURN);
@@ -26,6 +26,7 @@ public final class BytecodeVerifier {
     verifyLimits(program);
     verifyGlobals(program);
     verifyRecordTypes(program);
+    verifyVariantTypes(program);
     verifyFunctions(program);
     verifyQuantum(program);
     verifyWorkflow(program);
@@ -51,10 +52,11 @@ public final class BytecodeVerifier {
     }
     if (program.globals().size() > 65_535
         || program.recordTypes().size() > 65_535
+        || program.variantTypes().size() > 65_535
         || program.functions().size() > 65_535
         || program.quantumRegisters().size() > 65_535
         || program.quantumCircuits().size() > 65_535) {
-      fail("Program exceeds version-2 table limits");
+      fail("Program exceeds format table limits");
     }
   }
 
@@ -78,6 +80,29 @@ public final class BytecodeVerifier {
         if (field.type().kind() == ValueType.Kind.RECORD
             && field.type().descriptorId() >= record.id()) {
           fail("Record fields must reference an earlier record type: " + record.name());
+        }
+        if (field.type().kind() == ValueType.Kind.VARIANT) {
+          fail("Record fields cannot reference later variant types: " + record.name());
+        }
+      }
+    }
+  }
+
+  private static void verifyVariantTypes(Program program) {
+    Set<String> names = new HashSet<>();
+    program.recordTypes().forEach(record -> names.add(record.name()));
+    for (int index = 0; index < program.variantTypes().size(); index++) {
+      VariantType variant = program.variantTypes().get(index);
+      if (variant.id() != index || !names.add(variant.name())) {
+        fail("Noncanonical or duplicate variant type " + variant.name());
+      }
+      for (VariantType.Case variantCase : variant.cases()) {
+        for (RecordType.Field field : variantCase.fields()) {
+          verifyTypeReference(program, field.type(), variant.name());
+          if (field.type().kind() == ValueType.Kind.VARIANT
+              && field.type().descriptorId() >= variant.id()) {
+            fail("Variant payloads must reference an earlier variant type: " + variant.name());
+          }
         }
       }
     }
@@ -123,6 +148,10 @@ public final class BytecodeVerifier {
         && type.descriptorId() >= program.recordTypes().size()) {
       fail("Unknown record type " + type.displayName() + " in " + owner);
     }
+    if (type.kind() == ValueType.Kind.VARIANT
+        && type.descriptorId() >= program.variantTypes().size()) {
+      fail("Unknown variant type " + type.displayName() + " in " + owner);
+    }
   }
 
   private static void verifyGeneratedInverse(FunctionBody function) {
@@ -163,8 +192,9 @@ public final class BytecodeVerifier {
           verifyGlobal(program, instruction.operands().getFirst(), owner, pc);
       case LOCAL_CONST -> {
         int destination = verifyLocal(owner, instruction.operands().getFirst(), pc);
-        if (owner.localType(destination).kind() == ValueType.Kind.RECORD) {
-          fail(location(owner, pc) + " record local requires RECORD_NEW");
+        if (owner.localType(destination).kind() == ValueType.Kind.RECORD
+            || owner.localType(destination).kind() == ValueType.Kind.VARIANT) {
+          fail(location(owner, pc) + " aggregate local requires aggregate construction");
         }
         if (owner.localType(destination).equals(ValueType.BOOLEAN)) {
           long value = instruction.operands().get(1);
@@ -199,8 +229,9 @@ public final class BytecodeVerifier {
         int right = verifyLocal(owner, instruction.operands().get(2), pc);
         requireSameType(owner, destination, left, pc);
         requireSameType(owner, destination, right, pc);
-        if (owner.localType(destination).kind() == ValueType.Kind.RECORD) {
-          fail(location(owner, pc) + " XOR does not accept record values");
+        if (owner.localType(destination).kind() == ValueType.Kind.RECORD
+            || owner.localType(destination).kind() == ValueType.Kind.VARIANT) {
+          fail(location(owner, pc) + " XOR does not accept aggregate values");
         }
       }
       case LOCAL_EQ -> {
@@ -232,6 +263,9 @@ public final class BytecodeVerifier {
       }
       case RECORD_NEW -> verifyRecordNew(program, owner, instruction, pc);
       case RECORD_GET -> verifyRecordGet(program, owner, instruction, pc);
+      case VARIANT_NEW -> verifyVariantNew(program, owner, instruction, pc);
+      case VARIANT_TAG_EQ -> verifyVariantTag(program, owner, instruction, pc);
+      case VARIANT_GET -> verifyVariantGet(program, owner, instruction, pc);
       case SWAP -> {
         verifyGlobal(program, instruction.operands().get(0), owner, pc);
         verifyGlobal(program, instruction.operands().get(1), owner, pc);
@@ -332,6 +366,67 @@ public final class BytecodeVerifier {
     }
   }
 
+  private static void verifyVariantNew(
+      Program program, FunctionBody owner, Instruction instruction, int pc) {
+    int destination = verifyLocal(owner, instruction.operands().get(0), pc);
+    int typeId = Math.toIntExact(instruction.operands().get(1));
+    int tag = Math.toIntExact(instruction.operands().get(2));
+    int base = Math.toIntExact(instruction.operands().get(3));
+    int count = Math.toIntExact(instruction.operands().get(4));
+    VariantType variant = program.variantType(typeId);
+    if (tag < 0 || tag >= variant.cases().size()) {
+      fail(location(owner, pc) + " variant construction has invalid tag");
+    }
+    VariantType.Case variantCase = variant.cases().get(tag);
+    if (!owner.localType(destination).equals(ValueType.variant(typeId))
+        || count != variantCase.fields().size()
+        || base < 0
+        || count < 0
+        || base > owner.localCount() - count) {
+      fail(location(owner, pc) + " variant construction signature mismatch");
+    }
+    for (int field = 0; field < count; field++) {
+      if (!owner.localType(base + field).equals(variantCase.fields().get(field).type())) {
+        fail(location(owner, pc) + " variant payload type mismatch at " + field);
+      }
+    }
+  }
+
+  private static void verifyVariantTag(
+      Program program, FunctionBody owner, Instruction instruction, int pc) {
+    int destination = verifyLocal(owner, instruction.operands().get(0), pc);
+    int source = verifyLocal(owner, instruction.operands().get(1), pc);
+    int tag = Math.toIntExact(instruction.operands().get(2));
+    ValueType sourceType = owner.localType(source);
+    if (sourceType.kind() != ValueType.Kind.VARIANT
+        || tag < 0
+        || tag >= program.variantType(sourceType.descriptorId()).cases().size()) {
+      fail(location(owner, pc) + " invalid variant tag test");
+    }
+    requireType(owner, destination, ValueType.BOOLEAN, pc);
+  }
+
+  private static void verifyVariantGet(
+      Program program, FunctionBody owner, Instruction instruction, int pc) {
+    int destination = verifyLocal(owner, instruction.operands().get(0), pc);
+    int source = verifyLocal(owner, instruction.operands().get(1), pc);
+    int tag = Math.toIntExact(instruction.operands().get(2));
+    int field = Math.toIntExact(instruction.operands().get(3));
+    ValueType sourceType = owner.localType(source);
+    if (sourceType.kind() != ValueType.Kind.VARIANT) {
+      fail(location(owner, pc) + " payload access requires a variant");
+    }
+    VariantType variant = program.variantType(sourceType.descriptorId());
+    if (tag < 0 || tag >= variant.cases().size()) {
+      fail(location(owner, pc) + " variant payload access has invalid tag");
+    }
+    VariantType.Case variantCase = variant.cases().get(tag);
+    if (field < 0 || field >= variantCase.fields().size()
+        || !owner.localType(destination).equals(variantCase.fields().get(field).type())) {
+      fail(location(owner, pc) + " variant payload access signature mismatch");
+    }
+  }
+
   private static void verifyLocalFlow(FunctionBody owner, List<Instruction> body) {
     BitSet[] incoming = new BitSet[body.size()];
     incoming[0] = new BitSet(owner.localCount());
@@ -366,9 +461,15 @@ public final class BytecodeVerifier {
   private static void requireAssignedLocals(
       FunctionBody owner, Instruction instruction, int pc, BitSet assigned) {
     if (instruction.opcode() == Opcode.CALL_VALUE
-        || instruction.opcode() == Opcode.RECORD_NEW) {
-      int baseOperand = instruction.opcode() == Opcode.CALL_VALUE ? 1 : 2;
-      int countOperand = instruction.opcode() == Opcode.CALL_VALUE ? 2 : 3;
+        || instruction.opcode() == Opcode.RECORD_NEW
+        || instruction.opcode() == Opcode.VARIANT_NEW) {
+      int baseOperand = switch (instruction.opcode()) {
+        case CALL_VALUE -> 1;
+        case RECORD_NEW -> 2;
+        case VARIANT_NEW -> 3;
+        default -> throw new IllegalStateException();
+      };
+      int countOperand = baseOperand + 1;
       int base = Math.toIntExact(instruction.operands().get(baseOperand));
       int count = Math.toIntExact(instruction.operands().get(countOperand));
       for (int local = base; local < base + count; local++) {
@@ -385,7 +486,7 @@ public final class BytecodeVerifier {
       case JUMP_IF_ZERO -> new int[] {0};
       case LOCAL_LOOP_CHECK -> new int[] {0, 1};
       case RETURN_VALUE -> new int[] {0};
-      case RECORD_GET -> new int[] {1};
+      case RECORD_GET, VARIANT_TAG_EQ, VARIANT_GET -> new int[] {1};
       default -> new int[0];
     };
     for (int operandIndex : reads) {
@@ -399,7 +500,8 @@ public final class BytecodeVerifier {
   private static int writtenLocal(Instruction instruction) {
     return switch (instruction.opcode()) {
       case LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, LOCAL_ADD, LOCAL_SUB,
-          LOCAL_XOR, LOCAL_EQ, LOCAL_LT, LOCAL_LOOP_CHECK, RECORD_NEW, RECORD_GET ->
+          LOCAL_XOR, LOCAL_EQ, LOCAL_LT, LOCAL_LOOP_CHECK, RECORD_NEW, RECORD_GET,
+          VARIANT_NEW, VARIANT_TAG_EQ, VARIANT_GET ->
           Math.toIntExact(instruction.operands().getFirst());
       case CALL_VALUE -> Math.toIntExact(instruction.operands().get(3));
       default -> -1;

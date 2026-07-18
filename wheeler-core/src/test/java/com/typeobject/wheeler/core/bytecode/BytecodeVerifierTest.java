@@ -127,6 +127,18 @@ class BytecodeVerifierTest {
         Program.DEFAULT_MAX_HISTORY,
         Program.DEFAULT_MAX_STEPS);
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(malformed));
+
+    VariantType option = new VariantType(
+        0, "Option", List.of(new VariantType.Case("None", List.of())));
+    FunctionBody badTag = typedMain(
+        List.of(ValueType.variant(0)),
+        List.of(
+            Instruction.of(Opcode.VARIANT_NEW, 0, 0, 1, 0, 0),
+            Instruction.of(Opcode.HALT)));
+    Program malformedVariant = new Program(
+        "MalformedVariant", 0, List.of(), List.of(), List.of(option), List.of(badTag));
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(malformedVariant));
+    assertEquals(ValueType.variant(3), ValueType.fromCode(ValueType.variant(3).code()));
   }
 
   @Test

@@ -177,6 +177,38 @@ class SourceProfileNegativeTest {
   }
 
   @Test
+  void rejectsNonexhaustiveAndMismatchedVariantSelection() {
+    String nonexhaustive = """
+        classical class MissingCase {
+          variant Option { case None(); case Some(long value); }
+          entry void main() {
+            Option value = new Option.None();
+            match (value) { case Option.None() { } }
+          }
+        }
+        """;
+    String wrongPayload = """
+        classical class WrongPayload {
+          variant Option { case None(); case Some(long value); }
+          entry void main() {
+            Option value = new Option.Some(1);
+            match (value) {
+              case Option.None() { }
+              case Option.Some(boolean payload) { }
+            }
+          }
+        }
+        """;
+
+    CompilerException missing = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(nonexhaustive));
+    CompilerException payload = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(wrongPayload));
+    assertTrue(missing.getMessage().contains("do not exhaust Option"));
+    assertTrue(payload.getMessage().contains("payload binding type mismatch"));
+  }
+
+  @Test
   void rejectsOutOfRangeQuantumReference() {
     String source = """
         quantum class BrokenQubit {

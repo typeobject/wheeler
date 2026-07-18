@@ -38,6 +38,7 @@ final class QuantumLowerer {
         classical.entryId(),
         classical.globals(),
         classical.recordTypes(),
+        classical.variantTypes(),
         classical.functions(),
         registers,
         circuits,

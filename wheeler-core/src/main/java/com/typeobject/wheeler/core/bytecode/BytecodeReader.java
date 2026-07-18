@@ -5,6 +5,7 @@ import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.FUNCTIONS;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.MANIFEST;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.STRINGS;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.TYPES;
+import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.VARIANTS;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.WORKFLOW;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.QUANTUM;
 
@@ -68,7 +69,7 @@ public final class BytecodeReader {
   private Program readChecked(byte[] bytes) {
     if (bytes.length < BytecodeFormat.HEADER_SIZE
         || bytes.length > BytecodeFormat.MAX_ARTIFACT_BYTES) {
-      fail("Artifact size is outside version-2 bounds");
+      fail("Artifact size is outside format bounds");
     }
     ByteBuffer input = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);
     byte[] magic = new byte[BytecodeFormat.MAGIC.length];
@@ -83,7 +84,7 @@ public final class BytecodeReader {
     int sectionCount = input.getInt();
     int entrySize = input.getInt();
     long directoryOffset = input.getLong();
-    if (major != BytecodeFormat.MAJOR_VERSION || minor > BytecodeFormat.MINOR_VERSION) {
+    if (major != BytecodeFormat.MAJOR_VERSION || minor != BytecodeFormat.MINOR_VERSION) {
       fail("Unsupported bytecode version " + major + "." + minor);
     }
     if (flags != 0 || declaredLength != bytes.length) {
@@ -125,6 +126,7 @@ public final class BytecodeReader {
     List<String> strings = readStrings(slice(input, sections.get(STRINGS)));
     Manifest manifest = readManifest(slice(input, sections.get(MANIFEST)), strings.size());
     TypeSection types = readTypes(slice(input, sections.get(TYPES)), strings);
+    List<VariantType> variants = readVariants(slice(input, sections.get(VARIANTS)), strings);
     List<FunctionDescriptor> descriptors = readFunctionDescriptors(slice(input, sections.get(FUNCTIONS)));
     ByteBuffer code = slice(input, sections.get(CODE));
     List<FunctionBody> functions = readFunctions(descriptors, strings, code);
@@ -148,6 +150,7 @@ public final class BytecodeReader {
         manifest.entryId(),
         types.globals(),
         types.records(),
+        variants,
         functions,
         registers,
         circuits,
@@ -159,8 +162,9 @@ public final class BytecodeReader {
   }
 
   private static void requireSections(Map<Integer, Section> sections) {
-    Set<Integer> known = Set.of(MANIFEST, STRINGS, TYPES, FUNCTIONS, CODE, WORKFLOW, QUANTUM);
-    Set<Integer> base = Set.of(MANIFEST, STRINGS, TYPES, FUNCTIONS, CODE);
+    Set<Integer> known = Set.of(
+        MANIFEST, STRINGS, TYPES, VARIANTS, FUNCTIONS, CODE, WORKFLOW, QUANTUM);
+    Set<Integer> base = Set.of(MANIFEST, STRINGS, TYPES, VARIANTS, FUNCTIONS, CODE);
     for (int required : base) {
       if (!sections.containsKey(required)) {
         fail("Missing required section " + required);
@@ -280,6 +284,50 @@ public final class BytecodeReader {
       fail("Trailing data in type descriptor section");
     }
     return new TypeSection(List.copyOf(globals), List.copyOf(records));
+  }
+
+  private static List<VariantType> readVariants(
+      ByteBuffer section, List<String> strings) {
+    int count = readBoundedCount(section, "variant type", 65_535);
+    List<VariantType> variants = new ArrayList<>(count);
+    for (int index = 0; index < count; index++) {
+      if (section.remaining() < 12) {
+        fail("Truncated variant type descriptor");
+      }
+      int id = section.getInt();
+      int nameId = section.getInt();
+      int caseCount = section.getInt();
+      checkStringId(nameId, strings.size());
+      if (id < 0 || caseCount <= 0 || caseCount > 65_535) {
+        fail("Invalid variant type descriptor");
+      }
+      List<VariantType.Case> cases = new ArrayList<>(caseCount);
+      for (int variantCase = 0; variantCase < caseCount; variantCase++) {
+        if (section.remaining() < 8) {
+          fail("Truncated variant case descriptor");
+        }
+        int caseName = section.getInt();
+        int fieldCount = section.getInt();
+        checkStringId(caseName, strings.size());
+        if (fieldCount < 0 || fieldCount > 65_535
+            || section.remaining() < Math.multiplyExact(fieldCount, 8)) {
+          fail("Invalid variant case descriptor");
+        }
+        List<RecordType.Field> fields = new ArrayList<>(fieldCount);
+        for (int field = 0; field < fieldCount; field++) {
+          int fieldName = section.getInt();
+          checkStringId(fieldName, strings.size());
+          fields.add(new RecordType.Field(
+              strings.get(fieldName), ValueType.fromCode(section.getInt())));
+        }
+        cases.add(new VariantType.Case(strings.get(caseName), fields));
+      }
+      variants.add(new VariantType(id, strings.get(nameId), cases));
+    }
+    if (section.hasRemaining()) {
+      fail("Trailing data in variant descriptor section");
+    }
+    return List.copyOf(variants);
   }
 
   private static List<FunctionDescriptor> readFunctionDescriptors(ByteBuffer section) {

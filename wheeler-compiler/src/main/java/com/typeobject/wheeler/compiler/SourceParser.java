@@ -9,6 +9,8 @@ import com.typeobject.wheeler.compiler.SourceModel.RecordField;
 import com.typeobject.wheeler.compiler.SourceModel.SourceProgram;
 import com.typeobject.wheeler.compiler.SourceModel.State;
 import com.typeobject.wheeler.compiler.SourceModel.Statement;
+import com.typeobject.wheeler.compiler.SourceModel.VariantCase;
+import com.typeobject.wheeler.compiler.SourceModel.VariantDefinition;
 import com.typeobject.wheeler.compiler.SourceToken.Type;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -18,15 +20,14 @@ import java.util.Locale;
 import java.util.Set;
 
 /** Recursive-descent parser for Wheeler's formatting-independent source profile. */
-final class SourceParser {
+final class SourceParser extends SourceTokenCursor {
   private static final Set<String> DOMAINS = Set.of("classical", "quantum", "hybrid");
   private static final Set<String> VISIBILITY = Set.of("public", "private", "protected");
 
-  private List<SourceToken> tokens;
-  private int current;
   private final List<State> states = new ArrayList<>();
   private final List<Function> functions = new ArrayList<>();
   private final List<RecordDefinition> records = new ArrayList<>();
+  private final List<VariantDefinition> variants = new ArrayList<>();
   private final List<QuantumRegisterSource> registers = new ArrayList<>();
   private final List<Circuit> circuits = new ArrayList<>();
   private String domain;
@@ -37,11 +38,11 @@ final class SourceParser {
   private final Deque<LoopLabels> loops = new ArrayDeque<>();
 
   SourceProgram parse(String source) {
-    tokens = new SourceLexer(source).lex();
-    current = 0;
+    reset(source);
     states.clear();
     functions.clear();
     records.clear();
+    variants.clear();
     registers.clear();
     circuits.clear();
     loops.clear();
@@ -64,7 +65,7 @@ final class SourceParser {
       fail(domain, "exactly one 'entry void main()' method is required");
     }
     return new SourceProgram(
-        name, domain.text(), states, records, functions, registers, circuits);
+        name, domain.text(), states, records, variants, functions, registers, circuits);
   }
 
   private void parseMember() {
@@ -73,6 +74,10 @@ final class SourceParser {
     }
     if (matchText("record")) {
       parseRecord(previous());
+      return;
+    }
+    if (matchText("variant")) {
+      parseVariant(previous());
       return;
     }
     if (matchText("state")) {
@@ -97,7 +102,8 @@ final class SourceParser {
     if (!check(Type.RIGHT_PAREN)) {
       do {
         SourceToken type = expect(Type.IDENTIFIER, "record field type");
-        if (!isValueType(type.text())) {
+        if (!type.text().equals("long") && !type.text().equals("boolean")
+            && records.stream().noneMatch(record -> record.name().equals(type.text()))) {
           fail(type, "record field type must be scalar or previously declared record");
         }
         SourceToken field = expect(Type.IDENTIFIER, "record field name");
@@ -114,6 +120,47 @@ final class SourceParser {
     expect(Type.LEFT_BRACE, "'{' in record declaration");
     expect(Type.RIGHT_BRACE, "'}' in record declaration");
     records.add(new RecordDefinition(name, fields, start.line()));
+  }
+
+  private void parseVariant(SourceToken start) {
+    String name = expect(Type.IDENTIFIER, "variant name").text();
+    if (isValueType(name)) {
+      fail(start, "duplicate or reserved variant type: " + name);
+    }
+    expect(Type.LEFT_BRACE, "'{' in variant declaration");
+    List<VariantCase> cases = new ArrayList<>();
+    Set<String> caseNames = new java.util.HashSet<>();
+    while (!check(Type.RIGHT_BRACE) && !check(Type.END)) {
+      expectText("case");
+      SourceToken variantCase = expect(Type.IDENTIFIER, "variant case name");
+      if (!caseNames.add(variantCase.text())) {
+        fail(variantCase, "duplicate variant case: " + variantCase.text());
+      }
+      expect(Type.LEFT_PAREN, "'(' after variant case");
+      List<RecordField> fields = new ArrayList<>();
+      Set<String> fieldNames = new java.util.HashSet<>();
+      if (!check(Type.RIGHT_PAREN)) {
+        do {
+          SourceToken type = expect(Type.IDENTIFIER, "variant payload type");
+          if (!isValueType(type.text())) {
+            fail(type, "variant payload type must be previously declared");
+          }
+          SourceToken field = expect(Type.IDENTIFIER, "variant payload name");
+          if (!fieldNames.add(field.text())) {
+            fail(field, "duplicate variant payload field: " + field.text());
+          }
+          fields.add(new RecordField(field.text(), type.text()));
+        } while (match(Type.COMMA));
+      }
+      expect(Type.RIGHT_PAREN, "')' after variant payload");
+      expect(Type.SEMICOLON, "';' after variant case");
+      cases.add(new VariantCase(variantCase.text(), fields));
+    }
+    if (cases.isEmpty()) {
+      fail(start, "variant must declare at least one case");
+    }
+    expect(Type.RIGHT_BRACE, "'}' after variant declaration");
+    variants.add(new VariantDefinition(name, cases, start.line()));
   }
 
   private void parseState(SourceToken start) {
@@ -226,13 +273,16 @@ final class SourceParser {
         parseWhile(body, previous());
       } else if (structuredStatements && matchText("for")) {
         parseFor(body, previous());
+      } else if (structuredStatements && matchText("match")) {
+        parseMatch(body, previous());
       } else if (structuredStatements && (matchText("break") || matchText("continue"))) {
         parseLoopJump(body, previous());
       } else if (structuredStatements && isAssignmentStart()) {
         parseStructuredAssignment(body);
       } else if (!structuredStatements
           && (checkLocalType() || checkText("if") || checkText("while") || checkText("for")
-              || checkText("return") || checkText("break") || checkText("continue"))) {
+              || checkText("match") || checkText("return") || checkText("break")
+              || checkText("continue"))) {
         fail(peek(), "local control flow is not available in this method kind");
       } else if (matchText("reverse")) {
         SourceToken reverse = previous();
@@ -391,6 +441,8 @@ final class SourceParser {
         parseWhile(body, previous());
       } else if (matchText("for")) {
         parseFor(body, previous());
+      } else if (matchText("match")) {
+        parseMatch(body, previous());
       } else if (matchText("break") || matchText("continue")) {
         parseLoopJump(body, previous());
       } else if (isAssignmentStart()) {
@@ -400,6 +452,99 @@ final class SourceParser {
       }
     }
     expect(Type.RIGHT_BRACE, "'}' after " + owner + " body");
+  }
+
+  private void parseMatch(List<Statement> body, SourceToken start) {
+    expect(Type.LEFT_PAREN, "'(' after match");
+    String selector = parseExpression(body);
+    expect(Type.RIGHT_PAREN, "')' after match selector");
+    expect(Type.LEFT_BRACE, "'{' before match cases");
+    List<MatchCase> parsed = new ArrayList<>();
+    while (!check(Type.RIGHT_BRACE) && !check(Type.END)) {
+      expectText("case");
+      SourceToken type = expect(Type.IDENTIFIER, "variant type in case");
+      expect(Type.DOT, "'.' before variant case");
+      SourceToken caseName = expect(Type.IDENTIFIER, "variant case name");
+      expect(Type.LEFT_PAREN, "'(' after variant case");
+      List<Parameter> bindings = new ArrayList<>();
+      if (!check(Type.RIGHT_PAREN)) {
+        do {
+          SourceToken bindingType = expect(Type.IDENTIFIER, "payload binding type");
+          bindings.add(new Parameter(
+              expect(Type.IDENTIFIER, "payload binding name").text(), bindingType.text()));
+        } while (match(Type.COMMA));
+      }
+      expect(Type.RIGHT_PAREN, "')' after payload bindings");
+      List<Statement> caseBody = new ArrayList<>();
+      parseStructuredBlock(caseBody, "case");
+      parsed.add(new MatchCase(type.text(), caseName.text(), bindings, caseBody, type.line()));
+    }
+    expect(Type.RIGHT_BRACE, "'}' after match cases");
+    VariantDefinition variant = validateMatch(parsed, start);
+    String done = label();
+    for (int index = 0; index < parsed.size(); index++) {
+      MatchCase selected = parsed.get(index);
+      VariantCase descriptor = variant.cases().stream()
+          .filter(candidate -> candidate.name().equals(selected.caseName()))
+          .findFirst().orElseThrow();
+      String next = index + 1 == parsed.size() ? null : label();
+      if (next != null) {
+        String condition = temporary();
+        body.add(statement(
+            "variant_tag", selected.line(), condition, selector,
+            variant.name(), selected.caseName()));
+        body.add(statement("jump_zero", selected.line(), condition, next));
+      }
+      for (int field = 0; field < selected.bindings().size(); field++) {
+        body.add(statement(
+            "variant_get",
+            selected.line(),
+            selected.bindings().get(field).name(),
+            selector,
+            variant.name(),
+            selected.caseName(),
+            Integer.toString(field)));
+      }
+      body.addAll(selected.body());
+      if (next != null) {
+        body.add(statement("jump", selected.line(), done));
+        body.add(statement("label", selected.line(), next));
+      }
+    }
+    body.add(statement("label", start.line(), done));
+  }
+
+  private VariantDefinition validateMatch(List<MatchCase> cases, SourceToken start) {
+    if (cases.isEmpty()) {
+      fail(start, "match must contain every variant case");
+    }
+    VariantDefinition variant = variants.stream()
+        .filter(candidate -> candidate.name().equals(cases.getFirst().type()))
+        .findFirst()
+        .orElse(null);
+    if (variant == null) {
+      fail(start, "match case names an unknown variant type");
+    }
+    Set<String> seen = new java.util.HashSet<>();
+    for (MatchCase parsed : cases) {
+      VariantCase descriptor = variant.cases().stream()
+          .filter(candidate -> candidate.name().equals(parsed.caseName()))
+          .findFirst().orElse(null);
+      if (!parsed.type().equals(variant.name()) || descriptor == null
+          || !seen.add(parsed.caseName())
+          || descriptor.fields().size() != parsed.bindings().size()) {
+        fail(start, "match cases do not exhaust " + variant.name());
+      }
+      for (int field = 0; field < descriptor.fields().size(); field++) {
+        if (!descriptor.fields().get(field).type().equals(parsed.bindings().get(field).type())) {
+          fail(start, "variant payload binding type mismatch in " + parsed.caseName());
+        }
+      }
+    }
+    if (seen.size() != variant.cases().size()) {
+      fail(start, "match cases do not exhaust " + variant.name());
+    }
+    return variant;
   }
 
   private void parseLoopJump(List<Statement> body, SourceToken keyword) {
@@ -467,24 +612,40 @@ final class SourceParser {
       return constant(body, previous(), previous().text());
     }
     if (matchText("new")) {
-      SourceToken type = expect(Type.IDENTIFIER, "record type after new");
-      if (records.stream().noneMatch(record -> record.name().equals(type.text()))) {
-        fail(type, "unknown record type: " + type.text());
+      SourceToken type = expect(Type.IDENTIFIER, "aggregate type after new");
+      boolean record = records.stream().anyMatch(candidate -> candidate.name().equals(type.text()));
+      VariantDefinition variant = variants.stream()
+          .filter(candidate -> candidate.name().equals(type.text()))
+          .findFirst().orElse(null);
+      String caseName = null;
+      if (!record && variant != null) {
+        expect(Type.DOT, "'.' before variant case");
+        caseName = expect(Type.IDENTIFIER, "variant case after new").text();
+        String selected = caseName;
+        if (variant.cases().stream().noneMatch(candidate -> candidate.name().equals(selected))) {
+          fail(type, "unknown variant case: " + type.text() + "." + caseName);
+        }
+      } else if (!record) {
+        fail(type, "unknown aggregate type: " + type.text());
       }
-      expect(Type.LEFT_PAREN, "'(' after record type");
+      expect(Type.LEFT_PAREN, "'(' after aggregate constructor");
       List<String> arguments = new ArrayList<>();
       if (!check(Type.RIGHT_PAREN)) {
         do {
           arguments.add(parseExpression(body));
         } while (match(Type.COMMA));
       }
-      expect(Type.RIGHT_PAREN, "')' after record fields");
+      expect(Type.RIGHT_PAREN, "')' after aggregate fields");
       String result = temporary();
       List<String> construction = new ArrayList<>();
       construction.add(result);
       construction.add(type.text());
+      if (variant != null) {
+        construction.add(caseName);
+      }
       construction.addAll(arguments);
-      body.add(new Statement("record_new", construction, start.line()));
+      body.add(new Statement(
+          variant == null ? "record_new" : "variant_new", construction, start.line()));
       return parseFieldAccess(body, result, start.line());
     }
     if (checkText("true") || checkText("false")) {
@@ -549,14 +710,15 @@ final class SourceParser {
 
   private boolean isValueType(String name) {
     return name.equals("long") || name.equals("boolean")
-        || records.stream().anyMatch(record -> record.name().equals(name));
+        || records.stream().anyMatch(record -> record.name().equals(name))
+        || variants.stream().anyMatch(variant -> variant.name().equals(name));
   }
 
   private boolean isAssignmentStart() {
-    if (!check(Type.IDENTIFIER) || current + 1 >= tokens.size()) {
+    if (!check(Type.IDENTIFIER)) {
       return false;
     }
-    Type next = tokens.get(current + 1).type();
+    Type next = lookaheadType(1);
     return next == Type.ASSIGN
         || next == Type.PLUS_ASSIGN
         || next == Type.MINUS_ASSIGN
@@ -731,67 +893,12 @@ final class SourceParser {
     return new Statement(operation, List.of(arguments), line);
   }
 
-  private boolean matchText(String text) {
-    if (!checkText(text)) {
-      return false;
+  private record MatchCase(
+      String type, String caseName, List<Parameter> bindings, List<Statement> body, int line) {
+    private MatchCase {
+      bindings = List.copyOf(bindings);
+      body = List.copyOf(body);
     }
-    advance();
-    return true;
-  }
-
-  private SourceToken expectText(String text) {
-    if (!checkText(text)) {
-      fail(peek(), "expected '" + text + "'");
-    }
-    return advance();
-  }
-
-  private boolean checkText(String text) {
-    return peek().type() == Type.IDENTIFIER && peek().text().equals(text);
-  }
-
-  private boolean checkTextIn(Set<String> values) {
-    return peek().type() == Type.IDENTIFIER && values.contains(peek().text());
-  }
-
-  private boolean match(Type... types) {
-    for (Type type : types) {
-      if (check(type)) {
-        advance();
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private SourceToken expect(Type type, String description) {
-    if (!check(type)) {
-      fail(peek(), "expected " + description + ", got '" + peek().text() + "'");
-    }
-    return advance();
-  }
-
-  private boolean check(Type type) {
-    return peek().type() == type;
-  }
-
-  private SourceToken advance() {
-    if (!check(Type.END)) {
-      current++;
-    }
-    return previous();
-  }
-
-  private SourceToken peek() {
-    return tokens.get(current);
-  }
-
-  private SourceToken previous() {
-    return tokens.get(current - 1);
-  }
-
-  private static void fail(SourceToken token, String message) {
-    throw new CompilerException(token.line(), message + " at column " + token.column());
   }
 
   private record LoopLabels(String repeat, String done) {}

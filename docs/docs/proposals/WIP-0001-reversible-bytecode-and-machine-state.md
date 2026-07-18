@@ -43,7 +43,7 @@ A loader rejects overlapping sections, noncanonical instruction lengths, invalid
 
 ### Future quantum region
 
-A version-2 loader can identify a function or region as quantum or hybrid and report an unsupported required capability without interpreting provider-specific payloads as classical instructions.
+The loader can identify a function or region as quantum or hybrid and report an unsupported required capability without interpreting provider-specific payloads as classical instructions.
 
 ## Goals
 
@@ -117,11 +117,11 @@ Hosts own filesystem, console, clock, random, network, and provider integration.
 
 ### Bytecode container
 
-All integers in the container are unsigned little-endian unless an operand schema says otherwise. Version 2 begins with a 40-byte header:
+All integers in the container are unsigned little-endian unless an operand schema says otherwise. The first format begins with a 40-byte header:
 
 ```text
 byte[8] magic             = "WHEELBC\0"
-u16     major_version     = 2
+u16     major_version     = 1
 u16     minor_version     = 0
 u32     flags
 u64     file_length
@@ -143,14 +143,14 @@ u32 reserved = 0
 
 Sections do not overlap, offsets and lengths fit within `file_length`, padding is zero, and directory entries use canonical `(section_type, offset)` order. Required unknown sections cause rejection. Optional unknown sections may be ignored only when no known section refers to them.
 
-Version 2 reserves these section types:
+The first format reserves these section types:
 
 | ID | Section | Requirement |
 | --- | --- | --- |
 | 1 | Manifest and entry points | Required |
 | 2 | UTF-8 string table | Required |
 | 3 | Type and effect descriptors | Required |
-| 4 | Constants | Optional |
+| 4 | Nominal tagged-variant descriptors | Required |
 | 5 | Function descriptors | Required |
 | 6 | Classical code bodies | Required for a classical entry point |
 | 7 | Ordered classical/quantum workflow | Required for quantum and hybrid artifacts |
@@ -161,7 +161,7 @@ Version 2 reserves these section types:
 
 The manifest declares artifact identity inputs, minimum runtime version, entry points, required section features, and global resource ceilings. A function descriptor declares its stable function ID, type signature, effect set, computation domain, frame-slot schema, forward body range, inverse body range when present, and declared bounds.
 
-A major version changes incompatible structure or semantics. A minor version may add optional sections, optional records, or opcode forms that old runtimes reject through capability checks. Numeric IDs are never silently reused.
+Only format `1.0` exists. The decoder accepts that exact pair and carries no compatibility path for an unreleased predecessor. Any future versioning policy must preserve canonical rejection and may not silently reuse numeric IDs.
 
 ### Instruction encoding
 
@@ -244,9 +244,9 @@ Checkpoint snapshots are an optimization and persistence mechanism, not an addit
 
 ## Concurrency and determinism
 
-Version 2 of this machine contract is single-threaded. All decoding, allocation, arithmetic, traps, effects, history accounting, and step ordering are deterministic for the same artifact and effect receipts.
+This machine contract is single-threaded. All decoding, allocation, arithmetic, traps, effects, history accounting, and step ordering are deterministic for the same artifact and effect receipts.
 
-A later concurrency WIP must define a global event order for shared state and may not infer correct reversal from independent per-thread stacks. The artifact reserves computation and capability metadata without assigning thread opcodes in version 2.
+A later concurrency WIP must define a global event order for shared state and may not infer correct reversal from independent per-thread stacks. The artifact reserves computation and capability metadata without assigning thread opcodes in the first format.
 
 ## Quantum and proof implications
 
@@ -290,7 +290,7 @@ Artifact bytes, assembly, debug names, effect payloads, and persisted history ar
 - [x] The initial opcode registry is shared by compiler, VM, verifier, and tools.
 - [x] The transition kernel and bounded undo records exist.
 - [x] The verifier rejects malformed structure and semantic violations.
-- [x] Major version 2 stores canonical signed/Boolean local type tables; the decoder has no legacy untyped-local path.
+- [x] Major version 1 stores canonical typed local and aggregate references; the decoder has no alternate or legacy format path.
 - [x] Signed and Boolean frame parameters, results, locals, typed value calls, branch targets, definite assignment, and bounded-loop checks execute and verify.
 - [x] Bytecode and source counter fixtures run forward and inverse.
 - [x] Existing incompatible bytecode and memory paths are deleted.
