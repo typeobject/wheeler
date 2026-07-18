@@ -21,6 +21,8 @@ classical class Manifest {
         long targetCount,
         QuotedRange dependencyName,
         QuotedRange dependencyVersion,
+        QuotedRange secondDependencyName,
+        QuotedRange secondDependencyVersion,
         long dependencyCount,
         QuotedRange capabilityName,
         QuotedRange capabilityPath,
@@ -455,6 +457,8 @@ classical class Manifest {
         long targetSourceCount = 0;
         QuotedRange dependencyName = empty;
         QuotedRange dependencyVersion = empty;
+        QuotedRange secondDependencyName = empty;
+        QuotedRange secondDependencyVersion = empty;
         QuotedRange capabilityName = empty;
         QuotedRange capabilityPath = empty;
         if (targetCount == 1) {
@@ -475,17 +479,25 @@ classical class Manifest {
         if (3 < sourceCount) {
             targetFourthSource = quotedRange(starts, lengths, 21);
         }
-        if (dependencyCount == 1) {
+        long dependencyStart = 13 + recordShift;
+        if (0 < dependencyCount) {
             dependencyName = quotedRange(
-                starts, lengths, 15 + recordShift);
+                starts, lengths, dependencyStart + 2);
             dependencyVersion = quotedRange(
-                starts, lengths, 17 + recordShift);
+                starts, lengths, dependencyStart + 4);
+        }
+        if (1 < dependencyCount) {
+            secondDependencyName = quotedRange(
+                starts, lengths, dependencyStart + 8);
+            secondDependencyVersion = quotedRange(
+                starts, lengths, dependencyStart + 10);
         }
         if (capabilityCount == 1) {
+            long capabilityStart = dependencyStart + dependencyCount * 6;
             capabilityName = quotedRange(
-                starts, lengths, 20 + recordShift);
+                starts, lengths, capabilityStart + 1);
             capabilityPath = quotedRange(
-                starts, lengths, 22 + recordShift);
+                starts, lengths, capabilityStart + 3);
         }
         return new ManifestHeader(
             quotedRange(starts, lengths, 1),
@@ -502,6 +514,8 @@ classical class Manifest {
             targetCount,
             dependencyName,
             dependencyVersion,
+            secondDependencyName,
+            secondDependencyVersion,
             dependencyCount,
             capabilityName,
             capabilityPath,
@@ -519,54 +533,50 @@ classical class Manifest {
     ) {
         if (targetValid(
                 source, kinds, starts, lengths, sourceCount)) {
-            if (count == 13 + recordShift) {
-                return new ManifestResult.Value(
-                    header(
-                        starts,
-                        lengths,
-                        1,
-                        0,
-                        0,
-                        recordShift,
-                        sourceCount));
-            }
-            if (count == 19 + recordShift) {
+            long cursor = 13 + recordShift;
+            long dependencyCount = 0;
+            boolean dependenciesSorted = true;
+            if (dependencyValid(
+                    source, kinds, starts, lengths, cursor)) {
+                dependencyCount = 1;
+                cursor += 6;
                 if (dependencyValid(
+                        source, kinds, starts, lengths, cursor)) {
+                    long dependencyOrder = compareTokenText(
                         source,
-                        kinds,
                         starts,
                         lengths,
-                        13 + recordShift)) {
+                        cursor - 4,
+                        cursor + 2);
+                    if (dependencyOrder < 0) {
+                        dependencyCount = 2;
+                        cursor += 6;
+                    } else {
+                        dependenciesSorted = false;
+                    }
+                }
+            }
+            if (dependenciesSorted) {
+                if (count == cursor) {
                     return new ManifestResult.Value(
                         header(
                             starts,
                             lengths,
                             1,
-                            1,
+                            dependencyCount,
                             0,
                             recordShift,
                             sourceCount));
                 }
-            }
-            if (count == 24 + recordShift) {
-                if (dependencyValid(
-                        source,
-                        kinds,
-                        starts,
-                        lengths,
-                        13 + recordShift)) {
-                    if (capabilityValid(
-                            source,
-                            kinds,
-                            starts,
-                            lengths,
-                            19 + recordShift)) {
+                if (capabilityValid(
+                        source, kinds, starts, lengths, cursor)) {
+                    if (count == cursor + 5) {
                         return new ManifestResult.Value(
                             header(
                                 starts,
                                 lengths,
                                 1,
-                                1,
+                                dependencyCount,
                                 1,
                                 recordShift,
                                 sourceCount));

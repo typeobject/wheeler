@@ -33,6 +33,7 @@ class NativeManifestExampleTest {
             + "module \"demo.app\" source \"src/A\\\"pp.w\" "
             + "source \"src/Helper.w\"; "
             + "dependency normal \"demo.base\" version \"^1.0.0\"; "
+            + "dependency development \"demo.extra\" version \"~2.1.0\"; "
             + "capability \"fixture\" path \"test-data\";";
     String input = source.replace("; target", ";   target");
     VirtualMachine machine = vm(program, input);
@@ -53,9 +54,11 @@ class NativeManifestExampleTest {
     assertEquals(12, machine.global("targetSecondSourceLength"));
     assertEquals(0, machine.global("targetThirdSourceLength"));
     assertEquals(0, machine.global("targetFourthSourceLength"));
-    assertEquals(1, machine.global("dependencyCount"));
+    assertEquals(2, machine.global("dependencyCount"));
     assertEquals(9, machine.global("dependencyNameLength"));
     assertEquals(6, machine.global("dependencyVersionLength"));
+    assertEquals(10, machine.global("secondDependencyNameLength"));
+    assertEquals(6, machine.global("secondDependencyVersionLength"));
     assertEquals(1, machine.global("capabilityCount"));
     assertEquals(7, machine.global("capabilityNameLength"));
     assertEquals(9, machine.global("capabilityPathLength"));
@@ -103,6 +106,14 @@ class NativeManifestExampleTest {
     assertTraps(program, source.replace("1.2.3-rc.1", "1.2.3-01"));
     assertTraps(program, source.replace("demo.native", "Demo.native"));
     assertTraps(program, source.replace("demo.base", "demo.-base"));
+    assertTraps(program, source.replace("demo.extra", "demo.base"));
+    assertTraps(
+        program,
+        source.replace(
+            "dependency normal \"demo.base\" version \"^1.0.0\"; "
+                + "dependency development \"demo.extra\" version \"~2.1.0\";",
+            "dependency development \"demo.extra\" version \"~2.1.0\"; "
+                + "dependency normal \"demo.base\" version \"^1.0.0\";"));
     assertTraps(program, source.replace("target example", "target app"));
     assertTraps(program, source.replace("demo.app", "demo.-app"));
     assertTraps(
