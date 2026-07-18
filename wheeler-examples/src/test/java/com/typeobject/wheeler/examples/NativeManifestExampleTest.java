@@ -25,7 +25,8 @@ class NativeManifestExampleTest {
     String source =
         "package \"demo.native\" version \"1.2.3\" profile \"bootstrap-1\"; "
             + "target example \"app\" root \"src/App.w\"; "
-            + "dependency runtime \"demo.base\" version \"^1.0.0\";";
+            + "dependency runtime \"demo.base\" version \"^1.0.0\"; "
+            + "capability \"fixture\" path \"test-data\";";
     VirtualMachine machine = new VirtualMachine(
         program, source.getBytes(StandardCharsets.UTF_8));
     var initial = machine.snapshot();
@@ -42,6 +43,9 @@ class NativeManifestExampleTest {
     assertEquals(1, machine.global("dependencyCount"));
     assertEquals(9, machine.global("dependencyNameLength"));
     assertEquals(6, machine.global("dependencyVersionLength"));
+    assertEquals(1, machine.global("capabilityCount"));
+    assertEquals(7, machine.global("capabilityNameLength"));
+    assertEquals(9, machine.global("capabilityPathLength"));
     assertEquals(source.length(), machine.global("finalCursor"));
     while (machine.historySize() > 0) {
       machine.rewindOne();
@@ -53,7 +57,8 @@ class NativeManifestExampleTest {
         ("project \"demo.native\" version \"1.2.3\" "
             + "profile \"bootstrap-1\"; target example \"app\" "
             + "root \"src/App.w\"; dependency runtime \"demo.base\" "
-            + "version \"^1.0.0\";")
+            + "version \"^1.0.0\"; capability \"fixture\" "
+            + "path \"test-data\";")
             .getBytes(StandardCharsets.UTF_8));
     assertThrows(VmTrap.class, malformed::run);
   }

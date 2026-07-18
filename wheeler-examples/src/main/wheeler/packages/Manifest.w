@@ -12,7 +12,10 @@ classical class Manifest {
         long targetCount,
         QuotedRange dependencyName,
         QuotedRange dependencyVersion,
-        long dependencyCount
+        long dependencyCount,
+        QuotedRange capabilityName,
+        QuotedRange capabilityPath,
+        long capabilityCount
     ) {}
 
     public variant ManifestResult {
@@ -140,17 +143,39 @@ classical class Manifest {
         return false;
     }
 
+    private boolean capabilityValid(
+        utf8 source,
+        words kinds,
+        words starts,
+        words lengths
+    ) {
+        if (keywordAt(
+                source, starts, lengths, 19, 2703423431124248)) {
+            if (quoted(kinds, lengths, 20)) {
+                if (keywordAt(source, starts, lengths, 21, 3433509)) {
+                    if (quoted(kinds, lengths, 22)) {
+                        return semicolonAt(source, kinds, starts, 23);
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     private ManifestHeader header(
         words starts,
         words lengths,
         long targetCount,
-        long dependencyCount
+        long dependencyCount,
+        long capabilityCount
     ) {
         QuotedRange empty = new QuotedRange(0, 0);
         QuotedRange targetName = empty;
         QuotedRange targetRoot = empty;
         QuotedRange dependencyName = empty;
         QuotedRange dependencyVersion = empty;
+        QuotedRange capabilityName = empty;
+        QuotedRange capabilityPath = empty;
         if (targetCount == 1) {
             targetName = quotedRange(starts, lengths, 9);
             targetRoot = quotedRange(starts, lengths, 11);
@@ -158,6 +183,10 @@ classical class Manifest {
         if (dependencyCount == 1) {
             dependencyName = quotedRange(starts, lengths, 15);
             dependencyVersion = quotedRange(starts, lengths, 17);
+        }
+        if (capabilityCount == 1) {
+            capabilityName = quotedRange(starts, lengths, 20);
+            capabilityPath = quotedRange(starts, lengths, 22);
         }
         return new ManifestHeader(
             quotedRange(starts, lengths, 1),
@@ -168,7 +197,10 @@ classical class Manifest {
             targetCount,
             dependencyName,
             dependencyVersion,
-            dependencyCount);
+            dependencyCount,
+            capabilityName,
+            capabilityPath,
+            capabilityCount);
     }
 
     public ManifestResult parseHeader(
@@ -181,17 +213,25 @@ classical class Manifest {
         if (baseHeaderValid(source, kinds, starts, lengths)) {
             if (count == 7) {
                 return new ManifestResult.Value(
-                    header(starts, lengths, 0, 0));
+                    header(starts, lengths, 0, 0, 0));
             }
             if (targetValid(source, kinds, starts, lengths)) {
                 if (count == 13) {
                     return new ManifestResult.Value(
-                        header(starts, lengths, 1, 0));
+                        header(starts, lengths, 1, 0, 0));
                 }
                 if (count == 19) {
                     if (dependencyValid(source, kinds, starts, lengths)) {
                         return new ManifestResult.Value(
-                            header(starts, lengths, 1, 1));
+                            header(starts, lengths, 1, 1, 0));
+                    }
+                }
+                if (count == 24) {
+                    if (dependencyValid(source, kinds, starts, lengths)) {
+                        if (capabilityValid(source, kinds, starts, lengths)) {
+                            return new ManifestResult.Value(
+                                header(starts, lengths, 1, 1, 1));
+                        }
                     }
                 }
             }
