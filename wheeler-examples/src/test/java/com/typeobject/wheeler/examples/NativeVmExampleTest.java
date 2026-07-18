@@ -46,6 +46,12 @@ class NativeVmExampleTest {
             Map.entry(
                 "ProofVerifier.w",
                 Files.readString(root.resolve("compiler/ProofVerifier.w"))),
+            Map.entry(
+                "StorageInterpreter.w",
+                Files.readString(root.resolve("compiler/StorageInterpreter.w"))),
+            Map.entry(
+                "StorageVerifier.w",
+                Files.readString(root.resolve("compiler/StorageVerifier.w"))),
             Map.entry("TypeCodes.w", Files.readString(root.resolve("compiler/TypeCodes.w"))),
             Map.entry("Verifier.w", Files.readString(root.resolve("compiler/Verifier.w")))),
         "examples.runtime.native_vm");
@@ -149,6 +155,18 @@ class NativeVmExampleTest {
     assertThrows(
         VmTrap.class,
         () -> VirtualMachine.withBinaryInput(interpreter, forgedSlice).run());
+    String storage = "classical class NativeStorage { "
+        + "state long first = 0; entry void main() { "
+        + "region arena = new region(16, 1); long length = 2; "
+        + "words data = allocate(arena, length); set(data, 0, 7); "
+        + "first = data[0]; assert first == 7; "
+        + "drop(data); drop(arena); } }";
+    assertInterpretedGlobal(interpreter, storage, "first", 7);
+    byte[] forgedStorage = withBadWordsIndex(
+        compiler.compileToBytecode(storage));
+    assertThrows(
+        VmTrap.class,
+        () -> VirtualMachine.withBinaryInput(interpreter, forgedStorage).run());
     String records = Files.readString(root.resolve("Records.w"));
     assertInterpretedTwoGlobals(
         interpreter, records, "width", 5, "equal", 1);
@@ -286,6 +304,23 @@ class NativeVmExampleTest {
     throw new AssertionError("call fixture has no argument call");
   }
 
+  private static byte[] withBadWordsIndex(byte[] artifact) {
+    byte[] damaged = artifact.clone();
+    ByteBuffer bytes = ByteBuffer.wrap(damaged).order(ByteOrder.LITTLE_ENDIAN);
+    int codeDirectory = 40 + 5 * 32;
+    int cursor = Math.toIntExact(bytes.getLong(codeDirectory + 8));
+    int end = cursor + Math.toIntExact(bytes.getLong(codeDirectory + 16));
+    while (cursor < end) {
+      int opcode = Short.toUnsignedInt(bytes.getShort(cursor));
+      if (opcode == Opcode.WORDS_GET.code()) {
+        bytes.putLong(cursor + 24, Long.MAX_VALUE);
+        return damaged;
+      }
+      cursor += bytes.getInt(cursor + 4);
+    }
+    throw new AssertionError("storage fixture has no word read");
+  }
+
   private static byte[] withBadSliceIndex(byte[] artifact) {
     byte[] damaged = artifact.clone();
     ByteBuffer bytes = ByteBuffer.wrap(damaged).order(ByteOrder.LITTLE_ENDIAN);
@@ -404,6 +439,9 @@ class NativeVmExampleTest {
             Map.entry("Scanner.w", Files.readString(root.resolve("lexer/Scanner.w"))),
             Map.entry(
                 "Statements.w", Files.readString(root.resolve("compiler/Statements.w"))),
+            Map.entry(
+                "StorageVerifier.w",
+                Files.readString(root.resolve("compiler/StorageVerifier.w"))),
             Map.entry(
                 "StringTable.w", Files.readString(root.resolve("compiler/StringTable.w"))),
             Map.entry("Structure.w", Files.readString(root.resolve("compiler/Structure.w"))),

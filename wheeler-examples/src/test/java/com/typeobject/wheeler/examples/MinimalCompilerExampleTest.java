@@ -42,6 +42,8 @@ class MinimalCompilerExampleTest {
         Path.of("src/main/wheeler/compiler/ProofVerifier.w"));
     String statements = Files.readString(
         Path.of("src/main/wheeler/compiler/Statements.w"));
+    String storageVerifier = Files.readString(
+        Path.of("src/main/wheeler/compiler/StorageVerifier.w"));
     String stringTable = Files.readString(
         Path.of("src/main/wheeler/compiler/StringTable.w"));
     String structure = Files.readString(
@@ -68,6 +70,7 @@ class MinimalCompilerExampleTest {
             Map.entry("ProofVerifier.w", proofVerifier),
             Map.entry("Scanner.w", scanner),
             Map.entry("Statements.w", statements),
+            Map.entry("StorageVerifier.w", storageVerifier),
             Map.entry("StringTable.w", stringTable),
             Map.entry("Structure.w", structure),
             Map.entry("Tokens.w", tokens),
@@ -385,22 +388,25 @@ class MinimalCompilerExampleTest {
         Path.of("src/main/wheeler/compiler/ProofRules.w"));
     String proofVerifier = Files.readString(
         Path.of("src/main/wheeler/compiler/ProofVerifier.w"));
+    String storageVerifier = Files.readString(
+        Path.of("src/main/wheeler/compiler/StorageVerifier.w"));
     String typeCodes = Files.readString(
         Path.of("src/main/wheeler/compiler/TypeCodes.w"));
     String verifier = Files.readString(
         Path.of("src/main/wheeler/compiler/Verifier.w"));
     Program program = new WheelerCompiler().compileModuleFiles(
-        Map.of(
-            "AggregateVerifier.w", aggregateVerifier,
-            "Binary.w", binary,
-            "FunctionVerifier.w", functionVerifier,
-            "InstructionVerifier.w", instructionVerifier,
-            "Opcodes.w", opcodes,
-            "ProofRules.w", proofRules,
-            "ProofVerifier.w", proofVerifier,
-            "TypeCodes.w", typeCodes,
-            "Verifier.w", verifier,
-            "VerifierTest.w", root),
+        Map.ofEntries(
+            Map.entry("AggregateVerifier.w", aggregateVerifier),
+            Map.entry("Binary.w", binary),
+            Map.entry("FunctionVerifier.w", functionVerifier),
+            Map.entry("InstructionVerifier.w", instructionVerifier),
+            Map.entry("Opcodes.w", opcodes),
+            Map.entry("ProofRules.w", proofRules),
+            Map.entry("ProofVerifier.w", proofVerifier),
+            Map.entry("StorageVerifier.w", storageVerifier),
+            Map.entry("TypeCodes.w", typeCodes),
+            Map.entry("Verifier.w", verifier),
+            Map.entry("VerifierTest.w", root)),
         "examples.compiler.verifiertest");
     WheelerCompiler stageZero = new WheelerCompiler();
     byte[] locals = stageZero.compileToBytecode(

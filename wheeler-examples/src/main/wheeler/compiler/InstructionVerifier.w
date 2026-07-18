@@ -2,6 +2,7 @@
 module examples.compiler.instruction_verifier;
 import examples.compiler.aggregate_verifier;
 import examples.compiler.opcodes;
+import examples.compiler.storage_verifier;
 import examples.compiler.type_codes;
 import examples.packages.binary;
 classical class InstructionVerifier {
@@ -205,6 +206,27 @@ classical class InstructionVerifier {
         if (opcode == OPCODE_SLICE_GET) {
             return 3;
         }
+        if (opcode == OPCODE_OWNED_MOVE) {
+            return 2;
+        }
+        if (opcode == OPCODE_REGION_NEW) {
+            return 3;
+        }
+        if (opcode == OPCODE_WORDS_ALLOC) {
+            return 3;
+        }
+        if (opcode == OPCODE_WORDS_GET) {
+            return 3;
+        }
+        if (opcode == OPCODE_WORDS_SET) {
+            return 3;
+        }
+        if (opcode == OPCODE_BUFFER_DROP) {
+            return 1;
+        }
+        if (opcode == OPCODE_REGION_DROP) {
+            return 1;
+        }
         return -1;
     }
 
@@ -277,6 +299,16 @@ classical class InstructionVerifier {
         if (aggregateValid < 0) {
         } else {
             return aggregateValid;
+        }
+        long storageValid = storageOperandsValid(
+            artifact,
+            cursor,
+            opcode,
+            localCount,
+            activeTypes);
+        if (storageValid < 0) {
+        } else {
+            return storageValid;
         }
         if (isGlobalConstantOpcode(opcode)) {
             if (first < globalCount) {

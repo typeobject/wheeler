@@ -11,7 +11,7 @@ classical class NativeVm {
     state long artifactLength = 0;
 
     entry void main(byteview artifact) {
-        region arena = new region(4416, 11);
+        region arena = new region(6336, 19);
         words globals = allocate(arena, INTERPRETER_GLOBAL_COUNT);
         words locals = allocate(arena, INTERPRETER_LOCAL_CAPACITY);
         words returnCursors = allocate(arena, INTERPRETER_FRAME_COUNT);
@@ -29,6 +29,16 @@ classical class NativeVm {
             arena, INTERPRETER_AGGREGATE_COUNT);
         words aggregateFields = allocate(
             arena, INTERPRETER_AGGREGATE_FIELDS);
+        words storageKinds = allocate(arena, INTERPRETER_STORAGE_COUNT);
+        words storageStarts = allocate(arena, INTERPRETER_STORAGE_COUNT);
+        words storageLengths = allocate(arena, INTERPRETER_STORAGE_COUNT);
+        words storageOwners = allocate(arena, INTERPRETER_STORAGE_COUNT);
+        words storageLive = allocate(arena, INTERPRETER_STORAGE_COUNT);
+        words storageRegionUsedBytes = allocate(
+            arena, INTERPRETER_STORAGE_COUNT);
+        words storageRegionLiveObjects = allocate(
+            arena, INTERPRETER_STORAGE_COUNT);
+        words storageData = allocate(arena, INTERPRETER_STORAGE_WORDS);
         ExecutionResult result = executeArtifact(
             artifact,
             globals,
@@ -41,7 +51,15 @@ classical class NativeVm {
             aggregateTags,
             aggregateStarts,
             aggregateCounts,
-            aggregateFields);
+            aggregateFields,
+            storageKinds,
+            storageStarts,
+            storageLengths,
+            storageOwners,
+            storageLive,
+            storageRegionUsedBytes,
+            storageRegionLiveObjects,
+            storageData);
         match (result) {
             case ExecutionResult.Value(Execution execution) {
                 finalGlobal = execution.globalZero;
@@ -54,6 +72,14 @@ classical class NativeVm {
             }
         }
         artifactLength = bufferLength(artifact);
+        drop(storageData);
+        drop(storageRegionLiveObjects);
+        drop(storageRegionUsedBytes);
+        drop(storageLive);
+        drop(storageOwners);
+        drop(storageLengths);
+        drop(storageStarts);
+        drop(storageKinds);
         drop(aggregateFields);
         drop(aggregateCounts);
         drop(aggregateStarts);

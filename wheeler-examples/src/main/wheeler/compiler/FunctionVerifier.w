@@ -25,6 +25,12 @@ classical class FunctionVerifier {
         if (typeCode == TYPE_BOOLEAN) {
             return true;
         }
+        if (typeCode == TYPE_REGION) {
+            return true;
+        }
+        if (typeCode == TYPE_WORDS) {
+            return true;
+        }
         if (isRecordType(typeCode)) {
             return recordTypeId(typeCode) < recordCount;
         }

@@ -422,7 +422,7 @@ class WheelerCommandTest {
             source "src/compiler/InstructionVerifier.w" source "src/compiler/Ir.w"
             source "src/compiler/Opcodes.w" source "src/compiler/Parser.w"
             source "src/compiler/ProofRules.w" source "src/compiler/ProofVerifier.w"
-            source "src/compiler/Statements.w"
+            source "src/compiler/Statements.w" source "src/compiler/StorageVerifier.w"
             source "src/compiler/StringTable.w" source "src/compiler/Structure.w" source "src/compiler/Tokens.w"
             source "src/compiler/TypeCodes.w" source "src/compiler/Verifier.w"
             source "src/lexer/Scanner.w" source "src/packages/Binary.w";
@@ -466,6 +466,9 @@ class WheelerCommandTest {
     Files.copy(
         examples.resolve("compiler/Statements.w"),
         project.resolve("src/compiler/Statements.w"));
+    Files.copy(
+        examples.resolve("compiler/StorageVerifier.w"),
+        project.resolve("src/compiler/StorageVerifier.w"));
     Files.copy(
         examples.resolve("compiler/StringTable.w"),
         project.resolve("src/compiler/StringTable.w"));

@@ -1,6 +1,7 @@
 module examples.compiler.interpreter;
 import examples.compiler.aggregate_interpreter;
 import examples.compiler.opcodes;
+import examples.compiler.storage_interpreter;
 import examples.compiler.type_codes;
 import examples.compiler.verifier;
 import examples.packages.binary;
@@ -75,7 +76,15 @@ classical class Interpreter {
         words aggregateTags,
         words aggregateStarts,
         words aggregateCounts,
-        words aggregateFields
+        words aggregateFields,
+        words storageKinds,
+        words storageStarts,
+        words storageLengths,
+        words storageOwners,
+        words storageLive,
+        words storageRegionUsedBytes,
+        words storageRegionLiveObjects,
+        words storageData
     ) {
         long fileLength = bufferLength(artifact);
         if (verifyArtifact(artifact, fileLength) == 1) {
@@ -110,6 +119,8 @@ classical class Interpreter {
         long depth = 0;
         long aggregateCount = 0;
         long aggregateFieldCursor = 0;
+        long storageCount = 0;
+        long storageDataCursor = 0;
         long steps = 0;
         long clear = 0;
         while (clear < INTERPRETER_LOCAL_WIDTH)
@@ -476,6 +487,36 @@ classical class Interpreter {
                                 aggregateFields,
                                 recordHandle,
                                 recordFieldIndex));
+                    }
+                    StorageStep storageStep = executeStorageInstruction(
+                        artifact,
+                        cursor,
+                        opcode,
+                        locals,
+                        depth,
+                        storageKinds,
+                        storageStarts,
+                        storageLengths,
+                        storageOwners,
+                        storageLive,
+                        storageRegionUsedBytes,
+                        storageRegionLiveObjects,
+                        storageData,
+                        storageCount,
+                        storageDataCursor);
+                    match (storageStep) {
+                        case StorageStep.Skipped() {
+                        }
+                        case StorageStep.Value(
+                            long nextStorageCount,
+                            long nextStorageDataCursor
+                        ) {
+                            storageCount = nextStorageCount;
+                            storageDataCursor = nextStorageDataCursor;
+                        }
+                        case StorageStep.Error() {
+                            return new ExecutionResult.Error(cursor);
+                        }
                     }
                     if (opcode == OPCODE_ARRAY_NEW) {
                         long arrayDestination = readUnsigned(

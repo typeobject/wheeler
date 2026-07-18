@@ -41,7 +41,16 @@ classical class Opcodes {
     public const long OPCODE_ARRAY_GET = 0x0521;
     public const long OPCODE_SLICE_NEW = 0x0530;
     public const long OPCODE_SLICE_GET = 0x0531;
+    public const long OPCODE_OWNED_MOVE = 0x0540;
+    public const long OPCODE_REGION_NEW = 0x0541;
+    public const long OPCODE_WORDS_ALLOC = 0x0542;
+    public const long OPCODE_WORDS_GET = 0x0543;
+    public const long OPCODE_WORDS_SET = 0x0544;
+    public const long OPCODE_BUFFER_DROP = 0x0545;
+    public const long OPCODE_REGION_DROP = 0x0546;
 
+    public const long INTERPRETER_STORAGE_COUNT = 16;
+    public const long INTERPRETER_STORAGE_WORDS = 128;
     public const long INTERPRETER_AGGREGATE_COUNT = 32;
     public const long INTERPRETER_AGGREGATE_FIELDS = 128;
     public const long INTERPRETER_LOCAL_WIDTH = 32;
