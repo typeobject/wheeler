@@ -30,7 +30,8 @@ class MinimalCompilerExampleTest {
             "Parser.w", parser,
             "Scanner.w", scanner),
         "examples.compiler.seed");
-    String source = "classical class LongClass { entry void main() { } }";
+    String source =
+        "classical class LongClass { state long value = 7; entry void main() { } }";
     VirtualMachine writer = new VirtualMachine(
         writerProgram, source.getBytes(StandardCharsets.UTF_8), 512);
     var initial = writer.snapshot();
@@ -39,8 +40,8 @@ class MinimalCompilerExampleTest {
 
     byte[] emitted = writer.hostOutput();
     byte[] stageZero = new WheelerCompiler().compileToBytecode(source);
-    assertEquals(368, emitted.length);
-    assertEquals(368, writer.global("finalCursor"));
+    assertEquals(392, emitted.length);
+    assertEquals(392, writer.global("finalCursor"));
     assertArrayEquals(stageZero, emitted);
 
     var decoded = new BytecodeReader().read(emitted);
@@ -48,6 +49,7 @@ class MinimalCompilerExampleTest {
     VirtualMachine seed = new VirtualMachine(decoded);
     seed.run();
     assertEquals(MachineStatus.HALTED, seed.status());
+    assertEquals(7, seed.global("value"));
 
     while (writer.historySize() > 0) {
       writer.rewindOne();
@@ -56,7 +58,7 @@ class MinimalCompilerExampleTest {
 
     VirtualMachine invalid = new VirtualMachine(
         writerProgram,
-        "classical class Caf\u00e9 { entry void main() { } }"
+        "classical class Caf\u00e9 { state long value = 7; entry void main() { } }"
             .getBytes(StandardCharsets.UTF_8),
         512);
     assertThrows(VmTrap.class, invalid::run);

@@ -3,8 +3,14 @@ import examples.lexer.scanner;
 classical class Parser {
     public record SourceRange(long start, long length) {}
 
-    public variant MinimalClassResult {
-        case Value(SourceRange name);
+    public record MinimalProgram(
+        SourceRange name,
+        SourceRange global,
+        long initialValue
+    ) {}
+
+    public variant MinimalProgramResult {
+        case Value(MinimalProgram program);
         case Error(long offset);
     }
 
@@ -29,39 +35,106 @@ classical class Parser {
         return hash;
     }
 
-    public MinimalClassResult parseMinimalClass(
+    private boolean canonicalMinimalNames(
+        utf8 source,
+        words tokenKinds,
+        words tokenStarts,
+        words tokenLengths
+    ) {
+        if (tokenKinds[2] == 1) {
+            long first = utf8Scalar(source, tokenStarts[2]);
+            if (64 < first) {
+                if (first < 91) {
+                    return tokenHash(
+                        source, tokenStarts, tokenLengths, 6) == 111972721;
+                }
+            }
+        }
+        return false;
+    }
+
+    public MinimalProgramResult parseMinimalProgram(
         utf8 source,
         words tokenKinds,
         words tokenStarts,
         words tokenLengths,
         long count
     ) {
-        if (count == 12) {
+        if (count == 18) {
             if (tokenHash(source, tokenStarts, tokenLengths, 0)
                     == 87497064671293) {
                 if (tokenHash(source, tokenStarts, tokenLengths, 1) == 94742904) {
-                    if (tokenKinds[2] == 1) {
+                    if (canonicalMinimalNames(
+                            source, tokenKinds, tokenStarts, tokenLengths)) {
                         if (utf8Scalar(source, tokenStarts[3]) == 123) {
                             if (tokenHash(source, tokenStarts, tokenLengths, 4)
-                                    == 96667762) {
+                                    == 109757585) {
                                 if (tokenHash(source, tokenStarts, tokenLengths, 5)
-                                        == 3625364) {
-                                    if (tokenHash(source, tokenStarts, tokenLengths, 6)
-                                            == 3343801) {
-                                        if (utf8Scalar(source, tokenStarts[7]) == 40) {
-                                            if (utf8Scalar(source, tokenStarts[8]) == 41) {
+                                        == 3327612) {
+                                    if (tokenKinds[6] == 1) {
+                                        if (utf8Scalar(source, tokenStarts[7]) == 61) {
+                                            if (tokenKinds[8] == 2) {
                                                 if (utf8Scalar(
-                                                        source, tokenStarts[9]) == 123) {
-                                                    if (utf8Scalar(
-                                                            source, tokenStarts[10]) == 125) {
-                                                        if (utf8Scalar(
+                                                        source, tokenStarts[9]) == 59) {
+                                                    if (tokenHash(
+                                                            source,
+                                                            tokenStarts,
+                                                            tokenLengths,
+                                                            10) == 96667762) {
+                                                        if (tokenHash(
                                                                 source,
-                                                                tokenStarts[11]) == 125) {
-                                                            SourceRange name = new SourceRange(
-                                                                tokenStarts[2],
-                                                                tokenLengths[2]);
-                                                            return new MinimalClassResult.Value(
-                                                                name);
+                                                                tokenStarts,
+                                                                tokenLengths,
+                                                                11) == 3625364) {
+                                                            if (tokenHash(
+                                                                    source,
+                                                                    tokenStarts,
+                                                                    tokenLengths,
+                                                                    12) == 3343801) {
+                                                                if (utf8Scalar(
+                                                                        source,
+                                                                        tokenStarts[13]) == 40) {
+                                                                    if (utf8Scalar(
+                                                                            source,
+                                                                            tokenStarts[14]) == 41) {
+                                                                        if (utf8Scalar(
+                                                                                source,
+                                                                                tokenStarts[15]) == 123) {
+                                                                            if (utf8Scalar(
+                                                                                    source,
+                                                                                    tokenStarts[16]) == 125) {
+                                                                                if (utf8Scalar(
+                                                                                        source,
+                                                                                        tokenStarts[17]) == 125) {
+                                                                                    long end = tokenStarts[8]
+                                                                                        + tokenLengths[8];
+                                                                                    long initial = parseNumber(
+                                                                                        source,
+                                                                                        tokenStarts[8],
+                                                                                        end);
+                                                                                    if (0 < initial) {
+                                                                                        SourceRange name =
+                                                                                            new SourceRange(
+                                                                                                tokenStarts[2],
+                                                                                                tokenLengths[2]);
+                                                                                        SourceRange global =
+                                                                                            new SourceRange(
+                                                                                                tokenStarts[6],
+                                                                                                tokenLengths[6]);
+                                                                                        MinimalProgram program =
+                                                                                            new MinimalProgram(
+                                                                                                name,
+                                                                                                global,
+                                                                                                initial);
+                                                                                        return new MinimalProgramResult.Value(
+                                                                                            program);
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -75,7 +148,7 @@ classical class Parser {
                 }
             }
         }
-        return new MinimalClassResult.Error(0);
+        return new MinimalProgramResult.Error(0);
     }
 
     private boolean isLongKeyword(

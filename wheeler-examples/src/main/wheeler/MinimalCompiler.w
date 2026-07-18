@@ -5,7 +5,7 @@ import examples.lexer.scanner;
 classical class MinimalCompiler {
     state long finalCursor = 0;
 
-    private SourceRange requireMinimalClass(
+    private MinimalProgram requireMinimalProgram(
         utf8 source,
         words tokenKinds,
         words tokenStarts,
@@ -16,18 +16,22 @@ classical class MinimalCompiler {
         match (scanned) {
             case ScanResult.Error(long scanOffset) {
                 assert finalCursor == 1;
-                return new SourceRange(scanOffset, 0);
+                SourceRange scanName = new SourceRange(scanOffset, 0);
+                SourceRange scanGlobal = new SourceRange(scanOffset, 0);
+                return new MinimalProgram(scanName, scanGlobal, 0);
             }
             case ScanResult.Value(long count) {
-                MinimalClassResult parsed = parseMinimalClass(
+                MinimalProgramResult parsed = parseMinimalProgram(
                     source, tokenKinds, tokenStarts, tokenLengths, count);
                 match (parsed) {
-                    case MinimalClassResult.Error(long parseOffset) {
+                    case MinimalProgramResult.Error(long parseOffset) {
                         assert finalCursor == 1;
-                        return new SourceRange(parseOffset, 0);
+                        SourceRange parseName = new SourceRange(parseOffset, 0);
+                        SourceRange parseGlobal = new SourceRange(parseOffset, 0);
+                        return new MinimalProgram(parseName, parseGlobal, 0);
                     }
-                    case MinimalClassResult.Value(SourceRange name) {
-                        return name;
+                    case MinimalProgramResult.Value(MinimalProgram program) {
+                        return program;
                     }
                 }
             }
@@ -39,14 +43,15 @@ classical class MinimalCompiler {
         words tokenKinds = allocate(arena, 32);
         words tokenStarts = allocate(arena, 32);
         words tokenLengths = allocate(arena, 32);
-        SourceRange className = requireMinimalClass(
+        MinimalProgram program = requireMinimalProgram(
             source, tokenKinds, tokenStarts, tokenLengths);
-        long nameLength = className.length;
+        long nameLength = program.name.length;
+        long globalLength = program.global.length;
         long manifestOffset = 232;
         long stringsOffset = 256;
-        long stringsLength = 16 + nameLength;
+        long stringsLength = 20 + nameLength + globalLength;
         long typesOffset = align8(stringsOffset + stringsLength);
-        long variantsOffset = align8(typesOffset + 16);
+        long variantsOffset = align8(typesOffset + 32);
         long functionsOffset = align8(variantsOffset + 4);
         long codeOffset = align8(functionsOffset + 44);
         long fileLength = align8(codeOffset + 8);
@@ -66,7 +71,7 @@ classical class MinimalCompiler {
         cursor = writeDirectoryEntry(
             output, cursor, 2, stringsOffset, stringsLength);
         cursor = writeDirectoryEntry(
-            output, cursor, 3, typesOffset, 16);
+            output, cursor, 3, typesOffset, 32);
         cursor = writeDirectoryEntry(
             output, cursor, 4, variantsOffset, 4);
         cursor = writeDirectoryEntry(
@@ -80,16 +85,23 @@ classical class MinimalCompiler {
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 1000000, 8);
 
-        cursor = writeUnsignedLittleEndian(output, cursor, 2, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, 3, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, nameLength, 4);
         cursor = writeAsciiSlice(
-            output, cursor, source, className.start, nameLength);
+            output, cursor, source, program.name.start, nameLength);
         cursor = writeUnsignedLittleEndian(output, cursor, 4, 4);
         writeAscii(output, cursor, "main");
         cursor += 4;
+        cursor = writeUnsignedLittleEndian(output, cursor, globalLength, 4);
+        cursor = writeAsciiSlice(
+            output, cursor, source, program.global.start, globalLength);
         cursor = align8(cursor);
 
-        cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, 2, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
+        cursor = writeUnsignedLittleEndian(
+            output, cursor, program.initialValue, 8);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
