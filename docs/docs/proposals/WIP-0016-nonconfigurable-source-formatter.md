@@ -700,7 +700,8 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 - [ ] Lossless concrete syntax lifts lexical placements to stable syntax-node attachment. A token stream is necessary; calling it a tree would merely annoy the branches.
 - [ ] Golden fixed-style and minimal-diff corpora are accepted.
 - [ ] `//!` and `///` attachment fixtures are accepted.
-- [ ] Documentation summary, coverage, and semantic-facet diagnostics are stable.
+- [x] `WDOC001`, `WDOC003`, and `WDOC005` now check missing, empty, and misplaced first-content `//!` file summaries over the shared lossless stream with exact code/location/message fixtures.
+- [ ] Declaration coverage, adjacency, summary, and semantic-facet diagnostics are stable; the public command remains withheld until that surface is honest.
 - [ ] `wheeler format`, `--check`, and `--stdin` implement bounded deterministic behavior.
 - [ ] `wheeler check-docs` implements bounded deterministic validation.
 - [ ] Every checked-in `.w` file and required declaration is documented.

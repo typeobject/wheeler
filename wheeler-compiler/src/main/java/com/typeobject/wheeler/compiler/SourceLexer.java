@@ -29,7 +29,9 @@ final class SourceLexer {
   List<SourceToken> lex() {
     while (!atEnd()) {
       char current = peek();
-      if (Character.isWhitespace(current)) {
+      if (current == '\ufeff' && offset == 0) {
+        byteOrderMark();
+      } else if (Character.isWhitespace(current)) {
         whitespace();
       } else if (current == '/' && peekNext() == '/') {
         lineComment();
@@ -52,6 +54,15 @@ final class SourceLexer {
   List<SourcePiece> lexPieces() {
     lex();
     return List.copyOf(pieces);
+  }
+
+  private void byteOrderMark() {
+    int start = offset;
+    int startLine = line;
+    int startColumn = column;
+    advance();
+    emitPiece(
+        SourcePiece.Kind.WHITESPACE, start, startLine, startColumn);
   }
 
   private void whitespace() {
