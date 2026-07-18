@@ -451,16 +451,20 @@ classical class AggregateVerifier {
                                 if (0 < arrayInfo) {
                                     if (0 < sliceInfo) {
                                         if (
-                                            localType(artifact, activeTypes, destination) == TYPE_SLICE + typeId
+                                            localType(artifact, activeTypes, destination)
+                                                == TYPE_SLICE + typeId
                                         ) {
                                             if (
-                                                localType(artifact, activeTypes, startLocal) == TYPE_SIGNED
+                                                localType(artifact, activeTypes, startLocal)
+                                                    == TYPE_SIGNED
                                             ) {
                                                 if (
-                                                    localType(artifact, activeTypes, lengthLocal) == TYPE_SIGNED
+                                                    localType(artifact, activeTypes, lengthLocal)
+                                                        == TYPE_SIGNED
                                                 ) {
                                                     if (
-                                                        readUnsigned(artifact, arrayInfo + 4, 4) == readUnsigned(
+                                                        readUnsigned(artifact, arrayInfo + 4, 4)
+                                                            == readUnsigned(
                                                             artifact,
                                                             sliceInfo + 4,
                                                             4

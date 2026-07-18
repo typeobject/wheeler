@@ -523,7 +523,9 @@ classical class HelperParser {
                                                                                     59
                                                                                 )
                                                                             ) {
-                                                                                proofToken = entryStart + 1;
+                                                                                proofToken
+                                                                                    = entryStart
+                                                                                    + 1;
                                                                                 proofCount = 1;
                                                                                 entryStart += 8;
                                                                             }
@@ -643,8 +645,10 @@ classical class HelperParser {
                                                                         reverseCall
                                                                     )
                                                                 ) {
-                                                                    long reverseEnd = reverseCall + 4;
-                                                                    boolean reverseCallsValid = true;
+                                                                    long reverseEnd = reverseCall
+                                                                        + 4;
+                                                                    boolean reverseCallsValid
+                                                                        = true;
                                                                     if (helperCallCount == 2) {
                                                                         if (
                                                                             callValid(
@@ -658,7 +662,8 @@ classical class HelperParser {
                                                                         ) {
                                                                             reverseEnd += 4;
                                                                         } else {
-                                                                            reverseCallsValid = false;
+                                                                            reverseCallsValid
+                                                                                = false;
                                                                         }
                                                                     }
                                                                     if (reverseCallsValid) {

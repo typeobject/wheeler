@@ -24,7 +24,7 @@ The implemented checker requires a first-content nonempty `//!` file summary and
 
 `wheeler format --check <file-or-directory>...` writes nothing and reports every differing path as `WFMT001`. `wheeler format --stdin` writes one formatted UTF-8 document; adding `--check` writes only a difference diagnostic. `WFMT002` reports structural parse or formatter-limit failure, `WFMT003` reports the bounded input boundary, and `WFMT004` reports publication failure.
 
-The current stage-0 style normalizes LF and one final newline, four-space structural indentation, braces, semicolons, operators, comment markers, and blank separators. Parenthesized parameter, argument, and record groups remain horizontal only when their complete normalized form fits 100 Unicode scalars; otherwise each comma item and the closing delimiter receives a stable line. Expression, bounded-loop-header, and remaining syntax-owned break tables are still WIP-0016 work. The command makes no contrary claim, however photogenic the output.
+The current stage-0 style normalizes LF and one final newline, four-space structural indentation, braces, semicolons, operators, comment markers, and blank separators. Parenthesized parameter, argument, and record groups remain horizontal only when their complete normalized form fits 100 Unicode scalars; otherwise each comma item and the closing delimiter receives a stable line. Overlong binary expressions continue with leading operators at one fixed additional indent; comments and indivisible literals are preserved rather than wrapped. Bounded-loop-header and remaining syntax-owned break tables are still WIP-0016 work. The command makes no contrary claim, however photogenic the output.
 
 ## Design workflow
 

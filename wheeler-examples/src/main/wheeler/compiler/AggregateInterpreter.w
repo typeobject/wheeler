@@ -33,7 +33,8 @@ classical class AggregateInterpreter {
             long field = 0;
             while (field < fieldCount) limit INTERPRETER_LOCAL_WIDTH {
                 if (
-                    aggregateFields[aggregateStarts[aggregate] + field] == locals[localBase + fieldBase + field]
+                    aggregateFields[aggregateStarts[aggregate] + field] == locals[localBase
+                        + fieldBase + field]
                 ) {} else {
                     equal = false;
                 }
@@ -90,7 +91,8 @@ classical class AggregateInterpreter {
             long field = 0;
             while (field < sliceLength) limit INTERPRETER_AGGREGATE_FIELDS {
                 if (
-                    aggregateFields[aggregateStarts[aggregate] + field] == aggregateFields[aggregateStarts[source] + sourceStart + field]
+                    aggregateFields[aggregateStarts[aggregate] + field]
+                        == aggregateFields[aggregateStarts[source] + sourceStart + field]
                 ) {} else {
                     equal = false;
                 }

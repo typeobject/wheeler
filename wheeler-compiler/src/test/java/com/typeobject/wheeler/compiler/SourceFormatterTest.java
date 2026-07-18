@@ -74,6 +74,21 @@ class SourceFormatterTest {
   }
 
   @Test
+  void breaksLongBinaryExpressionsWithLeadingContinuationOperators() {
+    String source = "classical class Expression { entry void main() { boolean equal = "
+        + "firstAggregateValueWithLongCanonicalName == "
+        + "secondAggregateValueWithLongCanonicalName; } }";
+
+    String formatted = SourceFormatter.format(source);
+
+    assertTrue(formatted.contains("""
+                boolean equal = firstAggregateValueWithLongCanonicalName
+                    == secondAggregateValueWithLongCanonicalName;
+        """));
+    assertEquals(formatted, SourceFormatter.format(formatted));
+  }
+
+  @Test
   void keepsUnarySignsTightAfterReturnsAndVerticalCommas() {
     String source = "classical class Signed { public long choose(long firstArgument, "
         + "long secondArgument, long thirdArgument, long fourthArgument, "

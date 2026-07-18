@@ -144,7 +144,8 @@ classical class Opcodes {
     /// Names the compile-time `INTERPRETER_GLOBAL_COUNT` value owned by this module.
     public const long INTERPRETER_GLOBAL_COUNT = 8;
     /// Names the compile-time `INTERPRETER_LOCAL_CAPACITY` value owned by this module.
-    public const long INTERPRETER_LOCAL_CAPACITY = INTERPRETER_LOCAL_WIDTH * INTERPRETER_FRAME_COUNT;
+    public const long INTERPRETER_LOCAL_CAPACITY = INTERPRETER_LOCAL_WIDTH
+        * INTERPRETER_FRAME_COUNT;
     /// Names the compile-time `INTERPRETER_MAX_CALL_DEPTH` value owned by this module.
     public const long INTERPRETER_MAX_CALL_DEPTH = INTERPRETER_FRAME_COUNT - 1;
     /// Names the compile-time `MAX_CODE_INSTRUCTIONS` value owned by this module.

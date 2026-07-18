@@ -388,7 +388,8 @@ classical class InstructionVerifier {
                 if (valueDestination < localCount) {
                     if (functionHasFlag(artifact, functionsOffset, first, 4)) {
                         if (
-                            localType(artifact, activeTypes, valueDestination) == functionResultType(
+                            localType(artifact, activeTypes, valueDestination)
+                                == functionResultType(
                                 artifact,
                                 functionsOffset,
                                 functionCount,

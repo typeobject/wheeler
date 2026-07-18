@@ -167,9 +167,12 @@ classical class Sha256 {
             long wordIndex = 0;
             while (wordIndex < 16) limit 16 {
                 long sourceIndex = blockStart + wordIndex * 4;
-                long word = paddedByte(input, inputStart, inputLength, totalLength, sourceIndex) * 16777216;
-                word += paddedByte(input, inputStart, inputLength, totalLength, sourceIndex + 1) * 65536;
-                word += paddedByte(input, inputStart, inputLength, totalLength, sourceIndex + 2) * 256;
+                long word = paddedByte(input, inputStart, inputLength, totalLength, sourceIndex)
+                    * 16777216;
+                word += paddedByte(input, inputStart, inputLength, totalLength, sourceIndex + 1)
+                    * 65536;
+                word += paddedByte(input, inputStart, inputLength, totalLength, sourceIndex + 2)
+                    * 256;
                 word += paddedByte(input, inputStart, inputLength, totalLength, sourceIndex + 3);
                 set(schedule, wordIndex, word);
                 wordIndex += 1;

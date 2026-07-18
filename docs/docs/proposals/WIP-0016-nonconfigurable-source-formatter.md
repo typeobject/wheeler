@@ -228,6 +228,8 @@ Otherwise the formatter chooses the first vertical form defined for that constru
 
 A vertical comma-separated list places one syntactic item per line, indents items one level, and places its closing delimiter on a stable line. The formatter does not pack multiple short items after another item has forced vertical form.
 
+A vertical binary expression keeps its first operand on the owning line and places each continued binary operator at the beginning of a line indented one additional level. Assignment follows the same continuation rule when no smaller right-hand expression boundary fits. Preserved comments and indivisible literals are not wrapped to make a ruler happy.
+
 For example:
 
 ```java
@@ -711,7 +713,8 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 - [x] A bounded structural parser now owns compilation-unit, header, type, member-declaration, and block ranges, delimiter recovery states, and comment targets. Lossless reconstruction remains exact; the branches may stand down.
 - [x] The stage-0 in-memory formatter implements deterministic LF/final-newline, four-space indentation, brace, delimiter, operator, comment-marker, blank-line, and basic horizontal-list whitespace; compact golden input preserves semantic `.wbc`, and every checked example preserves token spelling, comment payload/kind, lexical attachment, and idempotence.
 - [x] Parenthesized parameter/argument/record groups choose horizontal form only when the complete normalized group fits 100 Unicode scalars; otherwise one item occupies each indented line and the closing delimiter owns its line.
-- [ ] Expression, bounded-loop-header, array-initializer, and remaining syntax-owned break tables plus the minimal-diff generated corpus are accepted; the command is authoritative for its documented stage-0 subset rather than quietly claiming the rest.
+- [x] Overlong binary expressions break before the last fitting operator, use one stable continuation indent, preserve string/comment payloads, and remain idempotent across the complete source corpus.
+- [ ] Bounded-loop-header, array-initializer, deeply indented indivisible-item, and remaining syntax-owned break tables plus the minimal-diff generated corpus are accepted; the command is authoritative for its documented stage-0 subset rather than quietly claiming the rest.
 - [x] `//!` file blocks and adjacent/detached `///` declaration blocks have exact lexical attachment fixtures, including BOM, CRLF, ordinary comments, and blank-line detachment.
 - [x] `WDOC001`, `WDOC003`, and `WDOC005` now check missing, empty, and misplaced first-content `//!` file summaries over the shared lossless stream with exact code/location/message fixtures.
 - [x] Parser-owned bootstrap member ranges implement required public/entry/reversible/coherent/unitary/theorem/experiment coverage, private-helper exemption, adjacent nonempty summaries, canonical facet order, duplicate facets, and required `Effects`/`Inverse`/`Coherent`/`Adjoint` facets as `WDOC002..004` and `WDOC006..010`; malformed delimiter recovery blocks formatting before printing.

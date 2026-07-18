@@ -74,7 +74,7 @@ public final class SourceFormatter {
       while (end > 0 && Character.isWhitespace(result.charAt(end - 1))) {
         end--;
       }
-      String formatted = result.substring(0, end) + "\n";
+      String formatted = wrapCodeLines(result.substring(0, end) + "\n");
       if (formatted.length() > SourceLexer.MAX_SOURCE_CHARS) {
         int line = elements.isEmpty() ? 1 : elements.getLast().line();
         throw new CompilerException(line, "formatted source exceeds the 16 Mi-character limit");
@@ -365,6 +365,114 @@ public final class SourceFormatter {
     private String nextToken(int elementIndex) {
       return followingTokens[elementIndex];
     }
+  }
+
+  private static String wrapCodeLines(String source) {
+    StringBuilder output = new StringBuilder(source.length());
+    boolean blockComment = false;
+    for (String line : source.split("\\n", -1)) {
+      if (line.isEmpty() && output.length() == source.length()) {
+        continue;
+      }
+      boolean commentLine = blockComment || hasLineComment(line);
+      if (line.contains("/*")) {
+        blockComment = true;
+        commentLine = true;
+      }
+      if (line.contains("*/")) {
+        blockComment = false;
+      }
+      if (commentLine || scalarWidth(line) <= LINE_TARGET) {
+        output.append(line).append('\n');
+        continue;
+      }
+      wrapCodeLine(line, output);
+    }
+    if (output.length() > 1 && output.charAt(output.length() - 1) == '\n'
+        && output.charAt(output.length() - 2) == '\n') {
+      output.setLength(output.length() - 1);
+    }
+    return output.toString();
+  }
+
+  private static boolean hasLineComment(String line) {
+    boolean string = false;
+    for (int index = 0; index + 1 < line.length(); index++) {
+      if (line.charAt(index) == '"') {
+        string = !string;
+      } else if (!string && line.charAt(index) == '/' && line.charAt(index + 1) == '/') {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static void wrapCodeLine(String line, StringBuilder output) {
+    int indentation = 0;
+    while (indentation < line.length() && line.charAt(indentation) == ' ') {
+      indentation++;
+    }
+    String continuation = " ".repeat(indentation + 4);
+    String remaining = line;
+    boolean wrapped = false;
+    while (scalarWidth(remaining) > LINE_TARGET) {
+      int split = binarySplit(remaining, LINE_TARGET);
+      if (split < 0) {
+        break;
+      }
+      output.append(remaining, 0, split).append('\n');
+      remaining = continuation + remaining.substring(split).stripLeading();
+      wrapped = true;
+    }
+    output.append(remaining).append('\n');
+    if (!wrapped) {
+      return;
+    }
+  }
+
+  private static int binarySplit(String line, int target) {
+    int result = -1;
+    boolean string = false;
+    for (int index = 0; index < line.length(); index++) {
+      char value = line.charAt(index);
+      if (value == '"') {
+        string = !string;
+        continue;
+      }
+      if (string || index + 1 < line.length()
+          && value == '/' && (line.charAt(index + 1) == '/' || line.charAt(index + 1) == '*')) {
+        continue;
+      }
+      if (value != ' ' || !operatorAt(line, index)) {
+        continue;
+      }
+      int width = line.codePointCount(0, index);
+      if (width <= target && index > result) {
+        result = index;
+      }
+    }
+    return result;
+  }
+
+  private static boolean operatorAt(String line, int space) {
+    String suffix = line.substring(space);
+    return suffix.startsWith(" == ")
+        || suffix.startsWith(" < ")
+        || suffix.startsWith(" + ")
+        || suffix.startsWith(" - ")
+        || suffix.startsWith(" * ")
+        || suffix.startsWith(" / ")
+        || suffix.startsWith(" % ")
+        || suffix.startsWith(" & ")
+        || suffix.startsWith(" ^ ")
+        || suffix.startsWith(" = ")
+        || suffix.startsWith(" += ")
+        || suffix.startsWith(" -= ")
+        || suffix.startsWith(" ^= ");
+  }
+
+  private static int scalarWidth(String text) {
+    return text.codePointCount(0, text.length());
   }
 
   private static int[] delimiterMates(List<Element> elements) {
