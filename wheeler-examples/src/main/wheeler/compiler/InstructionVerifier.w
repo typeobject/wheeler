@@ -334,32 +334,38 @@ classical class InstructionVerifier {
             return 1;
         }
         long first = readUnsigned(artifact, cursor + 8, 8);
-        long aggregateValid = aggregateOperandsValid(
-            artifact,
-            cursor,
-            opcode,
-            typesOffset,
-            variantsOffset,
-            globalCount,
-            recordCount,
-            variantCount,
-            arrayCount,
-            sliceCount,
-            localCount,
-            activeTypes);
-        if (aggregateValid < 0) {
+        if (opcode < OPCODE_RECORD_NEW) {
         } else {
-            return aggregateValid;
+            if (OPCODE_SLICE_GET < opcode) {
+            } else {
+                long aggregateValid = aggregateOperandsValid(
+                    artifact,
+                    cursor,
+                    opcode,
+                    typesOffset,
+                    variantsOffset,
+                    globalCount,
+                    recordCount,
+                    variantCount,
+                    arrayCount,
+                    sliceCount,
+                    localCount,
+                    activeTypes);
+                return aggregateValid;
+            }
         }
-        long storageValid = storageOperandsValid(
-            artifact,
-            cursor,
-            opcode,
-            localCount,
-            activeTypes);
-        if (storageValid < 0) {
+        if (opcode < OPCODE_OWNED_MOVE) {
         } else {
-            return storageValid;
+            if (OPCODE_REGION_BORROW < opcode) {
+            } else {
+                long storageValid = storageOperandsValid(
+                    artifact,
+                    cursor,
+                    opcode,
+                    localCount,
+                    activeTypes);
+                return storageValid;
+            }
         }
         if (isGlobalConstantOpcode(opcode)) {
             if (first < globalCount) {

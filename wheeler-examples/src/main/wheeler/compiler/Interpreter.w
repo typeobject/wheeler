@@ -509,35 +509,41 @@ classical class Interpreter {
                                 recordHandle,
                                 recordFieldIndex));
                     }
-                    StorageStep storageStep = executeStorageInstruction(
-                        artifact,
-                        cursor,
-                        opcode,
-                        locals,
-                        depth,
-                        storageKinds,
-                        storageStarts,
-                        storageLengths,
-                        storageSizes,
-                        storageOwners,
-                        storageLive,
-                        storageRegionUsedBytes,
-                        storageRegionLiveObjects,
-                        storageData,
-                        storageCount,
-                        storageDataCursor);
-                    match (storageStep) {
-                        case StorageStep.Skipped() {
+                    if (opcode < OPCODE_OWNED_MOVE) {
+                    } else {
+                        if (OPCODE_REGION_BORROW < opcode) {
+                        } else {
+                        StorageStep storageStep = executeStorageInstruction(
+                            artifact,
+                            cursor,
+                            opcode,
+                            locals,
+                            depth,
+                            storageKinds,
+                            storageStarts,
+                            storageLengths,
+                            storageSizes,
+                            storageOwners,
+                            storageLive,
+                            storageRegionUsedBytes,
+                            storageRegionLiveObjects,
+                            storageData,
+                            storageCount,
+                            storageDataCursor);
+                        match (storageStep) {
+                            case StorageStep.Skipped() {
+                            }
+                            case StorageStep.Value(
+                                long nextStorageCount,
+                                long nextStorageDataCursor
+                            ) {
+                                storageCount = nextStorageCount;
+                                storageDataCursor = nextStorageDataCursor;
+                            }
+                            case StorageStep.Error() {
+                                return new ExecutionResult.Error(cursor);
+                            }
                         }
-                        case StorageStep.Value(
-                            long nextStorageCount,
-                            long nextStorageDataCursor
-                        ) {
-                            storageCount = nextStorageCount;
-                            storageDataCursor = nextStorageDataCursor;
-                        }
-                        case StorageStep.Error() {
-                            return new ExecutionResult.Error(cursor);
                         }
                     }
                     if (opcode == OPCODE_ARRAY_NEW) {
