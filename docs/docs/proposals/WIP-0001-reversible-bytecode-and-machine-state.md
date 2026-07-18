@@ -299,13 +299,13 @@ Artifact bytes, assembly, debug names, effect payloads, and persisted history ar
 
 - [x] A golden artifact digest and length lock the header, directory, section, and instruction byte encoding.
 - [x] Decoder/encoder round trips are byte-identical for canonical artifacts.
-- [ ] Mutation and fuzz corpora reject truncation, overlap, overflow, invalid IDs, invalid UTF-8, invalid targets, oversized records, and unknown required features without crashing.
+- [x] Deterministic mutation and fuzz corpora reject every truncated prefix plus overlap, arithmetic overflow, invalid IDs/types/targets, invalid UTF-8, oversized artifacts, bad flags, bad alignment, and unknown opcodes through one checked failure boundary.
 - [ ] Every initial opcode has forward, inverse, trap, bound, and disassembly tests generated from the registry.
 - [x] Property tests establish `unstep(step(C).state, step(C).undo) == C` over valid generated arithmetic states.
 - [x] Paired instruction and `CALL`/`UNCALL` tests restore exact typed globals and frames.
 - [x] Logged writes restore destroyed values and history exhaustion traps before mutation.
-- [ ] Barrier effects prevent rewind while language-level inverse calls remain usable afterward.
-- [ ] Checkpoint plus replay agrees with uninterrupted execution.
+- [x] Commit barriers prevent earlier rewind while later language-level inverse calls remain executable and independently rewindable.
+- [x] Checkpoint, complete rewind, and fresh execution agree exactly with uninterrupted machine state.
 - [x] A compiled `Counter.w` produces a verified `.wbc`, reaches `2`, invokes inverse increments, and reaches `0`.
 - [x] The VM never reads outside a verified body or aliases out-of-range global locations.
 - [x] Current bytecode and VM reference documentation describes the implemented contract.

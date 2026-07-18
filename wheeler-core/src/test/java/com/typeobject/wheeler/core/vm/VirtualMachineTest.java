@@ -84,6 +84,67 @@ class VirtualMachineTest {
   }
 
   @Test
+  void commitBlocksRewindButNotLaterInverseExecution() {
+    FunctionBody main = new FunctionBody(
+        0,
+        "main",
+        false,
+        0,
+        List.of(),
+        null,
+        List.of(
+            Instruction.of(Opcode.CALL, 1),
+            Instruction.of(Opcode.COMMIT),
+            Instruction.of(Opcode.UNCALL, 1),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    FunctionBody increment = new FunctionBody(
+        1,
+        "increment",
+        false,
+        0,
+        List.of(),
+        null,
+        List.of(
+            Instruction.of(Opcode.ADD_CONST, 0, 1),
+            Instruction.of(Opcode.RETURN)),
+        List.of(
+            Instruction.of(Opcode.SUB_CONST, 0, 1),
+            Instruction.of(Opcode.RETURN)));
+    VirtualMachine machine = new VirtualMachine(new Program(
+        "BarrierInverse", 0, List.of(new Global("value", 7)), List.of(main, increment)));
+
+    machine.run();
+
+    assertEquals(7, machine.global("value"));
+    for (int step = 0; step < 4; step++) {
+      machine.rewindOne();
+    }
+    assertEquals(8, machine.global("value"));
+    assertThrows(VmTrap.class, machine::rewindOne);
+  }
+
+  @Test
+  void checkpointRewindAndFreshExecutionAgreeWithUninterruptedExecution() {
+    Program program = singleFunction(List.of(
+        Instruction.of(Opcode.CHECKPOINT),
+        Instruction.of(Opcode.ADD_CONST, 0, 5),
+        Instruction.of(Opcode.HALT)));
+    VirtualMachine uninterrupted = new VirtualMachine(program);
+    uninterrupted.run();
+    MachineSnapshot expected = uninterrupted.snapshot();
+
+    VirtualMachine replayed = new VirtualMachine(program);
+    replayed.run();
+    while (replayed.historySize() > 0) {
+      replayed.rewindOne();
+    }
+    replayed.run();
+
+    assertEquals(expected, replayed.snapshot());
+  }
+
+  @Test
   void historyExhaustionTrapsBeforeTheNextMutation() {
     FunctionBody main = new FunctionBody(
         0,
