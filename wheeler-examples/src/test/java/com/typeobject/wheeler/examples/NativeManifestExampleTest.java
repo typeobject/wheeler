@@ -24,7 +24,8 @@ class NativeManifestExampleTest {
         "examples.packages.main");
     String source =
         "package \"demo.native\" version \"1.2.3\" profile \"bootstrap-1\"; "
-            + "target example \"app\" root \"src/App.w\";";
+            + "target example \"app\" root \"src/App.w\"; "
+            + "dependency runtime \"demo.base\" version \"^1.0.0\";";
     VirtualMachine machine = new VirtualMachine(
         program, source.getBytes(StandardCharsets.UTF_8));
     var initial = machine.snapshot();
@@ -38,6 +39,9 @@ class NativeManifestExampleTest {
     assertEquals(1, machine.global("targetCount"));
     assertEquals(3, machine.global("targetNameLength"));
     assertEquals(9, machine.global("targetRootLength"));
+    assertEquals(1, machine.global("dependencyCount"));
+    assertEquals(9, machine.global("dependencyNameLength"));
+    assertEquals(6, machine.global("dependencyVersionLength"));
     assertEquals(source.length(), machine.global("finalCursor"));
     while (machine.historySize() > 0) {
       machine.rewindOne();
@@ -48,7 +52,8 @@ class NativeManifestExampleTest {
         program,
         ("project \"demo.native\" version \"1.2.3\" "
             + "profile \"bootstrap-1\"; target example \"app\" "
-            + "root \"src/App.w\";")
+            + "root \"src/App.w\"; dependency runtime \"demo.base\" "
+            + "version \"^1.0.0\";")
             .getBytes(StandardCharsets.UTF_8));
     assertThrows(VmTrap.class, malformed::run);
   }

@@ -9,13 +9,16 @@ classical class NativeManifest {
     state long targetCount = 0;
     state long targetNameLength = 0;
     state long targetRootLength = 0;
+    state long dependencyCount = 0;
+    state long dependencyNameLength = 0;
+    state long dependencyVersionLength = 0;
     state long finalCursor = 0;
 
     entry void main(utf8 source) {
-        region arena = new region(384, 3);
-        words kinds = allocate(arena, 16);
-        words starts = allocate(arena, 16);
-        words lengths = allocate(arena, 16);
+        region arena = new region(576, 3);
+        words kinds = allocate(arena, 24);
+        words starts = allocate(arena, 24);
+        words lengths = allocate(arena, 24);
         long count = 0;
         ScanResult scanned = scan(source, kinds, starts, lengths);
         match (scanned) {
@@ -37,6 +40,9 @@ classical class NativeManifest {
                 targetCount = header.targetCount;
                 targetNameLength = header.targetName.length;
                 targetRootLength = header.targetRoot.length;
+                dependencyCount = header.dependencyCount;
+                dependencyNameLength = header.dependencyName.length;
+                dependencyVersionLength = header.dependencyVersion.length;
             }
             case ManifestResult.Error(long parseOffset) {
                 assert finalCursor == 1;
@@ -49,6 +55,9 @@ classical class NativeManifest {
         assert targetCount == 1;
         assert targetNameLength == 3;
         assert targetRootLength == 9;
+        assert dependencyCount == 1;
+        assert dependencyNameLength == 9;
+        assert dependencyVersionLength == 6;
 
         drop(lengths);
         drop(starts);

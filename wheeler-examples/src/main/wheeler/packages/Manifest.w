@@ -9,7 +9,10 @@ classical class Manifest {
         QuotedRange profile,
         QuotedRange targetName,
         QuotedRange targetRoot,
-        long targetCount
+        long targetCount,
+        QuotedRange dependencyName,
+        QuotedRange dependencyVersion,
+        long dependencyCount
     ) {}
 
     public variant ManifestResult {
@@ -115,6 +118,59 @@ classical class Manifest {
         return false;
     }
 
+    private boolean dependencyValid(
+        utf8 source,
+        words kinds,
+        words starts,
+        words lengths
+    ) {
+        if (keywordAt(
+                source, starts, lengths, 13, 2733278506177355)) {
+            if (keywordAt(source, starts, lengths, 14, 104630177752)) {
+                if (quoted(kinds, lengths, 15)) {
+                    if (keywordAt(
+                            source, starts, lengths, 16, 107725790424)) {
+                        if (quoted(kinds, lengths, 17)) {
+                            return semicolonAt(source, kinds, starts, 18);
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private ManifestHeader header(
+        words starts,
+        words lengths,
+        long targetCount,
+        long dependencyCount
+    ) {
+        QuotedRange empty = new QuotedRange(0, 0);
+        QuotedRange targetName = empty;
+        QuotedRange targetRoot = empty;
+        QuotedRange dependencyName = empty;
+        QuotedRange dependencyVersion = empty;
+        if (targetCount == 1) {
+            targetName = quotedRange(starts, lengths, 9);
+            targetRoot = quotedRange(starts, lengths, 11);
+        }
+        if (dependencyCount == 1) {
+            dependencyName = quotedRange(starts, lengths, 15);
+            dependencyVersion = quotedRange(starts, lengths, 17);
+        }
+        return new ManifestHeader(
+            quotedRange(starts, lengths, 1),
+            quotedRange(starts, lengths, 3),
+            quotedRange(starts, lengths, 5),
+            targetName,
+            targetRoot,
+            targetCount,
+            dependencyName,
+            dependencyVersion,
+            dependencyCount);
+    }
+
     public ManifestResult parseHeader(
         utf8 source,
         words kinds,
@@ -123,38 +179,21 @@ classical class Manifest {
         long count
     ) {
         if (baseHeaderValid(source, kinds, starts, lengths)) {
-            QuotedRange name = quotedRange(starts, lengths, 1);
-            QuotedRange version = quotedRange(starts, lengths, 3);
-            QuotedRange profile = quotedRange(starts, lengths, 5);
-            QuotedRange targetName = new QuotedRange(0, 0);
-            QuotedRange targetRoot = new QuotedRange(0, 0);
-            long targetCount = 0;
-            if (count == 13) {
-                if (targetValid(source, kinds, starts, lengths)) {
-                    targetName = quotedRange(starts, lengths, 9);
-                    targetRoot = quotedRange(starts, lengths, 11);
-                    targetCount = 1;
-                }
-            }
             if (count == 7) {
-                ManifestHeader header = new ManifestHeader(
-                    name,
-                    version,
-                    profile,
-                    targetName,
-                    targetRoot,
-                    targetCount);
-                return new ManifestResult.Value(header);
+                return new ManifestResult.Value(
+                    header(starts, lengths, 0, 0));
             }
-            if (targetCount == 1) {
-                ManifestHeader targetHeader = new ManifestHeader(
-                    name,
-                    version,
-                    profile,
-                    targetName,
-                    targetRoot,
-                    targetCount);
-                return new ManifestResult.Value(targetHeader);
+            if (targetValid(source, kinds, starts, lengths)) {
+                if (count == 13) {
+                    return new ManifestResult.Value(
+                        header(starts, lengths, 1, 0));
+                }
+                if (count == 19) {
+                    if (dependencyValid(source, kinds, starts, lengths)) {
+                        return new ManifestResult.Value(
+                            header(starts, lengths, 1, 1));
+                    }
+                }
             }
         }
         return new ManifestResult.Error(0);
