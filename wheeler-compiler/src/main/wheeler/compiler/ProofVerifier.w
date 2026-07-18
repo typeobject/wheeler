@@ -2,7 +2,7 @@
 module wheeler.compiler.proof_verifier;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.proof_rules;
-import wheeler.packages.binary;
+import wheeler.core.encoding.binary;
 classical class ProofVerifier {
     private boolean differs(long left, long right) {
         if (left < right) {

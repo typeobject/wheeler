@@ -4,7 +4,7 @@ module examples.runtime.native_vm;
 import wheeler.compiler.interpreter;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.verifier;
-import wheeler.packages.binary;
+import wheeler.core.encoding.binary;
 classical class NativeVm {
     state long finalGlobal = 0;
     state long finalGlobalOne = 0;

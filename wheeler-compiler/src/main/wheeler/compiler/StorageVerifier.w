@@ -2,7 +2,7 @@
 module wheeler.compiler.storage_verifier;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.type_codes;
-import wheeler.packages.binary;
+import wheeler.core.encoding.binary;
 classical class StorageVerifier {
     private long localType(byteview artifact, long activeTypes, long local) {
         return readUnsigned(artifact, activeTypes + local * 4, 4);

@@ -26,7 +26,7 @@ class NativeArchiveExampleTest {
     Program inspector = new WheelerCompiler().compileModuleFiles(
         Map.ofEntries(
             Map.entry("Archive.w", PackageSources.read("packages/Archive.w")),
-            Map.entry("Binary.w", CompilerSources.read("packages/Binary.w")),
+            Map.entry("Binary.w", CoreSources.read("encoding/Binary.w")),
             Map.entry("LineEmitter.w", PackageSources.read("packages/LineEmitter.w")),
             Map.entry("Manifest.w", PackageSources.read("packages/Manifest.w")),
             Map.entry("ManifestTokens.w", PackageSources.read("packages/ManifestTokens.w")),

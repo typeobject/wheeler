@@ -1,8 +1,8 @@
 //! Validates bounded canonical build-plan structure.
 
 module wheeler.packages.plan;
+import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;
-import wheeler.packages.binary;
 import wheeler.packages.plan_identity;
 classical class Plan {
     /// Defines immutable `PlanModel` values for this module.

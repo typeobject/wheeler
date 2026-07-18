@@ -10,5 +10,6 @@ module wheeler.core.library;
 import wheeler.core.collections.fixed_longs;
 import wheeler.core.collections.long_map;
 import wheeler.core.collections.queue;
+import wheeler.core.encoding.binary;
 import wheeler.core.text.utf8;
 classical class CoreLibrary {}

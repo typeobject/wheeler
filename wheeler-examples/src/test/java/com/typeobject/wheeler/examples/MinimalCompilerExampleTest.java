@@ -54,7 +54,7 @@ class MinimalCompilerExampleTest {
         CompilerSources.path("compiler/TypeCodes.w"));
     String verifier = Files.readString(CompilerSources.path("compiler/Verifier.w"));
     String scanner = Files.readString(CompilerSources.path("lexer/Scanner.w"));
-    String binary = Files.readString(CompilerSources.path("packages/Binary.w"));
+    String binary = Files.readString(CoreSources.path("encoding/Binary.w"));
     var writerProgram = new WheelerCompiler().compileModuleFiles(
         Map.ofEntries(
             Map.entry("AggregateVerifier.w", aggregateVerifier),
@@ -376,7 +376,7 @@ class MinimalCompilerExampleTest {
         }
         """;
     String binary = Files.readString(
-        CompilerSources.path("packages/Binary.w"));
+        CoreSources.path("encoding/Binary.w"));
     String aggregateVerifier = Files.readString(
         CompilerSources.path("compiler/AggregateVerifier.w"));
     String functionVerifier = Files.readString(

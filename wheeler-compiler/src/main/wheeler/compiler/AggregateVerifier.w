@@ -2,7 +2,7 @@
 module wheeler.compiler.aggregate_verifier;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.type_codes;
-import wheeler.packages.binary;
+import wheeler.core.encoding.binary;
 classical class AggregateVerifier {
     private boolean differs(long left, long right) {
         if (left < right) {

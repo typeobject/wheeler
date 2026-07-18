@@ -6,7 +6,7 @@ import wheeler.compiler.opcodes;
 import wheeler.compiler.storage_interpreter;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.verifier;
-import wheeler.packages.binary;
+import wheeler.core.encoding.binary;
 classical class Interpreter {
     /// Defines immutable `Execution` values for this module.
     public record Execution(

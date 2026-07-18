@@ -632,6 +632,7 @@ class WheelerCommandTest {
         """);
     Path examples = Path.of("../wheeler-examples/src/main/wheeler");
     Path compilerSources = Path.of("../wheeler-compiler/src/main/wheeler");
+    Path coreSources = Path.of("../wheeler-core/src/main/wheeler");
     Files.copy(
         compilerSources.resolve("MinimalCompiler.w"), project.resolve("src/MinimalCompiler.w"));
     Files.copy(
@@ -690,7 +691,7 @@ class WheelerCommandTest {
         project.resolve("src/compiler/Verifier.w"));
     Files.copy(compilerSources.resolve("lexer/Scanner.w"), project.resolve("src/lexer/Scanner.w"));
     Files.copy(
-        compilerSources.resolve("packages/Binary.w"),
+        coreSources.resolve("encoding/Binary.w"),
         project.resolve("src/packages/Binary.w"));
     Path className = temporary.resolve("class-name.txt");
     Files.writeString(

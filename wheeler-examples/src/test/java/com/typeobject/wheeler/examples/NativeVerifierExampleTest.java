@@ -21,7 +21,7 @@ class NativeVerifierExampleTest {
             Map.entry(
                 "AggregateVerifier.w",
                 CompilerSources.read("compiler/AggregateVerifier.w")),
-            Map.entry("Binary.w", CompilerSources.read("packages/Binary.w")),
+            Map.entry("Binary.w", CoreSources.read("encoding/Binary.w")),
             Map.entry(
                 "FunctionVerifier.w",
                 CompilerSources.read("compiler/FunctionVerifier.w")),

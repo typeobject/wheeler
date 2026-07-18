@@ -1,9 +1,9 @@
 //! Checks canonical package archives with Wheeler-native codecs.
 
 module examples.packages.archive_main;
+import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;
 import wheeler.packages.archive;
-import wheeler.packages.binary;
 classical class NativeArchive {
     state long manifestLength = 0;
     state long entryCount = 0;

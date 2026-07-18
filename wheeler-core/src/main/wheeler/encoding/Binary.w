@@ -1,6 +1,6 @@
 //! Reads bounded little-endian fields and validates canonical text atoms.
 
-module wheeler.packages.binary;
+module wheeler.core.encoding.binary;
 classical class Binary {
     /// Reads `unsigned` from a bounded canonical input.
     public long readUnsigned(byteview source, long offset, long width) {

@@ -1,9 +1,9 @@
 //! Validates bounded canonical package archive structure.
 
 module wheeler.packages.archive;
+import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;
 import wheeler.lexer.scanner;
-import wheeler.packages.binary;
 import wheeler.packages.line_emitter;
 import wheeler.packages.manifest;
 classical class Archive {

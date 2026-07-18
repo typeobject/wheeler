@@ -3,7 +3,7 @@ module wheeler.compiler.storage_interpreter;
 import wheeler.compiler.map_interpreter;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.utf8_interpreter;
-import wheeler.packages.binary;
+import wheeler.core.encoding.binary;
 classical class StorageInterpreter {
     /// Defines immutable `StorageAllocation` values for this module.
     public record StorageAllocation(long handle, long storageCount, long dataCursor) {}

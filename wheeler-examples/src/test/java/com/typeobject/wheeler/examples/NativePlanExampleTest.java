@@ -30,7 +30,7 @@ class NativePlanExampleTest {
     Path root = Path.of("src/main/wheeler");
     Program inspector = new WheelerCompiler().compileModuleFiles(
         Map.of(
-            "Binary.w", CompilerSources.read("packages/Binary.w"),
+            "Binary.w", CoreSources.read("encoding/Binary.w"),
             "NativePlan.w", Files.readString(root.resolve("NativePlan.w")),
             "Plan.w", PackageSources.read("packages/Plan.w"),
             "PlanIdentity.w", PackageSources.read("packages/PlanIdentity.w"),

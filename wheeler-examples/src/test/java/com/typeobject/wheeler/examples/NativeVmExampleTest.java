@@ -33,7 +33,7 @@ class NativeVmExampleTest {
             Map.entry(
                 "AggregateVerifier.w",
                 CompilerSources.read("compiler/AggregateVerifier.w")),
-            Map.entry("Binary.w", CompilerSources.read("packages/Binary.w")),
+            Map.entry("Binary.w", CoreSources.read("encoding/Binary.w")),
             Map.entry(
                 "FunctionVerifier.w",
                 CompilerSources.read("compiler/FunctionVerifier.w")),
@@ -670,7 +670,7 @@ class NativeVmExampleTest {
             Map.entry("Tokens.w", CompilerSources.read("compiler/Tokens.w")),
             Map.entry("TypeCodes.w", CompilerSources.read("compiler/TypeCodes.w")),
             Map.entry("Verifier.w", CompilerSources.read("compiler/Verifier.w")),
-            Map.entry("Binary.w", CompilerSources.read("packages/Binary.w"))),
+            Map.entry("Binary.w", CoreSources.read("encoding/Binary.w"))),
         "wheeler.compiler.driver");
     VirtualMachine machine = new VirtualMachine(
         compiler, source.getBytes(StandardCharsets.UTF_8), 1024);
