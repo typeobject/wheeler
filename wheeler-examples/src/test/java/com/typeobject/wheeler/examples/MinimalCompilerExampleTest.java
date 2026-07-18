@@ -94,6 +94,12 @@ class MinimalCompilerExampleTest {
         15);
     assertDifferentialExecution(
         writerProgram,
+        "classical class Negative { state long value = -10; "
+            + "entry void main() { value += -3; } }",
+        "value",
+        -13);
+    assertDifferentialExecution(
+        writerProgram,
         "classical class Mixed { state long total = 10; "
             + "entry void main() { total = 4; total ^= 7; } }",
         "total",
@@ -113,6 +119,16 @@ class MinimalCompilerExampleTest {
         512);
     assertThrows(VmTrap.class, duplicate::run);
     assertArrayEquals(new byte[512], duplicate.hostOutput());
+
+    VirtualMachine signedOverflow = new VirtualMachine(
+        writerProgram,
+        ("classical class Overflow { "
+            + "state long value = -9223372036854775808; "
+            + "entry void main() { } }")
+            .getBytes(StandardCharsets.UTF_8),
+        1024);
+    assertThrows(VmTrap.class, signedOverflow::run);
+    assertArrayEquals(new byte[1024], signedOverflow.hostOutput());
 
     VirtualMachine invalid = new VirtualMachine(
         writerProgram,

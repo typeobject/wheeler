@@ -78,7 +78,7 @@ classical class MinimalCompiler {
     ) {
         cursor = writeInstructionHeader(output, cursor, 1024, 2);
         cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
-        cursor = writeUnsignedLittleEndian(output, cursor, operand, 8);
+        cursor = writeSignedLittleEndian(output, cursor, operand, 8);
         if (opcode == 0) {
             cursor = writeInstructionHeader(output, cursor, 1026, 2);
             cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
@@ -249,7 +249,7 @@ classical class MinimalCompiler {
             cursor = writeUnsignedLittleEndian(
                 output, cursor, globalIndex, 4);
             cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
-            cursor = writeUnsignedLittleEndian(
+            cursor = writeSignedLittleEndian(
                 output, cursor, program.initialValue, 8);
         }
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);

@@ -27,6 +27,37 @@ classical class Encoding {
         return -1;
     }
 
+    public long writeSignedLittleEndian(
+        bytes output,
+        long offset,
+        long value,
+        long width
+    ) {
+        if (width < 1) {
+            return -1;
+        }
+        if (8 < width) {
+            return -1;
+        }
+        long cursor = 0;
+        while (cursor < width) limit 8 {
+            long octet = value % 256;
+            if (octet < 0) {
+                octet += 256;
+            }
+            setByte(output, offset + cursor, octet);
+            value = (value - octet) / 256;
+            cursor += 1;
+        }
+        if (value == 0) {
+            return offset + width;
+        }
+        if (value == -1) {
+            return offset + width;
+        }
+        return -1;
+    }
+
     public long writeAsciiSlice(
         bytes output,
         long offset,
