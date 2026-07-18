@@ -411,15 +411,17 @@ class WheelerCommandTest {
     Path project = temporary.resolve("seed-writer");
     Files.createDirectories(project.resolve("src/compiler"));
     Files.createDirectories(project.resolve("src/lexer"));
+    Files.createDirectories(project.resolve("src/packages"));
     Files.writeString(project.resolve("wheeler.package"), """
         package "demo.seedwriter" version "1.0.0" profile "bootstrap-1";
         target example "compiler" root "src/MinimalCompiler.w" module "examples.compiler.seed"
             source "src/MinimalCompiler.w" source "src/compiler/Codegen.w"
-            source "src/compiler/Encoding.w" source "src/compiler/HelperParser.w" source "src/compiler/Ir.w"
+            source "src/compiler/Encoding.w" source "src/compiler/HelperParser.w"
+            source "src/compiler/InstructionVerifier.w" source "src/compiler/Ir.w"
             source "src/compiler/Opcodes.w" source "src/compiler/Parser.w" source "src/compiler/Statements.w"
             source "src/compiler/StringTable.w" source "src/compiler/Structure.w" source "src/compiler/Tokens.w"
             source "src/compiler/TypeCodes.w" source "src/compiler/Verifier.w"
-            source "src/lexer/Scanner.w";
+            source "src/lexer/Scanner.w" source "src/packages/Binary.w";
         """);
     Path examples = Path.of("../wheeler-examples/src/main/wheeler");
     Files.copy(
@@ -433,6 +435,9 @@ class WheelerCommandTest {
     Files.copy(
         examples.resolve("compiler/HelperParser.w"),
         project.resolve("src/compiler/HelperParser.w"));
+    Files.copy(
+        examples.resolve("compiler/InstructionVerifier.w"),
+        project.resolve("src/compiler/InstructionVerifier.w"));
     Files.copy(
         examples.resolve("compiler/Ir.w"),
         project.resolve("src/compiler/Ir.w"));
@@ -461,6 +466,9 @@ class WheelerCommandTest {
         examples.resolve("compiler/Verifier.w"),
         project.resolve("src/compiler/Verifier.w"));
     Files.copy(examples.resolve("lexer/Scanner.w"), project.resolve("src/lexer/Scanner.w"));
+    Files.copy(
+        examples.resolve("packages/Binary.w"),
+        project.resolve("src/packages/Binary.w"));
     Path className = temporary.resolve("class-name.txt");
     Files.writeString(
         className,

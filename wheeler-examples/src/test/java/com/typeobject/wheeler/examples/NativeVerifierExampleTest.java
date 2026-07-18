@@ -17,6 +17,9 @@ class NativeVerifierExampleTest {
     Path root = Path.of("src/main/wheeler");
     var verifier = new WheelerCompiler().compileModuleFiles(
         Map.of(
+            "Binary.w", Files.readString(root.resolve("packages/Binary.w")),
+            "InstructionVerifier.w",
+            Files.readString(root.resolve("compiler/InstructionVerifier.w")),
             "NativeVerifier.w", Files.readString(root.resolve("NativeVerifier.w")),
             "Opcodes.w", Files.readString(root.resolve("compiler/Opcodes.w")),
             "TypeCodes.w", Files.readString(root.resolve("compiler/TypeCodes.w")),

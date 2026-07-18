@@ -27,6 +27,8 @@ class MinimalCompilerExampleTest {
     String encoding = Files.readString(Path.of("src/main/wheeler/compiler/Encoding.w"));
     String helperParser = Files.readString(
         Path.of("src/main/wheeler/compiler/HelperParser.w"));
+    String instructionVerifier = Files.readString(
+        Path.of("src/main/wheeler/compiler/InstructionVerifier.w"));
     String ir = Files.readString(Path.of("src/main/wheeler/compiler/Ir.w"));
     String opcodes = Files.readString(Path.of("src/main/wheeler/compiler/Opcodes.w"));
     String parser = Files.readString(Path.of("src/main/wheeler/compiler/Parser.w"));
@@ -41,12 +43,14 @@ class MinimalCompilerExampleTest {
         Path.of("src/main/wheeler/compiler/TypeCodes.w"));
     String verifier = Files.readString(Path.of("src/main/wheeler/compiler/Verifier.w"));
     String scanner = Files.readString(Path.of("src/main/wheeler/lexer/Scanner.w"));
+    String binary = Files.readString(Path.of("src/main/wheeler/packages/Binary.w"));
     var writerProgram = new WheelerCompiler().compileModuleFiles(
         Map.ofEntries(
             Map.entry("MinimalCompiler.w", root),
             Map.entry("Codegen.w", codegen),
             Map.entry("Encoding.w", encoding),
             Map.entry("HelperParser.w", helperParser),
+            Map.entry("InstructionVerifier.w", instructionVerifier),
             Map.entry("Ir.w", ir),
             Map.entry("Opcodes.w", opcodes),
             Map.entry("Parser.w", parser),
@@ -56,7 +60,8 @@ class MinimalCompilerExampleTest {
             Map.entry("Structure.w", structure),
             Map.entry("Tokens.w", tokens),
             Map.entry("TypeCodes.w", typeCodes),
-            Map.entry("Verifier.w", verifier)),
+            Map.entry("Verifier.w", verifier),
+            Map.entry("Binary.w", binary)),
         "examples.compiler.seed");
     String source =
         "classical class LongClass { state long value = 7; "
@@ -354,6 +359,10 @@ class MinimalCompilerExampleTest {
           }
         }
         """;
+    String binary = Files.readString(
+        Path.of("src/main/wheeler/packages/Binary.w"));
+    String instructionVerifier = Files.readString(
+        Path.of("src/main/wheeler/compiler/InstructionVerifier.w"));
     String opcodes = Files.readString(
         Path.of("src/main/wheeler/compiler/Opcodes.w"));
     String typeCodes = Files.readString(
@@ -362,6 +371,8 @@ class MinimalCompilerExampleTest {
         Path.of("src/main/wheeler/compiler/Verifier.w"));
     Program program = new WheelerCompiler().compileModuleFiles(
         Map.of(
+            "Binary.w", binary,
+            "InstructionVerifier.w", instructionVerifier,
             "Opcodes.w", opcodes,
             "TypeCodes.w", typeCodes,
             "Verifier.w", verifier,

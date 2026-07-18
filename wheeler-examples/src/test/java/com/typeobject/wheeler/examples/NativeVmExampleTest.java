@@ -26,6 +26,8 @@ class NativeVmExampleTest {
     Program interpreter = new WheelerCompiler().compileModuleFiles(
         Map.of(
             "Binary.w", Files.readString(root.resolve("packages/Binary.w")),
+            "InstructionVerifier.w",
+            Files.readString(root.resolve("compiler/InstructionVerifier.w")),
             "Interpreter.w", Files.readString(root.resolve("compiler/Interpreter.w")),
             "NativeVm.w", Files.readString(root.resolve("NativeVm.w")),
             "Opcodes.w", Files.readString(root.resolve("compiler/Opcodes.w")),
@@ -136,6 +138,9 @@ class NativeVmExampleTest {
             Map.entry(
                 "HelperParser.w",
                 Files.readString(root.resolve("compiler/HelperParser.w"))),
+            Map.entry(
+                "InstructionVerifier.w",
+                Files.readString(root.resolve("compiler/InstructionVerifier.w"))),
             Map.entry("Ir.w", Files.readString(root.resolve("compiler/Ir.w"))),
             Map.entry(
                 "MinimalCompiler.w", Files.readString(root.resolve("MinimalCompiler.w"))),
@@ -149,7 +154,8 @@ class NativeVmExampleTest {
             Map.entry("Structure.w", Files.readString(root.resolve("compiler/Structure.w"))),
             Map.entry("Tokens.w", Files.readString(root.resolve("compiler/Tokens.w"))),
             Map.entry("TypeCodes.w", Files.readString(root.resolve("compiler/TypeCodes.w"))),
-            Map.entry("Verifier.w", Files.readString(root.resolve("compiler/Verifier.w")))),
+            Map.entry("Verifier.w", Files.readString(root.resolve("compiler/Verifier.w"))),
+            Map.entry("Binary.w", Files.readString(root.resolve("packages/Binary.w")))),
         "examples.compiler.seed");
     VirtualMachine machine = new VirtualMachine(
         compiler, source.getBytes(StandardCharsets.UTF_8), 1024);
