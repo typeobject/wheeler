@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -186,14 +187,14 @@ public final class PackageArchive {
       Objects.requireNonNull(identity, "identity");
       Map<String, byte[]> copy = new LinkedHashMap<>();
       entries.forEach((path, data) -> copy.put(path, data.clone()));
-      entries = Map.copyOf(copy);
+      entries = Collections.unmodifiableMap(copy);
     }
 
     @Override
     public Map<String, byte[]> entries() {
       Map<String, byte[]> copy = new LinkedHashMap<>();
       entries.forEach((path, data) -> copy.put(path, data.clone()));
-      return Map.copyOf(copy);
+      return Collections.unmodifiableMap(copy);
     }
   }
 }

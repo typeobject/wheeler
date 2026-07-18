@@ -185,6 +185,16 @@ A region declares hard byte and live-object ceilings; the VM also caps total liv
 
 `freezeUtf8(raw)` validates and consumes a `bytes` owner, yielding an affine immutable `utf8` owner over the same charged allocation. Validation failure leaves the source live and unchanged. A frozen value permits byte length, scalar count, scalar-boundary decode, validation, and drop, but no byte mutation or arbitrary string indexing. This primitive is the bootstrap representation below the future library `String`; it does not provide normalization, concatenation, comparison, grapheme segmentation, or canonical text serialization.
 
+An `utf8` function parameter is an immutable synchronous borrow rather than an ownership transfer:
+
+```java
+long scalarAt(utf8 text, long index) {
+    return utf8Scalar(text, index);
+}
+```
+
+The caller retains and must eventually drop the owner. The callee may inspect the value and pass the borrow to another call, but cannot move, drop, return, aggregate, or mutate it. Bytecode gives borrowed parameters a distinct verified register type; call lowering creates only transient borrow windows. Mutable `bytes`, `words`, maps, regions, and owned `utf8` results remain forbidden at function boundaries. Runtime owner/kind checks defend malformed artifacts, while verifier rules prevent a valid artifact from turning a borrow into an owner.
+
 A region can also own one fixed-capacity signed map:
 
 ```java

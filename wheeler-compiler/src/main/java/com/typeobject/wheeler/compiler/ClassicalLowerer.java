@@ -69,12 +69,15 @@ final class ClassicalLowerer {
             function.line(), "borrowed or owned values cannot escape as results");
       }
       List<ValueType> parameterTypes = function.parameters().stream()
-          .map(parameter -> SourceTypeLowerer.resolve(
-              parameter.type(), function.line(), typeReferences))
+          .map(parameter -> {
+            ValueType type = SourceTypeLowerer.resolve(
+                parameter.type(), function.line(), typeReferences);
+            return type.equals(ValueType.UTF8) ? ValueType.UTF8_BORROW : type;
+          })
           .toList();
       if (parameterTypes.stream().anyMatch(ClassicalLowerer::owned)) {
         throw new CompilerException(
-            function.line(), "owned values are currently local to one function");
+            function.line(), "mutable owned values are currently local to one function");
       }
       signatures.put(
           function.name(),
@@ -350,7 +353,12 @@ final class ClassicalLowerer {
       this.arrays = List.copyOf(arrayTypes);
       this.slices = List.copyOf(sliceTypes);
       for (SourceModel.Parameter parameter : owner.parameters()) {
-        declareUser(parameter.name(), owner.line(), SourceTypeLowerer.resolve(parameter.type(), owner.line(), typeReferences));
+        ValueType type = SourceTypeLowerer.resolve(
+            parameter.type(), owner.line(), typeReferences);
+        declareUser(
+            parameter.name(),
+            owner.line(),
+            type.equals(ValueType.UTF8) ? ValueType.UTF8_BORROW : type);
       }
     }
 
@@ -742,10 +750,21 @@ final class ClassicalLowerer {
         for (int index = 0; index < argumentCount; index++) {
           int source = requireLocal(statement.arguments().get(index + 2), statement.line());
           ValueType parameterType = signature.parameterTypes().get(index);
-          requireType(source, parameterType, statement.line());
+          ValueType sourceType = localTypes.get(source);
+          Opcode copy = Opcode.LOCAL_MOVE;
+          if (parameterType.equals(ValueType.UTF8_BORROW)) {
+            if (!sourceType.equals(ValueType.UTF8)
+                && !sourceType.equals(ValueType.UTF8_BORROW)) {
+              throw new CompilerException(
+                  statement.line(), "UTF-8 parameter requires immutable UTF-8");
+            }
+            copy = Opcode.UTF8_BORROW;
+          } else {
+            requireType(source, parameterType, statement.line());
+          }
           int window = declareInternal(
               "$call" + assemblyTemporary++, statement.line(), parameterType);
-          output.add(Instruction.of(Opcode.LOCAL_MOVE, window, source));
+          output.add(Instruction.of(copy, window, source));
         }
       }
       int destination = declareInternal(

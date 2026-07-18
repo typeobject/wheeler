@@ -67,18 +67,9 @@ final class SourceParser extends SourceStatementParser {
     moduleName = null;
     blockDepth = 0;
 
-    if (matchText("module")) {
-      moduleName = qualifiedName("module name");
-      expect(Type.SEMICOLON, "';' after module declaration");
-    }
-    while (matchText("import")) {
-      String imported = qualifiedName("import name");
-      if (!imports.isEmpty() && imports.getLast().compareTo(imported) >= 0) {
-        fail(previous(), "imports must be unique and sorted");
-      }
-      imports.add(imported);
-      expect(Type.SEMICOLON, "';' after import declaration");
-    }
+    SourceModuleHeaderParser.Header header = SourceModuleHeaderParser.parse(this);
+    moduleName = header.moduleName();
+    imports.addAll(header.imports());
 
     SourceToken domain = expect(Type.IDENTIFIER, "computation domain");
     if (!DOMAINS.contains(domain.text())) {
@@ -411,15 +402,6 @@ final class SourceParser extends SourceStatementParser {
     }
     return new Function(
         name, exported, entry, reversible, coherent, parameters, returnType, body, line);
-  }
-
-  private String qualifiedName(String expectation) {
-    StringBuilder name = new StringBuilder(
-        expect(Type.IDENTIFIER, expectation).text());
-    while (match(Type.DOT)) {
-      name.append('.').append(expect(Type.IDENTIFIER, expectation).text());
-    }
-    return name.toString();
   }
 
   private void parseReturn(List<Statement> body, SourceToken start) {

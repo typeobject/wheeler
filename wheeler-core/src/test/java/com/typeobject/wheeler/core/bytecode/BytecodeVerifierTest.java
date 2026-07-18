@@ -192,6 +192,22 @@ class BytecodeVerifierTest {
             Instruction.of(Opcode.BUFFER_DROP, 2),
             Instruction.of(Opcode.REGION_DROP, 0),
             Instruction.of(Opcode.HALT)));
+    FunctionBody strayBorrow = typedMain(
+        List.of(
+            ValueType.REGION,
+            ValueType.SIGNED,
+            ValueType.BYTES,
+            ValueType.UTF8,
+            ValueType.UTF8_BORROW),
+        List.of(
+            Instruction.of(Opcode.REGION_NEW, 0, 1, 1),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 1),
+            Instruction.of(Opcode.BYTES_ALLOC, 2, 0, 1),
+            Instruction.of(Opcode.UTF8_FREEZE, 3, 2),
+            Instruction.of(Opcode.UTF8_BORROW, 4, 3),
+            Instruction.of(Opcode.BUFFER_DROP, 3),
+            Instruction.of(Opcode.REGION_DROP, 0),
+            Instruction.of(Opcode.HALT)));
     FunctionBody divergent = new FunctionBody(
         0,
         "main",
@@ -214,12 +230,15 @@ class BytecodeVerifierTest {
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(leaked)));
     assertThrows(
         BytecodeException.class, () -> BytecodeVerifier.verify(programWith(wrongBufferKind)));
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(strayBorrow)));
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(divergent)));
     assertEquals(ValueType.REGION, ValueType.fromCode(ValueType.REGION.code()));
     assertEquals(ValueType.WORDS, ValueType.fromCode(ValueType.WORDS.code()));
     assertEquals(ValueType.BYTES, ValueType.fromCode(ValueType.BYTES.code()));
     assertEquals(ValueType.LONG_MAP, ValueType.fromCode(ValueType.LONG_MAP.code()));
     assertEquals(ValueType.UTF8, ValueType.fromCode(ValueType.UTF8.code()));
+    assertEquals(
+        ValueType.UTF8_BORROW, ValueType.fromCode(ValueType.UTF8_BORROW.code()));
   }
 
   @Test

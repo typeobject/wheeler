@@ -25,6 +25,7 @@ final class StorageInstructionVerifier {
       case WORDS_SET -> verifySet(owner, instruction, pc, ValueType.WORDS);
       case BYTES_SET -> verifySet(owner, instruction, pc, ValueType.BYTES);
       case UTF8_FREEZE -> verifyFreeze(owner, instruction, pc);
+      case UTF8_BORROW -> verifyBorrow(owner, instruction, pc);
       case UTF8_VALID -> verifyUtf8Whole(owner, instruction, pc, ValueType.BOOLEAN);
       case UTF8_COUNT -> verifyUtf8Whole(owner, instruction, pc, ValueType.SIGNED);
       case UTF8_SCALAR, UTF8_WIDTH -> verifyUtf8At(owner, instruction, pc);
@@ -89,6 +90,16 @@ final class StorageInstructionVerifier {
     require(owner, instruction, 1, ValueType.BYTES, pc);
   }
 
+  private static void verifyBorrow(
+      FunctionBody owner, Instruction instruction, int pc) {
+    require(owner, instruction, 0, ValueType.UTF8_BORROW, pc);
+    int source = local(owner, instruction.operands().get(1), pc);
+    ValueType type = owner.localType(source);
+    if (!type.equals(ValueType.UTF8) && !type.equals(ValueType.UTF8_BORROW)) {
+      fail(owner, pc, "UTF-8 borrow requires an immutable UTF-8 source");
+    }
+  }
+
   private static void verifyMapPut(
       FunctionBody owner, Instruction instruction, int pc) {
     require(owner, instruction, 0, ValueType.LONG_MAP, pc);
@@ -107,8 +118,9 @@ final class StorageInstructionVerifier {
     require(owner, instruction, 0, ValueType.SIGNED, pc);
     int source = local(owner, instruction.operands().get(1), pc);
     ValueType type = owner.localType(source);
-    if (!isBuffer(type) && !type.equals(ValueType.UTF8)) {
-      fail(owner, pc, "buffer length requires words, bytes, or utf8");
+    if (!isBuffer(type) && !type.equals(ValueType.UTF8)
+        && !type.equals(ValueType.UTF8_BORROW)) {
+      fail(owner, pc, "buffer length requires words, bytes, utf8, or a UTF-8 borrow");
     }
   }
 
@@ -126,8 +138,9 @@ final class StorageInstructionVerifier {
       FunctionBody owner, Instruction instruction, int operand, int pc) {
     int local = local(owner, instruction.operands().get(operand), pc);
     ValueType type = owner.localType(local);
-    if (!type.equals(ValueType.BYTES) && !type.equals(ValueType.UTF8)) {
-      fail(owner, pc, "expected bytes or utf8 local " + local);
+    if (!type.equals(ValueType.BYTES) && !type.equals(ValueType.UTF8)
+        && !type.equals(ValueType.UTF8_BORROW)) {
+      fail(owner, pc, "expected bytes, utf8, or a UTF-8 borrow local " + local);
     }
   }
 

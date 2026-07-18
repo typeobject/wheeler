@@ -357,6 +357,18 @@ class SourceProfileNegativeTest {
           }
         }
         """;
+    String mutableParameter = """
+        classical class MutableParameter {
+          long read(bytes raw) { return bufferLength(raw); }
+          entry void main() { }
+        }
+        """;
+    String droppedBorrow = """
+        classical class DroppedBorrow {
+          long read(utf8 text) { drop(text); return 0; }
+          entry void main() { }
+        }
+        """;
     String immutableUtf8 = """
         classical class ImmutableUtf8 {
           entry void main() {
@@ -386,6 +398,10 @@ class SourceProfileNegativeTest {
         CompilerException.class, () -> new WheelerCompiler().compile(escaped));
     CompilerException kind = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(wrongBufferKind));
+    CompilerException mutable = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(mutableParameter));
+    CompilerException borrowed = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(droppedBorrow));
     CompilerException immutable = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(immutableUtf8));
     CompilerException aggregate = assertThrows(
@@ -395,6 +411,8 @@ class SourceProfileNegativeTest {
     assertTrue(moved.getMessage().contains("reads uninitialized local"));
     assertTrue(result.getMessage().contains("cannot escape as results"));
     assertTrue(kind.getMessage().contains("expected bytes expression"));
+    assertTrue(mutable.getMessage().contains("mutable owned values"));
+    assertTrue(borrowed.getMessage().contains("drop requires an owned value"));
     assertTrue(immutable.getMessage().contains("expected bytes expression"));
     assertTrue(aggregate.getMessage().contains("cannot be array or slice elements"));
   }

@@ -5,6 +5,14 @@ classical class FrozenUtf8 {
     state long middleScalar = 0;
     state long valid = 0;
 
+    long scalarAt(utf8 text, long index) {
+        return utf8Scalar(text, index);
+    }
+
+    long middle(utf8 text) {
+        return scalarAt(text, 1);
+    }
+
     entry void main() {
         region arena = new region(6, 1);
         bytes raw = allocateBytes(arena, 6);
@@ -18,7 +26,7 @@ classical class FrozenUtf8 {
         utf8 text = freezeUtf8(raw);
         byteLength = bufferLength(text);
         scalarCount = utf8Count(text);
-        middleScalar = utf8Scalar(text, 1);
+        middleScalar = middle(text);
         boolean isValid = utf8Valid(text);
         if (isValid) {
             valid = 1;

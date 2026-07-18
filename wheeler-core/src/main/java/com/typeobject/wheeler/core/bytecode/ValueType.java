@@ -11,6 +11,7 @@ public record ValueType(Kind kind, int descriptorId) {
   public static final ValueType BYTES = new ValueType(Kind.BYTES, -1);
   public static final ValueType LONG_MAP = new ValueType(Kind.LONG_MAP, -1);
   public static final ValueType UTF8 = new ValueType(Kind.UTF8, -1);
+  public static final ValueType UTF8_BORROW = new ValueType(Kind.UTF8_BORROW, -1);
   private static final int RECORD_TAG = 0x1000_0000;
   private static final int VARIANT_TAG = 0x2000_0000;
   private static final int ARRAY_TAG = 0x3000_0000;
@@ -23,7 +24,7 @@ public record ValueType(Kind kind, int descriptorId) {
             && (descriptorId < 0 || descriptorId > 0x0fff_ffff))
         || ((kind == Kind.SIGNED || kind == Kind.BOOLEAN
             || kind == Kind.REGION || kind == Kind.WORDS || kind == Kind.BYTES
-            || kind == Kind.LONG_MAP || kind == Kind.UTF8)
+            || kind == Kind.LONG_MAP || kind == Kind.UTF8 || kind == Kind.UTF8_BORROW)
             && descriptorId != -1)) {
       throw new IllegalArgumentException("Invalid register type reference");
     }
@@ -54,6 +55,7 @@ public record ValueType(Kind kind, int descriptorId) {
       case BYTES -> 5;
       case LONG_MAP -> 6;
       case UTF8 -> 7;
+      case UTF8_BORROW -> 8;
       case RECORD -> RECORD_TAG | descriptorId;
       case VARIANT -> VARIANT_TAG | descriptorId;
       case ARRAY -> ARRAY_TAG | descriptorId;
@@ -67,7 +69,7 @@ public record ValueType(Kind kind, int descriptorId) {
       case VARIANT -> "variant#" + descriptorId;
       case ARRAY -> "array#" + descriptorId;
       case SLICE -> "slice#" + descriptorId;
-      case SIGNED, BOOLEAN, REGION, WORDS, BYTES, LONG_MAP, UTF8 ->
+      case SIGNED, BOOLEAN, REGION, WORDS, BYTES, LONG_MAP, UTF8, UTF8_BORROW ->
           kind.name().toLowerCase(Locale.ROOT);
     };
   }
@@ -94,6 +96,9 @@ public record ValueType(Kind kind, int descriptorId) {
     if (code == 7) {
       return UTF8;
     }
+    if (code == 8) {
+      return UTF8_BORROW;
+    }
     if ((code & 0xf000_0000) == RECORD_TAG) {
       return record(code & 0x0fff_ffff);
     }
@@ -117,6 +122,7 @@ public record ValueType(Kind kind, int descriptorId) {
     BYTES,
     LONG_MAP,
     UTF8,
+    UTF8_BORROW,
     RECORD,
     VARIANT,
     ARRAY,

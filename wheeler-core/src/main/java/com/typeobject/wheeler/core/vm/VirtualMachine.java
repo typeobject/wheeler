@@ -411,6 +411,8 @@ public final class VirtualMachine {
             localIndex(instruction, 0),
             opcode == Opcode.UTF8_SCALAR ? scalar.value() : scalar.width());
       }
+      case UTF8_BORROW -> setLocalAndAdvance(
+          localIndex(instruction, 0), localValue(instruction, 1));
       case UTF8_FREEZE -> {
         int destination = localIndex(instruction, 0);
         int source = localIndex(instruction, 1);
@@ -468,8 +470,14 @@ public final class VirtualMachine {
         for (int index = 0; index < argumentCount; index++) {
           arguments.add(currentFrame().local(argumentBase + index));
         }
-        advanceCurrentFrame();
         FunctionBody target = program.function(functionId);
+        Frame caller = currentFrame().advance();
+        for (int index = 0; index < argumentCount; index++) {
+          if (target.localType(index).equals(ValueType.UTF8_BORROW)) {
+            caller = caller.withLocal(argumentBase + index, 0);
+          }
+        }
+        replaceCurrentFrame(caller);
         frames.add(Frame.create(
             functionId, false, target.localCount(), destination, arguments));
         control = StepRecord.ControlChange.CALL;

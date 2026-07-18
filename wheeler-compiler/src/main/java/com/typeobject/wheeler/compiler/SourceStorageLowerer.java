@@ -152,9 +152,9 @@ final class SourceStorageLowerer {
     int buffer = context.requireLocal(statement.arguments().get(2), statement.line());
     ValueType type = context.localType(buffer);
     if (!type.equals(ValueType.WORDS) && !type.equals(ValueType.BYTES)
-        && !type.equals(ValueType.UTF8)) {
+        && !type.equals(ValueType.UTF8) && !type.equals(ValueType.UTF8_BORROW)) {
       throw new CompilerException(
-          statement.line(), "bufferLength requires words, bytes, or utf8");
+          statement.line(), "bufferLength requires words, bytes, utf8, or a UTF-8 borrow");
     }
     int destination = context.declareInternal(
         statement.arguments().get(0), statement.line(), ValueType.SIGNED);
@@ -191,8 +191,10 @@ final class SourceStorageLowerer {
 
   private static void requireUtf8Sequence(Context context, int local, int line) {
     ValueType type = context.localType(local);
-    if (!type.equals(ValueType.BYTES) && !type.equals(ValueType.UTF8)) {
-      throw new CompilerException(line, "UTF-8 operation requires bytes or utf8");
+    if (!type.equals(ValueType.BYTES) && !type.equals(ValueType.UTF8)
+        && !type.equals(ValueType.UTF8_BORROW)) {
+      throw new CompilerException(
+          line, "UTF-8 operation requires bytes, utf8, or a UTF-8 borrow");
     }
   }
 
