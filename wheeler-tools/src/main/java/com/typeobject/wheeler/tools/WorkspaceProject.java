@@ -104,6 +104,10 @@ final class WorkspaceProject {
     }
   }
 
+  void clean() throws IOException {
+    PackageProject.cleanOutput(defaultBuildDirectory());
+  }
+
   Path defaultBuildDirectory() {
     return root.resolve("out");
   }

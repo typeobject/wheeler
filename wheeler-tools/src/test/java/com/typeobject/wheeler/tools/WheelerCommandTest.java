@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.tools;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
@@ -60,11 +61,15 @@ class WheelerCommandTest {
     DecodedPackage archive = new PackageArchive().decode(Files.readAllBytes(archivePath));
     assertEquals("demo.counter", archive.manifest().name());
     assertEquals(0, Wheeler.execute(new String[] {"verify", archivePath.toString()}, stdout, stderr));
+    assertEquals(0, Wheeler.execute(new String[] {"clean", project.toString()}, stdout, stderr));
+    assertTrue(Files.notExists(project.resolve("out")));
+    assertTrue(Files.isRegularFile(project.resolve("src/Counter.w")));
 
     String output = stdoutBytes.toString(StandardCharsets.UTF_8);
     assertTrue(output.contains("checked demo.counter 1.0.0"));
     assertTrue(output.contains("count = 1"));
     assertTrue(output.contains(archive.identity()));
+    assertTrue(output.contains("cleaned demo.counter"));
     assertEquals("", stderrBytes.toString(StandardCharsets.UTF_8));
   }
 
@@ -230,6 +235,24 @@ class WheelerCommandTest {
     String qasm = Files.readString(output);
     assertTrue(qasm.startsWith("OPENQASM 3.0;"));
     assertTrue(qasm.contains("x q[0];"));
+  }
+
+  @Test
+  void cleanRefusesSymbolicLinkOutputs() throws Exception {
+    Path project = temporary.resolve("project");
+    createPackage(project, "demo.project", "Project", 1);
+    Path external = temporary.resolve("external");
+    Files.createDirectories(external);
+    Files.writeString(external.resolve("keep"), "keep");
+    Files.createSymbolicLink(project.resolve("out"), external);
+
+    assertThrows(
+        java.io.IOException.class,
+        () -> Wheeler.execute(
+            new String[] {"clean", project.toString()},
+            new PrintStream(new ByteArrayOutputStream()),
+            new PrintStream(new ByteArrayOutputStream())));
+    assertTrue(Files.isRegularFile(external.resolve("keep")));
   }
 
   @Test

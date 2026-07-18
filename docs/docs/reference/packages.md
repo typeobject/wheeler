@@ -140,6 +140,7 @@ The unified command executes local package operations:
 wheeler check <package-or-workspace-directory>
 wheeler build <package-or-workspace-directory> [-o output-directory]
 wheeler test <package-or-workspace-directory>
+wheeler clean <package-or-workspace-directory>
 wheeler package <package-directory> [-o package.wpk]
 wheeler verify <package.wpk>
 wheeler resolve <package-directory> --catalog <archive-directory> [-o wheeler.lock] [--development]
@@ -152,7 +153,7 @@ wheeler disassemble <program.wbc>
 wheeler qasm <program.wbc> <output.qasm>
 ```
 
-`check` compiles and verifies every declared target without writing outputs. `build` writes one canonical `.wbc` per target, named from the target. Workspace builds place each package in its member-named output directory. `test` compiles and executes only targets declared with kind `test`, in canonical workspace/package/target order, using the same ideal state-vector target as ordinary deterministic CI. A package with no test targets succeeds with a zero-target report. `package` includes canonical manifest data and every declared target root. `verify` performs strict archive decoding before printing identity. `resolve` selects from an explicit verified archive catalog and atomically writes canonical lock data; development dependencies enter only with `--development`. `verify-lock` accepts only canonical lock encoding before printing identity. `plan` hashes declared workspace sources and emits a canonical build plan with an explicit compiler identity. `verify-plan` validates all structural and content identities before printing plan identity. Output replacement uses a sibling temporary file and atomic move when the host supports it.
+`check` compiles and verifies every declared target without writing outputs. `build` writes one canonical `.wbc` per target, named from the target. Workspace builds place each package in its member-named output directory. `test` compiles and executes only targets declared with kind `test`, in canonical workspace/package/target order, using the same ideal state-vector target as ordinary deterministic CI. A package with no test targets succeeds with a zero-target report. `clean` removes only the default physical `out` tree and rejects files or symbolic links at any level before deleting anything. `package` includes canonical manifest data and every declared target root. `verify` performs strict archive decoding before printing identity. `resolve` selects from an explicit verified archive catalog and atomically writes canonical lock data; development dependencies enter only with `--development`. `verify-lock` accepts only canonical lock encoding before printing identity. `plan` hashes declared workspace sources and emits a canonical build plan with an explicit compiler identity. `verify-plan` validates all structural and content identities before printing plan identity. Output replacement uses a sibling temporary file and atomic move when the host supports it.
 
 The local host adapter requires a physical package directory, manifest, and target files. A target path that crosses a symbolic link or resolves outside the package fails before compilation. It reads only the manifest and declared target roots; capability requests remain policy data and do not grant broader host access.
 

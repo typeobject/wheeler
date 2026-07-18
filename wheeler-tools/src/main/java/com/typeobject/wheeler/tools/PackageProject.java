@@ -21,6 +21,7 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Stream;
 
 /** Capability-minimal host adapter for one local Wheeler package directory. */
 final class PackageProject {
@@ -121,6 +122,10 @@ final class PackageProject {
     return new PackageArchive().encode(manifest, entries);
   }
 
+  void clean() throws IOException {
+    cleanOutput(defaultBuildDirectory());
+  }
+
   Path defaultBuildDirectory() {
     return root.resolve("out");
   }
@@ -151,6 +156,29 @@ final class PackageProject {
       return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
     } catch (NoSuchAlgorithmException exception) {
       throw new IllegalStateException("SHA-256 is unavailable", exception);
+    }
+  }
+
+  static void cleanOutput(Path output) throws IOException {
+    Path normalized = output.toAbsolutePath().normalize();
+    if (!Files.exists(normalized, LinkOption.NOFOLLOW_LINKS)) {
+      return;
+    }
+    if (!Files.isDirectory(normalized, LinkOption.NOFOLLOW_LINKS)
+        || Files.isSymbolicLink(normalized)) {
+      throw new IOException("Build output is not a physical directory: " + normalized);
+    }
+    List<Path> paths;
+    try (Stream<Path> entries = Files.walk(normalized)) {
+      paths = entries.sorted(java.util.Comparator.reverseOrder()).toList();
+    }
+    for (Path path : paths) {
+      if (Files.isSymbolicLink(path)) {
+        throw new IOException("Refusing to clean symbolic link: " + path);
+      }
+    }
+    for (Path path : paths) {
+      Files.delete(path);
     }
   }
 
