@@ -55,7 +55,9 @@ public enum Opcode {
   REGION_DROP(0x0546, 1, Reversibility.CHECKED),
   BYTES_ALLOC(0x0547, 3, Reversibility.CHECKED),
   BYTES_GET(0x0548, 3, Reversibility.CHECKED),
-  BYTES_SET(0x0549, 3, Reversibility.LOGGED);
+  BYTES_SET(0x0549, 3, Reversibility.LOGGED),
+  UTF8_VALID(0x054a, 2, Reversibility.CHECKED),
+  UTF8_COUNT(0x054b, 2, Reversibility.CHECKED);
 
   private final int code;
   private final int operandCount;

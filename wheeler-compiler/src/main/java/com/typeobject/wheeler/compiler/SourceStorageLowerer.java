@@ -27,6 +27,7 @@ final class SourceStorageLowerer {
       case "words_alloc", "bytes_alloc" -> lowerBufferAllocate(statement, context);
       case "words_set", "bytes_set" -> lowerBufferSet(statement, context);
       case "owned_drop" -> lowerDrop(statement, context);
+      case "utf8_valid", "utf8_count" -> lowerUtf8(statement, context);
       default -> throw new IllegalArgumentException(
           "Not a storage operation: " + statement.operation());
     }
@@ -91,6 +92,20 @@ final class SourceStorageLowerer {
     Opcode opcode = expected.equals(ValueType.WORDS)
         ? Opcode.WORDS_SET : Opcode.BYTES_SET;
     context.emit(Instruction.of(opcode, buffer, index, value));
+  }
+
+  private static void lowerUtf8(Statement statement, Context context) {
+    requireArguments(statement, 3);
+    int bytes = context.requireLocal(statement.arguments().get(2), statement.line());
+    context.requireType(bytes, ValueType.BYTES, statement.line());
+    boolean validation = statement.operation().equals("utf8_valid");
+    ValueType resultType = validation ? ValueType.BOOLEAN : ValueType.SIGNED;
+    int destination = context.declareInternal(
+        statement.arguments().get(0), statement.line(), resultType);
+    context.emit(Instruction.of(
+        validation ? Opcode.UTF8_VALID : Opcode.UTF8_COUNT,
+        destination,
+        bytes));
   }
 
   private static void lowerDrop(Statement statement, Context context) {

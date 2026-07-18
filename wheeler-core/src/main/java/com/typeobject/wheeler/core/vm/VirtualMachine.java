@@ -397,6 +397,12 @@ public final class VirtualMachine {
             ownedChange);
         advanceCurrentFrame();
       }
+      case UTF8_VALID -> setLocalAndAdvance(
+          localIndex(instruction, 0),
+          Utf8.analyze(owned.bytes(localValue(instruction, 1))).valid() ? 1 : 0);
+      case UTF8_COUNT -> setLocalAndAdvance(
+          localIndex(instruction, 0),
+          Utf8.analyze(owned.bytes(localValue(instruction, 1))).scalarCount());
       case BUFFER_DROP -> {
         int local = localIndex(instruction, 0);
         ownedChange = owned.dropBuffer(currentFrame().local(local), ownedChange);
@@ -658,6 +664,17 @@ public final class VirtualMachine {
               Math.toIntExact(localValue(instruction, 1)),
               localValue(instruction, 2),
               kind);
+        }
+        case UTF8_VALID -> {
+          localIndex(instruction, 0);
+          owned.validateBytes(localValue(instruction, 1));
+        }
+        case UTF8_COUNT -> {
+          localIndex(instruction, 0);
+          Utf8.Analysis analysis = Utf8.analyze(owned.bytes(localValue(instruction, 1)));
+          if (!analysis.valid()) {
+            trap("Invalid UTF-8 byte sequence");
+          }
         }
         case BUFFER_DROP -> owned.validateDropBuffer(localValue(instruction, 0));
         case REGION_DROP -> owned.validateDropRegion(localValue(instruction, 0));

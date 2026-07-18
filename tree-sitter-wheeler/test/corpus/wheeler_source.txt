@@ -856,7 +856,9 @@ classical class Storage {
     set(data, 0, 9);
     result = data[0];
     bytes raw = allocateBytes(arena, 4);
-    setByte(raw, 0, 255);
+    setByte(raw, 0, 65);
+    boolean valid = utf8Valid(raw);
+    long scalarCount = utf8Count(raw);
     drop(raw);
     drop(data);
     drop(arena);
@@ -947,6 +949,26 @@ classical class Storage {
                       (integer_literal))
                     (expression
                       (integer_literal))))))
+            (statement
+              (local_declaration
+                (value_type)
+                (identifier)
+                (expression
+                  (call_expression
+                    (identifier)
+                    (argument_list
+                      (expression
+                        (identifier)))))))
+            (statement
+              (local_declaration
+                (value_type)
+                (identifier)
+                (expression
+                  (call_expression
+                    (identifier)
+                    (argument_list
+                      (expression
+                        (identifier)))))))
             (statement
               (call_statement
                 (call_expression

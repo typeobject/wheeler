@@ -221,7 +221,7 @@ Why care? Quantum software combines ordinary software bugs, mathematical claims,
 
 The destination is not a language that can express three famous algorithms and then asks Python to handle everything difficult.
 
-The executable core already has signed and Boolean values, immutable records, tagged variants, fixed arrays, nonescaping slices, typed calls, bounded loops, function-local regions with owned mutable word and byte buffers, canonical bytecode, deterministic package formats, and exact offline dependency inputs. Borrowing and mutable slices, UTF-8 strings, deterministic collections, modules, cross-function ownership, and explicit source effects remain under construction.
+The executable core already has signed and Boolean values, immutable records, tagged variants, fixed arrays, nonescaping slices, typed calls, bounded loops, function-local regions with owned mutable word/byte buffers and strict UTF-8 validation, canonical bytecode, deterministic package formats, and exact offline dependency inputs. Borrowing and mutable slices, UTF-8 strings, deterministic collections, modules, cross-function ownership, and explicit source effects remain under construction.
 
 The production compiler is intended to be written in Wheeler. The package manager, verifier, runtime, [OpenQASM](https://openqasm.com/) emitter, build planner, and test tools are intended to become Wheeler programs as well. A successful self-hosting bootstrap compiles the compiler twice and requires byte-identical canonical `.wbc` artifacts.
 

@@ -245,7 +245,7 @@ A feature that cannot express or simplify one of these modules needs separate ju
 - [x] Local constants, state load/store, move, arithmetic, comparison, branches, loop checks, value calls, and value returns execute and rewind.
 - [x] Typed signed/Boolean parameters, returns, local bindings, expressions, static calls, `if`/`else`, and bounded `while` compile end to end.
 - [x] Immutable nominal records, closed tagged variants, fixed immutable arrays, and nonescaping immutable slices execute with canonical descriptors, typed construction/calls, structural equality, exhaustive selection, checked ranges/indexing, snapshots, and rewind.
-- [ ] Function-local regions now enforce byte/object ceilings, affine moves, leak-free exits, mutable signed-word/byte buffers with byte-range checks, explicit drop order, snapshots, and rewind; borrowing, typed collections, cross-function ownership, recoverable allocation, capabilities, and compiler arenas remain.
+- [ ] Function-local regions now enforce byte/object ceilings, affine moves, leak-free exits, mutable signed-word/byte buffers with byte-range checks, strict UTF-8 validation/counting, explicit drop order, snapshots, and rewind; borrowing, typed collections, cross-function ownership, recoverable allocation, capabilities, and compiler arenas remain.
 - [ ] Reversible protected control forms generate checked inverses.
 - [ ] Lexer, parser, codec, verifier, and package graph fixtures run in Wheeler.
 - [ ] Native execution traces match interpreted typed-frame traces.
@@ -260,7 +260,7 @@ A feature that cannot express or simplify one of these modules needs separate ju
 - [ ] Reversible methods reject unprotected branch/loop forms and accept only forms with checked inverse laws.
 - [ ] Record and variant tests cover canonical encoding, nested fields and payloads, nominal structural equality, exhaustive selection, malformed descriptors, source type errors, deterministic interning, and rewind; native layout parity remains.
 - [x] Fixed-array and immutable-slice tests cover typed construction, dynamic boundaries, calls, structural equality, canonical encoding, interning, nonescape, and rewind.
-- [ ] Region tests cover word/byte allocation and mutation, byte element ranges, byte/object exhaustion, drop ordering, move/use-after-move, escape/leak rejection, ownership joins, canonical encoding, snapshots, and rewind; dangling borrows, output-address independence, recoverable failure, and commit remain.
+- [ ] Region tests cover word/byte allocation and mutation, byte element ranges, strict UTF-8 valid/malformed boundaries, byte/object exhaustion, drop ordering, move/use-after-move, escape/leak rejection, ownership joins, canonical encoding, snapshots, and rewind; dangling borrows, output-address independence, recoverable failure, and commit remain.
 - [ ] Stage-0 and Wheeler compilers produce identical typed metadata, code, diagnostics, and artifacts for the shared profile.
 - [ ] The self-host compiler modules and package resolver run under declared frame, region, stack, and step ceilings.
 - [ ] No source construct lowers to a synthetic global or unverified host object.

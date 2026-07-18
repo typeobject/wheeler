@@ -350,6 +350,14 @@ public final class BytecodeVerifier {
       case BYTES_GET -> verifyBufferGet(owner, instruction, pc, ValueType.BYTES);
       case WORDS_SET -> verifyBufferSet(owner, instruction, pc, ValueType.WORDS);
       case BYTES_SET -> verifyBufferSet(owner, instruction, pc, ValueType.BYTES);
+      case UTF8_VALID, UTF8_COUNT -> {
+        ValueType result = opcode == Opcode.UTF8_VALID
+            ? ValueType.BOOLEAN : ValueType.SIGNED;
+        requireType(
+            owner, verifyLocal(owner, instruction.operands().get(0), pc), result, pc);
+        requireType(
+            owner, verifyLocal(owner, instruction.operands().get(1), pc), ValueType.BYTES, pc);
+      }
       case BUFFER_DROP -> {
         int local = verifyLocal(owner, instruction.operands().get(0), pc);
         if (!buffer(owner.localType(local))) {
@@ -714,6 +722,7 @@ public final class BytecodeVerifier {
       case RETURN_VALUE -> new int[] {0};
       case RECORD_GET, VARIANT_TAG_EQ, VARIANT_GET -> new int[] {1};
       case ARRAY_GET, SLICE_GET, WORDS_GET, BYTES_GET -> new int[] {1, 2};
+      case UTF8_VALID, UTF8_COUNT -> new int[] {1};
       case SLICE_NEW -> new int[] {2, 3, 4};
       case WORDS_ALLOC, BYTES_ALLOC -> new int[] {1, 2};
       case WORDS_SET, BYTES_SET -> new int[] {0, 1, 2};
@@ -734,7 +743,8 @@ public final class BytecodeVerifier {
           LOCAL_ADD, LOCAL_SUB, LOCAL_XOR, LOCAL_EQ, LOCAL_LT, LOCAL_LOOP_CHECK,
           RECORD_NEW, RECORD_GET, VARIANT_NEW, VARIANT_TAG_EQ, VARIANT_GET,
           ARRAY_NEW, ARRAY_GET, SLICE_NEW, SLICE_GET, REGION_NEW,
-          WORDS_ALLOC, WORDS_GET, BYTES_ALLOC, BYTES_GET ->
+          WORDS_ALLOC, WORDS_GET, BYTES_ALLOC, BYTES_GET,
+          UTF8_VALID, UTF8_COUNT ->
           Math.toIntExact(instruction.operands().getFirst());
       case CALL_VALUE -> Math.toIntExact(instruction.operands().get(3));
       default -> -1;

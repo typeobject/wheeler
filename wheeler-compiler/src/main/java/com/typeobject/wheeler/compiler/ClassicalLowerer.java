@@ -385,7 +385,7 @@ final class ClassicalLowerer {
         case "array_get" -> lowerIndexedGet(statement);
         case "slice_new" -> lowerSliceNew(statement);
         case "region_new", "words_alloc", "bytes_alloc",
-            "words_set", "bytes_set", "owned_drop" ->
+            "words_set", "bytes_set", "owned_drop", "utf8_valid", "utf8_count" ->
             SourceStorageLowerer.lower(statement, this);
         case "local_bind" -> {
           requireArguments(statement, 3);
