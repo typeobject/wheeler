@@ -129,6 +129,10 @@ class SourceFormatterTest {
         assertEquals(tokens(original), tokens(formatted), source.toString());
         assertEquals(comments(original), comments(formatted), source.toString());
         assertEquals(attachments(original), attachments(formatted), source.toString());
+        assertTrue(formatted.lines()
+            .filter(line -> !line.stripLeading().startsWith("//"))
+            .allMatch(line -> line.codePointCount(0, line.length()) <= 100),
+            source.toString());
       }
     }
   }
