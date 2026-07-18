@@ -73,8 +73,19 @@ public final class PackageManifestParser {
       String name = expect(Type.STRING, "target name").text();
       expectWord("root");
       String root = expect(Type.STRING, "target root").text();
+      if (check(Type.SEMICOLON)) {
+        current++;
+        return new Target(kind, name, root);
+      }
+      expectWord("module");
+      String module = expect(Type.STRING, "target root module").text();
+      List<String> sources = new ArrayList<>();
+      while (!check(Type.SEMICOLON)) {
+        expectWord("source");
+        sources.add(expect(Type.STRING, "target source").text());
+      }
       expect(Type.SEMICOLON, "';' after target");
-      return new Target(kind, name, root);
+      return new Target(kind, name, root, module, sources);
     }
 
     private Dependency parseDependency() {

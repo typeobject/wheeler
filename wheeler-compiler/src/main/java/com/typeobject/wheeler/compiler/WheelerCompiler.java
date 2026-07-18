@@ -24,10 +24,7 @@ public final class WheelerCompiler {
   }
 
   public Program compileModules(Map<String, String> sources, String rootModule) {
-    if (sources == null || rootModule == null || sources.isEmpty()
-        || sources.size() > SourceModuleLinker.MAX_MODULES) {
-      throw new CompilerException(1, "invalid source module set");
-    }
+    requireModuleInputs(sources, rootModule);
     Map<String, SourceProgram> parsed = new TreeMap<>();
     long totalBytes = 0;
     for (Map.Entry<String, String> entry : sources.entrySet()) {
@@ -37,19 +34,58 @@ public final class WheelerCompiler {
           || !name.matches("[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*")) {
         throw new CompilerException(1, "invalid module name or source");
       }
-      totalBytes = Math.addExact(
-          totalBytes, source.getBytes(StandardCharsets.UTF_8).length);
-      if (totalBytes > SourceLexer.MAX_SOURCE_BYTES) {
-        throw new CompilerException(1, "module sources exceed the 64 MiB input limit");
-      }
+      totalBytes = checkedModuleBytes(totalBytes, source);
       parsed.put(name, new SourceParser().parse(source, false));
     }
-    SourceProgram linked = new SourceModuleLinker().link(parsed, rootModule);
-    return compileParsed(linked);
+    return compileLinkedModules(parsed, rootModule);
+  }
+
+  public Program compileModuleFiles(Map<String, String> sources, String rootModule) {
+    requireModuleInputs(sources, rootModule);
+    Map<String, String> ordered = new TreeMap<>();
+    for (Map.Entry<String, String> entry : sources.entrySet()) {
+      if (entry.getKey() == null || entry.getKey().isBlank()
+          || entry.getKey().length() > 4_096 || entry.getKey().indexOf('\0') >= 0
+          || entry.getValue() == null) {
+        throw new CompilerException(1, "invalid module path or source");
+      }
+      ordered.put(entry.getKey(), entry.getValue());
+    }
+    Map<String, SourceProgram> parsed = new TreeMap<>();
+    long totalBytes = 0;
+    for (Map.Entry<String, String> entry : ordered.entrySet()) {
+      totalBytes = checkedModuleBytes(totalBytes, entry.getValue());
+      SourceProgram module = new SourceParser().parse(entry.getValue(), false);
+      if (module.moduleName() == null || parsed.putIfAbsent(module.moduleName(), module) != null) {
+        throw new CompilerException(
+            1, "module files require unique module declarations: " + entry.getKey());
+      }
+    }
+    return compileLinkedModules(parsed, rootModule);
   }
 
   public byte[] compileModulesToBytecode(Map<String, String> sources, String rootModule) {
     return new BytecodeWriter().write(compileModules(sources, rootModule));
+  }
+
+  private static void requireModuleInputs(Map<String, String> sources, String rootModule) {
+    if (sources == null || rootModule == null || sources.isEmpty()
+        || sources.size() > SourceModuleLinker.MAX_MODULES) {
+      throw new CompilerException(1, "invalid source module set");
+    }
+  }
+
+  private static long checkedModuleBytes(long total, String source) {
+    long result = Math.addExact(total, source.getBytes(StandardCharsets.UTF_8).length);
+    if (result > SourceLexer.MAX_SOURCE_BYTES) {
+      throw new CompilerException(1, "module sources exceed the 64 MiB input limit");
+    }
+    return result;
+  }
+
+  private Program compileLinkedModules(
+      Map<String, SourceProgram> parsed, String rootModule) {
+    return compileParsed(new SourceModuleLinker().link(parsed, rootModule));
   }
 
   private Program compileParsed(SourceProgram parsed) {

@@ -1,6 +1,8 @@
 package com.typeobject.wheeler.tools;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
+import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
+import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.packageformat.BuildPlan;
 import com.typeobject.wheeler.packageformat.PackageArchive;
 import com.typeobject.wheeler.packageformat.PackageArchive.DecodedPackage;
@@ -12,10 +14,6 @@ import com.typeobject.wheeler.packageformat.PackageManifest.Dependency;
 import com.typeobject.wheeler.packageformat.PackageManifest.DependencyKind;
 import com.typeobject.wheeler.packageformat.VersionConstraint;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.CodingErrorAction;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -109,7 +107,7 @@ final class LockedPackageSet {
     for (String name : buildOrder) {
       DecodedPackage dependency = packages.get(name);
       for (PackageManifest.Target target : dependency.manifest().targets()) {
-        compiler.compile(sourceText(dependency, target));
+        compileTarget(compiler, dependency, target);
       }
     }
   }
@@ -122,7 +120,7 @@ final class LockedPackageSet {
       for (PackageManifest.Target target : dependency.manifest().targets()) {
         artifacts.put(
             "dependencies/" + name + "/" + target.name() + ".wbc",
-            compiler.compileToBytecode(sourceText(dependency, target)));
+            new BytecodeWriter().write(compileTarget(compiler, dependency, target)));
       }
     }
     return Map.copyOf(artifacts);
@@ -139,7 +137,7 @@ final class LockedPackageSet {
           .map(entry -> new BuildPlan.PackageInput(entry.name(), entry.archiveIdentity()))
           .toList();
       for (PackageManifest.Target target : dependency.manifest().targets()) {
-        byte[] source = source(dependency, target);
+        byte[] source = TargetSourceSet.canonicalInput(target, dependency.entries());
         result.add(BuildPlan.Node.create(
             dependency.manifest().name(),
             dependency.manifest().version(),
@@ -262,28 +260,14 @@ final class LockedPackageSet {
     }
   }
 
-  private static String sourceText(
-      DecodedPackage dependency, PackageManifest.Target target) {
-    try {
-      return StandardCharsets.UTF_8.newDecoder()
-          .onMalformedInput(CodingErrorAction.REPORT)
-          .onUnmappableCharacter(CodingErrorAction.REPORT)
-          .decode(ByteBuffer.wrap(source(dependency, target)))
-          .toString();
-    } catch (CharacterCodingException exception) {
-      throw new PackageFormatException(
-          "Locked source is not strict UTF-8: " + target.root(), exception);
-    }
-  }
-
-  private static byte[] source(
-      DecodedPackage dependency, PackageManifest.Target target) {
-    byte[] source = dependency.entries().get(target.root());
-    if (source == null) {
-      throw new PackageFormatException(
-          "Locked package is missing target root " + target.root());
-    }
-    return source;
+  private static Program compileTarget(
+      WheelerCompiler compiler,
+      DecodedPackage dependency,
+      PackageManifest.Target target) {
+    Map<String, String> sources = TargetSourceSet.strictText(target, dependency.entries());
+    return target.modular()
+        ? compiler.compileModuleFiles(sources, target.module())
+        : compiler.compile(sources.get(target.root()));
   }
 
   private static Map<String, PackageLock.Entry> lockEntries(PackageLock lock) {

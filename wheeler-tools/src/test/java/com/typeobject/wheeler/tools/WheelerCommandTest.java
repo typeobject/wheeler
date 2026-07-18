@@ -127,6 +127,50 @@ class WheelerCommandTest {
   }
 
   @Test
+  void packageCommandsBuildRunAndArchiveExactModuleSourceSets() throws Exception {
+    Path project = temporary.resolve("modules");
+    Files.createDirectories(project.resolve("src"));
+    Files.writeString(project.resolve("wheeler.package"), """
+        package "demo.modules" version "1.0.0" profile "bootstrap-1";
+        target example "main" root "src/Main.w" module "demo.main"
+            source "src/Arithmetic.w" source "src/Main.w";
+        """);
+    Files.writeString(project.resolve("src/Arithmetic.w"), """
+        module demo.arithmetic;
+        classical class Arithmetic {
+          public long twice(long value) { return value + value; }
+        }
+        """);
+    Files.writeString(project.resolve("src/Main.w"), """
+        module demo.main;
+        import demo.arithmetic;
+        classical class Main {
+          state long result = 0;
+          entry void main() { result = twice(9); assert result == 18; }
+        }
+        """);
+    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    PrintStream output = new PrintStream(bytes, true, StandardCharsets.UTF_8);
+
+    assertEquals(0, Wheeler.execute(
+        new String[] {"check", project.toString()}, output, output));
+    assertEquals(0, Wheeler.execute(
+        new String[] {"run", project.toString(), "--target", "main"}, output, output));
+    assertEquals(0, Wheeler.execute(
+        new String[] {"build", project.toString()}, output, output));
+    new BytecodeReader().read(Files.readAllBytes(project.resolve("out/main.wbc")));
+    Path archivePath = temporary.resolve("modules.wpk");
+    assertEquals(0, Wheeler.execute(
+        new String[] {"package", project.toString(), "-o", archivePath.toString()},
+        output,
+        output));
+    DecodedPackage archive = new PackageArchive().decode(Files.readAllBytes(archivePath));
+    assertEquals(
+        List.of("src/Arithmetic.w", "src/Main.w"),
+        archive.entries().keySet().stream().toList());
+  }
+
+  @Test
   void workspaceCheckAndBuildUseCanonicalMemberOrderAndIsolatedOutputs() throws Exception {
     Files.writeString(temporary.resolve("wheeler.workspace"), """
         workspace "demo" profile "bootstrap-1";
@@ -276,6 +320,26 @@ class WheelerCommandTest {
   void resolveSubcommandConsumesVerifiedArchivesAndWritesCanonicalLock() throws Exception {
     Path library = temporary.resolve("library");
     createPackage(library, "demo.library", "Library", 1);
+    Files.writeString(library.resolve("wheeler.package"), """
+        package "demo.library" version "1.0.0" profile "bootstrap-1";
+        target example "main" root "src/Main.w" module "demo.library.main"
+            source "src/Helper.w" source "src/Main.w";
+        capability "build.read" path "src/**";
+        """);
+    Files.writeString(library.resolve("src/Helper.w"), """
+        module demo.library.helper;
+        classical class Helper {
+          public long increment(long value) { return value + 1; }
+        }
+        """);
+    Files.writeString(library.resolve("src/Main.w"), """
+        module demo.library.main;
+        import demo.library.helper;
+        classical class Library {
+          state long value = 0;
+          entry void main() { value = increment(value); assert value == 1; }
+        }
+        """);
     Path application = temporary.resolve("application");
     Files.createDirectories(application.resolve("src"));
     Files.writeString(application.resolve("wheeler.package"), """

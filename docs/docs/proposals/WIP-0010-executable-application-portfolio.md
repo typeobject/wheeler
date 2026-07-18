@@ -68,6 +68,7 @@ The repository currently executes these bounded fixtures:
 - `RegionStorage.w`: affine bounded word/byte storage and UTF-8 scalar decoding;
 - `FrozenUtf8.w`: checked consumption of mutable bytes into immutable UTF-8;
 - `LongMap.w`: region-owned fixed-capacity signed symbol map;
+- `modules/ModuleMain.w` plus `Arithmetic.w`: exact package source set with private/public function linking;
 - `Utf8Lexer.w`: bounded UTF-8 source scanning into explicit token buffers;
 - `CoherentOracle.w`: classical and coherent XOR behavior;
 - `QFT.w`: unitary execution and generated adjoint;

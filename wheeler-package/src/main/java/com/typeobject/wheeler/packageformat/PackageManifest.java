@@ -59,7 +59,14 @@ public record PackageManifest(
     for (Target target : targets) {
       text.append("target ").append(target.kind().keyword()).append(' ')
           .append(quoted(target.name())).append(" root ")
-          .append(quoted(target.root())).append(";\n");
+          .append(quoted(target.root()));
+      if (target.module() != null) {
+        text.append(" module ").append(quoted(target.module()));
+        for (String source : target.sources()) {
+          text.append(" source ").append(quoted(source));
+        }
+      }
+      text.append(";\n");
     }
     for (Dependency dependency : dependencies) {
       text.append("dependency ").append(dependency.kind().keyword()).append(' ')
@@ -86,11 +93,40 @@ public record PackageManifest(
     }
   }
 
-  public record Target(TargetKind kind, String name, String root) {
+  public record Target(
+      TargetKind kind, String name, String root, String module, List<String> sources) {
+    private static final Pattern MODULE = Pattern.compile(
+        "[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*");
+
+    public Target(TargetKind kind, String name, String root) {
+      this(kind, name, root, null, List.of(root));
+    }
+
     public Target {
       kind = Objects.requireNonNull(kind, "kind");
       name = checked(name, "target name");
       root = logicalPath(root);
+      if (module == null) {
+        sources = List.of(root);
+      } else {
+        module = checked(module, "root module");
+        if (!MODULE.matcher(module).matches()) {
+          throw new PackageFormatException("Invalid root module " + module);
+        }
+        sources = sortedUnique(
+            sources,
+            Comparator.naturalOrder(),
+            value -> value,
+            "target source").stream().map(PackageManifest::logicalPath).toList();
+        if (sources.isEmpty() || sources.size() > 1_024 || !sources.contains(root)) {
+          throw new PackageFormatException(
+              "Module target sources must include its root and fit the 1,024-source limit");
+        }
+      }
+    }
+
+    public boolean modular() {
+      return module != null;
     }
   }
 

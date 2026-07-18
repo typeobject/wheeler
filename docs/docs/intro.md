@@ -272,7 +272,7 @@ The repository currently includes:
 - exact offline locked dependency builds and source-bound sealed-plan execution with explicit grants and atomic output publication;
 - Tree-sitter grammar, corpus, highlighting, and executable examples.
 
-Checked-in examples cover reversible state, typed aggregate values, bounded and recursive control, one function used classically and coherently, QFT with a generated adjoint, a bounded hybrid optimizer, circuit normalization, and static error-correction structure.
+Checked-in examples cover reversible state, typed aggregate values, bounded and recursive control, exact classical module source sets, one function used classically and coherently, QFT with a generated adjoint, a bounded hybrid optimizer, circuit normalization, and static error-correction structure.
 
 Major unfinished work includes borrowing, mutable slices, compiler-scale region storage, a Wheeler standard library, a self-hosted compiler and package manager, native Java-free execution, dynamic target-resident control, richer coherent arithmetic, complete application fixtures, and the complete proof language and kernel.
 

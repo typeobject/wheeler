@@ -28,11 +28,7 @@ public final class PackageArchive {
       throw new PackageFormatException("Package has too many entries");
     }
     TreeMap<String, byte[]> entries = normalizedEntries(sourceEntries);
-    for (PackageManifest.Target target : manifest.targets()) {
-      if (!entries.containsKey(target.root())) {
-        throw new PackageFormatException("Package is missing target root " + target.root());
-      }
-    }
+    requireTargetSources(manifest, entries);
     ByteArrayOutputStream output = new ByteArrayOutputStream();
     output.writeBytes(MAGIC);
     byte[] manifestBytes = manifest.canonicalBytes();
@@ -111,7 +107,19 @@ public final class PackageArchive {
     if (input.hasRemaining()) {
       throw new PackageFormatException("Trailing package archive payload");
     }
+    requireTargetSources(manifest, entries);
     return new DecodedPackage(manifest, entries, identity(archive));
+  }
+
+  private static void requireTargetSources(
+      PackageManifest manifest, Map<String, byte[]> entries) {
+    for (PackageManifest.Target target : manifest.targets()) {
+      for (String source : target.sources()) {
+        if (!entries.containsKey(source)) {
+          throw new PackageFormatException("Package is missing target source " + source);
+        }
+      }
+    }
   }
 
   public String identity(byte[] archive) {

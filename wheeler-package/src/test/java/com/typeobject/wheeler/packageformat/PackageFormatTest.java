@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -83,6 +84,24 @@ class PackageFormatTest {
     assertThrows(
         PackageFormatException.class,
         () -> codec.encode(manifest, Map.of("../compiler.w", new byte[0])));
+  }
+
+  @Test
+  void moduleTargetCanonicalizesAndRequiresItsExactSourceSet() {
+    PackageManifestParser parser = new PackageManifestParser();
+    PackageManifest manifest = parser.parse("""
+        package "wheeler.modules" version "0.1.0" profile "bootstrap-1";
+        target tool "compiler" root "src/Main.w" module "compiler.main"
+            source "src/Main.w" source "src/Lexer.w";
+        """);
+
+    assertEquals(List.of("src/Lexer.w", "src/Main.w"),
+        manifest.targets().getFirst().sources());
+    assertEquals(manifest, parser.parse(manifest.canonicalText()));
+    assertThrows(
+        PackageFormatException.class,
+        () -> new PackageArchive().encode(
+            manifest, Map.of("src/Main.w", new byte[0])));
   }
 
   @Test

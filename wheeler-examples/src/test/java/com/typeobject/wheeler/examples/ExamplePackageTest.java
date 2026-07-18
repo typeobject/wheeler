@@ -21,7 +21,9 @@ class ExamplePackageTest {
 
     Map<String, byte[]> entries = new TreeMap<>();
     for (PackageManifest.Target target : manifest.targets()) {
-      entries.put(target.root(), Files.readAllBytes(Path.of(target.root())));
+      for (String source : target.sources()) {
+        entries.put(source, Files.readAllBytes(Path.of(source)));
+      }
     }
     try (Stream<Path> sourceFiles = Files.walk(Path.of("src/main/wheeler"))) {
       assertEquals(

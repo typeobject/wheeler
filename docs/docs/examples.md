@@ -13,6 +13,7 @@ The examples are deliberately bounded. They demonstrate implemented semantics an
 | [`FrozenUtf8.w`](../../wheeler-examples/src/main/wheeler/FrozenUtf8.w) | Strictly validated byte-owner consumption into immutable affine UTF-8 | `byteLength = 6`, `scalarCount = 3`, `middleScalar = 8364`, `valid = 1` |
 | [`FunctionValues.w`](../../wheeler-examples/src/main/wheeler/FunctionValues.w) | Signed/Boolean values, typed calls, a callee loop, and a kernel-checked straight-line step bound | `result = 10` |
 | [`LoopControl.w`](../../wheeler-examples/src/main/wheeler/LoopControl.w) | Early typed return plus bounded `break` and `continue` edges | `sum = 12`, `selected = 7` |
+| [`modules/ModuleMain.w`](../../wheeler-examples/src/main/wheeler/modules/ModuleMain.w) + [`Arithmetic.w`](../../wheeler-examples/src/main/wheeler/modules/Arithmetic.w) | Exact manifest-bound source set, sorted import, private helper, and direct public function export | `result = 18` |
 | [`LongMap.w`](../../wheeler-examples/src/main/wheeler/LongMap.w) | Region-owned fixed-capacity signed map with deterministic update, lookup, membership, and drop | `selected = 17`, `zeroKey = 5`, `present = missing = 1` |
 | [`Records.w`](../../wheeler-examples/src/main/wheeler/Records.w) | Nested immutable records, typed record calls, fields, and structural equality | `width = 5`, `equal = 1` |
 | [`RecursiveValue.w`](../../wheeler-examples/src/main/wheeler/RecursiveValue.w) | Recursive signed value call under frame and step ceilings | `result = 6` |

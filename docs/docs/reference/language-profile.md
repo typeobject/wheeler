@@ -290,7 +290,7 @@ classical class Main {
 
 The root declares exactly one entry. A dependency declares no entry and, in this first slice, contains functions only. `public` functions are visible to direct importers; unqualified calls prefer same-module functions and otherwise resolve one unambiguous direct public import. Private helpers remain callable inside their declaring module. The linker assigns collision-free internal names before ordinary type checking and bytecode lowering. Non-public calls, ambiguous exports, import cycles, unsorted imports, quantum domains, dependency state/types/proofs, and transitive implicit access fail closed.
 
-Single-source `compile` rejects module declarations. Package targets do not yet carry source sets, and modules do not yet export nominal types, state, circuits, or proofs. Those omissions are explicit WIP-0007/WIP-0009 work, not ambient classpath behavior.
+Single-source `compile` rejects module declarations. A modular `wheeler.package` target declares its exact sorted source set and root module; local, workspace, planned, archived, and locked offline builds use the same linker with no path-derived imports. Modules do not yet export nominal types, state, circuits, or proofs, and cross-package module imports are not yet linked. Those omissions are explicit WIP-0007/WIP-0009 work, not ambient classpath behavior.
 
 ## Parser and editor tooling
 

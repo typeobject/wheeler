@@ -83,6 +83,11 @@ final class ClassicalLowerer {
     });
 
     List<FunctionBody> functions = new ArrayList<>();
+    String rootNamespace = source.functions().stream()
+        .filter(SourceModel.Function::entry)
+        .map(function -> namespace(function.name()))
+        .findFirst()
+        .orElse("");
     int entryId = -1;
     for (SourceModel.Function sourceFunction : source.functions()) {
       int id = functionIds.get(sourceFunction.name());
@@ -97,6 +102,7 @@ final class ClassicalLowerer {
       } else {
         LoweredBody lowered = lowerStatements(
             sourceFunction,
+            !namespace(sourceFunction.name()).equals(rootNamespace),
             globalIds,
             functionIds,
             reversibleFunctions,
@@ -154,6 +160,11 @@ final class ClassicalLowerer {
         functionIds);
   }
 
+  private static String namespace(String functionName) {
+    int separator = functionName.indexOf("::");
+    return separator < 0 ? "" : functionName.substring(0, separator);
+  }
+
   private static boolean owned(ValueType type) {
     return type.kind() == ValueType.Kind.REGION
         || type.kind() == ValueType.Kind.WORDS
@@ -195,6 +206,7 @@ final class ClassicalLowerer {
 
   private static LoweredBody lowerStatements(
       SourceModel.Function owner,
+      boolean isolatedModule,
       Map<String, Integer> globals,
       Map<String, Integer> functions,
       Map<String, Boolean> reversibleFunctions,
@@ -206,6 +218,7 @@ final class ClassicalLowerer {
       List<SliceType> sliceTypes) {
     return new LocalAssembler(
         owner,
+        isolatedModule,
         globals,
         functions,
         reversibleFunctions,
@@ -291,6 +304,7 @@ final class ClassicalLowerer {
 
   private static final class LocalAssembler implements SourceStorageLowerer.Context {
     private final SourceModel.Function owner;
+    private final boolean isolatedModule;
     private final Map<String, Integer> globals;
     private final Map<String, Integer> functions;
     private final Map<String, Boolean> reversibleFunctions;
@@ -310,6 +324,7 @@ final class ClassicalLowerer {
 
     private LocalAssembler(
         SourceModel.Function owner,
+        boolean isolatedModule,
         Map<String, Integer> globals,
         Map<String, Integer> functions,
         Map<String, Boolean> reversibleFunctions,
@@ -320,6 +335,7 @@ final class ClassicalLowerer {
         List<ArrayType> arrayTypes,
         List<SliceType> sliceTypes) {
       this.owner = owner;
+      this.isolatedModule = isolatedModule;
       this.globals = globals;
       this.functions = functions;
       this.reversibleFunctions = reversibleFunctions;
@@ -810,7 +826,7 @@ final class ClassicalLowerer {
     }
 
     private int declareUser(String name, int line, ValueType type) {
-      if (globals.containsKey(name) || functions.containsKey(name)) {
+      if ((!isolatedModule && globals.containsKey(name)) || functions.containsKey(name)) {
         throw new CompilerException(line, "local shadows class member: " + name);
       }
       return declare(name, line, type);

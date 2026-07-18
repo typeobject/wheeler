@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.tools;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
+import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.packageformat.BuildPlan;
 import com.typeobject.wheeler.packageformat.PackageManifest.TargetKind;
@@ -61,7 +62,7 @@ final class PackageProject {
     }
     WheelerCompiler compiler = new WheelerCompiler();
     for (PackageManifest.Target target : manifest.targets()) {
-      compiler.compile(source(target));
+      compileTarget(compiler, target);
     }
   }
 
@@ -78,7 +79,7 @@ final class PackageProject {
       throw new PackageFormatException(
           "Target is not directly runnable: " + selected.name());
     }
-    return new WheelerCompiler().compile(source(selected));
+    return compileTarget(new WheelerCompiler(), selected);
   }
 
   int test() throws IOException {
@@ -91,7 +92,7 @@ final class PackageProject {
     int executed = 0;
     for (PackageManifest.Target target : manifest.targets()) {
       if (target.kind() == TargetKind.TEST) {
-        runtime.execute(compiler.compile(source(target)), new StateVectorTarget());
+        runtime.execute(compileTarget(compiler, target), new StateVectorTarget());
         executed++;
       }
     }
@@ -106,7 +107,9 @@ final class PackageProject {
       artifacts.putAll(dependencies.compile());
     }
     for (PackageManifest.Target target : manifest.targets()) {
-      artifacts.put(target.name() + ".wbc", compiler.compileToBytecode(source(target)));
+      artifacts.put(
+          target.name() + ".wbc",
+          new BytecodeWriter().write(compileTarget(compiler, target)));
     }
     return Map.copyOf(artifacts);
   }
@@ -151,7 +154,9 @@ final class PackageProject {
   byte[] archive() throws IOException {
     Map<String, byte[]> entries = new TreeMap<>();
     for (PackageManifest.Target target : manifest.targets()) {
-      entries.put(target.root(), readPlanInput(target));
+      for (String source : target.sources()) {
+        entries.put(source, readSource(source));
+      }
     }
     return new PackageArchive().encode(manifest, entries);
   }
@@ -172,28 +177,56 @@ final class PackageProject {
     return manifest.dependencies().isEmpty() ? null : LockedPackageSet.load(root, manifest);
   }
 
-  private byte[] readPlanInput(PackageManifest.Target target) throws IOException {
-    Path source = source(target);
-    if (Files.size(source) > BuildPlan.ExecutionLimits.DEFAULT.maxInputBytes()) {
-      throw new PackageFormatException("Target source exceeds the build input limit: "
-          + target.root());
+  private Program compileTarget(
+      WheelerCompiler compiler, PackageManifest.Target target) throws IOException {
+    if (!target.modular()) {
+      return compiler.compile(source(target.root()));
     }
-    return Files.readAllBytes(source);
+    return compiler.compileModuleFiles(
+        TargetSourceSet.strictText(target, targetEntries(target, false)), target.module());
   }
 
-  private Path source(PackageManifest.Target target) throws IOException {
+  private byte[] readPlanInput(PackageManifest.Target target) throws IOException {
+    byte[] input = TargetSourceSet.canonicalInput(target, targetEntries(target, true));
+    if (input.length > BuildPlan.ExecutionLimits.DEFAULT.maxInputBytes()) {
+      throw new PackageFormatException("Target module sources exceed the build input limit: "
+          + target.name());
+    }
+    return input;
+  }
+
+  private Map<String, byte[]> targetEntries(
+      PackageManifest.Target target, boolean enforcePlanLimit) throws IOException {
+    Map<String, byte[]> entries = new TreeMap<>();
+    for (String logicalPath : target.sources()) {
+      byte[] source = readSource(logicalPath);
+      if (enforcePlanLimit
+          && source.length > BuildPlan.ExecutionLimits.DEFAULT.maxInputBytes()) {
+        throw new PackageFormatException(
+            "Target source exceeds the build input limit: " + logicalPath);
+      }
+      entries.put(logicalPath, source);
+    }
+    return Map.copyOf(entries);
+  }
+
+  private byte[] readSource(String logicalPath) throws IOException {
+    return Files.readAllBytes(source(logicalPath));
+  }
+
+  private Path source(String logicalPath) throws IOException {
     Path current = root;
-    for (String component : target.root().split("/")) {
+    for (String component : logicalPath.split("/")) {
       current = current.resolve(component);
       if (Files.isSymbolicLink(current)) {
-        throw new IOException("Target root crosses a symbolic link: " + target.root());
+        throw new IOException("Target source crosses a symbolic link: " + logicalPath);
       }
     }
     Path source = current.toRealPath(LinkOption.NOFOLLOW_LINKS);
     if (!source.startsWith(root)
         || !Files.isRegularFile(source, LinkOption.NOFOLLOW_LINKS)
         || Files.isSymbolicLink(source)) {
-      throw new IOException("Target root is not a physical package file: " + target.root());
+      throw new IOException("Target source is not a physical package file: " + logicalPath);
     }
     return source;
   }
