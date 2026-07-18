@@ -14,6 +14,8 @@ classical class NativeManifest {
     state long targetSourceCount = 0;
     state long targetSourceLength = 0;
     state long targetSecondSourceLength = 0;
+    state long targetThirdSourceLength = 0;
+    state long targetFourthSourceLength = 0;
     state long dependencyCount = 0;
     state long dependencyNameLength = 0;
     state long dependencyVersionLength = 0;
@@ -53,6 +55,8 @@ classical class NativeManifest {
                 targetSourceCount = header.targetSourceCount;
                 targetSourceLength = header.targetSource.length;
                 targetSecondSourceLength = header.targetSecondSource.length;
+                targetThirdSourceLength = header.targetThirdSource.length;
+                targetFourthSourceLength = header.targetFourthSource.length;
                 dependencyCount = header.dependencyCount;
                 dependencyNameLength = header.dependencyName.length;
                 dependencyVersionLength = header.dependencyVersion.length;
@@ -78,7 +82,6 @@ classical class NativeManifest {
         assert targetNameLength == 3;
         assert targetRootLength == 11;
         assert targetModuleLength == 8;
-        assert targetSourceCount == 2;
         assert targetSourceLength == 11;
         assert targetSecondSourceLength == 12;
         assert dependencyCount == 1;

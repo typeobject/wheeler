@@ -51,6 +51,8 @@ class NativeManifestExampleTest {
     assertEquals(2, machine.global("targetSourceCount"));
     assertEquals(11, machine.global("targetSourceLength"));
     assertEquals(12, machine.global("targetSecondSourceLength"));
+    assertEquals(0, machine.global("targetThirdSourceLength"));
+    assertEquals(0, machine.global("targetFourthSourceLength"));
     assertEquals(1, machine.global("dependencyCount"));
     assertEquals(9, machine.global("dependencyNameLength"));
     assertEquals(6, machine.global("dependencyVersionLength"));
@@ -75,6 +77,18 @@ class NativeManifestExampleTest {
           program,
           source.replace("dependency normal", "dependency " + kind));
     }
+    String fourSources = source.replace(
+        "source \"src/Helper.w\"",
+        "source \"src/Helper.w\" source \"src/Other.w\" "
+            + "source \"src/Zed.w\"");
+    VirtualMachine fourSourceMachine = vm(program, fourSources);
+    fourSourceMachine.run();
+    assertEquals(4, fourSourceMachine.global("targetSourceCount"));
+    assertEquals(11, fourSourceMachine.global("targetThirdSourceLength"));
+    assertEquals(9, fourSourceMachine.global("targetFourthSourceLength"));
+    assertEquals(
+        fourSources,
+        new String(fourSourceMachine.hostOutput(), StandardCharsets.UTF_8));
 
     String malformedSource =
         "project \"demo.native\" version \"1.2.3\" profile \"bootstrap-1\"; "

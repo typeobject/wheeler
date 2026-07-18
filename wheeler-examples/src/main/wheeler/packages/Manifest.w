@@ -237,7 +237,7 @@ classical class Manifest {
                 long count = 0;
                 long cursor = 14;
                 boolean scanning = true;
-                while (scanning) limit 4 {
+                while (scanning) limit 5 {
                     if (keywordAt(
                             source, starts, lengths, cursor, 3398461467)) {
                         if (quoted(kinds, lengths, cursor + 1)) {
