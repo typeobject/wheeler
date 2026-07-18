@@ -1,14 +1,6 @@
 package com.typeobject.wheeler.core.bytecode;
 
 import com.typeobject.wheeler.core.proof.ProofKernel;
-import com.typeobject.wheeler.core.quantum.GateOperation;
-import com.typeobject.wheeler.core.quantum.LiftedCall;
-import com.typeobject.wheeler.core.quantum.ParameterizedGateOperation;
-import com.typeobject.wheeler.core.quantum.QuantumCircuit;
-import com.typeobject.wheeler.core.quantum.QuantumOperation;
-import com.typeobject.wheeler.core.quantum.QuantumRegister;
-import com.typeobject.wheeler.core.workflow.WorkflowOpcode;
-import com.typeobject.wheeler.core.workflow.WorkflowStep;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -31,9 +23,9 @@ public final class BytecodeVerifier {
     verifyArrayTypes(program);
     verifySliceTypes(program);
     verifyFunctions(program);
-    verifyQuantum(program);
-    verifyProofs(program);
-    verifyWorkflow(program);
+    ProgramSectionVerifier.verifyQuantum(program);
+    ProgramSectionVerifier.verifyProofs(program);
+    ProgramSectionVerifier.verifyWorkflow(program);
 
     FunctionBody entry = program.function(program.entryFunctionId());
     boolean validEntry = entry.parameterCount() == 0
@@ -804,114 +796,6 @@ public final class BytecodeVerifier {
       FunctionBody owner, long operand, int pc, List<Instruction> body) {
     if (operand < 0 || operand >= body.size()) {
       fail(location(owner, pc) + " invalid jump target " + operand);
-    }
-  }
-
-  private static void verifyProofs(Program program) {
-    Set<String> names = new HashSet<>();
-    for (int index = 0; index < program.proofCertificates().size(); index++) {
-      var proof = program.proofCertificates().get(index);
-      if (proof.id() != index || !names.add(proof.name())) {
-        fail("Noncanonical or duplicate proof " + proof.name());
-      }
-      ProofKernel.verify(program, proof);
-    }
-  }
-
-  private static void verifyQuantum(Program program) {
-    if (program.kind() == ProgramKind.CLASSICAL) {
-      if (!program.quantumRegisters().isEmpty()
-          || !program.quantumCircuits().isEmpty()
-          || !program.workflow().isEmpty()) {
-        fail("Classical program contains quantum or workflow content");
-      }
-      return;
-    }
-
-    Set<String> registerNames = new HashSet<>();
-    for (QuantumRegister register : program.quantumRegisters()) {
-      if (!registerNames.add(register.name())) {
-        fail("Duplicate quantum register name: " + register.name());
-      }
-    }
-    Set<String> circuitNames = new HashSet<>();
-    for (QuantumCircuit circuit : program.quantumCircuits()) {
-      if (!circuitNames.add(circuit.name())) {
-        fail("Duplicate quantum circuit name: " + circuit.name());
-      }
-      QuantumRegister register = program.quantumRegister(circuit.registerId());
-      for (QuantumOperation operation : circuit.operations()) {
-        if (operation instanceof GateOperation gate) {
-          Set<Integer> used = new HashSet<>();
-          for (int qubit : gate.qubits()) {
-            if (qubit < 0 || qubit >= register.qubits() || !used.add(qubit)) {
-              fail("Invalid or repeated qubit in circuit " + circuit.name());
-            }
-          }
-        } else if (operation instanceof ParameterizedGateOperation gate) {
-          Set<Integer> used = new HashSet<>();
-          for (int qubit : gate.qubits()) {
-            if (qubit < 0 || qubit >= register.qubits() || !used.add(qubit)) {
-              fail("Invalid or repeated qubit in circuit " + circuit.name());
-            }
-          }
-        } else if (operation instanceof LiftedCall lifted) {
-          FunctionBody function = program.function(lifted.functionId());
-          if (!function.coherent()) {
-            fail("Lifted function is not coherent: " + function.name());
-          }
-        }
-      }
-    }
-  }
-
-  private static void verifyWorkflow(Program program) {
-    if (program.kind() == ProgramKind.CLASSICAL) {
-      return;
-    }
-    if (program.workflow().isEmpty()
-        || program.workflow().getLast().opcode() != WorkflowOpcode.HALT) {
-      fail("Quantum and hybrid workflows must end in HALT");
-    }
-    int halts = 0;
-    for (WorkflowStep step : program.workflow()) {
-      switch (step.opcode()) {
-        case PREPARE -> {
-          QuantumRegister register = program.quantumRegister(Math.toIntExact(step.first()));
-          if (step.second() < 0
-              || (register.qubits() < 63 && step.second() >= (1L << register.qubits()))) {
-            fail("Preparation basis value does not fit register " + register.name());
-          }
-        }
-        case APPLY, UNAPPLY -> program.quantumCircuit(Math.toIntExact(step.first()));
-        case MEASURE -> {
-          program.quantumRegister(Math.toIntExact(step.first()));
-          verifyGlobal(program, step.second(), program.function(program.entryFunctionId()), 0);
-        }
-        case CLASSICAL_CALL -> program.function(Math.toIntExact(step.first()));
-        case CLASSICAL_UNCALL -> {
-          FunctionBody function = program.function(Math.toIntExact(step.first()));
-          if (!function.reversible()) {
-            fail("Workflow uncalls nonreversible function " + function.name());
-          }
-        }
-        case EXPECT -> verifyGlobal(
-            program, step.first(), program.function(program.entryFunctionId()), 0);
-        case COMMIT -> requireZeroOperands(step);
-        case HALT -> {
-          requireZeroOperands(step);
-          halts++;
-        }
-      }
-    }
-    if (halts != 1) {
-      fail("Workflow must contain exactly one final HALT");
-    }
-  }
-
-  private static void requireZeroOperands(WorkflowStep step) {
-    if (step.first() != 0 || step.second() != 0 || step.third() != 0) {
-      fail(step.opcode() + " workflow record has nonzero operands");
     }
   }
 
