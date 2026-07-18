@@ -6,6 +6,12 @@ public interface QuantumTarget {
 
   QuantumJob submit(QuantumTask task);
 
+  /** Submit an ordered batch without changing individual task or result identity. */
+  default QuantumBatchJob submitBatch(QuantumBatch batch) {
+    descriptor().require(TargetCapability.BATCH_SUBMISSION);
+    return new CompositeQuantumBatchJob(this, batch);
+  }
+
   /** Recover an acknowledged job without creating another physical submission. */
   default QuantumJob recover(String jobId, QuantumTask task) {
     throw new QuantumExecutionException(

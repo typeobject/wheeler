@@ -29,7 +29,7 @@ Directory entries contain section type, flags, offset, length, alignment, and a 
 | 5 | Function and inverse-body descriptors. |
 | 6 | Classical code records. |
 | 7 | Ordered classical/quantum workflow records. |
-| 8 | Quantum-register, circuit, gate, and coherently lifted call records. |
+| 8 | Quantum-register, circuit, literal or symbolic gate, and coherently lifted call records. |
 
 Sections 7 and 8 are required for quantum and hybrid artifacts and absent from canonical classical artifacts. Unknown required sections are rejected. WIP-0003 reserves a later section for target requirements; provider executables are derived artifacts, not semantic bytecode.
 
@@ -50,7 +50,7 @@ The opcode fixes the canonical operand count and semantic rule. Branches and var
 
 ## Quantum and workflow records
 
-Quantum bodies declare affine logical registers, unitary circuits, semantic gates, and references to compiler-validated coherent functions. Workflow records describe preparation, circuit/adjoint application, measurement into classical state, classical call/inverse, assertion, commit, and halt.
+Quantum bodies declare affine logical registers, unitary circuits, semantic gates, symbolic phase parameters with finite scale, and references to compiler-validated coherent functions. Symbol names are canonical string-table entries. Runtime tasks provide an exact finite binding map whose identity covers schema, values, circuit applications, request, and seed policy. Workflow records describe preparation, circuit/adjoint application, measurement into classical state, classical call/inverse, assertion, commit, and halt.
 
 Quantum operations do not masquerade as mutable classical addresses. The decoder preserves their domain so runtime target selection cannot reinterpret an ordinary opcode as a provider gate.
 

@@ -253,17 +253,17 @@ Structured failures distinguish invalid Wheeler IR, missing target capability, l
 - [x] Target descriptor, independent capabilities, limits, and requirement matching are implemented.
 - [x] The ideal state-vector target passes the implemented region conformance suite.
 - [x] Asynchronous jobs cover successful ideal and OpenQASM execution plus malformed results; cancellation and recovery remain.
-- [x] Static OpenQASM 3 lowering and executor submission work; parameterized sampling remains.
+- [x] Static OpenQASM 3 lowering, canonical symbolic parameter binding, ordered task batches, and sampled Pauli-Z expectations work.
 - [ ] Static capability rejection works; dynamic capability discovery remains.
 - [ ] QFT, inverse QFT, and the bounded optimizer run on the ideal target; OpenQASM executor parity and parameterized optimization remain.
 
 ## Testing and acceptance
 
-- [ ] Descriptor canonicalization and fingerprints are stable and bounded.
-- [x] Capability matching rejects a missing required capability before submission.
+- [x] Descriptor canonicalization and fingerprints are stable, bounded, and independent of set construction order.
+- [x] Capability matching reports every missing required capability before submission.
 - [ ] The semantic simulator and a conforming OpenQASM executor agree on basis-state results and representative sampled circuits.
 - [x] QFT and inverse-QFT circuits preserve expected behavior on the ideal target.
-- [x] Static register order, little-endian outcomes, shot counts, and result identity survive OpenQASM executor round trips; symbolic parameters remain.
+- [x] Static parameter schema, binding values, register order, little-endian outcomes, shot counts, and result identity survive bytecode, ideal-target, and OpenQASM lowering round trips.
 - [ ] Mock jobs cover queueing, success, provider failure, cancellation request races, late results, recovery, timeout, malformed result, and adapter restart.
 - [ ] Cached target executables invalidate on descriptor, policy, adapter, parameter-schema, or semantic-region changes.
 - [ ] A static target rejects the dynamic surface-code fixture with actionable missing capabilities.

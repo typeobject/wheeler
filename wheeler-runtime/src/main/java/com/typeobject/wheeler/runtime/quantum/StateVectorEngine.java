@@ -6,6 +6,7 @@ import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.quantum.GateOperation;
 import com.typeobject.wheeler.core.quantum.LiftedCall;
+import com.typeobject.wheeler.core.quantum.ParameterizedGateOperation;
 import com.typeobject.wheeler.core.quantum.QuantumCircuit;
 import com.typeobject.wheeler.core.quantum.QuantumOperation;
 import com.typeobject.wheeler.core.quantum.QuantumRegister;
@@ -40,6 +41,14 @@ final class StateVectorEngine {
   }
 
   void apply(Program program, QuantumCircuit circuit, boolean inverse) {
+    apply(program, circuit, inverse, Map.of());
+  }
+
+  void apply(
+      Program program,
+      QuantumCircuit circuit,
+      boolean inverse,
+      Map<String, Double> bindings) {
     RegisterState state = state(program.quantumRegister(circuit.registerId()));
     List<QuantumOperation> operations = inverse
         ? circuit.inverseOperations()
@@ -47,6 +56,8 @@ final class StateVectorEngine {
     for (QuantumOperation operation : operations) {
       if (operation instanceof GateOperation gate) {
         applyGate(state, gate);
+      } else if (operation instanceof ParameterizedGateOperation gate) {
+        applyGate(state, gate.bind(bindings));
       } else if (operation instanceof LiftedCall lifted) {
         applyLifted(state, program, lifted);
       } else {

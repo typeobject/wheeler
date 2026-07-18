@@ -3,6 +3,7 @@ package com.typeobject.wheeler.runtime.quantum;
 import com.typeobject.wheeler.core.bytecode.Program;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /** Mutable run-local planner; submitted tasks are immutable. */
 public final class QuantumTaskBuilder {
@@ -25,6 +26,11 @@ public final class QuantumTaskBuilder {
   }
 
   public QuantumTask build(int shots, long seed) {
-    return new QuantumTask(program, registerId, basisState, List.copyOf(applications), shots, seed);
+    return build(shots, seed, Map.of());
+  }
+
+  public QuantumTask build(int shots, long seed, Map<String, Double> bindings) {
+    return new QuantumTask(
+        program, registerId, basisState, List.copyOf(applications), bindings, shots, seed);
   }
 }

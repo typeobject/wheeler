@@ -19,7 +19,12 @@ public final class StateVectorTarget implements QuantumTarget {
   private final TargetDescriptor descriptor = new TargetDescriptor(
       "wheeler-state-vector",
       "ideal-local",
-      Set.of(TargetCapability.STATIC_CIRCUIT, TargetCapability.STATE_VECTOR_DIAGNOSTICS),
+      Set.of(
+          TargetCapability.STATIC_CIRCUIT,
+          TargetCapability.PARAMETER_BINDING,
+          TargetCapability.BATCH_SUBMISSION,
+          TargetCapability.EXPECTATION_ESTIMATION,
+          TargetCapability.STATE_VECTOR_DIAGNOSTICS),
       MAX_QUBITS,
       100_000);
 
@@ -48,7 +53,8 @@ public final class StateVectorTarget implements QuantumTarget {
         engine.apply(
             task.program(),
             task.program().quantumCircuit(application.circuitId()),
-            application.inverse());
+            application.inverse(),
+            task.bindings());
       }
       long outcome = engine.measure(register);
       outcomes.add(outcome);

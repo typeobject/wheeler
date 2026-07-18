@@ -2,6 +2,7 @@ package com.typeobject.wheeler.core.bytecode;
 
 import com.typeobject.wheeler.core.quantum.GateOperation;
 import com.typeobject.wheeler.core.quantum.LiftedCall;
+import com.typeobject.wheeler.core.quantum.ParameterizedGateOperation;
 import com.typeobject.wheeler.core.quantum.QuantumCircuit;
 import com.typeobject.wheeler.core.quantum.QuantumOperation;
 import com.typeobject.wheeler.core.quantum.QuantumRegister;
@@ -180,6 +181,13 @@ public final class BytecodeVerifier {
       QuantumRegister register = program.quantumRegister(circuit.registerId());
       for (QuantumOperation operation : circuit.operations()) {
         if (operation instanceof GateOperation gate) {
+          Set<Integer> used = new HashSet<>();
+          for (int qubit : gate.qubits()) {
+            if (qubit < 0 || qubit >= register.qubits() || !used.add(qubit)) {
+              fail("Invalid or repeated qubit in circuit " + circuit.name());
+            }
+          }
+        } else if (operation instanceof ParameterizedGateOperation gate) {
           Set<Integer> used = new HashSet<>();
           for (int qubit : gate.qubits()) {
             if (qubit < 0 || qubit >= register.qubits() || !used.add(qubit)) {

@@ -25,6 +25,16 @@ The runtime submits an immutable `QuantumTask` containing the verified artifact,
 
 The engine implements H, X, Z, phase, controlled phase, CNOT, CZ, swap, generated adjoints, and coherently lifted XOR permutations.
 
+## Batches and sampled expectations
+
+`QuantumBatch` is an ordered content-identified list of complete tasks. Batch identity includes each task identity in semantic order. `QuantumBatchJob` preserves that order regardless of completion timing, applies one overall timeout, supports cancellation requests across member jobs, and rejects job or task identity drift.
+
+The ideal target advertises `BATCH_SUBMISSION`. Its provider-neutral batch implementation uses ordinary asynchronous member jobs, so batching does not weaken individual recovery or result provenance. Targets without the capability reject a batch before the first submission.
+
+`ParameterizedGateOperation` carries a stable parameter name and finite scale in semantic region IR. A task supplies the exact finite binding map; missing and extra names fail before submission, and the binding map participates in task identity. Generated adjoints negate the symbolic scale. The ideal target evaluates bindings directly, while OpenQASM lowering emits the bound numeric angle. Both advertise `PARAMETER_BINDING`.
+
+`QuantumResult.zExpectation(...)` estimates a tensor product of Pauli-Z observables directly from canonical little-endian samples and reports value, standard error, and shots. Provider-native expectation requests remain a separate lowering optimization; Wheeler can always retain the sampled result and its provenance.
+
 ## OpenQASM 3
 
 `OpenQasm3Emitter` lowers the supported static task to a complete program:

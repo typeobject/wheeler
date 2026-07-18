@@ -5,6 +5,7 @@ import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.quantum.GateOperation;
 import com.typeobject.wheeler.core.quantum.LiftedCall;
+import com.typeobject.wheeler.core.quantum.ParameterizedGateOperation;
 import com.typeobject.wheeler.core.quantum.QuantumOperation;
 import java.util.List;
 
@@ -38,6 +39,10 @@ public final class OpenQasm3Emitter {
       StringBuilder output, QuantumTask task, QuantumOperation operation, int qubits) {
     if (operation instanceof GateOperation gate) {
       appendGate(output, gate);
+      return;
+    }
+    if (operation instanceof ParameterizedGateOperation gate) {
+      appendGate(output, gate.bind(task.bindings()));
       return;
     }
     LiftedCall lifted = (LiftedCall) operation;

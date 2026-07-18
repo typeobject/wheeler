@@ -31,4 +31,30 @@ public record QuantumResult(
   public long firstOutcome() {
     return outcomes.getFirst();
   }
+
+  /** Estimate a tensor product of Pauli-Z observables from little-endian samples. */
+  public ExpectationEstimate zExpectation(List<Integer> qubits) {
+    List<Integer> selected = List.copyOf(qubits);
+    long mask = 0;
+    for (int qubit : selected) {
+      if (qubit < 0 || qubit >= Long.SIZE - 1 || (mask & (1L << qubit)) != 0) {
+        throw new IllegalArgumentException("Invalid or repeated expectation qubit " + qubit);
+      }
+      mask |= 1L << qubit;
+    }
+    if (selected.isEmpty()) {
+      throw new IllegalArgumentException("Expectation requires at least one qubit");
+    }
+    double sum = 0;
+    for (long outcome : outcomes) {
+      sum += (Long.bitCount(outcome & mask) & 1) == 0 ? 1 : -1;
+    }
+    double mean = sum / outcomes.size();
+    double standardError = Math.sqrt(Math.max(0, 1 - mean * mean) / outcomes.size());
+    return new ExpectationEstimate(mean, standardError, outcomes.size());
+  }
+
+  public ExpectationEstimate zExpectation(int qubit) {
+    return zExpectation(List.of(qubit));
+  }
 }

@@ -11,6 +11,7 @@ import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.TYPES;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.WORKFLOW;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.QUANTUM;
 
+import com.typeobject.wheeler.core.quantum.ParameterizedGateOperation;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -89,7 +90,14 @@ public final class BytecodeWriter {
     program.globals().forEach(global -> values.add(global.name()));
     program.functions().forEach(function -> values.add(function.name()));
     program.quantumRegisters().forEach(register -> values.add(register.name()));
-    program.quantumCircuits().forEach(circuit -> values.add(circuit.name()));
+    program.quantumCircuits().forEach(circuit -> {
+      values.add(circuit.name());
+      circuit.operations().stream()
+          .filter(ParameterizedGateOperation.class::isInstance)
+          .map(ParameterizedGateOperation.class::cast)
+          .map(ParameterizedGateOperation::parameterName)
+          .forEach(values::add);
+    });
     Map<String, Integer> result = new LinkedHashMap<>();
     values.forEach(value -> result.put(value, result.size()));
     return result;

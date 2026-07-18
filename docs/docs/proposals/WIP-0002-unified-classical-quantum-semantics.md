@@ -279,7 +279,7 @@ A target capability failure occurs before submission whenever possible. No fallb
 ## Testing and acceptance
 
 - [x] The same eligible `rev` XOR function produces matching classical basis results in the WIP-0001 VM and semantic quantum simulator.
-- [ ] Superposition tests show the lifted function acts as a unitary permutation, not a measurement-driven classical call.
+- [x] Superposition tests show the lifted function acts as a unitary permutation, not a measurement-driven classical call.
 - [x] A lifted function and unitary circuit followed by its generated adjoint restore the simulated register.
 - [ ] Compiler-negative tests reject cloning, dirty ancillas, overlapping slices, use after measure, hidden logged history, I/O, and unbounded loops in coherent bodies.
 - [x] QFT followed by its generated adjoint restores the checked basis-state fixture within numeric tolerance.

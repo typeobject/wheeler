@@ -3,6 +3,7 @@ package com.typeobject.wheeler.core.bytecode;
 import com.typeobject.wheeler.core.quantum.Gate;
 import com.typeobject.wheeler.core.quantum.GateOperation;
 import com.typeobject.wheeler.core.quantum.LiftedCall;
+import com.typeobject.wheeler.core.quantum.ParameterizedGateOperation;
 import com.typeobject.wheeler.core.quantum.QuantumCircuit;
 import com.typeobject.wheeler.core.quantum.QuantumOperation;
 import com.typeobject.wheeler.core.quantum.QuantumRegister;
@@ -17,6 +18,7 @@ final class QuantumSectionCodec {
 
   private static final int GATE = 1;
   private static final int LIFTED_CALL = 2;
+  private static final int PARAMETERIZED_GATE = 3;
   private static final int OPERATION_BYTES = 32;
 
   private QuantumSectionCodec() {}
@@ -40,7 +42,7 @@ final class QuantumSectionCodec {
       buffer.putInt(strings.get(circuit.name()));
       buffer.putInt(circuit.registerId());
       buffer.putInt(circuit.operations().size());
-      circuit.operations().forEach(operation -> writeOperation(buffer, operation));
+      circuit.operations().forEach(operation -> writeOperation(buffer, operation, strings));
     }
     return buffer.array();
   }
@@ -68,7 +70,7 @@ final class QuantumSectionCodec {
       }
       List<QuantumOperation> operations = new ArrayList<>(operationCount);
       for (int operation = 0; operation < operationCount; operation++) {
-        operations.add(readOperation(buffer));
+        operations.add(readOperation(buffer, strings));
       }
       circuits.add(new QuantumCircuit(id, string(strings, name), register, operations));
     }
@@ -78,7 +80,8 @@ final class QuantumSectionCodec {
     return new QuantumContent(List.copyOf(registers), List.copyOf(circuits));
   }
 
-  private static void writeOperation(ByteBuffer buffer, QuantumOperation operation) {
+  private static void writeOperation(
+      ByteBuffer buffer, QuantumOperation operation, Map<String, Integer> strings) {
     if (operation instanceof GateOperation gate) {
       buffer.putInt(GATE);
       buffer.putInt(gate.gate().ordinal());
@@ -95,12 +98,20 @@ final class QuantumSectionCodec {
       buffer.putDouble(0);
       buffer.putInt(lifted.functionId());
       buffer.putInt(lifted.inverseDirection() ? 1 : 0);
+    } else if (operation instanceof ParameterizedGateOperation gate) {
+      buffer.putInt(PARAMETERIZED_GATE);
+      buffer.putInt(gate.gate().ordinal());
+      buffer.putInt(gate.qubits().getFirst());
+      buffer.putInt(gate.qubits().size() == 2 ? gate.qubits().get(1) : -1);
+      buffer.putDouble(gate.scale());
+      buffer.putInt(strings.get(gate.parameterName()));
+      buffer.putInt(0);
     } else {
       throw new IllegalArgumentException("Unsupported quantum operation " + operation);
     }
   }
 
-  private static QuantumOperation readOperation(ByteBuffer buffer) {
+  private static QuantumOperation readOperation(ByteBuffer buffer, List<String> strings) {
     require(buffer, OPERATION_BYTES, "quantum operation");
     int type = buffer.getInt();
     int code = buffer.getInt();
@@ -123,6 +134,17 @@ final class QuantumSectionCodec {
         throw new BytecodeException("Invalid lifted-call record");
       }
       return new LiftedCall(function, (flags & 1) != 0);
+    }
+    if (type == PARAMETERIZED_GATE) {
+      Gate gate = Gate.fromCode(code);
+      if (flags != 0 || (gate.arity() == 1 && second != -1)) {
+        throw new BytecodeException("Invalid parameterized gate record");
+      }
+      return new ParameterizedGateOperation(
+          gate,
+          gate.arity() == 1 ? List.of(first) : List.of(first, second),
+          string(strings, function),
+          parameter);
     }
     throw new BytecodeException("Unknown quantum operation type " + type);
   }

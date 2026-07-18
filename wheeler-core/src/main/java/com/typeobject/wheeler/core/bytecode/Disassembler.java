@@ -2,6 +2,7 @@ package com.typeobject.wheeler.core.bytecode;
 
 import com.typeobject.wheeler.core.quantum.GateOperation;
 import com.typeobject.wheeler.core.quantum.LiftedCall;
+import com.typeobject.wheeler.core.quantum.ParameterizedGateOperation;
 import com.typeobject.wheeler.core.quantum.QuantumOperation;
 import java.util.StringJoiner;
 
@@ -56,6 +57,10 @@ public final class Disassembler {
   private static String quantumOperation(QuantumOperation operation) {
     if (operation instanceof GateOperation gate) {
       return gate.gate() + " " + gate.qubits() + (gate.parameter() == 0 ? "" : " " + gate.parameter());
+    }
+    if (operation instanceof ParameterizedGateOperation gate) {
+      return gate.gate() + " " + gate.qubits() + " "
+          + gate.scale() + "*" + gate.parameterName();
     }
     LiftedCall lifted = (LiftedCall) operation;
     return (lifted.inverseDirection() ? "UNLIFT " : "LIFT ") + lifted.functionId();

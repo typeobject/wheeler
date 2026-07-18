@@ -29,7 +29,7 @@ public final class OpenQasmTarget implements QuantumTarget {
     this.descriptor = new TargetDescriptor(
         "openqasm-3",
         target,
-        Set.of(TargetCapability.STATIC_CIRCUIT),
+        Set.of(TargetCapability.STATIC_CIRCUIT, TargetCapability.PARAMETER_BINDING),
         maxQubits,
         maxShots);
   }
