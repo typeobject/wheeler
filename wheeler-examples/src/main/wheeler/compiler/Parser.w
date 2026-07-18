@@ -162,6 +162,39 @@ classical class Parser {
             }
             return -1;
         }
+        if (statementKind == 769) {
+            if (tokenKinds[statementStart + 1] == 1) {
+                if (punctuationAt(
+                        source,
+                        tokenKinds,
+                        tokenStarts,
+                        statementStart + 2,
+                        61)) {
+                    long localWidth = signedNumberWidth(
+                        source,
+                        tokenKinds,
+                        tokenStarts,
+                        statementStart + 3);
+                    if (0 < localWidth) {
+                        if (signedNumberValid(
+                                source,
+                                tokenStarts,
+                                tokenLengths,
+                                statementStart + 3)) {
+                            if (punctuationAt(
+                                    source,
+                                    tokenKinds,
+                                    tokenStarts,
+                                    statementStart + 3 + localWidth,
+                                    59)) {
+                                return 4 + localWidth;
+                            }
+                        }
+                    }
+                }
+            }
+            return -1;
+        }
         if (tokenKinds[statementStart] == 1) {
             if (sameTokenText(
                     source,

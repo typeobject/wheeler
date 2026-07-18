@@ -80,10 +80,13 @@ classical class Tokens {
         words tokenLengths,
         long statementStart
     ) {
-        if (tokenHash(
-                source, tokenStarts, tokenLengths, statementStart)
-                == 2886759238) {
+        long keyword = tokenHash(
+            source, tokenStarts, tokenLengths, statementStart);
+        if (keyword == 2886759238) {
             return 768;
+        }
+        if (keyword == 3327612) {
+            return 769;
         }
         long operator = utf8Scalar(
             source, tokenStarts[statementStart + 1]);

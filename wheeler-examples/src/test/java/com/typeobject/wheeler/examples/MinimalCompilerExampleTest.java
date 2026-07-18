@@ -116,6 +116,12 @@ class MinimalCompilerExampleTest {
         3);
     assertDifferentialExecution(
         writerProgram,
+        "classical class WithLocal { state long total = 1; "
+            + "entry void main() { long scratch = -2; total += 4; } }",
+        "total",
+        5);
+    assertDifferentialExecution(
+        writerProgram,
         "classical class Asserted { state long value = 1; "
             + "entry void main() { value += 2; assert value == 3; } }",
         "value",
