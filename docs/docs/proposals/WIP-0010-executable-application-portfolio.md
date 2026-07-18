@@ -69,7 +69,7 @@ The repository currently executes these bounded fixtures:
 - `FrozenUtf8.w`: checked consumption of mutable bytes into immutable UTF-8;
 - `HostInput.w`: explicit bounded host UTF-8 input and fixed byte output without ambient authority;
 - `LongMap.w`: region-owned fixed-capacity signed symbol map;
-- `modules/ModuleMain.w` plus `Arithmetic.w` and `Results.w`: exact package source set with private helpers, public function/record/closed-variant linking, and an imported exhaustive match;
+- `modules/ModuleMain.w` plus `Arithmetic.w`, `Collections.w`, and `Results.w`: exact package source set with private helpers, public function/record/closed-variant/scalar-array/slice linking, and an imported exhaustive match;
 - `Utf8Lexer.w` plus `lexer/Scanner.w`: manifest-bound scanner/parser modules over explicit UTF-8 input and fixed byte output;
 - `CoherentOracle.w`: classical and coherent XOR behavior;
 - `QFT.w`: unitary execution and generated adjoint;

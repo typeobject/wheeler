@@ -17,6 +17,8 @@ class ModuleExamplesTest {
     Map<String, String> sources = Map.of(
         "src/main/wheeler/modules/Arithmetic.w",
         Files.readString(directory.resolve("Arithmetic.w")),
+        "src/main/wheeler/modules/Collections.w",
+        Files.readString(directory.resolve("Collections.w")),
         "src/main/wheeler/modules/ModuleMain.w",
         Files.readString(directory.resolve("ModuleMain.w")),
         "src/main/wheeler/modules/Results.w",
@@ -31,5 +33,7 @@ class ModuleExamplesTest {
     assertEquals("examples.results::Outcome", program.variantTypes().getFirst().name());
     assertEquals(18, machine.global("result"));
     assertEquals(9, machine.global("decoded"));
+    assertEquals(5, machine.global("arrayValue"));
+    assertEquals(15, machine.global("sliceValue"));
   }
 }

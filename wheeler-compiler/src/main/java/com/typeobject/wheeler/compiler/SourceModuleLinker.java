@@ -1,10 +1,12 @@
 package com.typeobject.wheeler.compiler;
 
+import com.typeobject.wheeler.compiler.SourceModel.ArrayDefinition;
 import com.typeobject.wheeler.compiler.SourceModel.Function;
 import com.typeobject.wheeler.compiler.SourceModel.Parameter;
 import com.typeobject.wheeler.compiler.SourceModel.ProofDeclaration;
 import com.typeobject.wheeler.compiler.SourceModel.RecordDefinition;
 import com.typeobject.wheeler.compiler.SourceModel.RecordField;
+import com.typeobject.wheeler.compiler.SourceModel.SliceDefinition;
 import com.typeobject.wheeler.compiler.SourceModel.SourceProgram;
 import com.typeobject.wheeler.compiler.SourceModel.Statement;
 import com.typeobject.wheeler.compiler.SourceModel.VariantCase;
@@ -48,6 +50,8 @@ final class SourceModuleLinker {
     List<RecordDefinition> records = new ArrayList<>();
     List<VariantDefinition> variants = new ArrayList<>();
     List<Function> functions = new ArrayList<>();
+    Map<String, ArrayDefinition> arrays = new LinkedHashMap<>();
+    Map<String, SliceDefinition> slices = new LinkedHashMap<>();
     List<ProofDeclaration> proofs = new ArrayList<>();
     for (String moduleName : order) {
       SourceProgram module = modules.get(moduleName);
@@ -58,6 +62,14 @@ final class SourceModuleLinker {
       }
       for (VariantDefinition variant : module.variants()) {
         variants.add(linkVariant(moduleName, variant, types));
+      }
+      for (ArrayDefinition array : module.arrays()) {
+        ArrayDefinition linked = linkArray(array, types);
+        arrays.putIfAbsent(linked.name(), linked);
+      }
+      for (SliceDefinition slice : module.slices()) {
+        SliceDefinition linked = linkSlice(slice, types);
+        slices.putIfAbsent(linked.name(), linked);
       }
       for (Function function : module.functions()) {
         functions.add(linkFunction(moduleName, function, references, types));
@@ -84,8 +96,8 @@ final class SourceModuleLinker {
         root.states(),
         records,
         variants,
-        root.arrays(),
-        root.slices(),
+        List.copyOf(arrays.values()),
+        List.copyOf(slices.values()),
         proofs,
         functions,
         root.quantumRegisters(),
@@ -129,9 +141,6 @@ final class SourceModuleLinker {
       fail(root
           ? "root module must declare exactly one entry method"
           : "dependency module cannot declare an entry method: " + expectedName);
-    }
-    if (!module.arrays().isEmpty() || !module.slices().isEmpty()) {
-      fail("source modules do not yet support array or slice type APIs: " + expectedName);
     }
     for (RecordDefinition record : module.records()) {
       if (record.exported()) {
@@ -179,8 +188,24 @@ final class SourceModuleLinker {
         .filter(candidate -> candidate.name().equals(type))
         .findFirst()
         .orElse(null);
-    if (variant != null && !variant.exported()) {
-      throw new CompilerException(line, "public API exposes private variant: " + type);
+    if (variant != null) {
+      if (!variant.exported()) {
+        throw new CompilerException(line, "public API exposes private variant: " + type);
+      }
+      return;
+    }
+    String element = module.arrays().stream()
+        .filter(array -> array.name().equals(type))
+        .map(ArrayDefinition::elementType)
+        .findFirst()
+        .orElseGet(() -> module.slices().stream()
+            .filter(slice -> slice.name().equals(type))
+            .map(SliceDefinition::elementType)
+            .findFirst()
+            .orElse(null));
+    if (element != null && !PRIMITIVE_TYPES.contains(element)) {
+      throw new CompilerException(
+          line, "public collection API requires a scalar element type: " + type);
     }
   }
 
@@ -234,7 +259,21 @@ final class SourceModuleLinker {
         addImportedType(result, localNames, moduleName, importedName,
             variant.name(), variant.exported());
       }
+      imported.arrays().stream()
+          .filter(array -> PRIMITIVE_TYPES.contains(array.elementType()))
+          .forEach(array -> result.putIfAbsent(array.name(), array.name()));
+      imported.slices().stream()
+          .filter(slice -> PRIMITIVE_TYPES.contains(slice.elementType()))
+          .forEach(slice -> result.putIfAbsent(slice.name(), slice.name()));
     }
+    module.arrays().forEach(array -> {
+      String element = resolveType(result, array.elementType(), array.line());
+      result.put(array.name(), element + "[" + array.length() + "]");
+    });
+    module.slices().forEach(slice -> {
+      String element = resolveType(result, slice.elementType(), slice.line());
+      result.put(slice.name(), element + "[]");
+    });
     return Map.copyOf(result);
   }
 
@@ -252,6 +291,19 @@ final class SourceModuleLinker {
     if (prior != null) {
       fail("ambiguous imported type " + typeName + " in " + moduleName);
     }
+  }
+
+  private static ArrayDefinition linkArray(
+      ArrayDefinition array, Map<String, String> types) {
+    String element = resolveType(types, array.elementType(), array.line());
+    return new ArrayDefinition(
+        element + "[" + array.length() + "]", element, array.length(), array.line());
+  }
+
+  private static SliceDefinition linkSlice(
+      SliceDefinition slice, Map<String, String> types) {
+    String element = resolveType(types, slice.elementType(), slice.line());
+    return new SliceDefinition(element + "[]", element, slice.line());
   }
 
   private static VariantDefinition linkVariant(
