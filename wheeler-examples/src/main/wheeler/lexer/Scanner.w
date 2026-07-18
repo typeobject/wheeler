@@ -68,6 +68,24 @@ classical class Scanner {
         return 0;
     }
 
+    public long asciiLiteralEnd(utf8 source, long cursor, long sourceLength) {
+        cursor += utf8Width(source, cursor);
+        while (cursor < sourceLength) limit 4096 {
+            long scalar = utf8Scalar(source, cursor);
+            if (scalar == 34) {
+                return cursor + utf8Width(source, cursor);
+            }
+            if (scalar < 32) {
+                return -1;
+            }
+            if (126 < scalar) {
+                return -1;
+            }
+            cursor += utf8Width(source, cursor);
+        }
+        return -1;
+    }
+
     public long blockCommentEnd(utf8 source, long cursor, long sourceLength) {
         cursor += utf8Width(source, cursor);
         cursor += utf8Width(source, cursor);

@@ -70,6 +70,38 @@ class Utf8LexerExampleTest {
   }
 
   @Test
+  void scannerAcceptsOnlyClosedPrintableRawAsciiLiterals() throws Exception {
+    String rootSource = """
+        module examples.lexer.literaltest;
+        import examples.lexer.scanner;
+        classical class LiteralTest {
+          state long literalEnd = 0;
+          entry void main(utf8 source) {
+            literalEnd = asciiLiteralEnd(source, 0, bufferLength(source));
+          }
+        }
+        """;
+    String scanner = Files.readString(Path.of("src/main/wheeler/lexer/Scanner.w"));
+    var program = new WheelerCompiler().compileModuleFiles(
+        Map.of("Scanner.w", scanner, "LiteralTest.w", rootSource),
+        "examples.lexer.literaltest");
+    VirtualMachine closed = new VirtualMachine(
+        program, "\"abc\"".getBytes(StandardCharsets.UTF_8));
+    VirtualMachine open = new VirtualMachine(
+        program, "\"abc".getBytes(StandardCharsets.UTF_8));
+    VirtualMachine nonAscii = new VirtualMachine(
+        program, "\"caf\u00e9\"".getBytes(StandardCharsets.UTF_8));
+
+    closed.run();
+    open.run();
+    nonAscii.run();
+
+    assertEquals(5, closed.global("literalEnd"));
+    assertEquals(-1, open.global("literalEnd"));
+    assertEquals(-1, nonAscii.global("literalEnd"));
+  }
+
+  @Test
   void explicitSourceInputIsTokenizedParsedAndExactlyRewound() throws Exception {
     Path root = Path.of("src/main/wheeler");
     var program = new WheelerCompiler().compileModuleFiles(

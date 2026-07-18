@@ -80,6 +80,9 @@ classical class Utf8Lexer {
             long scalar = utf8Scalar(source, cursor);
             long width = utf8Width(source, cursor);
             long kind = tokenKind(scalar);
+            if (scalar == 34) {
+                kind = 6;
+            }
             if (scalar == 47) {
                 long detectedComment = commentKind(source, cursor, sourceLength);
                 if (3 < detectedComment) {
@@ -135,6 +138,16 @@ classical class Utf8Lexer {
                             cursor = sourceLength;
                         } else {
                             cursor = blockEnd;
+                        }
+                    }
+                    if (kind == 6) {
+                        long literalEnd = asciiLiteralEnd(
+                            source, tokenStart, sourceLength);
+                        if (literalEnd < 0) {
+                            lexicalError = tokenStart + 1;
+                            cursor = sourceLength;
+                        } else {
+                            cursor = literalEnd;
                         }
                     }
                 }
