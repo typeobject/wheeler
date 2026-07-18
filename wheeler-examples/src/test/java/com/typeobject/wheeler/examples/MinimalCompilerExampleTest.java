@@ -21,6 +21,7 @@ class MinimalCompilerExampleTest {
   @Test
   void wheelerCompilesMinimalSourceToACanonicalExecutableArtifact() throws Exception {
     String root = Files.readString(Path.of("src/main/wheeler/MinimalCompiler.w"));
+    String codegen = Files.readString(Path.of("src/main/wheeler/compiler/Codegen.w"));
     String encoding = Files.readString(Path.of("src/main/wheeler/compiler/Encoding.w"));
     String helperParser = Files.readString(
         Path.of("src/main/wheeler/compiler/HelperParser.w"));
@@ -34,17 +35,18 @@ class MinimalCompilerExampleTest {
     String verifier = Files.readString(Path.of("src/main/wheeler/compiler/Verifier.w"));
     String scanner = Files.readString(Path.of("src/main/wheeler/lexer/Scanner.w"));
     var writerProgram = new WheelerCompiler().compileModuleFiles(
-        Map.of(
-            "MinimalCompiler.w", root,
-            "Encoding.w", encoding,
-            "HelperParser.w", helperParser,
-            "Ir.w", ir,
-            "Parser.w", parser,
-            "Scanner.w", scanner,
-            "Statements.w", statements,
-            "Structure.w", structure,
-            "Tokens.w", tokens,
-            "Verifier.w", verifier),
+        Map.ofEntries(
+            Map.entry("MinimalCompiler.w", root),
+            Map.entry("Codegen.w", codegen),
+            Map.entry("Encoding.w", encoding),
+            Map.entry("HelperParser.w", helperParser),
+            Map.entry("Ir.w", ir),
+            Map.entry("Parser.w", parser),
+            Map.entry("Scanner.w", scanner),
+            Map.entry("Statements.w", statements),
+            Map.entry("Structure.w", structure),
+            Map.entry("Tokens.w", tokens),
+            Map.entry("Verifier.w", verifier)),
         "examples.compiler.seed");
     String source =
         "classical class LongClass { state long value = 7; "

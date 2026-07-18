@@ -349,8 +349,8 @@ class WheelerCommandTest {
     Files.writeString(project.resolve("wheeler.package"), """
         package "demo.seedwriter" version "1.0.0" profile "bootstrap-1";
         target example "compiler" root "src/MinimalCompiler.w" module "examples.compiler.seed"
-            source "src/MinimalCompiler.w" source "src/compiler/Encoding.w"
-            source "src/compiler/HelperParser.w" source "src/compiler/Ir.w"
+            source "src/MinimalCompiler.w" source "src/compiler/Codegen.w"
+            source "src/compiler/Encoding.w" source "src/compiler/HelperParser.w" source "src/compiler/Ir.w"
             source "src/compiler/Parser.w" source "src/compiler/Statements.w"
             source "src/compiler/Structure.w" source "src/compiler/Tokens.w"
             source "src/compiler/Verifier.w"
@@ -359,6 +359,9 @@ class WheelerCommandTest {
     Path examples = Path.of("../wheeler-examples/src/main/wheeler");
     Files.copy(
         examples.resolve("MinimalCompiler.w"), project.resolve("src/MinimalCompiler.w"));
+    Files.copy(
+        examples.resolve("compiler/Codegen.w"),
+        project.resolve("src/compiler/Codegen.w"));
     Files.copy(
         examples.resolve("compiler/Encoding.w"),
         project.resolve("src/compiler/Encoding.w"));
