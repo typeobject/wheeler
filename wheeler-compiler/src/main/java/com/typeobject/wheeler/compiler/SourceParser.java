@@ -833,36 +833,13 @@ final class SourceParser extends SourceStatementParser {
       return result;
     }
     if (match(Type.IDENTIFIER)) {
+      String reference = start.text();
+      if (SourceCallParser.qualifiedCallAhead(this)) {
+        reference = SourceCallParser.qualifiedReference(this, start);
+        return SourceCallParser.parse(this, body, start, reference);
+      }
       if (match(Type.LEFT_PAREN)) {
-        List<String> arguments = new ArrayList<>();
-        if (!check(Type.RIGHT_PAREN)) {
-          do {
-            arguments.add(parseExpression(body));
-          } while (match(Type.COMMA));
-        }
-        expect(Type.RIGHT_PAREN, "')' after call arguments");
-        String result = temporary();
-        List<String> call = new ArrayList<>();
-        call.add(result);
-        call.add(start.text());
-        call.addAll(arguments);
-        String operation = switch (start.text()) {
-          case "slice" -> "slice_new";
-          case "allocate" -> "words_alloc";
-          case "allocateBytes" -> "bytes_alloc";
-          case "allocateMap" -> "map_alloc";
-          case "freezeUtf8" -> "utf8_freeze";
-          case "utf8Valid" -> "utf8_valid";
-          case "utf8Count" -> "utf8_count";
-          case "bufferLength" -> "buffer_length";
-          case "utf8Scalar" -> "utf8_scalar";
-          case "utf8Width" -> "utf8_width";
-          case "mapGet" -> "map_get";
-          case "mapHas" -> "map_has";
-          default -> "call_value";
-        };
-        body.add(new Statement(operation, call, start.line()));
-        return parsePostfix(body, result, start.line());
+        return SourceCallParser.parse(this, body, start, reference);
       }
       String result = temporary();
       body.add(statement("local_read", start.line(), result, start.text()));
@@ -872,7 +849,7 @@ final class SourceParser extends SourceStatementParser {
     throw new AssertionError("unreachable");
   }
 
-  private String parsePostfix(List<Statement> body, String source, int line) {
+  String parsePostfix(List<Statement> body, String source, int line) {
     String value = source;
     while (check(Type.DOT) || check(Type.LEFT_BRACKET)) {
       String result = temporary();
@@ -944,7 +921,7 @@ final class SourceParser extends SourceStatementParser {
         || next == Type.XOR_ASSIGN;
   }
 
-  private String temporary() {
+  String temporary() {
     return "$t" + temporarySequence++;
   }
 

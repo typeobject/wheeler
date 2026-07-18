@@ -17,6 +17,7 @@
 (theorem_declaration subject: (identifier) @function.method)
 (theorem_declaration related_subject: (identifier) @function.method)
 (call_expression function: (identifier) @function.call)
+(call_expression function: (qualified_function) @function.call)
 (coherent_apply_statement method: (identifier) @function.call)
 
 (record_component name: (identifier) @property)

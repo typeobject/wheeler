@@ -214,20 +214,31 @@ final class SourceModuleLinker {
       Map<String, SourceProgram> modules) {
     Map<String, String> result = new LinkedHashMap<>();
     Set<String> localNames = new HashSet<>();
+    Set<String> ambiguous = new HashSet<>();
     for (Function function : module.functions()) {
       localNames.add(function.name());
-      result.put(function.name(), linkedName(moduleName, function.name()));
+      String linked = linkedName(moduleName, function.name());
+      result.put(function.name(), linked);
+      result.put(linked, linked);
     }
     for (String importedName : module.imports()) {
       SourceProgram imported = modules.get(importedName);
       for (Function function : imported.functions()) {
-        if (!function.exported() || localNames.contains(function.name())) {
+        if (!function.exported()) {
           continue;
         }
-        String prior = result.putIfAbsent(
-            function.name(), linkedName(importedName, function.name()));
-        if (prior != null) {
-          fail("ambiguous imported function " + function.name() + " in " + moduleName);
+        String linked = linkedName(importedName, function.name());
+        result.put(linked, linked);
+        if (localNames.contains(function.name())) {
+          continue;
+        }
+        if (ambiguous.contains(function.name())) {
+          continue;
+        }
+        String prior = result.putIfAbsent(function.name(), linked);
+        if (prior != null && !prior.equals(linked)) {
+          result.remove(function.name());
+          ambiguous.add(function.name());
         }
       }
     }

@@ -11,7 +11,8 @@ import org.junit.jupiter.api.Test;
 class SourceLexerTest {
   @Test
   void recordsLocationsAndUsesLongestOperatorMatch() {
-    List<SourceToken> tokens = new SourceLexer("// heading\ncount += 0x1f * 2;").lex();
+    List<SourceToken> tokens =
+        new SourceLexer("// heading\ncount += 0x1f * 2; dep::call();").lex();
 
     assertEquals("count", tokens.get(0).text());
     assertEquals(2, tokens.get(0).line());
@@ -19,6 +20,7 @@ class SourceLexerTest {
     assertEquals(Type.PLUS_ASSIGN, tokens.get(1).type());
     assertEquals("0x1f", tokens.get(2).text());
     assertEquals(Type.STAR, tokens.get(3).type());
+    assertTrue(tokens.stream().anyMatch(token -> token.type() == Type.DOUBLE_COLON));
   }
 
   @Test

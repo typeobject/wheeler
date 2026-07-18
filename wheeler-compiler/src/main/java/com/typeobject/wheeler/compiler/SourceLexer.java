@@ -145,6 +145,7 @@ final class SourceLexer {
       case ';' -> Type.SEMICOLON;
       case ',' -> Type.COMMA;
       case '.' -> Type.DOT;
+      case ':' -> doubleColon(startLine);
       case '-' -> match('=') ? Type.MINUS_ASSIGN : Type.MINUS;
       case '+' -> match('=') ? Type.PLUS_ASSIGN : Type.PLUS;
       case '*' -> Type.STAR;
@@ -156,6 +157,13 @@ final class SourceLexer {
       default -> throw new CompilerException(startLine, "unexpected character: " + value);
     };
     add(type, start, startLine, startColumn);
+  }
+
+  private Type doubleColon(int startLine) {
+    if (!match(':')) {
+      throw new CompilerException(startLine, "expected '::'");
+    }
+    return Type.DOUBLE_COLON;
   }
 
   private void add(Type type, int start, int startLine, int startColumn) {

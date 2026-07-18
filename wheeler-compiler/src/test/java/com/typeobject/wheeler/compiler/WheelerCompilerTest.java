@@ -80,7 +80,7 @@ class WheelerCompilerTest {
         classical class Main {
           state long result = 0;
           entry void main() {
-            result = twice(9);
+            result = bootstrap.arithmetic::twice(9);
             assert result == 18;
           }
         }
@@ -99,6 +99,37 @@ class WheelerCompilerTest {
     machine.run();
 
     assertArrayEquals(firstArtifact, secondArtifact);
+    assertEquals(18, machine.global("result"));
+  }
+
+  @Test
+  void qualifiedCallsResolveCollidingDirectExports() {
+    String left = """
+        module side.left;
+        classical class Left { public long value() { return 7; } }
+        """;
+    String right = """
+        module side.right;
+        classical class Right { public long value() { return 11; } }
+        """;
+    String root = """
+        module side.root;
+        import side.left;
+        import side.right;
+        classical class Root {
+          state long result = 0;
+          entry void main() {
+            result = side.left::value() + side.right::value();
+            assert result == 18;
+          }
+        }
+        """;
+    VirtualMachine machine = new VirtualMachine(new WheelerCompiler().compileModules(
+        Map.of("side.left", left, "side.right", right, "side.root", root),
+        "side.root"));
+
+    machine.run();
+
     assertEquals(18, machine.global("result"));
   }
 

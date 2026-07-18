@@ -291,10 +291,13 @@ module.exports = grammar({
       ']',
     )),
     call_expression: $ => seq(
-      field('function', $.identifier),
+      field('function', choice($.identifier, $.qualified_function)),
       '(',
       optional($.argument_list),
       ')',
+    ),
+    qualified_function: _ => token(
+      /[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*::[A-Za-z_][A-Za-z0-9_]*/,
     ),
     argument_list: $ => seq($.expression, repeat(seq(',', $.expression))),
 

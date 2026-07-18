@@ -14,6 +14,7 @@ record SourceToken(Type type, String text, int line, int column, int offset) {
     SEMICOLON,
     COMMA,
     DOT,
+    DOUBLE_COLON,
     ASSIGN,
     EQUAL,
     PLUS_ASSIGN,
