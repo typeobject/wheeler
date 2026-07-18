@@ -26,6 +26,8 @@ classical class Manifest {
         long dependencyCount,
         QuotedRange capabilityName,
         QuotedRange capabilityPath,
+        QuotedRange secondCapabilityName,
+        QuotedRange secondCapabilityPath,
         long capabilityCount
     ) {}
 
@@ -461,6 +463,8 @@ classical class Manifest {
         QuotedRange secondDependencyVersion = empty;
         QuotedRange capabilityName = empty;
         QuotedRange capabilityPath = empty;
+        QuotedRange secondCapabilityName = empty;
+        QuotedRange secondCapabilityPath = empty;
         if (targetCount == 1) {
             targetName = quotedRange(starts, lengths, 9);
             targetRoot = quotedRange(starts, lengths, 11);
@@ -492,12 +496,18 @@ classical class Manifest {
             secondDependencyVersion = quotedRange(
                 starts, lengths, dependencyStart + 10);
         }
-        if (capabilityCount == 1) {
-            long capabilityStart = dependencyStart + dependencyCount * 6;
+        long capabilityStart = dependencyStart + dependencyCount * 6;
+        if (0 < capabilityCount) {
             capabilityName = quotedRange(
                 starts, lengths, capabilityStart + 1);
             capabilityPath = quotedRange(
                 starts, lengths, capabilityStart + 3);
+        }
+        if (1 < capabilityCount) {
+            secondCapabilityName = quotedRange(
+                starts, lengths, capabilityStart + 6);
+            secondCapabilityPath = quotedRange(
+                starts, lengths, capabilityStart + 8);
         }
         return new ManifestHeader(
             quotedRange(starts, lengths, 1),
@@ -519,6 +529,8 @@ classical class Manifest {
             dependencyCount,
             capabilityName,
             capabilityPath,
+            secondCapabilityName,
+            secondCapabilityPath,
             capabilityCount);
     }
 
@@ -557,27 +569,52 @@ classical class Manifest {
                 }
             }
             if (dependenciesSorted) {
-                if (count == cursor) {
-                    return new ManifestResult.Value(
-                        header(
-                            starts,
-                            lengths,
-                            1,
-                            dependencyCount,
-                            0,
-                            recordShift,
-                            sourceCount));
-                }
+                long capabilityCount = 0;
+                boolean capabilitiesSorted = true;
                 if (capabilityValid(
                         source, kinds, starts, lengths, cursor)) {
-                    if (count == cursor + 5) {
+                    capabilityCount = 1;
+                    cursor += 5;
+                    if (capabilityValid(
+                            source, kinds, starts, lengths, cursor)) {
+                        long capabilityNameOrder = compareTokenText(
+                            source,
+                            starts,
+                            lengths,
+                            cursor - 4,
+                            cursor + 1);
+                        long capabilityPathOrder = compareTokenText(
+                            source,
+                            starts,
+                            lengths,
+                            cursor - 2,
+                            cursor + 3);
+                        if (capabilityNameOrder < 0) {
+                            capabilityCount = 2;
+                            cursor += 5;
+                        } else {
+                            if (capabilityNameOrder == 0) {
+                                if (capabilityPathOrder < 0) {
+                                    capabilityCount = 2;
+                                    cursor += 5;
+                                } else {
+                                    capabilitiesSorted = false;
+                                }
+                            } else {
+                                capabilitiesSorted = false;
+                            }
+                        }
+                    }
+                }
+                if (capabilitiesSorted) {
+                    if (count == cursor) {
                         return new ManifestResult.Value(
                             header(
                                 starts,
                                 lengths,
                                 1,
                                 dependencyCount,
-                                1,
+                                capabilityCount,
                                 recordShift,
                                 sourceCount));
                     }

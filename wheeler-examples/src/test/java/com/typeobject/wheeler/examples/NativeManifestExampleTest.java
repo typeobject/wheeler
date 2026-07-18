@@ -34,7 +34,8 @@ class NativeManifestExampleTest {
             + "source \"src/Helper.w\"; "
             + "dependency normal \"demo.base\" version \"^1.0.0\"; "
             + "dependency development \"demo.extra\" version \"~2.1.0\"; "
-            + "capability \"fixture\" path \"test-data\";";
+            + "capability \"fixture\" path \"test-data\"; "
+            + "capability \"logs\" path \"logs\";";
     String input = source.replace("; target", ";   target");
     VirtualMachine machine = vm(program, input);
     var initial = machine.snapshot();
@@ -59,9 +60,11 @@ class NativeManifestExampleTest {
     assertEquals(6, machine.global("dependencyVersionLength"));
     assertEquals(10, machine.global("secondDependencyNameLength"));
     assertEquals(6, machine.global("secondDependencyVersionLength"));
-    assertEquals(1, machine.global("capabilityCount"));
+    assertEquals(2, machine.global("capabilityCount"));
     assertEquals(7, machine.global("capabilityNameLength"));
     assertEquals(9, machine.global("capabilityPathLength"));
+    assertEquals(4, machine.global("secondCapabilityNameLength"));
+    assertEquals(4, machine.global("secondCapabilityPathLength"));
     assertEquals(source.length(), machine.global("emittedLength"));
     assertEquals(input.length(), machine.global("finalCursor"));
     assertEquals(source, new String(machine.hostOutput(), StandardCharsets.UTF_8));
@@ -135,6 +138,18 @@ class NativeManifestExampleTest {
     assertTraps(program, source.replace("dependency normal", "dependency runtime"));
     assertTraps(program, source.replace("src/A\\\"pp.w", "src/../App.w"));
     assertTraps(program, source.replace("test-data", "test\\\\data"));
+    assertTraps(
+        program,
+        source.replace(
+            "capability \"logs\" path \"logs\"",
+            "capability \"fixture\" path \"test-data\""));
+    assertTraps(
+        program,
+        source.replace(
+            "capability \"fixture\" path \"test-data\"; "
+                + "capability \"logs\" path \"logs\";",
+            "capability \"logs\" path \"logs\"; "
+                + "capability \"fixture\" path \"test-data\";"));
     assertTraps(program, source.replace("boot\\\"strap", "boot\\nstrap"));
   }
 
