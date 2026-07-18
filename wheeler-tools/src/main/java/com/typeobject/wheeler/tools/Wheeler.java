@@ -342,22 +342,14 @@ public final class Wheeler {
 
   private static int plan(
       String[] args, PrintStream out, PrintStream error) throws Exception {
-    if (args.length < 4) {
+    if (args.length < 2) {
       planUsage(error);
       return 2;
     }
-    String compiler = null;
     Path output = null;
     boolean grantRequested = false;
     for (int index = 2; index < args.length; index++) {
       switch (args[index]) {
-        case "--compiler" -> {
-          if (compiler != null || index + 1 >= args.length) {
-            planUsage(error);
-            return 2;
-          }
-          compiler = args[++index];
-        }
         case "--grant-requested" -> {
           if (grantRequested) {
             planUsage(error);
@@ -379,16 +371,13 @@ public final class Wheeler {
         }
       }
     }
-    if (compiler == null) {
-      planUsage(error);
-      return 2;
-    }
     WorkspaceProject workspace = WorkspaceProject.load(Path.of(args[1]));
     if (output == null) {
       output = workspace.defaultPlanPath();
     }
     BuildPlanCodec codec = new BuildPlanCodec();
-    byte[] encoded = codec.encode(workspace.plan(compiler, grantRequested));
+    byte[] encoded = codec.encode(
+        workspace.plan(Stage0CompilerIdentity.current(), grantRequested));
     PackageProject.writeAtomically(output, encoded);
     out.println("planned " + workspace.targetCount() + " targets into " + output
         + " (" + codec.identity(encoded) + ")");
@@ -512,7 +501,7 @@ public final class Wheeler {
 
   private static void planUsage(PrintStream error) {
     error.println(
-        "Usage: wheeler plan <workspace-directory> --compiler <sha256>"
+        "Usage: wheeler plan <workspace-directory>"
             + " [--grant-requested] [-o wheeler.plan]");
   }
 

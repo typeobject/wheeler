@@ -151,8 +151,7 @@ class WheelerCommandTest {
     Path planPath = temporary.resolve("build.plan");
     assertEquals(0, Wheeler.execute(
         new String[] {
-            "plan", temporary.toString(), "--compiler", "a".repeat(64),
-            "-o", planPath.toString()
+            "plan", temporary.toString(), "-o", planPath.toString()
         },
         new PrintStream(stdout),
         sink));
@@ -173,9 +172,24 @@ class WheelerCommandTest {
     Path grantedPlan = temporary.resolve("granted.plan");
     assertEquals(0, Wheeler.execute(
         new String[] {
-            "plan", temporary.toString(), "--compiler", "a".repeat(64),
+            "plan", temporary.toString(),
             "--grant-requested", "-o", grantedPlan.toString()
         }, new PrintStream(stdout), sink));
+    BuildPlan executablePlan = new BuildPlanCodec().decode(Files.readAllBytes(grantedPlan));
+    BuildPlan forgedCompiler = new BuildPlan(
+        executablePlan.schemaVersion(),
+        executablePlan.workspaceIdentity(),
+        "f".repeat(64),
+        executablePlan.profile(),
+        executablePlan.nodes());
+    Path forgedPlan = temporary.resolve("forged-compiler.plan");
+    Files.write(forgedPlan, new BuildPlanCodec().encode(forgedCompiler));
+    assertThrows(PackageFormatException.class, () -> Wheeler.execute(
+        new String[] {
+            "execute-plan", temporary.toString(), forgedPlan.toString(),
+            "-o", temporary.resolve("forged").toString()
+        }, new PrintStream(stdout), sink));
+
     Path plannedOutput = temporary.resolve("planned-artifacts");
     assertEquals(0, Wheeler.execute(
         new String[] {
@@ -325,7 +339,7 @@ class WheelerCommandTest {
     Path planPath = temporary.resolve("locked.plan");
     assertEquals(0, Wheeler.execute(
         new String[] {
-            "plan", temporary.toString(), "--compiler", "b".repeat(64),
+            "plan", temporary.toString(),
             "--grant-requested", "-o", planPath.toString()
         },
         output,

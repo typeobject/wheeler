@@ -24,6 +24,10 @@ final class BuildPlanExecutor {
   static void execute(WorkspaceProject workspace, BuildPlan plan, Path requestedOutput)
       throws IOException {
     requireCompleteGrants(plan);
+    if (!plan.compilerIdentity().equals(Stage0CompilerIdentity.current())) {
+      throw new PackageFormatException(
+          "Build plan compiler identity does not match the executing stage-0 compiler");
+    }
     BuildPlan expected = workspace.plan(plan.compilerIdentity(), true);
     if (!expected.equals(plan)) {
       throw new PackageFormatException(
