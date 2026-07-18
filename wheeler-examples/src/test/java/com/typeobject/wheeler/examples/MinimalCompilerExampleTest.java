@@ -59,14 +59,27 @@ class MinimalCompilerExampleTest {
     assertEquals(initial, writer.snapshot());
 
     String zeroSource =
-        "classical class LongClass { state long value = 0; "
-            + "entry void main() { value += 0; } }";
+        "classical class zebra { state long alpha = 0; "
+            + "entry void main() { alpha += 0; } }";
     VirtualMachine zeroWriter = new VirtualMachine(
         writerProgram, zeroSource.getBytes(StandardCharsets.UTF_8), 512);
     zeroWriter.run();
     assertArrayEquals(
         new WheelerCompiler().compileToBytecode(zeroSource),
         zeroWriter.hostOutput());
+    VirtualMachine zeroArtifact = new VirtualMachine(
+        new BytecodeReader().read(zeroWriter.hostOutput()));
+    zeroArtifact.run();
+    assertEquals(0, zeroArtifact.global("alpha"));
+
+    VirtualMachine duplicate = new VirtualMachine(
+        writerProgram,
+        ("classical class main { state long alpha = 0; "
+            + "entry void main() { alpha += 0; } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, duplicate::run);
+    assertArrayEquals(new byte[512], duplicate.hostOutput());
 
     VirtualMachine invalid = new VirtualMachine(
         writerProgram,

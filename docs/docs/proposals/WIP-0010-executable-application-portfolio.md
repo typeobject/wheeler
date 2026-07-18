@@ -356,7 +356,7 @@ Portfolio work follows these rules:
 ### Toolchain
 
 - [ ] Wheeler lexer and parser.
-- [ ] Wheeler bytecode codec and verifier: `MinimalCompiler.w` parses a minimal source file and emits its complete artifact with derived string and section layout through the same bounded encoding module; all 504 bytes for `LongClass` with `state long value = 7` and `value += 5` match stage 0, decode, canonically re-encode, and execute. General IR-driven payloads and Wheeler verification remain.
+- [ ] Wheeler bytecode codec and verifier: `MinimalCompiler.w` parses a minimal source file and emits its complete artifact with canonically sorted source strings and derived section layout through the same bounded encoding module; all 504 bytes for `LongClass` with `state long value = 7` and `value += 5` match stage 0, decode, canonically re-encode, and execute. General IR-driven payloads and Wheeler verification remain.
 - [ ] Self-hosting compiler fixed point.
 - [ ] Wheeler package resolver.
 - [ ] Native transition trace parity.

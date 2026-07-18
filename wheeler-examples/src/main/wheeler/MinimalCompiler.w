@@ -48,6 +48,46 @@ classical class MinimalCompiler {
             source, tokenKinds, tokenStarts, tokenLengths);
         long nameLength = program.name.length;
         long globalLength = program.global.length;
+        long nameGlobalOrder = compareAsciiSlices(
+            source,
+            program.name.start,
+            nameLength,
+            program.global.start,
+            globalLength);
+        long nameMainOrder = compareAsciiSliceToMain(
+            source, program.name.start, nameLength);
+        long globalMainOrder = compareAsciiSliceToMain(
+            source, program.global.start, globalLength);
+        if (nameGlobalOrder == 0) {
+            assert finalCursor == 1;
+        }
+        if (nameMainOrder == 0) {
+            assert finalCursor == 1;
+        }
+        if (globalMainOrder == 0) {
+            assert finalCursor == 1;
+        }
+        long nameIndex = 0;
+        if (0 < nameGlobalOrder) {
+            nameIndex += 1;
+        }
+        if (0 < nameMainOrder) {
+            nameIndex += 1;
+        }
+        long globalIndex = 0;
+        if (nameGlobalOrder < 0) {
+            globalIndex += 1;
+        }
+        if (0 < globalMainOrder) {
+            globalIndex += 1;
+        }
+        long mainIndex = 0;
+        if (nameMainOrder < 0) {
+            mainIndex += 1;
+        }
+        if (globalMainOrder < 0) {
+            mainIndex += 1;
+        }
         long manifestOffset = 232;
         long stringsOffset = 256;
         long stringsLength = 20 + nameLength + globalLength;
@@ -82,26 +122,38 @@ classical class MinimalCompiler {
         cursor = writeDirectoryEntry(
             output, cursor, 6, codeOffset, codeLength);
 
-        cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, nameIndex, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 100000, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 1000000, 8);
 
         cursor = writeUnsignedLittleEndian(output, cursor, 3, 4);
-        cursor = writeUnsignedLittleEndian(output, cursor, nameLength, 4);
-        cursor = writeAsciiSlice(
-            output, cursor, source, program.name.start, nameLength);
-        cursor = writeUnsignedLittleEndian(output, cursor, 4, 4);
-        writeAscii(output, cursor, "main");
-        cursor += 4;
-        cursor = writeUnsignedLittleEndian(output, cursor, globalLength, 4);
-        cursor = writeAsciiSlice(
-            output, cursor, source, program.global.start, globalLength);
+        long stringIndex = 0;
+        while (stringIndex < 3) limit 3 {
+            if (stringIndex == nameIndex) {
+                cursor = writeUnsignedLittleEndian(
+                    output, cursor, nameLength, 4);
+                cursor = writeAsciiSlice(
+                    output, cursor, source, program.name.start, nameLength);
+            }
+            if (stringIndex == globalIndex) {
+                cursor = writeUnsignedLittleEndian(
+                    output, cursor, globalLength, 4);
+                cursor = writeAsciiSlice(
+                    output, cursor, source, program.global.start, globalLength);
+            }
+            if (stringIndex == mainIndex) {
+                cursor = writeUnsignedLittleEndian(output, cursor, 4, 4);
+                writeAscii(output, cursor, "main");
+                cursor += 4;
+            }
+            stringIndex += 1;
+        }
         cursor = align8(cursor);
 
         cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
-        cursor = writeUnsignedLittleEndian(output, cursor, 2, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, globalIndex, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
         cursor = writeUnsignedLittleEndian(
             output, cursor, program.initialValue, 8);
@@ -113,7 +165,7 @@ classical class MinimalCompiler {
 
         cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
-        cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, mainIndex, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, codeLength, 4);

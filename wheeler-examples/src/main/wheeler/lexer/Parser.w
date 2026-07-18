@@ -49,6 +49,33 @@ classical class Parser {
         return false;
     }
 
+    private boolean sameTokenText(
+        utf8 source,
+        words tokenStarts,
+        words tokenLengths,
+        long left,
+        long right
+    ) {
+        if (tokenLengths[left] == tokenLengths[right]) {
+            long cursor = 0;
+            while (cursor < tokenLengths[left]) limit 256 {
+                long leftScalar = utf8Scalar(
+                    source, tokenStarts[left] + cursor);
+                long rightScalar = utf8Scalar(
+                    source, tokenStarts[right] + cursor);
+                if (leftScalar < rightScalar) {
+                    return false;
+                }
+                if (rightScalar < leftScalar) {
+                    return false;
+                }
+                cursor += 1;
+            }
+            return true;
+        }
+        return false;
+    }
+
     private boolean canonicalMinimalNames(
         utf8 source,
         words tokenKinds,
@@ -56,15 +83,17 @@ classical class Parser {
         words tokenLengths
     ) {
         if (tokenKinds[2] == 1) {
-            long first = utf8Scalar(source, tokenStarts[2]);
-            if (64 < first) {
-                if (first < 91) {
-                    if (tokenHash(
-                            source, tokenStarts, tokenLengths, 6)
-                            == 111972721) {
-                        return tokenHash(
-                            source, tokenStarts, tokenLengths, 16)
-                            == 111972721;
+            if (tokenLengths[2] < 257) {
+                if (tokenKinds[6] == 1) {
+                    if (tokenLengths[6] < 257) {
+                        if (tokenKinds[16] == 1) {
+                            return sameTokenText(
+                                source,
+                                tokenStarts,
+                                tokenLengths,
+                                6,
+                                16);
+                        }
                     }
                 }
             }

@@ -50,6 +50,75 @@ classical class Encoding {
         return offset + length;
     }
 
+    public long compareAsciiSlices(
+        utf8 input,
+        long leftStart,
+        long leftLength,
+        long rightStart,
+        long rightLength
+    ) {
+        long cursor = 0;
+        while (cursor < leftLength) limit 256 {
+            if (cursor < rightLength) {
+                long left = utf8Scalar(input, leftStart + cursor);
+                long right = utf8Scalar(input, rightStart + cursor);
+                if (left < right) {
+                    return -1;
+                }
+                if (right < left) {
+                    return 1;
+                }
+                cursor += 1;
+            } else {
+                return 1;
+            }
+        }
+        if (cursor < rightLength) {
+            return -1;
+        }
+        return 0;
+    }
+
+    private long mainScalar(long index) {
+        if (index == 0) {
+            return 109;
+        }
+        if (index == 1) {
+            return 97;
+        }
+        if (index == 2) {
+            return 105;
+        }
+        return 110;
+    }
+
+    public long compareAsciiSliceToMain(
+        utf8 input,
+        long start,
+        long length
+    ) {
+        long cursor = 0;
+        while (cursor < length) limit 256 {
+            if (cursor < 4) {
+                long left = utf8Scalar(input, start + cursor);
+                long right = mainScalar(cursor);
+                if (left < right) {
+                    return -1;
+                }
+                if (right < left) {
+                    return 1;
+                }
+                cursor += 1;
+            } else {
+                return 1;
+            }
+        }
+        if (cursor < 4) {
+            return -1;
+        }
+        return 0;
+    }
+
     public long writeInstructionHeader(
         bytes output,
         long offset,
