@@ -8,6 +8,11 @@ classical class RegionStorage {
     state long decodedScalars = 0;
     state long scalarSum = 0;
 
+    region openArena() {
+        region arena = new region(40, 2);
+        return arena;
+    }
+
     long writeWord(words data, long index, long value) {
         set(data, index, value);
         return data[index];
@@ -23,7 +28,7 @@ classical class RegionStorage {
     }
 
     entry void main() {
-        region arena = new region(40, 2);
+        region arena = openArena();
         long length = 4;
         words data = allocate(arena, length);
         first = writeWord(data, 0, 7);

@@ -342,7 +342,11 @@ class SourceProfileNegativeTest {
         """;
     String escaped = """
         classical class Escaped {
-          region make() { region arena = new region(8, 1); return arena; }
+          words make() {
+            region arena = new region(8, 1);
+            words data = allocate(arena, 1);
+            return data;
+          }
           entry void main() { }
         }
         """;

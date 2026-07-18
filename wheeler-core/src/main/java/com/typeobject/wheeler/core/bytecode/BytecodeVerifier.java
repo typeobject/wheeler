@@ -167,8 +167,9 @@ public final class BytecodeVerifier {
       if (function.resultType() != null) {
         verifyTypeReference(program, function.resultType(), function.name());
         if (function.resultType().kind() == ValueType.Kind.SLICE
-            || nonescaping(function.resultType())) {
-          fail("Borrowed slice result escapes function " + function.name());
+            || (nonescaping(function.resultType())
+                && !function.resultType().equals(ValueType.REGION))) {
+          fail("Borrowed or storage result escapes function " + function.name());
         }
       }
       verifyBody(program, function, function.forward(), false);
@@ -590,6 +591,9 @@ public final class BytecodeVerifier {
       if (instruction.opcode() == Opcode.OWNED_MOVE
           || instruction.opcode() == Opcode.UTF8_FREEZE) {
         assigned.clear(Math.toIntExact(instruction.operands().get(1)));
+      } else if (instruction.opcode() == Opcode.RETURN_VALUE
+          && owner.resultType() != null && owned(owner.resultType())) {
+        assigned.clear(Math.toIntExact(instruction.operands().getFirst()));
       } else if (instruction.opcode() == Opcode.BUFFER_DROP
           || instruction.opcode() == Opcode.REGION_DROP) {
         assigned.clear(Math.toIntExact(instruction.operands().getFirst()));

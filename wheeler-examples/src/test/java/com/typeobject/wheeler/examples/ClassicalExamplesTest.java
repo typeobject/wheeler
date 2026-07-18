@@ -24,6 +24,7 @@ class ClassicalExamplesTest {
     byte[] artifact = new WheelerCompiler().compileToBytecode(Files.readString(source));
     var program = new BytecodeReader().read(artifact);
     VirtualMachine machine = new VirtualMachine(program);
+    var initial = machine.snapshot();
 
     machine.run();
 
@@ -34,6 +35,10 @@ class ClassicalExamplesTest {
       assertEquals(ProofRule.STATIC_STEP_BOUND, program.proofCertificates().getFirst().rule());
     }
     expected.forEach((global, value) -> assertEquals(value, machine.global(global), global));
+    while (machine.historySize() > 0) {
+      machine.rewindOne();
+    }
+    assertEquals(initial, machine.snapshot());
   }
 
   static Stream<Arguments> examples() {

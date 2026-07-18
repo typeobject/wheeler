@@ -64,9 +64,9 @@ final class ClassicalLowerer {
           ? SourceTypeLowerer.resolve(function.returnType(), function.line(), typeReferences)
           : null;
       if (resultType != null && (resultType.kind() == ValueType.Kind.SLICE
-          || owned(resultType))) {
+          || (owned(resultType) && !resultType.equals(ValueType.REGION)))) {
         throw new CompilerException(
-            function.line(), "borrowed or owned values cannot escape as results");
+            function.line(), "borrowed values and storage buffers cannot escape as results");
       }
       List<ValueType> parameterTypes = function.parameters().stream()
           .map(parameter -> {
