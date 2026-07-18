@@ -55,6 +55,7 @@ final class PackageProject {
   }
 
   void check() throws IOException {
+    requireDependencyFree("check");
     WheelerCompiler compiler = new WheelerCompiler();
     for (PackageManifest.Target target : manifest.targets()) {
       compiler.compile(source(target));
@@ -62,6 +63,7 @@ final class PackageProject {
   }
 
   Program compileRunnable(String targetName) throws IOException {
+    requireDependencyFree("run");
     PackageManifest.Target selected = manifest.targets().stream()
         .filter(target -> target.name().equals(targetName))
         .findFirst()
@@ -74,6 +76,7 @@ final class PackageProject {
   }
 
   int test() throws IOException {
+    requireDependencyFree("test");
     WheelerCompiler compiler = new WheelerCompiler();
     WheelerRuntime runtime = new WheelerRuntime();
     int executed = 0;
@@ -87,6 +90,7 @@ final class PackageProject {
   }
 
   Map<String, byte[]> compile() throws IOException {
+    requireDependencyFree("build");
     WheelerCompiler compiler = new WheelerCompiler();
     Map<String, byte[]> artifacts = new TreeMap<>();
     for (PackageManifest.Target target : manifest.targets()) {
@@ -107,10 +111,7 @@ final class PackageProject {
   }
 
   List<BuildPlan.Node> planNodes(String memberName) throws IOException {
-    if (!manifest.dependencies().isEmpty()) {
-      throw new PackageFormatException(
-          "Build planning requires locked inputs for " + manifest.name());
-    }
+    requireDependencyFree("plan");
     List<BuildPlan.Node> nodes = new ArrayList<>();
     for (PackageManifest.Target target : manifest.targets()) {
       nodes.add(BuildPlan.Node.create(
@@ -145,6 +146,14 @@ final class PackageProject {
 
   Path defaultArchivePath() {
     return root.resolve(manifest.name() + "-" + manifest.version() + ".wpk");
+  }
+
+  private void requireDependencyFree(String operation) {
+    if (!manifest.dependencies().isEmpty()) {
+      throw new PackageFormatException(
+          "Cannot " + operation + " " + manifest.name()
+              + " without locked dependency loading");
+    }
   }
 
   private Path source(PackageManifest.Target target) throws IOException {

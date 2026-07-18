@@ -208,6 +208,11 @@ class WheelerCommandTest {
     assertEquals(0, Wheeler.execute(
         new String[] {"verify-lock", lockPath.toString()}, output, sink));
     assertTrue(stdout.toString(StandardCharsets.UTF_8).contains(lock.identity()));
+    var unsupported = assertThrows(
+        com.typeobject.wheeler.packageformat.PackageFormatException.class,
+        () -> Wheeler.execute(
+            new String[] {"check", application.toString()}, output, sink));
+    assertTrue(unsupported.getMessage().contains("without locked dependency loading"));
   }
 
   @Test
