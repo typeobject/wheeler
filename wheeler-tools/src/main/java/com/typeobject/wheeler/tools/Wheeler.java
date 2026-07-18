@@ -1,29 +1,234 @@
 package com.typeobject.wheeler.tools;
 
+import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
+import com.typeobject.wheeler.core.bytecode.Disassembler;
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.workflow.WorkflowOpcode;
+import com.typeobject.wheeler.packageformat.PackageArchive;
+import com.typeobject.wheeler.packageformat.PackageArchive.DecodedPackage;
 import com.typeobject.wheeler.runtime.ExecutionResult;
 import com.typeobject.wheeler.runtime.WheelerRuntime;
+import com.typeobject.wheeler.runtime.quantum.OpenQasm3Emitter;
+import com.typeobject.wheeler.runtime.quantum.QuantumTask;
+import com.typeobject.wheeler.runtime.quantum.QuantumTaskBuilder;
 import com.typeobject.wheeler.runtime.quantum.StateVectorTarget;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
-/** Execute a verified classical, quantum, or hybrid Wheeler artifact. */
+/** Unified stage-0 command for Wheeler artifacts and local packages. */
 public final class Wheeler {
   private Wheeler() {}
 
-  public static void main(String[] args) throws Exception {
-    if (args.length != 1) {
-      System.err.println("Usage: wheeler <program.wbc>");
-      System.exit(2);
+  public static void main(String[] args) {
+    try {
+      int status = execute(args, System.out, System.err);
+      if (status != 0) {
+        System.exit(status);
+      }
+    } catch (Exception exception) {
+      System.err.println("wheeler: " + exception.getMessage());
+      System.exit(1);
     }
-    Program program = new BytecodeReader().read(Files.readAllBytes(Path.of(args[0])));
+  }
+
+  static int execute(String[] args, PrintStream out, PrintStream error) throws Exception {
+    if (args.length == 0) {
+      usage(error);
+      return 2;
+    }
+    return switch (args[0]) {
+      case "run" -> run(args, out, error);
+      case "compile" -> compile(args, out, error);
+      case "check" -> check(args, out, error);
+      case "build" -> build(args, out, error);
+      case "package" -> packageProject(args, out, error);
+      case "verify" -> verify(args, out, error);
+      case "disassemble" -> disassemble(args, out, error);
+      case "qasm" -> qasm(args, out, error);
+      default -> {
+        error.println("Unknown Wheeler command: " + args[0]);
+        usage(error);
+        yield 2;
+      }
+    };
+  }
+
+  private static int run(String[] args, PrintStream out, PrintStream error) throws Exception {
+    if (args.length != 2) {
+      error.println("Usage: wheeler run <program.wbc>");
+      return 2;
+    }
+    Program program = new BytecodeReader().read(Files.readAllBytes(Path.of(args[1])));
     ExecutionResult result = new WheelerRuntime().execute(program, new StateVectorTarget());
-    System.out.println(program.name() + " (" + program.kind().name().toLowerCase()
+    out.println(program.name() + " (" + program.kind().name().toLowerCase()
         + ") halted after " + result.workflowSteps() + " steps");
-    result.globals().forEach((name, value) -> System.out.println(name + " = " + value));
+    result.globals().forEach((name, value) -> out.println(name + " = " + value));
     if (!result.measurements().isEmpty()) {
-      System.out.println("measurements = " + result.measurements());
+      out.println("measurements = " + result.measurements());
     }
+    return 0;
+  }
+
+  private static int compile(String[] args, PrintStream out, PrintStream error) throws Exception {
+    if (args.length != 2 && args.length != 4) {
+      error.println("Usage: wheeler compile <source.w> [-o output.wbc]");
+      return 2;
+    }
+    Path source = Path.of(args[1]);
+    Path output;
+    if (args.length == 4) {
+      if (!args[2].equals("-o")) {
+        error.println("Expected -o before output path");
+        return 2;
+      }
+      output = Path.of(args[3]);
+    } else {
+      output = replaceExtension(source, ".wbc");
+    }
+    byte[] bytecode = new WheelerCompiler().compileToBytecode(source);
+    PackageProject.writeAtomically(output, bytecode);
+    out.println("wrote " + output + " (" + bytecode.length + " bytes)");
+    return 0;
+  }
+
+  private static int check(String[] args, PrintStream out, PrintStream error) throws Exception {
+    if (args.length != 2) {
+      error.println("Usage: wheeler check <package-directory>");
+      return 2;
+    }
+    PackageProject project = PackageProject.load(Path.of(args[1]));
+    project.check();
+    out.println("checked " + project.manifest().name()
+        + " " + project.manifest().version()
+        + " (" + project.manifest().targets().size() + " targets)");
+    return 0;
+  }
+
+  private static int build(String[] args, PrintStream out, PrintStream error) throws Exception {
+    if (!packageArguments(args, error, "build")) {
+      return 2;
+    }
+    PackageProject project = PackageProject.load(Path.of(args[1]));
+    Path output = args.length == 4 ? Path.of(args[3]) : project.defaultBuildDirectory();
+    project.build(output);
+    out.println("built " + project.manifest().name() + " into " + output);
+    return 0;
+  }
+
+  private static int packageProject(
+      String[] args, PrintStream out, PrintStream error) throws Exception {
+    if (!packageArguments(args, error, "package")) {
+      return 2;
+    }
+    PackageProject project = PackageProject.load(Path.of(args[1]));
+    Path output = args.length == 4 ? Path.of(args[3]) : project.defaultArchivePath();
+    byte[] archive = project.archive();
+    PackageProject.writeAtomically(output, archive);
+    DecodedPackage decoded = new PackageArchive().decode(archive);
+    out.println("packaged " + decoded.manifest().name() + " as " + output
+        + " (" + decoded.identity() + ")");
+    return 0;
+  }
+
+  private static int verify(String[] args, PrintStream out, PrintStream error) throws Exception {
+    if (args.length != 2) {
+      error.println("Usage: wheeler verify <package.wpk>");
+      return 2;
+    }
+    DecodedPackage archive = new PackageArchive().decode(Files.readAllBytes(Path.of(args[1])));
+    out.println(archive.manifest().name() + " " + archive.manifest().version()
+        + " " + archive.identity());
+    return 0;
+  }
+
+  private static int disassemble(
+      String[] args, PrintStream out, PrintStream error) throws Exception {
+    if (args.length != 2) {
+      error.println("Usage: wheeler disassemble <program.wbc>");
+      return 2;
+    }
+    Program program = new BytecodeReader().read(Files.readAllBytes(Path.of(args[1])));
+    out.print(new Disassembler().disassemble(program));
+    return 0;
+  }
+
+  private static int qasm(String[] args, PrintStream out, PrintStream error) throws Exception {
+    if (args.length != 3) {
+      error.println("Usage: wheeler qasm <program.wbc> <output.qasm>");
+      return 2;
+    }
+    Program program = new BytecodeReader().read(Files.readAllBytes(Path.of(args[1])));
+    byte[] qasm = new OpenQasm3Emitter().emit(singleQuantumTask(program))
+        .getBytes(StandardCharsets.UTF_8);
+    PackageProject.writeAtomically(Path.of(args[2]), qasm);
+    out.println("wrote " + args[2]);
+    return 0;
+  }
+
+  private static QuantumTask singleQuantumTask(Program program) {
+    Map<Integer, QuantumTaskBuilder> pending = new HashMap<>();
+    QuantumTask result = null;
+    for (var step : program.workflow()) {
+      switch (step.opcode()) {
+        case PREPARE -> pending.put(
+            Math.toIntExact(step.first()),
+            new QuantumTaskBuilder(program, Math.toIntExact(step.first()), step.second()));
+        case APPLY, UNAPPLY -> {
+          int circuit = Math.toIntExact(step.first());
+          int register = program.quantumCircuit(circuit).registerId();
+          QuantumTaskBuilder builder = pending.get(register);
+          if (builder == null) {
+            throw new IllegalArgumentException("Circuit is applied before register preparation");
+          }
+          builder.apply(circuit, step.opcode() == WorkflowOpcode.UNAPPLY);
+        }
+        case MEASURE -> {
+          int register = Math.toIntExact(step.first());
+          if (result != null || pending.get(register) == null) {
+            throw new IllegalArgumentException(
+                "qasm requires exactly one static quantum submission");
+          }
+          result = pending.remove(register).build(1, 0);
+        }
+        case CLASSICAL_CALL, CLASSICAL_UNCALL, EXPECT, COMMIT, HALT -> {
+          // Classical workflow edges do not change the static quantum task.
+        }
+      }
+    }
+    if (result == null || !pending.isEmpty()) {
+      throw new IllegalArgumentException(
+          "qasm requires one complete prepare/measure quantum submission");
+    }
+    return result;
+  }
+
+  private static boolean packageArguments(
+      String[] args, PrintStream error, String command) {
+    if (args.length != 2 && args.length != 4) {
+      error.println("Usage: wheeler " + command + " <package-directory> [-o output]");
+      return false;
+    }
+    if (args.length == 4 && !args[2].equals("-o")) {
+      error.println("Expected -o before output path");
+      return false;
+    }
+    return true;
+  }
+
+  private static Path replaceExtension(Path source, String extension) {
+    String name = source.getFileName().toString();
+    int dot = name.lastIndexOf('.');
+    String base = dot < 0 ? name : name.substring(0, dot);
+    return source.resolveSibling(base + extension);
+  }
+
+  private static void usage(PrintStream error) {
+    error.println(
+        "Usage: wheeler <run|compile|check|build|package|verify|disassemble|qasm> ...");
   }
 }

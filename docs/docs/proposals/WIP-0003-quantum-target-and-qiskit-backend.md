@@ -180,7 +180,7 @@ The initial portable adapter translates Wheeler resources, gates, coherent calls
 
 An executor may submit through a provider REST API, appliance SDK, queue service, local engine, or external application. It receives canonical QASM, shot count, and seed policy and returns one bounded little-endian outcome per shot. Wheeler validates count and width before accepting the result.
 
-Qiskit can import emitted OpenQASM, but Wheeler does not embed Python or Qiskit. `wheelqasm` emits a static submission for external tools. Future Java or native provider adapters implement the same executor contract without changing source or bytecode.
+Qiskit can import emitted OpenQASM, but Wheeler does not embed Python or Qiskit. `wheeler qasm` emits a static submission for external tools. Future Java or native provider adapters implement the same executor contract without changing source or bytecode.
 
 OpenQASM 3 does not replace canonical Wheeler region IR. Regions requiring dynamic feedback, future logical operations, or semantics not represented losslessly require another capability-specific lowering rather than provider text hidden in source.
 

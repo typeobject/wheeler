@@ -13,7 +13,7 @@ package "wheeler.compiler" version "0.1.0" profile "bootstrap-1";
 It then contains target, dependency, and capability declarations in any source order:
 
 ```text
-target tool "wheelc" root "src/compiler.w";
+target tool "compiler" root "src/compiler.w";
 dependency build "wheeler.bytecode" version "^0.1.0";
 capability "build.read" path "src/**";
 capability "build.write" path "out/**";
@@ -79,6 +79,31 @@ Entries are ordered by logical path. The manifest is stored separately and `whee
 The current ceiling is 16 MiB, 10,000 entries, and 4,096 path bytes. Archive identity is SHA-256 over the complete encoded archive, including its payload digest. Manifest identity and archive identity are deliberately different.
 
 Decoded entry byte arrays are defensively copied. A caller cannot mutate verified package state through a retained host buffer.
+
+## Stage-0 command
+
+The unified command executes local package operations:
+
+```text
+wheeler check <package-directory>
+wheeler build <package-directory> [-o output-directory]
+wheeler package <package-directory> [-o package.wpk]
+wheeler verify <package.wpk>
+wheeler compile <source.w> [-o program.wbc]
+wheeler run <program.wbc>
+wheeler disassemble <program.wbc>
+wheeler qasm <program.wbc> <output.qasm>
+```
+
+`check` compiles and verifies every declared target without writing outputs. `build` writes one canonical `.wbc` per target, named from the target. `package` includes canonical manifest data and every declared target root. `verify` performs strict archive decoding before printing identity. Output replacement uses a sibling temporary file and atomic move when the host supports it.
+
+The local host adapter requires a physical package directory, manifest, and target files. A target path that crosses a symbolic link or resolves outside the package fails before compilation. It reads only the manifest and declared target roots; capability requests remain policy data and do not grant broader host access.
+
+From a source checkout, invoke it through the stage-0 Gradle launcher:
+
+```bash
+./gradlew :wheeler-tools:wheeler --args='check wheeler-examples'
+```
 
 ## Security boundary
 

@@ -15,7 +15,7 @@ class PackageFormatTest {
   private static final String MANIFEST = """
       package "wheeler.compiler" version "0.1.0" profile "bootstrap-1";
       capability "build.write" path "out/**";
-      target tool "wheelc" root "src/compiler.w";
+      target tool "compiler" root "src/compiler.w";
       dependency build "wheeler.bytecode" version "^0.1.0";
       capability "build.read" path "src/**";
       """;
@@ -28,7 +28,7 @@ class PackageFormatTest {
         package "wheeler.compiler" version "0.1.0" profile "bootstrap-1";
         capability "build.read" path "src/**";
         dependency build "wheeler.bytecode" version "^0.1.0";
-        target tool "wheelc" root "src/compiler.w";
+        target tool "compiler" root "src/compiler.w";
         capability "build.write" path "out/**";
         """);
 

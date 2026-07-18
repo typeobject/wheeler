@@ -30,8 +30,9 @@ Cross-cutting semantic changes begin as a [Wheeler Improvement Proposal](../prop
 ```text
 wheeler-core <- wheeler-compiler
 wheeler-core <- wheeler-runtime
-wheeler-core + compiler + runtime <- wheeler-tools
-wheeler-core + compiler + runtime <- wheeler-examples tests
+wheeler-package
+wheeler-core + compiler + runtime + package <- wheeler-tools
+wheeler-core + compiler + runtime + package <- wheeler-examples tests
 ```
 
 Core has no runtime dependencies. Source parsing does not depend on a provider. Quantum adapters will implement runtime contracts rather than entering language semantics.

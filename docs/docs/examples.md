@@ -35,4 +35,10 @@ The examples are deliberately bounded. They demonstrate implemented semantics an
 
 ## Running the suite
 
-Use the [development guide](reference/development.md). The ordinary `check` and `treeSitterTest` gates cover every example. No example is excluded as future syntax.
+The canonical [`wheeler.package`](../../wheeler-examples/wheeler.package) declares every example as a package target. Check all targets through the unified command:
+
+```bash
+./gradlew :wheeler-tools:wheeler --args='check wheeler-examples'
+```
+
+Use the [development guide](reference/development.md) for the complete gate. The ordinary `check` and `treeSitterTest` tasks cover every example. No example is excluded as future syntax.

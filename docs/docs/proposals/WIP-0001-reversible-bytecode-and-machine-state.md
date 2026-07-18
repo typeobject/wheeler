@@ -281,7 +281,7 @@ Artifact bytes, assembly, debug names, effect payloads, and persisted history ar
 5. Assemble and execute a bytecode-level counter fixture, including `CALL` and `UNCALL`.
 6. Lower one source-level counter through the real AST and compiler into the same verified artifact.
 7. Replace `Instruction`, `InstructionSet`, raw `MemoryManager` segment addressing, and snapshot-plus-handler reversal.
-8. Replace `ClassWriter` with the `.wbc` writer and make `wheeler`, `wheelc`, and the disassembler consume the canonical format.
+8. Replace `ClassWriter` with the `.wbc` writer and make the `wheeler` compiler, runtime, and disassembler commands consume the canonical format.
 9. Delete the annotated `Counter.wb` pseudo-binary or move it to non-executable design history.
 
 ## Progress

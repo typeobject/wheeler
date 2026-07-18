@@ -114,7 +114,7 @@ The implemented stage-0 shape is:
 
 ```text
 package "wheeler.compiler" version "0.1.0" profile "bootstrap-1";
-target tool "wheelc" root "src/compiler.w";
+target tool "compiler" root "src/compiler.w";
 dependency build "wheeler.bytecode" version "^0.1.0";
 capability "build.read" path "src/**";
 capability "build.write" path "out/**";
@@ -300,6 +300,7 @@ Secrets are opaque host-owned handles and are prohibited from canonical output, 
 - [ ] Stage-0 manifest, resolution, lockfile, and archive output is content-addressed and reproducible; workspace builds remain.
 - [x] The stage-0 in-memory resolver deterministically selects one version per package with bounded backtracking, explicit development scope, and cycle rejection.
 - [ ] Local, vendored, and registry catalog loading pass conformance tests.
+- [x] The unified stage-0 `wheeler` command checks, builds, packages, verifies, compiles, runs, disassembles, and emits OpenQASM for local package artifacts without dependency loading.
 - [ ] Wheeler-written `wheeler` builds and tests the complete workspace.
 - [ ] Native no-Java recovery uses only committed manifests, lockfile, and vendor inputs.
 - [ ] Gradle and duplicate build paths are deleted.

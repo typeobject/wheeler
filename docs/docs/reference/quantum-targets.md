@@ -51,7 +51,7 @@ c = measure q;
 
 OpenQASM is a derived target format. Wheeler region IR remains authoritative because one interchange format cannot describe every future logical or target-resident capability.
 
-`wheelqasm` emits this form from a `.wbc` artifact containing one static submission. Qiskit and other OpenQASM 3 consumers can import the result without becoming Wheeler runtime dependencies.
+`wheeler qasm` emits this form from a `.wbc` artifact containing one static submission. Qiskit and other OpenQASM 3 consumers can import the result without becoming Wheeler runtime dependencies.
 
 ## OpenQASM target SPI
 

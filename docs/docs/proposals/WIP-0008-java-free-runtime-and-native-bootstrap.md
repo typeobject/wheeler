@@ -29,7 +29,7 @@ The migration must nevertheless remain testable. Replacing Java in one unverifie
 
 ## Goals
 
-- Ship `wheelc`, `wheeler`, `wheeldis`, `wheelqasm`, and the conformance runner without a JRE or JDK.
+- Ship the unified `wheeler` command and conformance runner without a JRE or JDK.
 - Implement production compiler and runtime logic in Wheeler.
 - Preserve `.wbc` as the canonical portable artifact regardless of native caching or linking.
 - Define a small versioned platform ABI with explicit capabilities and bounded data.
@@ -182,7 +182,7 @@ Recovery releases are signed or content-addressed by release policy. Bootstrap s
 
 ## Testing and acceptance
 
-- [ ] `wheelc`, `wheeler`, `wheeldis`, and `wheelqasm` run in a container with no Java or Python installation.
+- [ ] All `wheeler` compiler, runtime, disassembly, quantum-lowering, package, and conformance commands run in a container with no Java or Python installation.
 - [ ] Interpreted and native runs produce identical classical state, traps, commit horizons, and semantic event traces.
 - [ ] Bytecode verifier accept/reject decisions match across all transition implementations.
 - [ ] Native checked arithmetic, call frames, inverse execution, rewind, and history exhaustion pass the WIP-0001 corpus.
