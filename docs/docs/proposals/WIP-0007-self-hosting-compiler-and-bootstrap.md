@@ -197,7 +197,7 @@ The launcher grants read-only source inputs and one atomic artifact destination.
 - [x] Canonical `.wbc` and a deterministic stage-0 compiler exist.
 - [x] The accepted source grammar is formatting-independent and covered by Tree-sitter tooling.
 - [ ] Bootstrap feature and module manifests are specified as executable schemas.
-- [ ] Typed locals, control flow, aggregate values, and bounded storage execute on the VM.
+- [ ] Signed frame locals, expressions, branches, and source-bounded loops execute on the VM; signatures, aggregate values, ownership, and region storage remain.
 - [ ] Wheeler `.wbc` codec passes stage-0 differential tests.
 - [ ] Wheeler lexer and parser compile the accepted source corpus.
 - [ ] Wheeler semantic analysis and lowering compile all examples.

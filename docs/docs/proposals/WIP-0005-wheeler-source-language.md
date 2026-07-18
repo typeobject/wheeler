@@ -119,6 +119,7 @@ The first profile supports:
 - zero-argument `void` methods;
 - `rev`, `coherent rev`, `unitary`, and `entry` methods;
 - `+=`, `-=`, `^=`, direct logged assignment, method calls, assertions, checkpoint, and commit;
+- signed `long` locals, left-to-right arithmetic/comparison expressions, `if`/`else`, and `while (...) limit ...` in ordinary classical methods;
 - direct inverse calls and reverse blocks;
 - H, X, Z, phase, controlled phase, CNOT, CZ, and swap gates;
 - `prepare`, full-register computational-basis measurement, unitary call/adjoint, and coherent method reference;
@@ -173,7 +174,7 @@ The parser bounds source bytes, lines, declarations, methods, statements, regist
 ## Progress
 
 - [x] Wheeler class, field, and method declarations parse.
-- [x] Classical statements and reverse blocks lower to WIP-0001.
+- [x] Classical state, signed locals, bounded control flow, and reverse blocks lower to WIP-0001.
 - [x] Unitary methods and quantum entry operations lower to WIP-0002.
 - [x] Coherent method references execute on classical and simulated quantum data.
 - [x] Counter, QFT, and coherent-oracle examples use only the Wheeler source profile.

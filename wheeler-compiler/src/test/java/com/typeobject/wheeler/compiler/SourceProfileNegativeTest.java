@@ -43,6 +43,34 @@ class SourceProfileNegativeTest {
   }
 
   @Test
+  void rejectsUnboundedAndReversibleControlFlow() {
+    String unbounded = """
+        classical class Unbounded {
+          state long value = 0;
+          entry void main() {
+            while (value < 1) { value += 1; }
+          }
+        }
+        """;
+    String reversible = """
+        classical class ReversibleBranch {
+          state long value = 0;
+          rev void update() {
+            if (value == 0) { value += 1; }
+          }
+          entry void main() { update(); }
+        }
+        """;
+
+    CompilerException loop = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(unbounded));
+    CompilerException branch = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(reversible));
+    assertTrue(loop.getMessage().contains("expected 'limit'"));
+    assertTrue(branch.getMessage().contains("local control flow is not available"));
+  }
+
+  @Test
   void rejectsOutOfRangeQuantumReference() {
     String source = """
         quantum class BrokenQubit {

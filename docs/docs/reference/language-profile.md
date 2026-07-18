@@ -39,7 +39,7 @@ entry void main() { ... }
 - A `unitary` method lowers to backend-neutral quantum region IR and receives a generated adjoint.
 - Exactly one zero-argument `entry void main()` method defines execution.
 
-`public`, `private`, `protected`, and `static` are accepted where meaningful for familiar organization. The first profile has zero-argument methods; parameters and locals will be added with corresponding bytecode and ownership semantics.
+`public`, `private`, `protected`, and `static` are accepted where meaningful for familiar organization. Methods remain zero-argument in the current source profile. Ordinary classical methods have signed 64-bit local bindings and bounded control flow; parameters and return values require the next typed-signature slice.
 
 ## Classical statements
 
@@ -65,6 +65,29 @@ reverse {
 ```
 
 This executes `reverse second();` and then `reverse first();`.
+
+## Local expressions and bounded control
+
+Ordinary classical methods support `long` locals, left-to-right expressions over `+`, `-`, `^`, `<`, and `==`, `if`/`else`, and source-bounded `while`:
+
+```java
+long i = 0;
+while (i < 5) limit 5 {
+    sum += i;
+    i += 1;
+}
+if (sum == 10) {
+    branch = 1;
+} else {
+    branch = 2;
+}
+```
+
+The loop limit is evaluated once before entry. Wheeler checks it before every body iteration and traps before executing an iteration beyond the bound. The whole-program step limit remains a separate defense.
+
+Local control compiles to verified frame registers and explicit control-flow targets. The verifier rejects invalid targets, out-of-range locals, reads not definitely assigned on every incoming path, and a function that falls through its body.
+
+Control flow is not accepted in `rev` or `coherent rev` methods yet. Wheeler will add reversible branches and loops only with an exact branch or iteration witness; it does not retain hidden history automatically.
 
 ## Quantum statements
 
@@ -123,7 +146,7 @@ The compiler lexer records line, column, and source offset. The parser is format
 
 ## Bootstrap direction
 
-The current compiler and VM use Java only as stage-0 infrastructure. The production compiler will be Wheeler source and must compile itself to a byte-identical second-stage `.wbc` artifact. Typed locals, parameters, returns, control flow, records, variants, strings, bytes, deterministic collections, modules, and explicit file effects will be added as complete vertical slices to support that compiler.
+The current compiler and VM use Java only as stage-0 infrastructure. The production compiler will be Wheeler source and must compile itself to a byte-identical second-stage `.wbc` artifact. Signed local registers and bounded classical control form the first bootstrap slice. Parameters, returns, records, variants, strings, bytes, deterministic collections, modules, and explicit file effects follow as complete vertical slices.
 
 After native runtime conformance, the Java compiler, VM, tools, Gradle build, and JVM deployment path will be deleted. A cold build will use a content-addressed prior native Wheeler release and `.wbc` recovery seed. Java APIs and object semantics are therefore not prospective Wheeler contracts.
 
@@ -141,7 +164,7 @@ The Wheeler-written standard library will provide allocation-free core values, o
 
 ## Teaching path
 
-1. `Counter.w` and `BinaryTree.w`: classical state, reversible methods, assertions, reverse blocks, and fixed-capacity data layout.
+1. `Counter.w`, `BinaryTree.w`, and `BootstrapControl.w`: reversible state, fixed-capacity data layout, typed locals, expressions, branches, and bounded loops.
 2. `CoherentOracle.w` and `QuantumNeuralNetwork.w`: exact XOR permutations over classical and coherent data.
 3. `QFT.w` and `QFTProof.w`: unitary regions, generated adjoints, and executable inverse laws.
 4. `QuantumOptimizer.w`: repeated target observations, classical acceptance, commit, and target-free replay.

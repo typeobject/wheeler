@@ -15,6 +15,7 @@ public final class ProgramFixtures {
         0,
         "main",
         false,
+        0,
         List.of(
             Instruction.of(Opcode.CALL, 1),
             Instruction.of(Opcode.CALL, 1),
@@ -28,6 +29,7 @@ public final class ProgramFixtures {
         1,
         "increment",
         false,
+        0,
         List.of(Instruction.of(Opcode.ADD_CONST, 0, 1), Instruction.of(Opcode.RETURN)),
         List.of(Instruction.of(Opcode.SUB_CONST, 0, 1), Instruction.of(Opcode.RETURN)));
     return new Program("Counter", 0, List.of(new Global("count", 0)), List.of(main, increment));

@@ -17,6 +17,29 @@ class BytecodeVerifierTest {
   }
 
   @Test
+  void rejectsUninitializedLocalsAndInvalidControlTargets() {
+    FunctionBody uninitialized = new FunctionBody(
+        0,
+        "main",
+        false,
+        1,
+        List.of(
+            Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    FunctionBody badJump = new FunctionBody(
+        0,
+        "main",
+        false,
+        0,
+        List.of(Instruction.of(Opcode.JUMP, 7), Instruction.of(Opcode.HALT)),
+        List.of());
+
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(uninitialized)));
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(badJump)));
+  }
+
+  @Test
   void everyGeneratedInversePairIsSymmetric() {
     for (Opcode opcode : Opcode.values()) {
       if (opcode.supportsGeneratedInverse()) {
@@ -26,15 +49,17 @@ class BytecodeVerifierTest {
   }
 
   private static Program programWith(Instruction instruction) {
-    return new Program(
-        "Invalid",
+    return programWith(new FunctionBody(
         0,
-        List.of(new Global("value", 0)),
-        List.of(new FunctionBody(
-            0,
-            "main",
-            false,
-            List.of(instruction, Instruction.of(Opcode.HALT)),
-            List.of())));
+        "main",
+        false,
+        0,
+        List.of(instruction, Instruction.of(Opcode.HALT)),
+        List.of()));
+  }
+
+  private static Program programWith(FunctionBody function) {
+    return new Program(
+        "Invalid", 0, List.of(new Global("value", 0)), List.of(function));
   }
 }

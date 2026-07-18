@@ -37,7 +37,8 @@ public final class BytecodeReader {
       int forwardOffset,
       int forwardLength,
       int inverseOffset,
-      int inverseLength) {}
+      int inverseLength,
+      int localCount) {}
 
   public Program read(byte[] bytes) {
     try {
@@ -255,11 +256,19 @@ public final class BytecodeReader {
       int inverseOffset = section.getInt();
       int inverseLength = section.getInt();
       int frameSlots = section.getInt();
-      if (id < 0 || !ids.add(id) || (flags & ~3) != 0 || frameSlots != 0) {
+      if (id < 0 || !ids.add(id) || (flags & ~3) != 0
+          || frameSlots < 0 || frameSlots > 65_535) {
         fail("Invalid function descriptor");
       }
       result.add(new FunctionDescriptor(
-          id, nameId, flags, forwardOffset, forwardLength, inverseOffset, inverseLength));
+          id,
+          nameId,
+          flags,
+          forwardOffset,
+          forwardLength,
+          inverseOffset,
+          inverseLength,
+          frameSlots));
     }
     return List.copyOf(result);
   }
@@ -279,7 +288,12 @@ public final class BytecodeReader {
         fail("Nonreversible function has an inverse body");
       }
       functions.add(new FunctionBody(
-          descriptor.id(), strings.get(descriptor.nameId()), coherent, forward, inverse));
+          descriptor.id(),
+          strings.get(descriptor.nameId()),
+          coherent,
+          descriptor.localCount(),
+          forward,
+          inverse));
     }
     return List.copyOf(functions);
   }

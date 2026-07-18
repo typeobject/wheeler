@@ -25,7 +25,8 @@ public final class VirtualMachine {
     BytecodeVerifier.verify(program);
     this.program = program;
     this.globals = program.globals().stream().mapToLong(global -> global.initialValue()).toArray();
-    this.frames.add(new Frame(program.entryFunctionId(), false, 0));
+    FunctionBody entry = program.function(program.entryFunctionId());
+    this.frames.add(Frame.create(entry.id(), false, entry.localCount()));
   }
 
   public void run() {
@@ -107,7 +108,7 @@ public final class VirtualMachine {
     }
     history.clear();
     int callerDepth = frames.size();
-    frames.add(new Frame(functionId, inverse, 0));
+    frames.add(Frame.create(functionId, inverse, function.localCount()));
     while (frames.size() > callerDepth) {
       step();
     }
@@ -201,10 +202,47 @@ public final class VirtualMachine {
         globals[changedGlobal] = operand(instruction, 1);
         advanceCurrentFrame();
       }
+      case LOCAL_CONST -> setLocalAndAdvance(
+          localIndex(instruction, 0), operand(instruction, 1));
+      case LOCAL_LOAD_GLOBAL -> setLocalAndAdvance(
+          localIndex(instruction, 0), globals[globalIndex(instruction, 1)]);
+      case LOCAL_STORE_GLOBAL -> {
+        changedGlobal = globalIndex(instruction, 0);
+        previousValue = globals[changedGlobal];
+        globals[changedGlobal] = localValue(instruction, 1);
+        advanceCurrentFrame();
+      }
+      case LOCAL_MOVE -> setLocalAndAdvance(
+          localIndex(instruction, 0), localValue(instruction, 1));
+      case LOCAL_ADD -> setLocalAndAdvance(
+          localIndex(instruction, 0),
+          Math.addExact(localValue(instruction, 1), localValue(instruction, 2)));
+      case LOCAL_SUB -> setLocalAndAdvance(
+          localIndex(instruction, 0),
+          Math.subtractExact(localValue(instruction, 1), localValue(instruction, 2)));
+      case LOCAL_XOR -> setLocalAndAdvance(
+          localIndex(instruction, 0), localValue(instruction, 1) ^ localValue(instruction, 2));
+      case LOCAL_EQ -> setLocalAndAdvance(
+          localIndex(instruction, 0),
+          localValue(instruction, 1) == localValue(instruction, 2) ? 1 : 0);
+      case LOCAL_LT -> setLocalAndAdvance(
+          localIndex(instruction, 0),
+          localValue(instruction, 1) < localValue(instruction, 2) ? 1 : 0);
+      case JUMP -> jumpCurrentFrame(Math.toIntExact(operand(instruction, 0)));
+      case JUMP_IF_ZERO -> {
+        if (localValue(instruction, 0) == 0) {
+          jumpCurrentFrame(Math.toIntExact(operand(instruction, 1)));
+        } else {
+          advanceCurrentFrame();
+        }
+      }
+      case LOCAL_LOOP_CHECK -> setLocalAndAdvance(
+          localIndex(instruction, 0), Math.addExact(localValue(instruction, 0), 1));
       case CALL, UNCALL -> {
         int functionId = Math.toIntExact(operand(instruction, 0));
         advanceCurrentFrame();
-        frames.add(new Frame(functionId, opcode == Opcode.UNCALL, 0));
+        FunctionBody target = program.function(functionId);
+        frames.add(Frame.create(functionId, opcode == Opcode.UNCALL, target.localCount()));
         control = StepRecord.ControlChange.CALL;
       }
       case RETURN -> {
@@ -235,6 +273,45 @@ public final class VirtualMachine {
             globals[globalIndex(instruction, 0)], operand(instruction, 1));
         case SUB_CONST -> Math.subtractExact(
             globals[globalIndex(instruction, 0)], operand(instruction, 1));
+        case LOCAL_ADD -> {
+          localIndex(instruction, 0);
+          Math.addExact(localValue(instruction, 1), localValue(instruction, 2));
+        }
+        case LOCAL_SUB -> {
+          localIndex(instruction, 0);
+          Math.subtractExact(localValue(instruction, 1), localValue(instruction, 2));
+        }
+        case LOCAL_CONST -> localIndex(instruction, 0);
+        case LOCAL_LOAD_GLOBAL -> {
+          localIndex(instruction, 0);
+          globalIndex(instruction, 1);
+        }
+        case LOCAL_STORE_GLOBAL -> {
+          globalIndex(instruction, 0);
+          localIndex(instruction, 1);
+        }
+        case LOCAL_MOVE -> {
+          localIndex(instruction, 0);
+          localIndex(instruction, 1);
+        }
+        case LOCAL_XOR, LOCAL_EQ, LOCAL_LT -> {
+          localIndex(instruction, 0);
+          localIndex(instruction, 1);
+          localIndex(instruction, 2);
+        }
+        case JUMP -> checkedJumpTarget(instruction, 0);
+        case JUMP_IF_ZERO -> {
+          localIndex(instruction, 0);
+          checkedJumpTarget(instruction, 1);
+        }
+        case LOCAL_LOOP_CHECK -> {
+          long iteration = localValue(instruction, 0);
+          long limit = localValue(instruction, 1);
+          if (iteration < 0 || limit < 0 || iteration >= limit) {
+            trap("Loop iteration limit exceeded");
+          }
+          Math.addExact(iteration, 1);
+        }
         case CALL -> program.function(Math.toIntExact(operand(instruction, 0)));
         case UNCALL -> {
           FunctionBody function = program.function(Math.toIntExact(operand(instruction, 0)));
@@ -283,8 +360,11 @@ public final class VirtualMachine {
         globals[left] = globals[right];
         globals[right] = value;
       }
-      case SET_LOGGED -> globals[record.changedGlobal()] = record.previousValue();
-      case NOP, HALT, RETURN, CALL, UNCALL, EXPECT_EQ, CHECKPOINT, COMMIT -> {
+      case SET_LOGGED, LOCAL_STORE_GLOBAL ->
+          globals[record.changedGlobal()] = record.previousValue();
+      case NOP, HALT, RETURN, CALL, UNCALL, EXPECT_EQ, CHECKPOINT, COMMIT,
+          LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, LOCAL_ADD, LOCAL_SUB,
+          LOCAL_XOR, LOCAL_EQ, LOCAL_LT, JUMP, JUMP_IF_ZERO, LOCAL_LOOP_CHECK -> {
         // These instructions alter only control or status state.
       }
     }
@@ -309,12 +389,43 @@ public final class VirtualMachine {
     replaceCurrentFrame(currentFrame().advance());
   }
 
+  private void setLocalAndAdvance(int index, long value) {
+    replaceCurrentFrame(currentFrame().withLocal(index, value).advance());
+  }
+
+  private void jumpCurrentFrame(int target) {
+    replaceCurrentFrame(currentFrame().jump(target));
+  }
+
   private void replaceCurrentFrame(Frame frame) {
     frames.set(frames.size() - 1, frame);
   }
 
   private int globalIndex(Instruction instruction, int operandIndex) {
     return checkedGlobalIndex(Math.toIntExact(operand(instruction, operandIndex)));
+  }
+
+  private int localIndex(Instruction instruction, int operandIndex) {
+    int index = Math.toIntExact(operand(instruction, operandIndex));
+    if (index < 0 || index >= currentFrame().locals().size()) {
+      throw new VmTrap("Invalid local index " + index);
+    }
+    return index;
+  }
+
+  private long localValue(Instruction instruction, int operandIndex) {
+    return currentFrame().local(localIndex(instruction, operandIndex));
+  }
+
+  private int checkedJumpTarget(Instruction instruction, int operandIndex) {
+    int target = Math.toIntExact(operand(instruction, operandIndex));
+    int bodySize = program.function(currentFrame().functionId())
+        .body(currentFrame().inverse())
+        .size();
+    if (target < 0 || target >= bodySize) {
+      throw new VmTrap("Invalid jump target " + target);
+    }
+    return target;
   }
 
   private int checkedGlobalIndex(int index) {

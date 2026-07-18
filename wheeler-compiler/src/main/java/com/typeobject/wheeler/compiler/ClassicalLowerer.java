@@ -9,6 +9,7 @@ import com.typeobject.wheeler.core.bytecode.Opcode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +21,8 @@ final class ClassicalLowerer {
       int entryId,
       Map<String, Integer> globalIds,
       Map<String, Integer> functionIds) {}
+
+  private record LoweredBody(List<Instruction> instructions, int localCount) {}
 
   ClassicalContent lower(SourceProgram source, boolean classicalEntry) {
     List<Global> globals = lowerGlobals(source);
@@ -36,10 +39,15 @@ final class ClassicalLowerer {
         entryId = id;
       }
       List<Instruction> forward;
+      int localCount;
       if (sourceFunction.entry() && !classicalEntry) {
         forward = List.of(Instruction.of(Opcode.HALT));
+        localCount = 0;
       } else {
-        forward = lowerStatements(sourceFunction, globalIds, functionIds, reversibleFunctions);
+        LoweredBody lowered = lowerStatements(
+            sourceFunction, globalIds, functionIds, reversibleFunctions);
+        forward = lowered.instructions();
+        localCount = lowered.localCount();
       }
       if (sourceFunction.entry()) {
         if (forward.stream().noneMatch(instruction -> instruction.opcode() == Opcode.HALT)) {
@@ -49,7 +57,6 @@ final class ClassicalLowerer {
         if (forward.stream().anyMatch(instruction -> instruction.opcode() == Opcode.HALT)) {
           throw new CompilerException(sourceFunction.line(), "only the entry block may halt");
         }
-        forward = appendReturn(forward);
       }
 
       List<Instruction> inverse = List.of();
@@ -60,7 +67,7 @@ final class ClassicalLowerer {
         }
       }
       functions.add(new FunctionBody(
-          id, sourceFunction.name(), sourceFunction.coherent(), forward, inverse));
+          id, sourceFunction.name(), sourceFunction.coherent(), localCount, forward, inverse));
     }
     return new ClassicalContent(
         globals, List.copyOf(functions), entryId, globalIds, functionIds);
@@ -97,16 +104,12 @@ final class ClassicalLowerer {
     return Map.copyOf(result);
   }
 
-  private static List<Instruction> lowerStatements(
+  private static LoweredBody lowerStatements(
       SourceModel.Function owner,
       Map<String, Integer> globals,
       Map<String, Integer> functions,
       Map<String, Boolean> reversibleFunctions) {
-    List<Instruction> result = new ArrayList<>();
-    for (Statement statement : owner.statements()) {
-      result.add(lowerStatement(statement, globals, functions, reversibleFunctions));
-    }
-    return List.copyOf(result);
+    return new LocalAssembler(owner, globals, functions, reversibleFunctions).lower();
   }
 
   private static Instruction lowerStatement(
@@ -181,10 +184,207 @@ final class ClassicalLowerer {
     }
   }
 
-  private static List<Instruction> appendReturn(List<Instruction> body) {
-    List<Instruction> result = new ArrayList<>(body);
-    result.add(Instruction.of(Opcode.RETURN));
-    return List.copyOf(result);
+  private static final class LocalAssembler {
+    private final SourceModel.Function owner;
+    private final Map<String, Integer> globals;
+    private final Map<String, Integer> functions;
+    private final Map<String, Boolean> reversibleFunctions;
+    private final Map<String, Integer> locals = new LinkedHashMap<>();
+    private final Map<String, Integer> labels = new HashMap<>();
+    private final List<Patch> patches = new ArrayList<>();
+    private final List<Instruction> output = new ArrayList<>();
+    private int assemblyTemporary;
+
+    private LocalAssembler(
+        SourceModel.Function owner,
+        Map<String, Integer> globals,
+        Map<String, Integer> functions,
+        Map<String, Boolean> reversibleFunctions) {
+      this.owner = owner;
+      this.globals = globals;
+      this.functions = functions;
+      this.reversibleFunctions = reversibleFunctions;
+    }
+
+    private LoweredBody lower() {
+      for (Statement statement : owner.statements()) {
+        lower(statement);
+      }
+      if (!owner.entry()) {
+        output.add(Instruction.of(Opcode.RETURN));
+      }
+      for (Patch patch : patches) {
+        Integer target = labels.get(patch.label());
+        if (target == null) {
+          throw new CompilerException(patch.line(), "unknown control-flow label");
+        }
+        output.set(
+            patch.instructionIndex(),
+            patch.conditionLocal() < 0
+                ? Instruction.of(Opcode.JUMP, target)
+                : Instruction.of(Opcode.JUMP_IF_ZERO, patch.conditionLocal(), target));
+      }
+      return new LoweredBody(List.copyOf(output), locals.size());
+    }
+
+    private void lower(Statement statement) {
+      List<String> arguments = statement.arguments();
+      switch (statement.operation()) {
+        case "local_const" -> {
+          requireArguments(statement, 2);
+          output.add(Instruction.of(
+              Opcode.LOCAL_CONST,
+              declareInternal(arguments.get(0), statement.line()),
+              SourceParser.parseInteger(arguments.get(1), statement.line())));
+        }
+        case "local_read" -> lowerRead(statement);
+        case "local_binary" -> lowerBinary(statement);
+        case "local_bind" -> {
+          requireArguments(statement, 2);
+          int destination = declareUser(arguments.get(0), statement.line());
+          output.add(Instruction.of(
+              Opcode.LOCAL_MOVE, destination, requireLocal(arguments.get(1), statement.line())));
+        }
+        case "assign" -> lowerAssignment(statement);
+        case "label" -> {
+          requireArguments(statement, 1);
+          if (labels.put(arguments.getFirst(), output.size()) != null) {
+            throw new CompilerException(statement.line(), "duplicate control-flow label");
+          }
+        }
+        case "jump" -> {
+          requireArguments(statement, 1);
+          patches.add(new Patch(output.size(), arguments.getFirst(), -1, statement.line()));
+          output.add(Instruction.of(Opcode.JUMP, 0));
+        }
+        case "jump_zero" -> {
+          requireArguments(statement, 2);
+          int condition = requireLocal(arguments.get(0), statement.line());
+          patches.add(new Patch(output.size(), arguments.get(1), condition, statement.line()));
+          output.add(Instruction.of(Opcode.JUMP_IF_ZERO, condition, 0));
+        }
+        case "loop_check" -> {
+          requireArguments(statement, 2);
+          output.add(Instruction.of(
+              Opcode.LOCAL_LOOP_CHECK,
+              requireLocal(arguments.get(0), statement.line()),
+              requireLocal(arguments.get(1), statement.line())));
+        }
+        default -> output.add(lowerStatement(statement, globals, functions, reversibleFunctions));
+      }
+    }
+
+    private void lowerRead(Statement statement) {
+      requireArguments(statement, 2);
+      int destination = declareInternal(statement.arguments().get(0), statement.line());
+      String source = statement.arguments().get(1);
+      Integer local = locals.get(source);
+      if (local != null) {
+        output.add(Instruction.of(Opcode.LOCAL_MOVE, destination, local));
+        return;
+      }
+      Integer global = globals.get(source);
+      if (global == null) {
+        throw new CompilerException(statement.line(), "unknown local or state: " + source);
+      }
+      output.add(Instruction.of(Opcode.LOCAL_LOAD_GLOBAL, destination, global));
+    }
+
+    private void lowerBinary(Statement statement) {
+      requireArguments(statement, 4);
+      List<String> arguments = statement.arguments();
+      int destination = declareInternal(arguments.get(0), statement.line());
+      Opcode opcode = binaryOpcode(arguments.get(1), statement.line());
+      output.add(Instruction.of(
+          opcode,
+          destination,
+          requireLocal(arguments.get(2), statement.line()),
+          requireLocal(arguments.get(3), statement.line())));
+    }
+
+    private void lowerAssignment(Statement statement) {
+      requireArguments(statement, 3);
+      String target = statement.arguments().get(0);
+      String operator = statement.arguments().get(1);
+      int value = requireLocal(statement.arguments().get(2), statement.line());
+      Integer local = locals.get(target);
+      if (local != null) {
+        if (operator.equals("ASSIGN")) {
+          output.add(Instruction.of(Opcode.LOCAL_MOVE, local, value));
+        } else {
+          output.add(Instruction.of(
+              assignmentOpcode(operator, statement.line()), local, local, value));
+        }
+        return;
+      }
+      Integer global = globals.get(target);
+      if (global == null) {
+        throw new CompilerException(statement.line(), "unknown assignment target: " + target);
+      }
+      if (operator.equals("ASSIGN")) {
+        output.add(Instruction.of(Opcode.LOCAL_STORE_GLOBAL, global, value));
+        return;
+      }
+      int temporary = declareInternal("$a" + assemblyTemporary++, statement.line());
+      output.add(Instruction.of(Opcode.LOCAL_LOAD_GLOBAL, temporary, global));
+      output.add(Instruction.of(
+          assignmentOpcode(operator, statement.line()), temporary, temporary, value));
+      output.add(Instruction.of(Opcode.LOCAL_STORE_GLOBAL, global, temporary));
+    }
+
+    private static Opcode binaryOpcode(String operator, int line) {
+      return switch (operator) {
+        case "add" -> Opcode.LOCAL_ADD;
+        case "sub" -> Opcode.LOCAL_SUB;
+        case "xor" -> Opcode.LOCAL_XOR;
+        case "eq" -> Opcode.LOCAL_EQ;
+        case "lt" -> Opcode.LOCAL_LT;
+        default -> throw new CompilerException(line, "unsupported local operator: " + operator);
+      };
+    }
+
+    private static Opcode assignmentOpcode(String operator, int line) {
+      return switch (operator) {
+        case "PLUS_ASSIGN" -> Opcode.LOCAL_ADD;
+        case "MINUS_ASSIGN" -> Opcode.LOCAL_SUB;
+        case "XOR_ASSIGN" -> Opcode.LOCAL_XOR;
+        default -> throw new CompilerException(line, "unsupported assignment operator: " + operator);
+      };
+    }
+
+    private int declareInternal(String name, int line) {
+      if (!name.startsWith("$")) {
+        throw new CompilerException(line, "invalid compiler temporary");
+      }
+      return declare(name, line);
+    }
+
+    private int declareUser(String name, int line) {
+      if (globals.containsKey(name) || functions.containsKey(name)) {
+        throw new CompilerException(line, "local shadows class member: " + name);
+      }
+      return declare(name, line);
+    }
+
+    private int declare(String name, int line) {
+      if (locals.containsKey(name)) {
+        throw new CompilerException(line, "duplicate local: " + name);
+      }
+      int index = locals.size();
+      locals.put(name, index);
+      return index;
+    }
+
+    private int requireLocal(String name, int line) {
+      Integer index = locals.get(name);
+      if (index == null) {
+        throw new CompilerException(line, "unknown local: " + name);
+      }
+      return index;
+    }
+
+    private record Patch(
+        int instructionIndex, String label, int conditionLocal, int line) {}
   }
 
   private static List<Instruction> generateInverse(

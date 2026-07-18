@@ -8,7 +8,9 @@ import com.typeobject.wheeler.core.quantum.QuantumOperation;
 import com.typeobject.wheeler.core.quantum.QuantumRegister;
 import com.typeobject.wheeler.core.workflow.WorkflowOpcode;
 import com.typeobject.wheeler.core.workflow.WorkflowStep;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -113,6 +115,7 @@ public final class BytecodeVerifier {
     for (int pc = 0; pc < body.size(); pc++) {
       verifyInstruction(program, owner, body.get(pc), pc, inverseBody);
     }
+    verifyLocalFlow(owner, body);
   }
 
   private static void verifyInstruction(
@@ -125,6 +128,33 @@ public final class BytecodeVerifier {
     switch (opcode) {
       case ADD_CONST, SUB_CONST, XOR_CONST, SET_LOGGED, EXPECT_EQ ->
           verifyGlobal(program, instruction.operands().getFirst(), owner, pc);
+      case LOCAL_CONST -> verifyLocal(owner, instruction.operands().getFirst(), pc);
+      case LOCAL_LOAD_GLOBAL -> {
+        verifyLocal(owner, instruction.operands().get(0), pc);
+        verifyGlobal(program, instruction.operands().get(1), owner, pc);
+      }
+      case LOCAL_STORE_GLOBAL -> {
+        verifyGlobal(program, instruction.operands().get(0), owner, pc);
+        verifyLocal(owner, instruction.operands().get(1), pc);
+      }
+      case LOCAL_MOVE -> {
+        verifyLocal(owner, instruction.operands().get(0), pc);
+        verifyLocal(owner, instruction.operands().get(1), pc);
+      }
+      case LOCAL_ADD, LOCAL_SUB, LOCAL_XOR, LOCAL_EQ, LOCAL_LT -> {
+        verifyLocal(owner, instruction.operands().get(0), pc);
+        verifyLocal(owner, instruction.operands().get(1), pc);
+        verifyLocal(owner, instruction.operands().get(2), pc);
+      }
+      case JUMP -> verifyJump(owner, instruction.operands().getFirst(), pc, owner.body(inverseBody));
+      case JUMP_IF_ZERO -> {
+        verifyLocal(owner, instruction.operands().get(0), pc);
+        verifyJump(owner, instruction.operands().get(1), pc, owner.body(inverseBody));
+      }
+      case LOCAL_LOOP_CHECK -> {
+        verifyLocal(owner, instruction.operands().get(0), pc);
+        verifyLocal(owner, instruction.operands().get(1), pc);
+      }
       case SWAP -> {
         verifyGlobal(program, instruction.operands().get(0), owner, pc);
         verifyGlobal(program, instruction.operands().get(1), owner, pc);
@@ -154,6 +184,98 @@ public final class BytecodeVerifier {
       case NOP, CHECKPOINT -> {
         // No additional operands to verify.
       }
+    }
+  }
+
+  private static void verifyLocalFlow(FunctionBody owner, List<Instruction> body) {
+    BitSet[] incoming = new BitSet[body.size()];
+    incoming[0] = new BitSet(owner.localCount());
+    ArrayDeque<Integer> work = new ArrayDeque<>();
+    work.add(0);
+    while (!work.isEmpty()) {
+      int pc = work.removeFirst();
+      BitSet assigned = (BitSet) incoming[pc].clone();
+      Instruction instruction = body.get(pc);
+      requireAssignedLocals(owner, instruction, pc, assigned);
+      int written = writtenLocal(instruction);
+      if (written >= 0) {
+        assigned.set(written);
+      }
+      for (int successor : successors(owner, body, pc, instruction)) {
+        if (incoming[successor] == null) {
+          incoming[successor] = (BitSet) assigned.clone();
+          work.add(successor);
+        } else {
+          BitSet merged = (BitSet) incoming[successor].clone();
+          merged.and(assigned);
+          if (!merged.equals(incoming[successor])) {
+            incoming[successor] = merged;
+            work.add(successor);
+          }
+        }
+      }
+    }
+  }
+
+  private static void requireAssignedLocals(
+      FunctionBody owner, Instruction instruction, int pc, BitSet assigned) {
+    int[] reads = switch (instruction.opcode()) {
+      case LOCAL_STORE_GLOBAL -> new int[] {1};
+      case LOCAL_MOVE -> new int[] {1};
+      case LOCAL_ADD, LOCAL_SUB, LOCAL_XOR, LOCAL_EQ, LOCAL_LT -> new int[] {1, 2};
+      case JUMP_IF_ZERO -> new int[] {0};
+      case LOCAL_LOOP_CHECK -> new int[] {0, 1};
+      default -> new int[0];
+    };
+    for (int operandIndex : reads) {
+      int local = Math.toIntExact(instruction.operands().get(operandIndex));
+      if (!assigned.get(local)) {
+        fail(location(owner, pc) + " reads uninitialized local " + local);
+      }
+    }
+  }
+
+  private static int writtenLocal(Instruction instruction) {
+    return switch (instruction.opcode()) {
+      case LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, LOCAL_ADD, LOCAL_SUB,
+          LOCAL_XOR, LOCAL_EQ, LOCAL_LT, LOCAL_LOOP_CHECK ->
+          Math.toIntExact(instruction.operands().getFirst());
+      default -> -1;
+    };
+  }
+
+  private static List<Integer> successors(
+      FunctionBody owner, List<Instruction> body, int pc, Instruction instruction) {
+    if (instruction.opcode() == Opcode.HALT || instruction.opcode() == Opcode.RETURN) {
+      return List.of();
+    }
+    if (instruction.opcode() == Opcode.JUMP) {
+      return List.of(Math.toIntExact(instruction.operands().getFirst()));
+    }
+    if (instruction.opcode() == Opcode.JUMP_IF_ZERO) {
+      int next = checkedFallthrough(owner, body, pc);
+      return List.of(next, Math.toIntExact(instruction.operands().get(1)));
+    }
+    return List.of(checkedFallthrough(owner, body, pc));
+  }
+
+  private static int checkedFallthrough(FunctionBody owner, List<Instruction> body, int pc) {
+    if (pc + 1 >= body.size()) {
+      fail(location(owner, pc) + " falls off the function body");
+    }
+    return pc + 1;
+  }
+
+  private static void verifyLocal(FunctionBody owner, long operand, int pc) {
+    if (operand < 0 || operand >= owner.localCount()) {
+      fail(location(owner, pc) + " invalid local index " + operand);
+    }
+  }
+
+  private static void verifyJump(
+      FunctionBody owner, long operand, int pc, List<Instruction> body) {
+    if (operand < 0 || operand >= body.size()) {
+      fail(location(owner, pc) + " invalid jump target " + operand);
     }
   }
 

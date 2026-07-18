@@ -19,7 +19,20 @@ public enum Opcode {
 
   EXPECT_EQ(0x0300, 2, Reversibility.CHECKED),
   CHECKPOINT(0x0301, 0, Reversibility.INTRINSIC),
-  COMMIT(0x0302, 0, Reversibility.BARRIER);
+  COMMIT(0x0302, 0, Reversibility.BARRIER),
+
+  LOCAL_CONST(0x0400, 2, Reversibility.CHECKED),
+  LOCAL_LOAD_GLOBAL(0x0401, 2, Reversibility.CHECKED),
+  LOCAL_STORE_GLOBAL(0x0402, 2, Reversibility.LOGGED),
+  LOCAL_MOVE(0x0403, 2, Reversibility.CHECKED),
+  LOCAL_ADD(0x0410, 3, Reversibility.CHECKED),
+  LOCAL_SUB(0x0411, 3, Reversibility.CHECKED),
+  LOCAL_XOR(0x0412, 3, Reversibility.CHECKED),
+  LOCAL_EQ(0x0420, 3, Reversibility.CHECKED),
+  LOCAL_LT(0x0421, 3, Reversibility.CHECKED),
+  JUMP(0x0430, 1, Reversibility.CHECKED),
+  JUMP_IF_ZERO(0x0431, 2, Reversibility.CHECKED),
+  LOCAL_LOOP_CHECK(0x0432, 2, Reversibility.CHECKED);
 
   private final int code;
   private final int operandCount;

@@ -8,7 +8,7 @@ The machine owns:
 
 - one verified immutable program;
 - a status (`ready`, `running`, `halted`, or `trapped`);
-- a bounded stack of immutable control frames;
+- a bounded stack of immutable control frames with signed 64-bit local registers;
 - typed signed 64-bit global locations;
 - an ordered bounded stack of step records;
 - a monotonic transition sequence within the current run.
@@ -24,7 +24,7 @@ step(C, instruction) = (C', undo)
 unstep(C', undo) = C
 ```
 
-Intrinsic operations recover data from their inverse operation. Logged operations retain only the value they overwrite. Call and return records retain the control information needed to restore a frame. The VM never restores a whole thread snapshot and then also executes an inverse handler.
+Intrinsic operations recover data from their inverse operation. Logged operations retain the value they overwrite. Local register and control operations retain the prior immutable frame needed to restore program counter and locals. Call and return records retain the control information needed to restore frame depth. The VM never restores state and then also executes an inverse handler.
 
 ## Function inverse versus rewind
 
@@ -38,4 +38,4 @@ Intrinsic operations recover data from their inverse operation. Logged operation
 
 ## Traps and limits
 
-Invalid expectations, overflow, missing inverses, escaped instruction pointers, exhausted history, and exceeded step limits trap deterministically. A failing instruction does not partially mutate globals or frames.
+Invalid expectations, overflow, missing inverses, invalid local or branch access, exceeded source loop limits, escaped instruction pointers, exhausted history, and exceeded step limits trap deterministically. A failing instruction does not partially mutate globals or frames.

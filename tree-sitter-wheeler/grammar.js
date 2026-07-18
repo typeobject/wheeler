@@ -60,11 +60,41 @@ module.exports = grammar({
     block: $ => seq('{', repeat($.statement), '}'),
 
     statement: $ => choice(
+      $.local_declaration,
       $.assignment_statement,
       $.assert_statement,
       $.call_statement,
       $.coherent_apply_statement,
       $.reverse_statement,
+      $.if_statement,
+      $.while_statement,
+    ),
+
+    local_declaration: $ => seq(
+      'long',
+      field('name', $.identifier),
+      '=',
+      field('value', $.expression),
+      ';',
+    ),
+
+    if_statement: $ => seq(
+      'if',
+      '(',
+      field('condition', $.expression),
+      ')',
+      field('consequence', $.block),
+      optional(seq('else', field('alternative', $.block))),
+    ),
+
+    while_statement: $ => seq(
+      'while',
+      '(',
+      field('condition', $.expression),
+      ')',
+      'limit',
+      field('limit', $.expression),
+      field('body', $.block),
     ),
 
     assignment_statement: $ => seq(
@@ -87,7 +117,22 @@ module.exports = grammar({
     ),
     reverse_statement: $ => seq('reverse', choice($.block, seq($.call_expression, ';'))),
 
-    expression: $ => choice($.integer_literal, $.number_literal, $.identifier, $.call_expression, $.qubit_reference),
+    expression: $ => choice(
+      $.integer_literal,
+      $.number_literal,
+      $.identifier,
+      $.call_expression,
+      $.qubit_reference,
+      $.parenthesized_expression,
+      $.binary_expression,
+    ),
+    parenthesized_expression: $ => seq('(', $.expression, ')'),
+    binary_expression: $ => choice(
+      prec.left(1, seq($.expression, field('operator', '=='), $.expression)),
+      prec.left(2, seq($.expression, field('operator', '<'), $.expression)),
+      prec.left(3, seq($.expression, field('operator', '^'), $.expression)),
+      prec.left(4, seq($.expression, field('operator', choice('+', '-')), $.expression)),
+    ),
     call_expression: $ => seq(
       field('function', $.identifier),
       '(',

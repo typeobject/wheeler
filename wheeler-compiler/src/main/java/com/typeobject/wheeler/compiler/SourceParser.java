@@ -23,6 +23,10 @@ final class SourceParser {
   private final List<Function> functions = new ArrayList<>();
   private final List<QuantumRegisterSource> registers = new ArrayList<>();
   private final List<Circuit> circuits = new ArrayList<>();
+  private String domain;
+  private boolean structuredStatements;
+  private int temporarySequence;
+  private int labelSequence;
 
   SourceProgram parse(String source) {
     tokens = new SourceLexer(source).lex();
@@ -36,6 +40,7 @@ final class SourceParser {
     if (!DOMAINS.contains(domain.text())) {
       fail(domain, "expected classical, quantum, or hybrid");
     }
+    this.domain = domain.text();
     expectText("class");
     String name = expect(Type.IDENTIFIER, "class name").text();
     expect(Type.LEFT_BRACE, "'{' after class name");
@@ -136,8 +141,22 @@ final class SourceParser {
   private Function parseFunction(
       String name, boolean entry, boolean reversible, boolean coherent, int line) {
     List<Statement> body = new ArrayList<>();
+    structuredStatements = !reversible && (!entry || domain.equals("classical"));
+    temporarySequence = 0;
+    labelSequence = 0;
     while (!check(Type.RIGHT_BRACE) && !check(Type.END)) {
-      if (matchText("reverse")) {
+      if (structuredStatements && checkText("long")) {
+        parseLocalDeclaration(body);
+      } else if (structuredStatements && matchText("if")) {
+        parseIf(body, previous());
+      } else if (structuredStatements && matchText("while")) {
+        parseWhile(body, previous());
+      } else if (structuredStatements && isAssignmentStart()) {
+        parseStructuredAssignment(body);
+      } else if (!structuredStatements
+          && (checkText("long") || checkText("if") || checkText("while"))) {
+        fail(peek(), "local control flow is not available in this method kind");
+      } else if (matchText("reverse")) {
         SourceToken reverse = previous();
         if (match(Type.LEFT_BRACE)) {
           List<Statement> calls = new ArrayList<>();
@@ -168,6 +187,170 @@ final class SourceParser {
       body.add(statement("halt", line));
     }
     return new Function(name, entry, reversible, coherent, body, line);
+  }
+
+  private void parseLocalDeclaration(List<Statement> body) {
+    SourceToken start = expectText("long");
+    String name = expect(Type.IDENTIFIER, "local name").text();
+    expect(Type.ASSIGN, "'=' in local declaration");
+    String value = parseExpression(body);
+    expect(Type.SEMICOLON, "';' after local declaration");
+    body.add(statement("local_bind", start.line(), name, value));
+  }
+
+  private void parseStructuredAssignment(List<Statement> body) {
+    SourceToken target = advance();
+    Type operator = advance().type();
+    String value = parseExpression(body);
+    expect(Type.SEMICOLON, "';' after assignment");
+    body.add(statement("assign", target.line(), target.text(), operator.name(), value));
+  }
+
+  private void parseIf(List<Statement> body, SourceToken start) {
+    expect(Type.LEFT_PAREN, "'(' after if");
+    String condition = parseExpression(body);
+    expect(Type.RIGHT_PAREN, "')' after if condition");
+    String otherwise = label();
+    String done = label();
+    body.add(statement("jump_zero", start.line(), condition, otherwise));
+    parseStructuredBlock(body, "if");
+    body.add(statement("jump", start.line(), done));
+    body.add(statement("label", start.line(), otherwise));
+    if (matchText("else")) {
+      parseStructuredBlock(body, "else");
+    }
+    body.add(statement("label", start.line(), done));
+  }
+
+  private void parseWhile(List<Statement> body, SourceToken start) {
+    expect(Type.LEFT_PAREN, "'(' after while");
+    List<Statement> conditionCode = new ArrayList<>();
+    String condition = parseExpression(conditionCode);
+    expect(Type.RIGHT_PAREN, "')' after while condition");
+    expectText("limit");
+    String limit = parseExpression(body);
+    String iterations = temporary();
+    body.add(statement("local_const", start.line(), iterations, "0"));
+    String repeat = label();
+    String done = label();
+    body.add(statement("label", start.line(), repeat));
+    body.addAll(conditionCode);
+    body.add(statement("jump_zero", start.line(), condition, done));
+    body.add(statement("loop_check", start.line(), iterations, limit));
+    parseStructuredBlock(body, "while");
+    body.add(statement("jump", start.line(), repeat));
+    body.add(statement("label", start.line(), done));
+  }
+
+  private void parseStructuredBlock(List<Statement> body, String owner) {
+    expect(Type.LEFT_BRACE, "'{' before " + owner + " body");
+    while (!check(Type.RIGHT_BRACE) && !check(Type.END)) {
+      if (checkText("long")) {
+        parseLocalDeclaration(body);
+      } else if (matchText("if")) {
+        parseIf(body, previous());
+      } else if (matchText("while")) {
+        parseWhile(body, previous());
+      } else if (isAssignmentStart()) {
+        parseStructuredAssignment(body);
+      } else {
+        body.add(parseStatement());
+      }
+    }
+    expect(Type.RIGHT_BRACE, "'}' after " + owner + " body");
+  }
+
+  private String parseExpression(List<Statement> body) {
+    return parseEquality(body);
+  }
+
+  private String parseEquality(List<Statement> body) {
+    String left = parseComparison(body);
+    while (match(Type.EQUAL)) {
+      left = binary(body, previous(), "eq", left, parseComparison(body));
+    }
+    return left;
+  }
+
+  private String parseComparison(List<Statement> body) {
+    String left = parseXor(body);
+    while (match(Type.LESS)) {
+      left = binary(body, previous(), "lt", left, parseXor(body));
+    }
+    return left;
+  }
+
+  private String parseXor(List<Statement> body) {
+    String left = parseAdditive(body);
+    while (match(Type.XOR)) {
+      left = binary(body, previous(), "xor", left, parseAdditive(body));
+    }
+    return left;
+  }
+
+  private String parseAdditive(List<Statement> body) {
+    String left = parsePrimary(body);
+    while (match(Type.PLUS, Type.MINUS)) {
+      SourceToken operator = previous();
+      left = binary(
+          body, operator, operator.type() == Type.PLUS ? "add" : "sub", left, parsePrimary(body));
+    }
+    return left;
+  }
+
+  private String parsePrimary(List<Statement> body) {
+    if (match(Type.LEFT_PAREN)) {
+      String value = parseExpression(body);
+      expect(Type.RIGHT_PAREN, "')' after expression");
+      return value;
+    }
+    SourceToken start = peek();
+    if (match(Type.MINUS)) {
+      String value = "-" + expect(Type.NUMBER, "numeric literal").text();
+      return constant(body, start, value);
+    }
+    if (match(Type.NUMBER)) {
+      return constant(body, previous(), previous().text());
+    }
+    if (match(Type.IDENTIFIER)) {
+      String result = temporary();
+      body.add(statement("local_read", start.line(), result, start.text()));
+      return result;
+    }
+    fail(start, "expected expression");
+    throw new AssertionError("unreachable");
+  }
+
+  private String constant(List<Statement> body, SourceToken source, String value) {
+    String result = temporary();
+    body.add(statement("local_const", source.line(), result, value));
+    return result;
+  }
+
+  private String binary(
+      List<Statement> body, SourceToken source, String operator, String left, String right) {
+    String result = temporary();
+    body.add(statement("local_binary", source.line(), result, operator, left, right));
+    return result;
+  }
+
+  private boolean isAssignmentStart() {
+    if (!check(Type.IDENTIFIER) || current + 1 >= tokens.size()) {
+      return false;
+    }
+    Type next = tokens.get(current + 1).type();
+    return next == Type.ASSIGN
+        || next == Type.PLUS_ASSIGN
+        || next == Type.MINUS_ASSIGN
+        || next == Type.XOR_ASSIGN;
+  }
+
+  private String temporary() {
+    return "$t" + temporarySequence++;
+  }
+
+  private String label() {
+    return "$l" + labelSequence++;
   }
 
   private Statement parseStatement() {

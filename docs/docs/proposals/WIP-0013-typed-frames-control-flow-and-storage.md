@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Draft |
+| Status | Implementing |
 | Owners | Wheeler language, compiler, bytecode, verifier, VM, and library maintainers |
 | Created | 2026-07-17 |
 | Updated | 2026-07-17 |
@@ -240,9 +240,9 @@ A feature that cannot express or simplify one of these modules needs separate ju
 
 - [x] Stage-0 VM has explicit immutable call frames, checked calls, bounded steps, snapshots, and rewind records.
 - [x] Source and bytecode distinguish state fields from function control.
-- [ ] Function signature and typed register metadata are encoded and verified.
-- [ ] Typed constants, locals, expressions, calls, returns, and branches execute and rewind.
-- [ ] Source parameters, local bindings, `if`, and bounded loops compile end to end.
+- [ ] Function signature and fully typed register metadata remain; signed 64-bit frame-local counts are encoded and verified.
+- [ ] Local constants, state load/store, move, arithmetic, comparison, branches, and loop checks execute and rewind; value calls and returns remain.
+- [ ] Signed local bindings, expressions, `if`/`else`, and bounded `while` compile end to end; parameters and `for` remain.
 - [ ] Records, variants, arrays, and slices execute with ownership checks.
 - [ ] Region storage supports compiler arenas under hard limits.
 - [ ] Reversible protected control forms generate checked inverses.
@@ -251,8 +251,8 @@ A feature that cannot express or simplify one of these modules needs separate ju
 
 ## Testing and acceptance
 
-- [ ] Bytecode rejects invalid register types, uninitialized reads, target escapes, bad joins, bad returns, and malformed loop descriptors.
-- [ ] VM tests cover every register operation forward and rewind, including traps before mutation.
+- [ ] Bytecode rejects invalid register types, uninitialized reads, target escapes, bad joins, bad returns, and malformed loop descriptors; local bounds, definite assignment, branch targets, and fallthrough are covered.
+- [x] VM tests cover the initial signed-local instruction set forward and rewind, including loop and arithmetic traps before mutation.
 - [ ] Calls cover copy, move, borrow, return, inverse, recursion ceiling, and nested trap behavior.
 - [ ] Branch tests cover both paths, join assignment, unreachable blocks, early return, and source diagnostics.
 - [ ] Loop tests cover zero, exact bound, exceeded bound, break, continue, nested loops, and global step defense.

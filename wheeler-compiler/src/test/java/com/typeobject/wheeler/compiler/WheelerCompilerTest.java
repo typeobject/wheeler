@@ -10,6 +10,7 @@ import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
+import com.typeobject.wheeler.core.vm.VmTrap;
 import org.junit.jupiter.api.Test;
 
 class WheelerCompilerTest {
@@ -57,6 +58,53 @@ class WheelerCompilerTest {
     assertEquals(0, machine.global("count"));
     assertEquals(Opcode.ADD_CONST, program.function(0).forward().getFirst().opcode());
     assertEquals(Opcode.SUB_CONST, program.function(0).inverse().getFirst().opcode());
+  }
+
+  @Test
+  void typedLocalsBranchesAndBoundedLoopsExecute() {
+    String source = """
+        classical class Control {
+          state long sum = 0;
+          state long branch = 0;
+          entry void main() {
+            long i = 0;
+            while (i < 5) limit 5 {
+              sum += i;
+              i += 1;
+            }
+            if (sum == 10) { branch = 1; } else { branch = 2; }
+            assert sum == 10;
+            assert branch == 1;
+          }
+        }
+        """;
+    Program program = new WheelerCompiler().compile(source);
+    VirtualMachine machine = new VirtualMachine(program);
+
+    machine.run();
+
+    assertEquals(10, machine.global("sum"));
+    assertEquals(1, machine.global("branch"));
+    assertTrue(program.function(program.entryFunctionId()).localCount() > 0);
+  }
+
+  @Test
+  void loopLimitTrapsBeforeAnExtraIteration() {
+    Program program = new WheelerCompiler().compile("""
+        classical class Bounded {
+          state long count = 0;
+          entry void main() {
+            long unchanged = 0;
+            while (unchanged < 1) limit 2 {
+              count += 1;
+            }
+          }
+        }
+        """);
+    VirtualMachine machine = new VirtualMachine(program);
+
+    assertThrows(VmTrap.class, machine::run);
+    assertEquals(2, machine.global("count"));
   }
 
   @Test

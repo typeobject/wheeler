@@ -79,18 +79,20 @@ final class SourceLexer {
     int startLine = line;
     int startColumn = column;
     advance();
-    while (!atEnd() && isNumberPart(peek())) {
-      advance();
+    boolean exponent = false;
+    while (!atEnd()) {
+      char value = peek();
+      if (Character.isLetterOrDigit(value) || value == '_' || value == '.') {
+        exponent = value == 'e' || value == 'E';
+        advance();
+      } else if ((value == '+' || value == '-') && exponent) {
+        exponent = false;
+        advance();
+      } else {
+        break;
+      }
     }
     add(Type.NUMBER, start, startLine, startColumn);
-  }
-
-  private static boolean isNumberPart(char value) {
-    return Character.isLetterOrDigit(value)
-        || value == '_'
-        || value == '.'
-        || value == '+'
-        || value == '-';
   }
 
   private void symbol() {
@@ -109,19 +111,13 @@ final class SourceLexer {
       case ',' -> Type.COMMA;
       case '.' -> Type.DOT;
       case '-' -> match('=') ? Type.MINUS_ASSIGN : Type.MINUS;
-      case '+' -> requiredCompound('=', Type.PLUS_ASSIGN, startLine, "+");
-      case '^' -> requiredCompound('=', Type.XOR_ASSIGN, startLine, "^");
+      case '+' -> match('=') ? Type.PLUS_ASSIGN : Type.PLUS;
+      case '^' -> match('=') ? Type.XOR_ASSIGN : Type.XOR;
+      case '<' -> Type.LESS;
       case '=' -> match('=') ? Type.EQUAL : Type.ASSIGN;
       default -> throw new CompilerException(startLine, "unexpected character: " + value);
     };
     tokens.add(new SourceToken(type, source.substring(start, offset), startLine, startColumn, start));
-  }
-
-  private Type requiredCompound(char expected, Type type, int sourceLine, String operator) {
-    if (!match(expected)) {
-      throw new CompilerException(sourceLine, "expected " + operator + expected);
-    }
-    return type;
   }
 
   private void add(Type type, int start, int startLine, int startColumn) {

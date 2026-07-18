@@ -178,3 +178,83 @@ classical class Broken {
                 (expression
                   (integer_literal)))))))
       (MISSING "}"))))
+
+==================
+Bounded local control flow
+==================
+
+classical class Control {
+  state long sum = 0;
+  entry void main() {
+    long i = 0;
+    while (i < 5) limit 5 {
+      sum += i;
+      i += 1;
+    }
+    if (sum == 10) { sum = 1; } else { sum = 2; }
+  }
+}
+
+---
+
+(source_file
+  (class_declaration
+    (computation_domain)
+    (identifier)
+    (class_body
+      (member_declaration
+        (state_declaration
+          (identifier)
+          (integer_literal)))
+      (member_declaration
+        (method_declaration
+          (method_modifier)
+          (identifier)
+          (parameter_list)
+          (block
+            (statement
+              (local_declaration
+                (identifier)
+                (expression
+                  (integer_literal))))
+            (statement
+              (while_statement
+                (expression
+                  (binary_expression
+                    (expression
+                      (identifier))
+                    (expression
+                      (integer_literal))))
+                (expression
+                  (integer_literal))
+                (block
+                  (statement
+                    (assignment_statement
+                      (identifier)
+                      (expression
+                        (identifier))))
+                  (statement
+                    (assignment_statement
+                      (identifier)
+                      (expression
+                        (integer_literal)))))))
+            (statement
+              (if_statement
+                (expression
+                  (binary_expression
+                    (expression
+                      (identifier))
+                    (expression
+                      (integer_literal))))
+                (block
+                  (statement
+                    (assignment_statement
+                      (identifier)
+                      (expression
+                        (integer_literal)))))
+                (block
+                  (statement
+                    (assignment_statement
+                      (identifier)
+                      (expression
+                        (integer_literal)))))))))))))

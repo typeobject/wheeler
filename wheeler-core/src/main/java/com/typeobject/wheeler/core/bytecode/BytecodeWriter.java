@@ -180,7 +180,7 @@ public final class BytecodeWriter {
       buffer.putInt(location.forwardLength());
       buffer.putInt(location.inverseOffset());
       buffer.putInt(location.inverseLength());
-      buffer.putInt(0); // Reserved frame-slot count.
+      buffer.putInt(function.localCount());
     }
     return buffer.array();
   }

@@ -26,6 +26,9 @@ public final class Disassembler {
       if (function.reversible()) {
         output.append(" reversible");
       }
+      if (function.localCount() > 0) {
+        output.append(" locals=").append(function.localCount());
+      }
       output.append('\n');
       appendBody(output, "forward", function.forward());
       if (function.reversible()) {
