@@ -248,6 +248,10 @@ The test suite stops and restores the run in queued, running, succeeded, failed,
 
 `ExperimentCampaign.w` executes a bounded set of experiments over target descriptor epochs, persists after every result, applies budget limits, quarantines stale jobs, and emits a reproducible report from recorded observations. It exercises event cleanup while retaining live continuation references.
 
+### Certified adversarial schedule debugger
+
+`Murphy.w` is the future WIP-0015 capstone. It searches finite distributed-protocol schedules in increasing length, reverses modeled event transitions through explicit witnesses, replays proposed failures deterministically, proves the violation and absence of shorter failures, and packages the reproducer. Empty samples, target timeout, and failed proof search return `Inconclusive`; they never establish safety. The [future-system design](../future/murphy.md) remains documentation syntax until structured concurrency, finite protocol artifacts, replay packages, and general certificates execute.
+
 ## Proof and certificate applications
 
 ### QFT unitary certificate
@@ -373,6 +377,7 @@ Portfolio work follows these rules:
 - [ ] Adaptive replay decision tree.
 - [ ] Compensation fixture.
 - [ ] Long-running campaign and cleanup.
+- [ ] Certified `Murphy.w` adversarial schedule exploration and replay package.
 
 ### Proof, native, and packages
 

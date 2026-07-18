@@ -251,6 +251,8 @@ A **hermetic package forge** could build offline from exact content identities, 
 
 A far-future **[algorithm foundry](future/foundry.md)** could search a finite program grammar, uncompute rejected candidates, check every bounded input, prove correctness and relative minimality, and publish the discovered implementation as a normal Wheeler package. That is a hardware- and proof-system moonshot, not current syntax or a roadmap promise.
 
+A future **[adversarial timeline debugger](future/murphy.md)** could generate every bounded message/fault schedule for a distributed protocol, replay a proposed failure, prove the shortest counterexample, or return an exact bounded-safety certificate. No counterexample and no certificate means `Inconclusive`, not “probably cosmic rays.”
+
 And, naturally, someone will build a reversible todo list. Completing an item will be mathematically invertible. Avoiding the item will remain an unsolved human problem.
 
 ## What works today?
