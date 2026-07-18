@@ -19,7 +19,7 @@ classical class MinimalCompiler {
                 assert finalCursor == 1;
                 SourceRange scanName = new SourceRange(scanOffset, 0);
                 SourceRange scanGlobal = new SourceRange(scanOffset, 0);
-                return new MinimalProgram(scanName, scanGlobal, 0, 0);
+                return new MinimalProgram(scanName, scanGlobal, 0, 0, 0);
             }
             case ScanResult.Value(long count) {
                 MinimalProgramResult parsed = parseMinimalProgram(
@@ -29,7 +29,7 @@ classical class MinimalCompiler {
                         assert finalCursor == 1;
                         SourceRange parseName = new SourceRange(parseOffset, 0);
                         SourceRange parseGlobal = new SourceRange(parseOffset, 0);
-                        return new MinimalProgram(parseName, parseGlobal, 0, 0);
+                        return new MinimalProgram(parseName, parseGlobal, 0, 0, 0);
                     }
                     case MinimalProgramResult.Value(MinimalProgram program) {
                         return program;
@@ -180,11 +180,11 @@ classical class MinimalCompiler {
 
         cursor = writeInstructionHeader(output, cursor, 1024, 2);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
-        cursor = writeUnsignedLittleEndian(output, cursor, program.delta, 8);
+        cursor = writeUnsignedLittleEndian(output, cursor, program.operand, 8);
         cursor = writeInstructionHeader(output, cursor, 1025, 2);
         cursor = writeUnsignedLittleEndian(output, cursor, 1, 8);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
-        cursor = writeInstructionHeader(output, cursor, 1040, 3);
+        cursor = writeInstructionHeader(output, cursor, program.opcode, 3);
         cursor = writeUnsignedLittleEndian(output, cursor, 1, 8);
         cursor = writeUnsignedLittleEndian(output, cursor, 1, 8);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);

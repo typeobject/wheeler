@@ -7,7 +7,8 @@ classical class Parser {
         SourceRange name,
         SourceRange global,
         long initialValue,
-        long delta
+        long opcode,
+        long operand
     ) {}
 
     public variant MinimalProgramResult {
@@ -137,6 +138,23 @@ classical class Parser {
         return false;
     }
 
+    private long updateOpcode(
+        utf8 source,
+        words tokenStarts
+    ) {
+        long operator = utf8Scalar(source, tokenStarts[17]);
+        if (operator == 43) {
+            return 1040;
+        }
+        if (operator == 45) {
+            return 1041;
+        }
+        if (operator == 94) {
+            return 1042;
+        }
+        return -1;
+    }
+
     private boolean minimalEntryValid(
         utf8 source,
         words tokenKinds,
@@ -152,8 +170,7 @@ classical class Parser {
                                 source, tokenKinds, tokenStarts, 14, 41)) {
                             if (punctuationAt(
                                     source, tokenKinds, tokenStarts, 15, 123)) {
-                                if (punctuationAt(
-                                        source, tokenKinds, tokenStarts, 17, 43)) {
+                                if (0 < updateOpcode(source, tokenStarts)) {
                                     if (punctuationAt(
                                             source, tokenKinds, tokenStarts, 18, 61)) {
                                         if (tokenKinds[19] == 2) {
@@ -207,17 +224,19 @@ classical class Parser {
                     if (initial < 0) {
                         return new MinimalProgramResult.Error(tokenStarts[8]);
                     }
-                    long deltaEnd = tokenStarts[19] + tokenLengths[19];
-                    long delta = parseNumber(source, tokenStarts[19], deltaEnd);
-                    if (delta < 0) {
+                    long operandEnd = tokenStarts[19] + tokenLengths[19];
+                    long operand = parseNumber(
+                        source, tokenStarts[19], operandEnd);
+                    if (operand < 0) {
                         return new MinimalProgramResult.Error(tokenStarts[19]);
                     }
+                    long opcode = updateOpcode(source, tokenStarts);
                     SourceRange name = new SourceRange(
                         tokenStarts[2], tokenLengths[2]);
                     SourceRange global = new SourceRange(
                         tokenStarts[6], tokenLengths[6]);
                     MinimalProgram program = new MinimalProgram(
-                        name, global, initial, delta);
+                        name, global, initial, opcode, operand);
                     return new MinimalProgramResult.Value(program);
                 }
             }

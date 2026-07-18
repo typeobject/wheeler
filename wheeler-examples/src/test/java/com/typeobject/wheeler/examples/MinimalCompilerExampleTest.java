@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
+import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.MachineStatus;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
@@ -58,19 +59,24 @@ class MinimalCompilerExampleTest {
     }
     assertEquals(initial, writer.snapshot());
 
-    String zeroSource =
+    assertDifferentialExecution(
+        writerProgram,
         "classical class zebra { state long alpha = 0; "
-            + "entry void main() { alpha += 0; } }";
-    VirtualMachine zeroWriter = new VirtualMachine(
-        writerProgram, zeroSource.getBytes(StandardCharsets.UTF_8), 512);
-    zeroWriter.run();
-    assertArrayEquals(
-        new WheelerCompiler().compileToBytecode(zeroSource),
-        zeroWriter.hostOutput());
-    VirtualMachine zeroArtifact = new VirtualMachine(
-        new BytecodeReader().read(zeroWriter.hostOutput()));
-    zeroArtifact.run();
-    assertEquals(0, zeroArtifact.global("alpha"));
+            + "entry void main() { alpha += 0; } }",
+        "alpha",
+        0);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class zebra { state long alpha = 10; "
+            + "entry void main() { alpha -= 3; } }",
+        "alpha",
+        7);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class Omega { state long mask = 6; "
+            + "entry void main() { mask ^= 9; } }",
+        "mask",
+        15);
 
     VirtualMachine duplicate = new VirtualMachine(
         writerProgram,
@@ -89,5 +95,22 @@ class MinimalCompilerExampleTest {
         512);
     assertThrows(VmTrap.class, invalid::run);
     assertArrayEquals(new byte[512], invalid.hostOutput());
+  }
+
+  private void assertDifferentialExecution(
+      Program writerProgram,
+      String source,
+      String global,
+      long expected) {
+    VirtualMachine writer = new VirtualMachine(
+        writerProgram, source.getBytes(StandardCharsets.UTF_8), 512);
+    writer.run();
+    assertArrayEquals(
+        new WheelerCompiler().compileToBytecode(source),
+        writer.hostOutput());
+    VirtualMachine artifact = new VirtualMachine(
+        new BytecodeReader().read(writer.hostOutput()));
+    artifact.run();
+    assertEquals(expected, artifact.global(global));
   }
 }
