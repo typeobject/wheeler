@@ -251,6 +251,18 @@ classical class InstructionVerifier {
         if (opcode == OPCODE_UTF8_WIDTH) {
             return 3;
         }
+        if (opcode == OPCODE_MAP_ALLOC) {
+            return 3;
+        }
+        if (opcode == OPCODE_MAP_PUT) {
+            return 3;
+        }
+        if (opcode == OPCODE_MAP_GET) {
+            return 3;
+        }
+        if (opcode == OPCODE_MAP_HAS) {
+            return 3;
+        }
         return -1;
     }
 

@@ -1,6 +1,8 @@
 /// Executes bounded owned-region and word-buffer operations.
 module examples.compiler.storage_interpreter;
+import examples.compiler.map_interpreter;
 import examples.compiler.opcodes;
+import examples.compiler.utf8_interpreter;
 import examples.packages.binary;
 classical class StorageInterpreter {
     public record StorageAllocation(
@@ -45,6 +47,7 @@ classical class StorageInterpreter {
         words kinds,
         words starts,
         words lengths,
+        words sizes,
         words owners,
         words live,
         words regionUsedBytes,
@@ -54,7 +57,8 @@ classical class StorageInterpreter {
         long regionHandle,
         long length,
         long kind,
-        long bytesPerElement
+        long bytesPerElement,
+        long cellsPerElement
     ) {
         if (storageCount < INTERPRETER_STORAGE_COUNT) {
         } else {
@@ -89,13 +93,15 @@ classical class StorageInterpreter {
         } else {
             return new StorageAllocation(0, storageCount, dataCursor);
         }
-        if (dataCursor + length < INTERPRETER_STORAGE_WORDS + 1) {
+        long dataCells = length * cellsPerElement;
+        if (dataCursor + dataCells < INTERPRETER_STORAGE_WORDS + 1) {
         } else {
             return new StorageAllocation(0, storageCount, dataCursor);
         }
         set(kinds, storageCount, kind);
         set(starts, storageCount, dataCursor);
         set(lengths, storageCount, length);
+        set(sizes, storageCount, 0);
         set(owners, storageCount, regionHandle);
         set(live, storageCount, 1);
         set(regionUsedBytes, region, regionUsedBytes[region] + bytes);
@@ -103,7 +109,7 @@ classical class StorageInterpreter {
         return new StorageAllocation(
             storageCount + 1,
             storageCount + 1,
-            dataCursor + length);
+            dataCursor + dataCells);
     }
 
     public boolean bufferAccessValid(
@@ -151,145 +157,6 @@ classical class StorageInterpreter {
         set(data, starts[handle - 1] + index, value);
     }
 
-    private boolean byteBetween(long value, long low, long high) {
-        if (value < low) {
-            return false;
-        }
-        return value < high + 1;
-    }
-
-    private long utf8WidthAt(
-        words starts,
-        words lengths,
-        words data,
-        long handle,
-        long index
-    ) {
-        if (index < 0) {
-            return 0;
-        }
-        long storage = handle - 1;
-        long length = lengths[storage];
-        if (index < length) {
-        } else {
-            return 0;
-        }
-        long first = data[starts[storage] + index];
-        if (first < 128) {
-            return 1;
-        }
-        if (byteBetween(first, 194, 223)) {
-            if (index + 1 < length) {
-                if (byteBetween(
-                        data[starts[storage] + index + 1], 128, 191)) {
-                    return 2;
-                }
-            }
-            return 0;
-        }
-        if (byteBetween(first, 224, 239)) {
-            if (index + 2 < length) {
-                long second = data[starts[storage] + index + 1];
-                long third = data[starts[storage] + index + 2];
-                if (byteBetween(second, 128, 191)) {
-                    if (byteBetween(third, 128, 191)) {
-                        if (first == 224) {
-                            if (second < 160) {
-                                return 0;
-                            }
-                        }
-                        if (first == 237) {
-                            if (159 < second) {
-                                return 0;
-                            }
-                        }
-                        return 3;
-                    }
-                }
-            }
-            return 0;
-        }
-        if (byteBetween(first, 240, 244)) {
-            if (index + 3 < length) {
-                long fourSecond = data[starts[storage] + index + 1];
-                long fourThird = data[starts[storage] + index + 2];
-                long fourth = data[starts[storage] + index + 3];
-                if (byteBetween(fourSecond, 128, 191)) {
-                    if (byteBetween(fourThird, 128, 191)) {
-                        if (byteBetween(fourth, 128, 191)) {
-                            if (first == 240) {
-                                if (fourSecond < 144) {
-                                    return 0;
-                                }
-                            }
-                            if (first == 244) {
-                                if (143 < fourSecond) {
-                                    return 0;
-                                }
-                            }
-                            return 4;
-                        }
-                    }
-                }
-            }
-        }
-        return 0;
-    }
-
-    private long utf8ScalarAt(
-        words starts,
-        words lengths,
-        words data,
-        long handle,
-        long index
-    ) {
-        long width = utf8WidthAt(starts, lengths, data, handle, index);
-        long storage = handle - 1;
-        long first = data[starts[storage] + index];
-        if (width == 1) {
-            return first;
-        }
-        long second = data[starts[storage] + index + 1];
-        if (width == 2) {
-            return (first & 31) * 64 + (second & 63);
-        }
-        long third = data[starts[storage] + index + 2];
-        if (width == 3) {
-            return (first & 15) * 4096
-                + (second & 63) * 64
-                + (third & 63);
-        }
-        long fourth = data[starts[storage] + index + 3];
-        if (width == 4) {
-            return (first & 7) * 262144
-                + (second & 63) * 4096
-                + (third & 63) * 64
-                + (fourth & 63);
-        }
-        return -1;
-    }
-
-    private long utf8ScalarCount(
-        words starts,
-        words lengths,
-        words data,
-        long handle
-    ) {
-        long cursor = 0;
-        long count = 0;
-        while (cursor < lengths[handle - 1])
-            limit INTERPRETER_STORAGE_WORDS {
-            long width = utf8WidthAt(
-                starts, lengths, data, handle, cursor);
-            if (width < 1) {
-                return -1;
-            }
-            cursor += width;
-            count += 1;
-        }
-        return count;
-    }
-
     public boolean dropBuffer(
         words kinds,
         words owners,
@@ -305,7 +172,10 @@ classical class StorageInterpreter {
         } else {
             if (kinds[storage] == 3) {
             } else {
-                return false;
+                if (kinds[storage] == 4) {
+                } else {
+                    return false;
+                }
             }
         }
         if (live[storage] == 1) {
@@ -325,7 +195,10 @@ classical class StorageInterpreter {
         if (opcode == OPCODE_WORDS_ALLOC) {
             return true;
         }
-        return opcode == OPCODE_BYTES_ALLOC;
+        if (opcode == OPCODE_BYTES_ALLOC) {
+            return true;
+        }
+        return opcode == OPCODE_MAP_ALLOC;
     }
 
     private boolean getOpcode(long opcode) {
@@ -351,6 +224,7 @@ classical class StorageInterpreter {
         words kinds,
         words starts,
         words lengths,
+        words sizes,
         words owners,
         words live,
         words regionUsedBytes,
@@ -362,7 +236,7 @@ classical class StorageInterpreter {
         if (opcode < OPCODE_OWNED_MOVE) {
             return new StorageStep.Skipped();
         }
-        if (OPCODE_UTF8_WIDTH < opcode) {
+        if (OPCODE_MAP_HAS < opcode) {
             return new StorageStep.Skipped();
         }
         if (opcode == OPCODE_OWNED_MOVE) {
@@ -407,14 +281,21 @@ classical class StorageInterpreter {
                 artifact, cursor + 24, 8);
             long allocationKind = 2;
             long allocationWidth = 8;
+            long allocationCells = 1;
             if (opcode == OPCODE_BYTES_ALLOC) {
                 allocationKind = 3;
                 allocationWidth = 1;
+            }
+            if (opcode == OPCODE_MAP_ALLOC) {
+                allocationKind = 4;
+                allocationWidth = 24;
+                allocationCells = 2;
             }
             StorageAllocation bufferAllocation = allocateBuffer(
                 kinds,
                 starts,
                 lengths,
+                sizes,
                 owners,
                 live,
                 regionUsedBytes,
@@ -424,7 +305,8 @@ classical class StorageInterpreter {
                 locals[localIndex(depth, allocationRegion)],
                 locals[localIndex(depth, allocationLengthLocal)],
                 allocationKind,
-                allocationWidth);
+                allocationWidth,
+                allocationCells);
             if (bufferAllocation.handle < 1) {
                 return new StorageStep.Error();
             }
@@ -632,6 +514,80 @@ classical class StorageInterpreter {
                 locals,
                 localIndex(depth, lengthDestination),
                 lengths[lengthHandle - 1]);
+            return new StorageStep.Value(storageCount, dataCursor);
+        }
+        if (opcode == OPCODE_MAP_PUT) {
+            long putMapLocal = readUnsigned(artifact, cursor + 8, 8);
+            long putKeyLocal = readUnsigned(artifact, cursor + 16, 8);
+            long putValueLocal = readUnsigned(artifact, cursor + 24, 8);
+            long putHandle = locals[localIndex(depth, putMapLocal)];
+            if (mapValid(kinds, live, putHandle)) {
+            } else {
+                return new StorageStep.Error();
+            }
+            if (putMap(
+                    starts,
+                    lengths,
+                    sizes,
+                    data,
+                    putHandle,
+                    locals[localIndex(depth, putKeyLocal)],
+                    locals[localIndex(depth, putValueLocal)])) {
+            } else {
+                return new StorageStep.Error();
+            }
+            return new StorageStep.Value(storageCount, dataCursor);
+        }
+        if (opcode == OPCODE_MAP_GET) {
+            long mapGetDestination = readUnsigned(
+                artifact, cursor + 8, 8);
+            long mapGetLocal = readUnsigned(artifact, cursor + 16, 8);
+            long mapGetKeyLocal = readUnsigned(
+                artifact, cursor + 24, 8);
+            long mapGetHandle = locals[localIndex(depth, mapGetLocal)];
+            if (mapValid(kinds, live, mapGetHandle)) {
+            } else {
+                return new StorageStep.Error();
+            }
+            long getEntry = mapEntry(
+                starts,
+                sizes,
+                data,
+                mapGetHandle,
+                locals[localIndex(depth, mapGetKeyLocal)]);
+            if (getEntry < 0) {
+                return new StorageStep.Error();
+            }
+            set(
+                locals,
+                localIndex(depth, mapGetDestination),
+                data[starts[mapGetHandle - 1] + getEntry * 2 + 1]);
+            return new StorageStep.Value(storageCount, dataCursor);
+        }
+        if (opcode == OPCODE_MAP_HAS) {
+            long mapHasDestination = readUnsigned(
+                artifact, cursor + 8, 8);
+            long mapHasLocal = readUnsigned(artifact, cursor + 16, 8);
+            long mapHasKeyLocal = readUnsigned(
+                artifact, cursor + 24, 8);
+            long mapHasHandle = locals[localIndex(depth, mapHasLocal)];
+            if (mapValid(kinds, live, mapHasHandle)) {
+            } else {
+                return new StorageStep.Error();
+            }
+            long hasValue = 0;
+            if (0 < mapEntry(
+                    starts,
+                    sizes,
+                    data,
+                    mapHasHandle,
+                    locals[localIndex(depth, mapHasKeyLocal)]) + 1) {
+                hasValue = 1;
+            }
+            set(
+                locals,
+                localIndex(depth, mapHasDestination),
+                hasValue);
             return new StorageStep.Value(storageCount, dataCursor);
         }
         if (opcode == OPCODE_REGION_DROP) {

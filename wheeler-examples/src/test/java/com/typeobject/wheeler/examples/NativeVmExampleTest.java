@@ -40,6 +40,9 @@ class NativeVmExampleTest {
                 Files.readString(root.resolve("compiler/InstructionVerifier.w"))),
             Map.entry(
                 "Interpreter.w", Files.readString(root.resolve("compiler/Interpreter.w"))),
+            Map.entry(
+                "MapInterpreter.w",
+                Files.readString(root.resolve("compiler/MapInterpreter.w"))),
             Map.entry("NativeVm.w", Files.readString(root.resolve("NativeVm.w"))),
             Map.entry("Opcodes.w", Files.readString(root.resolve("compiler/Opcodes.w"))),
             Map.entry("ProofRules.w", Files.readString(root.resolve("compiler/ProofRules.w"))),
@@ -53,6 +56,9 @@ class NativeVmExampleTest {
                 "StorageVerifier.w",
                 Files.readString(root.resolve("compiler/StorageVerifier.w"))),
             Map.entry("TypeCodes.w", Files.readString(root.resolve("compiler/TypeCodes.w"))),
+            Map.entry(
+                "Utf8Interpreter.w",
+                Files.readString(root.resolve("compiler/Utf8Interpreter.w"))),
             Map.entry("Verifier.w", Files.readString(root.resolve("compiler/Verifier.w")))),
         "examples.runtime.native_vm");
     WheelerCompiler compiler = new WheelerCompiler();
@@ -211,6 +217,22 @@ class NativeVmExampleTest {
     assertThrows(
         VmTrap.class,
         () -> VirtualMachine.withBinaryInput(interpreter, forgedUtf8).run());
+    String map = "classical class NativeMap { "
+        + "state long selected = 0; state long present = 0; "
+        + "entry void main() { region arena = new region(96, 1); "
+        + "longmap values = allocateMap(arena, 4); put(values, 7, 19); "
+        + "selected = mapGet(values, 7); "
+        + "boolean found = mapHas(values, 7); "
+        + "if (found) { present = 1; } else { present = 0; } "
+        + "assert selected == 19; assert present == 1; "
+        + "drop(values); drop(arena); } }";
+    assertInterpretedTwoGlobals(
+        interpreter, map, "selected", 19, "present", 1);
+    byte[] forgedMap = withBadMapKey(
+        compiler.compileToBytecode(map));
+    assertThrows(
+        VmTrap.class,
+        () -> VirtualMachine.withBinaryInput(interpreter, forgedMap).run());
     String records = Files.readString(root.resolve("Records.w"));
     assertInterpretedTwoGlobals(
         interpreter, records, "width", 5, "equal", 1);
@@ -346,6 +368,23 @@ class NativeVmExampleTest {
       cursor += bytes.getInt(cursor + 4);
     }
     throw new AssertionError("call fixture has no argument call");
+  }
+
+  private static byte[] withBadMapKey(byte[] artifact) {
+    byte[] damaged = artifact.clone();
+    ByteBuffer bytes = ByteBuffer.wrap(damaged).order(ByteOrder.LITTLE_ENDIAN);
+    int codeDirectory = 40 + 5 * 32;
+    int cursor = Math.toIntExact(bytes.getLong(codeDirectory + 8));
+    int end = cursor + Math.toIntExact(bytes.getLong(codeDirectory + 16));
+    while (cursor < end) {
+      int opcode = Short.toUnsignedInt(bytes.getShort(cursor));
+      if (opcode == Opcode.MAP_GET.code()) {
+        bytes.putLong(cursor + 24, Long.MAX_VALUE);
+        return damaged;
+      }
+      cursor += bytes.getInt(cursor + 4);
+    }
+    throw new AssertionError("map fixture has no lookup");
   }
 
   private static byte[] withBadUtf8Index(byte[] artifact) {

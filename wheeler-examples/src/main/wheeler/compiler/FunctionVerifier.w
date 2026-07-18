@@ -34,6 +34,9 @@ classical class FunctionVerifier {
         if (typeCode == TYPE_BYTES) {
             return true;
         }
+        if (typeCode == TYPE_LONG_MAP) {
+            return true;
+        }
         if (isRecordType(typeCode)) {
             return recordTypeId(typeCode) < recordCount;
         }

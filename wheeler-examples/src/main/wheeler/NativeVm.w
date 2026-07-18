@@ -11,7 +11,7 @@ classical class NativeVm {
     state long artifactLength = 0;
 
     entry void main(byteview artifact) {
-        region arena = new region(6336, 19);
+        region arena = new region(6464, 20);
         words globals = allocate(arena, INTERPRETER_GLOBAL_COUNT);
         words locals = allocate(arena, INTERPRETER_LOCAL_CAPACITY);
         words returnCursors = allocate(arena, INTERPRETER_FRAME_COUNT);
@@ -32,6 +32,7 @@ classical class NativeVm {
         words storageKinds = allocate(arena, INTERPRETER_STORAGE_COUNT);
         words storageStarts = allocate(arena, INTERPRETER_STORAGE_COUNT);
         words storageLengths = allocate(arena, INTERPRETER_STORAGE_COUNT);
+        words storageSizes = allocate(arena, INTERPRETER_STORAGE_COUNT);
         words storageOwners = allocate(arena, INTERPRETER_STORAGE_COUNT);
         words storageLive = allocate(arena, INTERPRETER_STORAGE_COUNT);
         words storageRegionUsedBytes = allocate(
@@ -55,6 +56,7 @@ classical class NativeVm {
             storageKinds,
             storageStarts,
             storageLengths,
+            storageSizes,
             storageOwners,
             storageLive,
             storageRegionUsedBytes,
@@ -77,6 +79,7 @@ classical class NativeVm {
         drop(storageRegionUsedBytes);
         drop(storageLive);
         drop(storageOwners);
+        drop(storageSizes);
         drop(storageLengths);
         drop(storageStarts);
         drop(storageKinds);

@@ -28,14 +28,20 @@ classical class StorageVerifier {
         if (typeCode == TYPE_WORDS) {
             return true;
         }
-        return typeCode == TYPE_BYTES;
+        if (typeCode == TYPE_BYTES) {
+            return true;
+        }
+        return typeCode == TYPE_LONG_MAP;
     }
 
     private boolean allocationOpcode(long opcode) {
         if (opcode == OPCODE_WORDS_ALLOC) {
             return true;
         }
-        return opcode == OPCODE_BYTES_ALLOC;
+        if (opcode == OPCODE_BYTES_ALLOC) {
+            return true;
+        }
+        return opcode == OPCODE_MAP_ALLOC;
     }
 
     private boolean getOpcode(long opcode) {
@@ -62,7 +68,7 @@ classical class StorageVerifier {
         if (opcode < OPCODE_OWNED_MOVE) {
             return -1;
         }
-        if (OPCODE_UTF8_WIDTH < opcode) {
+        if (OPCODE_MAP_HAS < opcode) {
             return -1;
         }
         long first = readUnsigned(artifact, cursor + 8, 8);
@@ -107,6 +113,9 @@ classical class StorageVerifier {
             long allocationType = TYPE_WORDS;
             if (opcode == OPCODE_BYTES_ALLOC) {
                 allocationType = TYPE_BYTES;
+            }
+            if (opcode == OPCODE_MAP_ALLOC) {
+                allocationType = TYPE_LONG_MAP;
             }
             if (first < localCount) {
                 if (region < localCount) {
@@ -207,6 +216,9 @@ classical class StorageVerifier {
                     return 1;
                 }
                 if (dropType == TYPE_BYTES) {
+                    return 1;
+                }
+                if (dropType == TYPE_LONG_MAP) {
                     return 1;
                 }
             }
@@ -311,6 +323,90 @@ classical class StorageVerifier {
                                         artifact,
                                         activeTypes,
                                         widthIndex,
+                                        TYPE_SIGNED)) {
+                                    return 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+        if (opcode == OPCODE_MAP_PUT) {
+            long mapKey = readUnsigned(artifact, cursor + 16, 8);
+            long mapValue = readUnsigned(artifact, cursor + 24, 8);
+            if (first < localCount) {
+                if (mapKey < localCount) {
+                    if (mapValue < localCount) {
+                        if (localHasType(
+                                artifact,
+                                activeTypes,
+                                first,
+                                TYPE_LONG_MAP)) {
+                            if (localHasType(
+                                    artifact,
+                                    activeTypes,
+                                    mapKey,
+                                    TYPE_SIGNED)) {
+                                if (localHasType(
+                                        artifact,
+                                        activeTypes,
+                                        mapValue,
+                                        TYPE_SIGNED)) {
+                                    return 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+        if (opcode == OPCODE_MAP_GET) {
+            long getMap = readUnsigned(artifact, cursor + 16, 8);
+            long getMapKey = readUnsigned(artifact, cursor + 24, 8);
+            if (first < localCount) {
+                if (getMap < localCount) {
+                    if (getMapKey < localCount) {
+                        if (localHasType(
+                                artifact, activeTypes, first, TYPE_SIGNED)) {
+                            if (localHasType(
+                                    artifact,
+                                    activeTypes,
+                                    getMap,
+                                    TYPE_LONG_MAP)) {
+                                if (localHasType(
+                                        artifact,
+                                        activeTypes,
+                                        getMapKey,
+                                        TYPE_SIGNED)) {
+                                    return 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+        if (opcode == OPCODE_MAP_HAS) {
+            long hasMap = readUnsigned(artifact, cursor + 16, 8);
+            long hasMapKey = readUnsigned(artifact, cursor + 24, 8);
+            if (first < localCount) {
+                if (hasMap < localCount) {
+                    if (hasMapKey < localCount) {
+                        if (localHasType(
+                                artifact, activeTypes, first, TYPE_BOOLEAN)) {
+                            if (localHasType(
+                                    artifact,
+                                    activeTypes,
+                                    hasMap,
+                                    TYPE_LONG_MAP)) {
+                                if (localHasType(
+                                        artifact,
+                                        activeTypes,
+                                        hasMapKey,
                                         TYPE_SIGNED)) {
                                     return 1;
                                 }
