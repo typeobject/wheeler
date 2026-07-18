@@ -32,7 +32,25 @@ public final class WheelerRuntime {
       return HybridRun.start(program, target).runToCompletion(DEFAULT_JOB_TIMEOUT);
     }
 
-    VirtualMachine machine = new VirtualMachine(program, utf8Input, outputBytes);
+    return executeClassical(
+        program, new VirtualMachine(program, utf8Input, outputBytes));
+  }
+
+  public ExecutionResult executeBinaryInput(
+      Program program, byte[] input, int outputBytes) {
+    if (program.kind() != ProgramKind.CLASSICAL) {
+      throw new IllegalArgumentException("Binary host input is currently classical only");
+    }
+    return executeClassical(
+        program, VirtualMachine.withBinaryInput(program, input, outputBytes));
+  }
+
+  public ExecutionResult executeBinaryInput(Program program, byte[] input) {
+    return executeBinaryInput(program, input, -1);
+  }
+
+  private static ExecutionResult executeClassical(
+      Program program, VirtualMachine machine) {
     machine.run();
     return new ExecutionResult(
         program.name(),

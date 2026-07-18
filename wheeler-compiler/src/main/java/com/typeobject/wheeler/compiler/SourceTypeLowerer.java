@@ -129,6 +129,7 @@ final class SourceTypeLowerer {
     result.put("bytes", ValueType.BYTES);
     result.put("longmap", ValueType.LONG_MAP);
     result.put("utf8", ValueType.UTF8);
+    result.put("byteview", ValueType.BYTE_VIEW);
     return Map.copyOf(result);
   }
 

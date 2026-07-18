@@ -43,7 +43,8 @@ final class SourceStorageLowerer {
     if (type.equals(ValueType.WORDS) || type.equals(ValueType.WORDS_BORROW)) {
       return Opcode.WORDS_GET;
     }
-    if (type.equals(ValueType.BYTES) || type.equals(ValueType.BYTES_BORROW)) {
+    if (type.equals(ValueType.BYTES) || type.equals(ValueType.BYTES_BORROW)
+        || type.equals(ValueType.BYTE_VIEW)) {
       return Opcode.BYTES_GET;
     }
     throw new CompilerException(line, "indexing requires an array, slice, or buffer");
@@ -168,6 +169,7 @@ final class SourceStorageLowerer {
     if (!type.equals(ValueType.WORDS) && !type.equals(ValueType.BYTES)
         && !type.equals(ValueType.WORDS_BORROW)
         && !type.equals(ValueType.BYTES_BORROW)
+        && !type.equals(ValueType.BYTE_VIEW)
         && !type.equals(ValueType.UTF8) && !type.equals(ValueType.UTF8_BORROW)) {
       throw new CompilerException(
           statement.line(), "bufferLength requires words, bytes, utf8, or a UTF-8 borrow");

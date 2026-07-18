@@ -68,6 +68,27 @@ final class OwnedStore {
     return bufferId + 1L;
   }
 
+  long hostByteView(byte[] input) {
+    if (input == null || input.length > MAX_TOTAL_LIVE_BYTES) {
+      throw new VmTrap("Host byte input exceeds the live-storage limit");
+    }
+    List<Long> elements = new ArrayList<>(input.length);
+    for (byte value : input) {
+      elements.add((long) Byte.toUnsignedInt(value));
+    }
+    long nextTotal = Math.addExact(liveBytes(), input.length);
+    if (nextTotal > MAX_TOTAL_LIVE_BYTES) {
+      throw new VmTrap("Total live region storage limit exceeded");
+    }
+    int regionId = regions.size();
+    int bufferId = buffers.size();
+    regions.add(new RegionValue(
+        regionId, Math.max(1, input.length), 1, input.length, 1, false));
+    buffers.add(new BufferValue(
+        bufferId, regionId, BufferKind.BYTES, input.length, elements, false));
+    return bufferId + 1L;
+  }
+
   long hostBytes(int length) {
     if (length <= 0 || length > MAX_TOTAL_LIVE_BYTES - liveBytes()) {
       throw new VmTrap("Host byte output exceeds the live-storage limit");

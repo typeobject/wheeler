@@ -64,6 +64,7 @@ final class ClassicalLowerer {
           ? SourceTypeLowerer.resolve(function.returnType(), function.line(), typeReferences)
           : null;
       if (resultType != null && (resultType.kind() == ValueType.Kind.SLICE
+          || resultType.equals(ValueType.BYTE_VIEW)
           || (owned(resultType) && !resultType.equals(ValueType.REGION)))) {
         throw new CompilerException(
             function.line(), "borrowed values and storage buffers cannot escape as results");
@@ -698,7 +699,8 @@ final class ClassicalLowerer {
       } else if (sourceType.equals(ValueType.WORDS)
           || sourceType.equals(ValueType.BYTES)
           || sourceType.equals(ValueType.WORDS_BORROW)
-          || sourceType.equals(ValueType.BYTES_BORROW)) {
+          || sourceType.equals(ValueType.BYTES_BORROW)
+          || sourceType.equals(ValueType.BYTE_VIEW)) {
         elementType = ValueType.SIGNED;
         opcode = SourceStorageLowerer.getOpcode(sourceType, statement.line());
       } else {

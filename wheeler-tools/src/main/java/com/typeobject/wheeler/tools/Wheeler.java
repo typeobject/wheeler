@@ -94,6 +94,7 @@ public final class Wheeler {
     }
 
     byte[] input = null;
+    boolean binaryInput = false;
     Path output = null;
     int outputBytes = -1;
     while (option < args.length) {
@@ -104,6 +105,9 @@ public final class Wheeler {
       String value = args[option + 1];
       if (name.equals("--input") && input == null) {
         input = readInput(Path.of(value));
+      } else if (name.equals("--input-bytes") && input == null) {
+        input = readInput(Path.of(value));
+        binaryInput = true;
       } else if (name.equals("--output") && output == null) {
         output = Path.of(value);
       } else if (name.equals("--output-bytes") && outputBytes < 0) {
@@ -117,8 +121,10 @@ public final class Wheeler {
       return runUsage(error);
     }
 
-    ExecutionResult result = new WheelerRuntime().execute(
-        program, new StateVectorTarget(), input, outputBytes);
+    WheelerRuntime runtime = new WheelerRuntime();
+    ExecutionResult result = binaryInput
+        ? runtime.executeBinaryInput(program, input, outputBytes)
+        : runtime.execute(program, new StateVectorTarget(), input, outputBytes);
     if (output != null) {
       PackageProject.writeAtomically(output, result.output());
     }
@@ -129,7 +135,8 @@ public final class Wheeler {
   private static int runUsage(PrintStream error) {
     error.println("Usage: wheeler run <program.wbc>"
         + " | <package-directory> --target <target>"
-        + " [--input <utf8-file>] [--output <file> --output-bytes <count>]");
+        + " [--input <utf8-file> | --input-bytes <binary-file>]"
+        + " [--output <file> --output-bytes <count>]");
     return 2;
   }
 

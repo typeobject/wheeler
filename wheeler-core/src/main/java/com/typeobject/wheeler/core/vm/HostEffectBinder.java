@@ -16,15 +16,27 @@ final class HostEffectBinder {
   private HostEffectBinder() {}
 
   static Effects bind(
-      FunctionBody entry, OwnedStore store, byte[] utf8Input, int outputBytes) {
-    boolean needsInput = entry.parameterCount() > 0
+      FunctionBody entry,
+      OwnedStore store,
+      byte[] hostInput,
+      boolean binaryInput,
+      int outputBytes) {
+    boolean needsUtf8 = entry.parameterCount() > 0
         && entry.localType(0).equals(ValueType.UTF8_BORROW);
+    boolean needsBytes = entry.parameterCount() > 0
+        && entry.localType(0).equals(ValueType.BYTE_VIEW);
+    boolean needsInput = needsUtf8 || needsBytes;
     boolean needsOutput = entry.parameterCount() > 0
         && entry.localType(entry.parameterCount() - 1).equals(ValueType.BYTES_BORROW);
-    if (needsInput != (utf8Input != null)) {
+    if (needsInput != (hostInput != null)) {
       throw new VmTrap(needsInput
-          ? "Program requires one host UTF-8 input"
-          : "Program does not declare a host UTF-8 input");
+          ? "Program requires one host input"
+          : "Program does not declare a host input");
+    }
+    if (needsInput && binaryInput != needsBytes) {
+      throw new VmTrap(needsBytes
+          ? "Program requires binary byte input"
+          : "Program requires strict UTF-8 input");
     }
     if (needsOutput != (outputBytes >= 0)) {
       throw new VmTrap(needsOutput
@@ -33,8 +45,11 @@ final class HostEffectBinder {
     }
 
     List<Long> arguments = new ArrayList<>(entry.parameterCount());
-    if (needsInput) {
-      arguments.add(store.hostUtf8(utf8Input));
+    if (needsUtf8) {
+      arguments.add(store.hostUtf8(hostInput));
+    }
+    if (needsBytes) {
+      arguments.add(store.hostByteView(hostInput));
     }
     long outputHandle = needsOutput ? store.hostBytes(outputBytes) : 0;
     if (needsOutput) {

@@ -68,7 +68,13 @@ final class StorageInstructionVerifier {
   private static void verifyGet(
       FunctionBody owner, Instruction instruction, int pc, ValueType type) {
     require(owner, instruction, 0, ValueType.SIGNED, pc);
-    requireBuffer(owner, instruction, 1, type, pc);
+    int source = local(owner, instruction.operands().get(1), pc);
+    if (type.equals(ValueType.BYTES)
+        && owner.localType(source).equals(ValueType.BYTE_VIEW)) {
+      // Immutable host byte views share the byte read opcode, never its write opcode.
+    } else {
+      requireBuffer(owner, instruction, 1, type, pc);
+    }
     require(owner, instruction, 2, ValueType.SIGNED, pc);
   }
 
@@ -172,8 +178,9 @@ final class StorageInstructionVerifier {
     if (!isBuffer(type) && !type.equals(ValueType.UTF8)
         && !type.equals(ValueType.UTF8_BORROW)
         && !type.equals(ValueType.WORDS_BORROW)
-        && !type.equals(ValueType.BYTES_BORROW)) {
-      fail(owner, pc, "buffer length requires words, bytes, utf8, or a UTF-8 borrow");
+        && !type.equals(ValueType.BYTES_BORROW)
+        && !type.equals(ValueType.BYTE_VIEW)) {
+      fail(owner, pc, "buffer length requires words, bytes, byteview, or utf8");
     }
   }
 

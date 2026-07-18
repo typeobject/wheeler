@@ -343,6 +343,49 @@ class WheelerCommandTest {
   }
 
   @Test
+  void runBindsImmutableBinaryInputWithoutUtf8Guessing() throws Exception {
+    Path project = temporary.resolve("binary-input");
+    Files.createDirectories(project.resolve("src"));
+    Files.writeString(project.resolve("wheeler.package"), """
+        package "demo.binaryinput" version "1.0.0" profile "bootstrap-1";
+        target example "main" root "src/Main.w";
+        """);
+    Files.writeString(project.resolve("src/Main.w"), """
+        classical class Main {
+          state long selected = 0;
+          entry void main(byteview source, bytes output) {
+            selected = source[1];
+            setByte(output, 0, selected);
+            assert selected == 255;
+          }
+        }
+        """);
+    Path input = temporary.resolve("input.dat");
+    Files.write(input, new byte[] {0, (byte) 255});
+    Path result = temporary.resolve("binary-result.dat");
+    ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+
+    assertEquals(0, Wheeler.execute(
+        new String[] {
+            "run", project.toString(), "--target", "main",
+            "--input-bytes", input.toString(),
+            "--output", result.toString(), "--output-bytes", "1"
+        },
+        new PrintStream(stdout),
+        new PrintStream(new ByteArrayOutputStream())));
+    assertTrue(stdout.toString(StandardCharsets.UTF_8).contains("selected = 255"));
+    assertArrayEquals(new byte[] {(byte) 255}, Files.readAllBytes(result));
+    assertThrows(VmTrap.class, () -> Wheeler.execute(
+        new String[] {
+            "run", project.toString(), "--target", "main",
+            "--input", input.toString(),
+            "--output", result.toString(), "--output-bytes", "1"
+        },
+        new PrintStream(new ByteArrayOutputStream()),
+        new PrintStream(new ByteArrayOutputStream())));
+  }
+
+  @Test
   void runPublishesAWheelerWrittenExecutableArtifact() throws Exception {
     Path project = temporary.resolve("seed-writer");
     Files.createDirectories(project.resolve("src/compiler"));

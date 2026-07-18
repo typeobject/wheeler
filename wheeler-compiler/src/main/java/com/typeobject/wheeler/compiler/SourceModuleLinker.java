@@ -24,7 +24,7 @@ final class SourceModuleLinker {
   private static final Set<String> FUNCTION_REFERENCES =
       Set.of("invoke", "reverse", "call_value", "call_void");
   private static final Set<String> PRIMITIVE_TYPES = Set.of(
-      "void", "long", "boolean", "region", "words", "bytes", "utf8", "longmap");
+      "void", "long", "boolean", "region", "words", "bytes", "byteview", "utf8", "longmap");
 
   SourceProgram link(Map<String, SourceProgram> modules, String rootName) {
     if (modules.isEmpty() || modules.size() > MAX_MODULES) {

@@ -27,7 +27,7 @@ final class SourceValueTypeParser {
     if (!cursor.match(Type.LEFT_BRACKET)) {
       return elementName;
     }
-    if (isOwned(elementName)) {
+    if (isStorageView(elementName)) {
       SourceTokenCursor.fail(element, "owned storage types cannot be array or slice elements");
     }
     if (cursor.match(Type.RIGHT_BRACKET)) {
@@ -99,8 +99,8 @@ final class SourceValueTypeParser {
     return !name.isEmpty() && name.charAt(0) >= 'A' && name.charAt(0) <= 'Z';
   }
 
-  private static boolean isOwned(String name) {
+  private static boolean isStorageView(String name) {
     return name.equals("region") || name.equals("words") || name.equals("bytes")
-        || name.equals("longmap") || name.equals("utf8");
+        || name.equals("byteview") || name.equals("longmap") || name.equals("utf8");
   }
 }

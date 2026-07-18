@@ -39,12 +39,14 @@ public final class BytecodeVerifier {
     boolean validEntry = entry.parameterCount() == 0
         || (entry.parameterCount() == 1
             && (entry.localType(0).equals(ValueType.UTF8_BORROW)
+                || entry.localType(0).equals(ValueType.BYTE_VIEW)
                 || entry.localType(0).equals(ValueType.BYTES_BORROW)))
         || (entry.parameterCount() == 2
-            && entry.localType(0).equals(ValueType.UTF8_BORROW)
+            && (entry.localType(0).equals(ValueType.UTF8_BORROW)
+                || entry.localType(0).equals(ValueType.BYTE_VIEW))
             && entry.localType(1).equals(ValueType.BYTES_BORROW));
     if (entry.returnsValue() || !validEntry) {
-      fail("Entry parameters must be optional UTF-8 input then optional byte output");
+      fail("Entry parameters must be optional UTF-8/byteview input then optional byte output");
     }
     if (entry.forward().stream().noneMatch(instruction -> instruction.opcode() == Opcode.HALT)) {
       fail("Entry function must contain HALT");
@@ -212,7 +214,8 @@ public final class BytecodeVerifier {
         || type.equals(ValueType.LONG_MAP_BORROW)
         || type.equals(ValueType.WORDS_BORROW)
         || type.equals(ValueType.BYTES_BORROW)
-        || type.equals(ValueType.REGION_BORROW);
+        || type.equals(ValueType.REGION_BORROW)
+        || type.equals(ValueType.BYTE_VIEW);
   }
 
   private static void verifyTypeReference(
@@ -606,7 +609,8 @@ public final class BytecodeVerifier {
               || owner.localType(local).equals(ValueType.LONG_MAP_BORROW)
               || owner.localType(local).equals(ValueType.WORDS_BORROW)
               || owner.localType(local).equals(ValueType.BYTES_BORROW)
-              || owner.localType(local).equals(ValueType.REGION_BORROW)) {
+              || owner.localType(local).equals(ValueType.REGION_BORROW)
+              || owner.localType(local).equals(ValueType.BYTE_VIEW)) {
             assigned.clear(local);
           }
         }

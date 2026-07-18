@@ -324,12 +324,14 @@ final class SourceParser extends SourceStatementParser {
     boolean validEntryParameters = parameters.isEmpty()
         || (parameters.size() == 1
             && (parameters.getFirst().type().equals("utf8")
+                || parameters.getFirst().type().equals("byteview")
                 || parameters.getFirst().type().equals("bytes")))
         || (parameters.size() == 2
-            && parameters.get(0).type().equals("utf8")
+            && (parameters.get(0).type().equals("utf8")
+                || parameters.get(0).type().equals("byteview"))
             && parameters.get(1).type().equals("bytes"));
     if (entry && (!name.equals("main") || returnsValue || !validEntryParameters)) {
-      fail(start, "entry parameters must be optional utf8 input then optional bytes output");
+      fail(start, "entry parameters must be optional utf8/byteview input then optional bytes output");
     }
     if ((reversible || coherent || unitary) && (returnsValue || !parameters.isEmpty())) {
       fail(start, "parameters and return values are currently ordinary classical only");
@@ -928,7 +930,7 @@ final class SourceParser extends SourceStatementParser {
   private boolean isValueType(String name) {
     return name.equals("long") || name.equals("boolean")
         || name.equals("region") || name.equals("words") || name.equals("bytes")
-        || name.equals("longmap") || name.equals("utf8")
+        || name.equals("byteview") || name.equals("longmap") || name.equals("utf8")
         || records.stream().anyMatch(record -> record.name().equals(name))
         || variants.stream().anyMatch(variant -> variant.name().equals(name))
         || arrays.stream().anyMatch(array -> array.name().equals(name))

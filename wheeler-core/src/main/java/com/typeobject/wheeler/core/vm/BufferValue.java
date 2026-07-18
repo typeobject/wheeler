@@ -12,7 +12,7 @@ public record BufferValue(
     boolean dropped) {
   public BufferValue {
     if (id < 0 || regionId < 0 || kind == null || length < 0
-        || (length == 0 && kind != BufferKind.UTF8)
+        || (length == 0 && kind != BufferKind.UTF8 && kind != BufferKind.BYTES)
         || (!dropped && elements.size() != kind.storageSlots(length))
         || (dropped && !elements.isEmpty())) {
       throw new IllegalArgumentException("Invalid buffer value");

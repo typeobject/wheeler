@@ -31,20 +31,34 @@ public final class VirtualMachine {
   private long sequence;
 
   public VirtualMachine(Program program) {
-    this(program, null, -1);
+    this(program, null, -1, false);
   }
 
   public VirtualMachine(Program program, byte[] utf8Input) {
-    this(program, utf8Input, -1);
+    this(program, utf8Input, -1, false);
   }
 
   public VirtualMachine(Program program, byte[] utf8Input, int outputBytes) {
+    this(program, utf8Input, outputBytes, false);
+  }
+
+  public static VirtualMachine withBinaryInput(Program program, byte[] input) {
+    return new VirtualMachine(program, input, -1, true);
+  }
+
+  public static VirtualMachine withBinaryInput(
+      Program program, byte[] input, int outputBytes) {
+    return new VirtualMachine(program, input, outputBytes, true);
+  }
+
+  private VirtualMachine(
+      Program program, byte[] hostInput, int outputBytes, boolean binaryInput) {
     BytecodeVerifier.verify(program);
     this.program = program;
     this.globals = program.globals().stream().mapToLong(global -> global.initialValue()).toArray();
     FunctionBody entry = program.function(program.entryFunctionId());
     HostEffectBinder.Effects effects =
-        HostEffectBinder.bind(entry, owned, utf8Input, outputBytes);
+        HostEffectBinder.bind(entry, owned, hostInput, binaryInput, outputBytes);
     hostOutputHandle = effects.outputHandle();
     hostOutputLength = Math.max(0, outputBytes);
     this.frames.add(Frame.create(
