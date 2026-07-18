@@ -531,3 +531,4 @@ Rejected. Provider SDKs are adapter implementation details. Portable library val
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0010](WIP-0010-executable-application-portfolio.md)
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
+- [WIP-0013](WIP-0013-typed-frames-control-flow-and-storage.md)
