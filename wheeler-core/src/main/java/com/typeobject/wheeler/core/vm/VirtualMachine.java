@@ -41,30 +41,11 @@ public final class VirtualMachine {
     this.program = program;
     this.globals = program.globals().stream().mapToLong(global -> global.initialValue()).toArray();
     FunctionBody entry = program.function(program.entryFunctionId());
-    boolean needsInput = entry.parameterCount() > 0
-        && entry.localType(0).equals(ValueType.UTF8_BORROW);
-    boolean needsOutput = entry.parameterCount() > 0
-        && entry.localType(entry.parameterCount() - 1).equals(ValueType.BYTES_BORROW);
-    if (needsInput != (utf8Input != null)) {
-      throw new VmTrap(needsInput
-          ? "Program requires one host UTF-8 input"
-          : "Program does not declare a host UTF-8 input");
-    }
-    if (needsOutput != (outputBytes >= 0)) {
-      throw new VmTrap(needsOutput
-          ? "Program requires one host byte output"
-          : "Program does not declare a host byte output");
-    }
-    List<Long> arguments = new ArrayList<>(entry.parameterCount());
-    if (needsInput) {
-      arguments.add(owned.hostUtf8(utf8Input));
-    }
-    hostOutputHandle = needsOutput ? owned.hostBytes(outputBytes) : 0;
-    if (needsOutput) {
-      arguments.add(hostOutputHandle);
-    }
+    HostEffectBinder.Effects effects =
+        HostEffectBinder.bind(entry, owned, utf8Input, outputBytes);
+    hostOutputHandle = effects.outputHandle();
     this.frames.add(Frame.create(
-        entry.id(), false, entry.localCount(), -1, arguments));
+        entry.id(), false, entry.localCount(), -1, effects.arguments()));
   }
 
   public void run() {

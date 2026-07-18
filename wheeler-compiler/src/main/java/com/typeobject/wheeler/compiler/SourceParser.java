@@ -880,38 +880,13 @@ final class SourceParser extends SourceStatementParser {
   }
 
   private String parseValueType(String description) {
-    SourceToken element = expect(Type.IDENTIFIER, description);
-    if (!isValueType(element.text())
-        && (moduleName == null || !isNominalName(element.text()))) {
-      fail(element, "expected declared " + description);
-    }
-    if (!match(Type.LEFT_BRACKET)) {
-      return element.text();
-    }
-    if (element.text().equals("region") || element.text().equals("words")
-        || element.text().equals("bytes") || element.text().equals("longmap")
-        || element.text().equals("utf8")) {
-      fail(element, "owned storage types cannot be array or slice elements");
-    }
-    if (match(Type.RIGHT_BRACKET)) {
-      String name = element.text() + "[]";
-      if (slices.stream().noneMatch(slice -> slice.name().equals(name))) {
-        slices.add(new SliceDefinition(name, element.text(), element.line()));
-      }
-      return name;
-    }
-    SourceToken lengthToken = expect(Type.NUMBER, "fixed array length");
-    long length = parseInteger(lengthToken.text(), lengthToken.line());
-    if (length <= 0 || length > 65_535) {
-      fail(lengthToken, "fixed array length must be between 1 and 65535");
-    }
-    expect(Type.RIGHT_BRACKET, "']' after fixed array length");
-    String name = element.text() + "[" + length + "]";
-    if (arrays.stream().noneMatch(array -> array.name().equals(name))) {
-      arrays.add(new ArrayDefinition(
-          name, element.text(), Math.toIntExact(length), element.line()));
-    }
-    return name;
+    return SourceValueTypeParser.parse(
+        this,
+        description,
+        moduleName != null,
+        this::isValueType,
+        arrays,
+        slices);
   }
 
   private boolean checkLocalType() {
