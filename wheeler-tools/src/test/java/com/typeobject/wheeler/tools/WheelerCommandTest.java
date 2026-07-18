@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import com.typeobject.wheeler.packageformat.BuildPlan;
@@ -409,6 +410,28 @@ class WheelerCommandTest {
     assertEquals(0, Wheeler.execute(
         new String[] {"run", artifact.toString()}, output, output));
     assertTrue(bytes.toString(StandardCharsets.UTF_8).contains("finalCursor = 504"));
+
+    Path counter = temporary.resolve("Counter.w");
+    Files.copy(
+        examples.resolve("Counter.w"),
+        counter);
+    Path counterArtifact = temporary.resolve("counter.wbc");
+    assertEquals(0, Wheeler.execute(
+        new String[] {
+            "run", project.toString(), "--target", "compiler",
+            "--input", counter.toString(),
+            "--output", counterArtifact.toString(), "--output-bytes", "1024"
+        },
+        output,
+        output));
+    byte[] counterBytes = Files.readAllBytes(counterArtifact);
+    assertArrayEquals(
+        new WheelerCompiler().compileToBytecode(Files.readString(counter)),
+        counterBytes);
+    new BytecodeReader().read(counterBytes);
+    assertEquals(0, Wheeler.execute(
+        new String[] {"run", counterArtifact.toString()}, output, output));
+    assertTrue(bytes.toString(StandardCharsets.UTF_8).contains("count = 0"));
   }
 
   @Test
