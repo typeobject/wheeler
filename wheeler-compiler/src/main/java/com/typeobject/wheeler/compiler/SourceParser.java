@@ -367,7 +367,7 @@ final class SourceParser extends SourceStatementParser {
       } else if (structuredStatements && matchText("setByte")) {
         parseBufferSet(body, previous(), "bytes_set");
       } else if (structuredStatements && matchText("writeAscii")) {
-        parseAsciiWrite(body, previous());
+        SourceAsciiWriteParser.parse(this, body);
       } else if (structuredStatements && matchText("set")) {
         parseBufferSet(body, previous(), "words_set");
       } else if (structuredStatements && matchText("drop")) {
@@ -443,37 +443,6 @@ final class SourceParser extends SourceStatementParser {
     expect(Type.RIGHT_PAREN, "')' after set arguments");
     expect(Type.SEMICOLON, "';' after set");
     body.add(statement(operation, start.line(), buffer, index, value));
-  }
-
-  private void parseAsciiWrite(List<Statement> body, SourceToken start) {
-    expect(Type.LEFT_PAREN, "'(' after writeAscii");
-    String buffer = parseExpression(body);
-    expect(Type.COMMA, "',' after output buffer");
-    String offset = parseExpression(body);
-    expect(Type.COMMA, "',' after output offset");
-    SourceToken literal = expect(Type.STRING, "bounded ASCII literal");
-    expect(Type.RIGHT_PAREN, "')' after writeAscii arguments");
-    expect(Type.SEMICOLON, "';' after writeAscii");
-    for (int index = 0; index < literal.text().length(); index++) {
-      String at = offset;
-      if (index != 0) {
-        SourceToken position = new SourceToken(
-            Type.NUMBER,
-            Integer.toString(index),
-            literal.line(),
-            literal.column(),
-            literal.offset());
-        at = binary(body, position, "add", offset, constant(body, position, position.text()));
-      }
-      SourceToken octet = new SourceToken(
-          Type.NUMBER,
-          Integer.toString(literal.text().charAt(index)),
-          literal.line(),
-          literal.column(),
-          literal.offset());
-      String value = constant(body, octet, octet.text());
-      body.add(statement("bytes_set", literal.line(), buffer, at, value));
-    }
   }
 
   private void parseOwnedDrop(List<Statement> body, SourceToken start) {
@@ -598,7 +567,7 @@ final class SourceParser extends SourceStatementParser {
         } else if (matchText("setByte")) {
           parseBufferSet(body, previous(), "bytes_set");
         } else if (matchText("writeAscii")) {
-          parseAsciiWrite(body, previous());
+          SourceAsciiWriteParser.parse(this, body);
         } else if (matchText("set")) {
           parseBufferSet(body, previous(), "words_set");
         } else if (matchText("drop")) {
@@ -720,7 +689,7 @@ final class SourceParser extends SourceStatementParser {
         keyword.text().equals("break") ? loop.done() : loop.repeat()));
   }
 
-  private String parseExpression(List<Statement> body) {
+  String parseExpression(List<Statement> body) {
     return parseEquality(body);
   }
 
@@ -908,13 +877,13 @@ final class SourceParser extends SourceStatementParser {
     return value;
   }
 
-  private String constant(List<Statement> body, SourceToken source, String value) {
+  String constant(List<Statement> body, SourceToken source, String value) {
     String result = temporary();
     body.add(statement("local_const", source.line(), result, value));
     return result;
   }
 
-  private String binary(
+  String binary(
       List<Statement> body, SourceToken source, String operator, String left, String right) {
     String result = temporary();
     body.add(statement("local_binary", source.line(), result, operator, left, right));
