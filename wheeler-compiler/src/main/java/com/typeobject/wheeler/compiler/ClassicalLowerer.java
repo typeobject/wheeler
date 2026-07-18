@@ -46,13 +46,12 @@ final class ClassicalLowerer {
 
   ClassicalContent lower(SourceProgram source, boolean classicalEntry) {
     List<Global> globals = lowerGlobals(source);
-    List<RecordType> recordTypes = lowerRecordTypes(source);
-    List<VariantType> variantTypes = lowerVariantTypes(source, recordTypes);
-    List<ArrayType> arrayTypes = lowerArrayTypes(source, recordTypes, variantTypes);
-    List<SliceType> sliceTypes = lowerSliceTypes(
-        source, recordTypes, variantTypes, arrayTypes);
-    Map<String, ValueType> typeReferences = typeReferences(
-        source, recordTypes, variantTypes, arrayTypes, sliceTypes);
+    SourceTypeLowerer.LoweredTypes types = new SourceTypeLowerer().lower(source);
+    List<RecordType> recordTypes = types.records();
+    List<VariantType> variantTypes = types.variants();
+    List<ArrayType> arrayTypes = types.arrays();
+    List<SliceType> sliceTypes = types.slices();
+    Map<String, ValueType> typeReferences = types.references();
     Map<String, Integer> globalIds = indexGlobals(globals);
     Map<String, Integer> functionIds = indexFunctions(source);
     Map<String, Boolean> reversibleFunctions = new HashMap<>();
@@ -60,7 +59,7 @@ final class ClassicalLowerer {
     source.functions().forEach(function -> {
       reversibleFunctions.put(function.name(), function.reversible());
       ValueType resultType = function.returnsValue()
-          ? sourceType(function.returnType(), function.line(), typeReferences)
+          ? SourceTypeLowerer.resolve(function.returnType(), function.line(), typeReferences)
           : null;
       if (resultType != null && resultType.kind() == ValueType.Kind.SLICE) {
         throw new CompilerException(function.line(), "borrowed slices cannot escape as results");
@@ -70,7 +69,7 @@ final class ClassicalLowerer {
           new FunctionSignature(
               functionIds.get(function.name()),
               function.parameters().stream()
-                  .map(parameter -> sourceType(parameter.type(), function.line(), typeReferences))
+                  .map(parameter -> SourceTypeLowerer.resolve(parameter.type(), function.line(), typeReferences))
                   .toList(),
               resultType));
     });
@@ -126,7 +125,8 @@ final class ClassicalLowerer {
           sourceFunction.parameters().size(),
           localTypes,
           sourceFunction.returnsValue()
-              ? sourceType(sourceFunction.returnType(), sourceFunction.line(), typeReferences)
+              ? SourceTypeLowerer.resolve(
+                  sourceFunction.returnType(), sourceFunction.line(), typeReferences)
               : null,
           forward,
           inverse));
@@ -141,110 +141,6 @@ final class ClassicalLowerer {
         entryId,
         globalIds,
         functionIds);
-  }
-
-  private static List<RecordType> lowerRecordTypes(SourceProgram source) {
-    List<RecordType> result = new ArrayList<>();
-    Map<String, ValueType> types = new LinkedHashMap<>();
-    types.put("long", ValueType.SIGNED);
-    types.put("boolean", ValueType.BOOLEAN);
-    Set<String> names = new HashSet<>();
-    for (SourceModel.RecordDefinition record : source.records()) {
-      if (!names.add(record.name())) {
-        throw new CompilerException(record.line(), "duplicate record type: " + record.name());
-      }
-      List<RecordType.Field> fields = record.fields().stream()
-          .map(field -> new RecordType.Field(
-              field.name(), sourceType(field.type(), record.line(), types)))
-          .toList();
-      RecordType descriptor = new RecordType(result.size(), record.name(), fields);
-      result.add(descriptor);
-      types.put(record.name(), ValueType.record(descriptor.id()));
-    }
-    return List.copyOf(result);
-  }
-
-  private static List<VariantType> lowerVariantTypes(
-      SourceProgram source, List<RecordType> records) {
-    List<VariantType> result = new ArrayList<>();
-    Map<String, ValueType> types = new LinkedHashMap<>();
-    types.put("long", ValueType.SIGNED);
-    types.put("boolean", ValueType.BOOLEAN);
-    records.forEach(record -> types.put(record.name(), ValueType.record(record.id())));
-    for (SourceModel.VariantDefinition variant : source.variants()) {
-      List<VariantType.Case> cases = variant.cases().stream()
-          .map(variantCase -> new VariantType.Case(
-              variantCase.name(),
-              variantCase.fields().stream()
-                  .map(field -> new RecordType.Field(
-                      field.name(), sourceType(field.type(), variant.line(), types)))
-                  .toList()))
-          .toList();
-      VariantType descriptor = new VariantType(result.size(), variant.name(), cases);
-      result.add(descriptor);
-      types.put(variant.name(), ValueType.variant(descriptor.id()));
-    }
-    return List.copyOf(result);
-  }
-
-  private static List<ArrayType> lowerArrayTypes(
-      SourceProgram source, List<RecordType> records, List<VariantType> variants) {
-    List<ArrayType> result = new ArrayList<>();
-    Map<String, ValueType> types = new LinkedHashMap<>();
-    types.put("long", ValueType.SIGNED);
-    types.put("boolean", ValueType.BOOLEAN);
-    records.forEach(record -> types.put(record.name(), ValueType.record(record.id())));
-    variants.forEach(variant -> types.put(variant.name(), ValueType.variant(variant.id())));
-    for (SourceModel.ArrayDefinition array : source.arrays()) {
-      ValueType element = sourceType(array.elementType(), array.line(), types);
-      ArrayType descriptor = new ArrayType(result.size(), element, array.length());
-      result.add(descriptor);
-      types.put(array.name(), ValueType.array(descriptor.id()));
-    }
-    return List.copyOf(result);
-  }
-
-  private static List<SliceType> lowerSliceTypes(
-      SourceProgram source,
-      List<RecordType> records,
-      List<VariantType> variants,
-      List<ArrayType> arrays) {
-    Map<String, ValueType> types = new LinkedHashMap<>();
-    types.put("long", ValueType.SIGNED);
-    types.put("boolean", ValueType.BOOLEAN);
-    records.forEach(record -> types.put(record.name(), ValueType.record(record.id())));
-    variants.forEach(variant -> types.put(variant.name(), ValueType.variant(variant.id())));
-    for (int index = 0; index < arrays.size(); index++) {
-      types.put(source.arrays().get(index).name(), ValueType.array(arrays.get(index).id()));
-    }
-    List<SliceType> result = new ArrayList<>();
-    for (SourceModel.SliceDefinition slice : source.slices()) {
-      ValueType element = sourceType(slice.elementType(), slice.line(), types);
-      SliceType descriptor = new SliceType(result.size(), element);
-      result.add(descriptor);
-      types.put(slice.name(), ValueType.slice(descriptor.id()));
-    }
-    return List.copyOf(result);
-  }
-
-  private static Map<String, ValueType> typeReferences(
-      SourceProgram source,
-      List<RecordType> records,
-      List<VariantType> variants,
-      List<ArrayType> arrays,
-      List<SliceType> slices) {
-    Map<String, ValueType> result = new LinkedHashMap<>();
-    result.put("long", ValueType.SIGNED);
-    result.put("boolean", ValueType.BOOLEAN);
-    records.forEach(record -> result.put(record.name(), ValueType.record(record.id())));
-    variants.forEach(variant -> result.put(variant.name(), ValueType.variant(variant.id())));
-    for (int index = 0; index < arrays.size(); index++) {
-      result.put(source.arrays().get(index).name(), ValueType.array(arrays.get(index).id()));
-    }
-    for (int index = 0; index < slices.size(); index++) {
-      result.put(source.slices().get(index).name(), ValueType.slice(slices.get(index).id()));
-    }
-    return Map.copyOf(result);
   }
 
   private static List<Global> lowerGlobals(SourceProgram source) {
@@ -365,15 +261,6 @@ final class ClassicalLowerer {
     return id;
   }
 
-  private static ValueType sourceType(
-      String type, int line, Map<String, ValueType> typeReferences) {
-    ValueType result = typeReferences.get(type);
-    if (result == null) {
-      throw new CompilerException(line, "unsupported value type: " + type);
-    }
-    return result;
-  }
-
   private static void requireArguments(Statement statement, int count) {
     if (statement.arguments().size() != count) {
       throw new CompilerException(
@@ -427,7 +314,7 @@ final class ClassicalLowerer {
       this.arrays = List.copyOf(arrayTypes);
       this.slices = List.copyOf(sliceTypes);
       for (SourceModel.Parameter parameter : owner.parameters()) {
-        declareUser(parameter.name(), owner.line(), sourceType(parameter.type(), owner.line(), typeReferences));
+        declareUser(parameter.name(), owner.line(), SourceTypeLowerer.resolve(parameter.type(), owner.line(), typeReferences));
       }
     }
 
@@ -482,7 +369,7 @@ final class ClassicalLowerer {
         case "local_bind" -> {
           requireArguments(statement, 3);
           int source = requireLocal(arguments.get(1), statement.line());
-          ValueType declaredType = sourceType(arguments.get(2), statement.line(), typeReferences);
+          ValueType declaredType = SourceTypeLowerer.resolve(arguments.get(2), statement.line(), typeReferences);
           requireType(source, declaredType, statement.line());
           int destination = declareUser(arguments.get(0), statement.line(), declaredType);
           output.add(Instruction.of(Opcode.LOCAL_MOVE, destination, source));
@@ -492,7 +379,7 @@ final class ClassicalLowerer {
         case "return_value" -> {
           requireArguments(statement, 1);
           int result = requireLocal(statement.arguments().getFirst(), statement.line());
-          requireType(result, sourceType(owner.returnType(), statement.line(), typeReferences), statement.line());
+          requireType(result, SourceTypeLowerer.resolve(owner.returnType(), statement.line(), typeReferences), statement.line());
           output.add(Instruction.of(Opcode.RETURN_VALUE, result));
         }
         case "label" -> {
