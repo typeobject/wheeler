@@ -16,8 +16,17 @@ classical class BytecodeHeader {
         cursor = writeUnsignedLittleEndian(output, cursor, 1, 2);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 2);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, 9096, 8);
+        cursor = writeUnsignedLittleEndian(output, cursor, 6, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, 32, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 40, 8);
+        cursor = writeDirectoryEntry(output, cursor, 1, 232, 24);
+        cursor = writeDirectoryEntry(output, cursor, 2, 256, 179);
+        cursor = writeDirectoryEntry(output, cursor, 3, 440, 32);
+        cursor = writeDirectoryEntry(output, cursor, 4, 472, 4);
+        cursor = writeDirectoryEntry(output, cursor, 5, 480, 1160);
+        cursor = writeDirectoryEntry(output, cursor, 6, 1640, 7456);
         finalCursor = cursor;
-        assert finalCursor == 24;
+        assert finalCursor == 232;
     }
 }

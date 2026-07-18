@@ -26,4 +26,19 @@ classical class Encoding {
         }
         return -1;
     }
+
+    public long writeDirectoryEntry(
+        bytes output,
+        long cursor,
+        long sectionType,
+        long sectionOffset,
+        long sectionLength
+    ) {
+        cursor = writeUnsignedLittleEndian(output, cursor, sectionType, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, sectionOffset, 8);
+        cursor = writeUnsignedLittleEndian(output, cursor, sectionLength, 8);
+        cursor = writeUnsignedLittleEndian(output, cursor, 8, 4);
+        return writeUnsignedLittleEndian(output, cursor, 0, 4);
+    }
 }
