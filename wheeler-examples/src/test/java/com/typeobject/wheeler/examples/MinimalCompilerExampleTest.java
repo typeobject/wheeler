@@ -151,6 +151,14 @@ class MinimalCompilerExampleTest {
         3);
     assertDifferentialExecution(
         writerProgram,
+        "classical class HelperBody { state long value = 1; "
+            + "void mix() { value += 2; value ^= 7; value -= 1; "
+            + "assert value == 3; } "
+            + "entry void main() { mix(); assert value == 3; } }",
+        "value",
+        3);
+    assertDifferentialExecution(
+        writerProgram,
         "classical class DoubleCalls { state long value = 1; "
             + "void bump() { value += 2; } "
             + "entry void main() { bump(); bump(); assert value == 5; } }",
@@ -192,6 +200,15 @@ class MinimalCompilerExampleTest {
         "classical class XorReverse { state long value = 5; "
             + "rev void flip() { value ^= 6; } "
             + "entry void main() { flip(); reverse { flip(); } "
+            + "assert value == 5; } }",
+        "value",
+        5);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class ReversibleBody { state long value = 5; "
+            + "rev void mix() { value += 2; value ^= 7; value -= 1; } "
+            + "theorem mixInverse proves inverse(mix); "
+            + "entry void main() { mix(); reverse { mix(); } "
             + "assert value == 5; } }",
         "value",
         5);

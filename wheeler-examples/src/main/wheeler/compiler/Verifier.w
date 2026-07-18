@@ -314,7 +314,10 @@ classical class Verifier {
                 if (differs(firstInverseOffset, firstForwardLength)) {
                     return 0;
                 }
-                if (differs(firstInverseLength, 32)) {
+                if (differs(firstInverseLength, firstForwardLength)) {
+                    return 0;
+                }
+                if (firstInverseLength < 32) {
                     return 0;
                 }
             }

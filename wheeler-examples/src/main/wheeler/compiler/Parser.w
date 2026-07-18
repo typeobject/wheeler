@@ -93,6 +93,13 @@ classical class Parser {
             helper,
             0,
             0,
+            0,
+            0,
+            -1,
+            0,
+            -1,
+            0,
+            -1,
             0);
         return new MinimalProgramResult.Value(program);
     }
@@ -131,6 +138,13 @@ classical class Parser {
             helper,
             0,
             0,
+            0,
+            0,
+            -1,
+            0,
+            -1,
+            0,
+            -1,
             0);
         return new MinimalProgramResult.Value(program);
     }
@@ -225,6 +239,13 @@ classical class Parser {
             global,
             0,
             0,
+            0,
+            0,
+            -1,
+            0,
+            -1,
+            0,
+            -1,
             0);
         return new MinimalProgramResult.Value(program);
     }

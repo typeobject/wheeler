@@ -58,7 +58,10 @@ classical class HelperParser {
         long proofCount,
         long entryStatement,
         long helperCallCount,
-        long preReverseStatement
+        long preReverseStatement,
+        long helperSecondStatement,
+        long helperThirdStatement,
+        long helperFourthStatement
     ) {
         long operandToken = statementOperandToken(
             source, tokenStarts, tokenLengths, helperBody);
@@ -72,6 +75,49 @@ classical class HelperParser {
         if (proofCount == 1) {
             proof = new SourceRange(
                 tokenStarts[proofToken], tokenLengths[proofToken]);
+        }
+        long helperStatementCount = 1;
+        long helperSecondOpcode = -1;
+        long helperSecondOperand = 0;
+        long helperThirdOpcode = -1;
+        long helperThirdOperand = 0;
+        long helperFourthOpcode = -1;
+        long helperFourthOperand = 0;
+        if (-1 < helperSecondStatement) {
+            helperStatementCount = 2;
+            helperSecondOpcode = statementOpcode(
+                source, tokenStarts, tokenLengths, helperSecondStatement);
+            long helperSecondOperandToken = statementOperandToken(
+                source, tokenStarts, tokenLengths, helperSecondStatement);
+            helperSecondOperand = parsedSignedNumber(
+                source,
+                tokenStarts,
+                tokenLengths,
+                helperSecondOperandToken);
+        }
+        if (-1 < helperThirdStatement) {
+            helperStatementCount = 3;
+            helperThirdOpcode = statementOpcode(
+                source, tokenStarts, tokenLengths, helperThirdStatement);
+            long helperThirdOperandToken = statementOperandToken(
+                source, tokenStarts, tokenLengths, helperThirdStatement);
+            helperThirdOperand = parsedSignedNumber(
+                source,
+                tokenStarts,
+                tokenLengths,
+                helperThirdOperandToken);
+        }
+        if (-1 < helperFourthStatement) {
+            helperStatementCount = 4;
+            helperFourthOpcode = statementOpcode(
+                source, tokenStarts, tokenLengths, helperFourthStatement);
+            long helperFourthOperandToken = statementOperandToken(
+                source, tokenStarts, tokenLengths, helperFourthStatement);
+            helperFourthOperand = parsedSignedNumber(
+                source,
+                tokenStarts,
+                tokenLengths,
+                helperFourthOperandToken);
         }
         long entryCount = 0;
         long entryOpcode = -1;
@@ -130,7 +176,14 @@ classical class HelperParser {
             proof,
             proofCount,
             helperCallCount,
-            preReverseCount);
+            preReverseCount,
+            helperStatementCount,
+            helperSecondOpcode,
+            helperSecondOperand,
+            helperThirdOpcode,
+            helperThirdOperand,
+            helperFourthOpcode,
+            helperFourthOperand);
         return new MinimalProgramResult.Value(program);
     }
 
@@ -147,7 +200,10 @@ classical class HelperParser {
         long proofToken,
         long proofCount,
         long helperCallCount,
-        long preReverseStatement
+        long preReverseStatement,
+        long helperSecondStatement,
+        long helperThirdStatement,
+        long helperFourthStatement
     ) {
         long entryStatement = -1;
         long entryClose = closeStart;
@@ -183,7 +239,10 @@ classical class HelperParser {
                         proofCount,
                         entryStatement,
                         helperCallCount,
-                        preReverseStatement);
+                        preReverseStatement,
+                        helperSecondStatement,
+                        helperThirdStatement,
+                        helperFourthStatement);
                 }
             }
         }
@@ -238,20 +297,113 @@ classical class HelperParser {
                                         tokenStarts,
                                         tokenLengths,
                                         helperBody);
+                                    long helperSecondStatement = -1;
+                                    long helperThirdStatement = -1;
+                                    long helperFourthStatement = -1;
+                                    long helperEnd = helperBody + helperWidth;
+                                    if (0 < helperWidth) {
+                                        if (punctuationAt(
+                                                source,
+                                                tokenKinds,
+                                                tokenStarts,
+                                                helperEnd,
+                                                125)) {
+                                            helperEnd = helperEnd;
+                                        } else {
+                                            helperSecondStatement = helperEnd;
+                                            long helperSecondWidth = statementWidth(
+                                                source,
+                                                tokenKinds,
+                                                tokenStarts,
+                                                tokenLengths,
+                                                helperSecondStatement);
+                                            helperEnd += helperSecondWidth;
+                                            if (0 < helperSecondWidth) {
+                                                if (punctuationAt(
+                                                        source,
+                                                        tokenKinds,
+                                                        tokenStarts,
+                                                        helperEnd,
+                                                        125)) {
+                                                    helperEnd = helperEnd;
+                                                } else {
+                                                    helperThirdStatement = helperEnd;
+                                                    long helperThirdWidth = statementWidth(
+                                                        source,
+                                                        tokenKinds,
+                                                        tokenStarts,
+                                                        tokenLengths,
+                                                        helperThirdStatement);
+                                                    helperEnd += helperThirdWidth;
+                                                    if (0 < helperThirdWidth) {
+                                                        if (punctuationAt(
+                                                                source,
+                                                                tokenKinds,
+                                                                tokenStarts,
+                                                                helperEnd,
+                                                                125)) {
+                                                            helperEnd = helperEnd;
+                                                        } else {
+                                                            helperFourthStatement = helperEnd;
+                                                            long helperFourthWidth = statementWidth(
+                                                                source,
+                                                                tokenKinds,
+                                                                tokenStarts,
+                                                                tokenLengths,
+                                                                helperFourthStatement);
+                                                            helperEnd += helperFourthWidth;
+                                                            if (helperFourthWidth < 1) {
+                                                                helperEnd = -1;
+                                                            }
+                                                        }
+                                                    } else {
+                                                        helperEnd = -1;
+                                                    }
+                                                }
+                                            } else {
+                                                helperEnd = -1;
+                                            }
+                                        }
+                                    }
+                                    boolean helperStatementsValid = 0 < helperWidth;
                                     if (reversible == 1) {
-                                        boolean reversibleBody = reversibleBodyValid(
+                                        helperStatementsValid = reversibleBodyValid(
                                             source,
                                             tokenStarts,
                                             tokenLengths,
                                             helperBody);
-                                        if (reversibleBody) {
-                                            helperWidth = helperWidth;
-                                        } else {
-                                            helperWidth = -1;
+                                        if (-1 < helperSecondStatement) {
+                                            boolean secondReversible = reversibleBodyValid(
+                                                source,
+                                                tokenStarts,
+                                                tokenLengths,
+                                                helperSecondStatement);
+                                            if (helperStatementsValid) {
+                                                helperStatementsValid = secondReversible;
+                                            }
+                                        }
+                                        if (-1 < helperThirdStatement) {
+                                            boolean thirdReversible = reversibleBodyValid(
+                                                source,
+                                                tokenStarts,
+                                                tokenLengths,
+                                                helperThirdStatement);
+                                            if (helperStatementsValid) {
+                                                helperStatementsValid = thirdReversible;
+                                            }
+                                        }
+                                        if (-1 < helperFourthStatement) {
+                                            boolean fourthReversible = reversibleBodyValid(
+                                                source,
+                                                tokenStarts,
+                                                tokenLengths,
+                                                helperFourthStatement);
+                                            if (helperStatementsValid) {
+                                                helperStatementsValid = fourthReversible;
+                                            }
                                         }
                                     }
-                                    if (0 < helperWidth) {
-                                        long helperEnd = helperBody + helperWidth;
+                                    if (helperStatementsValid) {
                                         if (punctuationAt(
                                                 source,
                                                 tokenKinds,
@@ -382,7 +534,10 @@ classical class HelperParser {
                                                             proofToken,
                                                             proofCount,
                                                             helperCallCount,
-                                                            -1);
+                                                            -1,
+                                                            helperSecondStatement,
+                                                            helperThirdStatement,
+                                                            helperFourthStatement);
                                                     }
                                                     if (reversible == 1) {
                                                         if (tokenHash(
@@ -440,7 +595,10 @@ classical class HelperParser {
                                                                                 proofToken,
                                                                                 proofCount,
                                                                                 helperCallCount,
-                                                                                preReverseStatement);
+                                                                                preReverseStatement,
+                                                                                helperSecondStatement,
+                                                                                helperThirdStatement,
+                                                                                helperFourthStatement);
                                                                         }
                                                                     }
                                                                 }

@@ -24,7 +24,14 @@ classical class CompilerIr {
         SourceRange proofName,
         long proofCount,
         long helperCallCount,
-        long preReverseStatementCount
+        long preReverseStatementCount,
+        long helperStatementCount,
+        long helperSecondOpcode,
+        long helperSecondOperand,
+        long helperThirdOpcode,
+        long helperThirdOperand,
+        long helperFourthOpcode,
+        long helperFourthOperand
     ) {}
 
     public variant MinimalProgramResult {

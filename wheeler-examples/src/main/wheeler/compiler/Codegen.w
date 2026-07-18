@@ -53,6 +53,33 @@ classical class Codegen {
         return 0;
     }
 
+    public long writeGlobalUpdate(
+        bytes output,
+        long cursor,
+        long opcode,
+        long operand
+    ) {
+        cursor = writeInstructionHeader(
+            output, cursor, globalOpcode(opcode), 2);
+        cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+        return writeSignedLittleEndian(output, cursor, operand, 8);
+    }
+
+    public long writeInverseGlobalUpdate(
+        bytes output,
+        long cursor,
+        long opcode,
+        long operand
+    ) {
+        cursor = writeInstructionHeader(
+            output,
+            cursor,
+            inverseGlobalOpcode(globalOpcode(opcode)),
+            2);
+        cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+        return writeSignedLittleEndian(output, cursor, operand, 8);
+    }
+
     public long writeStatement(
         bytes output,
         long cursor,
