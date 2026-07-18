@@ -916,8 +916,7 @@ final class SourceParser extends SourceStatementParser {
   private boolean checkLocalType() {
     return check(Type.IDENTIFIER)
         && (isValueType(peek().text())
-            || (moduleName != null && isNominalName(peek().text())
-                && lookaheadType(1) == Type.IDENTIFIER));
+            || (moduleName != null && isNominalName(peek().text())));
   }
 
   private static boolean isNominalName(String name) {

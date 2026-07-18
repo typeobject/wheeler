@@ -203,9 +203,8 @@ final class SourceModuleLinker {
             .map(SliceDefinition::elementType)
             .findFirst()
             .orElse(null));
-    if (element != null && !PRIMITIVE_TYPES.contains(element)) {
-      throw new CompilerException(
-          line, "public collection API requires a scalar element type: " + type);
+    if (element != null) {
+      requirePublicLocalType(module, element, line);
     }
   }
 
@@ -259,12 +258,18 @@ final class SourceModuleLinker {
         addImportedType(result, localNames, moduleName, importedName,
             variant.name(), variant.exported());
       }
-      imported.arrays().stream()
-          .filter(array -> PRIMITIVE_TYPES.contains(array.elementType()))
-          .forEach(array -> result.putIfAbsent(array.name(), array.name()));
-      imported.slices().stream()
-          .filter(slice -> PRIMITIVE_TYPES.contains(slice.elementType()))
-          .forEach(slice -> result.putIfAbsent(slice.name(), slice.name()));
+      imported.arrays().forEach(array -> {
+        String element = importedElementType(importedName, imported, array.elementType());
+        if (element != null) {
+          result.putIfAbsent(array.name(), element + "[" + array.length() + "]");
+        }
+      });
+      imported.slices().forEach(slice -> {
+        String element = importedElementType(importedName, imported, slice.elementType());
+        if (element != null) {
+          result.putIfAbsent(slice.name(), element + "[]");
+        }
+      });
     }
     module.arrays().forEach(array -> {
       String element = resolveType(result, array.elementType(), array.line());
@@ -275,6 +280,18 @@ final class SourceModuleLinker {
       result.put(slice.name(), element + "[]");
     });
     return Map.copyOf(result);
+  }
+
+  private static String importedElementType(
+      String moduleName, SourceProgram module, String element) {
+    if (PRIMITIVE_TYPES.contains(element)) {
+      return element;
+    }
+    boolean exportedRecord = module.records().stream()
+        .anyMatch(record -> record.name().equals(element) && record.exported());
+    boolean exportedVariant = module.variants().stream()
+        .anyMatch(variant -> variant.name().equals(element) && variant.exported());
+    return exportedRecord || exportedVariant ? linkedName(moduleName, element) : null;
   }
 
   private static void addImportedType(
@@ -347,7 +364,8 @@ final class SourceModuleLinker {
       } else if (statement.operation().equals("local_bind")) {
         arguments.set(2, resolveType(types, arguments.get(2), statement.line()));
       } else if (statement.operation().equals("record_new")
-          || statement.operation().equals("variant_new")) {
+          || statement.operation().equals("variant_new")
+          || statement.operation().equals("array_new")) {
         arguments.set(1, resolveType(types, arguments.get(1), statement.line()));
       } else if (statement.operation().equals("variant_tag")
           || statement.operation().equals("variant_get")) {

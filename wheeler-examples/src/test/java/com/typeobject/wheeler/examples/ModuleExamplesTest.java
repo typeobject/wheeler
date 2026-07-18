@@ -35,5 +35,7 @@ class ModuleExamplesTest {
     assertEquals(9, machine.global("decoded"));
     assertEquals(5, machine.global("arrayValue"));
     assertEquals(15, machine.global("sliceValue"));
+    assertEquals(8, machine.global("nominalArrayValue"));
+    assertEquals(26, machine.global("nominalSliceValue"));
   }
 }
