@@ -93,3 +93,4 @@ Use “Not applicable” with a reason for unaffected template sections. Split w
 | [WIP-0014](WIP-0014-bounded-certified-program-synthesis.md) | Draft | Bounded certified program synthesis | Finite types, synthesis, quantum search, proofs, packages |
 | [WIP-0015](WIP-0015-certified-adversarial-schedule-exploration.md) | Draft | Certified adversarial schedule exploration | Protocol models, concurrency, replay, proofs |
 | [WIP-0016](WIP-0016-nonconfigurable-source-formatter.md) | Draft | One nonconfigurable source formatter with documentation enforcement | Source formatting, documentation, editor and build tooling |
+| [WIP-0017](WIP-0017-compile-time-constants-and-finite-enums.md) | Draft | Compile-time constants and finite enums | Named values, finite types, reversible and coherent semantics |

@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler language and compiler maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-07-17 |
+| Updated | 2026-07-18 |
 | Area | Language, compiler, ergonomics, diagnostics |
 | Depends on | WIP-0001, WIP-0002 |
 | Supersedes | None |
@@ -219,4 +219,5 @@ Rejected. Reversibility, affine quantum resources, reverse blocks, and measureme
 - [WIP-0010](WIP-0010-executable-application-portfolio.md)
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
 - [WIP-0012](WIP-0012-wheeler-standard-library.md)
+- [WIP-0017](WIP-0017-compile-time-constants-and-finite-enums.md)
 - [Language profile](../reference/language-profile.md)

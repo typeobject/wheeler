@@ -5,9 +5,9 @@
 | Status | Draft |
 | Owners | Wheeler language, compiler, bytecode, and runtime maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-07-17 |
+| Updated | 2026-07-18 |
 | Area | Compiler, bootstrap, language profile, trusted computing base |
-| Depends on | WIP-0001, WIP-0005, WIP-0006 |
+| Depends on | WIP-0001, WIP-0005, WIP-0006, WIP-0017 |
 | Supersedes | None |
 | Superseded by | None |
 
@@ -274,5 +274,6 @@ Rejected. The canonical executable is `.wbc`; provider formats and host-native i
 - [WIP-0012](WIP-0012-wheeler-standard-library.md)
 - [WIP-0013](WIP-0013-typed-frames-control-flow-and-storage.md)
 - [WIP-0016](WIP-0016-nonconfigurable-source-formatter.md)
+- [WIP-0017](WIP-0017-compile-time-constants-and-finite-enums.md)
 - [Wheeler source language profile](../reference/language-profile.md)
 - [Ken Thompson, “Reflections on Trusting Trust”](https://dl.acm.org/doi/10.1145/358198.358210)

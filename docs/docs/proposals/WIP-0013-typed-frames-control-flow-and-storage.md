@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler language, compiler, bytecode, verifier, VM, and library maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-07-17 |
+| Updated | 2026-07-18 |
 | Area | Types, functions, locals, control flow, storage, bootstrap |
 | Depends on | WIP-0001, WIP-0005, WIP-0007, WIP-0012 |
 | Supersedes | None |
@@ -300,3 +300,4 @@ Rejected as the default. Hidden history changes effect and space semantics. Logg
 - [WIP-0010](WIP-0010-executable-application-portfolio.md)
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
 - [WIP-0012](WIP-0012-wheeler-standard-library.md)
+- [WIP-0017](WIP-0017-compile-time-constants-and-finite-enums.md)
