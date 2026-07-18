@@ -31,8 +31,8 @@ public final class BytecodeVerifier {
     verifyArrayTypes(program);
     verifySliceTypes(program);
     verifyFunctions(program);
-    verifyProofs(program);
     verifyQuantum(program);
+    verifyProofs(program);
     verifyWorkflow(program);
 
     FunctionBody entry = program.function(program.entryFunctionId());

@@ -197,7 +197,7 @@ class BytecodeCodecTest {
     assertEquals(java.util.List.of(proof), decoded.proofCertificates());
     assertArrayEquals(artifact, writer.write(decoded));
     assertTrue(new Disassembler().disassemble(decoded).contains(
-        "proof 0 incrementInverse rule=GENERATED_INVERSE function=1"));
+        "proof 0 incrementInverse rule=GENERATED_INVERSE subject=1"));
 
     FunctionBody plain = new FunctionBody(
         0, "main", false, 0, java.util.List.of(), null,

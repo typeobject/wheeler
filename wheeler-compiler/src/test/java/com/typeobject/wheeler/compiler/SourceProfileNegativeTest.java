@@ -276,12 +276,25 @@ class SourceProfileNegativeTest {
         }
         """;
 
+    String unknownAdjoint = """
+        quantum class BadAdjoint {
+          state long measured = 0;
+          qreg q = new qreg(1);
+          unitary void identity() { H(q[0]); }
+          theorem falseAdjoint proves adjoint(missing);
+          entry void main() { prepare(q, 0); measured = measure(q); }
+        }
+        """;
+
     CompilerException subject = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(nonreversible));
     CompilerException syntax = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(freeForm));
+    CompilerException adjoint = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(unknownAdjoint));
     assertTrue(subject.getMessage().contains("requires a reversible function"));
-    assertTrue(syntax.getMessage().contains("expected 'inverse'"));
+    assertTrue(syntax.getMessage().contains("expected inverse or adjoint"));
+    assertTrue(adjoint.getMessage().contains("requires a unitary circuit"));
   }
 
   @Test

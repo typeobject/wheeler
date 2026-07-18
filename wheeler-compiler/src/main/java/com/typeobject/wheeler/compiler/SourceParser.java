@@ -188,12 +188,15 @@ final class SourceParser extends SourceStatementParser {
   private void parseTheorem(SourceToken start) {
     String name = expect(Type.IDENTIFIER, "theorem name").text();
     expectText("proves");
-    expectText("inverse");
-    expect(Type.LEFT_PAREN, "'(' after inverse");
-    String function = expect(Type.IDENTIFIER, "reversible function name").text();
-    expect(Type.RIGHT_PAREN, "')' after reversible function name");
+    SourceToken rule = expect(Type.IDENTIFIER, "proof rule");
+    if (!rule.text().equals("inverse") && !rule.text().equals("adjoint")) {
+      fail(rule, "expected inverse or adjoint proof rule");
+    }
+    expect(Type.LEFT_PAREN, "'(' after " + rule.text());
+    String subject = expect(Type.IDENTIFIER, "proof subject name").text();
+    expect(Type.RIGHT_PAREN, "')' after proof subject");
     expect(Type.SEMICOLON, "';' after theorem");
-    proofs.add(new ProofDeclaration(name, function, start.line()));
+    proofs.add(new ProofDeclaration(name, rule.text(), subject, start.line()));
   }
 
   private void parseState(SourceToken start) {

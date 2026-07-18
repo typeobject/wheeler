@@ -4,7 +4,8 @@ import com.typeobject.wheeler.core.bytecode.BytecodeException;
 
 /** Trusted rule identities in the initial finite Wheeler proof kernel. */
 public enum ProofRule {
-  GENERATED_INVERSE(1);
+  GENERATED_INVERSE(1),
+  GENERATED_ADJOINT(2);
 
   private final int code;
 
@@ -17,8 +18,10 @@ public enum ProofRule {
   }
 
   public static ProofRule fromCode(int code) {
-    if (code == GENERATED_INVERSE.code) {
-      return GENERATED_INVERSE;
+    for (ProofRule rule : values()) {
+      if (code == rule.code) {
+        return rule;
+      }
     }
     throw new BytecodeException("Unknown proof rule " + code);
   }

@@ -784,13 +784,14 @@ classical class Arrays {
                       (integer_literal))))))))))))
 
 ==================
-Generated inverse theorem
+Generated proof theorems
 ==================
 
 classical class Certified {
   state long value = 0;
   rev void increment() { value += 1; }
   theorem incrementInverse proves inverse(increment);
+  theorem incrementAdjoint proves adjoint(increment);
   entry void main() { }
 }
 
@@ -816,6 +817,10 @@ classical class Certified {
                 (identifier)
                 (expression
                   (integer_literal)))))))
+      (member_declaration
+        (theorem_declaration
+          (identifier)
+          (identifier)))
       (member_declaration
         (theorem_declaration
           (identifier)

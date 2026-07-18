@@ -7,6 +7,7 @@ import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.proof.ProofRule;
 import com.typeobject.wheeler.runtime.ExecutionResult;
 import com.typeobject.wheeler.runtime.WheelerRuntime;
 import com.typeobject.wheeler.runtime.hybrid.HybridRun;
@@ -34,6 +35,9 @@ class QuantumExamplesTest {
     ExecutionResult result = new WheelerRuntime().execute(decoded, new StateVectorTarget());
 
     assertArrayEquals(first, second);
+    if (file.equals("QFT.w")) {
+      assertEquals(ProofRule.GENERATED_ADJOINT, decoded.proofCertificates().getFirst().rule());
+    }
     expected.forEach((global, value) -> assertEquals(value, result.globals().get(global), global));
   }
 

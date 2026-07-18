@@ -135,7 +135,7 @@ final class ClassicalLowerer {
           inverse));
     }
     List<ProofCertificate> proofs = lowerProofs(
-        source, functionIds, reversibleFunctions);
+        source, functionIds, reversibleFunctions, classicalEntry);
     return new ClassicalContent(
         globals,
         recordTypes,
@@ -152,15 +152,23 @@ final class ClassicalLowerer {
   private static List<ProofCertificate> lowerProofs(
       SourceProgram source,
       Map<String, Integer> functions,
-      Map<String, Boolean> reversibleFunctions) {
+      Map<String, Boolean> reversibleFunctions,
+      boolean classicalEntry) {
     List<ProofCertificate> result = new ArrayList<>();
     Set<String> names = new HashSet<>();
     for (SourceModel.ProofDeclaration proof : source.proofs()) {
-      Integer function = functions.get(proof.subjectFunction());
+      if (!proof.rule().equals("inverse")) {
+        if (classicalEntry) {
+          throw new CompilerException(
+              proof.line(), "adjoint theorem requires a unitary circuit");
+        }
+        continue;
+      }
+      Integer function = functions.get(proof.subject());
       if (!names.add(proof.name())) {
         throw new CompilerException(proof.line(), "duplicate theorem: " + proof.name());
       }
-      if (function == null || !reversibleFunctions.getOrDefault(proof.subjectFunction(), false)) {
+      if (function == null || !reversibleFunctions.getOrDefault(proof.subject(), false)) {
         throw new CompilerException(
             proof.line(), "inverse theorem requires a reversible function");
       }

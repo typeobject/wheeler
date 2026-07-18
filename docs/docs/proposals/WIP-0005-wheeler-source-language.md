@@ -120,7 +120,7 @@ The first profile supports:
 - `rev`, `coherent rev`, `unitary`, and `entry` methods;
 - `+=`, `-=`, `^=`, direct logged assignment, method calls, assertions, checkpoint, and commit;
 - signed `long`, `boolean`, immutable nominal records, closed tagged variants with exhaustive `match`, fixed immutable arrays with checked indexing, and nonescaping immutable slices; typed left-to-right expressions and static calls; `return`, `if`/`else`, early return, bounded `while` and counted `for`, and `break`/`continue` in ordinary classical methods;
-- direct inverse calls, reverse blocks, and finite `theorem name proves inverse(function);` declarations;
+- direct inverse calls, reverse blocks, and finite `theorem name proves inverse(function);` and `theorem name proves adjoint(circuit);` declarations;
 - H, X, Z, phase, controlled phase, CNOT, CZ, and swap gates;
 - `prepare`, full-register computational-basis measurement, unitary call/adjoint, and coherent method reference;
 - comments and conventional semicolons/indentation.
@@ -153,7 +153,7 @@ The initial profile has no Java threads, monitors, volatile fields, or asynchron
 
 Quantum register references are affine semantic values even when field syntax resembles Java. Gate calls do not expose provider qubit objects. Measurement produces classical state through an explicit operation.
 
-The initial WIP-0011 slice resolves generated-inverse theorem declarations and emits canonical certificates checked by the finite kernel. Contracts, general propositions and terms, structured proof blocks, experiments, circuit/resource rules, and package proof APIs remain.
+The initial WIP-0011 slice resolves generated-inverse and generated-adjoint theorem declarations and emits canonical certificates checked by the finite kernel. Contracts, general propositions and terms, structured proof blocks, experiments, circuit/resource rules, and package proof APIs remain.
 
 ## Bytecode, persistence, and compatibility
 

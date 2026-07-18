@@ -7,6 +7,8 @@ import com.typeobject.wheeler.compiler.SourceModel.Statement;
 import com.typeobject.wheeler.core.bytecode.FunctionBody;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.ProgramKind;
+import com.typeobject.wheeler.core.proof.ProofCertificate;
+import com.typeobject.wheeler.core.proof.ProofRule;
 import com.typeobject.wheeler.core.quantum.Gate;
 import com.typeobject.wheeler.core.quantum.GateOperation;
 import com.typeobject.wheeler.core.quantum.LiftedCall;
@@ -29,6 +31,7 @@ final class QuantumLowerer {
     Map<String, Integer> circuitIds = indexCircuits(source);
     List<QuantumCircuit> circuits = lowerCircuits(
         source, registerIds, circuitIds, classical);
+    List<ProofCertificate> proofs = lowerProofs(source, classical.proofs(), circuitIds);
     List<WorkflowStep> workflow = lowerWorkflow(
         source, registerIds, circuitIds, classical);
     ProgramKind kind = source.kind().equals("quantum") ? ProgramKind.QUANTUM : ProgramKind.HYBRID;
@@ -42,12 +45,37 @@ final class QuantumLowerer {
         classical.arrayTypes(),
         classical.sliceTypes(),
         classical.functions(),
-        classical.proofs(),
+        proofs,
         registers,
         circuits,
         workflow,
         Program.DEFAULT_MAX_HISTORY,
         Program.DEFAULT_MAX_STEPS);
+  }
+
+  private static List<ProofCertificate> lowerProofs(
+      SourceProgram source,
+      List<ProofCertificate> classicalProofs,
+      Map<String, Integer> circuitIds) {
+    List<ProofCertificate> result = new ArrayList<>(classicalProofs);
+    Set<String> names = new HashSet<>();
+    classicalProofs.forEach(proof -> names.add(proof.name()));
+    for (SourceModel.ProofDeclaration proof : source.proofs()) {
+      if (!proof.rule().equals("adjoint")) {
+        continue;
+      }
+      Integer circuit = circuitIds.get(proof.subject());
+      if (!names.add(proof.name())) {
+        throw new CompilerException(proof.line(), "duplicate theorem: " + proof.name());
+      }
+      if (circuit == null) {
+        throw new CompilerException(
+            proof.line(), "adjoint theorem requires a unitary circuit");
+      }
+      result.add(new ProofCertificate(
+          result.size(), proof.name(), ProofRule.GENERATED_ADJOINT, circuit));
+    }
+    return List.copyOf(result);
   }
 
   private static List<QuantumRegister> lowerRegisters(SourceProgram source) {

@@ -5,6 +5,7 @@ import com.typeobject.wheeler.core.bytecode.FunctionBody;
 import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.quantum.QuantumOperation;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,13 +16,32 @@ public final class ProofKernel {
   public static void verify(Program program, ProofCertificate certificate) {
     switch (certificate.rule()) {
       case GENERATED_INVERSE -> verifyGeneratedInverse(program, certificate);
+      case GENERATED_ADJOINT -> verifyGeneratedAdjoint(program, certificate);
     }
   }
 
   private static void verifyGeneratedInverse(
       Program program, ProofCertificate certificate) {
-    FunctionBody function = program.function(certificate.subjectFunctionId());
+    FunctionBody function = program.function(certificate.subjectId());
     verifyGeneratedInverse(function, "Proof " + certificate.name());
+  }
+
+  private static void verifyGeneratedAdjoint(
+      Program program, ProofCertificate certificate) {
+    var circuit = program.quantumCircuit(certificate.subjectId());
+    for (var operation : circuit.operations()) {
+      if (!operation.equals(operation.inverse().inverse())) {
+        fail("Proof " + certificate.name(), "quantum operation adjoint is not involutive");
+      }
+    }
+    var inverse = circuit.inverseOperations();
+    List<QuantumOperation> restored = new ArrayList<>();
+    for (int index = inverse.size() - 1; index >= 0; index--) {
+      restored.add(inverse.get(index).inverse());
+    }
+    if (!restored.equals(circuit.operations())) {
+      fail("Proof " + certificate.name(), "generated circuit adjoint does not restore the body");
+    }
   }
 
   public static void verifyGeneratedInverse(FunctionBody function) {

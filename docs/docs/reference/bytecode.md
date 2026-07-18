@@ -56,7 +56,7 @@ Local instructions cover constants, state load/store, move, checked add/subtract
 
 ## Proof certificates
 
-Section 10 is present only when a program carries proof evidence. It begins with a bounded count followed by fixed records containing canonical proof ID, proof-name string ID, trusted rule code, and subject function ID. The initial rule is `GENERATED_INVERSE`. The kernel reconstructs the inverse body from the exact forward instruction sequence and accepts only the checked reversible opcode subset. Unknown rules, unresolved subjects, noncanonical IDs, nonreversible functions, malformed lengths, duplicate names, or changed inverse bodies reject the artifact.
+Section 10 is present only when a program carries proof evidence. It begins with a bounded count followed by fixed records containing canonical proof ID, proof-name string ID, trusted rule code, and rule-domain subject ID. The initial rules are `GENERATED_INVERSE` and `GENERATED_ADJOINT`. The kernel reconstructs an inverse body from the exact forward instruction sequence and accepts only the checked reversible opcode subset. For an adjoint certificate it reverses the exact circuit operation list, inverts each semantic operation, and checks involution against the original body. Unknown rules, unresolved subjects, noncanonical IDs, nonreversible functions, malformed lengths, duplicate names, or changed inverse bodies reject the artifact.
 
 Proof metadata cannot weaken ordinary bytecode verification or change execution. Omitting the section makes no theorem claim.
 

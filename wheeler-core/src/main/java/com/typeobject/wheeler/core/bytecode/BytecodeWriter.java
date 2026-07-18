@@ -208,7 +208,7 @@ public final class BytecodeWriter {
       buffer.putInt(proof.id());
       buffer.putInt(strings.get(proof.name()));
       buffer.putInt(proof.rule().code());
-      buffer.putInt(proof.subjectFunctionId());
+      buffer.putInt(proof.subjectId());
     }
     return buffer.array();
   }

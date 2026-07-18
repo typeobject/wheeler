@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
+import com.typeobject.wheeler.core.proof.ProofRule;
 import com.typeobject.wheeler.core.vm.MachineStatus;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import java.nio.file.Files;
@@ -21,11 +22,15 @@ class ClassicalExamplesTest {
       throws Exception {
     Path source = Path.of("src/main/wheeler", file);
     byte[] artifact = new WheelerCompiler().compileToBytecode(Files.readString(source));
-    VirtualMachine machine = new VirtualMachine(new BytecodeReader().read(artifact));
+    var program = new BytecodeReader().read(artifact);
+    VirtualMachine machine = new VirtualMachine(program);
 
     machine.run();
 
     assertEquals(MachineStatus.HALTED, machine.status());
+    if (file.equals("Counter.w")) {
+      assertEquals(ProofRule.GENERATED_INVERSE, program.proofCertificates().getFirst().rule());
+    }
     expected.forEach((global, value) -> assertEquals(value, machine.global(global), global));
   }
 

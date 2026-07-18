@@ -13,6 +13,8 @@ quantum class QFT {
         Swap(q[0], q[2]);
     }
 
+    theorem qftAdjoint proves adjoint(qft);
+
     entry void main() {
         prepare(q, 5);
         qft();

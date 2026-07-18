@@ -160,17 +160,18 @@ The constructor retains the array origin plus start and length, rejects negative
 
 Equal arrays and slices are interned in deterministic construction order under separate 65,535-value machine ceilings. Handles remain unobservable and type-specific. Snapshots and rewind include both tables.
 
-## Generated-inverse theorems
+## Generated inverse and adjoint theorems
 
-The initial proof slice accepts one closed theorem form over a declared reversible function:
+The initial proof slice accepts two closed theorem forms:
 
 ```java
 theorem incrementInverse proves inverse(increment);
+theorem qftAdjoint proves adjoint(qft);
 ```
 
-The compiler resolves the subject, requires a `rev` declaration, and emits a canonical `GENERATED_INVERSE` certificate tied to the function ID. The trusted `ProofKernel` reconstructs the expected inverse from the forward opcodes and rejects unsupported operations, nonreversible subjects, changed inverse bodies, duplicate IDs, unknown rules, and malformed metadata before execution. This is formal proof evidence, unlike an executable round-trip test.
+The compiler resolves each subject and emits a canonical rule certificate tied to the function or circuit ID. `GENERATED_INVERSE` requires a `rev` function; the trusted `ProofKernel` reconstructs its expected inverse from the forward opcodes. `GENERATED_ADJOINT` requires a `unitary` circuit; the kernel reverses its operation order, inverts every semantic gate or coherent call, and checks that taking the adjoint twice restores the exact circuit body. Unknown subjects, unsupported operations, noncanonical IDs, unknown rules, changed inverse bodies, and malformed metadata reject before execution. This is formal structural evidence, unlike an executable round-trip test.
 
-The current rule proves only exact compiler-generated inverses for the straight-line reversible subset. General propositions, contracts, proof terms, quantum equivalence, resource certificates, assumptions, and experiments remain WIP-0011 work.
+These rules prove exact compiler generation for the accepted straight-line subsets. They do not yet establish matrix-level circuit equivalence under arbitrary rewrites or global phase. General propositions, contracts, proof terms, resource certificates, assumptions, and experiments remain WIP-0011 work.
 
 ## Quantum statements
 

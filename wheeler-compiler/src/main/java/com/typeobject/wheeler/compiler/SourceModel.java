@@ -33,7 +33,7 @@ final class SourceModel {
     }
   }
 
-  record ProofDeclaration(String name, String subjectFunction, int line) {}
+  record ProofDeclaration(String name, String rule, String subject, int line) {}
 
   record Statement(String operation, List<String> arguments, int line) {
     Statement {
