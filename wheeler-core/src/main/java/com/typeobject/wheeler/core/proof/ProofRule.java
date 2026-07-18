@@ -5,7 +5,8 @@ import com.typeobject.wheeler.core.bytecode.BytecodeException;
 /** Trusted rule identities in the initial finite Wheeler proof kernel. */
 public enum ProofRule {
   GENERATED_INVERSE(1),
-  GENERATED_ADJOINT(2);
+  GENERATED_ADJOINT(2),
+  CIRCUIT_EQUIVALENCE(3);
 
   private final int code;
 

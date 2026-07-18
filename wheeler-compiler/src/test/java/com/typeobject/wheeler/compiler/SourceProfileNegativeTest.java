@@ -286,15 +286,29 @@ class SourceProfileNegativeTest {
         }
         """;
 
+    String falseEquivalence = """
+        quantum class FalseEquivalence {
+          state long measured = 0;
+          qreg q = new qreg(1);
+          unitary void left() { H(q[0]); }
+          unitary void right() { X(q[0]); }
+          theorem falseRewrite proves equivalent(left, right);
+          entry void main() { prepare(q, 0); measured = measure(q); }
+        }
+        """;
+
     CompilerException subject = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(nonreversible));
     CompilerException syntax = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(freeForm));
     CompilerException adjoint = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(unknownAdjoint));
+    CompilerException equivalence = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(falseEquivalence));
     assertTrue(subject.getMessage().contains("requires a reversible function"));
-    assertTrue(syntax.getMessage().contains("expected inverse or adjoint"));
-    assertTrue(adjoint.getMessage().contains("requires a unitary circuit"));
+    assertTrue(syntax.getMessage().contains("expected inverse, adjoint, or equivalent"));
+    assertTrue(adjoint.getMessage().contains("requires declared unitary circuits"));
+    assertTrue(equivalence.getMessage().contains("differ after adjacent inverse cancellation"));
   }
 
   @Test

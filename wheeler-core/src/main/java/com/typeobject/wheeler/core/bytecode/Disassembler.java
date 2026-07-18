@@ -76,7 +76,11 @@ public final class Disassembler {
     for (var proof : program.proofCertificates()) {
       output.append("\nproof ").append(proof.id()).append(' ')
           .append(proof.name()).append(" rule=").append(proof.rule())
-          .append(" subject=").append(proof.subjectId()).append('\n');
+          .append(" subject=").append(proof.subjectId());
+      if (proof.relatedSubjectId() >= 0) {
+        output.append(" related=").append(proof.relatedSubjectId());
+      }
+      output.append('\n');
     }
     if (!program.quantumRegisters().isEmpty()) {
       output.append("\nquantum registers:\n");

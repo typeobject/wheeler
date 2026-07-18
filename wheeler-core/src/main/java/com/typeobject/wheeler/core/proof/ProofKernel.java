@@ -17,6 +17,7 @@ public final class ProofKernel {
     switch (certificate.rule()) {
       case GENERATED_INVERSE -> verifyGeneratedInverse(program, certificate);
       case GENERATED_ADJOINT -> verifyGeneratedAdjoint(program, certificate);
+      case CIRCUIT_EQUIVALENCE -> verifyCircuitEquivalence(program, certificate);
     }
   }
 
@@ -24,6 +25,32 @@ public final class ProofKernel {
       Program program, ProofCertificate certificate) {
     FunctionBody function = program.function(certificate.subjectId());
     verifyGeneratedInverse(function, "Proof " + certificate.name());
+  }
+
+  private static void verifyCircuitEquivalence(
+      Program program, ProofCertificate certificate) {
+    var left = program.quantumCircuit(certificate.subjectId());
+    var right = program.quantumCircuit(certificate.relatedSubjectId());
+    if (left.registerId() != right.registerId()
+        || !cancelAdjacentInverses(left.operations())
+            .equals(cancelAdjacentInverses(right.operations()))) {
+      fail("Proof " + certificate.name(),
+          "circuit bodies differ after adjacent inverse cancellation");
+    }
+  }
+
+  private static List<QuantumOperation> cancelAdjacentInverses(
+      List<QuantumOperation> operations) {
+    List<QuantumOperation> result = new ArrayList<>();
+    for (QuantumOperation operation : operations) {
+      int last = result.size() - 1;
+      if (last >= 0 && result.get(last).equals(operation.inverse())) {
+        result.remove(last);
+      } else {
+        result.add(operation);
+      }
+    }
+    return List.copyOf(result);
   }
 
   private static void verifyGeneratedAdjoint(

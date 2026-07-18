@@ -792,6 +792,7 @@ classical class Certified {
   rev void increment() { value += 1; }
   theorem incrementInverse proves inverse(increment);
   theorem incrementAdjoint proves adjoint(increment);
+  theorem same proves equivalent(increment, increment);
   entry void main() { }
 }
 
@@ -823,6 +824,11 @@ classical class Certified {
           (identifier)))
       (member_declaration
         (theorem_declaration
+          (identifier)
+          (identifier)))
+      (member_declaration
+        (theorem_declaration
+          (identifier)
           (identifier)
           (identifier)))
       (member_declaration

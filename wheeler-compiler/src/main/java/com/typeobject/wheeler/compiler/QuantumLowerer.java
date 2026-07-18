@@ -61,19 +61,23 @@ final class QuantumLowerer {
     Set<String> names = new HashSet<>();
     classicalProofs.forEach(proof -> names.add(proof.name()));
     for (SourceModel.ProofDeclaration proof : source.proofs()) {
-      if (!proof.rule().equals("adjoint")) {
+      if (proof.rule().equals("inverse")) {
         continue;
       }
       Integer circuit = circuitIds.get(proof.subject());
+      Integer related = proof.relatedSubject() == null
+          ? null : circuitIds.get(proof.relatedSubject());
       if (!names.add(proof.name())) {
         throw new CompilerException(proof.line(), "duplicate theorem: " + proof.name());
       }
-      if (circuit == null) {
+      if (circuit == null || (proof.rule().equals("equivalent") && related == null)) {
         throw new CompilerException(
-            proof.line(), "adjoint theorem requires a unitary circuit");
+            proof.line(), proof.rule() + " theorem requires declared unitary circuits");
       }
+      ProofRule rule = proof.rule().equals("adjoint")
+          ? ProofRule.GENERATED_ADJOINT : ProofRule.CIRCUIT_EQUIVALENCE;
       result.add(new ProofCertificate(
-          result.size(), proof.name(), ProofRule.GENERATED_ADJOINT, circuit));
+          result.size(), proof.name(), rule, circuit, related == null ? -1 : related));
     }
     return List.copyOf(result);
   }

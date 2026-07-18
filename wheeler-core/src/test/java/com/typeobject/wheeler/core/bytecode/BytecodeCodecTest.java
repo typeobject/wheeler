@@ -185,7 +185,7 @@ class BytecodeCodecTest {
             Instruction.of(Opcode.SUB_CONST, 0, 1),
             Instruction.of(Opcode.RETURN)));
     ProofCertificate proof = new ProofCertificate(
-        0, "incrementInverse", ProofRule.GENERATED_INVERSE, 1);
+        0, "incrementInverse", ProofRule.GENERATED_INVERSE, 1, -1);
     Program valid = Program.classical(
         "Proof", 0, java.util.List.of(new Global("value", 0)),
         java.util.List.of(), java.util.List.of(), java.util.List.of(), java.util.List.of(),
@@ -206,7 +206,7 @@ class BytecodeCodecTest {
         "Forged", 0, java.util.List.of(), java.util.List.of(), java.util.List.of(),
         java.util.List.of(), java.util.List.of(), java.util.List.of(plain),
         java.util.List.of(new ProofCertificate(
-            0, "falseClaim", ProofRule.GENERATED_INVERSE, 0)));
+            0, "falseClaim", ProofRule.GENERATED_INVERSE, 0, -1)));
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(forged));
   }
 

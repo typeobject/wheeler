@@ -162,16 +162,17 @@ Equal arrays and slices are interned in deterministic construction order under s
 
 ## Generated inverse and adjoint theorems
 
-The initial proof slice accepts two closed theorem forms:
+The initial proof slice accepts three closed theorem forms:
 
 ```java
 theorem incrementInverse proves inverse(increment);
 theorem qftAdjoint proves adjoint(qft);
+theorem normalized proves equivalent(sourceCircuit, normalizedCircuit);
 ```
 
-The compiler resolves each subject and emits a canonical rule certificate tied to the function or circuit ID. `GENERATED_INVERSE` requires a `rev` function; the trusted `ProofKernel` reconstructs its expected inverse from the forward opcodes. `GENERATED_ADJOINT` requires a `unitary` circuit; the kernel reverses its operation order, inverts every semantic gate or coherent call, and checks that taking the adjoint twice restores the exact circuit body. Unknown subjects, unsupported operations, noncanonical IDs, unknown rules, changed inverse bodies, and malformed metadata reject before execution. This is formal structural evidence, unlike an executable round-trip test.
+The compiler resolves each subject and emits a canonical rule certificate tied to the function or circuit ID. `GENERATED_INVERSE` requires a `rev` function; the trusted `ProofKernel` reconstructs its expected inverse from the forward opcodes. `GENERATED_ADJOINT` requires a `unitary` circuit; the kernel reverses its operation order, inverts every semantic gate or coherent call, and checks that taking the adjoint twice restores the exact circuit body. `CIRCUIT_EQUIVALENCE` requires two circuits on the same register and checks equality after deterministic cancellation of adjacent inverse operations. Unknown subjects, unsupported operations, noncanonical IDs, unknown rules, changed inverse bodies, and malformed metadata reject before execution. This is formal structural evidence, unlike an executable round-trip test.
 
-These rules prove exact compiler generation for the accepted straight-line subsets. They do not yet establish matrix-level circuit equivalence under arbitrary rewrites or global phase. General propositions, contracts, proof terms, resource certificates, assumptions, and experiments remain WIP-0011 work.
+These rules prove exact compiler generation and the one named cancellation rewrite for the accepted straight-line subsets. They do not yet establish matrix-level circuit equivalence under arbitrary rewrites or global phase. General propositions, contracts, proof terms, resource certificates, assumptions, and experiments remain WIP-0011 work.
 
 ## Quantum statements
 
@@ -240,7 +241,7 @@ See [WIP-0007](../proposals/WIP-0007-self-hosting-compiler-and-bootstrap.md), [W
 
 Proofs will use integrated Wheeler syntax and semantics. Contracts attach to executable declarations; theorem and experiment declarations resolve through ordinary modules; structured proof blocks elaborate to canonical terms checked by a small trusted kernel. Formal theorem evidence remains distinct from simulator tests and sampled hardware results.
 
-The current `QFTProof.w` is an executable inverse law, not a formal theorem. The proof language, certificate format, quantum propositions, resource claims, and tooling contract are specified in [WIP-0011](../proposals/WIP-0011-integrated-proofs-and-certificates.md).
+The current `QFTProof.w` is an executable inverse law, not a formal theorem. `Counter.w`, `QFT.w`, and `QuantumCompiler.w` carry the initial finite-rule certificates. General proposition terms, contracts, matrix-level quantum proofs, resource claims, and tooling contracts remain specified work in [WIP-0011](../proposals/WIP-0011-integrated-proofs-and-certificates.md).
 
 ## Standard library direction
 

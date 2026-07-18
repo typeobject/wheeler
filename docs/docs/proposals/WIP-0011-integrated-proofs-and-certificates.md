@@ -337,7 +337,7 @@ Each fixture first lands as an executable law if necessary, then gains a formal 
 - [ ] Contract and theorem syntax parses and resolves.
 - [ ] Finite classical proof kernel checks canonical terms.
 - [x] Explicit generated-inverse theorems over straight-line reversible functions emit canonical certificates checked independently from compiler lowering.
-- [ ] The finite generated-adjoint rule checks exact QFT operation-order/involution certificates; semantic composition, rewrite equivalence, scalar normalization, and global-phase rules remain.
+- [ ] The finite kernel checks exact QFT adjoint involution and same-register adjacent-inverse rewrite certificates; semantic composition, general rewrite equivalence, scalar normalization, and global-phase rules remain.
 - [ ] Resource-bound certificates integrate with target planning.
 - [ ] Experiment declarations integrate with hybrid provenance without inhabiting theorem types.
 - [ ] Wheeler-written kernel and elaborator bootstrap reproducibly.
@@ -345,14 +345,14 @@ Each fixture first lands as an executable law if necessary, then gains a formal 
 
 ## Testing and acceptance
 
-- [ ] Parser and Tree-sitter corpora cover the initial generated-inverse theorem form; contracts, general propositions, proof blocks, and experiments remain.
+- [ ] Parser and Tree-sitter corpora cover the initial inverse, adjoint, and circuit-equivalence theorem forms; contracts, general propositions, proof blocks, and experiments remain.
 - [ ] Negative syntax and type tests reject free-form justification, unresolved theorem names, malformed goals, effectful proofs, and invalid `old` or `result` use.
 - [ ] Kernel malformed-input corpus rejects forged, cyclic, noncanonical, stale, oversized, and unknown-rule certificates.
 - [ ] An independent checker agrees with the Wheeler kernel on the canonical certificate corpus.
 - [x] Generated-inverse certificates reconstruct the straight-line intrinsic subset and reject nonreversible subjects, unsupported/logged/barrier operations, changed inverse bodies, unknown rules, and malformed metadata.
 - [ ] Coherent certificates prove exact finite permutation and reject nonunitary or hidden-measurement bodies.
 - [ ] QFT carries a generated-adjoint structural certificate and an executable round-trip law; a kernel theorem for semantic composition to identity within an exact scalar profile remains.
-- [ ] Circuit rewrite certificate rejects one deliberately changed gate or parameter.
+- [x] Circuit rewrite certificates accept deterministic adjacent-inverse cancellation and reject a deliberately changed gate.
 - [ ] Resource certificate invalidates when region, target plan, compiler, or bound identity changes.
 - [ ] Sampled experiment evidence cannot type-check where an exact theorem proof is required.
 - [ ] Replay preserves empirical downstream decisions without changing experiment evidence into formal proof.

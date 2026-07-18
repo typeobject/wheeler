@@ -67,10 +67,20 @@ module.exports = grammar({
       'theorem',
       field('name', $.identifier),
       'proves',
-      field('rule', choice('inverse', 'adjoint')),
-      '(',
-      field('function', $.identifier),
-      ')',
+      choice(
+        seq(
+          field('rule', choice('inverse', 'adjoint')),
+          '(', field('subject', $.identifier), ')',
+        ),
+        seq(
+          field('rule', 'equivalent'),
+          '(',
+          field('subject', $.identifier),
+          ',',
+          field('related_subject', $.identifier),
+          ')',
+        ),
+      ),
       ';',
     ),
 

@@ -20,7 +20,7 @@ The examples are deliberately bounded. They demonstrate implemented semantics an
 | [`QFTProof.w`](../../wheeler-examples/src/main/wheeler/QFTProof.w) | Executable two-qubit inverse law | `measured = 2` |
 | [`QuantumOptimizer.w`](../../wheeler-examples/src/main/wheeler/QuantumOptimizer.w) | Two target observations, reversible acceptance update, commit, and target-free replay | `sample = 1`, `bestCost = 1`, `accepted = 1` |
 | [`QuantumNeuralNetwork.w`](../../wheeler-examples/src/main/wheeler/QuantumNeuralNetwork.w) | One-bit coherent activation layer | `activation = 1`, `measured = 0` |
-| [`QuantumCompiler.w`](../../wheeler-examples/src/main/wheeler/QuantumCompiler.w) | Basis-state equivalence of source and normalized circuits | `sourceResult = normalizedResult = 1` |
+| [`QuantumCompiler.w`](../../wheeler-examples/src/main/wheeler/QuantumCompiler.w) | Kernel-checked adjacent-inverse normalization plus basis-state execution | `sourceResult = normalizedResult = 1` |
 | [`SurfaceCode.w`](../../wheeler-examples/src/main/wheeler/SurfaceCode.w) | Static correction kernel and generated adjoint | `measured = 0` |
 
 ## Scope boundaries
@@ -33,7 +33,7 @@ The examples are deliberately bounded. They demonstrate implemented semantics an
 
 `QuantumNeuralNetwork.w` establishes that a coherent reversible function can serve as a classical activation and a quantum permutation. It does not claim training arrays, gradients, or floating-point optimizers.
 
-`QuantumCompiler.w` checks a small but essential compiler law: removing adjacent self-inverse gates preserves basis behavior. The self-hosted Wheeler compiler is a larger bootstrap deliverable, not this fixture.
+`QuantumCompiler.w` checks a small but essential compiler law twice: its exact cancellation rewrite carries a kernel certificate, while execution confirms basis behavior. The self-hosted Wheeler compiler is a larger bootstrap deliverable, not this fixture.
 
 `SurfaceCode.w` is static. A real syndrome loop with measurement, reset, bounded decoding, and conditional correction requires a target that advertises dynamic target-resident control. Wheeler must reject that workflow on a static target rather than hide host latency.
 

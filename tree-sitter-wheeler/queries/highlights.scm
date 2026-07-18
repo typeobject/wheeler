@@ -1,7 +1,7 @@
 (line_comment) @comment
 (block_comment) @comment
 
-["classical" "quantum" "hybrid" "class" "record" "variant" "case" "match" "theorem" "proves" "inverse" "adjoint" "state" "qreg" "new" "void"] @keyword
+["classical" "quantum" "hybrid" "class" "record" "variant" "case" "match" "theorem" "proves" "inverse" "adjoint" "equivalent" "state" "qreg" "new" "void"] @keyword
 ["long" "boolean"] @type.builtin
 ["entry" "rev" "coherent" "unitary" "reverse" "assert" "if" "else" "while" "for" "limit" "break" "continue" "return"] @keyword.control
 (visibility_modifier) @keyword.modifier
@@ -14,7 +14,8 @@
 (type_identifier) @type
 (method_declaration name: (identifier) @function.method)
 (theorem_declaration name: (identifier) @function)
-(theorem_declaration function: (identifier) @function.method)
+(theorem_declaration subject: (identifier) @function.method)
+(theorem_declaration related_subject: (identifier) @function.method)
 (call_expression function: (identifier) @function.call)
 (coherent_apply_statement method: (identifier) @function.call)
 

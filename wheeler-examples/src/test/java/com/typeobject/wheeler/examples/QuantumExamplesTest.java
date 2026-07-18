@@ -37,6 +37,8 @@ class QuantumExamplesTest {
     assertArrayEquals(first, second);
     if (file.equals("QFT.w")) {
       assertEquals(ProofRule.GENERATED_ADJOINT, decoded.proofCertificates().getFirst().rule());
+    } else if (file.equals("QuantumCompiler.w")) {
+      assertEquals(ProofRule.CIRCUIT_EQUIVALENCE, decoded.proofCertificates().getFirst().rule());
     }
     expected.forEach((global, value) -> assertEquals(value, result.globals().get(global), global));
   }

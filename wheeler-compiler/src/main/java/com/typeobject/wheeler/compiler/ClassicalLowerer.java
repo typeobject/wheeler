@@ -160,7 +160,7 @@ final class ClassicalLowerer {
       if (!proof.rule().equals("inverse")) {
         if (classicalEntry) {
           throw new CompilerException(
-              proof.line(), "adjoint theorem requires a unitary circuit");
+              proof.line(), proof.rule() + " theorem requires a unitary circuit");
         }
         continue;
       }
@@ -173,7 +173,7 @@ final class ClassicalLowerer {
             proof.line(), "inverse theorem requires a reversible function");
       }
       result.add(new ProofCertificate(
-          result.size(), proof.name(), ProofRule.GENERATED_INVERSE, function));
+          result.size(), proof.name(), ProofRule.GENERATED_INVERSE, function, -1));
     }
     return List.copyOf(result);
   }

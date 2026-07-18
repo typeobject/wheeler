@@ -14,6 +14,9 @@ quantum class QuantumCompiler {
         X(program[0]);
     }
 
+    theorem normalizationPreservesCircuit proves
+        equivalent(sourceCircuit, normalizedCircuit);
+
     entry void main() {
         prepare(program, 0);
         sourceCircuit();

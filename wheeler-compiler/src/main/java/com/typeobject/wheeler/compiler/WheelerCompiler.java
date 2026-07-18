@@ -2,6 +2,7 @@ package com.typeobject.wheeler.compiler;
 
 import com.typeobject.wheeler.compiler.ClassicalLowerer.ClassicalContent;
 import com.typeobject.wheeler.compiler.SourceModel.SourceProgram;
+import com.typeobject.wheeler.core.bytecode.BytecodeException;
 import com.typeobject.wheeler.core.bytecode.BytecodeVerifier;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
@@ -30,7 +31,16 @@ public final class WheelerCompiler {
             classicalContent.functions(),
             classicalContent.proofs())
         : new QuantumLowerer().lower(parsed, classicalContent);
-    BytecodeVerifier.verify(program);
+    try {
+      BytecodeVerifier.verify(program);
+    } catch (BytecodeException exception) {
+      for (SourceModel.ProofDeclaration proof : parsed.proofs()) {
+        if (exception.getMessage().startsWith("Proof " + proof.name() + " failed:")) {
+          throw new CompilerException(proof.line(), exception.getMessage());
+        }
+      }
+      throw exception;
+    }
     return program;
   }
 
