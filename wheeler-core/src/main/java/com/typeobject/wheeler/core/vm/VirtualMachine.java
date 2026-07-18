@@ -487,29 +487,11 @@ public final class VirtualMachine {
         frames.add(Frame.create(functionId, opcode == Opcode.UNCALL, target.localCount()));
         control = StepRecord.ControlChange.CALL;
       }
-      case CALL_VALUE -> {
-        int functionId = Math.toIntExact(operand(instruction, 0));
-        int argumentBase = Math.toIntExact(operand(instruction, 1));
-        int argumentCount = Math.toIntExact(operand(instruction, 2));
-        int destination = Math.toIntExact(operand(instruction, 3));
-        List<Long> arguments = new ArrayList<>(argumentCount);
-        for (int index = 0; index < argumentCount; index++) {
-          arguments.add(currentFrame().local(argumentBase + index));
-        }
-        FunctionBody target = program.function(functionId);
-        Frame caller = currentFrame().advance();
-        for (int index = 0; index < argumentCount; index++) {
-          if (target.localType(index).equals(ValueType.UTF8_BORROW)
-              || target.localType(index).equals(ValueType.LONG_MAP_BORROW)
-              || target.localType(index).equals(ValueType.WORDS_BORROW)
-              || target.localType(index).equals(ValueType.BYTES_BORROW)
-              || target.localType(index).equals(ValueType.REGION_BORROW)) {
-            caller = caller.withLocal(argumentBase + index, 0);
-          }
-        }
-        replaceCurrentFrame(caller);
-        frames.add(Frame.create(
-            functionId, false, target.localCount(), destination, arguments));
+      case CALL_VALUE, CALL_VOID -> {
+        ArgumentCallBinder.Binding binding = ArgumentCallBinder.bind(
+            program, currentFrame(), instruction, opcode == Opcode.CALL_VALUE);
+        replaceCurrentFrame(binding.caller());
+        frames.add(binding.callee());
         control = StepRecord.ControlChange.CALL;
       }
       case RETURN -> {
@@ -734,15 +716,18 @@ public final class VirtualMachine {
           requireCallCapacity();
           program.function(Math.toIntExact(operand(instruction, 0)));
         }
-        case CALL_VALUE -> {
+        case CALL_VALUE, CALL_VOID -> {
           requireCallCapacity();
           FunctionBody target = program.function(Math.toIntExact(operand(instruction, 0)));
           int base = Math.toIntExact(operand(instruction, 1));
           int count = Math.toIntExact(operand(instruction, 2));
-          localIndex(instruction, 3);
-          if (!target.returnsValue() || target.parameterCount() != count
+          boolean returnsValue = instruction.opcode() == Opcode.CALL_VALUE;
+          if (returnsValue) {
+            localIndex(instruction, 3);
+          }
+          if (target.returnsValue() != returnsValue || target.parameterCount() != count
               || base < 0 || count < 0 || base > currentFrame().locals().size() - count) {
-            trap("Value call signature mismatch for " + target.name());
+            trap("Argument call signature mismatch for " + target.name());
           }
         }
         case UNCALL -> {
@@ -801,7 +786,7 @@ public final class VirtualMachine {
       }
       case SET_LOGGED, LOCAL_STORE_GLOBAL ->
           globals[record.changedGlobal()] = record.previousValue();
-      case NOP, HALT, RETURN, RETURN_VALUE, CALL, UNCALL, CALL_VALUE,
+      case NOP, HALT, RETURN, RETURN_VALUE, CALL, UNCALL, CALL_VALUE, CALL_VOID,
           EXPECT_EQ, CHECKPOINT, COMMIT,
           LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, LOCAL_ADD, LOCAL_SUB,
           LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_XOR, LOCAL_EQ, LOCAL_LT, JUMP, JUMP_IF_ZERO, LOCAL_LOOP_CHECK,

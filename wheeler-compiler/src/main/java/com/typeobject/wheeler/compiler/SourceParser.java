@@ -382,6 +382,8 @@ final class SourceParser extends SourceStatementParser {
         parseBufferSet(body, previous(), "words_set");
       } else if (structuredStatements && matchText("drop")) {
         parseOwnedDrop(body, previous());
+      } else if (structuredStatements && SourceCallParser.statementCallAhead(this)) {
+        SourceCallParser.parseVoid(this, body);
       } else if (structuredStatements && isAssignmentStart()) {
         parseStructuredAssignment(body);
       } else if (!structuredStatements
@@ -582,6 +584,8 @@ final class SourceParser extends SourceStatementParser {
           parseBufferSet(body, previous(), "words_set");
         } else if (matchText("drop")) {
           parseOwnedDrop(body, previous());
+        } else if (SourceCallParser.statementCallAhead(this)) {
+          SourceCallParser.parseVoid(this, body);
         } else if (isAssignmentStart()) {
           parseStructuredAssignment(body);
         } else {

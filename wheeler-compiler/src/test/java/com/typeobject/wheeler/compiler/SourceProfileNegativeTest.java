@@ -295,6 +295,15 @@ class SourceProfileNegativeTest {
         }
         """;
 
+    String callBound = """
+        classical class CallBound {
+          long value() { return 1; }
+          long wrapper() { return value(); }
+          theorem invalid proves steps(wrapper, 10);
+          entry void main() { }
+        }
+        """;
+
     String falseEquivalence = """
         quantum class FalseEquivalence {
           state long measured = 0;
@@ -316,11 +325,14 @@ class SourceProfileNegativeTest {
         CompilerException.class, () -> new WheelerCompiler().compile(falseEquivalence));
     CompilerException bound = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(falseBound));
+    CompilerException composedBound = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(callBound));
     assertTrue(subject.getMessage().contains("requires a reversible function"));
     assertTrue(syntax.getMessage().contains("expected inverse, adjoint, equivalent, or steps"));
     assertTrue(adjoint.getMessage().contains("requires declared unitary circuits"));
     assertTrue(equivalence.getMessage().contains("differ after adjacent inverse cancellation"));
     assertTrue(bound.getMessage().contains("declared step bound does not hold"));
+    assertTrue(composedBound.getMessage().contains("not a straight-line function"));
   }
 
   @Test

@@ -428,6 +428,7 @@ final class ClassicalLowerer {
         }
         case "assign" -> lowerAssignment(statement);
         case "call_value" -> lowerValueCall(statement);
+        case "call_void" -> lowerVoidCall(statement);
         case "return_value" -> {
           requireArguments(statement, 1);
           int result = requireLocal(statement.arguments().getFirst(), statement.line());
@@ -741,26 +742,12 @@ final class ClassicalLowerer {
       String functionName = statement.arguments().get(1);
       FunctionSignature signature = signatures.get(functionName);
       int argumentCount = statement.arguments().size() - 2;
-      if (signature == null
-          || !signature.returnsValue()
+      if (signature == null || !signature.returnsValue()
           || signature.parameterCount() != argumentCount) {
-        throw new CompilerException(statement.line(), "value call signature mismatch: " + functionName);
+        throw new CompilerException(
+            statement.line(), "value call signature mismatch: " + functionName);
       }
-      int argumentBase = 0;
-      Set<Integer> mutableBorrows = new HashSet<>();
-      if (argumentCount > 0) {
-        argumentBase = locals.size();
-        for (int index = 0; index < argumentCount; index++) {
-          int source = requireLocal(statement.arguments().get(index + 2), statement.line());
-          ValueType parameterType = signature.parameterTypes().get(index);
-          ValueType sourceType = localTypes.get(source);
-          Opcode copy = SourceCallArgumentLowerer.copyOpcode(
-              parameterType, sourceType, source, mutableBorrows, statement.line());
-          int window = declareInternal(
-              "$call" + assemblyTemporary++, statement.line(), parameterType);
-          output.add(Instruction.of(copy, window, source));
-        }
-      }
+      int argumentBase = lowerCallArguments(statement, signature, 2);
       int destination = declareInternal(
           destinationName, statement.line(), signature.resultType());
       output.add(Instruction.of(
@@ -769,6 +756,48 @@ final class ClassicalLowerer {
           argumentBase,
           argumentCount,
           destination));
+    }
+
+    private void lowerVoidCall(Statement statement) {
+      if (statement.arguments().isEmpty()) {
+        throw new CompilerException(statement.line(), "malformed void call");
+      }
+      String functionName = statement.arguments().getFirst();
+      FunctionSignature signature = signatures.get(functionName);
+      int argumentCount = statement.arguments().size() - 1;
+      if (signature == null || signature.returnsValue()
+          || signature.parameterCount() != argumentCount) {
+        throw new CompilerException(
+            statement.line(), "void call signature mismatch: " + functionName);
+      }
+      int argumentBase = lowerCallArguments(statement, signature, 1);
+      output.add(Instruction.of(
+          Opcode.CALL_VOID, signature.id(), argumentBase, argumentCount));
+    }
+
+    private int lowerCallArguments(
+        Statement statement, FunctionSignature signature, int argumentOffset) {
+      int argumentCount = statement.arguments().size() - argumentOffset;
+      if (signature.parameterCount() != argumentCount) {
+        throw new CompilerException(statement.line(), "call argument count mismatch");
+      }
+      if (argumentCount == 0) {
+        return 0;
+      }
+      int argumentBase = locals.size();
+      Set<Integer> mutableBorrows = new HashSet<>();
+      for (int index = 0; index < argumentCount; index++) {
+        int source = requireLocal(
+            statement.arguments().get(index + argumentOffset), statement.line());
+        ValueType parameterType = signature.parameterTypes().get(index);
+        ValueType sourceType = localTypes.get(source);
+        Opcode copy = SourceCallArgumentLowerer.copyOpcode(
+            parameterType, sourceType, source, mutableBorrows, statement.line());
+        int window = declareInternal(
+            "$call" + assemblyTemporary++, statement.line(), parameterType);
+        output.add(Instruction.of(copy, window, source));
+      }
+      return argumentBase;
     }
 
     private void lowerAssignment(Statement statement) {

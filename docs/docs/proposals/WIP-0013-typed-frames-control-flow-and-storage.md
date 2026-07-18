@@ -158,7 +158,7 @@ Commit clears rewind records and advances the semantic horizon. Region reclamati
 
 ## Calls and recursion
 
-Static calls identify one function signature. Arguments are evaluated left to right, moved or borrowed according to type, and copied into callee parameter registers. A non-void return moves or copies into the declared caller destination.
+Static calls identify one function signature. Arguments are evaluated left to right, moved or borrowed according to type, and copied into callee parameter registers. A non-void return moves or copies into the declared caller destination; a void argument call has no synthetic result register.
 
 Recursion requires a configured call-depth ceiling and a termination measure for proof or bootstrap profiles. Tail-call lowering is permitted only when traps, effects, source traces, and rewind semantics remain equivalent.
 
@@ -242,7 +242,7 @@ A feature that cannot express or simplify one of these modules needs separate ju
 - [x] Source and bytecode distinguish state fields from function control.
 - [x] Signed and Boolean parameter, local, and optional result signatures are canonically encoded and verified.
 - [x] Register metadata uses bounded 32-bit scalar or aggregate references; canonical nominal record descriptors reject duplicate, forward, cyclic, and unresolved type IDs.
-- [x] Local constants, state load/store, move, checked add/subtract/multiply/divide/remainder, comparison, branches, loop checks, value calls, and value returns execute and rewind.
+- [x] Local constants, state load/store, move, checked add/subtract/multiply/divide/remainder, comparison, branches, loop checks, value/void argument calls, and value returns execute and rewind.
 - [x] Typed signed/Boolean parameters, returns, local bindings, expressions, static calls, `if`/`else`, and bounded `while` compile end to end.
 - [x] Immutable nominal records, closed tagged variants, fixed immutable arrays, and nonescaping immutable slices execute with canonical descriptors, typed construction/calls, structural equality, exhaustive selection, checked ranges/indexing, snapshots, and rewind.
 - [ ] Function-local regions now enforce byte/object ceilings, affine moves, leak-free exits, mutable signed-word/byte buffers, immutable validated UTF-8 owners with read-only parameter borrows, region owners with exclusive scratch-allocation borrows and consumed empty-region results, word/byte/map owners with exclusive mutable borrows, explicit drop order, snapshots, and rewind; split/join borrowing, typed collections, cross-function ownership, recoverable allocation, capabilities, and compiler-scale arenas remain.

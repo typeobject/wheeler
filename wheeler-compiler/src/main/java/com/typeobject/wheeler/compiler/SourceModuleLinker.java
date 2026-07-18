@@ -22,7 +22,7 @@ import java.util.Set;
 final class SourceModuleLinker {
   static final int MAX_MODULES = 1_024;
   private static final Set<String> FUNCTION_REFERENCES =
-      Set.of("invoke", "reverse", "call_value");
+      Set.of("invoke", "reverse", "call_value", "call_void");
   private static final Set<String> PRIMITIVE_TYPES = Set.of(
       "void", "long", "boolean", "region", "words", "bytes", "utf8", "longmap");
 

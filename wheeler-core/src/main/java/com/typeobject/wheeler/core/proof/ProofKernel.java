@@ -45,6 +45,8 @@ public final class ProofKernel {
     FunctionBody function = program.function(certificate.subjectId());
     for (Instruction instruction : function.forward()) {
       if (instruction.opcode() == Opcode.CALL
+          || instruction.opcode() == Opcode.CALL_VALUE
+          || instruction.opcode() == Opcode.CALL_VOID
           || instruction.opcode() == Opcode.JUMP
           || instruction.opcode() == Opcode.JUMP_IF_ZERO) {
         fail("Proof " + certificate.name(), "subject is not a straight-line function");

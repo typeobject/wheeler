@@ -9,6 +9,39 @@ import java.util.List;
 final class SourceCallParser {
   private SourceCallParser() {}
 
+  static boolean statementCallAhead(SourceParser parser) {
+    if (parser.lookaheadType(0) != Type.IDENTIFIER) {
+      return false;
+    }
+    if (parser.lookaheadType(1) == Type.LEFT_PAREN) {
+      return parser.lookaheadType(2) != Type.RIGHT_PAREN;
+    }
+    int distance = 1;
+    while (parser.lookaheadType(distance) == Type.DOT
+        && parser.lookaheadType(distance + 1) == Type.IDENTIFIER) {
+      distance += 2;
+    }
+    return parser.lookaheadType(distance) == Type.DOUBLE_COLON
+        && parser.lookaheadType(distance + 1) == Type.IDENTIFIER
+        && parser.lookaheadType(distance + 2) == Type.LEFT_PAREN;
+  }
+
+  static void parseVoid(SourceParser parser, List<Statement> body) {
+    SourceToken start = parser.expect(Type.IDENTIFIER, "void function name");
+    String reference = start.text();
+    if (qualifiedCallAhead(parser)) {
+      reference = qualifiedReference(parser, start);
+    } else {
+      parser.expect(Type.LEFT_PAREN, "'(' after void function name");
+    }
+    List<String> arguments = parseArguments(parser, body);
+    parser.expect(Type.SEMICOLON, "';' after void function call");
+    List<String> call = new ArrayList<>();
+    call.add(reference);
+    call.addAll(arguments);
+    body.add(new Statement("call_void", call, start.line()));
+  }
+
   static boolean qualifiedCallAhead(SourceParser parser) {
     int distance = 0;
     while (parser.lookaheadType(distance) == Type.DOT
@@ -38,13 +71,7 @@ final class SourceCallParser {
       List<Statement> body,
       SourceToken start,
       String reference) {
-    List<String> arguments = new ArrayList<>();
-    if (!parser.check(Type.RIGHT_PAREN)) {
-      do {
-        arguments.add(parser.parseExpression(body));
-      } while (parser.match(Type.COMMA));
-    }
-    parser.expect(Type.RIGHT_PAREN, "')' after call arguments");
+    List<String> arguments = parseArguments(parser, body);
     String result = parser.temporary();
     List<String> call = new ArrayList<>();
     call.add(result);
@@ -67,5 +94,17 @@ final class SourceCallParser {
     };
     body.add(new Statement(operation, call, start.line()));
     return parser.parsePostfix(body, result, start.line());
+  }
+
+  private static List<String> parseArguments(
+      SourceParser parser, List<Statement> body) {
+    List<String> arguments = new ArrayList<>();
+    if (!parser.check(Type.RIGHT_PAREN)) {
+      do {
+        arguments.add(parser.parseExpression(body));
+      } while (parser.match(Type.COMMA));
+    }
+    parser.expect(Type.RIGHT_PAREN, "')' after call arguments");
+    return arguments;
   }
 }

@@ -8,32 +8,28 @@ classical class WorkQueue {
     state long emptyObserved = 0;
     state long fullObserved = 0;
 
-    long observeEmpty(words values, QueueCursor cursor) {
+    void observeEmpty(words values, QueueCursor cursor) {
         Pop result = pop(values, cursor);
-        long observed = 0;
         match (result) {
             case Pop.Empty() {
-                observed = 1;
+                emptyObserved = 1;
             }
             case Pop.Value(long value, QueueCursor next) {
-                observed = 0;
+                emptyObserved = 0;
             }
         }
-        return observed;
     }
 
-    long observeFull(words values, QueueCursor cursor) {
+    void observeFull(words values, QueueCursor cursor) {
         Push result = push(values, cursor, 25);
-        long observed = 0;
         match (result) {
             case Push.Full() {
-                observed = 1;
+                fullObserved = 1;
             }
             case Push.Value(QueueCursor next) {
-                observed = 0;
+                fullObserved = 0;
             }
         }
-        return observed;
     }
 
     QueueCursor requirePush(words values, QueueCursor cursor, long value) {
@@ -78,12 +74,12 @@ classical class WorkQueue {
         region arena = new region(32, 1);
         words values = allocate(arena, 4);
         QueueCursor cursor = new QueueCursor(0, 0);
-        emptyObserved = observeEmpty(values, cursor);
+        observeEmpty(values, cursor);
         cursor = requirePush(values, cursor, 4);
         cursor = requirePush(values, cursor, 9);
         cursor = requirePush(values, cursor, 16);
         cursor = requirePush(values, cursor, 25);
-        fullObserved = observeFull(values, cursor);
+        observeFull(values, cursor);
         cursor = takeFirst(values, cursor);
         cursor = takeSecond(values, cursor);
         finalHead = cursor.head;

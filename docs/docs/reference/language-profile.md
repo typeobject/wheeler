@@ -34,7 +34,7 @@ unitary void qft() { ... }
 entry void main() { ... }
 ```
 
-- A normal classical method may take typed `long` or `boolean` parameters and return `long`, `boolean`, or `void`.
+- A normal classical method may take supported scalar, aggregate, slice, or storage-borrow parameters and return a supported value or `void`.
 - A `rev` method receives a compiler-validated inverse.
 - A `coherent rev` method also satisfies the exact finite subset that can become a unitary operation.
 - A `unitary` method lowers to backend-neutral quantum region IR and receives a generated adjoint.
@@ -95,7 +95,7 @@ for (long i = 0; i < 5; i += 1) limit 5 {
 
 Its initializer executes once, then the limit is evaluated once. Wheeler checks the limit before every body iteration and traps before executing an iteration beyond the bound. In a `while`, `continue;` transfers to condition reevaluation; in a `for`, it executes the update before reevaluating the condition and therefore cannot evade the next bound check. `break;` exits the innermost bounded loop. Both are rejected outside a loop. Nested loops carry distinct targets and counters. The whole-program step limit remains a separate defense.
 
-Value calls evaluate arguments left to right, move them through a verified contiguous typed call window, initialize callee parameter registers, and place one signed or Boolean result in a caller register of the exact declared type. A value-returning method may return early from a conditional, but every reachable path must end in `return expression;` of the declared type. Static recursion is permitted under the VM's hard 1,024-frame ceiling and the program step ceiling.
+Calls evaluate arguments left to right and move them through a verified contiguous typed call window. A value call places one exact declared result in a caller register. A `void` call may carry the same parameter and borrow types without manufacturing or discarding a result register. A value-returning method may return early from a conditional, but every reachable path must end in `return expression;` of the declared type. Static recursion is permitted under the VM's hard 1,024-frame ceiling and the program step ceiling.
 
 Local control compiles to verified typed frame registers and explicit control-flow targets. The function descriptor stores one canonical type code per register. The verifier rejects unknown type codes, invalid targets, out-of-range locals, reads not definitely assigned on every incoming path, operand or call type mismatches, non-Boolean conditions, invalid Boolean constants, and a function that falls through its body.
 

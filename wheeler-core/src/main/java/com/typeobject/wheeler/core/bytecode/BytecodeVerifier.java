@@ -365,25 +365,8 @@ public final class BytecodeVerifier {
           fail(location(owner, pc) + " void call signature mismatch for " + target.name());
         }
       }
-      case CALL_VALUE -> {
-        FunctionBody target = program.function(Math.toIntExact(instruction.operands().get(0)));
-        int base = Math.toIntExact(instruction.operands().get(1));
-        int count = Math.toIntExact(instruction.operands().get(2));
-        int destination = verifyLocal(owner, instruction.operands().get(3), pc);
-        if (!target.returnsValue()
-            || count != target.parameterCount()
-            || base < 0
-            || count < 0
-            || base > owner.localCount() - count) {
-          fail(location(owner, pc) + " value call signature mismatch for " + target.name());
-        }
-        requireType(owner, destination, target.resultType(), pc);
-        for (int argument = 0; argument < count; argument++) {
-          if (!owner.localType(base + argument).equals(target.localType(argument))) {
-            fail(location(owner, pc) + " value call argument type mismatch for " + target.name());
-          }
-        }
-      }
+      case CALL_VALUE -> verifyArgumentCall(program, owner, instruction, pc, true);
+      case CALL_VOID -> verifyArgumentCall(program, owner, instruction, pc, false);
       case UNCALL -> {
         FunctionBody target = program.function(Math.toIntExact(instruction.operands().getFirst()));
         if (!target.reversible()) {
@@ -605,7 +588,8 @@ public final class BytecodeVerifier {
       } else if (instruction.opcode() == Opcode.BUFFER_DROP
           || instruction.opcode() == Opcode.REGION_DROP) {
         assigned.clear(Math.toIntExact(instruction.operands().getFirst()));
-      } else if (instruction.opcode() == Opcode.CALL_VALUE) {
+      } else if (instruction.opcode() == Opcode.CALL_VALUE
+          || instruction.opcode() == Opcode.CALL_VOID) {
         int base = Math.toIntExact(instruction.operands().get(1));
         int count = Math.toIntExact(instruction.operands().get(2));
         for (int local = base; local < base + count; local++) {
@@ -659,11 +643,12 @@ public final class BytecodeVerifier {
   private static void requireAssignedLocals(
       FunctionBody owner, Instruction instruction, int pc, BitSet assigned) {
     if (instruction.opcode() == Opcode.CALL_VALUE
+        || instruction.opcode() == Opcode.CALL_VOID
         || instruction.opcode() == Opcode.RECORD_NEW
         || instruction.opcode() == Opcode.VARIANT_NEW
         || instruction.opcode() == Opcode.ARRAY_NEW) {
       int baseOperand = switch (instruction.opcode()) {
-        case CALL_VALUE -> 1;
+        case CALL_VALUE, CALL_VOID -> 1;
         case RECORD_NEW -> 2;
         case VARIANT_NEW -> 3;
         case ARRAY_NEW -> 2;
@@ -749,6 +734,33 @@ public final class BytecodeVerifier {
       fail(location(owner, pc) + " falls off the function body");
     }
     return pc + 1;
+  }
+
+  private static void verifyArgumentCall(
+      Program program,
+      FunctionBody owner,
+      Instruction instruction,
+      int pc,
+      boolean returnsValue) {
+    FunctionBody target = program.function(Math.toIntExact(instruction.operands().get(0)));
+    int base = Math.toIntExact(instruction.operands().get(1));
+    int count = Math.toIntExact(instruction.operands().get(2));
+    if (target.returnsValue() != returnsValue
+        || count != target.parameterCount()
+        || base < 0
+        || count < 0
+        || base > owner.localCount() - count) {
+      fail(location(owner, pc) + " call signature mismatch for " + target.name());
+    }
+    if (returnsValue) {
+      int destination = verifyLocal(owner, instruction.operands().get(3), pc);
+      requireType(owner, destination, target.resultType(), pc);
+    }
+    for (int argument = 0; argument < count; argument++) {
+      if (!owner.localType(base + argument).equals(target.localType(argument))) {
+        fail(location(owner, pc) + " call argument type mismatch for " + target.name());
+      }
+    }
   }
 
   private static int verifyLocal(FunctionBody owner, long operand, int pc) {
