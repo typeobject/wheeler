@@ -25,7 +25,7 @@ public final class WheelerCompiler {
 
   public Program compileModules(Map<String, String> sources, String rootModule) {
     requireModuleInputs(sources, rootModule);
-    Map<String, SourceProgram> parsed = new TreeMap<>();
+    Map<String, String> ordered = new TreeMap<>();
     long totalBytes = 0;
     for (Map.Entry<String, String> entry : sources.entrySet()) {
       String name = entry.getKey();
@@ -35,9 +35,9 @@ public final class WheelerCompiler {
         throw new CompilerException(1, "invalid module name or source");
       }
       totalBytes = checkedModuleBytes(totalBytes, source);
-      parsed.put(name, new SourceParser().parse(source, false));
+      ordered.put(name, source);
     }
-    return compileLinkedModules(parsed, rootModule);
+    return compileLinkedModules(SourceModuleSetParser.parse(ordered), rootModule);
   }
 
   public Program compileModuleFiles(Map<String, String> sources, String rootModule) {
@@ -51,17 +51,17 @@ public final class WheelerCompiler {
       }
       ordered.put(entry.getKey(), entry.getValue());
     }
-    Map<String, SourceProgram> parsed = new TreeMap<>();
+    Map<String, String> moduleSources = new TreeMap<>();
     long totalBytes = 0;
     for (Map.Entry<String, String> entry : ordered.entrySet()) {
       totalBytes = checkedModuleBytes(totalBytes, entry.getValue());
-      SourceProgram module = new SourceParser().parse(entry.getValue(), false);
-      if (module.moduleName() == null || parsed.putIfAbsent(module.moduleName(), module) != null) {
+      String moduleName = SourceModuleHeaderParser.parseSource(entry.getValue()).moduleName();
+      if (moduleName == null || moduleSources.putIfAbsent(moduleName, entry.getValue()) != null) {
         throw new CompilerException(
             1, "module files require unique module declarations: " + entry.getKey());
       }
     }
-    return compileLinkedModules(parsed, rootModule);
+    return compileLinkedModules(SourceModuleSetParser.parse(moduleSources), rootModule);
   }
 
   public byte[] compileModulesToBytecode(Map<String, String> sources, String rootModule) {

@@ -32,6 +32,7 @@ final class SourceParser extends SourceStatementParser {
   private final List<Function> functions = new ArrayList<>();
   private final List<RecordDefinition> records = new ArrayList<>();
   private final List<VariantDefinition> variants = new ArrayList<>();
+  private final List<VariantDefinition> importedVariants;
   private final List<ArrayDefinition> arrays = new ArrayList<>();
   private final List<SliceDefinition> slices = new ArrayList<>();
   private final List<ProofDeclaration> proofs = new ArrayList<>();
@@ -46,6 +47,14 @@ final class SourceParser extends SourceStatementParser {
   private int labelSequence;
   private int blockDepth;
   private final Deque<LoopLabels> loops = new ArrayDeque<>();
+
+  SourceParser() {
+    this(List.of());
+  }
+
+  SourceParser(List<VariantDefinition> importedVariants) {
+    this.importedVariants = List.copyOf(importedVariants);
+  }
 
   SourceProgram parse(String source) {
     return parse(source, true);
@@ -652,7 +661,10 @@ final class SourceParser extends SourceStatementParser {
     VariantDefinition variant = variants.stream()
         .filter(candidate -> candidate.name().equals(cases.getFirst().type()))
         .findFirst()
-        .orElse(null);
+        .orElseGet(() -> importedVariants.stream()
+            .filter(candidate -> candidate.name().equals(cases.getFirst().type()))
+            .findFirst()
+            .orElse(null));
     if (variant == null) {
       fail(start, "match case names an unknown variant type");
     }

@@ -12,7 +12,18 @@ final class SourceModuleHeaderParser {
     }
   }
 
+  private static final class HeaderCursor extends SourceTokenCursor {
+    Header parseSource(String source) {
+      reset(source);
+      return parse(this);
+    }
+  }
+
   private SourceModuleHeaderParser() {}
+
+  static Header parseSource(String source) {
+    return new HeaderCursor().parseSource(source);
+  }
 
   static Header parse(SourceTokenCursor cursor) {
     String moduleName = null;

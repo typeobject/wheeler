@@ -8,7 +8,15 @@ classical class ModuleMain {
     entry void main() {
         Pair selected = pair(9);
         result = selected.right;
-        decoded = unwrap(classify(9));
+        Outcome outcome = classify(9);
+        match (outcome) {
+            case Outcome.Error(long offset) {
+                decoded = 0 - offset;
+            }
+            case Outcome.Value(long value) {
+                decoded = value;
+            }
+        }
         assert result == 18;
         assert decoded == 9;
     }
