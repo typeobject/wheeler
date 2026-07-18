@@ -6,6 +6,9 @@ classical class NativeManifest {
     state long nameStart = 0;
     state long profileLength = 0;
     state long versionLength = 0;
+    state long targetCount = 0;
+    state long targetNameLength = 0;
+    state long targetRootLength = 0;
     state long finalCursor = 0;
 
     entry void main(utf8 source) {
@@ -31,6 +34,9 @@ classical class NativeManifest {
                 nameLength = header.name.length;
                 versionLength = header.version.length;
                 profileLength = header.profile.length;
+                targetCount = header.targetCount;
+                targetNameLength = header.targetName.length;
+                targetRootLength = header.targetRoot.length;
             }
             case ManifestResult.Error(long parseOffset) {
                 assert finalCursor == 1;
@@ -40,6 +46,9 @@ classical class NativeManifest {
         assert nameLength == 11;
         assert versionLength == 5;
         assert profileLength == 11;
+        assert targetCount == 1;
+        assert targetNameLength == 3;
+        assert targetRootLength == 9;
 
         drop(lengths);
         drop(starts);

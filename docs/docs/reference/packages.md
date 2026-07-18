@@ -212,7 +212,7 @@ Archive signatures and registry namespace authorization are separate layers. Con
 
 ## Wheeler-native header slice
 
-`NativeManifest.w` imports `packages/Manifest.w` and the shared Wheeler scanner. It accepts explicit UTF-8, requires exactly `package STRING version STRING profile STRING ;`, and returns quote-free typed source ranges without allocating host strings. The executable fixture records lengths `11`, `5`, and `11` for `demo.native`, `1.2.3`, and `bootstrap-1`, rewinds exactly, and rejects a substituted declaration keyword. Target, dependency, capability, escape, duplicate, and canonical-output handling remain stage-0 work. This is the first parser rivet, not the whole bridge.
+`NativeManifest.w` imports `packages/Manifest.w` and the shared Wheeler scanner. It accepts explicit UTF-8, requires `package STRING version STRING profile STRING ;` followed by zero or one bounded `target example STRING root STRING ;`, and returns quote-free typed source ranges without allocating host strings. The executable fixture records header lengths `11`, `5`, and `11` plus target lengths `3` and `9` for `demo.native`, `1.2.3`, and `bootstrap-1`, rewinds exactly, and rejects a substituted declaration keyword. Other target kinds, module/source lists, dependency, capability, escape, duplicate, and canonical-output handling remain stage-0 work. This is the first parser rivet, not the whole bridge.
 
 ## Implementation direction
 

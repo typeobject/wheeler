@@ -23,7 +23,8 @@ class NativeManifestExampleTest {
             "Scanner.w", Files.readString(root.resolve("lexer/Scanner.w"))),
         "examples.packages.main");
     String source =
-        "package \"demo.native\" version \"1.2.3\" profile \"bootstrap-1\";";
+        "package \"demo.native\" version \"1.2.3\" profile \"bootstrap-1\"; "
+            + "target example \"app\" root \"src/App.w\";";
     VirtualMachine machine = new VirtualMachine(
         program, source.getBytes(StandardCharsets.UTF_8));
     var initial = machine.snapshot();
@@ -34,6 +35,9 @@ class NativeManifestExampleTest {
     assertEquals(11, machine.global("nameLength"));
     assertEquals(5, machine.global("versionLength"));
     assertEquals(11, machine.global("profileLength"));
+    assertEquals(1, machine.global("targetCount"));
+    assertEquals(3, machine.global("targetNameLength"));
+    assertEquals(9, machine.global("targetRootLength"));
     assertEquals(source.length(), machine.global("finalCursor"));
     while (machine.historySize() > 0) {
       machine.rewindOne();
@@ -42,7 +46,9 @@ class NativeManifestExampleTest {
 
     VirtualMachine malformed = new VirtualMachine(
         program,
-        "project \"demo.native\" version \"1.2.3\" profile \"bootstrap-1\";"
+        ("project \"demo.native\" version \"1.2.3\" "
+            + "profile \"bootstrap-1\"; target example \"app\" "
+            + "root \"src/App.w\";")
             .getBytes(StandardCharsets.UTF_8));
     assertThrows(VmTrap.class, malformed::run);
   }
