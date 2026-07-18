@@ -21,6 +21,7 @@ class NativeManifestExampleTest {
         Map.of(
             "ManifestEmitter.w", Files.readString(root.resolve("packages/ManifestEmitter.w")),
             "Manifest.w", Files.readString(root.resolve("packages/Manifest.w")),
+            "ManifestTokens.w", Files.readString(root.resolve("packages/ManifestTokens.w")),
             "Names.w", Files.readString(root.resolve("packages/Names.w")),
             "NativeManifest.w", Files.readString(root.resolve("NativeManifest.w")),
             "Paths.w", Files.readString(root.resolve("packages/Paths.w")),
