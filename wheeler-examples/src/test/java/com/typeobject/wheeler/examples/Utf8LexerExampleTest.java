@@ -25,6 +25,7 @@ class Utf8LexerExampleTest {
     assertEquals(2, machine.global("numberStart"));
     assertEquals(6, machine.global("commentStart"));
     assertEquals(123, machine.global("numericValue"));
+    assertEquals(0, machine.global("parseError"));
     assertEquals(10, machine.global("finalCursor"));
     while (machine.historySize() > 0) {
       machine.rewindOne();

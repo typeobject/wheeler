@@ -1,9 +1,15 @@
 // Bounded immutable UTF-8 scanner with explicit token and comment output.
 classical class Utf8Lexer {
+    variant Assignment {
+        case Value(long value);
+        case Error(long offset);
+    }
+
     state long tokenCount = 0;
     state long numberStart = 0;
     state long commentStart = 0;
     state long numericValue = 0;
+    state long parseError = -1;
     state long finalCursor = 0;
 
     long tokenKind(long scalar) {
@@ -46,6 +52,36 @@ classical class Utf8Lexer {
             cursor += utf8Width(source, cursor);
         }
         return value;
+    }
+
+    Assignment parseAssignment(
+        utf8 source,
+        words tokenKinds,
+        words tokenStarts,
+        words tokenLengths,
+        long count
+    ) {
+        if (count == 5) {
+            if (tokenKinds[0] == 1) {
+                if (tokenKinds[1] == 3) {
+                    if (utf8Scalar(source, tokenStarts[1]) == 61) {
+                        if (tokenKinds[2] == 2) {
+                            if (tokenKinds[3] == 3) {
+                                if (utf8Scalar(source, tokenStarts[3]) == 59) {
+                                    if (tokenKinds[4] == 4) {
+                                        long end = tokenStarts[2] + tokenLengths[2];
+                                        long value = parseNumber(
+                                            source, tokenStarts[2], end);
+                                        return new Assignment.Value(value);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return new Assignment.Error(0);
     }
 
     boolean startsComment(utf8 source, long cursor, long sourceLength) {
@@ -124,13 +160,24 @@ classical class Utf8Lexer {
         tokenCount = count;
         numberStart = tokenStarts[2];
         commentStart = tokenStarts[4];
-        long numberEnd = numberStart + tokenLengths[2];
-        numericValue = parseNumber(source, numberStart, numberEnd);
+        Assignment parsed = parseAssignment(
+            source, tokenKinds, tokenStarts, tokenLengths, tokenCount);
+        match (parsed) {
+            case Assignment.Value(long value) {
+                numericValue = value;
+                parseError = 0;
+            }
+            case Assignment.Error(long offset) {
+                numericValue = -1;
+                parseError = offset + 1;
+            }
+        }
         finalCursor = cursor;
         assert tokenCount == 5;
         assert numberStart == 2;
         assert commentStart == 6;
         assert numericValue == 123;
+        assert parseError == 0;
         assert finalCursor == 10;
 
         drop(tokenLengths);
