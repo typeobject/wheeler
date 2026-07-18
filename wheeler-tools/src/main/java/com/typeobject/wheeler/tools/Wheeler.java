@@ -101,11 +101,19 @@ public final class Wheeler {
       error.println("Usage: wheeler check <package-directory>");
       return 2;
     }
-    PackageProject project = PackageProject.load(Path.of(args[1]));
-    project.check();
-    out.println("checked " + project.manifest().name()
-        + " " + project.manifest().version()
-        + " (" + project.manifest().targets().size() + " targets)");
+    Path root = Path.of(args[1]);
+    if (WorkspaceProject.exists(root)) {
+      WorkspaceProject workspace = WorkspaceProject.load(root);
+      workspace.check();
+      out.println("checked workspace " + workspace.manifest().name()
+          + " (" + workspace.targetCount() + " targets)");
+    } else {
+      PackageProject project = PackageProject.load(root);
+      project.check();
+      out.println("checked " + project.manifest().name()
+          + " " + project.manifest().version()
+          + " (" + project.manifest().targets().size() + " targets)");
+    }
     return 0;
   }
 
@@ -113,10 +121,18 @@ public final class Wheeler {
     if (!packageArguments(args, error, "build")) {
       return 2;
     }
-    PackageProject project = PackageProject.load(Path.of(args[1]));
-    Path output = args.length == 4 ? Path.of(args[3]) : project.defaultBuildDirectory();
-    project.build(output);
-    out.println("built " + project.manifest().name() + " into " + output);
+    Path root = Path.of(args[1]);
+    if (WorkspaceProject.exists(root)) {
+      WorkspaceProject workspace = WorkspaceProject.load(root);
+      Path output = args.length == 4 ? Path.of(args[3]) : workspace.defaultBuildDirectory();
+      workspace.build(output);
+      out.println("built workspace " + workspace.manifest().name() + " into " + output);
+    } else {
+      PackageProject project = PackageProject.load(root);
+      Path output = args.length == 4 ? Path.of(args[3]) : project.defaultBuildDirectory();
+      project.build(output);
+      out.println("built " + project.manifest().name() + " into " + output);
+    }
     return 0;
   }
 

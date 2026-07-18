@@ -1,8 +1,21 @@
 # Package format
 
-Wheeler package metadata uses its own declarative syntax and canonical archive. The current stage-0 implementation parses `wheeler.package`, resolves an immutable package catalog, reads and writes canonical `wheeler.lock`, and reads and writes content-addressed `.wpk` archives. Workspaces, build plans, registry transport, and the Wheeler-written `wheeler` command remain package-system work.
+Wheeler package metadata uses its own declarative syntax and canonical archive. The current stage-0 implementation parses `wheeler.workspace` and `wheeler.package`, resolves an immutable package catalog, reads and writes canonical `wheeler.lock`, and reads and writes content-addressed `.wpk` archives. Build plans, registry transport, and the Wheeler-written native implementation remain package-system work.
 
-## Manifest
+## Workspace manifest
+
+A workspace manifest names one profile and one or more package directories:
+
+```text
+workspace "wheeler" profile "bootstrap-1";
+member "examples" path "wheeler-examples";
+```
+
+Members are canonicalized by member name. Names and logical paths must be unique, and member roots cannot nest. Paths use `/`, reject absolute paths and `.` or `..` components, and contain only portable letters, digits, `_`, `-`, and `.`. The local workspace adapter also rejects symbolic-link components, members outside the physical workspace root, missing package manifests, and package profiles that differ from the workspace profile.
+
+`wheeler check` processes members and their targets in canonical order. `wheeler build` isolates member outputs under `<output>/<member-name>/` so equal target names cannot collide. The checked-in root [`wheeler.workspace`](../../../wheeler.workspace) currently contains the executable Wheeler example package.
+
+## Package manifest
 
 A manifest begins with exactly one package declaration:
 
@@ -85,8 +98,8 @@ Decoded entry byte arrays are defensively copied. A caller cannot mutate verifie
 The unified command executes local package operations:
 
 ```text
-wheeler check <package-directory>
-wheeler build <package-directory> [-o output-directory]
+wheeler check <package-or-workspace-directory>
+wheeler build <package-or-workspace-directory> [-o output-directory]
 wheeler package <package-directory> [-o package.wpk]
 wheeler verify <package.wpk>
 wheeler compile <source.w> [-o program.wbc]
@@ -95,14 +108,14 @@ wheeler disassemble <program.wbc>
 wheeler qasm <program.wbc> <output.qasm>
 ```
 
-`check` compiles and verifies every declared target without writing outputs. `build` writes one canonical `.wbc` per target, named from the target. `package` includes canonical manifest data and every declared target root. `verify` performs strict archive decoding before printing identity. Output replacement uses a sibling temporary file and atomic move when the host supports it.
+`check` compiles and verifies every declared target without writing outputs. `build` writes one canonical `.wbc` per target, named from the target. Workspace builds place each package in its member-named output directory. `package` includes canonical manifest data and every declared target root. `verify` performs strict archive decoding before printing identity. Output replacement uses a sibling temporary file and atomic move when the host supports it.
 
 The local host adapter requires a physical package directory, manifest, and target files. A target path that crosses a symbolic link or resolves outside the package fails before compilation. It reads only the manifest and declared target roots; capability requests remain policy data and do not grant broader host access.
 
 From a source checkout, invoke it through the stage-0 Gradle launcher:
 
 ```bash
-./gradlew :wheeler-tools:wheeler --args='check wheeler-examples'
+./gradlew :wheeler-tools:wheeler --args='check .'
 ```
 
 ## Security boundary

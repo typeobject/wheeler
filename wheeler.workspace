@@ -1,0 +1,2 @@
+workspace "wheeler" profile "bootstrap-1";
+member "examples" path "wheeler-examples";

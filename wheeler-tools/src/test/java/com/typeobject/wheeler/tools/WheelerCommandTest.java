@@ -64,6 +64,31 @@ class WheelerCommandTest {
   }
 
   @Test
+  void workspaceCheckAndBuildUseCanonicalMemberOrderAndIsolatedOutputs() throws Exception {
+    Files.writeString(temporary.resolve("wheeler.workspace"), """
+        workspace "demo" profile "bootstrap-1";
+        member "second" path "second";
+        member "first" path "first";
+        """);
+    createPackage(temporary.resolve("first"), "demo.first", "First", 1);
+    createPackage(temporary.resolve("second"), "demo.second", "Second", 2);
+    Path output = temporary.resolve("artifacts");
+    ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+    PrintStream sink = new PrintStream(new ByteArrayOutputStream());
+
+    assertEquals(0, Wheeler.execute(
+        new String[] {"check", temporary.toString()}, new PrintStream(stdout), sink));
+    assertEquals(0, Wheeler.execute(
+        new String[] {"build", temporary.toString(), "-o", output.toString()},
+        new PrintStream(stdout),
+        sink));
+
+    assertTrue(Files.isRegularFile(output.resolve("first/main.wbc")));
+    assertTrue(Files.isRegularFile(output.resolve("second/main.wbc")));
+    assertTrue(stdout.toString(StandardCharsets.UTF_8).contains("checked workspace demo (2 targets)"));
+  }
+
+  @Test
   void compileSubcommandReplacesTheStandaloneCompilerPath() throws Exception {
     Path source = temporary.resolve("Counter.w");
     Path output = temporary.resolve("custom.wbc");
@@ -127,6 +152,23 @@ class WheelerCommandTest {
 
     assertEquals(2, status);
     assertTrue(errors.toString(StandardCharsets.UTF_8).contains("Expected -o"));
-    assertEquals(0, Files.list(temporary).count());
+    try (var entries = Files.list(temporary)) {
+      assertEquals(0, entries.count());
+    }
+  }
+
+  private static void createPackage(
+      Path root, String packageName, String className, int increment) throws Exception {
+    Files.createDirectories(root.resolve("src"));
+    Files.writeString(root.resolve("wheeler.package"), """
+        package "%s" version "1.0.0" profile "bootstrap-1";
+        target example "main" root "src/Main.w";
+        """.formatted(packageName));
+    Files.writeString(root.resolve("src/Main.w"), """
+        classical class %s {
+            state long value = 0;
+            entry void main() { value += %d; }
+        }
+        """.formatted(className, increment));
   }
 }
