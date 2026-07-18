@@ -9,6 +9,10 @@ classical class TypeCodes {
     public const long TYPE_LONG_MAP = 6;
     public const long TYPE_UTF8 = 7;
     public const long TYPE_UTF8_BORROW = 8;
+    public const long TYPE_LONG_MAP_BORROW = 9;
+    public const long TYPE_WORDS_BORROW = 10;
+    public const long TYPE_BYTES_BORROW = 11;
+    public const long TYPE_REGION_BORROW = 12;
     public const long TYPE_DESCRIPTOR_MASK = 0x0fffffff;
     public const long TYPE_KIND_MASK = 0xf0000000;
     public const long TYPE_RECORD = 0x10000000;

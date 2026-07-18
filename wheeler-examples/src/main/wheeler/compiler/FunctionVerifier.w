@@ -43,6 +43,18 @@ classical class FunctionVerifier {
         if (typeCode == TYPE_UTF8_BORROW) {
             return true;
         }
+        if (typeCode == TYPE_LONG_MAP_BORROW) {
+            return true;
+        }
+        if (typeCode == TYPE_WORDS_BORROW) {
+            return true;
+        }
+        if (typeCode == TYPE_BYTES_BORROW) {
+            return true;
+        }
+        if (typeCode == TYPE_REGION_BORROW) {
+            return true;
+        }
         if (isRecordType(typeCode)) {
             return recordTypeId(typeCode) < recordCount;
         }

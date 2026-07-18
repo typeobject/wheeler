@@ -267,7 +267,7 @@ classical class StorageInterpreter {
         if (opcode < OPCODE_OWNED_MOVE) {
             return new StorageStep.Skipped();
         }
-        if (OPCODE_UTF8_BORROW < opcode) {
+        if (OPCODE_REGION_BORROW < opcode) {
             return new StorageStep.Skipped();
         }
         if (opcode == OPCODE_OWNED_MOVE) {
@@ -543,6 +543,67 @@ classical class StorageInterpreter {
                 locals,
                 localIndex(depth, lengthDestination),
                 lengths[lengthHandle - 1]);
+            return new StorageStep.Value(storageCount, dataCursor);
+        }
+        if (opcode == OPCODE_MAP_BORROW) {
+            long mapBorrowDestination = readUnsigned(
+                artifact, cursor + 8, 8);
+            long mapBorrowSource = readUnsigned(
+                artifact, cursor + 16, 8);
+            long mapBorrowHandle = locals[localIndex(
+                depth, mapBorrowSource)];
+            if (mapValid(kinds, live, mapBorrowHandle)) {
+            } else {
+                return new StorageStep.Error();
+            }
+            set(
+                locals,
+                localIndex(depth, mapBorrowDestination),
+                mapBorrowHandle);
+            return new StorageStep.Value(storageCount, dataCursor);
+        }
+        if (opcode == OPCODE_BUFFER_BORROW) {
+            long bufferBorrowDestination = readUnsigned(
+                artifact, cursor + 8, 8);
+            long bufferBorrowSource = readUnsigned(
+                artifact, cursor + 16, 8);
+            long bufferBorrowHandle = locals[localIndex(
+                depth, bufferBorrowSource)];
+            if (bufferBorrowHandle < 1) {
+                return new StorageStep.Error();
+            }
+            if (live[bufferBorrowHandle - 1] == 1) {
+            } else {
+                return new StorageStep.Error();
+            }
+            set(
+                locals,
+                localIndex(depth, bufferBorrowDestination),
+                bufferBorrowHandle);
+            return new StorageStep.Value(storageCount, dataCursor);
+        }
+        if (opcode == OPCODE_REGION_BORROW) {
+            long regionBorrowDestination = readUnsigned(
+                artifact, cursor + 8, 8);
+            long regionBorrowSource = readUnsigned(
+                artifact, cursor + 16, 8);
+            long regionBorrowHandle = locals[localIndex(
+                depth, regionBorrowSource)];
+            if (regionBorrowHandle < 1) {
+                return new StorageStep.Error();
+            }
+            if (kinds[regionBorrowHandle - 1] == 1) {
+            } else {
+                return new StorageStep.Error();
+            }
+            if (live[regionBorrowHandle - 1] == 1) {
+            } else {
+                return new StorageStep.Error();
+            }
+            set(
+                locals,
+                localIndex(depth, regionBorrowDestination),
+                regionBorrowHandle);
             return new StorageStep.Value(storageCount, dataCursor);
         }
         if (opcode == OPCODE_UTF8_BORROW) {

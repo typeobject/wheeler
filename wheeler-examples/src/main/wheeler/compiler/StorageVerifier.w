@@ -37,8 +37,30 @@ classical class StorageVerifier {
         return typeCode == TYPE_UTF8;
     }
 
+    private boolean ownerOrBorrow(long typeCode, long ownerType) {
+        if (typeCode == ownerType) {
+            return true;
+        }
+        if (ownerType == TYPE_REGION) {
+            return typeCode == TYPE_REGION_BORROW;
+        }
+        if (ownerType == TYPE_WORDS) {
+            return typeCode == TYPE_WORDS_BORROW;
+        }
+        if (ownerType == TYPE_BYTES) {
+            return typeCode == TYPE_BYTES_BORROW;
+        }
+        if (ownerType == TYPE_LONG_MAP) {
+            return typeCode == TYPE_LONG_MAP_BORROW;
+        }
+        return false;
+    }
+
     private boolean utf8SequenceType(long typeCode) {
         if (typeCode == TYPE_BYTES) {
+            return true;
+        }
+        if (typeCode == TYPE_BYTES_BORROW) {
             return true;
         }
         if (typeCode == TYPE_UTF8) {
@@ -81,7 +103,7 @@ classical class StorageVerifier {
         if (opcode < OPCODE_OWNED_MOVE) {
             return -1;
         }
-        if (OPCODE_UTF8_BORROW < opcode) {
+        if (OPCODE_REGION_BORROW < opcode) {
             return -1;
         }
         long first = readUnsigned(artifact, cursor + 8, 8);
@@ -138,10 +160,9 @@ classical class StorageVerifier {
                                 activeTypes,
                                 first,
                                 allocationType)) {
-                            if (localHasType(
-                                    artifact,
-                                    activeTypes,
-                                    region,
+                            if (ownerOrBorrow(
+                                    localType(
+                                        artifact, activeTypes, region),
                                     TYPE_REGION)) {
                                 if (localHasType(
                                         artifact,
@@ -169,10 +190,9 @@ classical class StorageVerifier {
                     if (getIndex < localCount) {
                         if (localHasType(
                                 artifact, activeTypes, first, TYPE_SIGNED)) {
-                            if (localHasType(
-                                    artifact,
-                                    activeTypes,
-                                    getBuffer,
+                            if (ownerOrBorrow(
+                                    localType(
+                                        artifact, activeTypes, getBuffer),
                                     getExpectedType)) {
                                 if (localHasType(
                                         artifact,
@@ -198,10 +218,8 @@ classical class StorageVerifier {
             if (first < localCount) {
                 if (setIndex < localCount) {
                     if (setValue < localCount) {
-                        if (localHasType(
-                                artifact,
-                                activeTypes,
-                                first,
+                        if (ownerOrBorrow(
+                                localType(artifact, activeTypes, first),
                                 setExpectedType)) {
                             if (localHasType(
                                     artifact,
@@ -252,6 +270,12 @@ classical class StorageVerifier {
                             return 1;
                         }
                         if (lengthType == TYPE_BYTES) {
+                            return 1;
+                        }
+                        if (lengthType == TYPE_WORDS_BORROW) {
+                            return 1;
+                        }
+                        if (lengthType == TYPE_BYTES_BORROW) {
                             return 1;
                         }
                         if (lengthType == TYPE_UTF8) {
@@ -350,10 +374,8 @@ classical class StorageVerifier {
             if (first < localCount) {
                 if (mapKey < localCount) {
                     if (mapValue < localCount) {
-                        if (localHasType(
-                                artifact,
-                                activeTypes,
-                                first,
+                        if (ownerOrBorrow(
+                                localType(artifact, activeTypes, first),
                                 TYPE_LONG_MAP)) {
                             if (localHasType(
                                     artifact,
@@ -382,10 +404,9 @@ classical class StorageVerifier {
                     if (getMapKey < localCount) {
                         if (localHasType(
                                 artifact, activeTypes, first, TYPE_SIGNED)) {
-                            if (localHasType(
-                                    artifact,
-                                    activeTypes,
-                                    getMap,
+                            if (ownerOrBorrow(
+                                    localType(
+                                        artifact, activeTypes, getMap),
                                     TYPE_LONG_MAP)) {
                                 if (localHasType(
                                         artifact,
@@ -409,10 +430,9 @@ classical class StorageVerifier {
                     if (hasMapKey < localCount) {
                         if (localHasType(
                                 artifact, activeTypes, first, TYPE_BOOLEAN)) {
-                            if (localHasType(
-                                    artifact,
-                                    activeTypes,
-                                    hasMap,
+                            if (ownerOrBorrow(
+                                    localType(
+                                        artifact, activeTypes, hasMap),
                                     TYPE_LONG_MAP)) {
                                 if (localHasType(
                                         artifact,
@@ -461,6 +481,77 @@ classical class StorageVerifier {
                             return 1;
                         }
                         if (borrowSourceType == TYPE_UTF8_BORROW) {
+                            return 1;
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+        if (opcode == OPCODE_MAP_BORROW) {
+            long mapBorrowSource = readUnsigned(
+                artifact, cursor + 16, 8);
+            if (first < localCount) {
+                if (mapBorrowSource < localCount) {
+                    if (localHasType(
+                            artifact,
+                            activeTypes,
+                            first,
+                            TYPE_LONG_MAP_BORROW)) {
+                        if (ownerOrBorrow(
+                                localType(
+                                    artifact,
+                                    activeTypes,
+                                    mapBorrowSource),
+                                TYPE_LONG_MAP)) {
+                            return 1;
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+        if (opcode == OPCODE_BUFFER_BORROW) {
+            long bufferBorrowSource = readUnsigned(
+                artifact, cursor + 16, 8);
+            if (first < localCount) {
+                if (bufferBorrowSource < localCount) {
+                    long bufferBorrowDestinationType = localType(
+                        artifact, activeTypes, first);
+                    long bufferBorrowSourceType = localType(
+                        artifact, activeTypes, bufferBorrowSource);
+                    if (bufferBorrowDestinationType == TYPE_WORDS_BORROW) {
+                        if (ownerOrBorrow(
+                                bufferBorrowSourceType, TYPE_WORDS)) {
+                            return 1;
+                        }
+                    }
+                    if (bufferBorrowDestinationType == TYPE_BYTES_BORROW) {
+                        if (ownerOrBorrow(
+                                bufferBorrowSourceType, TYPE_BYTES)) {
+                            return 1;
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+        if (opcode == OPCODE_REGION_BORROW) {
+            long regionBorrowSource = readUnsigned(
+                artifact, cursor + 16, 8);
+            if (first < localCount) {
+                if (regionBorrowSource < localCount) {
+                    if (localHasType(
+                            artifact,
+                            activeTypes,
+                            first,
+                            TYPE_REGION_BORROW)) {
+                        if (ownerOrBorrow(
+                                localType(
+                                    artifact,
+                                    activeTypes,
+                                    regionBorrowSource),
+                                TYPE_REGION)) {
                             return 1;
                         }
                     }

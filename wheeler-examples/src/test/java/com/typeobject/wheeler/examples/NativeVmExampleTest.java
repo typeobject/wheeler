@@ -163,12 +163,19 @@ class NativeVmExampleTest {
         () -> VirtualMachine.withBinaryInput(interpreter, forgedSlice).run());
     String storage = "classical class NativeStorage { "
         + "state long first = 0; state long byteValue = 0; "
+        + "long readWord(words data, long index) { return data[index]; } "
+        + "long readByte(bytes data, long index) { return data[index]; } "
+        + "long scratch(region arena, long value) { "
+        + "long one = 1; words temporary = allocate(arena, one); "
+        + "set(temporary, 0, value); long result = temporary[0]; "
+        + "drop(temporary); return result; } "
         + "entry void main() { "
-        + "region arena = new region(24, 2); long length = 2; "
-        + "words data = allocate(arena, length); set(data, 0, 7); "
-        + "first = data[0]; long packetLength = 3; "
+        + "region arena = new region(32, 2); first = scratch(arena, 7); "
+        + "long length = 2; words data = allocate(arena, length); "
+        + "set(data, 0, 7); first = readWord(data, 0); "
+        + "long packetLength = 3; "
         + "bytes packet = allocateBytes(arena, packetLength); "
-        + "setByte(packet, 1, 194); byteValue = packet[1]; "
+        + "setByte(packet, 1, 194); byteValue = readByte(packet, 1); "
         + "long measuredLength = bufferLength(packet); "
         + "first = measuredLength; assert first == 3; first = 7; "
         + "assert first == 7; assert byteValue == 194; "
@@ -245,6 +252,22 @@ class NativeVmExampleTest {
         + "drop(values); drop(arena); } }";
     assertInterpretedTwoGlobals(
         interpreter, map, "selected", 19, "present", 1);
+    assertInterpretedTwoGlobals(
+        interpreter,
+        "classical class BorrowedNativeMap { "
+            + "state long selected = 0; state long present = 0; "
+            + "long lookup(longmap values, long key) { "
+            + "return mapGet(values, key); } "
+            + "entry void main() { region arena = new region(24, 1); "
+            + "longmap values = allocateMap(arena, 1); put(values, 7, 17); "
+            + "selected = lookup(values, 7); boolean found = mapHas(values, 7); "
+            + "if (found) { present = 1; } else { present = 0; } "
+            + "assert selected == 17; assert present == 1; "
+            + "drop(values); drop(arena); } }",
+        "selected",
+        17,
+        "present",
+        1);
     byte[] forgedMap = withBadMapKey(
         compiler.compileToBytecode(map));
     assertThrows(

@@ -269,6 +269,15 @@ classical class InstructionVerifier {
         if (opcode == OPCODE_UTF8_BORROW) {
             return 2;
         }
+        if (opcode == OPCODE_MAP_BORROW) {
+            return 2;
+        }
+        if (opcode == OPCODE_BUFFER_BORROW) {
+            return 2;
+        }
+        if (opcode == OPCODE_REGION_BORROW) {
+            return 2;
+        }
         return -1;
     }
 
