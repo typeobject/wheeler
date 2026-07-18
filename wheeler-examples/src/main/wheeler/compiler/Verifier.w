@@ -62,6 +62,89 @@ classical class Verifier {
         return false;
     }
 
+    private long expectedOperandCount(long opcode) {
+        if (opcode == 1) {
+            return 0;
+        }
+        if (opcode == 2) {
+            return 0;
+        }
+        if (255 < opcode) {
+            if (opcode < 259) {
+                return 2;
+            }
+        }
+        if (opcode == 512) {
+            return 1;
+        }
+        if (opcode == 513) {
+            return 1;
+        }
+        if (opcode == 768) {
+            return 2;
+        }
+        if (opcode == 1024) {
+            return 2;
+        }
+        if (opcode == 1025) {
+            return 2;
+        }
+        if (opcode == 1026) {
+            return 2;
+        }
+        if (opcode == 1027) {
+            return 2;
+        }
+        if (1039 < opcode) {
+            if (opcode < 1043) {
+                return 3;
+            }
+        }
+        return -1;
+    }
+
+    private long verifyCodeStream(
+        bytes artifact,
+        long codeOffset,
+        long codeLength
+    ) {
+        long cursor = codeOffset;
+        long end = codeOffset + codeLength;
+        while (cursor < end) limit 64 {
+            if (end - cursor < 8) {
+                return 0;
+            }
+            long opcode = readUnsigned(artifact, cursor, 2);
+            long operandCount = readUnsigned(artifact, cursor + 2, 2);
+            long expectedOperands = expectedOperandCount(opcode);
+            if (expectedOperands < 0) {
+                return 0;
+            }
+            if (differs(operandCount, expectedOperands)) {
+                return 0;
+            }
+            long instructionLength = readUnsigned(
+                artifact, cursor + 4, 4);
+            long expectedLength = 8 + operandCount * 8;
+            if (differs(instructionLength, expectedLength)) {
+                return 0;
+            }
+            if (end < cursor + instructionLength) {
+                return 0;
+            }
+            if (opcode == 1) {
+                if (differs(cursor + instructionLength, end)) {
+                    return 0;
+                }
+            }
+            cursor += instructionLength;
+        }
+        if (differs(cursor, end)) {
+            return 0;
+        }
+        return 1;
+    }
+
     private long verifyDirectory(
         bytes artifact,
         long fileLength,
@@ -132,6 +215,9 @@ classical class Verifier {
         long firstInverseLength = readUnsigned(
             artifact, functionsOffset + 28, 4);
 
+        if (verifyCodeStream(artifact, codeOffset, codeLength) == 0) {
+            return 0;
+        }
         if (differs(directoryField(artifact, 0, 16, 8), 24)) {
             return 0;
         }
