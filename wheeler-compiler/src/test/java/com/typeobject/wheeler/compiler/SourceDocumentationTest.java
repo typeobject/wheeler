@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 /** Conformance tests for file and declaration documentation diagnostics. */
@@ -102,6 +103,34 @@ class SourceDocumentationTest {
     assertEquals(List.of("WDOC006", "WDOC006"), facets.stream()
         .map(SourceDocumentation.Diagnostic::code)
         .toList());
+  }
+
+  @Test
+  void exportsParserOwnedModuleAndDeclarationDocumentation() {
+    SourceDocumentation.FileDocumentation documentation = SourceDocumentation.extract("""
+        //! Arithmetic API used by documentation bundles.
+        module demo.arithmetic;
+        classical class Arithmetic {
+            /// Stores the visible result.
+            public state long result = 0;
+
+            /// Runs one bounded update.
+            ///
+            /// - Effects: Mutates result.
+            /// - Bounds: One instruction window.
+            entry void main() { result += 1; }
+        }
+        """);
+
+    assertEquals("demo.arithmetic", documentation.module());
+    assertEquals("Arithmetic API used by documentation bundles.", documentation.summary());
+    assertEquals(List.of("result", "main"), documentation.declarations().stream()
+        .map(SourceDocumentation.Declaration::name)
+        .toList());
+    assertEquals("Stores the visible result.", documentation.declarations().getFirst().summary());
+    assertEquals(
+        Map.of("Effects", "Mutates result.", "Bounds", "One instruction window."),
+        documentation.declarations().getLast().facets());
   }
 
   @Test
