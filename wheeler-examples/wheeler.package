@@ -1,6 +1,7 @@
 package "wheeler.examples" version "0.1.0" profile "bootstrap-1";
 target example "binarytree" root "src/main/wheeler/BinaryTree.w";
 target example "bootstrapcontrol" root "src/main/wheeler/BootstrapControl.w";
+target example "bytecodeheader" root "src/main/wheeler/BytecodeHeader.w" module "examples.compiler.header" source "src/main/wheeler/BytecodeHeader.w" source "src/main/wheeler/compiler/Encoding.w";
 target example "coherentoracle" root "src/main/wheeler/CoherentOracle.w";
 target example "counter" root "src/main/wheeler/Counter.w";
 target example "fixedarrays" root "src/main/wheeler/FixedArrays.w";
