@@ -2,7 +2,7 @@ package com.typeobject.wheeler.core.bytecode;
 
 import java.util.Arrays;
 
-/** Version-1 classical Wheeler opcodes. Numeric codes are stable artifact identities. */
+/** Version-2 classical Wheeler opcodes. Numeric codes are stable artifact identities. */
 public enum Opcode {
   NOP(0x0000, 0, Reversibility.INTRINSIC),
   HALT(0x0001, 0, Reversibility.CHECKED),

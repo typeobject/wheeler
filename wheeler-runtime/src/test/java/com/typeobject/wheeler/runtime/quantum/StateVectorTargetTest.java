@@ -121,7 +121,7 @@ class StateVectorTargetTest {
         "flip",
         true,
         0,
-        0,
+        List.of(),
         false,
         List.of(Instruction.of(Opcode.XOR_CONST, 0, 1), Instruction.of(Opcode.RETURN)),
         List.of(Instruction.of(Opcode.XOR_CONST, 0, 1), Instruction.of(Opcode.RETURN)));
@@ -229,7 +229,7 @@ class StateVectorTargetTest {
         "flip",
         true,
         0,
-        0,
+        List.of(),
         false,
         List.of(Instruction.of(Opcode.XOR_CONST, 0, 1), Instruction.of(Opcode.RETURN)),
         List.of(Instruction.of(Opcode.XOR_CONST, 0, 1), Instruction.of(Opcode.RETURN)));
@@ -250,7 +250,7 @@ class StateVectorTargetTest {
         "main",
         false,
         0,
-        0,
+        List.of(),
         false,
         List.of(Instruction.of(Opcode.HALT)),
         List.of());

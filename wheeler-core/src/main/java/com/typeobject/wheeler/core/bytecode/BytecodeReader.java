@@ -30,6 +30,18 @@ public final class BytecodeReader {
   private record Section(int type, int flags, int offset, int length, int alignment) {}
   private record Manifest(
       int nameId, int entryId, int maxHistory, ProgramKind kind, long maxSteps) {}
+  private record RawFunctionDescriptor(
+      int id,
+      int nameId,
+      int flags,
+      int forwardOffset,
+      int forwardLength,
+      int inverseOffset,
+      int inverseLength,
+      int parameterCount,
+      int localCount,
+      int typeOffset) {}
+
   private record FunctionDescriptor(
       int id,
       int nameId,
@@ -39,7 +51,7 @@ public final class BytecodeReader {
       int inverseOffset,
       int inverseLength,
       int parameterCount,
-      int localCount) {}
+      List<ValueType> localTypes) {}
 
   public Program read(byte[] bytes) {
     try {
@@ -54,7 +66,7 @@ public final class BytecodeReader {
   private Program readChecked(byte[] bytes) {
     if (bytes.length < BytecodeFormat.HEADER_SIZE
         || bytes.length > BytecodeFormat.MAX_ARTIFACT_BYTES) {
-      fail("Artifact size is outside version-1 bounds");
+      fail("Artifact size is outside version-2 bounds");
     }
     ByteBuffer input = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);
     byte[] magic = new byte[BytecodeFormat.MAGIC.length];
@@ -243,11 +255,13 @@ public final class BytecodeReader {
 
   private static List<FunctionDescriptor> readFunctionDescriptors(ByteBuffer section) {
     int count = readBoundedCount(section, "function", 65_535);
-    if (section.remaining() != Math.multiplyExact(count, 40)) {
+    int descriptorBytes = Math.multiplyExact(count, 40);
+    if (section.remaining() < descriptorBytes) {
       fail("Invalid function descriptor section length");
     }
-    List<FunctionDescriptor> result = new ArrayList<>(count);
+    List<RawFunctionDescriptor> raw = new ArrayList<>(count);
     Set<Integer> ids = new HashSet<>();
+    int expectedTypeOffset = 0;
     for (int i = 0; i < count; i++) {
       int id = section.getInt();
       int nameId = section.getInt();
@@ -258,13 +272,13 @@ public final class BytecodeReader {
       int inverseLength = section.getInt();
       int parameters = section.getInt();
       int frameSlots = section.getInt();
-      int reserved = section.getInt();
+      int typeOffset = section.getInt();
       if (id < 0 || !ids.add(id) || (flags & ~7) != 0
           || parameters < 0 || frameSlots < parameters || frameSlots > 65_535
-          || reserved != 0) {
+          || typeOffset != expectedTypeOffset) {
         fail("Invalid function descriptor");
       }
-      result.add(new FunctionDescriptor(
+      raw.add(new RawFunctionDescriptor(
           id,
           nameId,
           flags,
@@ -273,7 +287,31 @@ public final class BytecodeReader {
           inverseOffset,
           inverseLength,
           parameters,
-          frameSlots));
+          frameSlots,
+          typeOffset));
+      expectedTypeOffset = Math.addExact(expectedTypeOffset, frameSlots);
+    }
+    if (section.remaining() != expectedTypeOffset) {
+      fail("Invalid local type table length");
+    }
+    List<ValueType> types = new ArrayList<>(expectedTypeOffset);
+    while (section.hasRemaining()) {
+      types.add(ValueType.fromCode(Byte.toUnsignedInt(section.get())));
+    }
+    List<FunctionDescriptor> result = new ArrayList<>(count);
+    for (RawFunctionDescriptor descriptor : raw) {
+      List<ValueType> locals = List.copyOf(types.subList(
+          descriptor.typeOffset(), descriptor.typeOffset() + descriptor.localCount()));
+      result.add(new FunctionDescriptor(
+          descriptor.id(),
+          descriptor.nameId(),
+          descriptor.flags(),
+          descriptor.forwardOffset(),
+          descriptor.forwardLength(),
+          descriptor.inverseOffset(),
+          descriptor.inverseLength(),
+          descriptor.parameterCount(),
+          locals));
     }
     return List.copyOf(result);
   }
@@ -298,7 +336,7 @@ public final class BytecodeReader {
           strings.get(descriptor.nameId()),
           coherent,
           descriptor.parameterCount(),
-          descriptor.localCount(),
+          descriptor.localTypes(),
           returnsValue,
           forward,
           inverse));

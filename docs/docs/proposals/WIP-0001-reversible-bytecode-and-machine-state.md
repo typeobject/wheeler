@@ -43,7 +43,7 @@ A loader rejects overlapping sections, noncanonical instruction lengths, invalid
 
 ### Future quantum region
 
-A version-1 loader can identify a function or region as quantum or hybrid and report an unsupported required capability without interpreting provider-specific payloads as classical instructions.
+A version-2 loader can identify a function or region as quantum or hybrid and report an unsupported required capability without interpreting provider-specific payloads as classical instructions.
 
 ## Goals
 
@@ -117,11 +117,11 @@ Hosts own filesystem, console, clock, random, network, and provider integration.
 
 ### Bytecode container
 
-All integers in the container are unsigned little-endian unless an operand schema says otherwise. Version 1 begins with a 40-byte header:
+All integers in the container are unsigned little-endian unless an operand schema says otherwise. Version 2 begins with a 40-byte header:
 
 ```text
 byte[8] magic             = "WHEELBC\0"
-u16     major_version     = 1
+u16     major_version     = 2
 u16     minor_version     = 0
 u32     flags
 u64     file_length
@@ -143,7 +143,7 @@ u32 reserved = 0
 
 Sections do not overlap, offsets and lengths fit within `file_length`, padding is zero, and directory entries use canonical `(section_type, offset)` order. Required unknown sections cause rejection. Optional unknown sections may be ignored only when no known section refers to them.
 
-Version 1 reserves these section types:
+Version 2 reserves these section types:
 
 | ID | Section | Requirement |
 | --- | --- | --- |
@@ -153,8 +153,8 @@ Version 1 reserves these section types:
 | 4 | Constants | Optional |
 | 5 | Function descriptors | Required |
 | 6 | Classical code bodies | Required for a classical entry point |
-| 7 | Region graph | Reserved for WIP-0002 |
-| 8 | Quantum bodies | Reserved for WIP-0002 |
+| 7 | Ordered classical/quantum workflow | Required for quantum and hybrid artifacts |
+| 8 | Quantum registers and circuit bodies | Required for quantum and hybrid artifacts |
 | 9 | Target requirements | Reserved for WIP-0003 |
 | 10 | Proof certificates | Reserved for a later WIP |
 | 11 | Source and debug maps | Optional and non-semantic |
@@ -244,9 +244,9 @@ Checkpoint snapshots are an optimization and persistence mechanism, not an addit
 
 ## Concurrency and determinism
 
-Version 1 of this machine contract is single-threaded. All decoding, allocation, arithmetic, traps, effects, history accounting, and step ordering are deterministic for the same artifact and effect receipts.
+Version 2 of this machine contract is single-threaded. All decoding, allocation, arithmetic, traps, effects, history accounting, and step ordering are deterministic for the same artifact and effect receipts.
 
-A later concurrency WIP must define a global event order for shared state and may not infer correct reversal from independent per-thread stacks. The artifact reserves computation and capability metadata without assigning thread opcodes in version 1.
+A later concurrency WIP must define a global event order for shared state and may not infer correct reversal from independent per-thread stacks. The artifact reserves computation and capability metadata without assigning thread opcodes in version 2.
 
 ## Quantum and proof implications
 
@@ -290,7 +290,8 @@ Artifact bytes, assembly, debug names, effect payloads, and persisted history ar
 - [x] The initial opcode registry is shared by compiler, VM, verifier, and tools.
 - [x] The transition kernel and bounded undo records exist.
 - [x] The verifier rejects malformed structure and semantic violations.
-- [x] Signed frame parameters, locals, value calls/returns, branch targets, definite assignment, and bounded-loop checks execute and verify.
+- [x] Major version 2 stores canonical signed/Boolean local type tables; the decoder has no legacy untyped-local path.
+- [x] Signed frame parameters/returns, signed and Boolean locals, value calls, branch targets, definite assignment, and bounded-loop checks execute and verify.
 - [x] Bytecode and source counter fixtures run forward and inverse.
 - [x] Existing incompatible bytecode and memory paths are deleted.
 

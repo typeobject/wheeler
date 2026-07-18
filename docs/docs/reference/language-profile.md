@@ -14,7 +14,7 @@ classical class Counter {
 }
 ```
 
-The available domains are `classical`, `quantum`, and `hybrid`. Version 1 supports signed 64-bit classical state and affine logical quantum registers:
+The available domains are `classical`, `quantum`, and `hybrid`. Version 2 supports signed 64-bit classical state and affine logical quantum registers:
 
 ```java
 state long measured = 0;
@@ -40,7 +40,7 @@ entry void main() { ... }
 - A `unitary` method lowers to backend-neutral quantum region IR and receives a generated adjoint.
 - Exactly one zero-argument `entry void main()` method defines execution.
 
-`public`, `private`, `protected`, and `static` are accepted where meaningful for familiar organization. Ordinary classical methods have signed 64-bit parameters, return values, local bindings, and bounded control flow. `rev`, `coherent rev`, and `unitary` methods remain zero-argument and `void` until their parameter ownership and inverse signatures are implemented.
+`public`, `private`, `protected`, and `static` are accepted where meaningful for familiar organization. Ordinary classical methods have signed 64-bit parameters and return values, typed signed or Boolean local bindings, and bounded control flow. `rev`, `coherent rev`, and `unitary` methods remain zero-argument and `void` until their parameter ownership and inverse signatures are implemented.
 
 ## Classical statements
 
@@ -69,7 +69,7 @@ This executes `reverse second();` and then `reverse first();`.
 
 ## Local expressions and bounded control
 
-Ordinary classical methods support `long` locals, left-to-right expressions over `+`, `-`, `^`, `<`, and `==`, `if`/`else`, and source-bounded `while`:
+Ordinary classical methods support signed `long` and `boolean` locals, left-to-right expressions over `+`, `-`, `^`, `<`, and `==`, `if`/`else`, and source-bounded `while`. Arithmetic and ordering require signed operands. Equality requires equal operand types and returns Boolean. XOR accepts two signed values or two Booleans and preserves their type. Conditions require Boolean values; integers are never truthy:
 
 ```java
 long i = 0;
@@ -77,7 +77,8 @@ while (i < 5) limit 5 {
     sum += i;
     i += 1;
 }
-if (sum == 10) {
+boolean complete = sum == 10;
+if (complete) {
     branch = 1;
 } else {
     branch = 2;
@@ -88,7 +89,7 @@ The loop limit is evaluated once before entry. Wheeler checks it before every bo
 
 Value calls evaluate arguments left to right, move them through a verified contiguous call window, initialize callee parameter registers, and place one returned value in the declared caller register. Every reachable path in a value-returning method must end in `return expression;`. Static recursion is permitted under the VM's hard 1,024-frame ceiling and the program step ceiling.
 
-Local control compiles to verified frame registers and explicit control-flow targets. The verifier rejects invalid targets, out-of-range locals, reads not definitely assigned on every incoming path, and a function that falls through its body.
+Local control compiles to verified typed frame registers and explicit control-flow targets. The function descriptor stores one canonical type code per register. The verifier rejects unknown type codes, invalid targets, out-of-range locals, reads not definitely assigned on every incoming path, operand or call type mismatches, non-Boolean conditions, invalid Boolean constants, and a function that falls through its body.
 
 Control flow is not accepted in `rev` or `coherent rev` methods yet. Wheeler will add reversible branches and loops only with an exact branch or iteration witness; it does not retain hidden history automatically.
 

@@ -167,7 +167,7 @@ final class SourceParser {
     temporarySequence = 0;
     labelSequence = 0;
     while (!check(Type.RIGHT_BRACE) && !check(Type.END)) {
-      if (structuredStatements && checkText("long")) {
+      if (structuredStatements && checkLocalType()) {
         parseLocalDeclaration(body);
       } else if (structuredStatements && matchText("return")) {
         parseReturn(body, previous());
@@ -178,7 +178,7 @@ final class SourceParser {
       } else if (structuredStatements && isAssignmentStart()) {
         parseStructuredAssignment(body);
       } else if (!structuredStatements
-          && (checkText("long") || checkText("if") || checkText("while")
+          && (checkLocalType() || checkText("if") || checkText("while")
               || checkText("return"))) {
         fail(peek(), "local control flow is not available in this method kind");
       } else if (matchText("reverse")) {
@@ -225,12 +225,16 @@ final class SourceParser {
   }
 
   private void parseLocalDeclaration(List<Statement> body) {
-    SourceToken start = expectText("long");
+    SourceToken start = advance();
+    String type = start.text();
+    if (!type.equals("long") && !type.equals("boolean")) {
+      fail(start, "expected long or boolean local type");
+    }
     String name = expect(Type.IDENTIFIER, "local name").text();
     expect(Type.ASSIGN, "'=' in local declaration");
     String value = parseExpression(body);
     expect(Type.SEMICOLON, "';' after local declaration");
-    body.add(statement("local_bind", start.line(), name, value));
+    body.add(statement("local_bind", start.line(), name, value, type));
   }
 
   private void parseStructuredAssignment(List<Statement> body) {
@@ -280,7 +284,7 @@ final class SourceParser {
   private void parseStructuredBlock(List<Statement> body, String owner) {
     expect(Type.LEFT_BRACE, "'{' before " + owner + " body");
     while (!check(Type.RIGHT_BRACE) && !check(Type.END)) {
-      if (checkText("long")) {
+      if (checkLocalType()) {
         parseLocalDeclaration(body);
       } else if (matchText("return")) {
         parseReturn(body, previous());
@@ -349,6 +353,13 @@ final class SourceParser {
     if (match(Type.NUMBER)) {
       return constant(body, previous(), previous().text());
     }
+    if (checkText("true") || checkText("false")) {
+      SourceToken value = advance();
+      String result = temporary();
+      body.add(statement(
+          "local_boolean", value.line(), result, value.text().equals("true") ? "1" : "0"));
+      return result;
+    }
     if (match(Type.IDENTIFIER)) {
       if (match(Type.LEFT_PAREN)) {
         List<String> arguments = new ArrayList<>();
@@ -385,6 +396,10 @@ final class SourceParser {
     String result = temporary();
     body.add(statement("local_binary", source.line(), result, operator, left, right));
     return result;
+  }
+
+  private boolean checkLocalType() {
+    return checkText("long") || checkText("boolean");
   }
 
   private boolean isAssignmentStart() {

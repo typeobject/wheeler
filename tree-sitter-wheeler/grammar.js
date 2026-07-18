@@ -79,7 +79,7 @@ module.exports = grammar({
     return_statement: $ => seq('return', $.expression, ';'),
 
     local_declaration: $ => seq(
-      'long',
+      field('type', choice('long', 'boolean')),
       field('name', $.identifier),
       '=',
       field('value', $.expression),
@@ -126,6 +126,7 @@ module.exports = grammar({
     reverse_statement: $ => seq('reverse', choice($.block, seq($.call_expression, ';'))),
 
     expression: $ => choice(
+      $.boolean_literal,
       $.integer_literal,
       $.number_literal,
       $.identifier,
@@ -150,6 +151,7 @@ module.exports = grammar({
     argument_list: $ => seq($.expression, repeat(seq(',', $.expression))),
     qubit_reference: $ => seq(field('register', $.identifier), '[', field('index', $.integer_literal), ']'),
 
+    boolean_literal: _ => choice('true', 'false'),
     integer_literal: _ => token(choice(
       /-?[0-9][0-9_]*/,
       /-?0[xX][0-9a-fA-F][0-9a-fA-F_]*/,

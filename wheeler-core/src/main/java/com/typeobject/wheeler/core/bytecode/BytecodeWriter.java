@@ -56,7 +56,7 @@ public final class BytecodeWriter {
     }
     int fileLength = BytecodeFormat.align8(cursor);
     if (fileLength > BytecodeFormat.MAX_ARTIFACT_BYTES) {
-      throw new BytecodeException("Artifact exceeds version-1 size limit");
+      throw new BytecodeException("Artifact exceeds version-2 size limit");
     }
 
     ByteBuffer output = ByteBuffer.allocate(fileLength).order(ByteOrder.LITTLE_ENDIAN);
@@ -131,7 +131,7 @@ public final class BytecodeWriter {
     buffer.putInt(program.globals().size());
     for (Global global : program.globals()) {
       buffer.putInt(strings.get(global.name()));
-      buffer.putInt(1); // Version-1 I64 type.
+      buffer.putInt(1); // Version-2 I64 type.
       buffer.putLong(global.initialValue());
     }
     return buffer.array();
@@ -168,8 +168,10 @@ public final class BytecodeWriter {
       Program program,
       Map<String, Integer> strings,
       Map<Integer, FunctionOffsets> offsets) {
-    ByteBuffer buffer = little(4 + program.functions().size() * 40);
+    int typeBytes = program.functions().stream().mapToInt(FunctionBody::localCount).sum();
+    ByteBuffer buffer = little(4 + program.functions().size() * 40 + typeBytes);
     buffer.putInt(program.functions().size());
+    int typeOffset = 0;
     for (FunctionBody function : program.functions()) {
       FunctionOffsets location = offsets.get(function.id());
       int flags = (function.reversible() ? 1 : 0)
@@ -184,7 +186,11 @@ public final class BytecodeWriter {
       buffer.putInt(location.inverseLength());
       buffer.putInt(function.parameterCount());
       buffer.putInt(function.localCount());
-      buffer.putInt(0);
+      buffer.putInt(typeOffset);
+      typeOffset += function.localCount();
+    }
+    for (FunctionBody function : program.functions()) {
+      function.localTypes().forEach(type -> buffer.put((byte) type.code()));
     }
     return buffer.array();
   }

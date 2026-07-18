@@ -16,7 +16,7 @@ public final class ProgramFixtures {
         "main",
         false,
         0,
-        0,
+        List.of(),
         false,
         List.of(
             Instruction.of(Opcode.CALL, 1),
@@ -32,7 +32,7 @@ public final class ProgramFixtures {
         "increment",
         false,
         0,
-        0,
+        List.of(),
         false,
         List.of(Instruction.of(Opcode.ADD_CONST, 0, 1), Instruction.of(Opcode.RETURN)),
         List.of(Instruction.of(Opcode.SUB_CONST, 0, 1), Instruction.of(Opcode.RETURN)));

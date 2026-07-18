@@ -9,6 +9,7 @@ import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.bytecode.ValueType;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import org.junit.jupiter.api.Test;
@@ -72,7 +73,8 @@ class WheelerCompilerTest {
               sum += i;
               i += 1;
             }
-            if (sum == 10) { branch = 1; } else { branch = 2; }
+            boolean complete = sum == 10;
+            if (complete) { branch = 1; } else { branch = 2; }
             assert sum == 10;
             assert branch == 1;
           }
@@ -86,6 +88,8 @@ class WheelerCompilerTest {
     assertEquals(10, machine.global("sum"));
     assertEquals(1, machine.global("branch"));
     assertTrue(program.function(program.entryFunctionId()).localCount() > 0);
+    assertTrue(program.function(program.entryFunctionId()).localTypes()
+        .contains(ValueType.BOOLEAN));
   }
 
   @Test

@@ -10,7 +10,8 @@ classical class BootstrapControl {
             i += 1;
         }
 
-        if (sum == 10) {
+        boolean complete = sum == 10;
+        if (complete) {
             branch = 1;
         } else {
             branch = 2;

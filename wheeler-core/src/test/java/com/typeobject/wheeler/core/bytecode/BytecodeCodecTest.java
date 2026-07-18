@@ -30,12 +30,12 @@ class BytecodeCodecTest {
   }
 
   @Test
-  void goldenArtifactLocksVersionOneEncoding() throws NoSuchAlgorithmException {
+  void goldenArtifactLocksVersionTwoEncoding() throws NoSuchAlgorithmException {
     byte[] artifact = writer.write(ProgramFixtures.counter());
     String digest = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(artifact));
 
     assertEquals(568, artifact.length);
-    assertEquals("30c3288b5dff08829f69ff6b73ccd368d088adec9a38431e72c6d2d55061d2e3", digest);
+    assertEquals("6bcb0c9f85bd169fa27a8614662ce640903479499fab15489803490e20423c6f", digest);
   }
 
   @Test
@@ -59,6 +59,39 @@ class BytecodeCodecTest {
     assertThrows(BytecodeException.class, () -> reader.read(badMagic));
     assertThrows(BytecodeException.class, () -> reader.read(truncated));
     assertThrows(BytecodeException.class, () -> reader.read(wrongLength));
+  }
+
+  @Test
+  void localTypeTableRoundTripsAndRejectsUnknownCodes() {
+    FunctionBody main = new FunctionBody(
+        0,
+        "main",
+        false,
+        0,
+        java.util.List.of(ValueType.BOOLEAN),
+        false,
+        java.util.List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 1),
+            Instruction.of(Opcode.HALT)),
+        java.util.List.of());
+    byte[] artifact = writer.write(new Program("Typed", 0, java.util.List.of(), java.util.List.of(main)));
+    Program decoded = reader.read(artifact);
+    assertEquals(java.util.List.of(ValueType.BOOLEAN), decoded.function(0).localTypes());
+    assertArrayEquals(artifact, writer.write(decoded));
+
+    byte[] unknownType = artifact.clone();
+    ByteBuffer bytes = ByteBuffer.wrap(unknownType).order(ByteOrder.LITTLE_ENDIAN);
+    int sections = bytes.getInt(24);
+    long directory = bytes.getLong(32);
+    int functionOffset = -1;
+    for (int index = 0; index < sections; index++) {
+      int entry = Math.toIntExact(directory) + index * BytecodeFormat.DIRECTORY_ENTRY_SIZE;
+      if (bytes.getInt(entry) == BytecodeFormat.FUNCTIONS) {
+        functionOffset = Math.toIntExact(bytes.getLong(entry + 8));
+      }
+    }
+    unknownType[functionOffset + 4 + 40] = 99;
+    assertThrows(BytecodeException.class, () -> reader.read(unknownType));
   }
 
   @Test

@@ -240,9 +240,9 @@ A feature that cannot express or simplify one of these modules needs separate ju
 
 - [x] Stage-0 VM has explicit immutable call frames, checked calls, bounded steps, snapshots, and rewind records.
 - [x] Source and bytecode distinguish state fields from function control.
-- [ ] Signed 64-bit parameter, local, and return signatures are encoded and verified; general type tables remain.
+- [ ] Signed parameter/return and signed-or-Boolean local signatures are encoded and verified; Boolean parameters/results and aggregate type tables remain.
 - [x] Local constants, state load/store, move, arithmetic, comparison, branches, loop checks, value calls, and value returns execute and rewind.
-- [ ] Signed parameters, returns, local bindings, expressions, static calls, `if`/`else`, and bounded `while` compile end to end; `for`, early conditional return, and general types remain.
+- [ ] Signed parameters and returns, typed signed/Boolean local bindings, expressions, static calls, `if`/`else`, and bounded `while` compile end to end; `for`, early conditional return, and aggregate types remain.
 - [ ] Records, variants, arrays, and slices execute with ownership checks.
 - [ ] Region storage supports compiler arenas under hard limits.
 - [ ] Reversible protected control forms generate checked inverses.
@@ -251,7 +251,7 @@ A feature that cannot express or simplify one of these modules needs separate ju
 
 ## Testing and acceptance
 
-- [ ] Bytecode rejects invalid register types, uninitialized reads, target escapes, bad joins, bad returns, and malformed loop descriptors; local bounds, definite assignment, branch targets, and fallthrough are covered.
+- [ ] Bytecode rejects unknown register types, type-mismatched operands and calls, invalid Boolean constants and conditions, uninitialized reads, target escapes, bad joins, bad returns, and malformed loop descriptors; scalar types, local bounds, definite assignment, branch targets, and fallthrough are covered.
 - [x] VM tests cover the initial signed-local instruction set forward and rewind, including loop and arithmetic traps before mutation.
 - [ ] Calls cover copy, move, borrow, return, inverse, recursion ceiling, and nested trap behavior; signed argument/result transfer, recursive execution, 1,024-frame exhaustion, and rewind are covered.
 - [ ] Branch tests cover both paths, join assignment, unreachable blocks, early return, and source diagnostics.
@@ -288,8 +288,6 @@ Rejected as the default. Hidden history changes effect and space semantics. Logg
 
 ## Open questions
 
-- Which minimal register type encoding supports bootstrap values without freezing the complete future type system? — **Owner:** bytecode and type-system maintainers — **Decide by:** before signature metadata implementation
-- Which source spelling best expresses loop limits without obscuring familiar `for` iteration? — **Owner:** language and tooling maintainers — **Decide by:** before bounded-loop parsing
 - Which borrow representation keeps verification, native lowering, and proof terms small? — **Owner:** language, VM, and library maintainers — **Decide by:** before slice mutation
 - Which reversible branch and loop witnesses should enter the first non-straight-line `rev` profile? — **Owner:** reversibility and proof maintainers — **Decide by:** after ordinary control flow executes
 

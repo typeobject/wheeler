@@ -6,6 +6,7 @@ import com.typeobject.wheeler.core.bytecode.FunctionBody;
 import com.typeobject.wheeler.core.bytecode.Global;
 import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Opcode;
+import com.typeobject.wheeler.core.bytecode.ValueType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,7 +23,7 @@ final class ClassicalLowerer {
       Map<String, Integer> globalIds,
       Map<String, Integer> functionIds) {}
 
-  private record LoweredBody(List<Instruction> instructions, int localCount) {}
+  private record LoweredBody(List<Instruction> instructions, List<ValueType> localTypes) {}
 
   private record FunctionSignature(int id, int parameterCount, boolean returnsValue) {}
 
@@ -50,15 +51,15 @@ final class ClassicalLowerer {
         entryId = id;
       }
       List<Instruction> forward;
-      int localCount;
+      List<ValueType> localTypes;
       if (sourceFunction.entry() && !classicalEntry) {
         forward = List.of(Instruction.of(Opcode.HALT));
-        localCount = 0;
+        localTypes = List.of();
       } else {
         LoweredBody lowered = lowerStatements(
             sourceFunction, globalIds, functionIds, reversibleFunctions, signatures);
         forward = lowered.instructions();
-        localCount = lowered.localCount();
+        localTypes = lowered.localTypes();
       }
       if (sourceFunction.entry()) {
         if (forward.stream().noneMatch(instruction -> instruction.opcode() == Opcode.HALT)) {
@@ -82,7 +83,7 @@ final class ClassicalLowerer {
           sourceFunction.name(),
           sourceFunction.coherent(),
           sourceFunction.parameters().size(),
-          localCount,
+          localTypes,
           sourceFunction.returnsValue(),
           forward,
           inverse));
@@ -211,6 +212,7 @@ final class ClassicalLowerer {
     private final Map<String, Boolean> reversibleFunctions;
     private final Map<String, FunctionSignature> signatures;
     private final Map<String, Integer> locals = new LinkedHashMap<>();
+    private final List<ValueType> localTypes = new ArrayList<>();
     private final Map<String, Integer> labels = new HashMap<>();
     private final List<Patch> patches = new ArrayList<>();
     private final List<Instruction> output = new ArrayList<>();
@@ -228,7 +230,7 @@ final class ClassicalLowerer {
       this.reversibleFunctions = reversibleFunctions;
       this.signatures = signatures;
       for (String parameter : owner.parameters()) {
-        declareUser(parameter, owner.line());
+        declareUser(parameter, owner.line(), ValueType.SIGNED);
       }
     }
 
@@ -250,7 +252,7 @@ final class ClassicalLowerer {
                 ? Instruction.of(Opcode.JUMP, target)
                 : Instruction.of(Opcode.JUMP_IF_ZERO, patch.conditionLocal(), target));
       }
-      return new LoweredBody(List.copyOf(output), locals.size());
+      return new LoweredBody(List.copyOf(output), List.copyOf(localTypes));
     }
 
     private void lower(Statement statement) {
@@ -260,24 +262,33 @@ final class ClassicalLowerer {
           requireArguments(statement, 2);
           output.add(Instruction.of(
               Opcode.LOCAL_CONST,
-              declareInternal(arguments.get(0), statement.line()),
+              declareInternal(arguments.get(0), statement.line(), ValueType.SIGNED),
+              SourceParser.parseInteger(arguments.get(1), statement.line())));
+        }
+        case "local_boolean" -> {
+          requireArguments(statement, 2);
+          output.add(Instruction.of(
+              Opcode.LOCAL_CONST,
+              declareInternal(arguments.get(0), statement.line(), ValueType.BOOLEAN),
               SourceParser.parseInteger(arguments.get(1), statement.line())));
         }
         case "local_read" -> lowerRead(statement);
         case "local_binary" -> lowerBinary(statement);
         case "local_bind" -> {
-          requireArguments(statement, 2);
-          int destination = declareUser(arguments.get(0), statement.line());
-          output.add(Instruction.of(
-              Opcode.LOCAL_MOVE, destination, requireLocal(arguments.get(1), statement.line())));
+          requireArguments(statement, 3);
+          int source = requireLocal(arguments.get(1), statement.line());
+          ValueType declaredType = sourceType(arguments.get(2), statement.line());
+          requireType(source, declaredType, statement.line());
+          int destination = declareUser(arguments.get(0), statement.line(), declaredType);
+          output.add(Instruction.of(Opcode.LOCAL_MOVE, destination, source));
         }
         case "assign" -> lowerAssignment(statement);
         case "call_value" -> lowerValueCall(statement);
         case "return_value" -> {
           requireArguments(statement, 1);
-          output.add(Instruction.of(
-              Opcode.RETURN_VALUE,
-              requireLocal(statement.arguments().getFirst(), statement.line())));
+          int result = requireLocal(statement.arguments().getFirst(), statement.line());
+          requireType(result, ValueType.SIGNED, statement.line());
+          output.add(Instruction.of(Opcode.RETURN_VALUE, result));
         }
         case "label" -> {
           requireArguments(statement, 1);
@@ -293,15 +304,17 @@ final class ClassicalLowerer {
         case "jump_zero" -> {
           requireArguments(statement, 2);
           int condition = requireLocal(arguments.get(0), statement.line());
+          requireType(condition, ValueType.BOOLEAN, statement.line());
           patches.add(new Patch(output.size(), arguments.get(1), condition, statement.line()));
           output.add(Instruction.of(Opcode.JUMP_IF_ZERO, condition, 0));
         }
         case "loop_check" -> {
           requireArguments(statement, 2);
-          output.add(Instruction.of(
-              Opcode.LOCAL_LOOP_CHECK,
-              requireLocal(arguments.get(0), statement.line()),
-              requireLocal(arguments.get(1), statement.line())));
+          int iterations = requireLocal(arguments.get(0), statement.line());
+          int limit = requireLocal(arguments.get(1), statement.line());
+          requireType(iterations, ValueType.SIGNED, statement.line());
+          requireType(limit, ValueType.SIGNED, statement.line());
+          output.add(Instruction.of(Opcode.LOCAL_LOOP_CHECK, iterations, limit));
         }
         default -> {
           if ((statement.operation().equals("invoke") || statement.operation().equals("reverse"))
@@ -319,10 +332,11 @@ final class ClassicalLowerer {
 
     private void lowerRead(Statement statement) {
       requireArguments(statement, 2);
-      int destination = declareInternal(statement.arguments().get(0), statement.line());
       String source = statement.arguments().get(1);
       Integer local = locals.get(source);
       if (local != null) {
+        int destination = declareInternal(
+            statement.arguments().get(0), statement.line(), localTypes.get(local));
         output.add(Instruction.of(Opcode.LOCAL_MOVE, destination, local));
         return;
       }
@@ -330,19 +344,38 @@ final class ClassicalLowerer {
       if (global == null) {
         throw new CompilerException(statement.line(), "unknown local or state: " + source);
       }
+      int destination = declareInternal(
+          statement.arguments().get(0), statement.line(), ValueType.SIGNED);
       output.add(Instruction.of(Opcode.LOCAL_LOAD_GLOBAL, destination, global));
     }
 
     private void lowerBinary(Statement statement) {
       requireArguments(statement, 4);
       List<String> arguments = statement.arguments();
-      int destination = declareInternal(arguments.get(0), statement.line());
-      Opcode opcode = binaryOpcode(arguments.get(1), statement.line());
+      int left = requireLocal(arguments.get(2), statement.line());
+      int right = requireLocal(arguments.get(3), statement.line());
+      String operator = arguments.get(1);
+      ValueType resultType;
+      switch (operator) {
+        case "add", "sub", "lt" -> {
+          requireType(left, ValueType.SIGNED, statement.line());
+          requireType(right, ValueType.SIGNED, statement.line());
+          resultType = operator.equals("lt") ? ValueType.BOOLEAN : ValueType.SIGNED;
+        }
+        case "xor" -> {
+          requireSameType(left, right, statement.line());
+          resultType = localTypes.get(left);
+        }
+        case "eq" -> {
+          requireSameType(left, right, statement.line());
+          resultType = ValueType.BOOLEAN;
+        }
+        default -> throw new CompilerException(
+            statement.line(), "unsupported local operator: " + operator);
+      }
+      int destination = declareInternal(arguments.get(0), statement.line(), resultType);
       output.add(Instruction.of(
-          opcode,
-          destination,
-          requireLocal(arguments.get(2), statement.line()),
-          requireLocal(arguments.get(3), statement.line())));
+          binaryOpcode(operator, statement.line()), destination, left, right));
     }
 
     private void lowerValueCall(Statement statement) {
@@ -362,15 +395,14 @@ final class ClassicalLowerer {
       if (argumentCount > 0) {
         argumentBase = locals.size();
         for (int index = 0; index < argumentCount; index++) {
+          int source = requireLocal(statement.arguments().get(index + 2), statement.line());
+          requireType(source, ValueType.SIGNED, statement.line());
           int window = declareInternal(
-              "$call" + assemblyTemporary++, statement.line());
-          output.add(Instruction.of(
-              Opcode.LOCAL_MOVE,
-              window,
-              requireLocal(statement.arguments().get(index + 2), statement.line())));
+              "$call" + assemblyTemporary++, statement.line(), ValueType.SIGNED);
+          output.add(Instruction.of(Opcode.LOCAL_MOVE, window, source));
         }
       }
-      int destination = declareInternal(destinationName, statement.line());
+      int destination = declareInternal(destinationName, statement.line(), ValueType.SIGNED);
       output.add(Instruction.of(
           Opcode.CALL_VALUE,
           signature.id(),
@@ -386,9 +418,13 @@ final class ClassicalLowerer {
       int value = requireLocal(statement.arguments().get(2), statement.line());
       Integer local = locals.get(target);
       if (local != null) {
+        requireSameType(local, value, statement.line());
         if (operator.equals("ASSIGN")) {
           output.add(Instruction.of(Opcode.LOCAL_MOVE, local, value));
         } else {
+          if (!operator.equals("XOR_ASSIGN")) {
+            requireType(local, ValueType.SIGNED, statement.line());
+          }
           output.add(Instruction.of(
               assignmentOpcode(operator, statement.line()), local, local, value));
         }
@@ -398,15 +434,25 @@ final class ClassicalLowerer {
       if (global == null) {
         throw new CompilerException(statement.line(), "unknown assignment target: " + target);
       }
+      requireType(value, ValueType.SIGNED, statement.line());
       if (operator.equals("ASSIGN")) {
         output.add(Instruction.of(Opcode.LOCAL_STORE_GLOBAL, global, value));
         return;
       }
-      int temporary = declareInternal("$a" + assemblyTemporary++, statement.line());
+      int temporary = declareInternal(
+          "$a" + assemblyTemporary++, statement.line(), ValueType.SIGNED);
       output.add(Instruction.of(Opcode.LOCAL_LOAD_GLOBAL, temporary, global));
       output.add(Instruction.of(
           assignmentOpcode(operator, statement.line()), temporary, temporary, value));
       output.add(Instruction.of(Opcode.LOCAL_STORE_GLOBAL, global, temporary));
+    }
+
+    private static ValueType sourceType(String type, int line) {
+      return switch (type) {
+        case "long" -> ValueType.SIGNED;
+        case "boolean" -> ValueType.BOOLEAN;
+        default -> throw new CompilerException(line, "unsupported local type: " + type);
+      };
     }
 
     private static Opcode binaryOpcode(String operator, int line) {
@@ -429,26 +475,27 @@ final class ClassicalLowerer {
       };
     }
 
-    private int declareInternal(String name, int line) {
+    private int declareInternal(String name, int line, ValueType type) {
       if (!name.startsWith("$")) {
         throw new CompilerException(line, "invalid compiler temporary");
       }
-      return declare(name, line);
+      return declare(name, line, type);
     }
 
-    private int declareUser(String name, int line) {
+    private int declareUser(String name, int line, ValueType type) {
       if (globals.containsKey(name) || functions.containsKey(name)) {
         throw new CompilerException(line, "local shadows class member: " + name);
       }
-      return declare(name, line);
+      return declare(name, line, type);
     }
 
-    private int declare(String name, int line) {
+    private int declare(String name, int line, ValueType type) {
       if (locals.containsKey(name)) {
         throw new CompilerException(line, "duplicate local: " + name);
       }
       int index = locals.size();
       locals.put(name, index);
+      localTypes.add(type);
       return index;
     }
 
@@ -458,6 +505,19 @@ final class ClassicalLowerer {
         throw new CompilerException(line, "unknown local: " + name);
       }
       return index;
+    }
+
+    private void requireType(int local, ValueType type, int line) {
+      if (localTypes.get(local) != type) {
+        throw new CompilerException(
+            line, "expected " + type.name().toLowerCase(java.util.Locale.ROOT) + " expression");
+      }
+    }
+
+    private void requireSameType(int left, int right, int line) {
+      if (localTypes.get(left) != localTypes.get(right)) {
+        throw new CompilerException(line, "expression type mismatch");
+      }
     }
 
     private record Patch(

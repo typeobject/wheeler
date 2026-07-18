@@ -23,7 +23,7 @@ class BytecodeVerifierTest {
         "main",
         false,
         0,
-        1,
+        List.of(ValueType.SIGNED),
         false,
         List.of(
             Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
@@ -34,13 +34,38 @@ class BytecodeVerifierTest {
         "main",
         false,
         0,
-        0,
+        List.of(),
         false,
         List.of(Instruction.of(Opcode.JUMP, 7), Instruction.of(Opcode.HALT)),
         List.of());
 
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(uninitialized)));
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(badJump)));
+  }
+
+  @Test
+  void rejectsRegisterTypeMismatchesAndInvalidBooleanConstants() {
+    FunctionBody signedCondition = typedMain(
+        List.of(ValueType.SIGNED),
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 1),
+            Instruction.of(Opcode.JUMP_IF_ZERO, 0, 2),
+            Instruction.of(Opcode.HALT)));
+    FunctionBody booleanStore = typedMain(
+        List.of(ValueType.BOOLEAN),
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 1),
+            Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
+            Instruction.of(Opcode.HALT)));
+    FunctionBody invalidBoolean = typedMain(
+        List.of(ValueType.BOOLEAN),
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 2),
+            Instruction.of(Opcode.HALT)));
+
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(signedCondition)));
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(booleanStore)));
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(invalidBoolean)));
   }
 
   @Test
@@ -52,13 +77,18 @@ class BytecodeVerifierTest {
     }
   }
 
+  private static FunctionBody typedMain(
+      List<ValueType> types, List<Instruction> instructions) {
+    return new FunctionBody(0, "main", false, 0, types, false, instructions, List.of());
+  }
+
   private static Program programWith(Instruction instruction) {
     return programWith(new FunctionBody(
         0,
         "main",
         false,
         0,
-        0,
+        List.of(),
         false,
         List.of(instruction, Instruction.of(Opcode.HALT)),
         List.of()));

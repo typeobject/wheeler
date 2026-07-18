@@ -2,10 +2,10 @@ package com.typeobject.wheeler.core.bytecode;
 
 import java.nio.charset.StandardCharsets;
 
-/** Constants for the Wheeler Bytecode Container version 1. */
+/** Constants for the Wheeler Bytecode Container major version 2. */
 public final class BytecodeFormat {
   public static final byte[] MAGIC = "WHEELBC\0".getBytes(StandardCharsets.US_ASCII);
-  public static final int MAJOR_VERSION = 1;
+  public static final int MAJOR_VERSION = 2;
   public static final int MINOR_VERSION = 0;
   public static final int HEADER_SIZE = 40;
   public static final int DIRECTORY_ENTRY_SIZE = 32;

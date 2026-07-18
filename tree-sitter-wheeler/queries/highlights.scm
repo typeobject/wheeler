@@ -2,6 +2,7 @@
 (block_comment) @comment
 
 ["classical" "quantum" "hybrid" "class" "state" "qreg" "new" "void"] @keyword
+["long" "boolean"] @type.builtin
 ["entry" "rev" "coherent" "unitary" "reverse" "assert"] @keyword.control
 (visibility_modifier) @keyword.modifier
 (method_modifier) @keyword.modifier
@@ -15,5 +16,6 @@
 (qreg_declaration name: (identifier) @variable.member)
 (qubit_reference register: (identifier) @variable)
 
+(boolean_literal) @constant.builtin.boolean
 (integer_literal) @number
 (number_literal) @number

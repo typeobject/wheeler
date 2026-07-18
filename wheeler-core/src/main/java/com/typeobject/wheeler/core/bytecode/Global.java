@@ -2,7 +2,7 @@ package com.typeobject.wheeler.core.bytecode;
 
 import java.util.Objects;
 
-/** A version-1 signed 64-bit global location. */
+/** A version-2 signed 64-bit global location. */
 public record Global(String name, long initialValue) {
   public Global {
     Objects.requireNonNull(name, "name");

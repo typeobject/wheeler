@@ -13,6 +13,7 @@ import com.typeobject.wheeler.core.bytecode.Global;
 import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.bytecode.ValueType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -85,7 +86,7 @@ class VirtualMachineTest {
         "main",
         false,
         0,
-        0,
+        List.of(),
         false,
         List.of(
             Instruction.of(Opcode.ADD_CONST, 0, 1),
@@ -119,7 +120,7 @@ class VirtualMachineTest {
             "main",
             false,
             0,
-            0,
+            List.of(),
             false,
             List.of(Instruction.of(Opcode.ADD_CONST, 0, 1), Instruction.of(Opcode.HALT)),
             List.of())));
@@ -137,7 +138,12 @@ class VirtualMachineTest {
         "main",
         false,
         0,
-        5,
+        List.of(
+            ValueType.SIGNED,
+            ValueType.SIGNED,
+            ValueType.SIGNED,
+            ValueType.BOOLEAN,
+            ValueType.SIGNED),
         false,
         List.of(
             Instruction.of(Opcode.LOCAL_CONST, 0, 0),
@@ -162,7 +168,8 @@ class VirtualMachineTest {
     byte[] artifact = new BytecodeWriter().write(source);
     Program decoded = new BytecodeReader().read(artifact);
     assertEquals(5, decoded.function(0).localCount());
-    assertTrue(new Disassembler().disassemble(decoded).contains("locals=5"));
+    assertTrue(new Disassembler().disassemble(decoded).contains(
+        "locals=[signed, signed, signed, boolean, signed]"));
     VirtualMachine machine = new VirtualMachine(decoded);
     MachineSnapshot initial = machine.snapshot();
 
@@ -182,7 +189,7 @@ class VirtualMachineTest {
         "main",
         false,
         0,
-        3,
+        List.of(ValueType.SIGNED, ValueType.SIGNED, ValueType.SIGNED),
         false,
         List.of(
             Instruction.of(Opcode.LOCAL_CONST, 0, 4),
@@ -196,7 +203,7 @@ class VirtualMachineTest {
         "add",
         false,
         2,
-        3,
+        List.of(ValueType.SIGNED, ValueType.SIGNED, ValueType.SIGNED),
         true,
         List.of(
             Instruction.of(Opcode.LOCAL_ADD, 2, 0, 1),
@@ -248,6 +255,6 @@ class VirtualMachineTest {
         0,
         List.of(new Global("value", 7)),
         List.of(new FunctionBody(
-            0, "main", false, 0, 0, false, instructions, List.of())));
+            0, "main", false, 0, List.of(), false, instructions, List.of())));
   }
 }

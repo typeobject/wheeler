@@ -1,4 +1,4 @@
-# Wheeler bytecode version 1
+# Wheeler bytecode version 2
 
 Wheeler executables use the `.wbc` Wheeler Bytecode Container. They are not JVM `.class` files.
 
@@ -8,7 +8,7 @@ Every artifact starts with this 40-byte little-endian header:
 
 ```text
 byte[8] magic                 "WHEELBC\0"
-u16     major_version         1
+u16     major_version         2
 u16     minor_version         0
 u32     flags                 0
 u64     file_length
@@ -17,7 +17,7 @@ u32     directory_entry_size  32
 u64     directory_offset
 ```
 
-Directory entries contain section type, flags, offset, length, alignment, and a zero reserved field. Version 1 requires eight-byte alignment, canonical type order, no overlaps, and zero-filled padding.
+Directory entries contain section type, flags, offset, length, alignment, and a zero reserved field. Version 2 requires eight-byte alignment, canonical type order, no overlaps, and zero-filled padding.
 
 ## Implemented sections
 
@@ -26,7 +26,7 @@ Directory entries contain section type, flags, offset, length, alignment, and a 
 | 1 | Manifest: program name, entry function, and limits. |
 | 2 | Strict UTF-8 string table. |
 | 3 | Signed 64-bit global descriptors. |
-| 5 | Function and inverse-body descriptors. |
+| 5 | Function, inverse-body, signature, and local-register type descriptors. |
 | 6 | Classical code records. |
 | 7 | Ordered classical/quantum workflow records. |
 | 8 | Quantum-register, circuit, literal or symbolic gate, and coherently lifted call records. |
@@ -46,7 +46,9 @@ u32 byte_length
 u64 operands[operand_count]
 ```
 
-The opcode fixes the canonical operand count and semantic rule. Function descriptors declare signed 64-bit parameter and frame-local register counts plus whether the function returns a value. Parameter registers occupy the first frame slots. Local instructions cover constants, state load/store, move, checked add/subtract, XOR, equality, less-than, conditional/unconditional branch, loop-limit check, static value call, and value return. A call identifies a contiguous initialized argument window, exact argument count, and caller result register. Dynamic undo data never appears in an instruction; it belongs to runtime step records.
+The opcode fixes the canonical operand count and semantic rule. Each 40-byte function descriptor declares parameter and local counts, result presence, code ranges, and a canonical offset into the trailing local-type table. Type offsets are contiguous in function order. One byte per register currently denotes signed 64-bit (`1`) or Boolean (`2`); unknown codes and noncanonical table lengths fail before verification. Parameter registers occupy the first frame slots and are signed in this bootstrap profile.
+
+Local instructions cover constants, state load/store, move, checked add/subtract, typed XOR, equality, less-than, conditional/unconditional branch, loop-limit check, static value call, and value return. Boolean registers contain only `0` or `1`. Equality and ordering produce Boolean values, and branch conditions consume them. A call identifies a contiguous initialized argument window, exact argument count, and caller result register. Dynamic undo data never appears in an instruction; it belongs to runtime step records.
 
 ## Quantum and workflow records
 
@@ -56,7 +58,7 @@ Quantum operations do not masquerade as mutable classical addresses. The decoder
 
 ## Verification
 
-Loading checks artifact size, magic, version, file length, directory arithmetic, canonical ordering, overlap, alignment, required sections, UTF-8, table IDs, body ranges, instruction lengths, operand counts, global and local references, control-flow targets, definite local assignment, fallthrough, function signatures and references, argument initialization, return completeness, inverse availability, and entry halting.
+Loading checks artifact size, magic, version, file length, directory arithmetic, canonical ordering, overlap, alignment, required sections, UTF-8, table IDs, body ranges, instruction lengths, operand counts, global and local references, local type codes and operand compatibility, Boolean normalization, control-flow targets, definite local assignment, fallthrough, function signatures and references, argument initialization, return completeness, inverse availability, and entry halting.
 
 An instruction either completes and adds one rewind record or traps before data mutation. Arithmetic is checked. Limits in an artifact may reduce runtime budgets but cannot evade host ceilings.
 

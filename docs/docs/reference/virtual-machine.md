@@ -1,6 +1,6 @@
 # Reversible virtual machine
 
-The implemented VM is a deterministic, single-threaded version-1 transition kernel.
+The implemented VM is a deterministic, single-threaded version-2 transition kernel.
 
 ## State
 
@@ -8,7 +8,7 @@ The machine owns:
 
 - one verified immutable program;
 - a status (`ready`, `running`, `halted`, or `trapped`);
-- a bounded stack of immutable control frames with signed 64-bit local registers;
+- a bounded stack of immutable control frames with descriptor-typed signed and Boolean local registers;
 - typed signed 64-bit global locations;
 - an ordered bounded stack of step records;
 - a monotonic transition sequence within the current run.
@@ -38,4 +38,4 @@ Intrinsic operations recover data from their inverse operation. Logged operation
 
 ## Traps and limits
 
-Invalid expectations, overflow, missing inverses, invalid local or branch access, exceeded source loop limits, call depth above 1,024 frames, escaped instruction pointers, exhausted history, and exceeded step limits trap deterministically. A failing instruction does not partially mutate globals or frames.
+Invalid expectations, overflow, missing inverses, invalid local or branch access, register type mismatches, non-Boolean conditions, exceeded source loop limits, call depth above 1,024 frames, escaped instruction pointers, exhausted history, and exceeded step limits trap deterministically. A failing instruction does not partially mutate globals or frames.

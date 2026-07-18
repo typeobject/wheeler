@@ -99,6 +99,23 @@ class SourceProfileNegativeTest {
   }
 
   @Test
+  void rejectsBooleanAndSignedTypeMismatches() {
+    CompilerException booleanBinding = assertThrows(
+        CompilerException.class,
+        () -> compile("state long value = 0;", "boolean flag = 1; if (flag) { value = 1; }"));
+    CompilerException signedBinding = assertThrows(
+        CompilerException.class,
+        () -> compile("state long value = 0;", "long number = true; value = number;"));
+    CompilerException condition = assertThrows(
+        CompilerException.class,
+        () -> compile("state long value = 0;", "if (1) { value = 1; }"));
+
+    assertTrue(booleanBinding.getMessage().contains("expected boolean expression"));
+    assertTrue(signedBinding.getMessage().contains("expected signed expression"));
+    assertTrue(condition.getMessage().contains("expected boolean expression"));
+  }
+
+  @Test
   void rejectsOutOfRangeQuantumReference() {
     String source = """
         quantum class BrokenQubit {

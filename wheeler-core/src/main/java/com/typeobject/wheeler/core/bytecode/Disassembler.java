@@ -27,7 +27,11 @@ public final class Disassembler {
         output.append(" reversible");
       }
       if (function.localCount() > 0) {
-        output.append(" locals=").append(function.localCount());
+        output.append(" parameters=").append(function.parameterCount())
+            .append(" locals=")
+            .append(function.localTypes().stream()
+                .map(type -> type.name().toLowerCase(java.util.Locale.ROOT))
+                .toList());
       }
       output.append('\n');
       appendBody(output, "forward", function.forward());

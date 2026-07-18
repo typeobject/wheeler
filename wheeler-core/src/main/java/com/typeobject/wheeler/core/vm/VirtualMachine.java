@@ -12,7 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Deterministic single-threaded Wheeler version-1 transition kernel. */
+/** Deterministic single-threaded Wheeler version-2 transition kernel. */
 public final class VirtualMachine {
   public static final int MAX_CALL_DEPTH = 1024;
 
