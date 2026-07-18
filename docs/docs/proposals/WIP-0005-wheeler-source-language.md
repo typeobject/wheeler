@@ -179,7 +179,7 @@ The parser bounds source bytes, lines, declarations, methods, statements, regist
 - [x] Coherent method references execute on classical and simulated quantum data.
 - [x] Counter, QFT, and coherent-oracle examples use only the Wheeler source profile.
 - [x] Temporary source syntax and documentation are deleted.
-- [ ] Deterministic classical function modules now enforce exact declarations, sorted direct imports, public visibility, dependency-first linking, and closed DAG inputs; manifest-bound source sets now build locally and from locked archives; direct public immutable-record APIs now link; exported variants/arrays/slices/state/proofs/circuits, cross-package linking, qualification, and re-export remain.
+- [ ] Deterministic classical function modules now enforce exact declarations, sorted direct imports, public visibility, dependency-first linking, and closed DAG inputs; manifest-bound source sets now build locally and from locked archives; direct public immutable-record and closed-variant APIs now link, and importers exhaustively match exported variants; exported arrays/slices/state/proofs/circuits, cross-package linking, qualification, and re-export remain.
 
 ## Testing and acceptance
 
