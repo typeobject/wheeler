@@ -68,7 +68,7 @@ classical class NativeManifest {
         assert profileLength == 11;
         assert targetCount == 1;
         assert targetNameLength == 3;
-        assert targetRootLength == 9;
+        assert targetRootLength == 11;
         assert dependencyCount == 1;
         assert dependencyNameLength == 9;
         assert dependencyVersionLength == 6;

@@ -27,6 +27,10 @@ classical class Paths {
         long dotCount = 0;
         while (cursor < end) limit 256 {
             long scalar = utf8Scalar(source, cursor);
+            if (scalar == 92) {
+                cursor += utf8Width(source, cursor);
+                scalar = utf8Scalar(source, cursor);
+            }
             if (scalar == 47) {
                 if (componentLength == 0) {
                     return false;
