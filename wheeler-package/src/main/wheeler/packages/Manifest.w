@@ -23,8 +23,10 @@ classical class Manifest {
         QuotedRange targetThirdSource,
         QuotedRange targetFourthSource,
         long targetSourceCount,
+        long targetTest,
         QuotedRange secondTargetName,
         QuotedRange secondTargetRoot,
+        long secondTargetTest,
         long targetCount,
         QuotedRange dependencyName,
         QuotedRange dependencyVersion,
@@ -37,6 +39,9 @@ classical class Manifest {
         QuotedRange secondCapabilityPath,
         long capabilityCount
     ) {}
+
+    /// Describes one bounded target record after its optional test selector is classified.
+    public record TargetShape(long sourceCount, long tokenCount, boolean test) {}
 
     /// Defines the closed `ManifestResult` cases exported by this module.
     public variant ManifestResult {
@@ -98,26 +103,61 @@ classical class Manifest {
         return hash == 94094958;
     }
 
-    private long moduleSourceCount(
+    private boolean targetKindTestable(
         utf8 source,
-        words kinds,
         words starts,
         words lengths,
         long recordStart
     ) {
+        long hash = tokenHash(source, starts, lengths, recordStart + 1);
+        if (hash == 2733284766595777) {
+            return true;
+        }
+        return hash == 3565976;
+    }
+
+    private TargetShape targetShape(
+        utf8 source,
+        words kinds,
+        words starts,
+        words lengths,
+        long count,
+        long recordStart
+    ) {
+        TargetShape invalid = new TargetShape(-1, 0, false);
+        if (count < recordStart + 5) {
+            return invalid;
+        }
+        if (count == recordStart + 5) {
+            return invalid;
+        }
         if (semicolonAt(source, kinds, starts, recordStart + 5)) {
-            return 0;
+            return new TargetShape(0, 6, false);
+        }
+        if (keywordAt(source, starts, lengths, recordStart + 5, 3556498)) {
+            if (targetKindTestable(source, starts, lengths, recordStart)) {
+                if (recordStart + 6 < count) {
+                    if (semicolonAt(source, kinds, starts, recordStart + 6)) {
+                        return new TargetShape(0, 7, true);
+                    }
+                }
+            }
+            return invalid;
         }
         if (keywordAt(source, starts, lengths, recordStart + 5, 3226183276)) {
             if (quoted(kinds, lengths, recordStart + 6)) {
-                long count = 0;
+                long sourceCount = 0;
                 long cursor = recordStart + 7;
                 boolean scanning = true;
                 while (scanning) limit 5 {
-                    if (keywordAt(source, starts, lengths, cursor, 3398461467)) {
-                        if (quoted(kinds, lengths, cursor + 1)) {
-                            count += 1;
-                            cursor += 2;
+                    if (cursor + 1 < count) {
+                        if (keywordAt(source, starts, lengths, cursor, 3398461467)) {
+                            if (quoted(kinds, lengths, cursor + 1)) {
+                                sourceCount += 1;
+                                cursor += 2;
+                            } else {
+                                scanning = false;
+                            }
                         } else {
                             scanning = false;
                         }
@@ -125,14 +165,29 @@ classical class Manifest {
                         scanning = false;
                     }
                 }
-                if (0 < count) {
-                    if (semicolonAt(source, kinds, starts, cursor)) {
-                        return count;
+                if (0 < sourceCount) {
+                    if (cursor < count) {
+                        if (semicolonAt(source, kinds, starts, cursor)) {
+                            return new TargetShape(sourceCount, cursor - recordStart + 1, false);
+                        }
+                        if (keywordAt(source, starts, lengths, cursor, 3556498)) {
+                            if (targetKindTestable(source, starts, lengths, recordStart)) {
+                                if (cursor + 1 < count) {
+                                    if (semicolonAt(source, kinds, starts, cursor + 1)) {
+                                        return new TargetShape(
+                                            sourceCount,
+                                            cursor - recordStart + 2,
+                                            true
+                                        );
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
-        return -1;
+        return invalid;
     }
 
     private boolean targetValid(
@@ -140,7 +195,7 @@ classical class Manifest {
         words kinds,
         words starts,
         words lengths,
-        long sourceCount,
+        TargetShape shape,
         long recordStart
     ) {
         boolean validRoot = validLogicalPath(
@@ -161,8 +216,8 @@ classical class Manifest {
             }
         }
         if (baseValid) {
-            if (sourceCount == 0) {
-                return semicolonAt(source, kinds, starts, recordStart + 5);
+            if (shape.sourceCount == 0) {
+                return true;
             }
             boolean validModule = validModuleName(
                 source,
@@ -177,7 +232,7 @@ classical class Manifest {
                         long previousToken = -1;
                         boolean sourcesValid = true;
                         boolean sourceIncludesRoot = false;
-                        while (sourceNumber < sourceCount) limit 4 {
+                        while (sourceNumber < shape.sourceCount) limit 4 {
                             boolean validSource = validLogicalPath(
                                 source,
                                 starts[sourceToken] + 1,
@@ -219,12 +274,7 @@ classical class Manifest {
                         }
                         if (sourcesValid) {
                             if (sourceIncludesRoot) {
-                                return semicolonAt(
-                                    source,
-                                    kinds,
-                                    starts,
-                                    recordStart + 7 + sourceCount * 2
-                                );
+                                return true;
                             }
                         }
                     }
@@ -301,8 +351,8 @@ classical class Manifest {
         long targetCount,
         long dependencyCount,
         long capabilityCount,
-        long recordShift,
-        long sourceCount
+        TargetShape firstShape,
+        TargetShape secondShape
     ) {
         QuotedRange empty = new QuotedRange(0, 0);
         QuotedRange targetName = empty;
@@ -327,30 +377,29 @@ classical class Manifest {
             targetName = quotedRange(starts, lengths, 9);
             targetRoot = quotedRange(starts, lengths, 11);
         }
-        if (0 < sourceCount) {
+        if (0 < firstShape.sourceCount) {
             targetModule = quotedRange(starts, lengths, 13);
             targetSource = quotedRange(starts, lengths, 15);
-            targetSourceCount = sourceCount;
+            targetSourceCount = firstShape.sourceCount;
         }
-        if (1 < sourceCount) {
+        if (1 < firstShape.sourceCount) {
             targetSecondSource = quotedRange(starts, lengths, 17);
         }
-        if (2 < sourceCount) {
+        if (2 < firstShape.sourceCount) {
             targetThirdSource = quotedRange(starts, lengths, 19);
         }
-        if (3 < sourceCount) {
+        if (3 < firstShape.sourceCount) {
             targetFourthSource = quotedRange(starts, lengths, 21);
         }
+        long secondTargetStart = 7 + firstShape.tokenCount;
         if (1 < targetCount) {
-            long secondTargetStart = 13 + recordShift;
             secondTargetName = quotedRange(starts, lengths, secondTargetStart + 2);
             secondTargetRoot = quotedRange(starts, lengths, secondTargetStart + 4);
         }
-        long extraTargets = 0;
+        long dependencyStart = secondTargetStart;
         if (1 < targetCount) {
-            extraTargets = 1;
+            dependencyStart += secondShape.tokenCount;
         }
-        long dependencyStart = 13 + recordShift + extraTargets * 6;
         if (0 < dependencyCount) {
             dependencyName = quotedRange(starts, lengths, dependencyStart + 2);
             dependencyVersion = quotedRange(starts, lengths, dependencyStart + 4);
@@ -368,6 +417,14 @@ classical class Manifest {
             secondCapabilityName = quotedRange(starts, lengths, capabilityStart + 6);
             secondCapabilityPath = quotedRange(starts, lengths, capabilityStart + 8);
         }
+        long targetTest = 0;
+        if (firstShape.test) {
+            targetTest = 1;
+        }
+        long secondTargetTest = 0;
+        if (secondShape.test) {
+            secondTargetTest = 1;
+        }
         return new ManifestHeader(
             quotedRange(starts, lengths, 1),
             quotedRange(starts, lengths, 3),
@@ -380,8 +437,10 @@ classical class Manifest {
             targetThirdSource,
             targetFourthSource,
             targetSourceCount,
+            targetTest,
             secondTargetName,
             secondTargetRoot,
+            secondTargetTest,
             targetCount,
             dependencyName,
             dependencyVersion,
@@ -402,20 +461,26 @@ classical class Manifest {
         words starts,
         words lengths,
         long count,
-        long sourceCount,
-        long recordShift
+        TargetShape firstShape
     ) {
-        if (targetValid(source, kinds, starts, lengths, sourceCount, 7)) {
-            long cursor = 13 + recordShift;
+        if (targetValid(source, kinds, starts, lengths, firstShape, 7)) {
+            long cursor = 7 + firstShape.tokenCount;
             long targetCount = 1;
             boolean targetsSorted = true;
-            long secondSourceCount = moduleSourceCount(source, kinds, starts, lengths, cursor);
-            if (secondSourceCount == 0) {
-                if (targetValid(source, kinds, starts, lengths, secondSourceCount, cursor)) {
+            TargetShape secondShape = targetShape(
+                source,
+                kinds,
+                starts,
+                lengths,
+                count,
+                cursor
+            );
+            if (secondShape.sourceCount == 0) {
+                if (targetValid(source, kinds, starts, lengths, secondShape, cursor)) {
                     long targetOrder = compareTokenText(source, starts, lengths, 9, cursor + 2);
                     if (targetOrder < 0) {
                         targetCount = 2;
-                        cursor += 6;
+                        cursor += secondShape.tokenCount;
                     } else {
                         targetsSorted = false;
                     }
@@ -489,8 +554,8 @@ classical class Manifest {
                                 targetCount,
                                 dependencyCount,
                                 capabilityCount,
-                                recordShift,
-                                sourceCount
+                                firstShape,
+                                secondShape
                             )
                         );
                     }
@@ -509,24 +574,15 @@ classical class Manifest {
         long count
     ) {
         if (baseHeaderValid(source, kinds, starts, lengths)) {
+            TargetShape empty = new TargetShape(0, 0, false);
             if (count == 7) {
-                return new ManifestResult.Value(header(starts, lengths, 0, 0, 0, 0, 0));
-            }
-            long sourceCount = moduleSourceCount(source, kinds, starts, lengths, 7);
-            if (-1 < sourceCount) {
-                long recordShift = 0;
-                if (0 < sourceCount) {
-                    recordShift = 2 + sourceCount * 2;
-                }
-                return parseRecords(
-                    source,
-                    kinds,
-                    starts,
-                    lengths,
-                    count,
-                    sourceCount,
-                    recordShift
+                return new ManifestResult.Value(
+                    header(starts, lengths, 0, 0, 0, empty, empty)
                 );
+            }
+            TargetShape firstShape = targetShape(source, kinds, starts, lengths, count, 7);
+            if (-1 < firstShape.sourceCount) {
+                return parseRecords(source, kinds, starts, lengths, count, firstShape);
             }
         }
         return new ManifestResult.Error(0);

@@ -33,8 +33,8 @@ class NativeManifestExampleTest {
         "package \"demo.native\" version \"1.2.3-rc.1\" profile \"boot\\\"strap\"; "
             + "target deployable \"app\" root \"src/A\\\"pp.w\" "
             + "module \"demo.app\" source \"src/A\\\"pp.w\" "
-            + "source \"src/Helper.w\"; "
-            + "target tool \"tool\" root \"src/Tool.w\"; "
+            + "source \"src/Helper.w\" test; "
+            + "target tool \"tool\" root \"src/Tool.w\" test; "
             + "dependency normal \"demo.base\" version \"^1.0.0\"; "
             + "dependency development \"demo.extra\" version \"~2.1.0\"; "
             + "capability \"fixture\" path \"test-data\"; "
@@ -57,9 +57,11 @@ class NativeManifestExampleTest {
     assertEquals(12, machine.global("targetSecondSourceLength"));
     assertEquals(0, machine.global("targetThirdSourceLength"));
     assertEquals(0, machine.global("targetFourthSourceLength"));
+    assertEquals(1, machine.global("targetTest"));
     assertEquals(2, machine.global("targetCount"));
     assertEquals(4, machine.global("secondTargetNameLength"));
     assertEquals(10, machine.global("secondTargetRootLength"));
+    assertEquals(1, machine.global("secondTargetTest"));
     assertEquals(2, machine.global("dependencyCount"));
     assertEquals(9, machine.global("dependencyNameLength"));
     assertEquals(6, machine.global("dependencyVersionLength"));
@@ -78,11 +80,10 @@ class NativeManifestExampleTest {
     }
     assertEquals(initial, machine.snapshot());
 
-    for (String kind : new String[] {"deployable", "library", "tool"}) {
-      assertRunsCanonical(
-          program,
-          source.replace("target deployable", "target " + kind));
-    }
+    assertRunsCanonical(program, source.replace("target deployable", "target tool"));
+    assertRunsCanonical(
+        program,
+        source.replace(" test", "").replace("target deployable", "target library"));
     for (String kind : new String[] {"development", "build"}) {
       assertRunsCanonical(
           program,
@@ -123,6 +124,7 @@ class NativeManifestExampleTest {
             "dependency development \"demo.extra\" version \"~2.1.0\"; "
                 + "dependency normal \"demo.base\" version \"^1.0.0\";"));
     assertTraps(program, source.replace("target deployable", "target app"));
+    assertTraps(program, source.replace("target deployable", "target library"));
     assertTraps(program, source.replace("\"tool\" root", "\"app\" root"));
     assertTraps(
         program,
