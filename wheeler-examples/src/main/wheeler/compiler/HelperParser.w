@@ -4,6 +4,72 @@ import examples.compiler.statements;
 import examples.compiler.structure;
 import examples.compiler.tokens;
 classical class HelperParser {
+    private boolean callValid(
+        utf8 source,
+        words tokenKinds,
+        words tokenStarts,
+        words tokenLengths,
+        long nameToken,
+        long callStart
+    ) {
+        if (sameTokenText(
+                source,
+                tokenStarts,
+                tokenLengths,
+                nameToken,
+                callStart)) {
+            if (punctuationAt(
+                    source, tokenKinds, tokenStarts, callStart + 1, 40)) {
+                if (punctuationAt(
+                        source, tokenKinds, tokenStarts, callStart + 2, 41)) {
+                    return punctuationAt(
+                        source, tokenKinds, tokenStarts, callStart + 3, 59);
+                }
+            }
+        }
+        return false;
+    }
+
+    private MinimalProgramResult helperProgram(
+        utf8 source,
+        words tokenStarts,
+        words tokenLengths,
+        long nameToken,
+        long helperBody,
+        long reversible
+    ) {
+        long operandToken = statementOperandToken(
+            source, tokenStarts, tokenLengths, helperBody);
+        SourceRange name = new SourceRange(
+            tokenStarts[2], tokenLengths[2]);
+        SourceRange global = new SourceRange(
+            tokenStarts[6], tokenLengths[6]);
+        SourceRange helper = new SourceRange(
+            tokenStarts[nameToken], tokenLengths[nameToken]);
+        MinimalProgram program = new MinimalProgram(
+            name,
+            global,
+            1,
+            parsedSignedNumber(source, tokenStarts, tokenLengths, 8),
+            0,
+            -1,
+            0,
+            -1,
+            0,
+            -1,
+            0,
+            -1,
+            0,
+            helper,
+            1,
+            statementOpcode(
+                source, tokenStarts, tokenLengths, helperBody),
+            parsedSignedNumber(
+                source, tokenStarts, tokenLengths, operandToken),
+            reversible);
+        return new MinimalProgramResult.Value(program);
+    }
+
     public MinimalProgramResult parseHelperProgram(
         utf8 source,
         words tokenKinds,
@@ -11,33 +77,41 @@ classical class HelperParser {
         words tokenLengths,
         long count
     ) {
-        long helperStart = minimalEntryStart(
+        long memberStart = minimalEntryStart(
             source, tokenKinds, tokenStarts, tokenLengths);
-        if (0 < helperStart) {
+        if (0 < memberStart) {
+            long reversible = 0;
+            long voidToken = memberStart;
             if (tokenHash(
-                    source, tokenStarts, tokenLengths, helperStart)
+                    source, tokenStarts, tokenLengths, memberStart)
+                    == 112803) {
+                reversible = 1;
+                voidToken += 1;
+            }
+            if (tokenHash(source, tokenStarts, tokenLengths, voidToken)
                     == 3625364) {
-                if (tokenKinds[helperStart + 1] == 1) {
-                    if (tokenLengths[helperStart + 1] < 257) {
+                long nameToken = voidToken + 1;
+                if (tokenKinds[nameToken] == 1) {
+                    if (tokenLengths[nameToken] < 257) {
                         if (punctuationAt(
                                 source,
                                 tokenKinds,
                                 tokenStarts,
-                                helperStart + 2,
+                                nameToken + 1,
                                 40)) {
                             if (punctuationAt(
                                     source,
                                     tokenKinds,
                                     tokenStarts,
-                                    helperStart + 3,
+                                    nameToken + 2,
                                     41)) {
                                 if (punctuationAt(
                                         source,
                                         tokenKinds,
                                         tokenStarts,
-                                        helperStart + 4,
+                                        nameToken + 3,
                                         123)) {
-                                    long helperBody = helperStart + 5;
+                                    long helperBody = nameToken + 4;
                                     long helperWidth = statementWidth(
                                         source,
                                         tokenKinds,
@@ -60,96 +134,86 @@ classical class HelperParser {
                                                 tokenLengths,
                                                 entryStart);
                                             if (0 < entryBody) {
-                                                if (sameTokenText(
+                                                if (callValid(
                                                         source,
+                                                        tokenKinds,
                                                         tokenStarts,
                                                         tokenLengths,
-                                                        helperStart + 1,
+                                                        nameToken,
                                                         entryBody)) {
-                                                    if (punctuationAt(
-                                                            source,
-                                                            tokenKinds,
-                                                            tokenStarts,
-                                                            entryBody + 1,
-                                                            40)) {
+                                                    if (reversible == 0) {
                                                         if (punctuationAt(
                                                                 source,
                                                                 tokenKinds,
                                                                 tokenStarts,
-                                                                entryBody + 2,
-                                                                41)) {
+                                                                entryBody + 4,
+                                                                125)) {
                                                             if (punctuationAt(
                                                                     source,
                                                                     tokenKinds,
                                                                     tokenStarts,
-                                                                    entryBody + 3,
-                                                                    59)) {
-                                                                if (punctuationAt(
+                                                                    entryBody + 5,
+                                                                    125)) {
+                                                                if (count == entryBody + 6) {
+                                                                    return helperProgram(
+                                                                        source,
+                                                                        tokenStarts,
+                                                                        tokenLengths,
+                                                                        nameToken,
+                                                                        helperBody,
+                                                                        reversible);
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                    if (reversible == 1) {
+                                                        if (tokenHash(
+                                                                source,
+                                                                tokenStarts,
+                                                                tokenLengths,
+                                                                entryBody + 4)
+                                                                == 104179061474) {
+                                                            if (punctuationAt(
+                                                                    source,
+                                                                    tokenKinds,
+                                                                    tokenStarts,
+                                                                    entryBody + 5,
+                                                                    123)) {
+                                                                if (callValid(
                                                                         source,
                                                                         tokenKinds,
                                                                         tokenStarts,
-                                                                        entryBody + 4,
-                                                                        125)) {
+                                                                        tokenLengths,
+                                                                        nameToken,
+                                                                        entryBody + 6)) {
                                                                     if (punctuationAt(
                                                                             source,
                                                                             tokenKinds,
                                                                             tokenStarts,
-                                                                            entryBody + 5,
+                                                                            entryBody + 10,
                                                                             125)) {
-                                                                        if (count == entryBody + 6) {
-                                                                            long operandToken =
-                                                                                statementOperandToken(
+                                                                        if (punctuationAt(
+                                                                                source,
+                                                                                tokenKinds,
+                                                                                tokenStarts,
+                                                                                entryBody + 11,
+                                                                                125)) {
+                                                                            if (punctuationAt(
                                                                                     source,
+                                                                                    tokenKinds,
                                                                                     tokenStarts,
-                                                                                    tokenLengths,
-                                                                                    helperBody);
-                                                                            SourceRange name =
-                                                                                new SourceRange(
-                                                                                    tokenStarts[2],
-                                                                                    tokenLengths[2]);
-                                                                            SourceRange global =
-                                                                                new SourceRange(
-                                                                                    tokenStarts[6],
-                                                                                    tokenLengths[6]);
-                                                                            SourceRange helper =
-                                                                                new SourceRange(
-                                                                                    tokenStarts[
-                                                                                        helperStart + 1],
-                                                                                    tokenLengths[
-                                                                                        helperStart + 1]);
-                                                                            MinimalProgram program =
-                                                                                new MinimalProgram(
-                                                                                    name,
-                                                                                    global,
-                                                                                    1,
-                                                                                    parsedSignedNumber(
+                                                                                    entryBody + 12,
+                                                                                    125)) {
+                                                                                if (count == entryBody + 13) {
+                                                                                    return helperProgram(
                                                                                         source,
                                                                                         tokenStarts,
                                                                                         tokenLengths,
-                                                                                        8),
-                                                                                    0,
-                                                                                    -1,
-                                                                                    0,
-                                                                                    -1,
-                                                                                    0,
-                                                                                    -1,
-                                                                                    0,
-                                                                                    -1,
-                                                                                    0,
-                                                                                    helper,
-                                                                                    1,
-                                                                                    statementOpcode(
-                                                                                        source,
-                                                                                        tokenStarts,
-                                                                                        tokenLengths,
-                                                                                        helperBody),
-                                                                                    parsedSignedNumber(
-                                                                                        source,
-                                                                                        tokenStarts,
-                                                                                        tokenLengths,
-                                                                                        operandToken));
-                                                                            return new MinimalProgramResult.Value(
-                                                                                program);
+                                                                                        nameToken,
+                                                                                        helperBody,
+                                                                                        reversible);
+                                                                                }
+                                                                            }
                                                                         }
                                                                     }
                                                                 }

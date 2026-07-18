@@ -135,6 +135,13 @@ class MinimalCompilerExampleTest {
         3);
     assertDifferentialExecution(
         writerProgram,
+        "classical class ReversibleCalls { state long value = 1; "
+            + "rev void bump() { value += 2; } "
+            + "entry void main() { bump(); reverse { bump(); } } }",
+        "value",
+        1);
+    assertDifferentialExecution(
+        writerProgram,
         "classical class WithLocal { state long total = 1; "
             + "entry void main() { long scratch = -2; total += 4; } }",
         "total",

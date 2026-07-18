@@ -88,6 +88,7 @@ classical class Parser {
             helper,
             0,
             -1,
+            0,
             0);
         return new MinimalProgramResult.Value(program);
     }
@@ -121,6 +122,7 @@ classical class Parser {
             helper,
             0,
             -1,
+            0,
             0);
         return new MinimalProgramResult.Value(program);
     }
@@ -210,6 +212,7 @@ classical class Parser {
             global,
             0,
             -1,
+            0,
             0);
         return new MinimalProgramResult.Value(program);
     }
@@ -357,11 +360,17 @@ classical class Parser {
             long firstMember = minimalEntryStart(
                 source, tokenKinds, tokenStarts, tokenLengths);
             if (0 < firstMember) {
-                if (tokenHash(
+                long firstMemberHash = tokenHash(
+                    source, tokenStarts, tokenLengths, firstMember);
+                if (firstMemberHash == 3625364) {
+                    return parseHelperProgram(
                         source,
+                        tokenKinds,
                         tokenStarts,
                         tokenLengths,
-                        firstMember) == 3625364) {
+                        count);
+                }
+                if (firstMemberHash == 112803) {
                     return parseHelperProgram(
                         source,
                         tokenKinds,

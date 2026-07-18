@@ -39,6 +39,7 @@ classical class MinimalCompiler {
                     scanGlobal,
                     0,
                     -1,
+                    0,
                     0);
             }
             case ScanResult.Value(long count) {
@@ -66,6 +67,7 @@ classical class MinimalCompiler {
                             parseGlobal,
                             0,
                             -1,
+                            0,
                             0);
                     }
                     case MinimalProgramResult.Value(MinimalProgram program) {
@@ -159,16 +161,19 @@ classical class MinimalCompiler {
         long name,
         long forwardOffset,
         long forwardLength,
+        long flags,
+        long inverseOffset,
+        long inverseLength,
         long localCount,
         long typeOffset
     ) {
         cursor = writeUnsignedLittleEndian(output, cursor, id, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, name, 4);
-        cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, flags, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, forwardOffset, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, forwardLength, 4);
-        cursor = writeUnsignedLittleEndian(output, cursor, 4294967295, 4);
-        cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, inverseOffset, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, inverseLength, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, localCount, 4);
         return writeUnsignedLittleEndian(output, cursor, typeOffset, 4);
@@ -342,10 +347,22 @@ classical class MinimalCompiler {
         long functionsLength = 44 + localCount * 4;
         long helperLocalCount = statementLocalCount(program.helperOpcode);
         long helperForwardLength = statementCodeLength(program.helperOpcode) + 8;
+        long helperInverseLength = 0;
+        long helperInverseOffset = 4294967295;
+        long entryForwardLength = 24;
+        if (program.helperReversible == 1) {
+            helperLocalCount = 0;
+            helperForwardLength = 32;
+            helperInverseLength = 32;
+            helperInverseOffset = helperForwardLength;
+            entryForwardLength = 40;
+        }
         if (program.helperCount == 1) {
             localCount = helperLocalCount;
             functionsLength = 84 + helperLocalCount * 4;
-            codeLength = helperForwardLength + 24;
+            codeLength = helperForwardLength
+                + helperInverseLength
+                + entryForwardLength;
         }
         long codeOffset = align8(functionsOffset + functionsLength);
         long fileLength = align8(codeOffset + codeLength);
@@ -448,6 +465,9 @@ classical class MinimalCompiler {
                 helperIndex,
                 0,
                 helperForwardLength,
+                program.helperReversible,
+                helperInverseOffset,
+                helperInverseLength,
                 helperLocalCount,
                 0);
             cursor = writeFunctionDescriptor(
@@ -455,8 +475,11 @@ classical class MinimalCompiler {
                 cursor,
                 1,
                 mainIndex,
-                helperForwardLength,
-                24,
+                helperForwardLength + helperInverseLength,
+                entryForwardLength,
+                0,
+                4294967295,
+                0,
                 0,
                 helperLocalCount);
             long helperType = 0;
@@ -472,6 +495,9 @@ classical class MinimalCompiler {
                 mainIndex,
                 0,
                 codeLength,
+                0,
+                4294967295,
+                0,
                 localCount,
                 0);
             long localType = 0;
@@ -483,17 +509,32 @@ classical class MinimalCompiler {
         cursor = align8(cursor);
 
         if (program.helperCount == 1) {
-            cursor = writeStatement(
-                output,
-                cursor,
-                program.helperOpcode,
-                program.helperOperand,
-                0);
-            cursor = writeUnsignedLittleEndian(output, cursor, 2, 2);
-            cursor = writeUnsignedLittleEndian(output, cursor, 0, 2);
-            cursor = writeUnsignedLittleEndian(output, cursor, 8, 4);
-            cursor = writeInstructionHeader(output, cursor, 512, 1);
-            cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+            if (program.helperReversible == 1) {
+                cursor = writeInstructionHeader(output, cursor, 256, 2);
+                cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+                cursor = writeSignedLittleEndian(
+                    output, cursor, program.helperOperand, 8);
+                cursor = writeInstructionHeader(output, cursor, 2, 0);
+                cursor = writeInstructionHeader(output, cursor, 257, 2);
+                cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+                cursor = writeSignedLittleEndian(
+                    output, cursor, program.helperOperand, 8);
+                cursor = writeInstructionHeader(output, cursor, 2, 0);
+                cursor = writeInstructionHeader(output, cursor, 512, 1);
+                cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+                cursor = writeInstructionHeader(output, cursor, 513, 1);
+                cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+            } else {
+                cursor = writeStatement(
+                    output,
+                    cursor,
+                    program.helperOpcode,
+                    program.helperOperand,
+                    0);
+                cursor = writeInstructionHeader(output, cursor, 2, 0);
+                cursor = writeInstructionHeader(output, cursor, 512, 1);
+                cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+            }
         } else {
             if (0 < program.statementCount) {
                 cursor = writeStatement(
