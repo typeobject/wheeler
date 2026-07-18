@@ -56,21 +56,8 @@ classical class Utf8Lexer {
         return false;
     }
 
-    entry void main() {
-        region arena = new region(394, 4);
-        bytes raw = allocateBytes(arena, 10);
-        setByte(raw, 0, 120);
-        setByte(raw, 1, 61);
-        setByte(raw, 2, 49);
-        setByte(raw, 3, 50);
-        setByte(raw, 4, 51);
-        setByte(raw, 5, 59);
-        setByte(raw, 6, 47);
-        setByte(raw, 7, 47);
-        setByte(raw, 8, 99);
-        setByte(raw, 9, 10);
-        utf8 source = freezeUtf8(raw);
-
+    entry void main(utf8 source) {
+        region arena = new region(384, 3);
         words tokenKinds = allocate(arena, 16);
         words tokenStarts = allocate(arena, 16);
         words tokenLengths = allocate(arena, 16);
@@ -149,7 +136,6 @@ classical class Utf8Lexer {
         drop(tokenLengths);
         drop(tokenStarts);
         drop(tokenKinds);
-        drop(source);
         drop(arena);
     }
 }
