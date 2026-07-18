@@ -22,8 +22,14 @@ class MinimalCompilerExampleTest {
   void wheelerCompilesMinimalSourceToACanonicalExecutableArtifact() throws Exception {
     String root = Files.readString(Path.of("src/main/wheeler/MinimalCompiler.w"));
     String encoding = Files.readString(Path.of("src/main/wheeler/compiler/Encoding.w"));
+    String helperParser = Files.readString(
+        Path.of("src/main/wheeler/compiler/HelperParser.w"));
     String ir = Files.readString(Path.of("src/main/wheeler/compiler/Ir.w"));
     String parser = Files.readString(Path.of("src/main/wheeler/compiler/Parser.w"));
+    String statements = Files.readString(
+        Path.of("src/main/wheeler/compiler/Statements.w"));
+    String structure = Files.readString(
+        Path.of("src/main/wheeler/compiler/Structure.w"));
     String tokens = Files.readString(Path.of("src/main/wheeler/compiler/Tokens.w"));
     String verifier = Files.readString(Path.of("src/main/wheeler/compiler/Verifier.w"));
     String scanner = Files.readString(Path.of("src/main/wheeler/lexer/Scanner.w"));
@@ -31,9 +37,12 @@ class MinimalCompilerExampleTest {
         Map.of(
             "MinimalCompiler.w", root,
             "Encoding.w", encoding,
+            "HelperParser.w", helperParser,
             "Ir.w", ir,
             "Parser.w", parser,
             "Scanner.w", scanner,
+            "Statements.w", statements,
+            "Structure.w", structure,
             "Tokens.w", tokens,
             "Verifier.w", verifier),
         "examples.compiler.seed");
@@ -116,6 +125,13 @@ class MinimalCompilerExampleTest {
         "classical class Mixed { state long total = 10; "
             + "entry void main() { total = 4; total ^= 7; } }",
         "total",
+        3);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class Calls { state long value = 1; "
+            + "void bump() { value += 2; } "
+            + "entry void main() { bump(); } }",
+        "value",
         3);
     assertDifferentialExecution(
         writerProgram,

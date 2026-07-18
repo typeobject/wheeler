@@ -108,7 +108,10 @@ classical class Verifier {
         long codeLength = directoryField(artifact, 5, 16, 8);
         long globalCount = readUnsigned(artifact, typesOffset, 4);
         long stringCount = readUnsigned(artifact, stringsOffset, 4);
+        long functionCount = readUnsigned(artifact, functionsOffset, 4);
         long localCount = readUnsigned(artifact, functionsOffset + 36, 4);
+        long firstForwardLength = readUnsigned(
+            artifact, functionsOffset + 20, 4);
 
         if (differs(directoryField(artifact, 0, 16, 8), 24)) {
             return 0;
@@ -120,15 +123,20 @@ classical class Verifier {
         if (differs(directoryField(artifact, 3, 16, 8), 4)) {
             return 0;
         }
-        if (differs(directoryField(artifact, 4, 16, 8),
-                44 + localCount * 4)) {
+        long expectedFunctionsLength = 44 + localCount * 4;
+        if (functionCount == 2) {
+            expectedFunctionsLength = 84 + localCount * 4;
+        }
+        if (differs(
+                directoryField(artifact, 4, 16, 8),
+                expectedFunctionsLength)) {
             return 0;
         }
         if (globalCount < 2) {
         } else {
             return 0;
         }
-        if (differs(stringCount, globalCount + 2)) {
+        if (differs(stringCount, globalCount + 1 + functionCount)) {
             return 0;
         }
         long typeCounts = typesOffset + 4 + globalCount * 16;
@@ -144,7 +152,10 @@ classical class Verifier {
         if (differs(readUnsigned(artifact, variantsOffset, 4), 0)) {
             return 0;
         }
-        if (differs(readUnsigned(artifact, functionsOffset, 4), 1)) {
+        if (functionCount < 1) {
+            return 0;
+        }
+        if (2 < functionCount) {
             return 0;
         }
         if (differs(readUnsigned(artifact, functionsOffset + 4, 4), 0)) {
@@ -156,9 +167,15 @@ classical class Verifier {
         if (differs(readUnsigned(artifact, functionsOffset + 16, 4), 0)) {
             return 0;
         }
-        if (differs(readUnsigned(artifact, functionsOffset + 20, 4),
-                codeLength)) {
-            return 0;
+        if (functionCount == 1) {
+            if (differs(firstForwardLength, codeLength)) {
+                return 0;
+            }
+        }
+        if (functionCount == 2) {
+            if (differs(firstForwardLength + 24, codeLength)) {
+                return 0;
+            }
         }
         if (differs(readUnsigned(artifact, functionsOffset + 24, 4),
                 4294967295)) {
@@ -179,6 +196,59 @@ classical class Verifier {
         } else {
             return 0;
         }
+        if (functionCount == 2) {
+            if (differs(readUnsigned(artifact, functionsOffset + 44, 4), 1)) {
+                return 0;
+            }
+            long entryName = readUnsigned(
+                artifact, functionsOffset + 48, 4);
+            if (entryName < stringCount) {
+            } else {
+                return 0;
+            }
+            if (differs(readUnsigned(artifact, functionsOffset + 52, 4), 0)) {
+                return 0;
+            }
+            if (differs(
+                    readUnsigned(artifact, functionsOffset + 56, 4),
+                    firstForwardLength)) {
+                return 0;
+            }
+            if (differs(readUnsigned(artifact, functionsOffset + 60, 4), 24)) {
+                return 0;
+            }
+            if (differs(
+                    readUnsigned(artifact, functionsOffset + 64, 4),
+                    4294967295)) {
+                return 0;
+            }
+            if (differs(readUnsigned(artifact, functionsOffset + 68, 4), 0)) {
+                return 0;
+            }
+            if (differs(readUnsigned(artifact, functionsOffset + 72, 4), 0)) {
+                return 0;
+            }
+            if (differs(readUnsigned(artifact, functionsOffset + 76, 4), 0)) {
+                return 0;
+            }
+            if (differs(
+                    readUnsigned(artifact, functionsOffset + 80, 4),
+                    localCount)) {
+                return 0;
+            }
+            if (differs(
+                    readUnsigned(
+                        artifact, codeOffset + firstForwardLength - 8, 2),
+                    2)) {
+                return 0;
+            }
+            if (differs(
+                    readUnsigned(
+                        artifact, codeOffset + firstForwardLength, 2),
+                    512)) {
+                return 0;
+            }
+        }
         if (differs(readUnsigned(artifact, codeOffset + codeLength - 8, 2), 1)) {
             return 0;
         }
@@ -193,7 +263,9 @@ classical class Verifier {
         } else {
             return 0;
         }
-        if (differs(readUnsigned(artifact, manifestOffset + 4, 4), 0)) {
+        if (differs(
+                readUnsigned(artifact, manifestOffset + 4, 4),
+                functionCount - 1)) {
             return 0;
         }
         if (differs(readUnsigned(artifact, manifestOffset + 8, 4), 100000)) {

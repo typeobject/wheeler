@@ -1,283 +1,10 @@
 module examples.compiler.parser;
+import examples.compiler.helper_parser;
 import examples.compiler.ir;
+import examples.compiler.statements;
+import examples.compiler.structure;
 import examples.compiler.tokens;
 classical class Parser {
-
-    private boolean canonicalMinimalNames(
-        words tokenKinds,
-        words tokenLengths
-    ) {
-        if (tokenKinds[2] == 1) {
-            if (tokenLengths[2] < 257) {
-                if (tokenKinds[6] == 1) {
-                    return tokenLengths[6] < 257;
-                }
-            }
-        }
-        return false;
-    }
-
-    private long minimalEntryStart(
-        utf8 source,
-        words tokenKinds,
-        words tokenStarts,
-        words tokenLengths
-    ) {
-        if (tokenHash(source, tokenStarts, tokenLengths, 0)
-                == 87497064671293) {
-            if (tokenHash(source, tokenStarts, tokenLengths, 1) == 94742904) {
-                if (canonicalMinimalNames(tokenKinds, tokenLengths)) {
-                    if (punctuationAt(source, tokenKinds, tokenStarts, 3, 123)) {
-                        if (tokenHash(source, tokenStarts, tokenLengths, 4)
-                                == 109757585) {
-                            if (tokenHash(source, tokenStarts, tokenLengths, 5)
-                                    == 3327612) {
-                                if (punctuationAt(
-                                        source, tokenKinds, tokenStarts, 7, 61)) {
-                                    long width = signedNumberWidth(
-                                        source, tokenKinds, tokenStarts, 8);
-                                    if (0 < width) {
-                                        if (signedNumberValid(
-                                                source,
-                                                tokenStarts,
-                                                tokenLengths,
-                                                8)) {
-                                            long semicolon = 8 + width;
-                                            if (punctuationAt(
-                                                    source,
-                                                    tokenKinds,
-                                                    tokenStarts,
-                                                    semicolon,
-                                                    59)) {
-                                                return semicolon + 1;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return -1;
-    }
-
-    private long minimalBodyStart(
-        utf8 source,
-        words tokenKinds,
-        words tokenStarts,
-        words tokenLengths,
-        long entryStart
-    ) {
-        if (tokenHash(source, tokenStarts, tokenLengths, entryStart)
-                == 96667762) {
-            if (tokenHash(
-                    source, tokenStarts, tokenLengths, entryStart + 1)
-                    == 3625364) {
-                if (tokenHash(
-                        source, tokenStarts, tokenLengths, entryStart + 2)
-                        == 3343801) {
-                    if (punctuationAt(
-                            source,
-                            tokenKinds,
-                            tokenStarts,
-                            entryStart + 3,
-                            40)) {
-                        if (punctuationAt(
-                                source,
-                                tokenKinds,
-                                tokenStarts,
-                                entryStart + 4,
-                                41)) {
-                            if (punctuationAt(
-                                    source,
-                                    tokenKinds,
-                                    tokenStarts,
-                                    entryStart + 5,
-                                    123)) {
-                                return entryStart + 6;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return -1;
-    }
-
-    private long statementWidth(
-        utf8 source,
-        words tokenKinds,
-        words tokenStarts,
-        words tokenLengths,
-        long statementStart
-    ) {
-        long statementKind = statementOpcode(
-            source, tokenStarts, tokenLengths, statementStart);
-        if (statementKind == 768) {
-            if (tokenKinds[statementStart + 1] == 1) {
-                if (sameTokenText(
-                        source,
-                        tokenStarts,
-                        tokenLengths,
-                        6,
-                        statementStart + 1)) {
-                    if (punctuationAt(
-                            source,
-                            tokenKinds,
-                            tokenStarts,
-                            statementStart + 2,
-                            61)) {
-                        if (punctuationAt(
-                                source,
-                                tokenKinds,
-                                tokenStarts,
-                                statementStart + 3,
-                                61)) {
-                            long assertWidth = signedNumberWidth(
-                                source,
-                                tokenKinds,
-                                tokenStarts,
-                                statementStart + 4);
-                            if (0 < assertWidth) {
-                                if (signedNumberValid(
-                                        source,
-                                        tokenStarts,
-                                        tokenLengths,
-                                        statementStart + 4)) {
-                                    if (punctuationAt(
-                                            source,
-                                            tokenKinds,
-                                            tokenStarts,
-                                            statementStart + 4 + assertWidth,
-                                            59)) {
-                                        return 5 + assertWidth;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return -1;
-        }
-        if (statementKind == 769) {
-            if (tokenKinds[statementStart + 1] == 1) {
-                if (punctuationAt(
-                        source,
-                        tokenKinds,
-                        tokenStarts,
-                        statementStart + 2,
-                        61)) {
-                    long localWidth = signedNumberWidth(
-                        source,
-                        tokenKinds,
-                        tokenStarts,
-                        statementStart + 3);
-                    if (0 < localWidth) {
-                        if (signedNumberValid(
-                                source,
-                                tokenStarts,
-                                tokenLengths,
-                                statementStart + 3)) {
-                            if (punctuationAt(
-                                    source,
-                                    tokenKinds,
-                                    tokenStarts,
-                                    statementStart + 3 + localWidth,
-                                    59)) {
-                                return 4 + localWidth;
-                            }
-                        }
-                    }
-                }
-            }
-            return -1;
-        }
-        if (tokenKinds[statementStart] == 1) {
-            if (sameTokenText(
-                    source,
-                    tokenStarts,
-                    tokenLengths,
-                    6,
-                    statementStart)) {
-                long opcode = statementOpcode(
-                    source, tokenStarts, tokenLengths, statementStart);
-                if (opcode == 0) {
-                    long operandWidth = signedNumberWidth(
-                        source,
-                        tokenKinds,
-                        tokenStarts,
-                        statementStart + 2);
-                    if (0 < operandWidth) {
-                        if (signedNumberValid(
-                                source,
-                                tokenStarts,
-                                tokenLengths,
-                                statementStart + 2)) {
-                            if (punctuationAt(
-                                    source,
-                                    tokenKinds,
-                                    tokenStarts,
-                                    statementStart + 2 + operandWidth,
-                                    59)) {
-                                return 3 + operandWidth;
-                            }
-                        }
-                    }
-                }
-                if (0 < opcode) {
-                    if (punctuationAt(
-                            source,
-                            tokenKinds,
-                            tokenStarts,
-                            statementStart + 2,
-                            61)) {
-                        long updateOperandWidth = signedNumberWidth(
-                            source,
-                            tokenKinds,
-                            tokenStarts,
-                            statementStart + 3);
-                        if (0 < updateOperandWidth) {
-                            if (signedNumberValid(
-                                    source,
-                                    tokenStarts,
-                                    tokenLengths,
-                                    statementStart + 3)) {
-                                if (punctuationAt(
-                                        source,
-                                        tokenKinds,
-                                        tokenStarts,
-                                        statementStart + 3 + updateOperandWidth,
-                                        59)) {
-                                    return 4 + updateOperandWidth;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return -1;
-    }
-
-    private long statementOperandToken(
-        utf8 source,
-        words tokenStarts,
-        words tokenLengths,
-        long statementStart
-    ) {
-        long opcode = statementOpcode(
-            source, tokenStarts, tokenLengths, statementStart);
-        if (opcode == 0) {
-            return statementStart + 2;
-        }
-        if (opcode == 768) {
-            return statementStart + 4;
-        }
-        return statementStart + 3;
-    }
 
     private MinimalProgramResult minimalProgramValue(
         utf8 source,
@@ -343,6 +70,7 @@ classical class Parser {
             tokenStarts[2], tokenLengths[2]);
         SourceRange global = new SourceRange(
             tokenStarts[6], tokenLengths[6]);
+        SourceRange helper = new SourceRange(0, 0);
         MinimalProgram program = new MinimalProgram(
             name,
             global,
@@ -356,7 +84,11 @@ classical class Parser {
             thirdOpcode,
             thirdOperand,
             fourthOpcode,
-            fourthOperand);
+            fourthOperand,
+            helper,
+            0,
+            -1,
+            0);
         return new MinimalProgramResult.Value(program);
     }
 
@@ -371,6 +103,7 @@ classical class Parser {
             tokenStarts[2], tokenLengths[2]);
         SourceRange global = new SourceRange(
             tokenStarts[6], tokenLengths[6]);
+        SourceRange helper = new SourceRange(0, 0);
         MinimalProgram program = new MinimalProgram(
             name,
             global,
@@ -382,6 +115,10 @@ classical class Parser {
             -1,
             0,
             -1,
+            0,
+            -1,
+            0,
+            helper,
             0,
             -1,
             0);
@@ -467,6 +204,10 @@ classical class Parser {
             -1,
             0,
             -1,
+            0,
+            -1,
+            0,
+            global,
             0,
             -1,
             0);
@@ -613,6 +354,22 @@ classical class Parser {
             }
         }
         if (minimalStateCountSupported(count)) {
+            long firstMember = minimalEntryStart(
+                source, tokenKinds, tokenStarts, tokenLengths);
+            if (0 < firstMember) {
+                if (tokenHash(
+                        source,
+                        tokenStarts,
+                        tokenLengths,
+                        firstMember) == 3625364) {
+                    return parseHelperProgram(
+                        source,
+                        tokenKinds,
+                        tokenStarts,
+                        tokenLengths,
+                        count);
+                }
+            }
             long entryStart = minimalEntryStart(
                 source, tokenKinds, tokenStarts, tokenLengths);
             if (0 < entryStart) {

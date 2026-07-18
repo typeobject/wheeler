@@ -35,6 +35,10 @@ classical class MinimalCompiler {
                     0,
                     0,
                     0,
+                    0,
+                    scanGlobal,
+                    0,
+                    -1,
                     0);
             }
             case ScanResult.Value(long count) {
@@ -58,6 +62,10 @@ classical class MinimalCompiler {
                             0,
                             0,
                             0,
+                            0,
+                            parseGlobal,
+                            0,
+                            -1,
                             0);
                     }
                     case MinimalProgramResult.Value(MinimalProgram program) {
@@ -144,6 +152,28 @@ classical class MinimalCompiler {
             output, cursor, localBase + 1, 8);
     }
 
+    private long writeFunctionDescriptor(
+        bytes output,
+        long cursor,
+        long id,
+        long name,
+        long forwardOffset,
+        long forwardLength,
+        long localCount,
+        long typeOffset
+    ) {
+        cursor = writeUnsignedLittleEndian(output, cursor, id, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, name, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, forwardOffset, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, forwardLength, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, 4294967295, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, localCount, 4);
+        return writeUnsignedLittleEndian(output, cursor, typeOffset, 4);
+    }
+
     entry void main(utf8 source, bytes output) {
         region arena = new region(1536, 3);
         words tokenKinds = allocate(arena, 64);
@@ -153,6 +183,7 @@ classical class MinimalCompiler {
             source, tokenKinds, tokenStarts, tokenLengths);
         long nameLength = program.name.length;
         long globalLength = program.global.length;
+        long helperLength = program.helperName.length;
         long nameMainOrder = compareAsciiSliceToMain(
             source, program.name.start, nameLength);
         if (nameMainOrder == 0) {
@@ -160,6 +191,7 @@ classical class MinimalCompiler {
         }
         long nameIndex = 0;
         long globalIndex = 0;
+        long helperIndex = 0;
         long mainIndex = 0;
         if (0 < nameMainOrder) {
             nameIndex = 1;
@@ -171,6 +203,46 @@ classical class MinimalCompiler {
         long stringsLength = 16 + nameLength;
         long typesLength = 16;
         if (program.globalCount == 1) {
+            long baseNameGlobalOrder = compareAsciiSlices(
+                source,
+                program.name.start,
+                nameLength,
+                program.global.start,
+                globalLength);
+            long baseGlobalMainOrder = compareAsciiSliceToMain(
+                source, program.global.start, globalLength);
+            if (baseNameGlobalOrder == 0) {
+                assert finalCursor == 1;
+            }
+            if (baseGlobalMainOrder == 0) {
+                assert finalCursor == 1;
+            }
+            nameIndex = 0;
+            globalIndex = 0;
+            mainIndex = 0;
+            if (0 < baseNameGlobalOrder) {
+                nameIndex += 1;
+            }
+            if (0 < nameMainOrder) {
+                nameIndex += 1;
+            }
+            if (baseNameGlobalOrder < 0) {
+                globalIndex += 1;
+            }
+            if (0 < baseGlobalMainOrder) {
+                globalIndex += 1;
+            }
+            if (nameMainOrder < 0) {
+                mainIndex += 1;
+            }
+            if (baseGlobalMainOrder < 0) {
+                mainIndex += 1;
+            }
+            stringCount = 3;
+            stringsLength = 20 + nameLength + globalLength;
+            typesLength = 32;
+        }
+        if (program.helperCount == 1) {
             long nameGlobalOrder = compareAsciiSlices(
                 source,
                 program.name.start,
@@ -179,19 +251,40 @@ classical class MinimalCompiler {
                 globalLength);
             long globalMainOrder = compareAsciiSliceToMain(
                 source, program.global.start, globalLength);
-            if (nameGlobalOrder == 0) {
+            long nameHelperOrder = compareAsciiSlices(
+                source,
+                program.name.start,
+                nameLength,
+                program.helperName.start,
+                helperLength);
+            long globalHelperOrder = compareAsciiSlices(
+                source,
+                program.global.start,
+                globalLength,
+                program.helperName.start,
+                helperLength);
+            long helperMainOrder = compareAsciiSliceToMain(
+                source, program.helperName.start, helperLength);
+            if (nameHelperOrder == 0) {
                 assert finalCursor == 1;
             }
-            if (globalMainOrder == 0) {
+            if (globalHelperOrder == 0) {
+                assert finalCursor == 1;
+            }
+            if (helperMainOrder == 0) {
                 assert finalCursor == 1;
             }
             nameIndex = 0;
             globalIndex = 0;
+            helperIndex = 0;
             mainIndex = 0;
             if (0 < nameGlobalOrder) {
                 nameIndex += 1;
             }
             if (0 < nameMainOrder) {
+                nameIndex += 1;
+            }
+            if (0 < nameHelperOrder) {
                 nameIndex += 1;
             }
             if (nameGlobalOrder < 0) {
@@ -200,15 +293,29 @@ classical class MinimalCompiler {
             if (0 < globalMainOrder) {
                 globalIndex += 1;
             }
+            if (0 < globalHelperOrder) {
+                globalIndex += 1;
+            }
             if (nameMainOrder < 0) {
                 mainIndex += 1;
             }
             if (globalMainOrder < 0) {
                 mainIndex += 1;
             }
-            stringCount = 3;
-            stringsLength = 20 + nameLength + globalLength;
-            typesLength = 32;
+            if (helperMainOrder < 0) {
+                mainIndex += 1;
+            }
+            if (nameHelperOrder < 0) {
+                helperIndex += 1;
+            }
+            if (globalHelperOrder < 0) {
+                helperIndex += 1;
+            }
+            if (0 < helperMainOrder) {
+                helperIndex += 1;
+            }
+            stringCount = 4;
+            stringsLength = 24 + nameLength + globalLength + helperLength;
         }
         long manifestOffset = 232;
         long stringsOffset = 256;
@@ -233,6 +340,13 @@ classical class MinimalCompiler {
             codeLength += statementCodeLength(program.fourthOpcode);
         }
         long functionsLength = 44 + localCount * 4;
+        long helperLocalCount = statementLocalCount(program.helperOpcode);
+        long helperForwardLength = statementCodeLength(program.helperOpcode) + 8;
+        if (program.helperCount == 1) {
+            localCount = helperLocalCount;
+            functionsLength = 84 + helperLocalCount * 4;
+            codeLength = helperForwardLength + 24;
+        }
         long codeOffset = align8(functionsOffset + functionsLength);
         long fileLength = align8(codeOffset + codeLength);
         codeStart = codeOffset;
@@ -261,14 +375,15 @@ classical class MinimalCompiler {
             output, cursor, 6, codeOffset, codeLength);
 
         cursor = writeUnsignedLittleEndian(output, cursor, nameIndex, 4);
-        cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
+        cursor = writeUnsignedLittleEndian(
+            output, cursor, program.helperCount, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 100000, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 1000000, 8);
 
         cursor = writeUnsignedLittleEndian(output, cursor, stringCount, 4);
         long stringIndex = 0;
-        while (stringIndex < stringCount) limit 3 {
+        while (stringIndex < stringCount) limit 4 {
             if (stringIndex == nameIndex) {
                 cursor = writeUnsignedLittleEndian(
                     output, cursor, nameLength, 4);
@@ -285,6 +400,18 @@ classical class MinimalCompiler {
                         source,
                         program.global.start,
                         globalLength);
+                }
+            }
+            if (program.helperCount == 1) {
+                if (stringIndex == helperIndex) {
+                    cursor = writeUnsignedLittleEndian(
+                        output, cursor, helperLength, 4);
+                    cursor = writeAsciiSlice(
+                        output,
+                        cursor,
+                        source,
+                        program.helperName.start,
+                        helperLength);
                 }
             }
             if (stringIndex == mainIndex) {
@@ -311,55 +438,95 @@ classical class MinimalCompiler {
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = align8(cursor);
 
-        cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
-        cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
-        cursor = writeUnsignedLittleEndian(output, cursor, mainIndex, 4);
-        cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
-        cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
-        cursor = writeUnsignedLittleEndian(output, cursor, codeLength, 4);
-        cursor = writeUnsignedLittleEndian(output, cursor, 4294967295, 4);
-        cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
-        cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
-        cursor = writeUnsignedLittleEndian(output, cursor, localCount, 4);
-        cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
-        long localType = 0;
-        while (localType < localCount) limit 8 {
-            cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
-            localType += 1;
+        cursor = writeUnsignedLittleEndian(
+            output, cursor, 1 + program.helperCount, 4);
+        if (program.helperCount == 1) {
+            cursor = writeFunctionDescriptor(
+                output,
+                cursor,
+                0,
+                helperIndex,
+                0,
+                helperForwardLength,
+                helperLocalCount,
+                0);
+            cursor = writeFunctionDescriptor(
+                output,
+                cursor,
+                1,
+                mainIndex,
+                helperForwardLength,
+                24,
+                0,
+                helperLocalCount);
+            long helperType = 0;
+            while (helperType < helperLocalCount) limit 2 {
+                cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
+                helperType += 1;
+            }
+        } else {
+            cursor = writeFunctionDescriptor(
+                output,
+                cursor,
+                0,
+                mainIndex,
+                0,
+                codeLength,
+                localCount,
+                0);
+            long localType = 0;
+            while (localType < localCount) limit 8 {
+                cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
+                localType += 1;
+            }
         }
         cursor = align8(cursor);
 
-        if (0 < program.statementCount) {
+        if (program.helperCount == 1) {
             cursor = writeStatement(
                 output,
                 cursor,
-                program.opcode,
-                program.operand,
+                program.helperOpcode,
+                program.helperOperand,
                 0);
-        }
-        if (1 < program.statementCount) {
-            cursor = writeStatement(
-                output,
-                cursor,
-                program.secondOpcode,
-                program.secondOperand,
-                firstLocalCount);
-        }
-        if (2 < program.statementCount) {
-            cursor = writeStatement(
-                output,
-                cursor,
-                program.thirdOpcode,
-                program.thirdOperand,
-                firstLocalCount + secondLocalCount);
-        }
-        if (3 < program.statementCount) {
-            cursor = writeStatement(
-                output,
-                cursor,
-                program.fourthOpcode,
-                program.fourthOperand,
-                firstLocalCount + secondLocalCount + thirdLocalCount);
+            cursor = writeUnsignedLittleEndian(output, cursor, 2, 2);
+            cursor = writeUnsignedLittleEndian(output, cursor, 0, 2);
+            cursor = writeUnsignedLittleEndian(output, cursor, 8, 4);
+            cursor = writeInstructionHeader(output, cursor, 512, 1);
+            cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+        } else {
+            if (0 < program.statementCount) {
+                cursor = writeStatement(
+                    output,
+                    cursor,
+                    program.opcode,
+                    program.operand,
+                    0);
+            }
+            if (1 < program.statementCount) {
+                cursor = writeStatement(
+                    output,
+                    cursor,
+                    program.secondOpcode,
+                    program.secondOperand,
+                    firstLocalCount);
+            }
+            if (2 < program.statementCount) {
+                cursor = writeStatement(
+                    output,
+                    cursor,
+                    program.thirdOpcode,
+                    program.thirdOperand,
+                    firstLocalCount + secondLocalCount);
+            }
+            if (3 < program.statementCount) {
+                cursor = writeStatement(
+                    output,
+                    cursor,
+                    program.fourthOpcode,
+                    program.fourthOperand,
+                    firstLocalCount + secondLocalCount + thirdLocalCount);
+            }
         }
         cursor = writeUnsignedLittleEndian(output, cursor, 1, 2);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 2);

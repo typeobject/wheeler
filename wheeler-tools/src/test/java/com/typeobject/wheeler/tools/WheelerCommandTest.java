@@ -350,8 +350,10 @@ class WheelerCommandTest {
         package "demo.seedwriter" version "1.0.0" profile "bootstrap-1";
         target example "compiler" root "src/MinimalCompiler.w" module "examples.compiler.seed"
             source "src/MinimalCompiler.w" source "src/compiler/Encoding.w"
-            source "src/compiler/Ir.w" source "src/compiler/Parser.w"
-            source "src/compiler/Tokens.w" source "src/compiler/Verifier.w"
+            source "src/compiler/HelperParser.w" source "src/compiler/Ir.w"
+            source "src/compiler/Parser.w" source "src/compiler/Statements.w"
+            source "src/compiler/Structure.w" source "src/compiler/Tokens.w"
+            source "src/compiler/Verifier.w"
             source "src/lexer/Scanner.w";
         """);
     Path examples = Path.of("../wheeler-examples/src/main/wheeler");
@@ -361,11 +363,20 @@ class WheelerCommandTest {
         examples.resolve("compiler/Encoding.w"),
         project.resolve("src/compiler/Encoding.w"));
     Files.copy(
+        examples.resolve("compiler/HelperParser.w"),
+        project.resolve("src/compiler/HelperParser.w"));
+    Files.copy(
         examples.resolve("compiler/Ir.w"),
         project.resolve("src/compiler/Ir.w"));
     Files.copy(
         examples.resolve("compiler/Parser.w"),
         project.resolve("src/compiler/Parser.w"));
+    Files.copy(
+        examples.resolve("compiler/Statements.w"),
+        project.resolve("src/compiler/Statements.w"));
+    Files.copy(
+        examples.resolve("compiler/Structure.w"),
+        project.resolve("src/compiler/Structure.w"));
     Files.copy(
         examples.resolve("compiler/Tokens.w"),
         project.resolve("src/compiler/Tokens.w"));

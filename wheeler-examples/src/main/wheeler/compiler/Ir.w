@@ -15,7 +15,11 @@ classical class CompilerIr {
         long thirdOpcode,
         long thirdOperand,
         long fourthOpcode,
-        long fourthOperand
+        long fourthOperand,
+        SourceRange helperName,
+        long helperCount,
+        long helperOpcode,
+        long helperOperand
     ) {}
 
     public variant MinimalProgramResult {
