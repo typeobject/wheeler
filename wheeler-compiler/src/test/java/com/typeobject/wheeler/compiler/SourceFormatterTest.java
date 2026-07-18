@@ -1,0 +1,127 @@
+package com.typeobject.wheeler.compiler;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.typeobject.wheeler.compiler.SourceConcreteSyntax.Kind;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+
+class SourceFormatterTest {
+  @Test
+  void formatsFixedWhitespacePreservesTokensAndIsIdempotent() {
+    String compact = "//!Summary\r\n"
+        + "classical   class Demo{\n"
+        + "///Runs the entry.\n"
+        + "///\n"
+        + "///- Effects: Mutates `value`.\n"
+        + "entry void main(){long value=-2;if(value<0){value+=1;}else{value=0;}}}";
+    String expected = """
+        //! Summary
+        classical class Demo {
+            /// Runs the entry.
+            ///
+            /// - Effects: Mutates `value`.
+            entry void main() {
+                long value = -2;
+                if (value < 0) {
+                    value += 1;
+                } else {
+                    value = 0;
+                }
+            }
+        }
+        """;
+
+    String formatted = SourceFormatter.format(compact);
+
+    assertEquals(expected, formatted);
+    assertEquals(formatted, SourceFormatter.format(formatted));
+    assertEquals(tokens(compact), tokens(formatted));
+    assertArrayEquals(
+        new WheelerCompiler().compileToBytecode(compact),
+        new WheelerCompiler().compileToBytecode(formatted));
+  }
+
+  @Test
+  void preservesCommentPayloadAndNormalizesBlockLineEndings() {
+    String source = "classical class C{/* first  payload */\r\n"
+        + "entry void main(){// trailing  payload\r\n}}";
+
+    String formatted = SourceFormatter.format(source);
+
+    assertFalse(formatted.contains("\r"));
+    assertTrue(formatted.contains("/* first  payload */"));
+    assertTrue(formatted.contains("// trailing  payload"));
+    assertEquals(formatted, SourceFormatter.format(formatted));
+  }
+
+  @Test
+  void roundTripsEveryCheckedExampleTokenAndCommentAttachment() throws Exception {
+    Path examples = Path.of("../wheeler-examples/src/main/wheeler");
+    try (var paths = Files.walk(examples)) {
+      for (Path source : paths.filter(path -> path.toString().endsWith(".w")).toList()) {
+        String original = Files.readString(source);
+        String formatted = SourceFormatter.format(original);
+        assertEquals(formatted, SourceFormatter.format(formatted), source.toString());
+        assertEquals(tokens(original), tokens(formatted), source.toString());
+        assertEquals(comments(original), comments(formatted), source.toString());
+        assertEquals(attachments(original), attachments(formatted), source.toString());
+      }
+    }
+  }
+
+  @Test
+  void rejectsMismatchedDelimitersBeforePrinting() {
+    CompilerException failure = assertThrows(
+        CompilerException.class,
+        () -> SourceFormatter.format("classical class Broken { entry void main(] {} }"));
+    assertEquals("line 1: unmatched delimiter ']'", failure.getMessage());
+  }
+
+  private static List<String> tokens(String source) {
+    return SourceConcreteSyntax.scan(source).elements().stream()
+        .filter(element -> element.kind() == Kind.TOKEN)
+        .map(SourceConcreteSyntax.Element::text)
+        .toList();
+  }
+
+  private static List<String> attachments(String source) {
+    SourceConcreteSyntax.Document document = SourceConcreteSyntax.scan(source);
+    int[] tokenOrdinals = new int[document.elements().size()];
+    int token = 0;
+    for (int index = 0; index < document.elements().size(); index++) {
+      tokenOrdinals[index] = token;
+      if (document.elements().get(index).kind() == Kind.TOKEN) {
+        token++;
+      }
+    }
+    return document.comments().stream()
+        .map(comment -> comment.placement() + ":"
+            + (comment.targetElement() < 0 ? -1 : tokenOrdinals[comment.targetElement()]))
+        .toList();
+  }
+
+  private static List<String> comments(String source) {
+    return SourceConcreteSyntax.scan(source).elements().stream()
+        .filter(element -> element.kind() == Kind.LINE_COMMENT
+            || element.kind() == Kind.BLOCK_COMMENT)
+        .map(element -> element.kind() + ":" + commentPayload(element))
+        .toList();
+  }
+
+  private static String commentPayload(SourceConcreteSyntax.Element element) {
+    String text = element.text().replace("\r\n", "\n").replace('\r', '\n');
+    if (element.kind() == Kind.LINE_COMMENT
+        && (text.startsWith("///") || text.startsWith("//!"))) {
+      String payload = text.substring(3);
+      return payload.startsWith(" ") ? payload.substring(1) : payload;
+    }
+    return text;
+  }
+}
