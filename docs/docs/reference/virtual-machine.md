@@ -28,7 +28,7 @@ Intrinsic operations recover data from their inverse operation. Logged operation
 
 ## Function inverse versus rewind
 
-`CALL` executes a forward function body. `UNCALL` executes its generated inverse body as new forward work. Both operations add history and can themselves be rewound.
+`CALL` executes a zero-argument void function body. `UNCALL` executes its generated inverse body as new forward work. `CALL_VALUE` moves an exact initialized argument window into callee parameter registers and names one caller result register; `RETURN_VALUE` moves the result back. Every call and return adds history and can itself be rewound, including the caller result write.
 
 `rewindOne` consumes the newest step record and restores the exact prior machine state. It does not call the function inverse.
 

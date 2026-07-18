@@ -3,6 +3,7 @@ package com.typeobject.wheeler.compiler;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.typeobject.wheeler.core.bytecode.BytecodeException;
 import org.junit.jupiter.api.Test;
 
 class SourceProfileNegativeTest {
@@ -68,6 +69,33 @@ class SourceProfileNegativeTest {
         CompilerException.class, () -> new WheelerCompiler().compile(reversible));
     assertTrue(loop.getMessage().contains("expected 'limit'"));
     assertTrue(branch.getMessage().contains("local control flow is not available"));
+  }
+
+  @Test
+  void rejectsIncompleteReturnAndWrongValueCallSignature() {
+    String incomplete = """
+        classical class Incomplete {
+          long value(long input) {
+            long copy = input;
+          }
+          entry void main() { }
+        }
+        """;
+    String wrongArity = """
+        classical class WrongArity {
+          state long result = 0;
+          long add(long left, long right) { return left + right; }
+          entry void main() {
+            long value = add(1);
+            result = value;
+          }
+        }
+        """;
+
+    assertThrows(BytecodeException.class, () -> new WheelerCompiler().compile(incomplete));
+    CompilerException call = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(wrongArity));
+    assertTrue(call.getMessage().contains("value call signature mismatch"));
   }
 
   @Test

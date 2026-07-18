@@ -22,7 +22,9 @@ class BytecodeVerifierTest {
         0,
         "main",
         false,
+        0,
         1,
+        false,
         List.of(
             Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
             Instruction.of(Opcode.HALT)),
@@ -32,6 +34,8 @@ class BytecodeVerifierTest {
         "main",
         false,
         0,
+        0,
+        false,
         List.of(Instruction.of(Opcode.JUMP, 7), Instruction.of(Opcode.HALT)),
         List.of());
 
@@ -54,6 +58,8 @@ class BytecodeVerifierTest {
         "main",
         false,
         0,
+        0,
+        false,
         List.of(instruction, Instruction.of(Opcode.HALT)),
         List.of()));
   }

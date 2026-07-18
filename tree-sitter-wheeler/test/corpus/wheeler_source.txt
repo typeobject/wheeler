@@ -258,3 +258,58 @@ classical class Control {
                       (identifier)
                       (expression
                         (integer_literal)))))))))))))
+
+==================
+Typed value function
+==================
+
+classical class Values {
+  long add(long left, long right) {
+    return left + right;
+  }
+  entry void main() {
+    long result = add(2, 3);
+  }
+}
+
+---
+
+(source_file
+  (class_declaration
+    (computation_domain)
+    (identifier)
+    (class_body
+      (member_declaration
+        (method_declaration
+          (identifier)
+          (parameter_list
+            (parameter
+              (identifier))
+            (parameter
+              (identifier)))
+          (block
+            (statement
+              (return_statement
+                (expression
+                  (binary_expression
+                    (expression
+                      (identifier))
+                    (expression
+                      (identifier)))))))))
+      (member_declaration
+        (method_declaration
+          (method_modifier)
+          (identifier)
+          (parameter_list)
+          (block
+            (statement
+              (local_declaration
+                (identifier)
+                (expression
+                  (call_expression
+                    (identifier)
+                    (argument_list
+                      (expression
+                        (integer_literal))
+                      (expression
+                        (integer_literal)))))))))))))

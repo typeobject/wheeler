@@ -85,6 +85,8 @@ class VirtualMachineTest {
         "main",
         false,
         0,
+        0,
+        false,
         List.of(
             Instruction.of(Opcode.ADD_CONST, 0, 1),
             Instruction.of(Opcode.ADD_CONST, 0, 1),
@@ -117,6 +119,8 @@ class VirtualMachineTest {
             "main",
             false,
             0,
+            0,
+            false,
             List.of(Instruction.of(Opcode.ADD_CONST, 0, 1), Instruction.of(Opcode.HALT)),
             List.of())));
     VirtualMachine machine = new VirtualMachine(program);
@@ -132,7 +136,9 @@ class VirtualMachineTest {
         0,
         "main",
         false,
+        0,
         5,
+        false,
         List.of(
             Instruction.of(Opcode.LOCAL_CONST, 0, 0),
             Instruction.of(Opcode.LOCAL_CONST, 1, 5),
@@ -170,6 +176,52 @@ class VirtualMachineTest {
   }
 
   @Test
+  void valueCallTransfersParametersResultAndRewindsFrames() {
+    FunctionBody main = new FunctionBody(
+        0,
+        "main",
+        false,
+        0,
+        3,
+        false,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 4),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 5),
+            Instruction.of(Opcode.CALL_VALUE, 1, 0, 2, 2),
+            Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 2),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    FunctionBody add = new FunctionBody(
+        1,
+        "add",
+        false,
+        2,
+        3,
+        true,
+        List.of(
+            Instruction.of(Opcode.LOCAL_ADD, 2, 0, 1),
+            Instruction.of(Opcode.RETURN_VALUE, 2)),
+        List.of());
+    Program program = new Program(
+        "ValueCall",
+        0,
+        List.of(new Global("result", 0)),
+        List.of(main, add),
+        100,
+        100);
+    VirtualMachine machine = new VirtualMachine(program);
+    MachineSnapshot initial = machine.snapshot();
+
+    machine.run();
+
+    assertEquals(9, machine.global("result"));
+    while (machine.historySize() > 0) {
+      machine.rewindOne();
+    }
+    assertEquals(initial, machine.snapshot());
+  }
+
+  @Test
   void generatedArithmeticProgramsRoundTripThroughHistory() {
     Random random = new Random(7);
     for (int sample = 0; sample < 100; sample++) {
@@ -195,6 +247,7 @@ class VirtualMachineTest {
         "Test",
         0,
         List.of(new Global("value", 7)),
-        List.of(new FunctionBody(0, "main", false, 0, instructions, List.of())));
+        List.of(new FunctionBody(
+            0, "main", false, 0, 0, false, instructions, List.of())));
   }
 }

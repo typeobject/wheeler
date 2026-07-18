@@ -34,8 +34,8 @@ class BytecodeCodecTest {
     byte[] artifact = writer.write(ProgramFixtures.counter());
     String digest = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(artifact));
 
-    assertEquals(552, artifact.length);
-    assertEquals("927fd446699b35213d56f357ce542afe624dc874ed57c32050bb7dc0f9456f04", digest);
+    assertEquals(568, artifact.length);
+    assertEquals("30c3288b5dff08829f69ff6b73ccd368d088adec9a38431e72c6d2d55061d2e3", digest);
   }
 
   @Test

@@ -63,6 +63,7 @@ The repository currently executes these bounded fixtures:
 - `Counter.w`: generated inverse and reverse-block order;
 - `BinaryTree.w`: fixed-capacity reversible state layout;
 - `BootstrapControl.w`: signed locals, expressions, branch joins, and a source-bounded loop;
+- `FunctionValues.w`: signed parameters, returns, static value calls, and callee control flow;
 - `CoherentOracle.w`: classical and coherent XOR behavior;
 - `QFT.w`: unitary execution and generated adjoint;
 - `QFTProof.w`: executable inverse law;

@@ -116,10 +116,10 @@ The first profile supports:
 
 - one top-level computation-domain class;
 - `state long` and `qreg` fields;
-- zero-argument `void` methods;
+- signed `long` parameters and returns for ordinary classical methods; zero-argument `void` entry, reversible, coherent, and unitary methods;
 - `rev`, `coherent rev`, `unitary`, and `entry` methods;
 - `+=`, `-=`, `^=`, direct logged assignment, method calls, assertions, checkpoint, and commit;
-- signed `long` locals, left-to-right arithmetic/comparison expressions, `if`/`else`, and `while (...) limit ...` in ordinary classical methods;
+- signed `long` locals, left-to-right arithmetic/comparison expressions, static value calls, `return`, `if`/`else`, and `while (...) limit ...` in ordinary classical methods;
 - direct inverse calls and reverse blocks;
 - H, X, Z, phase, controlled phase, CNOT, CZ, and swap gates;
 - `prepare`, full-register computational-basis measurement, unitary call/adjoint, and coherent method reference;

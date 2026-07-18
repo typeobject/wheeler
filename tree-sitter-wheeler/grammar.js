@@ -48,7 +48,7 @@ module.exports = grammar({
 
     method_declaration: $ => seq(
       repeat($.method_modifier),
-      'void',
+      field('return_type', choice('void', 'long')),
       field('name', $.identifier),
       field('parameters', $.parameter_list),
       field('body', $.block),
@@ -56,7 +56,12 @@ module.exports = grammar({
 
     visibility_modifier: _ => choice('public', 'private', 'protected'),
     method_modifier: _ => choice('static', 'entry', 'rev', 'coherent', 'unitary'),
-    parameter_list: _ => seq('(', ')'),
+    parameter_list: $ => seq(
+      '(',
+      optional(seq($.parameter, repeat(seq(',', $.parameter)))),
+      ')',
+    ),
+    parameter: $ => seq('long', field('name', $.identifier)),
     block: $ => seq('{', repeat($.statement), '}'),
 
     statement: $ => choice(
@@ -68,7 +73,10 @@ module.exports = grammar({
       $.reverse_statement,
       $.if_statement,
       $.while_statement,
+      $.return_statement,
     ),
+
+    return_statement: $ => seq('return', $.expression, ';'),
 
     local_declaration: $ => seq(
       'long',

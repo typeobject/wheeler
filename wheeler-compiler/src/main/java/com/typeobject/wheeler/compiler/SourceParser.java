@@ -25,6 +25,7 @@ final class SourceParser {
   private final List<Circuit> circuits = new ArrayList<>();
   private String domain;
   private boolean structuredStatements;
+  private boolean valueReturnsAllowed;
   private int temporarySequence;
   private int labelSequence;
 
@@ -103,7 +104,7 @@ final class SourceParser {
     boolean entry = false;
     SourceToken start = peek();
 
-    while (!checkText("void") && !check(Type.END)) {
+    while (!checkText("void") && !checkText("long") && !check(Type.END)) {
       String modifier = expect(Type.IDENTIFIER, "method modifier or void").text();
       switch (modifier) {
         case "static" -> { /* Accepted for Java familiarity; entry remains statically owned. */ }
@@ -114,10 +115,20 @@ final class SourceParser {
         default -> fail(previous(), "unsupported method modifier: " + modifier);
       }
     }
-    expectText("void");
+    boolean returnsValue = matchText("long");
+    if (!returnsValue) {
+      expectText("void");
+    }
     String name = expect(Type.IDENTIFIER, "method name").text();
     expect(Type.LEFT_PAREN, "'(' after method name");
-    expect(Type.RIGHT_PAREN, "zero-argument method profile");
+    List<String> parameters = new ArrayList<>();
+    if (!check(Type.RIGHT_PAREN)) {
+      do {
+        expectText("long");
+        parameters.add(expect(Type.IDENTIFIER, "parameter name").text());
+      } while (match(Type.COMMA));
+    }
+    expect(Type.RIGHT_PAREN, "')' after parameters");
     expect(Type.LEFT_BRACE, "'{' before method body");
 
     if (coherent && !reversible) {
@@ -127,26 +138,39 @@ final class SourceParser {
     if (semanticModifiers > 1) {
       fail(start, "rev, unitary, and entry are mutually exclusive method kinds");
     }
-    if (entry && !name.equals("main")) {
-      fail(start, "entry method must be named main");
+    if (entry && (!name.equals("main") || returnsValue || !parameters.isEmpty())) {
+      fail(start, "entry method must have signature void main()");
+    }
+    if ((reversible || coherent || unitary) && (returnsValue || !parameters.isEmpty())) {
+      fail(start, "parameters and return values are currently ordinary classical only");
     }
 
     if (unitary) {
       circuits.add(parseCircuit(name, start.line()));
     } else {
-      functions.add(parseFunction(name, entry, reversible, coherent, start.line()));
+      functions.add(parseFunction(
+          name, entry, reversible, coherent, parameters, returnsValue, start.line()));
     }
   }
 
   private Function parseFunction(
-      String name, boolean entry, boolean reversible, boolean coherent, int line) {
+      String name,
+      boolean entry,
+      boolean reversible,
+      boolean coherent,
+      List<String> parameters,
+      boolean returnsValue,
+      int line) {
     List<Statement> body = new ArrayList<>();
     structuredStatements = !reversible && (!entry || domain.equals("classical"));
+    valueReturnsAllowed = returnsValue;
     temporarySequence = 0;
     labelSequence = 0;
     while (!check(Type.RIGHT_BRACE) && !check(Type.END)) {
       if (structuredStatements && checkText("long")) {
         parseLocalDeclaration(body);
+      } else if (structuredStatements && matchText("return")) {
+        parseReturn(body, previous());
       } else if (structuredStatements && matchText("if")) {
         parseIf(body, previous());
       } else if (structuredStatements && matchText("while")) {
@@ -154,7 +178,8 @@ final class SourceParser {
       } else if (structuredStatements && isAssignmentStart()) {
         parseStructuredAssignment(body);
       } else if (!structuredStatements
-          && (checkText("long") || checkText("if") || checkText("while"))) {
+          && (checkText("long") || checkText("if") || checkText("while")
+              || checkText("return"))) {
         fail(peek(), "local control flow is not available in this method kind");
       } else if (matchText("reverse")) {
         SourceToken reverse = previous();
@@ -186,7 +211,17 @@ final class SourceParser {
     if (entry) {
       body.add(statement("halt", line));
     }
-    return new Function(name, entry, reversible, coherent, body, line);
+    return new Function(
+        name, entry, reversible, coherent, parameters, returnsValue, body, line);
+  }
+
+  private void parseReturn(List<Statement> body, SourceToken start) {
+    if (!valueReturnsAllowed) {
+      fail(start, "return value is not available in a void method");
+    }
+    String value = parseExpression(body);
+    expect(Type.SEMICOLON, "';' after return value");
+    body.add(statement("return_value", start.line(), value));
   }
 
   private void parseLocalDeclaration(List<Statement> body) {
@@ -247,6 +282,8 @@ final class SourceParser {
     while (!check(Type.RIGHT_BRACE) && !check(Type.END)) {
       if (checkText("long")) {
         parseLocalDeclaration(body);
+      } else if (matchText("return")) {
+        parseReturn(body, previous());
       } else if (matchText("if")) {
         parseIf(body, previous());
       } else if (matchText("while")) {
@@ -313,6 +350,22 @@ final class SourceParser {
       return constant(body, previous(), previous().text());
     }
     if (match(Type.IDENTIFIER)) {
+      if (match(Type.LEFT_PAREN)) {
+        List<String> arguments = new ArrayList<>();
+        if (!check(Type.RIGHT_PAREN)) {
+          do {
+            arguments.add(parseExpression(body));
+          } while (match(Type.COMMA));
+        }
+        expect(Type.RIGHT_PAREN, "')' after call arguments");
+        String result = temporary();
+        List<String> call = new ArrayList<>();
+        call.add(result);
+        call.add(start.text());
+        call.addAll(arguments);
+        body.add(new Statement("call_value", call, start.line()));
+        return result;
+      }
       String result = temporary();
       body.add(statement("local_read", start.line(), result, start.text()));
       return result;

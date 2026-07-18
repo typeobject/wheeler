@@ -46,7 +46,7 @@ u32 byte_length
 u64 operands[operand_count]
 ```
 
-The opcode fixes the canonical operand count and semantic rule. Function descriptors declare their signed 64-bit frame-local register count. Local instructions cover constants, state load/store, move, checked add/subtract, XOR, equality, less-than, conditional/unconditional branch, and loop-limit check. Dynamic undo data never appears in an instruction; it belongs to runtime step records.
+The opcode fixes the canonical operand count and semantic rule. Function descriptors declare signed 64-bit parameter and frame-local register counts plus whether the function returns a value. Parameter registers occupy the first frame slots. Local instructions cover constants, state load/store, move, checked add/subtract, XOR, equality, less-than, conditional/unconditional branch, loop-limit check, static value call, and value return. A call identifies a contiguous initialized argument window, exact argument count, and caller result register. Dynamic undo data never appears in an instruction; it belongs to runtime step records.
 
 ## Quantum and workflow records
 
@@ -56,7 +56,7 @@ Quantum operations do not masquerade as mutable classical addresses. The decoder
 
 ## Verification
 
-Loading checks artifact size, magic, version, file length, directory arithmetic, canonical ordering, overlap, alignment, required sections, UTF-8, table IDs, body ranges, instruction lengths, operand counts, global and local references, control-flow targets, definite local assignment, fallthrough, function references, inverse availability, and entry halting.
+Loading checks artifact size, magic, version, file length, directory arithmetic, canonical ordering, overlap, alignment, required sections, UTF-8, table IDs, body ranges, instruction lengths, operand counts, global and local references, control-flow targets, definite local assignment, fallthrough, function signatures and references, argument initialization, return completeness, inverse availability, and entry halting.
 
 An instruction either completes and adds one rewind record or traps before data mutation. Arithmetic is checked. Limits in an artifact may reduce runtime budgets but cannot evade host ceilings.
 

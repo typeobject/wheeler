@@ -290,6 +290,7 @@ Artifact bytes, assembly, debug names, effect payloads, and persisted history ar
 - [x] The initial opcode registry is shared by compiler, VM, verifier, and tools.
 - [x] The transition kernel and bounded undo records exist.
 - [x] The verifier rejects malformed structure and semantic violations.
+- [x] Signed frame parameters, locals, value calls/returns, branch targets, definite assignment, and bounded-loop checks execute and verify.
 - [x] Bytecode and source counter fixtures run forward and inverse.
 - [x] Existing incompatible bytecode and memory paths are deleted.
 

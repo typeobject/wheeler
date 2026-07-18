@@ -30,6 +30,9 @@ public final class BytecodeVerifier {
     verifyWorkflow(program);
 
     FunctionBody entry = program.function(program.entryFunctionId());
+    if (entry.parameterCount() != 0 || entry.returnsValue()) {
+      fail("Entry function must have signature void main()");
+    }
     if (entry.forward().stream().noneMatch(instruction -> instruction.opcode() == Opcode.HALT)) {
       fail("Entry function must contain HALT");
     }
@@ -159,7 +162,25 @@ public final class BytecodeVerifier {
         verifyGlobal(program, instruction.operands().get(0), owner, pc);
         verifyGlobal(program, instruction.operands().get(1), owner, pc);
       }
-      case CALL -> program.function(Math.toIntExact(instruction.operands().getFirst()));
+      case CALL -> {
+        FunctionBody target = program.function(Math.toIntExact(instruction.operands().getFirst()));
+        if (target.parameterCount() != 0 || target.returnsValue()) {
+          fail(location(owner, pc) + " void call signature mismatch for " + target.name());
+        }
+      }
+      case CALL_VALUE -> {
+        FunctionBody target = program.function(Math.toIntExact(instruction.operands().get(0)));
+        int base = Math.toIntExact(instruction.operands().get(1));
+        int count = Math.toIntExact(instruction.operands().get(2));
+        verifyLocal(owner, instruction.operands().get(3), pc);
+        if (!target.returnsValue()
+            || count != target.parameterCount()
+            || base < 0
+            || count < 0
+            || base > owner.localCount() - count) {
+          fail(location(owner, pc) + " value call signature mismatch for " + target.name());
+        }
+      }
       case UNCALL -> {
         FunctionBody target = program.function(Math.toIntExact(instruction.operands().getFirst()));
         if (!target.reversible()) {
@@ -172,8 +193,14 @@ public final class BytecodeVerifier {
         }
       }
       case RETURN -> {
-        if (owner.id() == program.entryFunctionId()) {
-          fail(location(owner, pc) + " entry function cannot RETURN");
+        if (owner.id() == program.entryFunctionId() || owner.returnsValue()) {
+          fail(location(owner, pc) + " invalid void RETURN");
+        }
+      }
+      case RETURN_VALUE -> {
+        verifyLocal(owner, instruction.operands().getFirst(), pc);
+        if (owner.id() == program.entryFunctionId() || !owner.returnsValue()) {
+          fail(location(owner, pc) + " invalid value RETURN");
         }
       }
       case COMMIT -> {
@@ -190,6 +217,7 @@ public final class BytecodeVerifier {
   private static void verifyLocalFlow(FunctionBody owner, List<Instruction> body) {
     BitSet[] incoming = new BitSet[body.size()];
     incoming[0] = new BitSet(owner.localCount());
+    incoming[0].set(0, owner.parameterCount());
     ArrayDeque<Integer> work = new ArrayDeque<>();
     work.add(0);
     while (!work.isEmpty()) {
@@ -219,12 +247,23 @@ public final class BytecodeVerifier {
 
   private static void requireAssignedLocals(
       FunctionBody owner, Instruction instruction, int pc, BitSet assigned) {
+    if (instruction.opcode() == Opcode.CALL_VALUE) {
+      int base = Math.toIntExact(instruction.operands().get(1));
+      int count = Math.toIntExact(instruction.operands().get(2));
+      for (int local = base; local < base + count; local++) {
+        if (!assigned.get(local)) {
+          fail(location(owner, pc) + " reads uninitialized local " + local);
+        }
+      }
+      return;
+    }
     int[] reads = switch (instruction.opcode()) {
       case LOCAL_STORE_GLOBAL -> new int[] {1};
       case LOCAL_MOVE -> new int[] {1};
       case LOCAL_ADD, LOCAL_SUB, LOCAL_XOR, LOCAL_EQ, LOCAL_LT -> new int[] {1, 2};
       case JUMP_IF_ZERO -> new int[] {0};
       case LOCAL_LOOP_CHECK -> new int[] {0, 1};
+      case RETURN_VALUE -> new int[] {0};
       default -> new int[0];
     };
     for (int operandIndex : reads) {
@@ -240,13 +279,16 @@ public final class BytecodeVerifier {
       case LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, LOCAL_ADD, LOCAL_SUB,
           LOCAL_XOR, LOCAL_EQ, LOCAL_LT, LOCAL_LOOP_CHECK ->
           Math.toIntExact(instruction.operands().getFirst());
+      case CALL_VALUE -> Math.toIntExact(instruction.operands().get(3));
       default -> -1;
     };
   }
 
   private static List<Integer> successors(
       FunctionBody owner, List<Instruction> body, int pc, Instruction instruction) {
-    if (instruction.opcode() == Opcode.HALT || instruction.opcode() == Opcode.RETURN) {
+    if (instruction.opcode() == Opcode.HALT
+        || instruction.opcode() == Opcode.RETURN
+        || instruction.opcode() == Opcode.RETURN_VALUE) {
       return List.of();
     }
     if (instruction.opcode() == Opcode.JUMP) {

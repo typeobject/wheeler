@@ -38,6 +38,7 @@ public final class BytecodeReader {
       int forwardLength,
       int inverseOffset,
       int inverseLength,
+      int parameterCount,
       int localCount) {}
 
   public Program read(byte[] bytes) {
@@ -242,7 +243,7 @@ public final class BytecodeReader {
 
   private static List<FunctionDescriptor> readFunctionDescriptors(ByteBuffer section) {
     int count = readBoundedCount(section, "function", 65_535);
-    if (section.remaining() != Math.multiplyExact(count, 32)) {
+    if (section.remaining() != Math.multiplyExact(count, 40)) {
       fail("Invalid function descriptor section length");
     }
     List<FunctionDescriptor> result = new ArrayList<>(count);
@@ -255,9 +256,12 @@ public final class BytecodeReader {
       int forwardLength = section.getInt();
       int inverseOffset = section.getInt();
       int inverseLength = section.getInt();
+      int parameters = section.getInt();
       int frameSlots = section.getInt();
-      if (id < 0 || !ids.add(id) || (flags & ~3) != 0
-          || frameSlots < 0 || frameSlots > 65_535) {
+      int reserved = section.getInt();
+      if (id < 0 || !ids.add(id) || (flags & ~7) != 0
+          || parameters < 0 || frameSlots < parameters || frameSlots > 65_535
+          || reserved != 0) {
         fail("Invalid function descriptor");
       }
       result.add(new FunctionDescriptor(
@@ -268,6 +272,7 @@ public final class BytecodeReader {
           forwardLength,
           inverseOffset,
           inverseLength,
+          parameters,
           frameSlots));
     }
     return List.copyOf(result);
@@ -280,6 +285,7 @@ public final class BytecodeReader {
       checkStringId(descriptor.nameId(), strings.size());
       boolean reversible = (descriptor.flags() & 1) != 0;
       boolean coherent = (descriptor.flags() & 2) != 0;
+      boolean returnsValue = (descriptor.flags() & 4) != 0;
       List<Instruction> forward = readBody(code, descriptor.forwardOffset(), descriptor.forwardLength());
       List<Instruction> inverse = List.of();
       if (reversible) {
@@ -291,7 +297,9 @@ public final class BytecodeReader {
           descriptor.id(),
           strings.get(descriptor.nameId()),
           coherent,
+          descriptor.parameterCount(),
           descriptor.localCount(),
+          returnsValue,
           forward,
           inverse));
     }

@@ -121,6 +121,8 @@ class StateVectorTargetTest {
         "flip",
         true,
         0,
+        0,
+        false,
         List.of(Instruction.of(Opcode.XOR_CONST, 0, 1), Instruction.of(Opcode.RETURN)),
         List.of(Instruction.of(Opcode.XOR_CONST, 0, 1), Instruction.of(Opcode.RETURN)));
     QuantumRegister register = new QuantumRegister(0, "q", 1);
@@ -227,6 +229,8 @@ class StateVectorTargetTest {
         "flip",
         true,
         0,
+        0,
+        false,
         List.of(Instruction.of(Opcode.XOR_CONST, 0, 1), Instruction.of(Opcode.RETURN)),
         List.of(Instruction.of(Opcode.XOR_CONST, 0, 1), Instruction.of(Opcode.RETURN)));
     QuantumRegister register = new QuantumRegister(0, "q", 1);
@@ -242,7 +246,14 @@ class StateVectorTargetTest {
   static Program program(
       QuantumRegister register, QuantumCircuit circuit, List<FunctionBody> additionalFunctions) {
     FunctionBody main = new FunctionBody(
-        0, "main", false, 0, List.of(Instruction.of(Opcode.HALT)), List.of());
+        0,
+        "main",
+        false,
+        0,
+        0,
+        false,
+        List.of(Instruction.of(Opcode.HALT)),
+        List.of());
     List<FunctionBody> functions = new java.util.ArrayList<>();
     functions.add(main);
     functions.addAll(additionalFunctions);

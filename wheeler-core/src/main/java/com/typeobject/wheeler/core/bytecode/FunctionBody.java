@@ -8,12 +8,17 @@ public record FunctionBody(
     int id,
     String name,
     boolean coherent,
+    int parameterCount,
     int localCount,
+    boolean returnsValue,
     List<Instruction> forward,
     List<Instruction> inverse) {
   public FunctionBody {
-    if (id < 0 || localCount < 0 || localCount > 65_535) {
-      throw new IllegalArgumentException("Function ID or local count is invalid");
+    if (id < 0
+        || parameterCount < 0
+        || localCount < parameterCount
+        || localCount > 65_535) {
+      throw new IllegalArgumentException("Function ID or frame signature is invalid");
     }
     Objects.requireNonNull(name, "name");
     forward = List.copyOf(forward);

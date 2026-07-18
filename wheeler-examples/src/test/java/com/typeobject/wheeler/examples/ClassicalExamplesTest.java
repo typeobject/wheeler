@@ -33,6 +33,7 @@ class ClassicalExamplesTest {
     return Stream.of(
         Arguments.of("Counter.w", Map.of("count", 0L)),
         Arguments.of("BinaryTree.w", Map.of("root", 0L, "left", 0L, "right", 0L)),
-        Arguments.of("BootstrapControl.w", Map.of("sum", 10L, "branch", 1L)));
+        Arguments.of("BootstrapControl.w", Map.of("sum", 10L, "branch", 1L)),
+        Arguments.of("FunctionValues.w", Map.of("result", 10L)));
   }
 }

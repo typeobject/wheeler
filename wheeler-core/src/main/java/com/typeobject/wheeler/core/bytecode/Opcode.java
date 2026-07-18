@@ -16,6 +16,8 @@ public enum Opcode {
 
   CALL(0x0200, 1, Reversibility.CHECKED),
   UNCALL(0x0201, 1, Reversibility.CHECKED),
+  CALL_VALUE(0x0202, 4, Reversibility.CHECKED),
+  RETURN_VALUE(0x0203, 1, Reversibility.CHECKED),
 
   EXPECT_EQ(0x0300, 2, Reversibility.CHECKED),
   CHECKPOINT(0x0301, 0, Reversibility.INTRINSIC),

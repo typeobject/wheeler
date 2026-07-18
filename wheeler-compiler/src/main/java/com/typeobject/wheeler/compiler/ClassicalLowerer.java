@@ -24,12 +24,23 @@ final class ClassicalLowerer {
 
   private record LoweredBody(List<Instruction> instructions, int localCount) {}
 
+  private record FunctionSignature(int id, int parameterCount, boolean returnsValue) {}
+
   ClassicalContent lower(SourceProgram source, boolean classicalEntry) {
     List<Global> globals = lowerGlobals(source);
     Map<String, Integer> globalIds = indexGlobals(globals);
     Map<String, Integer> functionIds = indexFunctions(source);
     Map<String, Boolean> reversibleFunctions = new HashMap<>();
-    source.functions().forEach(function -> reversibleFunctions.put(function.name(), function.reversible()));
+    Map<String, FunctionSignature> signatures = new HashMap<>();
+    source.functions().forEach(function -> {
+      reversibleFunctions.put(function.name(), function.reversible());
+      signatures.put(
+          function.name(),
+          new FunctionSignature(
+              functionIds.get(function.name()),
+              function.parameters().size(),
+              function.returnsValue()));
+    });
 
     List<FunctionBody> functions = new ArrayList<>();
     int entryId = -1;
@@ -45,7 +56,7 @@ final class ClassicalLowerer {
         localCount = 0;
       } else {
         LoweredBody lowered = lowerStatements(
-            sourceFunction, globalIds, functionIds, reversibleFunctions);
+            sourceFunction, globalIds, functionIds, reversibleFunctions, signatures);
         forward = lowered.instructions();
         localCount = lowered.localCount();
       }
@@ -67,7 +78,14 @@ final class ClassicalLowerer {
         }
       }
       functions.add(new FunctionBody(
-          id, sourceFunction.name(), sourceFunction.coherent(), localCount, forward, inverse));
+          id,
+          sourceFunction.name(),
+          sourceFunction.coherent(),
+          sourceFunction.parameters().size(),
+          localCount,
+          sourceFunction.returnsValue(),
+          forward,
+          inverse));
     }
     return new ClassicalContent(
         globals, List.copyOf(functions), entryId, globalIds, functionIds);
@@ -108,8 +126,10 @@ final class ClassicalLowerer {
       SourceModel.Function owner,
       Map<String, Integer> globals,
       Map<String, Integer> functions,
-      Map<String, Boolean> reversibleFunctions) {
-    return new LocalAssembler(owner, globals, functions, reversibleFunctions).lower();
+      Map<String, Boolean> reversibleFunctions,
+      Map<String, FunctionSignature> signatures) {
+    return new LocalAssembler(
+        owner, globals, functions, reversibleFunctions, signatures).lower();
   }
 
   private static Instruction lowerStatement(
@@ -189,6 +209,7 @@ final class ClassicalLowerer {
     private final Map<String, Integer> globals;
     private final Map<String, Integer> functions;
     private final Map<String, Boolean> reversibleFunctions;
+    private final Map<String, FunctionSignature> signatures;
     private final Map<String, Integer> locals = new LinkedHashMap<>();
     private final Map<String, Integer> labels = new HashMap<>();
     private final List<Patch> patches = new ArrayList<>();
@@ -199,18 +220,23 @@ final class ClassicalLowerer {
         SourceModel.Function owner,
         Map<String, Integer> globals,
         Map<String, Integer> functions,
-        Map<String, Boolean> reversibleFunctions) {
+        Map<String, Boolean> reversibleFunctions,
+        Map<String, FunctionSignature> signatures) {
       this.owner = owner;
       this.globals = globals;
       this.functions = functions;
       this.reversibleFunctions = reversibleFunctions;
+      this.signatures = signatures;
+      for (String parameter : owner.parameters()) {
+        declareUser(parameter, owner.line());
+      }
     }
 
     private LoweredBody lower() {
       for (Statement statement : owner.statements()) {
         lower(statement);
       }
-      if (!owner.entry()) {
+      if (!owner.entry() && !owner.returnsValue()) {
         output.add(Instruction.of(Opcode.RETURN));
       }
       for (Patch patch : patches) {
@@ -246,6 +272,13 @@ final class ClassicalLowerer {
               Opcode.LOCAL_MOVE, destination, requireLocal(arguments.get(1), statement.line())));
         }
         case "assign" -> lowerAssignment(statement);
+        case "call_value" -> lowerValueCall(statement);
+        case "return_value" -> {
+          requireArguments(statement, 1);
+          output.add(Instruction.of(
+              Opcode.RETURN_VALUE,
+              requireLocal(statement.arguments().getFirst(), statement.line())));
+        }
         case "label" -> {
           requireArguments(statement, 1);
           if (labels.put(arguments.getFirst(), output.size()) != null) {
@@ -270,7 +303,17 @@ final class ClassicalLowerer {
               requireLocal(arguments.get(0), statement.line()),
               requireLocal(arguments.get(1), statement.line())));
         }
-        default -> output.add(lowerStatement(statement, globals, functions, reversibleFunctions));
+        default -> {
+          if ((statement.operation().equals("invoke") || statement.operation().equals("reverse"))
+              && signatures.containsKey(statement.arguments().getFirst())) {
+            FunctionSignature signature = signatures.get(statement.arguments().getFirst());
+            if (signature.parameterCount() != 0 || signature.returnsValue()) {
+              throw new CompilerException(
+                  statement.line(), "method requires a value call: " + statement.arguments().getFirst());
+            }
+          }
+          output.add(lowerStatement(statement, globals, functions, reversibleFunctions));
+        }
       }
     }
 
@@ -300,6 +343,40 @@ final class ClassicalLowerer {
           destination,
           requireLocal(arguments.get(2), statement.line()),
           requireLocal(arguments.get(3), statement.line())));
+    }
+
+    private void lowerValueCall(Statement statement) {
+      if (statement.arguments().size() < 2) {
+        throw new CompilerException(statement.line(), "malformed value call");
+      }
+      String destinationName = statement.arguments().get(0);
+      String functionName = statement.arguments().get(1);
+      FunctionSignature signature = signatures.get(functionName);
+      int argumentCount = statement.arguments().size() - 2;
+      if (signature == null
+          || !signature.returnsValue()
+          || signature.parameterCount() != argumentCount) {
+        throw new CompilerException(statement.line(), "value call signature mismatch: " + functionName);
+      }
+      int argumentBase = 0;
+      if (argumentCount > 0) {
+        argumentBase = locals.size();
+        for (int index = 0; index < argumentCount; index++) {
+          int window = declareInternal(
+              "$call" + assemblyTemporary++, statement.line());
+          output.add(Instruction.of(
+              Opcode.LOCAL_MOVE,
+              window,
+              requireLocal(statement.arguments().get(index + 2), statement.line())));
+        }
+      }
+      int destination = declareInternal(destinationName, statement.line());
+      output.add(Instruction.of(
+          Opcode.CALL_VALUE,
+          signature.id(),
+          argumentBase,
+          argumentCount,
+          destination));
     }
 
     private void lowerAssignment(Statement statement) {

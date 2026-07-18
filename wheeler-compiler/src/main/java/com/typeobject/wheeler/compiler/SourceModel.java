@@ -18,9 +18,12 @@ final class SourceModel {
       boolean entry,
       boolean reversible,
       boolean coherent,
+      List<String> parameters,
+      boolean returnsValue,
       List<Statement> statements,
       int line) {
     Function {
+      parameters = List.copyOf(parameters);
       statements = List.copyOf(statements);
     }
   }

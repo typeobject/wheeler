@@ -103,6 +103,9 @@ public final class VirtualMachine {
       throw new VmTrap("Cannot invoke a function on a finished machine");
     }
     FunctionBody function = program.function(functionId);
+    if (function.parameterCount() != 0 || function.returnsValue()) {
+      throw new VmTrap("Workflow invocation requires a void zero-argument function: " + function.name());
+    }
     if (inverse && !function.reversible()) {
       throw new VmTrap("Function has no inverse: " + function.name());
     }
@@ -170,6 +173,8 @@ public final class VirtualMachine {
     Opcode opcode = instruction.opcode();
     int changedGlobal = StepRecord.NO_GLOBAL;
     long previousValue = 0;
+    int changedLocal = StepRecord.NO_LOCAL;
+    long previousLocalValue = 0;
     StepRecord.ControlChange control = StepRecord.ControlChange.ADVANCE;
 
     switch (opcode) {
@@ -245,8 +250,32 @@ public final class VirtualMachine {
         frames.add(Frame.create(functionId, opcode == Opcode.UNCALL, target.localCount()));
         control = StepRecord.ControlChange.CALL;
       }
+      case CALL_VALUE -> {
+        int functionId = Math.toIntExact(operand(instruction, 0));
+        int argumentBase = Math.toIntExact(operand(instruction, 1));
+        int argumentCount = Math.toIntExact(operand(instruction, 2));
+        int destination = Math.toIntExact(operand(instruction, 3));
+        List<Long> arguments = new ArrayList<>(argumentCount);
+        for (int index = 0; index < argumentCount; index++) {
+          arguments.add(currentFrame().local(argumentBase + index));
+        }
+        advanceCurrentFrame();
+        FunctionBody target = program.function(functionId);
+        frames.add(Frame.create(
+            functionId, false, target.localCount(), destination, arguments));
+        control = StepRecord.ControlChange.CALL;
+      }
       case RETURN -> {
         frames.removeLast();
+        control = StepRecord.ControlChange.RETURN;
+      }
+      case RETURN_VALUE -> {
+        long result = localValue(instruction, 0);
+        int destination = frame.returnDestination();
+        frames.removeLast();
+        changedLocal = destination;
+        previousLocalValue = currentFrame().local(destination);
+        replaceCurrentFrame(currentFrame().withLocal(destination, result));
         control = StepRecord.ControlChange.RETURN;
       }
       case EXPECT_EQ, NOP, CHECKPOINT, COMMIT -> advanceCurrentFrame();
@@ -263,7 +292,9 @@ public final class VirtualMachine {
         control,
         frame,
         changedGlobal,
-        previousValue);
+        previousValue,
+        changedLocal,
+        previousLocalValue);
   }
 
   private void validateBeforeMutation(Instruction instruction) {
@@ -313,6 +344,16 @@ public final class VirtualMachine {
           Math.addExact(iteration, 1);
         }
         case CALL -> program.function(Math.toIntExact(operand(instruction, 0)));
+        case CALL_VALUE -> {
+          FunctionBody target = program.function(Math.toIntExact(operand(instruction, 0)));
+          int base = Math.toIntExact(operand(instruction, 1));
+          int count = Math.toIntExact(operand(instruction, 2));
+          localIndex(instruction, 3);
+          if (!target.returnsValue() || target.parameterCount() != count
+              || base < 0 || count < 0 || base > currentFrame().locals().size() - count) {
+            trap("Value call signature mismatch for " + target.name());
+          }
+        }
         case UNCALL -> {
           FunctionBody function = program.function(Math.toIntExact(operand(instruction, 0)));
           if (!function.reversible()) {
@@ -320,8 +361,14 @@ public final class VirtualMachine {
           }
         }
         case RETURN -> {
-          if (frames.size() <= 1) {
-            trap("Entry function cannot return");
+          if (frames.size() <= 1 || currentFrame().returnDestination() != -1) {
+            trap("Invalid void return");
+          }
+        }
+        case RETURN_VALUE -> {
+          localIndex(instruction, 0);
+          if (frames.size() <= 1 || currentFrame().returnDestination() < 0) {
+            trap("Invalid value return");
           }
         }
         case EXPECT_EQ -> {
@@ -362,11 +409,16 @@ public final class VirtualMachine {
       }
       case SET_LOGGED, LOCAL_STORE_GLOBAL ->
           globals[record.changedGlobal()] = record.previousValue();
-      case NOP, HALT, RETURN, CALL, UNCALL, EXPECT_EQ, CHECKPOINT, COMMIT,
+      case NOP, HALT, RETURN, RETURN_VALUE, CALL, UNCALL, CALL_VALUE,
+          EXPECT_EQ, CHECKPOINT, COMMIT,
           LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, LOCAL_ADD, LOCAL_SUB,
           LOCAL_XOR, LOCAL_EQ, LOCAL_LT, JUMP, JUMP_IF_ZERO, LOCAL_LOOP_CHECK -> {
         // These instructions alter only control or status state.
       }
+    }
+    if (record.changedLocal() != StepRecord.NO_LOCAL) {
+      replaceCurrentFrame(
+          currentFrame().withLocal(record.changedLocal(), record.previousLocalValue()));
     }
   }
 

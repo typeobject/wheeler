@@ -26,6 +26,7 @@ Raw provider qubits are never source values.
 ## Methods
 
 ```java
+long add(long left, long right) { return left + right; }
 void helper() { ... }
 rev void increment() { ... }
 coherent rev void flip() { ... }
@@ -33,13 +34,13 @@ unitary void qft() { ... }
 entry void main() { ... }
 ```
 
-- A normal method has a forward classical body.
+- A normal classical method may take signed `long` parameters and return `long` or `void`.
 - A `rev` method receives a compiler-validated inverse.
 - A `coherent rev` method also satisfies the exact finite subset that can become a unitary operation.
 - A `unitary` method lowers to backend-neutral quantum region IR and receives a generated adjoint.
 - Exactly one zero-argument `entry void main()` method defines execution.
 
-`public`, `private`, `protected`, and `static` are accepted where meaningful for familiar organization. Methods remain zero-argument in the current source profile. Ordinary classical methods have signed 64-bit local bindings and bounded control flow; parameters and return values require the next typed-signature slice.
+`public`, `private`, `protected`, and `static` are accepted where meaningful for familiar organization. Ordinary classical methods have signed 64-bit parameters, return values, local bindings, and bounded control flow. `rev`, `coherent rev`, and `unitary` methods remain zero-argument and `void` until their parameter ownership and inverse signatures are implemented.
 
 ## Classical statements
 
@@ -84,6 +85,8 @@ if (sum == 10) {
 ```
 
 The loop limit is evaluated once before entry. Wheeler checks it before every body iteration and traps before executing an iteration beyond the bound. The whole-program step limit remains a separate defense.
+
+Value calls evaluate arguments left to right, move them through a verified contiguous call window, initialize callee parameter registers, and place one returned value in the declared caller register. Every reachable path in a value-returning method must end in `return expression;`.
 
 Local control compiles to verified frame registers and explicit control-flow targets. The verifier rejects invalid targets, out-of-range locals, reads not definitely assigned on every incoming path, and a function that falls through its body.
 
@@ -146,7 +149,7 @@ The compiler lexer records line, column, and source offset. The parser is format
 
 ## Bootstrap direction
 
-The current compiler and VM use Java only as stage-0 infrastructure. The production compiler will be Wheeler source and must compile itself to a byte-identical second-stage `.wbc` artifact. Signed local registers and bounded classical control form the first bootstrap slice. Parameters, returns, records, variants, strings, bytes, deterministic collections, modules, and explicit file effects follow as complete vertical slices.
+The current compiler and VM use Java only as stage-0 infrastructure. The production compiler will be Wheeler source and must compile itself to a byte-identical second-stage `.wbc` artifact. Signed local registers, value parameters and returns, static calls, and bounded classical control form the first bootstrap slice. Records, variants, strings, bytes, deterministic collections, modules, and explicit file effects follow as complete vertical slices.
 
 After native runtime conformance, the Java compiler, VM, tools, Gradle build, and JVM deployment path will be deleted. A cold build will use a content-addressed prior native Wheeler release and `.wbc` recovery seed. Java APIs and object semantics are therefore not prospective Wheeler contracts.
 
@@ -164,7 +167,7 @@ The Wheeler-written standard library will provide allocation-free core values, o
 
 ## Teaching path
 
-1. `Counter.w`, `BinaryTree.w`, and `BootstrapControl.w`: reversible state, fixed-capacity data layout, typed locals, expressions, branches, and bounded loops.
+1. `Counter.w`, `BinaryTree.w`, `BootstrapControl.w`, and `FunctionValues.w`: reversible state, fixed-capacity data, typed locals, expressions, branches, bounded loops, parameters, returns, and value calls.
 2. `CoherentOracle.w` and `QuantumNeuralNetwork.w`: exact XOR permutations over classical and coherent data.
 3. `QFT.w` and `QFTProof.w`: unitary regions, generated adjoints, and executable inverse laws.
 4. `QuantumOptimizer.w`: repeated target observations, classical acceptance, commit, and target-free replay.

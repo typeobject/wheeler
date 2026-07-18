@@ -168,11 +168,13 @@ public final class BytecodeWriter {
       Program program,
       Map<String, Integer> strings,
       Map<Integer, FunctionOffsets> offsets) {
-    ByteBuffer buffer = little(4 + program.functions().size() * 32);
+    ByteBuffer buffer = little(4 + program.functions().size() * 40);
     buffer.putInt(program.functions().size());
     for (FunctionBody function : program.functions()) {
       FunctionOffsets location = offsets.get(function.id());
-      int flags = (function.reversible() ? 1 : 0) | (function.coherent() ? 2 : 0);
+      int flags = (function.reversible() ? 1 : 0)
+          | (function.coherent() ? 2 : 0)
+          | (function.returnsValue() ? 4 : 0);
       buffer.putInt(function.id());
       buffer.putInt(strings.get(function.name()));
       buffer.putInt(flags);
@@ -180,7 +182,9 @@ public final class BytecodeWriter {
       buffer.putInt(location.forwardLength());
       buffer.putInt(location.inverseOffset());
       buffer.putInt(location.inverseLength());
+      buffer.putInt(function.parameterCount());
       buffer.putInt(function.localCount());
+      buffer.putInt(0);
     }
     return buffer.array();
   }

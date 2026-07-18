@@ -11,8 +11,11 @@ public record StepRecord(
     ControlChange controlChange,
     Frame previousFrame,
     int changedGlobal,
-    long previousValue) {
+    long previousValue,
+    int changedLocal,
+    long previousLocalValue) {
   public static final int NO_GLOBAL = -1;
+  public static final int NO_LOCAL = -1;
 
   public StepRecord {
     Objects.requireNonNull(instruction, "instruction");
