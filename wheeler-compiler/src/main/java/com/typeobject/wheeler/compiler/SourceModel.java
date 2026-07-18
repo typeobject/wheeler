@@ -11,7 +11,8 @@ final class SourceModel {
 
   record RecordField(String name, String type) {}
 
-  record RecordDefinition(String name, List<RecordField> fields, int line) {
+  record RecordDefinition(
+      String name, boolean exported, List<RecordField> fields, int line) {
     RecordDefinition {
       fields = List.copyOf(fields);
     }

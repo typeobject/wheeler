@@ -19,12 +19,13 @@ class ModuleExamplesTest {
         Files.readString(directory.resolve("Arithmetic.w")),
         "src/main/wheeler/modules/ModuleMain.w",
         Files.readString(directory.resolve("ModuleMain.w")));
-    VirtualMachine machine = new VirtualMachine(
-        new WheelerCompiler().compileModuleFiles(sources, "examples.main"));
+    var program = new WheelerCompiler().compileModuleFiles(sources, "examples.main");
+    VirtualMachine machine = new VirtualMachine(program);
 
     machine.run();
 
     assertEquals(MachineStatus.HALTED, machine.status());
+    assertEquals("examples.arithmetic::Pair", program.recordTypes().getFirst().name());
     assertEquals(18, machine.global("result"));
   }
 }

@@ -1,7 +1,10 @@
 package com.typeobject.wheeler.compiler;
 
 import com.typeobject.wheeler.compiler.SourceModel.Function;
+import com.typeobject.wheeler.compiler.SourceModel.Parameter;
 import com.typeobject.wheeler.compiler.SourceModel.ProofDeclaration;
+import com.typeobject.wheeler.compiler.SourceModel.RecordDefinition;
+import com.typeobject.wheeler.compiler.SourceModel.RecordField;
 import com.typeobject.wheeler.compiler.SourceModel.SourceProgram;
 import com.typeobject.wheeler.compiler.SourceModel.Statement;
 import java.util.ArrayList;
@@ -16,6 +19,8 @@ final class SourceModuleLinker {
   static final int MAX_MODULES = 1_024;
   private static final Set<String> FUNCTION_REFERENCES =
       Set.of("invoke", "reverse", "call_value");
+  private static final Set<String> PRIMITIVE_TYPES = Set.of(
+      "void", "long", "boolean", "region", "words", "bytes", "utf8", "longmap");
 
   SourceProgram link(Map<String, SourceProgram> modules, String rootName) {
     if (modules.isEmpty() || modules.size() > MAX_MODULES) {
@@ -38,13 +43,18 @@ final class SourceModuleLinker {
       validateModule(moduleName, modules.get(moduleName), moduleName.equals(rootName));
     }
 
+    List<RecordDefinition> records = new ArrayList<>();
     List<Function> functions = new ArrayList<>();
     List<ProofDeclaration> proofs = new ArrayList<>();
     for (String moduleName : order) {
       SourceProgram module = modules.get(moduleName);
       Map<String, String> references = references(moduleName, module, modules);
+      Map<String, String> types = typeReferences(moduleName, module, modules);
+      for (RecordDefinition record : module.records()) {
+        records.add(linkRecord(moduleName, record, types));
+      }
       for (Function function : module.functions()) {
-        functions.add(linkFunction(moduleName, function, references));
+        functions.add(linkFunction(moduleName, function, references, types));
       }
       if (moduleName.equals(rootName)) {
         for (ProofDeclaration proof : module.proofs()) {
@@ -66,7 +76,7 @@ final class SourceModuleLinker {
         root.name(),
         root.kind(),
         root.states(),
-        root.records(),
+        records,
         root.variants(),
         root.arrays(),
         root.slices(),
@@ -114,15 +124,42 @@ final class SourceModuleLinker {
           ? "root module must declare exactly one entry method"
           : "dependency module cannot declare an entry method: " + expectedName);
     }
+    if (!module.arrays().isEmpty() || !module.slices().isEmpty()) {
+      fail("source modules do not yet support array or slice type APIs: " + expectedName);
+    }
+    for (RecordDefinition record : module.records()) {
+      if (record.exported()) {
+        record.fields().forEach(field ->
+            requirePublicLocalType(module, field.type(), record.line()));
+      }
+    }
+    for (Function function : module.functions()) {
+      if (function.exported()) {
+        requirePublicLocalType(module, function.returnType(), function.line());
+        function.parameters().forEach(parameter ->
+            requirePublicLocalType(module, parameter.type(), function.line()));
+      }
+    }
     if (!root && (!module.states().isEmpty()
-        || !module.records().isEmpty()
         || !module.variants().isEmpty()
-        || !module.arrays().isEmpty()
-        || !module.slices().isEmpty()
         || !module.proofs().isEmpty()
         || !module.quantumRegisters().isEmpty()
         || !module.circuits().isEmpty())) {
-      fail("dependency modules currently contain functions only: " + expectedName);
+      fail("dependency modules currently contain functions and records only: " + expectedName);
+    }
+  }
+
+  private static void requirePublicLocalType(
+      SourceProgram module, String type, int line) {
+    if (PRIMITIVE_TYPES.contains(type)) {
+      return;
+    }
+    RecordDefinition local = module.records().stream()
+        .filter(record -> record.name().equals(type))
+        .findFirst()
+        .orElse(null);
+    if (local != null && !local.exported()) {
+      throw new CompilerException(line, "public API exposes private record: " + type);
     }
   }
 
@@ -152,17 +189,57 @@ final class SourceModuleLinker {
     return Map.copyOf(result);
   }
 
+  private static Map<String, String> typeReferences(
+      String moduleName,
+      SourceProgram module,
+      Map<String, SourceProgram> modules) {
+    Map<String, String> result = new LinkedHashMap<>();
+    Set<String> localNames = new HashSet<>();
+    for (RecordDefinition record : module.records()) {
+      localNames.add(record.name());
+      result.put(record.name(), linkedName(moduleName, record.name()));
+    }
+    for (String importedName : module.imports()) {
+      for (RecordDefinition record : modules.get(importedName).records()) {
+        if (!record.exported() || localNames.contains(record.name())) {
+          continue;
+        }
+        String prior = result.putIfAbsent(
+            record.name(), linkedName(importedName, record.name()));
+        if (prior != null) {
+          fail("ambiguous imported record " + record.name() + " in " + moduleName);
+        }
+      }
+    }
+    return Map.copyOf(result);
+  }
+
+  private static RecordDefinition linkRecord(
+      String moduleName, RecordDefinition record, Map<String, String> types) {
+    List<RecordField> fields = record.fields().stream()
+        .map(field -> new RecordField(
+            field.name(), resolveType(types, field.type(), record.line())))
+        .toList();
+    return new RecordDefinition(
+        linkedName(moduleName, record.name()), record.exported(), fields, record.line());
+  }
+
   private static Function linkFunction(
-      String moduleName, Function function, Map<String, String> references) {
+      String moduleName,
+      Function function,
+      Map<String, String> references,
+      Map<String, String> types) {
     List<Statement> statements = new ArrayList<>(function.statements().size());
     for (Statement statement : function.statements()) {
-      if (!FUNCTION_REFERENCES.contains(statement.operation())) {
-        statements.add(statement);
-        continue;
-      }
-      int target = statement.operation().equals("call_value") ? 1 : 0;
       List<String> arguments = new ArrayList<>(statement.arguments());
-      arguments.set(target, resolve(references, arguments.get(target), statement.line()));
+      if (FUNCTION_REFERENCES.contains(statement.operation())) {
+        int target = statement.operation().equals("call_value") ? 1 : 0;
+        arguments.set(target, resolve(references, arguments.get(target), statement.line()));
+      } else if (statement.operation().equals("local_bind")) {
+        arguments.set(2, resolveType(types, arguments.get(2), statement.line()));
+      } else if (statement.operation().equals("record_new")) {
+        arguments.set(1, resolveType(types, arguments.get(1), statement.line()));
+      }
       statements.add(new Statement(statement.operation(), arguments, statement.line()));
     }
     return new Function(
@@ -171,10 +248,25 @@ final class SourceModuleLinker {
         function.entry(),
         function.reversible(),
         function.coherent(),
-        function.parameters(),
-        function.returnType(),
+        function.parameters().stream()
+            .map(parameter -> new Parameter(
+                parameter.name(), resolveType(types, parameter.type(), function.line())))
+            .toList(),
+        resolveType(types, function.returnType(), function.line()),
         statements,
         function.line());
+  }
+
+  private static String resolveType(
+      Map<String, String> references, String name, int line) {
+    if (PRIMITIVE_TYPES.contains(name)) {
+      return name;
+    }
+    String resolved = references.get(name);
+    if (resolved == null) {
+      throw new CompilerException(line, "unresolved or non-public module type: " + name);
+    }
+    return resolved;
   }
 
   private static String resolve(Map<String, String> references, String name, int line) {

@@ -4,7 +4,8 @@ classical class ModuleMain {
     state long result = 0;
 
     entry void main() {
-        result = twice(9);
+        Pair selected = pair(9);
+        result = selected.right;
         assert result == 18;
     }
 }

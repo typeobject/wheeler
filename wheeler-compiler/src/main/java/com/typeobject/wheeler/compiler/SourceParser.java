@@ -127,7 +127,7 @@ final class SourceParser extends SourceStatementParser {
       exported |= advance().text().equals("public");
     }
     if (matchText("record")) {
-      parseRecord(previous());
+      parseRecord(previous(), exported);
       return;
     }
     if (matchText("variant")) {
@@ -149,9 +149,10 @@ final class SourceParser extends SourceStatementParser {
     parseMethod(exported);
   }
 
-  private void parseRecord(SourceToken start) {
+  private void parseRecord(SourceToken start, boolean exported) {
     String name = expect(Type.IDENTIFIER, "record name").text();
-    if (isValueType(name) || records.stream().anyMatch(record -> record.name().equals(name))) {
+    if (!isNominalName(name) || isValueType(name)
+        || records.stream().anyMatch(record -> record.name().equals(name))) {
       fail(start, "duplicate or reserved record type: " + name);
     }
     expect(Type.LEFT_PAREN, "'(' after record name");
@@ -160,7 +161,8 @@ final class SourceParser extends SourceStatementParser {
     if (!check(Type.RIGHT_PAREN)) {
       do {
         SourceToken type = expect(Type.IDENTIFIER, "record field type");
-        if (!type.text().equals("long") && !type.text().equals("boolean")
+        if (moduleName == null
+            && !type.text().equals("long") && !type.text().equals("boolean")
             && records.stream().noneMatch(record -> record.name().equals(type.text()))) {
           fail(type, "record field type must be scalar or previously declared record");
         }
@@ -177,7 +179,7 @@ final class SourceParser extends SourceStatementParser {
     expect(Type.RIGHT_PAREN, "')' after record fields");
     expect(Type.LEFT_BRACE, "'{' in record declaration");
     expect(Type.RIGHT_BRACE, "'}' in record declaration");
-    records.add(new RecordDefinition(name, fields, start.line()));
+    records.add(new RecordDefinition(name, exported, fields, start.line()));
   }
 
   private void parseVariant(SourceToken start) {
@@ -765,6 +767,9 @@ final class SourceParser extends SourceStatementParser {
           .findFirst().orElse(null);
       String caseName = null;
       boolean array = arrays.stream().anyMatch(candidate -> candidate.name().equals(typeName));
+      if (moduleName != null && !record && !array && variant == null) {
+        record = true;
+      }
       if (!record && !array && variant != null) {
         expect(Type.DOT, "'.' before variant case");
         caseName = expect(Type.IDENTIFIER, "variant case after new").text();
@@ -875,7 +880,8 @@ final class SourceParser extends SourceStatementParser {
 
   private String parseValueType(String description) {
     SourceToken element = expect(Type.IDENTIFIER, description);
-    if (!isValueType(element.text())) {
+    if (!isValueType(element.text())
+        && (moduleName == null || !isNominalName(element.text()))) {
       fail(element, "expected declared " + description);
     }
     if (!match(Type.LEFT_BRACKET)) {
@@ -908,7 +914,14 @@ final class SourceParser extends SourceStatementParser {
   }
 
   private boolean checkLocalType() {
-    return check(Type.IDENTIFIER) && isValueType(peek().text());
+    return check(Type.IDENTIFIER)
+        && (isValueType(peek().text())
+            || (moduleName != null && isNominalName(peek().text())
+                && lookaheadType(1) == Type.IDENTIFIER));
+  }
+
+  private static boolean isNominalName(String name) {
+    return !name.isEmpty() && name.charAt(0) >= 'A' && name.charAt(0) <= 'Z';
   }
 
   private boolean isValueType(String name) {
