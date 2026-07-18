@@ -122,6 +122,42 @@ classical class Manifest {
         return false;
     }
 
+    private boolean targetKindValid(
+        utf8 source,
+        words starts,
+        words lengths
+    ) {
+        long hash = tokenHash(source, starts, lengths, 8);
+        if (hash == 96801) {
+            return true;
+        }
+        if (hash == 98950456507) {
+            return true;
+        }
+        if (hash == 3565976) {
+            return true;
+        }
+        if (hash == 3556498) {
+            return true;
+        }
+        return hash == 93166309738;
+    }
+
+    private boolean dependencyKindValid(
+        utf8 source,
+        words starts,
+        words lengths
+    ) {
+        long hash = tokenHash(source, starts, lengths, 14);
+        if (hash == 3255221479) {
+            return true;
+        }
+        if (hash == 84736749587766587) {
+            return true;
+        }
+        return hash == 94094958;
+    }
+
     private boolean targetValid(
         utf8 source,
         words kinds,
@@ -133,7 +169,7 @@ classical class Manifest {
             starts[11] + 1,
             lengths[11] - 2);
         if (keywordAt(source, starts, lengths, 7, 3414061457)) {
-            if (keywordAt(source, starts, lengths, 8, 93166309738)) {
+            if (targetKindValid(source, starts, lengths)) {
                 if (quoted(kinds, lengths, 9)) {
                     if (keywordAt(source, starts, lengths, 10, 3506402)) {
                         if (quoted(kinds, lengths, 11)) {
@@ -165,7 +201,7 @@ classical class Manifest {
             lengths[17] - 2);
         if (keywordAt(
                 source, starts, lengths, 13, 2733278506177355)) {
-            if (keywordAt(source, starts, lengths, 14, 104630177752)) {
+            if (dependencyKindValid(source, starts, lengths)) {
                 if (quoted(kinds, lengths, 15)) {
                     if (validName) {
                         if (keywordAt(

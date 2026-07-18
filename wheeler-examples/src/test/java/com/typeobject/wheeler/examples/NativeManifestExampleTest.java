@@ -30,7 +30,7 @@ class NativeManifestExampleTest {
     String source =
         "package \"demo.native\" version \"1.2.3-rc.1\" profile \"bootstrap-1\"; "
             + "target example \"app\" root \"src/App.w\"; "
-            + "dependency runtime \"demo.base\" version \"^1.0.0\"; "
+            + "dependency normal \"demo.base\" version \"^1.0.0\"; "
             + "capability \"fixture\" path \"test-data\";";
     String input = source.replace("; target", ";   target");
     VirtualMachine machine = vm(program, input);
@@ -59,10 +59,21 @@ class NativeManifestExampleTest {
     }
     assertEquals(initial, machine.snapshot());
 
+    for (String kind : new String[] {"app", "library", "tool", "test"}) {
+      assertRunsCanonical(
+          program,
+          source.replace("target example", "target " + kind));
+    }
+    for (String kind : new String[] {"development", "build"}) {
+      assertRunsCanonical(
+          program,
+          source.replace("dependency normal", "dependency " + kind));
+    }
+
     String malformedSource =
         "project \"demo.native\" version \"1.2.3\" profile \"bootstrap-1\"; "
             + "target example \"app\" root \"src/App.w\"; "
-            + "dependency runtime \"demo.base\" version \"^1.0.0\"; "
+            + "dependency normal \"demo.base\" version \"^1.0.0\"; "
             + "capability \"fixture\" path \"test-data\";";
     assertTraps(program, malformedSource);
     assertTraps(program, source.replace("1.2.3-rc.1", "01.2.3"));
@@ -72,8 +83,16 @@ class NativeManifestExampleTest {
     assertTraps(program, source.replace("1.2.3-rc.1", "1.2.3-01"));
     assertTraps(program, source.replace("demo.native", "Demo.native"));
     assertTraps(program, source.replace("demo.base", "demo.-base"));
+    assertTraps(program, source.replace("target example", "target quantum"));
+    assertTraps(program, source.replace("dependency normal", "dependency runtime"));
     assertTraps(program, source.replace("src/App.w", "src/../App.w"));
     assertTraps(program, source.replace("test-data", "test\\data"));
+  }
+
+  private static void assertRunsCanonical(Program program, String input) {
+    VirtualMachine machine = vm(program, input);
+    machine.run();
+    assertEquals(input, new String(machine.hostOutput(), StandardCharsets.UTF_8));
   }
 
   private static void assertTraps(Program program, String input) {
