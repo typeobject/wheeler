@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
+import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.proof.ProofRule;
 import com.typeobject.wheeler.core.vm.MachineStatus;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
@@ -22,8 +23,19 @@ class ClassicalExamplesTest {
   void checkedInClassicalExamplesCompileEncodeAndRun(String file, Map<String, Long> expected)
       throws Exception {
     Path source = Path.of("src/main/wheeler", file);
-    byte[] artifact = new WheelerCompiler().compileToBytecode(Files.readString(source));
-    var program = new BytecodeReader().read(artifact);
+    WheelerCompiler compiler = new WheelerCompiler();
+    Program program;
+    if (file.equals("LongMap.w")) {
+      program = compiler.compileModuleFiles(
+          Map.of(
+              "LongMap.w", Files.readString(source),
+              "CoreLongMap.w", Files.readString(
+                  CoreSources.path("collections/LongMap.w"))),
+          "examples.collections.long_map_main");
+    } else {
+      byte[] artifact = compiler.compileToBytecode(Files.readString(source));
+      program = new BytecodeReader().read(artifact);
+    }
     VirtualMachine machine = new VirtualMachine(program);
     var initial = machine.snapshot();
 

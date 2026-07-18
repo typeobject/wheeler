@@ -9,7 +9,7 @@ target deployable "frozenutf8" root "src/main/wheeler/FrozenUtf8.w";
 target deployable "functionvalues" root "src/main/wheeler/FunctionValues.w";
 target deployable "hostbinaryinput" root "src/main/wheeler/HostBinaryInput.w";
 target deployable "hostinput" root "src/main/wheeler/HostInput.w";
-target deployable "longmap" root "src/main/wheeler/LongMap.w";
+target deployable "longmap" root "src/main/wheeler/LongMap.w" module "examples.collections.long_map_main" source "src/main/wheeler/LongMap.w";
 target deployable "loopcontrol" root "src/main/wheeler/LoopControl.w";
 target deployable "moduleexample" root "src/main/wheeler/modules/ModuleMain.w" module "examples.main" source "src/main/wheeler/modules/Arithmetic.w" source "src/main/wheeler/modules/Collections.w" source "src/main/wheeler/modules/ModuleMain.w" source "src/main/wheeler/modules/Results.w";
 target deployable "nativearchive" root "src/main/wheeler/NativeArchive.w" module "examples.packages.archive_main" source "src/main/wheeler/NativeArchive.w";

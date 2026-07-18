@@ -1,22 +1,12 @@
-//! Deterministic bounded signed map with update, membership, lookup, and drop.
+//! Exercises canonical deterministic operations over a caller-owned bounded signed map.
+
+module examples.collections.long_map_main;
+import wheeler.core.collections.long_map;
 classical class LongMap {
     state long selected = 0;
     state long present = 0;
     state long missing = 0;
     state long zeroKey = 0;
-
-    long write(longmap values, long key, long value) {
-        put(values, key, value);
-        return mapGet(values, key);
-    }
-
-    long replace(longmap values, long key, long value) {
-        return write(values, key, value);
-    }
-
-    boolean contains(longmap values, long key) {
-        return mapHas(values, key);
-    }
 
     /// Runs the bounded `LongMap` fixture.
     ///
@@ -26,10 +16,10 @@ classical class LongMap {
         longmap values = allocateMap(arena, 4);
         put(values, 7, 11);
         put(values, 9, 13);
-        selected = replace(values, 7, 17);
-        zeroKey = write(values, 0, 5);
-        boolean hasNine = contains(values, 9);
-        boolean hasThree = contains(values, 3);
+        selected = putAndGet(values, 7, 17);
+        zeroKey = putAndGet(values, 0, 5);
+        boolean hasNine = containsKey(values, 9);
+        boolean hasThree = containsKey(values, 3);
         if (hasNine) {
             present = 1;
         } else {

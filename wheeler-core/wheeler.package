@@ -1,4 +1,4 @@
 package "wheeler.core" version "0.1.0" profile "bootstrap-1";
-target library "library" root "src/main/wheeler/CoreLibrary.w" module "wheeler.core.library" source "src/main/wheeler/CoreLibrary.w" source "src/main/wheeler/collections/LongQueue.w";
+target library "library" root "src/main/wheeler/CoreLibrary.w" module "wheeler.core.library" source "src/main/wheeler/CoreLibrary.w" source "src/main/wheeler/collections/LongMap.w" source "src/main/wheeler/collections/LongQueue.w";
 capability "build.read" path "src/main/wheeler/**";
 capability "build.write" path "out/**";
