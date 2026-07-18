@@ -20,6 +20,7 @@ class NativeManifestExampleTest {
         Map.of(
             "NativeManifest.w", Files.readString(root.resolve("NativeManifest.w")),
             "Manifest.w", Files.readString(root.resolve("packages/Manifest.w")),
+            "Semver.w", Files.readString(root.resolve("packages/Semver.w")),
             "Scanner.w", Files.readString(root.resolve("lexer/Scanner.w"))),
         "examples.packages.main");
     String source =
@@ -61,5 +62,16 @@ class NativeManifestExampleTest {
             + "path \"test-data\";")
             .getBytes(StandardCharsets.UTF_8));
     assertThrows(VmTrap.class, malformed::run);
+
+    VirtualMachine invalidVersion = new VirtualMachine(
+        program,
+        source.replace("1.2.3", "01.2.3").getBytes(StandardCharsets.UTF_8));
+    assertThrows(VmTrap.class, invalidVersion::run);
+
+    VirtualMachine oversizedVersion = new VirtualMachine(
+        program,
+        source.replace("1.2.3", "9223372036854775808.2.3")
+            .getBytes(StandardCharsets.UTF_8));
+    assertThrows(VmTrap.class, oversizedVersion::run);
   }
 }
