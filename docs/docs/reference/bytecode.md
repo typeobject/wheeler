@@ -46,7 +46,7 @@ u32 byte_length
 u64 operands[operand_count]
 ```
 
-The opcode fixes the canonical operand count and semantic rule. Each 40-byte function descriptor declares parameter and local counts, result presence, code ranges, and a canonical offset into the trailing local-type table. Type offsets are contiguous in function order. One byte per register currently denotes signed 64-bit (`1`) or Boolean (`2`); unknown codes and noncanonical table lengths fail before verification. Parameter registers occupy the first frame slots and are signed in this bootstrap profile.
+The opcode fixes the canonical operand count and semantic rule. Each 40-byte function descriptor declares parameter and local counts, an optional signed or Boolean result, code ranges, and a canonical offset into the trailing local-type table. Type offsets are contiguous in function order. One byte per register currently denotes signed 64-bit (`1`) or Boolean (`2`); unknown codes and noncanonical table lengths fail before verification. Parameter registers occupy the first frame slots and carry their declared signed or Boolean type. Result flag `4` denotes signed, flag `8` denotes Boolean, and setting both is malformed.
 
 Local instructions cover constants, state load/store, move, checked add/subtract, typed XOR, equality, less-than, conditional/unconditional branch, loop-limit check, static value call, and value return. Boolean registers contain only `0` or `1`. Equality and ordering produce Boolean values, and branch conditions consume them. A call identifies a contiguous initialized argument window, exact argument count, and caller result register. Dynamic undo data never appears in an instruction; it belongs to runtime step records.
 
@@ -58,7 +58,7 @@ Quantum operations do not masquerade as mutable classical addresses. The decoder
 
 ## Verification
 
-Loading checks artifact size, magic, version, file length, directory arithmetic, canonical ordering, overlap, alignment, required sections, UTF-8, table IDs, body ranges, instruction lengths, operand counts, global and local references, local type codes and operand compatibility, Boolean normalization, control-flow targets, definite local assignment, fallthrough, function signatures and references, argument initialization, return completeness, inverse availability, and entry halting.
+Loading checks artifact size, magic, version, file length, directory arithmetic, canonical ordering, overlap, alignment, required sections, UTF-8, table IDs, body ranges, instruction lengths, operand counts, global and local references, local type codes and operand compatibility, Boolean normalization, control-flow targets, definite local assignment, fallthrough, typed function signatures and references, argument initialization, result compatibility, return completeness, inverse availability, and entry halting.
 
 An instruction either completes and adds one rewind record or traps before data mutation. Arithmetic is checked. Limits in an artifact may reduce runtime budgets but cannot evade host ceilings.
 

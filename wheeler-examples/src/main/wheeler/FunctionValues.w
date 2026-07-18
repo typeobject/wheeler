@@ -1,9 +1,13 @@
-// Typed parameters, return values, nested expressions, and static value calls.
+// Signed and Boolean parameters/results, nested expressions, and typed static calls.
 classical class FunctionValues {
     state long result = 0;
 
     long add(long left, long right) {
         return left + right;
+    }
+
+    boolean same(boolean left, boolean right) {
+        return left == right;
     }
 
     long triangular(long limit) {
@@ -19,7 +23,12 @@ classical class FunctionValues {
     entry void main() {
         long base = add(2, 3);
         long total = triangular(base);
-        result = total;
+        boolean valid = same(total == 10, true);
+        if (valid) {
+            result = total;
+        } else {
+            result = 0;
+        }
         assert result == 10;
     }
 }

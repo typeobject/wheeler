@@ -25,7 +25,16 @@ final class ClassicalLowerer {
 
   private record LoweredBody(List<Instruction> instructions, List<ValueType> localTypes) {}
 
-  private record FunctionSignature(int id, int parameterCount, boolean returnsValue) {}
+  private record FunctionSignature(
+      int id, List<ValueType> parameterTypes, ValueType resultType) {
+    int parameterCount() {
+      return parameterTypes.size();
+    }
+
+    boolean returnsValue() {
+      return resultType != null;
+    }
+  }
 
   ClassicalContent lower(SourceProgram source, boolean classicalEntry) {
     List<Global> globals = lowerGlobals(source);
@@ -39,8 +48,10 @@ final class ClassicalLowerer {
           function.name(),
           new FunctionSignature(
               functionIds.get(function.name()),
-              function.parameters().size(),
-              function.returnsValue()));
+              function.parameters().stream()
+                  .map(parameter -> sourceType(parameter.type(), function.line()))
+                  .toList(),
+              function.returnsValue() ? sourceType(function.returnType(), function.line()) : null));
     });
 
     List<FunctionBody> functions = new ArrayList<>();
@@ -84,7 +95,9 @@ final class ClassicalLowerer {
           sourceFunction.coherent(),
           sourceFunction.parameters().size(),
           localTypes,
-          sourceFunction.returnsValue(),
+          sourceFunction.returnsValue()
+              ? sourceType(sourceFunction.returnType(), sourceFunction.line())
+              : null,
           forward,
           inverse));
     }
@@ -196,6 +209,14 @@ final class ClassicalLowerer {
     return id;
   }
 
+  private static ValueType sourceType(String type, int line) {
+    return switch (type) {
+      case "long" -> ValueType.SIGNED;
+      case "boolean" -> ValueType.BOOLEAN;
+      default -> throw new CompilerException(line, "unsupported value type: " + type);
+    };
+  }
+
   private static void requireArguments(Statement statement, int count) {
     if (statement.arguments().size() != count) {
       throw new CompilerException(
@@ -229,8 +250,8 @@ final class ClassicalLowerer {
       this.functions = functions;
       this.reversibleFunctions = reversibleFunctions;
       this.signatures = signatures;
-      for (String parameter : owner.parameters()) {
-        declareUser(parameter, owner.line(), ValueType.SIGNED);
+      for (SourceModel.Parameter parameter : owner.parameters()) {
+        declareUser(parameter.name(), owner.line(), sourceType(parameter.type(), owner.line()));
       }
     }
 
@@ -287,7 +308,7 @@ final class ClassicalLowerer {
         case "return_value" -> {
           requireArguments(statement, 1);
           int result = requireLocal(statement.arguments().getFirst(), statement.line());
-          requireType(result, ValueType.SIGNED, statement.line());
+          requireType(result, sourceType(owner.returnType(), statement.line()), statement.line());
           output.add(Instruction.of(Opcode.RETURN_VALUE, result));
         }
         case "label" -> {
@@ -396,13 +417,15 @@ final class ClassicalLowerer {
         argumentBase = locals.size();
         for (int index = 0; index < argumentCount; index++) {
           int source = requireLocal(statement.arguments().get(index + 2), statement.line());
-          requireType(source, ValueType.SIGNED, statement.line());
+          ValueType parameterType = signature.parameterTypes().get(index);
+          requireType(source, parameterType, statement.line());
           int window = declareInternal(
-              "$call" + assemblyTemporary++, statement.line(), ValueType.SIGNED);
+              "$call" + assemblyTemporary++, statement.line(), parameterType);
           output.add(Instruction.of(Opcode.LOCAL_MOVE, window, source));
         }
       }
-      int destination = declareInternal(destinationName, statement.line(), ValueType.SIGNED);
+      int destination = declareInternal(
+          destinationName, statement.line(), signature.resultType());
       output.add(Instruction.of(
           Opcode.CALL_VALUE,
           signature.id(),
@@ -445,14 +468,6 @@ final class ClassicalLowerer {
       output.add(Instruction.of(
           assignmentOpcode(operator, statement.line()), temporary, temporary, value));
       output.add(Instruction.of(Opcode.LOCAL_STORE_GLOBAL, global, temporary));
-    }
-
-    private static ValueType sourceType(String type, int line) {
-      return switch (type) {
-        case "long" -> ValueType.SIGNED;
-        case "boolean" -> ValueType.BOOLEAN;
-        default -> throw new CompilerException(line, "unsupported local type: " + type);
-      };
     }
 
     private static Opcode binaryOpcode(String operator, int line) {

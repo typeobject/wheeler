@@ -12,6 +12,7 @@ import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.ValueType;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class WheelerCompilerTest {
@@ -90,6 +91,35 @@ class WheelerCompilerTest {
     assertTrue(program.function(program.entryFunctionId()).localCount() > 0);
     assertTrue(program.function(program.entryFunctionId()).localTypes()
         .contains(ValueType.BOOLEAN));
+  }
+
+  @Test
+  void booleanParametersAndResultsRoundTripAndExecute() {
+    Program program = new WheelerCompiler().compile("""
+        classical class Predicates {
+          state long result = 0;
+          boolean same(boolean left, boolean right) { return left == right; }
+          entry void main() {
+            boolean equal = same(true, true);
+            if (equal) { result = 1; } else { result = 2; }
+            assert result == 1;
+          }
+        }
+        """);
+    Program decoded = new BytecodeReader().read(new BytecodeWriter().write(program));
+    var predicate = decoded.functions().stream()
+        .filter(function -> function.name().equals("same"))
+        .findFirst()
+        .orElseThrow();
+    VirtualMachine machine = new VirtualMachine(decoded);
+
+    machine.run();
+
+    assertEquals(ValueType.BOOLEAN, predicate.resultType());
+    assertEquals(
+        List.of(ValueType.BOOLEAN, ValueType.BOOLEAN),
+        predicate.localTypes().subList(0, predicate.parameterCount()));
+    assertEquals(1, machine.global("result"));
   }
 
   @Test

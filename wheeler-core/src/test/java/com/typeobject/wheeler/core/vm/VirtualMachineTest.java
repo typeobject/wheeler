@@ -87,7 +87,7 @@ class VirtualMachineTest {
         false,
         0,
         List.of(),
-        false,
+        null,
         List.of(
             Instruction.of(Opcode.ADD_CONST, 0, 1),
             Instruction.of(Opcode.ADD_CONST, 0, 1),
@@ -121,7 +121,7 @@ class VirtualMachineTest {
             false,
             0,
             List.of(),
-            false,
+            null,
             List.of(Instruction.of(Opcode.ADD_CONST, 0, 1), Instruction.of(Opcode.HALT)),
             List.of())));
     VirtualMachine machine = new VirtualMachine(program);
@@ -144,7 +144,7 @@ class VirtualMachineTest {
             ValueType.SIGNED,
             ValueType.BOOLEAN,
             ValueType.SIGNED),
-        false,
+        null,
         List.of(
             Instruction.of(Opcode.LOCAL_CONST, 0, 0),
             Instruction.of(Opcode.LOCAL_CONST, 1, 5),
@@ -190,7 +190,7 @@ class VirtualMachineTest {
         false,
         0,
         List.of(ValueType.SIGNED, ValueType.SIGNED, ValueType.SIGNED),
-        false,
+        null,
         List.of(
             Instruction.of(Opcode.LOCAL_CONST, 0, 4),
             Instruction.of(Opcode.LOCAL_CONST, 1, 5),
@@ -204,7 +204,7 @@ class VirtualMachineTest {
         false,
         2,
         List.of(ValueType.SIGNED, ValueType.SIGNED, ValueType.SIGNED),
-        true,
+        ValueType.SIGNED,
         List.of(
             Instruction.of(Opcode.LOCAL_ADD, 2, 0, 1),
             Instruction.of(Opcode.RETURN_VALUE, 2)),
@@ -255,6 +255,6 @@ class VirtualMachineTest {
         0,
         List.of(new Global("value", 7)),
         List.of(new FunctionBody(
-            0, "main", false, 0, List.of(), false, instructions, List.of())));
+            0, "main", false, 0, List.of(), null, instructions, List.of())));
   }
 }

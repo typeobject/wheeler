@@ -109,10 +109,22 @@ class SourceProfileNegativeTest {
     CompilerException condition = assertThrows(
         CompilerException.class,
         () -> compile("state long value = 0;", "if (1) { value = 1; }"));
+    CompilerException argument = assertThrows(
+        CompilerException.class,
+        () -> compile(
+            "state long value = 0; boolean identity(boolean input) { return input; }",
+            "boolean result = identity(1); if (result) { value = 1; }"));
+    CompilerException result = assertThrows(
+        CompilerException.class,
+        () -> compile(
+            "state long value = 0; boolean identity(boolean input) { return input; }",
+            "long result = identity(true); value = result;"));
 
     assertTrue(booleanBinding.getMessage().contains("expected boolean expression"));
     assertTrue(signedBinding.getMessage().contains("expected signed expression"));
     assertTrue(condition.getMessage().contains("expected boolean expression"));
+    assertTrue(argument.getMessage().contains("expected boolean expression"));
+    assertTrue(result.getMessage().contains("expected signed expression"));
   }
 
   @Test

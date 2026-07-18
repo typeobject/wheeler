@@ -291,7 +291,7 @@ Artifact bytes, assembly, debug names, effect payloads, and persisted history ar
 - [x] The transition kernel and bounded undo records exist.
 - [x] The verifier rejects malformed structure and semantic violations.
 - [x] Major version 2 stores canonical signed/Boolean local type tables; the decoder has no legacy untyped-local path.
-- [x] Signed frame parameters/returns, signed and Boolean locals, value calls, branch targets, definite assignment, and bounded-loop checks execute and verify.
+- [x] Signed and Boolean frame parameters, results, locals, typed value calls, branch targets, definite assignment, and bounded-loop checks execute and verify.
 - [x] Bytecode and source counter fixtures run forward and inverse.
 - [x] Existing incompatible bytecode and memory paths are deleted.
 

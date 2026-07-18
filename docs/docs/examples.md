@@ -9,7 +9,7 @@ The examples are deliberately bounded. They demonstrate implemented semantics an
 | [`Counter.w`](../../wheeler-examples/src/main/wheeler/Counter.w) | Generated inverse calls and reverse-block order | `count = 0` |
 | [`BinaryTree.w`](../../wheeler-examples/src/main/wheeler/BinaryTree.w) | Fixed-capacity reversible tree slots | `root = left = right = 0` |
 | [`BootstrapControl.w`](../../wheeler-examples/src/main/wheeler/BootstrapControl.w) | Typed signed and Boolean local registers, expressions, branch joins, and source-bounded loop | `sum = 10`, `branch = 1` |
-| [`FunctionValues.w`](../../wheeler-examples/src/main/wheeler/FunctionValues.w) | Signed parameters, return values, nested expressions, static value calls, and callee loop | `result = 10` |
+| [`FunctionValues.w`](../../wheeler-examples/src/main/wheeler/FunctionValues.w) | Signed and Boolean parameters/results, nested expressions, typed static value calls, and callee loop | `result = 10` |
 | [`RecursiveValue.w`](../../wheeler-examples/src/main/wheeler/RecursiveValue.w) | Recursive signed value call under frame and step ceilings | `result = 6` |
 | [`CoherentOracle.w`](../../wheeler-examples/src/main/wheeler/CoherentOracle.w) | One XOR function over classical and coherent data | `bit = 0`, `measured = 1` |
 | [`QFT.w`](../../wheeler-examples/src/main/wheeler/QFT.w) | Three-qubit quantum Fourier transform and generated adjoint | `measured = 5` |

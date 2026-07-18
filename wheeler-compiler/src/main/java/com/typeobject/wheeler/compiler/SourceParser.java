@@ -2,6 +2,7 @@ package com.typeobject.wheeler.compiler;
 
 import com.typeobject.wheeler.compiler.SourceModel.Circuit;
 import com.typeobject.wheeler.compiler.SourceModel.Function;
+import com.typeobject.wheeler.compiler.SourceModel.Parameter;
 import com.typeobject.wheeler.compiler.SourceModel.QuantumRegisterSource;
 import com.typeobject.wheeler.compiler.SourceModel.SourceProgram;
 import com.typeobject.wheeler.compiler.SourceModel.State;
@@ -104,7 +105,8 @@ final class SourceParser {
     boolean entry = false;
     SourceToken start = peek();
 
-    while (!checkText("void") && !checkText("long") && !check(Type.END)) {
+    while (!checkText("void") && !checkText("long") && !checkText("boolean")
+        && !check(Type.END)) {
       String modifier = expect(Type.IDENTIFIER, "method modifier or void").text();
       switch (modifier) {
         case "static" -> { /* Accepted for Java familiarity; entry remains statically owned. */ }
@@ -115,17 +117,23 @@ final class SourceParser {
         default -> fail(previous(), "unsupported method modifier: " + modifier);
       }
     }
-    boolean returnsValue = matchText("long");
-    if (!returnsValue) {
-      expectText("void");
+    SourceToken returnToken = expect(Type.IDENTIFIER, "method return type");
+    String returnType = returnToken.text();
+    if (!Set.of("void", "long", "boolean").contains(returnType)) {
+      fail(returnToken, "expected void, long, or boolean return type");
     }
+    boolean returnsValue = !returnType.equals("void");
     String name = expect(Type.IDENTIFIER, "method name").text();
     expect(Type.LEFT_PAREN, "'(' after method name");
-    List<String> parameters = new ArrayList<>();
+    List<Parameter> parameters = new ArrayList<>();
     if (!check(Type.RIGHT_PAREN)) {
       do {
-        expectText("long");
-        parameters.add(expect(Type.IDENTIFIER, "parameter name").text());
+        SourceToken type = expect(Type.IDENTIFIER, "parameter type");
+        if (!type.text().equals("long") && !type.text().equals("boolean")) {
+          fail(type, "expected long or boolean parameter type");
+        }
+        parameters.add(new Parameter(
+            expect(Type.IDENTIFIER, "parameter name").text(), type.text()));
       } while (match(Type.COMMA));
     }
     expect(Type.RIGHT_PAREN, "')' after parameters");
@@ -149,7 +157,7 @@ final class SourceParser {
       circuits.add(parseCircuit(name, start.line()));
     } else {
       functions.add(parseFunction(
-          name, entry, reversible, coherent, parameters, returnsValue, start.line()));
+          name, entry, reversible, coherent, parameters, returnType, start.line()));
     }
   }
 
@@ -158,12 +166,12 @@ final class SourceParser {
       boolean entry,
       boolean reversible,
       boolean coherent,
-      List<String> parameters,
-      boolean returnsValue,
+      List<Parameter> parameters,
+      String returnType,
       int line) {
     List<Statement> body = new ArrayList<>();
     structuredStatements = !reversible && (!entry || domain.equals("classical"));
-    valueReturnsAllowed = returnsValue;
+    valueReturnsAllowed = !returnType.equals("void");
     temporarySequence = 0;
     labelSequence = 0;
     while (!check(Type.RIGHT_BRACE) && !check(Type.END)) {
@@ -212,7 +220,7 @@ final class SourceParser {
       body.add(statement("halt", line));
     }
     return new Function(
-        name, entry, reversible, coherent, parameters, returnsValue, body, line);
+        name, entry, reversible, coherent, parameters, returnType, body, line);
   }
 
   private void parseReturn(List<Statement> body, SourceToken start) {

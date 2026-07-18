@@ -240,9 +240,9 @@ A feature that cannot express or simplify one of these modules needs separate ju
 
 - [x] Stage-0 VM has explicit immutable call frames, checked calls, bounded steps, snapshots, and rewind records.
 - [x] Source and bytecode distinguish state fields from function control.
-- [ ] Signed parameter/return and signed-or-Boolean local signatures are encoded and verified; Boolean parameters/results and aggregate type tables remain.
+- [x] Signed and Boolean parameter, local, and optional result signatures are canonically encoded and verified.
 - [x] Local constants, state load/store, move, arithmetic, comparison, branches, loop checks, value calls, and value returns execute and rewind.
-- [ ] Signed parameters and returns, typed signed/Boolean local bindings, expressions, static calls, `if`/`else`, and bounded `while` compile end to end; `for`, early conditional return, and aggregate types remain.
+- [ ] Typed signed/Boolean parameters, returns, local bindings, expressions, static calls, `if`/`else`, and bounded `while` compile end to end; `for`, early conditional return, and aggregate types remain.
 - [ ] Records, variants, arrays, and slices execute with ownership checks.
 - [ ] Region storage supports compiler arenas under hard limits.
 - [ ] Reversible protected control forms generate checked inverses.
@@ -253,7 +253,7 @@ A feature that cannot express or simplify one of these modules needs separate ju
 
 - [ ] Bytecode rejects unknown register types, type-mismatched operands and calls, invalid Boolean constants and conditions, uninitialized reads, target escapes, bad joins, bad returns, and malformed loop descriptors; scalar types, local bounds, definite assignment, branch targets, and fallthrough are covered.
 - [x] VM tests cover the initial signed-local instruction set forward and rewind, including loop and arithmetic traps before mutation.
-- [ ] Calls cover copy, move, borrow, return, inverse, recursion ceiling, and nested trap behavior; signed argument/result transfer, recursive execution, 1,024-frame exhaustion, and rewind are covered.
+- [ ] Calls cover exact signed/Boolean argument and result transfer, recursive execution, 1,024-frame exhaustion, and rewind; aggregate copy, move, borrow, inverse signatures, and nested trap behavior remain.
 - [ ] Branch tests cover both paths, join assignment, unreachable blocks, early return, and source diagnostics.
 - [ ] Loop tests cover zero, exact bound, exceeded bound, break, continue, nested loops, and global step defense.
 - [ ] Reversible methods reject unprotected branch/loop forms and accept only forms with checked inverse laws.

@@ -20,6 +20,10 @@ public final class Disassembler {
     }
     for (FunctionBody function : program.functions()) {
       output.append("\nfunction ").append(function.id()).append(' ').append(function.name());
+      if (function.returnsValue()) {
+        output.append(" result=")
+            .append(function.resultType().name().toLowerCase(java.util.Locale.ROOT));
+      }
       if (function.coherent()) {
         output.append(" coherent");
       }

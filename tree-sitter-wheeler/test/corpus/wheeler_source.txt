@@ -273,8 +273,12 @@ classical class Values {
   long add(long left, long right) {
     return left + right;
   }
+  boolean same(boolean left, boolean right) {
+    return left == right;
+  }
   entry void main() {
     long result = add(2, 3);
+    boolean valid = same(true, true);
   }
 }
 
@@ -285,6 +289,23 @@ classical class Values {
     (computation_domain)
     (identifier)
     (class_body
+      (member_declaration
+        (method_declaration
+          (identifier)
+          (parameter_list
+            (parameter
+              (identifier))
+            (parameter
+              (identifier)))
+          (block
+            (statement
+              (return_statement
+                (expression
+                  (binary_expression
+                    (expression
+                      (identifier))
+                    (expression
+                      (identifier)))))))))
       (member_declaration
         (method_declaration
           (identifier)
@@ -318,4 +339,15 @@ classical class Values {
                       (expression
                         (integer_literal))
                       (expression
-                        (integer_literal)))))))))))))
+                        (integer_literal)))))))
+            (statement
+              (local_declaration
+                (identifier)
+                (expression
+                  (call_expression
+                    (identifier)
+                    (argument_list
+                      (expression
+                        (boolean_literal))
+                      (expression
+                        (boolean_literal)))))))))))))

@@ -3,14 +3,14 @@ package com.typeobject.wheeler.core.bytecode;
 import java.util.List;
 import java.util.Objects;
 
-/** A function, typed register signature, and optional validated inverse body. */
+/** A function with typed registers, a nullable void/result type, and an optional inverse body. */
 public record FunctionBody(
     int id,
     String name,
     boolean coherent,
     int parameterCount,
     List<ValueType> localTypes,
-    boolean returnsValue,
+    ValueType resultType,
     List<Instruction> forward,
     List<Instruction> inverse) {
   public FunctionBody {
@@ -21,16 +21,16 @@ public record FunctionBody(
         || localTypes.size() > 65_535) {
       throw new IllegalArgumentException("Function ID or frame signature is invalid");
     }
-    for (int index = 0; index < parameterCount; index++) {
-      if (localTypes.get(index) != ValueType.SIGNED) {
-        throw new IllegalArgumentException("Bootstrap parameters must be signed registers");
-      }
-    }
     Objects.requireNonNull(name, "name");
     forward = List.copyOf(forward);
     inverse = List.copyOf(inverse);
   }
 
+
+
+  public boolean returnsValue() {
+    return resultType != null;
+  }
 
   public int localCount() {
     return localTypes.size();

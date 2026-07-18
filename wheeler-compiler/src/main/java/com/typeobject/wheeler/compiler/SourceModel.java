@@ -7,6 +7,8 @@ final class SourceModel {
 
   record QuantumRegisterSource(String name, int qubits, int line) {}
 
+  record Parameter(String name, String type) {}
+
   record Statement(String operation, List<String> arguments, int line) {
     Statement {
       arguments = List.copyOf(arguments);
@@ -18,13 +20,17 @@ final class SourceModel {
       boolean entry,
       boolean reversible,
       boolean coherent,
-      List<String> parameters,
-      boolean returnsValue,
+      List<Parameter> parameters,
+      String returnType,
       List<Statement> statements,
       int line) {
     Function {
       parameters = List.copyOf(parameters);
       statements = List.copyOf(statements);
+    }
+
+    boolean returnsValue() {
+      return !returnType.equals("void");
     }
   }
 

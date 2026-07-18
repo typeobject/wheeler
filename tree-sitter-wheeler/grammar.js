@@ -48,7 +48,7 @@ module.exports = grammar({
 
     method_declaration: $ => seq(
       repeat($.method_modifier),
-      field('return_type', choice('void', 'long')),
+      field('return_type', choice('void', 'long', 'boolean')),
       field('name', $.identifier),
       field('parameters', $.parameter_list),
       field('body', $.block),
@@ -61,7 +61,10 @@ module.exports = grammar({
       optional(seq($.parameter, repeat(seq(',', $.parameter)))),
       ')',
     ),
-    parameter: $ => seq('long', field('name', $.identifier)),
+    parameter: $ => seq(
+      field('type', choice('long', 'boolean')),
+      field('name', $.identifier),
+    ),
     block: $ => seq('{', repeat($.statement), '}'),
 
     statement: $ => choice(

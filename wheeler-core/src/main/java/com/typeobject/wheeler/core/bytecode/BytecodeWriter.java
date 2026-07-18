@@ -174,9 +174,14 @@ public final class BytecodeWriter {
     int typeOffset = 0;
     for (FunctionBody function : program.functions()) {
       FunctionOffsets location = offsets.get(function.id());
+      int resultFlag = switch (function.resultType()) {
+        case SIGNED -> 4;
+        case BOOLEAN -> 8;
+        case null -> 0;
+      };
       int flags = (function.reversible() ? 1 : 0)
           | (function.coherent() ? 2 : 0)
-          | (function.returnsValue() ? 4 : 0);
+          | resultFlag;
       buffer.putInt(function.id());
       buffer.putInt(strings.get(function.name()));
       buffer.putInt(flags);

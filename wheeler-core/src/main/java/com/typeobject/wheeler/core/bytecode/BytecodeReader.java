@@ -273,7 +273,7 @@ public final class BytecodeReader {
       int parameters = section.getInt();
       int frameSlots = section.getInt();
       int typeOffset = section.getInt();
-      if (id < 0 || !ids.add(id) || (flags & ~7) != 0
+      if (id < 0 || !ids.add(id) || (flags & ~15) != 0 || (flags & 12) == 12
           || parameters < 0 || frameSlots < parameters || frameSlots > 65_535
           || typeOffset != expectedTypeOffset) {
         fail("Invalid function descriptor");
@@ -323,7 +323,12 @@ public final class BytecodeReader {
       checkStringId(descriptor.nameId(), strings.size());
       boolean reversible = (descriptor.flags() & 1) != 0;
       boolean coherent = (descriptor.flags() & 2) != 0;
-      boolean returnsValue = (descriptor.flags() & 4) != 0;
+      ValueType resultType = switch (descriptor.flags() & 12) {
+        case 0 -> null;
+        case 4 -> ValueType.SIGNED;
+        case 8 -> ValueType.BOOLEAN;
+        default -> throw new BytecodeException("Invalid function result type flags");
+      };
       List<Instruction> forward = readBody(code, descriptor.forwardOffset(), descriptor.forwardLength());
       List<Instruction> inverse = List.of();
       if (reversible) {
@@ -337,7 +342,7 @@ public final class BytecodeReader {
           coherent,
           descriptor.parameterCount(),
           descriptor.localTypes(),
-          returnsValue,
+          resultType,
           forward,
           inverse));
     }

@@ -34,13 +34,13 @@ unitary void qft() { ... }
 entry void main() { ... }
 ```
 
-- A normal classical method may take signed `long` parameters and return `long` or `void`.
+- A normal classical method may take typed `long` or `boolean` parameters and return `long`, `boolean`, or `void`.
 - A `rev` method receives a compiler-validated inverse.
 - A `coherent rev` method also satisfies the exact finite subset that can become a unitary operation.
 - A `unitary` method lowers to backend-neutral quantum region IR and receives a generated adjoint.
 - Exactly one zero-argument `entry void main()` method defines execution.
 
-`public`, `private`, `protected`, and `static` are accepted where meaningful for familiar organization. Ordinary classical methods have signed 64-bit parameters and return values, typed signed or Boolean local bindings, and bounded control flow. `rev`, `coherent rev`, and `unitary` methods remain zero-argument and `void` until their parameter ownership and inverse signatures are implemented.
+`public`, `private`, `protected`, and `static` are accepted where meaningful for familiar organization. Ordinary classical methods have typed signed or Boolean parameters, return values, and local bindings, plus bounded control flow. `rev`, `coherent rev`, and `unitary` methods remain zero-argument and `void` until their parameter ownership and inverse signatures are implemented.
 
 ## Classical statements
 
@@ -87,7 +87,7 @@ if (complete) {
 
 The loop limit is evaluated once before entry. Wheeler checks it before every body iteration and traps before executing an iteration beyond the bound. The whole-program step limit remains a separate defense.
 
-Value calls evaluate arguments left to right, move them through a verified contiguous call window, initialize callee parameter registers, and place one returned value in the declared caller register. Every reachable path in a value-returning method must end in `return expression;`. Static recursion is permitted under the VM's hard 1,024-frame ceiling and the program step ceiling.
+Value calls evaluate arguments left to right, move them through a verified contiguous typed call window, initialize callee parameter registers, and place one signed or Boolean result in a caller register of the exact declared type. Every reachable path in a value-returning method must end in `return expression;`. Static recursion is permitted under the VM's hard 1,024-frame ceiling and the program step ceiling.
 
 Local control compiles to verified typed frame registers and explicit control-flow targets. The function descriptor stores one canonical type code per register. The verifier rejects unknown type codes, invalid targets, out-of-range locals, reads not definitely assigned on every incoming path, operand or call type mismatches, non-Boolean conditions, invalid Boolean constants, and a function that falls through its body.
 
@@ -150,7 +150,7 @@ The compiler lexer records line, column, and source offset. The parser is format
 
 ## Bootstrap direction
 
-The current compiler and VM use Java only as stage-0 infrastructure. The production compiler will be Wheeler source and must compile itself to a byte-identical second-stage `.wbc` artifact. Signed local registers, value parameters and returns, static calls, and bounded classical control form the first bootstrap slice. Records, variants, strings, bytes, deterministic collections, modules, and explicit file effects follow as complete vertical slices.
+The current compiler and VM use Java only as stage-0 infrastructure. The production compiler will be Wheeler source and must compile itself to a byte-identical second-stage `.wbc` artifact. Signed and Boolean registers, typed value parameters and returns, static calls, and bounded classical control form the first bootstrap slice. Records, variants, strings, bytes, deterministic collections, modules, and explicit file effects follow as complete vertical slices.
 
 After native runtime conformance, the Java compiler, VM, tools, Gradle build, and JVM deployment path will be deleted. A cold build will use a content-addressed prior native Wheeler release and `.wbc` recovery seed. Java APIs and object semantics are therefore not prospective Wheeler contracts.
 

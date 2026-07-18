@@ -233,14 +233,14 @@ class HybridRunTest {
 
   private static Program program() {
     FunctionBody entry = new FunctionBody(
-        0, "main", false, 0, List.of(), false, List.of(Instruction.of(Opcode.HALT)), List.of());
+        0, "main", false, 0, List.of(), null, List.of(Instruction.of(Opcode.HALT)), List.of());
     FunctionBody consume = new FunctionBody(
         1,
         "consume",
         false,
         0,
         List.of(),
-        false,
+        null,
         List.of(Instruction.of(Opcode.XOR_CONST, 0, 1), Instruction.of(Opcode.RETURN)),
         List.of());
     List<WorkflowStep> workflow = List.of(

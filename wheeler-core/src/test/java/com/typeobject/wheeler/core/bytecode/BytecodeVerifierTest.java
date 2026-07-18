@@ -24,7 +24,7 @@ class BytecodeVerifierTest {
         false,
         0,
         List.of(ValueType.SIGNED),
-        false,
+        null,
         List.of(
             Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
             Instruction.of(Opcode.HALT)),
@@ -35,7 +35,7 @@ class BytecodeVerifierTest {
         false,
         0,
         List.of(),
-        false,
+        null,
         List.of(Instruction.of(Opcode.JUMP, 7), Instruction.of(Opcode.HALT)),
         List.of());
 
@@ -79,7 +79,7 @@ class BytecodeVerifierTest {
 
   private static FunctionBody typedMain(
       List<ValueType> types, List<Instruction> instructions) {
-    return new FunctionBody(0, "main", false, 0, types, false, instructions, List.of());
+    return new FunctionBody(0, "main", false, 0, types, null, instructions, List.of());
   }
 
   private static Program programWith(Instruction instruction) {
@@ -89,7 +89,7 @@ class BytecodeVerifierTest {
         false,
         0,
         List.of(),
-        false,
+        null,
         List.of(instruction, Instruction.of(Opcode.HALT)),
         List.of()));
   }

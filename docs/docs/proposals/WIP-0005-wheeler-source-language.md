@@ -116,10 +116,10 @@ The first profile supports:
 
 - one top-level computation-domain class;
 - `state long` and `qreg` fields;
-- signed `long` parameters and returns for ordinary classical methods; zero-argument `void` entry, reversible, coherent, and unitary methods;
+- signed `long` and `boolean` parameters and returns for ordinary classical methods; zero-argument `void` entry, reversible, coherent, and unitary methods;
 - `rev`, `coherent rev`, `unitary`, and `entry` methods;
 - `+=`, `-=`, `^=`, direct logged assignment, method calls, assertions, checkpoint, and commit;
-- signed `long` and `boolean` locals, typed left-to-right arithmetic/comparison expressions, static signed value calls, `return`, `if`/`else`, and `while (...) limit ...` in ordinary classical methods;
+- signed `long` and `boolean` locals, typed left-to-right arithmetic/comparison expressions, static typed value calls, `return`, `if`/`else`, and `while (...) limit ...` in ordinary classical methods;
 - direct inverse calls and reverse blocks;
 - H, X, Z, phase, controlled phase, CNOT, CZ, and swap gates;
 - `prepare`, full-register computational-basis measurement, unitary call/adjoint, and coherent method reference;
@@ -174,7 +174,7 @@ The parser bounds source bytes, lines, declarations, methods, statements, regist
 ## Progress
 
 - [x] Wheeler class, field, and method declarations parse.
-- [x] Classical state, signed/Boolean locals, bounded control flow, and reverse blocks lower to WIP-0001 major version 2 typed frames.
+- [x] Classical state, signed/Boolean parameters, results, locals, bounded control flow, and reverse blocks lower to WIP-0001 major version 2 typed frames.
 - [x] Unitary methods and quantum entry operations lower to WIP-0002.
 - [x] Coherent method references execute on classical and simulated quantum data.
 - [x] Counter, QFT, and coherent-oracle examples use only the Wheeler source profile.

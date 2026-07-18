@@ -209,7 +209,6 @@ public final class BytecodeVerifier {
         int base = Math.toIntExact(instruction.operands().get(1));
         int count = Math.toIntExact(instruction.operands().get(2));
         int destination = verifyLocal(owner, instruction.operands().get(3), pc);
-        requireType(owner, destination, ValueType.SIGNED, pc);
         if (!target.returnsValue()
             || count != target.parameterCount()
             || base < 0
@@ -217,6 +216,7 @@ public final class BytecodeVerifier {
             || base > owner.localCount() - count) {
           fail(location(owner, pc) + " value call signature mismatch for " + target.name());
         }
+        requireType(owner, destination, target.resultType(), pc);
         for (int argument = 0; argument < count; argument++) {
           if (owner.localType(base + argument) != target.localType(argument)) {
             fail(location(owner, pc) + " value call argument type mismatch for " + target.name());
@@ -241,10 +241,10 @@ public final class BytecodeVerifier {
       }
       case RETURN_VALUE -> {
         int source = verifyLocal(owner, instruction.operands().getFirst(), pc);
-        requireType(owner, source, ValueType.SIGNED, pc);
         if (owner.id() == program.entryFunctionId() || !owner.returnsValue()) {
           fail(location(owner, pc) + " invalid value RETURN");
         }
+        requireType(owner, source, owner.resultType(), pc);
       }
       case COMMIT -> {
         if (inverseBody) {

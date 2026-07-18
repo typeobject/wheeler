@@ -69,7 +69,7 @@ class BytecodeCodecTest {
         false,
         0,
         java.util.List.of(ValueType.BOOLEAN),
-        false,
+        null,
         java.util.List.of(
             Instruction.of(Opcode.LOCAL_CONST, 0, 1),
             Instruction.of(Opcode.HALT)),
@@ -91,7 +91,11 @@ class BytecodeCodecTest {
       }
     }
     unknownType[functionOffset + 4 + 40] = 99;
+    byte[] conflictingResultTypes = artifact.clone();
+    ByteBuffer.wrap(conflictingResultTypes).order(ByteOrder.LITTLE_ENDIAN)
+        .putInt(functionOffset + 4 + 8, 12);
     assertThrows(BytecodeException.class, () -> reader.read(unknownType));
+    assertThrows(BytecodeException.class, () -> reader.read(conflictingResultTypes));
   }
 
   @Test
