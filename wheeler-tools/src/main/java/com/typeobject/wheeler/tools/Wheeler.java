@@ -21,6 +21,7 @@ import com.typeobject.wheeler.runtime.quantum.StateVectorTarget;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -70,19 +71,30 @@ public final class Wheeler {
   }
 
   private static int run(String[] args, PrintStream out, PrintStream error) throws Exception {
-    if (args.length != 2) {
-      error.println("Usage: wheeler run <program.wbc>");
+    Program program;
+    if (args.length == 2
+        && Files.isRegularFile(Path.of(args[1]), LinkOption.NOFOLLOW_LINKS)
+        && !Files.isSymbolicLink(Path.of(args[1]))) {
+      program = new BytecodeReader().read(Files.readAllBytes(Path.of(args[1])));
+    } else if (args.length == 4 && args[2].equals("--target")) {
+      program = PackageProject.load(Path.of(args[1])).compileRunnable(args[3]);
+    } else {
+      error.println(
+          "Usage: wheeler run <program.wbc> | <package-directory> --target <target>");
       return 2;
     }
-    Program program = new BytecodeReader().read(Files.readAllBytes(Path.of(args[1])));
-    ExecutionResult result = new WheelerRuntime().execute(program, new StateVectorTarget());
+    printExecution(program, new WheelerRuntime().execute(program, new StateVectorTarget()), out);
+    return 0;
+  }
+
+  private static void printExecution(
+      Program program, ExecutionResult result, PrintStream out) {
     out.println(program.name() + " (" + program.kind().name().toLowerCase()
         + ") halted after " + result.workflowSteps() + " steps");
     result.globals().forEach((name, value) -> out.println(name + " = " + value));
     if (!result.measurements().isEmpty()) {
       out.println("measurements = " + result.measurements());
     }
-    return 0;
   }
 
   private static int compile(String[] args, PrintStream out, PrintStream error) throws Exception {

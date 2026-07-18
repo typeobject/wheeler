@@ -53,6 +53,8 @@ class WheelerCommandTest {
     new BytecodeReader().read(Files.readAllBytes(artifact));
 
     assertEquals(0, Wheeler.execute(new String[] {"run", artifact.toString()}, stdout, stderr));
+    assertEquals(0, Wheeler.execute(
+        new String[] {"run", project.toString(), "--target", "counter"}, stdout, stderr));
     Path archivePath = temporary.resolve("demo.wpk");
     assertEquals(0, Wheeler.execute(
         new String[] {"package", project.toString(), "-o", archivePath.toString()},

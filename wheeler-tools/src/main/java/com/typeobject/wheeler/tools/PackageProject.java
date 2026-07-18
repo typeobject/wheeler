@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.tools;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
+import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.packageformat.BuildPlan;
 import com.typeobject.wheeler.packageformat.PackageManifest.TargetKind;
 import com.typeobject.wheeler.runtime.WheelerRuntime;
@@ -58,6 +59,18 @@ final class PackageProject {
     for (PackageManifest.Target target : manifest.targets()) {
       compiler.compile(source(target));
     }
+  }
+
+  Program compileRunnable(String targetName) throws IOException {
+    PackageManifest.Target selected = manifest.targets().stream()
+        .filter(target -> target.name().equals(targetName))
+        .findFirst()
+        .orElseThrow(() -> new PackageFormatException("Unknown package target " + targetName));
+    if (selected.kind() == TargetKind.LIBRARY || selected.kind() == TargetKind.TEST) {
+      throw new PackageFormatException(
+          "Target is not directly runnable: " + selected.name());
+    }
+    return new WheelerCompiler().compile(source(selected));
   }
 
   int test() throws IOException {
