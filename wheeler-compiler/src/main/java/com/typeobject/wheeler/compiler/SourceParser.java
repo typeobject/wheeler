@@ -602,22 +602,25 @@ final class SourceParser extends SourceStatementParser {
     List<MatchCase> parsed = new ArrayList<>();
     while (!check(Type.RIGHT_BRACE) && !check(Type.END)) {
       expectText("case");
-      SourceToken type = expect(Type.IDENTIFIER, "variant type in case");
+      SourceToken type = peek();
+      String typeName = SourceValueTypeParser.parseNominalReference(
+          this, "variant type in case");
       expect(Type.DOT, "'.' before variant case");
       SourceToken caseName = expect(Type.IDENTIFIER, "variant case name");
       expect(Type.LEFT_PAREN, "'(' after variant case");
       List<Parameter> bindings = new ArrayList<>();
       if (!check(Type.RIGHT_PAREN)) {
         do {
-          SourceToken bindingType = expect(Type.IDENTIFIER, "payload binding type");
+          String bindingType = SourceValueTypeParser.parseNominalReference(
+              this, "payload binding type");
           bindings.add(new Parameter(
-              expect(Type.IDENTIFIER, "payload binding name").text(), bindingType.text()));
+              expect(Type.IDENTIFIER, "payload binding name").text(), bindingType));
         } while (match(Type.COMMA));
       }
       expect(Type.RIGHT_PAREN, "')' after payload bindings");
       List<Statement> caseBody = new ArrayList<>();
       parseStructuredBlock(caseBody, "case");
-      parsed.add(new MatchCase(type.text(), caseName.text(), bindings, caseBody, type.line()));
+      parsed.add(new MatchCase(typeName, caseName.text(), bindings, caseBody, type.line()));
     }
     expect(Type.RIGHT_BRACE, "'}' after match cases");
     VariantDefinition variant = validateMatch(parsed, start);
@@ -789,7 +792,11 @@ final class SourceParser extends SourceStatementParser {
       boolean record = records.stream().anyMatch(candidate -> candidate.name().equals(typeName));
       VariantDefinition variant = variants.stream()
           .filter(candidate -> candidate.name().equals(typeName))
-          .findFirst().orElse(null);
+          .findFirst()
+          .orElseGet(() -> importedVariants.stream()
+              .filter(candidate -> candidate.name().equals(typeName))
+              .findFirst()
+              .orElse(null));
       String caseName = null;
       boolean array = arrays.stream().anyMatch(candidate -> candidate.name().equals(typeName));
       if (moduleName != null && !record && !array && variant == null) {
@@ -893,7 +900,9 @@ final class SourceParser extends SourceStatementParser {
   private boolean checkLocalType() {
     return check(Type.IDENTIFIER)
         && (isValueType(peek().text())
-            || (moduleName != null && isNominalName(peek().text())));
+            || (moduleName != null
+                && (isNominalName(peek().text())
+                    || SourceValueTypeParser.isQualifiedLocalDeclaration(this))));
   }
 
   private static boolean isNominalName(String name) {

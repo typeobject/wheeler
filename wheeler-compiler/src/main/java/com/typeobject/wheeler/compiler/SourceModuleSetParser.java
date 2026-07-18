@@ -56,7 +56,14 @@ final class SourceModuleSetParser {
     for (String dependency : header.imports()) {
       parsed.get(dependency).variants().stream()
           .filter(VariantDefinition::exported)
-          .forEach(importedVariants::add);
+          .forEach(variant -> {
+            importedVariants.add(variant);
+            importedVariants.add(new VariantDefinition(
+                dependency + "::" + variant.name(),
+                true,
+                variant.cases(),
+                variant.line()));
+          });
     }
     SourceProgram module =
         new SourceParser(importedVariants).parse(sources.get(name), false);

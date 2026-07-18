@@ -37,5 +37,6 @@ class ModuleExamplesTest {
     assertEquals(15, machine.global("sliceValue"));
     assertEquals(8, machine.global("nominalArrayValue"));
     assertEquals(26, machine.global("nominalSliceValue"));
+    assertEquals(1, machine.global("qualifiedVariant"));
   }
 }

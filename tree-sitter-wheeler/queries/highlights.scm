@@ -12,6 +12,7 @@
 (variant_declaration name: (identifier) @type)
 (match_case type: (identifier) @type)
 (type_identifier) @type
+(qualified_type) @type
 (method_declaration name: (identifier) @function.method)
 (theorem_declaration name: (identifier) @function)
 (theorem_declaration subject: (identifier) @function.method)

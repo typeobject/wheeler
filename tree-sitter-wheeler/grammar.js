@@ -137,7 +137,11 @@ module.exports = grammar({
       ')',
     ),
     value_type: $ => seq(
-      choice('long', 'boolean', 'region', 'words', 'bytes', 'longmap', 'utf8', alias($.identifier, $.type_identifier)),
+      choice(
+        'long', 'boolean', 'region', 'words', 'bytes', 'longmap', 'utf8',
+        alias($.identifier, $.type_identifier),
+        $.qualified_type,
+      ),
       optional($.array_extent),
     ),
     array_extent: $ => seq('[', optional(field('length', $.integer_literal)), ']'),
@@ -174,7 +178,7 @@ module.exports = grammar({
     ),
     match_case: $ => seq(
       'case',
-      field('type', $.identifier),
+      field('type', choice($.identifier, $.qualified_type)),
       '.',
       field('case', $.identifier),
       field('bindings', $.parameter_list),
@@ -297,7 +301,10 @@ module.exports = grammar({
       ')',
     ),
     qualified_function: _ => token(
-      /[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*::[A-Za-z_][A-Za-z0-9_]*/,
+      /[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*::[a-z_][A-Za-z0-9_]*/,
+    ),
+    qualified_type: _ => token(
+      /[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*::[A-Z][A-Za-z0-9_]*/,
     ),
     argument_list: $ => seq($.expression, repeat(seq(',', $.expression))),
 

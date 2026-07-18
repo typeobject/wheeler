@@ -251,34 +251,43 @@ final class SourceModuleLinker {
       Map<String, SourceProgram> modules) {
     Map<String, String> result = new LinkedHashMap<>();
     Set<String> localNames = new HashSet<>();
+    Set<String> ambiguous = new HashSet<>();
     for (RecordDefinition record : module.records()) {
       localNames.add(record.name());
-      result.put(record.name(), linkedName(moduleName, record.name()));
+      String linked = linkedName(moduleName, record.name());
+      result.put(record.name(), linked);
+      result.put(linked, linked);
     }
     for (VariantDefinition variant : module.variants()) {
       localNames.add(variant.name());
-      result.put(variant.name(), linkedName(moduleName, variant.name()));
+      String linked = linkedName(moduleName, variant.name());
+      result.put(variant.name(), linked);
+      result.put(linked, linked);
     }
     for (String importedName : module.imports()) {
       SourceProgram imported = modules.get(importedName);
       for (RecordDefinition record : imported.records()) {
-        addImportedType(result, localNames, moduleName, importedName,
+        addImportedType(result, localNames, ambiguous, importedName,
             record.name(), record.exported());
       }
       for (VariantDefinition variant : imported.variants()) {
-        addImportedType(result, localNames, moduleName, importedName,
+        addImportedType(result, localNames, ambiguous, importedName,
             variant.name(), variant.exported());
       }
       imported.arrays().forEach(array -> {
         String element = importedElementType(importedName, imported, array.elementType());
         if (element != null) {
-          result.putIfAbsent(array.name(), element + "[" + array.length() + "]");
+          String linked = element + "[" + array.length() + "]";
+          result.putIfAbsent(array.name(), linked);
+          result.put(importedName + "::" + array.name(), linked);
         }
       });
       imported.slices().forEach(slice -> {
         String element = importedElementType(importedName, imported, slice.elementType());
         if (element != null) {
-          result.putIfAbsent(slice.name(), element + "[]");
+          String linked = element + "[]";
+          result.putIfAbsent(slice.name(), linked);
+          result.put(importedName + "::" + slice.name(), linked);
         }
       });
     }
@@ -308,16 +317,22 @@ final class SourceModuleLinker {
   private static void addImportedType(
       Map<String, String> result,
       Set<String> localNames,
-      String moduleName,
+      Set<String> ambiguous,
       String importedName,
       String typeName,
       boolean exported) {
-    if (!exported || localNames.contains(typeName)) {
+    if (!exported) {
       return;
     }
-    String prior = result.putIfAbsent(typeName, linkedName(importedName, typeName));
-    if (prior != null) {
-      fail("ambiguous imported type " + typeName + " in " + moduleName);
+    String linked = linkedName(importedName, typeName);
+    result.put(linked, linked);
+    if (localNames.contains(typeName) || ambiguous.contains(typeName)) {
+      return;
+    }
+    String prior = result.putIfAbsent(typeName, linked);
+    if (prior != null && !prior.equals(linked)) {
+      result.remove(typeName);
+      ambiguous.add(typeName);
     }
   }
 

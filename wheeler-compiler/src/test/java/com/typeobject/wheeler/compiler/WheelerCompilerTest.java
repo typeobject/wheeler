@@ -106,11 +106,17 @@ class WheelerCompilerTest {
   void qualifiedCallsResolveCollidingDirectExports() {
     String left = """
         module side.left;
-        classical class Left { public long value() { return 7; } }
+        classical class Left {
+          public record Value(long data) {}
+          public Value make() { return new Value(7); }
+        }
         """;
     String right = """
         module side.right;
-        classical class Right { public long value() { return 11; } }
+        classical class Right {
+          public record Value(long data) {}
+          public Value make() { return new Value(11); }
+        }
         """;
     String root = """
         module side.root;
@@ -119,7 +125,9 @@ class WheelerCompilerTest {
         classical class Root {
           state long result = 0;
           entry void main() {
-            result = side.left::value() + side.right::value();
+            side.left::Value left = side.left::make();
+            side.right::Value right = side.right::make();
+            result = left.data + right.data;
             assert result == 18;
           }
         }

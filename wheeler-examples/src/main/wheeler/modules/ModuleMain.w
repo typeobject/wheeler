@@ -9,25 +9,32 @@ classical class ModuleMain {
     state long sliceValue = 0;
     state long nominalArrayValue = 0;
     state long nominalSliceValue = 0;
+    state long qualifiedVariant = 0;
 
     entry void main() {
         Pair selected = pair(9);
         result = selected.right;
-        Pair second = pair(4);
-        Pair[2] pairs = new Pair[2](selected, second);
-        Pair[] pairSlice = slice(pairs, 0, 2);
+        examples.arithmetic::Pair second = pair(4);
+        examples.arithmetic::Pair[2] pairs =
+            new examples.arithmetic::Pair[2](selected, second);
+        examples.arithmetic::Pair[] pairSlice = slice(pairs, 0, 2);
         nominalArrayValue = examples.arithmetic::lastRight(pairs);
         nominalSliceValue = rightTotal(pairSlice, 2);
         long[3] values = new long[3](4, 5, 6);
         long[] all = slice(values, 0, 3);
         arrayValue = examples.collections::middle(values);
         sliceValue = total(all, 3);
-        Outcome outcome = classify(9);
+        examples.results::Outcome outcome = classify(9);
+        examples.results::Outcome manual =
+            new examples.results::Outcome.Value(9);
+        if (outcome == manual) {
+            qualifiedVariant = 1;
+        }
         match (outcome) {
-            case Outcome.Error(long offset) {
+            case examples.results::Outcome.Error(long offset) {
                 decoded = 0 - offset;
             }
-            case Outcome.Value(long value) {
+            case examples.results::Outcome.Value(long value) {
                 decoded = value;
             }
         }
@@ -37,5 +44,6 @@ classical class ModuleMain {
         assert sliceValue == 15;
         assert nominalArrayValue == 8;
         assert nominalSliceValue == 26;
+        assert qualifiedVariant == 1;
     }
 }
