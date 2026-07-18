@@ -17,6 +17,8 @@ The machine owns:
 
 Raw host pointers and masked segmented addresses are not machine values.
 
+A classical entry may have one verified UTF-8-borrow parameter. VM construction then requires exact strict UTF-8 bytes of at most 16 MiB, installs them as externally owned immutable baseline storage, and initializes only that borrow register. Missing, unexpected, malformed, or oversized input fails before stepping. Input bytes are runtime effect data and never alter `.wbc` identity.
+
 ## Forward and reverse laws
 
 A successful step produces a new state and one minimal record:
@@ -30,7 +32,7 @@ Intrinsic operations recover data from their inverse operation. Logged operation
 
 ## Function inverse versus rewind
 
-`CALL` executes a zero-argument void function body. `UNCALL` executes its generated inverse body as new forward work. `CALL_VALUE` moves an exact initialized, type-compatible argument window into callee parameter registers and names one caller register matching the declared signed or Boolean result; `RETURN_VALUE` checks and moves that result back. Every call and return adds history and can itself be rewound, including the caller result write.
+`CALL` executes a zero-argument void function body. `UNCALL` executes its generated inverse body as new forward work. `CALL_VALUE` transfers an exact initialized, type-compatible argument window—including transient verified borrows—into callee parameter registers and names one caller register matching the declared result; `RETURN_VALUE` checks and moves that result back. Every call and return adds history and can itself be rewound, including the caller result write.
 
 `rewindOne` consumes the newest step record and restores the exact prior machine state. It does not call the function inverse.
 

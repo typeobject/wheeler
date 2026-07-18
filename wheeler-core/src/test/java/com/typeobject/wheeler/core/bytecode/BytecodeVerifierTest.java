@@ -11,9 +11,20 @@ class BytecodeVerifierTest {
   void rejectsOutOfRangeGlobalAndFunctionReferences() {
     Program badGlobal = programWith(Instruction.of(Opcode.ADD_CONST, 9, 1));
     Program badFunction = programWith(Instruction.of(Opcode.CALL, 9));
+    FunctionBody signedEntry = new FunctionBody(
+        0,
+        "main",
+        false,
+        1,
+        List.of(ValueType.SIGNED),
+        null,
+        List.of(Instruction.of(Opcode.HALT)),
+        List.of());
+    Program badEntry = programWith(signedEntry);
 
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(badGlobal));
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(badFunction));
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(badEntry));
   }
 
   @Test

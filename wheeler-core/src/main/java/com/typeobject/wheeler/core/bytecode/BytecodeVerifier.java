@@ -36,8 +36,11 @@ public final class BytecodeVerifier {
     verifyWorkflow(program);
 
     FunctionBody entry = program.function(program.entryFunctionId());
-    if (entry.parameterCount() != 0 || entry.returnsValue()) {
-      fail("Entry function must have signature void main()");
+    if (entry.returnsValue()
+        || entry.parameterCount() > 1
+        || (entry.parameterCount() == 1
+            && !entry.localType(0).equals(ValueType.UTF8_BORROW))) {
+      fail("Entry must be void with zero parameters or one UTF-8 input borrow");
     }
     if (entry.forward().stream().noneMatch(instruction -> instruction.opcode() == Opcode.HALT)) {
       fail("Entry function must contain HALT");

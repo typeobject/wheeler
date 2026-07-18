@@ -67,6 +67,7 @@ The repository currently executes these bounded fixtures:
 - `RecursiveValue.w`: recursive value calls under hard frame and step ceilings;
 - `RegionStorage.w`: affine bounded word/byte storage and UTF-8 scalar decoding;
 - `FrozenUtf8.w`: checked consumption of mutable bytes into immutable UTF-8;
+- `HostInput.w`: explicit strict bounded host UTF-8 entry input without ambient authority;
 - `LongMap.w`: region-owned fixed-capacity signed symbol map;
 - `modules/ModuleMain.w` plus `Arithmetic.w`: exact package source set with private helpers and public function/record linking;
 - `Utf8Lexer.w`: bounded UTF-8 source scanning into explicit token buffers;

@@ -38,7 +38,7 @@ entry void main() { ... }
 - A `rev` method receives a compiler-validated inverse.
 - A `coherent rev` method also satisfies the exact finite subset that can become a unitary operation.
 - A `unitary` method lowers to backend-neutral quantum region IR and receives a generated adjoint.
-- Exactly one zero-argument `entry void main()` method defines execution.
+- Exactly one `entry void main()` or `entry void main(utf8 source)` method defines execution.
 
 `public`, `private`, `protected`, and `static` are accepted where meaningful for familiar organization. Ordinary classical methods have typed signed or Boolean parameters, return values, and local bindings, plus bounded control flow. `rev`, `coherent rev`, and `unitary` methods remain zero-argument and `void` until their parameter ownership and inverse signatures are implemented.
 
@@ -309,6 +309,20 @@ classical class Main {
 The root declares exactly one entry. A dependency declares no entry and, in this slice, contains functions and immutable records only. Nominal record names begin with an ASCII upper-case letter. `public` functions and records are visible to direct importers; unqualified references prefer same-module declarations and otherwise resolve one unambiguous direct public import. Private helpers and records remain usable inside their declaring module, but a public function or record cannot expose a private local record in its signature. The linker assigns collision-free internal function/type names before ordinary type checking and bytecode lowering. Non-public references, ambiguous exports, import cycles, unsorted imports, quantum domains, dependency state/variants/arrays/slices/proofs, and transitive implicit access fail closed.
 
 Single-source `compile` rejects module declarations. A modular `wheeler.package` target declares its exact sorted source set and root module; local, workspace, planned, archived, and locked offline builds use the same linker with no path-derived imports. Modules do not yet export variants, arrays, slices, state, circuits, or proofs, and cross-package module imports are not yet linked. Those omissions are explicit WIP-0007/WIP-0009 work, not ambient classpath behavior.
+
+## Explicit host UTF-8 input
+
+A classical entry may request one immutable input borrow:
+
+```java
+entry void main(utf8 source) {
+    scalarCount = utf8Count(source);
+}
+```
+
+The entry signature is part of canonical bytecode. It does not read a file, environment variable, standard input stream, package resource, or network endpoint. The embedding API supplies exact bytes when constructing the VM or calling `WheelerRuntime`; `wheeler run ... --input <path>` is a capability-minimal host adapter for one explicit physical nonsymlink file. Input is capped at 16 MiB and validated as strict UTF-8 before execution. Missing required input, unexpected input, malformed encoding, oversize files, nonregular paths, and symbolic links fail before the first instruction.
+
+The VM installs valid bytes as an externally owned immutable UTF-8 allocation and gives the entry only a borrow. The external owner is visible in the initial snapshot, cannot be moved or dropped by Wheeler code, and remains the rewind baseline. This first effect is classical and read-only. General file/path capabilities, streaming input, multiple named inputs, output publication, and package-resource binding remain WIP-0007/WIP-0012 work.
 
 ## Parser and editor tooling
 

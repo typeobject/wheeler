@@ -44,6 +44,30 @@ final class OwnedStore {
     return Change.mark(this);
   }
 
+  long hostUtf8(byte[] input) {
+    if (input == null || input.length > MAX_TOTAL_LIVE_BYTES) {
+      throw new VmTrap("Host UTF-8 input exceeds the live-storage limit");
+    }
+    List<Long> elements = new ArrayList<>(input.length);
+    for (byte value : input) {
+      elements.add((long) Byte.toUnsignedInt(value));
+    }
+    if (!Utf8.analyze(elements).valid()) {
+      throw new VmTrap("Host input is not strict UTF-8");
+    }
+    long nextTotal = Math.addExact(liveBytes(), input.length);
+    if (nextTotal > MAX_TOTAL_LIVE_BYTES) {
+      throw new VmTrap("Total live region storage limit exceeded");
+    }
+    int regionId = regions.size();
+    int bufferId = buffers.size();
+    regions.add(new RegionValue(
+        regionId, Math.max(1, input.length), 1, input.length, 1, false));
+    buffers.add(new BufferValue(
+        bufferId, regionId, BufferKind.UTF8, input.length, elements, false));
+    return bufferId + 1L;
+  }
+
   Allocation createRegion(long maxBytes, int maxObjects, Change change) {
     validateRegionLimits(maxBytes, maxObjects);
     if (regions.size() >= MAX_REGIONS) {

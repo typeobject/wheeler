@@ -18,6 +18,7 @@ import com.typeobject.wheeler.runtime.quantum.OpenQasm3Emitter;
 import com.typeobject.wheeler.runtime.quantum.QuantumTask;
 import com.typeobject.wheeler.runtime.quantum.QuantumTaskBuilder;
 import com.typeobject.wheeler.runtime.quantum.StateVectorTarget;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -76,19 +77,48 @@ public final class Wheeler {
 
   private static int run(String[] args, PrintStream out, PrintStream error) throws Exception {
     Program program;
-    if (args.length == 2
+    byte[] input = null;
+    if ((args.length == 2 || args.length == 4)
         && Files.isRegularFile(Path.of(args[1]), LinkOption.NOFOLLOW_LINKS)
         && !Files.isSymbolicLink(Path.of(args[1]))) {
       program = new BytecodeReader().read(Files.readAllBytes(Path.of(args[1])));
-    } else if (args.length == 4 && args[2].equals("--target")) {
+      if (args.length == 4) {
+        if (!args[2].equals("--input")) {
+          return runUsage(error);
+        }
+        input = readInput(Path.of(args[3]));
+      }
+    } else if ((args.length == 4 || args.length == 6) && args[2].equals("--target")) {
       program = PackageProject.load(Path.of(args[1])).compileRunnable(args[3]);
+      if (args.length == 6) {
+        if (!args[4].equals("--input")) {
+          return runUsage(error);
+        }
+        input = readInput(Path.of(args[5]));
+      }
     } else {
-      error.println(
-          "Usage: wheeler run <program.wbc> | <package-directory> --target <target>");
-      return 2;
+      return runUsage(error);
     }
-    printExecution(program, new WheelerRuntime().execute(program, new StateVectorTarget()), out);
+    printExecution(
+        program,
+        new WheelerRuntime().execute(program, new StateVectorTarget(), input),
+        out);
     return 0;
+  }
+
+  private static int runUsage(PrintStream error) {
+    error.println("Usage: wheeler run <program.wbc> [--input <utf8-file>]"
+        + " | <package-directory> --target <target> [--input <utf8-file>]");
+    return 2;
+  }
+
+  private static byte[] readInput(Path requested) throws Exception {
+    if (!Files.isRegularFile(requested, LinkOption.NOFOLLOW_LINKS)
+        || Files.isSymbolicLink(requested)
+        || Files.size(requested) > 16L * 1024 * 1024) {
+      throw new IOException("Host input must be a physical file of at most 16 MiB: " + requested);
+    }
+    return Files.readAllBytes(requested);
   }
 
   private static void printExecution(

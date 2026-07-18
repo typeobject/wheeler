@@ -311,8 +311,10 @@ final class SourceParser extends SourceStatementParser {
     if (semanticModifiers > 1) {
       fail(start, "rev, unitary, and entry are mutually exclusive method kinds");
     }
-    if (entry && (!name.equals("main") || returnsValue || !parameters.isEmpty())) {
-      fail(start, "entry method must have signature void main()");
+    boolean validEntryParameters = parameters.isEmpty()
+        || (parameters.size() == 1 && parameters.getFirst().type().equals("utf8"));
+    if (entry && (!name.equals("main") || returnsValue || !validEntryParameters)) {
+      fail(start, "entry method must be void main() or void main(utf8 source)");
     }
     if ((reversible || coherent || unitary) && (returnsValue || !parameters.isEmpty())) {
       fail(start, "parameters and return values are currently ordinary classical only");

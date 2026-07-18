@@ -28,11 +28,27 @@ public final class VirtualMachine {
   private long sequence;
 
   public VirtualMachine(Program program) {
+    this(program, null);
+  }
+
+  public VirtualMachine(Program program, byte[] utf8Input) {
     BytecodeVerifier.verify(program);
     this.program = program;
     this.globals = program.globals().stream().mapToLong(global -> global.initialValue()).toArray();
     FunctionBody entry = program.function(program.entryFunctionId());
-    this.frames.add(Frame.create(entry.id(), false, entry.localCount()));
+    if (entry.parameterCount() == 0) {
+      if (utf8Input != null) {
+        throw new VmTrap("Program does not declare a host UTF-8 input");
+      }
+      this.frames.add(Frame.create(entry.id(), false, entry.localCount()));
+    } else {
+      if (utf8Input == null) {
+        throw new VmTrap("Program requires one host UTF-8 input");
+      }
+      long handle = owned.hostUtf8(utf8Input);
+      this.frames.add(Frame.create(
+          entry.id(), false, entry.localCount(), -1, List.of(handle)));
+    }
   }
 
   public void run() {

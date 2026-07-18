@@ -292,6 +292,36 @@ class WheelerCommandTest {
   }
 
   @Test
+  void runBindsOnlyAnExplicitPhysicalUtf8Input() throws Exception {
+    Path project = temporary.resolve("input");
+    Files.createDirectories(project.resolve("src"));
+    Files.writeString(project.resolve("wheeler.package"), """
+        package "demo.input" version "1.0.0" profile "bootstrap-1";
+        target example "main" root "src/Main.w";
+        """);
+    Files.writeString(project.resolve("src/Main.w"), """
+        classical class Main {
+          state long scalars = 0;
+          entry void main(utf8 source) {
+            scalars = utf8Count(source);
+            assert scalars == 2;
+          }
+        }
+        """);
+    Path input = temporary.resolve("input.txt");
+    Files.writeString(input, "A¢", StandardCharsets.UTF_8);
+    ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+
+    assertEquals(0, Wheeler.execute(
+        new String[] {
+            "run", project.toString(), "--target", "main", "--input", input.toString()
+        },
+        new PrintStream(stdout),
+        new PrintStream(new ByteArrayOutputStream())));
+    assertTrue(stdout.toString(StandardCharsets.UTF_8).contains("scalars = 2"));
+  }
+
+  @Test
   void compileSubcommandReplacesTheStandaloneCompilerPath() throws Exception {
     Path source = temporary.resolve("Counter.w");
     Path output = temporary.resolve("custom.wbc");

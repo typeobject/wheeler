@@ -12,6 +12,7 @@ import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.ValueType;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -155,6 +156,38 @@ class WheelerCompilerTest {
             "dep", dependency,
             "unused", unused),
         "root"));
+  }
+
+  @Test
+  void explicitHostUtf8EntryInputIsStrictBoundedAndRewindable() {
+    Program program = new WheelerCompiler().compile("""
+        classical class InputCount {
+          state long byteCount = 0;
+          state long scalars = 0;
+          entry void main(utf8 source) {
+            byteCount = bufferLength(source);
+            scalars = utf8Count(source);
+            assert byteCount == 3;
+            assert scalars == 2;
+          }
+        }
+        """);
+    assertThrows(VmTrap.class, () -> new VirtualMachine(program));
+    assertThrows(
+        VmTrap.class,
+        () -> new VirtualMachine(program, new byte[] {(byte) 0xc0, (byte) 0x80}));
+    VirtualMachine machine = new VirtualMachine(
+        program, "A¢".getBytes(StandardCharsets.UTF_8));
+    var initial = machine.snapshot();
+
+    machine.run();
+
+    assertEquals(3, machine.global("byteCount"));
+    assertEquals(2, machine.global("scalars"));
+    while (machine.historySize() > 0) {
+      machine.rewindOne();
+    }
+    assertEquals(initial, machine.snapshot());
   }
 
   @Test
