@@ -8,12 +8,15 @@ classical class NativePlan {
     state long targetLength = 0;
     state long outputLength = 0;
     state long targetKind = 0;
+    state long inputCount = 0;
+    state long requestCount = 0;
+    state long grantCount = 0;
     state long maxSteps = 0;
     state long timeout = 0;
     state long finalLength = 0;
 
     entry void main(byteview source) {
-        region arena = new region(1450, 5);
+        region arena = new region(3200, 5);
         bytes digest = allocateBytes(arena, 32);
         PlanResult parsed = inspectPlan(source, digest, arena);
         match (parsed) {
@@ -24,6 +27,9 @@ classical class NativePlan {
                 targetLength = plan.targetLength;
                 outputLength = plan.outputLength;
                 targetKind = plan.targetKind;
+                inputCount = plan.inputCount;
+                requestCount = plan.requestCount;
+                grantCount = plan.grantCount;
                 maxSteps = plan.maxSteps;
                 timeout = plan.timeout;
             }

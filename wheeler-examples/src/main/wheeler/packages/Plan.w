@@ -1,6 +1,7 @@
 module examples.packages.plan;
 import examples.crypto.sha256;
 import examples.packages.binary;
+import examples.packages.plan_identity;
 classical class Plan {
     public record PlanModel(
         long profileLength,
@@ -9,6 +10,9 @@ classical class Plan {
         long targetLength,
         long outputLength,
         long targetKind,
+        long inputCount,
+        long requestCount,
+        long grantCount,
         long maxSteps,
         long maxMemory,
         long maxInput,
@@ -59,178 +63,6 @@ classical class Plan {
         return true;
     }
 
-    private long writeLength(bytes output, long cursor, long length) {
-        setByte(output, cursor, length % 256);
-        setByte(output, cursor + 1, length / 256 % 256);
-        setByte(output, cursor + 2, length / 65536 % 256);
-        setByte(output, cursor + 3, length / 16777216 % 256);
-        return cursor + 4;
-    }
-
-    private long copyField(
-        byteview source,
-        long start,
-        long length,
-        bytes output,
-        long cursor
-    ) {
-        cursor = writeLength(output, cursor, length);
-        long offset = 0;
-        while (offset < length) limit 4096 {
-            setByte(output, cursor + offset, source[start + offset]);
-            offset += 1;
-        }
-        return cursor + length;
-    }
-
-    private long hexScalar(long value) {
-        if (value < 10) {
-            return value + 48;
-        }
-        return value + 87;
-    }
-
-    private long copyHashField(
-        byteview source,
-        long start,
-        bytes output,
-        long cursor
-    ) {
-        cursor = writeLength(output, cursor, 64);
-        long offset = 0;
-        while (offset < 32) limit 32 {
-            long value = source[start + offset];
-            setByte(output, cursor + offset * 2, hexScalar(value / 16));
-            setByte(output, cursor + offset * 2 + 1, hexScalar(value % 16));
-            offset += 1;
-        }
-        return cursor + 64;
-    }
-
-    private long decimalDigits(long value) {
-        long digits = 1;
-        long remaining = value;
-        while (9 < remaining) limit 19 {
-            remaining = remaining / 10;
-            digits += 1;
-        }
-        return digits;
-    }
-
-    private long writeDecimalField(
-        long value,
-        bytes output,
-        long cursor
-    ) {
-        long digits = decimalDigits(value);
-        cursor = writeLength(output, cursor, digits);
-        long divisor = 1;
-        long scale = 1;
-        while (scale < digits) limit 19 {
-            divisor = divisor * 10;
-            scale += 1;
-        }
-        long offset = 0;
-        while (offset < digits) limit 19 {
-            setByte(output, cursor + offset, value / divisor % 10 + 48);
-            if (1 < divisor) {
-                divisor = divisor / 10;
-            }
-            offset += 1;
-        }
-        return cursor + digits;
-    }
-
-    private long writeKindField(
-        long kind,
-        bytes output,
-        long cursor
-    ) {
-        if (kind == 1) {
-            cursor = writeLength(output, cursor, 7);
-            writeAscii(output, cursor, "LIBRARY");
-            return cursor + 7;
-        }
-        if (kind == 2) {
-            cursor = writeLength(output, cursor, 6);
-            writeAscii(output, cursor, "BINARY");
-            return cursor + 6;
-        }
-        if (kind == 3) {
-            cursor = writeLength(output, cursor, 4);
-            writeAscii(output, cursor, "TOOL");
-            return cursor + 4;
-        }
-        if (kind == 4) {
-            cursor = writeLength(output, cursor, 4);
-            writeAscii(output, cursor, "TEST");
-            return cursor + 4;
-        }
-        cursor = writeLength(output, cursor, 7);
-        writeAscii(output, cursor, "EXAMPLE");
-        return cursor + 7;
-    }
-
-    private boolean nodeIdentityMatches(
-        byteview source,
-        long expectedStart,
-        long packageStart,
-        long packageLength,
-        long versionStart,
-        long versionLength,
-        long manifestIdentityStart,
-        long targetStart,
-        long targetLength,
-        long targetKind,
-        long sourceIdentityStart,
-        long outputStart,
-        long outputLength,
-        long maxSteps,
-        long maxMemory,
-        long maxInput,
-        long maxOutput,
-        long timeout,
-        bytes digest,
-        region arena
-    ) {
-        bytes identity = allocateBytes(arena, 320);
-        long cursor = writeLength(identity, 0, 20);
-        writeAscii(identity, cursor, "wheeler-build-node-1");
-        cursor += 20;
-        cursor = copyField(
-            source, packageStart, packageLength, identity, cursor);
-        cursor = copyField(
-            source, versionStart, versionLength, identity, cursor);
-        cursor = copyHashField(
-            source, manifestIdentityStart, identity, cursor);
-        cursor = copyField(
-            source, targetStart, targetLength, identity, cursor);
-        cursor = writeKindField(targetKind, identity, cursor);
-        cursor = copyHashField(
-            source, sourceIdentityStart, identity, cursor);
-        cursor = copyField(
-            source, outputStart, outputLength, identity, cursor);
-        cursor = writeDecimalField(0, identity, cursor);
-        cursor = writeDecimalField(0, identity, cursor);
-        cursor = writeDecimalField(maxSteps, identity, cursor);
-        cursor = writeDecimalField(maxMemory, identity, cursor);
-        cursor = writeDecimalField(maxInput, identity, cursor);
-        cursor = writeDecimalField(maxOutput, identity, cursor);
-        cursor = writeDecimalField(timeout, identity, cursor);
-        cursor = writeDecimalField(0, identity, cursor);
-        hashSha256Range(identity, 0, cursor, digest, arena);
-        drop(identity);
-        long offset = 0;
-        while (offset < 32) limit 32 {
-            if (digest[offset] == source[expectedStart + offset]) {
-                offset += 1;
-            } else {
-                return false;
-            }
-        }
-        return true;
-    }
-
     public PlanResult inspectPlan(
         byteview source,
         bytes digest,
@@ -261,7 +93,7 @@ classical class Plan {
         long cursor = 80;
         long profileLength = readUnsigned(source, cursor, 4);
         cursor += 4;
-        if (profileLength < 4097) {
+        if (profileLength < 257) {
             if (payloadEnd < cursor + profileLength) {
                 return new PlanResult.Error(cursor);
             }
@@ -283,6 +115,10 @@ classical class Plan {
         long packageLength = readUnsigned(source, cursor, 4);
         cursor += 4;
         long packageStart = cursor;
+        if (packageLength < 257) {
+        } else {
+            return new PlanResult.Error(cursor);
+        }
         if (validAsciiName(source, cursor, packageLength)) {
         } else {
             return new PlanResult.Error(cursor);
@@ -291,6 +127,10 @@ classical class Plan {
         long versionLength = readUnsigned(source, cursor, 4);
         cursor += 4;
         long versionStart = cursor;
+        if (versionLength < 257) {
+        } else {
+            return new PlanResult.Error(cursor);
+        }
         if (validNumericRelease(source, cursor, versionLength)) {
         } else {
             return new PlanResult.Error(cursor);
@@ -301,6 +141,10 @@ classical class Plan {
         long targetLength = readUnsigned(source, cursor, 4);
         cursor += 4;
         long targetStart = cursor;
+        if (targetLength < 257) {
+        } else {
+            return new PlanResult.Error(cursor);
+        }
         if (validAsciiName(source, cursor, targetLength)) {
         } else {
             return new PlanResult.Error(cursor);
@@ -319,20 +163,73 @@ classical class Plan {
         long outputLength = readUnsigned(source, cursor, 4);
         cursor += 4;
         long outputStart = cursor;
+        if (outputLength < 257) {
+        } else {
+            return new PlanResult.Error(cursor);
+        }
         if (validAsciiPath(source, cursor, outputLength)) {
         } else {
             return new PlanResult.Error(cursor);
         }
         cursor += outputLength;
-        if (readUnsigned(source, cursor, 4) == 0) {
-            cursor += 4;
-        } else {
+        long inputCount = readUnsigned(source, cursor, 4);
+        cursor += 4;
+        if (1 < inputCount) {
             return new PlanResult.Error(cursor);
         }
-        if (readUnsigned(source, cursor, 4) == 0) {
+        long inputNameStart = 0;
+        long inputNameLength = 0;
+        long inputArchiveStart = 0;
+        if (inputCount == 1) {
+            inputNameLength = readUnsigned(source, cursor, 4);
             cursor += 4;
-        } else {
+            inputNameStart = cursor;
+            if (inputNameLength < 257) {
+            } else {
+                return new PlanResult.Error(cursor);
+            }
+            if (validAsciiName(source, cursor, inputNameLength)) {
+            } else {
+                return new PlanResult.Error(cursor);
+            }
+            cursor += inputNameLength;
+            inputArchiveStart = cursor;
+            cursor += 32;
+        }
+        long requestCount = readUnsigned(source, cursor, 4);
+        cursor += 4;
+        if (1 < requestCount) {
             return new PlanResult.Error(cursor);
+        }
+        long requestNameStart = 0;
+        long requestNameLength = 0;
+        long requestPatternStart = 0;
+        long requestPatternLength = 0;
+        if (requestCount == 1) {
+            requestNameLength = readUnsigned(source, cursor, 4);
+            cursor += 4;
+            requestNameStart = cursor;
+            if (requestNameLength < 257) {
+            } else {
+                return new PlanResult.Error(cursor);
+            }
+            if (validAsciiName(source, cursor, requestNameLength)) {
+            } else {
+                return new PlanResult.Error(cursor);
+            }
+            cursor += requestNameLength;
+            requestPatternLength = readUnsigned(source, cursor, 4);
+            cursor += 4;
+            requestPatternStart = cursor;
+            if (requestPatternLength < 257) {
+            } else {
+                return new PlanResult.Error(cursor);
+            }
+            if (validAsciiPath(source, cursor, requestPatternLength)) {
+            } else {
+                return new PlanResult.Error(cursor);
+            }
+            cursor += requestPatternLength;
         }
         long maxSteps = readUnsigned(source, cursor, 8);
         cursor += 8;
@@ -354,36 +251,89 @@ classical class Plan {
         if (1099511627776 < maxOutput) { return new PlanResult.Error(cursor); }
         if (timeout < 1) { return new PlanResult.Error(cursor); }
         if (86400000 < timeout) { return new PlanResult.Error(cursor); }
-        if (readUnsigned(source, cursor, 4) == 0) {
-            cursor += 4;
-        } else {
+        long grantCount = readUnsigned(source, cursor, 4);
+        cursor += 4;
+        if (requestCount < grantCount) {
             return new PlanResult.Error(cursor);
+        }
+        long grantNameStart = 0;
+        long grantNameLength = 0;
+        long grantPatternStart = 0;
+        long grantPatternLength = 0;
+        if (grantCount == 1) {
+            grantNameLength = readUnsigned(source, cursor, 4);
+            cursor += 4;
+            grantNameStart = cursor;
+            if (grantNameLength < 257) {
+            } else {
+                return new PlanResult.Error(cursor);
+            }
+            cursor += grantNameLength;
+            grantPatternLength = readUnsigned(source, cursor, 4);
+            cursor += 4;
+            grantPatternStart = cursor;
+            if (grantPatternLength < 257) {
+            } else {
+                return new PlanResult.Error(cursor);
+            }
+            cursor += grantPatternLength;
+            if (compareAsciiRanges(
+                    source,
+                    requestNameStart,
+                    requestNameLength,
+                    grantNameStart,
+                    grantNameLength) == 0) {
+            } else {
+                return new PlanResult.Error(grantNameStart);
+            }
+            if (compareAsciiRanges(
+                    source,
+                    requestPatternStart,
+                    requestPatternLength,
+                    grantPatternStart,
+                    grantPatternLength) == 0) {
+            } else {
+                return new PlanResult.Error(grantPatternStart);
+            }
         }
         if (cursor == payloadEnd) {
         } else {
             return new PlanResult.Error(cursor);
         }
+        NodeIdentityFields identity = new NodeIdentityFields(
+            nodeIdentityStart,
+            packageStart,
+            packageLength,
+            versionStart,
+            versionLength,
+            manifestIdentityStart,
+            targetStart,
+            targetLength,
+            targetKind,
+            sourceIdentityStart,
+            outputStart,
+            outputLength,
+            inputCount,
+            inputNameStart,
+            inputNameLength,
+            inputArchiveStart,
+            requestCount,
+            requestNameStart,
+            requestNameLength,
+            requestPatternStart,
+            requestPatternLength,
+            maxSteps,
+            maxMemory,
+            maxInput,
+            maxOutput,
+            timeout,
+            grantCount,
+            grantNameStart,
+            grantNameLength,
+            grantPatternStart,
+            grantPatternLength);
         if (nodeIdentityMatches(
-                source,
-                nodeIdentityStart,
-                packageStart,
-                packageLength,
-                versionStart,
-                versionLength,
-                manifestIdentityStart,
-                targetStart,
-                targetLength,
-                targetKind,
-                sourceIdentityStart,
-                outputStart,
-                outputLength,
-                maxSteps,
-                maxMemory,
-                maxInput,
-                maxOutput,
-                timeout,
-                digest,
-                arena)) {
+                source, identity, digest, arena)) {
             PlanModel plan = new PlanModel(
                 profileLength,
                 packageLength,
@@ -391,6 +341,9 @@ classical class Plan {
                 targetLength,
                 outputLength,
                 targetKind,
+                inputCount,
+                requestCount,
+                grantCount,
                 maxSteps,
                 maxMemory,
                 maxInput,
