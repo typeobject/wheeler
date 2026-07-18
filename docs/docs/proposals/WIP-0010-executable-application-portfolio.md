@@ -70,7 +70,7 @@ The repository currently executes these bounded fixtures:
 - `HostInput.w`: explicit strict bounded host UTF-8 entry input without ambient authority;
 - `LongMap.w`: region-owned fixed-capacity signed symbol map;
 - `modules/ModuleMain.w` plus `Arithmetic.w`: exact package source set with private helpers and public function/record linking;
-- `Utf8Lexer.w`: bounded UTF-8 source scanning into explicit token buffers;
+- `Utf8Lexer.w` plus `lexer/Scanner.w`: manifest-bound scanner/parser modules over explicit UTF-8 source input;
 - `CoherentOracle.w`: classical and coherent XOR behavior;
 - `QFT.w`: unitary execution and generated adjoint;
 - `QFTProof.w`: executable inverse law;

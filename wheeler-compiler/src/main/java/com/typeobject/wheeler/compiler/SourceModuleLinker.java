@@ -7,6 +7,8 @@ import com.typeobject.wheeler.compiler.SourceModel.RecordDefinition;
 import com.typeobject.wheeler.compiler.SourceModel.RecordField;
 import com.typeobject.wheeler.compiler.SourceModel.SourceProgram;
 import com.typeobject.wheeler.compiler.SourceModel.Statement;
+import com.typeobject.wheeler.compiler.SourceModel.VariantCase;
+import com.typeobject.wheeler.compiler.SourceModel.VariantDefinition;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -44,6 +46,7 @@ final class SourceModuleLinker {
     }
 
     List<RecordDefinition> records = new ArrayList<>();
+    List<VariantDefinition> variants = new ArrayList<>();
     List<Function> functions = new ArrayList<>();
     List<ProofDeclaration> proofs = new ArrayList<>();
     for (String moduleName : order) {
@@ -52,6 +55,9 @@ final class SourceModuleLinker {
       Map<String, String> types = typeReferences(moduleName, module, modules);
       for (RecordDefinition record : module.records()) {
         records.add(linkRecord(moduleName, record, types));
+      }
+      for (VariantDefinition variant : module.variants()) {
+        variants.add(linkVariant(moduleName, variant, types));
       }
       for (Function function : module.functions()) {
         functions.add(linkFunction(moduleName, function, references, types));
@@ -77,7 +83,7 @@ final class SourceModuleLinker {
         root.kind(),
         root.states(),
         records,
-        root.variants(),
+        variants,
         root.arrays(),
         root.slices(),
         proofs,
@@ -199,6 +205,10 @@ final class SourceModuleLinker {
       localNames.add(record.name());
       result.put(record.name(), linkedName(moduleName, record.name()));
     }
+    for (VariantDefinition variant : module.variants()) {
+      localNames.add(variant.name());
+      result.put(variant.name(), linkedName(moduleName, variant.name()));
+    }
     for (String importedName : module.imports()) {
       for (RecordDefinition record : modules.get(importedName).records()) {
         if (!record.exported() || localNames.contains(record.name())) {
@@ -212,6 +222,20 @@ final class SourceModuleLinker {
       }
     }
     return Map.copyOf(result);
+  }
+
+  private static VariantDefinition linkVariant(
+      String moduleName, VariantDefinition variant, Map<String, String> types) {
+    List<VariantCase> cases = variant.cases().stream()
+        .map(variantCase -> new VariantCase(
+            variantCase.name(),
+            variantCase.fields().stream()
+                .map(field -> new RecordField(
+                    field.name(), resolveType(types, field.type(), variant.line())))
+                .toList()))
+        .toList();
+    return new VariantDefinition(
+        linkedName(moduleName, variant.name()), cases, variant.line());
   }
 
   private static RecordDefinition linkRecord(
@@ -237,8 +261,12 @@ final class SourceModuleLinker {
         arguments.set(target, resolve(references, arguments.get(target), statement.line()));
       } else if (statement.operation().equals("local_bind")) {
         arguments.set(2, resolveType(types, arguments.get(2), statement.line()));
-      } else if (statement.operation().equals("record_new")) {
+      } else if (statement.operation().equals("record_new")
+          || statement.operation().equals("variant_new")) {
         arguments.set(1, resolveType(types, arguments.get(1), statement.line()));
+      } else if (statement.operation().equals("variant_tag")
+          || statement.operation().equals("variant_get")) {
+        arguments.set(2, resolveType(types, arguments.get(2), statement.line()));
       }
       statements.add(new Statement(statement.operation(), arguments, statement.line()));
     }

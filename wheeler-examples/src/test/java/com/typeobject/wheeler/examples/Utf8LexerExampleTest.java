@@ -6,14 +6,22 @@ import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.vm.MachineStatus;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class Utf8LexerExampleTest {
   @Test
   void explicitSourceInputIsTokenizedParsedAndExactlyRewound() throws Exception {
-    var program = new WheelerCompiler().compile(
-        Path.of("src/main/wheeler/Utf8Lexer.w"));
+    Path root = Path.of("src/main/wheeler");
+    var program = new WheelerCompiler().compileModuleFiles(
+        Map.of(
+            "src/main/wheeler/Utf8Lexer.w",
+            Files.readString(root.resolve("Utf8Lexer.w")),
+            "src/main/wheeler/lexer/Scanner.w",
+            Files.readString(root.resolve("lexer/Scanner.w"))),
+        "examples.lexer.main");
     VirtualMachine machine = new VirtualMachine(
         program, "x=123;//c\n".getBytes(StandardCharsets.UTF_8));
     var initial = machine.snapshot();
