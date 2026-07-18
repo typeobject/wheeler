@@ -5,6 +5,7 @@ target example "coherentoracle" root "src/main/wheeler/CoherentOracle.w";
 target example "counter" root "src/main/wheeler/Counter.w";
 target example "fixedarrays" root "src/main/wheeler/FixedArrays.w";
 target example "functionvalues" root "src/main/wheeler/FunctionValues.w";
+target example "longmap" root "src/main/wheeler/LongMap.w";
 target example "loopcontrol" root "src/main/wheeler/LoopControl.w";
 target example "qft" root "src/main/wheeler/QFT.w";
 target test "qftproof" root "src/main/wheeler/QFTProof.w";

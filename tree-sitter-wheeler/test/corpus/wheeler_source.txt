@@ -851,7 +851,7 @@ Owned bounded region
 classical class Storage {
   state long result = 0;
   entry void main() {
-    region arena = new region(20, 2);
+    region arena = new region(44, 3);
     words data = allocate(arena, 2);
     set(data, 0, 9);
     result = data[0];
@@ -862,6 +862,11 @@ classical class Storage {
     long byteCount = bufferLength(raw);
     long firstScalar = utf8Scalar(raw, 0);
     long firstWidth = utf8Width(raw, 0);
+    longmap symbols = allocateMap(arena, 1);
+    put(symbols, 1, 9);
+    long symbol = mapGet(symbols, 1);
+    boolean present = mapHas(symbols, 1);
+    drop(symbols);
     drop(raw);
     drop(data);
     drop(arena);
@@ -1006,6 +1011,60 @@ classical class Storage {
                         (identifier))
                       (expression
                         (integer_literal)))))))
+            (statement
+              (local_declaration
+                (value_type)
+                (identifier)
+                (expression
+                  (call_expression
+                    (identifier)
+                    (argument_list
+                      (expression
+                        (identifier))
+                      (expression
+                        (integer_literal)))))))
+            (statement
+              (call_statement
+                (call_expression
+                  (identifier)
+                  (argument_list
+                    (expression
+                      (identifier))
+                    (expression
+                      (integer_literal))
+                    (expression
+                      (integer_literal))))))
+            (statement
+              (local_declaration
+                (value_type)
+                (identifier)
+                (expression
+                  (call_expression
+                    (identifier)
+                    (argument_list
+                      (expression
+                        (identifier))
+                      (expression
+                        (integer_literal)))))))
+            (statement
+              (local_declaration
+                (value_type)
+                (identifier)
+                (expression
+                  (call_expression
+                    (identifier)
+                    (argument_list
+                      (expression
+                        (identifier))
+                      (expression
+                        (integer_literal)))))))
+            (statement
+              (call_statement
+                (call_expression
+                  (identifier)
+                  (argument_list
+                    (expression
+                      (identifier))))))
             (statement
               (call_statement
                 (call_expression

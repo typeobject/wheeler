@@ -72,7 +72,12 @@ final class OwnedStore {
         region.usedBytes() + bytes, region.liveObjects() + 1, false));
     int id = buffers.size();
     buffers.add(new BufferValue(
-        id, region.id(), kind, Collections.nCopies(length, 0L), false));
+        id,
+        region.id(),
+        kind,
+        length,
+        Collections.nCopies(kind.storageSlots(length), 0L),
+        false));
     return new Allocation(id + 1L, updated);
   }
 
@@ -96,7 +101,7 @@ final class OwnedStore {
     List<Long> elements = new ArrayList<>(buffer.elements());
     elements.set(index, value);
     buffers.set(buffer.id(), new BufferValue(
-        buffer.id(), buffer.regionId(), buffer.kind(), elements, false));
+        buffer.id(), buffer.regionId(), buffer.kind(), buffer.length(), elements, false));
     return change.buffer(buffer.id(), buffer);
   }
 
@@ -104,10 +109,10 @@ final class OwnedStore {
     BufferValue buffer = requireLiveBuffer(bufferHandle);
     RegionValue region = requireLiveRegion(buffer.regionId() + 1L);
     long bytes = Math.multiplyExact(
-        (long) buffer.elements().size(), buffer.kind().elementBytes());
+        (long) buffer.length(), buffer.kind().elementBytes());
     Change updated = change.region(region.id(), region).buffer(buffer.id(), buffer);
     buffers.set(buffer.id(), new BufferValue(
-        buffer.id(), buffer.regionId(), buffer.kind(), List.of(), true));
+        buffer.id(), buffer.regionId(), buffer.kind(), buffer.length(), List.of(), true));
     regions.set(region.id(), new RegionValue(
         region.id(), region.maxBytes(), region.maxObjects(),
         region.usedBytes() - bytes, region.liveObjects() - 1, false));
@@ -174,10 +179,46 @@ final class OwnedStore {
     }
   }
 
+  Change mapPut(long handle, long key, long value, Change change) {
+    BufferValue map = requireMap(handle);
+    int slot = mapSlot(map, key, true);
+    List<Long> elements = new ArrayList<>(map.elements());
+    int base = slot * 3;
+    elements.set(base, 1L);
+    elements.set(base + 1, key);
+    elements.set(base + 2, value);
+    buffers.set(map.id(), new BufferValue(
+        map.id(), map.regionId(), map.kind(), map.length(), elements, false));
+    return change.buffer(map.id(), map);
+  }
+
+  long mapGet(long handle, long key) {
+    BufferValue map = requireMap(handle);
+    int slot = mapSlot(map, key, false);
+    return map.elements().get(slot * 3 + 2);
+  }
+
+  boolean mapHas(long handle, long key) {
+    BufferValue map = requireMap(handle);
+    return findMapSlot(map, key) >= 0;
+  }
+
+  void validateMapPut(long handle, long key) {
+    mapSlot(requireMap(handle), key, true);
+  }
+
+  void validateMapGet(long handle, long key) {
+    mapSlot(requireMap(handle), key, false);
+  }
+
+  void validateMap(long handle) {
+    requireMap(handle);
+  }
+
   long length(long bufferHandle) {
     BufferValue buffer = requireLiveBuffer(bufferHandle);
     requireLiveRegion(buffer.regionId() + 1L);
-    return buffer.elements().size();
+    return buffer.length();
   }
 
   void validateBuffer(long bufferHandle) {
@@ -252,6 +293,39 @@ final class OwnedStore {
     return buffer;
   }
 
+  private BufferValue requireMap(long handle) {
+    BufferValue map = requireLiveBuffer(handle);
+    requireKind(map, BufferKind.LONG_MAP);
+    requireLiveRegion(map.regionId() + 1L);
+    return map;
+  }
+
+  private static int mapSlot(BufferValue map, long key, boolean insert) {
+    int existing = findMapSlot(map, key);
+    if (existing >= 0) {
+      return existing;
+    }
+    if (insert) {
+      for (int slot = 0; slot < map.length(); slot++) {
+        if (map.elements().get(slot * 3) == 0) {
+          return slot;
+        }
+      }
+      throw new VmTrap("Map capacity exceeded");
+    }
+    throw new VmTrap("Map key is absent: " + key);
+  }
+
+  private static int findMapSlot(BufferValue map, long key) {
+    for (int slot = 0; slot < map.length(); slot++) {
+      int base = slot * 3;
+      if (map.elements().get(base) != 0 && map.elements().get(base + 1) == key) {
+        return slot;
+      }
+    }
+    return -1;
+  }
+
   private static void requireKind(BufferValue buffer, BufferKind kind) {
     if (buffer.kind() != kind) {
       throw new VmTrap("Buffer handle kind mismatch");
@@ -259,7 +333,7 @@ final class OwnedStore {
   }
 
   private static void checkIndex(BufferValue buffer, int index) {
-    if (index < 0 || index >= buffer.elements().size()) {
+    if (index < 0 || index >= buffer.length()) {
       throw new VmTrap("Buffer index out of bounds: " + index);
     }
   }

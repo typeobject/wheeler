@@ -411,6 +411,29 @@ public final class VirtualMachine {
             localIndex(instruction, 0),
             opcode == Opcode.UTF8_SCALAR ? scalar.value() : scalar.width());
       }
+      case MAP_ALLOC -> {
+        OwnedStore.Allocation allocation = owned.allocate(
+            localValue(instruction, 1),
+            Math.toIntExact(localValue(instruction, 2)),
+            BufferKind.LONG_MAP,
+            ownedChange);
+        ownedChange = allocation.change();
+        setLocalAndAdvance(localIndex(instruction, 0), allocation.handle());
+      }
+      case MAP_PUT -> {
+        ownedChange = owned.mapPut(
+            localValue(instruction, 0),
+            localValue(instruction, 1),
+            localValue(instruction, 2),
+            ownedChange);
+        advanceCurrentFrame();
+      }
+      case MAP_GET -> setLocalAndAdvance(
+          localIndex(instruction, 0),
+          owned.mapGet(localValue(instruction, 1), localValue(instruction, 2)));
+      case MAP_HAS -> setLocalAndAdvance(
+          localIndex(instruction, 0),
+          owned.mapHas(localValue(instruction, 1), localValue(instruction, 2)) ? 1 : 0);
       case BUFFER_DROP -> {
         int local = localIndex(instruction, 0);
         ownedChange = owned.dropBuffer(currentFrame().local(local), ownedChange);
@@ -693,6 +716,23 @@ public final class VirtualMachine {
           if (!utf8Scalar(instruction).valid()) {
             trap("Invalid UTF-8 scalar boundary");
           }
+        }
+        case MAP_ALLOC -> {
+          localIndex(instruction, 0);
+          owned.validateAllocation(
+              localValue(instruction, 1),
+              Math.toIntExact(localValue(instruction, 2)),
+              BufferKind.LONG_MAP);
+        }
+        case MAP_PUT -> owned.validateMapPut(
+            localValue(instruction, 0), localValue(instruction, 1));
+        case MAP_GET -> {
+          localIndex(instruction, 0);
+          owned.validateMapGet(localValue(instruction, 1), localValue(instruction, 2));
+        }
+        case MAP_HAS -> {
+          localIndex(instruction, 0);
+          owned.validateMap(localValue(instruction, 1));
         }
         case BUFFER_DROP -> owned.validateDropBuffer(localValue(instruction, 0));
         case REGION_DROP -> owned.validateDropRegion(localValue(instruction, 0));

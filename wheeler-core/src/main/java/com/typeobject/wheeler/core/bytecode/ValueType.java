@@ -9,6 +9,7 @@ public record ValueType(Kind kind, int descriptorId) {
   public static final ValueType REGION = new ValueType(Kind.REGION, -1);
   public static final ValueType WORDS = new ValueType(Kind.WORDS, -1);
   public static final ValueType BYTES = new ValueType(Kind.BYTES, -1);
+  public static final ValueType LONG_MAP = new ValueType(Kind.LONG_MAP, -1);
   private static final int RECORD_TAG = 0x1000_0000;
   private static final int VARIANT_TAG = 0x2000_0000;
   private static final int ARRAY_TAG = 0x3000_0000;
@@ -20,7 +21,8 @@ public record ValueType(Kind kind, int descriptorId) {
             || kind == Kind.ARRAY || kind == Kind.SLICE)
             && (descriptorId < 0 || descriptorId > 0x0fff_ffff))
         || ((kind == Kind.SIGNED || kind == Kind.BOOLEAN
-            || kind == Kind.REGION || kind == Kind.WORDS || kind == Kind.BYTES)
+            || kind == Kind.REGION || kind == Kind.WORDS || kind == Kind.BYTES
+            || kind == Kind.LONG_MAP)
             && descriptorId != -1)) {
       throw new IllegalArgumentException("Invalid register type reference");
     }
@@ -49,6 +51,7 @@ public record ValueType(Kind kind, int descriptorId) {
       case REGION -> 3;
       case WORDS -> 4;
       case BYTES -> 5;
+      case LONG_MAP -> 6;
       case RECORD -> RECORD_TAG | descriptorId;
       case VARIANT -> VARIANT_TAG | descriptorId;
       case ARRAY -> ARRAY_TAG | descriptorId;
@@ -62,7 +65,7 @@ public record ValueType(Kind kind, int descriptorId) {
       case VARIANT -> "variant#" + descriptorId;
       case ARRAY -> "array#" + descriptorId;
       case SLICE -> "slice#" + descriptorId;
-      case SIGNED, BOOLEAN, REGION, WORDS, BYTES ->
+      case SIGNED, BOOLEAN, REGION, WORDS, BYTES, LONG_MAP ->
           kind.name().toLowerCase(Locale.ROOT);
     };
   }
@@ -82,6 +85,9 @@ public record ValueType(Kind kind, int descriptorId) {
     }
     if (code == 5) {
       return BYTES;
+    }
+    if (code == 6) {
+      return LONG_MAP;
     }
     if ((code & 0xf000_0000) == RECORD_TAG) {
       return record(code & 0x0fff_ffff);
@@ -104,6 +110,7 @@ public record ValueType(Kind kind, int descriptorId) {
     REGION,
     WORDS,
     BYTES,
+    LONG_MAP,
     RECORD,
     VARIANT,
     ARRAY,

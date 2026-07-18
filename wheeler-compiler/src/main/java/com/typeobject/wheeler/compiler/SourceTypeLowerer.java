@@ -127,6 +127,7 @@ final class SourceTypeLowerer {
     result.put("region", ValueType.REGION);
     result.put("words", ValueType.WORDS);
     result.put("bytes", ValueType.BYTES);
+    result.put("longmap", ValueType.LONG_MAP);
     return Map.copyOf(result);
   }
 

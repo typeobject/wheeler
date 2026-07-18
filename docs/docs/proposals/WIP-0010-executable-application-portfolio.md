@@ -66,6 +66,7 @@ The repository currently executes these bounded fixtures:
 - `FunctionValues.w`: signed parameters, returns, static value calls, and callee control flow;
 - `RecursiveValue.w`: recursive value calls under hard frame and step ceilings;
 - `RegionStorage.w`: affine bounded word/byte storage and UTF-8 scalar decoding;
+- `LongMap.w`: region-owned fixed-capacity signed symbol map;
 - `Utf8Lexer.w`: bounded UTF-8 source scanning into explicit token buffers;
 - `CoherentOracle.w`: classical and coherent XOR behavior;
 - `QFT.w`: unitary execution and generated adjoint;

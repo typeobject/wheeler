@@ -24,12 +24,14 @@ final class SourceStorageLowerer {
   static void lower(Statement statement, Context context) {
     switch (statement.operation()) {
       case "region_new" -> lowerRegionNew(statement, context);
-      case "words_alloc", "bytes_alloc" -> lowerBufferAllocate(statement, context);
-      case "words_set", "bytes_set" -> lowerBufferSet(statement, context);
+      case "words_alloc", "bytes_alloc", "map_alloc" ->
+          lowerBufferAllocate(statement, context);
+      case "words_set", "bytes_set", "map_put" -> lowerBufferSet(statement, context);
       case "owned_drop" -> lowerDrop(statement, context);
       case "utf8_valid", "utf8_count" -> lowerUtf8(statement, context);
       case "buffer_length" -> lowerLength(statement, context);
       case "utf8_scalar", "utf8_width" -> lowerUtf8Scalar(statement, context);
+      case "map_get", "map_has" -> lowerMapRead(statement, context);
       default -> throw new IllegalArgumentException(
           "Not a storage operation: " + statement.operation());
     }
@@ -43,6 +45,23 @@ final class SourceStorageLowerer {
       return Opcode.BYTES_GET;
     }
     throw new CompilerException(line, "indexing requires an array, slice, or buffer");
+  }
+
+  private static void lowerMapRead(Statement statement, Context context) {
+    requireArguments(statement, 4);
+    int map = context.requireLocal(statement.arguments().get(2), statement.line());
+    int key = context.requireLocal(statement.arguments().get(3), statement.line());
+    context.requireType(map, ValueType.LONG_MAP, statement.line());
+    context.requireType(key, ValueType.SIGNED, statement.line());
+    boolean membership = statement.operation().equals("map_has");
+    ValueType result = membership ? ValueType.BOOLEAN : ValueType.SIGNED;
+    int destination = context.declareInternal(
+        statement.arguments().get(0), statement.line(), result);
+    context.emit(Instruction.of(
+        membership ? Opcode.MAP_HAS : Opcode.MAP_GET,
+        destination,
+        map,
+        key));
   }
 
   private static void lowerRegionNew(Statement statement, Context context) {
@@ -64,9 +83,12 @@ final class SourceStorageLowerer {
   private static void lowerBufferAllocate(Statement statement, Context context) {
     requireArguments(statement, 4);
     String intrinsic = statement.arguments().get(1);
-    ValueType bufferType = intrinsic.equals("allocate")
-        ? ValueType.WORDS
-        : intrinsic.equals("allocateBytes") ? ValueType.BYTES : null;
+    ValueType bufferType = switch (intrinsic) {
+      case "allocate" -> ValueType.WORDS;
+      case "allocateBytes" -> ValueType.BYTES;
+      case "allocateMap" -> ValueType.LONG_MAP;
+      default -> null;
+    };
     if (bufferType == null) {
       throw new CompilerException(statement.line(), "malformed buffer allocation");
     }
@@ -77,7 +99,8 @@ final class SourceStorageLowerer {
     int destination = context.declareInternal(
         statement.arguments().get(0), statement.line(), bufferType);
     Opcode opcode = bufferType.equals(ValueType.WORDS)
-        ? Opcode.WORDS_ALLOC : Opcode.BYTES_ALLOC;
+        ? Opcode.WORDS_ALLOC
+        : bufferType.equals(ValueType.BYTES) ? Opcode.BYTES_ALLOC : Opcode.MAP_ALLOC;
     context.emit(Instruction.of(opcode, destination, region, length));
   }
 
@@ -86,13 +109,18 @@ final class SourceStorageLowerer {
     int buffer = context.requireLocal(statement.arguments().get(0), statement.line());
     int index = context.requireLocal(statement.arguments().get(1), statement.line());
     int value = context.requireLocal(statement.arguments().get(2), statement.line());
-    ValueType expected = statement.operation().equals("words_set")
-        ? ValueType.WORDS : ValueType.BYTES;
+    ValueType expected = switch (statement.operation()) {
+      case "words_set" -> ValueType.WORDS;
+      case "bytes_set" -> ValueType.BYTES;
+      case "map_put" -> ValueType.LONG_MAP;
+      default -> throw new IllegalStateException();
+    };
     context.requireType(buffer, expected, statement.line());
     context.requireType(index, ValueType.SIGNED, statement.line());
     context.requireType(value, ValueType.SIGNED, statement.line());
     Opcode opcode = expected.equals(ValueType.WORDS)
-        ? Opcode.WORDS_SET : Opcode.BYTES_SET;
+        ? Opcode.WORDS_SET
+        : expected.equals(ValueType.BYTES) ? Opcode.BYTES_SET : Opcode.MAP_PUT;
     context.emit(Instruction.of(opcode, buffer, index, value));
   }
 
@@ -140,6 +168,7 @@ final class SourceStorageLowerer {
     int local = context.requireLocal(statement.arguments().getFirst(), statement.line());
     ValueType type = context.localType(local);
     Opcode opcode = type.equals(ValueType.WORDS) || type.equals(ValueType.BYTES)
+        || type.equals(ValueType.LONG_MAP)
         ? Opcode.BUFFER_DROP
         : type.equals(ValueType.REGION) ? Opcode.REGION_DROP : null;
     if (opcode == null) {

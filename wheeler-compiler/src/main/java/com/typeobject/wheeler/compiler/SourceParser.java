@@ -334,6 +334,8 @@ final class SourceParser extends SourceStatementParser {
         parseMatch(body, previous());
       } else if (structuredStatements && (matchText("break") || matchText("continue"))) {
         parseLoopJump(body, previous());
+      } else if (structuredStatements && matchText("put")) {
+        parseBufferSet(body, previous(), "map_put");
       } else if (structuredStatements && matchText("setByte")) {
         parseBufferSet(body, previous(), "bytes_set");
       } else if (structuredStatements && matchText("set")) {
@@ -530,6 +532,8 @@ final class SourceParser extends SourceStatementParser {
           parseMatch(body, previous());
         } else if (matchText("break") || matchText("continue")) {
           parseLoopJump(body, previous());
+        } else if (matchText("put")) {
+          parseBufferSet(body, previous(), "map_put");
         } else if (matchText("setByte")) {
           parseBufferSet(body, previous(), "bytes_set");
         } else if (matchText("set")) {
@@ -779,11 +783,14 @@ final class SourceParser extends SourceStatementParser {
           case "slice" -> "slice_new";
           case "allocate" -> "words_alloc";
           case "allocateBytes" -> "bytes_alloc";
+          case "allocateMap" -> "map_alloc";
           case "utf8Valid" -> "utf8_valid";
           case "utf8Count" -> "utf8_count";
           case "bufferLength" -> "buffer_length";
           case "utf8Scalar" -> "utf8_scalar";
           case "utf8Width" -> "utf8_width";
+          case "mapGet" -> "map_get";
+          case "mapHas" -> "map_has";
           default -> "call_value";
         };
         body.add(new Statement(operation, call, start.line()));
@@ -837,7 +844,7 @@ final class SourceParser extends SourceStatementParser {
       return element.text();
     }
     if (element.text().equals("region") || element.text().equals("words")
-        || element.text().equals("bytes")) {
+        || element.text().equals("bytes") || element.text().equals("longmap")) {
       fail(element, "owned storage types cannot be array or slice elements");
     }
     if (match(Type.RIGHT_BRACKET)) {
@@ -868,6 +875,7 @@ final class SourceParser extends SourceStatementParser {
   private boolean isValueType(String name) {
     return name.equals("long") || name.equals("boolean")
         || name.equals("region") || name.equals("words") || name.equals("bytes")
+        || name.equals("longmap")
         || records.stream().anyMatch(record -> record.name().equals(name))
         || variants.stream().anyMatch(variant -> variant.name().equals(name))
         || arrays.stream().anyMatch(array -> array.name().equals(name))

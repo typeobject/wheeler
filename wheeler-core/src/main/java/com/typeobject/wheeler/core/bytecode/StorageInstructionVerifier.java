@@ -5,7 +5,9 @@ final class StorageInstructionVerifier {
   private StorageInstructionVerifier() {}
 
   static boolean isOwned(ValueType type) {
-    return type.kind() == ValueType.Kind.REGION || isBuffer(type);
+    return type.kind() == ValueType.Kind.REGION
+        || isBuffer(type)
+        || type.kind() == ValueType.Kind.LONG_MAP;
   }
 
   static boolean isBuffer(ValueType type) {
@@ -25,6 +27,10 @@ final class StorageInstructionVerifier {
       case UTF8_COUNT -> verifyUtf8Whole(owner, instruction, pc, ValueType.SIGNED);
       case UTF8_SCALAR, UTF8_WIDTH -> verifyUtf8At(owner, instruction, pc);
       case BUFFER_LENGTH -> verifyLength(owner, instruction, pc);
+      case MAP_ALLOC -> verifyAllocate(owner, instruction, pc, ValueType.LONG_MAP);
+      case MAP_PUT -> verifyMapPut(owner, instruction, pc);
+      case MAP_GET -> verifyMapRead(owner, instruction, pc, ValueType.SIGNED);
+      case MAP_HAS -> verifyMapRead(owner, instruction, pc, ValueType.BOOLEAN);
       case BUFFER_DROP -> verifyBufferDrop(owner, instruction, pc);
       case REGION_DROP -> require(owner, instruction, 0, ValueType.REGION, pc);
       default -> throw new IllegalArgumentException(
@@ -75,6 +81,20 @@ final class StorageInstructionVerifier {
     require(owner, instruction, 2, ValueType.SIGNED, pc);
   }
 
+  private static void verifyMapPut(
+      FunctionBody owner, Instruction instruction, int pc) {
+    require(owner, instruction, 0, ValueType.LONG_MAP, pc);
+    require(owner, instruction, 1, ValueType.SIGNED, pc);
+    require(owner, instruction, 2, ValueType.SIGNED, pc);
+  }
+
+  private static void verifyMapRead(
+      FunctionBody owner, Instruction instruction, int pc, ValueType result) {
+    require(owner, instruction, 0, result, pc);
+    require(owner, instruction, 1, ValueType.LONG_MAP, pc);
+    require(owner, instruction, 2, ValueType.SIGNED, pc);
+  }
+
   private static void verifyLength(FunctionBody owner, Instruction instruction, int pc) {
     require(owner, instruction, 0, ValueType.SIGNED, pc);
     int source = local(owner, instruction.operands().get(1), pc);
@@ -86,8 +106,9 @@ final class StorageInstructionVerifier {
   private static void verifyBufferDrop(
       FunctionBody owner, Instruction instruction, int pc) {
     int source = local(owner, instruction.operands().getFirst(), pc);
-    if (!isBuffer(owner.localType(source))) {
-      fail(owner, pc, "buffer drop requires words or bytes");
+    ValueType type = owner.localType(source);
+    if (!isBuffer(type) && !type.equals(ValueType.LONG_MAP)) {
+      fail(owner, pc, "buffer drop requires words, bytes, or longmap");
     }
   }
 

@@ -334,7 +334,8 @@ public final class BytecodeVerifier {
       case SLICE_GET -> verifySliceGet(program, owner, instruction, pc);
       case REGION_NEW, WORDS_ALLOC, WORDS_GET, WORDS_SET,
           BYTES_ALLOC, BYTES_GET, BYTES_SET, BUFFER_DROP, REGION_DROP,
-          UTF8_VALID, UTF8_COUNT, BUFFER_LENGTH, UTF8_SCALAR, UTF8_WIDTH ->
+          UTF8_VALID, UTF8_COUNT, BUFFER_LENGTH, UTF8_SCALAR, UTF8_WIDTH,
+          MAP_ALLOC, MAP_PUT, MAP_GET, MAP_HAS ->
           StorageInstructionVerifier.verify(owner, instruction, pc);
       case SWAP -> {
         verifyGlobal(program, instruction.operands().get(0), owner, pc);
@@ -656,8 +657,9 @@ public final class BytecodeVerifier {
           UTF8_SCALAR, UTF8_WIDTH -> new int[] {1, 2};
       case UTF8_VALID, UTF8_COUNT, BUFFER_LENGTH -> new int[] {1};
       case SLICE_NEW -> new int[] {2, 3, 4};
-      case WORDS_ALLOC, BYTES_ALLOC -> new int[] {1, 2};
-      case WORDS_SET, BYTES_SET -> new int[] {0, 1, 2};
+      case WORDS_ALLOC, BYTES_ALLOC, MAP_ALLOC -> new int[] {1, 2};
+      case WORDS_SET, BYTES_SET, MAP_PUT -> new int[] {0, 1, 2};
+      case MAP_GET, MAP_HAS -> new int[] {1, 2};
       case BUFFER_DROP, REGION_DROP -> new int[] {0};
       default -> new int[0];
     };
@@ -676,7 +678,8 @@ public final class BytecodeVerifier {
           RECORD_NEW, RECORD_GET, VARIANT_NEW, VARIANT_TAG_EQ, VARIANT_GET,
           ARRAY_NEW, ARRAY_GET, SLICE_NEW, SLICE_GET, REGION_NEW,
           WORDS_ALLOC, WORDS_GET, BYTES_ALLOC, BYTES_GET,
-          UTF8_VALID, UTF8_COUNT, BUFFER_LENGTH, UTF8_SCALAR, UTF8_WIDTH ->
+          UTF8_VALID, UTF8_COUNT, BUFFER_LENGTH, UTF8_SCALAR, UTF8_WIDTH,
+          MAP_ALLOC, MAP_GET, MAP_HAS ->
           Math.toIntExact(instruction.operands().getFirst());
       case CALL_VALUE -> Math.toIntExact(instruction.operands().get(3));
       default -> -1;

@@ -60,7 +60,11 @@ public enum Opcode {
   UTF8_COUNT(0x054b, 2, Reversibility.CHECKED),
   BUFFER_LENGTH(0x054c, 2, Reversibility.CHECKED),
   UTF8_SCALAR(0x054d, 3, Reversibility.CHECKED),
-  UTF8_WIDTH(0x054e, 3, Reversibility.CHECKED);
+  UTF8_WIDTH(0x054e, 3, Reversibility.CHECKED),
+  MAP_ALLOC(0x054f, 3, Reversibility.CHECKED),
+  MAP_PUT(0x0550, 3, Reversibility.LOGGED),
+  MAP_GET(0x0551, 3, Reversibility.CHECKED),
+  MAP_HAS(0x0552, 3, Reversibility.CHECKED);
 
   private final int code;
   private final int operandCount;
