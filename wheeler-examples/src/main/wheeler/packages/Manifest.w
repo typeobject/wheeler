@@ -1,6 +1,7 @@
 module examples.packages.manifest;
 import examples.lexer.scanner;
 import examples.packages.names;
+import examples.packages.paths;
 import examples.packages.semver;
 classical class Manifest {
     public record QuotedRange(long start, long length) {}
@@ -127,12 +128,19 @@ classical class Manifest {
         words starts,
         words lengths
     ) {
+        boolean validRoot = validLogicalPath(
+            source,
+            starts[11] + 1,
+            lengths[11] - 2);
         if (keywordAt(source, starts, lengths, 7, 3414061457)) {
             if (keywordAt(source, starts, lengths, 8, 93166309738)) {
                 if (quoted(kinds, lengths, 9)) {
                     if (keywordAt(source, starts, lengths, 10, 3506402)) {
                         if (quoted(kinds, lengths, 11)) {
-                            return semicolonAt(source, kinds, starts, 12);
+                            if (validRoot) {
+                                return semicolonAt(
+                                    source, kinds, starts, 12);
+                            }
                         }
                     }
                 }
@@ -186,12 +194,19 @@ classical class Manifest {
         words starts,
         words lengths
     ) {
+        boolean validPath = validLogicalPath(
+            source,
+            starts[22] + 1,
+            lengths[22] - 2);
         if (keywordAt(
                 source, starts, lengths, 19, 2703423431124248)) {
             if (quoted(kinds, lengths, 20)) {
                 if (keywordAt(source, starts, lengths, 21, 3433509)) {
                     if (quoted(kinds, lengths, 22)) {
-                        return semicolonAt(source, kinds, starts, 23);
+                        if (validPath) {
+                            return semicolonAt(
+                                source, kinds, starts, 23);
+                        }
                     }
                 }
             }

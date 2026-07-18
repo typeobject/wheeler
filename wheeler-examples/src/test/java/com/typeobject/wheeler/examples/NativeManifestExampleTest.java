@@ -21,6 +21,7 @@ class NativeManifestExampleTest {
             "NativeManifest.w", Files.readString(root.resolve("NativeManifest.w")),
             "Manifest.w", Files.readString(root.resolve("packages/Manifest.w")),
             "Names.w", Files.readString(root.resolve("packages/Names.w")),
+            "Paths.w", Files.readString(root.resolve("packages/Paths.w")),
             "Semver.w", Files.readString(root.resolve("packages/Semver.w")),
             "Scanner.w", Files.readString(root.resolve("lexer/Scanner.w"))),
         "examples.packages.main");
@@ -92,5 +93,17 @@ class NativeManifestExampleTest {
         source.replace("demo.base", "demo.-base")
             .getBytes(StandardCharsets.UTF_8));
     assertThrows(VmTrap.class, invalidDependencyName::run);
+
+    VirtualMachine escapingRoot = new VirtualMachine(
+        program,
+        source.replace("src/App.w", "src/../App.w")
+            .getBytes(StandardCharsets.UTF_8));
+    assertThrows(VmTrap.class, escapingRoot::run);
+
+    VirtualMachine linkedCapability = new VirtualMachine(
+        program,
+        source.replace("test-data", "test\\data")
+            .getBytes(StandardCharsets.UTF_8));
+    assertThrows(VmTrap.class, linkedCapability::run);
   }
 }
