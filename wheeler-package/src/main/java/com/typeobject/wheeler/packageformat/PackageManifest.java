@@ -23,6 +23,8 @@ public record PackageManifest(
   private static final int MAX_ITEMS = 10_000;
   private static final int MAX_TEXT = 4096;
   private static final Pattern NAME = Pattern.compile("[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9]*)*");
+  private static final Pattern TARGET_NAME = Pattern.compile(
+      "[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*");
   private static final Pattern VERSION = Pattern.compile(
       "(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)"
           + "(?:-[0-9A-Za-z.-]+)?");
@@ -105,6 +107,9 @@ public record PackageManifest(
     public Target {
       kind = Objects.requireNonNull(kind, "kind");
       name = checked(name, "target name");
+      if (!TARGET_NAME.matcher(name).matches()) {
+        throw new PackageFormatException("Invalid target name " + name);
+      }
       root = logicalPath(root);
       if (module == null) {
         sources = List.of(root);

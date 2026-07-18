@@ -447,7 +447,46 @@ class WheelerCommandTest {
         new String[] {"test", project.toString()},
         new PrintStream(stdout),
         new PrintStream(new ByteArrayOutputStream())));
-    assertTrue(stdout.toString(StandardCharsets.UTF_8).contains("tested demo.tests (1 targets)"));
+    String firstReport = stdout.toString(StandardCharsets.UTF_8);
+    assertTrue(firstReport.contains("PASS demo.tests::law"));
+    assertTrue(firstReport.contains("tested demo.tests (1 targets, 1 passed, 0 failed, report "));
+    stdout.reset();
+    assertEquals(0, Wheeler.execute(
+        new String[] {"test", project.toString()},
+        new PrintStream(stdout),
+        new PrintStream(new ByteArrayOutputStream())));
+    assertEquals(firstReport, stdout.toString(StandardCharsets.UTF_8));
+  }
+
+  @Test
+  void testSubcommandReducesCompileAndRuntimeFailuresIntoTheReport() throws Exception {
+    Path project = temporary.resolve("test-failures");
+    Files.createDirectories(project.resolve("src"));
+    Files.writeString(project.resolve("wheeler.package"), """
+        package "demo.failures" version "1.0.0" profile "bootstrap-1";
+        target test "compile" root "src/Compile.w";
+        target test "runtime" root "src/Runtime.w";
+        """);
+    Files.writeString(project.resolve("src/Compile.w"),
+        "classical class Compile { entry void main(] {} }");
+    Files.writeString(project.resolve("src/Runtime.w"), """
+        classical class Runtime {
+            state long value = 1;
+            entry void main() { assert value == 2; }
+        }
+        """);
+    ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+
+    assertEquals(1, Wheeler.execute(
+        new String[] {"test", project.toString()},
+        new PrintStream(stdout),
+        new PrintStream(new ByteArrayOutputStream())));
+    String report = stdout.toString(StandardCharsets.UTF_8);
+    assertTrue(report.contains("FAIL demo.failures::compile"));
+    assertTrue(report.contains("WTEST001"));
+    assertTrue(report.contains("FAIL demo.failures::runtime"));
+    assertTrue(report.contains("WTEST002"));
+    assertTrue(report.contains("2 targets, 0 passed, 2 failed, report "));
   }
 
   @Test

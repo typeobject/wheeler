@@ -55,6 +55,10 @@ class PackageFormatTest {
     assertTrue(unknown.getMessage().contains("line 3"));
     assertTrue(duplicate.getMessage().contains("Duplicate dependency"));
     assertThrows(PackageFormatException.class, () -> parser.parse(malformedUtf8));
+    PackageFormatException targetName = assertThrows(
+        PackageFormatException.class,
+        () -> parser.parse(MANIFEST.replace("\"compiler\"", "\"../compiler\"")));
+    assertTrue(targetName.getMessage().contains("Invalid target name"));
   }
 
   @Test

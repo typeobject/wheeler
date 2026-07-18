@@ -72,12 +72,12 @@ final class WorkspaceProject {
     }
   }
 
-  int test() throws IOException {
-    int executed = 0;
+  TestReport test() throws IOException {
+    List<TestReport> reports = new ArrayList<>();
     for (MemberProject member : members) {
-      executed += member.project().test();
+      reports.add(member.project().test());
     }
-    return executed;
+    return TestReport.combine(reports);
   }
 
   BuildPlan plan(String compilerIdentity, boolean grantRequestedCapabilities)

@@ -243,19 +243,27 @@ public final class Wheeler {
       return 2;
     }
     Path root = Path.of(args[1]);
-    int executed;
+    TestReport report;
     String name;
     if (WorkspaceProject.exists(root)) {
       WorkspaceProject workspace = WorkspaceProject.load(root);
-      executed = workspace.test();
+      report = workspace.test();
       name = "workspace " + workspace.manifest().name();
     } else {
       PackageProject project = PackageProject.load(root);
-      executed = project.test();
+      report = project.test();
       name = project.manifest().name();
     }
-    out.println("tested " + name + " (" + executed + " targets)");
-    return 0;
+    for (TestReport.CaseResult result : report.cases()) {
+      out.println(result.status().name() + " " + result.packageName() + "::"
+          + result.targetName() + " " + result.caseIdentity()
+          + (result.diagnosticCode().isEmpty() ? ""
+              : " " + result.diagnosticCode() + " " + result.diagnosticMessage()));
+    }
+    out.println("tested " + name + " (" + report.selected() + " targets, "
+        + report.passed() + " passed, " + report.failed() + " failed, report "
+        + report.identity() + ")");
+    return report.successful() ? 0 : 1;
   }
 
   private static int clean(String[] args, PrintStream out, PrintStream error) throws Exception {

@@ -1,8 +1,10 @@
 package com.typeobject.wheeler.tools;
 
+import com.typeobject.wheeler.compiler.CompilerException;
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.vm.VmTrap;
 import com.typeobject.wheeler.packageformat.BuildPlan;
 import com.typeobject.wheeler.packageformat.PackageManifest.TargetKind;
 import com.typeobject.wheeler.runtime.WheelerRuntime;
@@ -82,21 +84,43 @@ final class PackageProject {
     return compileTarget(new WheelerCompiler(), selected);
   }
 
-  int test() throws IOException {
+  TestReport test() throws IOException {
     LockedPackageSet dependencies = dependencies();
     if (dependencies != null) {
       dependencies.check();
     }
     WheelerCompiler compiler = new WheelerCompiler();
-    WheelerRuntime runtime = new WheelerRuntime();
-    int executed = 0;
+    BytecodeWriter writer = new BytecodeWriter();
+    List<TestReport.CaseResult> cases = new ArrayList<>();
     for (PackageManifest.Target target : manifest.targets()) {
-      if (target.kind() == TargetKind.TEST) {
-        runtime.execute(compileTarget(compiler, target), new StateVectorTarget());
-        executed++;
+      if (target.kind() != TargetKind.TEST) {
+        continue;
+      }
+      String sourceIdentity = sha256(readPlanInput(target));
+      String caseIdentity = TestReport.caseIdentity(
+          manifest.identity(), target.name(), sourceIdentity);
+      Program program;
+      try {
+        program = compileTarget(compiler, target);
+      } catch (CompilerException exception) {
+        cases.add(TestReport.fail(
+            manifest.name(), manifest.version(), target.name(), caseIdentity,
+            sourceIdentity, "", "WTEST001", exception.getMessage()));
+        continue;
+      }
+      String artifactIdentity = sha256(writer.write(program));
+      try {
+        cases.add(TestReport.pass(
+            manifest.name(), manifest.version(), target.name(), caseIdentity,
+            sourceIdentity, artifactIdentity,
+            new WheelerRuntime().execute(program, new StateVectorTarget())));
+      } catch (VmTrap exception) {
+        cases.add(TestReport.fail(
+            manifest.name(), manifest.version(), target.name(), caseIdentity,
+            sourceIdentity, artifactIdentity, "WTEST002", exception.getMessage()));
       }
     }
-    return executed;
+    return new TestReport(cases);
   }
 
   Map<String, byte[]> compile() throws IOException {
