@@ -145,6 +145,10 @@ class NativeVmExampleTest {
     counterMachine.run();
     assertEquals(0, counterMachine.global("finalGlobal"));
     assertTrue(counterMachine.global("interpretedSteps") > 8);
+    byte[] forgedInverse = withForgedInverseOpcode(counter);
+    assertThrows(
+        VmTrap.class,
+        () -> VirtualMachine.withBinaryInput(interpreter, forgedInverse).run());
 
     byte[] malformed = update.clone();
     malformed[0] = 0;
@@ -229,6 +233,18 @@ class NativeVmExampleTest {
       cursor += bytes.getInt(cursor + 4);
     }
     throw new AssertionError("call fixture has no argument call");
+  }
+
+  private static byte[] withForgedInverseOpcode(byte[] artifact) {
+    byte[] forged = artifact.clone();
+    ByteBuffer bytes = ByteBuffer.wrap(forged).order(ByteOrder.LITTLE_ENDIAN);
+    int functionsDirectory = 40 + 4 * 32;
+    int codeDirectory = 40 + 5 * 32;
+    int functionsOffset = Math.toIntExact(bytes.getLong(functionsDirectory + 8));
+    int codeOffset = Math.toIntExact(bytes.getLong(codeDirectory + 8));
+    int inverseOffset = bytes.getInt(functionsOffset + 24);
+    bytes.putShort(codeOffset + inverseOffset, (short) Opcode.ADD_CONST.code());
+    return forged;
   }
 
   private static byte[] withForgedProofBound(byte[] artifact) {
