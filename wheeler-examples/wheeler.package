@@ -4,7 +4,7 @@ target deployable "bootstrapcontrol" root "src/main/wheeler/BootstrapControl.w";
 target deployable "coherentoracle" root "src/main/wheeler/CoherentOracle.w";
 target deployable "counter" root "src/main/wheeler/Counter.w";
 target deployable "finiteenums" root "src/main/wheeler/FiniteEnums.w";
-target deployable "fixedarrays" root "src/main/wheeler/FixedArrays.w";
+target deployable "fixedarrays" root "src/main/wheeler/FixedArrays.w" module "examples.collections.fixed_arrays_main" source "src/main/wheeler/FixedArrays.w";
 target deployable "frozenutf8" root "src/main/wheeler/FrozenUtf8.w";
 target deployable "functionvalues" root "src/main/wheeler/FunctionValues.w";
 target deployable "hostbinaryinput" root "src/main/wheeler/HostBinaryInput.w";

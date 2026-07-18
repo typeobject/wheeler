@@ -25,12 +25,19 @@ class ClassicalExamplesTest {
     Path source = Path.of("src/main/wheeler", file);
     WheelerCompiler compiler = new WheelerCompiler();
     Program program;
-    if (file.equals("LongMap.w")) {
-      program = compiler.compileModuleFiles(
-          Map.of(
-              "LongMap.w", Files.readString(source),
-              "CoreLongMap.w", Files.readString(
-                  CoreSources.path("collections/LongMap.w"))),
+    if (file.equals("FixedArrays.w")) {
+      program = compileCoreExample(
+          compiler,
+          source,
+          "CoreFixedLongs.w",
+          "collections/FixedLongs.w",
+          "examples.collections.fixed_arrays_main");
+    } else if (file.equals("LongMap.w")) {
+      program = compileCoreExample(
+          compiler,
+          source,
+          "CoreLongMap.w",
+          "collections/LongMap.w",
           "examples.collections.long_map_main");
     } else {
       byte[] artifact = compiler.compileToBytecode(Files.readString(source));
@@ -52,6 +59,19 @@ class ClassicalExamplesTest {
       machine.rewindOne();
     }
     assertEquals(initial, machine.snapshot());
+  }
+
+  private static Program compileCoreExample(
+      WheelerCompiler compiler,
+      Path example,
+      String coreName,
+      String corePath,
+      String rootModule) throws Exception {
+    return compiler.compileModuleFiles(
+        Map.of(
+            example.getFileName().toString(), Files.readString(example),
+            coreName, Files.readString(CoreSources.path(corePath))),
+        rootModule);
   }
 
   static Stream<Arguments> examples() {
