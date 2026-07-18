@@ -23,6 +23,8 @@ import java.util.Set;
 
 /** Recursive-descent parser for Wheeler's formatting-independent source profile. */
 final class SourceParser extends SourceStatementParser {
+  private static final int MAX_DECLARATIONS = 65_535;
+  private static final int MAX_BLOCK_DEPTH = 256;
   private static final Set<String> DOMAINS = Set.of("classical", "quantum", "hybrid");
   private static final Set<String> VISIBILITY = Set.of("public", "private", "protected");
 
@@ -40,6 +42,7 @@ final class SourceParser extends SourceStatementParser {
   private boolean valueReturnsAllowed;
   private int temporarySequence;
   private int labelSequence;
+  private int blockDepth;
   private final Deque<LoopLabels> loops = new ArrayDeque<>();
 
   SourceProgram parse(String source) {
@@ -54,6 +57,7 @@ final class SourceParser extends SourceStatementParser {
     registers.clear();
     circuits.clear();
     loops.clear();
+    blockDepth = 0;
 
     SourceToken domain = expect(Type.IDENTIFIER, "computation domain");
     if (!DOMAINS.contains(domain.text())) {
@@ -87,6 +91,11 @@ final class SourceParser extends SourceStatementParser {
   }
 
   private void parseMember() {
+    int declarations = states.size() + functions.size() + records.size() + variants.size()
+        + proofs.size() + registers.size() + circuits.size();
+    if (declarations >= MAX_DECLARATIONS) {
+      fail(peek(), "source exceeds the 65,535-declaration limit");
+    }
     while (checkTextIn(VISIBILITY)) {
       advance();
     }
@@ -474,29 +483,36 @@ final class SourceParser extends SourceStatementParser {
   }
 
   private void parseStructuredBlock(List<Statement> body, String owner) {
-    expect(Type.LEFT_BRACE, "'{' before " + owner + " body");
-    while (!check(Type.RIGHT_BRACE) && !check(Type.END)) {
-      if (checkLocalType()) {
-        parseLocalDeclaration(body);
-      } else if (matchText("return")) {
-        parseReturn(body, previous());
-      } else if (matchText("if")) {
-        parseIf(body, previous());
-      } else if (matchText("while")) {
-        parseWhile(body, previous());
-      } else if (matchText("for")) {
-        parseFor(body, previous());
-      } else if (matchText("match")) {
-        parseMatch(body, previous());
-      } else if (matchText("break") || matchText("continue")) {
-        parseLoopJump(body, previous());
-      } else if (isAssignmentStart()) {
-        parseStructuredAssignment(body);
-      } else {
-        body.add(parseStatement());
-      }
+    if (++blockDepth > MAX_BLOCK_DEPTH) {
+      fail(peek(), "source exceeds the 256-block nesting limit");
     }
-    expect(Type.RIGHT_BRACE, "'}' after " + owner + " body");
+    try {
+      expect(Type.LEFT_BRACE, "'{' before " + owner + " body");
+      while (!check(Type.RIGHT_BRACE) && !check(Type.END)) {
+        if (checkLocalType()) {
+          parseLocalDeclaration(body);
+        } else if (matchText("return")) {
+          parseReturn(body, previous());
+        } else if (matchText("if")) {
+          parseIf(body, previous());
+        } else if (matchText("while")) {
+          parseWhile(body, previous());
+        } else if (matchText("for")) {
+          parseFor(body, previous());
+        } else if (matchText("match")) {
+          parseMatch(body, previous());
+        } else if (matchText("break") || matchText("continue")) {
+          parseLoopJump(body, previous());
+        } else if (isAssignmentStart()) {
+          parseStructuredAssignment(body);
+        } else {
+          body.add(parseStatement());
+        }
+      }
+      expect(Type.RIGHT_BRACE, "'}' after " + owner + " body");
+    } finally {
+      blockDepth--;
+    }
   }
 
   private void parseMatch(List<Statement> body, SourceToken start) {

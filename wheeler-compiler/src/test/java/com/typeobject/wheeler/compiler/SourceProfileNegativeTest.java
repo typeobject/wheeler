@@ -323,6 +323,19 @@ class SourceProfileNegativeTest {
   }
 
   @Test
+  void rejectsExcessiveStructuredBlockNesting() {
+    StringBuilder source = new StringBuilder(
+        "classical class Deep { entry void main() {");
+    source.append("if (true) {".repeat(257));
+    source.append("}".repeat(257)).append("} }");
+
+    CompilerException exception = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(source.toString()));
+
+    assertTrue(exception.getMessage().contains("256-block nesting limit"));
+  }
+
+  @Test
   void rejectsOutOfRangeQuantumReference() {
     String source = """
         quantum class BrokenQubit {

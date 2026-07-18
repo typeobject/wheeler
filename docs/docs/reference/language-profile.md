@@ -226,7 +226,7 @@ These operations are related but not interchangeable.
 
 ## Parser and editor tooling
 
-The compiler lexer records line, column, and source offset. The parser is formatting-independent and rejects unsupported constructs rather than dropping them.
+The compiler lexer records line, column, and stage-0 UTF-16 source-character offset. Required identifiers are ASCII letters, digits, and underscore; Unicode remains valid in comments, not names. Inputs are capped at 64 MiB and 16 Mi source characters, tokens at 4,096 characters, token and line counts at 1,000,000 each, declarations at 65,535, and structured block nesting at 256. The parser is formatting-independent and rejects unsupported constructs rather than dropping them.
 
 `tree-sitter-wheeler` provides an incremental grammar, corpus, highlighting, and fold queries for `.w` files. Its concrete syntax tree does not attempt type checking; method and gate meaning are resolved by the compiler.
 

@@ -138,7 +138,7 @@ final class PackageProject {
           manifest.identity(),
           target.name(),
           target.kind(),
-          sha256(Files.readAllBytes(source(target))),
+          sha256(readPlanInput(target)),
           memberName + "/" + target.name() + ".wbc",
           inputs,
           manifest.capabilities(),
@@ -151,7 +151,7 @@ final class PackageProject {
   byte[] archive() throws IOException {
     Map<String, byte[]> entries = new TreeMap<>();
     for (PackageManifest.Target target : manifest.targets()) {
-      entries.put(target.root(), Files.readAllBytes(source(target)));
+      entries.put(target.root(), readPlanInput(target));
     }
     return new PackageArchive().encode(manifest, entries);
   }
@@ -170,6 +170,15 @@ final class PackageProject {
 
   private LockedPackageSet dependencies() throws IOException {
     return manifest.dependencies().isEmpty() ? null : LockedPackageSet.load(root, manifest);
+  }
+
+  private byte[] readPlanInput(PackageManifest.Target target) throws IOException {
+    Path source = source(target);
+    if (Files.size(source) > BuildPlan.ExecutionLimits.DEFAULT.maxInputBytes()) {
+      throw new PackageFormatException("Target source exceeds the build input limit: "
+          + target.root());
+    }
+    return Files.readAllBytes(source);
   }
 
   private Path source(PackageManifest.Target target) throws IOException {

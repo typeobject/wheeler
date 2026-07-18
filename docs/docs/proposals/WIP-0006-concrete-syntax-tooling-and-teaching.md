@@ -110,7 +110,7 @@ Concrete syntax is not bytecode. Syntax changes follow WIP migration rules and T
 
 ## Safety, limits, and failures
 
-Both parsers bound source size, nesting, token length, and declaration counts. Block comments must close. Numeric overflow and malformed encodings produce diagnostics rather than partial artifacts.
+The compiler bounds input bytes and characters, token and line counts, token width, declarations, and structured-block nesting before lowering. Block comments must close; identifiers use the required ASCII profile. Numeric overflow and malformed encodings produce diagnostics rather than partial artifacts. Tree-sitter editor hosts remain responsible for document-size policy; the repository gate applies the grammar to every bounded checked-in source.
 
 ## Migration and deletion
 
@@ -132,7 +132,7 @@ Both parsers bound source size, nesting, token length, and declaration counts. B
 ## Testing and acceptance
 
 - [x] Compiler tests parse compact, multiline, and comment-heavy programs.
-- [x] Lexer tests cover longest-match operators, comments, numeric forms, and locations.
+- [x] Lexer tests cover longest-match operators, comments, numeric forms, locations, ASCII identifiers, and hard source/token limits; parser tests cover the structured nesting ceiling.
 - [x] Tree-sitter generates without conflicts and its initial corpus passes.
 - [x] Every checked-in example parses without Tree-sitter `ERROR` nodes, compiles, and executes.
 - [x] Highlight queries compile against the grammar; fold nodes are covered by generated node types.

@@ -45,6 +45,9 @@ public final class WheelerCompiler {
   }
 
   public Program compile(Path source) throws IOException {
+    if (Files.size(source) > SourceLexer.MAX_SOURCE_BYTES) {
+      throw new CompilerException(1, "source exceeds the 64 MiB input limit");
+    }
     return compile(Files.readString(source));
   }
 

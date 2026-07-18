@@ -4,8 +4,14 @@ import com.typeobject.wheeler.compiler.SourceToken.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Formatting-independent lexer with stable line, column, and byte-offset locations. */
+/** Formatting-independent lexer with stable line, column, and source-character offsets. */
 final class SourceLexer {
+  static final int MAX_SOURCE_CHARS = 16 * 1024 * 1024;
+  static final long MAX_SOURCE_BYTES = 4L * MAX_SOURCE_CHARS;
+  static final int MAX_TOKEN_CHARS = 4_096;
+  static final int MAX_TOKENS = 1_000_000;
+  static final int MAX_LINES = 1_000_000;
+
   private final String source;
   private final List<SourceToken> tokens = new ArrayList<>();
   private int offset;
@@ -13,6 +19,9 @@ final class SourceLexer {
   private int column = 1;
 
   SourceLexer(String source) {
+    if (source == null || source.length() > MAX_SOURCE_CHARS) {
+      throw new CompilerException(1, "source exceeds the 16 Mi-character limit");
+    }
     this.source = source;
   }
 
@@ -25,7 +34,7 @@ final class SourceLexer {
         lineComment();
       } else if (current == '/' && peekNext() == '*') {
         blockComment();
-      } else if (Character.isJavaIdentifierStart(current)) {
+      } else if (isIdentifierStart(current)) {
         identifier();
       } else if (Character.isDigit(current)) {
         number();
@@ -33,7 +42,7 @@ final class SourceLexer {
         symbol();
       }
     }
-    tokens.add(new SourceToken(Type.END, "", line, column, offset));
+    emit(new SourceToken(Type.END, "", line, column, offset));
     return List.copyOf(tokens);
   }
 
@@ -68,7 +77,7 @@ final class SourceLexer {
     int startLine = line;
     int startColumn = column;
     advance();
-    while (!atEnd() && Character.isJavaIdentifierPart(peek())) {
+    while (!atEnd() && isIdentifierPart(peek())) {
       advance();
     }
     add(Type.IDENTIFIER, start, startLine, startColumn);
@@ -117,11 +126,23 @@ final class SourceLexer {
       case '=' -> match('=') ? Type.EQUAL : Type.ASSIGN;
       default -> throw new CompilerException(startLine, "unexpected character: " + value);
     };
-    tokens.add(new SourceToken(type, source.substring(start, offset), startLine, startColumn, start));
+    add(type, start, startLine, startColumn);
   }
 
   private void add(Type type, int start, int startLine, int startColumn) {
-    tokens.add(new SourceToken(type, source.substring(start, offset), startLine, startColumn, start));
+    int length = offset - start;
+    if (length > MAX_TOKEN_CHARS) {
+      throw new CompilerException(startLine, "token exceeds the 4,096-character limit");
+    }
+    emit(new SourceToken(
+        type, source.substring(start, offset), startLine, startColumn, start));
+  }
+
+  private void emit(SourceToken token) {
+    if (tokens.size() >= MAX_TOKENS) {
+      throw new CompilerException(token.line(), "source exceeds the 1,000,000-token limit");
+    }
+    tokens.add(token);
   }
 
   private boolean match(char expected) {
@@ -136,6 +157,9 @@ final class SourceLexer {
     char value = source.charAt(offset++);
     if (value == '\n') {
       line++;
+      if (line > MAX_LINES) {
+        throw new CompilerException(line, "source exceeds the 1,000,000-line limit");
+      }
       column = 1;
     } else {
       column++;
@@ -153,5 +177,15 @@ final class SourceLexer {
 
   private boolean atEnd() {
     return offset >= source.length();
+  }
+
+  private static boolean isIdentifierStart(char value) {
+    return value == '_'
+        || value >= 'A' && value <= 'Z'
+        || value >= 'a' && value <= 'z';
+  }
+
+  private static boolean isIdentifierPart(char value) {
+    return isIdentifierStart(value) || value >= '0' && value <= '9';
   }
 }
