@@ -207,6 +207,26 @@ class WheelerCommandTest {
         lock.entries().stream().map(PackageLock.Entry::name).toList());
     assertEquals(0, Wheeler.execute(
         new String[] {"verify-lock", lockPath.toString()}, output, sink));
+    Path vendor = temporary.resolve("vendor");
+    String[] vendorCommand = {
+        "vendor", lockPath.toString(), "--catalog", catalog.toString(),
+        "-o", vendor.toString()
+    };
+    assertEquals(0, Wheeler.execute(vendorCommand, output, sink));
+    assertEquals(0, Wheeler.execute(vendorCommand, output, sink));
+    assertEquals(Files.readString(lockPath), Files.readString(vendor.resolve("wheeler.lock")));
+    try (var files = Files.list(vendor)) {
+      assertEquals(2, files.count());
+    }
+    Path vendoredArchive;
+    try (var files = Files.list(vendor)) {
+      vendoredArchive = files
+          .filter(path -> path.getFileName().toString().endsWith(".wpk"))
+          .findFirst()
+          .orElseThrow();
+    }
+    Files.write(vendoredArchive, new byte[] {1});
+    assertThrows(java.io.IOException.class, () -> Wheeler.execute(vendorCommand, output, sink));
     assertTrue(stdout.toString(StandardCharsets.UTF_8).contains(lock.identity()));
     var unsupported = assertThrows(
         com.typeobject.wheeler.packageformat.PackageFormatException.class,

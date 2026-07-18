@@ -145,6 +145,7 @@ wheeler package <package-directory> [-o package.wpk]
 wheeler verify <package.wpk>
 wheeler resolve <package-directory> --catalog <archive-directory> [-o wheeler.lock] [--development]
 wheeler verify-lock <wheeler.lock>
+wheeler vendor <wheeler.lock> --catalog <archive-directory> -o <vendor-directory>
 wheeler plan <workspace-directory> --compiler <sha256> [-o wheeler.plan]
 wheeler verify-plan <wheeler.plan>
 wheeler compile <source.w> [-o program.wbc]
@@ -154,7 +155,15 @@ wheeler disassemble <program.wbc>
 wheeler qasm <program.wbc> <output.qasm>
 ```
 
-`check` compiles and verifies every declared target without writing outputs. `build` writes one canonical `.wbc` per target, named from the target. Workspace builds place each package in its member-named output directory. `test` compiles and executes only targets declared with kind `test`, in canonical workspace/package/target order, using the same ideal state-vector target as ordinary deterministic CI. A package with no test targets succeeds with a zero-target report. `clean` removes only the default physical `out` tree and rejects files or symbolic links at any level before deleting anything. `package` includes canonical manifest data and every declared target root. `verify` performs strict archive decoding before printing identity. `resolve` selects from an explicit verified archive catalog and atomically writes canonical lock data; development dependencies enter only with `--development`. `verify-lock` accepts only canonical lock encoding before printing identity. `plan` hashes declared workspace sources and emits a canonical build plan with an explicit compiler identity. `verify-plan` validates all structural and content identities before printing plan identity. `run` accepts either a verified artifact or an explicitly selected binary, tool, or example package target; library and test targets use their dedicated operations. Output replacement uses a sibling temporary file and atomic move when the host supports it.
+`check` compiles and verifies every declared target without writing outputs. `build` writes one canonical `.wbc` per target, named from the target. Workspace builds place each package in its member-named output directory. `test` compiles and executes only targets declared with kind `test`, in canonical workspace/package/target order, using the same ideal state-vector target as ordinary deterministic CI. A package with no test targets succeeds with a zero-target report. `clean` removes only the default physical `out` tree and rejects files or symbolic links at any level before deleting anything. `package` includes canonical manifest data and every declared target root. `verify` performs strict archive decoding before printing identity. `resolve` selects from an explicit verified archive catalog and atomically writes canonical lock data; development dependencies enter only with `--development`. `verify-lock` accepts only canonical lock encoding before printing identity. `vendor` materializes exactly the locked archive set plus the canonical lockfile from an explicit verified catalog. `plan` hashes declared workspace sources and emits a canonical build plan with an explicit compiler identity. `verify-plan` validates all structural and content identities before printing plan identity. `run` accepts either a verified artifact or an explicitly selected binary, tool, or example package target; library and test targets use their dedicated operations. Output replacement uses a sibling temporary file and atomic move when the host supports it.
+
+## Vendored inputs
+
+A vendor tree is a flat, relocatable offline input set. Archive names contain package name, exact version, and full archive SHA-256; `wheeler.lock` is copied byte-for-byte. Catalog entries not present in the lock are excluded.
+
+Vendoring verifies archive and manifest identities against every lock entry. An existing output directory is accepted only when its complete file-name set and every byte already match the expected tree, making retries idempotent. Missing, extra, corrupt, linked, nonregular, or duplicate-version inputs fail without being treated as a cache hit. A new tree is assembled and verified in a sibling temporary directory before an atomic directory move when supported. The output directory path does not enter any content identity.
+
+## Unsupported dependency compilation
 
 Local check, build, test, run, and plan operations fail closed when a manifest declares dependencies because locked archive loading is not yet attached to compilation. Resolution may produce and verify a lock, but no operation silently ignores that graph.
 

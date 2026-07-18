@@ -17,7 +17,26 @@ final class PackageCatalog {
 
   private PackageCatalog() {}
 
+  record Entry(String fileName, byte[] bytes, PackageArchive.DecodedPackage decoded) {
+    Entry {
+      bytes = bytes.clone();
+    }
+
+    @Override
+    public byte[] bytes() {
+      return bytes.clone();
+    }
+
+    PackageRelease release() {
+      return new PackageRelease(decoded.manifest(), decoded.identity());
+    }
+  }
+
   static List<PackageRelease> load(Path requestedDirectory) throws IOException {
+    return loadEntries(requestedDirectory).stream().map(Entry::release).toList();
+  }
+
+  static List<Entry> loadEntries(Path requestedDirectory) throws IOException {
     Path directory = requestedDirectory.toRealPath(LinkOption.NOFOLLOW_LINKS);
     if (!Files.isDirectory(directory, LinkOption.NOFOLLOW_LINKS)
         || Files.isSymbolicLink(directory)) {
@@ -33,7 +52,7 @@ final class PackageCatalog {
     if (archives.size() > MAX_ARCHIVES) {
       throw new IOException("Catalog exceeds " + MAX_ARCHIVES + " archives");
     }
-    List<PackageRelease> releases = new ArrayList<>();
+    List<Entry> releases = new ArrayList<>();
     PackageArchive codec = new PackageArchive();
     for (Path archive : archives) {
       if (!Files.isRegularFile(archive, LinkOption.NOFOLLOW_LINKS)
@@ -42,7 +61,7 @@ final class PackageCatalog {
       }
       byte[] bytes = Files.readAllBytes(archive);
       PackageArchive.DecodedPackage decoded = codec.decode(bytes);
-      releases.add(new PackageRelease(decoded.manifest(), decoded.identity()));
+      releases.add(new Entry(archive.getFileName().toString(), bytes, decoded));
     }
     return List.copyOf(releases);
   }

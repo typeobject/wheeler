@@ -60,6 +60,7 @@ public final class Wheeler {
       case "qasm" -> qasm(args, out, error);
       case "resolve" -> resolve(args, out, error);
       case "verify-lock" -> verifyLock(args, out, error);
+      case "vendor" -> vendor(args, out, error);
       case "plan" -> plan(args, out, error);
       case "verify-plan" -> verifyPlan(args, out, error);
       default -> {
@@ -293,6 +294,21 @@ public final class Wheeler {
     return 0;
   }
 
+  private static int vendor(
+      String[] args, PrintStream out, PrintStream error) throws Exception {
+    if (args.length != 6 || !args[2].equals("--catalog") || !args[4].equals("-o")) {
+      error.println(
+          "Usage: wheeler vendor <wheeler.lock> --catalog <archive-directory>"
+              + " -o <vendor-directory>");
+      return 2;
+    }
+    PackageLock lock = new PackageLockParser().parse(Files.readAllBytes(Path.of(args[1])));
+    int packages = PackageVendor.vendor(lock, Path.of(args[3]), Path.of(args[5]));
+    out.println("vendored " + packages + " packages into " + args[5]
+        + " (" + lock.identity() + ")");
+    return 0;
+  }
+
   private static int plan(
       String[] args, PrintStream out, PrintStream error) throws Exception {
     if ((args.length != 4 && args.length != 6) || !args[2].equals("--compiler")
@@ -413,7 +429,7 @@ public final class Wheeler {
 
   private static void usage(PrintStream error) {
     error.println(
-        "Usage: wheeler <run|compile|check|build|test|clean|package|verify|resolve|verify-lock|"
+        "Usage: wheeler <run|compile|check|build|test|clean|package|verify|resolve|verify-lock|vendor|"
             + "plan|verify-plan|disassemble|qasm> ...");
   }
 }
