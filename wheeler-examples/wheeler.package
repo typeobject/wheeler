@@ -19,6 +19,7 @@ target example "quantumoptimizer" root "src/main/wheeler/QuantumOptimizer.w";
 target example "records" root "src/main/wheeler/Records.w";
 target example "recursivevalue" root "src/main/wheeler/RecursiveValue.w";
 target example "regionstorage" root "src/main/wheeler/RegionStorage.w";
+target example "seedartifact" root "src/main/wheeler/SeedArtifact.w" module "examples.compiler.seed" source "src/main/wheeler/SeedArtifact.w" source "src/main/wheeler/compiler/Encoding.w";
 target example "surfacecode" root "src/main/wheeler/SurfaceCode.w";
 target example "utf8lexer" root "src/main/wheeler/Utf8Lexer.w" module "examples.lexer.main" source "src/main/wheeler/Utf8Lexer.w" source "src/main/wheeler/lexer/Parser.w" source "src/main/wheeler/lexer/Scanner.w";
 target example "variants" root "src/main/wheeler/Variants.w";

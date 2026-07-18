@@ -294,6 +294,7 @@ Artifact bytes, assembly, debug names, effect payloads, and persisted history ar
 - [x] Signed and Boolean frame parameters, results, locals, typed value calls, branch targets, definite assignment, and bounded-loop checks execute and verify.
 - [x] Bytecode and source counter fixtures run forward and inverse.
 - [x] Existing incompatible bytecode and memory paths are deleted.
+- [x] A Wheeler-written conformance fixture emits every byte of a fixed minimal canonical artifact; stage 0 agrees byte-for-byte, the strict decoder accepts it, canonical re-encoding is identical, and the VM executes it.
 
 ## Testing and acceptance
 
