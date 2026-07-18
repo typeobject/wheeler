@@ -1,5 +1,10 @@
 module examples.lexer.scanner;
 classical class Scanner {
+    public variant ScanResult {
+        case Value(long count);
+        case Error(long offset);
+    }
+
     public long tokenKind(long scalar) {
         if (scalar == 10) {
             return 0;
@@ -84,6 +89,93 @@ classical class Scanner {
             cursor += utf8Width(source, cursor);
         }
         return -1;
+    }
+
+    public ScanResult scan(
+        utf8 source,
+        words tokenKinds,
+        words tokenStarts,
+        words tokenLengths
+    ) {
+        long sourceLength = bufferLength(source);
+        long count = 0;
+        long cursor = 0;
+        while (cursor < sourceLength) limit 4096 {
+            long scalar = utf8Scalar(source, cursor);
+            long width = utf8Width(source, cursor);
+            long kind = tokenKind(scalar);
+            if (scalar == 34) {
+                kind = 6;
+            }
+            if (scalar == 47) {
+                long detectedComment = commentKind(source, cursor, sourceLength);
+                if (3 < detectedComment) {
+                    kind = detectedComment;
+                }
+            }
+            if (kind == 0) {
+                cursor += width;
+            } else {
+                if (count < bufferLength(tokenKinds)) {
+                    long tokenIndex = count;
+                    long tokenStart = cursor;
+                    set(tokenKinds, tokenIndex, kind);
+                    set(tokenStarts, tokenIndex, tokenStart);
+                    count += 1;
+                    cursor += width;
+                    if (kind < 3) {
+                        boolean scanning = true;
+                        while (scanning) limit 4096 {
+                            if (cursor < sourceLength) {
+                                long next = utf8Scalar(source, cursor);
+                                if (tokenKind(next) == kind) {
+                                    cursor += utf8Width(source, cursor);
+                                } else {
+                                    scanning = false;
+                                }
+                            } else {
+                                scanning = false;
+                            }
+                        }
+                    } else {
+                        if (kind == 4) {
+                            boolean scanningComment = true;
+                            while (scanningComment) limit 4096 {
+                                if (cursor < sourceLength) {
+                                    if (utf8Scalar(source, cursor) == 10) {
+                                        scanningComment = false;
+                                    } else {
+                                        cursor += utf8Width(source, cursor);
+                                    }
+                                } else {
+                                    scanningComment = false;
+                                }
+                            }
+                        }
+                        if (kind == 5) {
+                            long blockEnd = blockCommentEnd(
+                                source, tokenStart, sourceLength);
+                            if (blockEnd < 0) {
+                                return new ScanResult.Error(tokenStart);
+                            }
+                            cursor = blockEnd;
+                        }
+                        if (kind == 6) {
+                            long literalEnd = asciiLiteralEnd(
+                                source, tokenStart, sourceLength);
+                            if (literalEnd < 0) {
+                                return new ScanResult.Error(tokenStart);
+                            }
+                            cursor = literalEnd;
+                        }
+                    }
+                    set(tokenLengths, tokenIndex, cursor - tokenStart);
+                } else {
+                    return new ScanResult.Error(cursor);
+                }
+            }
+        }
+        return new ScanResult.Value(count);
     }
 
     public long blockCommentEnd(utf8 source, long cursor, long sourceLength) {

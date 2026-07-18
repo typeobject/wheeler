@@ -1,15 +1,47 @@
 module examples.compiler.seed;
 import examples.compiler.encoding;
-classical class SeedArtifact {
+import examples.lexer.parser;
+import examples.lexer.scanner;
+classical class MinimalCompiler {
     state long finalCursor = 0;
 
-    entry void main(utf8 className, bytes output) {
-        if (asciiIdentifierValid(className)) {
-            finalCursor = 0;
-        } else {
-            assert finalCursor == 1;
+    private SourceRange requireMinimalClass(
+        utf8 source,
+        words tokenKinds,
+        words tokenStarts,
+        words tokenLengths
+    ) {
+        ScanResult scanned = scan(
+            source, tokenKinds, tokenStarts, tokenLengths);
+        match (scanned) {
+            case ScanResult.Error(long scanOffset) {
+                assert finalCursor == 1;
+                return new SourceRange(scanOffset, 0);
+            }
+            case ScanResult.Value(long count) {
+                MinimalClassResult parsed = parseMinimalClass(
+                    source, tokenKinds, tokenStarts, tokenLengths, count);
+                match (parsed) {
+                    case MinimalClassResult.Error(long parseOffset) {
+                        assert finalCursor == 1;
+                        return new SourceRange(parseOffset, 0);
+                    }
+                    case MinimalClassResult.Value(SourceRange name) {
+                        return name;
+                    }
+                }
+            }
         }
-        long nameLength = bufferLength(className);
+    }
+
+    entry void main(utf8 source, bytes output) {
+        region arena = new region(768, 3);
+        words tokenKinds = allocate(arena, 32);
+        words tokenStarts = allocate(arena, 32);
+        words tokenLengths = allocate(arena, 32);
+        SourceRange className = requireMinimalClass(
+            source, tokenKinds, tokenStarts, tokenLengths);
+        long nameLength = className.length;
         long manifestOffset = 232;
         long stringsOffset = 256;
         long stringsLength = 16 + nameLength;
@@ -50,7 +82,8 @@ classical class SeedArtifact {
 
         cursor = writeUnsignedLittleEndian(output, cursor, 2, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, nameLength, 4);
-        cursor = writeAsciiInput(output, cursor, className);
+        cursor = writeAsciiSlice(
+            output, cursor, source, className.start, nameLength);
         cursor = writeUnsignedLittleEndian(output, cursor, 4, 4);
         writeAscii(output, cursor, "main");
         cursor += 4;
@@ -81,5 +114,10 @@ classical class SeedArtifact {
         cursor = writeUnsignedLittleEndian(output, cursor, 8, 4);
         finalCursor = cursor;
         setOutputLength(output, finalCursor);
+
+        drop(tokenLengths);
+        drop(tokenStarts);
+        drop(tokenKinds);
+        drop(arena);
     }
 }

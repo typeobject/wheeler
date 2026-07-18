@@ -345,25 +345,33 @@ class WheelerCommandTest {
   void runPublishesAWheelerWrittenExecutableArtifact() throws Exception {
     Path project = temporary.resolve("seed-writer");
     Files.createDirectories(project.resolve("src/compiler"));
+    Files.createDirectories(project.resolve("src/lexer"));
     Files.writeString(project.resolve("wheeler.package"), """
         package "demo.seedwriter" version "1.0.0" profile "bootstrap-1";
-        target example "seed" root "src/SeedArtifact.w" module "examples.compiler.seed"
-            source "src/SeedArtifact.w" source "src/compiler/Encoding.w";
+        target example "compiler" root "src/MinimalCompiler.w" module "examples.compiler.seed"
+            source "src/MinimalCompiler.w" source "src/compiler/Encoding.w"
+            source "src/lexer/Parser.w" source "src/lexer/Scanner.w";
         """);
     Path examples = Path.of("../wheeler-examples/src/main/wheeler");
-    Files.copy(examples.resolve("SeedArtifact.w"), project.resolve("src/SeedArtifact.w"));
+    Files.copy(
+        examples.resolve("MinimalCompiler.w"), project.resolve("src/MinimalCompiler.w"));
     Files.copy(
         examples.resolve("compiler/Encoding.w"),
         project.resolve("src/compiler/Encoding.w"));
+    Files.copy(examples.resolve("lexer/Parser.w"), project.resolve("src/lexer/Parser.w"));
+    Files.copy(examples.resolve("lexer/Scanner.w"), project.resolve("src/lexer/Scanner.w"));
     Path className = temporary.resolve("class-name.txt");
-    Files.writeString(className, "LongClass", StandardCharsets.UTF_8);
+    Files.writeString(
+        className,
+        "classical class LongClass { entry void main() { } }",
+        StandardCharsets.UTF_8);
     Path artifact = temporary.resolve("seed.wbc");
     ByteArrayOutputStream bytes = new ByteArrayOutputStream();
     PrintStream output = new PrintStream(bytes, true, StandardCharsets.UTF_8);
 
     assertEquals(0, Wheeler.execute(
         new String[] {
-            "run", project.toString(), "--target", "seed",
+            "run", project.toString(), "--target", "compiler",
             "--input", className.toString(),
             "--output", artifact.toString(), "--output-bytes", "512"
         },

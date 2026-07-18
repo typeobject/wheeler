@@ -27,70 +27,21 @@ classical class Encoding {
         return -1;
     }
 
-    private boolean asciiIdentifierStart(long scalar) {
-        if (scalar == 95) {
-            return true;
-        }
-        if (64 < scalar) {
-            if (scalar < 91) {
-                return true;
-            }
-        }
-        if (96 < scalar) {
-            return scalar < 123;
-        }
-        return false;
-    }
-
-    private boolean asciiIdentifierPart(long scalar) {
-        if (asciiIdentifierStart(scalar)) {
-            return true;
-        }
-        if (47 < scalar) {
-            return scalar < 58;
-        }
-        return false;
-    }
-
-    public boolean asciiIdentifierValid(utf8 input) {
-        long length = bufferLength(input);
-        if (length < 1) {
-            return false;
-        }
-        if (256 < length) {
-            return false;
-        }
-        if (utf8Width(input, 0) == 1) {
-            if (asciiIdentifierStart(utf8Scalar(input, 0))) {
-                long cursor = 1;
-                while (cursor < length) limit 256 {
-                    if (utf8Width(input, cursor) == 1) {
-                        if (asciiIdentifierPart(utf8Scalar(input, cursor))) {
-                            cursor += 1;
-                        } else {
-                            return false;
-                        }
-                    } else {
-                        return false;
-                    }
-                }
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public long writeAsciiInput(
+    public long writeAsciiSlice(
         bytes output,
         long offset,
-        utf8 input
+        utf8 input,
+        long start,
+        long length
     ) {
-        long length = bufferLength(input);
         long cursor = 0;
         while (cursor < length) limit 256 {
-            long width = utf8Width(input, cursor);
-            if (width == 1) {
-                setByte(output, offset + cursor, utf8Scalar(input, cursor));
+            long inputCursor = start + cursor;
+            if (utf8Width(input, inputCursor) == 1) {
+                setByte(
+                    output,
+                    offset + cursor,
+                    utf8Scalar(input, inputCursor));
                 cursor += 1;
             } else {
                 return -1;

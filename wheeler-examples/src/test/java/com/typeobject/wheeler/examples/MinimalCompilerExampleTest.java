@@ -16,23 +16,29 @@ import java.nio.file.Path;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-class SeedArtifactExampleTest {
+class MinimalCompilerExampleTest {
   @Test
-  void wheelerEmitsACompleteCanonicalExecutableArtifact() throws Exception {
-    String root = Files.readString(Path.of("src/main/wheeler/SeedArtifact.w"));
+  void wheelerCompilesMinimalSourceToACanonicalExecutableArtifact() throws Exception {
+    String root = Files.readString(Path.of("src/main/wheeler/MinimalCompiler.w"));
     String encoding = Files.readString(Path.of("src/main/wheeler/compiler/Encoding.w"));
+    String parser = Files.readString(Path.of("src/main/wheeler/lexer/Parser.w"));
+    String scanner = Files.readString(Path.of("src/main/wheeler/lexer/Scanner.w"));
     var writerProgram = new WheelerCompiler().compileModuleFiles(
-        Map.of("SeedArtifact.w", root, "Encoding.w", encoding),
+        Map.of(
+            "MinimalCompiler.w", root,
+            "Encoding.w", encoding,
+            "Parser.w", parser,
+            "Scanner.w", scanner),
         "examples.compiler.seed");
+    String source = "classical class LongClass { entry void main() { } }";
     VirtualMachine writer = new VirtualMachine(
-        writerProgram, "LongClass".getBytes(StandardCharsets.UTF_8), 512);
+        writerProgram, source.getBytes(StandardCharsets.UTF_8), 512);
     var initial = writer.snapshot();
 
     writer.run();
 
     byte[] emitted = writer.hostOutput();
-    byte[] stageZero = new WheelerCompiler().compileToBytecode(
-        "classical class LongClass { entry void main() { } }");
+    byte[] stageZero = new WheelerCompiler().compileToBytecode(source);
     assertEquals(368, emitted.length);
     assertEquals(368, writer.global("finalCursor"));
     assertArrayEquals(stageZero, emitted);
@@ -49,7 +55,10 @@ class SeedArtifactExampleTest {
     assertEquals(initial, writer.snapshot());
 
     VirtualMachine invalid = new VirtualMachine(
-        writerProgram, "Caf\u00e9".getBytes(StandardCharsets.UTF_8), 512);
+        writerProgram,
+        "classical class Caf\u00e9 { entry void main() { } }"
+            .getBytes(StandardCharsets.UTF_8),
+        512);
     assertThrows(VmTrap.class, invalid::run);
     assertArrayEquals(new byte[512], invalid.hostOutput());
   }

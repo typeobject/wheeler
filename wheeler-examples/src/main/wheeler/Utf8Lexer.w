@@ -36,84 +36,14 @@ classical class Utf8Lexer {
         words tokenLengths = allocate(arena, 16);
         long sourceLength = bufferLength(source);
         long count = 0;
-        long cursor = 0;
-
-        while (cursor < sourceLength) limit 256 {
-            long scalar = utf8Scalar(source, cursor);
-            long width = utf8Width(source, cursor);
-            long kind = tokenKind(scalar);
-            if (scalar == 34) {
-                kind = 6;
+        ScanResult scanned = scan(
+            source, tokenKinds, tokenStarts, tokenLengths);
+        match (scanned) {
+            case ScanResult.Value(long scannedCount) {
+                count = scannedCount;
             }
-            if (scalar == 47) {
-                long detectedComment = commentKind(source, cursor, sourceLength);
-                if (3 < detectedComment) {
-                    kind = detectedComment;
-                }
-            }
-            if (kind == 0) {
-                cursor += width;
-            } else {
-                long tokenIndex = count;
-                long tokenStart = cursor;
-                set(tokenKinds, tokenIndex, kind);
-                set(tokenStarts, tokenIndex, tokenStart);
-                count += 1;
-                cursor += width;
-
-                if (kind < 3) {
-                    boolean scanning = true;
-                    while (scanning) limit 256 {
-                        if (cursor < sourceLength) {
-                            long next = utf8Scalar(source, cursor);
-                            long nextKind = tokenKind(next);
-                            if (nextKind == kind) {
-                                cursor += utf8Width(source, cursor);
-                            } else {
-                                scanning = false;
-                            }
-                        } else {
-                            scanning = false;
-                        }
-                    }
-                } else {
-                    if (kind == 4) {
-                        boolean scanningComment = true;
-                        while (scanningComment) limit 256 {
-                            if (cursor < sourceLength) {
-                                long nextComment = utf8Scalar(source, cursor);
-                                if (nextComment == 10) {
-                                    scanningComment = false;
-                                } else {
-                                    cursor += utf8Width(source, cursor);
-                                }
-                            } else {
-                                scanningComment = false;
-                            }
-                        }
-                    }
-                    if (kind == 5) {
-                        long blockEnd = blockCommentEnd(
-                            source, tokenStart, sourceLength);
-                        if (blockEnd < 0) {
-                            lexicalError = tokenStart + 1;
-                            cursor = sourceLength;
-                        } else {
-                            cursor = blockEnd;
-                        }
-                    }
-                    if (kind == 6) {
-                        long literalEnd = asciiLiteralEnd(
-                            source, tokenStart, sourceLength);
-                        if (literalEnd < 0) {
-                            lexicalError = tokenStart + 1;
-                            cursor = sourceLength;
-                        } else {
-                            cursor = literalEnd;
-                        }
-                    }
-                }
-                set(tokenLengths, tokenIndex, cursor - tokenStart);
+            case ScanResult.Error(long scanOffset) {
+                lexicalError = scanOffset + 1;
             }
         }
 
@@ -128,9 +58,9 @@ classical class Utf8Lexer {
                     numericValue = value;
                     parseError = 0;
                 }
-                case DeclarationResult.Error(long offset) {
+                case DeclarationResult.Error(long parseOffset) {
                     numericValue = -1;
-                    parseError = offset + 1;
+                    parseError = parseOffset + 1;
                 }
             }
         } else {
@@ -138,7 +68,7 @@ classical class Utf8Lexer {
             parseError = lexicalError;
         }
         outputLength = emitNumber(source, tokenStarts, tokenLengths, output);
-        finalCursor = cursor;
+        finalCursor = sourceLength;
         assert tokenCount == 6;
         assert numberStart == 7;
         assert commentStart == 11;
