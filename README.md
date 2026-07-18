@@ -40,6 +40,7 @@ Package targets have exactly three kinds: `deployable`, `library`, and `tool`. A
 - [Language profile](docs/docs/reference/language-profile.md)
 - [Bytecode format](docs/docs/reference/bytecode.md)
 - [Virtual machine](docs/docs/reference/virtual-machine.md)
+- [Semantic coverage](docs/docs/reference/coverage.md)
 - [Quantum targets](docs/docs/reference/quantum-targets.md)
 - [Improvement proposals](docs/docs/proposals/README.md)
 - [Development and test guide](docs/docs/reference/development.md)

@@ -14,6 +14,7 @@ import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /** Deterministic single-threaded Wheeler transition kernel. */
 public final class VirtualMachine {
@@ -25,36 +26,51 @@ public final class VirtualMachine {
   private final AggregateStore aggregates = new AggregateStore();
   private final OwnedStore owned = new OwnedStore();
   private final long hostOutputHandle;
+  private final TransitionObserver observer;
   private final Deque<StepRecord> history = new ArrayDeque<>();
   private MachineStatus status = MachineStatus.READY;
   private int hostOutputLength;
   private long sequence;
 
   public VirtualMachine(Program program) {
-    this(program, null, -1, false);
+    this(program, null, -1, false, TransitionObserver.NONE);
+  }
+
+  public VirtualMachine(Program program, TransitionObserver observer) {
+    this(program, null, -1, false, observer);
   }
 
   public VirtualMachine(Program program, byte[] utf8Input) {
-    this(program, utf8Input, -1, false);
+    this(program, utf8Input, -1, false, TransitionObserver.NONE);
   }
 
   public VirtualMachine(Program program, byte[] utf8Input, int outputBytes) {
-    this(program, utf8Input, outputBytes, false);
+    this(program, utf8Input, outputBytes, false, TransitionObserver.NONE);
   }
 
   public static VirtualMachine withBinaryInput(Program program, byte[] input) {
-    return new VirtualMachine(program, input, -1, true);
+    return new VirtualMachine(program, input, -1, true, TransitionObserver.NONE);
   }
 
   public static VirtualMachine withBinaryInput(
       Program program, byte[] input, int outputBytes) {
-    return new VirtualMachine(program, input, outputBytes, true);
+    return new VirtualMachine(program, input, outputBytes, true, TransitionObserver.NONE);
+  }
+
+  public static VirtualMachine withBinaryInput(
+      Program program, byte[] input, int outputBytes, TransitionObserver observer) {
+    return new VirtualMachine(program, input, outputBytes, true, observer);
   }
 
   private VirtualMachine(
-      Program program, byte[] hostInput, int outputBytes, boolean binaryInput) {
+      Program program,
+      byte[] hostInput,
+      int outputBytes,
+      boolean binaryInput,
+      TransitionObserver observer) {
     BytecodeVerifier.verify(program);
     this.program = program;
+    this.observer = Objects.requireNonNull(observer, "observer");
     this.globals = program.globals().stream().mapToLong(global -> global.initialValue()).toArray();
     FunctionBody entry = program.function(program.entryFunctionId());
     HostEffectBinder.Effects effects =
@@ -102,6 +118,7 @@ public final class VirtualMachine {
     } else {
       history.push(record);
     }
+    observer.observe(TransitionObserver.execution(sequence, frame, instruction.opcode()));
   }
 
   public void rewindOne() {
@@ -136,6 +153,7 @@ public final class VirtualMachine {
     hostOutputLength = record.previousHostOutputLength();
     status = record.previousStatus();
     sequence = record.sequence();
+    observer.observe(TransitionObserver.rewind(record));
   }
 
   public byte[] hostOutput() {
@@ -149,7 +167,7 @@ public final class VirtualMachine {
   }
 
   public long global(int index) {
-    return globals[checkedGlobalIndex(index)];
+    return globals[VmControlChecks.globalIndex(globals.length, index)];
   }
 
   /** Executes one function from a hybrid workflow boundary. WIP-0004 records this boundary. */
@@ -175,7 +193,7 @@ public final class VirtualMachine {
 
   /** Applies a measured or external value and establishes an irreversible workflow boundary. */
   public void setGlobalFromEffect(int index, long value) {
-    globals[checkedGlobalIndex(index)] = value;
+    globals[VmControlChecks.globalIndex(globals.length, index)] = value;
     history.clear();
   }
 
@@ -196,7 +214,7 @@ public final class VirtualMachine {
   }
 
   public void expectGlobal(int index, long expected) {
-    long actual = globals[checkedGlobalIndex(index)];
+    long actual = globals[VmControlChecks.globalIndex(globals.length, index)];
     if (actual != expected) {
       trap("Expectation failed: expected %d, got %d".formatted(expected, actual));
     }
@@ -630,10 +648,10 @@ public final class VirtualMachine {
             trap("32-bit rotate amount must be between 0 and 31");
           }
         }
-        case JUMP -> checkedJumpTarget(instruction, 0);
+        case JUMP -> VmControlChecks.jumpTarget(program, currentFrame(), instruction, 0);
         case JUMP_IF_ZERO -> {
           localIndex(instruction, 0);
-          checkedJumpTarget(instruction, 1);
+          VmControlChecks.jumpTarget(program, currentFrame(), instruction, 1);
         }
         case LOCAL_LOOP_CHECK -> {
           long iteration = localValue(instruction, 0);
@@ -882,7 +900,8 @@ public final class VirtualMachine {
   }
 
   private int globalIndex(Instruction instruction, int operandIndex) {
-    return checkedGlobalIndex(Math.toIntExact(operand(instruction, operandIndex)));
+    return VmControlChecks.globalIndex(
+        globals.length, Math.toIntExact(operand(instruction, operandIndex)));
   }
 
   private int localIndex(Instruction instruction, int operandIndex) {
@@ -964,28 +983,10 @@ public final class VirtualMachine {
         Math.toIntExact(localValue(instruction, 2)));
   }
 
-  private int checkedJumpTarget(Instruction instruction, int operandIndex) {
-    int target = Math.toIntExact(operand(instruction, operandIndex));
-    int bodySize = program.function(currentFrame().functionId())
-        .body(currentFrame().inverse())
-        .size();
-    if (target < 0 || target >= bodySize) {
-      throw new VmTrap("Invalid jump target " + target);
-    }
-    return target;
-  }
-
   private void requireCallCapacity() {
     if (frames.size() >= MAX_CALL_DEPTH) {
       trap("Call depth limit exceeded");
     }
-  }
-
-  private int checkedGlobalIndex(int index) {
-    if (index < 0 || index >= globals.length) {
-      throw new VmTrap("Invalid global index " + index);
-    }
-    return index;
   }
 
   private static long operand(Instruction instruction, int index) {

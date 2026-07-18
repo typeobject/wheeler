@@ -48,4 +48,6 @@ Intrinsic operations recover data from their inverse operation. Logged operation
 
 ## Traps and limits
 
+An optional transition observer receives immutable function/instruction/opcode observations only after successful mutation. It classifies forward, inverse, rewind-forward, and rewind-inverse separately and receives no mutable machine state; the stage-0 semantic coverage reducer described in [semantic coverage](coverage.md) uses this boundary without changing artifacts or history.
+
 Invalid expectations, overflow, missing inverses, invalid local or branch access, register type mismatches, non-Boolean conditions, exceeded source loop limits, call depth above 1,024 frames, escaped instruction pointers, exhausted history, and exceeded step limits trap deterministically. Owned moves, region/buffer exhaustion, use after move or drop, buffer kind/range/bounds, UTF-8 freeze validity, immutable borrow kind/owner state, exclusive region/buffer/map-borrow kind and aliasing, map capacity/absence, malformed UTF-8 counting, dropping an owner with live buffers, ownership-divergent joins, and leaked owned locals are also checked. A failing instruction does not partially mutate globals, frames, region accounting, or buffer contents.
