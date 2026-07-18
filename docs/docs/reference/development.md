@@ -16,7 +16,15 @@ Java compilation enables all lint warnings and treats warnings as errors. `check
 
 `wheeler check-docs <file-or-directory>...` walks physical nonsymlink `.w` files in lexical path order, reads bounded strict UTF-8, prints stable `WDOC` diagnostics, and never writes source. `wheeler check-docs --stdin` checks one bounded buffer and reports it as `<stdin>`. Duplicate normalized inputs, symbolic links, malformed UTF-8, non-`.w` files, and more than 65,535 selected sources fail closed.
 
-The implemented checker requires a first-content nonempty `//!` file summary and adjacent nonempty `///` documentation for public and Wheeler-semantic member declarations. It checks canonical facet order and the required `Effects`, `Inverse`, `Coherent`, and `Adjoint` facets. This is the stage-0 lexical declaration slice; formatter publication and parser-range attachment remain WIP-0016 work. The command does not discover configuration, phone home, or write a tasteful stub about “leveraging synergies.”
+The implemented checker requires a first-content nonempty `//!` file summary and adjacent nonempty `///` documentation for public and Wheeler-semantic member declarations. It checks canonical facet order and the required `Effects`, `Inverse`, `Coherent`, and `Adjoint` facets. Declaration attachment uses the shared parser-owned module, type, member, and block ranges; malformed structural recovery is never mistaken for a declaration. The command does not discover configuration, phone home, or write a tasteful stub about “leveraging synergies.”
+
+## Source formatting
+
+`wheeler format <file-or-directory>...` formats the same bounded, strict-UTF-8, physical `.w` input set in canonical path order. It parses every selected file before publication, stages changed bytes in verified sibling files, preserves ordinary POSIX permission bits where available, and requires atomic replacement. A validation failure publishes nothing; a crash during replacement may leave a sorted prefix updated, and an idempotent rerun converges.
+
+`wheeler format --check <file-or-directory>...` writes nothing and reports every differing path as `WFMT001`. `wheeler format --stdin` writes one formatted UTF-8 document; adding `--check` writes only a difference diagnostic. `WFMT002` reports structural parse or formatter-limit failure, `WFMT003` reports the bounded input boundary, and `WFMT004` reports publication failure.
+
+The current stage-0 style normalizes LF and one final newline, four-space structural indentation, braces, semicolons, operators, comment markers, blank separators, and basic horizontal lists. WIP-0016's 100-scalar local line breaking and complete vertical-list table remain unimplemented; the command makes no contrary claim, however photogenic the output.
 
 ## Design workflow
 

@@ -60,12 +60,21 @@ public final class SourceFormatter {
           case LINE_COMMENT, BLOCK_COMMENT -> comment(index, element);
           case TOKEN -> token(index, element.text());
         }
+        if (result.length() > SourceLexer.MAX_SOURCE_CHARS) {
+          throw new CompilerException(
+              element.line(), "formatted source exceeds the 16 Mi-character limit");
+        }
       }
       int end = result.length();
       while (end > 0 && Character.isWhitespace(result.charAt(end - 1))) {
         end--;
       }
-      return result.substring(0, end) + "\n";
+      String formatted = result.substring(0, end) + "\n";
+      if (formatted.length() > SourceLexer.MAX_SOURCE_CHARS) {
+        int line = elements.isEmpty() ? 1 : elements.getLast().line();
+        throw new CompilerException(line, "formatted source exceeds the 16 Mi-character limit");
+      }
+      return formatted;
     }
 
     private void comment(int index, Element element) {

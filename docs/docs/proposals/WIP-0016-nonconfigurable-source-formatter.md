@@ -529,6 +529,17 @@ The poor comment repeats syntax, omits the mutated state, and fails the required
 
 Formatter diagnostics use the `WFMT` namespace. Documentation diagnostics use the `WDOC` namespace. Codes and primary source ranges are stable tool APIs; explanatory wording may improve.
 
+The implemented stage-0 formatter diagnostics are:
+
+```text
+WFMT001 path:1:1 source is not canonically formatted
+WFMT002 path:18:1 unmatched delimiter ']'
+WFMT003 <input>:1:1 Formatter input is not strict UTF-8: path
+WFMT004 <output>:1:1 Atomic formatter replacement is unavailable: path
+```
+
+`WFMT003` identifies bounded path/read/UTF-8 failures; `WFMT004` identifies staging, race, validation, and atomic-publication failures. Exact offending paths remain in the message when the failure occurs before one source record can be admitted.
+
 The initial documentation diagnostics include:
 
 ```text
@@ -703,7 +714,7 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 - [x] `//!` file blocks and adjacent/detached `///` declaration blocks have exact lexical attachment fixtures, including BOM, CRLF, ordinary comments, and blank-line detachment.
 - [x] `WDOC001`, `WDOC003`, and `WDOC005` now check missing, empty, and misplaced first-content `//!` file summaries over the shared lossless stream with exact code/location/message fixtures.
 - [x] Parser-owned bootstrap member ranges implement required public/entry/reversible/coherent/unitary/theorem/experiment coverage, private-helper exemption, adjacent nonempty summaries, canonical facet order, duplicate facets, and required `Effects`/`Inverse`/`Coherent`/`Adjoint` facets as `WDOC002..004` and `WDOC006..010`; malformed delimiter recovery blocks formatting before printing.
-- [ ] `wheeler format`, `--check`, and `--stdin` implement bounded deterministic behavior.
+- [x] `wheeler format`, `--check`, and `--stdin` share bounded strict-UTF-8 physical traversal with `check-docs`, parse every input before publication, report stable `WFMT001..004` diagnostics, preserve ordinary POSIX modes, validate sibling temporary files, and require atomic canonical-order replacement.
 - [x] `wheeler check-docs` and `--stdin` perform bounded strict-UTF-8 reads, reject duplicate/unsafe/non-source inputs, traverse physical files in canonical path order, print stable ordered `WDOC` diagnostics, and write nothing.
 - [ ] Every checked-in `.w` file and required declaration is documented.
 - [ ] Every checked-in `.w` file is formatted.
