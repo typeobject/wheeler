@@ -48,6 +48,8 @@ class ClassicalExamplesTest {
         Arguments.of("RecursiveValue.w", Map.of("result", 6L)),
         Arguments.of("RegionStorage.w", Map.of("first", 7L, "byteValue", 65L, "utf8Scalars", 3L, "validUtf8", 1L, "byteLength", 6L,
             "decodedScalars", 3L, "scalarSum", 8591L)),
+        Arguments.of("Utf8Lexer.w", Map.of(
+            "tokenCount", 5L, "numberStart", 11L, "finalCursor", 15L)),
         Arguments.of("Variants.w", Map.of("selected", 9L, "equal", 1L)));
   }
 }

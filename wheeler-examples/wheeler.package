@@ -15,6 +15,7 @@ target example "records" root "src/main/wheeler/Records.w";
 target example "recursivevalue" root "src/main/wheeler/RecursiveValue.w";
 target example "regionstorage" root "src/main/wheeler/RegionStorage.w";
 target example "surfacecode" root "src/main/wheeler/SurfaceCode.w";
+target example "utf8lexer" root "src/main/wheeler/Utf8Lexer.w";
 target example "variants" root "src/main/wheeler/Variants.w";
 capability "build.read" path "src/main/wheeler/**";
 capability "build.write" path "out/**";

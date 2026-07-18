@@ -197,9 +197,9 @@ The launcher grants read-only source inputs and one atomic artifact destination.
 - [x] Canonical `.wbc` and a deterministic stage-0 compiler exist.
 - [x] The accepted source grammar is formatting-independent and covered by Tree-sitter tooling.
 - [ ] Bootstrap feature and module manifests are specified as executable schemas.
-- [ ] Signed parameters, returns, frame locals, expressions, static calls, branches, and source-bounded loops execute on the VM; aggregate values, ownership, and region storage remain.
+- [ ] Signed/Boolean parameters and results, typed frames, static calls, aggregate values, bounded control, affine local regions, word/byte buffers, and UTF-8 scalar decoding execute; cross-function ownership, strings, collections, modules, and compiler-scale arenas remain.
 - [ ] Wheeler `.wbc` codec passes stage-0 differential tests.
-- [ ] Wheeler lexer and parser compile the accepted source corpus.
+- [ ] `Utf8Lexer.w` executes a bounded UTF-8 scanner with explicit token-kind/start buffers; complete token schemas, comments/numbers, diagnostics, source input capabilities, parser construction, and corpus parity remain.
 - [ ] Wheeler semantic analysis and lowering compile all examples.
 - [ ] Stage 1 and stage 2 reach a byte-identical fixed point.
 - [ ] Ordinary builds use the Wheeler compiler and the Java compiler path is deleted.

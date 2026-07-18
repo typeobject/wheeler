@@ -247,7 +247,7 @@ A feature that cannot express or simplify one of these modules needs separate ju
 - [x] Immutable nominal records, closed tagged variants, fixed immutable arrays, and nonescaping immutable slices execute with canonical descriptors, typed construction/calls, structural equality, exhaustive selection, checked ranges/indexing, snapshots, and rewind.
 - [ ] Function-local regions now enforce byte/object ceilings, affine moves, leak-free exits, mutable signed-word/byte buffers with byte-range checks, strict UTF-8 validation/scalar decoding, explicit drop order, snapshots, and rewind; borrowing, typed collections, cross-function ownership, recoverable allocation, capabilities, and compiler arenas remain.
 - [ ] Reversible protected control forms generate checked inverses.
-- [ ] Lexer, parser, codec, verifier, and package graph fixtures run in Wheeler.
+- [ ] A bounded Wheeler UTF-8 scanner now emits token kinds/starts into owned buffers; complete lexer diagnostics, parser, codec, verifier, and package graph fixtures remain.
 - [ ] Native execution traces match interpreted typed-frame traces.
 
 ## Testing and acceptance

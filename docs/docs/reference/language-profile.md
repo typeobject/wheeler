@@ -278,10 +278,11 @@ The Wheeler-written standard library will provide allocation-free core values, o
 ## Teaching path
 
 1. `Counter.w`, `BinaryTree.w`, `BootstrapControl.w`, `FunctionValues.w`, and `RecursiveValue.w`: reversible state, fixed-capacity data, typed locals, bounded control, parameters, returns, static calls, and bounded recursion.
-2. `CoherentOracle.w` and `QuantumNeuralNetwork.w`: exact XOR permutations over classical and coherent data.
-3. `QFT.w` and `QFTProof.w`: unitary regions, generated adjoints, and executable inverse laws.
-4. `QuantumOptimizer.w`: repeated target observations, classical acceptance, commit, and target-free replay.
-5. `QuantumCompiler.w`: semantic comparison of source and normalized circuits.
-6. `SurfaceCode.w`: a static correction kernel whose documentation states the dynamic-target boundary.
+2. `RegionStorage.w` and `Utf8Lexer.w`: affine bounded storage, strict UTF-8 decoding, and token-buffer scanning.
+3. `CoherentOracle.w` and `QuantumNeuralNetwork.w`: exact XOR permutations over classical and coherent data.
+4. `QFT.w` and `QFTProof.w`: unitary regions, generated adjoints, and executable inverse laws.
+5. `QuantumOptimizer.w`: repeated target observations, classical acceptance, commit, and target-free replay.
+6. `QuantumCompiler.w`: semantic comparison of source and normalized circuits.
+7. `SurfaceCode.w`: a static correction kernel whose documentation states the dynamic-target boundary.
 
 See [executable examples](../examples.md) for exact results and scope. Every checked-in example compiles, executes, and parses without Tree-sitter error nodes in the ordinary test gate.
