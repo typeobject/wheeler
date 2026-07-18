@@ -19,8 +19,8 @@ classical class Utf8Lexer {
         words tokenLengths,
         bytes output
     ) {
-        long start = tokenStarts[2];
-        long length = tokenLengths[2];
+        long start = tokenStarts[3];
+        long length = tokenLengths[3];
         long cursor = 0;
         while (cursor < length) limit 10 {
             setByte(output, cursor, utf8Scalar(source, start + cursor));
@@ -118,17 +118,17 @@ classical class Utf8Lexer {
         }
 
         tokenCount = count;
-        numberStart = tokenStarts[2];
-        commentStart = tokenStarts[4];
-        AssignmentResult parsed = parseAssignment(
+        numberStart = tokenStarts[3];
+        commentStart = tokenStarts[5];
+        DeclarationResult parsed = parseDeclaration(
             source, tokenKinds, tokenStarts, tokenLengths, tokenCount);
         if (lexicalError == 0) {
             match (parsed) {
-                case AssignmentResult.Value(long value) {
+                case DeclarationResult.Value(long value) {
                     numericValue = value;
                     parseError = 0;
                 }
-                case AssignmentResult.Error(long offset) {
+                case DeclarationResult.Error(long offset) {
                     numericValue = -1;
                     parseError = offset + 1;
                 }
@@ -139,14 +139,14 @@ classical class Utf8Lexer {
         }
         outputLength = emitNumber(source, tokenStarts, tokenLengths, output);
         finalCursor = cursor;
-        assert tokenCount == 5;
-        assert numberStart == 2;
-        assert commentStart == 6;
+        assert tokenCount == 6;
+        assert numberStart == 7;
+        assert commentStart == 11;
         assert numericValue == 123;
         assert parseError == 0;
         assert lexicalError == 0;
         assert outputLength == 3;
-        assert finalCursor == 11;
+        assert finalCursor == 16;
 
         drop(tokenLengths);
         drop(tokenStarts);

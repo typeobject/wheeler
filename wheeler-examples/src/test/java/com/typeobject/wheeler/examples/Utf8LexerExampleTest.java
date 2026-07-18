@@ -114,21 +114,21 @@ class Utf8LexerExampleTest {
             Files.readString(root.resolve("lexer/Scanner.w"))),
         "examples.lexer.main");
     VirtualMachine machine = new VirtualMachine(
-        program, "x=123;/*c*/".getBytes(StandardCharsets.UTF_8), 3);
+        program, "long x=123;/*c*/".getBytes(StandardCharsets.UTF_8), 3);
     var initial = machine.snapshot();
 
     machine.run();
 
     assertEquals(MachineStatus.HALTED, machine.status());
-    assertEquals(5, machine.global("tokenCount"));
-    assertEquals(2, machine.global("numberStart"));
-    assertEquals(6, machine.global("commentStart"));
+    assertEquals(6, machine.global("tokenCount"));
+    assertEquals(7, machine.global("numberStart"));
+    assertEquals(11, machine.global("commentStart"));
     assertEquals(123, machine.global("numericValue"));
     assertEquals(0, machine.global("parseError"));
     assertEquals(0, machine.global("lexicalError"));
     assertEquals(3, machine.global("outputLength"));
     assertEquals("123", new String(machine.hostOutput(), StandardCharsets.UTF_8));
-    assertEquals(11, machine.global("finalCursor"));
+    assertEquals(16, machine.global("finalCursor"));
     while (machine.historySize() > 0) {
       machine.rewindOne();
     }
