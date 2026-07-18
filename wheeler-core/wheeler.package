@@ -1,4 +1,4 @@
 package "wheeler.core" version "0.1.0" profile "bootstrap-1";
-target library "library" root "src/main/wheeler/CoreLibrary.w" module "wheeler.core.library" source "src/main/wheeler/CoreLibrary.w" source "src/main/wheeler/collections/FixedLongs.w" source "src/main/wheeler/collections/LongMap.w" source "src/main/wheeler/collections/LongQueue.w" source "src/main/wheeler/encoding/Binary.w" source "src/main/wheeler/text/Utf8.w";
+target library "library" root "src/main/wheeler/CoreLibrary.w" module "wheeler.core.library" source "src/main/wheeler/CoreLibrary.w" source "src/main/wheeler/collections/FixedLongs.w" source "src/main/wheeler/collections/LongMap.w" source "src/main/wheeler/collections/LongQueue.w" source "src/main/wheeler/crypto/Sha256.w" source "src/main/wheeler/encoding/Binary.w" source "src/main/wheeler/text/Utf8.w";
 capability "build.read" path "src/main/wheeler/**";
 capability "build.write" path "out/**";

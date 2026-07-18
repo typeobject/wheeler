@@ -1,10 +1,4 @@
-//! Exports Wheeler's allocation-free core collection substrate.
-
-//!
-
-//! The root is entryless and intentionally dull: core code earns dependencies one reviewed
-
-//! module at a time instead of acquiring a prelude with opinions and a mortgage.
+//! Exports the reviewed allocation-free core graph; accidental preludes may apply elsewhere.
 
 module wheeler.core.library;
 import wheeler.core.collections.fixed_longs;
@@ -12,4 +6,5 @@ import wheeler.core.collections.long_map;
 import wheeler.core.collections.queue;
 import wheeler.core.encoding.binary;
 import wheeler.core.text.utf8;
+import wheeler.crypto.sha256;
 classical class CoreLibrary {}

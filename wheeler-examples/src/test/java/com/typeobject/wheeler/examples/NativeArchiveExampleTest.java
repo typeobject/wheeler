@@ -35,7 +35,7 @@ class NativeArchiveExampleTest {
             Map.entry("Paths.w", PackageSources.read("packages/Paths.w")),
             Map.entry("Scanner.w", CompilerSources.read("lexer/Scanner.w")),
             Map.entry("Semver.w", PackageSources.read("packages/Semver.w")),
-            Map.entry("Sha256.w", PackageSources.read("crypto/Sha256.w"))),
+            Map.entry("Sha256.w", CoreSources.read("crypto/Sha256.w"))),
         "examples.packages.archive_main");
     String manifestText =
         "package \"demo.archive\" version \"1.0.0\" profile \"bootstrap-1\";\n"

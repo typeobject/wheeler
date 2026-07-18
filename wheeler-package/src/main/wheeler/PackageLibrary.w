@@ -1,10 +1,4 @@
-//! Exports the bounded Wheeler package codecs and their content-identity machinery.
-
-//!
-
-//! Consumers import focused modules; this entryless root proves that the complete package graph
-
-//! closes under its exact manifest and locked compiler dependency.
+//! Exports bounded package codecs as one entryless, locked, and resolutely unambient graph.
 
 module wheeler.packages.library;
 import wheeler.packages.archive;

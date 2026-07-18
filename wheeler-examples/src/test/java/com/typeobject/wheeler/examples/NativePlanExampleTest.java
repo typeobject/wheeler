@@ -34,7 +34,7 @@ class NativePlanExampleTest {
             "NativePlan.w", Files.readString(root.resolve("NativePlan.w")),
             "Plan.w", PackageSources.read("packages/Plan.w"),
             "PlanIdentity.w", PackageSources.read("packages/PlanIdentity.w"),
-            "Sha256.w", PackageSources.read("crypto/Sha256.w")),
+            "Sha256.w", CoreSources.read("crypto/Sha256.w")),
         "examples.packages.plan_main");
     Node node = Node.create(
         "demo.plan",
