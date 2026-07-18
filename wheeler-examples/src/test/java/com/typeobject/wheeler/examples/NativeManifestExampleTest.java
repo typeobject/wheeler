@@ -59,7 +59,7 @@ class NativeManifestExampleTest {
     }
     assertEquals(initial, machine.snapshot());
 
-    for (String kind : new String[] {"app", "library", "tool", "test"}) {
+    for (String kind : new String[] {"binary", "library", "tool", "test"}) {
       assertRunsCanonical(
           program,
           source.replace("target example", "target " + kind));
@@ -83,7 +83,7 @@ class NativeManifestExampleTest {
     assertTraps(program, source.replace("1.2.3-rc.1", "1.2.3-01"));
     assertTraps(program, source.replace("demo.native", "Demo.native"));
     assertTraps(program, source.replace("demo.base", "demo.-base"));
-    assertTraps(program, source.replace("target example", "target quantum"));
+    assertTraps(program, source.replace("target example", "target app"));
     assertTraps(program, source.replace("dependency normal", "dependency runtime"));
     assertTraps(program, source.replace("src/A\\\"pp.w", "src/../App.w"));
     assertTraps(program, source.replace("test-data", "test\\\\data"));

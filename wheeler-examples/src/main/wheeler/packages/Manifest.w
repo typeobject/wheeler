@@ -128,7 +128,7 @@ classical class Manifest {
         words lengths
     ) {
         long hash = tokenHash(source, starts, lengths, 8);
-        if (hash == 96801) {
+        if (hash == 2906000385) {
             return true;
         }
         if (hash == 98950456507) {

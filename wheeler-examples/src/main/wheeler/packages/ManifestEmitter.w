@@ -1,16 +1,11 @@
 module examples.packages.emitter;
 classical class ManifestEmitter {
-    private boolean semicolonToken(long token) {
-        if (token == 6) {
-            return true;
-        }
-        if (token == 12) {
-            return true;
-        }
-        if (token == 18) {
-            return true;
-        }
-        return token == 23;
+    private boolean semicolonToken(
+        utf8 source,
+        words starts,
+        long token
+    ) {
+        return utf8Scalar(source, starts[token]) == 59;
     }
 
     private long copyToken(
@@ -49,7 +44,8 @@ classical class ManifestEmitter {
                 cursor);
             long next = token + 1;
             if (next < count) {
-                boolean beforeSemicolon = semicolonToken(next);
+                boolean beforeSemicolon = semicolonToken(
+                    source, starts, next);
                 if (beforeSemicolon) {
                     cursor += 0;
                 } else {
