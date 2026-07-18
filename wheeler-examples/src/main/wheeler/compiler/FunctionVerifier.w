@@ -37,6 +37,12 @@ classical class FunctionVerifier {
         if (typeCode == TYPE_LONG_MAP) {
             return true;
         }
+        if (typeCode == TYPE_UTF8) {
+            return true;
+        }
+        if (typeCode == TYPE_UTF8_BORROW) {
+            return true;
+        }
         if (isRecordType(typeCode)) {
             return recordTypeId(typeCode) < recordCount;
         }

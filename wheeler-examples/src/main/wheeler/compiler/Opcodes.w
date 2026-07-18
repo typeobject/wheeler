@@ -60,6 +60,8 @@ classical class Opcodes {
     public const long OPCODE_MAP_PUT = 0x0550;
     public const long OPCODE_MAP_GET = 0x0551;
     public const long OPCODE_MAP_HAS = 0x0552;
+    public const long OPCODE_UTF8_FREEZE = 0x0553;
+    public const long OPCODE_UTF8_BORROW = 0x0554;
 
     public const long INTERPRETER_STORAGE_COUNT = 16;
     public const long INTERPRETER_STORAGE_WORDS = 128;

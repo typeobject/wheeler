@@ -7,6 +7,8 @@ classical class TypeCodes {
     public const long TYPE_WORDS = 4;
     public const long TYPE_BYTES = 5;
     public const long TYPE_LONG_MAP = 6;
+    public const long TYPE_UTF8 = 7;
+    public const long TYPE_UTF8_BORROW = 8;
     public const long TYPE_DESCRIPTOR_MASK = 0x0fffffff;
     public const long TYPE_KIND_MASK = 0xf0000000;
     public const long TYPE_RECORD = 0x10000000;

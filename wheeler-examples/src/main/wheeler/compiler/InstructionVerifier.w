@@ -263,6 +263,12 @@ classical class InstructionVerifier {
         if (opcode == OPCODE_MAP_HAS) {
             return 3;
         }
+        if (opcode == OPCODE_UTF8_FREEZE) {
+            return 2;
+        }
+        if (opcode == OPCODE_UTF8_BORROW) {
+            return 2;
+        }
         return -1;
     }
 

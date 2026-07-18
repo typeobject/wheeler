@@ -31,7 +31,20 @@ classical class StorageVerifier {
         if (typeCode == TYPE_BYTES) {
             return true;
         }
-        return typeCode == TYPE_LONG_MAP;
+        if (typeCode == TYPE_LONG_MAP) {
+            return true;
+        }
+        return typeCode == TYPE_UTF8;
+    }
+
+    private boolean utf8SequenceType(long typeCode) {
+        if (typeCode == TYPE_BYTES) {
+            return true;
+        }
+        if (typeCode == TYPE_UTF8) {
+            return true;
+        }
+        return typeCode == TYPE_UTF8_BORROW;
     }
 
     private boolean allocationOpcode(long opcode) {
@@ -68,7 +81,7 @@ classical class StorageVerifier {
         if (opcode < OPCODE_OWNED_MOVE) {
             return -1;
         }
-        if (OPCODE_MAP_HAS < opcode) {
+        if (OPCODE_UTF8_BORROW < opcode) {
             return -1;
         }
         long first = readUnsigned(artifact, cursor + 8, 8);
@@ -221,6 +234,9 @@ classical class StorageVerifier {
                 if (dropType == TYPE_LONG_MAP) {
                     return 1;
                 }
+                if (dropType == TYPE_UTF8) {
+                    return 1;
+                }
             }
             return 0;
         }
@@ -238,6 +254,9 @@ classical class StorageVerifier {
                         if (lengthType == TYPE_BYTES) {
                             return 1;
                         }
+                        if (lengthType == TYPE_UTF8) {
+                            return 1;
+                        }
                     }
                 }
             }
@@ -249,11 +268,8 @@ classical class StorageVerifier {
                 if (utf8Buffer < localCount) {
                     if (localHasType(
                             artifact, activeTypes, first, TYPE_BOOLEAN)) {
-                        if (localHasType(
-                                artifact,
-                                activeTypes,
-                                utf8Buffer,
-                                TYPE_BYTES)) {
+                        if (utf8SequenceType(localType(
+                                artifact, activeTypes, utf8Buffer))) {
                             return 1;
                         }
                     }
@@ -267,11 +283,8 @@ classical class StorageVerifier {
                 if (countBuffer < localCount) {
                     if (localHasType(
                             artifact, activeTypes, first, TYPE_SIGNED)) {
-                        if (localHasType(
-                                artifact,
-                                activeTypes,
-                                countBuffer,
-                                TYPE_BYTES)) {
+                        if (utf8SequenceType(localType(
+                                artifact, activeTypes, countBuffer))) {
                             return 1;
                         }
                     }
@@ -287,11 +300,10 @@ classical class StorageVerifier {
                     if (scalarIndex < localCount) {
                         if (localHasType(
                                 artifact, activeTypes, first, TYPE_SIGNED)) {
-                            if (localHasType(
+                            if (utf8SequenceType(localType(
                                     artifact,
                                     activeTypes,
-                                    scalarBuffer,
-                                    TYPE_BYTES)) {
+                                    scalarBuffer))) {
                                 if (localHasType(
                                         artifact,
                                         activeTypes,
@@ -314,11 +326,10 @@ classical class StorageVerifier {
                     if (widthIndex < localCount) {
                         if (localHasType(
                                 artifact, activeTypes, first, TYPE_SIGNED)) {
-                            if (localHasType(
+                            if (utf8SequenceType(localType(
                                     artifact,
                                     activeTypes,
-                                    widthBuffer,
-                                    TYPE_BYTES)) {
+                                    widthBuffer))) {
                                 if (localHasType(
                                         artifact,
                                         activeTypes,
@@ -411,6 +422,46 @@ classical class StorageVerifier {
                                     return 1;
                                 }
                             }
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+        if (opcode == OPCODE_UTF8_FREEZE) {
+            long freezeSource = readUnsigned(artifact, cursor + 16, 8);
+            if (first < localCount) {
+                if (freezeSource < localCount) {
+                    if (localHasType(
+                            artifact, activeTypes, first, TYPE_UTF8)) {
+                        if (localHasType(
+                                artifact,
+                                activeTypes,
+                                freezeSource,
+                                TYPE_BYTES)) {
+                            return 1;
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+        if (opcode == OPCODE_UTF8_BORROW) {
+            long borrowSource = readUnsigned(artifact, cursor + 16, 8);
+            if (first < localCount) {
+                if (borrowSource < localCount) {
+                    if (localHasType(
+                            artifact,
+                            activeTypes,
+                            first,
+                            TYPE_UTF8_BORROW)) {
+                        long borrowSourceType = localType(
+                            artifact, activeTypes, borrowSource);
+                        if (borrowSourceType == TYPE_UTF8) {
+                            return 1;
+                        }
+                        if (borrowSourceType == TYPE_UTF8_BORROW) {
+                            return 1;
                         }
                     }
                 }

@@ -212,6 +212,23 @@ class NativeVmExampleTest {
             + "assert valid == 0; drop(packet); drop(arena); } }",
         "valid",
         0);
+    assertInterpretedTwoGlobals(
+        interpreter,
+        Files.readString(root.resolve("FrozenUtf8.w")),
+        "byteLength",
+        6,
+        "scalarCount",
+        3);
+    byte[] malformedFreeze = compiler.compileToBytecode(
+        "classical class InvalidFreeze { entry void main() { "
+            + "region arena = new region(2, 1); long length = 2; "
+            + "bytes raw = allocateBytes(arena, length); "
+            + "setByte(raw, 0, 192); setByte(raw, 1, 128); "
+            + "utf8 text = freezeUtf8(raw); drop(text); drop(arena); } }");
+    assertThrows(
+        VmTrap.class,
+        () -> VirtualMachine.withBinaryInput(
+            interpreter, malformedFreeze).run());
     byte[] forgedUtf8 = withBadUtf8Index(
         compiler.compileToBytecode(utf8));
     assertThrows(
@@ -319,13 +336,14 @@ class NativeVmExampleTest {
     VirtualMachine nativeMachine = VirtualMachine.withBinaryInput(interpreter, artifact);
     var initial = nativeMachine.snapshot();
     nativeMachine.run();
-    VirtualMachine stageZero = new VirtualMachine(new BytecodeReader().read(artifact));
+    Program decoded = new BytecodeReader().read(artifact);
+    VirtualMachine stageZero = new VirtualMachine(decoded);
     stageZero.run();
     assertEquals(firstExpected, stageZero.global(firstGlobal));
     assertEquals(secondExpected, stageZero.global(secondGlobal));
     assertEquals(stageZero.global(firstGlobal), nativeMachine.global("finalGlobal"));
     assertEquals(stageZero.global(secondGlobal), nativeMachine.global("finalGlobalOne"));
-    assertEquals(2, nativeMachine.global("interpretedGlobalCount"));
+    assertEquals(decoded.globals().size(), nativeMachine.global("interpretedGlobalCount"));
     while (nativeMachine.historySize() > 0) {
       nativeMachine.rewindOne();
     }
