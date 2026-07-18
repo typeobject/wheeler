@@ -338,7 +338,7 @@ The compiler lexer records line, column, and stage-0 UTF-16 source-character off
 
 ## Bootstrap direction
 
-The current compiler and VM use Java only as stage-0 infrastructure. The production compiler will be Wheeler source and must compile itself to a byte-identical second-stage `.wbc` artifact. Signed/Boolean values, immutable records/variants/arrays/slices, typed calls/control, deterministic classical source-module linking, and function-local bounded regions with owned word/byte/UTF-8 buffers and signed maps form the current bootstrap substrate. Library strings, generic deterministic collections, cross-function ownership, modules, and explicit file effects remain complete vertical slices.
+The current compiler and VM use Java only as stage-0 infrastructure. The production compiler will be Wheeler source and must compile itself to a byte-identical second-stage `.wbc` artifact. Signed/Boolean values, immutable records/variants/arrays/slices, typed calls/control, deterministic classical source-module linking, and function-local bounded regions with owned word/byte/UTF-8 buffers and signed maps form the current bootstrap substrate. Library strings, generic deterministic collections, cross-function ownership, qualified/re-exported and cross-package modules, and streaming or multiple file effects remain complete vertical slices.
 
 After native runtime conformance, the Java compiler, VM, tools, Gradle build, and JVM deployment path will be deleted. A cold build will use a content-addressed prior native Wheeler release and `.wbc` recovery seed. Java APIs and object semantics are therefore not prospective Wheeler contracts.
 
