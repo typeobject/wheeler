@@ -120,13 +120,31 @@ classical class Scanner {
             if (scalar == 34) {
                 return cursor + utf8Width(source, cursor);
             }
-            if (scalar < 32) {
-                return -1;
+            if (scalar == 92) {
+                cursor += utf8Width(source, cursor);
+                if (cursor < sourceLength) {
+                    long escaped = utf8Scalar(source, cursor);
+                    if (escaped == 34) {
+                        cursor += utf8Width(source, cursor);
+                    } else {
+                        if (escaped == 92) {
+                            cursor += utf8Width(source, cursor);
+                        } else {
+                            return -1;
+                        }
+                    }
+                } else {
+                    return -1;
+                }
+            } else {
+                if (scalar < 32) {
+                    return -1;
+                }
+                if (126 < scalar) {
+                    return -1;
+                }
+                cursor += utf8Width(source, cursor);
             }
-            if (126 < scalar) {
-                return -1;
-            }
-            cursor += utf8Width(source, cursor);
         }
         return -1;
     }

@@ -28,7 +28,7 @@ class NativeManifestExampleTest {
             "Semver.w", Files.readString(root.resolve("packages/Semver.w"))),
         "examples.packages.main");
     String source =
-        "package \"demo.native\" version \"1.2.3-rc.1\" profile \"bootstrap-1\"; "
+        "package \"demo.native\" version \"1.2.3-rc.1\" profile \"boot\\\"strap\"; "
             + "target example \"app\" root \"src/App.w\"; "
             + "dependency normal \"demo.base\" version \"^1.0.0\"; "
             + "capability \"fixture\" path \"test-data\";";
@@ -86,7 +86,8 @@ class NativeManifestExampleTest {
     assertTraps(program, source.replace("target example", "target quantum"));
     assertTraps(program, source.replace("dependency normal", "dependency runtime"));
     assertTraps(program, source.replace("src/App.w", "src/../App.w"));
-    assertTraps(program, source.replace("test-data", "test\\data"));
+    assertTraps(program, source.replace("test-data", "test\\\\data"));
+    assertTraps(program, source.replace("boot\\\"strap", "boot\\nstrap"));
   }
 
   private static void assertRunsCanonical(Program program, String input) {
