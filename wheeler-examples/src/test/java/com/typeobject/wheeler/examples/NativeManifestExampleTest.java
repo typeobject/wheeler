@@ -20,6 +20,7 @@ class NativeManifestExampleTest {
         Map.of(
             "NativeManifest.w", Files.readString(root.resolve("NativeManifest.w")),
             "Manifest.w", Files.readString(root.resolve("packages/Manifest.w")),
+            "Names.w", Files.readString(root.resolve("packages/Names.w")),
             "Semver.w", Files.readString(root.resolve("packages/Semver.w")),
             "Scanner.w", Files.readString(root.resolve("lexer/Scanner.w"))),
         "examples.packages.main");
@@ -79,5 +80,17 @@ class NativeManifestExampleTest {
         source.replace("1.2.3-rc.1", "1.2.3-01")
             .getBytes(StandardCharsets.UTF_8));
     assertThrows(VmTrap.class, invalidPrerelease::run);
+
+    VirtualMachine invalidName = new VirtualMachine(
+        program,
+        source.replace("demo.native", "Demo.native")
+            .getBytes(StandardCharsets.UTF_8));
+    assertThrows(VmTrap.class, invalidName::run);
+
+    VirtualMachine invalidDependencyName = new VirtualMachine(
+        program,
+        source.replace("demo.base", "demo.-base")
+            .getBytes(StandardCharsets.UTF_8));
+    assertThrows(VmTrap.class, invalidDependencyName::run);
   }
 }

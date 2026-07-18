@@ -1,5 +1,6 @@
 module examples.packages.manifest;
 import examples.lexer.scanner;
+import examples.packages.names;
 import examples.packages.semver;
 classical class Manifest {
     public record QuotedRange(long start, long length) {}
@@ -52,7 +53,7 @@ classical class Manifest {
 
     private boolean quoted(words kinds, words lengths, long token) {
         if (kinds[token] == 6) {
-            return 1 < lengths[token];
+            return 2 < lengths[token];
         }
         return false;
     }
@@ -85,20 +86,31 @@ classical class Manifest {
         words starts,
         words lengths
     ) {
+        boolean validName = validPackageName(
+            source,
+            starts[1] + 1,
+            lengths[1] - 2);
         boolean validVersion = validRelease(
             source,
             starts[3] + 1,
             lengths[3] - 2);
         if (keywordAt(source, starts, lengths, 0, 102272152646)) {
             if (quoted(kinds, lengths, 1)) {
-                if (keywordAt(source, starts, lengths, 2, 107725790424)) {
-                    if (quoted(kinds, lengths, 3)) {
-                        if (validVersion) {
-                            if (keywordAt(
-                                    source, starts, lengths, 4, 102769789353)) {
-                                if (quoted(kinds, lengths, 5)) {
-                                    return semicolonAt(
-                                        source, kinds, starts, 6);
+                if (validName) {
+                    if (keywordAt(
+                            source, starts, lengths, 2, 107725790424)) {
+                        if (quoted(kinds, lengths, 3)) {
+                            if (validVersion) {
+                                if (keywordAt(
+                                        source,
+                                        starts,
+                                        lengths,
+                                        4,
+                                        102769789353)) {
+                                    if (quoted(kinds, lengths, 5)) {
+                                        return semicolonAt(
+                                            source, kinds, starts, 6);
+                                    }
                                 }
                             }
                         }
@@ -135,6 +147,10 @@ classical class Manifest {
         words starts,
         words lengths
     ) {
+        boolean validName = validPackageName(
+            source,
+            starts[15] + 1,
+            lengths[15] - 2);
         boolean validVersion = validConstraint(
             source,
             starts[17] + 1,
@@ -143,12 +159,18 @@ classical class Manifest {
                 source, starts, lengths, 13, 2733278506177355)) {
             if (keywordAt(source, starts, lengths, 14, 104630177752)) {
                 if (quoted(kinds, lengths, 15)) {
-                    if (keywordAt(
-                            source, starts, lengths, 16, 107725790424)) {
-                        if (quoted(kinds, lengths, 17)) {
-                            if (validVersion) {
-                                return semicolonAt(
-                                    source, kinds, starts, 18);
+                    if (validName) {
+                        if (keywordAt(
+                                source,
+                                starts,
+                                lengths,
+                                16,
+                                107725790424)) {
+                            if (quoted(kinds, lengths, 17)) {
+                                if (validVersion) {
+                                    return semicolonAt(
+                                        source, kinds, starts, 18);
+                                }
                             }
                         }
                     }
