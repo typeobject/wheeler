@@ -523,14 +523,14 @@ final class ClassicalLowerer {
     }
 
     private void requireType(int local, ValueType type, int line) {
-      if (localTypes.get(local) != type) {
+      if (!localTypes.get(local).equals(type)) {
         throw new CompilerException(
-            line, "expected " + type.name().toLowerCase(java.util.Locale.ROOT) + " expression");
+            line, "expected " + type.displayName() + " expression");
       }
     }
 
     private void requireSameType(int left, int right, int line) {
-      if (localTypes.get(left) != localTypes.get(right)) {
+      if (!localTypes.get(left).equals(localTypes.get(right))) {
         throw new CompilerException(line, "expression type mismatch");
       }
     }

@@ -25,6 +25,7 @@ public final class BytecodeVerifier {
   public static void verify(Program program) {
     verifyLimits(program);
     verifyGlobals(program);
+    verifyRecordTypes(program);
     verifyFunctions(program);
     verifyQuantum(program);
     verifyWorkflow(program);
@@ -49,6 +50,7 @@ public final class BytecodeVerifier {
       fail("Invalid step limit");
     }
     if (program.globals().size() > 65_535
+        || program.recordTypes().size() > 65_535
         || program.functions().size() > 65_535
         || program.quantumRegisters().size() > 65_535
         || program.quantumCircuits().size() > 65_535) {
@@ -65,11 +67,31 @@ public final class BytecodeVerifier {
     }
   }
 
+  private static void verifyRecordTypes(Program program) {
+    Set<String> names = new HashSet<>();
+    for (int index = 0; index < program.recordTypes().size(); index++) {
+      RecordType record = program.recordTypes().get(index);
+      if (record.id() != index || !names.add(record.name())) {
+        fail("Noncanonical or duplicate record type " + record.name());
+      }
+      for (RecordType.Field field : record.fields()) {
+        if (field.type().kind() == ValueType.Kind.RECORD
+            && field.type().descriptorId() >= record.id()) {
+          fail("Record fields must reference an earlier record type: " + record.name());
+        }
+      }
+    }
+  }
+
   private static void verifyFunctions(Program program) {
     Set<String> names = new HashSet<>();
     for (FunctionBody function : program.functions()) {
       if (!names.add(function.name())) {
         fail("Duplicate function name: " + function.name());
+      }
+      function.localTypes().forEach(type -> verifyTypeReference(program, type, function.name()));
+      if (function.resultType() != null) {
+        verifyTypeReference(program, function.resultType(), function.name());
       }
       verifyBody(program, function, function.forward(), false);
       if (function.reversible()) {
@@ -92,6 +114,14 @@ public final class BytecodeVerifier {
           }
         }
       }
+    }
+  }
+
+  private static void verifyTypeReference(
+      Program program, ValueType type, String owner) {
+    if (type.kind() == ValueType.Kind.RECORD
+        && type.descriptorId() >= program.recordTypes().size()) {
+      fail("Unknown record type " + type.displayName() + " in " + owner);
     }
   }
 
@@ -133,7 +163,7 @@ public final class BytecodeVerifier {
           verifyGlobal(program, instruction.operands().getFirst(), owner, pc);
       case LOCAL_CONST -> {
         int destination = verifyLocal(owner, instruction.operands().getFirst(), pc);
-        if (owner.localType(destination) == ValueType.BOOLEAN) {
+        if (owner.localType(destination).equals(ValueType.BOOLEAN)) {
           long value = instruction.operands().get(1);
           if (value != 0 && value != 1) {
             fail(location(owner, pc) + " invalid Boolean constant " + value);
@@ -218,7 +248,7 @@ public final class BytecodeVerifier {
         }
         requireType(owner, destination, target.resultType(), pc);
         for (int argument = 0; argument < count; argument++) {
-          if (owner.localType(base + argument) != target.localType(argument)) {
+          if (!owner.localType(base + argument).equals(target.localType(argument))) {
             fail(location(owner, pc) + " value call argument type mismatch for " + target.name());
           }
         }
@@ -360,15 +390,15 @@ public final class BytecodeVerifier {
 
   private static void requireType(
       FunctionBody owner, int local, ValueType expected, int pc) {
-    if (owner.localType(local) != expected) {
+    if (!owner.localType(local).equals(expected)) {
       fail(location(owner, pc) + " local " + local + " must have type "
-          + expected.name().toLowerCase(java.util.Locale.ROOT));
+          + expected.displayName());
     }
   }
 
   private static void requireSameType(
       FunctionBody owner, int left, int right, int pc) {
-    if (owner.localType(left) != owner.localType(right)) {
+    if (!owner.localType(left).equals(owner.localType(right))) {
       fail(location(owner, pc) + " local type mismatch between " + left + " and " + right);
     }
   }

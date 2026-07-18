@@ -1,25 +1,55 @@
 package com.typeobject.wheeler.core.bytecode;
 
-/** Canonical scalar register types in the bootstrap frame profile. */
-public enum ValueType {
-  SIGNED(1),
-  BOOLEAN(2);
+import java.util.Locale;
 
-  private final int code;
+/** Canonical register type reference; aggregate references carry a type-table ID. */
+public record ValueType(Kind kind, int descriptorId) {
+  public static final ValueType SIGNED = new ValueType(Kind.SIGNED, -1);
+  public static final ValueType BOOLEAN = new ValueType(Kind.BOOLEAN, -1);
+  private static final int RECORD_TAG = 0x1000_0000;
 
-  ValueType(int code) {
-    this.code = code;
+  public ValueType {
+    if (kind == null
+        || (kind == Kind.RECORD && (descriptorId < 0 || descriptorId > 0x0fff_ffff))
+        || (kind != Kind.RECORD && descriptorId != -1)) {
+      throw new IllegalArgumentException("Invalid register type reference");
+    }
+  }
+
+  public static ValueType record(int descriptorId) {
+    return new ValueType(Kind.RECORD, descriptorId);
   }
 
   public int code() {
-    return code;
+    return switch (kind) {
+      case SIGNED -> 1;
+      case BOOLEAN -> 2;
+      case RECORD -> RECORD_TAG | descriptorId;
+    };
+  }
+
+  public String displayName() {
+    return kind == Kind.RECORD
+        ? "record#" + descriptorId
+        : kind.name().toLowerCase(Locale.ROOT);
   }
 
   public static ValueType fromCode(int code) {
-    return switch (code) {
-      case 1 -> SIGNED;
-      case 2 -> BOOLEAN;
-      default -> throw new BytecodeException("Unsupported local register type " + code);
-    };
+    if (code == 1) {
+      return SIGNED;
+    }
+    if (code == 2) {
+      return BOOLEAN;
+    }
+    if ((code & 0xf000_0000) == RECORD_TAG) {
+      return record(code & 0x0fff_ffff);
+    }
+    throw new BytecodeException("Unsupported local register type " + code);
+  }
+
+  public enum Kind {
+    SIGNED,
+    BOOLEAN,
+    RECORD
   }
 }

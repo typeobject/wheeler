@@ -35,7 +35,7 @@ class BytecodeCodecTest {
     String digest = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(artifact));
 
     assertEquals(568, artifact.length);
-    assertEquals("6bcb0c9f85bd169fa27a8614662ce640903479499fab15489803490e20423c6f", digest);
+    assertEquals("6ab95b768055d1776d0a6195481fdd40036ba20d9f1acfa40bebd90bf9ab8950", digest);
   }
 
   @Test
@@ -96,6 +96,45 @@ class BytecodeCodecTest {
         .putInt(functionOffset + 4 + 8, 12);
     assertThrows(BytecodeException.class, () -> reader.read(unknownType));
     assertThrows(BytecodeException.class, () -> reader.read(conflictingResultTypes));
+  }
+
+  @Test
+  void nominalRecordDescriptorsRoundTripCanonically() {
+    RecordType point = new RecordType(
+        0,
+        "Point",
+        java.util.List.of(
+            new RecordType.Field("x", ValueType.SIGNED),
+            new RecordType.Field("visible", ValueType.BOOLEAN)));
+    FunctionBody main = new FunctionBody(
+        0,
+        "main",
+        false,
+        0,
+        java.util.List.of(),
+        null,
+        java.util.List.of(Instruction.of(Opcode.HALT)),
+        java.util.List.of());
+    Program source = new Program(
+        "Records",
+        ProgramKind.CLASSICAL,
+        0,
+        java.util.List.of(),
+        java.util.List.of(point),
+        java.util.List.of(main),
+        java.util.List.of(),
+        java.util.List.of(),
+        java.util.List.of(),
+        Program.DEFAULT_MAX_HISTORY,
+        Program.DEFAULT_MAX_STEPS);
+
+    byte[] artifact = writer.write(source);
+    Program decoded = reader.read(artifact);
+
+    assertEquals(java.util.List.of(point), decoded.recordTypes());
+    assertArrayEquals(artifact, writer.write(decoded));
+    assertTrue(new Disassembler().disassemble(decoded)
+        .contains("record 0 Point x:signed visible:boolean"));
   }
 
   @Test

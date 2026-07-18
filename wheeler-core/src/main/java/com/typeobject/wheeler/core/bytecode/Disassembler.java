@@ -18,11 +18,17 @@ public final class Disassembler {
       output.append("global ").append(i).append(' ')
           .append(global.name()).append(" = ").append(global.initialValue()).append('\n');
     }
+    for (RecordType record : program.recordTypes()) {
+      output.append("\nrecord ").append(record.id()).append(' ').append(record.name());
+      record.fields().forEach(field -> output.append(" ")
+          .append(field.name()).append(':').append(field.type().displayName()));
+      output.append('\n');
+    }
     for (FunctionBody function : program.functions()) {
       output.append("\nfunction ").append(function.id()).append(' ').append(function.name());
       if (function.returnsValue()) {
         output.append(" result=")
-            .append(function.resultType().name().toLowerCase(java.util.Locale.ROOT));
+            .append(function.resultType().displayName());
       }
       if (function.coherent()) {
         output.append(" coherent");
@@ -34,7 +40,7 @@ public final class Disassembler {
         output.append(" parameters=").append(function.parameterCount())
             .append(" locals=")
             .append(function.localTypes().stream()
-                .map(type -> type.name().toLowerCase(java.util.Locale.ROOT))
+                .map(ValueType::displayName)
                 .toList());
       }
       output.append('\n');

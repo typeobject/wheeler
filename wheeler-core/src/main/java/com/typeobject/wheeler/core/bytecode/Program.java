@@ -17,15 +17,46 @@ public final class Program {
   private final ProgramKind kind;
   private final int entryFunctionId;
   private final List<Global> globals;
+  private final List<RecordType> recordTypes;
   private final List<FunctionBody> functions;
   private final List<QuantumRegister> quantumRegisters;
   private final List<QuantumCircuit> quantumCircuits;
   private final List<WorkflowStep> workflow;
   private final int maxHistoryRecords;
   private final long maxSteps;
+  private final Map<Integer, RecordType> recordTypesById;
   private final Map<Integer, FunctionBody> functionsById;
   private final Map<Integer, QuantumRegister> registersById;
   private final Map<Integer, QuantumCircuit> circuitsById;
+
+  public Program(
+      String name,
+      ProgramKind kind,
+      int entryFunctionId,
+      List<Global> globals,
+      List<RecordType> recordTypes,
+      List<FunctionBody> functions,
+      List<QuantumRegister> quantumRegisters,
+      List<QuantumCircuit> quantumCircuits,
+      List<WorkflowStep> workflow,
+      int maxHistoryRecords,
+      long maxSteps) {
+    this.name = Objects.requireNonNull(name, "name");
+    this.kind = Objects.requireNonNull(kind, "kind");
+    this.entryFunctionId = entryFunctionId;
+    this.globals = List.copyOf(globals);
+    this.recordTypes = List.copyOf(recordTypes);
+    this.functions = List.copyOf(functions);
+    this.quantumRegisters = List.copyOf(quantumRegisters);
+    this.quantumCircuits = List.copyOf(quantumCircuits);
+    this.workflow = List.copyOf(workflow);
+    this.maxHistoryRecords = maxHistoryRecords;
+    this.maxSteps = maxSteps;
+    this.recordTypesById = index(this.recordTypes, RecordType::id, "record type");
+    this.functionsById = index(this.functions, FunctionBody::id, "function");
+    this.registersById = index(this.quantumRegisters, QuantumRegister::id, "quantum register");
+    this.circuitsById = index(this.quantumCircuits, QuantumCircuit::id, "quantum circuit");
+  }
 
   public Program(
       String name,
@@ -38,19 +69,18 @@ public final class Program {
       List<WorkflowStep> workflow,
       int maxHistoryRecords,
       long maxSteps) {
-    this.name = Objects.requireNonNull(name, "name");
-    this.kind = Objects.requireNonNull(kind, "kind");
-    this.entryFunctionId = entryFunctionId;
-    this.globals = List.copyOf(globals);
-    this.functions = List.copyOf(functions);
-    this.quantumRegisters = List.copyOf(quantumRegisters);
-    this.quantumCircuits = List.copyOf(quantumCircuits);
-    this.workflow = List.copyOf(workflow);
-    this.maxHistoryRecords = maxHistoryRecords;
-    this.maxSteps = maxSteps;
-    this.functionsById = index(this.functions, FunctionBody::id, "function");
-    this.registersById = index(this.quantumRegisters, QuantumRegister::id, "quantum register");
-    this.circuitsById = index(this.quantumCircuits, QuantumCircuit::id, "quantum circuit");
+    this(
+        name,
+        kind,
+        entryFunctionId,
+        globals,
+        List.of(),
+        functions,
+        quantumRegisters,
+        quantumCircuits,
+        workflow,
+        maxHistoryRecords,
+        maxSteps);
   }
 
   public Program(
@@ -65,6 +95,7 @@ public final class Program {
         ProgramKind.CLASSICAL,
         entryFunctionId,
         globals,
+        List.of(),
         functions,
         List.of(),
         List.of(),
@@ -105,6 +136,10 @@ public final class Program {
     return globals;
   }
 
+  public List<RecordType> recordTypes() {
+    return recordTypes;
+  }
+
   public List<FunctionBody> functions() {
     return functions;
   }
@@ -127,6 +162,10 @@ public final class Program {
 
   public long maxSteps() {
     return maxSteps;
+  }
+
+  public RecordType recordType(int id) {
+    return require(recordTypesById, id, "record type");
   }
 
   public FunctionBody function(int id) {

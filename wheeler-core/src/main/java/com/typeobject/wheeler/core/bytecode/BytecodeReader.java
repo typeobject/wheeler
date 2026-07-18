@@ -30,6 +30,7 @@ public final class BytecodeReader {
   private record Section(int type, int flags, int offset, int length, int alignment) {}
   private record Manifest(
       int nameId, int entryId, int maxHistory, ProgramKind kind, long maxSteps) {}
+  private record TypeSection(List<Global> globals, List<RecordType> records) {}
   private record RawFunctionDescriptor(
       int id,
       int nameId,
@@ -51,6 +52,7 @@ public final class BytecodeReader {
       int inverseOffset,
       int inverseLength,
       int parameterCount,
+      ValueType resultType,
       List<ValueType> localTypes) {}
 
   public Program read(byte[] bytes) {
@@ -122,7 +124,7 @@ public final class BytecodeReader {
 
     List<String> strings = readStrings(slice(input, sections.get(STRINGS)));
     Manifest manifest = readManifest(slice(input, sections.get(MANIFEST)), strings.size());
-    List<Global> globals = readTypes(slice(input, sections.get(TYPES)), strings);
+    TypeSection types = readTypes(slice(input, sections.get(TYPES)), strings);
     List<FunctionDescriptor> descriptors = readFunctionDescriptors(slice(input, sections.get(FUNCTIONS)));
     ByteBuffer code = slice(input, sections.get(CODE));
     List<FunctionBody> functions = readFunctions(descriptors, strings, code);
@@ -144,7 +146,8 @@ public final class BytecodeReader {
         strings.get(manifest.nameId()),
         manifest.kind(),
         manifest.entryId(),
-        globals,
+        types.globals(),
+        types.records(),
         functions,
         registers,
         circuits,
@@ -234,9 +237,9 @@ public final class BytecodeReader {
     return List.copyOf(strings);
   }
 
-  private static List<Global> readTypes(ByteBuffer section, List<String> strings) {
+  private static TypeSection readTypes(ByteBuffer section, List<String> strings) {
     int count = readBoundedCount(section, "global", 65_535);
-    if (section.remaining() != Math.multiplyExact(count, 16)) {
+    if (section.remaining() < Math.multiplyExact(count, 16) + Integer.BYTES) {
       fail("Invalid global descriptor section length");
     }
     List<Global> globals = new ArrayList<>(count);
@@ -245,12 +248,38 @@ public final class BytecodeReader {
       int type = section.getInt();
       long initial = section.getLong();
       checkStringId(nameId, strings.size());
-      if (type != 1) {
+      if (type != ValueType.SIGNED.code()) {
         fail("Unsupported global type " + type);
       }
       globals.add(new Global(strings.get(nameId), initial));
     }
-    return List.copyOf(globals);
+    int recordCount = readBoundedCount(section, "record type", 65_535);
+    List<RecordType> records = new ArrayList<>(recordCount);
+    for (int index = 0; index < recordCount; index++) {
+      if (section.remaining() < 12) {
+        fail("Truncated record type descriptor");
+      }
+      int id = section.getInt();
+      int nameId = section.getInt();
+      int fieldCount = section.getInt();
+      checkStringId(nameId, strings.size());
+      if (id < 0 || fieldCount <= 0 || fieldCount > 65_535
+          || section.remaining() < Math.multiplyExact(fieldCount, 8)) {
+        fail("Invalid record type descriptor");
+      }
+      List<RecordType.Field> fields = new ArrayList<>(fieldCount);
+      for (int field = 0; field < fieldCount; field++) {
+        int fieldName = section.getInt();
+        checkStringId(fieldName, strings.size());
+        fields.add(new RecordType.Field(
+            strings.get(fieldName), ValueType.fromCode(section.getInt())));
+      }
+      records.add(new RecordType(id, strings.get(nameId), fields));
+    }
+    if (section.hasRemaining()) {
+      fail("Trailing data in type descriptor section");
+    }
+    return new TypeSection(List.copyOf(globals), List.copyOf(records));
   }
 
   private static List<FunctionDescriptor> readFunctionDescriptors(ByteBuffer section) {
@@ -273,7 +302,7 @@ public final class BytecodeReader {
       int parameters = section.getInt();
       int frameSlots = section.getInt();
       int typeOffset = section.getInt();
-      if (id < 0 || !ids.add(id) || (flags & ~15) != 0 || (flags & 12) == 12
+      if (id < 0 || !ids.add(id) || (flags & ~7) != 0
           || parameters < 0 || frameSlots < parameters || frameSlots > 65_535
           || typeOffset != expectedTypeOffset) {
         fail("Invalid function descriptor");
@@ -289,19 +318,25 @@ public final class BytecodeReader {
           parameters,
           frameSlots,
           typeOffset));
-      expectedTypeOffset = Math.addExact(expectedTypeOffset, frameSlots);
+      expectedTypeOffset = Math.addExact(
+          expectedTypeOffset, frameSlots + ((flags & 4) != 0 ? 1 : 0));
     }
-    if (section.remaining() != expectedTypeOffset) {
+    if (section.remaining() != Math.multiplyExact(expectedTypeOffset, Integer.BYTES)) {
       fail("Invalid local type table length");
     }
     List<ValueType> types = new ArrayList<>(expectedTypeOffset);
     while (section.hasRemaining()) {
-      types.add(ValueType.fromCode(Byte.toUnsignedInt(section.get())));
+      types.add(ValueType.fromCode(section.getInt()));
     }
     List<FunctionDescriptor> result = new ArrayList<>(count);
     for (RawFunctionDescriptor descriptor : raw) {
+      int localOffset = descriptor.typeOffset();
+      ValueType resultType = null;
+      if ((descriptor.flags() & 4) != 0) {
+        resultType = types.get(localOffset++);
+      }
       List<ValueType> locals = List.copyOf(types.subList(
-          descriptor.typeOffset(), descriptor.typeOffset() + descriptor.localCount()));
+          localOffset, localOffset + descriptor.localCount()));
       result.add(new FunctionDescriptor(
           descriptor.id(),
           descriptor.nameId(),
@@ -311,6 +346,7 @@ public final class BytecodeReader {
           descriptor.inverseOffset(),
           descriptor.inverseLength(),
           descriptor.parameterCount(),
+          resultType,
           locals));
     }
     return List.copyOf(result);
@@ -323,12 +359,7 @@ public final class BytecodeReader {
       checkStringId(descriptor.nameId(), strings.size());
       boolean reversible = (descriptor.flags() & 1) != 0;
       boolean coherent = (descriptor.flags() & 2) != 0;
-      ValueType resultType = switch (descriptor.flags() & 12) {
-        case 0 -> null;
-        case 4 -> ValueType.SIGNED;
-        case 8 -> ValueType.BOOLEAN;
-        default -> throw new BytecodeException("Invalid function result type flags");
-      };
+      ValueType resultType = descriptor.resultType();
       List<Instruction> forward = readBody(code, descriptor.forwardOffset(), descriptor.forwardLength());
       List<Instruction> inverse = List.of();
       if (reversible) {

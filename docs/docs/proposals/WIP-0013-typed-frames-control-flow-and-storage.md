@@ -241,6 +241,7 @@ A feature that cannot express or simplify one of these modules needs separate ju
 - [x] Stage-0 VM has explicit immutable call frames, checked calls, bounded steps, snapshots, and rewind records.
 - [x] Source and bytecode distinguish state fields from function control.
 - [x] Signed and Boolean parameter, local, and optional result signatures are canonically encoded and verified.
+- [x] Register metadata uses bounded 32-bit scalar or aggregate references; canonical nominal record descriptors reject duplicate, forward, cyclic, and unresolved type IDs.
 - [x] Local constants, state load/store, move, arithmetic, comparison, branches, loop checks, value calls, and value returns execute and rewind.
 - [ ] Typed signed/Boolean parameters, returns, local bindings, expressions, static calls, `if`/`else`, and bounded `while` compile end to end; aggregate types remain.
 - [ ] Records, variants, arrays, and slices execute with ownership checks.

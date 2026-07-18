@@ -35,6 +35,8 @@ Sections 7 and 8 are required for quantum and hybrid artifacts and absent from c
 
 The manifest records the program kind (`classical`, `quantum`, or `hybrid`) in addition to its name, entry function, history ceiling, and step ceiling.
 
+The type section starts with fixed signed-global descriptors, followed by a bounded nominal record table. A record descriptor carries canonical ID, name, nonempty ordered fields, field names, and field type references. IDs equal table positions. A record field may refer only to a prior descriptor, which makes recursive and cyclic layouts unrepresentable in this value-record profile. Duplicate names, fields, IDs, forward references, unknown string IDs, unknown type tags, truncation, and trailing bytes fail closed.
+
 ## Classical instructions
 
 Each instruction is independently bounded:
@@ -46,7 +48,7 @@ u32 byte_length
 u64 operands[operand_count]
 ```
 
-The opcode fixes the canonical operand count and semantic rule. Each 40-byte function descriptor declares parameter and local counts, an optional signed or Boolean result, code ranges, and a canonical offset into the trailing local-type table. Type offsets are contiguous in function order. One byte per register currently denotes signed 64-bit (`1`) or Boolean (`2`); unknown codes and noncanonical table lengths fail before verification. Parameter registers occupy the first frame slots and carry their declared signed or Boolean type. Result flag `4` denotes signed, flag `8` denotes Boolean, and setting both is malformed.
+The opcode fixes the canonical operand count and semantic rule. Each 40-byte function descriptor declares parameter and local counts, an optional typed result, code ranges, and a canonical offset into the trailing signature-type table. A present result type appears first at that offset, followed by local types; parameter registers are the first locals. Type offsets are contiguous in function order. One little-endian `u32` per register denotes signed 64-bit (`1`), Boolean (`2`), or a tagged aggregate type-table reference. Aggregate references use tag `0x1` in the high nibble and a 28-bit descriptor ID. Unknown codes, unresolved descriptor IDs, and noncanonical table lengths fail before execution. Parameter registers occupy the first frame slots and carry their declared signed or Boolean type. Result-presence flag `4` denotes one result type in the signature table.
 
 Local instructions cover constants, state load/store, move, checked add/subtract, typed XOR, equality, less-than, conditional/unconditional branch, loop-limit check, static value call, and value return. Boolean registers contain only `0` or `1`. Equality and ordering produce Boolean values, and branch conditions consume them. A call identifies a contiguous initialized argument window, exact argument count, and caller result register. Dynamic undo data never appears in an instruction; it belongs to runtime step records.
 

@@ -88,6 +88,10 @@ public final class BytecodeWriter {
     TreeSet<String> values = new TreeSet<>();
     values.add(program.name());
     program.globals().forEach(global -> values.add(global.name()));
+    program.recordTypes().forEach(record -> {
+      values.add(record.name());
+      record.fields().forEach(field -> values.add(field.name()));
+    });
     program.functions().forEach(function -> values.add(function.name()));
     program.quantumRegisters().forEach(register -> values.add(register.name()));
     program.quantumCircuits().forEach(circuit -> {
@@ -127,12 +131,25 @@ public final class BytecodeWriter {
   }
 
   private static byte[] types(Program program, Map<String, Integer> strings) {
-    ByteBuffer buffer = little(4 + program.globals().size() * 16);
+    int recordBytes = program.recordTypes().stream()
+        .mapToInt(record -> 12 + record.fields().size() * 8)
+        .sum();
+    ByteBuffer buffer = little(8 + program.globals().size() * 16 + recordBytes);
     buffer.putInt(program.globals().size());
     for (Global global : program.globals()) {
       buffer.putInt(strings.get(global.name()));
-      buffer.putInt(1); // Version-2 I64 type.
+      buffer.putInt(ValueType.SIGNED.code());
       buffer.putLong(global.initialValue());
+    }
+    buffer.putInt(program.recordTypes().size());
+    for (RecordType record : program.recordTypes()) {
+      buffer.putInt(record.id());
+      buffer.putInt(strings.get(record.name()));
+      buffer.putInt(record.fields().size());
+      for (RecordType.Field field : record.fields()) {
+        buffer.putInt(strings.get(field.name()));
+        buffer.putInt(field.type().code());
+      }
     }
     return buffer.array();
   }
@@ -168,20 +185,18 @@ public final class BytecodeWriter {
       Program program,
       Map<String, Integer> strings,
       Map<Integer, FunctionOffsets> offsets) {
-    int typeBytes = program.functions().stream().mapToInt(FunctionBody::localCount).sum();
-    ByteBuffer buffer = little(4 + program.functions().size() * 40 + typeBytes);
+    int typeCount = program.functions().stream()
+        .mapToInt(function -> function.localCount() + (function.returnsValue() ? 1 : 0))
+        .sum();
+    ByteBuffer buffer = little(4 + program.functions().size() * 40
+        + Math.multiplyExact(typeCount, Integer.BYTES));
     buffer.putInt(program.functions().size());
     int typeOffset = 0;
     for (FunctionBody function : program.functions()) {
       FunctionOffsets location = offsets.get(function.id());
-      int resultFlag = switch (function.resultType()) {
-        case SIGNED -> 4;
-        case BOOLEAN -> 8;
-        case null -> 0;
-      };
       int flags = (function.reversible() ? 1 : 0)
           | (function.coherent() ? 2 : 0)
-          | resultFlag;
+          | (function.returnsValue() ? 4 : 0);
       buffer.putInt(function.id());
       buffer.putInt(strings.get(function.name()));
       buffer.putInt(flags);
@@ -192,10 +207,13 @@ public final class BytecodeWriter {
       buffer.putInt(function.parameterCount());
       buffer.putInt(function.localCount());
       buffer.putInt(typeOffset);
-      typeOffset += function.localCount();
+      typeOffset += function.localCount() + (function.returnsValue() ? 1 : 0);
     }
     for (FunctionBody function : program.functions()) {
-      function.localTypes().forEach(type -> buffer.put((byte) type.code()));
+      if (function.returnsValue()) {
+        buffer.putInt(function.resultType().code());
+      }
+      function.localTypes().forEach(type -> buffer.putInt(type.code()));
     }
     return buffer.array();
   }

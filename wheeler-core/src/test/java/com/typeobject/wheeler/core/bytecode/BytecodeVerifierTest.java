@@ -62,10 +62,44 @@ class BytecodeVerifierTest {
         List.of(
             Instruction.of(Opcode.LOCAL_CONST, 0, 2),
             Instruction.of(Opcode.HALT)));
+    FunctionBody unresolvedRecord = typedMain(
+        List.of(ValueType.record(7)),
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 0),
+            Instruction.of(Opcode.HALT)));
 
+    assertEquals(ValueType.record(7), ValueType.fromCode(ValueType.record(7).code()));
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(signedCondition)));
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(booleanStore)));
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(invalidBoolean)));
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(unresolvedRecord)));
+  }
+
+  @Test
+  void recordDescriptorsRejectForwardAndUnknownReferences() {
+    RecordType forward = new RecordType(
+        0,
+        "Forward",
+        List.of(new RecordType.Field("next", ValueType.record(1))));
+    RecordType later = new RecordType(
+        1,
+        "Later",
+        List.of(new RecordType.Field("value", ValueType.SIGNED)));
+    FunctionBody main = typedMain(List.of(), List.of(Instruction.of(Opcode.HALT)));
+    Program invalid = new Program(
+        "InvalidRecords",
+        ProgramKind.CLASSICAL,
+        0,
+        List.of(),
+        List.of(forward, later),
+        List.of(main),
+        List.of(),
+        List.of(),
+        List.of(),
+        Program.DEFAULT_MAX_HISTORY,
+        Program.DEFAULT_MAX_STEPS);
+
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(invalid));
   }
 
   @Test
