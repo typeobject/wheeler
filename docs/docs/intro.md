@@ -221,7 +221,7 @@ Why care? Quantum software combines ordinary software bugs, mathematical claims,
 
 The destination is not a language that can express three famous algorithms and then asks Python to handle everything difficult.
 
-The executable core already has signed and Boolean values, immutable records, tagged variants, fixed arrays, nonescaping slices, typed calls, bounded loops, canonical bytecode, deterministic package formats, and exact offline dependency inputs. Regions, mutable ownership, strings, bytes, deterministic collections, modules, and explicit source effects remain under construction.
+The executable core already has signed and Boolean values, immutable records, tagged variants, fixed arrays, nonescaping slices, typed calls, bounded loops, function-local regions with owned mutable word buffers, canonical bytecode, deterministic package formats, and exact offline dependency inputs. Borrowing and mutable slices, strings and byte buffers, deterministic collections, modules, cross-function ownership, and explicit source effects remain under construction.
 
 The production compiler is intended to be written in Wheeler. The package manager, verifier, runtime, [OpenQASM](https://openqasm.com/) emitter, build planner, and test tools are intended to become Wheeler programs as well. A successful self-hosting bootstrap compiles the compiler twice and requires byte-identical canonical `.wbc` artifacts.
 
@@ -249,6 +249,8 @@ A **distributed entanglement workflow** could track session identities, delayed 
 
 A **hermetic package forge** could build offline from exact content identities, verify provenance and proof certificates, and deny undeclared filesystem or network access before the effect occurs.
 
+A far-future **[algorithm foundry](future/foundry.md)** could search a finite program grammar, uncompute rejected candidates, check every bounded input, prove correctness and relative minimality, and publish the discovered implementation as a normal Wheeler package. That is a hardware- and proof-system moonshot, not current syntax or a roadmap promise.
+
 And, naturally, someone will build a reversible todo list. Completing an item will be mathematically invertible. Avoiding the item will remain an unsolved human problem.
 
 ## What works today?
@@ -258,7 +260,7 @@ Wheeler is not starting from a whiteboard.
 The repository currently includes:
 
 - familiar class and method syntax with source-located diagnostics;
-- signed and Boolean values, immutable records, tagged variants, fixed arrays, nonescaping slices, typed calls, recursion, conditionals, and bounded loops;
+- signed and Boolean values, immutable records, tagged variants, fixed arrays, nonescaping slices, typed calls, recursion, conditionals, bounded loops, and function-local bounded regions with affine mutable word buffers;
 - generated inverses for the supported reversible subset;
 - one canonical `.wbc` format, strict decoding, semantic verification, disassembly, exact VM rewind, and finite generated-inverse, generated-adjoint, circuit-rewrite, and static-step-bound proof rules;
 - provider-neutral quantum regions, generated circuit adjoints, and coherent XOR lifting;
@@ -270,7 +272,7 @@ The repository currently includes:
 
 Checked-in examples cover reversible state, typed aggregate values, bounded and recursive control, one function used classically and coherently, QFT with a generated adjoint, a bounded hybrid optimizer, circuit normalization, and static error-correction structure.
 
-Major unfinished work includes mutable ownership and region storage, a Wheeler standard library, a self-hosted compiler and package manager, native Java-free execution, dynamic target-resident control, richer coherent arithmetic, complete application fixtures, and the complete proof language and kernel.
+Major unfinished work includes borrowing, mutable slices, compiler-scale region storage, a Wheeler standard library, a self-hosted compiler and package manager, native Java-free execution, dynamic target-resident control, richer coherent arithmetic, complete application fixtures, and the complete proof language and kernel.
 
 The honest answer is: **Wheeler is executable, but it is not finished.** WIPs are reviewed design commitments and work plans, not a magical bag of features summoned by adding an import.
 

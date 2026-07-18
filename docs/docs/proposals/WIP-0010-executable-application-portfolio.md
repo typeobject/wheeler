@@ -270,6 +270,10 @@ The test suite stops and restores the run in queued, running, succeeded, failed,
 
 `PackageProvenance.w` verifies a package archive's member hashes, manifest identity, dependency lock, compiler identity, and build-plan provenance. Signature verification establishes namespace authorization; it does not establish semantic correctness of package code.
 
+### Bounded algorithm foundry
+
+`Foundry.w` is the fault-tolerant-era capstone from WIP-0014. It searches a canonical finite candidate grammar for the smallest reversible sorting network over eight 4-bit values, uncomputes candidate executions, checks the complete `2^32`-value input domain, accumulates checked no-shorter-candidate certificates, and publishes the winner as a proof-bearing package. Search samples are evidence only; exact checking and the trusted kernel authorize the result. The [future-system design](../future/foundry.md) remains documentation syntax until all dependencies execute end to end.
+
 ## Native and package applications
 
 ### Hermetic workspace build
@@ -374,6 +378,7 @@ Portfolio work follows these rules:
 
 - [ ] Trusted QFT and circuit-equivalence certificates.
 - [ ] Resource-bound and inverse-law certificates.
+- [ ] Bounded certified `Foundry.w` synthesis and minimality package.
 - [ ] Package provenance verifier.
 - [ ] Hermetic workspace bootstrap.
 - [ ] Capability-denied tool and registry mirror.
