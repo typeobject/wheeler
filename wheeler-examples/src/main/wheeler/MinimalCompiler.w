@@ -102,6 +102,11 @@ classical class MinimalCompiler {
             functionsLength = 48;
             codeLength = 56;
         }
+        if (program.opcode < 0) {
+            localCount = 0;
+            functionsLength = 44;
+            codeLength = 8;
+        }
         long codeOffset = align8(functionsOffset + functionsLength);
         long fileLength = align8(codeOffset + codeLength);
         codeStart = codeOffset;
@@ -181,30 +186,34 @@ classical class MinimalCompiler {
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, localCount, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
-        cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
-        if (0 < program.opcode) {
-            cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
-        }
-        cursor = align8(cursor);
-
-        cursor = writeInstructionHeader(output, cursor, 1024, 2);
-        cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
-        cursor = writeUnsignedLittleEndian(output, cursor, program.operand, 8);
-        if (program.opcode == 0) {
-            cursor = writeInstructionHeader(output, cursor, 1026, 2);
-            cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
-            cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+        if (program.opcode < 0) {
+            cursor = align8(cursor);
         } else {
-            cursor = writeInstructionHeader(output, cursor, 1025, 2);
-            cursor = writeUnsignedLittleEndian(output, cursor, 1, 8);
+            cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
+            if (0 < program.opcode) {
+                cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
+            }
+            cursor = align8(cursor);
+
+            cursor = writeInstructionHeader(output, cursor, 1024, 2);
             cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
-            cursor = writeInstructionHeader(output, cursor, program.opcode, 3);
-            cursor = writeUnsignedLittleEndian(output, cursor, 1, 8);
-            cursor = writeUnsignedLittleEndian(output, cursor, 1, 8);
-            cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
-            cursor = writeInstructionHeader(output, cursor, 1026, 2);
-            cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
-            cursor = writeUnsignedLittleEndian(output, cursor, 1, 8);
+            cursor = writeUnsignedLittleEndian(output, cursor, program.operand, 8);
+            if (program.opcode == 0) {
+                cursor = writeInstructionHeader(output, cursor, 1026, 2);
+                cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+                cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+            } else {
+                cursor = writeInstructionHeader(output, cursor, 1025, 2);
+                cursor = writeUnsignedLittleEndian(output, cursor, 1, 8);
+                cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+                cursor = writeInstructionHeader(output, cursor, program.opcode, 3);
+                cursor = writeUnsignedLittleEndian(output, cursor, 1, 8);
+                cursor = writeUnsignedLittleEndian(output, cursor, 1, 8);
+                cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+                cursor = writeInstructionHeader(output, cursor, 1026, 2);
+                cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+                cursor = writeUnsignedLittleEndian(output, cursor, 1, 8);
+            }
         }
         cursor = writeUnsignedLittleEndian(output, cursor, 1, 2);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 2);

@@ -78,24 +78,13 @@ classical class Parser {
     }
 
     private boolean canonicalMinimalNames(
-        utf8 source,
         words tokenKinds,
-        words tokenStarts,
         words tokenLengths
     ) {
         if (tokenKinds[2] == 1) {
             if (tokenLengths[2] < 257) {
                 if (tokenKinds[6] == 1) {
-                    if (tokenLengths[6] < 257) {
-                        if (tokenKinds[16] == 1) {
-                            return sameTokenText(
-                                source,
-                                tokenStarts,
-                                tokenLengths,
-                                6,
-                                16);
-                        }
-                    }
+                    return tokenLengths[6] < 257;
                 }
             }
         }
@@ -111,8 +100,7 @@ classical class Parser {
         if (tokenHash(source, tokenStarts, tokenLengths, 0)
                 == 87497064671293) {
             if (tokenHash(source, tokenStarts, tokenLengths, 1) == 94742904) {
-                if (canonicalMinimalNames(
-                        source, tokenKinds, tokenStarts, tokenLengths)) {
+                if (canonicalMinimalNames(tokenKinds, tokenLengths)) {
                     if (punctuationAt(source, tokenKinds, tokenStarts, 3, 123)) {
                         if (tokenHash(source, tokenStarts, tokenLengths, 4)
                                 == 109757585) {
@@ -178,19 +166,48 @@ classical class Parser {
         return false;
     }
 
-    private boolean minimalAssignmentValid(
+    private boolean minimalBodyNameValid(
+        utf8 source,
+        words tokenKinds,
+        words tokenStarts,
+        words tokenLengths
+    ) {
+        if (tokenKinds[16] == 1) {
+            return sameTokenText(
+                source, tokenStarts, tokenLengths, 6, 16);
+        }
+        return false;
+    }
+
+    private boolean minimalEmptyValid(
         utf8 source,
         words tokenKinds,
         words tokenStarts
     ) {
-        if (punctuationAt(source, tokenKinds, tokenStarts, 17, 61)) {
-            if (tokenKinds[18] == 2) {
-                if (punctuationAt(
-                        source, tokenKinds, tokenStarts, 19, 59)) {
+        if (punctuationAt(source, tokenKinds, tokenStarts, 16, 125)) {
+            return punctuationAt(
+                source, tokenKinds, tokenStarts, 17, 125);
+        }
+        return false;
+    }
+
+    private boolean minimalAssignmentValid(
+        utf8 source,
+        words tokenKinds,
+        words tokenStarts,
+        words tokenLengths
+    ) {
+        if (minimalBodyNameValid(
+                source, tokenKinds, tokenStarts, tokenLengths)) {
+            if (punctuationAt(source, tokenKinds, tokenStarts, 17, 61)) {
+                if (tokenKinds[18] == 2) {
                     if (punctuationAt(
-                            source, tokenKinds, tokenStarts, 20, 125)) {
-                        return punctuationAt(
-                            source, tokenKinds, tokenStarts, 21, 125);
+                            source, tokenKinds, tokenStarts, 19, 59)) {
+                        if (punctuationAt(
+                                source, tokenKinds, tokenStarts, 20, 125)) {
+                            return punctuationAt(
+                                source, tokenKinds, tokenStarts, 21, 125);
+                        }
                     }
                 }
             }
@@ -201,17 +218,22 @@ classical class Parser {
     private boolean minimalUpdateValid(
         utf8 source,
         words tokenKinds,
-        words tokenStarts
+        words tokenStarts,
+        words tokenLengths
     ) {
-        if (0 < updateOpcode(source, tokenStarts)) {
-            if (punctuationAt(source, tokenKinds, tokenStarts, 18, 61)) {
-                if (tokenKinds[19] == 2) {
-                    if (punctuationAt(
-                            source, tokenKinds, tokenStarts, 20, 59)) {
+        if (minimalBodyNameValid(
+                source, tokenKinds, tokenStarts, tokenLengths)) {
+            if (0 < updateOpcode(source, tokenStarts)) {
+                if (punctuationAt(
+                        source, tokenKinds, tokenStarts, 18, 61)) {
+                    if (tokenKinds[19] == 2) {
                         if (punctuationAt(
-                                source, tokenKinds, tokenStarts, 21, 125)) {
-                            return punctuationAt(
-                                source, tokenKinds, tokenStarts, 22, 125);
+                                source, tokenKinds, tokenStarts, 20, 59)) {
+                            if (punctuationAt(
+                                    source, tokenKinds, tokenStarts, 21, 125)) {
+                                return punctuationAt(
+                                    source, tokenKinds, tokenStarts, 22, 125);
+                            }
                         }
                     }
                 }
@@ -248,6 +270,35 @@ classical class Parser {
         return new MinimalProgramResult.Value(program);
     }
 
+    private MinimalProgramResult minimalEmptyProgramValue(
+        utf8 source,
+        words tokenStarts,
+        words tokenLengths
+    ) {
+        long initialEnd = tokenStarts[8] + tokenLengths[8];
+        long initial = parseNumber(source, tokenStarts[8], initialEnd);
+        if (initial < 0) {
+            return new MinimalProgramResult.Error(tokenStarts[8]);
+        }
+        SourceRange name = new SourceRange(
+            tokenStarts[2], tokenLengths[2]);
+        SourceRange global = new SourceRange(
+            tokenStarts[6], tokenLengths[6]);
+        MinimalProgram program = new MinimalProgram(
+            name, global, initial, -1, 0);
+        return new MinimalProgramResult.Value(program);
+    }
+
+    private boolean minimalCountSupported(long count) {
+        if (count == 18) {
+            return true;
+        }
+        if (count == 22) {
+            return true;
+        }
+        return count == 23;
+    }
+
     public MinimalProgramResult parseMinimalProgram(
         utf8 source,
         words tokenKinds,
@@ -255,23 +306,42 @@ classical class Parser {
         words tokenLengths,
         long count
     ) {
-        if (minimalHeaderValid(
-                source, tokenKinds, tokenStarts, tokenLengths)) {
-            if (minimalEntryPrefixValid(
+        if (minimalCountSupported(count)) {
+            if (minimalHeaderValid(
                     source, tokenKinds, tokenStarts, tokenLengths)) {
-                if (count == 22) {
-                    if (minimalAssignmentValid(
-                            source, tokenKinds, tokenStarts)) {
-                        return minimalProgramValue(
-                            source, tokenStarts, tokenLengths, 0, 18);
+                if (minimalEntryPrefixValid(
+                        source, tokenKinds, tokenStarts, tokenLengths)) {
+                    if (count == 18) {
+                        if (minimalEmptyValid(
+                                source, tokenKinds, tokenStarts)) {
+                            return minimalEmptyProgramValue(
+                                source, tokenStarts, tokenLengths);
+                        }
                     }
-                }
-                if (count == 23) {
-                    if (minimalUpdateValid(
-                            source, tokenKinds, tokenStarts)) {
-                        long opcode = updateOpcode(source, tokenStarts);
-                        return minimalProgramValue(
-                            source, tokenStarts, tokenLengths, opcode, 19);
+                    if (count == 22) {
+                        if (minimalAssignmentValid(
+                                source,
+                                tokenKinds,
+                                tokenStarts,
+                                tokenLengths)) {
+                            return minimalProgramValue(
+                                source, tokenStarts, tokenLengths, 0, 18);
+                        }
+                    }
+                    if (count == 23) {
+                        if (minimalUpdateValid(
+                                source,
+                                tokenKinds,
+                                tokenStarts,
+                                tokenLengths)) {
+                            long opcode = updateOpcode(source, tokenStarts);
+                            return minimalProgramValue(
+                                source,
+                                tokenStarts,
+                                tokenLengths,
+                                opcode,
+                                19);
+                        }
                     }
                 }
             }

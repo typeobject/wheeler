@@ -61,6 +61,12 @@ class MinimalCompilerExampleTest {
 
     assertDifferentialExecution(
         writerProgram,
+        "classical class Empty { state long idle = 7; "
+            + "entry void main() { } }",
+        "idle",
+        7);
+    assertDifferentialExecution(
+        writerProgram,
         "classical class Set { state long result = 4; "
             + "entry void main() { result = 99; } }",
         "result",
