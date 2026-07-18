@@ -62,7 +62,7 @@ classical class StorageVerifier {
         if (opcode < OPCODE_OWNED_MOVE) {
             return -1;
         }
-        if (OPCODE_BUFFER_LENGTH < opcode) {
+        if (OPCODE_UTF8_WIDTH < opcode) {
             return -1;
         }
         long first = readUnsigned(artifact, cursor + 8, 8);
@@ -225,6 +225,96 @@ classical class StorageVerifier {
                         }
                         if (lengthType == TYPE_BYTES) {
                             return 1;
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+        if (opcode == OPCODE_UTF8_VALID) {
+            long utf8Buffer = readUnsigned(artifact, cursor + 16, 8);
+            if (first < localCount) {
+                if (utf8Buffer < localCount) {
+                    if (localHasType(
+                            artifact, activeTypes, first, TYPE_BOOLEAN)) {
+                        if (localHasType(
+                                artifact,
+                                activeTypes,
+                                utf8Buffer,
+                                TYPE_BYTES)) {
+                            return 1;
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+        if (opcode == OPCODE_UTF8_COUNT) {
+            long countBuffer = readUnsigned(artifact, cursor + 16, 8);
+            if (first < localCount) {
+                if (countBuffer < localCount) {
+                    if (localHasType(
+                            artifact, activeTypes, first, TYPE_SIGNED)) {
+                        if (localHasType(
+                                artifact,
+                                activeTypes,
+                                countBuffer,
+                                TYPE_BYTES)) {
+                            return 1;
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+        if (opcode == OPCODE_UTF8_SCALAR) {
+            long scalarBuffer = readUnsigned(artifact, cursor + 16, 8);
+            long scalarIndex = readUnsigned(artifact, cursor + 24, 8);
+            if (first < localCount) {
+                if (scalarBuffer < localCount) {
+                    if (scalarIndex < localCount) {
+                        if (localHasType(
+                                artifact, activeTypes, first, TYPE_SIGNED)) {
+                            if (localHasType(
+                                    artifact,
+                                    activeTypes,
+                                    scalarBuffer,
+                                    TYPE_BYTES)) {
+                                if (localHasType(
+                                        artifact,
+                                        activeTypes,
+                                        scalarIndex,
+                                        TYPE_SIGNED)) {
+                                    return 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+        if (opcode == OPCODE_UTF8_WIDTH) {
+            long widthBuffer = readUnsigned(artifact, cursor + 16, 8);
+            long widthIndex = readUnsigned(artifact, cursor + 24, 8);
+            if (first < localCount) {
+                if (widthBuffer < localCount) {
+                    if (widthIndex < localCount) {
+                        if (localHasType(
+                                artifact, activeTypes, first, TYPE_SIGNED)) {
+                            if (localHasType(
+                                    artifact,
+                                    activeTypes,
+                                    widthBuffer,
+                                    TYPE_BYTES)) {
+                                if (localHasType(
+                                        artifact,
+                                        activeTypes,
+                                        widthIndex,
+                                        TYPE_SIGNED)) {
+                                    return 1;
+                                }
+                            }
                         }
                     }
                 }

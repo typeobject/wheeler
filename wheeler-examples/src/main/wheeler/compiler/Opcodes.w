@@ -51,7 +51,11 @@ classical class Opcodes {
     public const long OPCODE_BYTES_ALLOC = 0x0547;
     public const long OPCODE_BYTES_GET = 0x0548;
     public const long OPCODE_BYTES_SET = 0x0549;
+    public const long OPCODE_UTF8_VALID = 0x054a;
+    public const long OPCODE_UTF8_COUNT = 0x054b;
     public const long OPCODE_BUFFER_LENGTH = 0x054c;
+    public const long OPCODE_UTF8_SCALAR = 0x054d;
+    public const long OPCODE_UTF8_WIDTH = 0x054e;
 
     public const long INTERPRETER_STORAGE_COUNT = 16;
     public const long INTERPRETER_STORAGE_WORDS = 128;

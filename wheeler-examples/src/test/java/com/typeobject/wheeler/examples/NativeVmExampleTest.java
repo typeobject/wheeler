@@ -179,6 +179,38 @@ class NativeVmExampleTest {
     assertThrows(
         VmTrap.class,
         () -> VirtualMachine.withBinaryInput(interpreter, forgedBytes).run());
+    String utf8 = "classical class NativeUtf8 { "
+        + "state long valid = 0; state long scalars = 0; "
+        + "entry void main() { region arena = new region(3, 1); "
+        + "long length = 3; bytes packet = allocateBytes(arena, length); "
+        + "setByte(packet, 0, 65); setByte(packet, 1, 194); "
+        + "setByte(packet, 2, 162); boolean accepted = utf8Valid(packet); "
+        + "if (accepted) { valid = 1; } else { valid = 0; } "
+        + "long decoded = utf8Scalar(packet, 1); scalars = decoded; "
+        + "assert scalars == 162; long width = utf8Width(packet, 1); "
+        + "valid = width; assert valid == 2; "
+        + "if (accepted) { valid = 1; } else { valid = 0; } "
+        + "long count = utf8Count(packet); scalars = count; "
+        + "assert valid == 1; assert scalars == 2; "
+        + "drop(packet); drop(arena); } }";
+    assertInterpretedTwoGlobals(
+        interpreter, utf8, "valid", 1, "scalars", 2);
+    assertInterpretedGlobal(
+        interpreter,
+        "classical class InvalidNativeUtf8 { state long valid = 1; "
+            + "entry void main() { region arena = new region(2, 1); "
+            + "long length = 2; bytes packet = allocateBytes(arena, length); "
+            + "setByte(packet, 0, 192); setByte(packet, 1, 128); "
+            + "boolean accepted = utf8Valid(packet); "
+            + "if (accepted) { valid = 1; } else { valid = 0; } "
+            + "assert valid == 0; drop(packet); drop(arena); } }",
+        "valid",
+        0);
+    byte[] forgedUtf8 = withBadUtf8Index(
+        compiler.compileToBytecode(utf8));
+    assertThrows(
+        VmTrap.class,
+        () -> VirtualMachine.withBinaryInput(interpreter, forgedUtf8).run());
     String records = Files.readString(root.resolve("Records.w"));
     assertInterpretedTwoGlobals(
         interpreter, records, "width", 5, "equal", 1);
@@ -314,6 +346,23 @@ class NativeVmExampleTest {
       cursor += bytes.getInt(cursor + 4);
     }
     throw new AssertionError("call fixture has no argument call");
+  }
+
+  private static byte[] withBadUtf8Index(byte[] artifact) {
+    byte[] damaged = artifact.clone();
+    ByteBuffer bytes = ByteBuffer.wrap(damaged).order(ByteOrder.LITTLE_ENDIAN);
+    int codeDirectory = 40 + 5 * 32;
+    int cursor = Math.toIntExact(bytes.getLong(codeDirectory + 8));
+    int end = cursor + Math.toIntExact(bytes.getLong(codeDirectory + 16));
+    while (cursor < end) {
+      int opcode = Short.toUnsignedInt(bytes.getShort(cursor));
+      if (opcode == Opcode.UTF8_SCALAR.code()) {
+        bytes.putLong(cursor + 24, Long.MAX_VALUE);
+        return damaged;
+      }
+      cursor += bytes.getInt(cursor + 4);
+    }
+    throw new AssertionError("UTF-8 fixture has no scalar read");
   }
 
   private static byte[] withBadBytesIndex(byte[] artifact) {

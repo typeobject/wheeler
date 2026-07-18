@@ -236,8 +236,20 @@ classical class InstructionVerifier {
         if (opcode == OPCODE_BYTES_SET) {
             return 3;
         }
+        if (opcode == OPCODE_UTF8_VALID) {
+            return 2;
+        }
+        if (opcode == OPCODE_UTF8_COUNT) {
+            return 2;
+        }
         if (opcode == OPCODE_BUFFER_LENGTH) {
             return 2;
+        }
+        if (opcode == OPCODE_UTF8_SCALAR) {
+            return 3;
+        }
+        if (opcode == OPCODE_UTF8_WIDTH) {
+            return 3;
         }
         return -1;
     }
