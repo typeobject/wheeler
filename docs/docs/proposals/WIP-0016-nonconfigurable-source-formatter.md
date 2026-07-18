@@ -195,7 +195,8 @@ The first style version uses these rules:
 - no tab indentation;
 - opening braces on the declaration or control-header line;
 - an empty block formatted as `{}` when it contains no comment;
-- one statement per line in a nonempty block;
+- one statement and one `const` declaration per line;
+- one finite-enum case per line, with source order preserved;
 - one ASCII space around binary and assignment operators;
 - one ASCII space after commas;
 - no space immediately inside parentheses or brackets;
@@ -820,5 +821,6 @@ Rejected. That is an indentation fixer rather than a formatter and leaves syntac
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
 - [WIP-0012](WIP-0012-wheeler-standard-library.md)
+- [WIP-0017](WIP-0017-compile-time-constants-and-finite-enums.md)
 - [Language profile](../reference/language-profile.md)
 - [Development and testing](../reference/development.md)

@@ -1,7 +1,8 @@
 // A three-qubit QFT region followed by its compiler-generated adjoint.
 quantum class QFT {
+    const long QUBITS = 3;
     state long measured = 0;
-    qreg q = new qreg(3);
+    qreg q = new qreg(QUBITS);
 
     unitary void qft() {
         H(q[0]);

@@ -94,6 +94,7 @@ final class SourceModuleLinker {
         root.name(),
         root.kind(),
         root.states(),
+        root.constants(),
         records,
         variants,
         List.copyOf(arrays.values()),

@@ -1,4 +1,5 @@
 module examples.compiler.verifier;
+import examples.compiler.opcodes;
 classical class Verifier {
     private boolean differs(long left, long right) {
         if (left < right) {
@@ -63,42 +64,38 @@ classical class Verifier {
     }
 
     private long expectedOperandCount(long opcode) {
-        if (opcode == 1) {
+        if (opcode == OPCODE_HALT) {
             return 0;
         }
-        if (opcode == 2) {
+        if (opcode == OPCODE_RETURN) {
             return 0;
         }
-        if (255 < opcode) {
-            if (opcode < 259) {
-                return 2;
-            }
+        if (isGlobalConstantOpcode(opcode)) {
+            return 2;
         }
-        if (opcode == 512) {
+        if (opcode == OPCODE_CALL) {
             return 1;
         }
-        if (opcode == 513) {
+        if (opcode == OPCODE_UNCALL) {
             return 1;
         }
-        if (opcode == 768) {
+        if (opcode == OPCODE_EXPECT_EQ) {
             return 2;
         }
-        if (opcode == 1024) {
+        if (opcode == OPCODE_LOCAL_CONST) {
             return 2;
         }
-        if (opcode == 1025) {
+        if (opcode == OPCODE_LOCAL_LOAD_GLOBAL) {
             return 2;
         }
-        if (opcode == 1026) {
+        if (opcode == OPCODE_LOCAL_STORE_GLOBAL) {
             return 2;
         }
-        if (opcode == 1027) {
+        if (opcode == OPCODE_LOCAL_MOVE) {
             return 2;
         }
-        if (1039 < opcode) {
-            if (opcode < 1048) {
-                return 3;
-            }
+        if (isLocalMathOpcode(opcode)) {
+            return 3;
         }
         return -1;
     }
@@ -112,22 +109,20 @@ classical class Verifier {
         long localCount,
         long reversibleHelper
     ) {
-        if (opcode == 1) {
+        if (opcode == OPCODE_HALT) {
             return 1;
         }
-        if (opcode == 2) {
+        if (opcode == OPCODE_RETURN) {
             return 1;
         }
         long first = readUnsigned(artifact, cursor + 8, 8);
-        if (255 < opcode) {
-            if (opcode < 259) {
-                if (first < globalCount) {
-                    return 1;
-                }
-                return 0;
+        if (isGlobalConstantOpcode(opcode)) {
+            if (first < globalCount) {
+                return 1;
             }
+            return 0;
         }
-        if (opcode == 512) {
+        if (opcode == OPCODE_CALL) {
             if (first == 0) {
                 if (1 < functionCount) {
                     return 1;
@@ -135,7 +130,7 @@ classical class Verifier {
             }
             return 0;
         }
-        if (opcode == 513) {
+        if (opcode == OPCODE_UNCALL) {
             if (reversibleHelper == 1) {
                 if (first == 0) {
                     if (1 < functionCount) {
@@ -145,19 +140,19 @@ classical class Verifier {
             }
             return 0;
         }
-        if (opcode == 768) {
+        if (opcode == OPCODE_EXPECT_EQ) {
             if (first < globalCount) {
                 return 1;
             }
             return 0;
         }
-        if (opcode == 1024) {
+        if (opcode == OPCODE_LOCAL_CONST) {
             if (first < localCount) {
                 return 1;
             }
             return 0;
         }
-        if (opcode == 1025) {
+        if (opcode == OPCODE_LOCAL_LOAD_GLOBAL) {
             long global = readUnsigned(artifact, cursor + 16, 8);
             if (first < localCount) {
                 if (global < globalCount) {
@@ -166,7 +161,7 @@ classical class Verifier {
             }
             return 0;
         }
-        if (opcode == 1026) {
+        if (opcode == OPCODE_LOCAL_STORE_GLOBAL) {
             long local = readUnsigned(artifact, cursor + 16, 8);
             if (first < globalCount) {
                 if (local < localCount) {
@@ -175,7 +170,7 @@ classical class Verifier {
             }
             return 0;
         }
-        if (opcode == 1027) {
+        if (opcode == OPCODE_LOCAL_MOVE) {
             long source = readUnsigned(artifact, cursor + 16, 8);
             if (first < localCount) {
                 if (source < localCount) {
@@ -184,19 +179,17 @@ classical class Verifier {
             }
             return 0;
         }
-        if (1039 < opcode) {
-            if (opcode < 1048) {
-                long left = readUnsigned(artifact, cursor + 16, 8);
-                long right = readUnsigned(artifact, cursor + 24, 8);
-                if (first < localCount) {
-                    if (left < localCount) {
-                        if (right < localCount) {
-                            return 1;
-                        }
+        if (isLocalMathOpcode(opcode)) {
+            long left = readUnsigned(artifact, cursor + 16, 8);
+            long right = readUnsigned(artifact, cursor + 24, 8);
+            if (first < localCount) {
+                if (left < localCount) {
+                    if (right < localCount) {
+                        return 1;
                     }
                 }
-                return 0;
             }
+            return 0;
         }
         return 1;
     }
@@ -256,7 +249,7 @@ classical class Verifier {
                     reversibleHelper) == 0) {
                 return 0;
             }
-            if (opcode == 1) {
+            if (opcode == OPCODE_HALT) {
                 if (differs(cursor + instructionLength, end)) {
                     return 0;
                 }
@@ -562,7 +555,7 @@ classical class Verifier {
             if (differs(
                     readUnsigned(
                         artifact, codeOffset + firstForwardLength - 8, 2),
-                    2)) {
+                    OPCODE_RETURN)) {
                 return 0;
             }
             if (firstFlags == 1) {
@@ -572,18 +565,22 @@ classical class Verifier {
                             codeOffset + firstForwardLength
                                 + firstInverseLength - 8,
                             2),
-                        2)) {
+                        OPCODE_RETURN)) {
                     return 0;
                 }
             }
             long entryCode = codeOffset
                 + firstForwardLength
                 + firstInverseLength;
-            if (differs(readUnsigned(artifact, entryCode, 2), 512)) {
+            if (differs(
+                    readUnsigned(artifact, entryCode, 2),
+                    OPCODE_CALL)) {
                 return 0;
             }
         }
-        if (differs(readUnsigned(artifact, codeOffset + codeLength - 8, 2), 1)) {
+        if (differs(
+                readUnsigned(artifact, codeOffset + codeLength - 8, 2),
+                OPCODE_HALT)) {
             return 0;
         }
         if (differs(readUnsigned(artifact, codeOffset + codeLength - 6, 2), 0)) {

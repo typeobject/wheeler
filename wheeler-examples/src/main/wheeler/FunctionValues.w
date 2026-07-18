@@ -1,12 +1,13 @@
 // Signed and Boolean parameters/results, nested expressions, and typed static calls.
 classical class FunctionValues {
+    const long ADD_STEP_BOUND = 4;
     state long result = 0;
 
     long add(long left, long right) {
         return left + right;
     }
 
-    theorem addBound proves steps(add, 4);
+    theorem addBound proves steps(add, ADD_STEP_BOUND);
 
     boolean same(boolean left, boolean right) {
         return left == right;

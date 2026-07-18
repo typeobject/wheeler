@@ -594,6 +594,135 @@ class WheelerCompilerTest {
   }
 
   @Test
+  void constantsFoldWithoutAddingGlobalState() {
+    Program program = new WheelerCompiler().compile("""
+        classical class NamedValues {
+          const long CALL = BASE + 1;
+          const long BASE = 0x0200;
+          const long MASKED = (CALL ^ 1) & 0x02ff;
+          const boolean ENABLED = MASKED == BASE;
+          state long result = CALL;
+          entry void main() {
+            if (ENABLED) { result = CALL; }
+            assert result == 513;
+          }
+        }
+        """);
+    VirtualMachine machine = new VirtualMachine(program);
+
+    assertEquals(513, machine.global("result"));
+    machine.run();
+
+    assertEquals(1, program.globals().size());
+    assertEquals(513, machine.global("result"));
+    assertArrayEquals(
+        new WheelerCompiler().compileToBytecode("""
+            classical class Reordered {
+              const long FIRST = SECOND + 1;
+              const long SECOND = 4;
+              entry void main() { long value = FIRST; }
+            }
+            """),
+        new WheelerCompiler().compileToBytecode("""
+            classical class Reordered {
+              const long SECOND = 4;
+              const long FIRST = SECOND + 1;
+              entry void main() { long value = FIRST; }
+            }
+            """));
+  }
+
+  @Test
+  void publicConstantsResolveAcrossModulesWithoutAmbientOverrides() {
+    String values = """
+        module values;
+        classical class Values {
+          public const long FRAME_LIMIT = 8 * 2;
+          private const long HIDDEN = 99;
+        }
+        """;
+    String root = """
+        module root;
+        import values;
+        classical class Root {
+          state long result = 0;
+          entry void main() {
+            long direct = FRAME_LIMIT;
+            result = direct + values::FRAME_LIMIT;
+            assert result == 32;
+          }
+        }
+        """;
+    WheelerCompiler compiler = new WheelerCompiler();
+    Program program = compiler.compileModules(
+        Map.of("root", root, "values", values), "root");
+    VirtualMachine machine = new VirtualMachine(program);
+
+    machine.run();
+
+    assertEquals(32, machine.global("result"));
+    CompilerException hidden = assertThrows(
+        CompilerException.class,
+        () -> compiler.compileModules(
+            Map.of(
+                "root",
+                root.replace("long direct = FRAME_LIMIT;", "long direct = values::HIDDEN;"),
+                "values",
+                values),
+            "root"));
+    String other = """
+        module other;
+        classical class Other { public const long FRAME_LIMIT = 7; }
+        """;
+    CompilerException ambiguous = assertThrows(
+        CompilerException.class,
+        () -> compiler.compileModules(
+            Map.of(
+                "root", root.replace("import values;", "import other; import values;"),
+                "values", values,
+                "other", other),
+            "root"));
+    assertTrue(hidden.getMessage().contains("unknown constant: values::HIDDEN"));
+    assertTrue(ambiguous.getMessage().contains("ambiguous constant: FRAME_LIMIT"));
+  }
+
+  @Test
+  void finiteEnumsUseThePayloadFreeVariantPath() {
+    String source = """
+        classical class Directions {
+          enum Direction {
+            case Left;
+            case Right;
+          }
+          state long selected = 0;
+          entry void main() {
+            Direction direction = new Direction.Right();
+            match (direction) {
+              case Direction.Left() { selected = 1; }
+              case Direction.Right() { selected = 2; }
+            }
+            assert selected == 2;
+          }
+        }
+        """;
+    WheelerCompiler compiler = new WheelerCompiler();
+    Program program = compiler.compile(source);
+    VirtualMachine machine = new VirtualMachine(program);
+
+    machine.run();
+
+    assertEquals(1, program.variantTypes().size());
+    assertTrue(program.variantTypes().getFirst().cases().stream()
+        .allMatch(variantCase -> variantCase.fields().isEmpty()));
+    assertArrayEquals(
+        compiler.compileToBytecode(source),
+        compiler.compileToBytecode(source.replace(
+            "case Left;\n    case Right;",
+            "case Right;\n    case Left;")));
+    assertEquals(2, machine.global("selected"));
+  }
+
+  @Test
   void sourceProducesCanonicalBytecode() {
     WheelerCompiler compiler = new WheelerCompiler();
     byte[] encoded = compiler.compileToBytecode(COUNTER);

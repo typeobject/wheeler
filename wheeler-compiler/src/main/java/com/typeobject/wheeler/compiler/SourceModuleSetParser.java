@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.compiler;
 
+import com.typeobject.wheeler.compiler.SourceModel.ConstantDefinition;
 import com.typeobject.wheeler.compiler.SourceModel.SourceProgram;
 import com.typeobject.wheeler.compiler.SourceModel.VariantDefinition;
 import java.util.ArrayList;
@@ -53,6 +54,7 @@ final class SourceModuleSetParser {
     }
 
     List<VariantDefinition> importedVariants = new ArrayList<>();
+    List<ConstantDefinition> importedConstants = new ArrayList<>();
     for (String dependency : header.imports()) {
       parsed.get(dependency).variants().stream()
           .filter(VariantDefinition::exported)
@@ -64,9 +66,20 @@ final class SourceModuleSetParser {
                 variant.cases(),
                 variant.line()));
           });
+      parsed.get(dependency).constants().stream()
+          .filter(ConstantDefinition::exported)
+          .forEach(constant -> {
+            importedConstants.add(constant);
+            importedConstants.add(new ConstantDefinition(
+                dependency + "::" + constant.name(),
+                constant.type(),
+                constant.value(),
+                true,
+                constant.line()));
+          });
     }
-    SourceProgram module =
-        new SourceParser(importedVariants).parse(sources.get(name), false);
+    SourceProgram module = new SourceParser(importedVariants, importedConstants)
+        .parse(sources.get(name), false);
     parsed.put(name, module);
     active.remove(name);
   }

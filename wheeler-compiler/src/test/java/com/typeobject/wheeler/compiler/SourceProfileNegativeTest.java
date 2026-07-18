@@ -210,6 +210,46 @@ class SourceProfileNegativeTest {
   }
 
   @Test
+  void rejectsInvalidConstantsAndEnums() {
+    CompilerException mismatch = assertThrows(
+        CompilerException.class,
+        () -> compile("const boolean BAD = 1;", ""));
+    CompilerException overflow = assertThrows(
+        CompilerException.class,
+        () -> compile("const long BAD = 9223372036854775807 + 1;", ""));
+    CompilerException division = assertThrows(
+        CompilerException.class,
+        () -> compile("const long BAD = 1 / 0;", ""));
+    CompilerException duplicateConstant = assertThrows(
+        CompilerException.class,
+        () -> compile("const long VALUE = 1; const long VALUE = 2;", ""));
+    CompilerException cycle = assertThrows(
+        CompilerException.class,
+        () -> compile("const long FIRST = SECOND; const long SECOND = FIRST;", ""));
+    CompilerException deepConstant = assertThrows(
+        CompilerException.class,
+        () -> compile(
+            "const long BAD = " + "(".repeat(257) + "1" + ")".repeat(257) + ";",
+            ""));
+    CompilerException emptyEnum = assertThrows(
+        CompilerException.class,
+        () -> compile("enum Empty { }", ""));
+    CompilerException duplicateCase = assertThrows(
+        CompilerException.class,
+        () -> compile("enum Direction { case Left; case Left; }", ""));
+
+    assertTrue(mismatch.getMessage().contains("initializer type"));
+    assertTrue(overflow.getMessage().contains("constant arithmetic overflow"));
+    assertTrue(division.getMessage().contains("constant arithmetic trap"));
+    assertTrue(duplicateConstant.getMessage().contains("duplicate constant"));
+    assertTrue(cycle.getMessage().contains(
+        "constant dependency cycle: FIRST -> SECOND -> FIRST"));
+    assertTrue(deepConstant.getMessage().contains("depth exceeds 256"));
+    assertTrue(emptyEnum.getMessage().contains("at least one case"));
+    assertTrue(duplicateCase.getMessage().contains("duplicate enum case"));
+  }
+
+  @Test
   void rejectsInvalidFixedArrayConstruction() {
     String wrongLength = """
         classical class WrongLength {

@@ -25,6 +25,7 @@ class NativeVmExampleTest {
             "Binary.w", Files.readString(root.resolve("packages/Binary.w")),
             "Interpreter.w", Files.readString(root.resolve("compiler/Interpreter.w")),
             "NativeVm.w", Files.readString(root.resolve("NativeVm.w")),
+            "Opcodes.w", Files.readString(root.resolve("compiler/Opcodes.w")),
             "Verifier.w", Files.readString(root.resolve("compiler/Verifier.w"))),
         "examples.runtime.native_vm");
     WheelerCompiler compiler = new WheelerCompiler();
@@ -74,6 +75,7 @@ class NativeVmExampleTest {
             Map.entry("Ir.w", Files.readString(root.resolve("compiler/Ir.w"))),
             Map.entry(
                 "MinimalCompiler.w", Files.readString(root.resolve("MinimalCompiler.w"))),
+            Map.entry("Opcodes.w", Files.readString(root.resolve("compiler/Opcodes.w"))),
             Map.entry("Parser.w", Files.readString(root.resolve("compiler/Parser.w"))),
             Map.entry("Scanner.w", Files.readString(root.resolve("lexer/Scanner.w"))),
             Map.entry(

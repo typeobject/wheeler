@@ -28,6 +28,7 @@ class MinimalCompilerExampleTest {
     String helperParser = Files.readString(
         Path.of("src/main/wheeler/compiler/HelperParser.w"));
     String ir = Files.readString(Path.of("src/main/wheeler/compiler/Ir.w"));
+    String opcodes = Files.readString(Path.of("src/main/wheeler/compiler/Opcodes.w"));
     String parser = Files.readString(Path.of("src/main/wheeler/compiler/Parser.w"));
     String statements = Files.readString(
         Path.of("src/main/wheeler/compiler/Statements.w"));
@@ -45,6 +46,7 @@ class MinimalCompilerExampleTest {
             Map.entry("Encoding.w", encoding),
             Map.entry("HelperParser.w", helperParser),
             Map.entry("Ir.w", ir),
+            Map.entry("Opcodes.w", opcodes),
             Map.entry("Parser.w", parser),
             Map.entry("Scanner.w", scanner),
             Map.entry("Statements.w", statements),
@@ -349,10 +351,12 @@ class MinimalCompilerExampleTest {
           }
         }
         """;
+    String opcodes = Files.readString(
+        Path.of("src/main/wheeler/compiler/Opcodes.w"));
     String verifier = Files.readString(
         Path.of("src/main/wheeler/compiler/Verifier.w"));
     Program program = new WheelerCompiler().compileModuleFiles(
-        Map.of("Verifier.w", verifier, "VerifierTest.w", root),
+        Map.of("Opcodes.w", opcodes, "Verifier.w", verifier, "VerifierTest.w", root),
         "examples.compiler.verifiertest");
     WheelerCompiler stageZero = new WheelerCompiler();
     byte[] locals = stageZero.compileToBytecode(

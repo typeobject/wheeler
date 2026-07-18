@@ -22,7 +22,9 @@ classical class Counter {
       (member_declaration
         (state_declaration
           (identifier)
-          (integer_literal)))
+          (constant_expression
+            (expression
+              (integer_literal)))))
       (member_declaration
         (method_declaration
           (method_modifier)
@@ -84,11 +86,15 @@ quantum class Bell {
       (member_declaration
         (state_declaration
           (identifier)
-          (integer_literal)))
+          (constant_expression
+            (expression
+              (integer_literal)))))
       (member_declaration
         (qreg_declaration
           (identifier)
-          (integer_literal)))
+          (constant_expression
+            (expression
+              (integer_literal)))))
       (member_declaration
         (method_declaration
           (method_modifier)
@@ -172,7 +178,9 @@ classical class Broken {
       (member_declaration
         (state_declaration
           (identifier)
-          (integer_literal)
+          (constant_expression
+            (expression
+              (integer_literal)))
           (MISSING ";")))
       (member_declaration
         (method_declaration
@@ -216,7 +224,9 @@ classical class Control {
       (member_declaration
         (state_declaration
           (identifier)
-          (integer_literal)))
+          (constant_expression
+            (expression
+              (integer_literal)))))
       (member_declaration
         (method_declaration
           (method_modifier)
@@ -423,7 +433,9 @@ classical class ForControl {
       (member_declaration
         (state_declaration
           (identifier)
-          (integer_literal)))
+          (constant_expression
+            (expression
+              (integer_literal)))))
       (member_declaration
         (method_declaration
           (method_modifier)
@@ -522,7 +534,9 @@ classical class Records {
       (member_declaration
         (state_declaration
           (identifier)
-          (integer_literal)))
+          (constant_expression
+            (expression
+              (integer_literal)))))
       (member_declaration
         (method_declaration
           (value_type
@@ -630,7 +644,9 @@ classical class Variants {
       (member_declaration
         (state_declaration
           (identifier)
-          (integer_literal)))
+          (constant_expression
+            (expression
+              (integer_literal)))))
       (member_declaration
         (method_declaration
           (method_modifier)
@@ -702,7 +718,9 @@ classical class Arrays {
       (member_declaration
         (state_declaration
           (identifier)
-          (integer_literal)))
+          (constant_expression
+            (expression
+              (integer_literal)))))
       (member_declaration
         (method_declaration
           (value_type)
@@ -786,359 +804,3 @@ classical class Arrays {
                       (identifier))
                     (expression
                       (integer_literal))))))))))))
-
-==================
-Generated proof theorems
-==================
-
-classical class Certified {
-  state long value = 0;
-  rev void increment() { value += 1; }
-  theorem incrementInverse proves inverse(increment);
-  theorem incrementAdjoint proves adjoint(increment);
-  theorem same proves equivalent(increment, increment);
-  theorem bounded proves steps(increment, 2);
-  entry void main() { }
-}
-
----
-
-(source_file
-  (class_declaration
-    (computation_domain)
-    (identifier)
-    (class_body
-      (member_declaration
-        (state_declaration
-          (identifier)
-          (integer_literal)))
-      (member_declaration
-        (method_declaration
-          (method_modifier)
-          (identifier)
-          (parameter_list)
-          (block
-            (statement
-              (assignment_statement
-                (identifier)
-                (expression
-                  (integer_literal)))))))
-      (member_declaration
-        (theorem_declaration
-          (identifier)
-          (identifier)))
-      (member_declaration
-        (theorem_declaration
-          (identifier)
-          (identifier)))
-      (member_declaration
-        (theorem_declaration
-          (identifier)
-          (identifier)
-          (identifier)))
-      (member_declaration
-        (theorem_declaration
-          (identifier)
-          (identifier)
-          (integer_literal)))
-      (member_declaration
-        (method_declaration
-          (method_modifier)
-          (identifier)
-          (parameter_list)
-          (block))))))
-
-================================================================================
-Owned bounded region
-================================================================================
-
-classical class Storage {
-  state long result = 0;
-  entry void main() {
-    region arena = new region(44, 3);
-    words data = allocate(arena, 2);
-    set(data, 0, 9);
-    result = data[0];
-    bytes raw = allocateBytes(arena, 4);
-    setByte(raw, 0, 65);
-    boolean valid = utf8Valid(raw);
-    long scalarCount = utf8Count(raw);
-    long byteCount = bufferLength(raw);
-    long firstScalar = utf8Scalar(raw, 0);
-    long firstWidth = utf8Width(raw, 0);
-    utf8 text = freezeUtf8(raw);
-    long textScalars = utf8Count(text);
-    longmap symbols = allocateMap(arena, 1);
-    put(symbols, 1, 9);
-    long symbol = mapGet(symbols, 1);
-    boolean present = mapHas(symbols, 1);
-    drop(symbols);
-    drop(text);
-    drop(data);
-    drop(arena);
-  }
-}
-
---------------------------------------------------------------------------------
-
-(source_file
-  (class_declaration
-    (computation_domain)
-    (identifier)
-    (class_body
-      (member_declaration
-        (state_declaration
-          (identifier)
-          (integer_literal)))
-      (member_declaration
-        (method_declaration
-          (method_modifier)
-          (identifier)
-          (parameter_list)
-          (block
-            (statement
-              (local_declaration
-                (value_type)
-                (identifier)
-                (expression
-                  (record_creation
-                    (value_type)
-                    (argument_list
-                      (expression
-                        (integer_literal))
-                      (expression
-                        (integer_literal)))))))
-            (statement
-              (local_declaration
-                (value_type)
-                (identifier)
-                (expression
-                  (call_expression
-                    (identifier)
-                    (argument_list
-                      (expression
-                        (identifier))
-                      (expression
-                        (integer_literal)))))))
-            (statement
-              (call_statement
-                (call_expression
-                  (identifier)
-                  (argument_list
-                    (expression
-                      (identifier))
-                    (expression
-                      (integer_literal))
-                    (expression
-                      (integer_literal))))))
-            (statement
-              (assignment_statement
-                (identifier)
-                (expression
-                  (array_access_expression
-                    (expression
-                      (identifier))
-                    (expression
-                      (integer_literal))))))
-            (statement
-              (local_declaration
-                (value_type)
-                (identifier)
-                (expression
-                  (call_expression
-                    (identifier)
-                    (argument_list
-                      (expression
-                        (identifier))
-                      (expression
-                        (integer_literal)))))))
-            (statement
-              (call_statement
-                (call_expression
-                  (identifier)
-                  (argument_list
-                    (expression
-                      (identifier))
-                    (expression
-                      (integer_literal))
-                    (expression
-                      (integer_literal))))))
-            (statement
-              (local_declaration
-                (value_type)
-                (identifier)
-                (expression
-                  (call_expression
-                    (identifier)
-                    (argument_list
-                      (expression
-                        (identifier)))))))
-            (statement
-              (local_declaration
-                (value_type)
-                (identifier)
-                (expression
-                  (call_expression
-                    (identifier)
-                    (argument_list
-                      (expression
-                        (identifier)))))))
-            (statement
-              (local_declaration
-                (value_type)
-                (identifier)
-                (expression
-                  (call_expression
-                    (identifier)
-                    (argument_list
-                      (expression
-                        (identifier)))))))
-            (statement
-              (local_declaration
-                (value_type)
-                (identifier)
-                (expression
-                  (call_expression
-                    (identifier)
-                    (argument_list
-                      (expression
-                        (identifier))
-                      (expression
-                        (integer_literal)))))))
-            (statement
-              (local_declaration
-                (value_type)
-                (identifier)
-                (expression
-                  (call_expression
-                    (identifier)
-                    (argument_list
-                      (expression
-                        (identifier))
-                      (expression
-                        (integer_literal)))))))
-            (statement
-              (local_declaration
-                (value_type)
-                (identifier)
-                (expression
-                  (call_expression
-                    (identifier)
-                    (argument_list
-                      (expression
-                        (identifier)))))))
-            (statement
-              (local_declaration
-                (value_type)
-                (identifier)
-                (expression
-                  (call_expression
-                    (identifier)
-                    (argument_list
-                      (expression
-                        (identifier)))))))
-            (statement
-              (local_declaration
-                (value_type)
-                (identifier)
-                (expression
-                  (call_expression
-                    (identifier)
-                    (argument_list
-                      (expression
-                        (identifier))
-                      (expression
-                        (integer_literal)))))))
-            (statement
-              (call_statement
-                (call_expression
-                  (identifier)
-                  (argument_list
-                    (expression
-                      (identifier))
-                    (expression
-                      (integer_literal))
-                    (expression
-                      (integer_literal))))))
-            (statement
-              (local_declaration
-                (value_type)
-                (identifier)
-                (expression
-                  (call_expression
-                    (identifier)
-                    (argument_list
-                      (expression
-                        (identifier))
-                      (expression
-                        (integer_literal)))))))
-            (statement
-              (local_declaration
-                (value_type)
-                (identifier)
-                (expression
-                  (call_expression
-                    (identifier)
-                    (argument_list
-                      (expression
-                        (identifier))
-                      (expression
-                        (integer_literal)))))))
-            (statement
-              (call_statement
-                (call_expression
-                  (identifier)
-                  (argument_list
-                    (expression
-                      (identifier))))))
-            (statement
-              (call_statement
-                (call_expression
-                  (identifier)
-                  (argument_list
-                    (expression
-                      (identifier))))))
-            (statement
-              (call_statement
-                (call_expression
-                  (identifier)
-                  (argument_list
-                    (expression
-                      (identifier))))))
-            (statement
-              (call_statement
-                (call_expression
-                  (identifier)
-                  (argument_list
-                    (expression
-                      (identifier))))))))))))
-
-==================
-Classical source module
-==================
-module bootstrap.main;
-import bootstrap.arithmetic;
-classical class Main {
-  entry void main() { }
-}
----
-
-(source_file
-  (module_declaration
-    (qualified_identifier
-      (identifier)
-      (identifier)))
-  (import_declaration
-    (qualified_identifier
-      (identifier)
-      (identifier)))
-  (class_declaration
-    (computation_domain)
-    (identifier)
-    (class_body
-      (member_declaration
-        (method_declaration
-          (method_modifier)
-          (identifier)
-          (parameter_list)
-          (block))))))

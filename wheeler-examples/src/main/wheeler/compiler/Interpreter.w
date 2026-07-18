@@ -1,4 +1,5 @@
 module examples.compiler.interpreter;
+import examples.compiler.opcodes;
 import examples.compiler.verifier;
 import examples.packages.binary;
 classical class Interpreter {
@@ -82,14 +83,14 @@ classical class Interpreter {
             long opcode = readUnsigned(artifact, cursor, 2);
             long instructionLength = readUnsigned(artifact, cursor + 4, 4);
             long next = cursor + instructionLength;
-            if (opcode == 1) {
+            if (opcode == OPCODE_HALT) {
                 if (depth == 0) {
                     Execution execution = new Execution(globalValue, steps + 1);
                     return new ExecutionResult.Value(execution);
                 }
                 return new ExecutionResult.Error(cursor);
             }
-            if (opcode == 2) {
+            if (opcode == OPCODE_RETURN) {
                 if (0 < depth) {
                     depth -= 1;
                     cursor = returnCursors[depth];
@@ -99,16 +100,16 @@ classical class Interpreter {
                     return new ExecutionResult.Error(cursor);
                 }
             } else {
-                if (opcode == 256) {
+                if (opcode == OPCODE_ADD_CONST) {
                     globalValue += readSigned(artifact, cursor + 16);
                 }
-                if (opcode == 257) {
+                if (opcode == OPCODE_SUB_CONST) {
                     globalValue -= readSigned(artifact, cursor + 16);
                 }
-                if (opcode == 258) {
+                if (opcode == OPCODE_XOR_CONST) {
                     globalValue ^= readSigned(artifact, cursor + 16);
                 }
-                if (opcode == 512) {
+                if (opcode == OPCODE_CALL) {
                     long callTarget = readUnsigned(artifact, cursor + 8, 8);
                     if (7 < depth + 1) {
                         return new ExecutionResult.Error(cursor);
@@ -132,7 +133,7 @@ classical class Interpreter {
                         return new ExecutionResult.Error(cursor);
                     }
                 }
-                if (opcode == 513) {
+                if (opcode == OPCODE_UNCALL) {
                     long uncallTarget = readUnsigned(artifact, cursor + 8, 8);
                     if (7 < depth + 1) {
                         return new ExecutionResult.Error(cursor);
@@ -159,14 +160,14 @@ classical class Interpreter {
                         return new ExecutionResult.Error(cursor);
                     }
                 }
-                if (opcode == 768) {
+                if (opcode == OPCODE_EXPECT_EQ) {
                     long expected = readSigned(artifact, cursor + 16);
                     if (globalValue == expected) {
                     } else {
                         return new ExecutionResult.Error(cursor);
                     }
                 }
-                if (opcode == 1024) {
+                if (opcode == OPCODE_LOCAL_CONST) {
                     long constantDestination = readUnsigned(
                         artifact, cursor + 8, 8);
                     set(
@@ -174,16 +175,16 @@ classical class Interpreter {
                         localIndex(depth, constantDestination),
                         readSigned(artifact, cursor + 16));
                 }
-                if (opcode == 1025) {
+                if (opcode == OPCODE_LOCAL_LOAD_GLOBAL) {
                     long loadDestination = readUnsigned(
                         artifact, cursor + 8, 8);
                     set(locals, localIndex(depth, loadDestination), globalValue);
                 }
-                if (opcode == 1026) {
+                if (opcode == OPCODE_LOCAL_STORE_GLOBAL) {
                     long storeSource = readUnsigned(artifact, cursor + 16, 8);
                     globalValue = locals[localIndex(depth, storeSource)];
                 }
-                if (opcode == 1027) {
+                if (opcode == OPCODE_LOCAL_MOVE) {
                     long moveDestination = readUnsigned(
                         artifact, cursor + 8, 8);
                     long moveSource = readUnsigned(artifact, cursor + 16, 8);
@@ -192,45 +193,43 @@ classical class Interpreter {
                         localIndex(depth, moveDestination),
                         locals[localIndex(depth, moveSource)]);
                 }
-                if (1039 < opcode) {
-                    if (opcode < 1048) {
-                        long mathDestination = readUnsigned(
-                            artifact, cursor + 8, 8);
-                        long left = readUnsigned(artifact, cursor + 16, 8);
-                        long right = readUnsigned(artifact, cursor + 24, 8);
-                        long leftValue = locals[localIndex(depth, left)];
-                        long rightValue = locals[localIndex(depth, right)];
-                        long result = 0;
-                        if (opcode == 1040) {
-                            result = leftValue + rightValue;
-                        }
-                        if (opcode == 1041) {
-                            result = leftValue - rightValue;
-                        }
-                        if (opcode == 1042) {
-                            result = leftValue ^ rightValue;
-                        }
-                        if (opcode == 1043) {
-                            result = leftValue * rightValue;
-                        }
-                        if (opcode == 1044) {
-                            result = leftValue / rightValue;
-                        }
-                        if (opcode == 1045) {
-                            result = leftValue % rightValue;
-                        }
-                        if (opcode == 1046) {
-                            result = leftValue & rightValue;
-                        }
-                        if (opcode == 1047) {
-                            result = rotateRight32(leftValue, rightValue);
-                        }
-                        set(locals, localIndex(depth, mathDestination), result);
+                if (isLocalMathOpcode(opcode)) {
+                    long mathDestination = readUnsigned(
+                        artifact, cursor + 8, 8);
+                    long left = readUnsigned(artifact, cursor + 16, 8);
+                    long right = readUnsigned(artifact, cursor + 24, 8);
+                    long leftValue = locals[localIndex(depth, left)];
+                    long rightValue = locals[localIndex(depth, right)];
+                    long result = 0;
+                    if (opcode == OPCODE_LOCAL_ADD) {
+                        result = leftValue + rightValue;
                     }
+                    if (opcode == OPCODE_LOCAL_SUB) {
+                        result = leftValue - rightValue;
+                    }
+                    if (opcode == OPCODE_LOCAL_XOR) {
+                        result = leftValue ^ rightValue;
+                    }
+                    if (opcode == OPCODE_LOCAL_MUL) {
+                        result = leftValue * rightValue;
+                    }
+                    if (opcode == OPCODE_LOCAL_DIV) {
+                        result = leftValue / rightValue;
+                    }
+                    if (opcode == OPCODE_LOCAL_MOD) {
+                        result = leftValue % rightValue;
+                    }
+                    if (opcode == OPCODE_LOCAL_AND) {
+                        result = leftValue & rightValue;
+                    }
+                    if (opcode == OPCODE_LOCAL_ROTR32) {
+                        result = rotateRight32(leftValue, rightValue);
+                    }
+                    set(locals, localIndex(depth, mathDestination), result);
                 }
-                if (opcode == 512) {
+                if (opcode == OPCODE_CALL) {
                 } else {
-                    if (opcode == 513) {
+                    if (opcode == OPCODE_UNCALL) {
                     } else {
                         cursor = next;
                     }

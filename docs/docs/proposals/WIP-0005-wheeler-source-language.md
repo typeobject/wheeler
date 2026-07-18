@@ -174,7 +174,7 @@ The parser bounds source bytes, lines, declarations, methods, statements, regist
 ## Progress
 
 - [x] Wheeler class, field, and method declarations parse.
-- [x] Classical state, signed/Boolean/record/variant/array values, nonescaping slices, function-local affine region word/byte/immutable-UTF-8 and signed-map storage, bounded control flow, exhaustive selection, checked indexing, and reverse blocks lower to WIP-0001 major version 1 typed frames.
+- [x] Classical state, compile-time signed/Boolean constants, signed/Boolean/record/variant/finite-enum/array values, nonescaping slices, function-local affine region word/byte/immutable-UTF-8 and signed-map storage, bounded control flow, exhaustive selection, checked indexing, and reverse blocks lower to WIP-0001 major version 1 typed frames.
 - [x] Unitary methods and quantum entry operations lower to WIP-0002.
 - [x] Coherent method references execute on classical and simulated quantum data.
 - [x] Counter, QFT, and coherent-oracle examples use only the Wheeler source profile.

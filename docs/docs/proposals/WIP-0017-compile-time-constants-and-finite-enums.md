@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Draft |
+| Status | Implementing |
 | Owners | Wheeler language, compiler, bytecode, quantum, proof, and tooling maintainers |
 | Created | 2026-07-18 |
 | Updated | 2026-07-18 |
@@ -116,14 +116,14 @@ Cases use ordinary nominal values:
 Opcode operation = new Opcode.Call();
 
 match (operation) {
-    case Opcode.Halt { }
-    case Opcode.Return { }
-    case Opcode.Call { }
-    case Opcode.Uncall { }
+    case Opcode.Halt() { }
+    case Opcode.Return() { }
+    case Opcode.Call() { }
+    case Opcode.Uncall() { }
 }
 ```
 
-The constructor spelling may become `Opcode.Call` after the parser can distinguish values from declarations without ambiguity. This WIP does not make punctuation a semantic question; the accepted spelling must elaborate to the same payload-free case and be formatter-canonical.
+The first canonical value and match spelling is exact variant parity: `new Opcode.Call()` constructs a value and `case Opcode.Call()` selects it. `enum` removes payload punctuation from declarations, not from the value model. A later terse value spelling would require a separate syntax decision and must elaborate to the same case; the bootstrap does not need another parser path merely to save five characters.
 
 ### Protocol encodings
 
@@ -135,8 +135,8 @@ public const long OPCODE_RETURN = 0x0002;
 
 public long encodeOpcode(Opcode opcode) {
     match (opcode) {
-        case Opcode.Halt { return OPCODE_HALT; }
-        case Opcode.Return { return OPCODE_RETURN; }
+        case Opcode.Halt() { return OPCODE_HALT; }
+        case Opcode.Return() { return OPCODE_RETURN; }
     }
 }
 
@@ -222,10 +222,10 @@ For example, swapping two states and leaving all others fixed is reversible:
 ```java
 rev Opcode swapCallDirection(Opcode opcode) {
     match (opcode) {
-        case Opcode.Call { return new Opcode.Uncall(); }
-        case Opcode.Uncall { return new Opcode.Call(); }
-        case Opcode.Halt { return new Opcode.Halt(); }
-        case Opcode.Return { return new Opcode.Return(); }
+        case Opcode.Call() { return new Opcode.Uncall(); }
+        case Opcode.Uncall() { return new Opcode.Call(); }
+        case Opcode.Halt() { return new Opcode.Halt(); }
+        case Opcode.Return() { return new Opcode.Return(); }
     }
 }
 ```
@@ -344,16 +344,16 @@ Promotion follows WIP-0007: the identity modules incubate with executable compil
 
 ## Progress
 
-- [ ] Typed scalar `const` syntax and model exist.
-- [ ] Constant evaluation is checked, bounded, deterministic, and cycle-safe.
-- [ ] Direct public import and canonical qualification are enforced.
-- [ ] `enum` elaborates to the payload-free variant authority.
-- [ ] Exhaustive classical enum matching is accepted.
+- [x] Typed scalar `const long`/`const boolean` syntax and model exist; uses substitute ordinary local constants and create no globals or initializer.
+- [x] Constant evaluation is checked, bounded, deterministic, declaration-order-independent, and cycle-safe. Scalar arithmetic, Boolean expressions, forward same-module declarations, direct imported public declarations, canonical qualification, and `rotateRight32` execute; cycles report their canonical path before artifact emission.
+- [x] Direct public import and canonical `module::NAME` qualification are enforced; private and ambiguous use fails closed.
+- [x] `enum` elaborates to the payload-free variant authority, and canonical case-name sorting makes source reordering artifact-stable.
+- [x] Exhaustive classical enum construction, matching, and no-payload artifact execution use the variant path.
 - [ ] Reversible finite permutation checking exists.
 - [ ] Power-of-two coherent enum basis/permutation semantics exist.
-- [ ] Tree-sitter and formatter contracts cover declarations.
-- [ ] Bootstrap protocol identities use focused named modules.
-- [ ] Duplicate tables and migration shims are deleted.
+- [x] Tree-sitter nodes, highlighting, corpus fixtures, and the fixed formatter contract cover both declarations.
+- [x] `compiler/Opcodes.w` owns the bounded Wheeler verifier/interpreter opcode identities and membership predicates; those consumers contain no raw opcode dispatch literals.
+- [ ] Duplicate stage-0 tables and migration shims are deleted at compiler promotion/cutover.
 
 ## Testing and acceptance
 
@@ -416,7 +416,6 @@ Deferred. Non-power-of-two domains leave invalid computational-basis states and 
 ## Open questions
 
 - Should `enum` remain canonical sugar, or should payload-free `variant` be the only accepted spelling? — **Owner:** language and tooling maintainers — **Decide by:** before parser implementation
-- Should enum construction use `new Opcode.Halt()` for exact variant parity or canonical `Opcode.Halt` value syntax? — **Owner:** language maintainers — **Decide by:** before positive corpus fixtures
 - Which pure integer intrinsics beyond `rotateRight32` belong in the first constant evaluator? — **Owner:** compiler and standard-library maintainers — **Decide by:** before evaluator implementation
 - Should canonical case ordering use qualified UTF-8 names directly or stable case-content identities? — **Owner:** bytecode, proof, and quantum maintainers — **Decide by:** before enum artifact metadata
 - What certificate rule should connect an explicit codec's exhaustive encoder and partial decoder to a checked round-trip theorem? — **Owner:** proof maintainers — **Decide by:** before codec proof claims

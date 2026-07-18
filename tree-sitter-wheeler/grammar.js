@@ -33,6 +33,8 @@ module.exports = grammar({
       choice(
         $.record_declaration,
         $.variant_declaration,
+        $.enum_declaration,
+        $.constant_declaration,
         $.theorem_declaration,
         $.state_declaration,
         $.qreg_declaration,
@@ -71,6 +73,29 @@ module.exports = grammar({
       ';',
     ),
 
+    enum_declaration: $ => seq(
+      'enum',
+      field('name', $.identifier),
+      '{',
+      repeat1($.enum_case),
+      '}',
+    ),
+    enum_case: $ => seq(
+      'case',
+      field('name', $.identifier),
+      ';',
+    ),
+
+    constant_declaration: $ => seq(
+      'const',
+      field('type', choice('long', 'boolean')),
+      field('name', $.identifier),
+      '=',
+      field('value', $.constant_expression),
+      ';',
+    ),
+    constant_expression: $ => $.expression,
+
     theorem_declaration: $ => seq(
       'theorem',
       field('name', $.identifier),
@@ -93,7 +118,7 @@ module.exports = grammar({
           '(',
           field('subject', $.identifier),
           ',',
-          field('bound', $.integer_literal),
+          field('bound', $.constant_expression),
           ')',
         ),
       ),
@@ -105,7 +130,7 @@ module.exports = grammar({
       'long',
       field('name', $.identifier),
       '=',
-      field('value', $.integer_literal),
+      field('value', $.constant_expression),
       ';',
     ),
 
@@ -116,7 +141,7 @@ module.exports = grammar({
       'new',
       'qreg',
       '(',
-      field('size', $.integer_literal),
+      field('size', $.constant_expression),
       ')',
       ';',
     ),

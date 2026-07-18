@@ -101,6 +101,35 @@ Local control compiles to verified typed frame registers and explicit control-fl
 
 Control flow is not accepted in `rev` or `coherent rev` methods yet. Wheeler will add reversible branches and loops only with an exact branch or iteration witness; it does not retain hidden history automatically.
 
+## Compile-time constants and finite enums
+
+A scalar constant is evaluated while parsing/lowering and contributes no global, initializer function, or runtime lookup:
+
+```java
+const long BASE = 0x0200;
+public const long OPCODE_CALL = BASE;
+const boolean ENABLED = OPCODE_CALL == 512;
+```
+
+The implemented profile accepts `long` and `boolean`, parentheses, checked negation/arithmetic, `^`, `&`, `==`, `<`, declaration-order-independent same-module constants, direct imported public constants, canonical `module::NAME` qualification, and checked `rotateRight32`. Arithmetic follows VM trap rules. The compiler evaluates the bounded dependency graph in canonical name order; cycles report their complete canonical path. Reordering independent declarations leaves semantic `.wbc` unchanged. Constant expressions are accepted in scalar constant declarations, signed state initializers, qreg sizes, static theorem step bounds, and ordinary local expressions. Private, missing, ambiguous, duplicate, effectful, or type-mismatched declarations fail before artifact emission.
+
+A finite enum is canonical sugar for a payload-free tagged variant:
+
+```java
+public enum Direction {
+    case Left;
+    case Right;
+}
+
+Direction direction = new Direction.Right();
+match (direction) {
+    case Direction.Left() { selected = 1; }
+    case Direction.Right() { selected = 2; }
+}
+```
+
+Construction, nominal equality, exhaustive matching, artifact metadata, VM values, and rewind use the existing variant path. Enum cases carry no integer ordinal or wire value. The compiler canonicalizes enum cases by name, so reordering declarations does not change semantic `.wbc`. Protocol numbers belong in named constants and explicit encode/decode functions; quantum basis identity and reversible finite permutations remain specified but unimplemented WIP-0017 work.
+
 ## Value records
 
 A nominal record declares one or more ordered, immutable fields:

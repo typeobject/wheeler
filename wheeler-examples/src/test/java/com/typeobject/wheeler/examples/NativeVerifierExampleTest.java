@@ -18,6 +18,7 @@ class NativeVerifierExampleTest {
     var verifier = new WheelerCompiler().compileModuleFiles(
         Map.of(
             "NativeVerifier.w", Files.readString(root.resolve("NativeVerifier.w")),
+            "Opcodes.w", Files.readString(root.resolve("compiler/Opcodes.w")),
             "Verifier.w", Files.readString(root.resolve("compiler/Verifier.w"))),
         "examples.compiler.native_verifier");
     byte[] artifact = new WheelerCompiler().compileToBytecode(

@@ -2,6 +2,7 @@ package com.typeobject.wheeler.compiler;
 
 import com.typeobject.wheeler.compiler.SourceModel.ArrayDefinition;
 import com.typeobject.wheeler.compiler.SourceModel.Circuit;
+import com.typeobject.wheeler.compiler.SourceModel.ConstantDefinition;
 import com.typeobject.wheeler.compiler.SourceModel.Function;
 import com.typeobject.wheeler.compiler.SourceModel.Parameter;
 import com.typeobject.wheeler.compiler.SourceModel.ProofDeclaration;
@@ -29,6 +30,8 @@ final class SourceParser extends SourceStatementParser {
   private static final Set<String> VISIBILITY = Set.of("public", "private", "protected");
 
   private final List<State> states = new ArrayList<>();
+  private final List<ConstantDefinition> constants = new ArrayList<>();
+  private final SourceConstantEnvironment constantEnvironment;
   private final List<Function> functions = new ArrayList<>();
   private final List<RecordDefinition> records = new ArrayList<>();
   private final List<VariantDefinition> variants = new ArrayList<>();
@@ -49,11 +52,14 @@ final class SourceParser extends SourceStatementParser {
   private final Deque<LoopLabels> loops = new ArrayDeque<>();
 
   SourceParser() {
-    this(List.of());
+    this(List.of(), List.of());
   }
 
-  SourceParser(List<VariantDefinition> importedVariants) {
+  SourceParser(
+      List<VariantDefinition> importedVariants,
+      List<ConstantDefinition> importedConstants) {
     this.importedVariants = List.copyOf(importedVariants);
+    this.constantEnvironment = new SourceConstantEnvironment(importedConstants);
   }
 
   SourceProgram parse(String source) {
@@ -61,8 +67,10 @@ final class SourceParser extends SourceStatementParser {
   }
 
   SourceProgram parse(String source, boolean requireEntry) {
+    constantEnvironment.prepare(source);
     reset(source);
     states.clear();
+    constants.clear();
     functions.clear();
     records.clear();
     variants.clear();
@@ -94,6 +102,8 @@ final class SourceParser extends SourceStatementParser {
     expect(Type.RIGHT_BRACE, "'}' after class body");
     expect(Type.END, "end of file");
 
+    SourceMemberValidator.validate(
+        constants, states, functions, records, variants);
     long entryCount = functions.stream().filter(Function::entry).count();
     if ((requireEntry && entryCount != 1) || (!requireEntry && entryCount > 1)) {
       fail(domain, requireEntry
@@ -106,6 +116,7 @@ final class SourceParser extends SourceStatementParser {
         name,
         domain.text(),
         states,
+        constants,
         records,
         variants,
         arrays,
@@ -117,8 +128,8 @@ final class SourceParser extends SourceStatementParser {
   }
 
   private void parseMember() {
-    int declarations = states.size() + functions.size() + records.size() + variants.size()
-        + proofs.size() + registers.size() + circuits.size();
+    int declarations = states.size() + constants.size() + functions.size()
+        + records.size() + variants.size() + proofs.size() + registers.size() + circuits.size();
     if (declarations >= MAX_DECLARATIONS) {
       fail(peek(), "source exceeds the 65,535-declaration limit");
     }
@@ -134,16 +145,31 @@ final class SourceParser extends SourceStatementParser {
       parseVariant(previous(), exported);
       return;
     }
+    if (matchText("enum")) {
+      variants.add(SourceEnumParser.parse(
+          this, previous(), exported, records, variants));
+      return;
+    }
+    if (matchText("const")) {
+      ConstantDefinition constant = SourceConstantParser.parseDeclaration(
+          this, previous(), exported);
+      if (constants.stream().anyMatch(
+          existing -> existing.name().equals(constant.name()))) {
+        fail(previous(), "duplicate constant: " + constant.name());
+      }
+      constants.add(constant);
+      return;
+    }
     if (matchText("theorem")) {
-      parseTheorem(previous());
+      proofs.add(SourceScalarMemberParser.parseTheorem(this, previous()));
       return;
     }
     if (matchText("state")) {
-      parseState(previous());
+      states.add(SourceScalarMemberParser.parseState(this, previous()));
       return;
     }
     if (matchText("qreg")) {
-      parseQuantumRegister(previous());
+      registers.add(SourceScalarMemberParser.parseQuantumRegister(this, previous()));
       return;
     }
     parseMethod(exported);
@@ -222,58 +248,6 @@ final class SourceParser extends SourceStatementParser {
     }
     expect(Type.RIGHT_BRACE, "'}' after variant declaration");
     variants.add(new VariantDefinition(name, exported, cases, start.line()));
-  }
-
-  private void parseTheorem(SourceToken start) {
-    String name = expect(Type.IDENTIFIER, "theorem name").text();
-    expectText("proves");
-    SourceToken rule = expect(Type.IDENTIFIER, "proof rule");
-    if (!rule.text().equals("inverse")
-        && !rule.text().equals("adjoint")
-        && !rule.text().equals("equivalent")
-        && !rule.text().equals("steps")) {
-      fail(rule, "expected inverse, adjoint, equivalent, or steps proof rule");
-    }
-    expect(Type.LEFT_PAREN, "'(' after " + rule.text());
-    String subject = expect(Type.IDENTIFIER, "proof subject name").text();
-    String related = null;
-    Long argument = null;
-    if (rule.text().equals("equivalent")) {
-      expect(Type.COMMA, "',' between equivalent circuits");
-      related = expect(Type.IDENTIFIER, "related circuit name").text();
-    } else if (rule.text().equals("steps")) {
-      expect(Type.COMMA, "',' before the step bound");
-      SourceToken bound = expect(Type.NUMBER, "positive step bound");
-      argument = parseInteger(bound.text(), bound.line());
-    }
-    expect(Type.RIGHT_PAREN, "')' after proof subject");
-    expect(Type.SEMICOLON, "';' after theorem");
-    proofs.add(new ProofDeclaration(
-        name, rule.text(), subject, related, argument, start.line()));
-  }
-
-  private void parseState(SourceToken start) {
-    expectText("long");
-    String name = expect(Type.IDENTIFIER, "state name").text();
-    expect(Type.ASSIGN, "'=' in state declaration");
-    long value = parseInteger(signedNumber(), start.line());
-    expect(Type.SEMICOLON, "';' after state declaration");
-    states.add(new State(name, value, start.line()));
-  }
-
-  private void parseQuantumRegister(SourceToken start) {
-    String name = expect(Type.IDENTIFIER, "quantum register name").text();
-    expect(Type.ASSIGN, "'=' in qreg declaration");
-    expectText("new");
-    expectText("qreg");
-    expect(Type.LEFT_PAREN, "'(' after new qreg");
-    long qubits = parseInteger(signedNumber(), start.line());
-    if (qubits <= 0 || qubits > 62) {
-      fail(start, "qreg size must be between 1 and 62");
-    }
-    expect(Type.RIGHT_PAREN, "')' after qreg size");
-    expect(Type.SEMICOLON, "';' after qreg declaration");
-    registers.add(new QuantumRegisterSource(name, (int) qubits, start.line()));
   }
 
   private void parseMethod(boolean exported) {
@@ -867,6 +841,14 @@ final class SourceParser extends SourceStatementParser {
     }
     if (match(Type.IDENTIFIER)) {
       String reference = start.text();
+      if (SourceConstantParser.qualifiedReferenceAhead(this)) {
+        reference = SourceConstantParser.qualifiedReference(this, start);
+        return emitConstant(body, start, resolveConstant(reference, start, true));
+      }
+      ConstantDefinition constant = resolveConstant(reference, start, false);
+      if (constant != null) {
+        return emitConstant(body, start, constant);
+      }
       if (SourceCallParser.qualifiedCallAhead(this)) {
         reference = SourceCallParser.qualifiedReference(this, start);
         return SourceCallParser.parse(this, body, start, reference);
@@ -903,6 +885,26 @@ final class SourceParser extends SourceStatementParser {
   String constant(List<Statement> body, SourceToken source, String value) {
     String result = temporary();
     body.add(statement("local_const", source.line(), result, value));
+    return result;
+  }
+
+  ConstantDefinition resolveConstant(
+      String name, SourceToken source, boolean required) {
+    return constantEnvironment.resolve(name, source, required);
+  }
+
+  ConstantDefinition resolveRequiredConstant(
+      String name, SourceToken source) {
+    return resolveConstant(name, source, true);
+  }
+
+  private String emitConstant(
+      List<Statement> body, SourceToken source, ConstantDefinition definition) {
+    String result = temporary();
+    String operation = definition.type().equals("boolean")
+        ? "local_boolean" : "local_const";
+    body.add(statement(
+        operation, source.line(), result, Long.toString(definition.value())));
     return result;
   }
 

@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.compiler;
 
 import com.typeobject.wheeler.compiler.SourceToken.Type;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -11,6 +12,19 @@ abstract class SourceTokenCursor {
 
   protected final void reset(String source) {
     tokens = new SourceLexer(source).lex();
+    current = 0;
+  }
+
+  protected final void resetTokens(List<SourceToken> sourceTokens) {
+    List<SourceToken> bounded = new ArrayList<>(sourceTokens);
+    SourceToken last = bounded.isEmpty()
+        ? new SourceToken(Type.END, "", 1, 1, 0)
+        : bounded.getLast();
+    if (last.type() != Type.END) {
+      bounded.add(new SourceToken(
+          Type.END, "", last.line(), last.column() + last.text().length(), last.offset()));
+    }
+    tokens = List.copyOf(bounded);
     current = 0;
   }
 

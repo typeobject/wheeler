@@ -5,6 +5,9 @@ import java.util.List;
 final class SourceModel {
   record State(String name, long initialValue, int line) {}
 
+  record ConstantDefinition(
+      String name, String type, long value, boolean exported, int line) {}
+
   record QuantumRegisterSource(String name, int qubits, int line) {}
 
   record Parameter(String name, String type) {}
@@ -81,6 +84,7 @@ final class SourceModel {
       String name,
       String kind,
       List<State> states,
+      List<ConstantDefinition> constants,
       List<RecordDefinition> records,
       List<VariantDefinition> variants,
       List<ArrayDefinition> arrays,
@@ -92,6 +96,7 @@ final class SourceModel {
     SourceProgram {
       imports = List.copyOf(imports);
       states = List.copyOf(states);
+      constants = List.copyOf(constants);
       records = List.copyOf(records);
       variants = List.copyOf(variants);
       arrays = List.copyOf(arrays);
