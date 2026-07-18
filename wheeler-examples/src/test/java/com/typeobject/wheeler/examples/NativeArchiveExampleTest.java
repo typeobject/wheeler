@@ -22,11 +22,18 @@ class NativeArchiveExampleTest {
   void wheelerInspectsOuterAndEntryDigestCheckedArchive() throws Exception {
     Path root = Path.of("src/main/wheeler");
     Program inspector = new WheelerCompiler().compileModuleFiles(
-        Map.of(
-            "Archive.w", Files.readString(root.resolve("packages/Archive.w")),
-            "Binary.w", Files.readString(root.resolve("packages/Binary.w")),
-            "NativeArchive.w", Files.readString(root.resolve("NativeArchive.w")),
-            "Sha256.w", Files.readString(root.resolve("crypto/Sha256.w"))),
+        Map.ofEntries(
+            Map.entry("Archive.w", Files.readString(root.resolve("packages/Archive.w"))),
+            Map.entry("Binary.w", Files.readString(root.resolve("packages/Binary.w"))),
+            Map.entry("LineEmitter.w", Files.readString(root.resolve("packages/LineEmitter.w"))),
+            Map.entry("Manifest.w", Files.readString(root.resolve("packages/Manifest.w"))),
+            Map.entry("ManifestTokens.w", Files.readString(root.resolve("packages/ManifestTokens.w"))),
+            Map.entry("Names.w", Files.readString(root.resolve("packages/Names.w"))),
+            Map.entry("NativeArchive.w", Files.readString(root.resolve("NativeArchive.w"))),
+            Map.entry("Paths.w", Files.readString(root.resolve("packages/Paths.w"))),
+            Map.entry("Scanner.w", Files.readString(root.resolve("lexer/Scanner.w"))),
+            Map.entry("Semver.w", Files.readString(root.resolve("packages/Semver.w"))),
+            Map.entry("Sha256.w", Files.readString(root.resolve("crypto/Sha256.w")))),
         "examples.packages.archive_main");
     String manifestText =
         "package \"demo.archive\" version \"1.0.0\" profile \"bootstrap-1\";\n"
@@ -43,6 +50,8 @@ class NativeArchiveExampleTest {
     assertEquals(1, machine.global("entryCount"));
     assertEquals(10, machine.global("pathLength"));
     assertEquals(4, machine.global("dataLength"));
+    assertEquals(12, machine.global("packageLength"));
+    assertEquals(1, machine.global("targetCount"));
     assertEquals(encoded.length, machine.global("finalLength"));
     while (machine.historySize() > 0) {
       machine.rewindOne();
@@ -64,6 +73,16 @@ class NativeArchiveExampleTest {
     badPath[path + 2] = '/';
     resignOuter(badPath);
     assertRejected(inspector, badPath);
+    byte[] wrongSource = encoded.clone();
+    int wrongPath = pathStart(wrongSource);
+    byte[] replacement = "src/Else.w".getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+    System.arraycopy(replacement, 0, wrongSource, wrongPath, replacement.length);
+    resignOuter(wrongSource);
+    assertRejected(inspector, wrongSource);
+    byte[] noncanonicalManifest = encoded.clone();
+    noncanonicalManifest[16 + 7] = '\n';
+    resignOuter(noncanonicalManifest);
+    assertRejected(inspector, noncanonicalManifest);
   }
 
   private static void assertRejected(Program inspector, byte[] archive) {

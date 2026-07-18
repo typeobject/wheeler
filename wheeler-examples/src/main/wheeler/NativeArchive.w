@@ -7,10 +7,12 @@ classical class NativeArchive {
     state long entryCount = 0;
     state long pathLength = 0;
     state long dataLength = 0;
+    state long packageLength = 0;
+    state long targetCount = 0;
     state long finalLength = 0;
 
     entry void main(byteview source) {
-        region arena = new region(1120, 4);
+        region arena = new region(11300, 6);
         bytes digest = allocateBytes(arena, 32);
         ArchiveResult parsed = inspectArchive(source, digest, arena);
         match (parsed) {
@@ -19,6 +21,8 @@ classical class NativeArchive {
                 entryCount = archive.entryCount;
                 pathLength = archive.pathLength;
                 dataLength = archive.dataLength;
+                packageLength = archive.packageLength;
+                targetCount = archive.targetCount;
             }
             case ArchiveResult.Error(long offset) {
                 assert finalLength == 1;
@@ -29,6 +33,8 @@ classical class NativeArchive {
         assert entryCount == 1;
         assert pathLength == 10;
         assert dataLength == 4;
+        assert packageLength == 12;
+        assert targetCount == 1;
         drop(digest);
         drop(arena);
     }

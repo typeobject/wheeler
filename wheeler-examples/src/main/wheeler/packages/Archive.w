@@ -1,12 +1,17 @@
 module examples.packages.archive;
 import examples.crypto.sha256;
+import examples.lexer.scanner;
 import examples.packages.binary;
+import examples.packages.line_emitter;
+import examples.packages.manifest;
 classical class Archive {
     public record ArchiveModel(
         long manifestLength,
         long entryCount,
         long pathLength,
-        long dataLength
+        long dataLength,
+        long packageLength,
+        long targetCount
     ) {}
 
     public variant ArchiveResult {
@@ -155,10 +160,103 @@ classical class Archive {
                 entryDigest,
                 digest,
                 arena)) {
+        } else {
+            return new ArchiveResult.Error(entryDigest);
+        }
+        bytes manifestBytes = allocateBytes(arena, manifestLength);
+        long copyCursor = 0;
+        while (copyCursor < manifestLength) limit 4096 {
+            setByte(
+                manifestBytes,
+                copyCursor,
+                source[manifestStart + copyCursor]);
+            copyCursor += 1;
+        }
+        utf8 manifest = freezeUtf8(manifestBytes);
+        words kinds = allocate(arena, 128);
+        words starts = allocate(arena, 128);
+        words lengths = allocate(arena, 128);
+        bytes canonical = allocateBytes(arena, manifestLength);
+        long tokenCount = 0;
+        boolean valid = true;
+        ScanResult scanned = scan(manifest, kinds, starts, lengths);
+        match (scanned) {
+            case ScanResult.Value(long count) {
+                tokenCount = count;
+            }
+            case ScanResult.Error(ScanDiagnostic diagnostic) {
+                valid = false;
+            }
+        }
+        long packageLength = 0;
+        long targetCount = 0;
+        long rootStart = 0;
+        long rootLength = 0;
+        if (valid) {
+            ManifestResult parsed = parseHeader(
+                manifest, kinds, starts, lengths, tokenCount);
+            match (parsed) {
+                case ManifestResult.Value(ManifestHeader header) {
+                    packageLength = header.name.length;
+                    targetCount = header.targetCount;
+                    rootStart = header.targetRoot.start;
+                    rootLength = header.targetRoot.length;
+                }
+                case ManifestResult.Error(long parseOffset) {
+                    valid = false;
+                }
+            }
+        }
+        long emittedLength = 0;
+        if (valid) {
+            emittedLength = emitCanonicalLines(
+                manifest, starts, lengths, tokenCount, canonical);
+            if (emittedLength == manifestLength) {
+            } else {
+                valid = false;
+            }
+        }
+        long compareCursor = 0;
+        while (compareCursor < manifestLength) limit 4096 {
+            if (valid) {
+                if (canonical[compareCursor]
+                        == source[manifestStart + compareCursor]) {
+                } else {
+                    valid = false;
+                }
+            }
+            compareCursor += 1;
+        }
+        if (rootLength == pathLength) {
+        } else {
+            valid = false;
+        }
+        long pathCursor = 0;
+        while (pathCursor < pathLength) limit 4096 {
+            if (valid) {
+                if (source[pathStart + pathCursor]
+                        == utf8Scalar(manifest, rootStart + pathCursor)) {
+                } else {
+                    valid = false;
+                }
+            }
+            pathCursor += 1;
+        }
+        drop(canonical);
+        drop(lengths);
+        drop(starts);
+        drop(kinds);
+        drop(manifest);
+        if (valid) {
             ArchiveModel archive = new ArchiveModel(
-                manifestLength, entryCount, pathLength, dataLength);
+                manifestLength,
+                entryCount,
+                pathLength,
+                dataLength,
+                packageLength,
+                targetCount);
             return new ArchiveResult.Value(archive);
         }
-        return new ArchiveResult.Error(entryDigest);
+        return new ArchiveResult.Error(manifestStart);
     }
 }
