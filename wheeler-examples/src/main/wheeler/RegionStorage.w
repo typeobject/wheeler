@@ -7,10 +7,19 @@ classical class RegionStorage {
     state long byteLength = 0;
     state long decodedScalars = 0;
     state long scalarSum = 0;
+    state long scratchValue = 0;
 
     region openArena() {
         region arena = new region(40, 2);
         return arena;
+    }
+
+    long scratch(region arena, long value) {
+        words temporary = allocate(arena, 1);
+        set(temporary, 0, value);
+        long result = temporary[0];
+        drop(temporary);
+        return result;
     }
 
     long writeWord(words data, long index, long value) {
@@ -29,6 +38,8 @@ classical class RegionStorage {
 
     entry void main() {
         region arena = openArena();
+        scratchValue = scratch(arena, 19);
+        assert scratchValue == 19;
         long length = 4;
         words data = allocate(arena, length);
         first = writeWord(data, 0, 7);

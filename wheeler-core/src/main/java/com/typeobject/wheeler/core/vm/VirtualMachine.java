@@ -411,7 +411,7 @@ public final class VirtualMachine {
             localIndex(instruction, 0),
             opcode == Opcode.UTF8_SCALAR ? scalar.value() : scalar.width());
       }
-      case UTF8_BORROW, MAP_BORROW, BUFFER_BORROW -> setLocalAndAdvance(
+      case UTF8_BORROW, MAP_BORROW, BUFFER_BORROW, REGION_BORROW -> setLocalAndAdvance(
           localIndex(instruction, 0), localValue(instruction, 1));
       case UTF8_FREEZE -> {
         int destination = localIndex(instruction, 0);
@@ -476,7 +476,8 @@ public final class VirtualMachine {
           if (target.localType(index).equals(ValueType.UTF8_BORROW)
               || target.localType(index).equals(ValueType.LONG_MAP_BORROW)
               || target.localType(index).equals(ValueType.WORDS_BORROW)
-              || target.localType(index).equals(ValueType.BYTES_BORROW)) {
+              || target.localType(index).equals(ValueType.BYTES_BORROW)
+              || target.localType(index).equals(ValueType.REGION_BORROW)) {
             caller = caller.withLocal(argumentBase + index, 0);
           }
         }

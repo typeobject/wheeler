@@ -28,6 +28,7 @@ final class StorageInstructionVerifier {
       case UTF8_BORROW -> verifyBorrow(owner, instruction, pc);
       case MAP_BORROW -> verifyMapBorrow(owner, instruction, pc);
       case BUFFER_BORROW -> verifyBufferBorrow(owner, instruction, pc);
+      case REGION_BORROW -> verifyRegionBorrow(owner, instruction, pc);
       case UTF8_VALID -> verifyUtf8Whole(owner, instruction, pc, ValueType.BOOLEAN);
       case UTF8_COUNT -> verifyUtf8Whole(owner, instruction, pc, ValueType.SIGNED);
       case UTF8_SCALAR, UTF8_WIDTH -> verifyUtf8At(owner, instruction, pc);
@@ -55,7 +56,12 @@ final class StorageInstructionVerifier {
   private static void verifyAllocate(
       FunctionBody owner, Instruction instruction, int pc, ValueType type) {
     require(owner, instruction, 0, type, pc);
-    require(owner, instruction, 1, ValueType.REGION, pc);
+    int region = local(owner, instruction.operands().get(1), pc);
+    ValueType regionType = owner.localType(region);
+    if (!regionType.equals(ValueType.REGION)
+        && !regionType.equals(ValueType.REGION_BORROW)) {
+      fail(owner, pc, "allocation requires a region owner or borrow");
+    }
     require(owner, instruction, 2, ValueType.SIGNED, pc);
   }
 
@@ -99,6 +105,16 @@ final class StorageInstructionVerifier {
     ValueType type = owner.localType(source);
     if (!type.equals(ValueType.UTF8) && !type.equals(ValueType.UTF8_BORROW)) {
       fail(owner, pc, "UTF-8 borrow requires an immutable UTF-8 source");
+    }
+  }
+
+  private static void verifyRegionBorrow(
+      FunctionBody owner, Instruction instruction, int pc) {
+    require(owner, instruction, 0, ValueType.REGION_BORROW, pc);
+    int source = local(owner, instruction.operands().get(1), pc);
+    ValueType type = owner.localType(source);
+    if (!type.equals(ValueType.REGION) && !type.equals(ValueType.REGION_BORROW)) {
+      fail(owner, pc, "region borrow requires a region source");
     }
   }
 

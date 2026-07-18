@@ -246,6 +246,8 @@ class BytecodeVerifierTest {
         ValueType.WORDS_BORROW, ValueType.fromCode(ValueType.WORDS_BORROW.code()));
     assertEquals(
         ValueType.BYTES_BORROW, ValueType.fromCode(ValueType.BYTES_BORROW.code()));
+    assertEquals(
+        ValueType.REGION_BORROW, ValueType.fromCode(ValueType.REGION_BORROW.code()));
   }
 
   @Test

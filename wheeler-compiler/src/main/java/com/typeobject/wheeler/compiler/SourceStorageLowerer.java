@@ -95,7 +95,7 @@ final class SourceStorageLowerer {
     }
     int region = context.requireLocal(statement.arguments().get(2), statement.line());
     int length = context.requireLocal(statement.arguments().get(3), statement.line());
-    context.requireType(region, ValueType.REGION, statement.line());
+    requireRegion(context, region, statement.line());
     context.requireType(length, ValueType.SIGNED, statement.line());
     int destination = context.declareInternal(
         statement.arguments().get(0), statement.line(), bufferType);
@@ -193,6 +193,13 @@ final class SourceStorageLowerer {
       throw new CompilerException(statement.line(), "drop requires an owned value");
     }
     context.emit(Instruction.of(opcode, local));
+  }
+
+  private static void requireRegion(Context context, int local, int line) {
+    ValueType type = context.localType(local);
+    if (!type.equals(ValueType.REGION) && !type.equals(ValueType.REGION_BORROW)) {
+      throw new CompilerException(line, "allocation requires a region owner or borrow");
+    }
   }
 
   private static void requireBuffer(

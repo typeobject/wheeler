@@ -21,6 +21,9 @@ final class SourceCallArgumentLowerer {
     if (sourceType.equals(ValueType.BYTES)) {
       return ValueType.BYTES_BORROW;
     }
+    if (sourceType.equals(ValueType.REGION)) {
+      return ValueType.REGION_BORROW;
+    }
     return sourceType;
   }
 
@@ -47,6 +50,17 @@ final class SourceCallArgumentLowerer {
             line, "one storage owner cannot alias multiple mutable parameters");
       }
       return Opcode.MAP_BORROW;
+    }
+    if (parameterType.equals(ValueType.REGION_BORROW)) {
+      if (!sourceType.equals(ValueType.REGION)
+          && !sourceType.equals(ValueType.REGION_BORROW)) {
+        throw new CompilerException(line, "region parameter requires a region");
+      }
+      if (!mutableBorrows.add(source)) {
+        throw new CompilerException(
+            line, "one storage owner cannot alias multiple mutable parameters");
+      }
+      return Opcode.REGION_BORROW;
     }
     if (parameterType.equals(ValueType.WORDS_BORROW)
         || parameterType.equals(ValueType.BYTES_BORROW)) {

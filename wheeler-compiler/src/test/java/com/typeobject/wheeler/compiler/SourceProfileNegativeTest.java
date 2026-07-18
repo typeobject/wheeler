@@ -361,9 +361,12 @@ class SourceProfileNegativeTest {
           }
         }
         """;
-    String mutableParameter = """
-        classical class MutableParameter {
-          long read(region arena) { return 0; }
+    String leakedScratch = """
+        classical class LeakedScratch {
+          long scratch(region arena) {
+            words temporary = allocate(arena, 1);
+            return 0;
+          }
           entry void main() { }
         }
         """;
@@ -414,8 +417,8 @@ class SourceProfileNegativeTest {
         CompilerException.class, () -> new WheelerCompiler().compile(escaped));
     CompilerException kind = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(wrongBufferKind));
-    CompilerException mutable = assertThrows(
-        CompilerException.class, () -> new WheelerCompiler().compile(mutableParameter));
+    CompilerException scratch = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(leakedScratch));
     CompilerException aliased = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(aliasedMapBorrow));
     CompilerException borrowed = assertThrows(
@@ -429,7 +432,7 @@ class SourceProfileNegativeTest {
     assertTrue(moved.getMessage().contains("reads uninitialized local"));
     assertTrue(result.getMessage().contains("cannot escape as results"));
     assertTrue(kind.getMessage().contains("buffer operation kind mismatch"));
-    assertTrue(mutable.getMessage().contains("mutable owned values"));
+    assertTrue(scratch.getMessage().contains("exits with live owned local"));
     assertTrue(aliased.getMessage().contains("cannot alias multiple mutable parameters"));
     assertTrue(borrowed.getMessage().contains("drop requires an owned value"));
     assertTrue(immutable.getMessage().contains("buffer operation kind mismatch"));

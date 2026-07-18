@@ -16,6 +16,7 @@ public record ValueType(Kind kind, int descriptorId) {
       new ValueType(Kind.LONG_MAP_BORROW, -1);
   public static final ValueType WORDS_BORROW = new ValueType(Kind.WORDS_BORROW, -1);
   public static final ValueType BYTES_BORROW = new ValueType(Kind.BYTES_BORROW, -1);
+  public static final ValueType REGION_BORROW = new ValueType(Kind.REGION_BORROW, -1);
   private static final int RECORD_TAG = 0x1000_0000;
   private static final int VARIANT_TAG = 0x2000_0000;
   private static final int ARRAY_TAG = 0x3000_0000;
@@ -29,7 +30,7 @@ public record ValueType(Kind kind, int descriptorId) {
         || ((kind == Kind.SIGNED || kind == Kind.BOOLEAN
             || kind == Kind.REGION || kind == Kind.WORDS || kind == Kind.BYTES
             || kind == Kind.LONG_MAP || kind == Kind.UTF8 || kind == Kind.UTF8_BORROW || kind == Kind.LONG_MAP_BORROW || kind == Kind.WORDS_BORROW
-            || kind == Kind.BYTES_BORROW)
+            || kind == Kind.BYTES_BORROW || kind == Kind.REGION_BORROW)
             && descriptorId != -1)) {
       throw new IllegalArgumentException("Invalid register type reference");
     }
@@ -64,6 +65,7 @@ public record ValueType(Kind kind, int descriptorId) {
       case LONG_MAP_BORROW -> 9;
       case WORDS_BORROW -> 10;
       case BYTES_BORROW -> 11;
+      case REGION_BORROW -> 12;
       case RECORD -> RECORD_TAG | descriptorId;
       case VARIANT -> VARIANT_TAG | descriptorId;
       case ARRAY -> ARRAY_TAG | descriptorId;
@@ -78,7 +80,7 @@ public record ValueType(Kind kind, int descriptorId) {
       case ARRAY -> "array#" + descriptorId;
       case SLICE -> "slice#" + descriptorId;
       case SIGNED, BOOLEAN, REGION, WORDS, BYTES, LONG_MAP, UTF8, UTF8_BORROW,
-          LONG_MAP_BORROW, WORDS_BORROW, BYTES_BORROW ->
+          LONG_MAP_BORROW, WORDS_BORROW, BYTES_BORROW, REGION_BORROW ->
           kind.name().toLowerCase(Locale.ROOT);
     };
   }
@@ -117,6 +119,9 @@ public record ValueType(Kind kind, int descriptorId) {
     if (code == 11) {
       return BYTES_BORROW;
     }
+    if (code == 12) {
+      return REGION_BORROW;
+    }
     if ((code & 0xf000_0000) == RECORD_TAG) {
       return record(code & 0x0fff_ffff);
     }
@@ -144,6 +149,7 @@ public record ValueType(Kind kind, int descriptorId) {
     LONG_MAP_BORROW,
     WORDS_BORROW,
     BYTES_BORROW,
+    REGION_BORROW,
     RECORD,
     VARIANT,
     ARRAY,

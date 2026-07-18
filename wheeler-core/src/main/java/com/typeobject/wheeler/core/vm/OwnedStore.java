@@ -269,6 +269,10 @@ final class OwnedStore {
     requireLiveRegion(buffer.regionId() + 1L);
   }
 
+  void validateRegion(long regionHandle) {
+    requireLiveRegion(regionHandle);
+  }
+
   void validateDropRegion(long regionHandle) {
     RegionValue region = requireLiveRegion(regionHandle);
     if (region.liveObjects() != 0 || region.usedBytes() != 0) {

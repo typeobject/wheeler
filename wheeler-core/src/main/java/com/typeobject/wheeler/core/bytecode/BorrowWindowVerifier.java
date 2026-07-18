@@ -31,7 +31,9 @@ final class BorrowWindowVerifier {
           ? ValueType.UTF8_BORROW
           : borrow.opcode() == Opcode.MAP_BORROW
               ? ValueType.LONG_MAP_BORROW
-              : owner.localType(destination);
+              : borrow.opcode() == Opcode.REGION_BORROW
+                  ? ValueType.REGION_BORROW
+                  : owner.localType(destination);
       if (parameter < 0 || parameter >= count
           || !target.localType(parameter).equals(expected)) {
         fail(owner, pc, "borrow targets a nonborrowed argument");
@@ -60,7 +62,8 @@ final class BorrowWindowVerifier {
   private static boolean isBorrow(Opcode opcode) {
     return opcode == Opcode.UTF8_BORROW
         || opcode == Opcode.MAP_BORROW
-        || opcode == Opcode.BUFFER_BORROW;
+        || opcode == Opcode.BUFFER_BORROW
+        || opcode == Opcode.REGION_BORROW;
   }
 
   private static void fail(FunctionBody owner, int pc, String message) {
