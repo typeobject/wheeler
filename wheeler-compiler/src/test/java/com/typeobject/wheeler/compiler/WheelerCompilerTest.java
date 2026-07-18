@@ -262,6 +262,38 @@ class WheelerCompilerTest {
   }
 
   @Test
+  void entrySelectsABoundedRewindableHostOutputPrefix() {
+    Program program = new WheelerCompiler().compile("""
+        classical class Prefix {
+          entry void main(bytes output) {
+            setByte(output, 0, 65);
+            setByte(output, 1, 66);
+            setOutputLength(output, 2);
+          }
+        }
+        """);
+    VirtualMachine machine = new VirtualMachine(program, null, 8);
+    var initial = machine.snapshot();
+
+    machine.run();
+
+    assertArrayEquals(new byte[] {65, 66}, machine.hostOutput());
+    while (machine.historySize() > 0) {
+      machine.rewindOne();
+    }
+    assertEquals(initial, machine.snapshot());
+
+    Program oversized = new WheelerCompiler().compile("""
+        classical class Oversized {
+          entry void main(bytes output) { setOutputLength(output, 3); }
+        }
+        """);
+    VirtualMachine invalid = new VirtualMachine(oversized, null, 2);
+    assertThrows(VmTrap.class, invalid::run);
+    assertArrayEquals(new byte[] {0, 0}, invalid.hostOutput());
+  }
+
+  @Test
   void checkedMultiplicationUsesConventionalPrecedenceAndTrapsOnOverflow() {
     Program program = new WheelerCompiler().compile("""
         classical class Product {

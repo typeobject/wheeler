@@ -60,6 +60,7 @@ classical class SeedArtifact {
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 2);
         cursor = writeUnsignedLittleEndian(output, cursor, 8, 4);
         finalCursor = cursor;
+        setOutputLength(output, finalCursor);
         assert finalCursor == 360;
     }
 }

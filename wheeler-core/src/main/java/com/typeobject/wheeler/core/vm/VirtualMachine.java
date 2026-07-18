@@ -9,6 +9,7 @@ import com.typeobject.wheeler.core.bytecode.RecordType;
 import com.typeobject.wheeler.core.bytecode.ValueType;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,6 +27,7 @@ public final class VirtualMachine {
   private final long hostOutputHandle;
   private final Deque<StepRecord> history = new ArrayDeque<>();
   private MachineStatus status = MachineStatus.READY;
+  private int hostOutputLength;
   private long sequence;
 
   public VirtualMachine(Program program) {
@@ -44,6 +46,7 @@ public final class VirtualMachine {
     HostEffectBinder.Effects effects =
         HostEffectBinder.bind(entry, owned, utf8Input, outputBytes);
     hostOutputHandle = effects.outputHandle();
+    hostOutputLength = Math.max(0, outputBytes);
     this.frames.add(Frame.create(
         entry.id(), false, entry.localCount(), -1, effects.arguments()));
   }
@@ -116,12 +119,15 @@ public final class VirtualMachine {
       }
       case RETURN -> frames.add(record.previousFrame());
     }
+    hostOutputLength = record.previousHostOutputLength();
     status = record.previousStatus();
     sequence = record.sequence();
   }
 
   public byte[] hostOutput() {
-    return hostOutputHandle == 0 ? new byte[0] : owned.hostBytes(hostOutputHandle);
+    return hostOutputHandle == 0
+        ? new byte[0]
+        : Arrays.copyOf(owned.hostBytes(hostOutputHandle), hostOutputLength);
   }
 
   public long global(String name) {
@@ -201,6 +207,7 @@ public final class VirtualMachine {
         aggregates.slices(),
         owned.regions(),
         owned.buffers(),
+        hostOutputLength,
         history.size(),
         sequence);
   }
@@ -223,6 +230,7 @@ public final class VirtualMachine {
     StepRecord.ControlChange control = StepRecord.ControlChange.ADVANCE;
     AggregateStore.Counts previousCounts = aggregates.counts();
     OwnedStore.Change ownedChange = owned.mark();
+    int previousHostOutputLength = hostOutputLength;
 
     switch (opcode) {
       case ADD_CONST -> {
@@ -480,6 +488,10 @@ public final class VirtualMachine {
         ownedChange = owned.dropRegion(currentFrame().local(local), ownedChange);
         setLocalAndAdvance(local, 0);
       }
+      case OUTPUT_LENGTH -> {
+        hostOutputLength = Math.toIntExact(localValue(instruction, 1));
+        advanceCurrentFrame();
+      }
       case CALL, UNCALL -> {
         int functionId = Math.toIntExact(operand(instruction, 0));
         advanceCurrentFrame();
@@ -533,7 +545,8 @@ public final class VirtualMachine {
         ownedChange.changedRegion(),
         ownedChange.previousRegion(),
         ownedChange.changedBuffer(),
-        ownedChange.previousBuffer());
+        ownedChange.previousBuffer(),
+        previousHostOutputLength);
   }
 
   private void validateBeforeMutation(Instruction instruction) {
@@ -712,6 +725,13 @@ public final class VirtualMachine {
             trap("Slice index out of bounds: " + index);
           }
         }
+        case OUTPUT_LENGTH -> {
+          long handle = localValue(instruction, 0);
+          long length = localValue(instruction, 1);
+          if (handle != hostOutputHandle || length < 0 || length > owned.length(handle)) {
+            trap("Invalid host output length: " + length);
+          }
+        }
         case CALL -> {
           requireCallCapacity();
           program.function(Math.toIntExact(operand(instruction, 0)));
@@ -787,6 +807,7 @@ public final class VirtualMachine {
       case SET_LOGGED, LOCAL_STORE_GLOBAL ->
           globals[record.changedGlobal()] = record.previousValue();
       case NOP, HALT, RETURN, RETURN_VALUE, CALL, UNCALL, CALL_VALUE, CALL_VOID,
+          OUTPUT_LENGTH,
           EXPECT_EQ, CHECKPOINT, COMMIT,
           LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, LOCAL_ADD, LOCAL_SUB,
           LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_XOR, LOCAL_EQ, LOCAL_LT, JUMP, JUMP_IF_ZERO, LOCAL_LOOP_CHECK,

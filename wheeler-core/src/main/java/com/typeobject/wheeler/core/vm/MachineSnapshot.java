@@ -14,5 +14,6 @@ public record MachineSnapshot(
     List<SliceValue> slices,
     List<RegionValue> regions,
     List<BufferValue> buffers,
+    int hostOutputLength,
     int historyRecords,
     long sequence) {}

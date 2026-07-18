@@ -21,7 +21,7 @@ class SeedArtifactExampleTest {
     var writerProgram = new WheelerCompiler().compileModuleFiles(
         Map.of("SeedArtifact.w", root, "Encoding.w", encoding),
         "examples.compiler.seed");
-    VirtualMachine writer = new VirtualMachine(writerProgram, null, 360);
+    VirtualMachine writer = new VirtualMachine(writerProgram, null, 512);
     var initial = writer.snapshot();
 
     writer.run();

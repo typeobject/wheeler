@@ -23,7 +23,8 @@ public record StepRecord(
     int changedRegion,
     RegionValue previousRegion,
     int changedBuffer,
-    BufferValue previousBuffer) {
+    BufferValue previousBuffer,
+    int previousHostOutputLength) {
   public static final int NO_GLOBAL = -1;
   public static final int NO_LOCAL = -1;
 
@@ -35,7 +36,8 @@ public record StepRecord(
     if (previousRecordCount < 0 || previousVariantCount < 0
         || previousArrayCount < 0 || previousSliceCount < 0
         || previousRegionCount < 0 || previousBufferCount < 0
-        || changedRegion < -1 || changedBuffer < -1) {
+        || changedRegion < -1 || changedBuffer < -1
+        || previousHostOutputLength < 0) {
       throw new IllegalArgumentException("Invalid previous aggregate or ownership state");
     }
     if ((changedRegion >= 0) != (previousRegion != null)

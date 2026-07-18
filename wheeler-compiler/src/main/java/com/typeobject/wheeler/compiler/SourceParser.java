@@ -376,6 +376,8 @@ final class SourceParser extends SourceStatementParser {
         parseBufferSet(body, previous(), "map_put");
       } else if (structuredStatements && matchText("setByte")) {
         parseBufferSet(body, previous(), "bytes_set");
+      } else if (structuredStatements && matchText("setOutputLength")) {
+        SourceOutputEffectParser.parse(this, body, previous());
       } else if (structuredStatements && matchText("writeAscii")) {
         SourceAsciiWriteParser.parse(this, body);
       } else if (structuredStatements && matchText("set")) {
@@ -578,6 +580,8 @@ final class SourceParser extends SourceStatementParser {
           parseBufferSet(body, previous(), "map_put");
         } else if (matchText("setByte")) {
           parseBufferSet(body, previous(), "bytes_set");
+        } else if (matchText("setOutputLength")) {
+          SourceOutputEffectParser.parse(this, body, previous());
         } else if (matchText("writeAscii")) {
           SourceAsciiWriteParser.parse(this, body);
         } else if (matchText("set")) {

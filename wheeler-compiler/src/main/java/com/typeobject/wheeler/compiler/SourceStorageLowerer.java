@@ -33,6 +33,7 @@ final class SourceStorageLowerer {
       case "buffer_length" -> lowerLength(statement, context);
       case "utf8_scalar", "utf8_width" -> lowerUtf8Scalar(statement, context);
       case "map_get", "map_has" -> lowerMapRead(statement, context);
+      case "output_length" -> lowerOutputLength(statement, context);
       default -> throw new IllegalArgumentException(
           "Not a storage operation: " + statement.operation());
     }
@@ -46,6 +47,15 @@ final class SourceStorageLowerer {
       return Opcode.BYTES_GET;
     }
     throw new CompilerException(line, "indexing requires an array, slice, or buffer");
+  }
+
+  private static void lowerOutputLength(Statement statement, Context context) {
+    requireArguments(statement, 2);
+    int output = context.requireLocal(statement.arguments().get(0), statement.line());
+    int length = context.requireLocal(statement.arguments().get(1), statement.line());
+    context.requireType(output, ValueType.BYTES_BORROW, statement.line());
+    context.requireType(length, ValueType.SIGNED, statement.line());
+    context.emit(Instruction.of(Opcode.OUTPUT_LENGTH, output, length));
   }
 
   private static void lowerMapRead(Statement statement, Context context) {

@@ -11,7 +11,8 @@ classical class HostInput {
         firstScalar = utf8Scalar(source, 0);
         setByte(output, 0, firstScalar);
         setByte(output, 1, 33);
-        outputLength = bufferLength(output);
+        outputLength = 2;
+        setOutputLength(output, outputLength);
         assert byteLength == 3;
         assert scalarCount == 2;
         assert firstScalar == 65;

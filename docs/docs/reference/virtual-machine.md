@@ -17,7 +17,7 @@ The machine owns:
 
 Raw host pointers and masked segmented addresses are not machine values.
 
-A classical entry may borrow one strict UTF-8 input, one mutable byte output, or both in that order. VM construction requires the exact declared effects, caps each at 16 MiB, installs externally owned baseline storage, and initializes only borrow registers. Output is fixed-capacity and zero-initialized; `hostOutput()` returns a defensive copy. Missing, unexpected, malformed, or oversized effects fail before stepping. Effect bytes and output capacity are runtime data and never alter `.wbc` identity.
+A classical entry may borrow one strict UTF-8 input, one mutable byte output, or both in that order. VM construction requires the exact declared effects, caps each at 16 MiB, installs externally owned baseline storage, and initializes only borrow registers. Output has a fixed maximum capacity and is zero-initialized. `OUTPUT_LENGTH` may select a prefix only from the entry output borrow; wrong handles and lengths outside `0..capacity` trap before mutation. The selected length participates in snapshots and exact rewind, and `hostOutput()` returns a defensive copy of that prefix. Missing, unexpected, malformed, or oversized effects fail before stepping. Effect bytes and output capacity are runtime data and never alter `.wbc` identity.
 
 ## Forward and reverse laws
 

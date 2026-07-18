@@ -73,7 +73,8 @@ public enum Opcode {
   UTF8_BORROW(0x0554, 2, Reversibility.CHECKED),
   MAP_BORROW(0x0555, 2, Reversibility.CHECKED),
   BUFFER_BORROW(0x0556, 2, Reversibility.CHECKED),
-  REGION_BORROW(0x0557, 2, Reversibility.CHECKED);
+  REGION_BORROW(0x0557, 2, Reversibility.CHECKED),
+  OUTPUT_LENGTH(0x0558, 2, Reversibility.LOGGED);
 
   private final int code;
   private final int operandCount;

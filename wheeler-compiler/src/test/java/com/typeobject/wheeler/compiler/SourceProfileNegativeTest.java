@@ -336,6 +336,22 @@ class SourceProfileNegativeTest {
   }
 
   @Test
+  void rejectsOutputLengthChangesOutsideTheEntry() {
+    CompilerException exception = assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compile("""
+            classical class HiddenOutput {
+              void resize(bytes output, long length) {
+                setOutputLength(output, length);
+              }
+              entry void main(bytes output) { resize(output, 1); }
+            }
+            """));
+
+    assertTrue(exception.getMessage().contains("output length requires the entry"));
+  }
+
+  @Test
   void rejectsOwnedStorageLeaksEscapesAndUseAfterMove() {
     String leak = """
         classical class Leak {

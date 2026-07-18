@@ -355,6 +355,15 @@ public final class BytecodeVerifier {
           MAP_ALLOC, MAP_PUT, MAP_GET, MAP_HAS, UTF8_FREEZE, UTF8_BORROW,
           MAP_BORROW, BUFFER_BORROW, REGION_BORROW ->
           StorageInstructionVerifier.verify(owner, instruction, pc);
+      case OUTPUT_LENGTH -> {
+        int output = verifyLocal(owner, instruction.operands().get(0), pc);
+        int length = verifyLocal(owner, instruction.operands().get(1), pc);
+        if (owner.id() != program.entryFunctionId()
+            || !owner.localType(output).equals(ValueType.BYTES_BORROW)) {
+          fail(location(owner, pc) + " output length requires the entry output parameter");
+        }
+        requireType(owner, length, ValueType.SIGNED, pc);
+      }
       case SWAP -> {
         verifyGlobal(program, instruction.operands().get(0), owner, pc);
         verifyGlobal(program, instruction.operands().get(1), owner, pc);
@@ -684,6 +693,7 @@ public final class BytecodeVerifier {
       case WORDS_SET, BYTES_SET, MAP_PUT -> new int[] {0, 1, 2};
       case MAP_GET, MAP_HAS -> new int[] {1, 2};
       case BUFFER_DROP, REGION_DROP -> new int[] {0};
+      case OUTPUT_LENGTH -> new int[] {0, 1};
       default -> new int[0];
     };
     for (int operandIndex : reads) {

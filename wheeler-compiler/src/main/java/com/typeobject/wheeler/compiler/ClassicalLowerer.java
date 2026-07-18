@@ -413,7 +413,7 @@ final class ClassicalLowerer {
         case "region_new", "words_alloc", "bytes_alloc", "map_alloc",
             "words_set", "bytes_set", "map_put", "owned_drop", "utf8_valid",
             "utf8_freeze", "utf8_count", "buffer_length", "utf8_scalar", "utf8_width",
-            "map_get", "map_has" ->
+            "map_get", "map_has", "output_length" ->
             SourceStorageLowerer.lower(statement, this);
         case "local_bind" -> {
           requireArguments(statement, 3);

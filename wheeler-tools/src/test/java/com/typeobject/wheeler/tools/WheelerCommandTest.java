@@ -362,7 +362,7 @@ class WheelerCommandTest {
     assertEquals(0, Wheeler.execute(
         new String[] {
             "run", project.toString(), "--target", "seed",
-            "--output", artifact.toString(), "--output-bytes", "360"
+            "--output", artifact.toString(), "--output-bytes", "512"
         },
         output,
         output));

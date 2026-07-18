@@ -67,10 +67,10 @@ The repository currently executes these bounded fixtures:
 - `RecursiveValue.w`: recursive value calls under hard frame and step ceilings;
 - `RegionStorage.w`: affine bounded word/byte storage and UTF-8 scalar decoding;
 - `FrozenUtf8.w`: checked consumption of mutable bytes into immutable UTF-8;
-- `HostInput.w`: explicit bounded host UTF-8 input and fixed byte output without ambient authority;
+- `HostInput.w`: explicit bounded host UTF-8 input and byte output without ambient authority;
 - `LongMap.w`: region-owned fixed-capacity signed symbol map;
 - `modules/ModuleMain.w` plus `Arithmetic.w`, `Collections.w`, and `Results.w`: exact package source set with private helpers, public function/record/closed-variant/fixed-array/slice linking over scalar and nominal values, and an imported exhaustive match;
-- `Utf8Lexer.w` plus `lexer/Parser.w` and `lexer/Scanner.w`: manifest-bound scanner/parser modules over explicit UTF-8 input and fixed byte output;
+- `Utf8Lexer.w` plus `lexer/Parser.w` and `lexer/Scanner.w`: manifest-bound scanner/parser modules over explicit UTF-8 input and bounded byte output;
 - `CoherentOracle.w`: classical and coherent XOR behavior;
 - `QFT.w`: unitary execution and generated adjoint;
 - `QFTProof.w`: executable inverse law;
