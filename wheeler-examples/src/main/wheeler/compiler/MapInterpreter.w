@@ -1,33 +1,23 @@
-/// Executes deterministic bounded signed-map operations.
+//! Executes deterministic bounded signed-map operations.
 module examples.compiler.map_interpreter;
 import examples.compiler.opcodes;
 classical class MapInterpreter {
-    public boolean mapValid(
-        words kinds,
-        words live,
-        long handle
-    ) {
+    /// Checks one map index against its live bounded allocation.
+    public boolean mapValid(words kinds, words live, long handle) {
         if (handle < 1) {
             return false;
         }
-        if (kinds[handle - 1] == 4) {
-        } else {
+        if (kinds[handle - 1] == 4) {} else {
             return false;
         }
         return live[handle - 1] == 1;
     }
 
-    public long mapEntry(
-        words starts,
-        words sizes,
-        words data,
-        long handle,
-        long key
-    ) {
+    /// Returns the canonical entry slot for one signed map key.
+    public long mapEntry(words starts, words sizes, words data, long handle, long key) {
         long storage = handle - 1;
         long entry = 0;
-        while (entry < sizes[storage])
-            limit INTERPRETER_STORAGE_WORDS {
+        while (entry < sizes[storage]) limit INTERPRETER_STORAGE_WORDS {
             if (data[starts[storage] + entry * 2] == key) {
                 return entry;
             }
@@ -36,6 +26,7 @@ classical class MapInterpreter {
         return -1;
     }
 
+    /// Updates one signed map entry and returns its mutation record.
     public boolean putMap(
         words starts,
         words lengths,

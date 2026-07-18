@@ -1,4 +1,4 @@
-// Freeze a validated byte owner into an immutable affine UTF-8 value.
+//! Freeze a validated byte owner into an immutable affine UTF-8 value.
 classical class FrozenUtf8 {
     state long byteLength = 0;
     state long scalarCount = 0;
@@ -13,6 +13,9 @@ classical class FrozenUtf8 {
         return scalarAt(text, 1);
     }
 
+    /// Runs the bounded `FrozenUtf8` fixture.
+    ///
+    /// - Effects: Mutates only the fixture's declared state.
     entry void main() {
         region arena = new region(6, 1);
         bytes raw = allocateBytes(arena, 6);

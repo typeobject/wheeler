@@ -1,3 +1,5 @@
+//! Verifies and executes a bounded canonical artifact entirely in Wheeler.
+
 module examples.runtime.native_vm;
 import examples.compiler.interpreter;
 import examples.compiler.opcodes;
@@ -16,6 +18,9 @@ classical class NativeVm {
     state long interpretedSteps = 0;
     state long artifactLength = 0;
 
+    /// Runs the bounded `NativeVm` fixture.
+    ///
+    /// - Effects: Mutates only the fixture's declared state.
     entry void main(byteview artifact) {
         region arena = new region(8512, 20);
         words globals = allocate(arena, INTERPRETER_GLOBAL_COUNT);
@@ -23,28 +28,20 @@ classical class NativeVm {
         words returnCursors = allocate(arena, INTERPRETER_FRAME_COUNT);
         words returnStarts = allocate(arena, INTERPRETER_FRAME_COUNT);
         words returnEnds = allocate(arena, INTERPRETER_FRAME_COUNT);
-        words returnDestinations = allocate(
-            arena, INTERPRETER_FRAME_COUNT);
-        words aggregateTypes = allocate(
-            arena, INTERPRETER_AGGREGATE_COUNT);
-        words aggregateTags = allocate(
-            arena, INTERPRETER_AGGREGATE_COUNT);
-        words aggregateStarts = allocate(
-            arena, INTERPRETER_AGGREGATE_COUNT);
-        words aggregateCounts = allocate(
-            arena, INTERPRETER_AGGREGATE_COUNT);
-        words aggregateFields = allocate(
-            arena, INTERPRETER_AGGREGATE_FIELDS);
+        words returnDestinations = allocate(arena, INTERPRETER_FRAME_COUNT);
+        words aggregateTypes = allocate(arena, INTERPRETER_AGGREGATE_COUNT);
+        words aggregateTags = allocate(arena, INTERPRETER_AGGREGATE_COUNT);
+        words aggregateStarts = allocate(arena, INTERPRETER_AGGREGATE_COUNT);
+        words aggregateCounts = allocate(arena, INTERPRETER_AGGREGATE_COUNT);
+        words aggregateFields = allocate(arena, INTERPRETER_AGGREGATE_FIELDS);
         words storageKinds = allocate(arena, INTERPRETER_STORAGE_COUNT);
         words storageStarts = allocate(arena, INTERPRETER_STORAGE_COUNT);
         words storageLengths = allocate(arena, INTERPRETER_STORAGE_COUNT);
         words storageSizes = allocate(arena, INTERPRETER_STORAGE_COUNT);
         words storageOwners = allocate(arena, INTERPRETER_STORAGE_COUNT);
         words storageLive = allocate(arena, INTERPRETER_STORAGE_COUNT);
-        words storageRegionUsedBytes = allocate(
-            arena, INTERPRETER_STORAGE_COUNT);
-        words storageRegionLiveObjects = allocate(
-            arena, INTERPRETER_STORAGE_COUNT);
+        words storageRegionUsedBytes = allocate(arena, INTERPRETER_STORAGE_COUNT);
+        words storageRegionLiveObjects = allocate(arena, INTERPRETER_STORAGE_COUNT);
         words storageData = allocate(arena, INTERPRETER_STORAGE_WORDS);
         ExecutionResult result = executeArtifact(
             artifact,
@@ -67,7 +64,8 @@ classical class NativeVm {
             storageLive,
             storageRegionUsedBytes,
             storageRegionLiveObjects,
-            storageData);
+            storageData
+        );
         match (result) {
             case ExecutionResult.Value(Execution execution) {
                 finalGlobal = execution.globalZero;

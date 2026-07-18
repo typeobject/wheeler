@@ -49,6 +49,47 @@ class SourceFormatterTest {
   }
 
   @Test
+  void breaksOnlyTheSmallestCommaGroupThatExceedsOneHundredScalars() {
+    String compact = "classical class Wide { public long combine(long firstValue, "
+        + "long secondValue, long thirdValue, long fourthValue, long fifthValue) { "
+        + "return sum(firstValue, secondValue, thirdValue, fourthValue, fifthValue); } }";
+
+    String formatted = SourceFormatter.format(compact);
+
+    assertTrue(formatted.contains("""
+            public long combine(
+                long firstValue,
+                long secondValue,
+                long thirdValue,
+                long fourthValue,
+                long fifthValue
+            ) {
+        """));
+    assertTrue(formatted.contains(
+        "return sum(firstValue, secondValue, thirdValue, fourthValue, fifthValue);"));
+    assertTrue(formatted.lines()
+        .filter(line -> !line.stripLeading().startsWith("//"))
+        .allMatch(line -> line.codePointCount(0, line.length()) <= 100));
+    assertEquals(formatted, SourceFormatter.format(formatted));
+  }
+
+  @Test
+  void keepsUnarySignsTightAfterReturnsAndVerticalCommas() {
+    String source = "classical class Signed { public long choose(long firstArgument, "
+        + "long secondArgument, long thirdArgument, long fourthArgument, "
+        + "long fifthArgument) { call(firstArgument, secondArgument, thirdArgument, "
+        + "fourthArgument, fifthArgument, firstArgument, secondArgument, "
+        + "thirdArgument, fourthArgument, -1); return -2; } }";
+
+    String formatted = SourceFormatter.format(source);
+
+    assertTrue(formatted.contains("\n            -1\n"));
+    assertTrue(formatted.contains("return -2;"));
+    assertFalse(formatted.contains("- 1"));
+    assertFalse(formatted.contains("- 2"));
+  }
+
+  @Test
   void preservesCommentPayloadAndNormalizesBlockLineEndings() {
     String source = "classical class C{/* first  payload */\r\n"
         + "entry void main(){// trailing  payload\r\n}}";
@@ -68,6 +109,7 @@ class SourceFormatterTest {
       for (Path source : paths.filter(path -> path.toString().endsWith(".w")).toList()) {
         String original = Files.readString(source);
         String formatted = SourceFormatter.format(original);
+        assertEquals(original, formatted, source.toString());
         assertEquals(formatted, SourceFormatter.format(formatted), source.toString());
         assertEquals(tokens(original), tokens(formatted), source.toString());
         assertEquals(comments(original), comments(formatted), source.toString());

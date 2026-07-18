@@ -1,22 +1,17 @@
+//! Scans strict UTF-8 into bounded token metadata.
+
 module examples.lexer.scanner;
 classical class Scanner {
-    public record ScanDiagnostic(
-        long code,
-        long offset,
-        long line,
-        long column
-    ) {}
+    /// Defines immutable `ScanDiagnostic` values for this module.
+    public record ScanDiagnostic(long code, long offset, long line, long column) {}
 
+    /// Defines the closed `ScanResult` cases exported by this module.
     public variant ScanResult {
         case Value(long count);
         case Error(ScanDiagnostic diagnostic);
     }
 
-    private ScanResult scanError(
-        utf8 source,
-        long code,
-        long offset
-    ) {
+    private ScanResult scanError(utf8 source, long code, long offset) {
         long cursor = 0;
         long line = 1;
         long column = 1;
@@ -30,11 +25,11 @@ classical class Scanner {
             }
             cursor += utf8Width(source, cursor);
         }
-        ScanDiagnostic diagnostic = new ScanDiagnostic(
-            code, offset, line, column);
+        ScanDiagnostic diagnostic = new ScanDiagnostic(code, offset, line, column);
         return new ScanResult.Error(diagnostic);
     }
 
+    /// Classifies one ASCII or Unicode scalar as a source token kind.
     public long tokenKind(long scalar) {
         if (scalar == 10) {
             return 0;
@@ -76,6 +71,7 @@ classical class Scanner {
         return false;
     }
 
+    /// Parses `number` from a bounded canonical input.
     public long parseNumber(utf8 source, long start, long end) {
         long value = 0;
         long cursor = start;
@@ -99,6 +95,7 @@ classical class Scanner {
         return value;
     }
 
+    /// Classifies the comment beginning at one checked source offset.
     public long commentKind(utf8 source, long cursor, long sourceLength) {
         long next = cursor + utf8Width(source, cursor);
         if (next < sourceLength) {
@@ -113,6 +110,7 @@ classical class Scanner {
         return 0;
     }
 
+    /// Returns the closing offset of one bounded ASCII literal.
     public long asciiLiteralEnd(utf8 source, long cursor, long sourceLength) {
         cursor += utf8Width(source, cursor);
         while (cursor < sourceLength) limit 4096 {
@@ -149,12 +147,8 @@ classical class Scanner {
         return -1;
     }
 
-    public ScanResult scan(
-        utf8 source,
-        words tokenKinds,
-        words tokenStarts,
-        words tokenLengths
-    ) {
+    /// Scans strict UTF-8 into caller-owned bounded token metadata.
+    public ScanResult scan(utf8 source, words tokenKinds, words tokenStarts, words tokenLengths) {
         long sourceLength = bufferLength(source);
         long count = 0;
         long cursor = 0;
@@ -211,16 +205,14 @@ classical class Scanner {
                             }
                         }
                         if (kind == 5) {
-                            long blockEnd = blockCommentEnd(
-                                source, tokenStart, sourceLength);
+                            long blockEnd = blockCommentEnd(source, tokenStart, sourceLength);
                             if (blockEnd < 0) {
                                 return scanError(source, 1, tokenStart);
                             }
                             cursor = blockEnd;
                         }
                         if (kind == 6) {
-                            long literalEnd = asciiLiteralEnd(
-                                source, tokenStart, sourceLength);
+                            long literalEnd = asciiLiteralEnd(source, tokenStart, sourceLength);
                             if (literalEnd < 0) {
                                 return scanError(source, 2, tokenStart);
                             }
@@ -236,6 +228,7 @@ classical class Scanner {
         return new ScanResult.Value(count);
     }
 
+    /// Returns the closing offset of one bounded block comment.
     public long blockCommentEnd(utf8 source, long cursor, long sourceLength) {
         cursor += utf8Width(source, cursor);
         cursor += utf8Width(source, cursor);

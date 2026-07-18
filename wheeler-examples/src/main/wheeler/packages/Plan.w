@@ -1,8 +1,11 @@
+//! Validates bounded canonical build-plan structure.
+
 module examples.packages.plan;
 import examples.crypto.sha256;
 import examples.packages.binary;
 import examples.packages.plan_identity;
 classical class Plan {
+    /// Defines immutable `PlanModel` values for this module.
     public record PlanModel(
         long profileLength,
         long packageLength,
@@ -20,6 +23,7 @@ classical class Plan {
         long timeout
     ) {}
 
+    /// Defines the closed `PlanResult` cases exported by this module.
     public variant PlanResult {
         case Value(PlanModel plan);
         case Error(long offset);
@@ -63,31 +67,24 @@ classical class Plan {
         return true;
     }
 
-    public PlanResult inspectPlan(
-        byteview source,
-        bytes digest,
-        region arena
-    ) {
+    /// Validates and decodes `plan` from a bounded canonical input.
+    public PlanResult inspectPlan(byteview source, bytes digest, region arena) {
         long fileLength = bufferLength(source);
         if (fileLength < 320) {
             return new PlanResult.Error(0);
         }
-        if (magicValid(source)) {
-        } else {
+        if (magicValid(source)) {} else {
             return new PlanResult.Error(0);
         }
-        if (readUnsigned(source, 8, 4) == 1) {
-        } else {
+        if (readUnsigned(source, 8, 4) == 1) {} else {
             return new PlanResult.Error(8);
         }
         long payloadLength = readUnsigned(source, 12, 4);
         long payloadEnd = 16 + payloadLength;
-        if (payloadEnd + 32 == fileLength) {
-        } else {
+        if (payloadEnd + 32 == fileLength) {} else {
             return new PlanResult.Error(12);
         }
-        if (digestMatches(source, payloadLength, digest, arena)) {
-        } else {
+        if (digestMatches(source, payloadLength, digest, arena)) {} else {
             return new PlanResult.Error(payloadEnd);
         }
         long cursor = 80;
@@ -100,8 +97,7 @@ classical class Plan {
         } else {
             return new PlanResult.Error(cursor);
         }
-        if (validAsciiName(source, cursor, profileLength)) {
-        } else {
+        if (validAsciiName(source, cursor, profileLength)) {} else {
             return new PlanResult.Error(cursor);
         }
         cursor += profileLength;
@@ -115,24 +111,20 @@ classical class Plan {
         long packageLength = readUnsigned(source, cursor, 4);
         cursor += 4;
         long packageStart = cursor;
-        if (packageLength < 257) {
-        } else {
+        if (packageLength < 257) {} else {
             return new PlanResult.Error(cursor);
         }
-        if (validAsciiName(source, cursor, packageLength)) {
-        } else {
+        if (validAsciiName(source, cursor, packageLength)) {} else {
             return new PlanResult.Error(cursor);
         }
         cursor += packageLength;
         long versionLength = readUnsigned(source, cursor, 4);
         cursor += 4;
         long versionStart = cursor;
-        if (versionLength < 257) {
-        } else {
+        if (versionLength < 257) {} else {
             return new PlanResult.Error(cursor);
         }
-        if (validNumericRelease(source, cursor, versionLength)) {
-        } else {
+        if (validNumericRelease(source, cursor, versionLength)) {} else {
             return new PlanResult.Error(cursor);
         }
         cursor += versionLength;
@@ -141,12 +133,10 @@ classical class Plan {
         long targetLength = readUnsigned(source, cursor, 4);
         cursor += 4;
         long targetStart = cursor;
-        if (targetLength < 257) {
-        } else {
+        if (targetLength < 257) {} else {
             return new PlanResult.Error(cursor);
         }
-        if (validAsciiName(source, cursor, targetLength)) {
-        } else {
+        if (validAsciiName(source, cursor, targetLength)) {} else {
             return new PlanResult.Error(cursor);
         }
         cursor += targetLength;
@@ -163,12 +153,10 @@ classical class Plan {
         long outputLength = readUnsigned(source, cursor, 4);
         cursor += 4;
         long outputStart = cursor;
-        if (outputLength < 257) {
-        } else {
+        if (outputLength < 257) {} else {
             return new PlanResult.Error(cursor);
         }
-        if (validAsciiPath(source, cursor, outputLength)) {
-        } else {
+        if (validAsciiPath(source, cursor, outputLength)) {} else {
             return new PlanResult.Error(cursor);
         }
         cursor += outputLength;
@@ -184,12 +172,10 @@ classical class Plan {
             inputNameLength = readUnsigned(source, cursor, 4);
             cursor += 4;
             inputNameStart = cursor;
-            if (inputNameLength < 257) {
-            } else {
+            if (inputNameLength < 257) {} else {
                 return new PlanResult.Error(cursor);
             }
-            if (validAsciiName(source, cursor, inputNameLength)) {
-            } else {
+            if (validAsciiName(source, cursor, inputNameLength)) {} else {
                 return new PlanResult.Error(cursor);
             }
             cursor += inputNameLength;
@@ -209,24 +195,20 @@ classical class Plan {
             requestNameLength = readUnsigned(source, cursor, 4);
             cursor += 4;
             requestNameStart = cursor;
-            if (requestNameLength < 257) {
-            } else {
+            if (requestNameLength < 257) {} else {
                 return new PlanResult.Error(cursor);
             }
-            if (validAsciiName(source, cursor, requestNameLength)) {
-            } else {
+            if (validAsciiName(source, cursor, requestNameLength)) {} else {
                 return new PlanResult.Error(cursor);
             }
             cursor += requestNameLength;
             requestPatternLength = readUnsigned(source, cursor, 4);
             cursor += 4;
             requestPatternStart = cursor;
-            if (requestPatternLength < 257) {
-            } else {
+            if (requestPatternLength < 257) {} else {
                 return new PlanResult.Error(cursor);
             }
-            if (validAsciiPath(source, cursor, requestPatternLength)) {
-            } else {
+            if (validAsciiPath(source, cursor, requestPatternLength)) {} else {
                 return new PlanResult.Error(cursor);
             }
             cursor += requestPatternLength;
@@ -241,16 +223,36 @@ classical class Plan {
         cursor += 8;
         long timeout = readUnsigned(source, cursor, 8);
         cursor += 8;
-        if (maxSteps < 1) { return new PlanResult.Error(cursor); }
-        if (1000000000000 < maxSteps) { return new PlanResult.Error(cursor); }
-        if (maxMemory < 1) { return new PlanResult.Error(cursor); }
-        if (1099511627776 < maxMemory) { return new PlanResult.Error(cursor); }
-        if (maxInput < 1) { return new PlanResult.Error(cursor); }
-        if (1099511627776 < maxInput) { return new PlanResult.Error(cursor); }
-        if (maxOutput < 1) { return new PlanResult.Error(cursor); }
-        if (1099511627776 < maxOutput) { return new PlanResult.Error(cursor); }
-        if (timeout < 1) { return new PlanResult.Error(cursor); }
-        if (86400000 < timeout) { return new PlanResult.Error(cursor); }
+        if (maxSteps < 1) {
+            return new PlanResult.Error(cursor);
+        }
+        if (1000000000000 < maxSteps) {
+            return new PlanResult.Error(cursor);
+        }
+        if (maxMemory < 1) {
+            return new PlanResult.Error(cursor);
+        }
+        if (1099511627776 < maxMemory) {
+            return new PlanResult.Error(cursor);
+        }
+        if (maxInput < 1) {
+            return new PlanResult.Error(cursor);
+        }
+        if (1099511627776 < maxInput) {
+            return new PlanResult.Error(cursor);
+        }
+        if (maxOutput < 1) {
+            return new PlanResult.Error(cursor);
+        }
+        if (1099511627776 < maxOutput) {
+            return new PlanResult.Error(cursor);
+        }
+        if (timeout < 1) {
+            return new PlanResult.Error(cursor);
+        }
+        if (86400000 < timeout) {
+            return new PlanResult.Error(cursor);
+        }
         long grantCount = readUnsigned(source, cursor, 4);
         cursor += 4;
         if (requestCount < grantCount) {
@@ -264,40 +266,41 @@ classical class Plan {
             grantNameLength = readUnsigned(source, cursor, 4);
             cursor += 4;
             grantNameStart = cursor;
-            if (grantNameLength < 257) {
-            } else {
+            if (grantNameLength < 257) {} else {
                 return new PlanResult.Error(cursor);
             }
             cursor += grantNameLength;
             grantPatternLength = readUnsigned(source, cursor, 4);
             cursor += 4;
             grantPatternStart = cursor;
-            if (grantPatternLength < 257) {
-            } else {
+            if (grantPatternLength < 257) {} else {
                 return new PlanResult.Error(cursor);
             }
             cursor += grantPatternLength;
-            if (compareAsciiRanges(
+            if (
+                compareAsciiRanges(
                     source,
                     requestNameStart,
                     requestNameLength,
                     grantNameStart,
-                    grantNameLength) == 0) {
-            } else {
+                    grantNameLength
+                ) == 0
+            ) {} else {
                 return new PlanResult.Error(grantNameStart);
             }
-            if (compareAsciiRanges(
+            if (
+                compareAsciiRanges(
                     source,
                     requestPatternStart,
                     requestPatternLength,
                     grantPatternStart,
-                    grantPatternLength) == 0) {
-            } else {
+                    grantPatternLength
+                ) == 0
+            ) {} else {
                 return new PlanResult.Error(grantPatternStart);
             }
         }
-        if (cursor == payloadEnd) {
-        } else {
+        if (cursor == payloadEnd) {} else {
             return new PlanResult.Error(cursor);
         }
         NodeIdentityFields identity = new NodeIdentityFields(
@@ -331,9 +334,9 @@ classical class Plan {
             grantNameStart,
             grantNameLength,
             grantPatternStart,
-            grantPatternLength);
-        if (nodeIdentityMatches(
-                source, identity, digest, arena)) {
+            grantPatternLength
+        );
+        if (nodeIdentityMatches(source, identity, digest, arena)) {
             PlanModel plan = new PlanModel(
                 profileLength,
                 packageLength,
@@ -348,7 +351,8 @@ classical class Plan {
                 maxMemory,
                 maxInput,
                 maxOutput,
-                timeout);
+                timeout
+            );
             return new PlanResult.Value(plan);
         }
         return new PlanResult.Error(nodeIdentityStart);

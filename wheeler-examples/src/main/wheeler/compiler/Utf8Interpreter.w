@@ -1,4 +1,4 @@
-/// Decodes strict bounded UTF-8 for the Wheeler-written interpreter.
+//! Decodes strict bounded UTF-8 for the Wheeler-written interpreter.
 module examples.compiler.utf8_interpreter;
 import examples.compiler.opcodes;
 classical class Utf8Interpreter {
@@ -9,20 +9,14 @@ classical class Utf8Interpreter {
         return value < high + 1;
     }
 
-    public long utf8WidthAt(
-        words starts,
-        words lengths,
-        words data,
-        long handle,
-        long index
-    ) {
+    /// Returns the checked UTF-8 scalar width at one byte offset.
+    public long utf8WidthAt(words starts, words lengths, words data, long handle, long index) {
         if (index < 0) {
             return 0;
         }
         long storage = handle - 1;
         long length = lengths[storage];
-        if (index < length) {
-        } else {
+        if (index < length) {} else {
             return 0;
         }
         long first = data[starts[storage] + index];
@@ -31,8 +25,7 @@ classical class Utf8Interpreter {
         }
         if (byteBetween(first, 194, 223)) {
             if (index + 1 < length) {
-                if (byteBetween(
-                        data[starts[storage] + index + 1], 128, 191)) {
+                if (byteBetween(data[starts[storage] + index + 1], 128, 191)) {
                     return 2;
                 }
             }
@@ -87,13 +80,8 @@ classical class Utf8Interpreter {
         return 0;
     }
 
-    public long utf8ScalarAt(
-        words starts,
-        words lengths,
-        words data,
-        long handle,
-        long index
-    ) {
+    /// Decodes the UTF-8 scalar at one checked byte offset.
+    public long utf8ScalarAt(words starts, words lengths, words data, long handle, long index) {
         long width = utf8WidthAt(starts, lengths, data, handle, index);
         long storage = handle - 1;
         long first = data[starts[storage] + index];
@@ -102,36 +90,25 @@ classical class Utf8Interpreter {
         }
         long second = data[starts[storage] + index + 1];
         if (width == 2) {
-            return (first & 31) * 64 + (second & 63);
+            return(first & 31) * 64 + (second & 63);
         }
         long third = data[starts[storage] + index + 2];
         if (width == 3) {
-            return (first & 15) * 4096
-                + (second & 63) * 64
-                + (third & 63);
+            return(first & 15) * 4096 + (second & 63) * 64 + (third & 63);
         }
         long fourth = data[starts[storage] + index + 3];
         if (width == 4) {
-            return (first & 7) * 262144
-                + (second & 63) * 4096
-                + (third & 63) * 64
-                + (fourth & 63);
+            return(first & 7) * 262144 + (second & 63) * 4096 + (third & 63) * 64 + (fourth & 63);
         }
         return -1;
     }
 
-    public long utf8ScalarCount(
-        words starts,
-        words lengths,
-        words data,
-        long handle
-    ) {
+    /// Counts Unicode scalars in one validated UTF-8 buffer.
+    public long utf8ScalarCount(words starts, words lengths, words data, long handle) {
         long cursor = 0;
         long count = 0;
-        while (cursor < lengths[handle - 1])
-            limit INTERPRETER_STORAGE_WORDS {
-            long width = utf8WidthAt(
-                starts, lengths, data, handle, cursor);
+        while (cursor < lengths[handle - 1]) limit INTERPRETER_STORAGE_WORDS {
+            long width = utf8WidthAt(starts, lengths, data, handle, cursor);
             if (width < 1) {
                 return -1;
             }

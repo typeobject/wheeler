@@ -1,23 +1,14 @@
-/// Verifies bounded owned-region and word-buffer instruction operands.
+//! Verifies bounded owned-region and word-buffer instruction operands.
 module examples.compiler.storage_verifier;
 import examples.compiler.opcodes;
 import examples.compiler.type_codes;
 import examples.packages.binary;
 classical class StorageVerifier {
-    private long localType(
-        byteview artifact,
-        long activeTypes,
-        long local
-    ) {
+    private long localType(byteview artifact, long activeTypes, long local) {
         return readUnsigned(artifact, activeTypes + local * 4, 4);
     }
 
-    private boolean localHasType(
-        byteview artifact,
-        long activeTypes,
-        long local,
-        long expected
-    ) {
+    private boolean localHasType(byteview artifact, long activeTypes, long local, long expected) {
         return localType(artifact, activeTypes, local) == expected;
     }
 
@@ -93,6 +84,7 @@ classical class StorageVerifier {
         return opcode == OPCODE_BYTES_SET;
     }
 
+    /// Checks owned-storage instruction operands against live typed locals.
     public long storageOperandsValid(
         byteview artifact,
         long cursor,
@@ -111,11 +103,9 @@ classical class StorageVerifier {
             long source = readUnsigned(artifact, cursor + 16, 8);
             if (first < localCount) {
                 if (source < localCount) {
-                    long typeCode = localType(
-                        artifact, activeTypes, first);
+                    long typeCode = localType(artifact, activeTypes, first);
                     if (ownedType(typeCode)) {
-                        if (typeCode == localType(
-                                artifact, activeTypes, source)) {
+                        if (typeCode == localType(artifact, activeTypes, source)) {
                             return 1;
                         }
                     }
@@ -127,8 +117,7 @@ classical class StorageVerifier {
             long maxBytes = readUnsigned(artifact, cursor + 16, 8);
             long maxObjects = readUnsigned(artifact, cursor + 24, 8);
             if (first < localCount) {
-                if (localHasType(
-                        artifact, activeTypes, first, TYPE_REGION)) {
+                if (localHasType(artifact, activeTypes, first, TYPE_REGION)) {
                     if (maxBytes < INTERPRETER_STORAGE_WORDS * 8 + 1) {
                         if (maxObjects < INTERPRETER_STORAGE_COUNT + 1) {
                             if (0 < maxBytes) {
@@ -155,20 +144,14 @@ classical class StorageVerifier {
             if (first < localCount) {
                 if (region < localCount) {
                     if (length < localCount) {
-                        if (localHasType(
-                                artifact,
-                                activeTypes,
-                                first,
-                                allocationType)) {
-                            if (ownerOrBorrow(
-                                    localType(
-                                        artifact, activeTypes, region),
-                                    TYPE_REGION)) {
-                                if (localHasType(
-                                        artifact,
-                                        activeTypes,
-                                        length,
-                                        TYPE_SIGNED)) {
+                        if (localHasType(artifact, activeTypes, first, allocationType)) {
+                            if (
+                                ownerOrBorrow(
+                                    localType(artifact, activeTypes, region),
+                                    TYPE_REGION
+                                )
+                            ) {
+                                if (localHasType(artifact, activeTypes, length, TYPE_SIGNED)) {
                                     return 1;
                                 }
                             }
@@ -188,17 +171,14 @@ classical class StorageVerifier {
             if (first < localCount) {
                 if (getBuffer < localCount) {
                     if (getIndex < localCount) {
-                        if (localHasType(
-                                artifact, activeTypes, first, TYPE_SIGNED)) {
-                            if (ownerOrBorrow(
-                                    localType(
-                                        artifact, activeTypes, getBuffer),
-                                    getExpectedType)) {
-                                if (localHasType(
-                                        artifact,
-                                        activeTypes,
-                                        getIndex,
-                                        TYPE_SIGNED)) {
+                        if (localHasType(artifact, activeTypes, first, TYPE_SIGNED)) {
+                            if (
+                                ownerOrBorrow(
+                                    localType(artifact, activeTypes, getBuffer),
+                                    getExpectedType
+                                )
+                            ) {
+                                if (localHasType(artifact, activeTypes, getIndex, TYPE_SIGNED)) {
                                     return 1;
                                 }
                             }
@@ -218,19 +198,14 @@ classical class StorageVerifier {
             if (first < localCount) {
                 if (setIndex < localCount) {
                     if (setValue < localCount) {
-                        if (ownerOrBorrow(
+                        if (
+                            ownerOrBorrow(
                                 localType(artifact, activeTypes, first),
-                                setExpectedType)) {
-                            if (localHasType(
-                                    artifact,
-                                    activeTypes,
-                                    setIndex,
-                                    TYPE_SIGNED)) {
-                                if (localHasType(
-                                        artifact,
-                                        activeTypes,
-                                        setValue,
-                                        TYPE_SIGNED)) {
+                                setExpectedType
+                            )
+                        ) {
+                            if (localHasType(artifact, activeTypes, setIndex, TYPE_SIGNED)) {
+                                if (localHasType(artifact, activeTypes, setValue, TYPE_SIGNED)) {
                                     return 1;
                                 }
                             }
@@ -262,10 +237,8 @@ classical class StorageVerifier {
             long lengthBuffer = readUnsigned(artifact, cursor + 16, 8);
             if (first < localCount) {
                 if (lengthBuffer < localCount) {
-                    if (localHasType(
-                            artifact, activeTypes, first, TYPE_SIGNED)) {
-                        long lengthType = localType(
-                            artifact, activeTypes, lengthBuffer);
+                    if (localHasType(artifact, activeTypes, first, TYPE_SIGNED)) {
+                        long lengthType = localType(artifact, activeTypes, lengthBuffer);
                         if (lengthType == TYPE_WORDS) {
                             return 1;
                         }
@@ -290,10 +263,8 @@ classical class StorageVerifier {
             long utf8Buffer = readUnsigned(artifact, cursor + 16, 8);
             if (first < localCount) {
                 if (utf8Buffer < localCount) {
-                    if (localHasType(
-                            artifact, activeTypes, first, TYPE_BOOLEAN)) {
-                        if (utf8SequenceType(localType(
-                                artifact, activeTypes, utf8Buffer))) {
+                    if (localHasType(artifact, activeTypes, first, TYPE_BOOLEAN)) {
+                        if (utf8SequenceType(localType(artifact, activeTypes, utf8Buffer))) {
                             return 1;
                         }
                     }
@@ -305,10 +276,8 @@ classical class StorageVerifier {
             long countBuffer = readUnsigned(artifact, cursor + 16, 8);
             if (first < localCount) {
                 if (countBuffer < localCount) {
-                    if (localHasType(
-                            artifact, activeTypes, first, TYPE_SIGNED)) {
-                        if (utf8SequenceType(localType(
-                                artifact, activeTypes, countBuffer))) {
+                    if (localHasType(artifact, activeTypes, first, TYPE_SIGNED)) {
+                        if (utf8SequenceType(localType(artifact, activeTypes, countBuffer))) {
                             return 1;
                         }
                     }
@@ -322,17 +291,13 @@ classical class StorageVerifier {
             if (first < localCount) {
                 if (scalarBuffer < localCount) {
                     if (scalarIndex < localCount) {
-                        if (localHasType(
-                                artifact, activeTypes, first, TYPE_SIGNED)) {
-                            if (utf8SequenceType(localType(
-                                    artifact,
-                                    activeTypes,
-                                    scalarBuffer))) {
-                                if (localHasType(
-                                        artifact,
-                                        activeTypes,
-                                        scalarIndex,
-                                        TYPE_SIGNED)) {
+                        if (localHasType(artifact, activeTypes, first, TYPE_SIGNED)) {
+                            if (
+                                utf8SequenceType(localType(artifact, activeTypes, scalarBuffer))
+                            ) {
+                                if (
+                                    localHasType(artifact, activeTypes, scalarIndex, TYPE_SIGNED)
+                                ) {
                                     return 1;
                                 }
                             }
@@ -348,17 +313,11 @@ classical class StorageVerifier {
             if (first < localCount) {
                 if (widthBuffer < localCount) {
                     if (widthIndex < localCount) {
-                        if (localHasType(
-                                artifact, activeTypes, first, TYPE_SIGNED)) {
-                            if (utf8SequenceType(localType(
-                                    artifact,
-                                    activeTypes,
-                                    widthBuffer))) {
-                                if (localHasType(
-                                        artifact,
-                                        activeTypes,
-                                        widthIndex,
-                                        TYPE_SIGNED)) {
+                        if (localHasType(artifact, activeTypes, first, TYPE_SIGNED)) {
+                            if (utf8SequenceType(localType(artifact, activeTypes, widthBuffer))) {
+                                if (
+                                    localHasType(artifact, activeTypes, widthIndex, TYPE_SIGNED)
+                                ) {
                                     return 1;
                                 }
                             }
@@ -374,19 +333,14 @@ classical class StorageVerifier {
             if (first < localCount) {
                 if (mapKey < localCount) {
                     if (mapValue < localCount) {
-                        if (ownerOrBorrow(
+                        if (
+                            ownerOrBorrow(
                                 localType(artifact, activeTypes, first),
-                                TYPE_LONG_MAP)) {
-                            if (localHasType(
-                                    artifact,
-                                    activeTypes,
-                                    mapKey,
-                                    TYPE_SIGNED)) {
-                                if (localHasType(
-                                        artifact,
-                                        activeTypes,
-                                        mapValue,
-                                        TYPE_SIGNED)) {
+                                TYPE_LONG_MAP
+                            )
+                        ) {
+                            if (localHasType(artifact, activeTypes, mapKey, TYPE_SIGNED)) {
+                                if (localHasType(artifact, activeTypes, mapValue, TYPE_SIGNED)) {
                                     return 1;
                                 }
                             }
@@ -402,17 +356,14 @@ classical class StorageVerifier {
             if (first < localCount) {
                 if (getMap < localCount) {
                     if (getMapKey < localCount) {
-                        if (localHasType(
-                                artifact, activeTypes, first, TYPE_SIGNED)) {
-                            if (ownerOrBorrow(
-                                    localType(
-                                        artifact, activeTypes, getMap),
-                                    TYPE_LONG_MAP)) {
-                                if (localHasType(
-                                        artifact,
-                                        activeTypes,
-                                        getMapKey,
-                                        TYPE_SIGNED)) {
+                        if (localHasType(artifact, activeTypes, first, TYPE_SIGNED)) {
+                            if (
+                                ownerOrBorrow(
+                                    localType(artifact, activeTypes, getMap),
+                                    TYPE_LONG_MAP
+                                )
+                            ) {
+                                if (localHasType(artifact, activeTypes, getMapKey, TYPE_SIGNED)) {
                                     return 1;
                                 }
                             }
@@ -428,17 +379,14 @@ classical class StorageVerifier {
             if (first < localCount) {
                 if (hasMap < localCount) {
                     if (hasMapKey < localCount) {
-                        if (localHasType(
-                                artifact, activeTypes, first, TYPE_BOOLEAN)) {
-                            if (ownerOrBorrow(
-                                    localType(
-                                        artifact, activeTypes, hasMap),
-                                    TYPE_LONG_MAP)) {
-                                if (localHasType(
-                                        artifact,
-                                        activeTypes,
-                                        hasMapKey,
-                                        TYPE_SIGNED)) {
+                        if (localHasType(artifact, activeTypes, first, TYPE_BOOLEAN)) {
+                            if (
+                                ownerOrBorrow(
+                                    localType(artifact, activeTypes, hasMap),
+                                    TYPE_LONG_MAP
+                                )
+                            ) {
+                                if (localHasType(artifact, activeTypes, hasMapKey, TYPE_SIGNED)) {
                                     return 1;
                                 }
                             }
@@ -452,13 +400,8 @@ classical class StorageVerifier {
             long freezeSource = readUnsigned(artifact, cursor + 16, 8);
             if (first < localCount) {
                 if (freezeSource < localCount) {
-                    if (localHasType(
-                            artifact, activeTypes, first, TYPE_UTF8)) {
-                        if (localHasType(
-                                artifact,
-                                activeTypes,
-                                freezeSource,
-                                TYPE_BYTES)) {
+                    if (localHasType(artifact, activeTypes, first, TYPE_UTF8)) {
+                        if (localHasType(artifact, activeTypes, freezeSource, TYPE_BYTES)) {
                             return 1;
                         }
                     }
@@ -470,13 +413,8 @@ classical class StorageVerifier {
             long borrowSource = readUnsigned(artifact, cursor + 16, 8);
             if (first < localCount) {
                 if (borrowSource < localCount) {
-                    if (localHasType(
-                            artifact,
-                            activeTypes,
-                            first,
-                            TYPE_UTF8_BORROW)) {
-                        long borrowSourceType = localType(
-                            artifact, activeTypes, borrowSource);
+                    if (localHasType(artifact, activeTypes, first, TYPE_UTF8_BORROW)) {
+                        long borrowSourceType = localType(artifact, activeTypes, borrowSource);
                         if (borrowSourceType == TYPE_UTF8) {
                             return 1;
                         }
@@ -489,21 +427,16 @@ classical class StorageVerifier {
             return 0;
         }
         if (opcode == OPCODE_MAP_BORROW) {
-            long mapBorrowSource = readUnsigned(
-                artifact, cursor + 16, 8);
+            long mapBorrowSource = readUnsigned(artifact, cursor + 16, 8);
             if (first < localCount) {
                 if (mapBorrowSource < localCount) {
-                    if (localHasType(
-                            artifact,
-                            activeTypes,
-                            first,
-                            TYPE_LONG_MAP_BORROW)) {
-                        if (ownerOrBorrow(
-                                localType(
-                                    artifact,
-                                    activeTypes,
-                                    mapBorrowSource),
-                                TYPE_LONG_MAP)) {
+                    if (localHasType(artifact, activeTypes, first, TYPE_LONG_MAP_BORROW)) {
+                        if (
+                            ownerOrBorrow(
+                                localType(artifact, activeTypes, mapBorrowSource),
+                                TYPE_LONG_MAP
+                            )
+                        ) {
                             return 1;
                         }
                     }
@@ -512,23 +445,22 @@ classical class StorageVerifier {
             return 0;
         }
         if (opcode == OPCODE_BUFFER_BORROW) {
-            long bufferBorrowSource = readUnsigned(
-                artifact, cursor + 16, 8);
+            long bufferBorrowSource = readUnsigned(artifact, cursor + 16, 8);
             if (first < localCount) {
                 if (bufferBorrowSource < localCount) {
-                    long bufferBorrowDestinationType = localType(
-                        artifact, activeTypes, first);
+                    long bufferBorrowDestinationType = localType(artifact, activeTypes, first);
                     long bufferBorrowSourceType = localType(
-                        artifact, activeTypes, bufferBorrowSource);
+                        artifact,
+                        activeTypes,
+                        bufferBorrowSource
+                    );
                     if (bufferBorrowDestinationType == TYPE_WORDS_BORROW) {
-                        if (ownerOrBorrow(
-                                bufferBorrowSourceType, TYPE_WORDS)) {
+                        if (ownerOrBorrow(bufferBorrowSourceType, TYPE_WORDS)) {
                             return 1;
                         }
                     }
                     if (bufferBorrowDestinationType == TYPE_BYTES_BORROW) {
-                        if (ownerOrBorrow(
-                                bufferBorrowSourceType, TYPE_BYTES)) {
+                        if (ownerOrBorrow(bufferBorrowSourceType, TYPE_BYTES)) {
                             return 1;
                         }
                     }
@@ -537,21 +469,16 @@ classical class StorageVerifier {
             return 0;
         }
         if (opcode == OPCODE_REGION_BORROW) {
-            long regionBorrowSource = readUnsigned(
-                artifact, cursor + 16, 8);
+            long regionBorrowSource = readUnsigned(artifact, cursor + 16, 8);
             if (first < localCount) {
                 if (regionBorrowSource < localCount) {
-                    if (localHasType(
-                            artifact,
-                            activeTypes,
-                            first,
-                            TYPE_REGION_BORROW)) {
-                        if (ownerOrBorrow(
-                                localType(
-                                    artifact,
-                                    activeTypes,
-                                    regionBorrowSource),
-                                TYPE_REGION)) {
+                    if (localHasType(artifact, activeTypes, first, TYPE_REGION_BORROW)) {
+                        if (
+                            ownerOrBorrow(
+                                localType(artifact, activeTypes, regionBorrowSource),
+                                TYPE_REGION
+                            )
+                        ) {
                             return 1;
                         }
                     }
@@ -561,8 +488,7 @@ classical class StorageVerifier {
         }
         if (opcode == OPCODE_REGION_DROP) {
             if (first < localCount) {
-                if (localHasType(
-                        artifact, activeTypes, first, TYPE_REGION)) {
+                if (localHasType(artifact, activeTypes, first, TYPE_REGION)) {
                     return 1;
                 }
             }

@@ -710,47 +710,48 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 - [x] Retained comments receive deterministic lexical `leading`, `trailing`, `inner`, or `detached` placement against exact token ranges; consecutive comment blocks and blank trivia are classified without quadratic rescanning.
 - [x] A bounded structural parser now owns compilation-unit, header, type, member-declaration, and block ranges, delimiter recovery states, and comment targets. Lossless reconstruction remains exact; the branches may stand down.
 - [x] The stage-0 in-memory formatter implements deterministic LF/final-newline, four-space indentation, brace, delimiter, operator, comment-marker, blank-line, and basic horizontal-list whitespace; compact golden input preserves semantic `.wbc`, and every checked example preserves token spelling, comment payload/kind, lexical attachment, and idempotence.
-- [ ] The complete syntax-owned layout table, 100-scalar local line breaking, vertical lists, and minimal-diff generated corpus are accepted; the current engine is not yet the command oracle.
+- [x] Parenthesized parameter/argument/record groups choose horizontal form only when the complete normalized group fits 100 Unicode scalars; otherwise one item occupies each indented line and the closing delimiter owns its line.
+- [ ] Expression, bounded-loop-header, array-initializer, and remaining syntax-owned break tables plus the minimal-diff generated corpus are accepted; the command is authoritative for its documented stage-0 subset rather than quietly claiming the rest.
 - [x] `//!` file blocks and adjacent/detached `///` declaration blocks have exact lexical attachment fixtures, including BOM, CRLF, ordinary comments, and blank-line detachment.
 - [x] `WDOC001`, `WDOC003`, and `WDOC005` now check missing, empty, and misplaced first-content `//!` file summaries over the shared lossless stream with exact code/location/message fixtures.
 - [x] Parser-owned bootstrap member ranges implement required public/entry/reversible/coherent/unitary/theorem/experiment coverage, private-helper exemption, adjacent nonempty summaries, canonical facet order, duplicate facets, and required `Effects`/`Inverse`/`Coherent`/`Adjoint` facets as `WDOC002..004` and `WDOC006..010`; malformed delimiter recovery blocks formatting before printing.
 - [x] `wheeler format`, `--check`, and `--stdin` share bounded strict-UTF-8 physical traversal with `check-docs`, parse every input before publication, report stable `WFMT001..004` diagnostics, preserve ordinary POSIX modes, validate sibling temporary files, and require atomic canonical-order replacement.
 - [x] `wheeler check-docs` and `--stdin` perform bounded strict-UTF-8 reads, reject duplicate/unsafe/non-source inputs, traverse physical files in canonical path order, print stable ordered `WDOC` diagnostics, and write nothing.
-- [ ] Every checked-in `.w` file and required declaration is documented.
-- [ ] Every checked-in `.w` file is formatted.
+- [x] Every checked-in `.w` example has an authored first-content `//!` summary and every required declaration has adjacent `///` documentation with required facets; the compiler test walks the complete source tree.
+- [x] Every checked-in `.w` example is canonical under the stage-0 formatter; the compiler test rejects drift and the command check is clean.
 - [ ] Editor integrations call shared libraries rather than reproduce rules.
 - [ ] A Wheeler-written formatter and documentation checker match stage 0 byte-for-byte.
 - [ ] Stage-0 and duplicate tooling paths are deleted at native cutover.
 
 ## Testing and acceptance
 
-- [ ] Every accepted formatting fixture satisfies parse preservation, token and literal preservation, order preservation, comment-payload preservation, comment-kind preservation, comment-attachment preservation, and idempotence.
+- [x] Every accepted formatting fixture satisfies parse preservation, token and literal preservation, order preservation, comment-payload preservation, comment-kind preservation, comment-attachment preservation, and idempotence.
 
 - [ ] Adding, removing, or renaming one list item changes only its smallest enclosing layout groups outside unavoidable source-location shifts.
 
 - [ ] Compact, multiline, deeply nested, comment-heavy, Unicode, reversible, coherent, unitary, proof, module, and malformed fixtures are covered.
 
-- [ ] Every checked-in `.w` file has one nonempty first-content `//!` block.
+- [x] Every checked-in `.w` file has one nonempty first-content `//!` block.
 
-- [ ] Every required declaration has one adjacent nonempty `///` block.
+- [x] Every required declaration has one adjacent nonempty `///` block.
 
 - [ ] Public, entry, reversible, coherent, unitary, theorem, and experiment coverage rules have positive and negative fixtures.
 
-- [ ] Required `Effects`, `Inverse`, `Coherent`, and `Adjoint` facets have exact positive and negative fixtures.
+- [x] Required `Effects`, `Inverse`, `Coherent`, and `Adjoint` facets have exact positive and negative fixtures.
 
 - [ ] Missing, empty, misplaced, detached, mixed-kind, duplicate-facet, and out-of-order-facet cases produce exact `WDOC` diagnostics.
 
-- [ ] A private ordinary helper without `///` documentation remains valid for both formatting and documentation checking.
+- [x] A private ordinary helper without `///` documentation remains valid for both formatting and documentation checking.
 
 - [ ] Documentation payload, semantic line breaks, lists, links, and fenced blocks survive formatting byte-for-byte.
 
 - [ ] Formatting before compilation produces byte-identical semantic `.wbc` to compilation before formatting across the source corpus.
 
-- [ ] `format --check` writes no files, does not run documentation checks, and reports paths in canonical order.
+- [x] `format --check` writes no files, does not run documentation checks, and reports paths in canonical order.
 
 - [ ] `check-docs` writes no files, accepts unformatted valid source, and reports paths and declarations in canonical order.
 
-- [ ] Write mode avoids touching already formatted files and atomically replaces changed physical files.
+- [x] Write mode avoids touching already formatted files, preserves ordinary permission bits, validates sibling staging files, and atomically replaces changed physical files.
 
 - [ ] Malformed UTF-8, syntax failure, unsafe paths, exhausted limits, and prepublication failures leave original bytes unchanged.
 

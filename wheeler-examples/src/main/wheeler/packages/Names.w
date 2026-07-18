@@ -1,3 +1,5 @@
+//! Validates canonical package, module, and workspace names.
+
 module examples.packages.names;
 classical class Names {
     private boolean lowercase(long scalar) {
@@ -33,11 +35,8 @@ classical class Names {
         return scalar == 95;
     }
 
-    public boolean validModuleName(
-        utf8 source,
-        long start,
-        long length
-    ) {
+    /// Checks whether `moduleName` satisfies the canonical profile.
+    public boolean validModuleName(utf8 source, long start, long length) {
         if (length == 0) {
             return false;
         }
@@ -78,11 +77,8 @@ classical class Names {
         return true;
     }
 
-    public boolean validWorkspaceName(
-        utf8 source,
-        long start,
-        long length
-    ) {
+    /// Checks whether `workspaceName` satisfies the canonical profile.
+    public boolean validWorkspaceName(utf8 source, long start, long length) {
         if (length == 0) {
             return false;
         }
@@ -130,11 +126,8 @@ classical class Names {
         return lowercase(utf8Scalar(source, start));
     }
 
-    public boolean validPackageName(
-        utf8 source,
-        long start,
-        long length
-    ) {
+    /// Checks whether `packageName` satisfies the canonical profile.
+    public boolean validPackageName(utf8 source, long start, long length) {
         if (length == 0) {
             return false;
         }

@@ -1,3 +1,5 @@
+//! Validates bounded canonical releases and version constraints.
+
 module examples.packages.semver;
 classical class Semver {
     private boolean digit(long scalar) {
@@ -37,11 +39,7 @@ classical class Semver {
         return scalar == 45;
     }
 
-    private boolean validCore(
-        utf8 source,
-        long start,
-        long length
-    ) {
+    private boolean validCore(utf8 source, long start, long length) {
         long cursor = start;
         long end = start + length;
         long dots = 0;
@@ -94,11 +92,7 @@ classical class Semver {
         return false;
     }
 
-    private boolean validPrerelease(
-        utf8 source,
-        long start,
-        long length
-    ) {
+    private boolean validPrerelease(utf8 source, long start, long length) {
         long cursor = start;
         long end = start + length;
         long partLength = 0;
@@ -150,11 +144,8 @@ classical class Semver {
         return true;
     }
 
-    public boolean validRelease(
-        utf8 source,
-        long start,
-        long length
-    ) {
+    /// Checks whether `release` satisfies the canonical profile.
+    public boolean validRelease(utf8 source, long start, long length) {
         long cursor = start;
         long end = start + length;
         long coreLength = length;
@@ -174,21 +165,15 @@ classical class Semver {
         boolean core = validCore(source, start, coreLength);
         if (core) {
             if (hasPrerelease) {
-                return validPrerelease(
-                    source,
-                    prereleaseStart,
-                    end - prereleaseStart);
+                return validPrerelease(source, prereleaseStart, end - prereleaseStart);
             }
             return true;
         }
         return false;
     }
 
-    public boolean validConstraint(
-        utf8 source,
-        long start,
-        long length
-    ) {
+    /// Checks whether `constraint` satisfies the canonical profile.
+    public boolean validConstraint(utf8 source, long start, long length) {
         if (length == 0) {
             return false;
         }
@@ -205,11 +190,7 @@ classical class Semver {
         return validRelease(source, start, length);
     }
 
-    private boolean prefixedRelease(
-        utf8 source,
-        long start,
-        long length
-    ) {
+    private boolean prefixedRelease(utf8 source, long start, long length) {
         if (length == 1) {
             return false;
         }

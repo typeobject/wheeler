@@ -1,4 +1,4 @@
-// Fixed immutable arrays with typed calls, checked indexing, and value equality.
+//! Fixed immutable arrays with typed calls, checked indexing, and value equality.
 classical class FixedArrays {
     state long selected = 0;
     state long sum = 0;
@@ -25,6 +25,9 @@ classical class FixedArrays {
         return result;
     }
 
+    /// Runs the bounded `FixedArrays` fixture.
+    ///
+    /// - Effects: Mutates only the fixture's declared state.
     entry void main() {
         long[4] first = sequence();
         long[4] second = new long[4](2, 4, 6, 8);

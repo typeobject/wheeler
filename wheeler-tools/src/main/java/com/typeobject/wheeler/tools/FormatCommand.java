@@ -141,7 +141,7 @@ final class FormatCommand {
   }
 
   private static StagedSource stage(FormattedSource source) throws IOException {
-    Path destination = source.source().path().toAbsolutePath().normalize();
+    Path destination = source.source().physicalPath();
     Path parent = destination.getParent();
     if (parent == null
         || !Files.isDirectory(parent, LinkOption.NOFOLLOW_LINKS)
@@ -185,7 +185,7 @@ final class FormatCommand {
   private static void publish(StagedSource staged) throws IOException {
     FormattedSource source = staged.source();
     verifyUnchanged(source.source());
-    Path destination = source.source().path().toAbsolutePath().normalize();
+    Path destination = source.source().physicalPath();
     try {
       Files.move(
           staged.temporary(),
@@ -203,9 +203,11 @@ final class FormatCommand {
   }
 
   private static void verifyUnchanged(SourceCommandInputs.SourceFile source) throws IOException {
-    Path path = source.path();
-    if (Files.isSymbolicLink(path)) {
-      throw new IOException("Formatter input became a symbolic link: " + path);
+    Path path = source.physicalPath();
+    if (Files.isSymbolicLink(source.path())
+        || !source.path().toRealPath().equals(path)) {
+      throw new IOException(
+          "Formatter input path changed before publication: " + source.path());
     }
     BasicFileAttributes attributes = Files.readAttributes(
         path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);

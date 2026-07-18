@@ -1,4 +1,4 @@
-// Exhaustive tagged selection with typed payload bindings and structural equality.
+//! Exhaustive tagged selection with typed payload bindings and structural equality.
 classical class Variants {
     variant Option {
         case None();
@@ -15,6 +15,9 @@ classical class Variants {
         return new Option.None();
     }
 
+    /// Runs the bounded `Variants` fixture.
+    ///
+    /// - Effects: Mutates only the fixture's declared state.
     entry void main() {
         Option first = choose(true, 9);
         Option second = new Option.Some(9);

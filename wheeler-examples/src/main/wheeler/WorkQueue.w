@@ -1,3 +1,5 @@
+//! Exercises bounded queue push, pop, empty, and full transitions.
+
 module examples.queue.main;
 import examples.collections.queue;
 classical class WorkQueue {
@@ -70,6 +72,9 @@ classical class WorkQueue {
         }
     }
 
+    /// Runs the bounded `WorkQueue` fixture.
+    ///
+    /// - Effects: Mutates only the fixture's declared state.
     entry void main() {
         region arena = new region(32, 1);
         words values = allocate(arena, 4);

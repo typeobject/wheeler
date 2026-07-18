@@ -1,4 +1,4 @@
-// Immutable nominal records, nested fields, typed calls, and structural equality.
+//! Immutable nominal records, nested fields, typed calls, and structural equality.
 classical class Records {
     record Span(long start, long end) {}
     record Token(Span span, boolean valid) {}
@@ -14,6 +14,9 @@ classical class Records {
         return value.span.end - value.span.start;
     }
 
+    /// Runs the bounded `Records` fixture.
+    ///
+    /// - Effects: Mutates only the fixture's declared state.
     entry void main() {
         Span span = new Span(3, 8);
         Token first = token(span);

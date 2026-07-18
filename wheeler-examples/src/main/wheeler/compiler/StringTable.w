@@ -1,7 +1,10 @@
+//! Plans and emits the canonical artifact string table.
+
 module examples.compiler.string_table;
 import examples.compiler.encoding;
 import examples.compiler.ir;
 classical class StringTable {
+    /// Defines immutable `StringTablePlan` values for this module.
     public record StringTablePlan(
         long nameIndex,
         long globalIndex,
@@ -13,16 +16,13 @@ classical class StringTable {
         long valid
     ) {}
 
-    public StringTablePlan planStringTable(
-        utf8 source,
-        MinimalProgram program
-    ) {
+    /// Computes canonical string offsets and total encoded table length.
+    public StringTablePlan planStringTable(utf8 source, MinimalProgram program) {
         long nameLength = program.name.length;
         long globalLength = program.global.length;
         long helperLength = program.helperName.length;
         long proofLength = program.proofName.length;
-        long nameMainOrder = compareAsciiSliceToMain(
-            source, program.name.start, nameLength);
+        long nameMainOrder = compareAsciiSliceToMain(source, program.name.start, nameLength);
         long valid = 1;
         if (nameMainOrder == 0) {
             valid = 0;
@@ -46,9 +46,13 @@ classical class StringTable {
                 program.name.start,
                 nameLength,
                 program.global.start,
-                globalLength);
+                globalLength
+            );
             long baseGlobalMainOrder = compareAsciiSliceToMain(
-                source, program.global.start, globalLength);
+                source,
+                program.global.start,
+                globalLength
+            );
             if (baseNameGlobalOrder == 0) {
                 valid = 0;
             }
@@ -85,23 +89,32 @@ classical class StringTable {
                 program.name.start,
                 nameLength,
                 program.global.start,
-                globalLength);
+                globalLength
+            );
             long globalMainOrder = compareAsciiSliceToMain(
-                source, program.global.start, globalLength);
+                source,
+                program.global.start,
+                globalLength
+            );
             long nameHelperOrder = compareAsciiSlices(
                 source,
                 program.name.start,
                 nameLength,
                 program.helperName.start,
-                helperLength);
+                helperLength
+            );
             long globalHelperOrder = compareAsciiSlices(
                 source,
                 program.global.start,
                 globalLength,
                 program.helperName.start,
-                helperLength);
+                helperLength
+            );
             long helperMainOrder = compareAsciiSliceToMain(
-                source, program.helperName.start, helperLength);
+                source,
+                program.helperName.start,
+                helperLength
+            );
             if (nameGlobalOrder == 0) {
                 valid = 0;
             }
@@ -158,10 +171,7 @@ classical class StringTable {
                 helperIndex += 1;
             }
             stringCount = 4;
-            encodedLength = 24
-                + nameLength
-                + globalLength
-                + helperLength;
+            encodedLength = 24 + nameLength + globalLength + helperLength;
         }
         if (program.proofCount == 1) {
             long proofNameOrder = compareAsciiSlices(
@@ -169,21 +179,27 @@ classical class StringTable {
                 program.name.start,
                 nameLength,
                 program.proofName.start,
-                proofLength);
+                proofLength
+            );
             long proofGlobalOrder = compareAsciiSlices(
                 source,
                 program.global.start,
                 globalLength,
                 program.proofName.start,
-                proofLength);
+                proofLength
+            );
             long proofHelperOrder = compareAsciiSlices(
                 source,
                 program.helperName.start,
                 helperLength,
                 program.proofName.start,
-                proofLength);
+                proofLength
+            );
             long proofMainOrder = compareAsciiSliceToMain(
-                source, program.proofName.start, proofLength);
+                source,
+                program.proofName.start,
+                proofLength
+            );
             if (proofNameOrder == 0) {
                 valid = 0;
             }
@@ -217,11 +233,7 @@ classical class StringTable {
                 proofIndex += 1;
             }
             stringCount = 5;
-            encodedLength = 28
-                + nameLength
-                + globalLength
-                + helperLength
-                + proofLength;
+            encodedLength = 28 + nameLength + globalLength + helperLength + proofLength;
         }
         return new StringTablePlan(
             nameIndex,
@@ -231,9 +243,11 @@ classical class StringTable {
             mainIndex,
             stringCount,
             encodedLength,
-            valid);
+            valid
+        );
     }
 
+    /// Writes `stringTable` into caller-owned bounded output.
     public long writeStringTable(
         bytes output,
         long cursor,
@@ -241,54 +255,63 @@ classical class StringTable {
         MinimalProgram program,
         StringTablePlan plan
     ) {
-        cursor = writeUnsignedLittleEndian(
-            output, cursor, plan.stringCount, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, plan.stringCount, 4);
         long stringIndex = 0;
         while (stringIndex < plan.stringCount) limit 5 {
             if (stringIndex == plan.nameIndex) {
-                cursor = writeUnsignedLittleEndian(
-                    output, cursor, program.name.length, 4);
+                cursor = writeUnsignedLittleEndian(output, cursor, program.name.length, 4);
                 cursor = writeAsciiSlice(
                     output,
                     cursor,
                     source,
                     program.name.start,
-                    program.name.length);
+                    program.name.length
+                );
             }
             if (program.globalCount == 1) {
                 if (stringIndex == plan.globalIndex) {
-                    cursor = writeUnsignedLittleEndian(
-                        output, cursor, program.global.length, 4);
+                    cursor = writeUnsignedLittleEndian(output, cursor, program.global.length, 4);
                     cursor = writeAsciiSlice(
                         output,
                         cursor,
                         source,
                         program.global.start,
-                        program.global.length);
+                        program.global.length
+                    );
                 }
             }
             if (program.helperCount == 1) {
                 if (stringIndex == plan.helperIndex) {
                     cursor = writeUnsignedLittleEndian(
-                        output, cursor, program.helperName.length, 4);
+                        output,
+                        cursor,
+                        program.helperName.length,
+                        4
+                    );
                     cursor = writeAsciiSlice(
                         output,
                         cursor,
                         source,
                         program.helperName.start,
-                        program.helperName.length);
+                        program.helperName.length
+                    );
                 }
             }
             if (program.proofCount == 1) {
                 if (stringIndex == plan.proofIndex) {
                     cursor = writeUnsignedLittleEndian(
-                        output, cursor, program.proofName.length, 4);
+                        output,
+                        cursor,
+                        program.proofName.length,
+                        4
+                    );
                     cursor = writeAsciiSlice(
                         output,
                         cursor,
                         source,
                         program.proofName.start,
-                        program.proofName.length);
+                        program.proofName.length
+                    );
                 }
             }
             if (stringIndex == plan.mainIndex) {

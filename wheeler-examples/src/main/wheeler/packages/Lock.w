@@ -1,8 +1,11 @@
+//! Parses bounded canonical dependency locks.
+
 module examples.packages.lock;
 import examples.packages.names;
 import examples.packages.semver;
 import examples.packages.tokens;
 classical class Lock {
+    /// Defines immutable `LockedPackage` values for this module.
     public record LockedPackage(
         long nameStart,
         long nameLength,
@@ -11,6 +14,7 @@ classical class Lock {
         long manifestStart
     ) {}
 
+    /// Defines immutable `LockModel` values for this module.
     public record LockModel(
         long rootStart,
         LockedPackage first,
@@ -21,17 +25,13 @@ classical class Lock {
         long edgeCount
     ) {}
 
+    /// Defines the closed `LockResult` cases exported by this module.
     public variant LockResult {
         case Value(LockModel lock);
         case Error(long offset);
     }
 
-    private boolean hexDigest(
-        utf8 source,
-        words starts,
-        words lengths,
-        long token
-    ) {
+    private boolean hexDigest(utf8 source, words starts, words lengths, long token) {
         if (lengths[token] == 66) {
             long cursor = starts[token] + 1;
             long end = cursor + 64;
@@ -69,50 +69,52 @@ classical class Lock {
         boolean validName = validPackageName(
             source,
             starts[recordStart + 1] + 1,
-            lengths[recordStart + 1] - 2);
+            lengths[recordStart + 1] - 2
+        );
         boolean validVersion = validRelease(
             source,
             starts[recordStart + 3] + 1,
-            lengths[recordStart + 3] - 2);
-        if (keywordAt(
-                source, starts, lengths, recordStart, 102272152646)) {
+            lengths[recordStart + 3] - 2
+        );
+        if (keywordAt(source, starts, lengths, recordStart, 102272152646)) {
             if (quoted(kinds, lengths, recordStart + 1)) {
                 if (validName) {
-                    if (keywordAt(
-                            source,
-                            starts,
-                            lengths,
-                            recordStart + 2,
-                            107725790424)) {
+                    if (keywordAt(source, starts, lengths, recordStart + 2, 107725790424)) {
                         if (quoted(kinds, lengths, recordStart + 3)) {
                             if (validVersion) {
-                                if (keywordAt(
+                                if (
+                                    keywordAt(
                                         source,
                                         starts,
                                         lengths,
                                         recordStart + 4,
-                                        89446211778)) {
-                                    if (hexDigest(
-                                            source,
-                                            starts,
-                                            lengths,
-                                            recordStart + 5)) {
-                                        if (keywordAt(
+                                        89446211778
+                                    )
+                                ) {
+                                    if (hexDigest(source, starts, lengths, recordStart + 5)) {
+                                        if (
+                                            keywordAt(
                                                 source,
                                                 starts,
                                                 lengths,
                                                 recordStart + 6,
-                                                3088212110895)) {
-                                            if (hexDigest(
+                                                3088212110895
+                                            )
+                                        ) {
+                                            if (
+                                                hexDigest(
                                                     source,
                                                     starts,
                                                     lengths,
-                                                    recordStart + 7)) {
+                                                    recordStart + 7
+                                                )
+                                            ) {
                                                 return semicolonAt(
                                                     source,
                                                     kinds,
                                                     starts,
-                                                    recordStart + 8);
+                                                    recordStart + 8
+                                                );
                                             }
                                         }
                                     }
@@ -126,17 +128,14 @@ classical class Lock {
         return false;
     }
 
-    private LockedPackage lockedPackage(
-        words starts,
-        words lengths,
-        long recordStart
-    ) {
+    private LockedPackage lockedPackage(words starts, words lengths, long recordStart) {
         return new LockedPackage(
             starts[recordStart + 1] + 1,
             lengths[recordStart + 1] - 2,
             lengths[recordStart + 3] - 2,
             starts[recordStart + 5] + 1,
-            starts[recordStart + 7] + 1);
+            starts[recordStart + 7] + 1
+        );
     }
 
     private boolean edgeValid(
@@ -146,21 +145,26 @@ classical class Lock {
         words lengths,
         long recordStart
     ) {
-        if (keywordAt(
-                source, starts, lengths, recordStart, 3108285)) {
+        if (keywordAt(source, starts, lengths, recordStart, 3108285)) {
             if (quoted(kinds, lengths, recordStart + 1)) {
                 if (quoted(kinds, lengths, recordStart + 2)) {
                     boolean sourceKnown = sameTokenText(
-                        source, starts, lengths, 6, recordStart + 1);
+                        source,
+                        starts,
+                        lengths,
+                        6,
+                        recordStart + 1
+                    );
                     boolean targetKnown = sameTokenText(
-                        source, starts, lengths, 15, recordStart + 2);
+                        source,
+                        starts,
+                        lengths,
+                        15,
+                        recordStart + 2
+                    );
                     if (sourceKnown) {
                         if (targetKnown) {
-                            return semicolonAt(
-                                source,
-                                kinds,
-                                starts,
-                                recordStart + 3);
+                            return semicolonAt(source, kinds, starts, recordStart + 3);
                         }
                     }
                 }
@@ -169,29 +173,17 @@ classical class Lock {
         return false;
     }
 
-    public LockResult parse(
-        utf8 source,
-        words kinds,
-        words starts,
-        words lengths,
-        long count
-    ) {
+    /// Parses and validates one canonical dependency lock.
+    public LockResult parse(utf8 source, words kinds, words starts, words lengths, long count) {
         if (keywordAt(source, starts, lengths, 0, 3327275)) {
             if (kinds[1] == 2) {
                 if (tokenHash(source, starts, lengths, 1) == 49) {
                     if (keywordAt(source, starts, lengths, 2, 3506402)) {
                         if (hexDigest(source, starts, lengths, 3)) {
                             if (semicolonAt(source, kinds, starts, 4)) {
-                                if (packageValid(
-                                        source,
-                                        kinds,
-                                        starts,
-                                        lengths,
-                                        5)) {
-                                    LockedPackage first = lockedPackage(
-                                        starts, lengths, 5);
-                                    LockedPackage empty = new LockedPackage(
-                                        0, 0, 0, 0, 0);
+                                if (packageValid(source, kinds, starts, lengths, 5)) {
+                                    LockedPackage first = lockedPackage(starts, lengths, 5);
+                                    LockedPackage empty = new LockedPackage(0, 0, 0, 0, 0);
                                     if (count == 14) {
                                         LockModel one = new LockModel(
                                             starts[3] + 1,
@@ -200,24 +192,24 @@ classical class Lock {
                                             1,
                                             0,
                                             0,
-                                            0);
+                                            0
+                                        );
                                         return new LockResult.Value(one);
                                     }
-                                    if (packageValid(
-                                            source,
-                                            kinds,
-                                            starts,
-                                            lengths,
-                                            14)) {
+                                    if (packageValid(source, kinds, starts, lengths, 14)) {
                                         long packageOrder = compareTokenText(
                                             source,
                                             starts,
                                             lengths,
                                             6,
-                                            15);
+                                            15
+                                        );
                                         if (packageOrder < 0) {
                                             LockedPackage second = lockedPackage(
-                                                starts, lengths, 14);
+                                                starts,
+                                                lengths,
+                                                14
+                                            );
                                             if (count == 23) {
                                                 LockModel two = new LockModel(
                                                     starts[3] + 1,
@@ -226,16 +218,20 @@ classical class Lock {
                                                     2,
                                                     0,
                                                     0,
-                                                    0);
+                                                    0
+                                                );
                                                 return new LockResult.Value(two);
                                             }
                                             if (count == 27) {
-                                                if (edgeValid(
+                                                if (
+                                                    edgeValid(
                                                         source,
                                                         kinds,
                                                         starts,
                                                         lengths,
-                                                        23)) {
+                                                        23
+                                                    )
+                                                ) {
                                                     LockModel edge = new LockModel(
                                                         starts[3] + 1,
                                                         first,
@@ -243,7 +239,8 @@ classical class Lock {
                                                         2,
                                                         starts[24] + 1,
                                                         starts[25] + 1,
-                                                        1);
+                                                        1
+                                                    );
                                                     return new LockResult.Value(edge);
                                                 }
                                             }

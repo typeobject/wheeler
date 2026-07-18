@@ -1,10 +1,8 @@
+//! Emits bounded canonical package manifests.
+
 module examples.packages.emitter;
 classical class ManifestEmitter {
-    private boolean semicolonToken(
-        utf8 source,
-        words starts,
-        long token
-    ) {
+    private boolean semicolonToken(utf8 source, words starts, long token) {
         return utf8Scalar(source, starts[token]) == 59;
     }
 
@@ -26,6 +24,7 @@ classical class ManifestEmitter {
         return cursor;
     }
 
+    /// Emits `canonical` into caller-owned bounded output.
     public long emitCanonical(
         utf8 source,
         words starts,
@@ -36,16 +35,10 @@ classical class ManifestEmitter {
         long token = 0;
         long cursor = 0;
         while (token < count) limit 64 {
-            cursor = copyToken(
-                source,
-                starts[token],
-                lengths[token],
-                output,
-                cursor);
+            cursor = copyToken(source, starts[token], lengths[token], output, cursor);
             long next = token + 1;
             if (next < count) {
-                boolean beforeSemicolon = semicolonToken(
-                    source, starts, next);
+                boolean beforeSemicolon = semicolonToken(source, starts, next);
                 if (beforeSemicolon) {
                     cursor += 0;
                 } else {

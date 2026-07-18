@@ -1,4 +1,4 @@
-// Deterministic bounded signed map with update, membership, lookup, and drop.
+//! Deterministic bounded signed map with update, membership, lookup, and drop.
 classical class LongMap {
     state long selected = 0;
     state long present = 0;
@@ -18,6 +18,9 @@ classical class LongMap {
         return mapHas(values, key);
     }
 
+    /// Runs the bounded `LongMap` fixture.
+    ///
+    /// - Effects: Mutates only the fixture's declared state.
     entry void main() {
         region arena = new region(96, 1);
         longmap values = allocateMap(arena, 4);

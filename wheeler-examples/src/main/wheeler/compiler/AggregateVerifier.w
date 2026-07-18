@@ -1,4 +1,4 @@
-/// Verifies bounded record and finite-variant instruction operands.
+//! Verifies bounded record and finite-variant instruction operands.
 module examples.compiler.aggregate_verifier;
 import examples.compiler.opcodes;
 import examples.compiler.type_codes;
@@ -11,11 +11,7 @@ classical class AggregateVerifier {
         return right < left;
     }
 
-    private long localType(
-        byteview artifact,
-        long activeTypes,
-        long local
-    ) {
+    private long localType(byteview artifact, long activeTypes, long local) {
         return readUnsigned(artifact, activeTypes + local * 4, 4);
     }
 
@@ -42,13 +38,8 @@ classical class AggregateVerifier {
         return -1;
     }
 
-    private long recordFieldType(
-        byteview artifact,
-        long descriptor,
-        long field
-    ) {
-        return readUnsigned(
-            artifact, descriptor + 16 + field * 8, 4);
+    private long recordFieldType(byteview artifact, long descriptor, long field) {
+        return readUnsigned(artifact, descriptor + 16 + field * 8, 4);
     }
 
     private long variantDescriptor(
@@ -66,8 +57,7 @@ classical class AggregateVerifier {
             long caseCount = readUnsigned(artifact, cursor + 8, 4);
             cursor += 12;
             long variantCase = 0;
-            while (variantCase < caseCount)
-                limit INTERPRETER_AGGREGATE_COUNT {
+            while (variantCase < caseCount) limit INTERPRETER_AGGREGATE_COUNT {
                 long fieldCount = readUnsigned(artifact, cursor + 4, 4);
                 cursor += 8 + fieldCount * 8;
                 variantCase += 1;
@@ -77,14 +67,9 @@ classical class AggregateVerifier {
         return -1;
     }
 
-    private long variantCaseDescriptor(
-        byteview artifact,
-        long descriptor,
-        long tag
-    ) {
+    private long variantCaseDescriptor(byteview artifact, long descriptor, long tag) {
         long caseCount = readUnsigned(artifact, descriptor + 8, 4);
-        if (tag < caseCount) {
-        } else {
+        if (tag < caseCount) {} else {
             return -1;
         }
         long cursor = descriptor + 12;
@@ -97,13 +82,8 @@ classical class AggregateVerifier {
         return cursor;
     }
 
-    private long variantFieldType(
-        byteview artifact,
-        long caseDescriptor,
-        long field
-    ) {
-        return readUnsigned(
-            artifact, caseDescriptor + 12 + field * 8, 4);
+    private long variantFieldType(byteview artifact, long caseDescriptor, long field) {
+        return readUnsigned(artifact, caseDescriptor + 12 + field * 8, 4);
     }
 
     private long recordOperandsValid(
@@ -126,22 +106,21 @@ classical class AggregateVerifier {
                 typesOffset,
                 globalCount,
                 recordCount,
-                typeId);
+                typeId
+            );
             if (descriptor < 0) {
                 return 0;
             }
-            if (differs(
-                    readUnsigned(artifact, descriptor + 8, 4),
-                    fieldCount)) {
+            if (differs(readUnsigned(artifact, descriptor + 8, 4), fieldCount)) {
                 return 0;
             }
             if (localCount < fieldBase + fieldCount) {
                 return 0;
             }
             if (destination < localCount) {
-                if (differs(
-                        localType(artifact, activeTypes, destination),
-                        TYPE_RECORD + typeId)) {
+                if (
+                    differs(localType(artifact, activeTypes, destination), TYPE_RECORD + typeId)
+                ) {
                     return 0;
                 }
             } else {
@@ -149,10 +128,12 @@ classical class AggregateVerifier {
             }
             long field = 0;
             while (field < fieldCount) limit INTERPRETER_LOCAL_WIDTH {
-                if (differs(
-                        localType(
-                            artifact, activeTypes, fieldBase + field),
-                        recordFieldType(artifact, descriptor, field))) {
+                if (
+                    differs(
+                        localType(artifact, activeTypes, fieldBase + field),
+                        recordFieldType(artifact, descriptor, field)
+                    )
+                ) {
                     return 0;
                 }
                 field += 1;
@@ -163,28 +144,23 @@ classical class AggregateVerifier {
         long getField = readUnsigned(artifact, cursor + 24, 8);
         if (destination < localCount) {
             if (getSource < localCount) {
-                long getSourceType = localType(
-                    artifact, activeTypes, getSource);
+                long getSourceType = localType(artifact, activeTypes, getSource);
                 if (isRecordType(getSourceType)) {
                     long getDescriptor = recordDescriptor(
                         artifact,
                         typesOffset,
                         globalCount,
                         recordCount,
-                        recordTypeId(getSourceType));
+                        recordTypeId(getSourceType)
+                    );
                     if (0 < getDescriptor) {
-                        if (getField < readUnsigned(
-                                artifact, getDescriptor + 8, 4)) {
-                            if (differs(
-                                    localType(
-                                        artifact,
-                                        activeTypes,
-                                        destination),
-                                    recordFieldType(
-                                        artifact,
-                                        getDescriptor,
-                                        getField))) {
-                            } else {
+                        if (getField < readUnsigned(artifact, getDescriptor + 8, 4)) {
+                            if (
+                                differs(
+                                    localType(artifact, activeTypes, destination),
+                                    recordFieldType(artifact, getDescriptor, getField)
+                                )
+                            ) {} else {
                                 return 1;
                             }
                         }
@@ -210,28 +186,27 @@ classical class AggregateVerifier {
             long tag = readUnsigned(artifact, cursor + 24, 8);
             long fieldBase = readUnsigned(artifact, cursor + 32, 8);
             long fieldCount = readUnsigned(artifact, cursor + 40, 8);
-            long descriptor = variantDescriptor(
-                artifact, variantsOffset, variantCount, typeId);
+            long descriptor = variantDescriptor(artifact, variantsOffset, variantCount, typeId);
             if (descriptor < 0) {
                 return 0;
             }
-            long variantCase = variantCaseDescriptor(
-                artifact, descriptor, tag);
+            long variantCase = variantCaseDescriptor(artifact, descriptor, tag);
             if (variantCase < 0) {
                 return 0;
             }
-            if (differs(
-                    readUnsigned(artifact, variantCase + 4, 4),
-                    fieldCount)) {
+            if (differs(readUnsigned(artifact, variantCase + 4, 4), fieldCount)) {
                 return 0;
             }
             if (localCount < fieldBase + fieldCount) {
                 return 0;
             }
             if (destination < localCount) {
-                if (differs(
+                if (
+                    differs(
                         localType(artifact, activeTypes, destination),
-                        TYPE_VARIANT + typeId)) {
+                        TYPE_VARIANT + typeId
+                    )
+                ) {
                     return 0;
                 }
             } else {
@@ -239,11 +214,12 @@ classical class AggregateVerifier {
             }
             long field = 0;
             while (field < fieldCount) limit INTERPRETER_LOCAL_WIDTH {
-                if (differs(
-                        localType(
-                            artifact, activeTypes, fieldBase + field),
-                        variantFieldType(
-                            artifact, variantCase, field))) {
+                if (
+                    differs(
+                        localType(artifact, activeTypes, fieldBase + field),
+                        variantFieldType(artifact, variantCase, field)
+                    )
+                ) {
                     return 0;
                 }
                 field += 1;
@@ -253,22 +229,18 @@ classical class AggregateVerifier {
         long getSource = readUnsigned(artifact, cursor + 16, 8);
         if (destination < localCount) {
             if (getSource < localCount) {
-                long getSourceType = localType(
-                    artifact, activeTypes, getSource);
+                long getSourceType = localType(artifact, activeTypes, getSource);
                 if (isVariantType(getSourceType)) {
                     long getDescriptor = variantDescriptor(
                         artifact,
                         variantsOffset,
                         variantCount,
-                        variantTypeId(getSourceType));
+                        variantTypeId(getSourceType)
+                    );
                     long getTag = readUnsigned(artifact, cursor + 24, 8);
-                    long getCase = variantCaseDescriptor(
-                        artifact, getDescriptor, getTag);
+                    long getCase = variantCaseDescriptor(artifact, getDescriptor, getTag);
                     if (opcode == OPCODE_VARIANT_TAG_EQ) {
-                        if (localType(
-                                artifact,
-                                activeTypes,
-                                destination) == TYPE_BOOLEAN) {
+                        if (localType(artifact, activeTypes, destination) == TYPE_BOOLEAN) {
                             if (0 < getCase) {
                                 return 1;
                             }
@@ -277,18 +249,13 @@ classical class AggregateVerifier {
                     }
                     long getField = readUnsigned(artifact, cursor + 32, 8);
                     if (0 < getCase) {
-                        if (getField < readUnsigned(
-                                artifact, getCase + 4, 4)) {
-                            if (differs(
-                                    localType(
-                                        artifact,
-                                        activeTypes,
-                                        destination),
-                                    variantFieldType(
-                                        artifact,
-                                        getCase,
-                                        getField))) {
-                            } else {
+                        if (getField < readUnsigned(artifact, getCase + 4, 4)) {
+                            if (
+                                differs(
+                                    localType(artifact, activeTypes, destination),
+                                    variantFieldType(artifact, getCase, getField)
+                                )
+                            ) {} else {
                                 return 1;
                             }
                         }
@@ -346,36 +313,33 @@ classical class AggregateVerifier {
                 globalCount,
                 recordCount,
                 arrayCount,
-                typeId);
+                typeId
+            );
             if (descriptor < 0) {
                 return 0;
             }
-            if (differs(
-                    readUnsigned(artifact, descriptor + 8, 4),
-                    elementCount)) {
+            if (differs(readUnsigned(artifact, descriptor + 8, 4), elementCount)) {
                 return 0;
             }
             if (localCount < elementBase + elementCount) {
                 return 0;
             }
             if (destination < localCount) {
-                if (localType(artifact, activeTypes, destination)
-                        == TYPE_ARRAY + typeId) {
-                } else {
+                if (localType(artifact, activeTypes, destination) == TYPE_ARRAY + typeId) {} else {
                     return 0;
                 }
             } else {
                 return 0;
             }
             long element = 0;
-            while (element < elementCount)
-                limit INTERPRETER_AGGREGATE_FIELDS {
-                if (localType(
+            while (element < elementCount) limit INTERPRETER_AGGREGATE_FIELDS {
+                if (
+                    localType(artifact, activeTypes, elementBase + element) == readUnsigned(
                         artifact,
-                        activeTypes,
-                        elementBase + element)
-                        == readUnsigned(artifact, descriptor + 4, 4)) {
-                } else {
+                        descriptor + 4,
+                        4
+                    )
+                ) {} else {
                     return 0;
                 }
                 element += 1;
@@ -387,8 +351,7 @@ classical class AggregateVerifier {
         if (destination < localCount) {
             if (source < localCount) {
                 if (indexLocal < localCount) {
-                    long sourceType = localType(
-                        artifact, activeTypes, source);
+                    long sourceType = localType(artifact, activeTypes, source);
                     if (isArrayType(sourceType)) {
                         long getDescriptor = arrayDescriptor(
                             artifact,
@@ -396,20 +359,17 @@ classical class AggregateVerifier {
                             globalCount,
                             recordCount,
                             arrayCount,
-                            arrayTypeId(sourceType));
+                            arrayTypeId(sourceType)
+                        );
                         if (0 < getDescriptor) {
-                            if (localType(
-                                    artifact,
-                                    activeTypes,
-                                    indexLocal) == TYPE_SIGNED) {
-                                if (localType(
+                            if (localType(artifact, activeTypes, indexLocal) == TYPE_SIGNED) {
+                                if (
+                                    localType(artifact, activeTypes, destination) == readUnsigned(
                                         artifact,
-                                        activeTypes,
-                                        destination)
-                                        == readUnsigned(
-                                            artifact,
-                                            getDescriptor + 4,
-                                            4)) {
+                                        getDescriptor + 4,
+                                        4
+                                    )
+                                ) {
                                     return 1;
                                 }
                             }
@@ -469,8 +429,7 @@ classical class AggregateVerifier {
                 if (sourceArray < localCount) {
                     if (startLocal < localCount) {
                         if (lengthLocal < localCount) {
-                            long sourceType = localType(
-                                artifact, activeTypes, sourceArray);
+                            long sourceType = localType(artifact, activeTypes, sourceArray);
                             if (isArrayType(sourceType)) {
                                 long arrayInfo = arrayDescriptor(
                                     artifact,
@@ -478,7 +437,8 @@ classical class AggregateVerifier {
                                     globalCount,
                                     recordCount,
                                     arrayCount,
-                                    arrayTypeId(sourceType));
+                                    arrayTypeId(sourceType)
+                                );
                                 long sliceInfo = sliceDescriptor(
                                     artifact,
                                     typesOffset,
@@ -486,32 +446,26 @@ classical class AggregateVerifier {
                                     recordCount,
                                     arrayCount,
                                     sliceCount,
-                                    typeId);
+                                    typeId
+                                );
                                 if (0 < arrayInfo) {
                                     if (0 < sliceInfo) {
-                                        if (localType(
-                                                artifact,
-                                                activeTypes,
-                                                destination)
-                                                == TYPE_SLICE + typeId) {
-                                            if (localType(
-                                                    artifact,
-                                                    activeTypes,
-                                                    startLocal)
-                                                    == TYPE_SIGNED) {
-                                                if (localType(
-                                                        artifact,
-                                                        activeTypes,
-                                                        lengthLocal)
-                                                        == TYPE_SIGNED) {
-                                                    if (readUnsigned(
+                                        if (
+                                            localType(artifact, activeTypes, destination) == TYPE_SLICE + typeId
+                                        ) {
+                                            if (
+                                                localType(artifact, activeTypes, startLocal) == TYPE_SIGNED
+                                            ) {
+                                                if (
+                                                    localType(artifact, activeTypes, lengthLocal) == TYPE_SIGNED
+                                                ) {
+                                                    if (
+                                                        readUnsigned(artifact, arrayInfo + 4, 4) == readUnsigned(
                                                             artifact,
-                                                            arrayInfo + 4,
-                                                            4)
-                                                            == readUnsigned(
-                                                                artifact,
-                                                                sliceInfo + 4,
-                                                                4)) {
+                                                            sliceInfo + 4,
+                                                            4
+                                                        )
+                                                    ) {
                                                         return 1;
                                                     }
                                                 }
@@ -531,8 +485,7 @@ classical class AggregateVerifier {
         if (destination < localCount) {
             if (sourceSlice < localCount) {
                 if (indexLocal < localCount) {
-                    long getSourceType = localType(
-                        artifact, activeTypes, sourceSlice);
+                    long getSourceType = localType(artifact, activeTypes, sourceSlice);
                     if (isSliceType(getSourceType)) {
                         long getInfo = sliceDescriptor(
                             artifact,
@@ -541,18 +494,17 @@ classical class AggregateVerifier {
                             recordCount,
                             arrayCount,
                             sliceCount,
-                            sliceTypeId(getSourceType));
+                            sliceTypeId(getSourceType)
+                        );
                         if (0 < getInfo) {
-                            if (localType(
-                                    artifact,
-                                    activeTypes,
-                                    indexLocal) == TYPE_SIGNED) {
-                                if (localType(
+                            if (localType(artifact, activeTypes, indexLocal) == TYPE_SIGNED) {
+                                if (
+                                    localType(artifact, activeTypes, destination) == readUnsigned(
                                         artifact,
-                                        activeTypes,
-                                        destination)
-                                        == readUnsigned(
-                                            artifact, getInfo + 4, 4)) {
+                                        getInfo + 4,
+                                        4
+                                    )
+                                ) {
                                     return 1;
                                 }
                             }
@@ -564,6 +516,7 @@ classical class AggregateVerifier {
         return 0;
     }
 
+    /// Checks aggregate instruction operands against verified type metadata.
     public long aggregateOperandsValid(
         byteview artifact,
         long cursor,
@@ -587,7 +540,8 @@ classical class AggregateVerifier {
                 globalCount,
                 recordCount,
                 localCount,
-                activeTypes);
+                activeTypes
+            );
         }
         if (opcode == OPCODE_RECORD_GET) {
             return recordOperandsValid(
@@ -598,7 +552,8 @@ classical class AggregateVerifier {
                 globalCount,
                 recordCount,
                 localCount,
-                activeTypes);
+                activeTypes
+            );
         }
         if (opcode == OPCODE_VARIANT_NEW) {
             return variantOperandsValid(
@@ -608,7 +563,8 @@ classical class AggregateVerifier {
                 variantsOffset,
                 variantCount,
                 localCount,
-                activeTypes);
+                activeTypes
+            );
         }
         if (opcode == OPCODE_VARIANT_TAG_EQ) {
             return variantOperandsValid(
@@ -618,7 +574,8 @@ classical class AggregateVerifier {
                 variantsOffset,
                 variantCount,
                 localCount,
-                activeTypes);
+                activeTypes
+            );
         }
         if (opcode == OPCODE_VARIANT_GET) {
             return variantOperandsValid(
@@ -628,7 +585,8 @@ classical class AggregateVerifier {
                 variantsOffset,
                 variantCount,
                 localCount,
-                activeTypes);
+                activeTypes
+            );
         }
         if (opcode == OPCODE_ARRAY_NEW) {
             return arrayOperandsValid(
@@ -640,7 +598,8 @@ classical class AggregateVerifier {
                 recordCount,
                 arrayCount,
                 localCount,
-                activeTypes);
+                activeTypes
+            );
         }
         if (opcode == OPCODE_ARRAY_GET) {
             return arrayOperandsValid(
@@ -652,7 +611,8 @@ classical class AggregateVerifier {
                 recordCount,
                 arrayCount,
                 localCount,
-                activeTypes);
+                activeTypes
+            );
         }
         if (opcode == OPCODE_SLICE_NEW) {
             return sliceOperandsValid(
@@ -665,7 +625,8 @@ classical class AggregateVerifier {
                 arrayCount,
                 sliceCount,
                 localCount,
-                activeTypes);
+                activeTypes
+            );
         }
         if (opcode == OPCODE_SLICE_GET) {
             return sliceOperandsValid(
@@ -678,7 +639,8 @@ classical class AggregateVerifier {
                 arrayCount,
                 sliceCount,
                 localCount,
-                activeTypes);
+                activeTypes
+            );
         }
         return -1;
     }

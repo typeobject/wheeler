@@ -1,3 +1,5 @@
+//! Parses helper functions in the bounded bootstrap source profile.
+
 module examples.compiler.helper_parser;
 import examples.compiler.ir;
 import examples.compiler.statements;
@@ -10,8 +12,7 @@ classical class HelperParser {
         words tokenLengths,
         long statementStart
     ) {
-        long opcode = statementOpcode(
-            source, tokenStarts, tokenLengths, statementStart);
+        long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
         if (opcode == 1040) {
             return true;
         }
@@ -29,18 +30,10 @@ classical class HelperParser {
         long nameToken,
         long callStart
     ) {
-        if (sameTokenText(
-                source,
-                tokenStarts,
-                tokenLengths,
-                nameToken,
-                callStart)) {
-            if (punctuationAt(
-                    source, tokenKinds, tokenStarts, callStart + 1, 40)) {
-                if (punctuationAt(
-                        source, tokenKinds, tokenStarts, callStart + 2, 41)) {
-                    return punctuationAt(
-                        source, tokenKinds, tokenStarts, callStart + 3, 59);
+        if (sameTokenText(source, tokenStarts, tokenLengths, nameToken, callStart)) {
+            if (punctuationAt(source, tokenKinds, tokenStarts, callStart + 1, 40)) {
+                if (punctuationAt(source, tokenKinds, tokenStarts, callStart + 2, 41)) {
+                    return punctuationAt(source, tokenKinds, tokenStarts, callStart + 3, 59);
                 }
             }
         }
@@ -63,18 +56,13 @@ classical class HelperParser {
         long helperThirdStatement,
         long helperFourthStatement
     ) {
-        long operandToken = statementOperandToken(
-            source, tokenStarts, tokenLengths, helperBody);
-        SourceRange name = new SourceRange(
-            tokenStarts[2], tokenLengths[2]);
-        SourceRange global = new SourceRange(
-            tokenStarts[6], tokenLengths[6]);
-        SourceRange helper = new SourceRange(
-            tokenStarts[nameToken], tokenLengths[nameToken]);
+        long operandToken = statementOperandToken(source, tokenStarts, tokenLengths, helperBody);
+        SourceRange name = new SourceRange(tokenStarts[2], tokenLengths[2]);
+        SourceRange global = new SourceRange(tokenStarts[6], tokenLengths[6]);
+        SourceRange helper = new SourceRange(tokenStarts[nameToken], tokenLengths[nameToken]);
         SourceRange proof = new SourceRange(0, 0);
         if (proofCount == 1) {
-            proof = new SourceRange(
-                tokenStarts[proofToken], tokenLengths[proofToken]);
+            proof = new SourceRange(tokenStarts[proofToken], tokenLengths[proofToken]);
         }
         long helperStatementCount = 1;
         long helperSecondOpcode = -1;
@@ -86,38 +74,65 @@ classical class HelperParser {
         if (-1 < helperSecondStatement) {
             helperStatementCount = 2;
             helperSecondOpcode = statementOpcode(
-                source, tokenStarts, tokenLengths, helperSecondStatement);
+                source,
+                tokenStarts,
+                tokenLengths,
+                helperSecondStatement
+            );
             long helperSecondOperandToken = statementOperandToken(
-                source, tokenStarts, tokenLengths, helperSecondStatement);
+                source,
+                tokenStarts,
+                tokenLengths,
+                helperSecondStatement
+            );
             helperSecondOperand = parsedSignedNumber(
                 source,
                 tokenStarts,
                 tokenLengths,
-                helperSecondOperandToken);
+                helperSecondOperandToken
+            );
         }
         if (-1 < helperThirdStatement) {
             helperStatementCount = 3;
             helperThirdOpcode = statementOpcode(
-                source, tokenStarts, tokenLengths, helperThirdStatement);
+                source,
+                tokenStarts,
+                tokenLengths,
+                helperThirdStatement
+            );
             long helperThirdOperandToken = statementOperandToken(
-                source, tokenStarts, tokenLengths, helperThirdStatement);
+                source,
+                tokenStarts,
+                tokenLengths,
+                helperThirdStatement
+            );
             helperThirdOperand = parsedSignedNumber(
                 source,
                 tokenStarts,
                 tokenLengths,
-                helperThirdOperandToken);
+                helperThirdOperandToken
+            );
         }
         if (-1 < helperFourthStatement) {
             helperStatementCount = 4;
             helperFourthOpcode = statementOpcode(
-                source, tokenStarts, tokenLengths, helperFourthStatement);
+                source,
+                tokenStarts,
+                tokenLengths,
+                helperFourthStatement
+            );
             long helperFourthOperandToken = statementOperandToken(
-                source, tokenStarts, tokenLengths, helperFourthStatement);
+                source,
+                tokenStarts,
+                tokenLengths,
+                helperFourthStatement
+            );
             helperFourthOperand = parsedSignedNumber(
                 source,
                 tokenStarts,
                 tokenLengths,
-                helperFourthOperandToken);
+                helperFourthOperandToken
+            );
         }
         long entryCount = 0;
         long entryOpcode = -1;
@@ -128,28 +143,45 @@ classical class HelperParser {
         if (-1 < preReverseStatement) {
             entryCount = 1;
             preReverseCount = 1;
-            entryOpcode = statementOpcode(
-                source, tokenStarts, tokenLengths, preReverseStatement);
+            entryOpcode = statementOpcode(source, tokenStarts, tokenLengths, preReverseStatement);
             long preOperandToken = statementOperandToken(
-                source, tokenStarts, tokenLengths, preReverseStatement);
-            entryOperand = parsedSignedNumber(
-                source, tokenStarts, tokenLengths, preOperandToken);
+                source,
+                tokenStarts,
+                tokenLengths,
+                preReverseStatement
+            );
+            entryOperand = parsedSignedNumber(source, tokenStarts, tokenLengths, preOperandToken);
         }
         if (-1 < entryStatement) {
             long entryOperandToken = statementOperandToken(
-                source, tokenStarts, tokenLengths, entryStatement);
+                source,
+                tokenStarts,
+                tokenLengths,
+                entryStatement
+            );
             if (entryCount == 0) {
                 entryCount = 1;
-                entryOpcode = statementOpcode(
-                    source, tokenStarts, tokenLengths, entryStatement);
+                entryOpcode = statementOpcode(source, tokenStarts, tokenLengths, entryStatement);
                 entryOperand = parsedSignedNumber(
-                    source, tokenStarts, tokenLengths, entryOperandToken);
+                    source,
+                    tokenStarts,
+                    tokenLengths,
+                    entryOperandToken
+                );
             } else {
                 entryCount = 2;
                 secondEntryOpcode = statementOpcode(
-                    source, tokenStarts, tokenLengths, entryStatement);
+                    source,
+                    tokenStarts,
+                    tokenLengths,
+                    entryStatement
+                );
                 secondEntryOperand = parsedSignedNumber(
-                    source, tokenStarts, tokenLengths, entryOperandToken);
+                    source,
+                    tokenStarts,
+                    tokenLengths,
+                    entryOperandToken
+                );
             }
         }
         MinimalProgram program = new MinimalProgram(
@@ -168,10 +200,8 @@ classical class HelperParser {
             0,
             helper,
             1,
-            statementOpcode(
-                source, tokenStarts, tokenLengths, helperBody),
-            parsedSignedNumber(
-                source, tokenStarts, tokenLengths, operandToken),
+            statementOpcode(source, tokenStarts, tokenLengths, helperBody),
+            parsedSignedNumber(source, tokenStarts, tokenLengths, operandToken),
             reversible,
             proof,
             proofCount,
@@ -183,7 +213,8 @@ classical class HelperParser {
             helperThirdOpcode,
             helperThirdOperand,
             helperFourthOpcode,
-            helperFourthOperand);
+            helperFourthOperand
+        );
         return new MinimalProgramResult.Value(program);
     }
 
@@ -207,8 +238,7 @@ classical class HelperParser {
     ) {
         long entryStatement = -1;
         long entryClose = closeStart;
-        if (punctuationAt(
-                source, tokenKinds, tokenStarts, entryClose, 125)) {
+        if (punctuationAt(source, tokenKinds, tokenStarts, entryClose, 125)) {
             entryClose = closeStart;
         } else {
             long entryWidth = statementWidth(
@@ -216,17 +246,16 @@ classical class HelperParser {
                 tokenKinds,
                 tokenStarts,
                 tokenLengths,
-                closeStart);
+                closeStart
+            );
             if (entryWidth < 1) {
                 return new MinimalProgramResult.Error(0);
             }
             entryStatement = closeStart;
             entryClose += entryWidth;
         }
-        if (punctuationAt(
-                source, tokenKinds, tokenStarts, entryClose, 125)) {
-            if (punctuationAt(
-                    source, tokenKinds, tokenStarts, entryClose + 1, 125)) {
+        if (punctuationAt(source, tokenKinds, tokenStarts, entryClose, 125)) {
+            if (punctuationAt(source, tokenKinds, tokenStarts, entryClose + 1, 125)) {
                 if (count == entryClose + 2) {
                     return helperProgram(
                         source,
@@ -242,13 +271,15 @@ classical class HelperParser {
                         preReverseStatement,
                         helperSecondStatement,
                         helperThirdStatement,
-                        helperFourthStatement);
+                        helperFourthStatement
+                    );
                 }
             }
         }
         return new MinimalProgramResult.Error(0);
     }
 
+    /// Parses `helperProgram` from a bounded canonical input.
     public MinimalProgramResult parseHelperProgram(
         utf8 source,
         words tokenKinds,
@@ -256,58 +287,59 @@ classical class HelperParser {
         words tokenLengths,
         long count
     ) {
-        long memberStart = minimalEntryStart(
-            source, tokenKinds, tokenStarts, tokenLengths);
+        long memberStart = minimalEntryStart(source, tokenKinds, tokenStarts, tokenLengths);
         if (0 < memberStart) {
             long reversible = 0;
             long voidToken = memberStart;
-            if (tokenHash(
-                    source, tokenStarts, tokenLengths, memberStart)
-                    == 112803) {
+            if (tokenHash(source, tokenStarts, tokenLengths, memberStart) == 112803) {
                 reversible = 1;
                 voidToken += 1;
             }
-            if (tokenHash(source, tokenStarts, tokenLengths, voidToken)
-                    == 3625364) {
+            if (tokenHash(source, tokenStarts, tokenLengths, voidToken) == 3625364) {
                 long nameToken = voidToken + 1;
                 if (tokenKinds[nameToken] == 1) {
                     if (tokenLengths[nameToken] < 257) {
-                        if (punctuationAt(
-                                source,
-                                tokenKinds,
-                                tokenStarts,
-                                nameToken + 1,
-                                40)) {
-                            if (punctuationAt(
+                        if (punctuationAt(source, tokenKinds, tokenStarts, nameToken + 1, 40)) {
+                            if (
+                                punctuationAt(
                                     source,
                                     tokenKinds,
                                     tokenStarts,
                                     nameToken + 2,
-                                    41)) {
-                                if (punctuationAt(
+                                    41
+                                )
+                            ) {
+                                if (
+                                    punctuationAt(
                                         source,
                                         tokenKinds,
                                         tokenStarts,
                                         nameToken + 3,
-                                        123)) {
+                                        123
+                                    )
+                                ) {
                                     long helperBody = nameToken + 4;
                                     long helperWidth = statementWidth(
                                         source,
                                         tokenKinds,
                                         tokenStarts,
                                         tokenLengths,
-                                        helperBody);
+                                        helperBody
+                                    );
                                     long helperSecondStatement = -1;
                                     long helperThirdStatement = -1;
                                     long helperFourthStatement = -1;
                                     long helperEnd = helperBody + helperWidth;
                                     if (0 < helperWidth) {
-                                        if (punctuationAt(
+                                        if (
+                                            punctuationAt(
                                                 source,
                                                 tokenKinds,
                                                 tokenStarts,
                                                 helperEnd,
-                                                125)) {
+                                                125
+                                            )
+                                        ) {
                                             helperEnd = helperEnd;
                                         } else {
                                             helperSecondStatement = helperEnd;
@@ -316,15 +348,19 @@ classical class HelperParser {
                                                 tokenKinds,
                                                 tokenStarts,
                                                 tokenLengths,
-                                                helperSecondStatement);
+                                                helperSecondStatement
+                                            );
                                             helperEnd += helperSecondWidth;
                                             if (0 < helperSecondWidth) {
-                                                if (punctuationAt(
+                                                if (
+                                                    punctuationAt(
                                                         source,
                                                         tokenKinds,
                                                         tokenStarts,
                                                         helperEnd,
-                                                        125)) {
+                                                        125
+                                                    )
+                                                ) {
                                                     helperEnd = helperEnd;
                                                 } else {
                                                     helperThirdStatement = helperEnd;
@@ -333,15 +369,19 @@ classical class HelperParser {
                                                         tokenKinds,
                                                         tokenStarts,
                                                         tokenLengths,
-                                                        helperThirdStatement);
+                                                        helperThirdStatement
+                                                    );
                                                     helperEnd += helperThirdWidth;
                                                     if (0 < helperThirdWidth) {
-                                                        if (punctuationAt(
+                                                        if (
+                                                            punctuationAt(
                                                                 source,
                                                                 tokenKinds,
                                                                 tokenStarts,
                                                                 helperEnd,
-                                                                125)) {
+                                                                125
+                                                            )
+                                                        ) {
                                                             helperEnd = helperEnd;
                                                         } else {
                                                             helperFourthStatement = helperEnd;
@@ -350,7 +390,8 @@ classical class HelperParser {
                                                                 tokenKinds,
                                                                 tokenStarts,
                                                                 tokenLengths,
-                                                                helperFourthStatement);
+                                                                helperFourthStatement
+                                                            );
                                                             helperEnd += helperFourthWidth;
                                                             if (helperFourthWidth < 1) {
                                                                 helperEnd = -1;
@@ -371,13 +412,15 @@ classical class HelperParser {
                                             source,
                                             tokenStarts,
                                             tokenLengths,
-                                            helperBody);
+                                            helperBody
+                                        );
                                         if (-1 < helperSecondStatement) {
                                             boolean secondReversible = reversibleBodyValid(
                                                 source,
                                                 tokenStarts,
                                                 tokenLengths,
-                                                helperSecondStatement);
+                                                helperSecondStatement
+                                            );
                                             if (helperStatementsValid) {
                                                 helperStatementsValid = secondReversible;
                                             }
@@ -387,7 +430,8 @@ classical class HelperParser {
                                                 source,
                                                 tokenStarts,
                                                 tokenLengths,
-                                                helperThirdStatement);
+                                                helperThirdStatement
+                                            );
                                             if (helperStatementsValid) {
                                                 helperStatementsValid = thirdReversible;
                                             }
@@ -397,66 +441,88 @@ classical class HelperParser {
                                                 source,
                                                 tokenStarts,
                                                 tokenLengths,
-                                                helperFourthStatement);
+                                                helperFourthStatement
+                                            );
                                             if (helperStatementsValid) {
                                                 helperStatementsValid = fourthReversible;
                                             }
                                         }
                                     }
                                     if (helperStatementsValid) {
-                                        if (punctuationAt(
+                                        if (
+                                            punctuationAt(
                                                 source,
                                                 tokenKinds,
                                                 tokenStarts,
                                                 helperEnd,
-                                                125)) {
+                                                125
+                                            )
+                                        ) {
                                             long entryStart = helperEnd + 1;
                                             long proofToken = -1;
                                             long proofCount = 0;
                                             if (reversible == 1) {
-                                                if (tokenHash(
+                                                if (
+                                                    tokenHash(
                                                         source,
                                                         tokenStarts,
                                                         tokenLengths,
-                                                        entryStart)
-                                                        == 106024553916) {
+                                                        entryStart
+                                                    ) == 106024553916
+                                                ) {
                                                     if (tokenKinds[entryStart + 1] == 1) {
-                                                        if (tokenHash(
+                                                        if (
+                                                            tokenHash(
                                                                 source,
                                                                 tokenStarts,
                                                                 tokenLengths,
-                                                                entryStart + 2)
-                                                                == 3315169751) {
-                                                            if (tokenHash(
+                                                                entryStart + 2
+                                                            ) == 3315169751
+                                                        ) {
+                                                            if (
+                                                                tokenHash(
                                                                     source,
                                                                     tokenStarts,
                                                                     tokenLengths,
-                                                                    entryStart + 3)
-                                                                    == 96449190704) {
-                                                                if (punctuationAt(
+                                                                    entryStart + 3
+                                                                ) == 96449190704
+                                                            ) {
+                                                                if (
+                                                                    punctuationAt(
                                                                         source,
                                                                         tokenKinds,
                                                                         tokenStarts,
                                                                         entryStart + 4,
-                                                                        40)) {
-                                                                    if (sameTokenText(
+                                                                        40
+                                                                    )
+                                                                ) {
+                                                                    if (
+                                                                        sameTokenText(
                                                                             source,
                                                                             tokenStarts,
                                                                             tokenLengths,
                                                                             nameToken,
-                                                                            entryStart + 5)) {
-                                                                        if (punctuationAt(
+                                                                            entryStart + 5
+                                                                        )
+                                                                    ) {
+                                                                        if (
+                                                                            punctuationAt(
                                                                                 source,
                                                                                 tokenKinds,
                                                                                 tokenStarts,
                                                                                 entryStart + 6,
-                                                                                41)) {
-                                                                            if (punctuationAt(
+                                                                                41
+                                                                            )
+                                                                        ) {
+                                                                            if (
+                                                                                punctuationAt(
                                                                                     source,
                                                                                     tokenKinds,
                                                                                     tokenStarts,
                                                                                     entryStart + 7,
-                                                                                    59)) {
+                                                                                    59
+                                                                                )
+                                                                            ) {
                                                                                 proofToken = entryStart + 1;
                                                                                 proofCount = 1;
                                                                                 entryStart += 8;
@@ -474,24 +540,31 @@ classical class HelperParser {
                                                 tokenKinds,
                                                 tokenStarts,
                                                 tokenLengths,
-                                                entryStart);
+                                                entryStart
+                                            );
                                             if (0 < entryBody) {
-                                                if (callValid(
+                                                if (
+                                                    callValid(
                                                         source,
                                                         tokenKinds,
                                                         tokenStarts,
                                                         tokenLengths,
                                                         nameToken,
-                                                        entryBody)) {
+                                                        entryBody
+                                                    )
+                                                ) {
                                                     long helperCallCount = 1;
                                                     long afterCalls = entryBody + 4;
-                                                    if (callValid(
+                                                    if (
+                                                        callValid(
                                                             source,
                                                             tokenKinds,
                                                             tokenStarts,
                                                             tokenLengths,
                                                             nameToken,
-                                                            afterCalls)) {
+                                                            afterCalls
+                                                        )
+                                                    ) {
                                                         helperCallCount = 2;
                                                         afterCalls += 4;
                                                     }
@@ -501,9 +574,9 @@ classical class HelperParser {
                                                             source,
                                                             tokenStarts,
                                                             tokenLengths,
-                                                            afterCalls);
-                                                        if (reverseHash
-                                                                == 104179061474) {
+                                                            afterCalls
+                                                        );
+                                                        if (reverseHash == 104179061474) {
                                                             afterCalls = afterCalls;
                                                         } else {
                                                             long preReverseWidth = statementWidth(
@@ -511,7 +584,8 @@ classical class HelperParser {
                                                                 tokenKinds,
                                                                 tokenStarts,
                                                                 tokenLengths,
-                                                                afterCalls);
+                                                                afterCalls
+                                                            );
                                                             if (0 < preReverseWidth) {
                                                                 preReverseStatement = afterCalls;
                                                                 afterCalls += preReverseWidth;
@@ -537,51 +611,66 @@ classical class HelperParser {
                                                             -1,
                                                             helperSecondStatement,
                                                             helperThirdStatement,
-                                                            helperFourthStatement);
+                                                            helperFourthStatement
+                                                        );
                                                     }
                                                     if (reversible == 1) {
-                                                        if (tokenHash(
+                                                        if (
+                                                            tokenHash(
                                                                 source,
                                                                 tokenStarts,
                                                                 tokenLengths,
-                                                                afterCalls)
-                                                                == 104179061474) {
-                                                            if (punctuationAt(
+                                                                afterCalls
+                                                            ) == 104179061474
+                                                        ) {
+                                                            if (
+                                                                punctuationAt(
                                                                     source,
                                                                     tokenKinds,
                                                                     tokenStarts,
                                                                     afterCalls + 1,
-                                                                    123)) {
+                                                                    123
+                                                                )
+                                                            ) {
                                                                 long reverseCall = afterCalls + 2;
-                                                                if (callValid(
+                                                                if (
+                                                                    callValid(
                                                                         source,
                                                                         tokenKinds,
                                                                         tokenStarts,
                                                                         tokenLengths,
                                                                         nameToken,
-                                                                        reverseCall)) {
+                                                                        reverseCall
+                                                                    )
+                                                                ) {
                                                                     long reverseEnd = reverseCall + 4;
                                                                     boolean reverseCallsValid = true;
                                                                     if (helperCallCount == 2) {
-                                                                        if (callValid(
+                                                                        if (
+                                                                            callValid(
                                                                                 source,
                                                                                 tokenKinds,
                                                                                 tokenStarts,
                                                                                 tokenLengths,
                                                                                 nameToken,
-                                                                                reverseEnd)) {
+                                                                                reverseEnd
+                                                                            )
+                                                                        ) {
                                                                             reverseEnd += 4;
                                                                         } else {
                                                                             reverseCallsValid = false;
                                                                         }
                                                                     }
                                                                     if (reverseCallsValid) {
-                                                                        if (punctuationAt(
+                                                                        if (
+                                                                            punctuationAt(
                                                                                 source,
                                                                                 tokenKinds,
                                                                                 tokenStarts,
                                                                                 reverseEnd,
-                                                                                125)) {
+                                                                                125
+                                                                            )
+                                                                        ) {
                                                                             return finishEntry(
                                                                                 source,
                                                                                 tokenKinds,
@@ -598,7 +687,8 @@ classical class HelperParser {
                                                                                 preReverseStatement,
                                                                                 helperSecondStatement,
                                                                                 helperThirdStatement,
-                                                                                helperFourthStatement);
+                                                                                helperFourthStatement
+                                                                            );
                                                                         }
                                                                     }
                                                                 }

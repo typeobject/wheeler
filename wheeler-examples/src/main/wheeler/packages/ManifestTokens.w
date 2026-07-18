@@ -1,11 +1,9 @@
+//! Classifies and compares package-manifest token ranges.
+
 module examples.packages.tokens;
 classical class ManifestTokens {
-    public long tokenHash(
-        utf8 source,
-        words starts,
-        words lengths,
-        long token
-    ) {
+    /// Computes the stable hash of one bounded token range.
+    public long tokenHash(utf8 source, words starts, words lengths, long token) {
         long cursor = starts[token];
         long end = cursor + lengths[token];
         long hash = 0;
@@ -16,16 +14,12 @@ classical class ManifestTokens {
         return hash;
     }
 
-    public boolean keywordAt(
-        utf8 source,
-        words starts,
-        words lengths,
-        long token,
-        long hash
-    ) {
+    /// Checks whether one token carries the requested keyword hash.
+    public boolean keywordAt(utf8 source, words starts, words lengths, long token, long hash) {
         return tokenHash(source, starts, lengths, token) == hash;
     }
 
+    /// Checks whether `tokenText` denotes the same canonical value.
     public boolean sameTokenText(
         utf8 source,
         words starts,
@@ -41,8 +35,12 @@ classical class ManifestTokens {
         }
         long offset = 0;
         while (offset < lengths[left]) limit 256 {
-            if (utf8Scalar(source, starts[left] + offset)
-                    == utf8Scalar(source, starts[right] + offset)) {
+            if (
+                utf8Scalar(source, starts[left] + offset) == utf8Scalar(
+                    source,
+                    starts[right] + offset
+                )
+            ) {
                 offset += 1;
             } else {
                 return false;
@@ -51,6 +49,7 @@ classical class ManifestTokens {
         return true;
     }
 
+    /// Compares `tokenText` under canonical byte ordering.
     public long compareTokenText(
         utf8 source,
         words starts,
@@ -83,6 +82,7 @@ classical class ManifestTokens {
         return 0;
     }
 
+    /// Checks whether one token is a quoted ASCII value.
     public boolean quoted(words kinds, words lengths, long token) {
         if (kinds[token] == 6) {
             return 2 < lengths[token];
@@ -90,12 +90,8 @@ classical class ManifestTokens {
         return false;
     }
 
-    public boolean semicolonAt(
-        utf8 source,
-        words kinds,
-        words starts,
-        long token
-    ) {
+    /// Checks whether one token is the declaration terminator.
+    public boolean semicolonAt(utf8 source, words kinds, words starts, long token) {
         if (kinds[token] == 3) {
             return utf8Scalar(source, starts[token]) == 59;
         }

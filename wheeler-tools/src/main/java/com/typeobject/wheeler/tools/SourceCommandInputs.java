@@ -99,12 +99,13 @@ final class SourceCommandInputs {
   }
 
   private static SourceFile read(Path path, String commandName) throws IOException {
-    BasicFileAttributes before = attributes(path, commandName);
+    Path physical = path.toRealPath();
+    BasicFileAttributes before = attributes(physical, commandName);
     if (before.size() > MAX_SOURCE_BYTES) {
       throw new IOException(commandName + " input exceeds 16 MiB: " + path);
     }
-    byte[] bytes = Files.readAllBytes(path);
-    BasicFileAttributes after = attributes(path, commandName);
+    byte[] bytes = Files.readAllBytes(physical);
+    BasicFileAttributes after = attributes(physical, commandName);
     if (bytes.length > MAX_SOURCE_BYTES) {
       throw new IOException(commandName + " input exceeds 16 MiB: " + path);
     }
@@ -112,7 +113,7 @@ final class SourceCommandInputs {
       throw new IOException(commandName + " input changed while it was read: " + path);
     }
     return new SourceFile(
-        path, bytes, decode(bytes, path.toString(), commandName), after.fileKey());
+        path, physical, bytes, decode(bytes, path.toString(), commandName), after.fileKey());
   }
 
   private static BasicFileAttributes attributes(Path path, String commandName) throws IOException {
@@ -148,8 +149,11 @@ final class SourceCommandInputs {
     }
   }
 
-  record SourceFile(Path path, byte[] bytes, String text, Object fileKey) {
+  record SourceFile(Path path, Path physicalPath, byte[] bytes, String text, Object fileKey) {
     SourceFile {
+      if (path == null || physicalPath == null) {
+        throw new IllegalArgumentException("Source paths are required");
+      }
       bytes = Arrays.copyOf(bytes, bytes.length);
     }
 

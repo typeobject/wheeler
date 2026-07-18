@@ -1,10 +1,9 @@
+//! Reads bounded little-endian fields and validates canonical text atoms.
+
 module examples.packages.binary;
 classical class Binary {
-    public long readUnsigned(
-        byteview source,
-        long offset,
-        long width
-    ) {
+    /// Reads `unsigned` from a bounded canonical input.
+    public long readUnsigned(byteview source, long offset, long width) {
         long result = 0;
         long multiplier = 1;
         long cursor = 0;
@@ -32,6 +31,7 @@ classical class Binary {
         return false;
     }
 
+    /// Compares `asciiRanges` under canonical byte ordering.
     public long compareAsciiRanges(
         byteview source,
         long leftStart,
@@ -61,16 +61,12 @@ classical class Binary {
         return 0;
     }
 
-    public boolean validAsciiName(
-        byteview source,
-        long start,
-        long length
-    ) {
+    /// Checks whether `asciiName` satisfies the canonical profile.
+    public boolean validAsciiName(byteview source, long start, long length) {
         if (length == 0) {
             return false;
         }
-        if (lowercase(source[start])) {
-        } else {
+        if (lowercase(source[start])) {} else {
             return false;
         }
         boolean needValue = false;
@@ -88,10 +84,8 @@ classical class Binary {
                     }
                 }
             } else {
-                if (lowercase(value)) {
-                } else {
-                    if (digit(value)) {
-                    } else {
+                if (lowercase(value)) {} else {
+                    if (digit(value)) {} else {
                         if (value == 45) {
                             needValue = true;
                         } else {
@@ -112,11 +106,8 @@ classical class Binary {
         return true;
     }
 
-    public boolean validNumericRelease(
-        byteview source,
-        long start,
-        long length
-    ) {
+    /// Checks whether `numericRelease` satisfies the canonical profile.
+    public boolean validNumericRelease(byteview source, long start, long length) {
         if (length < 5) {
             return false;
         }
@@ -155,11 +146,8 @@ classical class Binary {
         return component == 2;
     }
 
-    public boolean validAsciiPath(
-        byteview source,
-        long start,
-        long length
-    ) {
+    /// Checks whether `asciiPath` satisfies the canonical profile.
+    public boolean validAsciiPath(byteview source, long start, long length) {
         if (length == 0) {
             return false;
         }

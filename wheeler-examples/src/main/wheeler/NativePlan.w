@@ -1,3 +1,5 @@
+//! Checks canonical build plans with Wheeler-native codecs.
+
 module examples.packages.plan_main;
 import examples.crypto.sha256;
 import examples.packages.plan;
@@ -15,6 +17,9 @@ classical class NativePlan {
     state long timeout = 0;
     state long finalLength = 0;
 
+    /// Runs the bounded `NativePlan` fixture.
+    ///
+    /// - Effects: Mutates only the fixture's declared state.
     entry void main(byteview source) {
         region arena = new region(3200, 5);
         bytes digest = allocateBytes(arena, 32);

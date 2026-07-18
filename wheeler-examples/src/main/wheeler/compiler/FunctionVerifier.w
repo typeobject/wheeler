@@ -1,4 +1,4 @@
-/// Verifies bounded function descriptors, scalar type windows, and code ranges.
+//! Verifies bounded function descriptors, scalar type windows, and code ranges.
 module examples.compiler.function_verifier;
 import examples.compiler.instruction_verifier;
 import examples.compiler.opcodes;
@@ -81,13 +81,15 @@ classical class FunctionVerifier {
     ) {
         long index = 0;
         while (index < count) limit INTERPRETER_LOCAL_WIDTH + 1 {
-            if (validValueType(
+            if (
+                validValueType(
                     readUnsigned(artifact, start + index * 4, 4),
                     recordCount,
                     variantCount,
                     arrayCount,
-                    sliceCount)) {
-            } else {
+                    sliceCount
+                )
+            ) {} else {
                 return 0;
             }
             index += 1;
@@ -95,6 +97,7 @@ classical class FunctionVerifier {
         return 1;
     }
 
+    /// Verifies `functions` under the bounded bootstrap profile.
     public long verifyFunctions(
         byteview artifact,
         long functionsOffset,
@@ -130,17 +133,13 @@ classical class FunctionVerifier {
             if (differs(readUnsigned(artifact, descriptor, 4), function)) {
                 return 0;
             }
-            if (readUnsigned(
-                    artifact, descriptor + 4, 4) < stringCount) {
-            } else {
+            if (readUnsigned(artifact, descriptor + 4, 4) < stringCount) {} else {
                 return 0;
             }
             long flags = readUnsigned(artifact, descriptor + 8, 4);
             long resultCount = 0;
-            if (flags == 0) {
-            } else {
-                if (flags == 1) {
-                } else {
+            if (flags == 0) {} else {
+                if (flags == 1) {} else {
                     if (flags == 4) {
                         resultCount = 1;
                     } else {
@@ -153,20 +152,13 @@ classical class FunctionVerifier {
                     return 0;
                 }
             }
-            long forwardOffset = readUnsigned(
-                artifact, descriptor + 12, 4);
-            long forwardLength = readUnsigned(
-                artifact, descriptor + 16, 4);
-            long inverseOffset = readUnsigned(
-                artifact, descriptor + 20, 4);
-            long inverseLength = readUnsigned(
-                artifact, descriptor + 24, 4);
-            long parameterCount = readUnsigned(
-                artifact, descriptor + 28, 4);
-            long localCount = readUnsigned(
-                artifact, descriptor + 32, 4);
-            long typeOffset = readUnsigned(
-                artifact, descriptor + 36, 4);
+            long forwardOffset = readUnsigned(artifact, descriptor + 12, 4);
+            long forwardLength = readUnsigned(artifact, descriptor + 16, 4);
+            long inverseOffset = readUnsigned(artifact, descriptor + 20, 4);
+            long inverseLength = readUnsigned(artifact, descriptor + 24, 4);
+            long parameterCount = readUnsigned(artifact, descriptor + 28, 4);
+            long localCount = readUnsigned(artifact, descriptor + 32, 4);
+            long typeOffset = readUnsigned(artifact, descriptor + 36, 4);
             if (differs(forwardOffset, expectedCodeOffset)) {
                 return 0;
             }
@@ -183,9 +175,7 @@ classical class FunctionVerifier {
                 if (differs(parameterCount, 0)) {
                     return 0;
                 }
-                if (differs(
-                        inverseOffset,
-                        forwardOffset + forwardLength)) {
+                if (differs(inverseOffset, forwardOffset + forwardLength)) {
                     return 0;
                 }
                 if (differs(inverseLength, forwardLength)) {
@@ -204,35 +194,39 @@ classical class FunctionVerifier {
             }
             long resultType = 0;
             if (resultCount == 1) {
-                resultType = readUnsigned(
-                    artifact, typeTable + typeOffset * 4, 4);
-                if (validValueType(
+                resultType = readUnsigned(artifact, typeTable + typeOffset * 4, 4);
+                if (
+                    validValueType(
                         resultType,
                         recordCount,
                         variantCount,
                         arrayCount,
-                        sliceCount)) {
-                } else {
+                        sliceCount
+                    )
+                ) {} else {
                     return 0;
                 }
             }
-            long activeTypes = typeTable
-                + (typeOffset + resultCount) * 4;
-            if (verifyTypeWindow(
+            long activeTypes = typeTable + (typeOffset + resultCount) * 4;
+            if (
+                verifyTypeWindow(
                     artifact,
                     activeTypes,
                     localCount,
                     recordCount,
                     variantCount,
                     arrayCount,
-                    sliceCount) == 0) {
+                    sliceCount
+                ) == 0
+            ) {
                 return 0;
             }
             long entryBody = 0;
             if (function == entryFunction) {
                 entryBody = 1;
             }
-            if (verifyFunctionCode(
+            if (
+                verifyFunctionCode(
                     artifact,
                     codeOffset + forwardOffset,
                     forwardLength,
@@ -248,11 +242,14 @@ classical class FunctionVerifier {
                     localCount,
                     activeTypes,
                     resultType,
-                    entryBody) == 0) {
+                    entryBody
+                ) == 0
+            ) {
                 return 0;
             }
             if (flags == 1) {
-                if (verifyFunctionCode(
+                if (
+                    verifyFunctionCode(
                         artifact,
                         codeOffset + inverseOffset,
                         inverseLength,
@@ -268,7 +265,9 @@ classical class FunctionVerifier {
                         localCount,
                         activeTypes,
                         0,
-                        0) == 0) {
+                        0
+                    ) == 0
+                ) {
                     return 0;
                 }
             }
@@ -279,9 +278,7 @@ classical class FunctionVerifier {
         if (differs(expectedCodeOffset, codeLength)) {
             return 0;
         }
-        if (differs(
-                functionsLength,
-                4 + functionCount * 40 + expectedTypeOffset * 4)) {
+        if (differs(functionsLength, 4 + functionCount * 40 + expectedTypeOffset * 4)) {
             return 0;
         }
         return 1;

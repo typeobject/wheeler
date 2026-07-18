@@ -1,4 +1,4 @@
-/// Exercises finite enums as payload-free variants without wire ordinals.
+//! Exercises finite enums as payload-free variants without wire ordinals.
 classical class FiniteEnums {
     enum Direction {
         case Left;
@@ -10,6 +10,8 @@ classical class FiniteEnums {
     state long selected = 0;
 
     /// Selects one enum member through an exhaustive match.
+    ///
+    /// - Effects: Mutates only the declared `selected` state.
     entry void main() {
         Direction direction = new Direction.Right();
         match (direction) {

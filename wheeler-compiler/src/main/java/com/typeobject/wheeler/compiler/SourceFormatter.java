@@ -4,6 +4,7 @@ import com.typeobject.wheeler.compiler.SourceConcreteSyntax.CommentAttachment;
 import com.typeobject.wheeler.compiler.SourceConcreteSyntax.Element;
 import com.typeobject.wheeler.compiler.SourceConcreteSyntax.Kind;
 import com.typeobject.wheeler.compiler.SourceConcreteSyntax.Placement;
+import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,7 @@ public final class SourceFormatter {
       "=", "==", "+=", "-=", "^=", "+", "-", "*", "/", "%", "&", "^", "<");
   private static final Set<String> CONTROL_HEADERS = Set.of(
       "if", "while", "for", "match", "switch", "catch");
+  private static final int LINE_TARGET = 100;
 
   private SourceFormatter() {}
 
@@ -32,6 +34,8 @@ public final class SourceFormatter {
     private final List<Element> elements;
     private final Map<Integer, CommentAttachment> comments = new HashMap<>();
     private final String[] followingTokens;
+    private final int[] delimiterMates;
+    private final ArrayDeque<Boolean> verticalParentheses = new ArrayDeque<>();
     private final StringBuilder result = new StringBuilder();
     private int indent;
     private int parenthesisDepth;
@@ -42,6 +46,7 @@ public final class SourceFormatter {
     private Printer(SourceConcreteSyntax.Document document) {
       elements = document.elements();
       followingTokens = new String[elements.size()];
+      delimiterMates = delimiterMates(elements);
       String following = "";
       for (int index = elements.size() - 1; index >= 0; index--) {
         followingTokens[index] = following;
@@ -113,7 +118,7 @@ public final class SourceFormatter {
         case "}" -> closeBrace(index);
         case ";" -> semicolon();
         case "," -> comma();
-        case "(" -> openParenthesis();
+        case "(" -> openParenthesis(index);
         case ")" -> closeParenthesis();
         case "[" -> appendTight(text);
         case "]" -> appendTight(text);
@@ -167,7 +172,7 @@ public final class SourceFormatter {
     private void semicolon() {
       trimSpaces();
       result.append(';');
-      if (parenthesisDepth == 0) {
+      if (parenthesisDepth == 0 || currentParenthesisVertical()) {
         newline();
       } else {
         result.append(' ');
@@ -176,26 +181,48 @@ public final class SourceFormatter {
 
     private void comma() {
       trimSpaces();
-      result.append(',').append(' ');
+      result.append(',');
+      if (currentParenthesisVertical()) {
+        newline();
+      } else {
+        result.append(' ');
+      }
     }
 
-    private void openParenthesis() {
+    private void openParenthesis(int index) {
       if (CONTROL_HEADERS.contains(previousToken)) {
         space();
       }
+      boolean vertical = column() + flatGroupWidth(index) > LINE_TARGET;
       appendRaw("(");
       parenthesisDepth++;
+      verticalParentheses.push(vertical);
+      if (vertical) {
+        indent++;
+        newline();
+      }
     }
 
     private void closeParenthesis() {
       trimSpaces();
+      boolean vertical = verticalParentheses.pop();
+      if (vertical) {
+        indent--;
+        if (!lineStart) {
+          newline();
+        }
+      }
       appendRaw(")");
       parenthesisDepth--;
     }
 
     private void operator(String operator) {
       if ((operator.equals("-") || operator.equals("+")) && unaryOperator()) {
-        result.append(operator);
+        if (previousToken != null
+            && (previousToken.equals("return") || previousToken.equals("limit"))) {
+          space();
+        }
+        appendRaw(operator);
         return;
       }
       space();
@@ -208,6 +235,8 @@ public final class SourceFormatter {
           || previousToken.equals("(")
           || previousToken.equals("[")
           || previousToken.equals(",")
+          || previousToken.equals("return")
+          || previousToken.equals("limit")
           || OPERATORS.contains(previousToken);
     }
 
@@ -278,9 +307,84 @@ public final class SourceFormatter {
       lineStart = true;
     }
 
+    private boolean currentParenthesisVertical() {
+      return !verticalParentheses.isEmpty() && verticalParentheses.peek();
+    }
+
+    private int flatGroupWidth(int opener) {
+      int closer = delimiterMates[opener];
+      if (closer < 0) {
+        throw new IllegalStateException("Parser accepted an unmatched parenthesis");
+      }
+      int width = 2;
+      String previous = null;
+      for (int index = opener + 1; index < closer; index++) {
+        Element element = elements.get(index);
+        if (element.kind() == Kind.LINE_COMMENT || element.kind() == Kind.BLOCK_COMMENT) {
+          return LINE_TARGET + 1;
+        }
+        if (element.kind() != Kind.TOKEN) {
+          continue;
+        }
+        String text = element.text();
+        if (text.equals(",")) {
+          width += 2;
+        } else if (OPERATORS.contains(text)) {
+          boolean unary = (text.equals("-") || text.equals("+"))
+              && (previous == null || previous.equals("(") || previous.equals("[")
+                  || previous.equals(",") || previous.equals("return")
+                  || previous.equals("limit") || OPERATORS.contains(previous));
+          int prefix = unary && ("return".equals(previous) || "limit".equals(previous)) ? 1 : 0;
+          width += text.length() + (unary ? prefix : 2);
+        } else {
+          boolean space = previous != null
+              && !previous.equals("(")
+              && !previous.equals("[")
+              && !previous.equals(".")
+              && !previous.equals("::")
+              && !OPERATORS.contains(previous)
+              && !text.equals(")")
+              && !text.equals("]")
+              && !text.equals(".")
+              && !text.equals("::");
+          width += text.codePointCount(0, text.length()) + (space ? 1 : 0);
+        }
+        previous = text;
+        if (width > LINE_TARGET) {
+          return width;
+        }
+      }
+      return width;
+    }
+
+    private int column() {
+      int lineStartOffset = result.lastIndexOf("\n") + 1;
+      return result.codePointCount(lineStartOffset, result.length());
+    }
+
     private String nextToken(int elementIndex) {
       return followingTokens[elementIndex];
     }
+  }
+
+  private static int[] delimiterMates(List<Element> elements) {
+    int[] result = new int[elements.size()];
+    java.util.Arrays.fill(result, -1);
+    ArrayDeque<Integer> openers = new ArrayDeque<>();
+    for (int index = 0; index < elements.size(); index++) {
+      Element element = elements.get(index);
+      if (element.kind() != Kind.TOKEN) {
+        continue;
+      }
+      if (element.text().equals("(")) {
+        openers.push(index);
+      } else if (element.text().equals(")")) {
+        int opener = openers.pop();
+        result[opener] = index;
+        result[index] = opener;
+      }
+    }
+    return result;
   }
 
   private static String normalizeComment(Element element) {

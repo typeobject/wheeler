@@ -1,16 +1,14 @@
-/// Executes bounded owned-region and word-buffer operations.
+//! Executes bounded owned-region and word-buffer operations.
 module examples.compiler.storage_interpreter;
 import examples.compiler.map_interpreter;
 import examples.compiler.opcodes;
 import examples.compiler.utf8_interpreter;
 import examples.packages.binary;
 classical class StorageInterpreter {
-    public record StorageAllocation(
-        long handle,
-        long storageCount,
-        long dataCursor
-    ) {}
+    /// Defines immutable `StorageAllocation` values for this module.
+    public record StorageAllocation(long handle, long storageCount, long dataCursor) {}
 
+    /// Defines the closed `StorageStep` cases exported by this module.
     public variant StorageStep {
         case Skipped();
         case Value(long storageCount, long dataCursor);
@@ -21,6 +19,7 @@ classical class StorageInterpreter {
         return depth * INTERPRETER_LOCAL_WIDTH + local;
     }
 
+    /// Allocates one bounded interpreter region descriptor.
     public StorageAllocation newRegion(
         words kinds,
         words lengths,
@@ -31,18 +30,17 @@ classical class StorageInterpreter {
         long maxObjects,
         long dataCursor
     ) {
-        if (storageCount < INTERPRETER_STORAGE_COUNT) {
-        } else {
+        if (storageCount < INTERPRETER_STORAGE_COUNT) {} else {
             return new StorageAllocation(0, storageCount, dataCursor);
         }
         set(kinds, storageCount, 1);
         set(lengths, storageCount, maxBytes);
         set(owners, storageCount, maxObjects);
         set(live, storageCount, 1);
-        return new StorageAllocation(
-            storageCount + 1, storageCount + 1, dataCursor);
+        return new StorageAllocation(storageCount + 1, storageCount + 1, dataCursor);
     }
 
+    /// Allocates one bounded buffer inside an interpreter region.
     public StorageAllocation allocateBuffer(
         words kinds,
         words starts,
@@ -60,42 +58,34 @@ classical class StorageInterpreter {
         long bytesPerElement,
         long cellsPerElement
     ) {
-        if (storageCount < INTERPRETER_STORAGE_COUNT) {
-        } else {
+        if (storageCount < INTERPRETER_STORAGE_COUNT) {} else {
             return new StorageAllocation(0, storageCount, dataCursor);
         }
         if (regionHandle < 1) {
             return new StorageAllocation(0, storageCount, dataCursor);
         }
         long region = regionHandle - 1;
-        if (kinds[region] == 1) {
-        } else {
+        if (kinds[region] == 1) {} else {
             return new StorageAllocation(0, storageCount, dataCursor);
         }
-        if (live[region] == 1) {
-        } else {
+        if (live[region] == 1) {} else {
             return new StorageAllocation(0, storageCount, dataCursor);
         }
-        if (0 < length) {
-        } else {
+        if (0 < length) {} else {
             return new StorageAllocation(0, storageCount, dataCursor);
         }
-        if (length < INTERPRETER_STORAGE_WORDS + 1) {
-        } else {
+        if (length < INTERPRETER_STORAGE_WORDS + 1) {} else {
             return new StorageAllocation(0, storageCount, dataCursor);
         }
         long bytes = length * bytesPerElement;
-        if (bytes < lengths[region] - regionUsedBytes[region] + 1) {
-        } else {
+        if (bytes < lengths[region] - regionUsedBytes[region] + 1) {} else {
             return new StorageAllocation(0, storageCount, dataCursor);
         }
-        if (regionLiveObjects[region] < owners[region]) {
-        } else {
+        if (regionLiveObjects[region] < owners[region]) {} else {
             return new StorageAllocation(0, storageCount, dataCursor);
         }
         long dataCells = length * cellsPerElement;
-        if (dataCursor + dataCells < INTERPRETER_STORAGE_WORDS + 1) {
-        } else {
+        if (dataCursor + dataCells < INTERPRETER_STORAGE_WORDS + 1) {} else {
             return new StorageAllocation(0, storageCount, dataCursor);
         }
         set(kinds, storageCount, kind);
@@ -106,12 +96,10 @@ classical class StorageInterpreter {
         set(live, storageCount, 1);
         set(regionUsedBytes, region, regionUsedBytes[region] + bytes);
         set(regionLiveObjects, region, regionLiveObjects[region] + 1);
-        return new StorageAllocation(
-            storageCount + 1,
-            storageCount + 1,
-            dataCursor + dataCells);
+        return new StorageAllocation(storageCount + 1, storageCount + 1, dataCursor + dataCells);
     }
 
+    /// Checks one buffer index against its live owned allocation.
     public boolean bufferAccessValid(
         words kinds,
         words lengths,
@@ -124,12 +112,10 @@ classical class StorageInterpreter {
             return false;
         }
         long storage = handle - 1;
-        if (kinds[storage] == expectedKind) {
-        } else {
+        if (kinds[storage] == expectedKind) {} else {
             return false;
         }
-        if (live[storage] == 1) {
-        } else {
+        if (live[storage] == 1) {} else {
             return false;
         }
         if (index < 0) {
@@ -138,25 +124,17 @@ classical class StorageInterpreter {
         return index < lengths[storage];
     }
 
-    public long loadWord(
-        words starts,
-        words data,
-        long handle,
-        long index
-    ) {
+    /// Loads one checked signed word from interpreter storage.
+    public long loadWord(words starts, words data, long handle, long index) {
         return data[starts[handle - 1] + index];
     }
 
-    public void storeWord(
-        words starts,
-        words data,
-        long handle,
-        long index,
-        long value
-    ) {
+    /// Stores one signed word into checked interpreter storage.
+    public void storeWord(words starts, words data, long handle, long index, long value) {
         set(data, starts[handle - 1] + index, value);
     }
 
+    /// Drops one live buffer and returns its region accounting.
     public boolean dropBuffer(
         words kinds,
         words owners,
@@ -168,29 +146,21 @@ classical class StorageInterpreter {
             return false;
         }
         long storage = handle - 1;
-        if (kinds[storage] == 2) {
-        } else {
-            if (kinds[storage] == 3) {
-            } else {
-                if (kinds[storage] == 4) {
-                } else {
-                    if (kinds[storage] == 5) {
-                    } else {
+        if (kinds[storage] == 2) {} else {
+            if (kinds[storage] == 3) {} else {
+                if (kinds[storage] == 4) {} else {
+                    if (kinds[storage] == 5) {} else {
                         return false;
                     }
                 }
             }
         }
-        if (live[storage] == 1) {
-        } else {
+        if (live[storage] == 1) {} else {
             return false;
         }
         long region = owners[storage] - 1;
         set(live, storage, 0);
-        set(
-            regionLiveObjects,
-            region,
-            regionLiveObjects[region] - 1);
+        set(regionLiveObjects, region, regionLiveObjects[region] - 1);
         return true;
     }
 
@@ -205,15 +175,12 @@ classical class StorageInterpreter {
             return false;
         }
         long storage = handle - 1;
-        if (kinds[storage] == 3) {
-        } else {
-            if (kinds[storage] == 5) {
-            } else {
+        if (kinds[storage] == 3) {} else {
+            if (kinds[storage] == 5) {} else {
                 return false;
             }
         }
-        if (live[storage] == 1) {
-        } else {
+        if (live[storage] == 1) {} else {
             return false;
         }
         if (index < 0) {
@@ -246,6 +213,7 @@ classical class StorageInterpreter {
         return opcode == OPCODE_BYTES_SET;
     }
 
+    /// Executes `storageInstruction` under explicit bootstrap bounds.
     public StorageStep executeStorageInstruction(
         byteview artifact,
         long cursor,
@@ -276,7 +244,8 @@ classical class StorageInterpreter {
             set(
                 locals,
                 localIndex(depth, moveDestination),
-                locals[localIndex(depth, moveSource)]);
+                locals[localIndex(depth, moveSource)]
+            );
             set(locals, localIndex(depth, moveSource), 0);
             return new StorageStep.Value(storageCount, dataCursor);
         }
@@ -292,24 +261,18 @@ classical class StorageInterpreter {
                 storageCount,
                 maxBytes,
                 maxObjects,
-                dataCursor);
+                dataCursor
+            );
             if (regionAllocation.handle < 1) {
                 return new StorageStep.Error();
             }
-            set(
-                locals,
-                localIndex(depth, regionDestination),
-                regionAllocation.handle);
-            return new StorageStep.Value(
-                regionAllocation.storageCount, dataCursor);
+            set(locals, localIndex(depth, regionDestination), regionAllocation.handle);
+            return new StorageStep.Value(regionAllocation.storageCount, dataCursor);
         }
         if (allocationOpcode(opcode)) {
-            long allocationDestination = readUnsigned(
-                artifact, cursor + 8, 8);
-            long allocationRegion = readUnsigned(
-                artifact, cursor + 16, 8);
-            long allocationLengthLocal = readUnsigned(
-                artifact, cursor + 24, 8);
+            long allocationDestination = readUnsigned(artifact, cursor + 8, 8);
+            long allocationRegion = readUnsigned(artifact, cursor + 16, 8);
+            long allocationLengthLocal = readUnsigned(artifact, cursor + 24, 8);
             long allocationKind = 2;
             long allocationWidth = 8;
             long allocationCells = 1;
@@ -337,17 +300,16 @@ classical class StorageInterpreter {
                 locals[localIndex(depth, allocationLengthLocal)],
                 allocationKind,
                 allocationWidth,
-                allocationCells);
+                allocationCells
+            );
             if (bufferAllocation.handle < 1) {
                 return new StorageStep.Error();
             }
-            set(
-                locals,
-                localIndex(depth, allocationDestination),
-                bufferAllocation.handle);
+            set(locals, localIndex(depth, allocationDestination), bufferAllocation.handle);
             return new StorageStep.Value(
                 bufferAllocation.storageCount,
-                bufferAllocation.dataCursor);
+                bufferAllocation.dataCursor
+            );
         }
         if (getOpcode(opcode)) {
             long getDestination = readUnsigned(artifact, cursor + 8, 8);
@@ -359,20 +321,14 @@ classical class StorageInterpreter {
             if (opcode == OPCODE_BYTES_GET) {
                 getKind = 3;
             }
-            if (bufferAccessValid(
-                    kinds,
-                    lengths,
-                    live,
-                    getHandle,
-                    getIndex,
-                    getKind)) {
-            } else {
+            if (bufferAccessValid(kinds, lengths, live, getHandle, getIndex, getKind)) {} else {
                 return new StorageStep.Error();
             }
             set(
                 locals,
                 localIndex(depth, getDestination),
-                loadWord(starts, data, getHandle, getIndex));
+                loadWord(starts, data, getHandle, getIndex)
+            );
             return new StorageStep.Value(storageCount, dataCursor);
         }
         if (setOpcode(opcode)) {
@@ -392,257 +348,162 @@ classical class StorageInterpreter {
                     return new StorageStep.Error();
                 }
             }
-            if (bufferAccessValid(
-                    kinds,
-                    lengths,
-                    live,
-                    setHandle,
-                    setIndex,
-                    setKind)) {
-            } else {
+            if (bufferAccessValid(kinds, lengths, live, setHandle, setIndex, setKind)) {} else {
                 return new StorageStep.Error();
             }
-            storeWord(
-                starts,
-                data,
-                setHandle,
-                setIndex,
-                setValue);
+            storeWord(starts, data, setHandle, setIndex, setValue);
             return new StorageStep.Value(storageCount, dataCursor);
         }
         if (opcode == OPCODE_BUFFER_DROP) {
-            long bufferDropLocal = readUnsigned(
-                artifact, cursor + 8, 8);
-            if (dropBuffer(
+            long bufferDropLocal = readUnsigned(artifact, cursor + 8, 8);
+            if (
+                dropBuffer(
                     kinds,
                     owners,
                     live,
                     regionLiveObjects,
-                    locals[localIndex(depth, bufferDropLocal)])) {
-            } else {
+                    locals[localIndex(depth, bufferDropLocal)]
+                )
+            ) {} else {
                 return new StorageStep.Error();
             }
             set(locals, localIndex(depth, bufferDropLocal), 0);
             return new StorageStep.Value(storageCount, dataCursor);
         }
         if (opcode == OPCODE_UTF8_VALID) {
-            long validDestination = readUnsigned(
-                artifact, cursor + 8, 8);
+            long validDestination = readUnsigned(artifact, cursor + 8, 8);
             long validBuffer = readUnsigned(artifact, cursor + 16, 8);
             long validHandle = locals[localIndex(depth, validBuffer)];
-            if (utf8AccessValid(
-                    kinds, lengths, live, validHandle, 0)) {
-            } else {
+            if (utf8AccessValid(kinds, lengths, live, validHandle, 0)) {} else {
                 return new StorageStep.Error();
             }
             long validResult = 0;
-            if (0 < utf8ScalarCount(
-                    starts, lengths, data, validHandle)) {
+            if (0 < utf8ScalarCount(starts, lengths, data, validHandle)) {
                 validResult = 1;
             }
-            set(
-                locals,
-                localIndex(depth, validDestination),
-                validResult);
+            set(locals, localIndex(depth, validDestination), validResult);
             return new StorageStep.Value(storageCount, dataCursor);
         }
         if (opcode == OPCODE_UTF8_COUNT) {
-            long countDestination = readUnsigned(
-                artifact, cursor + 8, 8);
+            long countDestination = readUnsigned(artifact, cursor + 8, 8);
             long countBuffer = readUnsigned(artifact, cursor + 16, 8);
             long countHandle = locals[localIndex(depth, countBuffer)];
-            if (utf8AccessValid(
-                    kinds, lengths, live, countHandle, 0)) {
-            } else {
+            if (utf8AccessValid(kinds, lengths, live, countHandle, 0)) {} else {
                 return new StorageStep.Error();
             }
-            long scalarCount = utf8ScalarCount(
-                starts, lengths, data, countHandle);
+            long scalarCount = utf8ScalarCount(starts, lengths, data, countHandle);
             if (scalarCount < 0) {
                 return new StorageStep.Error();
             }
-            set(
-                locals,
-                localIndex(depth, countDestination),
-                scalarCount);
+            set(locals, localIndex(depth, countDestination), scalarCount);
             return new StorageStep.Value(storageCount, dataCursor);
         }
         if (opcode == OPCODE_UTF8_SCALAR) {
-            long scalarDestination = readUnsigned(
-                artifact, cursor + 8, 8);
-            long scalarBuffer = readUnsigned(
-                artifact, cursor + 16, 8);
-            long scalarIndexLocal = readUnsigned(
-                artifact, cursor + 24, 8);
+            long scalarDestination = readUnsigned(artifact, cursor + 8, 8);
+            long scalarBuffer = readUnsigned(artifact, cursor + 16, 8);
+            long scalarIndexLocal = readUnsigned(artifact, cursor + 24, 8);
             long scalarHandle = locals[localIndex(depth, scalarBuffer)];
-            long scalarIndex = locals[localIndex(
-                depth, scalarIndexLocal)];
-            if (utf8AccessValid(
-                    kinds,
-                    lengths,
-                    live,
-                    scalarHandle,
-                    scalarIndex)) {
-            } else {
+            long scalarIndex = locals[localIndex(depth, scalarIndexLocal)];
+            if (utf8AccessValid(kinds, lengths, live, scalarHandle, scalarIndex)) {} else {
                 return new StorageStep.Error();
             }
-            long scalarValue = utf8ScalarAt(
-                starts, lengths, data, scalarHandle, scalarIndex);
+            long scalarValue = utf8ScalarAt(starts, lengths, data, scalarHandle, scalarIndex);
             if (scalarValue < 0) {
                 return new StorageStep.Error();
             }
-            set(
-                locals,
-                localIndex(depth, scalarDestination),
-                scalarValue);
+            set(locals, localIndex(depth, scalarDestination), scalarValue);
             return new StorageStep.Value(storageCount, dataCursor);
         }
         if (opcode == OPCODE_UTF8_WIDTH) {
-            long widthDestination = readUnsigned(
-                artifact, cursor + 8, 8);
-            long widthBuffer = readUnsigned(
-                artifact, cursor + 16, 8);
-            long widthIndexLocal = readUnsigned(
-                artifact, cursor + 24, 8);
+            long widthDestination = readUnsigned(artifact, cursor + 8, 8);
+            long widthBuffer = readUnsigned(artifact, cursor + 16, 8);
+            long widthIndexLocal = readUnsigned(artifact, cursor + 24, 8);
             long widthHandle = locals[localIndex(depth, widthBuffer)];
             long widthIndex = locals[localIndex(depth, widthIndexLocal)];
-            if (utf8AccessValid(
-                    kinds,
-                    lengths,
-                    live,
-                    widthHandle,
-                    widthIndex)) {
-            } else {
+            if (utf8AccessValid(kinds, lengths, live, widthHandle, widthIndex)) {} else {
                 return new StorageStep.Error();
             }
-            long widthValue = utf8WidthAt(
-                starts, lengths, data, widthHandle, widthIndex);
+            long widthValue = utf8WidthAt(starts, lengths, data, widthHandle, widthIndex);
             if (widthValue < 1) {
                 return new StorageStep.Error();
             }
-            set(
-                locals,
-                localIndex(depth, widthDestination),
-                widthValue);
+            set(locals, localIndex(depth, widthDestination), widthValue);
             return new StorageStep.Value(storageCount, dataCursor);
         }
         if (opcode == OPCODE_BUFFER_LENGTH) {
-            long lengthDestination = readUnsigned(
-                artifact, cursor + 8, 8);
-            long lengthBuffer = readUnsigned(
-                artifact, cursor + 16, 8);
+            long lengthDestination = readUnsigned(artifact, cursor + 8, 8);
+            long lengthBuffer = readUnsigned(artifact, cursor + 16, 8);
             long lengthHandle = locals[localIndex(depth, lengthBuffer)];
             if (lengthHandle < 1) {
                 return new StorageStep.Error();
             }
-            if (live[lengthHandle - 1] == 1) {
-            } else {
+            if (live[lengthHandle - 1] == 1) {} else {
                 return new StorageStep.Error();
             }
-            set(
-                locals,
-                localIndex(depth, lengthDestination),
-                lengths[lengthHandle - 1]);
+            set(locals, localIndex(depth, lengthDestination), lengths[lengthHandle - 1]);
             return new StorageStep.Value(storageCount, dataCursor);
         }
         if (opcode == OPCODE_MAP_BORROW) {
-            long mapBorrowDestination = readUnsigned(
-                artifact, cursor + 8, 8);
-            long mapBorrowSource = readUnsigned(
-                artifact, cursor + 16, 8);
-            long mapBorrowHandle = locals[localIndex(
-                depth, mapBorrowSource)];
-            if (mapValid(kinds, live, mapBorrowHandle)) {
-            } else {
+            long mapBorrowDestination = readUnsigned(artifact, cursor + 8, 8);
+            long mapBorrowSource = readUnsigned(artifact, cursor + 16, 8);
+            long mapBorrowHandle = locals[localIndex(depth, mapBorrowSource)];
+            if (mapValid(kinds, live, mapBorrowHandle)) {} else {
                 return new StorageStep.Error();
             }
-            set(
-                locals,
-                localIndex(depth, mapBorrowDestination),
-                mapBorrowHandle);
+            set(locals, localIndex(depth, mapBorrowDestination), mapBorrowHandle);
             return new StorageStep.Value(storageCount, dataCursor);
         }
         if (opcode == OPCODE_BUFFER_BORROW) {
-            long bufferBorrowDestination = readUnsigned(
-                artifact, cursor + 8, 8);
-            long bufferBorrowSource = readUnsigned(
-                artifact, cursor + 16, 8);
-            long bufferBorrowHandle = locals[localIndex(
-                depth, bufferBorrowSource)];
+            long bufferBorrowDestination = readUnsigned(artifact, cursor + 8, 8);
+            long bufferBorrowSource = readUnsigned(artifact, cursor + 16, 8);
+            long bufferBorrowHandle = locals[localIndex(depth, bufferBorrowSource)];
             if (bufferBorrowHandle < 1) {
                 return new StorageStep.Error();
             }
-            if (live[bufferBorrowHandle - 1] == 1) {
-            } else {
+            if (live[bufferBorrowHandle - 1] == 1) {} else {
                 return new StorageStep.Error();
             }
-            set(
-                locals,
-                localIndex(depth, bufferBorrowDestination),
-                bufferBorrowHandle);
+            set(locals, localIndex(depth, bufferBorrowDestination), bufferBorrowHandle);
             return new StorageStep.Value(storageCount, dataCursor);
         }
         if (opcode == OPCODE_REGION_BORROW) {
-            long regionBorrowDestination = readUnsigned(
-                artifact, cursor + 8, 8);
-            long regionBorrowSource = readUnsigned(
-                artifact, cursor + 16, 8);
-            long regionBorrowHandle = locals[localIndex(
-                depth, regionBorrowSource)];
+            long regionBorrowDestination = readUnsigned(artifact, cursor + 8, 8);
+            long regionBorrowSource = readUnsigned(artifact, cursor + 16, 8);
+            long regionBorrowHandle = locals[localIndex(depth, regionBorrowSource)];
             if (regionBorrowHandle < 1) {
                 return new StorageStep.Error();
             }
-            if (kinds[regionBorrowHandle - 1] == 1) {
-            } else {
+            if (kinds[regionBorrowHandle - 1] == 1) {} else {
                 return new StorageStep.Error();
             }
-            if (live[regionBorrowHandle - 1] == 1) {
-            } else {
+            if (live[regionBorrowHandle - 1] == 1) {} else {
                 return new StorageStep.Error();
             }
-            set(
-                locals,
-                localIndex(depth, regionBorrowDestination),
-                regionBorrowHandle);
+            set(locals, localIndex(depth, regionBorrowDestination), regionBorrowHandle);
             return new StorageStep.Value(storageCount, dataCursor);
         }
         if (opcode == OPCODE_UTF8_BORROW) {
-            long borrowDestination = readUnsigned(
-                artifact, cursor + 8, 8);
-            long borrowSource = readUnsigned(
-                artifact, cursor + 16, 8);
+            long borrowDestination = readUnsigned(artifact, cursor + 8, 8);
+            long borrowSource = readUnsigned(artifact, cursor + 16, 8);
             long borrowHandle = locals[localIndex(depth, borrowSource)];
-            if (utf8AccessValid(
-                    kinds, lengths, live, borrowHandle, 0)) {
-            } else {
+            if (utf8AccessValid(kinds, lengths, live, borrowHandle, 0)) {} else {
                 return new StorageStep.Error();
             }
-            set(
-                locals,
-                localIndex(depth, borrowDestination),
-                borrowHandle);
+            set(locals, localIndex(depth, borrowDestination), borrowHandle);
             return new StorageStep.Value(storageCount, dataCursor);
         }
         if (opcode == OPCODE_UTF8_FREEZE) {
-            long freezeDestination = readUnsigned(
-                artifact, cursor + 8, 8);
-            long freezeSource = readUnsigned(
-                artifact, cursor + 16, 8);
+            long freezeDestination = readUnsigned(artifact, cursor + 8, 8);
+            long freezeSource = readUnsigned(artifact, cursor + 16, 8);
             long freezeHandle = locals[localIndex(depth, freezeSource)];
-            if (utf8AccessValid(
-                    kinds, lengths, live, freezeHandle, 0)) {
-            } else {
+            if (utf8AccessValid(kinds, lengths, live, freezeHandle, 0)) {} else {
                 return new StorageStep.Error();
             }
-            if (utf8ScalarCount(
-                    starts, lengths, data, freezeHandle) < 0) {
+            if (utf8ScalarCount(starts, lengths, data, freezeHandle) < 0) {
                 return new StorageStep.Error();
             }
             set(kinds, freezeHandle - 1, 5);
-            set(
-                locals,
-                localIndex(depth, freezeDestination),
-                freezeHandle);
+            set(locals, localIndex(depth, freezeDestination), freezeHandle);
             set(locals, localIndex(depth, freezeSource), 0);
             return new StorageStep.Value(storageCount, dataCursor);
         }
@@ -651,32 +512,30 @@ classical class StorageInterpreter {
             long putKeyLocal = readUnsigned(artifact, cursor + 16, 8);
             long putValueLocal = readUnsigned(artifact, cursor + 24, 8);
             long putHandle = locals[localIndex(depth, putMapLocal)];
-            if (mapValid(kinds, live, putHandle)) {
-            } else {
+            if (mapValid(kinds, live, putHandle)) {} else {
                 return new StorageStep.Error();
             }
-            if (putMap(
+            if (
+                putMap(
                     starts,
                     lengths,
                     sizes,
                     data,
                     putHandle,
                     locals[localIndex(depth, putKeyLocal)],
-                    locals[localIndex(depth, putValueLocal)])) {
-            } else {
+                    locals[localIndex(depth, putValueLocal)]
+                )
+            ) {} else {
                 return new StorageStep.Error();
             }
             return new StorageStep.Value(storageCount, dataCursor);
         }
         if (opcode == OPCODE_MAP_GET) {
-            long mapGetDestination = readUnsigned(
-                artifact, cursor + 8, 8);
+            long mapGetDestination = readUnsigned(artifact, cursor + 8, 8);
             long mapGetLocal = readUnsigned(artifact, cursor + 16, 8);
-            long mapGetKeyLocal = readUnsigned(
-                artifact, cursor + 24, 8);
+            long mapGetKeyLocal = readUnsigned(artifact, cursor + 24, 8);
             long mapGetHandle = locals[localIndex(depth, mapGetLocal)];
-            if (mapValid(kinds, live, mapGetHandle)) {
-            } else {
+            if (mapValid(kinds, live, mapGetHandle)) {} else {
                 return new StorageStep.Error();
             }
             long getEntry = mapEntry(
@@ -684,51 +543,51 @@ classical class StorageInterpreter {
                 sizes,
                 data,
                 mapGetHandle,
-                locals[localIndex(depth, mapGetKeyLocal)]);
+                locals[localIndex(depth, mapGetKeyLocal)]
+            );
             if (getEntry < 0) {
                 return new StorageStep.Error();
             }
             set(
                 locals,
                 localIndex(depth, mapGetDestination),
-                data[starts[mapGetHandle - 1] + getEntry * 2 + 1]);
+                data[starts[mapGetHandle - 1] + getEntry * 2 + 1]
+            );
             return new StorageStep.Value(storageCount, dataCursor);
         }
         if (opcode == OPCODE_MAP_HAS) {
-            long mapHasDestination = readUnsigned(
-                artifact, cursor + 8, 8);
+            long mapHasDestination = readUnsigned(artifact, cursor + 8, 8);
             long mapHasLocal = readUnsigned(artifact, cursor + 16, 8);
-            long mapHasKeyLocal = readUnsigned(
-                artifact, cursor + 24, 8);
+            long mapHasKeyLocal = readUnsigned(artifact, cursor + 24, 8);
             long mapHasHandle = locals[localIndex(depth, mapHasLocal)];
-            if (mapValid(kinds, live, mapHasHandle)) {
-            } else {
+            if (mapValid(kinds, live, mapHasHandle)) {} else {
                 return new StorageStep.Error();
             }
             long hasValue = 0;
-            if (0 < mapEntry(
+            if (
+                0 < mapEntry(
                     starts,
                     sizes,
                     data,
                     mapHasHandle,
-                    locals[localIndex(depth, mapHasKeyLocal)]) + 1) {
+                    locals[localIndex(depth, mapHasKeyLocal)]
+                ) + 1
+            ) {
                 hasValue = 1;
             }
-            set(
-                locals,
-                localIndex(depth, mapHasDestination),
-                hasValue);
+            set(locals, localIndex(depth, mapHasDestination), hasValue);
             return new StorageStep.Value(storageCount, dataCursor);
         }
         if (opcode == OPCODE_REGION_DROP) {
-            long regionDropLocal = readUnsigned(
-                artifact, cursor + 8, 8);
-            if (dropRegion(
+            long regionDropLocal = readUnsigned(artifact, cursor + 8, 8);
+            if (
+                dropRegion(
                     kinds,
                     live,
                     regionLiveObjects,
-                    locals[localIndex(depth, regionDropLocal)])) {
-            } else {
+                    locals[localIndex(depth, regionDropLocal)]
+                )
+            ) {} else {
                 return new StorageStep.Error();
             }
             set(locals, localIndex(depth, regionDropLocal), 0);
@@ -737,26 +596,19 @@ classical class StorageInterpreter {
         return new StorageStep.Skipped();
     }
 
-    public boolean dropRegion(
-        words kinds,
-        words live,
-        words regionLiveObjects,
-        long handle
-    ) {
+    /// Drops one empty live region after ownership checks.
+    public boolean dropRegion(words kinds, words live, words regionLiveObjects, long handle) {
         if (handle < 1) {
             return false;
         }
         long region = handle - 1;
-        if (kinds[region] == 1) {
-        } else {
+        if (kinds[region] == 1) {} else {
             return false;
         }
-        if (live[region] == 1) {
-        } else {
+        if (live[region] == 1) {} else {
             return false;
         }
-        if (regionLiveObjects[region] == 0) {
-        } else {
+        if (regionLiveObjects[region] == 0) {} else {
             return false;
         }
         set(live, region, 0);

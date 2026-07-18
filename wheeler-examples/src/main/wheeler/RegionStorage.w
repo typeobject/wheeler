@@ -1,4 +1,4 @@
-// One bounded region owns one mutable word buffer and is dropped explicitly.
+//! One bounded region owns one mutable word buffer and is dropped explicitly.
 classical class RegionStorage {
     state long first = 0;
     state long byteValue = 0;
@@ -36,6 +36,9 @@ classical class RegionStorage {
         return utf8Count(data);
     }
 
+    /// Runs the bounded `RegionStorage` fixture.
+    ///
+    /// - Effects: Mutates only the fixture's declared state.
     entry void main() {
         region arena = openArena();
         scratchValue = scratch(arena, 19);

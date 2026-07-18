@@ -1,13 +1,29 @@
+//! Computes SHA-256 over caller-owned bounded byte ranges.
+
 module examples.crypto.sha256;
 classical class Sha256 {
     private long byteShiftPower(long exponent) {
-        if (exponent == 0) { return 1; }
-        if (exponent == 8) { return 256; }
-        if (exponent == 16) { return 65536; }
-        if (exponent == 24) { return 16777216; }
-        if (exponent == 32) { return 4294967296; }
-        if (exponent == 40) { return 1099511627776; }
-        if (exponent == 48) { return 281474976710656; }
+        if (exponent == 0) {
+            return 1;
+        }
+        if (exponent == 8) {
+            return 256;
+        }
+        if (exponent == 16) {
+            return 65536;
+        }
+        if (exponent == 24) {
+            return 16777216;
+        }
+        if (exponent == 32) {
+            return 4294967296;
+        }
+        if (exponent == 40) {
+            return 1099511627776;
+        }
+        if (exponent == 48) {
+            return 281474976710656;
+        }
         return 72057594037927936;
     }
 
@@ -110,15 +126,12 @@ classical class Sha256 {
         return result;
     }
 
-    public void hashSha256(
-        byteview input,
-        bytes digest,
-        region arena
-    ) {
-        hashSha256Range(
-            input, 0, bufferLength(input), digest, arena);
+    /// Computes SHA-256 over one complete caller-owned byte buffer.
+    public void hashSha256(byteview input, bytes digest, region arena) {
+        hashSha256Range(input, 0, bufferLength(input), digest, arena);
     }
 
+    /// Computes SHA-256 over one checked caller-owned byte range.
     public void hashSha256Range(
         byteview input,
         long inputStart,
@@ -154,53 +167,22 @@ classical class Sha256 {
             long wordIndex = 0;
             while (wordIndex < 16) limit 16 {
                 long sourceIndex = blockStart + wordIndex * 4;
-                long word = paddedByte(
-                        input,
-                        inputStart,
-                        inputLength,
-                        totalLength,
-                        sourceIndex)
-                    * 16777216;
-                word += paddedByte(
-                        input,
-                        inputStart,
-                        inputLength,
-                        totalLength,
-                        sourceIndex + 1)
-                    * 65536;
-                word += paddedByte(
-                        input,
-                        inputStart,
-                        inputLength,
-                        totalLength,
-                        sourceIndex + 2)
-                    * 256;
-                word += paddedByte(
-                    input,
-                    inputStart,
-                    inputLength,
-                    totalLength,
-                    sourceIndex + 3);
+                long word = paddedByte(input, inputStart, inputLength, totalLength, sourceIndex) * 16777216;
+                word += paddedByte(input, inputStart, inputLength, totalLength, sourceIndex + 1) * 65536;
+                word += paddedByte(input, inputStart, inputLength, totalLength, sourceIndex + 2) * 256;
+                word += paddedByte(input, inputStart, inputLength, totalLength, sourceIndex + 3);
                 set(schedule, wordIndex, word);
                 wordIndex += 1;
             }
             while (wordIndex < 64) limit 48 {
                 long sigmaOneValue = schedule[wordIndex - 2];
-                long sigmaOneRight17 = rotateRight32(
-                    sigmaOneValue, 17);
-                long sigmaOneRight19 = rotateRight32(
-                    sigmaOneValue, 19);
-                long sigmaOne = sigmaOneRight17
-                    ^ sigmaOneRight19
-                    ^ sigmaOneValue / 1024;
+                long sigmaOneRight17 = rotateRight32(sigmaOneValue, 17);
+                long sigmaOneRight19 = rotateRight32(sigmaOneValue, 19);
+                long sigmaOne = sigmaOneRight17 ^ sigmaOneRight19 ^ sigmaOneValue / 1024;
                 long sigmaZeroValue = schedule[wordIndex - 15];
-                long sigmaZeroRight7 = rotateRight32(
-                    sigmaZeroValue, 7);
-                long sigmaZeroRight18 = rotateRight32(
-                    sigmaZeroValue, 18);
-                long sigmaZero = sigmaZeroRight7
-                    ^ sigmaZeroRight18
-                    ^ sigmaZeroValue / 8;
+                long sigmaZeroRight7 = rotateRight32(sigmaZeroValue, 7);
+                long sigmaZeroRight18 = rotateRight32(sigmaZeroValue, 18);
+                long sigmaZero = sigmaZeroRight7 ^ sigmaZeroRight18 ^ sigmaZeroValue / 8;
                 long expanded = sigmaOne + schedule[wordIndex - 7];
                 expanded += sigmaZero;
                 expanded += schedule[wordIndex - 16];

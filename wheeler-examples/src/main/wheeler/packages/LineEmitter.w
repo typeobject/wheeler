@@ -1,3 +1,5 @@
+//! Emits bounded canonical line records into caller-owned storage.
+
 module examples.packages.line_emitter;
 classical class LineEmitter {
     private long copyToken(
@@ -18,6 +20,7 @@ classical class LineEmitter {
         return cursor;
     }
 
+    /// Emits `canonicalLines` into caller-owned bounded output.
     public long emitCanonicalLines(
         utf8 source,
         words starts,
@@ -28,20 +31,14 @@ classical class LineEmitter {
         long token = 0;
         long cursor = 0;
         while (token < count) limit 32 {
-            cursor = copyToken(
-                source,
-                starts[token],
-                lengths[token],
-                output,
-                cursor);
+            cursor = copyToken(source, starts[token], lengths[token], output, cursor);
             long scalar = utf8Scalar(source, starts[token]);
             if (scalar == 59) {
                 setByte(output, cursor, 10);
                 cursor += 1;
             } else {
                 if (token + 1 < count) {
-                    long nextScalar = utf8Scalar(
-                        source, starts[token + 1]);
+                    long nextScalar = utf8Scalar(source, starts[token + 1]);
                     if (nextScalar == 59) {
                         cursor = cursor;
                     } else {

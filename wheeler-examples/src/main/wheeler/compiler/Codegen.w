@@ -1,6 +1,9 @@
+//! Encodes the bounded bootstrap IR as canonical Wheeler bytecode.
+
 module examples.compiler.codegen;
 import examples.compiler.encoding;
 classical class Codegen {
+    /// Maps a parsed global update to its canonical bytecode opcode.
     public long globalOpcode(long opcode) {
         if (opcode == 1040) {
             return 256;
@@ -11,6 +14,7 @@ classical class Codegen {
         return 258;
     }
 
+    /// Maps a forward global opcode to its exact inverse opcode.
     public long inverseGlobalOpcode(long opcode) {
         if (opcode == 256) {
             return 257;
@@ -21,6 +25,7 @@ classical class Codegen {
         return 258;
     }
 
+    /// Returns the typed-local width required by one parsed statement.
     public long statementLocalCount(long opcode) {
         if (opcode == 768) {
             return 0;
@@ -37,6 +42,7 @@ classical class Codegen {
         return 0;
     }
 
+    /// Returns the encoded byte width of one parsed statement.
     public long statementCodeLength(long opcode) {
         if (opcode == 768) {
             return 24;
@@ -53,33 +59,26 @@ classical class Codegen {
         return 0;
     }
 
-    public long writeGlobalUpdate(
-        bytes output,
-        long cursor,
-        long opcode,
-        long operand
-    ) {
-        cursor = writeInstructionHeader(
-            output, cursor, globalOpcode(opcode), 2);
+    /// Writes `globalUpdate` into caller-owned bounded output.
+    public long writeGlobalUpdate(bytes output, long cursor, long opcode, long operand) {
+        cursor = writeInstructionHeader(output, cursor, globalOpcode(opcode), 2);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
         return writeSignedLittleEndian(output, cursor, operand, 8);
     }
 
-    public long writeInverseGlobalUpdate(
-        bytes output,
-        long cursor,
-        long opcode,
-        long operand
-    ) {
+    /// Writes `inverseGlobalUpdate` into caller-owned bounded output.
+    public long writeInverseGlobalUpdate(bytes output, long cursor, long opcode, long operand) {
         cursor = writeInstructionHeader(
             output,
             cursor,
             inverseGlobalOpcode(globalOpcode(opcode)),
-            2);
+            2
+        );
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
         return writeSignedLittleEndian(output, cursor, operand, 8);
     }
 
+    /// Writes `statement` into caller-owned bounded output.
     public long writeStatement(
         bytes output,
         long cursor,
@@ -97,33 +96,27 @@ classical class Codegen {
         cursor = writeSignedLittleEndian(output, cursor, operand, 8);
         if (opcode == 769) {
             cursor = writeInstructionHeader(output, cursor, 1027, 2);
-            cursor = writeUnsignedLittleEndian(
-                output, cursor, localBase + 1, 8);
-            return writeUnsignedLittleEndian(
-                output, cursor, localBase, 8);
+            cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
+            return writeUnsignedLittleEndian(output, cursor, localBase, 8);
         }
         if (opcode == 0) {
             cursor = writeInstructionHeader(output, cursor, 1026, 2);
             cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
-            return writeUnsignedLittleEndian(
-                output, cursor, localBase, 8);
+            return writeUnsignedLittleEndian(output, cursor, localBase, 8);
         }
         cursor = writeInstructionHeader(output, cursor, 1025, 2);
-        cursor = writeUnsignedLittleEndian(
-            output, cursor, localBase + 1, 8);
+        cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
         cursor = writeInstructionHeader(output, cursor, opcode, 3);
-        cursor = writeUnsignedLittleEndian(
-            output, cursor, localBase + 1, 8);
-        cursor = writeUnsignedLittleEndian(
-            output, cursor, localBase + 1, 8);
+        cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
+        cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
         cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
         cursor = writeInstructionHeader(output, cursor, 1026, 2);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
-        return writeUnsignedLittleEndian(
-            output, cursor, localBase + 1, 8);
+        return writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
     }
 
+    /// Writes `functionDescriptor` into caller-owned bounded output.
     public long writeFunctionDescriptor(
         bytes output,
         long cursor,

@@ -1,12 +1,10 @@
+//! Classifies and decodes bounded source token ranges.
+
 module examples.compiler.tokens;
 import examples.lexer.scanner;
 classical class Tokens {
-    public long tokenHash(
-        utf8 source,
-        words tokenStarts,
-        words tokenLengths,
-        long token
-    ) {
+    /// Computes the stable hash of one bounded source token.
+    public long tokenHash(utf8 source, words tokenStarts, words tokenLengths, long token) {
         long cursor = tokenStarts[token];
         long end = cursor + tokenLengths[token];
         long hash = 0;
@@ -17,6 +15,7 @@ classical class Tokens {
         return hash;
     }
 
+    /// Checks one token against an exact punctuation scalar.
     public boolean punctuationAt(
         utf8 source,
         words tokenKinds,
@@ -30,6 +29,7 @@ classical class Tokens {
         return false;
     }
 
+    /// Checks whether `tokenText` denotes the same canonical value.
     public boolean sameTokenText(
         utf8 source,
         words tokenStarts,
@@ -40,10 +40,8 @@ classical class Tokens {
         if (tokenLengths[left] == tokenLengths[right]) {
             long cursor = 0;
             while (cursor < tokenLengths[left]) limit 256 {
-                long leftScalar = utf8Scalar(
-                    source, tokenStarts[left] + cursor);
-                long rightScalar = utf8Scalar(
-                    source, tokenStarts[right] + cursor);
+                long leftScalar = utf8Scalar(source, tokenStarts[left] + cursor);
+                long rightScalar = utf8Scalar(source, tokenStarts[right] + cursor);
                 if (leftScalar < rightScalar) {
                     return false;
                 }
@@ -57,12 +55,8 @@ classical class Tokens {
         return false;
     }
 
-    public long signedNumberWidth(
-        utf8 source,
-        words tokenKinds,
-        words tokenStarts,
-        long token
-    ) {
+    /// Returns the token width consumed by one signed integer literal.
+    public long signedNumberWidth(utf8 source, words tokenKinds, words tokenStarts, long token) {
         if (tokenKinds[token] == 2) {
             return 1;
         }
@@ -74,22 +68,21 @@ classical class Tokens {
         return -1;
     }
 
+    /// Maps one statement token to its bounded parser opcode.
     public long statementOpcode(
         utf8 source,
         words tokenStarts,
         words tokenLengths,
         long statementStart
     ) {
-        long keyword = tokenHash(
-            source, tokenStarts, tokenLengths, statementStart);
+        long keyword = tokenHash(source, tokenStarts, tokenLengths, statementStart);
         if (keyword == 2886759238) {
             return 768;
         }
         if (keyword == 3327612) {
             return 769;
         }
-        long operator = utf8Scalar(
-            source, tokenStarts[statementStart + 1]);
+        long operator = utf8Scalar(source, tokenStarts[statementStart + 1]);
         if (operator == 61) {
             return 0;
         }
@@ -105,6 +98,7 @@ classical class Tokens {
         return -1;
     }
 
+    /// Checks one signed integer token for canonical syntax.
     public boolean signedNumberValid(
         utf8 source,
         words tokenStarts,
@@ -115,16 +109,15 @@ classical class Tokens {
         if (utf8Scalar(source, tokenStarts[token]) == 45) {
             magnitudeToken += 1;
         }
-        long end = tokenStarts[magnitudeToken]
-            + tokenLengths[magnitudeToken];
-        long magnitude = parseNumber(
-            source, tokenStarts[magnitudeToken], end);
+        long end = tokenStarts[magnitudeToken] + tokenLengths[magnitudeToken];
+        long magnitude = parseNumber(source, tokenStarts[magnitudeToken], end);
         if (magnitude < 0) {
             return false;
         }
         return true;
     }
 
+    /// Decodes one signed integer token after canonical syntax validation.
     public long parsedSignedNumber(
         utf8 source,
         words tokenStarts,
@@ -137,10 +130,8 @@ classical class Tokens {
             magnitudeToken += 1;
             sign = -1;
         }
-        long end = tokenStarts[magnitudeToken]
-            + tokenLengths[magnitudeToken];
-        long magnitude = parseNumber(
-            source, tokenStarts[magnitudeToken], end);
+        long end = tokenStarts[magnitudeToken] + tokenLengths[magnitudeToken];
+        long magnitude = parseNumber(source, tokenStarts[magnitudeToken], end);
         return sign * magnitude;
     }
 }

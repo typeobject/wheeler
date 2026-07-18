@@ -1,3 +1,5 @@
+//! Exercises linked constants, values, aggregates, and qualified calls.
+
 module examples.main;
 import examples.arithmetic;
 import examples.collections;
@@ -11,12 +13,14 @@ classical class ModuleMain {
     state long nominalSliceValue = 0;
     state long qualifiedVariant = 0;
 
+    /// Runs the bounded `ModuleMain` fixture.
+    ///
+    /// - Effects: Mutates only the fixture's declared state.
     entry void main() {
         Pair selected = pair(9);
         result = selected.right;
         examples.arithmetic::Pair second = pair(4);
-        examples.arithmetic::Pair[2] pairs =
-            new examples.arithmetic::Pair[2](selected, second);
+        examples.arithmetic::Pair[2] pairs = new examples.arithmetic::Pair[2](selected, second);
         examples.arithmetic::Pair[] pairSlice = slice(pairs, 0, 2);
         nominalArrayValue = examples.arithmetic::lastRight(pairs);
         nominalSliceValue = rightTotal(pairSlice, 2);
@@ -25,8 +29,7 @@ classical class ModuleMain {
         arrayValue = examples.collections::middle(values);
         sliceValue = total(all, 3);
         examples.results::Outcome outcome = classify(9);
-        examples.results::Outcome manual =
-            new examples.results::Outcome.Value(9);
+        examples.results::Outcome manual = new examples.results::Outcome.Value(9);
         if (outcome == manual) {
             qualifiedVariant = 1;
         }

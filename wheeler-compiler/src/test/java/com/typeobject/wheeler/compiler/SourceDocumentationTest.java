@@ -3,6 +3,8 @@ package com.typeobject.wheeler.compiler;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -99,6 +101,17 @@ class SourceDocumentationTest {
     assertEquals(List.of("WDOC006", "WDOC006"), facets.stream()
         .map(SourceDocumentation.Diagnostic::code)
         .toList());
+  }
+
+  @Test
+  void everyCheckedExampleCarriesValidFileAndDeclarationDocumentation() throws Exception {
+    Path examples = Path.of("../wheeler-examples/src/main/wheeler");
+    try (var paths = Files.walk(examples)) {
+      for (Path source : paths.filter(path -> path.toString().endsWith(".w")).toList()) {
+        assertEquals(List.of(), SourceDocumentation.checkFile(Files.readString(source)),
+            source.toString());
+      }
+    }
   }
 
   @Test

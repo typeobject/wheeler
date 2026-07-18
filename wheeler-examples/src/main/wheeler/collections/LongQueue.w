@@ -1,17 +1,23 @@
+//! Provides a bounded queue over caller-owned word storage.
+
 module examples.collections.queue;
 classical class LongQueue {
+    /// Defines immutable `QueueCursor` values for this module.
     public record QueueCursor(long head, long tail) {}
 
+    /// Defines the closed `Push` cases exported by this module.
     public variant Push {
         case Full();
         case Value(QueueCursor next);
     }
 
+    /// Defines the closed `Pop` cases exported by this module.
     public variant Pop {
         case Empty();
         case Value(long value, QueueCursor next);
     }
 
+    /// Pushes one value into caller-owned bounded queue storage.
     public Push push(words values, QueueCursor cursor, long value) {
         if (cursor.tail < bufferLength(values)) {
             set(values, cursor.tail, value);
@@ -21,6 +27,7 @@ classical class LongQueue {
         return new Push.Full();
     }
 
+    /// Pops one value from caller-owned bounded queue storage.
     public Pop pop(words values, QueueCursor cursor) {
         if (cursor.head < cursor.tail) {
             long value = values[cursor.head];

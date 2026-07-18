@@ -1,3 +1,5 @@
+//! Compiles the bounded bootstrap source profile to canonical `.wbc`.
+
 module examples.compiler.seed;
 import examples.compiler.codegen;
 import examples.compiler.encoding;
@@ -30,14 +32,8 @@ classical class MinimalCompiler {
             }
             if (emit) {
                 set(tokenKinds, writeCursor, kind);
-                set(
-                    tokenStarts,
-                    writeCursor,
-                    tokenStarts[readCursor]);
-                set(
-                    tokenLengths,
-                    writeCursor,
-                    tokenLengths[readCursor]);
+                set(tokenStarts, writeCursor, tokenStarts[readCursor]);
+                set(tokenLengths, writeCursor, tokenLengths[readCursor]);
                 writeCursor += 1;
             }
             readCursor += 1;
@@ -51,8 +47,7 @@ classical class MinimalCompiler {
         words tokenStarts,
         words tokenLengths
     ) {
-        ScanResult scanned = scan(
-            source, tokenKinds, tokenStarts, tokenLengths);
+        ScanResult scanned = scan(source, tokenKinds, tokenStarts, tokenLengths);
         match (scanned) {
             case ScanResult.Error(ScanDiagnostic diagnostic) {
                 assert finalCursor == 1;
@@ -87,20 +82,23 @@ classical class MinimalCompiler {
                     -1,
                     0,
                     -1,
-                    0);
+                    0
+                );
             }
             case ScanResult.Value(long count) {
                 long semanticCount = compactCompilerTokens(
                     tokenKinds,
                     tokenStarts,
                     tokenLengths,
-                    count);
+                    count
+                );
                 MinimalProgramResult parsed = parseMinimalProgram(
                     source,
                     tokenKinds,
                     tokenStarts,
                     tokenLengths,
-                    semanticCount);
+                    semanticCount
+                );
                 match (parsed) {
                     case MinimalProgramResult.Error(long parseOffset) {
                         assert finalCursor == 1;
@@ -135,7 +133,8 @@ classical class MinimalCompiler {
                             -1,
                             0,
                             -1,
-                            0);
+                            0
+                        );
                     }
                     case MinimalProgramResult.Value(MinimalProgram program) {
                         return program;
@@ -145,13 +144,20 @@ classical class MinimalCompiler {
         }
     }
 
+    /// Runs the bounded `MinimalCompiler` fixture.
+    ///
+    /// - Effects: Mutates declared state and caller-owned byte output.
     entry void main(utf8 source, bytes output) {
         region arena = new region(3072, 3);
         words tokenKinds = allocate(arena, 128);
         words tokenStarts = allocate(arena, 128);
         words tokenLengths = allocate(arena, 128);
         MinimalProgram program = requireMinimalProgram(
-            source, tokenKinds, tokenStarts, tokenLengths);
+            source,
+            tokenKinds,
+            tokenStarts,
+            tokenLengths
+        );
         StringTablePlan strings = planStringTable(source, program);
         if (strings.valid == 0) {
             assert finalCursor == 1;
@@ -195,46 +201,31 @@ classical class MinimalCompiler {
         long helperLocalCount = statementLocalCount(program.helperOpcode);
         long helperForwardLength = statementCodeLength(program.helperOpcode) + 8;
         if (1 < program.helperStatementCount) {
-            helperLocalCount += statementLocalCount(
-                program.helperSecondOpcode);
-            helperForwardLength += statementCodeLength(
-                program.helperSecondOpcode);
+            helperLocalCount += statementLocalCount(program.helperSecondOpcode);
+            helperForwardLength += statementCodeLength(program.helperSecondOpcode);
         }
         if (2 < program.helperStatementCount) {
-            helperLocalCount += statementLocalCount(
-                program.helperThirdOpcode);
-            helperForwardLength += statementCodeLength(
-                program.helperThirdOpcode);
+            helperLocalCount += statementLocalCount(program.helperThirdOpcode);
+            helperForwardLength += statementCodeLength(program.helperThirdOpcode);
         }
         if (3 < program.helperStatementCount) {
-            helperLocalCount += statementLocalCount(
-                program.helperFourthOpcode);
-            helperForwardLength += statementCodeLength(
-                program.helperFourthOpcode);
+            helperLocalCount += statementLocalCount(program.helperFourthOpcode);
+            helperForwardLength += statementCodeLength(program.helperFourthOpcode);
         }
         long helperInverseLength = 0;
         long helperInverseOffset = 4294967295;
-        long entryForwardLength = 8
-            + program.helperCallCount * 16
-            + entryStatementLength;
+        long entryForwardLength = 8 + program.helperCallCount * 16 + entryStatementLength;
         if (program.helperReversible == 1) {
             helperLocalCount = 0;
-            helperForwardLength = 8
-                + program.helperStatementCount * 24;
+            helperForwardLength = 8 + program.helperStatementCount * 24;
             helperInverseLength = helperForwardLength;
             helperInverseOffset = helperForwardLength;
-            entryForwardLength = 8
-                + program.helperCallCount * 32
-                + entryStatementLength;
+            entryForwardLength = 8 + program.helperCallCount * 32 + entryStatementLength;
         }
         if (program.helperCount == 1) {
             localCount = helperLocalCount;
-            functionsLength = 84
-                + helperLocalCount * 4
-                + entryLocalCount * 4;
-            codeLength = helperForwardLength
-                + helperInverseLength
-                + entryForwardLength;
+            functionsLength = 84 + helperLocalCount * 4 + entryLocalCount * 4;
+            codeLength = helperForwardLength + helperInverseLength + entryForwardLength;
         }
         long codeOffset = align8(functionsOffset + functionsLength);
         long proofOffset = align8(codeOffset + codeLength);
@@ -254,43 +245,31 @@ classical class MinimalCompiler {
         cursor = writeUnsignedLittleEndian(output, cursor, 32, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 40, 8);
 
-        cursor = writeDirectoryEntry(
-            output, cursor, 1, manifestOffset, 24);
-        cursor = writeDirectoryEntry(
-            output, cursor, 2, stringsOffset, stringsLength);
-        cursor = writeDirectoryEntry(
-            output, cursor, 3, typesOffset, typesLength);
-        cursor = writeDirectoryEntry(
-            output, cursor, 4, variantsOffset, 4);
-        cursor = writeDirectoryEntry(
-            output, cursor, 5, functionsOffset, functionsLength);
-        cursor = writeDirectoryEntry(
-            output, cursor, 6, codeOffset, codeLength);
+        cursor = writeDirectoryEntry(output, cursor, 1, manifestOffset, 24);
+        cursor = writeDirectoryEntry(output, cursor, 2, stringsOffset, stringsLength);
+        cursor = writeDirectoryEntry(output, cursor, 3, typesOffset, typesLength);
+        cursor = writeDirectoryEntry(output, cursor, 4, variantsOffset, 4);
+        cursor = writeDirectoryEntry(output, cursor, 5, functionsOffset, functionsLength);
+        cursor = writeDirectoryEntry(output, cursor, 6, codeOffset, codeLength);
         if (program.proofCount == 1) {
-            cursor = writeDirectoryEntry(
-                output, cursor, 10, proofOffset, 28);
+            cursor = writeDirectoryEntry(output, cursor, 10, proofOffset, 28);
         }
         cursor = align8(cursor);
 
         cursor = writeUnsignedLittleEndian(output, cursor, nameIndex, 4);
-        cursor = writeUnsignedLittleEndian(
-            output, cursor, program.helperCount, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, program.helperCount, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 250000, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 1000000, 8);
 
-        cursor = writeStringTable(
-            output, cursor, source, program, strings);
+        cursor = writeStringTable(output, cursor, source, program, strings);
         cursor = align8(cursor);
 
-        cursor = writeUnsignedLittleEndian(
-            output, cursor, program.globalCount, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, program.globalCount, 4);
         if (program.globalCount == 1) {
-            cursor = writeUnsignedLittleEndian(
-                output, cursor, globalIndex, 4);
+            cursor = writeUnsignedLittleEndian(output, cursor, globalIndex, 4);
             cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
-            cursor = writeSignedLittleEndian(
-                output, cursor, program.initialValue, 8);
+            cursor = writeSignedLittleEndian(output, cursor, program.initialValue, 8);
         }
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
@@ -298,8 +277,7 @@ classical class MinimalCompiler {
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = align8(cursor);
 
-        cursor = writeUnsignedLittleEndian(
-            output, cursor, 1 + program.helperCount, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, 1 + program.helperCount, 4);
         if (program.helperCount == 1) {
             cursor = writeFunctionDescriptor(
                 output,
@@ -312,7 +290,8 @@ classical class MinimalCompiler {
                 helperInverseOffset,
                 helperInverseLength,
                 helperLocalCount,
-                0);
+                0
+            );
             cursor = writeFunctionDescriptor(
                 output,
                 cursor,
@@ -324,7 +303,8 @@ classical class MinimalCompiler {
                 4294967295,
                 0,
                 entryLocalCount,
-                helperLocalCount);
+                helperLocalCount
+            );
             long helperType = 0;
             while (helperType < helperLocalCount) limit 8 {
                 cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
@@ -347,7 +327,8 @@ classical class MinimalCompiler {
                 4294967295,
                 0,
                 localCount,
-                0);
+                0
+            );
             long localType = 0;
             while (localType < localCount) limit 8 {
                 cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
@@ -362,27 +343,31 @@ classical class MinimalCompiler {
                     output,
                     cursor,
                     program.helperOpcode,
-                    program.helperOperand);
+                    program.helperOperand
+                );
                 if (1 < program.helperStatementCount) {
                     cursor = writeGlobalUpdate(
                         output,
                         cursor,
                         program.helperSecondOpcode,
-                        program.helperSecondOperand);
+                        program.helperSecondOperand
+                    );
                 }
                 if (2 < program.helperStatementCount) {
                     cursor = writeGlobalUpdate(
                         output,
                         cursor,
                         program.helperThirdOpcode,
-                        program.helperThirdOperand);
+                        program.helperThirdOperand
+                    );
                 }
                 if (3 < program.helperStatementCount) {
                     cursor = writeGlobalUpdate(
                         output,
                         cursor,
                         program.helperFourthOpcode,
-                        program.helperFourthOperand);
+                        program.helperFourthOperand
+                    );
                 }
                 cursor = writeInstructionHeader(output, cursor, 2, 0);
                 if (3 < program.helperStatementCount) {
@@ -390,48 +375,51 @@ classical class MinimalCompiler {
                         output,
                         cursor,
                         program.helperFourthOpcode,
-                        program.helperFourthOperand);
+                        program.helperFourthOperand
+                    );
                 }
                 if (2 < program.helperStatementCount) {
                     cursor = writeInverseGlobalUpdate(
                         output,
                         cursor,
                         program.helperThirdOpcode,
-                        program.helperThirdOperand);
+                        program.helperThirdOperand
+                    );
                 }
                 if (1 < program.helperStatementCount) {
                     cursor = writeInverseGlobalUpdate(
                         output,
                         cursor,
                         program.helperSecondOpcode,
-                        program.helperSecondOperand);
+                        program.helperSecondOperand
+                    );
                 }
                 cursor = writeInverseGlobalUpdate(
                     output,
                     cursor,
                     program.helperOpcode,
-                    program.helperOperand);
+                    program.helperOperand
+                );
                 cursor = writeInstructionHeader(output, cursor, 2, 0);
             } else {
-                long helperFirstLocals = statementLocalCount(
-                    program.helperOpcode);
-                long helperSecondLocals = statementLocalCount(
-                    program.helperSecondOpcode);
-                long helperThirdLocals = statementLocalCount(
-                    program.helperThirdOpcode);
+                long helperFirstLocals = statementLocalCount(program.helperOpcode);
+                long helperSecondLocals = statementLocalCount(program.helperSecondOpcode);
+                long helperThirdLocals = statementLocalCount(program.helperThirdOpcode);
                 cursor = writeStatement(
                     output,
                     cursor,
                     program.helperOpcode,
                     program.helperOperand,
-                    0);
+                    0
+                );
                 if (1 < program.helperStatementCount) {
                     cursor = writeStatement(
                         output,
                         cursor,
                         program.helperSecondOpcode,
                         program.helperSecondOperand,
-                        helperFirstLocals);
+                        helperFirstLocals
+                    );
                 }
                 if (2 < program.helperStatementCount) {
                     cursor = writeStatement(
@@ -439,7 +427,8 @@ classical class MinimalCompiler {
                         cursor,
                         program.helperThirdOpcode,
                         program.helperThirdOperand,
-                        helperFirstLocals + helperSecondLocals);
+                        helperFirstLocals + helperSecondLocals
+                    );
                 }
                 if (3 < program.helperStatementCount) {
                     cursor = writeStatement(
@@ -447,9 +436,8 @@ classical class MinimalCompiler {
                         cursor,
                         program.helperFourthOpcode,
                         program.helperFourthOperand,
-                        helperFirstLocals
-                            + helperSecondLocals
-                            + helperThirdLocals);
+                        helperFirstLocals + helperSecondLocals + helperThirdLocals
+                    );
                 }
                 cursor = writeInstructionHeader(output, cursor, 2, 0);
             }
@@ -460,12 +448,7 @@ classical class MinimalCompiler {
                 helperCall += 1;
             }
             if (program.preReverseStatementCount == 1) {
-                cursor = writeStatement(
-                    output,
-                    cursor,
-                    program.opcode,
-                    program.operand,
-                    0);
+                cursor = writeStatement(output, cursor, program.opcode, program.operand, 0);
             }
             if (program.helperReversible == 1) {
                 long helperUncall = 0;
@@ -477,12 +460,7 @@ classical class MinimalCompiler {
             }
             if (program.preReverseStatementCount == 0) {
                 if (0 < program.statementCount) {
-                    cursor = writeStatement(
-                        output,
-                        cursor,
-                        program.opcode,
-                        program.operand,
-                        0);
+                    cursor = writeStatement(output, cursor, program.opcode, program.operand, 0);
                 }
             }
             if (program.preReverseStatementCount == 1) {
@@ -492,17 +470,13 @@ classical class MinimalCompiler {
                         cursor,
                         program.secondOpcode,
                         program.secondOperand,
-                        firstLocalCount);
+                        firstLocalCount
+                    );
                 }
             }
         } else {
             if (0 < program.statementCount) {
-                cursor = writeStatement(
-                    output,
-                    cursor,
-                    program.opcode,
-                    program.operand,
-                    0);
+                cursor = writeStatement(output, cursor, program.opcode, program.operand, 0);
             }
             if (1 < program.statementCount) {
                 cursor = writeStatement(
@@ -510,7 +484,8 @@ classical class MinimalCompiler {
                     cursor,
                     program.secondOpcode,
                     program.secondOperand,
-                    firstLocalCount);
+                    firstLocalCount
+                );
             }
             if (2 < program.statementCount) {
                 cursor = writeStatement(
@@ -518,7 +493,8 @@ classical class MinimalCompiler {
                     cursor,
                     program.thirdOpcode,
                     program.thirdOperand,
-                    firstLocalCount + secondLocalCount);
+                    firstLocalCount + secondLocalCount
+                );
             }
             if (3 < program.statementCount) {
                 cursor = writeStatement(
@@ -526,7 +502,8 @@ classical class MinimalCompiler {
                     cursor,
                     program.fourthOpcode,
                     program.fourthOperand,
-                    firstLocalCount + secondLocalCount + thirdLocalCount);
+                    firstLocalCount + secondLocalCount + thirdLocalCount
+                );
             }
         }
         cursor = writeUnsignedLittleEndian(output, cursor, 1, 2);

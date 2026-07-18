@@ -1,4 +1,4 @@
-// Bounded parser over token metadata produced by an imported scanner module.
+//! Bounded parser over token metadata produced by an imported scanner module.
 module examples.lexer.main;
 import examples.lexer.parser;
 import examples.lexer.scanner;
@@ -16,12 +16,7 @@ classical class Utf8Lexer {
     state long outputLength = 0;
     state long finalCursor = 0;
 
-    long emitNumber(
-        utf8 source,
-        words tokenStarts,
-        words tokenLengths,
-        bytes output
-    ) {
+    long emitNumber(utf8 source, words tokenStarts, words tokenLengths, bytes output) {
         long start = tokenStarts[3];
         long length = tokenLengths[3];
         long cursor = 0;
@@ -32,6 +27,9 @@ classical class Utf8Lexer {
         return cursor;
     }
 
+    /// Runs the bounded `Utf8Lexer` fixture.
+    ///
+    /// - Effects: Mutates declared state and caller-owned byte output.
     entry void main(utf8 source, bytes output) {
         region arena = new region(384, 3);
         words tokenKinds = allocate(arena, 16);
@@ -39,8 +37,7 @@ classical class Utf8Lexer {
         words tokenLengths = allocate(arena, 16);
         long sourceLength = bufferLength(source);
         long count = 0;
-        ScanResult scanned = scan(
-            source, tokenKinds, tokenStarts, tokenLengths);
+        ScanResult scanned = scan(source, tokenKinds, tokenStarts, tokenLengths);
         match (scanned) {
             case ScanResult.Value(long scannedCount) {
                 count = scannedCount;
@@ -57,7 +54,12 @@ classical class Utf8Lexer {
         numberStart = tokenStarts[3];
         commentStart = tokenStarts[5];
         DeclarationResult parsed = parseDeclaration(
-            source, tokenKinds, tokenStarts, tokenLengths, tokenCount);
+            source,
+            tokenKinds,
+            tokenStarts,
+            tokenLengths,
+            tokenCount
+        );
         if (lexicalError == 0) {
             match (parsed) {
                 case DeclarationResult.Value(long value) {

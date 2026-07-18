@@ -1,4 +1,4 @@
-// Signed and Boolean parameters/results, nested expressions, and typed static calls.
+//! Signed and Boolean parameters/results, nested expressions, and typed static calls.
 classical class FunctionValues {
     const long ADD_STEP_BOUND = 4;
     state long result = 0;
@@ -7,6 +7,7 @@ classical class FunctionValues {
         return left + right;
     }
 
+    /// Checks the declared `addBound` proof certificate.
     theorem addBound proves steps(add, ADD_STEP_BOUND);
 
     boolean same(boolean left, boolean right) {
@@ -23,6 +24,9 @@ classical class FunctionValues {
         return sum;
     }
 
+    /// Runs the bounded `FunctionValues` fixture.
+    ///
+    /// - Effects: Mutates only the fixture's declared state.
     entry void main() {
         long base = add(2, 3);
         long total = triangular(base);

@@ -1,13 +1,11 @@
-/// Interns bounded immutable record and finite-variant values.
+//! Interns bounded immutable record and finite-variant values.
 module examples.compiler.aggregate_interpreter;
 import examples.compiler.opcodes;
 classical class AggregateInterpreter {
-    public record AggregateAllocation(
-        long handle,
-        long aggregateCount,
-        long fieldCursor
-    ) {}
+    /// Defines immutable `AggregateAllocation` values for this module.
+    public record AggregateAllocation(long handle, long aggregateCount, long fieldCursor) {}
 
+    /// Interns one structural aggregate and returns its stable store index.
     public AggregateAllocation internAggregate(
         words aggregateTypes,
         words aggregateTags,
@@ -24,38 +22,32 @@ classical class AggregateInterpreter {
         long fieldCursor
     ) {
         long aggregate = 0;
-        while (aggregate < aggregateCount)
-            limit INTERPRETER_AGGREGATE_COUNT {
+        while (aggregate < aggregateCount) limit INTERPRETER_AGGREGATE_COUNT {
             boolean equal = aggregateTypes[aggregate] == typeCode;
-            if (aggregateTags[aggregate] == tag) {
-            } else {
+            if (aggregateTags[aggregate] == tag) {} else {
                 equal = false;
             }
-            if (aggregateCounts[aggregate] == fieldCount) {
-            } else {
+            if (aggregateCounts[aggregate] == fieldCount) {} else {
                 equal = false;
             }
             long field = 0;
             while (field < fieldCount) limit INTERPRETER_LOCAL_WIDTH {
-                if (aggregateFields[aggregateStarts[aggregate] + field]
-                        == locals[localBase + fieldBase + field]) {
-                } else {
+                if (
+                    aggregateFields[aggregateStarts[aggregate] + field] == locals[localBase + fieldBase + field]
+                ) {} else {
                     equal = false;
                 }
                 field += 1;
             }
             if (equal) {
-                return new AggregateAllocation(
-                    aggregate + 1, aggregateCount, fieldCursor);
+                return new AggregateAllocation(aggregate + 1, aggregateCount, fieldCursor);
             }
             aggregate += 1;
         }
-        if (aggregateCount < INTERPRETER_AGGREGATE_COUNT) {
-        } else {
+        if (aggregateCount < INTERPRETER_AGGREGATE_COUNT) {} else {
             return new AggregateAllocation(0, aggregateCount, fieldCursor);
         }
-        if (fieldCursor + fieldCount < INTERPRETER_AGGREGATE_FIELDS + 1) {
-        } else {
+        if (fieldCursor + fieldCount < INTERPRETER_AGGREGATE_FIELDS + 1) {} else {
             return new AggregateAllocation(0, aggregateCount, fieldCursor);
         }
         set(aggregateTypes, aggregateCount, typeCode);
@@ -64,18 +56,17 @@ classical class AggregateInterpreter {
         set(aggregateCounts, aggregateCount, fieldCount);
         long copy = 0;
         while (copy < fieldCount) limit INTERPRETER_LOCAL_WIDTH {
-            set(
-                aggregateFields,
-                fieldCursor + copy,
-                locals[localBase + fieldBase + copy]);
+            set(aggregateFields, fieldCursor + copy, locals[localBase + fieldBase + copy]);
             copy += 1;
         }
         return new AggregateAllocation(
             aggregateCount + 1,
             aggregateCount + 1,
-            fieldCursor + fieldCount);
+            fieldCursor + fieldCount
+        );
     }
 
+    /// Interns one bounded slice view and returns its stable store index.
     public AggregateAllocation internSlice(
         words aggregateTypes,
         words aggregateTags,
@@ -91,36 +82,29 @@ classical class AggregateInterpreter {
     ) {
         long source = sourceHandle - 1;
         long aggregate = 0;
-        while (aggregate < aggregateCount)
-            limit INTERPRETER_AGGREGATE_COUNT {
+        while (aggregate < aggregateCount) limit INTERPRETER_AGGREGATE_COUNT {
             boolean equal = aggregateTypes[aggregate] == typeCode;
-            if (aggregateCounts[aggregate] == sliceLength) {
-            } else {
+            if (aggregateCounts[aggregate] == sliceLength) {} else {
                 equal = false;
             }
             long field = 0;
-            while (field < sliceLength)
-                limit INTERPRETER_AGGREGATE_FIELDS {
-                if (aggregateFields[aggregateStarts[aggregate] + field]
-                        == aggregateFields[
-                            aggregateStarts[source] + sourceStart + field]) {
-                } else {
+            while (field < sliceLength) limit INTERPRETER_AGGREGATE_FIELDS {
+                if (
+                    aggregateFields[aggregateStarts[aggregate] + field] == aggregateFields[aggregateStarts[source] + sourceStart + field]
+                ) {} else {
                     equal = false;
                 }
                 field += 1;
             }
             if (equal) {
-                return new AggregateAllocation(
-                    aggregate + 1, aggregateCount, fieldCursor);
+                return new AggregateAllocation(aggregate + 1, aggregateCount, fieldCursor);
             }
             aggregate += 1;
         }
-        if (aggregateCount < INTERPRETER_AGGREGATE_COUNT) {
-        } else {
+        if (aggregateCount < INTERPRETER_AGGREGATE_COUNT) {} else {
             return new AggregateAllocation(0, aggregateCount, fieldCursor);
         }
-        if (fieldCursor + sliceLength < INTERPRETER_AGGREGATE_FIELDS + 1) {
-        } else {
+        if (fieldCursor + sliceLength < INTERPRETER_AGGREGATE_FIELDS + 1) {} else {
             return new AggregateAllocation(0, aggregateCount, fieldCursor);
         }
         set(aggregateTypes, aggregateCount, typeCode);
@@ -132,16 +116,18 @@ classical class AggregateInterpreter {
             set(
                 aggregateFields,
                 fieldCursor + copy,
-                aggregateFields[
-                    aggregateStarts[source] + sourceStart + copy]);
+                aggregateFields[aggregateStarts[source] + sourceStart + copy]
+            );
             copy += 1;
         }
         return new AggregateAllocation(
             aggregateCount + 1,
             aggregateCount + 1,
-            fieldCursor + sliceLength);
+            fieldCursor + sliceLength
+        );
     }
 
+    /// Returns the stored tag for one aggregate index.
     public long aggregateTag(words aggregateTags, long handle) {
         if (handle < 1) {
             return -1;
@@ -149,6 +135,7 @@ classical class AggregateInterpreter {
         return aggregateTags[handle - 1];
     }
 
+    /// Checks that an aggregate field window remains inside its stored value.
     public boolean aggregateWindowValid(
         words aggregateCounts,
         long handle,
@@ -171,11 +158,8 @@ classical class AggregateInterpreter {
         return length < count - start + 1;
     }
 
-    public boolean aggregateFieldValid(
-        words aggregateCounts,
-        long handle,
-        long field
-    ) {
+    /// Checks that one aggregate field equals the requested signed value.
+    public boolean aggregateFieldValid(words aggregateCounts, long handle, long field) {
         if (handle < 1) {
             return false;
         }
@@ -185,6 +169,7 @@ classical class AggregateInterpreter {
         return field < aggregateCounts[handle - 1];
     }
 
+    /// Returns one checked signed field from an interned aggregate.
     public long aggregateField(
         words aggregateStarts,
         words aggregateCounts,

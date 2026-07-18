@@ -1,9 +1,8 @@
+//! Validates canonical logical and workspace-relative paths.
+
 module examples.packages.paths;
 classical class Paths {
-    private boolean invalidDotComponent(
-        long componentLength,
-        long dotCount
-    ) {
+    private boolean invalidDotComponent(long componentLength, long dotCount) {
         if (componentLength == 1) {
             return dotCount == 1;
         }
@@ -35,11 +34,8 @@ classical class Paths {
         return scalar == 95;
     }
 
-    public boolean validWorkspacePath(
-        utf8 source,
-        long start,
-        long length
-    ) {
+    /// Checks whether `workspacePath` satisfies the canonical profile.
+    public boolean validWorkspacePath(utf8 source, long start, long length) {
         if (length == 0) {
             return false;
         }
@@ -76,11 +72,8 @@ classical class Paths {
         return true;
     }
 
-    public boolean validLogicalPath(
-        utf8 source,
-        long start,
-        long length
-    ) {
+    /// Checks whether `logicalPath` satisfies the canonical profile.
+    public boolean validLogicalPath(utf8 source, long start, long length) {
         if (length == 0) {
             return false;
         }
@@ -98,9 +91,7 @@ classical class Paths {
                 if (componentLength == 0) {
                     return false;
                 }
-                boolean dots = invalidDotComponent(
-                    componentLength,
-                    dotCount);
+                boolean dots = invalidDotComponent(componentLength, dotCount);
                 if (dots) {
                     return false;
                 }
@@ -123,9 +114,7 @@ classical class Paths {
         if (componentLength == 0) {
             return false;
         }
-        boolean finalDots = invalidDotComponent(
-            componentLength,
-            dotCount);
+        boolean finalDots = invalidDotComponent(componentLength, dotCount);
         if (finalDots) {
             return false;
         }

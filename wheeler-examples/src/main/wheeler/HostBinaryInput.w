@@ -1,4 +1,4 @@
-// Explicit immutable binary input; malformed UTF-8 is ordinary data here.
+//! Explicit immutable binary input; malformed UTF-8 is ordinary data here.
 classical class HostBinaryInput {
     state long byteLength = 0;
     state long firstByte = 0;
@@ -7,6 +7,9 @@ classical class HostBinaryInput {
     state long checksum = 0;
     state long outputLength = 0;
 
+    /// Runs the bounded `HostBinaryInput` fixture.
+    ///
+    /// - Effects: Mutates declared state and caller-owned byte output.
     entry void main(byteview source, bytes output) {
         byteLength = bufferLength(source);
         firstByte = source[0];

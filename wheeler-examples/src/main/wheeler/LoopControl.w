@@ -1,4 +1,4 @@
-// Bounded loop exits, continuation edges, and an early typed return.
+//! Bounded loop exits, continuation edges, and an early typed return.
 classical class LoopControl {
     state long sum = 0;
     state long selected = 0;
@@ -10,6 +10,9 @@ classical class LoopControl {
         return 9;
     }
 
+    /// Runs the bounded `LoopControl` fixture.
+    ///
+    /// - Effects: Mutates only the fixture's declared state.
     entry void main() {
         long i = 0;
         while (i < 6) limit 6 {

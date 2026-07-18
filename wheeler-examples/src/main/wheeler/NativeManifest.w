@@ -1,3 +1,5 @@
+//! Parses and re-emits a canonical package manifest in Wheeler.
+
 module examples.packages.main;
 import examples.lexer.scanner;
 import examples.packages.emitter;
@@ -31,6 +33,9 @@ classical class NativeManifest {
     state long emittedLength = 0;
     state long finalCursor = 0;
 
+    /// Runs the bounded `NativeManifest` fixture.
+    ///
+    /// - Effects: Mutates declared state and caller-owned byte output.
     entry void main(utf8 source, bytes canonical) {
         region arena = new region(1536, 3);
         words kinds = allocate(arena, 64);
@@ -46,8 +51,7 @@ classical class NativeManifest {
                 assert finalCursor == 1;
             }
         }
-        ManifestResult parsed = parseHeader(
-            source, kinds, starts, lengths, count);
+        ManifestResult parsed = parseHeader(source, kinds, starts, lengths, count);
         match (parsed) {
             case ManifestResult.Value(ManifestHeader header) {
                 nameStart = header.name.start;
@@ -69,19 +73,13 @@ classical class NativeManifest {
                 dependencyNameLength = header.dependencyName.length;
                 dependencyVersionLength = header.dependencyVersion.length;
                 secondDependencyNameLength = header.secondDependencyName.length;
-                secondDependencyVersionLength =
-                    header.secondDependencyVersion.length;
+                secondDependencyVersionLength = header.secondDependencyVersion.length;
                 capabilityCount = header.capabilityCount;
                 capabilityNameLength = header.capabilityName.length;
                 capabilityPathLength = header.capabilityPath.length;
                 secondCapabilityNameLength = header.secondCapabilityName.length;
                 secondCapabilityPathLength = header.secondCapabilityPath.length;
-                emittedLength = emitCanonical(
-                    source,
-                    starts,
-                    lengths,
-                    count,
-                    canonical);
+                emittedLength = emitCanonical(source, starts, lengths, count, canonical);
             }
             case ManifestResult.Error(long parseOffset) {
                 assert finalCursor == 1;

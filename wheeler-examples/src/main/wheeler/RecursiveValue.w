@@ -1,4 +1,4 @@
-// Bounded recursive value calls over signed frame parameters and results.
+//! Bounded recursive value calls over signed frame parameters and results.
 classical class RecursiveValue {
     state long result = 0;
 
@@ -10,6 +10,9 @@ classical class RecursiveValue {
         return value;
     }
 
+    /// Runs the bounded `RecursiveValue` fixture.
+    ///
+    /// - Effects: Mutates only the fixture's declared state.
     entry void main() {
         long measuredDepth = depth(6);
         result = measuredDepth;

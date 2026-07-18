@@ -1,3 +1,5 @@
+//! Checks canonical package archives with Wheeler-native codecs.
+
 module examples.packages.archive_main;
 import examples.crypto.sha256;
 import examples.packages.archive;
@@ -13,6 +15,9 @@ classical class NativeArchive {
     state long targetCount = 0;
     state long finalLength = 0;
 
+    /// Runs the bounded `NativeArchive` fixture.
+    ///
+    /// - Effects: Mutates only the fixture's declared state.
     entry void main(byteview source) {
         region arena = new region(11300, 6);
         bytes digest = allocateBytes(arena, 32);

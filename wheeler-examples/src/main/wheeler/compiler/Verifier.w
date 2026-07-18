@@ -1,3 +1,5 @@
+//! Coordinates Wheeler-native verification of canonical bytecode.
+
 module examples.compiler.verifier;
 import examples.compiler.function_verifier;
 import examples.compiler.opcodes;
@@ -19,11 +21,7 @@ classical class Verifier {
         return value + 8 - remainder;
     }
 
-    private long readUnsigned(
-        byteview artifact,
-        long offset,
-        long width
-    ) {
+    private long readUnsigned(byteview artifact, long offset, long width) {
         long value = 0;
         long multiplier = 1;
         long cursor = 0;
@@ -37,14 +35,8 @@ classical class Verifier {
         return value;
     }
 
-    private long directoryField(
-        byteview artifact,
-        long section,
-        long field,
-        long width
-    ) {
-        return readUnsigned(
-            artifact, 40 + section * 32 + field, width);
+    private long directoryField(byteview artifact, long section, long field, long width) {
+        return readUnsigned(artifact, 40 + section * 32 + field, width);
     }
 
     private boolean magicValid(byteview artifact) {
@@ -66,11 +58,7 @@ classical class Verifier {
         return false;
     }
 
-    private long verifyDirectory(
-        byteview artifact,
-        long fileLength,
-        long sectionCount
-    ) {
+    private long verifyDirectory(byteview artifact, long fileLength, long sectionCount) {
         long section = 0;
         long expectedOffset = align8(40 + sectionCount * 32);
         while (section < sectionCount) limit 7 {
@@ -85,10 +73,8 @@ classical class Verifier {
             if (differs(directoryField(artifact, section, 4, 4), 1)) {
                 return 0;
             }
-            long sectionOffset = directoryField(
-                artifact, section, 8, 8);
-            long sectionLength = directoryField(
-                artifact, section, 16, 8);
+            long sectionOffset = directoryField(artifact, section, 8, 8);
+            long sectionLength = directoryField(artifact, section, 16, 8);
             if (differs(sectionOffset, align8(expectedOffset))) {
                 return 0;
             }
@@ -134,13 +120,10 @@ classical class Verifier {
         long global = 0;
         while (global < globalCount) limit INTERPRETER_GLOBAL_COUNT {
             long globalDescriptor = typesOffset + 4 + global * 16;
-            if (readUnsigned(artifact, globalDescriptor, 4) < stringCount) {
-            } else {
+            if (readUnsigned(artifact, globalDescriptor, 4) < stringCount) {} else {
                 return 0;
             }
-            if (differs(
-                    readUnsigned(artifact, globalDescriptor + 4, 4),
-                    TYPE_SIGNED)) {
+            if (differs(readUnsigned(artifact, globalDescriptor + 4, 4), TYPE_SIGNED)) {
                 return 0;
             }
             global += 1;
@@ -156,8 +139,7 @@ classical class Verifier {
             if (differs(readUnsigned(artifact, typeCursor, 4), record)) {
                 return 0;
             }
-            if (readUnsigned(artifact, typeCursor + 4, 4) < stringCount) {
-            } else {
+            if (readUnsigned(artifact, typeCursor + 4, 4) < stringCount) {} else {
                 return 0;
             }
             long fieldCount = readUnsigned(artifact, typeCursor + 8, 4);
@@ -166,21 +148,15 @@ classical class Verifier {
             }
             long field = 0;
             while (field < fieldCount) limit INTERPRETER_LOCAL_WIDTH {
-                long fieldName = readUnsigned(
-                    artifact, typeCursor + 12 + field * 8, 4);
-                if (fieldName < stringCount) {
-                } else {
+                long fieldName = readUnsigned(artifact, typeCursor + 12 + field * 8, 4);
+                if (fieldName < stringCount) {} else {
                     return 0;
                 }
-                long fieldType = readUnsigned(
-                    artifact, typeCursor + 16 + field * 8, 4);
-                if (fieldType == TYPE_SIGNED) {
-                } else {
-                    if (fieldType == TYPE_BOOLEAN) {
-                    } else {
+                long fieldType = readUnsigned(artifact, typeCursor + 16 + field * 8, 4);
+                if (fieldType == TYPE_SIGNED) {} else {
+                    if (fieldType == TYPE_BOOLEAN) {} else {
                         if (isRecordType(fieldType)) {
-                            if (recordTypeId(fieldType) < record) {
-                            } else {
+                            if (recordTypeId(fieldType) < record) {} else {
                                 return 0;
                             }
                         } else {
@@ -204,13 +180,10 @@ classical class Verifier {
                 return 0;
             }
             long elementType = readUnsigned(artifact, typeCursor + 4, 4);
-            if (elementType == TYPE_SIGNED) {
-            } else {
-                if (elementType == TYPE_BOOLEAN) {
-                } else {
+            if (elementType == TYPE_SIGNED) {} else {
+                if (elementType == TYPE_BOOLEAN) {} else {
                     if (isRecordType(elementType)) {
-                        if (recordTypeId(elementType) < recordCount) {
-                        } else {
+                        if (recordTypeId(elementType) < recordCount) {} else {
                             return 0;
                         }
                     } else {
@@ -236,13 +209,10 @@ classical class Verifier {
                 return 0;
             }
             long sliceElement = readUnsigned(artifact, typeCursor + 4, 4);
-            if (sliceElement == TYPE_SIGNED) {
-            } else {
-                if (sliceElement == TYPE_BOOLEAN) {
-                } else {
+            if (sliceElement == TYPE_SIGNED) {} else {
+                if (sliceElement == TYPE_BOOLEAN) {} else {
                     if (isRecordType(sliceElement)) {
-                        if (recordTypeId(sliceElement) < recordCount) {
-                        } else {
+                        if (recordTypeId(sliceElement) < recordCount) {} else {
                             return 0;
                         }
                     } else {
@@ -266,8 +236,7 @@ classical class Verifier {
             if (differs(readUnsigned(artifact, variantCursor, 4), variant)) {
                 return 0;
             }
-            if (readUnsigned(artifact, variantCursor + 4, 4) < stringCount) {
-            } else {
+            if (readUnsigned(artifact, variantCursor + 4, 4) < stringCount) {} else {
                 return 0;
             }
             long caseCount = readUnsigned(artifact, variantCursor + 8, 4);
@@ -276,35 +245,25 @@ classical class Verifier {
             }
             variantCursor += 12;
             long variantCase = 0;
-            while (variantCase < caseCount)
-                limit INTERPRETER_AGGREGATE_COUNT {
-                if (readUnsigned(artifact, variantCursor, 4) < stringCount) {
-                } else {
+            while (variantCase < caseCount) limit INTERPRETER_AGGREGATE_COUNT {
+                if (readUnsigned(artifact, variantCursor, 4) < stringCount) {} else {
                     return 0;
                 }
-                long payloadCount = readUnsigned(
-                    artifact, variantCursor + 4, 4);
+                long payloadCount = readUnsigned(artifact, variantCursor + 4, 4);
                 if (INTERPRETER_LOCAL_WIDTH < payloadCount) {
                     return 0;
                 }
                 variantCursor += 8;
                 long payload = 0;
-                while (payload < payloadCount)
-                    limit INTERPRETER_LOCAL_WIDTH {
-                    if (readUnsigned(
-                            artifact, variantCursor, 4) < stringCount) {
-                    } else {
+                while (payload < payloadCount) limit INTERPRETER_LOCAL_WIDTH {
+                    if (readUnsigned(artifact, variantCursor, 4) < stringCount) {} else {
                         return 0;
                     }
-                    long payloadType = readUnsigned(
-                        artifact, variantCursor + 4, 4);
-                    if (payloadType == TYPE_SIGNED) {
-                    } else {
-                        if (payloadType == TYPE_BOOLEAN) {
-                        } else {
+                    long payloadType = readUnsigned(artifact, variantCursor + 4, 4);
+                    if (payloadType == TYPE_SIGNED) {} else {
+                        if (payloadType == TYPE_BOOLEAN) {} else {
                             if (isRecordType(payloadType)) {
-                                if (recordTypeId(payloadType) < recordCount) {
-                                } else {
+                                if (recordTypeId(payloadType) < recordCount) {} else {
                                     return 0;
                                 }
                             } else {
@@ -322,7 +281,8 @@ classical class Verifier {
         if (differs(variantCursor, variantsOffset + variantsLength)) {
             return 0;
         }
-        if (verifyFunctions(
+        if (
+            verifyFunctions(
                 artifact,
                 functionsOffset,
                 functionsLength,
@@ -337,12 +297,13 @@ classical class Verifier {
                 sliceCount,
                 functionCount,
                 entryFunction,
-                stringCount) == 0) {
+                stringCount
+            ) == 0
+        ) {
             return 0;
         }
         long programName = readUnsigned(artifact, manifestOffset, 4);
-        if (programName < stringCount) {
-        } else {
+        if (programName < stringCount) {} else {
             return 0;
         }
         if (differs(entryFunction, functionCount - 1)) {
@@ -354,9 +315,7 @@ classical class Verifier {
         if (differs(readUnsigned(artifact, manifestOffset + 12, 4), 0)) {
             return 0;
         }
-        if (differs(
-                readUnsigned(artifact, manifestOffset + 16, 8),
-                1000000)) {
+        if (differs(readUnsigned(artifact, manifestOffset + 16, 8), 1000000)) {
             return 0;
         }
         long proofOffset = 0;
@@ -365,7 +324,8 @@ classical class Verifier {
             proofOffset = directoryField(artifact, 6, 8, 8);
             proofLength = directoryField(artifact, 6, 16, 8);
         }
-        if (verifyProofs(
+        if (
+            verifyProofs(
                 artifact,
                 sectionCount,
                 proofOffset,
@@ -375,12 +335,15 @@ classical class Verifier {
                 functionCount,
                 entryFunction,
                 stringCount,
-                readUnsigned(artifact, manifestOffset + 16, 8)) == 0) {
+                readUnsigned(artifact, manifestOffset + 16, 8)
+            ) == 0
+        ) {
             return 0;
         }
         return 1;
     }
 
+    /// Verifies `artifact` under the bounded bootstrap profile.
     public long verifyArtifact(byteview artifact, long fileLength) {
         if (fileLength < 320) {
             return 0;
@@ -388,8 +351,7 @@ classical class Verifier {
         if (bufferLength(artifact) < fileLength) {
             return 0;
         }
-        if (magicValid(artifact)) {
-        } else {
+        if (magicValid(artifact)) {} else {
             return 0;
         }
         if (differs(readUnsigned(artifact, 8, 2), 1)) {
@@ -417,8 +379,7 @@ classical class Verifier {
         if (differs(readUnsigned(artifact, 32, 8), 40)) {
             return 0;
         }
-        if (verifyDirectory(
-                artifact, fileLength, sectionCount) == 1) {
+        if (verifyDirectory(artifact, fileLength, sectionCount) == 1) {
             return verifyPayloads(artifact, sectionCount);
         }
         return 0;

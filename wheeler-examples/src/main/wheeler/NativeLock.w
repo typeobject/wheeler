@@ -1,3 +1,5 @@
+//! Parses and re-emits a canonical dependency lock in Wheeler.
+
 module examples.packages.lock_main;
 import examples.lexer.scanner;
 import examples.packages.line_emitter;
@@ -12,6 +14,9 @@ classical class NativeLock {
     state long emittedLength = 0;
     state long finalCursor = 0;
 
+    /// Runs the bounded `NativeLock` fixture.
+    ///
+    /// - Effects: Mutates declared state and caller-owned byte output.
     entry void main(utf8 source, bytes canonical) {
         region arena = new region(768, 3);
         words kinds = allocate(arena, 32);
@@ -36,12 +41,7 @@ classical class NativeLock {
                 firstVersionLength = lock.first.versionLength;
                 secondNameLength = lock.second.nameLength;
                 edgeCount = lock.edgeCount;
-                emittedLength = emitCanonicalLines(
-                    source,
-                    starts,
-                    lengths,
-                    count,
-                    canonical);
+                emittedLength = emitCanonicalLines(source, starts, lengths, count, canonical);
             }
             case LockResult.Error(long parseOffset) {
                 assert finalCursor == 1;

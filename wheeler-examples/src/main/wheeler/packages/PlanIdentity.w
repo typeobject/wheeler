@@ -1,6 +1,9 @@
+//! Checks content-bound build-plan node identities.
+
 module examples.packages.plan_identity;
 import examples.crypto.sha256;
 classical class PlanIdentity {
+    /// Defines immutable `NodeIdentityFields` values for this module.
     public record NodeIdentityFields(
         long expectedStart,
         long packageStart,
@@ -43,13 +46,7 @@ classical class PlanIdentity {
         return cursor + 4;
     }
 
-    private long copyField(
-        byteview source,
-        long start,
-        long length,
-        bytes output,
-        long cursor
-    ) {
+    private long copyField(byteview source, long start, long length, bytes output, long cursor) {
         cursor = writeLength(output, cursor, length);
         long offset = 0;
         while (offset < length) limit 256 {
@@ -66,12 +63,7 @@ classical class PlanIdentity {
         return value + 87;
     }
 
-    private long copyHashField(
-        byteview source,
-        long start,
-        bytes output,
-        long cursor
-    ) {
+    private long copyHashField(byteview source, long start, bytes output, long cursor) {
         cursor = writeLength(output, cursor, 64);
         long offset = 0;
         while (offset < 32) limit 32 {
@@ -93,11 +85,7 @@ classical class PlanIdentity {
         return digits;
     }
 
-    private long writeDecimalField(
-        long value,
-        bytes output,
-        long cursor
-    ) {
+    private long writeDecimalField(long value, bytes output, long cursor) {
         long digits = decimalDigits(value);
         cursor = writeLength(output, cursor, digits);
         long divisor = 1;
@@ -117,11 +105,7 @@ classical class PlanIdentity {
         return cursor + digits;
     }
 
-    private long writeKindField(
-        long kind,
-        bytes output,
-        long cursor
-    ) {
+    private long writeKindField(long kind, bytes output, long cursor) {
         if (kind == 1) {
             cursor = writeLength(output, cursor, 7);
             writeAscii(output, cursor, "LIBRARY");
@@ -147,6 +131,7 @@ classical class PlanIdentity {
         return cursor + 7;
     }
 
+    /// Checks one build-plan node against its content-derived identity.
     public boolean nodeIdentityMatches(
         byteview source,
         NodeIdentityFields fields,
@@ -157,35 +142,13 @@ classical class PlanIdentity {
         long cursor = writeLength(identity, 0, 20);
         writeAscii(identity, cursor, "wheeler-build-node-1");
         cursor += 20;
-        cursor = copyField(
-            source,
-            fields.packageStart,
-            fields.packageLength,
-            identity,
-            cursor);
-        cursor = copyField(
-            source,
-            fields.versionStart,
-            fields.versionLength,
-            identity,
-            cursor);
-        cursor = copyHashField(
-            source, fields.manifestIdentityStart, identity, cursor);
-        cursor = copyField(
-            source,
-            fields.targetStart,
-            fields.targetLength,
-            identity,
-            cursor);
+        cursor = copyField(source, fields.packageStart, fields.packageLength, identity, cursor);
+        cursor = copyField(source, fields.versionStart, fields.versionLength, identity, cursor);
+        cursor = copyHashField(source, fields.manifestIdentityStart, identity, cursor);
+        cursor = copyField(source, fields.targetStart, fields.targetLength, identity, cursor);
         cursor = writeKindField(fields.targetKind, identity, cursor);
-        cursor = copyHashField(
-            source, fields.sourceIdentityStart, identity, cursor);
-        cursor = copyField(
-            source,
-            fields.outputStart,
-            fields.outputLength,
-            identity,
-            cursor);
+        cursor = copyHashField(source, fields.sourceIdentityStart, identity, cursor);
+        cursor = copyField(source, fields.outputStart, fields.outputLength, identity, cursor);
         cursor = writeDecimalField(fields.inputCount, identity, cursor);
         if (fields.inputCount == 1) {
             cursor = copyField(
@@ -193,9 +156,9 @@ classical class PlanIdentity {
                 fields.inputNameStart,
                 fields.inputNameLength,
                 identity,
-                cursor);
-            cursor = copyHashField(
-                source, fields.inputArchiveStart, identity, cursor);
+                cursor
+            );
+            cursor = copyHashField(source, fields.inputArchiveStart, identity, cursor);
         }
         cursor = writeDecimalField(fields.requestCount, identity, cursor);
         if (fields.requestCount == 1) {
@@ -204,13 +167,15 @@ classical class PlanIdentity {
                 fields.requestNameStart,
                 fields.requestNameLength,
                 identity,
-                cursor);
+                cursor
+            );
             cursor = copyField(
                 source,
                 fields.requestPatternStart,
                 fields.requestPatternLength,
                 identity,
-                cursor);
+                cursor
+            );
         }
         cursor = writeDecimalField(fields.maxSteps, identity, cursor);
         cursor = writeDecimalField(fields.maxMemory, identity, cursor);
@@ -224,13 +189,15 @@ classical class PlanIdentity {
                 fields.grantNameStart,
                 fields.grantNameLength,
                 identity,
-                cursor);
+                cursor
+            );
             cursor = copyField(
                 source,
                 fields.grantPatternStart,
                 fields.grantPatternLength,
                 identity,
-                cursor);
+                cursor
+            );
         }
         hashSha256Range(identity, 0, cursor, digest, arena);
         drop(identity);

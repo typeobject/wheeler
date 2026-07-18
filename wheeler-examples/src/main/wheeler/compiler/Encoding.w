@@ -1,11 +1,9 @@
+//! Writes and compares bounded canonical binary fields.
+
 module examples.compiler.encoding;
 classical class Encoding {
-    public long writeUnsignedLittleEndian(
-        bytes output,
-        long offset,
-        long value,
-        long width
-    ) {
+    /// Writes `unsignedLittleEndian` into caller-owned bounded output.
+    public long writeUnsignedLittleEndian(bytes output, long offset, long value, long width) {
         if (value < 0) {
             return -1;
         }
@@ -27,12 +25,8 @@ classical class Encoding {
         return -1;
     }
 
-    public long writeSignedLittleEndian(
-        bytes output,
-        long offset,
-        long value,
-        long width
-    ) {
+    /// Writes `signedLittleEndian` into caller-owned bounded output.
+    public long writeSignedLittleEndian(bytes output, long offset, long value, long width) {
         if (width < 1) {
             return -1;
         }
@@ -58,21 +52,13 @@ classical class Encoding {
         return -1;
     }
 
-    public long writeAsciiSlice(
-        bytes output,
-        long offset,
-        utf8 input,
-        long start,
-        long length
-    ) {
+    /// Writes `asciiSlice` into caller-owned bounded output.
+    public long writeAsciiSlice(bytes output, long offset, utf8 input, long start, long length) {
         long cursor = 0;
         while (cursor < length) limit 256 {
             long inputCursor = start + cursor;
             if (utf8Width(input, inputCursor) == 1) {
-                setByte(
-                    output,
-                    offset + cursor,
-                    utf8Scalar(input, inputCursor));
+                setByte(output, offset + cursor, utf8Scalar(input, inputCursor));
                 cursor += 1;
             } else {
                 return -1;
@@ -81,6 +67,7 @@ classical class Encoding {
         return offset + length;
     }
 
+    /// Compares `asciiSlices` under canonical byte ordering.
     public long compareAsciiSlices(
         utf8 input,
         long leftStart,
@@ -123,11 +110,8 @@ classical class Encoding {
         return 110;
     }
 
-    public long compareAsciiSliceToMain(
-        utf8 input,
-        long start,
-        long length
-    ) {
+    /// Compares `asciiSliceToMain` under canonical byte ordering.
+    public long compareAsciiSliceToMain(utf8 input, long start, long length) {
         long cursor = 0;
         while (cursor < length) limit 256 {
             if (cursor < 4) {
@@ -150,18 +134,14 @@ classical class Encoding {
         return 0;
     }
 
-    public long writeInstructionHeader(
-        bytes output,
-        long offset,
-        long opcode,
-        long operandCount
-    ) {
+    /// Writes `instructionHeader` into caller-owned bounded output.
+    public long writeInstructionHeader(bytes output, long offset, long opcode, long operandCount) {
         offset = writeUnsignedLittleEndian(output, offset, opcode, 2);
         offset = writeUnsignedLittleEndian(output, offset, operandCount, 2);
-        return writeUnsignedLittleEndian(
-            output, offset, 8 + operandCount * 8, 4);
+        return writeUnsignedLittleEndian(output, offset, 8 + operandCount * 8, 4);
     }
 
+    /// Rounds a nonnegative offset up to the next eight-byte boundary.
     public long align8(long value) {
         if (value < 0) {
             return -1;
@@ -173,6 +153,7 @@ classical class Encoding {
         return value + (8 - remainder);
     }
 
+    /// Writes `directoryEntry` into caller-owned bounded output.
     public long writeDirectoryEntry(
         bytes output,
         long cursor,
