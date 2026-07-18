@@ -359,7 +359,7 @@ class SourceProfileNegativeTest {
         """;
     String mutableParameter = """
         classical class MutableParameter {
-          long read(bytes raw) { return bufferLength(raw); }
+          long read(region arena) { return 0; }
           entry void main() { }
         }
         """;
@@ -424,11 +424,11 @@ class SourceProfileNegativeTest {
     assertTrue(leaked.getMessage().contains("exits with live owned local"));
     assertTrue(moved.getMessage().contains("reads uninitialized local"));
     assertTrue(result.getMessage().contains("cannot escape as results"));
-    assertTrue(kind.getMessage().contains("expected bytes expression"));
+    assertTrue(kind.getMessage().contains("buffer operation kind mismatch"));
     assertTrue(mutable.getMessage().contains("mutable owned values"));
     assertTrue(aliased.getMessage().contains("cannot alias multiple mutable parameters"));
     assertTrue(borrowed.getMessage().contains("drop requires an owned value"));
-    assertTrue(immutable.getMessage().contains("expected bytes expression"));
+    assertTrue(immutable.getMessage().contains("buffer operation kind mismatch"));
     assertTrue(aggregate.getMessage().contains("cannot be array or slice elements"));
   }
 

@@ -28,15 +28,18 @@ final class BorrowWindowVerifier {
       int parameter = destination - base;
       FunctionBody target = program.function(Math.toIntExact(call.operands().get(0)));
       ValueType expected = borrow.opcode() == Opcode.UTF8_BORROW
-          ? ValueType.UTF8_BORROW : ValueType.LONG_MAP_BORROW;
+          ? ValueType.UTF8_BORROW
+          : borrow.opcode() == Opcode.MAP_BORROW
+              ? ValueType.LONG_MAP_BORROW
+              : owner.localType(destination);
       if (parameter < 0 || parameter >= count
           || !target.localType(parameter).equals(expected)) {
         fail(owner, pc, "borrow targets a nonborrowed argument");
       }
-      if (borrow.opcode() == Opcode.MAP_BORROW
+      if (borrow.opcode() != Opcode.UTF8_BORROW
           && !mutableSources.computeIfAbsent(callPc, ignored -> new HashSet<>())
               .add(borrow.operands().get(1))) {
-        fail(owner, pc, "one map aliases multiple mutable parameters");
+        fail(owner, pc, "one storage owner aliases multiple mutable parameters");
       }
     }
   }
@@ -55,7 +58,9 @@ final class BorrowWindowVerifier {
   }
 
   private static boolean isBorrow(Opcode opcode) {
-    return opcode == Opcode.UTF8_BORROW || opcode == Opcode.MAP_BORROW;
+    return opcode == Opcode.UTF8_BORROW
+        || opcode == Opcode.MAP_BORROW
+        || opcode == Opcode.BUFFER_BORROW;
   }
 
   private static void fail(FunctionBody owner, int pc, String message) {

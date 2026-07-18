@@ -242,6 +242,10 @@ class BytecodeVerifierTest {
     assertEquals(
         ValueType.LONG_MAP_BORROW,
         ValueType.fromCode(ValueType.LONG_MAP_BORROW.code()));
+    assertEquals(
+        ValueType.WORDS_BORROW, ValueType.fromCode(ValueType.WORDS_BORROW.code()));
+    assertEquals(
+        ValueType.BYTES_BORROW, ValueType.fromCode(ValueType.BYTES_BORROW.code()));
   }
 
   @Test

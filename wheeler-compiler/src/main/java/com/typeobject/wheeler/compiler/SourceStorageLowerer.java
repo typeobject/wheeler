@@ -39,10 +39,10 @@ final class SourceStorageLowerer {
   }
 
   static Opcode getOpcode(ValueType type, int line) {
-    if (type.equals(ValueType.WORDS)) {
+    if (type.equals(ValueType.WORDS) || type.equals(ValueType.WORDS_BORROW)) {
       return Opcode.WORDS_GET;
     }
-    if (type.equals(ValueType.BYTES)) {
+    if (type.equals(ValueType.BYTES) || type.equals(ValueType.BYTES_BORROW)) {
       return Opcode.BYTES_GET;
     }
     throw new CompilerException(line, "indexing requires an array, slice, or buffer");
@@ -119,7 +119,7 @@ final class SourceStorageLowerer {
     if (expected.equals(ValueType.LONG_MAP)) {
       requireMap(context, buffer, statement.line());
     } else {
-      context.requireType(buffer, expected, statement.line());
+      requireBuffer(context, buffer, expected, statement.line());
     }
     context.requireType(index, ValueType.SIGNED, statement.line());
     context.requireType(value, ValueType.SIGNED, statement.line());
@@ -156,6 +156,8 @@ final class SourceStorageLowerer {
     int buffer = context.requireLocal(statement.arguments().get(2), statement.line());
     ValueType type = context.localType(buffer);
     if (!type.equals(ValueType.WORDS) && !type.equals(ValueType.BYTES)
+        && !type.equals(ValueType.WORDS_BORROW)
+        && !type.equals(ValueType.BYTES_BORROW)
         && !type.equals(ValueType.UTF8) && !type.equals(ValueType.UTF8_BORROW)) {
       throw new CompilerException(
           statement.line(), "bufferLength requires words, bytes, utf8, or a UTF-8 borrow");
@@ -193,6 +195,16 @@ final class SourceStorageLowerer {
     context.emit(Instruction.of(opcode, local));
   }
 
+  private static void requireBuffer(
+      Context context, int local, ValueType owner, int line) {
+    ValueType type = context.localType(local);
+    ValueType borrow = owner.equals(ValueType.WORDS)
+        ? ValueType.WORDS_BORROW : ValueType.BYTES_BORROW;
+    if (!type.equals(owner) && !type.equals(borrow)) {
+      throw new CompilerException(line, "buffer operation kind mismatch");
+    }
+  }
+
   private static void requireMap(Context context, int local, int line) {
     ValueType type = context.localType(local);
     if (!type.equals(ValueType.LONG_MAP) && !type.equals(ValueType.LONG_MAP_BORROW)) {
@@ -202,8 +214,8 @@ final class SourceStorageLowerer {
 
   private static void requireUtf8Sequence(Context context, int local, int line) {
     ValueType type = context.localType(local);
-    if (!type.equals(ValueType.BYTES) && !type.equals(ValueType.UTF8)
-        && !type.equals(ValueType.UTF8_BORROW)) {
+    if (!type.equals(ValueType.BYTES) && !type.equals(ValueType.BYTES_BORROW)
+        && !type.equals(ValueType.UTF8) && !type.equals(ValueType.UTF8_BORROW)) {
       throw new CompilerException(
           line, "UTF-8 operation requires bytes, utf8, or a UTF-8 borrow");
     }

@@ -12,6 +12,7 @@ final class OwnedInstructionValidator {
       case REGION_NEW, WORDS_ALLOC, BYTES_ALLOC, WORDS_GET, BYTES_GET,
           WORDS_SET, BYTES_SET, UTF8_VALID, UTF8_COUNT, BUFFER_LENGTH,
           UTF8_SCALAR, UTF8_WIDTH, UTF8_FREEZE, UTF8_BORROW, MAP_BORROW,
+          BUFFER_BORROW,
           MAP_ALLOC, MAP_PUT,
           MAP_GET, MAP_HAS, BUFFER_DROP, REGION_DROP -> true;
       default -> false;
@@ -78,6 +79,10 @@ final class OwnedInstructionValidator {
       case MAP_BORROW -> {
         localIndex(frame, instruction, 0);
         store.validateMap(local(frame, instruction, 1));
+      }
+      case BUFFER_BORROW -> {
+        localIndex(frame, instruction, 0);
+        store.validateBuffer(local(frame, instruction, 1));
       }
       case MAP_PUT -> store.validateMapPut(
           local(frame, instruction, 0), local(frame, instruction, 1));

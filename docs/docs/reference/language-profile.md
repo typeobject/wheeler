@@ -195,6 +195,8 @@ long scalarAt(utf8 text, long index) {
 
 The caller retains and must eventually drop the owner. The callee may inspect the value and pass the borrow to another call, but cannot move, drop, return, aggregate, or mutate it. Bytecode gives borrowed parameters a distinct verified register type; call lowering creates only transient borrow windows. Mutable `bytes`, `words`, maps, regions, and owned `utf8` results remain forbidden at function boundaries. Runtime owner/kind checks defend malformed artifacts, while verifier rules prevent a valid artifact from turning a borrow into an owner.
 
+`words` and `bytes` function parameters are synchronous exclusive mutable borrows. They support checked reads, writes, length, and—on byte borrows—strict UTF-8 inspection. Borrows may be nested through calls. One owner cannot fill two mutable parameter slots of the same call, and a borrow cannot be moved, dropped, returned, frozen into an owner, or embedded in a value.
+
 A region can also own one fixed-capacity signed map:
 
 ```java
@@ -208,9 +210,9 @@ long value = mapGet(symbols, 7);
 
 A `longmap` function parameter is a synchronous exclusive mutable borrow. The callee may update, query, and reborrow the map in nested calls. The caller retains ownership but cannot execute while the callee frame is active. One call cannot pass the same map to two mutable parameters; compiler and bytecode-verifier checks reject that alias before execution. A map borrow cannot be moved, dropped, returned, or stored in an aggregate.
 
-`region`, `words`, `bytes`, `utf8`, and `longmap` locals are affine owners. Binding one moves the handle and invalidates the source; ordinary copy and equality are rejected. Owners cannot be results, aggregate elements, arrays, or slices. `utf8` and `longmap` parameter spelling denotes the checked borrow contracts above; the other owned types cannot be parameters. Definite-ownership dataflow rejects use after move/drop, live-owner overwrite, control-flow joins with different ownership states, and any function exit with a live owned local. Runtime dropped-state and owner checks remain defense in depth. Snapshots expose canonical region/buffer state, and rewind restores allocation, mutation, move, and drop exactly.
+`region`, `words`, `bytes`, `utf8`, and `longmap` locals are affine owners. Binding one moves the handle and invalidates the source; ordinary copy and equality are rejected. Owners cannot be results, aggregate elements, arrays, or slices. `words`, `bytes`, `utf8`, and `longmap` parameter spelling denotes the checked borrow contracts above; `region` cannot be a parameter. Definite-ownership dataflow rejects use after move/drop, live-owner overwrite, control-flow joins with different ownership states, and any function exit with a live owned local. Runtime dropped-state and owner checks remain defense in depth. Snapshots expose canonical region/buffer state, and rewind restores allocation, mutation, move, and drop exactly.
 
-This slice is enough to exercise bounded owned word/byte mutation, strict UTF-8 freezing/scalar decoding, and signed symbol maps; it is not yet a compiler arena. Library strings, normalization, generic maps/sets/queues, cross-function ownership, borrowing, split/join, region capabilities, recoverable allocation results, and commit-aware reclamation remain WIP-0013/WIP-0012 work.
+This slice is enough to exercise bounded owned and exclusively borrowed word/byte mutation, strict UTF-8 freezing/scalar decoding, and owned/borrowed signed symbol maps; it is not yet a compiler arena. Library strings, normalization, generic maps/sets/queues, cross-function ownership, borrowing, split/join, region capabilities, recoverable allocation results, and commit-aware reclamation remain WIP-0013/WIP-0012 work.
 
 ## Generated inverse and adjoint theorems
 

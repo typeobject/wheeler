@@ -72,7 +72,7 @@ final class ClassicalLowerer {
           .map(parameter -> {
             ValueType type = SourceTypeLowerer.resolve(
                 parameter.type(), function.line(), typeReferences);
-            return parameterType(type);
+            return SourceCallArgumentLowerer.parameterType(type);
           })
           .toList();
       if (parameterTypes.stream().anyMatch(ClassicalLowerer::owned)) {
@@ -161,16 +161,6 @@ final class ClassicalLowerer {
         entryId,
         globalIds,
         functionIds);
-  }
-
-  private static ValueType parameterType(ValueType type) {
-    if (type.equals(ValueType.UTF8)) {
-      return ValueType.UTF8_BORROW;
-    }
-    if (type.equals(ValueType.LONG_MAP)) {
-      return ValueType.LONG_MAP_BORROW;
-    }
-    return type;
   }
 
   private static String namespace(String functionName) {
@@ -368,7 +358,7 @@ final class ClassicalLowerer {
         declareUser(
             parameter.name(),
             owner.line(),
-            parameterType(type));
+            SourceCallArgumentLowerer.parameterType(type));
       }
     }
 
@@ -705,7 +695,9 @@ final class ClassicalLowerer {
         elementType = slices.get(sourceType.descriptorId()).elementType();
         opcode = Opcode.SLICE_GET;
       } else if (sourceType.equals(ValueType.WORDS)
-          || sourceType.equals(ValueType.BYTES)) {
+          || sourceType.equals(ValueType.BYTES)
+          || sourceType.equals(ValueType.WORDS_BORROW)
+          || sourceType.equals(ValueType.BYTES_BORROW)) {
         elementType = ValueType.SIGNED;
         opcode = SourceStorageLowerer.getOpcode(sourceType, statement.line());
       } else {
@@ -762,28 +754,8 @@ final class ClassicalLowerer {
           int source = requireLocal(statement.arguments().get(index + 2), statement.line());
           ValueType parameterType = signature.parameterTypes().get(index);
           ValueType sourceType = localTypes.get(source);
-          Opcode copy = Opcode.LOCAL_MOVE;
-          if (parameterType.equals(ValueType.UTF8_BORROW)) {
-            if (!sourceType.equals(ValueType.UTF8)
-                && !sourceType.equals(ValueType.UTF8_BORROW)) {
-              throw new CompilerException(
-                  statement.line(), "UTF-8 parameter requires immutable UTF-8");
-            }
-            copy = Opcode.UTF8_BORROW;
-          } else if (parameterType.equals(ValueType.LONG_MAP_BORROW)) {
-            if (!sourceType.equals(ValueType.LONG_MAP)
-                && !sourceType.equals(ValueType.LONG_MAP_BORROW)) {
-              throw new CompilerException(
-                  statement.line(), "longmap parameter requires a signed map");
-            }
-            if (!mutableBorrows.add(source)) {
-              throw new CompilerException(
-                  statement.line(), "one map cannot alias multiple mutable parameters");
-            }
-            copy = Opcode.MAP_BORROW;
-          } else {
-            requireType(source, parameterType, statement.line());
-          }
+          Opcode copy = SourceCallArgumentLowerer.copyOpcode(
+              parameterType, sourceType, source, mutableBorrows, statement.line());
           int window = declareInternal(
               "$call" + assemblyTemporary++, statement.line(), parameterType);
           output.add(Instruction.of(copy, window, source));
