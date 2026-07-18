@@ -29,3 +29,4 @@
 (boolean_literal) @constant.builtin.boolean
 (integer_literal) @number
 (number_literal) @number
+(ascii_literal) @string

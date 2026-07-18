@@ -4,6 +4,7 @@ record SourceToken(Type type, String text, int line, int column, int offset) {
   enum Type {
     IDENTIFIER,
     NUMBER,
+    STRING,
     LEFT_BRACE,
     RIGHT_BRACE,
     LEFT_PAREN,

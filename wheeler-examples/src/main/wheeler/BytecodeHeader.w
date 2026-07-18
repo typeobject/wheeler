@@ -9,8 +9,8 @@ classical class BytecodeHeader {
         long typesOffset = align8(stringsOffset + 217);
         long variantsOffset = align8(typesOffset + 32);
         long functionsOffset = align8(variantsOffset + 4);
-        long codeOffset = align8(functionsOffset + 1632);
-        long fileLength = align8(codeOffset + 10544);
+        long codeOffset = align8(functionsOffset + 4232);
+        long fileLength = align8(codeOffset + 34144);
         setByte(output, 0, 87);
         setByte(output, 1, 72);
         setByte(output, 2, 69);
@@ -31,14 +31,33 @@ classical class BytecodeHeader {
         cursor = writeDirectoryEntry(output, cursor, 2, stringsOffset, 217);
         cursor = writeDirectoryEntry(output, cursor, 3, typesOffset, 32);
         cursor = writeDirectoryEntry(output, cursor, 4, variantsOffset, 4);
-        cursor = writeDirectoryEntry(output, cursor, 5, functionsOffset, 1632);
-        cursor = writeDirectoryEntry(output, cursor, 6, codeOffset, 10544);
+        cursor = writeDirectoryEntry(output, cursor, 5, functionsOffset, 4232);
+        cursor = writeDirectoryEntry(output, cursor, 6, codeOffset, 34144);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 3, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 100000, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 1000000, 8);
+        cursor = writeUnsignedLittleEndian(output, cursor, 6, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, 14, 4);
+        writeAscii(output, cursor, "BytecodeHeader");
+        cursor = cursor + 14;
+        cursor = writeUnsignedLittleEndian(output, cursor, 34, 4);
+        writeAscii(output, cursor, "examples.compiler.encoding::align8");
+        cursor = cursor + 34;
+        cursor = writeUnsignedLittleEndian(output, cursor, 47, 4);
+        writeAscii(output, cursor, "examples.compiler.encoding::writeDirectoryEntry");
+        cursor = cursor + 47;
+        cursor = writeUnsignedLittleEndian(output, cursor, 53, 4);
+        writeAscii(output, cursor, "examples.compiler.encoding::writeUnsignedLittleEndian");
+        cursor = cursor + 53;
+        cursor = writeUnsignedLittleEndian(output, cursor, 30, 4);
+        writeAscii(output, cursor, "examples.compiler.header::main");
+        cursor = cursor + 30;
+        cursor = writeUnsignedLittleEndian(output, cursor, 11, 4);
+        writeAscii(output, cursor, "finalCursor");
+        cursor = align8(cursor + 11);
         finalCursor = cursor;
-        assert finalCursor == 256;
+        assert finalCursor == 480;
     }
 }

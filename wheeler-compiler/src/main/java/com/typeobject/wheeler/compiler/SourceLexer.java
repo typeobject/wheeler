@@ -38,6 +38,8 @@ final class SourceLexer {
         identifier();
       } else if (Character.isDigit(current)) {
         number();
+      } else if (current == '"') {
+        asciiString();
       } else {
         symbol();
       }
@@ -102,6 +104,30 @@ final class SourceLexer {
       }
     }
     add(Type.NUMBER, start, startLine, startColumn);
+  }
+
+  private void asciiString() {
+    int start = offset;
+    int startLine = line;
+    int startColumn = column;
+    advance();
+    int contentStart = offset;
+    while (!atEnd() && peek() != '"') {
+      char value = peek();
+      if (value < 0x20 || value > 0x7e) {
+        throw new CompilerException(startLine, "ASCII literal contains a non-ASCII character");
+      }
+      advance();
+    }
+    if (atEnd()) {
+      throw new CompilerException(startLine, "unclosed ASCII literal");
+    }
+    String text = source.substring(contentStart, offset);
+    advance();
+    if (text.length() > MAX_TOKEN_CHARS) {
+      throw new CompilerException(startLine, "token exceeds the 4,096-character limit");
+    }
+    emit(new SourceToken(Type.STRING, text, startLine, startColumn, start));
   }
 
   private void symbol() {

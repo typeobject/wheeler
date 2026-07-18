@@ -38,10 +38,26 @@ class SourceLexerTest {
   }
 
   @Test
+  void acceptsBoundedRawAsciiAndRejectsOtherStringForms() {
+    List<SourceToken> tokens = new SourceLexer("writeAscii(out, 0, \"ABC\");").lex();
+    SourceToken literal = tokens.stream()
+        .filter(token -> token.type() == Type.STRING)
+        .findFirst()
+        .orElseThrow();
+
+    assertEquals("ABC", literal.text());
+    assertThrows(
+        CompilerException.class, () -> new SourceLexer("\"caf\u00e9\"").lex());
+    assertThrows(
+        CompilerException.class, () -> new SourceLexer("\"unterminated").lex());
+  }
+
+  @Test
   void ignoresFormattingAndBothCommentForms() {
     List<SourceToken> tokens = new SourceLexer("a/* middle\ncomment */^=\n1;").lex();
 
-    assertEquals(List.of(Type.IDENTIFIER, Type.XOR_ASSIGN, Type.NUMBER, Type.SEMICOLON, Type.END),
+    assertEquals(
+        List.of(Type.IDENTIFIER, Type.XOR_ASSIGN, Type.NUMBER, Type.SEMICOLON, Type.END),
         tokens.stream().map(SourceToken::type).toList());
     assertEquals(2, tokens.get(1).line());
     assertTrue(tokens.get(1).offset() > tokens.get(0).offset());
