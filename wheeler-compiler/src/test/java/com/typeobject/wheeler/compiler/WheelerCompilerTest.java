@@ -12,7 +12,9 @@ import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.ValueType;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class WheelerCompilerTest {
@@ -60,6 +62,85 @@ class WheelerCompilerTest {
     assertEquals(0, machine.global("count"));
     assertEquals(Opcode.ADD_CONST, program.function(0).forward().getFirst().opcode());
     assertEquals(Opcode.SUB_CONST, program.function(0).inverse().getFirst().opcode());
+  }
+
+  @Test
+  void linksSortedPublicClassicalModulesDeterministically() {
+    String arithmetic = """
+        module bootstrap.arithmetic;
+        classical class Arithmetic {
+          private long add(long left, long right) { return left + right; }
+          public long twice(long value) { return add(value, value); }
+        }
+        """;
+    String root = """
+        module bootstrap.main;
+        import bootstrap.arithmetic;
+        classical class Main {
+          state long result = 0;
+          entry void main() {
+            result = twice(9);
+            assert result == 18;
+          }
+        }
+        """;
+    WheelerCompiler compiler = new WheelerCompiler();
+    Map<String, String> first = new LinkedHashMap<>();
+    first.put("bootstrap.main", root);
+    first.put("bootstrap.arithmetic", arithmetic);
+    Map<String, String> second = new LinkedHashMap<>();
+    second.put("bootstrap.arithmetic", arithmetic);
+    second.put("bootstrap.main", root);
+
+    byte[] firstArtifact = compiler.compileModulesToBytecode(first, "bootstrap.main");
+    byte[] secondArtifact = compiler.compileModulesToBytecode(second, "bootstrap.main");
+    VirtualMachine machine = new VirtualMachine(new BytecodeReader().read(firstArtifact));
+    machine.run();
+
+    assertArrayEquals(firstArtifact, secondArtifact);
+    assertEquals(18, machine.global("result"));
+  }
+
+  @Test
+  void moduleLinkerFailsClosedOnVisibilityCyclesAndUnusedInputs() {
+    String dependency = """
+        module dep;
+        classical class Dependency {
+          private long hidden(long value) { return value; }
+        }
+        """;
+    String hiddenCall = """
+        module root;
+        import dep;
+        classical class Root {
+          entry void main() { long value = hidden(1); }
+        }
+        """;
+    String cycleA = """
+        module a;
+        import b;
+        classical class A { entry void main() { } }
+        """;
+    String cycleB = """
+        module b;
+        import a;
+        classical class B { }
+        """;
+    String unused = """
+        module unused;
+        classical class Unused { }
+        """;
+    WheelerCompiler compiler = new WheelerCompiler();
+
+    assertThrows(CompilerException.class, () -> compiler.compileModules(
+        Map.of("root", hiddenCall, "dep", dependency), "root"));
+    assertThrows(CompilerException.class, () -> compiler.compileModules(
+        Map.of("a", cycleA, "b", cycleB), "a"));
+    assertThrows(CompilerException.class, () -> compiler.compileModules(
+        Map.of("root", hiddenCall.replace("long value = hidden(1);", ""),
+            "dep", dependency,
+            "unused", unused),
+        "root"));
   }
 
   @Test

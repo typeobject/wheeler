@@ -37,6 +37,8 @@ final class SourceParser extends SourceStatementParser {
   private final List<ProofDeclaration> proofs = new ArrayList<>();
   private final List<QuantumRegisterSource> registers = new ArrayList<>();
   private final List<Circuit> circuits = new ArrayList<>();
+  private final List<String> imports = new ArrayList<>();
+  private String moduleName;
   private String domain;
   private boolean structuredStatements;
   private boolean valueReturnsAllowed;
@@ -46,6 +48,10 @@ final class SourceParser extends SourceStatementParser {
   private final Deque<LoopLabels> loops = new ArrayDeque<>();
 
   SourceProgram parse(String source) {
+    return parse(source, true);
+  }
+
+  SourceProgram parse(String source, boolean requireEntry) {
     reset(source);
     states.clear();
     functions.clear();
@@ -56,8 +62,23 @@ final class SourceParser extends SourceStatementParser {
     proofs.clear();
     registers.clear();
     circuits.clear();
+    imports.clear();
     loops.clear();
+    moduleName = null;
     blockDepth = 0;
+
+    if (matchText("module")) {
+      moduleName = qualifiedName("module name");
+      expect(Type.SEMICOLON, "';' after module declaration");
+    }
+    while (matchText("import")) {
+      String imported = qualifiedName("import name");
+      if (!imports.isEmpty() && imports.getLast().compareTo(imported) >= 0) {
+        fail(previous(), "imports must be unique and sorted");
+      }
+      imports.add(imported);
+      expect(Type.SEMICOLON, "';' after import declaration");
+    }
 
     SourceToken domain = expect(Type.IDENTIFIER, "computation domain");
     if (!DOMAINS.contains(domain.text())) {
@@ -73,10 +94,15 @@ final class SourceParser extends SourceStatementParser {
     expect(Type.RIGHT_BRACE, "'}' after class body");
     expect(Type.END, "end of file");
 
-    if (functions.stream().filter(Function::entry).count() != 1) {
-      fail(domain, "exactly one 'entry void main()' method is required");
+    long entryCount = functions.stream().filter(Function::entry).count();
+    if ((requireEntry && entryCount != 1) || (!requireEntry && entryCount > 1)) {
+      fail(domain, requireEntry
+          ? "exactly one 'entry void main()' method is required"
+          : "a module may declare at most one entry method");
     }
     return new SourceProgram(
+        moduleName,
+        imports,
         name,
         domain.text(),
         states,
@@ -96,8 +122,9 @@ final class SourceParser extends SourceStatementParser {
     if (declarations >= MAX_DECLARATIONS) {
       fail(peek(), "source exceeds the 65,535-declaration limit");
     }
+    boolean exported = false;
     while (checkTextIn(VISIBILITY)) {
-      advance();
+      exported |= advance().text().equals("public");
     }
     if (matchText("record")) {
       parseRecord(previous());
@@ -119,7 +146,7 @@ final class SourceParser extends SourceStatementParser {
       parseQuantumRegister(previous());
       return;
     }
-    parseMethod();
+    parseMethod(exported);
   }
 
   private void parseRecord(SourceToken start) {
@@ -246,7 +273,7 @@ final class SourceParser extends SourceStatementParser {
     registers.add(new QuantumRegisterSource(name, (int) qubits, start.line()));
   }
 
-  private void parseMethod() {
+  private void parseMethod(boolean exported) {
     boolean coherent = false;
     boolean reversible = false;
     boolean unitary = false;
@@ -302,12 +329,13 @@ final class SourceParser extends SourceStatementParser {
       circuits.add(parseCircuit(name, start.line()));
     } else {
       functions.add(parseFunction(
-          name, entry, reversible, coherent, parameters, returnType, start.line()));
+          name, exported, entry, reversible, coherent, parameters, returnType, start.line()));
     }
   }
 
   private Function parseFunction(
       String name,
+      boolean exported,
       boolean entry,
       boolean reversible,
       boolean coherent,
@@ -380,7 +408,16 @@ final class SourceParser extends SourceStatementParser {
       body.add(statement("halt", line));
     }
     return new Function(
-        name, entry, reversible, coherent, parameters, returnType, body, line);
+        name, exported, entry, reversible, coherent, parameters, returnType, body, line);
+  }
+
+  private String qualifiedName(String expectation) {
+    StringBuilder name = new StringBuilder(
+        expect(Type.IDENTIFIER, expectation).text());
+    while (match(Type.DOT)) {
+      name.append('.').append(expect(Type.IDENTIFIER, expectation).text());
+    }
+    return name.toString();
   }
 
   private void parseReturn(List<Statement> body, SourceToken start) {

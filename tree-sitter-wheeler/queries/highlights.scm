@@ -1,7 +1,7 @@
 (line_comment) @comment
 (block_comment) @comment
 
-["classical" "quantum" "hybrid" "class" "record" "variant" "case" "match" "theorem" "proves" "inverse" "adjoint" "equivalent" "steps" "state" "qreg" "new" "void"] @keyword
+["classical" "quantum" "hybrid" "module" "import" "class" "record" "variant" "case" "match" "theorem" "proves" "inverse" "adjoint" "equivalent" "steps" "state" "qreg" "new" "void"] @keyword
 ["long" "boolean" "region" "words" "bytes" "longmap" "utf8"] @type.builtin
 ["entry" "rev" "coherent" "unitary" "reverse" "assert" "if" "else" "while" "for" "limit" "break" "continue" "return"] @keyword.control
 (visibility_modifier) @keyword.modifier

@@ -8,7 +8,15 @@ module.exports = grammar({
   word: $ => $.identifier,
 
   rules: {
-    source_file: $ => $.class_declaration,
+    source_file: $ => seq(
+      optional($.module_declaration),
+      repeat($.import_declaration),
+      $.class_declaration,
+    ),
+
+    module_declaration: $ => seq('module', $.qualified_identifier, ';'),
+    import_declaration: $ => seq('import', $.qualified_identifier, ';'),
+    qualified_identifier: $ => seq($.identifier, repeat(seq('.', $.identifier))),
 
     class_declaration: $ => seq(
       optional('public'),

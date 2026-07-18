@@ -1,0 +1,195 @@
+package com.typeobject.wheeler.compiler;
+
+import com.typeobject.wheeler.compiler.SourceModel.Function;
+import com.typeobject.wheeler.compiler.SourceModel.ProofDeclaration;
+import com.typeobject.wheeler.compiler.SourceModel.SourceProgram;
+import com.typeobject.wheeler.compiler.SourceModel.Statement;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+/** Deterministic dependency-first linker for the initial classical source-module slice. */
+final class SourceModuleLinker {
+  static final int MAX_MODULES = 1_024;
+  private static final Set<String> FUNCTION_REFERENCES =
+      Set.of("invoke", "reverse", "call_value");
+
+  SourceProgram link(Map<String, SourceProgram> modules, String rootName) {
+    if (modules.isEmpty() || modules.size() > MAX_MODULES) {
+      fail("module set must contain between 1 and " + MAX_MODULES + " modules");
+    }
+    SourceProgram root = modules.get(rootName);
+    if (root == null) {
+      fail("root module is missing: " + rootName);
+    }
+
+    List<String> order = new ArrayList<>();
+    visit(rootName, modules, new HashSet<>(), new HashSet<>(), order);
+    if (order.size() != modules.size()) {
+      Set<String> unused = new java.util.TreeSet<>(modules.keySet());
+      unused.removeAll(order);
+      fail("module set contains unreachable inputs: " + String.join(", ", unused));
+    }
+
+    for (String moduleName : order) {
+      validateModule(moduleName, modules.get(moduleName), moduleName.equals(rootName));
+    }
+
+    List<Function> functions = new ArrayList<>();
+    List<ProofDeclaration> proofs = new ArrayList<>();
+    for (String moduleName : order) {
+      SourceProgram module = modules.get(moduleName);
+      Map<String, String> references = references(moduleName, module, modules);
+      for (Function function : module.functions()) {
+        functions.add(linkFunction(moduleName, function, references));
+      }
+      if (moduleName.equals(rootName)) {
+        for (ProofDeclaration proof : module.proofs()) {
+          proofs.add(new ProofDeclaration(
+              proof.name(),
+              proof.rule(),
+              resolve(references, proof.subject(), proof.line()),
+              proof.relatedSubject() == null
+                  ? null : resolve(references, proof.relatedSubject(), proof.line()),
+              proof.argument(),
+              proof.line()));
+        }
+      }
+    }
+
+    return new SourceProgram(
+        root.moduleName(),
+        root.imports(),
+        root.name(),
+        root.kind(),
+        root.states(),
+        root.records(),
+        root.variants(),
+        root.arrays(),
+        root.slices(),
+        proofs,
+        functions,
+        root.quantumRegisters(),
+        root.circuits());
+  }
+
+  private static void visit(
+      String name,
+      Map<String, SourceProgram> modules,
+      Set<String> active,
+      Set<String> complete,
+      List<String> order) {
+    if (complete.contains(name)) {
+      return;
+    }
+    if (!active.add(name)) {
+      fail("module import cycle includes " + name);
+    }
+    SourceProgram module = modules.get(name);
+    if (module == null) {
+      fail("imported module is missing: " + name);
+    }
+    for (String dependency : module.imports()) {
+      visit(dependency, modules, active, complete, order);
+    }
+    active.remove(name);
+    complete.add(name);
+    order.add(name);
+  }
+
+  private static void validateModule(
+      String expectedName, SourceProgram module, boolean root) {
+    if (module.moduleName() == null || !module.moduleName().equals(expectedName)) {
+      fail("module key/declaration mismatch for " + expectedName);
+    }
+    if (!module.kind().equals("classical")) {
+      fail("source modules currently require the classical domain: " + expectedName);
+    }
+    long entries = module.functions().stream().filter(Function::entry).count();
+    if ((root && entries != 1) || (!root && entries != 0)) {
+      fail(root
+          ? "root module must declare exactly one entry method"
+          : "dependency module cannot declare an entry method: " + expectedName);
+    }
+    if (!root && (!module.states().isEmpty()
+        || !module.records().isEmpty()
+        || !module.variants().isEmpty()
+        || !module.arrays().isEmpty()
+        || !module.slices().isEmpty()
+        || !module.proofs().isEmpty()
+        || !module.quantumRegisters().isEmpty()
+        || !module.circuits().isEmpty())) {
+      fail("dependency modules currently contain functions only: " + expectedName);
+    }
+  }
+
+  private static Map<String, String> references(
+      String moduleName,
+      SourceProgram module,
+      Map<String, SourceProgram> modules) {
+    Map<String, String> result = new LinkedHashMap<>();
+    Set<String> localNames = new HashSet<>();
+    for (Function function : module.functions()) {
+      localNames.add(function.name());
+      result.put(function.name(), linkedName(moduleName, function.name()));
+    }
+    for (String importedName : module.imports()) {
+      SourceProgram imported = modules.get(importedName);
+      for (Function function : imported.functions()) {
+        if (!function.exported() || localNames.contains(function.name())) {
+          continue;
+        }
+        String prior = result.putIfAbsent(
+            function.name(), linkedName(importedName, function.name()));
+        if (prior != null) {
+          fail("ambiguous imported function " + function.name() + " in " + moduleName);
+        }
+      }
+    }
+    return Map.copyOf(result);
+  }
+
+  private static Function linkFunction(
+      String moduleName, Function function, Map<String, String> references) {
+    List<Statement> statements = new ArrayList<>(function.statements().size());
+    for (Statement statement : function.statements()) {
+      if (!FUNCTION_REFERENCES.contains(statement.operation())) {
+        statements.add(statement);
+        continue;
+      }
+      int target = statement.operation().equals("call_value") ? 1 : 0;
+      List<String> arguments = new ArrayList<>(statement.arguments());
+      arguments.set(target, resolve(references, arguments.get(target), statement.line()));
+      statements.add(new Statement(statement.operation(), arguments, statement.line()));
+    }
+    return new Function(
+        linkedName(moduleName, function.name()),
+        function.exported(),
+        function.entry(),
+        function.reversible(),
+        function.coherent(),
+        function.parameters(),
+        function.returnType(),
+        statements,
+        function.line());
+  }
+
+  private static String resolve(Map<String, String> references, String name, int line) {
+    String resolved = references.get(name);
+    if (resolved == null) {
+      throw new CompilerException(line, "unresolved or non-public module function: " + name);
+    }
+    return resolved;
+  }
+
+  private static String linkedName(String module, String function) {
+    return module + "::" + function;
+  }
+
+  private static void fail(String message) {
+    throw new CompilerException(1, message);
+  }
+}

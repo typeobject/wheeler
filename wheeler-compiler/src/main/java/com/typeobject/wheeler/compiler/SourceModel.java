@@ -49,6 +49,7 @@ final class SourceModel {
 
   record Function(
       String name,
+      boolean exported,
       boolean entry,
       boolean reversible,
       boolean coherent,
@@ -73,6 +74,8 @@ final class SourceModel {
   }
 
   record SourceProgram(
+      String moduleName,
+      List<String> imports,
       String name,
       String kind,
       List<State> states,
@@ -85,6 +88,7 @@ final class SourceModel {
       List<QuantumRegisterSource> quantumRegisters,
       List<Circuit> circuits) {
     SourceProgram {
+      imports = List.copyOf(imports);
       states = List.copyOf(states);
       records = List.copyOf(records);
       variants = List.copyOf(variants);

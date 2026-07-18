@@ -179,11 +179,12 @@ The parser bounds source bytes, lines, declarations, methods, statements, regist
 - [x] Coherent method references execute on classical and simulated quantum data.
 - [x] Counter, QFT, and coherent-oracle examples use only the Wheeler source profile.
 - [x] Temporary source syntax and documentation are deleted.
+- [ ] Deterministic classical function modules now enforce exact declarations, sorted direct imports, public visibility, dependency-first linking, and closed DAG inputs; package source sets, exported nominal types/state/proofs/circuits, qualification, and re-export remain.
 
 ## Testing and acceptance
 
 - [x] Parser and executable-example tests cover every accepted declaration and statement.
-- [x] Negative tests cover unsupported Java syntax, malformed blocks, unresolved names, illegal inverse calls, and invalid quantum references.
+- [x] Negative tests cover unsupported Java syntax, malformed blocks, unresolved names, illegal inverse calls, invalid module visibility/graphs, and invalid quantum references.
 - [x] Source diagnostics identify stable line numbers and lexical columns.
 - [x] Counter compiles and executes forward and inverse.
 - [x] QFT followed by its generated adjoint restores the input state.

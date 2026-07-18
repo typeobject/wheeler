@@ -1108,3 +1108,33 @@ classical class Storage {
                   (argument_list
                     (expression
                       (identifier))))))))))))
+
+==================
+Classical source module
+==================
+module bootstrap.main;
+import bootstrap.arithmetic;
+classical class Main {
+  entry void main() { }
+}
+---
+
+(source_file
+  (module_declaration
+    (qualified_identifier
+      (identifier)
+      (identifier)))
+  (import_declaration
+    (qualified_identifier
+      (identifier)
+      (identifier)))
+  (class_declaration
+    (computation_domain)
+    (identifier)
+    (class_body
+      (member_declaration
+        (method_declaration
+          (method_modifier)
+          (identifier)
+          (parameter_list)
+          (block))))))

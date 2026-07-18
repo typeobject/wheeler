@@ -264,6 +264,34 @@ The compiler rejects checked arithmetic, logged writes, measurement, I/O, and ot
 
 These operations are related but not interchangeable.
 
+## Classical source modules
+
+The stage-0 compiler has an exact multi-source entry point for the first self-hosting module slice:
+
+```java
+module bootstrap.arithmetic;
+classical class Arithmetic {
+    public long twice(long value) { return value + value; }
+}
+```
+
+A root names imports before its class declaration:
+
+```java
+module bootstrap.main;
+import bootstrap.arithmetic;
+classical class Main {
+    state long result = 0;
+    entry void main() { result = twice(9); }
+}
+```
+
+`compileModules(sources, root)` receives the complete named source map. Every map key must equal its source `module` declaration; names are dotted ASCII identifiers; imports are unique and lexically sorted. Resolution requires a closed acyclic graph, rejects missing and unreachable inputs, processes dependencies before importers, caps the graph at 1,024 modules, and caps aggregate UTF-8 source input at 64 MiB. Input map iteration order cannot affect `.wbc` bytes.
+
+The root declares exactly one entry. A dependency declares no entry and, in this first slice, contains functions only. `public` functions are visible to direct importers; unqualified calls prefer same-module functions and otherwise resolve one unambiguous direct public import. Private helpers remain callable inside their declaring module. The linker assigns collision-free internal names before ordinary type checking and bytecode lowering. Non-public calls, ambiguous exports, import cycles, unsorted imports, quantum domains, dependency state/types/proofs, and transitive implicit access fail closed.
+
+Single-source `compile` rejects module declarations. Package targets do not yet carry source sets, and modules do not yet export nominal types, state, circuits, or proofs. Those omissions are explicit WIP-0007/WIP-0009 work, not ambient classpath behavior.
+
 ## Parser and editor tooling
 
 The compiler lexer records line, column, and stage-0 UTF-16 source-character offset. Required identifiers are ASCII letters, digits, and underscore; Unicode remains valid in comments, not names. Inputs are capped at 64 MiB and 16 Mi source characters, tokens at 4,096 characters, token and line counts at 1,000,000 each, declarations at 65,535, and structured block nesting at 256. The parser is formatting-independent and rejects unsupported constructs rather than dropping them.
@@ -272,7 +300,7 @@ The compiler lexer records line, column, and stage-0 UTF-16 source-character off
 
 ## Bootstrap direction
 
-The current compiler and VM use Java only as stage-0 infrastructure. The production compiler will be Wheeler source and must compile itself to a byte-identical second-stage `.wbc` artifact. Signed/Boolean values, immutable records/variants/arrays/slices, typed calls and control, and function-local bounded regions with owned word/byte/UTF-8 buffers and signed maps form the current bootstrap substrate. Library strings, generic deterministic collections, cross-function ownership, modules, and explicit file effects remain complete vertical slices.
+The current compiler and VM use Java only as stage-0 infrastructure. The production compiler will be Wheeler source and must compile itself to a byte-identical second-stage `.wbc` artifact. Signed/Boolean values, immutable records/variants/arrays/slices, typed calls/control, deterministic classical source-module linking, and function-local bounded regions with owned word/byte/UTF-8 buffers and signed maps form the current bootstrap substrate. Library strings, generic deterministic collections, cross-function ownership, modules, and explicit file effects remain complete vertical slices.
 
 After native runtime conformance, the Java compiler, VM, tools, Gradle build, and JVM deployment path will be deleted. A cold build will use a content-addressed prior native Wheeler release and `.wbc` recovery seed. Java APIs and object semantics are therefore not prospective Wheeler contracts.
 
