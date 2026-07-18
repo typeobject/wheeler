@@ -2,8 +2,9 @@ package com.typeobject.wheeler.compiler;
 
 import com.typeobject.wheeler.compiler.SourceConcreteSyntax.CommentAttachment;
 import com.typeobject.wheeler.compiler.SourceConcreteSyntax.Element;
-import com.typeobject.wheeler.compiler.SourceConcreteSyntax.Kind;
+import com.typeobject.wheeler.compiler.SourceConcreteSyntax.NodeKind;
 import com.typeobject.wheeler.compiler.SourceConcreteSyntax.Placement;
+import com.typeobject.wheeler.compiler.SourceConcreteSyntax.SyntaxNode;
 import com.typeobject.wheeler.compiler.SourceDocumentation.Diagnostic;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -13,18 +14,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** Declaration coverage and facet checks over lexical declaration boundaries. */
+/** Declaration coverage and facet checks over parser-owned declaration ranges. */
 final class SourceDeclarationDocumentation {
   private static final List<String> FACETS = List.of(
       "Inputs", "Returns", "Effects", "Inverse", "Coherent", "Adjoint",
       "Traps", "Bounds", "Proof", "See also");
-  private static final Set<String> MODIFIERS = Set.of(
-      "public", "private", "protected", "entry", "coherent", "rev", "unitary");
-  private static final Set<String> NAMED_TYPES = Set.of(
-      "state", "const", "qreg", "record", "variant", "enum", "theorem", "experiment");
 
   private record Declaration(
-      int element,
+      int node,
       String name,
       int line,
       int column,
@@ -37,20 +34,19 @@ final class SourceDeclarationDocumentation {
   private SourceDeclarationDocumentation() {}
 
   static List<Diagnostic> check(SourceConcreteSyntax.Document document) {
-    List<Element> elements = document.elements();
-    List<Declaration> declarations = declarations(elements);
+    List<Declaration> declarations = declarations(document);
     Map<Integer, Declaration> targets = new HashMap<>();
-    declarations.forEach(declaration -> targets.put(declaration.element(), declaration));
+    declarations.forEach(declaration -> targets.put(declaration.node(), declaration));
     Map<Integer, List<Element>> documentation = attachedDocumentation(document, targets);
     List<Diagnostic> diagnostics = new ArrayList<>();
 
     for (CommentAttachment attachment : document.comments()) {
-      Element comment = elements.get(attachment.commentElement());
+      Element comment = document.elements().get(attachment.commentElement());
       if (!comment.text().startsWith("///")) {
         continue;
       }
       if (attachment.placement() != Placement.LEADING
-          || !targets.containsKey(attachment.targetElement())) {
+          || !targets.containsKey(attachment.targetNode())) {
         diagnostics.add(new Diagnostic(
             "WDOC004",
             comment.line(),
@@ -60,7 +56,7 @@ final class SourceDeclarationDocumentation {
     }
 
     for (Declaration declaration : declarations) {
-      List<Element> comments = documentation.getOrDefault(declaration.element(), List.of());
+      List<Element> comments = documentation.getOrDefault(declaration.node(), List.of());
       if (comments.isEmpty()) {
         if (declaration.required()) {
           diagnostics.add(new Diagnostic(
@@ -100,8 +96,8 @@ final class SourceDeclarationDocumentation {
       Element comment = document.elements().get(attachment.commentElement());
       if (attachment.placement() == Placement.LEADING
           && comment.text().startsWith("///")
-          && targets.containsKey(attachment.targetElement())) {
-        result.computeIfAbsent(attachment.targetElement(), ignored -> new ArrayList<>())
+          && targets.containsKey(attachment.targetNode())) {
+        result.computeIfAbsent(attachment.targetNode(), ignored -> new ArrayList<>())
             .add(comment);
       }
     }
@@ -164,127 +160,32 @@ final class SourceDeclarationDocumentation {
     return !payload.isEmpty() && !payload.startsWith("-");
   }
 
-  private static List<Declaration> declarations(List<Element> elements) {
-    List<Integer> tokens = new ArrayList<>();
-    for (int index = 0; index < elements.size(); index++) {
-      if (elements.get(index).kind() == Kind.TOKEN) {
-        tokens.add(index);
-      }
-    }
+  private static List<Declaration> declarations(SourceConcreteSyntax.Document document) {
     List<Declaration> result = new ArrayList<>();
-    int depth = 0;
-    boolean memberBoundary = false;
-    for (int token = 0; token < tokens.size(); token++) {
-      String text = elements.get(tokens.get(token)).text();
-      if (text.equals("{")) {
-        depth++;
-        if (depth == 1) {
-          memberBoundary = true;
-        }
+    for (int index = 0; index < document.nodes().size(); index++) {
+      SyntaxNode node = document.nodes().get(index);
+      if (!node.kind().declaration()) {
         continue;
       }
-      if (text.equals("}")) {
-        depth--;
-        if (depth == 1) {
-          memberBoundary = true;
-        }
-        continue;
-      }
-      if (depth == 1 && text.equals(";")) {
-        memberBoundary = true;
-        continue;
-      }
-      if (depth != 1 || !memberBoundary) {
-        continue;
-      }
-      memberBoundary = false;
-      Declaration declaration = declarationAt(elements, tokens, token);
-      if (declaration != null) {
-        result.add(declaration);
-      }
+      Element start = document.elements().get(node.startElement());
+      boolean entry = node.modifiers().contains("entry");
+      boolean reversible = node.modifiers().contains("rev");
+      boolean coherent = node.modifiers().contains("coherent");
+      boolean unitary = node.modifiers().contains("unitary");
+      boolean semantic = entry || reversible || coherent || unitary
+          || node.kind() == NodeKind.THEOREM_DECLARATION
+          || node.kind() == NodeKind.EXPERIMENT_DECLARATION;
+      result.add(new Declaration(
+          index,
+          node.name(),
+          start.line(),
+          start.column(),
+          node.modifiers().contains("public") || semantic,
+          entry,
+          reversible,
+          coherent,
+          unitary));
     }
     return List.copyOf(result);
-  }
-
-  private static Declaration declarationAt(
-      List<Element> elements,
-      List<Integer> tokens,
-      int start) {
-    boolean exported = false;
-    boolean entry = false;
-    boolean reversible = false;
-    boolean coherent = false;
-    boolean unitary = false;
-    int cursor = start;
-    while (cursor < tokens.size() && MODIFIERS.contains(text(elements, tokens, cursor))) {
-      String modifier = text(elements, tokens, cursor);
-      exported |= modifier.equals("public");
-      entry |= modifier.equals("entry");
-      reversible |= modifier.equals("rev");
-      coherent |= modifier.equals("coherent");
-      unitary |= modifier.equals("unitary");
-      cursor++;
-    }
-    if (cursor >= tokens.size()) {
-      return null;
-    }
-    String kind = text(elements, tokens, cursor);
-    String name;
-    if (NAMED_TYPES.contains(kind)) {
-      name = namedDeclarationName(elements, tokens, cursor, kind);
-    } else {
-      int opener = findSignatureOpener(elements, tokens, cursor);
-      if (opener <= cursor) {
-        return null;
-      }
-      name = text(elements, tokens, opener - 1);
-    }
-    Element element = elements.get(tokens.get(start));
-    boolean semantic = entry || reversible || coherent || unitary
-        || kind.equals("theorem") || kind.equals("experiment");
-    return new Declaration(
-        tokens.get(start), name, element.line(), element.column(), exported || semantic,
-        entry, reversible, coherent, unitary);
-  }
-
-  private static String namedDeclarationName(
-      List<Element> elements,
-      List<Integer> tokens,
-      int cursor,
-      String kind) {
-    if (kind.equals("state") || kind.equals("const")) {
-      int assignment = cursor + 1;
-      while (assignment < tokens.size()
-          && !text(elements, tokens, assignment).equals("=")
-          && !text(elements, tokens, assignment).equals(";")) {
-        assignment++;
-      }
-      return assignment > cursor + 1 ? text(elements, tokens, assignment - 1) : kind;
-    }
-    return cursor + 1 < tokens.size() ? text(elements, tokens, cursor + 1) : kind;
-  }
-
-  private static int findSignatureOpener(
-      List<Element> elements,
-      List<Integer> tokens,
-      int cursor) {
-    int limit = Math.min(tokens.size(), cursor + 16);
-    for (int index = cursor; index < limit; index++) {
-      String text = text(elements, tokens, index);
-      if (text.equals("(")) {
-        return index;
-      }
-      if (text.equals(";") || text.equals("{") || text.equals("=")) {
-        return -1;
-      }
-    }
-    return -1;
-  }
-
-  private static String text(
-      List<Element> elements,
-      List<Integer> tokens,
-      int token) {
-    return elements.get(tokens.get(token)).text();
   }
 }

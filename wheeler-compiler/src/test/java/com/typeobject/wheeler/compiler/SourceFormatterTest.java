@@ -102,8 +102,14 @@ class SourceFormatterTest {
       }
     }
     return document.comments().stream()
-        .map(comment -> comment.placement() + ":"
-            + (comment.targetElement() < 0 ? -1 : tokenOrdinals[comment.targetElement()]))
+        .map(comment -> {
+          if (comment.targetNode() < 0) {
+            return comment.placement() + ":-1";
+          }
+          SourceConcreteSyntax.SyntaxNode node = document.nodes().get(comment.targetNode());
+          return comment.placement() + ":" + node.kind() + ":"
+              + tokenOrdinals[node.startElement()] + ":" + tokenOrdinals[node.endElement()];
+        })
         .toList();
   }
 

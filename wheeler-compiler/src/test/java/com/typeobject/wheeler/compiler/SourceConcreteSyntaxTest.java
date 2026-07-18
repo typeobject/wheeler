@@ -1,7 +1,9 @@
 package com.typeobject.wheeler.compiler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -53,6 +55,14 @@ class SourceConcreteSyntaxTest {
         .orElseThrow();
     assertEquals(SourceConcreteSyntax.Placement.LEADING, fileDocumentation.placement());
     assertEquals("module", document.elements().get(fileDocumentation.targetElement()).text());
+    assertEquals(
+        SourceConcreteSyntax.NodeKind.MODULE_DECLARATION,
+        document.nodes().get(fileDocumentation.targetNode()).kind());
+    assertTrue(document.recoveries().isEmpty());
+    assertTrue(document.nodes().stream().anyMatch(node ->
+        node.kind() == SourceConcreteSyntax.NodeKind.METHOD_DECLARATION
+            && node.name().equals("main")
+            && node.modifiers().contains("entry")));
     SourceConcreteSyntax.CommentAttachment trailing = document.comments().stream()
         .filter(comment -> document.elements().get(comment.commentElement()).text()
             .equals("// trailing"))
@@ -74,6 +84,17 @@ class SourceConcreteSyntaxTest {
         SourceConcreteSyntax.Placement.DETACHED,
         detached.comments().getFirst().placement());
     assertEquals(-1, detached.comments().getFirst().targetElement());
+  }
+
+  @Test
+  void recordsStructuralRecoveryWithoutDiscardingLosslessRanges() {
+    String source = "classical class Broken { entry void main(] {} }";
+
+    SourceConcreteSyntax.Document document = SourceConcreteSyntax.scan(source);
+
+    assertEquals(source, document.reconstruct());
+    assertFalse(document.recoveries().isEmpty());
+    assertEquals("unmatched delimiter ']'", document.recoveries().getFirst().message());
   }
 
   @Test

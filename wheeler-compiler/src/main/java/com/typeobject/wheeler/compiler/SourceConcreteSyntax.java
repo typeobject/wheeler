@@ -2,7 +2,7 @@ package com.typeobject.wheeler.compiler;
 
 import java.util.List;
 
-/** Lossless lexical source ranges shared by formatting and documentation tools. */
+/** Lossless parser-owned source ranges shared by formatting and documentation tools. */
 public final class SourceConcreteSyntax {
   /** Concrete lexical range kind. */
   public enum Kind {
@@ -26,7 +26,64 @@ public final class SourceConcreteSyntax {
     }
   }
 
-  /** Stable lexical placement of a comment relative to a token. */
+  /** Stable parser-owned concrete node kinds. */
+  public enum NodeKind {
+    COMPILATION_UNIT,
+    MODULE_DECLARATION,
+    IMPORT_DECLARATION,
+    TYPE_DECLARATION,
+    STATE_DECLARATION,
+    CONSTANT_DECLARATION,
+    QUANTUM_REGISTER_DECLARATION,
+    RECORD_DECLARATION,
+    VARIANT_DECLARATION,
+    ENUM_DECLARATION,
+    THEOREM_DECLARATION,
+    EXPERIMENT_DECLARATION,
+    METHOD_DECLARATION,
+    BLOCK;
+
+    /** Whether this node is a class member declaration. */
+    public boolean declaration() {
+      return switch (this) {
+        case STATE_DECLARATION, CONSTANT_DECLARATION, QUANTUM_REGISTER_DECLARATION,
+            RECORD_DECLARATION, VARIANT_DECLARATION, ENUM_DECLARATION,
+            THEOREM_DECLARATION, EXPERIMENT_DECLARATION, METHOD_DECLARATION -> true;
+        default -> false;
+      };
+    }
+  }
+
+  /** One parser-owned inclusive element range. */
+  public record SyntaxNode(
+      NodeKind kind,
+      int startElement,
+      int endElement,
+      String name,
+      List<String> modifiers) {
+    public SyntaxNode {
+      if (kind == null || startElement < 0 || endElement < startElement
+          || name == null || modifiers == null) {
+        throw new IllegalArgumentException("Invalid concrete syntax node");
+      }
+      modifiers = List.copyOf(modifiers);
+    }
+  }
+
+  /** One structural parser recovery that prevents source publication. */
+  public record Recovery(
+      int element,
+      int line,
+      int column,
+      String message) {
+    public Recovery {
+      if (element < 0 || line < 1 || column < 1 || message == null || message.isBlank()) {
+        throw new IllegalArgumentException("Invalid concrete syntax recovery");
+      }
+    }
+  }
+
+  /** Stable placement of a comment relative to a parser-owned range. */
   public enum Placement {
     LEADING,
     TRAILING,
@@ -34,31 +91,40 @@ public final class SourceConcreteSyntax {
     DETACHED
   }
 
-  /** One comment attachment, indexed into the document element list. */
+  /** One comment attachment, indexed into document element and syntax-node lists. */
   public record CommentAttachment(
       int commentElement,
       Placement placement,
-      int targetElement) {
+      int targetElement,
+      int targetNode) {
     public CommentAttachment {
-      if (commentElement < 0 || placement == null || targetElement < -1) {
+      if (commentElement < 0 || placement == null || targetElement < -1 || targetNode < -1) {
         throw new IllegalArgumentException("Invalid comment attachment");
       }
-      if (placement != Placement.DETACHED && targetElement < 0) {
-        throw new IllegalArgumentException("Attached comment requires a target");
+      if (placement != Placement.DETACHED && (targetElement < 0 || targetNode < 0)) {
+        throw new IllegalArgumentException("Attached comment requires parser-owned targets");
+      }
+      if (placement == Placement.DETACHED && (targetElement >= 0 || targetNode >= 0)) {
+        throw new IllegalArgumentException("Detached comment must not have a target");
       }
     }
   }
 
-  /** A lossless lexical document in source order. */
+  /** A lossless structural document in source order. */
   public record Document(
       String source,
       List<Element> elements,
+      List<SyntaxNode> nodes,
+      List<Recovery> recoveries,
       List<CommentAttachment> comments) {
     public Document {
-      if (source == null || elements == null || comments == null) {
+      if (source == null || elements == null || nodes == null
+          || recoveries == null || comments == null) {
         throw new IllegalArgumentException("Source document is required");
       }
       elements = List.copyOf(elements);
+      nodes = List.copyOf(nodes);
+      recoveries = List.copyOf(recoveries);
       comments = List.copyOf(comments);
     }
 
@@ -72,7 +138,7 @@ public final class SourceConcreteSyntax {
 
   private SourceConcreteSyntax() {}
 
-  /** Scans one bounded Wheeler source document with the compiler lexer. */
+  /** Scans and structurally parses one bounded Wheeler source document. */
   public static Document scan(String source) {
     List<Element> elements = new SourceLexer(source).lexPieces().stream()
         .map(piece -> new Element(
@@ -82,10 +148,17 @@ public final class SourceConcreteSyntax {
             piece.line(),
             piece.column()))
         .toList();
-    return new Document(source, elements, attachComments(elements));
+    SourceSyntaxParser.Result syntax = SourceSyntaxParser.parse(elements);
+    return new Document(
+        source,
+        elements,
+        syntax.nodes(),
+        syntax.recoveries(),
+        attachComments(elements, syntax.nodes()));
   }
 
-  private static List<CommentAttachment> attachComments(List<Element> elements) {
+  private static List<CommentAttachment> attachComments(
+      List<Element> elements, List<SyntaxNode> nodes) {
     int[] previousToken = new int[elements.size()];
     int[] nextToken = new int[elements.size()];
     int[] blankTrivia = new int[elements.size() + 1];
@@ -119,16 +192,50 @@ public final class SourceConcreteSyntax {
           && after >= 0
           && elements.get(before).text().equals("{")
           && elements.get(after).text().equals("}")) {
-        result.add(new CommentAttachment(index, Placement.INNER, before));
+        result.add(attachment(index, Placement.INNER, before, nodes));
       } else if (before >= 0 && elements.get(before).line() == comment.line()) {
-        result.add(new CommentAttachment(index, Placement.TRAILING, before));
+        result.add(attachment(index, Placement.TRAILING, before, nodes));
       } else if (after >= 0 && blankTrivia[after] == blankTrivia[index + 1]) {
-        result.add(new CommentAttachment(index, Placement.LEADING, after));
+        result.add(attachment(index, Placement.LEADING, after, nodes));
       } else {
-        result.add(new CommentAttachment(index, Placement.DETACHED, -1));
+        result.add(new CommentAttachment(index, Placement.DETACHED, -1, -1));
       }
     }
     return List.copyOf(result);
+  }
+
+  private static CommentAttachment attachment(
+      int comment, Placement placement, int target, List<SyntaxNode> nodes) {
+    int node = targetNode(placement, target, nodes);
+    if (node < 0) {
+      return new CommentAttachment(comment, Placement.DETACHED, -1, -1);
+    }
+    return new CommentAttachment(comment, placement, target, node);
+  }
+
+  private static int targetNode(
+      Placement placement, int target, List<SyntaxNode> nodes) {
+    int exact = -1;
+    int exactWidth = Integer.MAX_VALUE;
+    int containing = -1;
+    int containingWidth = Integer.MAX_VALUE;
+    for (int index = 0; index < nodes.size(); index++) {
+      SyntaxNode node = nodes.get(index);
+      int width = node.endElement() - node.startElement();
+      if ((placement == Placement.LEADING || placement == Placement.INNER)
+          && node.startElement() == target
+          && (placement != Placement.INNER || node.kind() == NodeKind.BLOCK)
+          && width < exactWidth) {
+        exact = index;
+        exactWidth = width;
+      }
+      if (node.startElement() <= target && node.endElement() >= target
+          && width < containingWidth) {
+        containing = index;
+        containingWidth = width;
+      }
+    }
+    return exact >= 0 ? exact : containing;
   }
 
   private static int lineBreaks(String text) {

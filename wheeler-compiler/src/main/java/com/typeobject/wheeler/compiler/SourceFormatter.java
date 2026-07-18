@@ -4,7 +4,6 @@ import com.typeobject.wheeler.compiler.SourceConcreteSyntax.CommentAttachment;
 import com.typeobject.wheeler.compiler.SourceConcreteSyntax.Element;
 import com.typeobject.wheeler.compiler.SourceConcreteSyntax.Kind;
 import com.typeobject.wheeler.compiler.SourceConcreteSyntax.Placement;
-import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,39 +21,11 @@ public final class SourceFormatter {
   /** Formats one bounded lexical document with the fixed stage-0 whitespace rules. */
   public static String format(String source) {
     SourceConcreteSyntax.Document document = SourceConcreteSyntax.scan(source);
-    validateDelimiters(document.elements());
+    if (!document.recoveries().isEmpty()) {
+      SourceConcreteSyntax.Recovery recovery = document.recoveries().getFirst();
+      throw new CompilerException(recovery.line(), recovery.message());
+    }
     return new Printer(document).print();
-  }
-
-  private static void validateDelimiters(List<Element> elements) {
-    ArrayDeque<Element> delimiters = new ArrayDeque<>();
-    for (Element element : elements) {
-      if (element.kind() != Kind.TOKEN) {
-        continue;
-      }
-      if (element.text().equals("(")
-          || element.text().equals("[")
-          || element.text().equals("{")) {
-        delimiters.push(element);
-      } else if (element.text().equals(")")
-          || element.text().equals("]")
-          || element.text().equals("}")) {
-        if (delimiters.isEmpty() || !matches(delimiters.peek().text(), element.text())) {
-          throw new CompilerException(element.line(), "unmatched delimiter '" + element.text() + "'");
-        }
-        delimiters.pop();
-      }
-    }
-    if (!delimiters.isEmpty()) {
-      Element delimiter = delimiters.getLast();
-      throw new CompilerException(delimiter.line(), "unclosed delimiter '" + delimiter.text() + "'");
-    }
-  }
-
-  private static boolean matches(String opener, String closer) {
-    return opener.equals("(") && closer.equals(")")
-        || opener.equals("[") && closer.equals("]")
-        || opener.equals("{") && closer.equals("}");
   }
 
   private static final class Printer {
