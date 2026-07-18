@@ -38,4 +38,4 @@ Intrinsic operations recover data from their inverse operation. Logged operation
 
 ## Traps and limits
 
-Invalid expectations, overflow, missing inverses, invalid local or branch access, exceeded source loop limits, escaped instruction pointers, exhausted history, and exceeded step limits trap deterministically. A failing instruction does not partially mutate globals or frames.
+Invalid expectations, overflow, missing inverses, invalid local or branch access, exceeded source loop limits, call depth above 1,024 frames, escaped instruction pointers, exhausted history, and exceeded step limits trap deterministically. A failing instruction does not partially mutate globals or frames.

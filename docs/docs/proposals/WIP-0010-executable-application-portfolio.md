@@ -64,6 +64,7 @@ The repository currently executes these bounded fixtures:
 - `BinaryTree.w`: fixed-capacity reversible state layout;
 - `BootstrapControl.w`: signed locals, expressions, branch joins, and a source-bounded loop;
 - `FunctionValues.w`: signed parameters, returns, static value calls, and callee control flow;
+- `RecursiveValue.w`: recursive value calls under hard frame and step ceilings;
 - `CoherentOracle.w`: classical and coherent XOR behavior;
 - `QFT.w`: unitary execution and generated adjoint;
 - `QFTProof.w`: executable inverse law;

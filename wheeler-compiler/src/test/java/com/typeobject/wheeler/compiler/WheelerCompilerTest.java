@@ -108,6 +108,32 @@ class WheelerCompilerTest {
   }
 
   @Test
+  void recursiveValueCallRespectsFrameDepthLimit() {
+    Program program = new WheelerCompiler().compile("""
+        classical class Recursive {
+          state long result = 0;
+          long depth(long remaining) {
+            long value = 0;
+            if (0 < remaining) {
+              value = depth(remaining - 1) + 1;
+            }
+            return value;
+          }
+          entry void main() {
+            long value = depth(1100);
+            result = value;
+          }
+        }
+        """);
+    VirtualMachine machine = new VirtualMachine(program);
+
+    VmTrap trap = assertThrows(VmTrap.class, machine::run);
+
+    assertTrue(trap.getMessage().contains("Call depth limit exceeded"));
+    assertEquals(0, machine.global("result"));
+  }
+
+  @Test
   void sourceProducesCanonicalBytecode() {
     WheelerCompiler compiler = new WheelerCompiler();
     byte[] encoded = compiler.compileToBytecode(COUNTER);

@@ -14,6 +14,8 @@ import java.util.Map;
 
 /** Deterministic single-threaded Wheeler version-1 transition kernel. */
 public final class VirtualMachine {
+  public static final int MAX_CALL_DEPTH = 1024;
+
   private final Program program;
   private final long[] globals;
   private final List<Frame> frames = new ArrayList<>();
@@ -343,8 +345,12 @@ public final class VirtualMachine {
           }
           Math.addExact(iteration, 1);
         }
-        case CALL -> program.function(Math.toIntExact(operand(instruction, 0)));
+        case CALL -> {
+          requireCallCapacity();
+          program.function(Math.toIntExact(operand(instruction, 0)));
+        }
         case CALL_VALUE -> {
+          requireCallCapacity();
           FunctionBody target = program.function(Math.toIntExact(operand(instruction, 0)));
           int base = Math.toIntExact(operand(instruction, 1));
           int count = Math.toIntExact(operand(instruction, 2));
@@ -355,6 +361,7 @@ public final class VirtualMachine {
           }
         }
         case UNCALL -> {
+          requireCallCapacity();
           FunctionBody function = program.function(Math.toIntExact(operand(instruction, 0)));
           if (!function.reversible()) {
             trap("Function has no inverse: " + function.name());
@@ -478,6 +485,12 @@ public final class VirtualMachine {
       throw new VmTrap("Invalid jump target " + target);
     }
     return target;
+  }
+
+  private void requireCallCapacity() {
+    if (frames.size() >= MAX_CALL_DEPTH) {
+      trap("Call depth limit exceeded");
+    }
   }
 
   private int checkedGlobalIndex(int index) {

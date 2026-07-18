@@ -86,7 +86,7 @@ if (sum == 10) {
 
 The loop limit is evaluated once before entry. Wheeler checks it before every body iteration and traps before executing an iteration beyond the bound. The whole-program step limit remains a separate defense.
 
-Value calls evaluate arguments left to right, move them through a verified contiguous call window, initialize callee parameter registers, and place one returned value in the declared caller register. Every reachable path in a value-returning method must end in `return expression;`.
+Value calls evaluate arguments left to right, move them through a verified contiguous call window, initialize callee parameter registers, and place one returned value in the declared caller register. Every reachable path in a value-returning method must end in `return expression;`. Static recursion is permitted under the VM's hard 1,024-frame ceiling and the program step ceiling.
 
 Local control compiles to verified frame registers and explicit control-flow targets. The verifier rejects invalid targets, out-of-range locals, reads not definitely assigned on every incoming path, and a function that falls through its body.
 
@@ -167,7 +167,7 @@ The Wheeler-written standard library will provide allocation-free core values, o
 
 ## Teaching path
 
-1. `Counter.w`, `BinaryTree.w`, `BootstrapControl.w`, and `FunctionValues.w`: reversible state, fixed-capacity data, typed locals, expressions, branches, bounded loops, parameters, returns, and value calls.
+1. `Counter.w`, `BinaryTree.w`, `BootstrapControl.w`, `FunctionValues.w`, and `RecursiveValue.w`: reversible state, fixed-capacity data, typed locals, bounded control, parameters, returns, static calls, and bounded recursion.
 2. `CoherentOracle.w` and `QuantumNeuralNetwork.w`: exact XOR permutations over classical and coherent data.
 3. `QFT.w` and `QFTProof.w`: unitary regions, generated adjoints, and executable inverse laws.
 4. `QuantumOptimizer.w`: repeated target observations, classical acceptance, commit, and target-free replay.

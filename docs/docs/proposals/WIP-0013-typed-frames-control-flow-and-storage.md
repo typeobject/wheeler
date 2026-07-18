@@ -253,7 +253,7 @@ A feature that cannot express or simplify one of these modules needs separate ju
 
 - [ ] Bytecode rejects invalid register types, uninitialized reads, target escapes, bad joins, bad returns, and malformed loop descriptors; local bounds, definite assignment, branch targets, and fallthrough are covered.
 - [x] VM tests cover the initial signed-local instruction set forward and rewind, including loop and arithmetic traps before mutation.
-- [ ] Calls cover copy, move, borrow, return, inverse, recursion ceiling, and nested trap behavior; signed argument/result transfer and rewind are covered.
+- [ ] Calls cover copy, move, borrow, return, inverse, recursion ceiling, and nested trap behavior; signed argument/result transfer, recursive execution, 1,024-frame exhaustion, and rewind are covered.
 - [ ] Branch tests cover both paths, join assignment, unreachable blocks, early return, and source diagnostics.
 - [ ] Loop tests cover zero, exact bound, exceeded bound, break, continue, nested loops, and global step defense.
 - [ ] Reversible methods reject unprotected branch/loop forms and accept only forms with checked inverse laws.
