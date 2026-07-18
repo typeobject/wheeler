@@ -260,7 +260,7 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
 ## Progress
 
 - [x] The stage-0 concrete-syntax boundary exports parser-owned module identity, file summary, selected public/semantic declaration kind, name, source position, modifiers, summary, and ordered facets. Bundle generators no longer need to rediscover Wheeler declarations with a website parser; that road ends in anchors made of cheese.
-- [x] `wheeler docs` walks explicit physical manual and Wheeler roots with strict UTF-8 and bounded counts, validates Wheeler documentation, emits canonically ordered manual/API nodes, navigation and search indexes, copies inert manual pages, binds every emitted file digest in `manifest.json`, and atomically publishes a renderer-neutral profile-1 bundle. The full repository currently yields 331 nodes without asking Docusaurus what a declaration is.
+- [x] `wheeler docs` walks explicit physical manual and Wheeler roots with strict UTF-8 and bounded counts, validates Wheeler documentation, emits canonically ordered manual/API nodes, validates explicit `manual:`/`wheeler:` links into sorted `links-to` edges, builds navigation and search indexes, copies inert manual pages, binds every emitted file digest in `manifest.json`, and atomically publishes a renderer-neutral profile-1 bundle. The full repository currently yields 331 nodes without asking Docusaurus what a declaration is.
 - [ ] Documentation graph, identity, link, and bundle contracts are accepted.
 - [ ] One manual page, Wheeler API declaration, Java stage-0 declaration, and executable example produce one validated bundle.
 - [ ] Docusaurus renders only the bundle and publishes a verified manifest.

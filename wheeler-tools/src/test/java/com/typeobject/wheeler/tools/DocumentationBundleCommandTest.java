@@ -30,6 +30,8 @@ class DocumentationBundleCommandTest {
         # Guide
 
         A small manual with no renderer tricks up its sleeve.
+
+        See [the doubling API](wheeler:demo.api#twice).
         """);
     Files.writeString(sources.resolve("Api.w"), """
         //! Public arithmetic API.
@@ -55,11 +57,23 @@ class DocumentationBundleCommandTest {
     assertTrue(nodes.contains("\"id\":\"manual:guide\""));
     assertTrue(nodes.contains("\"id\":\"wheeler:demo.api#twice\""));
     assertTrue(nodes.indexOf("manual:guide") < nodes.indexOf("wheeler:demo.api#twice"));
+    String edges = Files.readString(first.resolve("edges.json"));
+    assertTrue(edges.contains(
+        "\"source\":\"manual:guide\",\"target\":\"wheeler:demo.api#twice\""));
     String manifest = Files.readString(first.resolve("manifest.json"));
     assertTrue(manifest.contains("\"profile\":\"wheeler-doc-bundle-1\""));
     assertTrue(output.toString(StandardCharsets.UTF_8).contains("documented 2 nodes"));
     assertThrows(IOException.class, () -> execute(
         manuals, sources, first, new ByteArrayOutputStream()));
+
+    Files.writeString(manuals.resolve("guide.md"),
+        "# Guide\n\nSee [missing](wheeler:demo.api#missing).\n");
+    Path missing = temporary.resolve("missing-link-bundle");
+    PackageFormatException missingLink = assertThrows(
+        PackageFormatException.class,
+        () -> execute(manuals, sources, missing, new ByteArrayOutputStream()));
+    assertTrue(missingLink.getMessage().contains("Missing explicit documentation link"));
+    assertFalse(Files.exists(missing));
   }
 
   @Test

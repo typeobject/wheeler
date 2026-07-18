@@ -22,11 +22,17 @@ import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /** Builds the first deterministic renderer-neutral documentation bundle. */
 final class DocumentationBundleCommand {
   private static final int MAX_FILES = 65_535;
   private static final int MAX_BYTES = 16 * 1024 * 1024;
+  private static final Pattern EXPLICIT_LINK = Pattern.compile(
+      "\\]\\(((?:manual|wheeler):[^)\\s]+)\\)");
 
   private DocumentationBundleCommand() {}
 
@@ -85,7 +91,7 @@ final class DocumentationBundleCommand {
 
     Map<String, String> files = new LinkedHashMap<>();
     files.put("nodes.json", nodesJson(nodes));
-    files.put("edges.json", "{\"edges\":[]}\n");
+    files.put("edges.json", edgesJson(explicitEdges(manuals, nodes)));
     files.put("navigation.json", navigationJson(nodes));
     files.put("search.json", searchJson(nodes));
     pages.forEach(files::put);
@@ -207,6 +213,40 @@ final class DocumentationBundleCommand {
     return json.append("]}\n").toString();
   }
 
+  private static List<Edge> explicitEdges(List<Input> manuals, List<Node> nodes) {
+    Set<String> identities = new TreeSet<>();
+    nodes.forEach(node -> identities.add(node.id()));
+    Set<Edge> edges = new TreeSet<>(Comparator.comparing(Edge::source)
+        .thenComparing(Edge::target));
+    for (Input manual : manuals) {
+      String source = "manual:" + stripSuffix(manual.logicalPath(), ".md");
+      Matcher matcher = EXPLICIT_LINK.matcher(manual.text());
+      while (matcher.find()) {
+        String target = matcher.group(1);
+        if (!identities.contains(target)) {
+          throw new PackageFormatException(
+              "Missing explicit documentation link " + target + " from " + source);
+        }
+        edges.add(new Edge(source, target));
+      }
+    }
+    return List.copyOf(edges);
+  }
+
+  private static String edgesJson(List<Edge> edges) {
+    StringBuilder json = new StringBuilder("{\"edges\":[");
+    for (int index = 0; index < edges.size(); index++) {
+      if (index > 0) {
+        json.append(',');
+      }
+      Edge edge = edges.get(index);
+      json.append("{\"kind\":\"links-to\",\"source\":")
+          .append(quote(edge.source())).append(",\"target\":")
+          .append(quote(edge.target())).append('}');
+    }
+    return json.append("]}\n").toString();
+  }
+
   private static String navigationJson(List<Node> nodes) {
     return "{\"nodes\":[" + nodes.stream().filter(node -> node.kind().equals("manual"))
         .map(node -> quote(node.id())).reduce((left, right) -> left + "," + right).orElse("")
@@ -322,6 +362,8 @@ final class DocumentationBundleCommand {
   private record Input(String logicalPath, String text) {}
 
   private record Node(String id, String kind, String title, String source, String summary) {}
+
+  private record Edge(String source, String target) {}
 
   private record Bundle(Map<String, String> files, int nodes, String identity) {}
 
