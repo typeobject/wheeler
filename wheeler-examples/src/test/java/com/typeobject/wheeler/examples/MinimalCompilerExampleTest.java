@@ -59,6 +59,9 @@ class MinimalCompilerExampleTest {
     }
     assertEquals(initial, writer.snapshot());
 
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class Bare { entry void main() { } }");
     assertDifferentialExecution(
         writerProgram,
         "classical class Empty { state long idle = 7; "
@@ -107,6 +110,21 @@ class MinimalCompilerExampleTest {
         512);
     assertThrows(VmTrap.class, invalid::run);
     assertArrayEquals(new byte[512], invalid.hostOutput());
+  }
+
+  private void assertDifferentialHalt(
+      Program writerProgram,
+      String source) {
+    VirtualMachine writer = new VirtualMachine(
+        writerProgram, source.getBytes(StandardCharsets.UTF_8), 512);
+    writer.run();
+    assertArrayEquals(
+        new WheelerCompiler().compileToBytecode(source),
+        writer.hostOutput());
+    VirtualMachine artifact = new VirtualMachine(
+        new BytecodeReader().read(writer.hostOutput()));
+    artifact.run();
+    assertEquals(MachineStatus.HALTED, artifact.status());
   }
 
   private void assertDifferentialExecution(

@@ -6,6 +6,7 @@ classical class Parser {
     public record MinimalProgram(
         SourceRange name,
         SourceRange global,
+        long globalCount,
         long initialValue,
         long opcode,
         long operand
@@ -266,7 +267,7 @@ classical class Parser {
         SourceRange global = new SourceRange(
             tokenStarts[6], tokenLengths[6]);
         MinimalProgram program = new MinimalProgram(
-            name, global, initial, opcode, operand);
+            name, global, 1, initial, opcode, operand);
         return new MinimalProgramResult.Value(program);
     }
 
@@ -285,8 +286,92 @@ classical class Parser {
         SourceRange global = new SourceRange(
             tokenStarts[6], tokenLengths[6]);
         MinimalProgram program = new MinimalProgram(
-            name, global, initial, -1, 0);
+            name, global, 1, initial, -1, 0);
         return new MinimalProgramResult.Value(program);
+    }
+
+    private MinimalProgramResult minimalNoGlobalProgram(
+        utf8 source,
+        words tokenKinds,
+        words tokenStarts,
+        words tokenLengths
+    ) {
+        if (tokenHash(source, tokenStarts, tokenLengths, 0)
+                == 87497064671293) {
+            if (tokenHash(source, tokenStarts, tokenLengths, 1) == 94742904) {
+                if (tokenKinds[2] == 1) {
+                    if (tokenLengths[2] < 257) {
+                        if (punctuationAt(
+                                source, tokenKinds, tokenStarts, 3, 123)) {
+                            if (tokenHash(
+                                    source, tokenStarts, tokenLengths, 4)
+                                    == 96667762) {
+                                if (tokenHash(
+                                        source, tokenStarts, tokenLengths, 5)
+                                        == 3625364) {
+                                    if (tokenHash(
+                                            source, tokenStarts, tokenLengths, 6)
+                                            == 3343801) {
+                                        if (punctuationAt(
+                                                source,
+                                                tokenKinds,
+                                                tokenStarts,
+                                                7,
+                                                40)) {
+                                            if (punctuationAt(
+                                                    source,
+                                                    tokenKinds,
+                                                    tokenStarts,
+                                                    8,
+                                                    41)) {
+                                                if (punctuationAt(
+                                                        source,
+                                                        tokenKinds,
+                                                        tokenStarts,
+                                                        9,
+                                                        123)) {
+                                                    if (punctuationAt(
+                                                            source,
+                                                            tokenKinds,
+                                                            tokenStarts,
+                                                            10,
+                                                            125)) {
+                                                        if (punctuationAt(
+                                                                source,
+                                                                tokenKinds,
+                                                                tokenStarts,
+                                                                11,
+                                                                125)) {
+                                                            SourceRange name =
+                                                                new SourceRange(
+                                                                    tokenStarts[2],
+                                                                    tokenLengths[2]);
+                                                            SourceRange global =
+                                                                new SourceRange(0, 0);
+                                                            MinimalProgram program =
+                                                                new MinimalProgram(
+                                                                    name,
+                                                                    global,
+                                                                    0,
+                                                                    0,
+                                                                    -1,
+                                                                    0);
+                                                            return new MinimalProgramResult.Value(
+                                                                program);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return new MinimalProgramResult.Error(0);
     }
 
     private boolean minimalCountSupported(long count) {
@@ -306,6 +391,10 @@ classical class Parser {
         words tokenLengths,
         long count
     ) {
+        if (count == 12) {
+            return minimalNoGlobalProgram(
+                source, tokenKinds, tokenStarts, tokenLengths);
+        }
         if (minimalCountSupported(count)) {
             if (minimalHeaderValid(
                     source, tokenKinds, tokenStarts, tokenLengths)) {
