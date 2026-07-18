@@ -174,6 +174,16 @@ final class OwnedStore {
     }
   }
 
+  long length(long bufferHandle) {
+    BufferValue buffer = requireLiveBuffer(bufferHandle);
+    requireLiveRegion(buffer.regionId() + 1L);
+    return buffer.elements().size();
+  }
+
+  void validateBuffer(long bufferHandle) {
+    length(bufferHandle);
+  }
+
   List<Long> bytes(long bufferHandle) {
     BufferValue buffer = requireLiveBuffer(bufferHandle);
     requireKind(buffer, BufferKind.BYTES);

@@ -461,7 +461,7 @@ The standard library is accepted through concrete Wheeler programs:
 - [x] Stage-0 code has immutable provider-neutral bytecode, quantum, target, result, and hybrid event records that define initial library schemas.
 - [x] Deterministic little-endian outcomes, task identities, target capabilities, and bounded snapshots execute.
 - [ ] Core ownership/effect protocols and package layering are accepted.
-- [ ] Scalar/aggregate values, affine byte buffers, and strict UTF-8 validation/scalar counting execute as language/VM substrate; Wheeler option/result, owned string, normalization, iteration, and packaged core/text modules remain.
+- [ ] Scalar/aggregate values, affine byte buffers, and strict UTF-8 validation/scalar decoding execute as language/VM substrate; Wheeler option/result, owned string, normalization, iteration, and packaged core/text modules remain.
 - [ ] Wheeler arenas, vectors, strings, maps, sets, queues, and diagnostics support compiler modules.
 - [ ] Reversible collection contracts and witnesses execute and carry proof obligations.
 - [ ] Affine qubit/register views and semantic circuit builders execute.
@@ -475,7 +475,7 @@ The standard library is accepted through concrete Wheeler programs:
 - [ ] Every public operation documents ownership, effects, failure, allocation, limits, inverse availability, and coherent eligibility.
 - [ ] Core packages compile and run without allocator or host capabilities.
 - [ ] Collection iteration and canonical encoding are stable under insertion, allocation, hash, and task-order variation.
-- [ ] Strict UTF-8 validation/scalar counting covers canonical one-to-four-byte and malformed boundary forms; streaming decode, encoding, normalization, string boundaries, and parser numeric differential corpora remain.
+- [ ] Strict UTF-8 validation/scalar decoding covers canonical one-to-four-byte and malformed boundary forms; streaming decode, encoding, normalization, string boundaries, and parser numeric differential corpora remain.
 - [ ] Allocation exhaustion, integer overflow, index failure, malformed decode, and capability denial occur before partial publication.
 - [ ] Reversible structures pass generated forward/inverse laws and reject missing clean storage or ownership witnesses.
 - [ ] Arena and ownership tests reject escapes, use after move, overlapping mutable slices, double drop, and cycles unsupported by the profile.

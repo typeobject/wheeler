@@ -781,6 +781,9 @@ final class SourceParser extends SourceStatementParser {
           case "allocateBytes" -> "bytes_alloc";
           case "utf8Valid" -> "utf8_valid";
           case "utf8Count" -> "utf8_count";
+          case "bufferLength" -> "buffer_length";
+          case "utf8Scalar" -> "utf8_scalar";
+          case "utf8Width" -> "utf8_width";
           default -> "call_value";
         };
         body.add(new Statement(operation, call, start.line()));

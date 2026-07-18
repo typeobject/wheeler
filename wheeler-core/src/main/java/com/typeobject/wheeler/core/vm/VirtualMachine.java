@@ -403,6 +403,14 @@ public final class VirtualMachine {
       case UTF8_COUNT -> setLocalAndAdvance(
           localIndex(instruction, 0),
           Utf8.analyze(owned.bytes(localValue(instruction, 1))).scalarCount());
+      case BUFFER_LENGTH -> setLocalAndAdvance(
+          localIndex(instruction, 0), owned.length(localValue(instruction, 1)));
+      case UTF8_SCALAR, UTF8_WIDTH -> {
+        Utf8.Scalar scalar = utf8Scalar(instruction);
+        setLocalAndAdvance(
+            localIndex(instruction, 0),
+            opcode == Opcode.UTF8_SCALAR ? scalar.value() : scalar.width());
+      }
       case BUFFER_DROP -> {
         int local = localIndex(instruction, 0);
         ownedChange = owned.dropBuffer(currentFrame().local(local), ownedChange);
@@ -676,6 +684,16 @@ public final class VirtualMachine {
             trap("Invalid UTF-8 byte sequence");
           }
         }
+        case BUFFER_LENGTH -> {
+          localIndex(instruction, 0);
+          owned.validateBuffer(localValue(instruction, 1));
+        }
+        case UTF8_SCALAR, UTF8_WIDTH -> {
+          localIndex(instruction, 0);
+          if (!utf8Scalar(instruction).valid()) {
+            trap("Invalid UTF-8 scalar boundary");
+          }
+        }
         case BUFFER_DROP -> owned.validateDropBuffer(localValue(instruction, 0));
         case REGION_DROP -> owned.validateDropRegion(localValue(instruction, 0));
         case CALL -> {
@@ -869,6 +887,12 @@ public final class VirtualMachine {
       trap("Slice handle type mismatch");
     }
     return value;
+  }
+
+  private Utf8.Scalar utf8Scalar(Instruction instruction) {
+    return Utf8.decode(
+        owned.bytes(localValue(instruction, 1)),
+        Math.toIntExact(localValue(instruction, 2)));
   }
 
   private int checkedJumpTarget(Instruction instruction, int operandIndex) {

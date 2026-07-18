@@ -4,6 +4,9 @@ classical class RegionStorage {
     state long byteValue = 0;
     state long utf8Scalars = 0;
     state long validUtf8 = 0;
+    state long byteLength = 0;
+    state long decodedScalars = 0;
+    state long scalarSum = 0;
 
     entry void main() {
         region arena = new region(40, 2);
@@ -24,6 +27,9 @@ classical class RegionStorage {
         byteValue = packet[0];
         assert byteValue == 65;
 
+        byteLength = bufferLength(packet);
+        assert byteLength == 6;
+
         boolean valid = utf8Valid(packet);
         if (valid) {
             validUtf8 = 1;
@@ -33,6 +39,15 @@ classical class RegionStorage {
         utf8Scalars = utf8Count(packet);
         assert validUtf8 == 1;
         assert utf8Scalars == 3;
+
+        long cursor = 0;
+        while (cursor < byteLength) limit 6 {
+            scalarSum += utf8Scalar(packet, cursor);
+            cursor += utf8Width(packet, cursor);
+            decodedScalars += 1;
+        }
+        assert decodedScalars == 3;
+        assert scalarSum == 8591;
 
         drop(packet);
         drop(data);

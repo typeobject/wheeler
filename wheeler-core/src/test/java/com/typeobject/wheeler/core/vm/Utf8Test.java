@@ -18,6 +18,10 @@ class Utf8Test {
 
     assertTrue(analysis.valid());
     assertEquals(4, analysis.scalarCount());
+    assertEquals(new Utf8.Scalar(true, 0x41, 1), Utf8.decode(List.of(0x41L), 0));
+    assertEquals(
+        new Utf8.Scalar(true, 0x20ac, 3),
+        Utf8.decode(List.of(0xe2L, 0x82L, 0xacL), 0));
     assertTrue(Utf8.analyze(List.of()).valid());
     assertEquals(0, Utf8.analyze(List.of()).scalarCount());
   }

@@ -14,7 +14,7 @@ The examples are deliberately bounded. They demonstrate implemented semantics an
 | [`LoopControl.w`](../../wheeler-examples/src/main/wheeler/LoopControl.w) | Early typed return plus bounded `break` and `continue` edges | `sum = 12`, `selected = 7` |
 | [`Records.w`](../../wheeler-examples/src/main/wheeler/Records.w) | Nested immutable records, typed record calls, fields, and structural equality | `width = 5`, `equal = 1` |
 | [`RecursiveValue.w`](../../wheeler-examples/src/main/wheeler/RecursiveValue.w) | Recursive signed value call under frame and step ceilings | `result = 6` |
-| [`RegionStorage.w`](../../wheeler-examples/src/main/wheeler/RegionStorage.w) | Bounded region allocation, mutable word/byte access, strict UTF-8 validation/counting, affine ownership, and explicit drop | `first = 7`, `byteValue = 65`, `validUtf8 = 1`, `utf8Scalars = 3` |
+| [`RegionStorage.w`](../../wheeler-examples/src/main/wheeler/RegionStorage.w) | Bounded region allocation, mutable word/byte access, strict UTF-8 validation/scalar scanning, affine ownership, and explicit drop | `first = 7`, `byteValue = 65`, `byteLength = 6`, `validUtf8 = 1`, `utf8Scalars = decodedScalars = 3`, `scalarSum = 8591` |
 | [`Variants.w`](../../wheeler-examples/src/main/wheeler/Variants.w) | Closed tagged variants, typed construction, structural equality, and exhaustive payload selection | `selected = 9`, `equal = 1` |
 | [`CoherentOracle.w`](../../wheeler-examples/src/main/wheeler/CoherentOracle.w) | One XOR function over classical and coherent data | `bit = 0`, `measured = 1` |
 | [`QFT.w`](../../wheeler-examples/src/main/wheeler/QFT.w) | Three-qubit quantum Fourier transform with a generated adjoint and kernel-checked adjoint certificate | `measured = 5` |

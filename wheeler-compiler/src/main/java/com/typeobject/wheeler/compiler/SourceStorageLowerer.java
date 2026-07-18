@@ -28,6 +28,8 @@ final class SourceStorageLowerer {
       case "words_set", "bytes_set" -> lowerBufferSet(statement, context);
       case "owned_drop" -> lowerDrop(statement, context);
       case "utf8_valid", "utf8_count" -> lowerUtf8(statement, context);
+      case "buffer_length" -> lowerLength(statement, context);
+      case "utf8_scalar", "utf8_width" -> lowerUtf8Scalar(statement, context);
       default -> throw new IllegalArgumentException(
           "Not a storage operation: " + statement.operation());
     }
@@ -92,6 +94,31 @@ final class SourceStorageLowerer {
     Opcode opcode = expected.equals(ValueType.WORDS)
         ? Opcode.WORDS_SET : Opcode.BYTES_SET;
     context.emit(Instruction.of(opcode, buffer, index, value));
+  }
+
+  private static void lowerUtf8Scalar(Statement statement, Context context) {
+    requireArguments(statement, 4);
+    int bytes = context.requireLocal(statement.arguments().get(2), statement.line());
+    int index = context.requireLocal(statement.arguments().get(3), statement.line());
+    context.requireType(bytes, ValueType.BYTES, statement.line());
+    context.requireType(index, ValueType.SIGNED, statement.line());
+    int destination = context.declareInternal(
+        statement.arguments().get(0), statement.line(), ValueType.SIGNED);
+    Opcode opcode = statement.operation().equals("utf8_scalar")
+        ? Opcode.UTF8_SCALAR : Opcode.UTF8_WIDTH;
+    context.emit(Instruction.of(opcode, destination, bytes, index));
+  }
+
+  private static void lowerLength(Statement statement, Context context) {
+    requireArguments(statement, 3);
+    int buffer = context.requireLocal(statement.arguments().get(2), statement.line());
+    ValueType type = context.localType(buffer);
+    if (!type.equals(ValueType.WORDS) && !type.equals(ValueType.BYTES)) {
+      throw new CompilerException(statement.line(), "bufferLength requires words or bytes");
+    }
+    int destination = context.declareInternal(
+        statement.arguments().get(0), statement.line(), ValueType.SIGNED);
+    context.emit(Instruction.of(Opcode.BUFFER_LENGTH, destination, buffer));
   }
 
   private static void lowerUtf8(Statement statement, Context context) {
