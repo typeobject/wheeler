@@ -816,8 +816,6 @@ Rejected. That is an indentation fixer rather than a formatter and leaves syntac
 
 - Should `wheeler check` eventually compose compilation, formatting verification, and documentation checking, or should repositories invoke the three commands explicitly? — **Owner:** package and tools maintainers — **Decide by:** before CI integration
 
-- Which code-reference syntax and resolution rules should a future generated-documentation renderer use across modules and packages? — **Owner:** documentation, package, and language-server maintainers — **Decide by:** before documentation rendering is proposed
-
 ## References
 
 - [WIP-0005](WIP-0005-wheeler-source-language.md)
@@ -827,5 +825,6 @@ Rejected. That is an indentation fixer rather than a formatter and leaves syntac
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
 - [WIP-0012](WIP-0012-wheeler-standard-library.md)
 - [WIP-0017](WIP-0017-compile-time-constants-and-finite-enums.md)
+- [WIP-0019](WIP-0019-integrated-documentation-publication.md)
 - [Language profile](../reference/language-profile.md)
 - [Development and testing](../reference/development.md)
