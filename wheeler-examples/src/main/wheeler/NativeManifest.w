@@ -56,7 +56,7 @@ classical class NativeManifest {
         }
         finalCursor = bufferLength(source);
         assert nameLength == 11;
-        assert versionLength == 5;
+        assert versionLength == 10;
         assert profileLength == 11;
         assert targetCount == 1;
         assert targetNameLength == 3;

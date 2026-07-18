@@ -24,7 +24,7 @@ class NativeManifestExampleTest {
             "Scanner.w", Files.readString(root.resolve("lexer/Scanner.w"))),
         "examples.packages.main");
     String source =
-        "package \"demo.native\" version \"1.2.3\" profile \"bootstrap-1\"; "
+        "package \"demo.native\" version \"1.2.3-rc.1\" profile \"bootstrap-1\"; "
             + "target example \"app\" root \"src/App.w\"; "
             + "dependency runtime \"demo.base\" version \"^1.0.0\"; "
             + "capability \"fixture\" path \"test-data\";";
@@ -36,7 +36,7 @@ class NativeManifestExampleTest {
 
     assertEquals(9, machine.global("nameStart"));
     assertEquals(11, machine.global("nameLength"));
-    assertEquals(5, machine.global("versionLength"));
+    assertEquals(10, machine.global("versionLength"));
     assertEquals(11, machine.global("profileLength"));
     assertEquals(1, machine.global("targetCount"));
     assertEquals(3, machine.global("targetNameLength"));
@@ -65,13 +65,19 @@ class NativeManifestExampleTest {
 
     VirtualMachine invalidVersion = new VirtualMachine(
         program,
-        source.replace("1.2.3", "01.2.3").getBytes(StandardCharsets.UTF_8));
+        source.replace("1.2.3-rc.1", "01.2.3").getBytes(StandardCharsets.UTF_8));
     assertThrows(VmTrap.class, invalidVersion::run);
 
     VirtualMachine oversizedVersion = new VirtualMachine(
         program,
-        source.replace("1.2.3", "9223372036854775808.2.3")
+        source.replace("1.2.3-rc.1", "9223372036854775808.2.3")
             .getBytes(StandardCharsets.UTF_8));
     assertThrows(VmTrap.class, oversizedVersion::run);
+
+    VirtualMachine invalidPrerelease = new VirtualMachine(
+        program,
+        source.replace("1.2.3-rc.1", "1.2.3-01")
+            .getBytes(StandardCharsets.UTF_8));
+    assertThrows(VmTrap.class, invalidPrerelease::run);
   }
 }
