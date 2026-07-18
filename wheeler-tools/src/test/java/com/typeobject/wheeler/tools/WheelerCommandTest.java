@@ -762,7 +762,7 @@ class WheelerCommandTest {
     createPackage(library, "demo.library", "Library", 1);
     Files.writeString(library.resolve("wheeler.package"), """
         package "demo.library" version "1.0.0" profile "bootstrap-1";
-        target example "main" root "src/Main.w" module "demo.library.main"
+        target library "main" root "src/Main.w" module "demo.library.main"
             source "src/Helper.w" source "src/Main.w";
         capability "build.read" path "src/**";
         """);
@@ -776,21 +776,23 @@ class WheelerCommandTest {
         module demo.library.main;
         import demo.library.helper;
         classical class Library {
-          state long value = 0;
-          entry void main() { value = increment(value); assert value == 1; }
+          public long apply(long value) { return increment(value); }
         }
         """);
     Path application = temporary.resolve("application");
     Files.createDirectories(application.resolve("src"));
     Files.writeString(application.resolve("wheeler.package"), """
         package "demo.application" version "1.0.0" profile "bootstrap-1";
-        target binary "main" root "src/Main.w";
+        target binary "main" root "src/Main.w" module "demo.application.main"
+            source "src/Main.w";
         dependency normal "demo.library" version "^1.0.0";
         """);
     Files.writeString(application.resolve("src/Main.w"), """
+        module demo.application.main;
+        import demo.library.main;
         classical class Main {
             state long value = 0;
-            entry void main() { value += 1; }
+            entry void main() { value = apply(value); assert value == 1; }
         }
         """);
     Path catalog = temporary.resolve("catalog");

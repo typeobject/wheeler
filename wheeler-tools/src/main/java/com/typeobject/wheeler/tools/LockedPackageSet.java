@@ -12,6 +12,7 @@ import com.typeobject.wheeler.packageformat.PackageLockParser;
 import com.typeobject.wheeler.packageformat.PackageManifest;
 import com.typeobject.wheeler.packageformat.PackageManifest.Dependency;
 import com.typeobject.wheeler.packageformat.PackageManifest.DependencyKind;
+import com.typeobject.wheeler.packageformat.PackageManifest.TargetKind;
 import com.typeobject.wheeler.packageformat.VersionConstraint;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,6 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Stream;
 
@@ -104,26 +106,39 @@ final class LockedPackageSet {
 
   void check() {
     WheelerCompiler compiler = new WheelerCompiler();
+    Map<String, String> linkedModules = new TreeMap<>();
     for (String name : buildOrder) {
       DecodedPackage dependency = packages.get(name);
       for (PackageManifest.Target target : dependency.manifest().targets()) {
-        compileTarget(compiler, dependency, target);
+        compileTarget(compiler, dependency, target, linkedModules);
       }
+      addLibrarySources(name, dependency, linkedModules);
     }
   }
 
   Map<String, byte[]> compile() {
     WheelerCompiler compiler = new WheelerCompiler();
     Map<String, byte[]> artifacts = new LinkedHashMap<>();
+    Map<String, String> linkedModules = new TreeMap<>();
     for (String name : buildOrder) {
       DecodedPackage dependency = packages.get(name);
       for (PackageManifest.Target target : dependency.manifest().targets()) {
         artifacts.put(
             "dependencies/" + name + "/" + target.name() + ".wbc",
-            new BytecodeWriter().write(compileTarget(compiler, dependency, target)));
+            new BytecodeWriter().write(
+                compileTarget(compiler, dependency, target, linkedModules)));
       }
+      addLibrarySources(name, dependency, linkedModules);
     }
     return Map.copyOf(artifacts);
+  }
+
+  Map<String, String> moduleSources() {
+    Map<String, String> result = new TreeMap<>();
+    for (String name : buildOrder) {
+      addLibrarySources(name, packages.get(name), result);
+    }
+    return Map.copyOf(result);
   }
 
   List<BuildPlan.Node> planNodes(
@@ -263,11 +278,40 @@ final class LockedPackageSet {
   private static Program compileTarget(
       WheelerCompiler compiler,
       DecodedPackage dependency,
-      PackageManifest.Target target) {
+      PackageManifest.Target target,
+      Map<String, String> linkedModules) {
     Map<String, String> sources = TargetSourceSet.strictText(target, dependency.entries());
-    return target.modular()
-        ? compiler.compileModuleFiles(sources, target.module())
-        : compiler.compile(sources.get(target.root()));
+    if (!target.modular()) {
+      if (target.kind() == TargetKind.LIBRARY) {
+        throw new PackageFormatException(
+            "Library target must declare an exact module source set: " + target.name());
+      }
+      return compiler.compile(sources.get(target.root()));
+    }
+    return target.kind() == TargetKind.LIBRARY
+        ? compiler.compilePackageLibraryModuleFiles(sources, linkedModules, target.module())
+        : compiler.compilePackageModuleFiles(sources, linkedModules, target.module());
+  }
+
+  private static void addLibrarySources(
+      String packageName,
+      DecodedPackage dependency,
+      Map<String, String> destination) {
+    for (PackageManifest.Target target : dependency.manifest().targets()) {
+      if (target.kind() != TargetKind.LIBRARY) {
+        continue;
+      }
+      if (!target.modular()) {
+        throw new PackageFormatException(
+            "Library target must declare an exact module source set: " + target.name());
+      }
+      TargetSourceSet.strictText(target, dependency.entries()).forEach((path, source) -> {
+        String key = "dependencies/" + packageName + "/" + target.name() + "/" + path;
+        if (destination.putIfAbsent(key, source) != null) {
+          throw new PackageFormatException("Duplicate linked library source " + key);
+        }
+      });
+    }
   }
 
   private static Map<String, PackageLock.Entry> lockEntries(PackageLock lock) {

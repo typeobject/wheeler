@@ -143,6 +143,52 @@ class WheelerCompilerTest {
   }
 
   @Test
+  void compilesEntrylessModuleLibrariesWithAnInertArtifactEntry() {
+    String library = """
+        module demo.math;
+        classical class Math {
+          public long twice(long value) { return value + value; }
+        }
+        """;
+
+    Program program = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("src/Math.w", library), "demo.math");
+
+    assertEquals("$library", program.function(program.entryFunctionId()).name());
+    assertEquals(Opcode.HALT, program.function(program.entryFunctionId()).forward()
+        .getFirst().opcode());
+    assertTrue(program.functions().stream().anyMatch(
+        function -> function.name().equals("demo.math::twice")));
+
+    String root = """
+        module demo.main;
+        import demo.math;
+        classical class Main {
+          state long result = 0;
+          entry void main() { result = twice(4); assert result == 8; }
+        }
+        """;
+    String unused = """
+        module demo.unused;
+        classical class Unused { public long value() { return 1; } }
+        """;
+    VirtualMachine linked = new VirtualMachine(
+        new WheelerCompiler().compilePackageModuleFiles(
+            Map.of("src/Main.w", root),
+            Map.of("dependency/Math.w", library, "dependency/Unused.w", unused),
+            "demo.main"));
+    linked.run();
+    assertEquals(8, linked.global("result"));
+
+    assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("src/Math.w", library.replace(
+                "public long twice", "entry void main() {} public long twice")),
+            "demo.math"));
+  }
+
+  @Test
   void moduleLinkerFailsClosedOnVisibilityCyclesAndUnusedInputs() {
     String dependency = """
         module dep;

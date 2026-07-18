@@ -63,8 +63,10 @@ final class PackageProject {
       dependencies.check();
     }
     WheelerCompiler compiler = new WheelerCompiler();
+    Map<String, String> linkedModules = dependencies == null
+        ? Map.of() : dependencies.moduleSources();
     for (PackageManifest.Target target : manifest.targets()) {
-      compileTarget(compiler, target);
+      compileTarget(compiler, target, linkedModules);
     }
   }
 
@@ -81,7 +83,9 @@ final class PackageProject {
       throw new PackageFormatException(
           "Target is not directly runnable: " + selected.name());
     }
-    return compileTarget(new WheelerCompiler(), selected);
+    return compileTarget(
+        new WheelerCompiler(), selected,
+        dependencies == null ? Map.of() : dependencies.moduleSources());
   }
 
   TestReport test() throws IOException {
@@ -91,6 +95,8 @@ final class PackageProject {
     }
     WheelerCompiler compiler = new WheelerCompiler();
     BytecodeWriter writer = new BytecodeWriter();
+    Map<String, String> linkedModules = dependencies == null
+        ? Map.of() : dependencies.moduleSources();
     List<TestReport.CaseResult> cases = new ArrayList<>();
     for (PackageManifest.Target target : manifest.targets()) {
       if (target.kind() != TargetKind.TEST) {
@@ -101,7 +107,7 @@ final class PackageProject {
           manifest.identity(), target.name(), sourceIdentity);
       Program program;
       try {
-        program = compileTarget(compiler, target);
+        program = compileTarget(compiler, target, linkedModules);
       } catch (CompilerException exception) {
         cases.add(TestReport.fail(
             manifest.name(), manifest.version(), target.name(), caseIdentity,
@@ -130,10 +136,12 @@ final class PackageProject {
     if (dependencies != null) {
       artifacts.putAll(dependencies.compile());
     }
+    Map<String, String> linkedModules = dependencies == null
+        ? Map.of() : dependencies.moduleSources();
     for (PackageManifest.Target target : manifest.targets()) {
       artifacts.put(
           target.name() + ".wbc",
-          new BytecodeWriter().write(compileTarget(compiler, target)));
+          new BytecodeWriter().write(compileTarget(compiler, target, linkedModules)));
     }
     return Map.copyOf(artifacts);
   }
@@ -202,12 +210,21 @@ final class PackageProject {
   }
 
   private Program compileTarget(
-      WheelerCompiler compiler, PackageManifest.Target target) throws IOException {
+      WheelerCompiler compiler,
+      PackageManifest.Target target,
+      Map<String, String> linkedModules) throws IOException {
     if (!target.modular()) {
+      if (target.kind() == TargetKind.LIBRARY) {
+        throw new PackageFormatException(
+            "Library target must declare an exact module source set: " + target.name());
+      }
       return compiler.compile(source(target.root()));
     }
-    return compiler.compileModuleFiles(
-        TargetSourceSet.strictText(target, targetEntries(target, false)), target.module());
+    Map<String, String> sources = TargetSourceSet.strictText(
+        target, targetEntries(target, false));
+    return target.kind() == TargetKind.LIBRARY
+        ? compiler.compilePackageLibraryModuleFiles(sources, linkedModules, target.module())
+        : compiler.compilePackageModuleFiles(sources, linkedModules, target.module());
   }
 
   private byte[] readPlanInput(PackageManifest.Target target) throws IOException {

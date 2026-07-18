@@ -34,7 +34,11 @@ capability "build.read" path "src/**";
 capability "build.write" path "out/**";
 ```
 
-Target kinds are `library`, `binary`, `tool`, `test`, and `example`. A single-source target has only `root`. A module target additionally declares its root module and every source path with repeated `source` fields. Source paths are canonicalized lexically, must be unique, must include `root`, and are capped at 1,024. Compilation derives and verifies each file's `module` declaration, then applies the closed module-graph rules in the [language profile](language-profile.md); paths never imply module names. Dependency kinds are `normal`, `development`, and `build`. Versions are three-part semantic versions with an optional prerelease. Constraints accept exact, `=`, `^`, and `~` spelling; the resolver applies the semantics described below.
+Target kinds are `library`, `binary`, `tool`, `test`, and `example`. A single-source target has only `root`. A module target additionally declares its root module and every source path with repeated `source` fields. Source paths are canonicalized lexically, must be unique, must include `root`, and are capped at 1,024. Compilation derives and verifies each file's `module` declaration, then applies the closed module-graph rules in the [language profile](language-profile.md); paths never imply module names.
+
+A `library` target must be modular and its root must be entryless. Stage 0 emits a verified library `.wbc` with one inert internal `$library` entry so the ordinary canonical container remains usable; consumers do not call through that entry. Locked package builds source-link only the dependency modules reachable from the consuming root, require every local target module to be reachable, reject module shadowing/cycles/private exports, and bind all candidate bytes through the exact archive and lock identities. Unused modules in a locked library are harmless candidates, not ambient imports. This is source linking, not an excuse for a process-wide classpath.
+
+Dependency kinds are `normal`, `development`, and `build`. Versions are three-part semantic versions with an optional prerelease. Constraints accept exact, `=`, `^`, and `~` spelling; the resolver applies the semantics described below.
 
 The grammar has words, quoted strings, semicolons, and `//` comments. Strings support only `\\` and `\"` escapes and cannot cross line boundaries. Unknown declarations and fields fail closed with line and column.
 

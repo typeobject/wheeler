@@ -27,6 +27,15 @@ final class SourceModuleLinker {
       "void", "long", "boolean", "region", "words", "bytes", "byteview", "utf8", "longmap");
 
   SourceProgram link(Map<String, SourceProgram> modules, String rootName) {
+    return link(modules, rootName, true);
+  }
+
+  SourceProgram linkLibrary(Map<String, SourceProgram> modules, String rootName) {
+    return link(modules, rootName, false);
+  }
+
+  private SourceProgram link(
+      Map<String, SourceProgram> modules, String rootName, boolean executable) {
     if (modules.isEmpty() || modules.size() > MAX_MODULES) {
       fail("module set must contain between 1 and " + MAX_MODULES + " modules");
     }
@@ -44,7 +53,8 @@ final class SourceModuleLinker {
     }
 
     for (String moduleName : order) {
-      validateModule(moduleName, modules.get(moduleName), moduleName.equals(rootName));
+      validateModule(
+          moduleName, modules.get(moduleName), moduleName.equals(rootName), executable);
     }
 
     List<RecordDefinition> records = new ArrayList<>();
@@ -130,7 +140,7 @@ final class SourceModuleLinker {
   }
 
   private static void validateModule(
-      String expectedName, SourceProgram module, boolean root) {
+      String expectedName, SourceProgram module, boolean root, boolean executable) {
     if (module.moduleName() == null || !module.moduleName().equals(expectedName)) {
       fail("module key/declaration mismatch for " + expectedName);
     }
@@ -138,9 +148,12 @@ final class SourceModuleLinker {
       fail("source modules currently require the classical domain: " + expectedName);
     }
     long entries = module.functions().stream().filter(Function::entry).count();
-    if ((root && entries != 1) || (!root && entries != 0)) {
+    long expectedEntries = root && executable ? 1 : 0;
+    if (entries != expectedEntries) {
       fail(root
-          ? "root module must declare exactly one entry method"
+          ? executable
+              ? "root module must declare exactly one entry method"
+              : "library root module cannot declare an entry method: " + expectedName
           : "dependency module cannot declare an entry method: " + expectedName);
     }
     for (RecordDefinition record : module.records()) {
