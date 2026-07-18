@@ -102,7 +102,7 @@ module.exports = grammar({
       choice('long', 'boolean', alias($.identifier, $.type_identifier)),
       optional($.array_extent),
     ),
-    array_extent: $ => seq('[', field('length', $.integer_literal), ']'),
+    array_extent: $ => seq('[', optional(field('length', $.integer_literal)), ']'),
     parameter: $ => seq(
       field('type', $.value_type),
       field('name', $.identifier),

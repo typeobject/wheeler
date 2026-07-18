@@ -15,6 +15,7 @@ import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.RecordType;
+import com.typeobject.wheeler.core.bytecode.SliceType;
 import com.typeobject.wheeler.core.bytecode.ValueType;
 import com.typeobject.wheeler.core.bytecode.VariantType;
 import java.util.ArrayList;
@@ -359,6 +360,85 @@ class VirtualMachineTest {
     assertThrows(VmTrap.class, trapped::run);
     assertEquals(MachineStatus.TRAPPED, trapped.status());
     assertEquals(1, trapped.snapshot().arrays().size());
+  }
+
+  @Test
+  void borrowedSliceChecksRangeIndexAndRewinds() {
+    ArrayType values = new ArrayType(0, ValueType.SIGNED, 4);
+    SliceType slice = new SliceType(0, ValueType.SIGNED);
+    FunctionBody main = new FunctionBody(
+        0,
+        "main",
+        false,
+        0,
+        List.of(
+            ValueType.SIGNED, ValueType.SIGNED, ValueType.SIGNED, ValueType.SIGNED,
+            ValueType.array(0), ValueType.SIGNED, ValueType.SIGNED,
+            ValueType.slice(0), ValueType.SIGNED, ValueType.SIGNED),
+        null,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 2),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 4),
+            Instruction.of(Opcode.LOCAL_CONST, 2, 6),
+            Instruction.of(Opcode.LOCAL_CONST, 3, 8),
+            Instruction.of(Opcode.ARRAY_NEW, 4, 0, 0, 4),
+            Instruction.of(Opcode.LOCAL_CONST, 5, 1),
+            Instruction.of(Opcode.LOCAL_CONST, 6, 2),
+            Instruction.of(Opcode.SLICE_NEW, 7, 0, 4, 5, 6),
+            Instruction.of(Opcode.LOCAL_CONST, 8, 1),
+            Instruction.of(Opcode.SLICE_GET, 9, 7, 8),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    Program program = new Program(
+        "Slices",
+        0,
+        List.of(),
+        List.of(),
+        List.of(),
+        List.of(values),
+        List.of(slice),
+        List.of(main));
+    VirtualMachine machine = new VirtualMachine(program);
+    MachineSnapshot initial = machine.snapshot();
+
+    machine.run();
+
+    assertEquals(1, machine.snapshot().slices().size());
+    assertEquals(6, machine.snapshot().frames().getFirst().local(9));
+    while (machine.historySize() > 0) {
+      machine.rewindOne();
+    }
+    assertEquals(initial, machine.snapshot());
+
+    FunctionBody invalid = new FunctionBody(
+        0,
+        "main",
+        false,
+        0,
+        main.localTypes(),
+        null,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 2),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 4),
+            Instruction.of(Opcode.LOCAL_CONST, 2, 6),
+            Instruction.of(Opcode.LOCAL_CONST, 3, 8),
+            Instruction.of(Opcode.ARRAY_NEW, 4, 0, 0, 4),
+            Instruction.of(Opcode.LOCAL_CONST, 5, 3),
+            Instruction.of(Opcode.LOCAL_CONST, 6, 2),
+            Instruction.of(Opcode.SLICE_NEW, 7, 0, 4, 5, 6),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    VirtualMachine trapped = new VirtualMachine(new Program(
+        "SliceBounds",
+        0,
+        List.of(),
+        List.of(),
+        List.of(),
+        List.of(values),
+        List.of(slice),
+        List.of(invalid)));
+    assertThrows(VmTrap.class, trapped::run);
+    assertTrue(trapped.snapshot().slices().isEmpty());
   }
 
   @Test

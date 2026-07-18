@@ -157,6 +157,28 @@ class BytecodeVerifierTest {
         List.of(badArray));
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(malformedArray));
     assertEquals(ValueType.array(4), ValueType.fromCode(ValueType.array(4).code()));
+
+    SliceType signedSlice = new SliceType(0, ValueType.SIGNED);
+    FunctionBody escapingSlice = new FunctionBody(
+        0,
+        "main",
+        false,
+        1,
+        List.of(ValueType.slice(0)),
+        ValueType.slice(0),
+        List.of(Instruction.of(Opcode.RETURN_VALUE, 0)),
+        List.of());
+    Program malformedSlice = new Program(
+        "MalformedSlice",
+        0,
+        List.of(),
+        List.of(),
+        List.of(),
+        List.of(),
+        List.of(signedSlice),
+        List.of(escapingSlice));
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(malformedSlice));
+    assertEquals(ValueType.slice(5), ValueType.fromCode(ValueType.slice(5).code()));
   }
 
   @Test

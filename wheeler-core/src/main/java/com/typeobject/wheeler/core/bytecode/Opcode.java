@@ -42,7 +42,9 @@ public enum Opcode {
   VARIANT_TAG_EQ(0x0511, 3, Reversibility.CHECKED),
   VARIANT_GET(0x0512, 4, Reversibility.CHECKED),
   ARRAY_NEW(0x0520, 4, Reversibility.CHECKED),
-  ARRAY_GET(0x0521, 3, Reversibility.CHECKED);
+  ARRAY_GET(0x0521, 3, Reversibility.CHECKED),
+  SLICE_NEW(0x0530, 5, Reversibility.CHECKED),
+  SLICE_GET(0x0531, 3, Reversibility.CHECKED);
 
   private final int code;
   private final int operandCount;

@@ -683,7 +683,8 @@ classical class Arrays {
   long total(long[3] values) { return values[0] + values[1] + values[2]; }
   entry void main() {
     long[3] values = new long[3](2, 4, 6);
-    selected = values[1];
+    long[] middle = slice(values, 1, 2);
+    selected = middle[0];
   }
 }
 
@@ -753,6 +754,21 @@ classical class Arrays {
                     (argument_list
                       (expression
                         (integer_literal))
+                      (expression
+                        (integer_literal))
+                      (expression
+                        (integer_literal)))))))
+            (statement
+              (local_declaration
+                (value_type
+                  (array_extent))
+                (identifier)
+                (expression
+                  (call_expression
+                    (identifier)
+                    (argument_list
+                      (expression
+                        (identifier))
                       (expression
                         (integer_literal))
                       (expression

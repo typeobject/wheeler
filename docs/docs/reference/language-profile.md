@@ -147,9 +147,18 @@ long[4] values = new long[4](2, 4, 6, 8);
 long selected = values[2];
 ```
 
-Construction requires exactly the declared number of left-to-right elements and checks every element type. Arrays may be locals, parameters, and results. Index expressions are signed values and trap before mutation when negative or at least the array length. `==` compares the complete typed value. Lengths range from 1 through 65,535; nested array syntax, mutation, and slices are not in this slice.
+Construction requires exactly the declared number of left-to-right elements and checks every element type. Arrays may be locals, parameters, and results. Index expressions are signed values and trap before mutation when negative or at least the array length. `==` compares the complete typed value. Lengths range from 1 through 65,535; nested array syntax and mutation are not in this slice.
 
-Equal arrays are interned in deterministic construction order under a 65,535-value machine ceiling. Handles remain unobservable and type-specific. Snapshots and rewind include the array table.
+An immutable borrowed slice uses `T[]` and an explicit checked constructor:
+
+```java
+long[] middle = slice(values, 1, 2);
+long selected = middle[1];
+```
+
+The constructor retains the array origin plus start and length, rejects negative or overflowing ranges before allocation, and never copies elements. Slice indexing is relative and checked. Slices may be locals and parameters but cannot be function results or aggregate elements, so a borrow cannot escape its owner. Mutable slices, split/join, and overlapping-borrow analysis remain future work.
+
+Equal arrays and slices are interned in deterministic construction order under separate 65,535-value machine ceilings. Handles remain unobservable and type-specific. Snapshots and rewind include both tables.
 
 ## Quantum statements
 

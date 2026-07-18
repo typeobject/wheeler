@@ -19,6 +19,8 @@ final class SourceModel {
 
   record ArrayDefinition(String name, String elementType, int length, int line) {}
 
+  record SliceDefinition(String name, String elementType, int line) {}
+
   record VariantCase(String name, List<RecordField> fields) {
     VariantCase {
       fields = List.copyOf(fields);
@@ -69,6 +71,7 @@ final class SourceModel {
       List<RecordDefinition> records,
       List<VariantDefinition> variants,
       List<ArrayDefinition> arrays,
+      List<SliceDefinition> slices,
       List<Function> functions,
       List<QuantumRegisterSource> quantumRegisters,
       List<Circuit> circuits) {
@@ -77,6 +80,7 @@ final class SourceModel {
       records = List.copyOf(records);
       variants = List.copyOf(variants);
       arrays = List.copyOf(arrays);
+      slices = List.copyOf(slices);
       functions = List.copyOf(functions);
       quantumRegisters = List.copyOf(quantumRegisters);
       circuits = List.copyOf(circuits);

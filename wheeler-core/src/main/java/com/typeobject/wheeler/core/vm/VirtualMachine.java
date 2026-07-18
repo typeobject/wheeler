@@ -27,6 +27,8 @@ public final class VirtualMachine {
   private final Map<VariantValue, Integer> variantHandles = new LinkedHashMap<>();
   private final List<ArrayValue> arrays = new ArrayList<>();
   private final Map<ArrayValue, Integer> arrayHandles = new LinkedHashMap<>();
+  private final List<SliceValue> slices = new ArrayList<>();
+  private final Map<SliceValue, Integer> sliceHandles = new LinkedHashMap<>();
   private final Deque<StepRecord> history = new ArrayDeque<>();
   private MachineStatus status = MachineStatus.READY;
   private long sequence;
@@ -92,6 +94,9 @@ public final class VirtualMachine {
     }
     while (arrays.size() > record.previousArrayCount()) {
       arrayHandles.remove(arrays.removeLast());
+    }
+    while (slices.size() > record.previousSliceCount()) {
+      sliceHandles.remove(slices.removeLast());
     }
     switch (record.controlChange()) {
       case ADVANCE -> replaceCurrentFrame(record.previousFrame());
@@ -182,6 +187,7 @@ public final class VirtualMachine {
         List.copyOf(records),
         List.copyOf(variants),
         List.copyOf(arrays),
+        List.copyOf(slices),
         history.size(),
         sequence);
   }
@@ -205,6 +211,7 @@ public final class VirtualMachine {
     int previousRecordCount = records.size();
     int previousVariantCount = variants.size();
     int previousArrayCount = arrays.size();
+    int previousSliceCount = slices.size();
 
     switch (opcode) {
       case ADD_CONST -> {
@@ -353,6 +360,28 @@ public final class VirtualMachine {
         int index = Math.toIntExact(localValue(instruction, 2));
         setLocalAndAdvance(localIndex(instruction, 0), value.elements().get(index));
       }
+      case SLICE_NEW -> {
+        int destination = localIndex(instruction, 0);
+        int typeId = Math.toIntExact(operand(instruction, 1));
+        long arrayHandle = localValue(instruction, 2);
+        int start = Math.toIntExact(localValue(instruction, 3));
+        int length = Math.toIntExact(localValue(instruction, 4));
+        SliceValue value = new SliceValue(typeId, arrayHandle, start, length);
+        Integer handle = sliceHandles.get(value);
+        if (handle == null) {
+          slices.add(value);
+          handle = slices.size();
+          sliceHandles.put(value, handle);
+        }
+        setLocalAndAdvance(destination, handle);
+      }
+      case SLICE_GET -> {
+        SliceValue slice = sliceValue(localValue(instruction, 1));
+        ArrayValue array = arrayValue(slice.arrayHandle());
+        int index = Math.toIntExact(localValue(instruction, 2));
+        setLocalAndAdvance(
+            localIndex(instruction, 0), array.elements().get(slice.start() + index));
+      }
       case CALL, UNCALL -> {
         int functionId = Math.toIntExact(operand(instruction, 0));
         advanceCurrentFrame();
@@ -407,7 +436,8 @@ public final class VirtualMachine {
         previousLocalValue,
         previousRecordCount,
         previousVariantCount,
-        previousArrayCount);
+        previousArrayCount,
+        previousSliceCount);
   }
 
   private void validateBeforeMutation(Instruction instruction) {
@@ -541,6 +571,32 @@ public final class VirtualMachine {
           long index = localValue(instruction, 2);
           if (index < 0 || index >= value.elements().size()) {
             trap("Array index out of bounds: " + index);
+          }
+        }
+        case SLICE_NEW -> {
+          localIndex(instruction, 0);
+          ArrayValue array = checkedArraySource(instruction, 2);
+          long start = localValue(instruction, 3);
+          long length = localValue(instruction, 4);
+          long end = Math.addExact(start, length);
+          if (start < 0 || length < 0 || end > array.elements().size()) {
+            trap("Slice range is outside its array");
+          }
+          SliceValue value = new SliceValue(
+              Math.toIntExact(operand(instruction, 1)),
+              localValue(instruction, 2),
+              Math.toIntExact(start),
+              Math.toIntExact(length));
+          if (!sliceHandles.containsKey(value) && slices.size() >= 65_535) {
+            trap("Slice value limit exceeded");
+          }
+        }
+        case SLICE_GET -> {
+          localIndex(instruction, 0);
+          SliceValue value = checkedSliceSource(instruction, 1);
+          long index = localValue(instruction, 2);
+          if (index < 0 || index >= value.length()) {
+            trap("Slice index out of bounds: " + index);
           }
         }
         case CALL -> {
@@ -727,6 +783,23 @@ public final class VirtualMachine {
     ValueType type = program.function(currentFrame().functionId()).localType(source);
     if (type.kind() != ValueType.Kind.ARRAY || value.typeId() != type.descriptorId()) {
       trap("Array handle type mismatch");
+    }
+    return value;
+  }
+
+  private SliceValue sliceValue(long handle) {
+    if (handle <= 0 || handle > slices.size()) {
+      trap("Invalid slice handle " + handle);
+    }
+    return slices.get(Math.toIntExact(handle - 1));
+  }
+
+  private SliceValue checkedSliceSource(Instruction instruction, int operandIndex) {
+    int source = localIndex(instruction, operandIndex);
+    SliceValue value = sliceValue(currentFrame().local(source));
+    ValueType type = program.function(currentFrame().functionId()).localType(source);
+    if (type.kind() != ValueType.Kind.SLICE || value.typeId() != type.descriptorId()) {
+      trap("Slice handle type mismatch");
     }
     return value;
   }

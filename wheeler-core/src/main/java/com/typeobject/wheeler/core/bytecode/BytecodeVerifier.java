@@ -28,6 +28,7 @@ public final class BytecodeVerifier {
     verifyRecordTypes(program);
     verifyVariantTypes(program);
     verifyArrayTypes(program);
+    verifySliceTypes(program);
     verifyFunctions(program);
     verifyQuantum(program);
     verifyWorkflow(program);
@@ -55,6 +56,7 @@ public final class BytecodeVerifier {
         || program.recordTypes().size() > 65_535
         || program.variantTypes().size() > 65_535
         || program.arrayTypes().size() > 65_535
+        || program.sliceTypes().size() > 65_535
         || program.functions().size() > 65_535
         || program.quantumRegisters().size() > 65_535
         || program.quantumCircuits().size() > 65_535) {
@@ -84,7 +86,8 @@ public final class BytecodeVerifier {
           fail("Record fields must reference an earlier record type: " + record.name());
         }
         if (field.type().kind() == ValueType.Kind.VARIANT
-            || field.type().kind() == ValueType.Kind.ARRAY) {
+            || field.type().kind() == ValueType.Kind.ARRAY
+            || field.type().kind() == ValueType.Kind.SLICE) {
           fail("Record fields cannot reference later aggregate types: " + record.name());
         }
       }
@@ -102,7 +105,8 @@ public final class BytecodeVerifier {
       for (VariantType.Case variantCase : variant.cases()) {
         for (RecordType.Field field : variantCase.fields()) {
           verifyTypeReference(program, field.type(), variant.name());
-          if (field.type().kind() == ValueType.Kind.ARRAY) {
+          if (field.type().kind() == ValueType.Kind.ARRAY
+              || field.type().kind() == ValueType.Kind.SLICE) {
             fail("Variant payloads cannot reference later array types: " + variant.name());
           }
           if (field.type().kind() == ValueType.Kind.VARIANT
@@ -121,10 +125,23 @@ public final class BytecodeVerifier {
         fail("Noncanonical array type ID " + array.id());
       }
       verifyTypeReference(program, array.elementType(), "array#" + array.id());
+      if (array.elementType().kind() == ValueType.Kind.SLICE) {
+        fail("Arrays cannot own borrowed slices: " + array.id());
+      }
       if (array.elementType().kind() == ValueType.Kind.ARRAY
           && array.elementType().descriptorId() >= array.id()) {
         fail("Array elements must reference an earlier array type: " + array.id());
       }
+    }
+  }
+
+  private static void verifySliceTypes(Program program) {
+    for (int index = 0; index < program.sliceTypes().size(); index++) {
+      SliceType slice = program.sliceTypes().get(index);
+      if (slice.id() != index || slice.elementType().kind() == ValueType.Kind.SLICE) {
+        fail("Noncanonical slice type " + slice.id());
+      }
+      verifyTypeReference(program, slice.elementType(), "slice#" + slice.id());
     }
   }
 
@@ -137,6 +154,9 @@ public final class BytecodeVerifier {
       function.localTypes().forEach(type -> verifyTypeReference(program, type, function.name()));
       if (function.resultType() != null) {
         verifyTypeReference(program, function.resultType(), function.name());
+        if (function.resultType().kind() == ValueType.Kind.SLICE) {
+          fail("Borrowed slice result escapes function " + function.name());
+        }
       }
       verifyBody(program, function, function.forward(), false);
       if (function.reversible()) {
@@ -175,6 +195,10 @@ public final class BytecodeVerifier {
     if (type.kind() == ValueType.Kind.ARRAY
         && type.descriptorId() >= program.arrayTypes().size()) {
       fail("Unknown array type " + type.displayName() + " in " + owner);
+    }
+    if (type.kind() == ValueType.Kind.SLICE
+        && type.descriptorId() >= program.sliceTypes().size()) {
+      fail("Unknown slice type " + type.displayName() + " in " + owner);
     }
   }
 
@@ -218,7 +242,8 @@ public final class BytecodeVerifier {
         int destination = verifyLocal(owner, instruction.operands().getFirst(), pc);
         if (owner.localType(destination).kind() == ValueType.Kind.RECORD
             || owner.localType(destination).kind() == ValueType.Kind.VARIANT
-            || owner.localType(destination).kind() == ValueType.Kind.ARRAY) {
+            || owner.localType(destination).kind() == ValueType.Kind.ARRAY
+            || owner.localType(destination).kind() == ValueType.Kind.SLICE) {
           fail(location(owner, pc) + " aggregate local requires aggregate construction");
         }
         if (owner.localType(destination).equals(ValueType.BOOLEAN)) {
@@ -256,7 +281,8 @@ public final class BytecodeVerifier {
         requireSameType(owner, destination, right, pc);
         if (owner.localType(destination).kind() == ValueType.Kind.RECORD
             || owner.localType(destination).kind() == ValueType.Kind.VARIANT
-            || owner.localType(destination).kind() == ValueType.Kind.ARRAY) {
+            || owner.localType(destination).kind() == ValueType.Kind.ARRAY
+            || owner.localType(destination).kind() == ValueType.Kind.SLICE) {
           fail(location(owner, pc) + " XOR does not accept aggregate values");
         }
       }
@@ -294,6 +320,8 @@ public final class BytecodeVerifier {
       case VARIANT_GET -> verifyVariantGet(program, owner, instruction, pc);
       case ARRAY_NEW -> verifyArrayNew(program, owner, instruction, pc);
       case ARRAY_GET -> verifyArrayGet(program, owner, instruction, pc);
+      case SLICE_NEW -> verifySliceNew(program, owner, instruction, pc);
+      case SLICE_GET -> verifySliceGet(program, owner, instruction, pc);
       case SWAP -> {
         verifyGlobal(program, instruction.operands().get(0), owner, pc);
         verifyGlobal(program, instruction.operands().get(1), owner, pc);
@@ -486,6 +514,37 @@ public final class BytecodeVerifier {
     requireType(owner, index, ValueType.SIGNED, pc);
   }
 
+  private static void verifySliceNew(
+      Program program, FunctionBody owner, Instruction instruction, int pc) {
+    int destination = verifyLocal(owner, instruction.operands().get(0), pc);
+    int typeId = Math.toIntExact(instruction.operands().get(1));
+    int array = verifyLocal(owner, instruction.operands().get(2), pc);
+    int start = verifyLocal(owner, instruction.operands().get(3), pc);
+    int length = verifyLocal(owner, instruction.operands().get(4), pc);
+    ValueType arrayType = owner.localType(array);
+    if (arrayType.kind() != ValueType.Kind.ARRAY
+        || !program.arrayType(arrayType.descriptorId()).elementType()
+            .equals(program.sliceType(typeId).elementType())) {
+      fail(location(owner, pc) + " slice origin type mismatch");
+    }
+    requireType(owner, destination, ValueType.slice(typeId), pc);
+    requireType(owner, start, ValueType.SIGNED, pc);
+    requireType(owner, length, ValueType.SIGNED, pc);
+  }
+
+  private static void verifySliceGet(
+      Program program, FunctionBody owner, Instruction instruction, int pc) {
+    int destination = verifyLocal(owner, instruction.operands().get(0), pc);
+    int source = verifyLocal(owner, instruction.operands().get(1), pc);
+    int index = verifyLocal(owner, instruction.operands().get(2), pc);
+    ValueType sourceType = owner.localType(source);
+    if (sourceType.kind() != ValueType.Kind.SLICE) {
+      fail(location(owner, pc) + " indexing requires a slice");
+    }
+    requireType(owner, destination, program.sliceType(sourceType.descriptorId()).elementType(), pc);
+    requireType(owner, index, ValueType.SIGNED, pc);
+  }
+
   private static void verifyLocalFlow(FunctionBody owner, List<Instruction> body) {
     BitSet[] incoming = new BitSet[body.size()];
     incoming[0] = new BitSet(owner.localCount());
@@ -548,7 +607,8 @@ public final class BytecodeVerifier {
       case LOCAL_LOOP_CHECK -> new int[] {0, 1};
       case RETURN_VALUE -> new int[] {0};
       case RECORD_GET, VARIANT_TAG_EQ, VARIANT_GET -> new int[] {1};
-      case ARRAY_GET -> new int[] {1, 2};
+      case ARRAY_GET, SLICE_GET -> new int[] {1, 2};
+      case SLICE_NEW -> new int[] {2, 3, 4};
       default -> new int[0];
     };
     for (int operandIndex : reads) {
@@ -563,7 +623,8 @@ public final class BytecodeVerifier {
     return switch (instruction.opcode()) {
       case LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, LOCAL_ADD, LOCAL_SUB,
           LOCAL_XOR, LOCAL_EQ, LOCAL_LT, LOCAL_LOOP_CHECK, RECORD_NEW, RECORD_GET,
-          VARIANT_NEW, VARIANT_TAG_EQ, VARIANT_GET, ARRAY_NEW, ARRAY_GET ->
+          VARIANT_NEW, VARIANT_TAG_EQ, VARIANT_GET, ARRAY_NEW, ARRAY_GET,
+          SLICE_NEW, SLICE_GET ->
           Math.toIntExact(instruction.operands().getFirst());
       case CALL_VALUE -> Math.toIntExact(instruction.operands().get(3));
       default -> -1;

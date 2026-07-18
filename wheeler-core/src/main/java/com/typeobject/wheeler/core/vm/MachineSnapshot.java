@@ -11,5 +11,6 @@ public record MachineSnapshot(
     List<RecordValue> records,
     List<VariantValue> variants,
     List<ArrayValue> arrays,
+    List<SliceValue> slices,
     int historyRecords,
     long sequence) {}

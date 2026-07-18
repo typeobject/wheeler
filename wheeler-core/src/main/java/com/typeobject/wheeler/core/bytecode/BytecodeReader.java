@@ -32,7 +32,10 @@ public final class BytecodeReader {
   private record Manifest(
       int nameId, int entryId, int maxHistory, ProgramKind kind, long maxSteps) {}
   private record TypeSection(
-      List<Global> globals, List<RecordType> records, List<ArrayType> arrays) {}
+      List<Global> globals,
+      List<RecordType> records,
+      List<ArrayType> arrays,
+      List<SliceType> slices) {}
   private record RawFunctionDescriptor(
       int id,
       int nameId,
@@ -153,6 +156,7 @@ public final class BytecodeReader {
         types.records(),
         variants,
         types.arrays(),
+        types.slices(),
         functions,
         registers,
         circuits,
@@ -290,10 +294,22 @@ public final class BytecodeReader {
       }
       arrays.add(new ArrayType(section.getInt(), ValueType.fromCode(section.getInt()), section.getInt()));
     }
+    int sliceCount = readBoundedCount(section, "slice type", 65_535);
+    List<SliceType> slices = new ArrayList<>(sliceCount);
+    for (int index = 0; index < sliceCount; index++) {
+      if (section.remaining() < 8) {
+        fail("Truncated slice type descriptor");
+      }
+      slices.add(new SliceType(section.getInt(), ValueType.fromCode(section.getInt())));
+    }
     if (section.hasRemaining()) {
       fail("Trailing data in type descriptor section");
     }
-    return new TypeSection(List.copyOf(globals), List.copyOf(records), List.copyOf(arrays));
+    return new TypeSection(
+        List.copyOf(globals),
+        List.copyOf(records),
+        List.copyOf(arrays),
+        List.copyOf(slices));
   }
 
   private static List<VariantType> readVariants(

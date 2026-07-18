@@ -16,7 +16,8 @@ public record StepRecord(
     long previousLocalValue,
     int previousRecordCount,
     int previousVariantCount,
-    int previousArrayCount) {
+    int previousArrayCount,
+    int previousSliceCount) {
   public static final int NO_GLOBAL = -1;
   public static final int NO_LOCAL = -1;
 
@@ -25,7 +26,8 @@ public record StepRecord(
     Objects.requireNonNull(previousStatus, "previousStatus");
     Objects.requireNonNull(controlChange, "controlChange");
     Objects.requireNonNull(previousFrame, "previousFrame");
-    if (previousRecordCount < 0 || previousVariantCount < 0 || previousArrayCount < 0) {
+    if (previousRecordCount < 0 || previousVariantCount < 0
+        || previousArrayCount < 0 || previousSliceCount < 0) {
       throw new IllegalArgumentException("Negative previous aggregate count");
     }
   }

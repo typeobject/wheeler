@@ -238,6 +238,28 @@ class SourceProfileNegativeTest {
   }
 
   @Test
+  void rejectsEscapingAndInvalidSlices() {
+    String escaping = """
+        classical class Escape {
+          long[] bad(long[2] values) { return slice(values, 0, 1); }
+          entry void main() { }
+        }
+        """;
+    String wrongOrigin = """
+        classical class Origin {
+          entry void main() { long[] values = slice(1, 0, 1); }
+        }
+        """;
+
+    CompilerException escape = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(escaping));
+    CompilerException origin = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(wrongOrigin));
+    assertTrue(escape.getMessage().contains("cannot escape as results"));
+    assertTrue(origin.getMessage().contains("slice origin must be a fixed array"));
+  }
+
+  @Test
   void rejectsOutOfRangeQuantumReference() {
     String source = """
         quantum class BrokenQubit {

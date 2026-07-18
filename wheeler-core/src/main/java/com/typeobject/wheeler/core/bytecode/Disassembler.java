@@ -44,6 +44,10 @@ public final class Disassembler {
           .append(" element=").append(array.elementType().displayName())
           .append(" length=").append(array.length()).append('\n');
     }
+    for (SliceType slice : program.sliceTypes()) {
+      output.append("\nslice ").append(slice.id())
+          .append(" element=").append(slice.elementType().displayName()).append('\n');
+    }
     for (FunctionBody function : program.functions()) {
       output.append("\nfunction ").append(function.id()).append(' ').append(function.name());
       if (function.returnsValue()) {

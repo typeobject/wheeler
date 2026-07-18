@@ -119,7 +119,7 @@ The first profile supports:
 - signed `long` and `boolean` parameters and returns for ordinary classical methods; zero-argument `void` entry, reversible, coherent, and unitary methods;
 - `rev`, `coherent rev`, `unitary`, and `entry` methods;
 - `+=`, `-=`, `^=`, direct logged assignment, method calls, assertions, checkpoint, and commit;
-- signed `long`, `boolean`, immutable nominal records, closed tagged variants with exhaustive `match`, and fixed immutable arrays with checked indexing; typed left-to-right expressions and static calls; `return`, `if`/`else`, early return, bounded `while` and counted `for`, and `break`/`continue` in ordinary classical methods;
+- signed `long`, `boolean`, immutable nominal records, closed tagged variants with exhaustive `match`, fixed immutable arrays with checked indexing, and nonescaping immutable slices; typed left-to-right expressions and static calls; `return`, `if`/`else`, early return, bounded `while` and counted `for`, and `break`/`continue` in ordinary classical methods;
 - direct inverse calls and reverse blocks;
 - H, X, Z, phase, controlled phase, CNOT, CZ, and swap gates;
 - `prepare`, full-register computational-basis measurement, unitary call/adjoint, and coherent method reference;
@@ -174,7 +174,7 @@ The parser bounds source bytes, lines, declarations, methods, statements, regist
 ## Progress
 
 - [x] Wheeler class, field, and method declarations parse.
-- [x] Classical state, signed/Boolean/record/variant/array parameters, results, locals, bounded control flow, exhaustive selection, checked indexing, and reverse blocks lower to WIP-0001 major version 1 typed frames.
+- [x] Classical state, signed/Boolean/record/variant/array values and nonescaping slice parameters/locals, bounded control flow, exhaustive selection, checked indexing, and reverse blocks lower to WIP-0001 major version 1 typed frames.
 - [x] Unitary methods and quantum entry operations lower to WIP-0002.
 - [x] Coherent method references execute on classical and simulated quantum data.
 - [x] Counter, QFT, and coherent-oracle examples use only the Wheeler source profile.

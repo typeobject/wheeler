@@ -7,6 +7,7 @@ import com.typeobject.wheeler.compiler.SourceModel.Parameter;
 import com.typeobject.wheeler.compiler.SourceModel.QuantumRegisterSource;
 import com.typeobject.wheeler.compiler.SourceModel.RecordDefinition;
 import com.typeobject.wheeler.compiler.SourceModel.RecordField;
+import com.typeobject.wheeler.compiler.SourceModel.SliceDefinition;
 import com.typeobject.wheeler.compiler.SourceModel.SourceProgram;
 import com.typeobject.wheeler.compiler.SourceModel.State;
 import com.typeobject.wheeler.compiler.SourceModel.Statement;
@@ -29,6 +30,7 @@ final class SourceParser extends SourceStatementParser {
   private final List<RecordDefinition> records = new ArrayList<>();
   private final List<VariantDefinition> variants = new ArrayList<>();
   private final List<ArrayDefinition> arrays = new ArrayList<>();
+  private final List<SliceDefinition> slices = new ArrayList<>();
   private final List<QuantumRegisterSource> registers = new ArrayList<>();
   private final List<Circuit> circuits = new ArrayList<>();
   private String domain;
@@ -45,6 +47,7 @@ final class SourceParser extends SourceStatementParser {
     records.clear();
     variants.clear();
     arrays.clear();
+    slices.clear();
     registers.clear();
     circuits.clear();
     loops.clear();
@@ -67,7 +70,16 @@ final class SourceParser extends SourceStatementParser {
       fail(domain, "exactly one 'entry void main()' method is required");
     }
     return new SourceProgram(
-        name, domain.text(), states, records, variants, arrays, functions, registers, circuits);
+        name,
+        domain.text(),
+        states,
+        records,
+        variants,
+        arrays,
+        slices,
+        functions,
+        registers,
+        circuits);
   }
 
   private void parseMember() {
@@ -212,6 +224,9 @@ final class SourceParser extends SourceStatementParser {
         : parseValueType("method return type");
     boolean returnsValue = !returnType.equals("void");
     String name = expect(Type.IDENTIFIER, "method name").text();
+    if (name.equals("slice")) {
+      fail(start, "slice is a reserved value constructor");
+    }
     expect(Type.LEFT_PAREN, "'(' after method name");
     List<Parameter> parameters = new ArrayList<>();
     if (!check(Type.RIGHT_PAREN)) {
@@ -665,7 +680,8 @@ final class SourceParser extends SourceStatementParser {
         call.add(result);
         call.add(start.text());
         call.addAll(arguments);
-        body.add(new Statement("call_value", call, start.line()));
+        body.add(new Statement(
+            start.text().equals("slice") ? "slice_new" : "call_value", call, start.line()));
         return parsePostfix(body, result, start.line());
       }
       String result = temporary();
@@ -715,6 +731,13 @@ final class SourceParser extends SourceStatementParser {
     if (!match(Type.LEFT_BRACKET)) {
       return element.text();
     }
+    if (match(Type.RIGHT_BRACKET)) {
+      String name = element.text() + "[]";
+      if (slices.stream().noneMatch(slice -> slice.name().equals(name))) {
+        slices.add(new SliceDefinition(name, element.text(), element.line()));
+      }
+      return name;
+    }
     SourceToken lengthToken = expect(Type.NUMBER, "fixed array length");
     long length = parseInteger(lengthToken.text(), lengthToken.line());
     if (length <= 0 || length > 65_535) {
@@ -737,7 +760,8 @@ final class SourceParser extends SourceStatementParser {
     return name.equals("long") || name.equals("boolean")
         || records.stream().anyMatch(record -> record.name().equals(name))
         || variants.stream().anyMatch(variant -> variant.name().equals(name))
-        || arrays.stream().anyMatch(array -> array.name().equals(name));
+        || arrays.stream().anyMatch(array -> array.name().equals(name))
+        || slices.stream().anyMatch(slice -> slice.name().equals(name));
   }
 
   private boolean isAssignmentStart() {
