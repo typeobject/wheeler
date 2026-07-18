@@ -6,6 +6,8 @@ classical class FunctionValues {
         return left + right;
     }
 
+    theorem addBound proves steps(add, 4);
+
     boolean same(boolean left, boolean right) {
         return left == right;
     }

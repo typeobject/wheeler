@@ -162,17 +162,18 @@ Equal arrays and slices are interned in deterministic construction order under s
 
 ## Generated inverse and adjoint theorems
 
-The initial proof slice accepts three closed theorem forms:
+The initial proof slice accepts four closed theorem forms:
 
 ```java
 theorem incrementInverse proves inverse(increment);
 theorem qftAdjoint proves adjoint(qft);
 theorem normalized proves equivalent(sourceCircuit, normalizedCircuit);
+theorem addBound proves steps(add, 4);
 ```
 
-The compiler resolves each subject and emits a canonical rule certificate tied to the function or circuit ID. `GENERATED_INVERSE` requires a `rev` function; the trusted `ProofKernel` reconstructs its expected inverse from the forward opcodes. `GENERATED_ADJOINT` requires a `unitary` circuit; the kernel reverses its operation order, inverts every semantic gate or coherent call, and checks that taking the adjoint twice restores the exact circuit body. `CIRCUIT_EQUIVALENCE` requires two circuits on the same register and checks equality after deterministic cancellation of adjacent inverse operations. Unknown subjects, unsupported operations, noncanonical IDs, unknown rules, changed inverse bodies, and malformed metadata reject before execution. This is formal structural evidence, unlike an executable round-trip test.
+The compiler resolves each subject and emits a canonical rule certificate tied to the function or circuit ID. `GENERATED_INVERSE` requires a `rev` function; the trusted `ProofKernel` reconstructs its expected inverse from the forward opcodes. `GENERATED_ADJOINT` requires a `unitary` circuit; the kernel reverses its operation order, inverts every semantic gate or coherent call, and checks that taking the adjoint twice restores the exact circuit body. `CIRCUIT_EQUIVALENCE` requires two circuits on the same register and checks equality after deterministic cancellation of adjacent inverse operations. `STATIC_STEP_BOUND` requires a straight-line function with no calls or branches and checks that its complete forward instruction count does not exceed the stated positive bound or the program ceiling. Unknown subjects, unsupported operations, noncanonical IDs, unknown rules, changed inverse bodies, and malformed metadata reject before execution. This is formal structural evidence, unlike an executable round-trip test.
 
-These rules prove exact compiler generation and the one named cancellation rewrite for the accepted straight-line subsets. They do not yet establish matrix-level circuit equivalence under arbitrary rewrites or global phase. General propositions, contracts, proof terms, resource certificates, assumptions, and experiments remain WIP-0011 work.
+These rules prove exact compiler generation, one named cancellation rewrite, and straight-line static instruction bounds for the accepted subsets. They do not yet establish matrix-level circuit equivalence under arbitrary rewrites or global phase. General propositions, contracts, proof terms, resource certificates, assumptions, and experiments remain WIP-0011 work.
 
 ## Quantum statements
 

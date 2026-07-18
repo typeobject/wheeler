@@ -6,7 +6,8 @@ import com.typeobject.wheeler.core.bytecode.BytecodeException;
 public enum ProofRule {
   GENERATED_INVERSE(1),
   GENERATED_ADJOINT(2),
-  CIRCUIT_EQUIVALENCE(3);
+  CIRCUIT_EQUIVALENCE(3),
+  STATIC_STEP_BOUND(4);
 
   private final int code;
 

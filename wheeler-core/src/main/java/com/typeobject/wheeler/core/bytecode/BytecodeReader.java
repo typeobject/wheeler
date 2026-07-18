@@ -366,7 +366,7 @@ public final class BytecodeReader {
   private static List<ProofCertificate> readProofs(
       ByteBuffer section, List<String> strings) {
     int count = readBoundedCount(section, "proof", 65_535);
-    if (section.remaining() != Math.multiplyExact(count, 20)) {
+    if (section.remaining() != Math.multiplyExact(count, 24)) {
       fail("Invalid proof section length");
     }
     List<ProofCertificate> proofs = new ArrayList<>(count);
@@ -376,12 +376,8 @@ public final class BytecodeReader {
       checkStringId(nameId, strings.size());
       ProofRule rule = ProofRule.fromCode(section.getInt());
       int subject = section.getInt();
-      long encodedRelated = Integer.toUnsignedLong(section.getInt());
-      if (encodedRelated > 65_536) {
-        fail("Invalid related proof subject");
-      }
       proofs.add(new ProofCertificate(
-          id, strings.get(nameId), rule, subject, (int) encodedRelated - 1));
+          id, strings.get(nameId), rule, subject, section.getLong()));
     }
     return List.copyOf(proofs);
   }

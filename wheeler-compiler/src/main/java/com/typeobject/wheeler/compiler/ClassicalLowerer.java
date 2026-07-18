@@ -157,7 +157,8 @@ final class ClassicalLowerer {
     List<ProofCertificate> result = new ArrayList<>();
     Set<String> names = new HashSet<>();
     for (SourceModel.ProofDeclaration proof : source.proofs()) {
-      if (!proof.rule().equals("inverse")) {
+      boolean classicalRule = proof.rule().equals("inverse") || proof.rule().equals("steps");
+      if (!classicalRule) {
         if (classicalEntry) {
           throw new CompilerException(
               proof.line(), proof.rule() + " theorem requires a unitary circuit");
@@ -168,12 +169,22 @@ final class ClassicalLowerer {
       if (!names.add(proof.name())) {
         throw new CompilerException(proof.line(), "duplicate theorem: " + proof.name());
       }
-      if (function == null || !reversibleFunctions.getOrDefault(proof.subject(), false)) {
+      if (function == null) {
+        throw new CompilerException(proof.line(), "theorem requires a declared function");
+      }
+      if (proof.rule().equals("inverse")
+          && !reversibleFunctions.getOrDefault(proof.subject(), false)) {
         throw new CompilerException(
             proof.line(), "inverse theorem requires a reversible function");
       }
+      if (proof.rule().equals("steps") && (proof.argument() == null || proof.argument() <= 0)) {
+        throw new CompilerException(proof.line(), "step theorem requires a positive bound");
+      }
+      ProofRule rule = proof.rule().equals("inverse")
+          ? ProofRule.GENERATED_INVERSE : ProofRule.STATIC_STEP_BOUND;
+      long argument = proof.argument() == null ? -1 : proof.argument();
       result.add(new ProofCertificate(
-          result.size(), proof.name(), ProofRule.GENERATED_INVERSE, function, -1));
+          result.size(), proof.name(), rule, function, argument));
     }
     return List.copyOf(result);
   }

@@ -211,7 +211,7 @@ Reversible and quantum programs naturally produce claims:
 
 Today, such claims often live in prose, tests, or the reassuring tone of a pull-request description.
 
-Wheeler’s proof direction puts contracts, theorems, proof blocks, resource claims, and canonical certificates in the language and package model. The first trusted-kernel slices now check generated inverses, generated quantum adjoints, and adjacent-inverse circuit rewrites against exact artifact bodies. General propositions, contracts, quantum/resource rules, and structured proof terms remain unimplemented; `QFTProof.w` is still an executable conformance law, not a trusted quantum theorem certificate.
+Wheeler’s proof direction puts contracts, theorems, proof blocks, resource claims, and canonical certificates in the language and package model. The first trusted-kernel slices now check generated inverses, generated quantum adjoints, adjacent-inverse circuit rewrites, and straight-line step bounds against exact artifact bodies. General propositions, contracts, quantum/resource rules, and structured proof terms remain unimplemented; `QFTProof.w` is still an executable conformance law, not a trusted quantum theorem certificate.
 
 Proof is also distinct from experiment. A simulator run or a 4,096-shot hardware result may be useful evidence, but it is not a universal theorem. Wheeler records experimental provenance—target identity, request, shots, estimator, and observations—without allowing “it passed on Tuesday” to mature into mathematics through repetition.
 
@@ -260,7 +260,7 @@ The repository currently includes:
 - familiar class and method syntax with source-located diagnostics;
 - signed and Boolean values, immutable records, tagged variants, fixed arrays, nonescaping slices, typed calls, recursion, conditionals, and bounded loops;
 - generated inverses for the supported reversible subset;
-- one canonical `.wbc` format, strict decoding, semantic verification, disassembly, exact VM rewind, and finite generated-inverse, generated-adjoint, and circuit-rewrite proof rules;
+- one canonical `.wbc` format, strict decoding, semantic verification, disassembly, exact VM rewind, and finite generated-inverse, generated-adjoint, circuit-rewrite, and static-step-bound proof rules;
 - provider-neutral quantum regions, generated circuit adjoints, and coherent XOR lifting;
 - an asynchronous ideal state-vector target and application-supplied OpenQASM 3 execution interface;
 - durable hybrid events, recovery, replay, retry, cancellation, quarantine, and transaction phases;

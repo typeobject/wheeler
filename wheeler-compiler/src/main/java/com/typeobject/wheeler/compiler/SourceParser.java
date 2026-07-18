@@ -191,19 +191,26 @@ final class SourceParser extends SourceStatementParser {
     SourceToken rule = expect(Type.IDENTIFIER, "proof rule");
     if (!rule.text().equals("inverse")
         && !rule.text().equals("adjoint")
-        && !rule.text().equals("equivalent")) {
-      fail(rule, "expected inverse, adjoint, or equivalent proof rule");
+        && !rule.text().equals("equivalent")
+        && !rule.text().equals("steps")) {
+      fail(rule, "expected inverse, adjoint, equivalent, or steps proof rule");
     }
     expect(Type.LEFT_PAREN, "'(' after " + rule.text());
     String subject = expect(Type.IDENTIFIER, "proof subject name").text();
     String related = null;
+    Long argument = null;
     if (rule.text().equals("equivalent")) {
       expect(Type.COMMA, "',' between equivalent circuits");
       related = expect(Type.IDENTIFIER, "related circuit name").text();
+    } else if (rule.text().equals("steps")) {
+      expect(Type.COMMA, "',' before the step bound");
+      SourceToken bound = expect(Type.NUMBER, "positive step bound");
+      argument = parseInteger(bound.text(), bound.line());
     }
     expect(Type.RIGHT_PAREN, "')' after proof subject");
     expect(Type.SEMICOLON, "';' after theorem");
-    proofs.add(new ProofDeclaration(name, rule.text(), subject, related, start.line()));
+    proofs.add(new ProofDeclaration(
+        name, rule.text(), subject, related, argument, start.line()));
   }
 
   private void parseState(SourceToken start) {

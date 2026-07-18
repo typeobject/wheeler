@@ -30,6 +30,8 @@ class ClassicalExamplesTest {
     assertEquals(MachineStatus.HALTED, machine.status());
     if (file.equals("Counter.w")) {
       assertEquals(ProofRule.GENERATED_INVERSE, program.proofCertificates().getFirst().rule());
+    } else if (file.equals("FunctionValues.w")) {
+      assertEquals(ProofRule.STATIC_STEP_BOUND, program.proofCertificates().getFirst().rule());
     }
     expected.forEach((global, value) -> assertEquals(value, machine.global(global), global));
   }

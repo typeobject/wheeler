@@ -61,7 +61,7 @@ final class QuantumLowerer {
     Set<String> names = new HashSet<>();
     classicalProofs.forEach(proof -> names.add(proof.name()));
     for (SourceModel.ProofDeclaration proof : source.proofs()) {
-      if (proof.rule().equals("inverse")) {
+      if (proof.rule().equals("inverse") || proof.rule().equals("steps")) {
         continue;
       }
       Integer circuit = circuitIds.get(proof.subject());

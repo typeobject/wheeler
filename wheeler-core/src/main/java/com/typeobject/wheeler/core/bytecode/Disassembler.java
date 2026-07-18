@@ -77,8 +77,8 @@ public final class Disassembler {
       output.append("\nproof ").append(proof.id()).append(' ')
           .append(proof.name()).append(" rule=").append(proof.rule())
           .append(" subject=").append(proof.subjectId());
-      if (proof.relatedSubjectId() >= 0) {
-        output.append(" related=").append(proof.relatedSubjectId());
+      if (proof.argument() >= 0) {
+        output.append(" argument=").append(proof.argument());
       }
       output.append('\n');
     }

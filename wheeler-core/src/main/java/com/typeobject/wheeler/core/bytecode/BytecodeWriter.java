@@ -202,14 +202,14 @@ public final class BytecodeWriter {
   }
 
   private static byte[] proofs(Program program, Map<String, Integer> strings) {
-    ByteBuffer buffer = little(4 + program.proofCertificates().size() * 20);
+    ByteBuffer buffer = little(4 + program.proofCertificates().size() * 24);
     buffer.putInt(program.proofCertificates().size());
     for (ProofCertificate proof : program.proofCertificates()) {
       buffer.putInt(proof.id());
       buffer.putInt(strings.get(proof.name()));
       buffer.putInt(proof.rule().code());
       buffer.putInt(proof.subjectId());
-      buffer.putInt(proof.relatedSubjectId() + 1);
+      buffer.putLong(proof.argument());
     }
     return buffer.array();
   }

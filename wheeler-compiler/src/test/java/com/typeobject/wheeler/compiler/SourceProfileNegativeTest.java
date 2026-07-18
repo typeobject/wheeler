@@ -286,6 +286,14 @@ class SourceProfileNegativeTest {
         }
         """;
 
+    String falseBound = """
+        classical class FalseBound {
+          long add(long left, long right) { return left + right; }
+          theorem tooSmall proves steps(add, 1);
+          entry void main() { }
+        }
+        """;
+
     String falseEquivalence = """
         quantum class FalseEquivalence {
           state long measured = 0;
@@ -305,10 +313,13 @@ class SourceProfileNegativeTest {
         CompilerException.class, () -> new WheelerCompiler().compile(unknownAdjoint));
     CompilerException equivalence = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(falseEquivalence));
+    CompilerException bound = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(falseBound));
     assertTrue(subject.getMessage().contains("requires a reversible function"));
-    assertTrue(syntax.getMessage().contains("expected inverse, adjoint, or equivalent"));
+    assertTrue(syntax.getMessage().contains("expected inverse, adjoint, equivalent, or steps"));
     assertTrue(adjoint.getMessage().contains("requires declared unitary circuits"));
     assertTrue(equivalence.getMessage().contains("differ after adjacent inverse cancellation"));
+    assertTrue(bound.getMessage().contains("declared step bound does not hold"));
   }
 
   @Test

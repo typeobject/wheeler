@@ -18,6 +18,7 @@ public final class ProofKernel {
       case GENERATED_INVERSE -> verifyGeneratedInverse(program, certificate);
       case GENERATED_ADJOINT -> verifyGeneratedAdjoint(program, certificate);
       case CIRCUIT_EQUIVALENCE -> verifyCircuitEquivalence(program, certificate);
+      case STATIC_STEP_BOUND -> verifyStaticStepBound(program, certificate);
     }
   }
 
@@ -30,12 +31,28 @@ public final class ProofKernel {
   private static void verifyCircuitEquivalence(
       Program program, ProofCertificate certificate) {
     var left = program.quantumCircuit(certificate.subjectId());
-    var right = program.quantumCircuit(certificate.relatedSubjectId());
+    var right = program.quantumCircuit((int) certificate.argument());
     if (left.registerId() != right.registerId()
         || !cancelAdjacentInverses(left.operations())
             .equals(cancelAdjacentInverses(right.operations()))) {
       fail("Proof " + certificate.name(),
           "circuit bodies differ after adjacent inverse cancellation");
+    }
+  }
+
+  private static void verifyStaticStepBound(
+      Program program, ProofCertificate certificate) {
+    FunctionBody function = program.function(certificate.subjectId());
+    for (Instruction instruction : function.forward()) {
+      if (instruction.opcode() == Opcode.CALL
+          || instruction.opcode() == Opcode.JUMP
+          || instruction.opcode() == Opcode.JUMP_IF_ZERO) {
+        fail("Proof " + certificate.name(), "subject is not a straight-line function");
+      }
+    }
+    if (function.forward().size() > certificate.argument()
+        || certificate.argument() > program.maxSteps()) {
+      fail("Proof " + certificate.name(), "declared step bound does not hold");
     }
   }
 
