@@ -22,14 +22,18 @@ class MinimalCompilerExampleTest {
   void wheelerCompilesMinimalSourceToACanonicalExecutableArtifact() throws Exception {
     String root = Files.readString(Path.of("src/main/wheeler/MinimalCompiler.w"));
     String encoding = Files.readString(Path.of("src/main/wheeler/compiler/Encoding.w"));
+    String ir = Files.readString(Path.of("src/main/wheeler/compiler/Ir.w"));
     String parser = Files.readString(Path.of("src/main/wheeler/compiler/Parser.w"));
+    String tokens = Files.readString(Path.of("src/main/wheeler/compiler/Tokens.w"));
     String scanner = Files.readString(Path.of("src/main/wheeler/lexer/Scanner.w"));
     var writerProgram = new WheelerCompiler().compileModuleFiles(
         Map.of(
             "MinimalCompiler.w", root,
             "Encoding.w", encoding,
+            "Ir.w", ir,
             "Parser.w", parser,
-            "Scanner.w", scanner),
+            "Scanner.w", scanner,
+            "Tokens.w", tokens),
         "examples.compiler.seed");
     String source =
         "classical class LongClass { state long value = 7; "

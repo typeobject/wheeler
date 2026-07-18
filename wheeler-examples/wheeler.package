@@ -9,7 +9,7 @@ target example "functionvalues" root "src/main/wheeler/FunctionValues.w";
 target example "hostinput" root "src/main/wheeler/HostInput.w";
 target example "longmap" root "src/main/wheeler/LongMap.w";
 target example "loopcontrol" root "src/main/wheeler/LoopControl.w";
-target example "minimalcompiler" root "src/main/wheeler/MinimalCompiler.w" module "examples.compiler.seed" source "src/main/wheeler/MinimalCompiler.w" source "src/main/wheeler/compiler/Encoding.w" source "src/main/wheeler/compiler/Parser.w" source "src/main/wheeler/lexer/Scanner.w";
+target example "minimalcompiler" root "src/main/wheeler/MinimalCompiler.w" module "examples.compiler.seed" source "src/main/wheeler/MinimalCompiler.w" source "src/main/wheeler/compiler/Encoding.w" source "src/main/wheeler/compiler/Ir.w" source "src/main/wheeler/compiler/Parser.w" source "src/main/wheeler/compiler/Tokens.w" source "src/main/wheeler/lexer/Scanner.w";
 target example "moduleexample" root "src/main/wheeler/modules/ModuleMain.w" module "examples.main" source "src/main/wheeler/modules/Arithmetic.w" source "src/main/wheeler/modules/Collections.w" source "src/main/wheeler/modules/ModuleMain.w" source "src/main/wheeler/modules/Results.w";
 target example "qft" root "src/main/wheeler/QFT.w";
 target test "qftproof" root "src/main/wheeler/QFTProof.w";

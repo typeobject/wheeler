@@ -1,5 +1,6 @@
 module examples.compiler.seed;
 import examples.compiler.encoding;
+import examples.compiler.ir;
 import examples.compiler.parser;
 import examples.lexer.scanner;
 classical class MinimalCompiler {
