@@ -210,6 +210,10 @@ Manifest declarations do not grant capabilities. They are requests consumed by a
 
 Archive signatures and registry namespace authorization are separate layers. Content identity establishes bytes, not code correctness or publisher authority.
 
+## Wheeler-native header slice
+
+`NativeManifest.w` imports `packages/Manifest.w` and the shared Wheeler scanner. It accepts explicit UTF-8, requires exactly `package STRING version STRING profile STRING ;`, and returns quote-free typed source ranges without allocating host strings. The executable fixture records lengths `11`, `5`, and `11` for `demo.native`, `1.2.3`, and `bootstrap-1`, rewinds exactly, and rejects a substituted declaration keyword. Target, dependency, capability, escape, duplicate, and canonical-output handling remain stage-0 work. This is the first parser rivet, not the whole bridge.
+
 ## Implementation direction
 
 The workspace and package parsers, resolver, lock codec, build-plan codec, and archive codec are stage-0 conformance implementations. Their malformed-input, resolution, and ordering suites define executable schemas for the Wheeler implementation. The package manager, standard library, and self-hosted compiler will consume the same canonical records; the Java implementation is removed at native cutover rather than retained as a second resolver.
