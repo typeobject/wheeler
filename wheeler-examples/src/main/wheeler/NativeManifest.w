@@ -16,6 +16,8 @@ classical class NativeManifest {
     state long targetSecondSourceLength = 0;
     state long targetThirdSourceLength = 0;
     state long targetFourthSourceLength = 0;
+    state long secondTargetNameLength = 0;
+    state long secondTargetRootLength = 0;
     state long dependencyCount = 0;
     state long dependencyNameLength = 0;
     state long dependencyVersionLength = 0;
@@ -30,10 +32,10 @@ classical class NativeManifest {
     state long finalCursor = 0;
 
     entry void main(utf8 source, bytes canonical) {
-        region arena = new region(1152, 3);
-        words kinds = allocate(arena, 48);
-        words starts = allocate(arena, 48);
-        words lengths = allocate(arena, 48);
+        region arena = new region(1536, 3);
+        words kinds = allocate(arena, 64);
+        words starts = allocate(arena, 64);
+        words lengths = allocate(arena, 64);
         long count = 0;
         ScanResult scanned = scan(source, kinds, starts, lengths);
         match (scanned) {
@@ -61,6 +63,8 @@ classical class NativeManifest {
                 targetSecondSourceLength = header.targetSecondSource.length;
                 targetThirdSourceLength = header.targetThirdSource.length;
                 targetFourthSourceLength = header.targetFourthSource.length;
+                secondTargetNameLength = header.secondTargetName.length;
+                secondTargetRootLength = header.secondTargetRoot.length;
                 dependencyCount = header.dependencyCount;
                 dependencyNameLength = header.dependencyName.length;
                 dependencyVersionLength = header.dependencyVersion.length;
@@ -87,12 +91,14 @@ classical class NativeManifest {
         assert nameLength == 11;
         assert versionLength == 10;
         assert profileLength == 11;
-        assert targetCount == 1;
         assert targetNameLength == 3;
         assert targetRootLength == 11;
         assert targetModuleLength == 8;
         assert targetSourceLength == 11;
         assert targetSecondSourceLength == 12;
+        assert targetCount == 2;
+        assert secondTargetNameLength == 4;
+        assert secondTargetRootLength == 10;
         assert dependencyCount == 2;
         assert dependencyNameLength == 9;
         assert dependencyVersionLength == 6;

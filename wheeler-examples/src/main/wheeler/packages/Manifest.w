@@ -19,6 +19,8 @@ classical class Manifest {
         QuotedRange targetThirdSource,
         QuotedRange targetFourthSource,
         long targetSourceCount,
+        QuotedRange secondTargetName,
+        QuotedRange secondTargetRoot,
         long targetCount,
         QuotedRange dependencyName,
         QuotedRange dependencyVersion,
@@ -91,9 +93,11 @@ classical class Manifest {
     private boolean targetKindValid(
         utf8 source,
         words starts,
-        words lengths
+        words lengths,
+        long recordStart
     ) {
-        long hash = tokenHash(source, starts, lengths, 8);
+        long hash = tokenHash(
+            source, starts, lengths, recordStart + 1);
         if (hash == 2906000385) {
             return true;
         }
@@ -130,15 +134,18 @@ classical class Manifest {
         utf8 source,
         words kinds,
         words starts,
-        words lengths
+        words lengths,
+        long recordStart
     ) {
-        if (semicolonAt(source, kinds, starts, 12)) {
+        if (semicolonAt(
+                source, kinds, starts, recordStart + 5)) {
             return 0;
         }
-        if (keywordAt(source, starts, lengths, 12, 3226183276)) {
-            if (quoted(kinds, lengths, 13)) {
+        if (keywordAt(
+                source, starts, lengths, recordStart + 5, 3226183276)) {
+            if (quoted(kinds, lengths, recordStart + 6)) {
                 long count = 0;
-                long cursor = 14;
+                long cursor = recordStart + 7;
                 boolean scanning = true;
                 while (scanning) limit 5 {
                     if (keywordAt(
@@ -168,18 +175,26 @@ classical class Manifest {
         words kinds,
         words starts,
         words lengths,
-        long sourceCount
+        long sourceCount,
+        long recordStart
     ) {
         boolean validRoot = validLogicalPath(
             source,
-            starts[11] + 1,
-            lengths[11] - 2);
+            starts[recordStart + 4] + 1,
+            lengths[recordStart + 4] - 2);
         boolean baseValid = false;
-        if (keywordAt(source, starts, lengths, 7, 3414061457)) {
-            if (targetKindValid(source, starts, lengths)) {
-                if (quoted(kinds, lengths, 9)) {
-                    if (keywordAt(source, starts, lengths, 10, 3506402)) {
-                        if (quoted(kinds, lengths, 11)) {
+        if (keywordAt(
+                source, starts, lengths, recordStart, 3414061457)) {
+            if (targetKindValid(
+                    source, starts, lengths, recordStart)) {
+                if (quoted(kinds, lengths, recordStart + 2)) {
+                    if (keywordAt(
+                            source,
+                            starts,
+                            lengths,
+                            recordStart + 3,
+                            3506402)) {
+                        if (quoted(kinds, lengths, recordStart + 4)) {
                             baseValid = validRoot;
                         }
                     }
@@ -188,15 +203,23 @@ classical class Manifest {
         }
         if (baseValid) {
             if (sourceCount == 0) {
-                return semicolonAt(source, kinds, starts, 12);
+                return semicolonAt(
+                    source, kinds, starts, recordStart + 5);
             }
             boolean validModule = validModuleName(
-                source, starts[13] + 1, lengths[13] - 2);
-            if (keywordAt(source, starts, lengths, 12, 3226183276)) {
-                if (quoted(kinds, lengths, 13)) {
+                source,
+                starts[recordStart + 6] + 1,
+                lengths[recordStart + 6] - 2);
+            if (keywordAt(
+                    source,
+                    starts,
+                    lengths,
+                    recordStart + 5,
+                    3226183276)) {
+                if (quoted(kinds, lengths, recordStart + 6)) {
                     if (validModule) {
                         long sourceNumber = 0;
-                        long sourceToken = 15;
+                        long sourceToken = recordStart + 8;
                         long previousToken = -1;
                         boolean sourcesValid = true;
                         boolean sourceIncludesRoot = false;
@@ -210,7 +233,7 @@ classical class Manifest {
                                         source,
                                         starts,
                                         lengths,
-                                        11,
+                                        recordStart + 4,
                                         sourceToken)) {
                                     sourceIncludesRoot = true;
                                 }
@@ -241,7 +264,7 @@ classical class Manifest {
                                     source,
                                     kinds,
                                     starts,
-                                    14 + sourceCount * 2);
+                                    recordStart + 7 + sourceCount * 2);
                             }
                         }
                     }
@@ -356,6 +379,8 @@ classical class Manifest {
         QuotedRange targetThirdSource = empty;
         QuotedRange targetFourthSource = empty;
         long targetSourceCount = 0;
+        QuotedRange secondTargetName = empty;
+        QuotedRange secondTargetRoot = empty;
         QuotedRange dependencyName = empty;
         QuotedRange dependencyVersion = empty;
         QuotedRange secondDependencyName = empty;
@@ -364,7 +389,7 @@ classical class Manifest {
         QuotedRange capabilityPath = empty;
         QuotedRange secondCapabilityName = empty;
         QuotedRange secondCapabilityPath = empty;
-        if (targetCount == 1) {
+        if (0 < targetCount) {
             targetName = quotedRange(starts, lengths, 9);
             targetRoot = quotedRange(starts, lengths, 11);
         }
@@ -382,7 +407,20 @@ classical class Manifest {
         if (3 < sourceCount) {
             targetFourthSource = quotedRange(starts, lengths, 21);
         }
-        long dependencyStart = 13 + recordShift;
+        if (1 < targetCount) {
+            long secondTargetStart = 13 + recordShift;
+            secondTargetName = quotedRange(
+                starts, lengths, secondTargetStart + 2);
+            secondTargetRoot = quotedRange(
+                starts, lengths, secondTargetStart + 4);
+        }
+        long extraTargets = 0;
+        if (1 < targetCount) {
+            extraTargets = 1;
+        }
+        long dependencyStart = 13
+            + recordShift
+            + extraTargets * 6;
         if (0 < dependencyCount) {
             dependencyName = quotedRange(
                 starts, lengths, dependencyStart + 2);
@@ -420,6 +458,8 @@ classical class Manifest {
             targetThirdSource,
             targetFourthSource,
             targetSourceCount,
+            secondTargetName,
+            secondTargetRoot,
             targetCount,
             dependencyName,
             dependencyVersion,
@@ -443,10 +483,36 @@ classical class Manifest {
         long recordShift
     ) {
         if (targetValid(
-                source, kinds, starts, lengths, sourceCount)) {
+                source, kinds, starts, lengths, sourceCount, 7)) {
             long cursor = 13 + recordShift;
+            long targetCount = 1;
+            boolean targetsSorted = true;
+            long secondSourceCount = moduleSourceCount(
+                source, kinds, starts, lengths, cursor);
+            if (secondSourceCount == 0) {
+                if (targetValid(
+                        source,
+                        kinds,
+                        starts,
+                        lengths,
+                        secondSourceCount,
+                        cursor)) {
+                    long targetOrder = compareTokenText(
+                        source,
+                        starts,
+                        lengths,
+                        9,
+                        cursor + 2);
+                    if (targetOrder < 0) {
+                        targetCount = 2;
+                        cursor += 6;
+                    } else {
+                        targetsSorted = false;
+                    }
+                }
+            }
             long dependencyCount = 0;
-            boolean dependenciesSorted = true;
+            boolean dependenciesSorted = targetsSorted;
             if (dependencyValid(
                     source, kinds, starts, lengths, cursor)) {
                 dependencyCount = 1;
@@ -511,7 +577,7 @@ classical class Manifest {
                             header(
                                 starts,
                                 lengths,
-                                1,
+                                targetCount,
                                 dependencyCount,
                                 capabilityCount,
                                 recordShift,
@@ -536,7 +602,7 @@ classical class Manifest {
                     header(starts, lengths, 0, 0, 0, 0, 0));
             }
             long sourceCount = moduleSourceCount(
-                source, kinds, starts, lengths);
+                source, kinds, starts, lengths, 7);
             if (-1 < sourceCount) {
                 long recordShift = 0;
                 if (0 < sourceCount) {
