@@ -2,10 +2,12 @@ module examples.compiler.seed;
 import examples.compiler.encoding;
 import examples.compiler.ir;
 import examples.compiler.parser;
+import examples.compiler.verifier;
 import examples.lexer.scanner;
 classical class MinimalCompiler {
     state long finalCursor = 0;
     state long codeStart = 0;
+    state long verification = 0;
 
     private MinimalProgram requireMinimalProgram(
         utf8 source,
@@ -321,6 +323,8 @@ classical class MinimalCompiler {
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 2);
         cursor = writeUnsignedLittleEndian(output, cursor, 8, 4);
         finalCursor = cursor;
+        verification = verifyArtifact(output, finalCursor);
+        assert verification == 1;
         setOutputLength(output, finalCursor);
 
         drop(tokenLengths);

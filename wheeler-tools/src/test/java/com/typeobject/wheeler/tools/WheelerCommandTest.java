@@ -351,7 +351,8 @@ class WheelerCommandTest {
         target example "compiler" root "src/MinimalCompiler.w" module "examples.compiler.seed"
             source "src/MinimalCompiler.w" source "src/compiler/Encoding.w"
             source "src/compiler/Ir.w" source "src/compiler/Parser.w"
-            source "src/compiler/Tokens.w" source "src/lexer/Scanner.w";
+            source "src/compiler/Tokens.w" source "src/compiler/Verifier.w"
+            source "src/lexer/Scanner.w";
         """);
     Path examples = Path.of("../wheeler-examples/src/main/wheeler");
     Files.copy(
@@ -368,6 +369,9 @@ class WheelerCommandTest {
     Files.copy(
         examples.resolve("compiler/Tokens.w"),
         project.resolve("src/compiler/Tokens.w"));
+    Files.copy(
+        examples.resolve("compiler/Verifier.w"),
+        project.resolve("src/compiler/Verifier.w"));
     Files.copy(examples.resolve("lexer/Scanner.w"), project.resolve("src/lexer/Scanner.w"));
     Path className = temporary.resolve("class-name.txt");
     Files.writeString(

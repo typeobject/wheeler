@@ -25,6 +25,7 @@ class MinimalCompilerExampleTest {
     String ir = Files.readString(Path.of("src/main/wheeler/compiler/Ir.w"));
     String parser = Files.readString(Path.of("src/main/wheeler/compiler/Parser.w"));
     String tokens = Files.readString(Path.of("src/main/wheeler/compiler/Tokens.w"));
+    String verifier = Files.readString(Path.of("src/main/wheeler/compiler/Verifier.w"));
     String scanner = Files.readString(Path.of("src/main/wheeler/lexer/Scanner.w"));
     var writerProgram = new WheelerCompiler().compileModuleFiles(
         Map.of(
@@ -33,7 +34,8 @@ class MinimalCompilerExampleTest {
             "Ir.w", ir,
             "Parser.w", parser,
             "Scanner.w", scanner,
-            "Tokens.w", tokens),
+            "Tokens.w", tokens,
+            "Verifier.w", verifier),
         "examples.compiler.seed");
     String source =
         "classical class LongClass { state long value = 7; "
@@ -48,6 +50,7 @@ class MinimalCompilerExampleTest {
     byte[] stageZero = new WheelerCompiler().compileToBytecode(source);
     assertEquals(392, writer.global("codeStart"));
     assertEquals(504, writer.global("finalCursor"));
+    assertEquals(1, writer.global("verification"));
     assertEquals(504, emitted.length);
     assertArrayEquals(stageZero, emitted);
 
@@ -160,6 +163,35 @@ class MinimalCompilerExampleTest {
         512);
     assertThrows(VmTrap.class, invalid::run);
     assertArrayEquals(new byte[512], invalid.hostOutput());
+  }
+
+  @Test
+  void wheelerVerifierRejectsMalformedArtifacts() throws Exception {
+    String root = """
+        module examples.compiler.verifiertest;
+        import examples.compiler.verifier;
+        classical class VerifierTest {
+          state long result = 1;
+          entry void main() {
+            region arena = new region(320, 1);
+            bytes artifact = allocateBytes(arena, 320);
+            result = verifyArtifact(artifact, 320);
+            drop(artifact);
+            drop(arena);
+            assert result == 0;
+          }
+        }
+        """;
+    String verifier = Files.readString(
+        Path.of("src/main/wheeler/compiler/Verifier.w"));
+    Program program = new WheelerCompiler().compileModuleFiles(
+        Map.of("Verifier.w", verifier, "VerifierTest.w", root),
+        "examples.compiler.verifiertest");
+    VirtualMachine machine = new VirtualMachine(program);
+
+    machine.run();
+
+    assertEquals(0, machine.global("result"));
   }
 
   private void assertDifferentialHalt(
