@@ -96,7 +96,7 @@ classical class Verifier {
             return 2;
         }
         if (1039 < opcode) {
-            if (opcode < 1043) {
+            if (opcode < 1048) {
                 return 3;
             }
         }
@@ -185,7 +185,7 @@ classical class Verifier {
             return 0;
         }
         if (1039 < opcode) {
-            if (opcode < 1043) {
+            if (opcode < 1048) {
                 long left = readUnsigned(artifact, cursor + 16, 8);
                 long right = readUnsigned(artifact, cursor + 24, 8);
                 if (first < localCount) {

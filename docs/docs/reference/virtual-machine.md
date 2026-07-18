@@ -19,6 +19,12 @@ Raw host pointers and masked segmented addresses are not machine values. Source 
 
 A classical entry may borrow one strict UTF-8 input or immutable binary `byteview`, one mutable byte output, or one input followed by the output. VM construction requires the exact declared effects and an explicit text/binary binding API, caps each at 16 MiB, defensively copies input into externally owned baseline storage, and initializes only borrow registers. Output has a fixed maximum capacity and is zero-initialized. `OUTPUT_LENGTH` may select a prefix only from the entry output borrow; wrong handles and lengths outside `0..capacity` trap before mutation. The selected length participates in snapshots and exact rewind, and `hostOutput()` returns a defensive copy of that prefix. Missing, unexpected, kind-mismatched, malformed UTF-8, or oversized effects fail before stepping; arbitrary binary input is never decoded as text. Effect bytes and output capacity are runtime data and never alter `.wbc` identity.
 
+## Wheeler-written bounded interpreter
+
+`NativeVm.w` imports `compiler/Interpreter.w` and the Wheeler-native artifact verifier. It accepts an immutable binary `.wbc`, verifies the bounded self-hosted compiler profile, initializes its zero-or-one signed global from the type section, and executes up to 512 interpreted instructions with eight bounded frames and eight locals per frame. The current opcode surface covers direct reversible global add/subtract/XOR, local constants and state load/store/move, checked arithmetic including `LOCAL_AND` and `LOCAL_ROTR32`, global expectations, zero-argument `CALL`/`UNCALL`, `RETURN`, and `HALT`.
+
+The direct checked-update fixture produces the same final global as the stage-0 VM and the outer Wheeler execution rewinds exactly. The checked-in proof-bearing `Counter.w` artifact exercises repeated forward and inverse calls and finishes at zero. This is an interpreter vertical slice, not yet the authoritative transition kernel: branches, loops, aggregates, owned storage, arguments/results, effects, workflows, and interpreter-level step history remain stage-0 behavior. An interpreter with six opcodes missing is a test fixture; calling it a runtime does not make the opcodes less missing.
+
 ## Forward and reverse laws
 
 A successful step produces a new state and one minimal record:
