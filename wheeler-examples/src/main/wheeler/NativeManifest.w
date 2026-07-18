@@ -1,5 +1,6 @@
 module examples.packages.main;
 import examples.lexer.scanner;
+import examples.packages.emitter;
 import examples.packages.manifest;
 classical class NativeManifest {
     state long nameLength = 0;
@@ -15,9 +16,10 @@ classical class NativeManifest {
     state long capabilityCount = 0;
     state long capabilityNameLength = 0;
     state long capabilityPathLength = 0;
+    state long emittedLength = 0;
     state long finalCursor = 0;
 
-    entry void main(utf8 source) {
+    entry void main(utf8 source, bytes canonical) {
         region arena = new region(768, 3);
         words kinds = allocate(arena, 32);
         words starts = allocate(arena, 32);
@@ -49,6 +51,12 @@ classical class NativeManifest {
                 capabilityCount = header.capabilityCount;
                 capabilityNameLength = header.capabilityName.length;
                 capabilityPathLength = header.capabilityPath.length;
+                emittedLength = emitCanonical(
+                    source,
+                    starts,
+                    lengths,
+                    count,
+                    canonical);
             }
             case ManifestResult.Error(long parseOffset) {
                 assert finalCursor == 1;
@@ -67,6 +75,7 @@ classical class NativeManifest {
         assert capabilityCount == 1;
         assert capabilityNameLength == 7;
         assert capabilityPathLength == 9;
+        setOutputLength(canonical, emittedLength);
 
         drop(lengths);
         drop(starts);

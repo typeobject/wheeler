@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
+import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import java.nio.charset.StandardCharsets;
@@ -14,24 +15,25 @@ import org.junit.jupiter.api.Test;
 
 class NativeManifestExampleTest {
   @Test
-  void wheelerParsesTheCanonicalPackageHeader() throws Exception {
+  void wheelerParsesAndCanonicalizesTheBoundedManifest() throws Exception {
     Path root = Path.of("src/main/wheeler");
     var program = new WheelerCompiler().compileModuleFiles(
         Map.of(
-            "NativeManifest.w", Files.readString(root.resolve("NativeManifest.w")),
+            "ManifestEmitter.w", Files.readString(root.resolve("packages/ManifestEmitter.w")),
             "Manifest.w", Files.readString(root.resolve("packages/Manifest.w")),
             "Names.w", Files.readString(root.resolve("packages/Names.w")),
+            "NativeManifest.w", Files.readString(root.resolve("NativeManifest.w")),
             "Paths.w", Files.readString(root.resolve("packages/Paths.w")),
-            "Semver.w", Files.readString(root.resolve("packages/Semver.w")),
-            "Scanner.w", Files.readString(root.resolve("lexer/Scanner.w"))),
+            "Scanner.w", Files.readString(root.resolve("lexer/Scanner.w")),
+            "Semver.w", Files.readString(root.resolve("packages/Semver.w"))),
         "examples.packages.main");
     String source =
         "package \"demo.native\" version \"1.2.3-rc.1\" profile \"bootstrap-1\"; "
             + "target example \"app\" root \"src/App.w\"; "
             + "dependency runtime \"demo.base\" version \"^1.0.0\"; "
             + "capability \"fixture\" path \"test-data\";";
-    VirtualMachine machine = new VirtualMachine(
-        program, source.getBytes(StandardCharsets.UTF_8));
+    String input = source.replace("; target", ";   target");
+    VirtualMachine machine = vm(program, input);
     var initial = machine.snapshot();
 
     machine.run();
@@ -49,61 +51,38 @@ class NativeManifestExampleTest {
     assertEquals(1, machine.global("capabilityCount"));
     assertEquals(7, machine.global("capabilityNameLength"));
     assertEquals(9, machine.global("capabilityPathLength"));
-    assertEquals(source.length(), machine.global("finalCursor"));
+    assertEquals(source.length(), machine.global("emittedLength"));
+    assertEquals(input.length(), machine.global("finalCursor"));
+    assertEquals(source, new String(machine.hostOutput(), StandardCharsets.UTF_8));
     while (machine.historySize() > 0) {
       machine.rewindOne();
     }
     assertEquals(initial, machine.snapshot());
 
-    VirtualMachine malformed = new VirtualMachine(
+    String malformedSource =
+        "project \"demo.native\" version \"1.2.3\" profile \"bootstrap-1\"; "
+            + "target example \"app\" root \"src/App.w\"; "
+            + "dependency runtime \"demo.base\" version \"^1.0.0\"; "
+            + "capability \"fixture\" path \"test-data\";";
+    assertTraps(program, malformedSource);
+    assertTraps(program, source.replace("1.2.3-rc.1", "01.2.3"));
+    assertTraps(
         program,
-        ("project \"demo.native\" version \"1.2.3\" "
-            + "profile \"bootstrap-1\"; target example \"app\" "
-            + "root \"src/App.w\"; dependency runtime \"demo.base\" "
-            + "version \"^1.0.0\"; capability \"fixture\" "
-            + "path \"test-data\";")
-            .getBytes(StandardCharsets.UTF_8));
-    assertThrows(VmTrap.class, malformed::run);
+        source.replace("1.2.3-rc.1", "9223372036854775808.2.3"));
+    assertTraps(program, source.replace("1.2.3-rc.1", "1.2.3-01"));
+    assertTraps(program, source.replace("demo.native", "Demo.native"));
+    assertTraps(program, source.replace("demo.base", "demo.-base"));
+    assertTraps(program, source.replace("src/App.w", "src/../App.w"));
+    assertTraps(program, source.replace("test-data", "test\\data"));
+  }
 
-    VirtualMachine invalidVersion = new VirtualMachine(
-        program,
-        source.replace("1.2.3-rc.1", "01.2.3").getBytes(StandardCharsets.UTF_8));
-    assertThrows(VmTrap.class, invalidVersion::run);
+  private static void assertTraps(Program program, String input) {
+    VirtualMachine machine = vm(program, input);
+    assertThrows(VmTrap.class, machine::run);
+  }
 
-    VirtualMachine oversizedVersion = new VirtualMachine(
-        program,
-        source.replace("1.2.3-rc.1", "9223372036854775808.2.3")
-            .getBytes(StandardCharsets.UTF_8));
-    assertThrows(VmTrap.class, oversizedVersion::run);
-
-    VirtualMachine invalidPrerelease = new VirtualMachine(
-        program,
-        source.replace("1.2.3-rc.1", "1.2.3-01")
-            .getBytes(StandardCharsets.UTF_8));
-    assertThrows(VmTrap.class, invalidPrerelease::run);
-
-    VirtualMachine invalidName = new VirtualMachine(
-        program,
-        source.replace("demo.native", "Demo.native")
-            .getBytes(StandardCharsets.UTF_8));
-    assertThrows(VmTrap.class, invalidName::run);
-
-    VirtualMachine invalidDependencyName = new VirtualMachine(
-        program,
-        source.replace("demo.base", "demo.-base")
-            .getBytes(StandardCharsets.UTF_8));
-    assertThrows(VmTrap.class, invalidDependencyName::run);
-
-    VirtualMachine escapingRoot = new VirtualMachine(
-        program,
-        source.replace("src/App.w", "src/../App.w")
-            .getBytes(StandardCharsets.UTF_8));
-    assertThrows(VmTrap.class, escapingRoot::run);
-
-    VirtualMachine linkedCapability = new VirtualMachine(
-        program,
-        source.replace("test-data", "test\\data")
-            .getBytes(StandardCharsets.UTF_8));
-    assertThrows(VmTrap.class, linkedCapability::run);
+  private static VirtualMachine vm(Program program, String input) {
+    byte[] bytes = input.getBytes(StandardCharsets.UTF_8);
+    return new VirtualMachine(program, bytes, bytes.length);
   }
 }
