@@ -1,9 +1,9 @@
 //! Executes bounded owned-region and word-buffer operations.
-module wheeler.compiler.storage_interpreter;
-import wheeler.compiler.map_interpreter;
+module wheeler.runtime.storage_interpreter;
 import wheeler.compiler.opcodes;
-import wheeler.compiler.utf8_interpreter;
 import wheeler.core.encoding.binary;
+import wheeler.runtime.map_interpreter;
+import wheeler.runtime.utf8_interpreter;
 classical class StorageInterpreter {
     /// Defines immutable `StorageAllocation` values for this module.
     public record StorageAllocation(long handle, long storageCount, long dataCursor) {}

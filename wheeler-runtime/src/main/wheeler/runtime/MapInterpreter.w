@@ -1,5 +1,5 @@
 //! Executes deterministic bounded signed-map operations.
-module wheeler.compiler.map_interpreter;
+module wheeler.runtime.map_interpreter;
 import wheeler.compiler.opcodes;
 classical class MapInterpreter {
     /// Checks one map index against its live bounded allocation.

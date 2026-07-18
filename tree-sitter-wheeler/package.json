@@ -7,7 +7,7 @@
   "main": "bindings/node",
   "scripts": {
     "generate": "tree-sitter generate",
-    "test": "tree-sitter generate && tree-sitter test && find ../wheeler-compiler/src/main/wheeler ../wheeler-core/src/main/wheeler ../wheeler-examples/src/main/wheeler ../wheeler-package/src/main/wheeler -name '*.w' -print0 | xargs -0 tree-sitter parse --config-path test/config.json -p . --quiet && tree-sitter query --config-path test/config.json -p . queries/highlights.scm ../wheeler-examples/src/main/wheeler/Counter.w >/dev/null && tree-sitter query --config-path test/config.json -p . queries/folds.scm ../wheeler-examples/src/main/wheeler/Counter.w >/dev/null"
+    "test": "tree-sitter generate && tree-sitter test && find ../wheeler-compiler/src/main/wheeler ../wheeler-core/src/main/wheeler ../wheeler-examples/src/main/wheeler ../wheeler-package/src/main/wheeler ../wheeler-runtime/src/main/wheeler -name '*.w' -print0 | xargs -0 tree-sitter parse --config-path test/config.json -p . --quiet && tree-sitter query --config-path test/config.json -p . queries/highlights.scm ../wheeler-examples/src/main/wheeler/Counter.w >/dev/null && tree-sitter query --config-path test/config.json -p . queries/folds.scm ../wheeler-examples/src/main/wheeler/Counter.w >/dev/null"
   },
   "devDependencies": {
     "tree-sitter-cli": "0.26.11"

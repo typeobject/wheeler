@@ -35,5 +35,6 @@ target deployable "workqueue" root "src/main/wheeler/WorkQueue.w" module "exampl
 dependency normal "wheeler.compiler" version "=0.1.0";
 dependency normal "wheeler.core" version "=0.1.0";
 dependency normal "wheeler.packages" version "=0.1.0";
+dependency normal "wheeler.runtime" version "=0.1.0";
 capability "build.read" path "src/main/wheeler/**";
 capability "build.write" path "out/**";

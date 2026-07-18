@@ -1,5 +1,5 @@
 //! Decodes strict bounded UTF-8 for the Wheeler-written interpreter.
-module wheeler.compiler.utf8_interpreter;
+module wheeler.runtime.utf8_interpreter;
 import wheeler.compiler.opcodes;
 classical class Utf8Interpreter {
     private boolean byteBetween(long value, long low, long high) {

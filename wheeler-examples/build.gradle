@@ -12,6 +12,7 @@ tasks.named('test') {
         fileTree('../wheeler-compiler/src/main/wheeler') { include '**/*.w' },
         fileTree('../wheeler-core/src/main/wheeler') { include '**/*.w' },
         fileTree('../wheeler-package/src/main/wheeler') { include '**/*.w' },
+        fileTree('../wheeler-runtime/src/main/wheeler') { include '**/*.w' },
         file('wheeler.package'),
         file('wheeler.lock'),
         fileTree('vendor') { include '*.wpk', 'wheeler.lock' })

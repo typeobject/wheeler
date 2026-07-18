@@ -1,10 +1,10 @@
 //! Verifies and executes a bounded canonical artifact entirely in Wheeler.
 
 module examples.runtime.native_vm;
-import wheeler.compiler.interpreter;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.verifier;
 import wheeler.core.encoding.binary;
+import wheeler.runtime.interpreter;
 classical class NativeVm {
     state long finalGlobal = 0;
     state long finalGlobalOne = 0;

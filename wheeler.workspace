@@ -3,3 +3,4 @@ member "compiler" path "wheeler-compiler";
 member "core" path "wheeler-core";
 member "examples" path "wheeler-examples";
 member "package" path "wheeler-package";
+member "runtime" path "wheeler-runtime";

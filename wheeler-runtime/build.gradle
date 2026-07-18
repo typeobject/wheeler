@@ -2,3 +2,12 @@
 dependencies {
     implementation project(':wheeler-core')
 }
+
+tasks.named('test') {
+    inputs.files(
+        fileTree('src/main/wheeler') { include '**/*.w' },
+        file('wheeler.package'),
+        file('wheeler.lock'),
+        fileTree('vendor') { include '*.wpk', 'wheeler.lock' })
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+}

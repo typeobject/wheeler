@@ -1,12 +1,12 @@
 //! Executes verified canonical artifacts in the Wheeler bootstrap VM.
 
-module wheeler.compiler.interpreter;
-import wheeler.compiler.aggregate_interpreter;
+module wheeler.runtime.interpreter;
 import wheeler.compiler.opcodes;
-import wheeler.compiler.storage_interpreter;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.verifier;
 import wheeler.core.encoding.binary;
+import wheeler.runtime.aggregate_interpreter;
+import wheeler.runtime.storage_interpreter;
 classical class Interpreter {
     /// Defines immutable `Execution` values for this module.
     public record Execution(

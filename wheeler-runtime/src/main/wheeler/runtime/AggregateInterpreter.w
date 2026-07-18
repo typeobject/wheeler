@@ -1,5 +1,5 @@
 //! Interns bounded immutable record and finite-variant values.
-module wheeler.compiler.aggregate_interpreter;
+module wheeler.runtime.aggregate_interpreter;
 import wheeler.compiler.opcodes;
 classical class AggregateInterpreter {
     /// Defines immutable `AggregateAllocation` values for this module.

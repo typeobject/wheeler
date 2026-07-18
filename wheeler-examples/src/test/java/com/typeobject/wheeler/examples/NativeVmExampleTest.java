@@ -29,7 +29,7 @@ class NativeVmExampleTest {
         Map.ofEntries(
             Map.entry(
                 "AggregateInterpreter.w",
-                CompilerSources.read("compiler/AggregateInterpreter.w")),
+                RuntimeSources.read("runtime/AggregateInterpreter.w")),
             Map.entry(
                 "AggregateVerifier.w",
                 CompilerSources.read("compiler/AggregateVerifier.w")),
@@ -41,10 +41,10 @@ class NativeVmExampleTest {
                 "InstructionVerifier.w",
                 CompilerSources.read("compiler/InstructionVerifier.w")),
             Map.entry(
-                "Interpreter.w", CompilerSources.read("compiler/Interpreter.w")),
+                "Interpreter.w", RuntimeSources.read("runtime/Interpreter.w")),
             Map.entry(
                 "MapInterpreter.w",
-                CompilerSources.read("compiler/MapInterpreter.w")),
+                RuntimeSources.read("runtime/MapInterpreter.w")),
             Map.entry("NativeVm.w", Files.readString(root.resolve("NativeVm.w"))),
             Map.entry("Opcodes.w", CompilerSources.read("compiler/Opcodes.w")),
             Map.entry("ProofRules.w", CompilerSources.read("compiler/ProofRules.w")),
@@ -53,14 +53,14 @@ class NativeVmExampleTest {
                 CompilerSources.read("compiler/ProofVerifier.w")),
             Map.entry(
                 "StorageInterpreter.w",
-                CompilerSources.read("compiler/StorageInterpreter.w")),
+                RuntimeSources.read("runtime/StorageInterpreter.w")),
             Map.entry(
                 "StorageVerifier.w",
                 CompilerSources.read("compiler/StorageVerifier.w")),
             Map.entry("TypeCodes.w", CompilerSources.read("compiler/TypeCodes.w")),
             Map.entry(
                 "Utf8Interpreter.w",
-                CompilerSources.read("compiler/Utf8Interpreter.w")),
+                RuntimeSources.read("runtime/Utf8Interpreter.w")),
             Map.entry("Verifier.w", CompilerSources.read("compiler/Verifier.w"))),
         "examples.runtime.native_vm");
     WheelerCompiler compiler = new WheelerCompiler();
