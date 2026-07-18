@@ -106,6 +106,12 @@ class MinimalCompilerExampleTest {
         3);
     assertDifferentialExecution(
         writerProgram,
+        "classical class Asserted { state long value = 1; "
+            + "entry void main() { value += 2; assert value == 3; } }",
+        "value",
+        3);
+    assertDifferentialExecution(
+        writerProgram,
         "classical class Series { state long value = 1; "
             + "entry void main() { value += 2; value ^= 7; } }",
         "value",

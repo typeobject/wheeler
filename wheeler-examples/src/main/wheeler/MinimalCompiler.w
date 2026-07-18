@@ -50,6 +50,9 @@ classical class MinimalCompiler {
     }
 
     private long statementLocalCount(long opcode) {
+        if (opcode == 768) {
+            return 0;
+        }
         if (opcode == 0) {
             return 1;
         }
@@ -60,6 +63,9 @@ classical class MinimalCompiler {
     }
 
     private long statementCodeLength(long opcode) {
+        if (opcode == 768) {
+            return 24;
+        }
         if (opcode == 0) {
             return 48;
         }
@@ -76,6 +82,11 @@ classical class MinimalCompiler {
         long operand,
         long localBase
     ) {
+        if (opcode == 768) {
+            cursor = writeInstructionHeader(output, cursor, 768, 2);
+            cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+            return writeSignedLittleEndian(output, cursor, operand, 8);
+        }
         cursor = writeInstructionHeader(output, cursor, 1024, 2);
         cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
         cursor = writeSignedLittleEndian(output, cursor, operand, 8);

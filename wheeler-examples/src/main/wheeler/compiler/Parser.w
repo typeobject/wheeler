@@ -156,8 +156,14 @@ classical class Parser {
     private long statementOpcode(
         utf8 source,
         words tokenStarts,
+        words tokenLengths,
         long statementStart
     ) {
+        if (tokenHash(
+                source, tokenStarts, tokenLengths, statementStart)
+                == 2886759238) {
+            return 768;
+        }
         long operator = utf8Scalar(
             source, tokenStarts[statementStart + 1]);
         if (operator == 61) {
@@ -225,6 +231,55 @@ classical class Parser {
         words tokenLengths,
         long statementStart
     ) {
+        long statementKind = statementOpcode(
+            source, tokenStarts, tokenLengths, statementStart);
+        if (statementKind == 768) {
+            if (tokenKinds[statementStart + 1] == 1) {
+                if (sameTokenText(
+                        source,
+                        tokenStarts,
+                        tokenLengths,
+                        6,
+                        statementStart + 1)) {
+                    if (punctuationAt(
+                            source,
+                            tokenKinds,
+                            tokenStarts,
+                            statementStart + 2,
+                            61)) {
+                        if (punctuationAt(
+                                source,
+                                tokenKinds,
+                                tokenStarts,
+                                statementStart + 3,
+                                61)) {
+                            long assertWidth = signedNumberWidth(
+                                source,
+                                tokenKinds,
+                                tokenStarts,
+                                statementStart + 4);
+                            if (0 < assertWidth) {
+                                if (signedNumberValid(
+                                        source,
+                                        tokenStarts,
+                                        tokenLengths,
+                                        statementStart + 4)) {
+                                    if (punctuationAt(
+                                            source,
+                                            tokenKinds,
+                                            tokenStarts,
+                                            statementStart + 4 + assertWidth,
+                                            59)) {
+                                        return 5 + assertWidth;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return -1;
+        }
         if (tokenKinds[statementStart] == 1) {
             if (sameTokenText(
                     source,
@@ -233,7 +288,7 @@ classical class Parser {
                     6,
                     statementStart)) {
                 long opcode = statementOpcode(
-                    source, tokenStarts, statementStart);
+                    source, tokenStarts, tokenLengths, statementStart);
                 if (opcode == 0) {
                     long operandWidth = signedNumberWidth(
                         source,
@@ -295,12 +350,16 @@ classical class Parser {
     private long statementOperandToken(
         utf8 source,
         words tokenStarts,
+        words tokenLengths,
         long statementStart
     ) {
         long opcode = statementOpcode(
-            source, tokenStarts, statementStart);
+            source, tokenStarts, tokenLengths, statementStart);
         if (opcode == 0) {
             return statementStart + 2;
+        }
+        if (opcode == 768) {
+            return statementStart + 4;
         }
         return statementStart + 3;
     }
@@ -353,9 +412,10 @@ classical class Parser {
     ) {
         long initial = parsedSignedNumber(
             source, tokenStarts, tokenLengths, 8);
-        long opcode = statementOpcode(source, tokenStarts, firstStart);
+        long opcode = statementOpcode(
+            source, tokenStarts, tokenLengths, firstStart);
         long operandToken = statementOperandToken(
-            source, tokenStarts, firstStart);
+            source, tokenStarts, tokenLengths, firstStart);
         long operand = parsedSignedNumber(
             source, tokenStarts, tokenLengths, operandToken);
         long statementCount = 1;
@@ -364,9 +424,9 @@ classical class Parser {
         if (0 < secondStart) {
             statementCount = 2;
             secondOpcode = statementOpcode(
-                source, tokenStarts, secondStart);
+                source, tokenStarts, tokenLengths, secondStart);
             long secondOperandToken = statementOperandToken(
-                source, tokenStarts, secondStart);
+                source, tokenStarts, tokenLengths, secondStart);
             secondOperand = parsedSignedNumber(
                 source,
                 tokenStarts,
