@@ -48,11 +48,14 @@ public enum Opcode {
 
   OWNED_MOVE(0x0540, 2, Reversibility.CHECKED),
   REGION_NEW(0x0541, 3, Reversibility.CHECKED),
-  BUFFER_ALLOC(0x0542, 3, Reversibility.CHECKED),
-  BUFFER_GET(0x0543, 3, Reversibility.CHECKED),
-  BUFFER_SET(0x0544, 3, Reversibility.LOGGED),
+  WORDS_ALLOC(0x0542, 3, Reversibility.CHECKED),
+  WORDS_GET(0x0543, 3, Reversibility.CHECKED),
+  WORDS_SET(0x0544, 3, Reversibility.LOGGED),
   BUFFER_DROP(0x0545, 1, Reversibility.CHECKED),
-  REGION_DROP(0x0546, 1, Reversibility.CHECKED);
+  REGION_DROP(0x0546, 1, Reversibility.CHECKED),
+  BYTES_ALLOC(0x0547, 3, Reversibility.CHECKED),
+  BYTES_GET(0x0548, 3, Reversibility.CHECKED),
+  BYTES_SET(0x0549, 3, Reversibility.LOGGED);
 
   private final int code;
   private final int operandCount;

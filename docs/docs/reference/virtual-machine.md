@@ -11,7 +11,7 @@ The machine owns:
 - a bounded stack of immutable control frames with descriptor-typed signed and Boolean local registers;
 - typed signed 64-bit global locations;
 - separate deterministic bounded tables of immutable nominal records, tagged variants, fixed arrays, and nonescaping slices;
-- bounded owned regions and mutable signed-word buffers with explicit live/dropped state and byte/object accounting;
+- bounded owned regions and mutable signed-word/byte buffers with explicit live/dropped state and byte/object accounting;
 - an ordered bounded stack of step records;
 - a monotonic transition sequence within the current run.
 

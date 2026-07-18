@@ -365,22 +365,35 @@ public final class VirtualMachine {
         ownedChange = allocation.change();
         setLocalAndAdvance(localIndex(instruction, 0), allocation.handle());
       }
-      case BUFFER_ALLOC -> {
+      case WORDS_ALLOC, BYTES_ALLOC -> {
+        BufferKind kind = opcode == Opcode.WORDS_ALLOC
+            ? BufferKind.WORDS : BufferKind.BYTES;
         OwnedStore.Allocation allocation = owned.allocate(
             localValue(instruction, 1),
             Math.toIntExact(localValue(instruction, 2)),
+            kind,
             ownedChange);
         ownedChange = allocation.change();
         setLocalAndAdvance(localIndex(instruction, 0), allocation.handle());
       }
-      case BUFFER_GET -> setLocalAndAdvance(
-          localIndex(instruction, 0),
-          owned.get(localValue(instruction, 1), Math.toIntExact(localValue(instruction, 2))));
-      case BUFFER_SET -> {
+      case WORDS_GET, BYTES_GET -> {
+        BufferKind kind = opcode == Opcode.WORDS_GET
+            ? BufferKind.WORDS : BufferKind.BYTES;
+        setLocalAndAdvance(
+            localIndex(instruction, 0),
+            owned.get(
+                localValue(instruction, 1),
+                Math.toIntExact(localValue(instruction, 2)),
+                kind));
+      }
+      case WORDS_SET, BYTES_SET -> {
+        BufferKind kind = opcode == Opcode.WORDS_SET
+            ? BufferKind.WORDS : BufferKind.BYTES;
         ownedChange = owned.set(
             localValue(instruction, 0),
             Math.toIntExact(localValue(instruction, 1)),
             localValue(instruction, 2),
+            kind,
             ownedChange);
         advanceCurrentFrame();
       }
@@ -619,18 +632,33 @@ public final class VirtualMachine {
           owned.validateRegionLimits(
               operand(instruction, 1), Math.toIntExact(operand(instruction, 2)));
         }
-        case BUFFER_ALLOC -> {
+        case WORDS_ALLOC, BYTES_ALLOC -> {
           localIndex(instruction, 0);
+          BufferKind kind = instruction.opcode() == Opcode.WORDS_ALLOC
+              ? BufferKind.WORDS : BufferKind.BYTES;
           owned.validateAllocation(
-              localValue(instruction, 1), Math.toIntExact(localValue(instruction, 2)));
+              localValue(instruction, 1),
+              Math.toIntExact(localValue(instruction, 2)),
+              kind);
         }
-        case BUFFER_GET -> {
+        case WORDS_GET, BYTES_GET -> {
           localIndex(instruction, 0);
+          BufferKind kind = instruction.opcode() == Opcode.WORDS_GET
+              ? BufferKind.WORDS : BufferKind.BYTES;
           owned.validateGet(
-              localValue(instruction, 1), Math.toIntExact(localValue(instruction, 2)));
+              localValue(instruction, 1),
+              Math.toIntExact(localValue(instruction, 2)),
+              kind);
         }
-        case BUFFER_SET -> owned.validateGet(
-            localValue(instruction, 0), Math.toIntExact(localValue(instruction, 1)));
+        case WORDS_SET, BYTES_SET -> {
+          BufferKind kind = instruction.opcode() == Opcode.WORDS_SET
+              ? BufferKind.WORDS : BufferKind.BYTES;
+          owned.validateSet(
+              localValue(instruction, 0),
+              Math.toIntExact(localValue(instruction, 1)),
+              localValue(instruction, 2),
+              kind);
+        }
         case BUFFER_DROP -> owned.validateDropBuffer(localValue(instruction, 0));
         case REGION_DROP -> owned.validateDropRegion(localValue(instruction, 0));
         case CALL -> {

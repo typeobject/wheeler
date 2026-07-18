@@ -176,6 +176,22 @@ class BytecodeVerifierTest {
         List.of(
             Instruction.of(Opcode.REGION_NEW, 0, 8, 1),
             Instruction.of(Opcode.HALT)));
+    FunctionBody wrongBufferKind = typedMain(
+        List.of(
+            ValueType.REGION,
+            ValueType.SIGNED,
+            ValueType.BYTES,
+            ValueType.SIGNED,
+            ValueType.SIGNED),
+        List.of(
+            Instruction.of(Opcode.REGION_NEW, 0, 1, 1),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 1),
+            Instruction.of(Opcode.BYTES_ALLOC, 2, 0, 1),
+            Instruction.of(Opcode.LOCAL_CONST, 3, 0),
+            Instruction.of(Opcode.WORDS_GET, 4, 2, 3),
+            Instruction.of(Opcode.BUFFER_DROP, 2),
+            Instruction.of(Opcode.REGION_DROP, 0),
+            Instruction.of(Opcode.HALT)));
     FunctionBody divergent = new FunctionBody(
         0,
         "main",
@@ -196,9 +212,12 @@ class BytecodeVerifierTest {
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(copied)));
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(movedTwice)));
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(leaked)));
+    assertThrows(
+        BytecodeException.class, () -> BytecodeVerifier.verify(programWith(wrongBufferKind)));
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(divergent)));
     assertEquals(ValueType.REGION, ValueType.fromCode(ValueType.REGION.code()));
-    assertEquals(ValueType.BUFFER, ValueType.fromCode(ValueType.BUFFER.code()));
+    assertEquals(ValueType.WORDS, ValueType.fromCode(ValueType.WORDS.code()));
+    assertEquals(ValueType.BYTES, ValueType.fromCode(ValueType.BYTES.code()));
   }
 
   @Test

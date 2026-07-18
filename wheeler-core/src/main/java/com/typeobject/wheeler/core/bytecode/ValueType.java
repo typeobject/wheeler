@@ -7,7 +7,8 @@ public record ValueType(Kind kind, int descriptorId) {
   public static final ValueType SIGNED = new ValueType(Kind.SIGNED, -1);
   public static final ValueType BOOLEAN = new ValueType(Kind.BOOLEAN, -1);
   public static final ValueType REGION = new ValueType(Kind.REGION, -1);
-  public static final ValueType BUFFER = new ValueType(Kind.BUFFER, -1);
+  public static final ValueType WORDS = new ValueType(Kind.WORDS, -1);
+  public static final ValueType BYTES = new ValueType(Kind.BYTES, -1);
   private static final int RECORD_TAG = 0x1000_0000;
   private static final int VARIANT_TAG = 0x2000_0000;
   private static final int ARRAY_TAG = 0x3000_0000;
@@ -19,7 +20,8 @@ public record ValueType(Kind kind, int descriptorId) {
             || kind == Kind.ARRAY || kind == Kind.SLICE)
             && (descriptorId < 0 || descriptorId > 0x0fff_ffff))
         || ((kind == Kind.SIGNED || kind == Kind.BOOLEAN
-            || kind == Kind.REGION || kind == Kind.BUFFER) && descriptorId != -1)) {
+            || kind == Kind.REGION || kind == Kind.WORDS || kind == Kind.BYTES)
+            && descriptorId != -1)) {
       throw new IllegalArgumentException("Invalid register type reference");
     }
   }
@@ -45,7 +47,8 @@ public record ValueType(Kind kind, int descriptorId) {
       case SIGNED -> 1;
       case BOOLEAN -> 2;
       case REGION -> 3;
-      case BUFFER -> 4;
+      case WORDS -> 4;
+      case BYTES -> 5;
       case RECORD -> RECORD_TAG | descriptorId;
       case VARIANT -> VARIANT_TAG | descriptorId;
       case ARRAY -> ARRAY_TAG | descriptorId;
@@ -59,7 +62,8 @@ public record ValueType(Kind kind, int descriptorId) {
       case VARIANT -> "variant#" + descriptorId;
       case ARRAY -> "array#" + descriptorId;
       case SLICE -> "slice#" + descriptorId;
-      case SIGNED, BOOLEAN, REGION, BUFFER -> kind.name().toLowerCase(Locale.ROOT);
+      case SIGNED, BOOLEAN, REGION, WORDS, BYTES ->
+          kind.name().toLowerCase(Locale.ROOT);
     };
   }
 
@@ -74,7 +78,10 @@ public record ValueType(Kind kind, int descriptorId) {
       return REGION;
     }
     if (code == 4) {
-      return BUFFER;
+      return WORDS;
+    }
+    if (code == 5) {
+      return BYTES;
     }
     if ((code & 0xf000_0000) == RECORD_TAG) {
       return record(code & 0x0fff_ffff);
@@ -95,7 +102,8 @@ public record ValueType(Kind kind, int descriptorId) {
     SIGNED,
     BOOLEAN,
     REGION,
-    BUFFER,
+    WORDS,
+    BYTES,
     RECORD,
     VARIANT,
     ARRAY,

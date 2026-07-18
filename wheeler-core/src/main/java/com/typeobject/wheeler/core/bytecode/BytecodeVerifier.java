@@ -196,7 +196,11 @@ public final class BytecodeVerifier {
   }
 
   private static boolean owned(ValueType type) {
-    return type.kind() == ValueType.Kind.REGION || type.kind() == ValueType.Kind.BUFFER;
+    return type.kind() == ValueType.Kind.REGION || buffer(type);
+  }
+
+  private static boolean buffer(ValueType type) {
+    return type.kind() == ValueType.Kind.WORDS || type.kind() == ValueType.Kind.BYTES;
   }
 
   private static void verifyTypeReference(
@@ -340,23 +344,18 @@ public final class BytecodeVerifier {
           fail(location(owner, pc) + " invalid region limits");
         }
       }
-      case BUFFER_ALLOC -> {
-        requireType(owner, verifyLocal(owner, instruction.operands().get(0), pc), ValueType.BUFFER, pc);
-        requireType(owner, verifyLocal(owner, instruction.operands().get(1), pc), ValueType.REGION, pc);
-        requireType(owner, verifyLocal(owner, instruction.operands().get(2), pc), ValueType.SIGNED, pc);
+      case WORDS_ALLOC -> verifyBufferAllocate(owner, instruction, pc, ValueType.WORDS);
+      case BYTES_ALLOC -> verifyBufferAllocate(owner, instruction, pc, ValueType.BYTES);
+      case WORDS_GET -> verifyBufferGet(owner, instruction, pc, ValueType.WORDS);
+      case BYTES_GET -> verifyBufferGet(owner, instruction, pc, ValueType.BYTES);
+      case WORDS_SET -> verifyBufferSet(owner, instruction, pc, ValueType.WORDS);
+      case BYTES_SET -> verifyBufferSet(owner, instruction, pc, ValueType.BYTES);
+      case BUFFER_DROP -> {
+        int local = verifyLocal(owner, instruction.operands().get(0), pc);
+        if (!buffer(owner.localType(local))) {
+          fail(location(owner, pc) + " buffer drop requires words or bytes");
+        }
       }
-      case BUFFER_GET -> {
-        requireType(owner, verifyLocal(owner, instruction.operands().get(0), pc), ValueType.SIGNED, pc);
-        requireType(owner, verifyLocal(owner, instruction.operands().get(1), pc), ValueType.BUFFER, pc);
-        requireType(owner, verifyLocal(owner, instruction.operands().get(2), pc), ValueType.SIGNED, pc);
-      }
-      case BUFFER_SET -> {
-        requireType(owner, verifyLocal(owner, instruction.operands().get(0), pc), ValueType.BUFFER, pc);
-        requireType(owner, verifyLocal(owner, instruction.operands().get(1), pc), ValueType.SIGNED, pc);
-        requireType(owner, verifyLocal(owner, instruction.operands().get(2), pc), ValueType.SIGNED, pc);
-      }
-      case BUFFER_DROP ->
-          requireType(owner, verifyLocal(owner, instruction.operands().get(0), pc), ValueType.BUFFER, pc);
       case REGION_DROP ->
           requireType(owner, verifyLocal(owner, instruction.operands().get(0), pc), ValueType.REGION, pc);
       case SWAP -> {
@@ -420,6 +419,45 @@ public final class BytecodeVerifier {
         // No additional operands to verify.
       }
     }
+  }
+
+  private static void verifyBufferAllocate(
+      FunctionBody owner,
+      Instruction instruction,
+      int pc,
+      ValueType bufferType) {
+    requireType(
+        owner, verifyLocal(owner, instruction.operands().get(0), pc), bufferType, pc);
+    requireType(
+        owner, verifyLocal(owner, instruction.operands().get(1), pc), ValueType.REGION, pc);
+    requireType(
+        owner, verifyLocal(owner, instruction.operands().get(2), pc), ValueType.SIGNED, pc);
+  }
+
+  private static void verifyBufferGet(
+      FunctionBody owner,
+      Instruction instruction,
+      int pc,
+      ValueType bufferType) {
+    requireType(
+        owner, verifyLocal(owner, instruction.operands().get(0), pc), ValueType.SIGNED, pc);
+    requireType(
+        owner, verifyLocal(owner, instruction.operands().get(1), pc), bufferType, pc);
+    requireType(
+        owner, verifyLocal(owner, instruction.operands().get(2), pc), ValueType.SIGNED, pc);
+  }
+
+  private static void verifyBufferSet(
+      FunctionBody owner,
+      Instruction instruction,
+      int pc,
+      ValueType bufferType) {
+    requireType(
+        owner, verifyLocal(owner, instruction.operands().get(0), pc), bufferType, pc);
+    requireType(
+        owner, verifyLocal(owner, instruction.operands().get(1), pc), ValueType.SIGNED, pc);
+    requireType(
+        owner, verifyLocal(owner, instruction.operands().get(2), pc), ValueType.SIGNED, pc);
   }
 
   private static void verifyRecordNew(
@@ -675,10 +713,10 @@ public final class BytecodeVerifier {
       case LOCAL_LOOP_CHECK -> new int[] {0, 1};
       case RETURN_VALUE -> new int[] {0};
       case RECORD_GET, VARIANT_TAG_EQ, VARIANT_GET -> new int[] {1};
-      case ARRAY_GET, SLICE_GET, BUFFER_GET -> new int[] {1, 2};
+      case ARRAY_GET, SLICE_GET, WORDS_GET, BYTES_GET -> new int[] {1, 2};
       case SLICE_NEW -> new int[] {2, 3, 4};
-      case BUFFER_ALLOC -> new int[] {1, 2};
-      case BUFFER_SET -> new int[] {0, 1, 2};
+      case WORDS_ALLOC, BYTES_ALLOC -> new int[] {1, 2};
+      case WORDS_SET, BYTES_SET -> new int[] {0, 1, 2};
       case BUFFER_DROP, REGION_DROP -> new int[] {0};
       default -> new int[0];
     };
@@ -695,8 +733,8 @@ public final class BytecodeVerifier {
       case LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, OWNED_MOVE,
           LOCAL_ADD, LOCAL_SUB, LOCAL_XOR, LOCAL_EQ, LOCAL_LT, LOCAL_LOOP_CHECK,
           RECORD_NEW, RECORD_GET, VARIANT_NEW, VARIANT_TAG_EQ, VARIANT_GET,
-          ARRAY_NEW, ARRAY_GET, SLICE_NEW, SLICE_GET, REGION_NEW, BUFFER_ALLOC,
-          BUFFER_GET ->
+          ARRAY_NEW, ARRAY_GET, SLICE_NEW, SLICE_GET, REGION_NEW,
+          WORDS_ALLOC, WORDS_GET, BYTES_ALLOC, BYTES_GET ->
           Math.toIntExact(instruction.operands().getFirst());
       case CALL_VALUE -> Math.toIntExact(instruction.operands().get(3));
       default -> -1;

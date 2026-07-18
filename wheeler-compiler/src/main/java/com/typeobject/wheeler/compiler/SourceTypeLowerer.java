@@ -125,7 +125,8 @@ final class SourceTypeLowerer {
       result.put(source.slices().get(index).name(), ValueType.slice(slices.get(index).id()));
     }
     result.put("region", ValueType.REGION);
-    result.put("words", ValueType.BUFFER);
+    result.put("words", ValueType.WORDS);
+    result.put("bytes", ValueType.BYTES);
     return Map.copyOf(result);
   }
 

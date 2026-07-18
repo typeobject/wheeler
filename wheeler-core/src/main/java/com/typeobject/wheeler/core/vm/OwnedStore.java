@@ -54,9 +54,10 @@ final class OwnedStore {
     return new Allocation(id + 1L, change);
   }
 
-  Allocation allocate(long regionHandle, int length, Change change) {
+  Allocation allocate(
+      long regionHandle, int length, BufferKind kind, Change change) {
     RegionValue region = requireLiveRegion(regionHandle);
-    long bytes = Math.multiplyExact((long) length, Long.BYTES);
+    long bytes = Math.multiplyExact((long) length, kind.elementBytes());
     if (length <= 0
         || bytes > region.maxBytes() - region.usedBytes()
         || bytes > MAX_TOTAL_LIVE_BYTES - liveBytes()
@@ -71,35 +72,42 @@ final class OwnedStore {
         region.usedBytes() + bytes, region.liveObjects() + 1, false));
     int id = buffers.size();
     buffers.add(new BufferValue(
-        id, region.id(), Collections.nCopies(length, 0L), false));
+        id, region.id(), kind, Collections.nCopies(length, 0L), false));
     return new Allocation(id + 1L, updated);
   }
 
-  long get(long bufferHandle, int index) {
+  long get(long bufferHandle, int index, BufferKind kind) {
     BufferValue buffer = requireLiveBuffer(bufferHandle);
+    requireKind(buffer, kind);
     checkIndex(buffer, index);
     requireLiveRegion(buffer.regionId() + 1L);
     return buffer.elements().get(index);
   }
 
-  Change set(long bufferHandle, int index, long value, Change change) {
+  Change set(
+      long bufferHandle, int index, long value, BufferKind kind, Change change) {
     BufferValue buffer = requireLiveBuffer(bufferHandle);
+    requireKind(buffer, kind);
     checkIndex(buffer, index);
     requireLiveRegion(buffer.regionId() + 1L);
+    if (!buffer.kind().accepts(value)) {
+      throw new VmTrap("Buffer value is outside its element range: " + value);
+    }
     List<Long> elements = new ArrayList<>(buffer.elements());
     elements.set(index, value);
     buffers.set(buffer.id(), new BufferValue(
-        buffer.id(), buffer.regionId(), elements, false));
+        buffer.id(), buffer.regionId(), buffer.kind(), elements, false));
     return change.buffer(buffer.id(), buffer);
   }
 
   Change dropBuffer(long bufferHandle, Change change) {
     BufferValue buffer = requireLiveBuffer(bufferHandle);
     RegionValue region = requireLiveRegion(buffer.regionId() + 1L);
-    long bytes = Math.multiplyExact((long) buffer.elements().size(), Long.BYTES);
+    long bytes = Math.multiplyExact(
+        (long) buffer.elements().size(), buffer.kind().elementBytes());
     Change updated = change.region(region.id(), region).buffer(buffer.id(), buffer);
     buffers.set(buffer.id(), new BufferValue(
-        buffer.id(), buffer.regionId(), List.of(), true));
+        buffer.id(), buffer.regionId(), buffer.kind(), List.of(), true));
     regions.set(region.id(), new RegionValue(
         region.id(), region.maxBytes(), region.maxObjects(),
         region.usedBytes() - bytes, region.liveObjects() - 1, false));
@@ -124,11 +132,11 @@ final class OwnedStore {
     }
   }
 
-  void validateAllocation(long regionHandle, int length) {
+  void validateAllocation(long regionHandle, int length, BufferKind kind) {
     RegionValue region = requireLiveRegion(regionHandle);
     long bytes;
     try {
-      bytes = Math.multiplyExact((long) length, Long.BYTES);
+      bytes = Math.multiplyExact((long) length, kind.elementBytes());
     } catch (ArithmeticException exception) {
       throw new VmTrap("Region allocation limit exceeded");
     }
@@ -149,10 +157,21 @@ final class OwnedStore {
     return total;
   }
 
-  void validateGet(long bufferHandle, int index) {
+  void validateGet(long bufferHandle, int index, BufferKind kind) {
     BufferValue buffer = requireLiveBuffer(bufferHandle);
+    requireKind(buffer, kind);
     checkIndex(buffer, index);
     requireLiveRegion(buffer.regionId() + 1L);
+  }
+
+  void validateSet(long bufferHandle, int index, long value, BufferKind kind) {
+    BufferValue buffer = requireLiveBuffer(bufferHandle);
+    requireKind(buffer, kind);
+    checkIndex(buffer, index);
+    requireLiveRegion(buffer.regionId() + 1L);
+    if (!kind.accepts(value)) {
+      throw new VmTrap("Buffer value is outside its element range: " + value);
+    }
   }
 
   void validateDropBuffer(long bufferHandle) {
@@ -210,6 +229,12 @@ final class OwnedStore {
       throw new VmTrap("Use after buffer drop");
     }
     return buffer;
+  }
+
+  private static void requireKind(BufferValue buffer, BufferKind kind) {
+    if (buffer.kind() != kind) {
+      throw new VmTrap("Buffer handle kind mismatch");
+    }
   }
 
   private static void checkIndex(BufferValue buffer, int index) {

@@ -186,7 +186,7 @@ These types drive arithmetic oracles, packet codecs, bytecode flags, proof finit
 
 Compiler phases use immutable values or phase-owned arenas so self-hosting does not require a general tracing collector initially. Values that escape a region are copied, moved to a longer-lived owner, or rejected.
 
-The current language substrate has function-local affine regions and fixed-length mutable signed-word buffers with hard byte/object ceilings and explicit drop. It deliberately lacks `Arena`, byte storage, scoped borrows, cross-function ownership, typed allocation failure, and collection APIs; those remain library/profile work rather than being inferred from the primitive.
+The current language substrate has function-local affine regions and fixed-length mutable signed-word and byte buffers with hard byte/object ceilings, byte-range checks, and explicit drop. It deliberately lacks `Arena`, UTF-8/string APIs, scoped borrows, cross-function ownership, typed allocation failure, and collection APIs; those remain library/profile work rather than being inferred from the primitive.
 
 ## Reversible data structures
 

@@ -346,6 +346,17 @@ class SourceProfileNegativeTest {
           entry void main() { }
         }
         """;
+    String wrongBufferKind = """
+        classical class WrongBufferKind {
+          entry void main() {
+            region arena = new region(8, 1);
+            words data = allocate(arena, 1);
+            setByte(data, 0, 1);
+            drop(data);
+            drop(arena);
+          }
+        }
+        """;
     String nested = """
         classical class NestedOwned {
           entry void main() {
@@ -360,12 +371,15 @@ class SourceProfileNegativeTest {
         CompilerException.class, () -> new WheelerCompiler().compile(useAfterMove));
     CompilerException result = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(escaped));
+    CompilerException kind = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(wrongBufferKind));
     CompilerException aggregate = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(nested));
 
     assertTrue(leaked.getMessage().contains("exits with live owned local"));
     assertTrue(moved.getMessage().contains("reads uninitialized local"));
     assertTrue(result.getMessage().contains("cannot escape as results"));
+    assertTrue(kind.getMessage().contains("expected bytes expression"));
     assertTrue(aggregate.getMessage().contains("cannot be array or slice elements"));
   }
 

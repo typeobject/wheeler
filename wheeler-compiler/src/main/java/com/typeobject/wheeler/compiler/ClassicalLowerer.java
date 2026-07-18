@@ -155,7 +155,9 @@ final class ClassicalLowerer {
   }
 
   private static boolean owned(ValueType type) {
-    return type.kind() == ValueType.Kind.REGION || type.kind() == ValueType.Kind.BUFFER;
+    return type.kind() == ValueType.Kind.REGION
+        || type.kind() == ValueType.Kind.WORDS
+        || type.kind() == ValueType.Kind.BYTES;
   }
 
   private static List<Global> lowerGlobals(SourceProgram source) {
@@ -285,7 +287,7 @@ final class ClassicalLowerer {
     }
   }
 
-  private static final class LocalAssembler {
+  private static final class LocalAssembler implements SourceStorageLowerer.Context {
     private final SourceModel.Function owner;
     private final Map<String, Integer> globals;
     private final Map<String, Integer> functions;
@@ -382,10 +384,9 @@ final class ClassicalLowerer {
         case "array_new" -> lowerArrayNew(statement);
         case "array_get" -> lowerIndexedGet(statement);
         case "slice_new" -> lowerSliceNew(statement);
-        case "region_new" -> lowerRegionNew(statement);
-        case "buffer_alloc" -> lowerBufferAlloc(statement);
-        case "buffer_set" -> lowerBufferSet(statement);
-        case "owned_drop" -> lowerOwnedDrop(statement);
+        case "region_new", "words_alloc", "bytes_alloc",
+            "words_set", "bytes_set", "owned_drop" ->
+            SourceStorageLowerer.lower(statement, this);
         case "local_bind" -> {
           requireArguments(statement, 3);
           int source = requireLocal(arguments.get(1), statement.line());
@@ -652,59 +653,6 @@ final class ClassicalLowerer {
           Opcode.ARRAY_NEW, destination, descriptor.id(), elementBase, count));
     }
 
-    private void lowerRegionNew(Statement statement) {
-      requireArguments(statement, 3);
-      long maxBytes = SourceParser.parseInteger(
-          statement.arguments().get(1), statement.line());
-      long maxObjects = SourceParser.parseInteger(
-          statement.arguments().get(2), statement.line());
-      if (maxBytes <= 0 || maxBytes > (1L << 30)
-          || maxObjects <= 0 || maxObjects > 65_535) {
-        throw new CompilerException(statement.line(), "invalid region limits");
-      }
-      int destination = declareInternal(
-          statement.arguments().get(0), statement.line(), ValueType.REGION);
-      output.add(Instruction.of(Opcode.REGION_NEW, destination, maxBytes, maxObjects));
-    }
-
-    private void lowerBufferAlloc(Statement statement) {
-      requireArguments(statement, 4);
-      if (!statement.arguments().get(1).equals("allocate")) {
-        throw new CompilerException(statement.line(), "malformed buffer allocation");
-      }
-      int region = requireLocal(statement.arguments().get(2), statement.line());
-      int length = requireLocal(statement.arguments().get(3), statement.line());
-      requireType(region, ValueType.REGION, statement.line());
-      requireType(length, ValueType.SIGNED, statement.line());
-      int destination = declareInternal(
-          statement.arguments().get(0), statement.line(), ValueType.BUFFER);
-      output.add(Instruction.of(Opcode.BUFFER_ALLOC, destination, region, length));
-    }
-
-    private void lowerBufferSet(Statement statement) {
-      requireArguments(statement, 3);
-      int buffer = requireLocal(statement.arguments().get(0), statement.line());
-      int index = requireLocal(statement.arguments().get(1), statement.line());
-      int value = requireLocal(statement.arguments().get(2), statement.line());
-      requireType(buffer, ValueType.BUFFER, statement.line());
-      requireType(index, ValueType.SIGNED, statement.line());
-      requireType(value, ValueType.SIGNED, statement.line());
-      output.add(Instruction.of(Opcode.BUFFER_SET, buffer, index, value));
-    }
-
-    private void lowerOwnedDrop(Statement statement) {
-      requireArguments(statement, 1);
-      int local = requireLocal(statement.arguments().getFirst(), statement.line());
-      ValueType type = localTypes.get(local);
-      Opcode opcode = type.equals(ValueType.BUFFER)
-          ? Opcode.BUFFER_DROP
-          : type.equals(ValueType.REGION) ? Opcode.REGION_DROP : null;
-      if (opcode == null) {
-        throw new CompilerException(statement.line(), "drop requires an owned value");
-      }
-      output.add(Instruction.of(opcode, local));
-    }
-
     private void lowerIndexedGet(Statement statement) {
       requireArguments(statement, 3);
       int source = requireLocal(statement.arguments().get(1), statement.line());
@@ -718,9 +666,10 @@ final class ClassicalLowerer {
       } else if (sourceType.kind() == ValueType.Kind.SLICE) {
         elementType = slices.get(sourceType.descriptorId()).elementType();
         opcode = Opcode.SLICE_GET;
-      } else if (sourceType.equals(ValueType.BUFFER)) {
+      } else if (sourceType.equals(ValueType.WORDS)
+          || sourceType.equals(ValueType.BYTES)) {
         elementType = ValueType.SIGNED;
-        opcode = Opcode.BUFFER_GET;
+        opcode = SourceStorageLowerer.getOpcode(sourceType, statement.line());
       } else {
         throw new CompilerException(
             statement.line(), "indexing requires an array, slice, or buffer");
@@ -848,7 +797,8 @@ final class ClassicalLowerer {
       };
     }
 
-    private int declareInternal(String name, int line, ValueType type) {
+    @Override
+    public int declareInternal(String name, int line, ValueType type) {
       if (!name.startsWith("$")) {
         throw new CompilerException(line, "invalid compiler temporary");
       }
@@ -872,7 +822,8 @@ final class ClassicalLowerer {
       return index;
     }
 
-    private int requireLocal(String name, int line) {
+    @Override
+    public int requireLocal(String name, int line) {
       Integer index = locals.get(name);
       if (index == null) {
         index = aliases.get(name);
@@ -883,11 +834,22 @@ final class ClassicalLowerer {
       return index;
     }
 
-    private void requireType(int local, ValueType type, int line) {
+    @Override
+    public void requireType(int local, ValueType type, int line) {
       if (!localTypes.get(local).equals(type)) {
         throw new CompilerException(
             line, "expected " + type.displayName() + " expression");
       }
+    }
+
+    @Override
+    public ValueType localType(int local) {
+      return localTypes.get(local);
+    }
+
+    @Override
+    public void emit(Instruction instruction) {
+      output.add(instruction);
     }
 
     private void requireSameType(int left, int right, int line) {

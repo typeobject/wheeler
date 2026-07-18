@@ -851,10 +851,13 @@ Owned bounded region
 classical class Storage {
   state long result = 0;
   entry void main() {
-    region arena = new region(16, 1);
+    region arena = new region(20, 2);
     words data = allocate(arena, 2);
     set(data, 0, 9);
     result = data[0];
+    bytes raw = allocateBytes(arena, 4);
+    setByte(raw, 0, 255);
+    drop(raw);
     drop(data);
     drop(arena);
   }
@@ -921,6 +924,36 @@ classical class Storage {
                       (identifier))
                     (expression
                       (integer_literal))))))
+            (statement
+              (local_declaration
+                (value_type)
+                (identifier)
+                (expression
+                  (call_expression
+                    (identifier)
+                    (argument_list
+                      (expression
+                        (identifier))
+                      (expression
+                        (integer_literal)))))))
+            (statement
+              (call_statement
+                (call_expression
+                  (identifier)
+                  (argument_list
+                    (expression
+                      (identifier))
+                    (expression
+                      (integer_literal))
+                    (expression
+                      (integer_literal))))))
+            (statement
+              (call_statement
+                (call_expression
+                  (identifier)
+                  (argument_list
+                    (expression
+                      (identifier))))))
             (statement
               (call_statement
                 (call_expression
