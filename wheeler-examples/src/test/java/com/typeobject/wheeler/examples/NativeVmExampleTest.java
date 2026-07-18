@@ -28,6 +28,9 @@ class NativeVmExampleTest {
             Map.entry(
                 "AggregateInterpreter.w",
                 Files.readString(root.resolve("compiler/AggregateInterpreter.w"))),
+            Map.entry(
+                "AggregateVerifier.w",
+                Files.readString(root.resolve("compiler/AggregateVerifier.w"))),
             Map.entry("Binary.w", Files.readString(root.resolve("packages/Binary.w"))),
             Map.entry(
                 "FunctionVerifier.w",
@@ -130,6 +133,19 @@ class NativeVmExampleTest {
     String records = Files.readString(root.resolve("Records.w"));
     assertInterpretedTwoGlobals(
         interpreter, records, "width", 5, "equal", 1);
+    assertInterpretedGlobal(
+        interpreter,
+        Files.readString(root.resolve("FiniteEnums.w")),
+        "selected",
+        7);
+    String variants = Files.readString(root.resolve("Variants.w"));
+    assertInterpretedTwoGlobals(
+        interpreter, variants, "selected", 9, "equal", 1);
+    byte[] forgedVariant = withBadVariantTag(
+        compiler.compileToBytecode(variants));
+    assertThrows(
+        VmTrap.class,
+        () -> VirtualMachine.withBinaryInput(interpreter, forgedVariant).run());
     byte[] forgedRecord = withBadRecordField(
         compiler.compileToBytecode(records));
     assertThrows(
@@ -251,6 +267,23 @@ class NativeVmExampleTest {
     throw new AssertionError("call fixture has no argument call");
   }
 
+  private static byte[] withBadVariantTag(byte[] artifact) {
+    byte[] damaged = artifact.clone();
+    ByteBuffer bytes = ByteBuffer.wrap(damaged).order(ByteOrder.LITTLE_ENDIAN);
+    int codeDirectory = 40 + 5 * 32;
+    int cursor = Math.toIntExact(bytes.getLong(codeDirectory + 8));
+    int end = cursor + Math.toIntExact(bytes.getLong(codeDirectory + 16));
+    while (cursor < end) {
+      int opcode = Short.toUnsignedInt(bytes.getShort(cursor));
+      if (opcode == Opcode.VARIANT_NEW.code()) {
+        bytes.putLong(cursor + 24, Long.MAX_VALUE);
+        return damaged;
+      }
+      cursor += bytes.getInt(cursor + 4);
+    }
+    throw new AssertionError("variant fixture has no construction");
+  }
+
   private static byte[] withBadRecordField(byte[] artifact) {
     byte[] damaged = artifact.clone();
     ByteBuffer bytes = ByteBuffer.wrap(damaged).order(ByteOrder.LITTLE_ENDIAN);
@@ -292,6 +325,9 @@ class NativeVmExampleTest {
   private static byte[] compileInWheeler(Path root, String source) throws Exception {
     Program compiler = new WheelerCompiler().compileModuleFiles(
         Map.ofEntries(
+            Map.entry(
+                "AggregateVerifier.w",
+                Files.readString(root.resolve("compiler/AggregateVerifier.w"))),
             Map.entry("Codegen.w", Files.readString(root.resolve("compiler/Codegen.w"))),
             Map.entry("Encoding.w", Files.readString(root.resolve("compiler/Encoding.w"))),
             Map.entry(

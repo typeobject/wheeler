@@ -11,7 +11,7 @@ classical class NativeVm {
     state long artifactLength = 0;
 
     entry void main(byteview artifact) {
-        region arena = new region(4160, 10);
+        region arena = new region(4416, 11);
         words globals = allocate(arena, INTERPRETER_GLOBAL_COUNT);
         words locals = allocate(arena, INTERPRETER_LOCAL_CAPACITY);
         words returnCursors = allocate(arena, INTERPRETER_FRAME_COUNT);
@@ -20,6 +20,8 @@ classical class NativeVm {
         words returnDestinations = allocate(
             arena, INTERPRETER_FRAME_COUNT);
         words aggregateTypes = allocate(
+            arena, INTERPRETER_AGGREGATE_COUNT);
+        words aggregateTags = allocate(
             arena, INTERPRETER_AGGREGATE_COUNT);
         words aggregateStarts = allocate(
             arena, INTERPRETER_AGGREGATE_COUNT);
@@ -36,6 +38,7 @@ classical class NativeVm {
             returnEnds,
             returnDestinations,
             aggregateTypes,
+            aggregateTags,
             aggregateStarts,
             aggregateCounts,
             aggregateFields);
@@ -54,6 +57,7 @@ classical class NativeVm {
         drop(aggregateFields);
         drop(aggregateCounts);
         drop(aggregateStarts);
+        drop(aggregateTags);
         drop(aggregateTypes);
         drop(returnDestinations);
         drop(returnEnds);

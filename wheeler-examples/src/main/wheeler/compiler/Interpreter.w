@@ -1,6 +1,7 @@
 module examples.compiler.interpreter;
 import examples.compiler.aggregate_interpreter;
 import examples.compiler.opcodes;
+import examples.compiler.type_codes;
 import examples.compiler.verifier;
 import examples.packages.binary;
 classical class Interpreter {
@@ -71,6 +72,7 @@ classical class Interpreter {
         words returnEnds,
         words returnDestinations,
         words aggregateTypes,
+        words aggregateTags,
         words aggregateStarts,
         words aggregateCounts,
         words aggregateFields
@@ -432,14 +434,16 @@ classical class Interpreter {
                             artifact, cursor + 24, 8);
                         long recordCount = readUnsigned(
                             artifact, cursor + 32, 8);
-                        AggregateAllocation allocation = internRecord(
+                        AggregateAllocation allocation = internAggregate(
                             aggregateTypes,
+                            aggregateTags,
                             aggregateStarts,
                             aggregateCounts,
                             aggregateFields,
                             locals,
                             depth * INTERPRETER_LOCAL_WIDTH,
-                            recordType,
+                            TYPE_RECORD + recordType,
+                            0,
                             recordBase,
                             recordCount,
                             aggregateCount,
@@ -466,12 +470,90 @@ classical class Interpreter {
                         set(
                             locals,
                             localIndex(depth, fieldDestination),
-                            recordField(
+                            aggregateField(
                                 aggregateStarts,
                                 aggregateCounts,
                                 aggregateFields,
                                 recordHandle,
                                 recordFieldIndex));
+                    }
+                    if (opcode == OPCODE_VARIANT_NEW) {
+                        long variantDestination = readUnsigned(
+                            artifact, cursor + 8, 8);
+                        long variantType = readUnsigned(
+                            artifact, cursor + 16, 8);
+                        long variantTag = readUnsigned(
+                            artifact, cursor + 24, 8);
+                        long variantBase = readUnsigned(
+                            artifact, cursor + 32, 8);
+                        long variantFields = readUnsigned(
+                            artifact, cursor + 40, 8);
+                        AggregateAllocation variantAllocation = internAggregate(
+                            aggregateTypes,
+                            aggregateTags,
+                            aggregateStarts,
+                            aggregateCounts,
+                            aggregateFields,
+                            locals,
+                            depth * INTERPRETER_LOCAL_WIDTH,
+                            TYPE_VARIANT + variantType,
+                            variantTag,
+                            variantBase,
+                            variantFields,
+                            aggregateCount,
+                            aggregateFieldCursor);
+                        if (variantAllocation.handle < 1) {
+                            return new ExecutionResult.Error(cursor);
+                        }
+                        aggregateCount = variantAllocation.aggregateCount;
+                        aggregateFieldCursor = variantAllocation.fieldCursor;
+                        set(
+                            locals,
+                            localIndex(depth, variantDestination),
+                            variantAllocation.handle);
+                    }
+                    if (opcode == OPCODE_VARIANT_TAG_EQ) {
+                        long tagDestination = readUnsigned(
+                            artifact, cursor + 8, 8);
+                        long tagSource = readUnsigned(
+                            artifact, cursor + 16, 8);
+                        long expectedTag = readUnsigned(
+                            artifact, cursor + 24, 8);
+                        long variantHandle = locals[localIndex(depth, tagSource)];
+                        long tagMatches = 0;
+                        if (aggregateTag(
+                                aggregateTags, variantHandle) == expectedTag) {
+                            tagMatches = 1;
+                        }
+                        set(
+                            locals,
+                            localIndex(depth, tagDestination),
+                            tagMatches);
+                    }
+                    if (opcode == OPCODE_VARIANT_GET) {
+                        long getDestination = readUnsigned(
+                            artifact, cursor + 8, 8);
+                        long getSource = readUnsigned(
+                            artifact, cursor + 16, 8);
+                        long getTag = readUnsigned(
+                            artifact, cursor + 24, 8);
+                        long getField = readUnsigned(
+                            artifact, cursor + 32, 8);
+                        long getHandle = locals[localIndex(depth, getSource)];
+                        if (aggregateTag(
+                                aggregateTags, getHandle) == getTag) {
+                        } else {
+                            return new ExecutionResult.Error(cursor);
+                        }
+                        set(
+                            locals,
+                            localIndex(depth, getDestination),
+                            aggregateField(
+                                aggregateStarts,
+                                aggregateCounts,
+                                aggregateFields,
+                                getHandle,
+                                getField));
                     }
                     if (opcode == OPCODE_LOCAL_EQ) {
                         long equalityDestination = readUnsigned(

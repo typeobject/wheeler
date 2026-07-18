@@ -349,6 +349,7 @@ Promotion follows WIP-0007: the identity modules incubate with executable compil
 - [x] Direct public import and canonical `module::NAME` qualification are enforced; private and ambiguous use fails closed.
 - [x] `enum` elaborates to the payload-free variant authority, and canonical case-name sorting makes source reordering artifact-stable.
 - [x] Exhaustive classical enum construction, matching, and no-payload artifact execution use the variant path.
+- [x] The Wheeler-written verifier validates finite-variant metadata and typed construction/tag/payload operands; the Wheeler-written interpreter differentially executes `FiniteEnums.w` and payload-carrying `Variants.w`, structurally interns values, and rejects a forged tag before execution.
 - [ ] Reversible finite permutation checking exists.
 - [ ] Power-of-two coherent enum basis/permutation semantics exist.
 - [x] Tree-sitter nodes, highlighting, corpus fixtures, and the fixed formatter contract cover both declarations.
@@ -415,9 +416,6 @@ Deferred. Non-power-of-two domains leave invalid computational-basis states and 
 
 ## Open questions
 
-- Should `enum` remain canonical sugar, or should payload-free `variant` be the only accepted spelling? — **Owner:** language and tooling maintainers — **Decide by:** before parser implementation
-- Which pure integer intrinsics beyond `rotateRight32` belong in the first constant evaluator? — **Owner:** compiler and standard-library maintainers — **Decide by:** before evaluator implementation
-- Should canonical case ordering use qualified UTF-8 names directly or stable case-content identities? — **Owner:** bytecode, proof, and quantum maintainers — **Decide by:** before enum artifact metadata
 - What certificate rule should connect an explicit codec's exhaustive encoder and partial decoder to a checked round-trip theorem? — **Owner:** proof maintainers — **Decide by:** before codec proof claims
 
 ## References

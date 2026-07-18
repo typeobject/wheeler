@@ -115,6 +115,7 @@ classical class Verifier {
         long stringsOffset = directoryField(artifact, 1, 8, 8);
         long typesOffset = directoryField(artifact, 2, 8, 8);
         long variantsOffset = directoryField(artifact, 3, 8, 8);
+        long variantsLength = directoryField(artifact, 3, 16, 8);
         long functionsOffset = directoryField(artifact, 4, 8, 8);
         long functionsLength = directoryField(artifact, 4, 16, 8);
         long codeOffset = directoryField(artifact, 5, 8, 8);
@@ -130,9 +131,6 @@ classical class Verifier {
             return 0;
         }
         long typesLength = directoryField(artifact, 2, 16, 8);
-        if (differs(directoryField(artifact, 3, 16, 8), 4)) {
-            return 0;
-        }
         long global = 0;
         while (global < globalCount) limit INTERPRETER_GLOBAL_COUNT {
             long globalDescriptor = typesOffset + 4 + global * 16;
@@ -205,7 +203,70 @@ classical class Verifier {
         if (differs(typeCursor, typesOffset + typesLength)) {
             return 0;
         }
-        if (differs(readUnsigned(artifact, variantsOffset, 4), 0)) {
+        long variantCount = readUnsigned(artifact, variantsOffset, 4);
+        if (INTERPRETER_AGGREGATE_COUNT < variantCount) {
+            return 0;
+        }
+        long variantCursor = variantsOffset + 4;
+        long variant = 0;
+        while (variant < variantCount) limit INTERPRETER_AGGREGATE_COUNT {
+            if (differs(readUnsigned(artifact, variantCursor, 4), variant)) {
+                return 0;
+            }
+            if (readUnsigned(artifact, variantCursor + 4, 4) < stringCount) {
+            } else {
+                return 0;
+            }
+            long caseCount = readUnsigned(artifact, variantCursor + 8, 4);
+            if (INTERPRETER_AGGREGATE_COUNT < caseCount) {
+                return 0;
+            }
+            variantCursor += 12;
+            long variantCase = 0;
+            while (variantCase < caseCount)
+                limit INTERPRETER_AGGREGATE_COUNT {
+                if (readUnsigned(artifact, variantCursor, 4) < stringCount) {
+                } else {
+                    return 0;
+                }
+                long payloadCount = readUnsigned(
+                    artifact, variantCursor + 4, 4);
+                if (INTERPRETER_LOCAL_WIDTH < payloadCount) {
+                    return 0;
+                }
+                variantCursor += 8;
+                long payload = 0;
+                while (payload < payloadCount)
+                    limit INTERPRETER_LOCAL_WIDTH {
+                    if (readUnsigned(
+                            artifact, variantCursor, 4) < stringCount) {
+                    } else {
+                        return 0;
+                    }
+                    long payloadType = readUnsigned(
+                        artifact, variantCursor + 4, 4);
+                    if (payloadType == TYPE_SIGNED) {
+                    } else {
+                        if (payloadType == TYPE_BOOLEAN) {
+                        } else {
+                            if (isRecordType(payloadType)) {
+                                if (recordTypeId(payloadType) < recordCount) {
+                                } else {
+                                    return 0;
+                                }
+                            } else {
+                                return 0;
+                            }
+                        }
+                    }
+                    variantCursor += 8;
+                    payload += 1;
+                }
+                variantCase += 1;
+            }
+            variant += 1;
+        }
+        if (differs(variantCursor, variantsOffset + variantsLength)) {
             return 0;
         }
         if (verifyFunctions(
@@ -215,8 +276,10 @@ classical class Verifier {
                 codeOffset,
                 codeLength,
                 typesOffset,
+                variantsOffset,
                 globalCount,
                 recordCount,
+                variantCount,
                 functionCount,
                 entryFunction,
                 stringCount) == 0) {

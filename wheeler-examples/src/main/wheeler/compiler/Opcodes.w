@@ -34,6 +34,9 @@ classical class Opcodes {
     public const long OPCODE_LOCAL_LOOP_CHECK = 0x0432;
     public const long OPCODE_RECORD_NEW = 0x0500;
     public const long OPCODE_RECORD_GET = 0x0501;
+    public const long OPCODE_VARIANT_NEW = 0x0510;
+    public const long OPCODE_VARIANT_TAG_EQ = 0x0511;
+    public const long OPCODE_VARIANT_GET = 0x0512;
 
     public const long INTERPRETER_AGGREGATE_COUNT = 32;
     public const long INTERPRETER_AGGREGATE_FIELDS = 128;

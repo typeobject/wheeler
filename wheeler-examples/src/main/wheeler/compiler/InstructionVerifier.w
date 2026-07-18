@@ -1,5 +1,6 @@
 /// Verifies bounded instruction streams, operands, local types, and branch targets.
 module examples.compiler.instruction_verifier;
+import examples.compiler.aggregate_verifier;
 import examples.compiler.opcodes;
 import examples.compiler.type_codes;
 import examples.packages.binary;
@@ -80,38 +81,6 @@ classical class InstructionVerifier {
             artifact,
             functionsOffset + 4 + functionCount * 40 + typeOffset * 4,
             4);
-    }
-
-    private long recordDescriptor(
-        byteview artifact,
-        long typesOffset,
-        long globalCount,
-        long recordCount,
-        long recordId
-    ) {
-        long cursor = typesOffset + 8 + globalCount * 16;
-        long record = 0;
-        while (record < recordCount) limit INTERPRETER_AGGREGATE_COUNT {
-            if (differs(readUnsigned(artifact, cursor, 4), record)) {
-                return -1;
-            }
-            if (record == recordId) {
-                return cursor;
-            }
-            long fieldCount = readUnsigned(artifact, cursor + 8, 4);
-            cursor += 12 + fieldCount * 8;
-            record += 1;
-        }
-        return -1;
-    }
-
-    private long recordFieldType(
-        byteview artifact,
-        long descriptor,
-        long field
-    ) {
-        return readUnsigned(
-            artifact, descriptor + 16 + field * 8, 4);
     }
 
     private long callArgumentsValid(
@@ -215,6 +184,15 @@ classical class InstructionVerifier {
         if (opcode == OPCODE_RECORD_GET) {
             return 3;
         }
+        if (opcode == OPCODE_VARIANT_NEW) {
+            return 5;
+        }
+        if (opcode == OPCODE_VARIANT_TAG_EQ) {
+            return 3;
+        }
+        if (opcode == OPCODE_VARIANT_GET) {
+            return 4;
+        }
         return -1;
     }
 
@@ -250,8 +228,10 @@ classical class InstructionVerifier {
         long cursor,
         long opcode,
         long typesOffset,
+        long variantsOffset,
         long globalCount,
         long recordCount,
+        long variantCount,
         long functionCount,
         long localCount,
         long activeStart,
@@ -267,6 +247,21 @@ classical class InstructionVerifier {
             return 1;
         }
         long first = readUnsigned(artifact, cursor + 8, 8);
+        long aggregateValid = aggregateOperandsValid(
+            artifact,
+            cursor,
+            opcode,
+            typesOffset,
+            variantsOffset,
+            globalCount,
+            recordCount,
+            variantCount,
+            localCount,
+            activeTypes);
+        if (aggregateValid < 0) {
+        } else {
+            return aggregateValid;
+        }
         if (isGlobalConstantOpcode(opcode)) {
             if (first < globalCount) {
                 return 1;
@@ -529,86 +524,6 @@ classical class InstructionVerifier {
             }
             return 0;
         }
-        if (opcode == OPCODE_RECORD_NEW) {
-            long typeId = readUnsigned(artifact, cursor + 16, 8);
-            long fieldBase = readUnsigned(artifact, cursor + 24, 8);
-            long fieldCount = readUnsigned(artifact, cursor + 32, 8);
-            long descriptor = recordDescriptor(
-                artifact,
-                typesOffset,
-                globalCount,
-                recordCount,
-                typeId);
-            if (descriptor < 0) {
-                return 0;
-            }
-            if (differs(
-                    readUnsigned(artifact, descriptor + 8, 4),
-                    fieldCount)) {
-                return 0;
-            }
-            if (localCount < fieldBase + fieldCount) {
-                return 0;
-            }
-            if (first < localCount) {
-                if (differs(
-                        localType(artifact, activeTypes, first),
-                        TYPE_RECORD + typeId)) {
-                    return 0;
-                }
-            } else {
-                return 0;
-            }
-            long field = 0;
-            while (field < fieldCount) limit INTERPRETER_LOCAL_WIDTH {
-                if (differs(
-                        localType(
-                            artifact, activeTypes, fieldBase + field),
-                        recordFieldType(artifact, descriptor, field))) {
-                    return 0;
-                }
-                field += 1;
-            }
-            return 1;
-        }
-        if (opcode == OPCODE_RECORD_GET) {
-            long recordSource = readUnsigned(
-                artifact, cursor + 16, 8);
-            long recordField = readUnsigned(
-                artifact, cursor + 24, 8);
-            if (first < localCount) {
-                if (recordSource < localCount) {
-                    long sourceType = localType(
-                        artifact, activeTypes, recordSource);
-                    if (isRecordType(sourceType)) {
-                        long getDescriptor = recordDescriptor(
-                            artifact,
-                            typesOffset,
-                            globalCount,
-                            recordCount,
-                            recordTypeId(sourceType));
-                        if (0 < getDescriptor) {
-                            if (recordField < readUnsigned(
-                                    artifact, getDescriptor + 8, 4)) {
-                                if (differs(
-                                        localType(
-                                            artifact,
-                                            activeTypes,
-                                            first),
-                                        recordFieldType(
-                                            artifact,
-                                            getDescriptor,
-                                            recordField))) {
-                                } else {
-                                    return 1;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return 0;
-        }
         return 1;
     }
 
@@ -618,8 +533,10 @@ classical class InstructionVerifier {
         long codeLength,
         long functionsOffset,
         long typesOffset,
+        long variantsOffset,
         long globalCount,
         long recordCount,
+        long variantCount,
         long functionCount,
         long localCount,
         long activeTypes,
@@ -656,8 +573,10 @@ classical class InstructionVerifier {
                     cursor,
                     opcode,
                     typesOffset,
+                    variantsOffset,
                     globalCount,
                     recordCount,
+                    variantCount,
                     functionCount,
                     localCount,
                     codeStart,

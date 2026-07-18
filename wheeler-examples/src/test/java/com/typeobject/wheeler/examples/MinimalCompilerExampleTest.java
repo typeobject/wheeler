@@ -23,6 +23,8 @@ class MinimalCompilerExampleTest {
   @Test
   void wheelerCompilesMinimalSourceToACanonicalExecutableArtifact() throws Exception {
     String root = Files.readString(Path.of("src/main/wheeler/MinimalCompiler.w"));
+    String aggregateVerifier = Files.readString(
+        Path.of("src/main/wheeler/compiler/AggregateVerifier.w"));
     String codegen = Files.readString(Path.of("src/main/wheeler/compiler/Codegen.w"));
     String encoding = Files.readString(Path.of("src/main/wheeler/compiler/Encoding.w"));
     String functionVerifier = Files.readString(
@@ -52,6 +54,7 @@ class MinimalCompilerExampleTest {
     String binary = Files.readString(Path.of("src/main/wheeler/packages/Binary.w"));
     var writerProgram = new WheelerCompiler().compileModuleFiles(
         Map.ofEntries(
+            Map.entry("AggregateVerifier.w", aggregateVerifier),
             Map.entry("MinimalCompiler.w", root),
             Map.entry("Codegen.w", codegen),
             Map.entry("Encoding.w", encoding),
@@ -370,6 +373,8 @@ class MinimalCompilerExampleTest {
         """;
     String binary = Files.readString(
         Path.of("src/main/wheeler/packages/Binary.w"));
+    String aggregateVerifier = Files.readString(
+        Path.of("src/main/wheeler/compiler/AggregateVerifier.w"));
     String functionVerifier = Files.readString(
         Path.of("src/main/wheeler/compiler/FunctionVerifier.w"));
     String instructionVerifier = Files.readString(
@@ -386,6 +391,7 @@ class MinimalCompilerExampleTest {
         Path.of("src/main/wheeler/compiler/Verifier.w"));
     Program program = new WheelerCompiler().compileModuleFiles(
         Map.of(
+            "AggregateVerifier.w", aggregateVerifier,
             "Binary.w", binary,
             "FunctionVerifier.w", functionVerifier,
             "InstructionVerifier.w", instructionVerifier,

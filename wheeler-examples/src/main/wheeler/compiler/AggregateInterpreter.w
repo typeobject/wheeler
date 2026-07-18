@@ -1,4 +1,4 @@
-/// Interns bounded immutable record values for the Wheeler interpreter.
+/// Interns bounded immutable record and finite-variant values.
 module examples.compiler.aggregate_interpreter;
 import examples.compiler.opcodes;
 classical class AggregateInterpreter {
@@ -8,14 +8,16 @@ classical class AggregateInterpreter {
         long fieldCursor
     ) {}
 
-    public AggregateAllocation internRecord(
+    public AggregateAllocation internAggregate(
         words aggregateTypes,
+        words aggregateTags,
         words aggregateStarts,
         words aggregateCounts,
         words aggregateFields,
         words locals,
         long localBase,
-        long typeId,
+        long typeCode,
+        long tag,
         long fieldBase,
         long fieldCount,
         long aggregateCount,
@@ -24,7 +26,11 @@ classical class AggregateInterpreter {
         long aggregate = 0;
         while (aggregate < aggregateCount)
             limit INTERPRETER_AGGREGATE_COUNT {
-            boolean equal = aggregateTypes[aggregate] == typeId;
+            boolean equal = aggregateTypes[aggregate] == typeCode;
+            if (aggregateTags[aggregate] == tag) {
+            } else {
+                equal = false;
+            }
             if (aggregateCounts[aggregate] == fieldCount) {
             } else {
                 equal = false;
@@ -52,7 +58,8 @@ classical class AggregateInterpreter {
         } else {
             return new AggregateAllocation(0, aggregateCount, fieldCursor);
         }
-        set(aggregateTypes, aggregateCount, typeId);
+        set(aggregateTypes, aggregateCount, typeCode);
+        set(aggregateTags, aggregateCount, tag);
         set(aggregateStarts, aggregateCount, fieldCursor);
         set(aggregateCounts, aggregateCount, fieldCount);
         long copy = 0;
@@ -69,7 +76,14 @@ classical class AggregateInterpreter {
             fieldCursor + fieldCount);
     }
 
-    public long recordField(
+    public long aggregateTag(words aggregateTags, long handle) {
+        if (handle < 1) {
+            return -1;
+        }
+        return aggregateTags[handle - 1];
+    }
+
+    public long aggregateField(
         words aggregateStarts,
         words aggregateCounts,
         words aggregateFields,
