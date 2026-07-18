@@ -38,7 +38,8 @@ classical class HelperParser {
         long helperBody,
         long reversible,
         long proofToken,
-        long proofCount
+        long proofCount,
+        long entryStatement
     ) {
         long operandToken = statementOperandToken(
             source, tokenStarts, tokenLengths, helperBody);
@@ -53,14 +54,26 @@ classical class HelperParser {
             proof = new SourceRange(
                 tokenStarts[proofToken], tokenLengths[proofToken]);
         }
+        long entryCount = 0;
+        long entryOpcode = -1;
+        long entryOperand = 0;
+        if (-1 < entryStatement) {
+            entryCount = 1;
+            entryOpcode = statementOpcode(
+                source, tokenStarts, tokenLengths, entryStatement);
+            long entryOperandToken = statementOperandToken(
+                source, tokenStarts, tokenLengths, entryStatement);
+            entryOperand = parsedSignedNumber(
+                source, tokenStarts, tokenLengths, entryOperandToken);
+        }
         MinimalProgram program = new MinimalProgram(
             name,
             global,
             1,
             parsedSignedNumber(source, tokenStarts, tokenLengths, 8),
-            0,
-            -1,
-            0,
+            entryCount,
+            entryOpcode,
+            entryOperand,
             -1,
             0,
             -1,
@@ -77,6 +90,58 @@ classical class HelperParser {
             proof,
             proofCount);
         return new MinimalProgramResult.Value(program);
+    }
+
+    private MinimalProgramResult finishEntry(
+        utf8 source,
+        words tokenKinds,
+        words tokenStarts,
+        words tokenLengths,
+        long count,
+        long closeStart,
+        long nameToken,
+        long helperBody,
+        long reversible,
+        long proofToken,
+        long proofCount
+    ) {
+        long entryStatement = -1;
+        long entryClose = closeStart;
+        if (punctuationAt(
+                source, tokenKinds, tokenStarts, entryClose, 125)) {
+            entryClose = closeStart;
+        } else {
+            long entryWidth = statementWidth(
+                source,
+                tokenKinds,
+                tokenStarts,
+                tokenLengths,
+                closeStart);
+            if (entryWidth < 1) {
+                return new MinimalProgramResult.Error(0);
+            }
+            entryStatement = closeStart;
+            entryClose += entryWidth;
+        }
+        if (punctuationAt(
+                source, tokenKinds, tokenStarts, entryClose, 125)) {
+            if (punctuationAt(
+                    source, tokenKinds, tokenStarts, entryClose + 1, 125)) {
+                if (count == entryClose + 2) {
+                    return helperProgram(
+                        source,
+                        tokenStarts,
+                        tokenLengths,
+                        nameToken,
+                        helperBody,
+                        reversible,
+                        proofToken,
+                        proofCount,
+                        entryStatement);
+                }
+            }
+        }
+        return new MinimalProgramResult.Error(0);
     }
 
     public MinimalProgramResult parseHelperProgram(
@@ -209,31 +274,18 @@ classical class HelperParser {
                                                         nameToken,
                                                         entryBody)) {
                                                     if (reversible == 0) {
-                                                        if (punctuationAt(
-                                                                source,
-                                                                tokenKinds,
-                                                                tokenStarts,
-                                                                entryBody + 4,
-                                                                125)) {
-                                                            if (punctuationAt(
-                                                                    source,
-                                                                    tokenKinds,
-                                                                    tokenStarts,
-                                                                    entryBody + 5,
-                                                                    125)) {
-                                                                if (count == entryBody + 6) {
-                                                                    return helperProgram(
-                                                                        source,
-                                                                        tokenStarts,
-                                                                        tokenLengths,
-                                                                        nameToken,
-                                                                        helperBody,
-                                                                        reversible,
-                                                                        proofToken,
-                                                                        proofCount);
-                                                                }
-                                                            }
-                                                        }
+                                                        return finishEntry(
+                                                            source,
+                                                            tokenKinds,
+                                                            tokenStarts,
+                                                            tokenLengths,
+                                                            count,
+                                                            entryBody + 4,
+                                                            nameToken,
+                                                            helperBody,
+                                                            reversible,
+                                                            proofToken,
+                                                            proofCount);
                                                     }
                                                     if (reversible == 1) {
                                                         if (tokenHash(
@@ -261,31 +313,18 @@ classical class HelperParser {
                                                                             tokenStarts,
                                                                             entryBody + 10,
                                                                             125)) {
-                                                                        if (punctuationAt(
-                                                                                source,
-                                                                                tokenKinds,
-                                                                                tokenStarts,
-                                                                                entryBody + 11,
-                                                                                125)) {
-                                                                            if (punctuationAt(
-                                                                                    source,
-                                                                                    tokenKinds,
-                                                                                    tokenStarts,
-                                                                                    entryBody + 12,
-                                                                                    125)) {
-                                                                                if (count == entryBody + 13) {
-                                                                                    return helperProgram(
-                                                                                        source,
-                                                                                        tokenStarts,
-                                                                                        tokenLengths,
-                                                                                        nameToken,
-                                                                                        helperBody,
-                                                                                        reversible,
-                                                                                        proofToken,
-                                                                                        proofCount);
-                                                                                }
-                                                                            }
-                                                                        }
+                                                                        return finishEntry(
+                                                                            source,
+                                                                            tokenKinds,
+                                                                            tokenStarts,
+                                                                            tokenLengths,
+                                                                            count,
+                                                                            entryBody + 11,
+                                                                            nameToken,
+                                                                            helperBody,
+                                                                            reversible,
+                                                                            proofToken,
+                                                                            proofCount);
                                                                     }
                                                                 }
                                                             }

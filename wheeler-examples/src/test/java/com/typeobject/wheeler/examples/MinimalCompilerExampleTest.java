@@ -135,6 +135,20 @@ class MinimalCompilerExampleTest {
         3);
     assertDifferentialExecution(
         writerProgram,
+        "classical class CheckedCalls { state long value = 1; "
+            + "void bump() { value += 2; } "
+            + "entry void main() { bump(); assert value == 3; } }",
+        "value",
+        3);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class LocalCalls { state long value = 1; "
+            + "void bump() { value += 2; } "
+            + "entry void main() { bump(); long scratch = -4; } }",
+        "value",
+        3);
+    assertDifferentialExecution(
+        writerProgram,
         "classical class ReversibleCalls { state long value = 1; "
             + "rev void bump() { value += 2; } "
             + "entry void main() { bump(); reverse { bump(); } } }",
@@ -142,10 +156,19 @@ class MinimalCompilerExampleTest {
         1);
     assertDifferentialExecution(
         writerProgram,
+        "classical class CheckedReverse { state long value = 1; "
+            + "rev void bump() { value += 2; } "
+            + "entry void main() { bump(); reverse { bump(); } "
+            + "assert value == 1; } }",
+        "value",
+        1);
+    assertDifferentialExecution(
+        writerProgram,
         "classical class Certified { state long value = 1; "
             + "rev void bump() { value += 2; } "
             + "theorem bumpInverse proves inverse(bump); "
-            + "entry void main() { bump(); reverse { bump(); } } }",
+            + "entry void main() { bump(); reverse { bump(); } "
+            + "assert value == 1; } }",
         "value",
         1);
     assertDifferentialExecution(

@@ -411,22 +411,26 @@ classical class MinimalCompiler {
             localCount += statementLocalCount(program.fourthOpcode);
             codeLength += statementCodeLength(program.fourthOpcode);
         }
+        long entryLocalCount = localCount;
+        long entryStatementLength = codeLength - 8;
         long functionsLength = 44 + localCount * 4;
         long helperLocalCount = statementLocalCount(program.helperOpcode);
         long helperForwardLength = statementCodeLength(program.helperOpcode) + 8;
         long helperInverseLength = 0;
         long helperInverseOffset = 4294967295;
-        long entryForwardLength = 24;
+        long entryForwardLength = 24 + entryStatementLength;
         if (program.helperReversible == 1) {
             helperLocalCount = 0;
             helperForwardLength = 32;
             helperInverseLength = 32;
             helperInverseOffset = helperForwardLength;
-            entryForwardLength = 40;
+            entryForwardLength = 40 + entryStatementLength;
         }
         if (program.helperCount == 1) {
             localCount = helperLocalCount;
-            functionsLength = 84 + helperLocalCount * 4;
+            functionsLength = 84
+                + helperLocalCount * 4
+                + entryLocalCount * 4;
             codeLength = helperForwardLength
                 + helperInverseLength
                 + entryForwardLength;
@@ -568,12 +572,17 @@ classical class MinimalCompiler {
                 0,
                 4294967295,
                 0,
-                0,
+                entryLocalCount,
                 helperLocalCount);
             long helperType = 0;
             while (helperType < helperLocalCount) limit 2 {
                 cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
                 helperType += 1;
+            }
+            long entryType = 0;
+            while (entryType < entryLocalCount) limit 8 {
+                cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
+                entryType += 1;
             }
         } else {
             cursor = writeFunctionDescriptor(
@@ -622,6 +631,14 @@ classical class MinimalCompiler {
                 cursor = writeInstructionHeader(output, cursor, 2, 0);
                 cursor = writeInstructionHeader(output, cursor, 512, 1);
                 cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+            }
+            if (0 < program.statementCount) {
+                cursor = writeStatement(
+                    output,
+                    cursor,
+                    program.opcode,
+                    program.operand,
+                    0);
             }
         } else {
             if (0 < program.statementCount) {
