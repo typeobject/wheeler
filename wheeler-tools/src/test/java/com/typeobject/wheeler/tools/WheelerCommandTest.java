@@ -342,6 +342,37 @@ class WheelerCommandTest {
   }
 
   @Test
+  void runPublishesAWheelerWrittenExecutableArtifact() throws Exception {
+    Path project = temporary.resolve("seed-writer");
+    Files.createDirectories(project.resolve("src/compiler"));
+    Files.writeString(project.resolve("wheeler.package"), """
+        package "demo.seedwriter" version "1.0.0" profile "bootstrap-1";
+        target example "seed" root "src/SeedArtifact.w" module "examples.compiler.seed"
+            source "src/SeedArtifact.w" source "src/compiler/Encoding.w";
+        """);
+    Path examples = Path.of("../wheeler-examples/src/main/wheeler");
+    Files.copy(examples.resolve("SeedArtifact.w"), project.resolve("src/SeedArtifact.w"));
+    Files.copy(
+        examples.resolve("compiler/Encoding.w"),
+        project.resolve("src/compiler/Encoding.w"));
+    Path artifact = temporary.resolve("seed.wbc");
+    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    PrintStream output = new PrintStream(bytes, true, StandardCharsets.UTF_8);
+
+    assertEquals(0, Wheeler.execute(
+        new String[] {
+            "run", project.toString(), "--target", "seed",
+            "--output", artifact.toString(), "--output-bytes", "360"
+        },
+        output,
+        output));
+    new BytecodeReader().read(Files.readAllBytes(artifact));
+    assertEquals(0, Wheeler.execute(
+        new String[] {"run", artifact.toString()}, output, output));
+    assertTrue(bytes.toString(StandardCharsets.UTF_8).contains("finalCursor = 360"));
+  }
+
+  @Test
   void compileSubcommandReplacesTheStandaloneCompilerPath() throws Exception {
     Path source = temporary.resolve("Counter.w");
     Path output = temporary.resolve("custom.wbc");
