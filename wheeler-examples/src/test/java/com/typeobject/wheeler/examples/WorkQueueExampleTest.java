@@ -16,7 +16,7 @@ class WorkQueueExampleTest {
   void boundedWheelerQueueReturnsExplicitPushAndPopResults() throws Exception {
     String root = Files.readString(Path.of("src/main/wheeler/WorkQueue.w"));
     String queue = Files.readString(
-        Path.of("src/main/wheeler/collections/LongQueue.w"));
+        CoreSources.path("collections/LongQueue.w"));
     var program = new WheelerCompiler().compileModuleFiles(
         Map.of("WorkQueue.w", root, "LongQueue.w", queue),
         "examples.queue.main");

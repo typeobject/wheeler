@@ -1,4 +1,5 @@
-lock 1 root "53b982d274604a73fa76bb030ac8cef172c1706e6ef1e8dd85c407f244cdd107";
+lock 1 root "ddc11888f6868d8cd0664d9010dc5e92c6e45120da3503c1956e52d07e11d63f";
 package "wheeler.compiler" version "0.1.0" archive "b43e0856f2d7c51ddbe4755239ec788c9876d5e854ce53364bd04e121574b056" manifest "9b157e693e9503fb7bd1b281736901cc52b203743c6f352b42d6f40fbecaba88";
+package "wheeler.core" version "0.1.0" archive "af6c057ccf5b74b85e59d12ab1c0e7097b1edadc64309ddb3f56a998ecbbdaeb" manifest "b346f98591266a2dec4bcff899325f60e9ed683ae3a603b627402029cd18bbe8";
 package "wheeler.packages" version "0.1.0" archive "7c8d9f5d2009be3d648176c01bdda176c5daee5b2c3592c5667c159517bf2ae7" manifest "7fb60a1fd5c2b49f67684a51deb142cfc83ff944c3967ef591242f1eb06a06c7";
 edge "wheeler.packages" "wheeler.compiler";

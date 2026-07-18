@@ -1,1 +1,6 @@
-// The core bytecode model and reversible virtual machine have no runtime dependencies.
+// Canonical bytecode/VM stage 0 plus Wheeler's allocation-free core library seed.
+
+tasks.named('test') {
+    inputs.files(fileTree('src/main/wheeler') { include '**/*.w' }, file('wheeler.package'))
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+}

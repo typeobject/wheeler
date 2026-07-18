@@ -1,6 +1,6 @@
 //! Provides a bounded queue over caller-owned word storage.
 
-module examples.collections.queue;
+module wheeler.core.collections.queue;
 classical class LongQueue {
     /// Defines immutable `QueueCursor` values for this module.
     public record QueueCursor(long head, long tail) {}

@@ -1,7 +1,7 @@
 //! Exercises bounded queue push, pop, empty, and full transitions.
 
 module examples.queue.main;
-import examples.collections.queue;
+import wheeler.core.collections.queue;
 classical class WorkQueue {
     state long first = 0;
     state long second = 0;
