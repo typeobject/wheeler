@@ -47,7 +47,7 @@ public final class SourceDocumentation {
           empty.column(),
           "documentation block requires a nonempty summary"));
     }
-    return List.of();
+    return SourceDeclarationDocumentation.check(document);
   }
 
   private static int firstContent(List<SourceConcreteSyntax.Element> elements) {

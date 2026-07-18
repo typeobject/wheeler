@@ -699,9 +699,10 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 - [x] Retained comments receive deterministic lexical `leading`, `trailing`, `inner`, or `detached` placement against exact token ranges; consecutive comment blocks and blank trivia are classified without quadratic rescanning.
 - [ ] Lossless concrete syntax lifts lexical placements to stable syntax-node attachment. A token stream is necessary; calling it a tree would merely annoy the branches.
 - [ ] Golden fixed-style and minimal-diff corpora are accepted.
-- [ ] `//!` and `///` attachment fixtures are accepted.
+- [x] `//!` file blocks and adjacent/detached `///` declaration blocks have exact lexical attachment fixtures, including BOM, CRLF, ordinary comments, and blank-line detachment.
 - [x] `WDOC001`, `WDOC003`, and `WDOC005` now check missing, empty, and misplaced first-content `//!` file summaries over the shared lossless stream with exact code/location/message fixtures.
-- [ ] Declaration coverage, adjacency, summary, and semantic-facet diagnostics are stable; the public command remains withheld until that surface is honest.
+- [x] Lexical member-boundary checks implement required public/entry/reversible/coherent/unitary/theorem/experiment coverage, private-helper exemption, adjacent nonempty summaries, canonical facet order, duplicate facets, and required `Effects`/`Inverse`/`Coherent`/`Adjoint` facets as `WDOC002..004` and `WDOC006..010`.
+- [ ] Those declaration checks are lifted onto parser-owned syntax-node ranges, including all declaration forms and recovery states; the public command remains withheld until that surface is honest.
 - [ ] `wheeler format`, `--check`, and `--stdin` implement bounded deterministic behavior.
 - [ ] `wheeler check-docs` implements bounded deterministic validation.
 - [ ] Every checked-in `.w` file and required declaration is documented.
