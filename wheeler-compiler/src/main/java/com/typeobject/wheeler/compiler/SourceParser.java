@@ -334,6 +334,10 @@ final class SourceParser extends SourceStatementParser {
         parseMatch(body, previous());
       } else if (structuredStatements && (matchText("break") || matchText("continue"))) {
         parseLoopJump(body, previous());
+      } else if (structuredStatements && matchText("set")) {
+        parseBufferSet(body, previous());
+      } else if (structuredStatements && matchText("drop")) {
+        parseOwnedDrop(body, previous());
       } else if (structuredStatements && isAssignmentStart()) {
         parseStructuredAssignment(body);
       } else if (!structuredStatements
@@ -392,6 +396,26 @@ final class SourceParser extends SourceStatementParser {
     String value = parseExpression(body);
     expect(Type.SEMICOLON, "';' after local declaration");
     body.add(statement("local_bind", start.line(), name, value, type));
+  }
+
+  private void parseBufferSet(List<Statement> body, SourceToken start) {
+    expect(Type.LEFT_PAREN, "'(' after set");
+    String buffer = parseExpression(body);
+    expect(Type.COMMA, "',' after buffer");
+    String index = parseExpression(body);
+    expect(Type.COMMA, "',' after buffer index");
+    String value = parseExpression(body);
+    expect(Type.RIGHT_PAREN, "')' after set arguments");
+    expect(Type.SEMICOLON, "';' after set");
+    body.add(statement("buffer_set", start.line(), buffer, index, value));
+  }
+
+  private void parseOwnedDrop(List<Statement> body, SourceToken start) {
+    expect(Type.LEFT_PAREN, "'(' after drop");
+    String value = parseExpression(body);
+    expect(Type.RIGHT_PAREN, "')' after drop value");
+    expect(Type.SEMICOLON, "';' after drop");
+    body.add(statement("owned_drop", start.line(), value));
   }
 
   private void parseStructuredAssignment(List<Statement> body) {
@@ -503,6 +527,10 @@ final class SourceParser extends SourceStatementParser {
           parseMatch(body, previous());
         } else if (matchText("break") || matchText("continue")) {
           parseLoopJump(body, previous());
+        } else if (matchText("set")) {
+          parseBufferSet(body, previous());
+        } else if (matchText("drop")) {
+          parseOwnedDrop(body, previous());
         } else if (isAssignmentStart()) {
           parseStructuredAssignment(body);
         } else {
@@ -673,6 +701,16 @@ final class SourceParser extends SourceStatementParser {
       return constant(body, previous(), previous().text());
     }
     if (matchText("new")) {
+      if (matchText("region")) {
+        expect(Type.LEFT_PAREN, "'(' after region");
+        String maxBytes = signedNumber();
+        expect(Type.COMMA, "',' after region byte limit");
+        String maxObjects = signedNumber();
+        expect(Type.RIGHT_PAREN, "')' after region limits");
+        String result = temporary();
+        body.add(statement("region_new", start.line(), result, maxBytes, maxObjects));
+        return result;
+      }
       SourceToken type = peek();
       String typeName = parseValueType("aggregate type after new");
       boolean record = records.stream().anyMatch(candidate -> candidate.name().equals(typeName));
@@ -732,8 +770,12 @@ final class SourceParser extends SourceStatementParser {
         call.add(result);
         call.add(start.text());
         call.addAll(arguments);
-        body.add(new Statement(
-            start.text().equals("slice") ? "slice_new" : "call_value", call, start.line()));
+        String operation = switch (start.text()) {
+          case "slice" -> "slice_new";
+          case "allocate" -> "buffer_alloc";
+          default -> "call_value";
+        };
+        body.add(new Statement(operation, call, start.line()));
         return parsePostfix(body, result, start.line());
       }
       String result = temporary();
@@ -783,6 +825,9 @@ final class SourceParser extends SourceStatementParser {
     if (!match(Type.LEFT_BRACKET)) {
       return element.text();
     }
+    if (element.text().equals("region") || element.text().equals("words")) {
+      fail(element, "owned storage types cannot be array or slice elements");
+    }
     if (match(Type.RIGHT_BRACKET)) {
       String name = element.text() + "[]";
       if (slices.stream().noneMatch(slice -> slice.name().equals(name))) {
@@ -810,6 +855,7 @@ final class SourceParser extends SourceStatementParser {
 
   private boolean isValueType(String name) {
     return name.equals("long") || name.equals("boolean")
+        || name.equals("region") || name.equals("words")
         || records.stream().anyMatch(record -> record.name().equals(name))
         || variants.stream().anyMatch(variant -> variant.name().equals(name))
         || arrays.stream().anyMatch(array -> array.name().equals(name))

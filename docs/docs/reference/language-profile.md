@@ -160,6 +160,25 @@ The constructor retains the array origin plus start and length, rejects negative
 
 Equal arrays and slices are interned in deterministic construction order under separate 65,535-value machine ceilings. Handles remain unobservable and type-specific. Snapshots and rewind include both tables.
 
+## Bounded owned regions
+
+The first dynamic-storage slice provides function-local `region` owners and mutable signed-word buffers:
+
+```java
+region arena = new region(32, 2);
+words data = allocate(arena, 4);
+set(data, 0, 7);
+long first = data[0];
+drop(data);
+drop(arena);
+```
+
+A region declares hard byte and live-object ceilings. A `words` allocation is zero-initialized, charges eight bytes per element, and traps before mutation on a zero/negative length, byte exhaustion, object exhaustion, invalid handle, dropped owner, or checked-index failure. `set` and indexing accept signed words. Buffers must be dropped before their region; dropping returns their byte and object charge.
+
+`region` and `words` are affine local types. Binding one moves the handle and invalidates the source; ordinary copy and equality are rejected. They cannot be parameters, results, aggregate elements, arrays, or slices. Definite-ownership dataflow rejects use after move/drop, live-owner overwrite, control-flow joins with different ownership states, and any function exit with a live owned local. Runtime dropped-state and owner checks remain defense in depth. Snapshots expose canonical region/buffer state, and rewind restores allocation, mutation, move, and drop exactly.
+
+This slice is enough to exercise bounded owned mutation; it is not yet a compiler arena. Byte buffers, typed dynamic collections, cross-function ownership, borrowing, split/join, region capabilities, recoverable allocation results, and commit-aware reclamation remain WIP-0013/WIP-0012 work.
+
 ## Generated inverse and adjoint theorems
 
 The initial proof slice accepts four closed theorem forms:
@@ -232,7 +251,7 @@ The compiler lexer records line, column, and stage-0 UTF-16 source-character off
 
 ## Bootstrap direction
 
-The current compiler and VM use Java only as stage-0 infrastructure. The production compiler will be Wheeler source and must compile itself to a byte-identical second-stage `.wbc` artifact. Signed, Boolean, and immutable record values, typed parameters and returns, static calls, and bounded classical control form the current bootstrap slice. Variants, arrays, slices, strings, bytes, deterministic collections, modules, and explicit file effects follow as complete vertical slices.
+The current compiler and VM use Java only as stage-0 infrastructure. The production compiler will be Wheeler source and must compile itself to a byte-identical second-stage `.wbc` artifact. Signed/Boolean values, immutable records/variants/arrays/slices, typed calls and control, and function-local bounded regions with owned word buffers form the current bootstrap substrate. Strings, byte buffers, deterministic collections, cross-function ownership, modules, and explicit file effects remain complete vertical slices.
 
 After native runtime conformance, the Java compiler, VM, tools, Gradle build, and JVM deployment path will be deleted. A cold build will use a content-addressed prior native Wheeler release and `.wbc` recovery seed. Java APIs and object semantics are therefore not prospective Wheeler contracts.
 

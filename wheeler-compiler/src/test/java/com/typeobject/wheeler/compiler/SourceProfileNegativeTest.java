@@ -3,7 +3,6 @@ package com.typeobject.wheeler.compiler;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.typeobject.wheeler.core.bytecode.BytecodeException;
 import org.junit.jupiter.api.Test;
 
 class SourceProfileNegativeTest {
@@ -106,7 +105,9 @@ class SourceProfileNegativeTest {
         }
         """;
 
-    assertThrows(BytecodeException.class, () -> new WheelerCompiler().compile(incomplete));
+    CompilerException fallthrough = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(incomplete));
+    assertTrue(fallthrough.getMessage().contains("falls off the function body"));
     CompilerException call = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(wrongArity));
     assertTrue(call.getMessage().contains("value call signature mismatch"));
@@ -320,6 +321,52 @@ class SourceProfileNegativeTest {
     assertTrue(adjoint.getMessage().contains("requires declared unitary circuits"));
     assertTrue(equivalence.getMessage().contains("differ after adjacent inverse cancellation"));
     assertTrue(bound.getMessage().contains("declared step bound does not hold"));
+  }
+
+  @Test
+  void rejectsOwnedStorageLeaksEscapesAndUseAfterMove() {
+    String leak = """
+        classical class Leak {
+          entry void main() { region arena = new region(8, 1); }
+        }
+        """;
+    String useAfterMove = """
+        classical class Moved {
+          entry void main() {
+            region first = new region(8, 1);
+            region second = first;
+            drop(first);
+            drop(second);
+          }
+        }
+        """;
+    String escaped = """
+        classical class Escaped {
+          region make() { region arena = new region(8, 1); return arena; }
+          entry void main() { }
+        }
+        """;
+    String nested = """
+        classical class NestedOwned {
+          entry void main() {
+            words[1] invalid = new words[1](0);
+          }
+        }
+        """;
+
+    CompilerException leaked = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(leak));
+    CompilerException moved = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(useAfterMove));
+    CompilerException result = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(escaped));
+    CompilerException aggregate = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(nested));
+
+    assertTrue(leaked.getMessage().contains("exits with live owned local"));
+    assertTrue(moved.getMessage().contains("reads uninitialized local"));
+    assertTrue(result.getMessage().contains("cannot escape as results"));
+    assertTrue(aggregate.getMessage().contains("cannot be array or slice elements"));
   }
 
   @Test

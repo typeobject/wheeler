@@ -22,6 +22,7 @@ public final class VirtualMachine {
   private final long[] globals;
   private final List<Frame> frames = new ArrayList<>();
   private final AggregateStore aggregates = new AggregateStore();
+  private final OwnedStore owned = new OwnedStore();
   private final Deque<StepRecord> history = new ArrayDeque<>();
   private MachineStatus status = MachineStatus.READY;
   private long sequence;
@@ -84,6 +85,13 @@ public final class VirtualMachine {
         record.previousVariantCount(),
         record.previousArrayCount(),
         record.previousSliceCount()));
+    owned.rewind(new OwnedStore.Change(
+        record.previousRegionCount(),
+        record.previousBufferCount(),
+        record.changedRegion(),
+        record.previousRegion(),
+        record.changedBuffer(),
+        record.previousBuffer()));
     switch (record.controlChange()) {
       case ADVANCE -> replaceCurrentFrame(record.previousFrame());
       case CALL -> {
@@ -174,6 +182,8 @@ public final class VirtualMachine {
         aggregates.variants(),
         aggregates.arrays(),
         aggregates.slices(),
+        owned.regions(),
+        owned.buffers(),
         history.size(),
         sequence);
   }
@@ -195,6 +205,7 @@ public final class VirtualMachine {
     long previousLocalValue = 0;
     StepRecord.ControlChange control = StepRecord.ControlChange.ADVANCE;
     AggregateStore.Counts previousCounts = aggregates.counts();
+    OwnedStore.Change ownedChange = owned.mark();
 
     switch (opcode) {
       case ADD_CONST -> {
@@ -238,6 +249,13 @@ public final class VirtualMachine {
       }
       case LOCAL_MOVE -> setLocalAndAdvance(
           localIndex(instruction, 0), localValue(instruction, 1));
+      case OWNED_MOVE -> {
+        int destination = localIndex(instruction, 0);
+        int source = localIndex(instruction, 1);
+        long value = currentFrame().local(source);
+        replaceCurrentFrame(
+            currentFrame().withLocal(source, 0).withLocal(destination, value).advance());
+      }
       case LOCAL_ADD -> setLocalAndAdvance(
           localIndex(instruction, 0),
           Math.addExact(localValue(instruction, 1), localValue(instruction, 2)));
@@ -341,6 +359,41 @@ public final class VirtualMachine {
         setLocalAndAdvance(
             localIndex(instruction, 0), array.elements().get(slice.start() + index));
       }
+      case REGION_NEW -> {
+        OwnedStore.Allocation allocation = owned.createRegion(
+            operand(instruction, 1), Math.toIntExact(operand(instruction, 2)), ownedChange);
+        ownedChange = allocation.change();
+        setLocalAndAdvance(localIndex(instruction, 0), allocation.handle());
+      }
+      case BUFFER_ALLOC -> {
+        OwnedStore.Allocation allocation = owned.allocate(
+            localValue(instruction, 1),
+            Math.toIntExact(localValue(instruction, 2)),
+            ownedChange);
+        ownedChange = allocation.change();
+        setLocalAndAdvance(localIndex(instruction, 0), allocation.handle());
+      }
+      case BUFFER_GET -> setLocalAndAdvance(
+          localIndex(instruction, 0),
+          owned.get(localValue(instruction, 1), Math.toIntExact(localValue(instruction, 2))));
+      case BUFFER_SET -> {
+        ownedChange = owned.set(
+            localValue(instruction, 0),
+            Math.toIntExact(localValue(instruction, 1)),
+            localValue(instruction, 2),
+            ownedChange);
+        advanceCurrentFrame();
+      }
+      case BUFFER_DROP -> {
+        int local = localIndex(instruction, 0);
+        ownedChange = owned.dropBuffer(currentFrame().local(local), ownedChange);
+        setLocalAndAdvance(local, 0);
+      }
+      case REGION_DROP -> {
+        int local = localIndex(instruction, 0);
+        ownedChange = owned.dropRegion(currentFrame().local(local), ownedChange);
+        setLocalAndAdvance(local, 0);
+      }
       case CALL, UNCALL -> {
         int functionId = Math.toIntExact(operand(instruction, 0));
         advanceCurrentFrame();
@@ -396,7 +449,13 @@ public final class VirtualMachine {
         previousCounts.records(),
         previousCounts.variants(),
         previousCounts.arrays(),
-        previousCounts.slices());
+        previousCounts.slices(),
+        ownedChange.previousRegionCount(),
+        ownedChange.previousBufferCount(),
+        ownedChange.changedRegion(),
+        ownedChange.previousRegion(),
+        ownedChange.changedBuffer(),
+        ownedChange.previousBuffer());
   }
 
   private void validateBeforeMutation(Instruction instruction) {
@@ -423,7 +482,7 @@ public final class VirtualMachine {
           globalIndex(instruction, 0);
           localIndex(instruction, 1);
         }
-        case LOCAL_MOVE -> {
+        case LOCAL_MOVE, OWNED_MOVE -> {
           localIndex(instruction, 0);
           localIndex(instruction, 1);
         }
@@ -555,6 +614,25 @@ public final class VirtualMachine {
             trap("Slice index out of bounds: " + index);
           }
         }
+        case REGION_NEW -> {
+          localIndex(instruction, 0);
+          owned.validateRegionLimits(
+              operand(instruction, 1), Math.toIntExact(operand(instruction, 2)));
+        }
+        case BUFFER_ALLOC -> {
+          localIndex(instruction, 0);
+          owned.validateAllocation(
+              localValue(instruction, 1), Math.toIntExact(localValue(instruction, 2)));
+        }
+        case BUFFER_GET -> {
+          localIndex(instruction, 0);
+          owned.validateGet(
+              localValue(instruction, 1), Math.toIntExact(localValue(instruction, 2)));
+        }
+        case BUFFER_SET -> owned.validateGet(
+            localValue(instruction, 0), Math.toIntExact(localValue(instruction, 1)));
+        case BUFFER_DROP -> owned.validateDropBuffer(localValue(instruction, 0));
+        case REGION_DROP -> owned.validateDropRegion(localValue(instruction, 0));
         case CALL -> {
           requireCallCapacity();
           program.function(Math.toIntExact(operand(instruction, 0)));

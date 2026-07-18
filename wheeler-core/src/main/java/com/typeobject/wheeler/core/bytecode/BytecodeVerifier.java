@@ -90,7 +90,8 @@ public final class BytecodeVerifier {
         }
         if (field.type().kind() == ValueType.Kind.VARIANT
             || field.type().kind() == ValueType.Kind.ARRAY
-            || field.type().kind() == ValueType.Kind.SLICE) {
+            || field.type().kind() == ValueType.Kind.SLICE
+            || owned(field.type())) {
           fail("Record fields cannot reference later aggregate types: " + record.name());
         }
       }
@@ -109,7 +110,8 @@ public final class BytecodeVerifier {
         for (RecordType.Field field : variantCase.fields()) {
           verifyTypeReference(program, field.type(), variant.name());
           if (field.type().kind() == ValueType.Kind.ARRAY
-              || field.type().kind() == ValueType.Kind.SLICE) {
+              || field.type().kind() == ValueType.Kind.SLICE
+              || owned(field.type())) {
             fail("Variant payloads cannot reference later array types: " + variant.name());
           }
           if (field.type().kind() == ValueType.Kind.VARIANT
@@ -128,7 +130,8 @@ public final class BytecodeVerifier {
         fail("Noncanonical array type ID " + array.id());
       }
       verifyTypeReference(program, array.elementType(), "array#" + array.id());
-      if (array.elementType().kind() == ValueType.Kind.SLICE) {
+      if (array.elementType().kind() == ValueType.Kind.SLICE
+          || owned(array.elementType())) {
         fail("Arrays cannot own borrowed slices: " + array.id());
       }
       if (array.elementType().kind() == ValueType.Kind.ARRAY
@@ -141,7 +144,8 @@ public final class BytecodeVerifier {
   private static void verifySliceTypes(Program program) {
     for (int index = 0; index < program.sliceTypes().size(); index++) {
       SliceType slice = program.sliceTypes().get(index);
-      if (slice.id() != index || slice.elementType().kind() == ValueType.Kind.SLICE) {
+      if (slice.id() != index || slice.elementType().kind() == ValueType.Kind.SLICE
+          || owned(slice.elementType())) {
         fail("Noncanonical slice type " + slice.id());
       }
       verifyTypeReference(program, slice.elementType(), "slice#" + slice.id());
@@ -155,9 +159,15 @@ public final class BytecodeVerifier {
         fail("Duplicate function name: " + function.name());
       }
       function.localTypes().forEach(type -> verifyTypeReference(program, type, function.name()));
+      for (int parameter = 0; parameter < function.parameterCount(); parameter++) {
+        if (owned(function.localType(parameter))) {
+          fail("Owned values cannot be function parameters: " + function.name());
+        }
+      }
       if (function.resultType() != null) {
         verifyTypeReference(program, function.resultType(), function.name());
-        if (function.resultType().kind() == ValueType.Kind.SLICE) {
+        if (function.resultType().kind() == ValueType.Kind.SLICE
+            || owned(function.resultType())) {
           fail("Borrowed slice result escapes function " + function.name());
         }
       }
@@ -183,6 +193,10 @@ public final class BytecodeVerifier {
         }
       }
     }
+  }
+
+  private static boolean owned(ValueType type) {
+    return type.kind() == ValueType.Kind.REGION || type.kind() == ValueType.Kind.BUFFER;
   }
 
   private static void verifyTypeReference(
@@ -231,7 +245,8 @@ public final class BytecodeVerifier {
         if (owner.localType(destination).kind() == ValueType.Kind.RECORD
             || owner.localType(destination).kind() == ValueType.Kind.VARIANT
             || owner.localType(destination).kind() == ValueType.Kind.ARRAY
-            || owner.localType(destination).kind() == ValueType.Kind.SLICE) {
+            || owner.localType(destination).kind() == ValueType.Kind.SLICE
+            || owned(owner.localType(destination))) {
           fail(location(owner, pc) + " aggregate local requires aggregate construction");
         }
         if (owner.localType(destination).equals(ValueType.BOOLEAN)) {
@@ -251,10 +266,13 @@ public final class BytecodeVerifier {
         int source = verifyLocal(owner, instruction.operands().get(1), pc);
         requireType(owner, source, ValueType.SIGNED, pc);
       }
-      case LOCAL_MOVE -> {
+      case LOCAL_MOVE, OWNED_MOVE -> {
         int destination = verifyLocal(owner, instruction.operands().get(0), pc);
         int source = verifyLocal(owner, instruction.operands().get(1), pc);
         requireSameType(owner, destination, source, pc);
+        if (owned(owner.localType(source)) != (opcode == Opcode.OWNED_MOVE)) {
+          fail(location(owner, pc) + " uses the wrong copy/move operation");
+        }
       }
       case LOCAL_ADD, LOCAL_SUB -> {
         for (long operand : instruction.operands()) {
@@ -270,8 +288,9 @@ public final class BytecodeVerifier {
         if (owner.localType(destination).kind() == ValueType.Kind.RECORD
             || owner.localType(destination).kind() == ValueType.Kind.VARIANT
             || owner.localType(destination).kind() == ValueType.Kind.ARRAY
-            || owner.localType(destination).kind() == ValueType.Kind.SLICE) {
-          fail(location(owner, pc) + " XOR does not accept aggregate values");
+            || owner.localType(destination).kind() == ValueType.Kind.SLICE
+            || owned(owner.localType(destination))) {
+          fail(location(owner, pc) + " XOR does not accept aggregate or owned values");
         }
       }
       case LOCAL_EQ -> {
@@ -280,6 +299,9 @@ public final class BytecodeVerifier {
         int right = verifyLocal(owner, instruction.operands().get(2), pc);
         requireType(owner, destination, ValueType.BOOLEAN, pc);
         requireSameType(owner, left, right, pc);
+        if (owned(owner.localType(left))) {
+          fail(location(owner, pc) + " owned handles do not support value equality");
+        }
       }
       case LOCAL_LT -> {
         requireType(
@@ -310,6 +332,33 @@ public final class BytecodeVerifier {
       case ARRAY_GET -> verifyArrayGet(program, owner, instruction, pc);
       case SLICE_NEW -> verifySliceNew(program, owner, instruction, pc);
       case SLICE_GET -> verifySliceGet(program, owner, instruction, pc);
+      case REGION_NEW -> {
+        requireType(owner, verifyLocal(owner, instruction.operands().get(0), pc), ValueType.REGION, pc);
+        long bytes = instruction.operands().get(1);
+        long objects = instruction.operands().get(2);
+        if (bytes <= 0 || bytes > (1L << 30) || objects <= 0 || objects > 65_535) {
+          fail(location(owner, pc) + " invalid region limits");
+        }
+      }
+      case BUFFER_ALLOC -> {
+        requireType(owner, verifyLocal(owner, instruction.operands().get(0), pc), ValueType.BUFFER, pc);
+        requireType(owner, verifyLocal(owner, instruction.operands().get(1), pc), ValueType.REGION, pc);
+        requireType(owner, verifyLocal(owner, instruction.operands().get(2), pc), ValueType.SIGNED, pc);
+      }
+      case BUFFER_GET -> {
+        requireType(owner, verifyLocal(owner, instruction.operands().get(0), pc), ValueType.SIGNED, pc);
+        requireType(owner, verifyLocal(owner, instruction.operands().get(1), pc), ValueType.BUFFER, pc);
+        requireType(owner, verifyLocal(owner, instruction.operands().get(2), pc), ValueType.SIGNED, pc);
+      }
+      case BUFFER_SET -> {
+        requireType(owner, verifyLocal(owner, instruction.operands().get(0), pc), ValueType.BUFFER, pc);
+        requireType(owner, verifyLocal(owner, instruction.operands().get(1), pc), ValueType.SIGNED, pc);
+        requireType(owner, verifyLocal(owner, instruction.operands().get(2), pc), ValueType.SIGNED, pc);
+      }
+      case BUFFER_DROP ->
+          requireType(owner, verifyLocal(owner, instruction.operands().get(0), pc), ValueType.BUFFER, pc);
+      case REGION_DROP ->
+          requireType(owner, verifyLocal(owner, instruction.operands().get(0), pc), ValueType.REGION, pc);
       case SWAP -> {
         verifyGlobal(program, instruction.operands().get(0), owner, pc);
         verifyGlobal(program, instruction.operands().get(1), owner, pc);
@@ -546,13 +595,26 @@ public final class BytecodeVerifier {
       requireAssignedLocals(owner, instruction, pc, assigned);
       int written = writtenLocal(instruction);
       if (written >= 0) {
+        if (owned(owner.localType(written)) && assigned.get(written)) {
+          fail(location(owner, pc) + " overwrites a live owned local " + written);
+        }
         assigned.set(written);
+      }
+      if (instruction.opcode() == Opcode.OWNED_MOVE) {
+        assigned.clear(Math.toIntExact(instruction.operands().get(1)));
+      } else if (instruction.opcode() == Opcode.BUFFER_DROP
+          || instruction.opcode() == Opcode.REGION_DROP) {
+        assigned.clear(Math.toIntExact(instruction.operands().getFirst()));
+      }
+      if (successors(owner, body, pc, instruction).isEmpty()) {
+        requireNoLiveOwnedLocals(owner, pc, assigned);
       }
       for (int successor : successors(owner, body, pc, instruction)) {
         if (incoming[successor] == null) {
           incoming[successor] = (BitSet) assigned.clone();
           work.add(successor);
         } else {
+          requireOwnedJoin(owner, successor, incoming[successor], assigned);
           BitSet merged = (BitSet) incoming[successor].clone();
           merged.and(assigned);
           if (!merged.equals(incoming[successor])) {
@@ -560,6 +622,24 @@ public final class BytecodeVerifier {
             work.add(successor);
           }
         }
+      }
+    }
+  }
+
+  private static void requireOwnedJoin(
+      FunctionBody owner, int pc, BitSet left, BitSet right) {
+    for (int local = 0; local < owner.localCount(); local++) {
+      if (owned(owner.localType(local)) && left.get(local) != right.get(local)) {
+        fail(location(owner, pc) + " ownership state differs across control-flow paths");
+      }
+    }
+  }
+
+  private static void requireNoLiveOwnedLocals(
+      FunctionBody owner, int pc, BitSet assigned) {
+    for (int local = 0; local < owner.localCount(); local++) {
+      if (owned(owner.localType(local)) && assigned.get(local)) {
+        fail(location(owner, pc) + " exits with live owned local " + local);
       }
     }
   }
@@ -589,14 +669,17 @@ public final class BytecodeVerifier {
     }
     int[] reads = switch (instruction.opcode()) {
       case LOCAL_STORE_GLOBAL -> new int[] {1};
-      case LOCAL_MOVE -> new int[] {1};
+      case LOCAL_MOVE, OWNED_MOVE -> new int[] {1};
       case LOCAL_ADD, LOCAL_SUB, LOCAL_XOR, LOCAL_EQ, LOCAL_LT -> new int[] {1, 2};
       case JUMP_IF_ZERO -> new int[] {0};
       case LOCAL_LOOP_CHECK -> new int[] {0, 1};
       case RETURN_VALUE -> new int[] {0};
       case RECORD_GET, VARIANT_TAG_EQ, VARIANT_GET -> new int[] {1};
-      case ARRAY_GET, SLICE_GET -> new int[] {1, 2};
+      case ARRAY_GET, SLICE_GET, BUFFER_GET -> new int[] {1, 2};
       case SLICE_NEW -> new int[] {2, 3, 4};
+      case BUFFER_ALLOC -> new int[] {1, 2};
+      case BUFFER_SET -> new int[] {0, 1, 2};
+      case BUFFER_DROP, REGION_DROP -> new int[] {0};
       default -> new int[0];
     };
     for (int operandIndex : reads) {
@@ -609,10 +692,11 @@ public final class BytecodeVerifier {
 
   private static int writtenLocal(Instruction instruction) {
     return switch (instruction.opcode()) {
-      case LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, LOCAL_ADD, LOCAL_SUB,
-          LOCAL_XOR, LOCAL_EQ, LOCAL_LT, LOCAL_LOOP_CHECK, RECORD_NEW, RECORD_GET,
-          VARIANT_NEW, VARIANT_TAG_EQ, VARIANT_GET, ARRAY_NEW, ARRAY_GET,
-          SLICE_NEW, SLICE_GET ->
+      case LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, OWNED_MOVE,
+          LOCAL_ADD, LOCAL_SUB, LOCAL_XOR, LOCAL_EQ, LOCAL_LT, LOCAL_LOOP_CHECK,
+          RECORD_NEW, RECORD_GET, VARIANT_NEW, VARIANT_TAG_EQ, VARIANT_GET,
+          ARRAY_NEW, ARRAY_GET, SLICE_NEW, SLICE_GET, REGION_NEW, BUFFER_ALLOC,
+          BUFFER_GET ->
           Math.toIntExact(instruction.operands().getFirst());
       case CALL_VALUE -> Math.toIntExact(instruction.operands().get(3));
       default -> -1;

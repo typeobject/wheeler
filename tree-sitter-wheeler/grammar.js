@@ -129,7 +129,7 @@ module.exports = grammar({
       ')',
     ),
     value_type: $ => seq(
-      choice('long', 'boolean', alias($.identifier, $.type_identifier)),
+      choice('long', 'boolean', 'region', 'words', alias($.identifier, $.type_identifier)),
       optional($.array_extent),
     ),
     array_extent: $ => seq('[', optional(field('length', $.integer_literal)), ']'),

@@ -154,6 +154,54 @@ class BytecodeVerifierTest {
   }
 
   @Test
+  void rejectsOwnedCopiesUseAfterMoveLeaksAndDivergentDrops() {
+    FunctionBody copied = typedMain(
+        List.of(ValueType.REGION, ValueType.REGION),
+        List.of(
+            Instruction.of(Opcode.REGION_NEW, 0, 8, 1),
+            Instruction.of(Opcode.LOCAL_MOVE, 1, 0),
+            Instruction.of(Opcode.REGION_DROP, 1),
+            Instruction.of(Opcode.REGION_DROP, 0),
+            Instruction.of(Opcode.HALT)));
+    FunctionBody movedTwice = typedMain(
+        List.of(ValueType.REGION, ValueType.REGION),
+        List.of(
+            Instruction.of(Opcode.REGION_NEW, 0, 8, 1),
+            Instruction.of(Opcode.OWNED_MOVE, 1, 0),
+            Instruction.of(Opcode.REGION_DROP, 0),
+            Instruction.of(Opcode.REGION_DROP, 1),
+            Instruction.of(Opcode.HALT)));
+    FunctionBody leaked = typedMain(
+        List.of(ValueType.REGION),
+        List.of(
+            Instruction.of(Opcode.REGION_NEW, 0, 8, 1),
+            Instruction.of(Opcode.HALT)));
+    FunctionBody divergent = new FunctionBody(
+        0,
+        "main",
+        false,
+        0,
+        List.of(ValueType.BOOLEAN, ValueType.REGION),
+        null,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 0),
+            Instruction.of(Opcode.REGION_NEW, 1, 8, 1),
+            Instruction.of(Opcode.JUMP_IF_ZERO, 0, 5),
+            Instruction.of(Opcode.REGION_DROP, 1),
+            Instruction.of(Opcode.JUMP, 6),
+            Instruction.of(Opcode.NOP),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(copied)));
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(movedTwice)));
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(leaked)));
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(divergent)));
+    assertEquals(ValueType.REGION, ValueType.fromCode(ValueType.REGION.code()));
+    assertEquals(ValueType.BUFFER, ValueType.fromCode(ValueType.BUFFER.code()));
+  }
+
+  @Test
   void everyGeneratedInversePairIsSymmetric() {
     for (Opcode opcode : Opcode.values()) {
       if (opcode.supportsGeneratedInverse()) {

@@ -44,7 +44,15 @@ public enum Opcode {
   ARRAY_NEW(0x0520, 4, Reversibility.CHECKED),
   ARRAY_GET(0x0521, 3, Reversibility.CHECKED),
   SLICE_NEW(0x0530, 5, Reversibility.CHECKED),
-  SLICE_GET(0x0531, 3, Reversibility.CHECKED);
+  SLICE_GET(0x0531, 3, Reversibility.CHECKED),
+
+  OWNED_MOVE(0x0540, 2, Reversibility.CHECKED),
+  REGION_NEW(0x0541, 3, Reversibility.CHECKED),
+  BUFFER_ALLOC(0x0542, 3, Reversibility.CHECKED),
+  BUFFER_GET(0x0543, 3, Reversibility.CHECKED),
+  BUFFER_SET(0x0544, 3, Reversibility.LOGGED),
+  BUFFER_DROP(0x0545, 1, Reversibility.CHECKED),
+  REGION_DROP(0x0546, 1, Reversibility.CHECKED);
 
   private final int code;
   private final int operandCount;

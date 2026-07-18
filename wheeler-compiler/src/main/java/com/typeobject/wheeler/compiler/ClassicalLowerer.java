@@ -63,17 +63,23 @@ final class ClassicalLowerer {
       ValueType resultType = function.returnsValue()
           ? SourceTypeLowerer.resolve(function.returnType(), function.line(), typeReferences)
           : null;
-      if (resultType != null && resultType.kind() == ValueType.Kind.SLICE) {
-        throw new CompilerException(function.line(), "borrowed slices cannot escape as results");
+      if (resultType != null && (resultType.kind() == ValueType.Kind.SLICE
+          || owned(resultType))) {
+        throw new CompilerException(
+            function.line(), "borrowed or owned values cannot escape as results");
+      }
+      List<ValueType> parameterTypes = function.parameters().stream()
+          .map(parameter -> SourceTypeLowerer.resolve(
+              parameter.type(), function.line(), typeReferences))
+          .toList();
+      if (parameterTypes.stream().anyMatch(ClassicalLowerer::owned)) {
+        throw new CompilerException(
+            function.line(), "owned values are currently local to one function");
       }
       signatures.put(
           function.name(),
           new FunctionSignature(
-              functionIds.get(function.name()),
-              function.parameters().stream()
-                  .map(parameter -> SourceTypeLowerer.resolve(parameter.type(), function.line(), typeReferences))
-                  .toList(),
-              resultType));
+              functionIds.get(function.name()), parameterTypes, resultType));
     });
 
     List<FunctionBody> functions = new ArrayList<>();
@@ -146,6 +152,10 @@ final class ClassicalLowerer {
         entryId,
         globalIds,
         functionIds);
+  }
+
+  private static boolean owned(ValueType type) {
+    return type.kind() == ValueType.Kind.REGION || type.kind() == ValueType.Kind.BUFFER;
   }
 
   private static List<Global> lowerGlobals(SourceProgram source) {
@@ -287,6 +297,7 @@ final class ClassicalLowerer {
     private final List<ArrayType> arrays;
     private final List<SliceType> slices;
     private final Map<String, Integer> locals = new LinkedHashMap<>();
+    private final Map<String, Integer> aliases = new HashMap<>();
     private final List<ValueType> localTypes = new ArrayList<>();
     private final Map<String, Integer> labels = new HashMap<>();
     private final List<Patch> patches = new ArrayList<>();
@@ -371,13 +382,20 @@ final class ClassicalLowerer {
         case "array_new" -> lowerArrayNew(statement);
         case "array_get" -> lowerIndexedGet(statement);
         case "slice_new" -> lowerSliceNew(statement);
+        case "region_new" -> lowerRegionNew(statement);
+        case "buffer_alloc" -> lowerBufferAlloc(statement);
+        case "buffer_set" -> lowerBufferSet(statement);
+        case "owned_drop" -> lowerOwnedDrop(statement);
         case "local_bind" -> {
           requireArguments(statement, 3);
           int source = requireLocal(arguments.get(1), statement.line());
           ValueType declaredType = SourceTypeLowerer.resolve(arguments.get(2), statement.line(), typeReferences);
           requireType(source, declaredType, statement.line());
           int destination = declareUser(arguments.get(0), statement.line(), declaredType);
-          output.add(Instruction.of(Opcode.LOCAL_MOVE, destination, source));
+          output.add(Instruction.of(
+              owned(declaredType) ? Opcode.OWNED_MOVE : Opcode.LOCAL_MOVE,
+              destination,
+              source));
         }
         case "assign" -> lowerAssignment(statement);
         case "call_value" -> lowerValueCall(statement);
@@ -432,6 +450,13 @@ final class ClassicalLowerer {
       String source = statement.arguments().get(1);
       Integer local = locals.get(source);
       if (local != null) {
+        if (owned(localTypes.get(local))) {
+          String alias = statement.arguments().get(0);
+          if (locals.containsKey(alias) || aliases.putIfAbsent(alias, local) != null) {
+            throw new CompilerException(statement.line(), "duplicate local alias: " + alias);
+          }
+          return;
+        }
         int destination = declareInternal(
             statement.arguments().get(0), statement.line(), localTypes.get(local));
         output.add(Instruction.of(Opcode.LOCAL_MOVE, destination, local));
@@ -627,6 +652,59 @@ final class ClassicalLowerer {
           Opcode.ARRAY_NEW, destination, descriptor.id(), elementBase, count));
     }
 
+    private void lowerRegionNew(Statement statement) {
+      requireArguments(statement, 3);
+      long maxBytes = SourceParser.parseInteger(
+          statement.arguments().get(1), statement.line());
+      long maxObjects = SourceParser.parseInteger(
+          statement.arguments().get(2), statement.line());
+      if (maxBytes <= 0 || maxBytes > (1L << 30)
+          || maxObjects <= 0 || maxObjects > 65_535) {
+        throw new CompilerException(statement.line(), "invalid region limits");
+      }
+      int destination = declareInternal(
+          statement.arguments().get(0), statement.line(), ValueType.REGION);
+      output.add(Instruction.of(Opcode.REGION_NEW, destination, maxBytes, maxObjects));
+    }
+
+    private void lowerBufferAlloc(Statement statement) {
+      requireArguments(statement, 4);
+      if (!statement.arguments().get(1).equals("allocate")) {
+        throw new CompilerException(statement.line(), "malformed buffer allocation");
+      }
+      int region = requireLocal(statement.arguments().get(2), statement.line());
+      int length = requireLocal(statement.arguments().get(3), statement.line());
+      requireType(region, ValueType.REGION, statement.line());
+      requireType(length, ValueType.SIGNED, statement.line());
+      int destination = declareInternal(
+          statement.arguments().get(0), statement.line(), ValueType.BUFFER);
+      output.add(Instruction.of(Opcode.BUFFER_ALLOC, destination, region, length));
+    }
+
+    private void lowerBufferSet(Statement statement) {
+      requireArguments(statement, 3);
+      int buffer = requireLocal(statement.arguments().get(0), statement.line());
+      int index = requireLocal(statement.arguments().get(1), statement.line());
+      int value = requireLocal(statement.arguments().get(2), statement.line());
+      requireType(buffer, ValueType.BUFFER, statement.line());
+      requireType(index, ValueType.SIGNED, statement.line());
+      requireType(value, ValueType.SIGNED, statement.line());
+      output.add(Instruction.of(Opcode.BUFFER_SET, buffer, index, value));
+    }
+
+    private void lowerOwnedDrop(Statement statement) {
+      requireArguments(statement, 1);
+      int local = requireLocal(statement.arguments().getFirst(), statement.line());
+      ValueType type = localTypes.get(local);
+      Opcode opcode = type.equals(ValueType.BUFFER)
+          ? Opcode.BUFFER_DROP
+          : type.equals(ValueType.REGION) ? Opcode.REGION_DROP : null;
+      if (opcode == null) {
+        throw new CompilerException(statement.line(), "drop requires an owned value");
+      }
+      output.add(Instruction.of(opcode, local));
+    }
+
     private void lowerIndexedGet(Statement statement) {
       requireArguments(statement, 3);
       int source = requireLocal(statement.arguments().get(1), statement.line());
@@ -640,8 +718,12 @@ final class ClassicalLowerer {
       } else if (sourceType.kind() == ValueType.Kind.SLICE) {
         elementType = slices.get(sourceType.descriptorId()).elementType();
         opcode = Opcode.SLICE_GET;
+      } else if (sourceType.equals(ValueType.BUFFER)) {
+        elementType = ValueType.SIGNED;
+        opcode = Opcode.BUFFER_GET;
       } else {
-        throw new CompilerException(statement.line(), "indexing requires an array or slice");
+        throw new CompilerException(
+            statement.line(), "indexing requires an array, slice, or buffer");
       }
       requireType(index, ValueType.SIGNED, statement.line());
       int destination = declareInternal(
@@ -716,7 +798,10 @@ final class ClassicalLowerer {
       if (local != null) {
         requireSameType(local, value, statement.line());
         if (operator.equals("ASSIGN")) {
-          output.add(Instruction.of(Opcode.LOCAL_MOVE, local, value));
+          output.add(Instruction.of(
+              owned(localTypes.get(local)) ? Opcode.OWNED_MOVE : Opcode.LOCAL_MOVE,
+              local,
+              value));
         } else {
           if (!operator.equals("XOR_ASSIGN")) {
             requireType(local, ValueType.SIGNED, statement.line());
@@ -778,7 +863,7 @@ final class ClassicalLowerer {
     }
 
     private int declare(String name, int line, ValueType type) {
-      if (locals.containsKey(name)) {
+      if (locals.containsKey(name) || aliases.containsKey(name)) {
         throw new CompilerException(line, "duplicate local: " + name);
       }
       int index = locals.size();
@@ -789,6 +874,9 @@ final class ClassicalLowerer {
 
     private int requireLocal(String name, int line) {
       Integer index = locals.get(name);
+      if (index == null) {
+        index = aliases.get(name);
+      }
       if (index == null) {
         throw new CompilerException(line, "unknown local: " + name);
       }

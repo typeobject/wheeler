@@ -39,6 +39,11 @@ public final class WheelerCompiler {
           throw new CompilerException(proof.line(), exception.getMessage());
         }
       }
+      for (SourceModel.Function function : parsed.functions()) {
+        if (exception.getMessage().startsWith(function.name() + "[")) {
+          throw new CompilerException(function.line(), exception.getMessage());
+        }
+      }
       throw exception;
     }
     return program;

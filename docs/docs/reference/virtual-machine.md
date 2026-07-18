@@ -11,6 +11,7 @@ The machine owns:
 - a bounded stack of immutable control frames with descriptor-typed signed and Boolean local registers;
 - typed signed 64-bit global locations;
 - separate deterministic bounded tables of immutable nominal records, tagged variants, fixed arrays, and nonescaping slices;
+- bounded owned regions and mutable signed-word buffers with explicit live/dropped state and byte/object accounting;
 - an ordered bounded stack of step records;
 - a monotonic transition sequence within the current run.
 
@@ -25,7 +26,7 @@ step(C, instruction) = (C', undo)
 unstep(C', undo) = C
 ```
 
-Intrinsic operations recover data from their inverse operation. Logged operations retain the value they overwrite. Local register and control operations retain the prior immutable frame needed to restore program counter and locals. Aggregate construction interns by nominal type, variant tag where present, and ordered field values; rewind restores prior record-, variant-, array-, and slice-table lengths as well as the frame. Call and return records retain the control information needed to restore frame depth. The VM never restores state and then also executes an inverse handler.
+Intrinsic operations recover data from their inverse operation. Logged operations retain the value they overwrite. Local register and control operations retain the prior immutable frame needed to restore program counter and locals. Aggregate construction interns by nominal type, variant tag where present, and ordered field values; rewind restores prior record-, variant-, array-, and slice-table lengths as well as the frame. Region operations retain bounded deltas for changed region accounting, changed buffer contents/drop state, and prior table lengths. Call and return records retain the control information needed to restore frame depth. The VM never restores state and then also executes an inverse handler.
 
 ## Function inverse versus rewind
 
@@ -39,4 +40,4 @@ Intrinsic operations recover data from their inverse operation. Logged operation
 
 ## Traps and limits
 
-Invalid expectations, overflow, missing inverses, invalid local or branch access, register type mismatches, non-Boolean conditions, exceeded source loop limits, call depth above 1,024 frames, escaped instruction pointers, exhausted history, and exceeded step limits trap deterministically. A failing instruction does not partially mutate globals or frames.
+Invalid expectations, overflow, missing inverses, invalid local or branch access, register type mismatches, non-Boolean conditions, exceeded source loop limits, call depth above 1,024 frames, escaped instruction pointers, exhausted history, and exceeded step limits trap deterministically. Owned moves, region/buffer exhaustion, use after move or drop, buffer bounds, dropping an owner with live buffers, ownership-divergent joins, and leaked owned locals are also checked. A failing instruction does not partially mutate globals, frames, region accounting, or buffer contents.

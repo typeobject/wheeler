@@ -843,3 +843,95 @@ classical class Certified {
           (identifier)
           (parameter_list)
           (block))))))
+
+================================================================================
+Owned bounded region
+================================================================================
+
+classical class Storage {
+  state long result = 0;
+  entry void main() {
+    region arena = new region(16, 1);
+    words data = allocate(arena, 2);
+    set(data, 0, 9);
+    result = data[0];
+    drop(data);
+    drop(arena);
+  }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (class_declaration
+    (computation_domain)
+    (identifier)
+    (class_body
+      (member_declaration
+        (state_declaration
+          (identifier)
+          (integer_literal)))
+      (member_declaration
+        (method_declaration
+          (method_modifier)
+          (identifier)
+          (parameter_list)
+          (block
+            (statement
+              (local_declaration
+                (value_type)
+                (identifier)
+                (expression
+                  (record_creation
+                    (value_type)
+                    (argument_list
+                      (expression
+                        (integer_literal))
+                      (expression
+                        (integer_literal)))))))
+            (statement
+              (local_declaration
+                (value_type)
+                (identifier)
+                (expression
+                  (call_expression
+                    (identifier)
+                    (argument_list
+                      (expression
+                        (identifier))
+                      (expression
+                        (integer_literal)))))))
+            (statement
+              (call_statement
+                (call_expression
+                  (identifier)
+                  (argument_list
+                    (expression
+                      (identifier))
+                    (expression
+                      (integer_literal))
+                    (expression
+                      (integer_literal))))))
+            (statement
+              (assignment_statement
+                (identifier)
+                (expression
+                  (array_access_expression
+                    (expression
+                      (identifier))
+                    (expression
+                      (integer_literal))))))
+            (statement
+              (call_statement
+                (call_expression
+                  (identifier)
+                  (argument_list
+                    (expression
+                      (identifier))))))
+            (statement
+              (call_statement
+                (call_expression
+                  (identifier)
+                  (argument_list
+                    (expression
+                      (identifier))))))))))))

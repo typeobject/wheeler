@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.core.vm;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -555,6 +556,135 @@ class VirtualMachineTest {
       machine.rewindOne();
     }
     assertEquals(initial, machine.snapshot());
+  }
+
+  @Test
+  void ownedRegionMutationDropAndRewindRestoreExactState() {
+    FunctionBody main = new FunctionBody(
+        0,
+        "main",
+        false,
+        0,
+        List.of(
+            ValueType.REGION,
+            ValueType.SIGNED,
+            ValueType.BUFFER,
+            ValueType.SIGNED,
+            ValueType.SIGNED),
+        null,
+        List.of(
+            Instruction.of(Opcode.REGION_NEW, 0, 16, 1),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 2),
+            Instruction.of(Opcode.BUFFER_ALLOC, 2, 0, 1),
+            Instruction.of(Opcode.LOCAL_CONST, 3, 0),
+            Instruction.of(Opcode.LOCAL_CONST, 4, 5),
+            Instruction.of(Opcode.BUFFER_SET, 2, 3, 4),
+            Instruction.of(Opcode.BUFFER_GET, 4, 2, 3),
+            Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 4),
+            Instruction.of(Opcode.BUFFER_DROP, 2),
+            Instruction.of(Opcode.REGION_DROP, 0),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    Program program = Program.classical(
+        "Owned", 0, List.of(new Global("result", 0)),
+        List.of(), List.of(), List.of(), List.of(), List.of(main), List.of());
+    VirtualMachine machine = new VirtualMachine(program);
+    MachineSnapshot initial = machine.snapshot();
+
+    machine.run();
+
+    assertEquals(5, machine.global("result"));
+    assertTrue(machine.snapshot().regions().getFirst().dropped());
+    assertTrue(machine.snapshot().buffers().getFirst().dropped());
+    while (machine.historySize() > 0) {
+      machine.rewindOne();
+    }
+    assertEquals(initial, machine.snapshot());
+  }
+
+  @Test
+  void regionExhaustionTrapsBeforeAllocationMutation() {
+    FunctionBody main = new FunctionBody(
+        0,
+        "main",
+        false,
+        0,
+        List.of(ValueType.REGION, ValueType.SIGNED, ValueType.BUFFER),
+        null,
+        List.of(
+            Instruction.of(Opcode.REGION_NEW, 0, 8, 1),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 2),
+            Instruction.of(Opcode.BUFFER_ALLOC, 2, 0, 1),
+            Instruction.of(Opcode.BUFFER_DROP, 2),
+            Instruction.of(Opcode.REGION_DROP, 0),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    VirtualMachine machine = new VirtualMachine(Program.classical(
+        "Exhausted", 0, List.of(), List.of(), List.of(), List.of(), List.of(),
+        List.of(main), List.of()));
+    machine.step();
+    machine.step();
+
+    assertThrows(VmTrap.class, machine::step);
+    assertEquals(0, machine.snapshot().regions().getFirst().usedBytes());
+    assertTrue(machine.snapshot().buffers().isEmpty());
+
+    FunctionBody objectLimited = new FunctionBody(
+        0,
+        "main",
+        false,
+        0,
+        List.of(ValueType.REGION, ValueType.SIGNED, ValueType.BUFFER, ValueType.BUFFER),
+        null,
+        List.of(
+            Instruction.of(Opcode.REGION_NEW, 0, 16, 1),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 1),
+            Instruction.of(Opcode.BUFFER_ALLOC, 2, 0, 1),
+            Instruction.of(Opcode.BUFFER_ALLOC, 3, 0, 1),
+            Instruction.of(Opcode.BUFFER_DROP, 3),
+            Instruction.of(Opcode.BUFFER_DROP, 2),
+            Instruction.of(Opcode.REGION_DROP, 0),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    VirtualMachine objectMachine = new VirtualMachine(Program.classical(
+        "ObjectExhausted", 0, List.of(), List.of(), List.of(), List.of(), List.of(),
+        List.of(objectLimited), List.of()));
+    objectMachine.step();
+    objectMachine.step();
+    objectMachine.step();
+
+    assertThrows(VmTrap.class, objectMachine::step);
+    assertEquals(1, objectMachine.snapshot().regions().getFirst().liveObjects());
+    assertEquals(1, objectMachine.snapshot().buffers().size());
+  }
+
+  @Test
+  void regionDropWithLiveBufferTrapsBeforeMutation() {
+    FunctionBody main = new FunctionBody(
+        0,
+        "main",
+        false,
+        0,
+        List.of(ValueType.REGION, ValueType.SIGNED, ValueType.BUFFER),
+        null,
+        List.of(
+            Instruction.of(Opcode.REGION_NEW, 0, 8, 1),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 1),
+            Instruction.of(Opcode.BUFFER_ALLOC, 2, 0, 1),
+            Instruction.of(Opcode.REGION_DROP, 0),
+            Instruction.of(Opcode.BUFFER_DROP, 2),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    VirtualMachine machine = new VirtualMachine(Program.classical(
+        "LiveBuffer", 0, List.of(), List.of(), List.of(), List.of(), List.of(),
+        List.of(main), List.of()));
+    machine.step();
+    machine.step();
+    machine.step();
+
+    assertThrows(VmTrap.class, machine::step);
+    assertEquals(1, machine.snapshot().regions().getFirst().liveObjects());
+    assertFalse(machine.snapshot().buffers().getFirst().dropped());
   }
 
   @Test

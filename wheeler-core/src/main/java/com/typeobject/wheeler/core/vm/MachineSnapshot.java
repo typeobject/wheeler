@@ -12,5 +12,7 @@ public record MachineSnapshot(
     List<VariantValue> variants,
     List<ArrayValue> arrays,
     List<SliceValue> slices,
+    List<RegionValue> regions,
+    List<BufferValue> buffers,
     int historyRecords,
     long sequence) {}
