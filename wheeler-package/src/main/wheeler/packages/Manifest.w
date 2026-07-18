@@ -1,11 +1,11 @@
 //! Parses bounded canonical package manifests.
 
-module examples.packages.manifest;
-import examples.packages.names;
-import examples.packages.paths;
-import examples.packages.semver;
-import examples.packages.tokens;
+module wheeler.packages.manifest;
 import wheeler.lexer.scanner;
+import wheeler.packages.names;
+import wheeler.packages.paths;
+import wheeler.packages.semver;
+import wheeler.packages.tokens;
 classical class Manifest {
     /// Defines immutable `QuotedRange` values for this module.
     public record QuotedRange(long start, long length) {}

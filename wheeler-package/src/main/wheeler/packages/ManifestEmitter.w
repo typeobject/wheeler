@@ -1,6 +1,6 @@
 //! Emits bounded canonical package manifests.
 
-module examples.packages.emitter;
+module wheeler.packages.emitter;
 classical class ManifestEmitter {
     private boolean semicolonToken(utf8 source, words starts, long token) {
         return utf8Scalar(source, starts[token]) == 59;

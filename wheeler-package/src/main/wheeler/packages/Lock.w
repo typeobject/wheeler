@@ -1,9 +1,9 @@
 //! Parses bounded canonical dependency locks.
 
-module examples.packages.lock;
-import examples.packages.names;
-import examples.packages.semver;
-import examples.packages.tokens;
+module wheeler.packages.lock;
+import wheeler.packages.names;
+import wheeler.packages.semver;
+import wheeler.packages.tokens;
 classical class Lock {
     /// Defines immutable `LockedPackage` values for this module.
     public record LockedPackage(

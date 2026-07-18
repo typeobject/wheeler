@@ -20,14 +20,14 @@ class NativeManifestExampleTest {
     Path root = Path.of("src/main/wheeler");
     var program = new WheelerCompiler().compileModuleFiles(
         Map.of(
-            "ManifestEmitter.w", Files.readString(root.resolve("packages/ManifestEmitter.w")),
-            "Manifest.w", Files.readString(root.resolve("packages/Manifest.w")),
-            "ManifestTokens.w", Files.readString(root.resolve("packages/ManifestTokens.w")),
-            "Names.w", Files.readString(root.resolve("packages/Names.w")),
+            "ManifestEmitter.w", PackageSources.read("packages/ManifestEmitter.w"),
+            "Manifest.w", PackageSources.read("packages/Manifest.w"),
+            "ManifestTokens.w", PackageSources.read("packages/ManifestTokens.w"),
+            "Names.w", PackageSources.read("packages/Names.w"),
             "NativeManifest.w", Files.readString(root.resolve("NativeManifest.w")),
-            "Paths.w", Files.readString(root.resolve("packages/Paths.w")),
+            "Paths.w", PackageSources.read("packages/Paths.w"),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
-            "Semver.w", Files.readString(root.resolve("packages/Semver.w"))),
+            "Semver.w", PackageSources.read("packages/Semver.w")),
         "examples.packages.main");
     String source =
         "package \"demo.native\" version \"1.2.3-rc.1\" profile \"boot\\\"strap\"; "

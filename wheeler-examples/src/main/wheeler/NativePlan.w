@@ -1,8 +1,8 @@
 //! Checks canonical build plans with Wheeler-native codecs.
 
 module examples.packages.plan_main;
-import examples.crypto.sha256;
-import examples.packages.plan;
+import wheeler.crypto.sha256;
+import wheeler.packages.plan;
 classical class NativePlan {
     state long profileLength = 0;
     state long packageLength = 0;

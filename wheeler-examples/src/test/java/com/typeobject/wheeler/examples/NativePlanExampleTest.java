@@ -32,9 +32,9 @@ class NativePlanExampleTest {
         Map.of(
             "Binary.w", CompilerSources.read("packages/Binary.w"),
             "NativePlan.w", Files.readString(root.resolve("NativePlan.w")),
-            "Plan.w", Files.readString(root.resolve("packages/Plan.w")),
-            "PlanIdentity.w", Files.readString(root.resolve("packages/PlanIdentity.w")),
-            "Sha256.w", Files.readString(root.resolve("crypto/Sha256.w"))),
+            "Plan.w", PackageSources.read("packages/Plan.w"),
+            "PlanIdentity.w", PackageSources.read("packages/PlanIdentity.w"),
+            "Sha256.w", PackageSources.read("crypto/Sha256.w")),
         "examples.packages.plan_main");
     Node node = Node.create(
         "demo.plan",

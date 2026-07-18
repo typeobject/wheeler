@@ -1,9 +1,9 @@
 //! Parses and re-emits a canonical package manifest in Wheeler.
 
 module examples.packages.main;
-import examples.packages.emitter;
-import examples.packages.manifest;
 import wheeler.lexer.scanner;
+import wheeler.packages.emitter;
+import wheeler.packages.manifest;
 classical class NativeManifest {
     state long nameLength = 0;
     state long nameStart = 0;

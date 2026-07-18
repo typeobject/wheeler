@@ -1,11 +1,11 @@
 //! Validates bounded canonical package archive structure.
 
-module examples.packages.archive;
-import examples.crypto.sha256;
-import examples.packages.line_emitter;
-import examples.packages.manifest;
+module wheeler.packages.archive;
+import wheeler.crypto.sha256;
 import wheeler.lexer.scanner;
 import wheeler.packages.binary;
+import wheeler.packages.line_emitter;
+import wheeler.packages.manifest;
 classical class Archive {
     /// Defines immutable `ArchiveModel` values for this module.
     public record ArchiveModel(

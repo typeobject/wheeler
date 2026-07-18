@@ -122,7 +122,8 @@ class SourceFormatterTest {
   void roundTripsEveryCanonicalSourceTokenAndCommentAttachment() throws Exception {
     for (Path root : List.of(
         Path.of("src/main/wheeler"),
-        Path.of("../wheeler-examples/src/main/wheeler"))) {
+        Path.of("../wheeler-examples/src/main/wheeler"),
+        Path.of("../wheeler-package/src/main/wheeler"))) {
       try (var paths = Files.walk(root)) {
         for (Path source : paths.filter(path -> path.toString().endsWith(".w")).toList()) {
           String original = Files.readString(source);

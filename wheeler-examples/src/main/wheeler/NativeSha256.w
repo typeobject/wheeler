@@ -1,7 +1,7 @@
 //! Hashes explicit host input with the Wheeler SHA-256 implementation.
 
 module examples.crypto.sha256_main;
-import examples.crypto.sha256;
+import wheeler.crypto.sha256;
 classical class NativeSha256 {
     state long inputLength = 0;
     state long digestLength = 0;

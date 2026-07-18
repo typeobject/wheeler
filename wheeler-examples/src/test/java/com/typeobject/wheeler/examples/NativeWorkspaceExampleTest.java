@@ -21,13 +21,13 @@ class NativeWorkspaceExampleTest {
     Path root = Path.of("src/main/wheeler");
     Program program = new WheelerCompiler().compileModuleFiles(
         Map.of(
-            "LineEmitter.w", Files.readString(root.resolve("packages/LineEmitter.w")),
-            "ManifestTokens.w", Files.readString(root.resolve("packages/ManifestTokens.w")),
-            "Names.w", Files.readString(root.resolve("packages/Names.w")),
+            "LineEmitter.w", PackageSources.read("packages/LineEmitter.w"),
+            "ManifestTokens.w", PackageSources.read("packages/ManifestTokens.w"),
+            "Names.w", PackageSources.read("packages/Names.w"),
             "NativeWorkspace.w", Files.readString(root.resolve("NativeWorkspace.w")),
-            "Paths.w", Files.readString(root.resolve("packages/Paths.w")),
+            "Paths.w", PackageSources.read("packages/Paths.w"),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
-            "Workspace.w", Files.readString(root.resolve("packages/Workspace.w"))),
+            "Workspace.w", PackageSources.read("packages/Workspace.w")),
         "examples.packages.workspace_main");
     String canonical =
         "workspace \"demo-workspace\" profile \"bootstrap-1\";\n"

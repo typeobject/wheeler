@@ -1,6 +1,6 @@
 //! Computes SHA-256 over caller-owned bounded byte ranges.
 
-module examples.crypto.sha256;
+module wheeler.crypto.sha256;
 classical class Sha256 {
     private long byteShiftPower(long exponent) {
         if (exponent == 0) {

@@ -1,6 +1,6 @@
 //! Validates bounded canonical releases and version constraints.
 
-module examples.packages.semver;
+module wheeler.packages.semver;
 classical class Semver {
     private boolean digit(long scalar) {
         if (47 < scalar) {

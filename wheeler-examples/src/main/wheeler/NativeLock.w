@@ -1,9 +1,9 @@
 //! Parses and re-emits a canonical dependency lock in Wheeler.
 
 module examples.packages.lock_main;
-import examples.packages.line_emitter;
-import examples.packages.lock;
 import wheeler.lexer.scanner;
+import wheeler.packages.line_emitter;
+import wheeler.packages.lock;
 classical class NativeLock {
     state long rootStart = 0;
     state long packageCount = 0;

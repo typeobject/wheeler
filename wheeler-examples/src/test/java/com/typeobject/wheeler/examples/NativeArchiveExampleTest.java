@@ -25,17 +25,17 @@ class NativeArchiveExampleTest {
     Path root = Path.of("src/main/wheeler");
     Program inspector = new WheelerCompiler().compileModuleFiles(
         Map.ofEntries(
-            Map.entry("Archive.w", Files.readString(root.resolve("packages/Archive.w"))),
+            Map.entry("Archive.w", PackageSources.read("packages/Archive.w")),
             Map.entry("Binary.w", CompilerSources.read("packages/Binary.w")),
-            Map.entry("LineEmitter.w", Files.readString(root.resolve("packages/LineEmitter.w"))),
-            Map.entry("Manifest.w", Files.readString(root.resolve("packages/Manifest.w"))),
-            Map.entry("ManifestTokens.w", Files.readString(root.resolve("packages/ManifestTokens.w"))),
-            Map.entry("Names.w", Files.readString(root.resolve("packages/Names.w"))),
+            Map.entry("LineEmitter.w", PackageSources.read("packages/LineEmitter.w")),
+            Map.entry("Manifest.w", PackageSources.read("packages/Manifest.w")),
+            Map.entry("ManifestTokens.w", PackageSources.read("packages/ManifestTokens.w")),
+            Map.entry("Names.w", PackageSources.read("packages/Names.w")),
             Map.entry("NativeArchive.w", Files.readString(root.resolve("NativeArchive.w"))),
-            Map.entry("Paths.w", Files.readString(root.resolve("packages/Paths.w"))),
+            Map.entry("Paths.w", PackageSources.read("packages/Paths.w")),
             Map.entry("Scanner.w", CompilerSources.read("lexer/Scanner.w")),
-            Map.entry("Semver.w", Files.readString(root.resolve("packages/Semver.w"))),
-            Map.entry("Sha256.w", Files.readString(root.resolve("crypto/Sha256.w")))),
+            Map.entry("Semver.w", PackageSources.read("packages/Semver.w")),
+            Map.entry("Sha256.w", PackageSources.read("crypto/Sha256.w"))),
         "examples.packages.archive_main");
     String manifestText =
         "package \"demo.archive\" version \"1.0.0\" profile \"bootstrap-1\";\n"

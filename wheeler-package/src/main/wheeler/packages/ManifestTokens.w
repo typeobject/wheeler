@@ -1,6 +1,6 @@
 //! Classifies and compares package-manifest token ranges.
 
-module examples.packages.tokens;
+module wheeler.packages.tokens;
 classical class ManifestTokens {
     /// Computes the stable hash of one bounded token range.
     public long tokenHash(utf8 source, words starts, words lengths, long token) {

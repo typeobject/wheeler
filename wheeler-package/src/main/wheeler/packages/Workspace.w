@@ -1,9 +1,9 @@
 //! Parses bounded canonical workspace manifests.
 
-module examples.packages.workspace;
-import examples.packages.names;
-import examples.packages.paths;
-import examples.packages.tokens;
+module wheeler.packages.workspace;
+import wheeler.packages.names;
+import wheeler.packages.paths;
+import wheeler.packages.tokens;
 classical class Workspace {
     /// Defines immutable `WorkspaceModel` values for this module.
     public record WorkspaceModel(

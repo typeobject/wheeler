@@ -21,7 +21,7 @@ class NativeSha256ExampleTest {
     Program program = new WheelerCompiler().compileModuleFiles(
         Map.of(
             "NativeSha256.w", Files.readString(root.resolve("NativeSha256.w")),
-            "Sha256.w", Files.readString(root.resolve("crypto/Sha256.w"))),
+            "Sha256.w", PackageSources.read("crypto/Sha256.w")),
         "examples.crypto.sha256_main");
     assertDigest(program, new byte[0], true);
     assertDigest(program, "abc".getBytes(StandardCharsets.US_ASCII), false);

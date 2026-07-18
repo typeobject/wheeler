@@ -1,1 +1,10 @@
-// The package-format seed has no dependency on compiler or runtime implementation objects.
+// Canonical package models plus the Wheeler-native bounded package-codec library.
+
+tasks.named('test') {
+    inputs.files(
+        fileTree('src/main/wheeler') { include '**/*.w' },
+        file('wheeler.package'),
+        file('wheeler.lock'),
+        fileTree('vendor') { include '*.wpk', 'wheeler.lock' })
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+}

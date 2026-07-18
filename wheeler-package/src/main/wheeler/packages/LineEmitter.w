@@ -1,6 +1,6 @@
 //! Emits bounded canonical line records into caller-owned storage.
 
-module examples.packages.line_emitter;
+module wheeler.packages.line_emitter;
 classical class LineEmitter {
     private long copyToken(
         utf8 source,

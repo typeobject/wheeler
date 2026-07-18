@@ -1,7 +1,7 @@
 //! Checks content-bound build-plan node identities.
 
-module examples.packages.plan_identity;
-import examples.crypto.sha256;
+module wheeler.packages.plan_identity;
+import wheeler.crypto.sha256;
 classical class PlanIdentity {
     /// Defines immutable `NodeIdentityFields` values for this module.
     public record NodeIdentityFields(

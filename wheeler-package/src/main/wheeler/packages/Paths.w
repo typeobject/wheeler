@@ -1,6 +1,6 @@
 //! Validates canonical logical and workspace-relative paths.
 
-module examples.packages.paths;
+module wheeler.packages.paths;
 classical class Paths {
     private boolean invalidDotComponent(long componentLength, long dotCount) {
         if (componentLength == 1) {
