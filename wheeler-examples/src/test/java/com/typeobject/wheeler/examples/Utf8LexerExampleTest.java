@@ -42,6 +42,34 @@ class Utf8LexerExampleTest {
   }
 
   @Test
+  void scannerReportsUnterminatedBlockCommentsWithoutReadingPastInput() throws Exception {
+    String rootSource = """
+        module examples.lexer.blocktest;
+        import examples.lexer.scanner;
+        classical class BlockTest {
+          state long commentEnd = 0;
+          entry void main(utf8 source) {
+            commentEnd = blockCommentEnd(source, 0, bufferLength(source));
+          }
+        }
+        """;
+    String scanner = Files.readString(Path.of("src/main/wheeler/lexer/Scanner.w"));
+    var program = new WheelerCompiler().compileModuleFiles(
+        Map.of("Scanner.w", scanner, "BlockTest.w", rootSource),
+        "examples.lexer.blocktest");
+    VirtualMachine closed = new VirtualMachine(
+        program, "/*ok*/".getBytes(StandardCharsets.UTF_8));
+    VirtualMachine open = new VirtualMachine(
+        program, "/*open".getBytes(StandardCharsets.UTF_8));
+
+    closed.run();
+    open.run();
+
+    assertEquals(6, closed.global("commentEnd"));
+    assertEquals(-1, open.global("commentEnd"));
+  }
+
+  @Test
   void explicitSourceInputIsTokenizedParsedAndExactlyRewound() throws Exception {
     Path root = Path.of("src/main/wheeler");
     var program = new WheelerCompiler().compileModuleFiles(
@@ -52,7 +80,7 @@ class Utf8LexerExampleTest {
             Files.readString(root.resolve("lexer/Scanner.w"))),
         "examples.lexer.main");
     VirtualMachine machine = new VirtualMachine(
-        program, "x=123;//c\n".getBytes(StandardCharsets.UTF_8), 3);
+        program, "x=123;/*c*/".getBytes(StandardCharsets.UTF_8), 3);
     var initial = machine.snapshot();
 
     machine.run();
@@ -63,9 +91,10 @@ class Utf8LexerExampleTest {
     assertEquals(6, machine.global("commentStart"));
     assertEquals(123, machine.global("numericValue"));
     assertEquals(0, machine.global("parseError"));
+    assertEquals(0, machine.global("lexicalError"));
     assertEquals(3, machine.global("outputLength"));
     assertEquals("123", new String(machine.hostOutput(), StandardCharsets.UTF_8));
-    assertEquals(10, machine.global("finalCursor"));
+    assertEquals(11, machine.global("finalCursor"));
     while (machine.historySize() > 0) {
       machine.rewindOne();
     }

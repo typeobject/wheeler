@@ -54,11 +54,35 @@ classical class Scanner {
         return value;
     }
 
-    public boolean startsComment(utf8 source, long cursor, long sourceLength) {
+    public long commentKind(utf8 source, long cursor, long sourceLength) {
         long next = cursor + utf8Width(source, cursor);
         if (next < sourceLength) {
-            return utf8Scalar(source, next) == 47;
+            long marker = utf8Scalar(source, next);
+            if (marker == 47) {
+                return 4;
+            }
+            if (marker == 42) {
+                return 5;
+            }
         }
-        return false;
+        return 0;
+    }
+
+    public long blockCommentEnd(utf8 source, long cursor, long sourceLength) {
+        cursor += utf8Width(source, cursor);
+        cursor += utf8Width(source, cursor);
+        while (cursor < sourceLength) limit 256 {
+            long scalar = utf8Scalar(source, cursor);
+            if (scalar == 42) {
+                long next = cursor + utf8Width(source, cursor);
+                if (next < sourceLength) {
+                    if (utf8Scalar(source, next) == 47) {
+                        return next + utf8Width(source, next);
+                    }
+                }
+            }
+            cursor += utf8Width(source, cursor);
+        }
+        return -1;
     }
 }

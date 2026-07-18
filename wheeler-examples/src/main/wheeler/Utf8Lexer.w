@@ -12,6 +12,7 @@ classical class Utf8Lexer {
     state long commentStart = 0;
     state long numericValue = 0;
     state long parseError = -1;
+    state long lexicalError = 0;
     state long outputLength = 0;
     state long finalCursor = 0;
 
@@ -45,14 +46,16 @@ classical class Utf8Lexer {
                         if (tokenKinds[2] == 2) {
                             if (tokenKinds[3] == 3) {
                                 if (utf8Scalar(source, tokenStarts[3]) == 59) {
-                                    if (tokenKinds[4] == 4) {
-                                        long end = tokenStarts[2] + tokenLengths[2];
-                                        long value = parseNumber(
-                                            source, tokenStarts[2], end);
-                                        if (value < 0) {
-                                            return new Assignment.Error(tokenStarts[2]);
+                                    if (3 < tokenKinds[4]) {
+                                        if (tokenKinds[4] < 6) {
+                                            long end = tokenStarts[2] + tokenLengths[2];
+                                            long value = parseNumber(
+                                                source, tokenStarts[2], end);
+                                            if (value < 0) {
+                                                return new Assignment.Error(tokenStarts[2]);
+                                            }
+                                            return new Assignment.Value(value);
                                         }
-                                        return new Assignment.Value(value);
                                     }
                                 }
                             }
@@ -73,14 +76,14 @@ classical class Utf8Lexer {
         long count = 0;
         long cursor = 0;
 
-        while (cursor < sourceLength) limit 10 {
+        while (cursor < sourceLength) limit 256 {
             long scalar = utf8Scalar(source, cursor);
             long width = utf8Width(source, cursor);
             long kind = tokenKind(scalar);
             if (scalar == 47) {
-                boolean comment = startsComment(source, cursor, sourceLength);
-                if (comment) {
-                    kind = 4;
+                long detectedComment = commentKind(source, cursor, sourceLength);
+                if (3 < detectedComment) {
+                    kind = detectedComment;
                 }
             }
             if (kind == 0) {
@@ -95,7 +98,7 @@ classical class Utf8Lexer {
 
                 if (kind < 3) {
                     boolean scanning = true;
-                    while (scanning) limit 10 {
+                    while (scanning) limit 256 {
                         if (cursor < sourceLength) {
                             long next = utf8Scalar(source, cursor);
                             long nextKind = tokenKind(next);
@@ -111,7 +114,7 @@ classical class Utf8Lexer {
                 } else {
                     if (kind == 4) {
                         boolean scanningComment = true;
-                        while (scanningComment) limit 10 {
+                        while (scanningComment) limit 256 {
                             if (cursor < sourceLength) {
                                 long nextComment = utf8Scalar(source, cursor);
                                 if (nextComment == 10) {
@@ -124,6 +127,16 @@ classical class Utf8Lexer {
                             }
                         }
                     }
+                    if (kind == 5) {
+                        long blockEnd = blockCommentEnd(
+                            source, tokenStart, sourceLength);
+                        if (blockEnd < 0) {
+                            lexicalError = tokenStart + 1;
+                            cursor = sourceLength;
+                        } else {
+                            cursor = blockEnd;
+                        }
+                    }
                 }
                 set(tokenLengths, tokenIndex, cursor - tokenStart);
             }
@@ -134,15 +147,20 @@ classical class Utf8Lexer {
         commentStart = tokenStarts[4];
         Assignment parsed = parseAssignment(
             source, tokenKinds, tokenStarts, tokenLengths, tokenCount);
-        match (parsed) {
-            case Assignment.Value(long value) {
-                numericValue = value;
-                parseError = 0;
+        if (lexicalError == 0) {
+            match (parsed) {
+                case Assignment.Value(long value) {
+                    numericValue = value;
+                    parseError = 0;
+                }
+                case Assignment.Error(long offset) {
+                    numericValue = -1;
+                    parseError = offset + 1;
+                }
             }
-            case Assignment.Error(long offset) {
-                numericValue = -1;
-                parseError = offset + 1;
-            }
+        } else {
+            numericValue = -1;
+            parseError = lexicalError;
         }
         outputLength = emitNumber(source, tokenStarts, tokenLengths, output);
         finalCursor = cursor;
@@ -151,8 +169,9 @@ classical class Utf8Lexer {
         assert commentStart == 6;
         assert numericValue == 123;
         assert parseError == 0;
+        assert lexicalError == 0;
         assert outputLength == 3;
-        assert finalCursor == 10;
+        assert finalCursor == 11;
 
         drop(tokenLengths);
         drop(tokenStarts);
