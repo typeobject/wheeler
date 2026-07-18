@@ -68,6 +68,33 @@ final class OwnedStore {
     return bufferId + 1L;
   }
 
+  long hostBytes(int length) {
+    if (length <= 0 || length > MAX_TOTAL_LIVE_BYTES - liveBytes()) {
+      throw new VmTrap("Host byte output exceeds the live-storage limit");
+    }
+    int regionId = regions.size();
+    int bufferId = buffers.size();
+    regions.add(new RegionValue(regionId, length, 1, length, 1, false));
+    buffers.add(new BufferValue(
+        bufferId,
+        regionId,
+        BufferKind.BYTES,
+        length,
+        Collections.nCopies(length, 0L),
+        false));
+    return bufferId + 1L;
+  }
+
+  byte[] hostBytes(long handle) {
+    BufferValue buffer = requireLiveBuffer(handle);
+    requireKind(buffer, BufferKind.BYTES);
+    byte[] result = new byte[buffer.length()];
+    for (int index = 0; index < result.length; index++) {
+      result[index] = (byte) Math.toIntExact(buffer.elements().get(index));
+    }
+    return result;
+  }
+
   Allocation createRegion(long maxBytes, int maxObjects, Change change) {
     validateRegionLimits(maxBytes, maxObjects);
     if (regions.size() >= MAX_REGIONS) {

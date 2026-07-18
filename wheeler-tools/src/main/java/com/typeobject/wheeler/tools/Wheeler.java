@@ -76,40 +76,74 @@ public final class Wheeler {
   }
 
   private static int run(String[] args, PrintStream out, PrintStream error) throws Exception {
+    if (args.length < 2) {
+      return runUsage(error);
+    }
     Program program;
-    byte[] input = null;
-    if ((args.length == 2 || args.length == 4)
-        && Files.isRegularFile(Path.of(args[1]), LinkOption.NOFOLLOW_LINKS)
-        && !Files.isSymbolicLink(Path.of(args[1]))) {
-      program = new BytecodeReader().read(Files.readAllBytes(Path.of(args[1])));
-      if (args.length == 4) {
-        if (!args[2].equals("--input")) {
-          return runUsage(error);
-        }
-        input = readInput(Path.of(args[3]));
-      }
-    } else if ((args.length == 4 || args.length == 6) && args[2].equals("--target")) {
-      program = PackageProject.load(Path.of(args[1])).compileRunnable(args[3]);
-      if (args.length == 6) {
-        if (!args[4].equals("--input")) {
-          return runUsage(error);
-        }
-        input = readInput(Path.of(args[5]));
-      }
+    int option;
+    Path artifact = Path.of(args[1]);
+    if (Files.isRegularFile(artifact, LinkOption.NOFOLLOW_LINKS)
+        && !Files.isSymbolicLink(artifact)) {
+      program = new BytecodeReader().read(Files.readAllBytes(artifact));
+      option = 2;
+    } else if (args.length >= 4 && args[2].equals("--target")) {
+      program = PackageProject.load(artifact).compileRunnable(args[3]);
+      option = 4;
     } else {
       return runUsage(error);
     }
-    printExecution(
-        program,
-        new WheelerRuntime().execute(program, new StateVectorTarget(), input),
-        out);
+
+    byte[] input = null;
+    Path output = null;
+    int outputBytes = -1;
+    while (option < args.length) {
+      if (option + 1 >= args.length) {
+        return runUsage(error);
+      }
+      String name = args[option];
+      String value = args[option + 1];
+      if (name.equals("--input") && input == null) {
+        input = readInput(Path.of(value));
+      } else if (name.equals("--output") && output == null) {
+        output = Path.of(value);
+      } else if (name.equals("--output-bytes") && outputBytes < 0) {
+        outputBytes = parseOutputBytes(value);
+      } else {
+        return runUsage(error);
+      }
+      option += 2;
+    }
+    if ((output == null) != (outputBytes < 0)) {
+      return runUsage(error);
+    }
+
+    ExecutionResult result = new WheelerRuntime().execute(
+        program, new StateVectorTarget(), input, outputBytes);
+    if (output != null) {
+      PackageProject.writeAtomically(output, result.output());
+    }
+    printExecution(program, result, out);
     return 0;
   }
 
   private static int runUsage(PrintStream error) {
-    error.println("Usage: wheeler run <program.wbc> [--input <utf8-file>]"
-        + " | <package-directory> --target <target> [--input <utf8-file>]");
+    error.println("Usage: wheeler run <program.wbc>"
+        + " | <package-directory> --target <target>"
+        + " [--input <utf8-file>] [--output <file> --output-bytes <count>]");
     return 2;
+  }
+
+  private static int parseOutputBytes(String value) {
+    try {
+      int result = Integer.parseInt(value);
+      if (result <= 0 || result > 16 * 1024 * 1024) {
+        throw new NumberFormatException();
+      }
+      return result;
+    } catch (NumberFormatException exception) {
+      throw new IllegalArgumentException(
+          "Output capacity must be between 1 and 16777216 bytes", exception);
+    }
   }
 
   private static byte[] readInput(Path requested) throws Exception {

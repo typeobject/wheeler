@@ -17,9 +17,14 @@ public final class WheelerRuntime {
   }
 
   public ExecutionResult execute(Program program, QuantumTarget target, byte[] utf8Input) {
+    return execute(program, target, utf8Input, -1);
+  }
+
+  public ExecutionResult execute(
+      Program program, QuantumTarget target, byte[] utf8Input, int outputBytes) {
     if (program.kind() != ProgramKind.CLASSICAL) {
-      if (utf8Input != null) {
-        throw new IllegalArgumentException("Host UTF-8 input is currently classical only");
+      if (utf8Input != null || outputBytes >= 0) {
+        throw new IllegalArgumentException("Host input/output is currently classical only");
       }
       if (target == null) {
         throw new IllegalArgumentException("A quantum target is required for " + program.kind());
@@ -27,7 +32,7 @@ public final class WheelerRuntime {
       return HybridRun.start(program, target).runToCompletion(DEFAULT_JOB_TIMEOUT);
     }
 
-    VirtualMachine machine = new VirtualMachine(program, utf8Input);
+    VirtualMachine machine = new VirtualMachine(program, utf8Input, outputBytes);
     machine.run();
     return new ExecutionResult(
         program.name(),
@@ -35,6 +40,7 @@ public final class WheelerRuntime {
         machine.snapshot().globals(),
         List.of(),
         List.of(),
-        machine.snapshot().sequence());
+        machine.snapshot().sequence(),
+        machine.hostOutput());
   }
 }

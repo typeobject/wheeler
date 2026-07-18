@@ -312,9 +312,14 @@ final class SourceParser extends SourceStatementParser {
       fail(start, "rev, unitary, and entry are mutually exclusive method kinds");
     }
     boolean validEntryParameters = parameters.isEmpty()
-        || (parameters.size() == 1 && parameters.getFirst().type().equals("utf8"));
+        || (parameters.size() == 1
+            && (parameters.getFirst().type().equals("utf8")
+                || parameters.getFirst().type().equals("bytes")))
+        || (parameters.size() == 2
+            && parameters.get(0).type().equals("utf8")
+            && parameters.get(1).type().equals("bytes"));
     if (entry && (!name.equals("main") || returnsValue || !validEntryParameters)) {
-      fail(start, "entry method must be void main() or void main(utf8 source)");
+      fail(start, "entry parameters must be optional utf8 input then optional bytes output");
     }
     if ((reversible || coherent || unitary) && (returnsValue || !parameters.isEmpty())) {
       fail(start, "parameters and return values are currently ordinary classical only");

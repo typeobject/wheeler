@@ -36,11 +36,15 @@ public final class BytecodeVerifier {
     verifyWorkflow(program);
 
     FunctionBody entry = program.function(program.entryFunctionId());
-    if (entry.returnsValue()
-        || entry.parameterCount() > 1
+    boolean validEntry = entry.parameterCount() == 0
         || (entry.parameterCount() == 1
-            && !entry.localType(0).equals(ValueType.UTF8_BORROW))) {
-      fail("Entry must be void with zero parameters or one UTF-8 input borrow");
+            && (entry.localType(0).equals(ValueType.UTF8_BORROW)
+                || entry.localType(0).equals(ValueType.BYTES_BORROW)))
+        || (entry.parameterCount() == 2
+            && entry.localType(0).equals(ValueType.UTF8_BORROW)
+            && entry.localType(1).equals(ValueType.BYTES_BORROW));
+    if (entry.returnsValue() || !validEntry) {
+      fail("Entry parameters must be optional UTF-8 input then optional byte output");
     }
     if (entry.forward().stream().noneMatch(instruction -> instruction.opcode() == Opcode.HALT)) {
       fail("Entry function must contain HALT");

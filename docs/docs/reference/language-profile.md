@@ -38,7 +38,7 @@ entry void main() { ... }
 - A `rev` method receives a compiler-validated inverse.
 - A `coherent rev` method also satisfies the exact finite subset that can become a unitary operation.
 - A `unitary` method lowers to backend-neutral quantum region IR and receives a generated adjoint.
-- Exactly one `entry void main()` or `entry void main(utf8 source)` method defines execution.
+- Exactly one entry defines execution; it may borrow an optional `utf8` input followed by an optional mutable `bytes` output.
 
 `public`, `private`, `protected`, and `static` are accepted where meaningful for familiar organization. Ordinary classical methods have typed signed or Boolean parameters, return values, and local bindings, plus bounded control flow. `rev`, `coherent rev`, and `unitary` methods remain zero-argument and `void` until their parameter ownership and inverse signatures are implemented.
 
@@ -310,19 +310,23 @@ The root declares exactly one entry and may use its private records and closed v
 
 Single-source `compile` rejects module declarations. A modular `wheeler.package` target declares its exact sorted source set and root module; local, workspace, planned, archived, and locked offline builds use the same linker with no path-derived imports. Modules do not yet export variants, arrays, slices, state, circuits, or proofs, and cross-package module imports are not yet linked. Those omissions are explicit WIP-0007/WIP-0009 work, not ambient classpath behavior.
 
-## Explicit host UTF-8 input
+## Explicit host input and output
 
-A classical entry may request one immutable input borrow:
+A classical entry may request immutable input and mutable output borrows:
 
 ```java
-entry void main(utf8 source) {
+entry void main(utf8 source, bytes output) {
     scalarCount = utf8Count(source);
+    setByte(output, 0, 79);
+    setByte(output, 1, 75);
 }
 ```
 
-The entry signature is part of canonical bytecode. It does not read a file, environment variable, standard input stream, package resource, or network endpoint. The embedding API supplies exact bytes when constructing the VM or calling `WheelerRuntime`; `wheeler run ... --input <path>` is a capability-minimal host adapter for one explicit physical nonsymlink file. Input is capped at 16 MiB and validated as strict UTF-8 before execution. Missing required input, unexpected input, malformed encoding, oversize files, nonregular paths, and symbolic links fail before the first instruction.
+Input-only and output-only entries are also valid; when both exist, input comes first.
 
-The VM installs valid bytes as an externally owned immutable UTF-8 allocation and gives the entry only a borrow. The external owner is visible in the initial snapshot, cannot be moved or dropped by Wheeler code, and remains the rewind baseline. This first effect is classical and read-only. General file/path capabilities, streaming input, multiple named inputs, output publication, and package-resource binding remain WIP-0007/WIP-0012 work.
+The entry signature is part of canonical bytecode. It does not read a file, environment variable, standard input stream, package resource, or network endpoint. The embedding API supplies exact bytes when constructing the VM or calling `WheelerRuntime`; `wheeler run ... --input <path>` is a capability-minimal host adapter for one explicit physical nonsymlink file. `--output <path> --output-bytes <count>` supplies one fixed-capacity zero-initialized external byte owner and atomically publishes its complete contents only after successful execution. Each side is capped at 16 MiB. Input is validated as strict UTF-8 before execution. Missing, unexpected, malformed, oversized, nonregular, linked, or incompletely specified effects fail before the first instruction or before output replacement.
+
+The VM installs both effects as externally owned baseline storage and gives the entry only verified borrows. External owners are visible in the initial snapshot, cannot be moved or dropped by Wheeler code, and remain the rewind baseline. `ExecutionResult` returns a defensive copy of output bytes. These effects are classical, fixed-size, and caller-bound. General path values, streaming, multiple named effects, variable-length output protocols, and package-resource binding remain WIP-0007/WIP-0012 work.
 
 ## Parser and editor tooling
 

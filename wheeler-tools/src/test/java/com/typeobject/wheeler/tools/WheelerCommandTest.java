@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
+import com.typeobject.wheeler.core.vm.VmTrap;
 import com.typeobject.wheeler.packageformat.BuildPlan;
 import com.typeobject.wheeler.packageformat.BuildPlanCodec;
 import com.typeobject.wheeler.packageformat.PackageArchive;
@@ -292,7 +293,7 @@ class WheelerCommandTest {
   }
 
   @Test
-  void runBindsOnlyAnExplicitPhysicalUtf8Input() throws Exception {
+  void runBindsExplicitPhysicalInputAndPublishesOutputAtomically() throws Exception {
     Path project = temporary.resolve("input");
     Files.createDirectories(project.resolve("src"));
     Files.writeString(project.resolve("wheeler.package"), """
@@ -302,23 +303,42 @@ class WheelerCommandTest {
     Files.writeString(project.resolve("src/Main.w"), """
         classical class Main {
           state long scalars = 0;
-          entry void main(utf8 source) {
+          entry void main(utf8 source, bytes output) {
             scalars = utf8Count(source);
+            setByte(output, 0, 79);
+            setByte(output, 1, 75);
             assert scalars == 2;
           }
         }
         """);
     Path input = temporary.resolve("input.txt");
     Files.writeString(input, "A¢", StandardCharsets.UTF_8);
+    Path result = temporary.resolve("result.bin");
     ByteArrayOutputStream stdout = new ByteArrayOutputStream();
 
     assertEquals(0, Wheeler.execute(
         new String[] {
-            "run", project.toString(), "--target", "main", "--input", input.toString()
+            "run", project.toString(), "--target", "main",
+            "--input", input.toString(),
+            "--output", result.toString(), "--output-bytes", "2"
         },
         new PrintStream(stdout),
         new PrintStream(new ByteArrayOutputStream())));
     assertTrue(stdout.toString(StandardCharsets.UTF_8).contains("scalars = 2"));
+    assertArrayEquals(new byte[] {79, 75}, Files.readAllBytes(result));
+
+    Path malformed = temporary.resolve("malformed.txt");
+    Files.write(malformed, new byte[] {(byte) 0xc0, (byte) 0x80});
+    Files.writeString(result, "preserve");
+    assertThrows(VmTrap.class, () -> Wheeler.execute(
+        new String[] {
+            "run", project.toString(), "--target", "main",
+            "--input", malformed.toString(),
+            "--output", result.toString(), "--output-bytes", "2"
+        },
+        new PrintStream(new ByteArrayOutputStream()),
+        new PrintStream(new ByteArrayOutputStream())));
+    assertEquals("preserve", Files.readString(result));
   }
 
   @Test

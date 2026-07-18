@@ -23,32 +23,48 @@ public final class VirtualMachine {
   private final List<Frame> frames = new ArrayList<>();
   private final AggregateStore aggregates = new AggregateStore();
   private final OwnedStore owned = new OwnedStore();
+  private final long hostOutputHandle;
   private final Deque<StepRecord> history = new ArrayDeque<>();
   private MachineStatus status = MachineStatus.READY;
   private long sequence;
 
   public VirtualMachine(Program program) {
-    this(program, null);
+    this(program, null, -1);
   }
 
   public VirtualMachine(Program program, byte[] utf8Input) {
+    this(program, utf8Input, -1);
+  }
+
+  public VirtualMachine(Program program, byte[] utf8Input, int outputBytes) {
     BytecodeVerifier.verify(program);
     this.program = program;
     this.globals = program.globals().stream().mapToLong(global -> global.initialValue()).toArray();
     FunctionBody entry = program.function(program.entryFunctionId());
-    if (entry.parameterCount() == 0) {
-      if (utf8Input != null) {
-        throw new VmTrap("Program does not declare a host UTF-8 input");
-      }
-      this.frames.add(Frame.create(entry.id(), false, entry.localCount()));
-    } else {
-      if (utf8Input == null) {
-        throw new VmTrap("Program requires one host UTF-8 input");
-      }
-      long handle = owned.hostUtf8(utf8Input);
-      this.frames.add(Frame.create(
-          entry.id(), false, entry.localCount(), -1, List.of(handle)));
+    boolean needsInput = entry.parameterCount() > 0
+        && entry.localType(0).equals(ValueType.UTF8_BORROW);
+    boolean needsOutput = entry.parameterCount() > 0
+        && entry.localType(entry.parameterCount() - 1).equals(ValueType.BYTES_BORROW);
+    if (needsInput != (utf8Input != null)) {
+      throw new VmTrap(needsInput
+          ? "Program requires one host UTF-8 input"
+          : "Program does not declare a host UTF-8 input");
     }
+    if (needsOutput != (outputBytes >= 0)) {
+      throw new VmTrap(needsOutput
+          ? "Program requires one host byte output"
+          : "Program does not declare a host byte output");
+    }
+    List<Long> arguments = new ArrayList<>(entry.parameterCount());
+    if (needsInput) {
+      arguments.add(owned.hostUtf8(utf8Input));
+    }
+    hostOutputHandle = needsOutput ? owned.hostBytes(outputBytes) : 0;
+    if (needsOutput) {
+      arguments.add(hostOutputHandle);
+    }
+    this.frames.add(Frame.create(
+        entry.id(), false, entry.localCount(), -1, arguments));
   }
 
   public void run() {
@@ -121,6 +137,10 @@ public final class VirtualMachine {
     }
     status = record.previousStatus();
     sequence = record.sequence();
+  }
+
+  public byte[] hostOutput() {
+    return hostOutputHandle == 0 ? new byte[0] : owned.hostBytes(hostOutputHandle);
   }
 
   public long global(String name) {

@@ -18,7 +18,7 @@ class HostInputExampleTest {
         Path.of("src/main/wheeler/HostInput.w"));
     assertThrows(VmTrap.class, () -> new VirtualMachine(program));
     VirtualMachine machine = new VirtualMachine(
-        program, "A¢".getBytes(StandardCharsets.UTF_8));
+        program, "A¢".getBytes(StandardCharsets.UTF_8), 2);
     var initial = machine.snapshot();
 
     machine.run();
@@ -27,6 +27,8 @@ class HostInputExampleTest {
     assertEquals(3, machine.global("byteLength"));
     assertEquals(2, machine.global("scalarCount"));
     assertEquals(65, machine.global("firstScalar"));
+    assertEquals(2, machine.global("outputLength"));
+    assertEquals("A!", new String(machine.hostOutput(), StandardCharsets.UTF_8));
     while (machine.historySize() > 0) {
       machine.rewindOne();
     }
