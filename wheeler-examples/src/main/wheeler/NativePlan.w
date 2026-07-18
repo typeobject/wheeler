@@ -13,7 +13,7 @@ classical class NativePlan {
     state long finalLength = 0;
 
     entry void main(byteview source) {
-        region arena = new region(1120, 4);
+        region arena = new region(1450, 5);
         bytes digest = allocateBytes(arena, 32);
         PlanResult parsed = inspectPlan(source, digest, arena);
         match (parsed) {

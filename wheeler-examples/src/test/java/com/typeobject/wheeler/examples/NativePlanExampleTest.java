@@ -81,11 +81,23 @@ class NativePlanExampleTest {
         .putInt(targetKindOffset(invalidKind), 0);
     resignPayload(invalidKind);
     assertRejected(inspector, invalidKind);
+    byte[] forgedNodeIdentity = encoded.clone();
+    forgedNodeIdentity[nodeIdentityOffset(forgedNodeIdentity)] ^= 1;
+    resignPayload(forgedNodeIdentity);
+    assertRejected(inspector, forgedNodeIdentity);
   }
 
   private static void assertRejected(Program inspector, byte[] plan) {
     VirtualMachine machine = VirtualMachine.withBinaryInput(inspector, plan);
     assertThrows(VmTrap.class, machine::run);
+  }
+
+  private static int nodeIdentityOffset(byte[] plan) {
+    ByteBuffer bytes = ByteBuffer.wrap(plan).order(ByteOrder.LITTLE_ENDIAN);
+    int cursor = 80;
+    cursor += Integer.BYTES + bytes.getInt(cursor);
+    cursor += Integer.BYTES;
+    return cursor;
   }
 
   private static int targetKindOffset(byte[] plan) {
