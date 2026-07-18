@@ -25,6 +25,8 @@ class MinimalCompilerExampleTest {
     String root = Files.readString(Path.of("src/main/wheeler/MinimalCompiler.w"));
     String codegen = Files.readString(Path.of("src/main/wheeler/compiler/Codegen.w"));
     String encoding = Files.readString(Path.of("src/main/wheeler/compiler/Encoding.w"));
+    String functionVerifier = Files.readString(
+        Path.of("src/main/wheeler/compiler/FunctionVerifier.w"));
     String helperParser = Files.readString(
         Path.of("src/main/wheeler/compiler/HelperParser.w"));
     String instructionVerifier = Files.readString(
@@ -32,6 +34,10 @@ class MinimalCompilerExampleTest {
     String ir = Files.readString(Path.of("src/main/wheeler/compiler/Ir.w"));
     String opcodes = Files.readString(Path.of("src/main/wheeler/compiler/Opcodes.w"));
     String parser = Files.readString(Path.of("src/main/wheeler/compiler/Parser.w"));
+    String proofRules = Files.readString(
+        Path.of("src/main/wheeler/compiler/ProofRules.w"));
+    String proofVerifier = Files.readString(
+        Path.of("src/main/wheeler/compiler/ProofVerifier.w"));
     String statements = Files.readString(
         Path.of("src/main/wheeler/compiler/Statements.w"));
     String stringTable = Files.readString(
@@ -49,11 +55,14 @@ class MinimalCompilerExampleTest {
             Map.entry("MinimalCompiler.w", root),
             Map.entry("Codegen.w", codegen),
             Map.entry("Encoding.w", encoding),
+            Map.entry("FunctionVerifier.w", functionVerifier),
             Map.entry("HelperParser.w", helperParser),
             Map.entry("InstructionVerifier.w", instructionVerifier),
             Map.entry("Ir.w", ir),
             Map.entry("Opcodes.w", opcodes),
             Map.entry("Parser.w", parser),
+            Map.entry("ProofRules.w", proofRules),
+            Map.entry("ProofVerifier.w", proofVerifier),
             Map.entry("Scanner.w", scanner),
             Map.entry("Statements.w", statements),
             Map.entry("StringTable.w", stringTable),
@@ -361,10 +370,16 @@ class MinimalCompilerExampleTest {
         """;
     String binary = Files.readString(
         Path.of("src/main/wheeler/packages/Binary.w"));
+    String functionVerifier = Files.readString(
+        Path.of("src/main/wheeler/compiler/FunctionVerifier.w"));
     String instructionVerifier = Files.readString(
         Path.of("src/main/wheeler/compiler/InstructionVerifier.w"));
     String opcodes = Files.readString(
         Path.of("src/main/wheeler/compiler/Opcodes.w"));
+    String proofRules = Files.readString(
+        Path.of("src/main/wheeler/compiler/ProofRules.w"));
+    String proofVerifier = Files.readString(
+        Path.of("src/main/wheeler/compiler/ProofVerifier.w"));
     String typeCodes = Files.readString(
         Path.of("src/main/wheeler/compiler/TypeCodes.w"));
     String verifier = Files.readString(
@@ -372,8 +387,11 @@ class MinimalCompilerExampleTest {
     Program program = new WheelerCompiler().compileModuleFiles(
         Map.of(
             "Binary.w", binary,
+            "FunctionVerifier.w", functionVerifier,
             "InstructionVerifier.w", instructionVerifier,
             "Opcodes.w", opcodes,
+            "ProofRules.w", proofRules,
+            "ProofVerifier.w", proofVerifier,
             "TypeCodes.w", typeCodes,
             "Verifier.w", verifier,
             "VerifierTest.w", root),

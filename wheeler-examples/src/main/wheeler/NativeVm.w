@@ -9,7 +9,7 @@ classical class NativeVm {
     state long artifactLength = 0;
 
     entry void main(byteview artifact) {
-        region arena = new region(1280, 5);
+        region arena = new region(2304, 5);
         words locals = allocate(arena, INTERPRETER_LOCAL_CAPACITY);
         words returnCursors = allocate(arena, INTERPRETER_FRAME_COUNT);
         words returnStarts = allocate(arena, INTERPRETER_FRAME_COUNT);

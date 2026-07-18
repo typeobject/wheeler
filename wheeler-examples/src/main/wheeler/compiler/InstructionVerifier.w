@@ -492,21 +492,21 @@ classical class InstructionVerifier {
         return 1;
     }
 
-    public long verifyCodeStream(
+    public long verifyFunctionCode(
         byteview artifact,
-        long codeOffset,
+        long codeStart,
         long codeLength,
         long functionsOffset,
         long globalCount,
         long functionCount,
-        long helperForwardLength,
-        long helperInverseLength,
-        long helperLocalCount,
-        long helperResultCount,
-        long entryLocalCount
+        long localCount,
+        long activeTypes,
+        long resultType,
+        long entryBody
     ) {
-        long cursor = codeOffset;
-        long end = codeOffset + codeLength;
+        long cursor = codeStart;
+        long end = codeStart + codeLength;
+        long lastOpcode = -1;
         while (cursor < end) limit MAX_CODE_INSTRUCTIONS {
             if (end - cursor < 8) {
                 return 0;
@@ -529,61 +529,71 @@ classical class InstructionVerifier {
             if (end < cursor + instructionLength) {
                 return 0;
             }
-            long activeLocalCount = helperLocalCount;
-            long activeStart = codeOffset;
-            long activeEnd = codeOffset + codeLength;
-            long activeTypes = functionsOffset + 84;
-            long activeResultType = 0;
-            if (helperResultCount == 1) {
-                activeResultType = readUnsigned(artifact, activeTypes, 4);
-                activeTypes += 4;
-            }
-            if (functionCount == 1) {
-                activeLocalCount = entryLocalCount;
-                activeTypes = functionsOffset + 44;
-            }
-            if (1 < functionCount) {
-                long forwardEnd = codeOffset + helperForwardLength;
-                long inverseEnd = forwardEnd + helperInverseLength;
-                if (cursor < forwardEnd) {
-                    activeEnd = forwardEnd;
-                } else {
-                    if (cursor < inverseEnd) {
-                        activeStart = forwardEnd;
-                        activeEnd = inverseEnd;
-                    } else {
-                        activeLocalCount = entryLocalCount;
-                        activeStart = inverseEnd;
-                        activeResultType = 0;
-                        activeTypes += helperLocalCount * 4;
-                    }
-                }
-            }
             if (instructionOperandsValid(
                     artifact,
                     cursor,
                     opcode,
                     globalCount,
                     functionCount,
-                    activeLocalCount,
-                    activeStart,
-                    activeEnd,
+                    localCount,
+                    codeStart,
+                    end,
                     activeTypes,
-                    activeResultType,
+                    resultType,
                     functionsOffset) == 0) {
                 return 0;
             }
             if (opcode == OPCODE_HALT) {
-                if (differs(cursor + instructionLength, end)) {
+                if (entryBody == 1) {
+                    if (differs(cursor + instructionLength, end)) {
+                        return 0;
+                    }
+                } else {
                     return 0;
                 }
             }
+            if (opcode == OPCODE_RETURN) {
+                if (entryBody == 0) {
+                    if (resultType == 0) {
+                    } else {
+                        return 0;
+                    }
+                } else {
+                    return 0;
+                }
+            }
+            if (opcode == OPCODE_RETURN_VALUE) {
+                if (entryBody == 0) {
+                    if (0 < resultType) {
+                    } else {
+                        return 0;
+                    }
+                } else {
+                    return 0;
+                }
+            }
+            lastOpcode = opcode;
             cursor += instructionLength;
         }
         if (differs(cursor, end)) {
             return 0;
         }
-        return 1;
+        if (entryBody == 1) {
+            if (lastOpcode == OPCODE_HALT) {
+                return 1;
+            }
+            return 0;
+        }
+        if (0 < resultType) {
+            if (lastOpcode == OPCODE_RETURN_VALUE) {
+                return 1;
+            }
+            return 0;
+        }
+        if (lastOpcode == OPCODE_RETURN) {
+            return 1;
+        }
+        return 0;
     }
 
 }

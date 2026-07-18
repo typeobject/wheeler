@@ -26,11 +26,15 @@ class NativeVmExampleTest {
     Program interpreter = new WheelerCompiler().compileModuleFiles(
         Map.of(
             "Binary.w", Files.readString(root.resolve("packages/Binary.w")),
+            "FunctionVerifier.w",
+            Files.readString(root.resolve("compiler/FunctionVerifier.w")),
             "InstructionVerifier.w",
             Files.readString(root.resolve("compiler/InstructionVerifier.w")),
             "Interpreter.w", Files.readString(root.resolve("compiler/Interpreter.w")),
             "NativeVm.w", Files.readString(root.resolve("NativeVm.w")),
             "Opcodes.w", Files.readString(root.resolve("compiler/Opcodes.w")),
+            "ProofRules.w", Files.readString(root.resolve("compiler/ProofRules.w")),
+            "ProofVerifier.w", Files.readString(root.resolve("compiler/ProofVerifier.w")),
             "TypeCodes.w", Files.readString(root.resolve("compiler/TypeCodes.w")),
             "Verifier.w", Files.readString(root.resolve("compiler/Verifier.w"))),
         "examples.runtime.native_vm");
@@ -90,6 +94,29 @@ class NativeVmExampleTest {
             + "entry void main() { increase(6); assert value == 7; } }",
         "value",
         7);
+    assertInterpretedGlobal(
+        interpreter,
+        "classical class FunctionGraph { state long value = 0; "
+            + "long add(long left, long right) { return left + right; } "
+            + "long twice(long input) { return input * 2; } "
+            + "boolean same(long left, long right) { return left == right; } "
+            + "entry void main() { long sum = add(2, 3); "
+            + "long doubled = twice(sum); boolean valid = same(doubled, 10); "
+            + "if (valid) { value = doubled; } assert value == 10; } }",
+        "value",
+        10);
+    String functionValues = Files.readString(root.resolve("FunctionValues.w"));
+    assertInterpretedGlobal(interpreter, functionValues, "result", 10);
+    assertInterpretedGlobal(
+        interpreter,
+        Files.readString(root.resolve("RecursiveValue.w")),
+        "result",
+        6);
+    byte[] forgedBound = withForgedProofBound(
+        compiler.compileToBytecode(functionValues));
+    assertThrows(
+        VmTrap.class,
+        () -> VirtualMachine.withBinaryInput(interpreter, forgedBound).run());
     assertInterpretedGlobal(
         interpreter,
         "classical class Loop { state long value = 0; "
@@ -173,11 +200,23 @@ class NativeVmExampleTest {
     throw new AssertionError("call fixture has no argument call");
   }
 
+  private static byte[] withForgedProofBound(byte[] artifact) {
+    byte[] forged = artifact.clone();
+    ByteBuffer bytes = ByteBuffer.wrap(forged).order(ByteOrder.LITTLE_ENDIAN);
+    int proofDirectory = 40 + 6 * 32;
+    int proofOffset = Math.toIntExact(bytes.getLong(proofDirectory + 8));
+    bytes.putLong(proofOffset + 20, 3);
+    return forged;
+  }
+
   private static byte[] compileInWheeler(Path root, String source) throws Exception {
     Program compiler = new WheelerCompiler().compileModuleFiles(
         Map.ofEntries(
             Map.entry("Codegen.w", Files.readString(root.resolve("compiler/Codegen.w"))),
             Map.entry("Encoding.w", Files.readString(root.resolve("compiler/Encoding.w"))),
+            Map.entry(
+                "FunctionVerifier.w",
+                Files.readString(root.resolve("compiler/FunctionVerifier.w"))),
             Map.entry(
                 "HelperParser.w",
                 Files.readString(root.resolve("compiler/HelperParser.w"))),
@@ -189,6 +228,10 @@ class NativeVmExampleTest {
                 "MinimalCompiler.w", Files.readString(root.resolve("MinimalCompiler.w"))),
             Map.entry("Opcodes.w", Files.readString(root.resolve("compiler/Opcodes.w"))),
             Map.entry("Parser.w", Files.readString(root.resolve("compiler/Parser.w"))),
+            Map.entry("ProofRules.w", Files.readString(root.resolve("compiler/ProofRules.w"))),
+            Map.entry(
+                "ProofVerifier.w",
+                Files.readString(root.resolve("compiler/ProofVerifier.w"))),
             Map.entry("Scanner.w", Files.readString(root.resolve("lexer/Scanner.w"))),
             Map.entry(
                 "Statements.w", Files.readString(root.resolve("compiler/Statements.w"))),

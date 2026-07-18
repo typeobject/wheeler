@@ -33,8 +33,9 @@ classical class Opcodes {
     public const long OPCODE_JUMP_IF_ZERO = 0x0431;
     public const long OPCODE_LOCAL_LOOP_CHECK = 0x0432;
 
-    public const long INTERPRETER_LOCAL_WIDTH = 16;
+    public const long INTERPRETER_LOCAL_WIDTH = 32;
     public const long INTERPRETER_FRAME_COUNT = 8;
+    public const long INTERPRETER_FUNCTION_COUNT = 8;
     public const long INTERPRETER_LOCAL_CAPACITY =
         INTERPRETER_LOCAL_WIDTH * INTERPRETER_FRAME_COUNT;
     public const long INTERPRETER_MAX_CALL_DEPTH =

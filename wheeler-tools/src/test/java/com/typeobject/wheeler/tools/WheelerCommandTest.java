@@ -416,9 +416,12 @@ class WheelerCommandTest {
         package "demo.seedwriter" version "1.0.0" profile "bootstrap-1";
         target example "compiler" root "src/MinimalCompiler.w" module "examples.compiler.seed"
             source "src/MinimalCompiler.w" source "src/compiler/Codegen.w"
-            source "src/compiler/Encoding.w" source "src/compiler/HelperParser.w"
+            source "src/compiler/Encoding.w" source "src/compiler/FunctionVerifier.w"
+            source "src/compiler/HelperParser.w"
             source "src/compiler/InstructionVerifier.w" source "src/compiler/Ir.w"
-            source "src/compiler/Opcodes.w" source "src/compiler/Parser.w" source "src/compiler/Statements.w"
+            source "src/compiler/Opcodes.w" source "src/compiler/Parser.w"
+            source "src/compiler/ProofRules.w" source "src/compiler/ProofVerifier.w"
+            source "src/compiler/Statements.w"
             source "src/compiler/StringTable.w" source "src/compiler/Structure.w" source "src/compiler/Tokens.w"
             source "src/compiler/TypeCodes.w" source "src/compiler/Verifier.w"
             source "src/lexer/Scanner.w" source "src/packages/Binary.w";
@@ -432,6 +435,9 @@ class WheelerCommandTest {
     Files.copy(
         examples.resolve("compiler/Encoding.w"),
         project.resolve("src/compiler/Encoding.w"));
+    Files.copy(
+        examples.resolve("compiler/FunctionVerifier.w"),
+        project.resolve("src/compiler/FunctionVerifier.w"));
     Files.copy(
         examples.resolve("compiler/HelperParser.w"),
         project.resolve("src/compiler/HelperParser.w"));
@@ -447,6 +453,12 @@ class WheelerCommandTest {
     Files.copy(
         examples.resolve("compiler/Parser.w"),
         project.resolve("src/compiler/Parser.w"));
+    Files.copy(
+        examples.resolve("compiler/ProofRules.w"),
+        project.resolve("src/compiler/ProofRules.w"));
+    Files.copy(
+        examples.resolve("compiler/ProofVerifier.w"),
+        project.resolve("src/compiler/ProofVerifier.w"));
     Files.copy(
         examples.resolve("compiler/Statements.w"),
         project.resolve("src/compiler/Statements.w"));

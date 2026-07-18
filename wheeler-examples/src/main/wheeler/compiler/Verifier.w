@@ -1,6 +1,6 @@
 module examples.compiler.verifier;
-import examples.compiler.instruction_verifier;
-import examples.compiler.opcodes;
+import examples.compiler.function_verifier;
+import examples.compiler.proof_verifier;
 import examples.compiler.type_codes;
 classical class Verifier {
     private boolean differs(long left, long right) {
@@ -109,119 +109,32 @@ classical class Verifier {
         return 1;
     }
 
-    private long verifyLocalTypes(
-        byteview artifact,
-        long functionsOffset,
-        long functionCount,
-        long helperLocalCount,
-        long helperResultCount,
-        long entryLocalCount
-    ) {
-        long typeCursor = functionsOffset + 44;
-        long typeCount = entryLocalCount;
-        if (functionCount == 2) {
-            typeCursor = functionsOffset + 84;
-            typeCount = helperResultCount
-                + helperLocalCount
-                + entryLocalCount;
-        }
-        long index = 0;
-        while (index < typeCount)
-            limit INTERPRETER_LOCAL_WIDTH * 2 {
-            long typeCode = readUnsigned(artifact, typeCursor, 4);
-            if (typeCode == TYPE_SIGNED) {
-            } else {
-                if (typeCode == TYPE_BOOLEAN) {
-                } else {
-                    return 0;
-                }
-            }
-            typeCursor += 4;
-            index += 1;
-        }
-        return 1;
-    }
-
     private long verifyPayloads(byteview artifact, long sectionCount) {
         long manifestOffset = directoryField(artifact, 0, 8, 8);
         long stringsOffset = directoryField(artifact, 1, 8, 8);
         long typesOffset = directoryField(artifact, 2, 8, 8);
         long variantsOffset = directoryField(artifact, 3, 8, 8);
         long functionsOffset = directoryField(artifact, 4, 8, 8);
+        long functionsLength = directoryField(artifact, 4, 16, 8);
         long codeOffset = directoryField(artifact, 5, 8, 8);
         long codeLength = directoryField(artifact, 5, 16, 8);
         long globalCount = readUnsigned(artifact, typesOffset, 4);
         long stringCount = readUnsigned(artifact, stringsOffset, 4);
         long functionCount = readUnsigned(artifact, functionsOffset, 4);
-        long localCount = readUnsigned(artifact, functionsOffset + 36, 4);
-        long entryLocalCount = localCount;
-        if (functionCount == 2) {
-            entryLocalCount = readUnsigned(
-                artifact, functionsOffset + 76, 4);
-        }
-        long firstFlags = readUnsigned(
-            artifact, functionsOffset + 12, 4);
-        long helperResultCount = 0;
-        if (firstFlags == 4) {
-            helperResultCount = 1;
-        }
-        long firstForwardLength = readUnsigned(
-            artifact, functionsOffset + 20, 4);
-        long firstInverseOffset = readUnsigned(
-            artifact, functionsOffset + 24, 4);
-        long firstInverseLength = readUnsigned(
-            artifact, functionsOffset + 28, 4);
+        long entryFunction = readUnsigned(artifact, manifestOffset + 4, 4);
         if (globalCount < 2) {
         } else {
-            return 0;
-        }
-        if (functionCount < 1) {
-            return 0;
-        }
-        if (2 < functionCount) {
-            return 0;
-        }
-        if (INTERPRETER_LOCAL_WIDTH < localCount) {
-            return 0;
-        }
-        if (INTERPRETER_LOCAL_WIDTH < entryLocalCount) {
-            return 0;
-        }
-
-        if (verifyCodeStream(
-                artifact,
-                codeOffset,
-                codeLength,
-                functionsOffset,
-                globalCount,
-                functionCount,
-                firstForwardLength,
-                firstInverseLength,
-                localCount,
-                helperResultCount,
-                entryLocalCount) == 0) {
             return 0;
         }
         if (differs(directoryField(artifact, 0, 16, 8), 24)) {
             return 0;
         }
-        if (differs(directoryField(artifact, 2, 16, 8),
+        if (differs(
+                directoryField(artifact, 2, 16, 8),
                 16 + globalCount * 16)) {
             return 0;
         }
         if (differs(directoryField(artifact, 3, 16, 8), 4)) {
-            return 0;
-        }
-        long expectedFunctionsLength = 44 + localCount * 4;
-        if (functionCount == 2) {
-            expectedFunctionsLength = 84
-                + helperResultCount * 4
-                + localCount * 4
-                + entryLocalCount * 4;
-        }
-        if (differs(
-                directoryField(artifact, 4, 16, 8),
-                expectedFunctionsLength)) {
             return 0;
         }
         if (globalCount == 1) {
@@ -235,15 +148,6 @@ classical class Verifier {
                     TYPE_SIGNED)) {
                 return 0;
             }
-        }
-        if (verifyLocalTypes(
-                artifact,
-                functionsOffset,
-                functionCount,
-                localCount,
-                helperResultCount,
-                entryLocalCount) == 0) {
-            return 0;
         }
         if (differs(
                 stringCount,
@@ -263,173 +167,16 @@ classical class Verifier {
         if (differs(readUnsigned(artifact, variantsOffset, 4), 0)) {
             return 0;
         }
-        if (differs(readUnsigned(artifact, functionsOffset + 4, 4), 0)) {
-            return 0;
-        }
-        if (firstFlags == 0) {
-        } else {
-            if (firstFlags == 1) {
-            } else {
-                if (firstFlags == 4) {
-                } else {
-                    return 0;
-                }
-            }
-        }
-        if (functionCount == 1) {
-            if (differs(firstFlags, 0)) {
-                return 0;
-            }
-        }
-        if (differs(readUnsigned(artifact, functionsOffset + 16, 4), 0)) {
-            return 0;
-        }
-        if (functionCount == 1) {
-            if (differs(firstForwardLength, codeLength)) {
-                return 0;
-            }
-        }
-        if (functionCount == 2) {
-            long entryForwardLength = readUnsigned(
-                artifact, functionsOffset + 60, 4);
-            if (differs(
-                    firstForwardLength
-                        + firstInverseLength
-                        + entryForwardLength,
-                    codeLength)) {
-                return 0;
-            }
-            if (firstFlags == 0) {
-                if (differs(firstInverseOffset, 4294967295)) {
-                    return 0;
-                }
-                if (differs(firstInverseLength, 0)) {
-                    return 0;
-                }
-            }
-            if (firstFlags == 4) {
-                if (differs(firstInverseOffset, 4294967295)) {
-                    return 0;
-                }
-                if (differs(firstInverseLength, 0)) {
-                    return 0;
-                }
-            }
-            if (firstFlags == 1) {
-                if (entryForwardLength < 40) {
-                    return 0;
-                }
-                if (differs(firstInverseOffset, firstForwardLength)) {
-                    return 0;
-                }
-                if (differs(firstInverseLength, firstForwardLength)) {
-                    return 0;
-                }
-                if (firstInverseLength < 32) {
-                    return 0;
-                }
-            }
-        }
-        if (functionCount == 1) {
-            if (differs(firstInverseOffset, 4294967295)) {
-                return 0;
-            }
-            if (differs(firstInverseLength, 0)) {
-                return 0;
-            }
-        }
-        long firstParameterCount = readUnsigned(
-            artifact, functionsOffset + 32, 4);
-        if (localCount < firstParameterCount) {
-            return 0;
-        }
-        if (firstFlags == 1) {
-            if (differs(firstParameterCount, 0)) {
-                return 0;
-            }
-        }
-        if (differs(readUnsigned(artifact, functionsOffset + 40, 4), 0)) {
-            return 0;
-        }
-        long functionName = readUnsigned(
-            artifact, functionsOffset + 8, 4);
-        if (functionName < stringCount) {
-        } else {
-            return 0;
-        }
-        if (functionCount == 2) {
-            if (differs(readUnsigned(artifact, functionsOffset + 44, 4), 1)) {
-                return 0;
-            }
-            long entryName = readUnsigned(
-                artifact, functionsOffset + 48, 4);
-            if (entryName < stringCount) {
-            } else {
-                return 0;
-            }
-            if (differs(readUnsigned(artifact, functionsOffset + 52, 4), 0)) {
-                return 0;
-            }
-            long entryOffset = firstForwardLength + firstInverseLength;
-            if (differs(
-                    readUnsigned(artifact, functionsOffset + 56, 4),
-                    entryOffset)) {
-                return 0;
-            }
-            if (differs(
-                    readUnsigned(artifact, functionsOffset + 64, 4),
-                    4294967295)) {
-                return 0;
-            }
-            if (differs(readUnsigned(artifact, functionsOffset + 68, 4), 0)) {
-                return 0;
-            }
-            if (differs(readUnsigned(artifact, functionsOffset + 72, 4), 0)) {
-                return 0;
-            }
-            if (differs(
-                    readUnsigned(artifact, functionsOffset + 80, 4),
-                    localCount + helperResultCount)) {
-                return 0;
-            }
-            long helperReturn = OPCODE_RETURN;
-            long helperReturnLength = 8;
-            if (firstFlags == 4) {
-                helperReturn = OPCODE_RETURN_VALUE;
-                helperReturnLength = 16;
-            }
-            if (firstForwardLength < helperReturnLength) {
-                return 0;
-            }
-            if (differs(
-                    readUnsigned(
-                        artifact,
-                        codeOffset + firstForwardLength - helperReturnLength,
-                        2),
-                    helperReturn)) {
-                return 0;
-            }
-            if (firstFlags == 1) {
-                if (differs(
-                        readUnsigned(
-                            artifact,
-                            codeOffset + firstForwardLength
-                                + firstInverseLength - 8,
-                            2),
-                        OPCODE_RETURN)) {
-                    return 0;
-                }
-            }
-        }
-        if (differs(
-                readUnsigned(artifact, codeOffset + codeLength - 8, 2),
-                OPCODE_HALT)) {
-            return 0;
-        }
-        if (differs(readUnsigned(artifact, codeOffset + codeLength - 6, 2), 0)) {
-            return 0;
-        }
-        if (differs(readUnsigned(artifact, codeOffset + codeLength - 4, 4), 8)) {
+        if (verifyFunctions(
+                artifact,
+                functionsOffset,
+                functionsLength,
+                codeOffset,
+                codeLength,
+                globalCount,
+                functionCount,
+                entryFunction,
+                stringCount) == 0) {
             return 0;
         }
         long programName = readUnsigned(artifact, manifestOffset, 4);
@@ -437,9 +184,7 @@ classical class Verifier {
         } else {
             return 0;
         }
-        if (differs(
-                readUnsigned(artifact, manifestOffset + 4, 4),
-                functionCount - 1)) {
+        if (differs(entryFunction, functionCount - 1)) {
             return 0;
         }
         if (differs(readUnsigned(artifact, manifestOffset + 8, 4), 250000)) {
@@ -453,41 +198,24 @@ classical class Verifier {
                 1000000)) {
             return 0;
         }
+        long proofOffset = 0;
+        long proofLength = 0;
         if (sectionCount == 7) {
-            long proofOffset = directoryField(artifact, 6, 8, 8);
-            if (differs(directoryField(artifact, 6, 16, 8), 28)) {
-                return 0;
-            }
-            if (differs(readUnsigned(artifact, proofOffset, 4), 1)) {
-                return 0;
-            }
-            if (differs(readUnsigned(artifact, proofOffset + 4, 4), 0)) {
-                return 0;
-            }
-            long proofName = readUnsigned(artifact, proofOffset + 8, 4);
-            if (proofName < stringCount) {
-            } else {
-                return 0;
-            }
-            if (differs(readUnsigned(artifact, proofOffset + 12, 4), 1)) {
-                return 0;
-            }
-            if (differs(readUnsigned(artifact, proofOffset + 16, 4), 0)) {
-                return 0;
-            }
-            if (firstFlags == 1) {
-            } else {
-                return 0;
-            }
-            long argumentByte = 0;
-            while (argumentByte < 8) limit 8 {
-                if (differs(
-                        artifact[proofOffset + 20 + argumentByte],
-                        255)) {
-                    return 0;
-                }
-                argumentByte += 1;
-            }
+            proofOffset = directoryField(artifact, 6, 8, 8);
+            proofLength = directoryField(artifact, 6, 16, 8);
+        }
+        if (verifyProofs(
+                artifact,
+                sectionCount,
+                proofOffset,
+                proofLength,
+                functionsOffset,
+                codeOffset,
+                functionCount,
+                entryFunction,
+                stringCount,
+                readUnsigned(artifact, manifestOffset + 16, 8)) == 0) {
+            return 0;
         }
         return 1;
     }
