@@ -149,9 +149,24 @@ class MinimalCompilerExampleTest {
         3);
     assertDifferentialExecution(
         writerProgram,
+        "classical class DoubleCalls { state long value = 1; "
+            + "void bump() { value += 2; } "
+            + "entry void main() { bump(); bump(); assert value == 5; } }",
+        "value",
+        5);
+    assertDifferentialExecution(
+        writerProgram,
         "classical class ReversibleCalls { state long value = 1; "
             + "rev void bump() { value += 2; } "
             + "entry void main() { bump(); reverse { bump(); } } }",
+        "value",
+        1);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class DoubleReverse { state long value = 1; "
+            + "rev void bump() { value += 2; } "
+            + "entry void main() { bump(); bump(); "
+            + "reverse { bump(); bump(); } assert value == 1; } }",
         "value",
         1);
     assertDifferentialExecution(
@@ -187,6 +202,22 @@ class MinimalCompilerExampleTest {
             + "assert value == 1; } }",
         "value",
         1);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class DoubleChecked { state long count = 0; "
+            + "rev void increment() { count += 1; } "
+            + "entry void main() { increment(); increment(); "
+            + "assert count == 2; reverse { increment(); increment(); } "
+            + "assert count == 0; } }",
+        "count",
+        0);
+    String counterSource = Files.readString(
+        Path.of("src/main/wheeler/Counter.w"));
+    assertDifferentialExecution(
+        writerProgram,
+        counterSource,
+        "count",
+        0);
     assertDifferentialExecution(
         writerProgram,
         "classical class WithLocal { state long total = 1; "

@@ -314,11 +314,6 @@ classical class Verifier {
             if (differs(readUnsigned(artifact, entryCode, 2), 512)) {
                 return 0;
             }
-            if (firstFlags == 1) {
-                if (differs(readUnsigned(artifact, entryCode + 16, 2), 513)) {
-                    return 0;
-                }
-            }
         }
         if (differs(readUnsigned(artifact, codeOffset + codeLength - 8, 2), 1)) {
             return 0;

@@ -56,7 +56,9 @@ classical class HelperParser {
         long reversible,
         long proofToken,
         long proofCount,
-        long entryStatement
+        long entryStatement,
+        long helperCallCount,
+        long preReverseStatement
     ) {
         long operandToken = statementOperandToken(
             source, tokenStarts, tokenLengths, helperBody);
@@ -74,14 +76,35 @@ classical class HelperParser {
         long entryCount = 0;
         long entryOpcode = -1;
         long entryOperand = 0;
-        if (-1 < entryStatement) {
+        long secondEntryOpcode = -1;
+        long secondEntryOperand = 0;
+        long preReverseCount = 0;
+        if (-1 < preReverseStatement) {
             entryCount = 1;
+            preReverseCount = 1;
             entryOpcode = statementOpcode(
-                source, tokenStarts, tokenLengths, entryStatement);
+                source, tokenStarts, tokenLengths, preReverseStatement);
+            long preOperandToken = statementOperandToken(
+                source, tokenStarts, tokenLengths, preReverseStatement);
+            entryOperand = parsedSignedNumber(
+                source, tokenStarts, tokenLengths, preOperandToken);
+        }
+        if (-1 < entryStatement) {
             long entryOperandToken = statementOperandToken(
                 source, tokenStarts, tokenLengths, entryStatement);
-            entryOperand = parsedSignedNumber(
-                source, tokenStarts, tokenLengths, entryOperandToken);
+            if (entryCount == 0) {
+                entryCount = 1;
+                entryOpcode = statementOpcode(
+                    source, tokenStarts, tokenLengths, entryStatement);
+                entryOperand = parsedSignedNumber(
+                    source, tokenStarts, tokenLengths, entryOperandToken);
+            } else {
+                entryCount = 2;
+                secondEntryOpcode = statementOpcode(
+                    source, tokenStarts, tokenLengths, entryStatement);
+                secondEntryOperand = parsedSignedNumber(
+                    source, tokenStarts, tokenLengths, entryOperandToken);
+            }
         }
         MinimalProgram program = new MinimalProgram(
             name,
@@ -91,8 +114,8 @@ classical class HelperParser {
             entryCount,
             entryOpcode,
             entryOperand,
-            -1,
-            0,
+            secondEntryOpcode,
+            secondEntryOperand,
             -1,
             0,
             -1,
@@ -105,7 +128,9 @@ classical class HelperParser {
                 source, tokenStarts, tokenLengths, operandToken),
             reversible,
             proof,
-            proofCount);
+            proofCount,
+            helperCallCount,
+            preReverseCount);
         return new MinimalProgramResult.Value(program);
     }
 
@@ -120,7 +145,9 @@ classical class HelperParser {
         long helperBody,
         long reversible,
         long proofToken,
-        long proofCount
+        long proofCount,
+        long helperCallCount,
+        long preReverseStatement
     ) {
         long entryStatement = -1;
         long entryClose = closeStart;
@@ -154,7 +181,9 @@ classical class HelperParser {
                         reversible,
                         proofToken,
                         proofCount,
-                        entryStatement);
+                        entryStatement,
+                        helperCallCount,
+                        preReverseStatement);
                 }
             }
         }
@@ -302,6 +331,43 @@ classical class HelperParser {
                                                         tokenLengths,
                                                         nameToken,
                                                         entryBody)) {
+                                                    long helperCallCount = 1;
+                                                    long afterCalls = entryBody + 4;
+                                                    if (callValid(
+                                                            source,
+                                                            tokenKinds,
+                                                            tokenStarts,
+                                                            tokenLengths,
+                                                            nameToken,
+                                                            afterCalls)) {
+                                                        helperCallCount = 2;
+                                                        afterCalls += 4;
+                                                    }
+                                                    long preReverseStatement = -1;
+                                                    if (reversible == 1) {
+                                                        long reverseHash = tokenHash(
+                                                            source,
+                                                            tokenStarts,
+                                                            tokenLengths,
+                                                            afterCalls);
+                                                        if (reverseHash
+                                                                == 104179061474) {
+                                                            afterCalls = afterCalls;
+                                                        } else {
+                                                            long preReverseWidth = statementWidth(
+                                                                source,
+                                                                tokenKinds,
+                                                                tokenStarts,
+                                                                tokenLengths,
+                                                                afterCalls);
+                                                            if (0 < preReverseWidth) {
+                                                                preReverseStatement = afterCalls;
+                                                                afterCalls += preReverseWidth;
+                                                            } else {
+                                                                afterCalls = -1;
+                                                            }
+                                                        }
+                                                    }
                                                     if (reversible == 0) {
                                                         return finishEntry(
                                                             source,
@@ -309,51 +375,73 @@ classical class HelperParser {
                                                             tokenStarts,
                                                             tokenLengths,
                                                             count,
-                                                            entryBody + 4,
+                                                            afterCalls,
                                                             nameToken,
                                                             helperBody,
                                                             reversible,
                                                             proofToken,
-                                                            proofCount);
+                                                            proofCount,
+                                                            helperCallCount,
+                                                            -1);
                                                     }
                                                     if (reversible == 1) {
                                                         if (tokenHash(
                                                                 source,
                                                                 tokenStarts,
                                                                 tokenLengths,
-                                                                entryBody + 4)
+                                                                afterCalls)
                                                                 == 104179061474) {
                                                             if (punctuationAt(
                                                                     source,
                                                                     tokenKinds,
                                                                     tokenStarts,
-                                                                    entryBody + 5,
+                                                                    afterCalls + 1,
                                                                     123)) {
+                                                                long reverseCall = afterCalls + 2;
                                                                 if (callValid(
                                                                         source,
                                                                         tokenKinds,
                                                                         tokenStarts,
                                                                         tokenLengths,
                                                                         nameToken,
-                                                                        entryBody + 6)) {
-                                                                    if (punctuationAt(
-                                                                            source,
-                                                                            tokenKinds,
-                                                                            tokenStarts,
-                                                                            entryBody + 10,
-                                                                            125)) {
-                                                                        return finishEntry(
-                                                                            source,
-                                                                            tokenKinds,
-                                                                            tokenStarts,
-                                                                            tokenLengths,
-                                                                            count,
-                                                                            entryBody + 11,
-                                                                            nameToken,
-                                                                            helperBody,
-                                                                            reversible,
-                                                                            proofToken,
-                                                                            proofCount);
+                                                                        reverseCall)) {
+                                                                    long reverseEnd = reverseCall + 4;
+                                                                    boolean reverseCallsValid = true;
+                                                                    if (helperCallCount == 2) {
+                                                                        if (callValid(
+                                                                                source,
+                                                                                tokenKinds,
+                                                                                tokenStarts,
+                                                                                tokenLengths,
+                                                                                nameToken,
+                                                                                reverseEnd)) {
+                                                                            reverseEnd += 4;
+                                                                        } else {
+                                                                            reverseCallsValid = false;
+                                                                        }
+                                                                    }
+                                                                    if (reverseCallsValid) {
+                                                                        if (punctuationAt(
+                                                                                source,
+                                                                                tokenKinds,
+                                                                                tokenStarts,
+                                                                                reverseEnd,
+                                                                                125)) {
+                                                                            return finishEntry(
+                                                                                source,
+                                                                                tokenKinds,
+                                                                                tokenStarts,
+                                                                                tokenLengths,
+                                                                                count,
+                                                                                reverseEnd + 1,
+                                                                                nameToken,
+                                                                                helperBody,
+                                                                                reversible,
+                                                                                proofToken,
+                                                                                proofCount,
+                                                                                helperCallCount,
+                                                                                preReverseStatement);
+                                                                        }
                                                                     }
                                                                 }
                                                             }

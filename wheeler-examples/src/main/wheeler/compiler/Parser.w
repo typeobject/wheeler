@@ -91,6 +91,8 @@ classical class Parser {
             0,
             0,
             helper,
+            0,
+            0,
             0);
         return new MinimalProgramResult.Value(program);
     }
@@ -127,6 +129,8 @@ classical class Parser {
             0,
             0,
             helper,
+            0,
+            0,
             0);
         return new MinimalProgramResult.Value(program);
     }
@@ -219,6 +223,8 @@ classical class Parser {
             0,
             0,
             global,
+            0,
+            0,
             0);
         return new MinimalProgramResult.Value(program);
     }
@@ -331,7 +337,7 @@ classical class Parser {
 
     private boolean minimalStateCountSupported(long count) {
         if (17 < count) {
-            return count < 64;
+            return count < 128;
         }
         return false;
     }
