@@ -193,6 +193,18 @@ classical class InstructionVerifier {
         if (opcode == OPCODE_VARIANT_GET) {
             return 4;
         }
+        if (opcode == OPCODE_ARRAY_NEW) {
+            return 4;
+        }
+        if (opcode == OPCODE_ARRAY_GET) {
+            return 3;
+        }
+        if (opcode == OPCODE_SLICE_NEW) {
+            return 5;
+        }
+        if (opcode == OPCODE_SLICE_GET) {
+            return 3;
+        }
         return -1;
     }
 
@@ -232,6 +244,8 @@ classical class InstructionVerifier {
         long globalCount,
         long recordCount,
         long variantCount,
+        long arrayCount,
+        long sliceCount,
         long functionCount,
         long localCount,
         long activeStart,
@@ -256,6 +270,8 @@ classical class InstructionVerifier {
             globalCount,
             recordCount,
             variantCount,
+            arrayCount,
+            sliceCount,
             localCount,
             activeTypes);
         if (aggregateValid < 0) {
@@ -537,6 +553,8 @@ classical class InstructionVerifier {
         long globalCount,
         long recordCount,
         long variantCount,
+        long arrayCount,
+        long sliceCount,
         long functionCount,
         long localCount,
         long activeTypes,
@@ -577,6 +595,8 @@ classical class InstructionVerifier {
                     globalCount,
                     recordCount,
                     variantCount,
+                    arrayCount,
+                    sliceCount,
                     functionCount,
                     localCount,
                     codeStart,

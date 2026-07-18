@@ -193,13 +193,66 @@ classical class Verifier {
             typeCursor += 12 + fieldCount * 8;
             record += 1;
         }
-        if (differs(readUnsigned(artifact, typeCursor, 4), 0)) {
+        long arrayCount = readUnsigned(artifact, typeCursor, 4);
+        if (INTERPRETER_AGGREGATE_COUNT < arrayCount) {
             return 0;
         }
-        if (differs(readUnsigned(artifact, typeCursor + 4, 4), 0)) {
+        typeCursor += 4;
+        long array = 0;
+        while (array < arrayCount) limit INTERPRETER_AGGREGATE_COUNT {
+            if (differs(readUnsigned(artifact, typeCursor, 4), array)) {
+                return 0;
+            }
+            long elementType = readUnsigned(artifact, typeCursor + 4, 4);
+            if (elementType == TYPE_SIGNED) {
+            } else {
+                if (elementType == TYPE_BOOLEAN) {
+                } else {
+                    if (isRecordType(elementType)) {
+                        if (recordTypeId(elementType) < recordCount) {
+                        } else {
+                            return 0;
+                        }
+                    } else {
+                        return 0;
+                    }
+                }
+            }
+            long elementCount = readUnsigned(artifact, typeCursor + 8, 4);
+            if (INTERPRETER_AGGREGATE_FIELDS < elementCount) {
+                return 0;
+            }
+            typeCursor += 12;
+            array += 1;
+        }
+        long sliceCount = readUnsigned(artifact, typeCursor, 4);
+        if (INTERPRETER_AGGREGATE_COUNT < sliceCount) {
             return 0;
         }
-        typeCursor += 8;
+        typeCursor += 4;
+        long slice = 0;
+        while (slice < sliceCount) limit INTERPRETER_AGGREGATE_COUNT {
+            if (differs(readUnsigned(artifact, typeCursor, 4), slice)) {
+                return 0;
+            }
+            long sliceElement = readUnsigned(artifact, typeCursor + 4, 4);
+            if (sliceElement == TYPE_SIGNED) {
+            } else {
+                if (sliceElement == TYPE_BOOLEAN) {
+                } else {
+                    if (isRecordType(sliceElement)) {
+                        if (recordTypeId(sliceElement) < recordCount) {
+                        } else {
+                            return 0;
+                        }
+                    } else {
+                        return 0;
+                    }
+                }
+            }
+            typeCursor += 8;
+            slice += 1;
+        }
         if (differs(typeCursor, typesOffset + typesLength)) {
             return 0;
         }
@@ -280,6 +333,8 @@ classical class Verifier {
                 globalCount,
                 recordCount,
                 variantCount,
+                arrayCount,
+                sliceCount,
                 functionCount,
                 entryFunction,
                 stringCount) == 0) {

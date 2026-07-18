@@ -130,6 +130,25 @@ class NativeVmExampleTest {
         12,
         "selected",
         7);
+    String arrays = "classical class NativeArrays { "
+        + "state long selected = 0; state long sliceSelected = 0; "
+        + "entry void main() { "
+        + "long[4] first = new long[4](2, 4, 6, 8); "
+        + "long[] middle = slice(first, 1, 2); "
+        + "selected = first[2]; sliceSelected = middle[1]; "
+        + "assert selected == 6; assert sliceSelected == 6; } }";
+    assertInterpretedTwoGlobals(
+        interpreter, arrays, "selected", 6, "sliceSelected", 6);
+    byte[] forgedArray = withBadArrayIndex(
+        compiler.compileToBytecode(arrays));
+    assertThrows(
+        VmTrap.class,
+        () -> VirtualMachine.withBinaryInput(interpreter, forgedArray).run());
+    byte[] forgedSlice = withBadSliceIndex(
+        compiler.compileToBytecode(arrays));
+    assertThrows(
+        VmTrap.class,
+        () -> VirtualMachine.withBinaryInput(interpreter, forgedSlice).run());
     String records = Files.readString(root.resolve("Records.w"));
     assertInterpretedTwoGlobals(
         interpreter, records, "width", 5, "equal", 1);
@@ -265,6 +284,40 @@ class NativeVmExampleTest {
       cursor += bytes.getInt(cursor + 4);
     }
     throw new AssertionError("call fixture has no argument call");
+  }
+
+  private static byte[] withBadSliceIndex(byte[] artifact) {
+    byte[] damaged = artifact.clone();
+    ByteBuffer bytes = ByteBuffer.wrap(damaged).order(ByteOrder.LITTLE_ENDIAN);
+    int codeDirectory = 40 + 5 * 32;
+    int cursor = Math.toIntExact(bytes.getLong(codeDirectory + 8));
+    int end = cursor + Math.toIntExact(bytes.getLong(codeDirectory + 16));
+    while (cursor < end) {
+      int opcode = Short.toUnsignedInt(bytes.getShort(cursor));
+      if (opcode == Opcode.SLICE_GET.code()) {
+        bytes.putLong(cursor + 24, Long.MAX_VALUE);
+        return damaged;
+      }
+      cursor += bytes.getInt(cursor + 4);
+    }
+    throw new AssertionError("slice fixture has no element read");
+  }
+
+  private static byte[] withBadArrayIndex(byte[] artifact) {
+    byte[] damaged = artifact.clone();
+    ByteBuffer bytes = ByteBuffer.wrap(damaged).order(ByteOrder.LITTLE_ENDIAN);
+    int codeDirectory = 40 + 5 * 32;
+    int cursor = Math.toIntExact(bytes.getLong(codeDirectory + 8));
+    int end = cursor + Math.toIntExact(bytes.getLong(codeDirectory + 16));
+    while (cursor < end) {
+      int opcode = Short.toUnsignedInt(bytes.getShort(cursor));
+      if (opcode == Opcode.ARRAY_GET.code()) {
+        bytes.putLong(cursor + 24, Long.MAX_VALUE);
+        return damaged;
+      }
+      cursor += bytes.getInt(cursor + 4);
+    }
+    throw new AssertionError("array fixture has no element read");
   }
 
   private static byte[] withBadVariantTag(byte[] artifact) {

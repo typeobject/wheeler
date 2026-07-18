@@ -37,6 +37,10 @@ classical class Opcodes {
     public const long OPCODE_VARIANT_NEW = 0x0510;
     public const long OPCODE_VARIANT_TAG_EQ = 0x0511;
     public const long OPCODE_VARIANT_GET = 0x0512;
+    public const long OPCODE_ARRAY_NEW = 0x0520;
+    public const long OPCODE_ARRAY_GET = 0x0521;
+    public const long OPCODE_SLICE_NEW = 0x0530;
+    public const long OPCODE_SLICE_GET = 0x0531;
 
     public const long INTERPRETER_AGGREGATE_COUNT = 32;
     public const long INTERPRETER_AGGREGATE_FIELDS = 128;

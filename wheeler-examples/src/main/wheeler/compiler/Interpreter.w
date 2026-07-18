@@ -477,6 +477,136 @@ classical class Interpreter {
                                 recordHandle,
                                 recordFieldIndex));
                     }
+                    if (opcode == OPCODE_ARRAY_NEW) {
+                        long arrayDestination = readUnsigned(
+                            artifact, cursor + 8, 8);
+                        long arrayType = readUnsigned(
+                            artifact, cursor + 16, 8);
+                        long elementBase = readUnsigned(
+                            artifact, cursor + 24, 8);
+                        long elementCount = readUnsigned(
+                            artifact, cursor + 32, 8);
+                        AggregateAllocation arrayAllocation = internAggregate(
+                            aggregateTypes,
+                            aggregateTags,
+                            aggregateStarts,
+                            aggregateCounts,
+                            aggregateFields,
+                            locals,
+                            depth * INTERPRETER_LOCAL_WIDTH,
+                            TYPE_ARRAY + arrayType,
+                            0,
+                            elementBase,
+                            elementCount,
+                            aggregateCount,
+                            aggregateFieldCursor);
+                        if (arrayAllocation.handle < 1) {
+                            return new ExecutionResult.Error(cursor);
+                        }
+                        aggregateCount = arrayAllocation.aggregateCount;
+                        aggregateFieldCursor = arrayAllocation.fieldCursor;
+                        set(
+                            locals,
+                            localIndex(depth, arrayDestination),
+                            arrayAllocation.handle);
+                    }
+                    if (opcode == OPCODE_ARRAY_GET) {
+                        long arrayGetDestination = readUnsigned(
+                            artifact, cursor + 8, 8);
+                        long arraySource = readUnsigned(
+                            artifact, cursor + 16, 8);
+                        long arrayIndexLocal = readUnsigned(
+                            artifact, cursor + 24, 8);
+                        long arrayIndex = locals[localIndex(
+                            depth, arrayIndexLocal)];
+                        long arrayHandle = locals[localIndex(depth, arraySource)];
+                        if (aggregateFieldValid(
+                                aggregateCounts, arrayHandle, arrayIndex)) {
+                        } else {
+                            return new ExecutionResult.Error(cursor);
+                        }
+                        set(
+                            locals,
+                            localIndex(depth, arrayGetDestination),
+                            aggregateField(
+                                aggregateStarts,
+                                aggregateCounts,
+                                aggregateFields,
+                                arrayHandle,
+                                arrayIndex));
+                    }
+                    if (opcode == OPCODE_SLICE_NEW) {
+                        long sliceDestination = readUnsigned(
+                            artifact, cursor + 8, 8);
+                        long sliceType = readUnsigned(
+                            artifact, cursor + 16, 8);
+                        long sliceArray = readUnsigned(
+                            artifact, cursor + 24, 8);
+                        long sliceStartLocal = readUnsigned(
+                            artifact, cursor + 32, 8);
+                        long sliceLengthLocal = readUnsigned(
+                            artifact, cursor + 40, 8);
+                        long sliceArrayHandle = locals[localIndex(
+                            depth, sliceArray)];
+                        long sliceStart = locals[localIndex(
+                            depth, sliceStartLocal)];
+                        long sliceLength = locals[localIndex(
+                            depth, sliceLengthLocal)];
+                        if (aggregateWindowValid(
+                                aggregateCounts,
+                                sliceArrayHandle,
+                                sliceStart,
+                                sliceLength)) {
+                        } else {
+                            return new ExecutionResult.Error(cursor);
+                        }
+                        AggregateAllocation sliceAllocation = internSlice(
+                            aggregateTypes,
+                            aggregateTags,
+                            aggregateStarts,
+                            aggregateCounts,
+                            aggregateFields,
+                            sliceArrayHandle,
+                            sliceStart,
+                            sliceLength,
+                            TYPE_SLICE + sliceType,
+                            aggregateCount,
+                            aggregateFieldCursor);
+                        if (sliceAllocation.handle < 1) {
+                            return new ExecutionResult.Error(cursor);
+                        }
+                        aggregateCount = sliceAllocation.aggregateCount;
+                        aggregateFieldCursor = sliceAllocation.fieldCursor;
+                        set(
+                            locals,
+                            localIndex(depth, sliceDestination),
+                            sliceAllocation.handle);
+                    }
+                    if (opcode == OPCODE_SLICE_GET) {
+                        long sliceGetDestination = readUnsigned(
+                            artifact, cursor + 8, 8);
+                        long sliceSource = readUnsigned(
+                            artifact, cursor + 16, 8);
+                        long sliceIndexLocal = readUnsigned(
+                            artifact, cursor + 24, 8);
+                        long sliceIndex = locals[localIndex(
+                            depth, sliceIndexLocal)];
+                        long sliceHandle = locals[localIndex(depth, sliceSource)];
+                        if (aggregateFieldValid(
+                                aggregateCounts, sliceHandle, sliceIndex)) {
+                        } else {
+                            return new ExecutionResult.Error(cursor);
+                        }
+                        set(
+                            locals,
+                            localIndex(depth, sliceGetDestination),
+                            aggregateField(
+                                aggregateStarts,
+                                aggregateCounts,
+                                aggregateFields,
+                                sliceHandle,
+                                sliceIndex));
+                    }
                     if (opcode == OPCODE_VARIANT_NEW) {
                         long variantDestination = readUnsigned(
                             artifact, cursor + 8, 8);

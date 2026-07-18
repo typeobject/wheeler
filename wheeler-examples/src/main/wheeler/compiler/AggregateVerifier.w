@@ -299,6 +299,271 @@ classical class AggregateVerifier {
         return 0;
     }
 
+    private long arrayDescriptor(
+        byteview artifact,
+        long typesOffset,
+        long globalCount,
+        long recordCount,
+        long arrayCount,
+        long arrayId
+    ) {
+        long cursor = typesOffset + 8 + globalCount * 16;
+        long record = 0;
+        while (record < recordCount) limit INTERPRETER_AGGREGATE_COUNT {
+            long fieldCount = readUnsigned(artifact, cursor + 8, 4);
+            cursor += 12 + fieldCount * 8;
+            record += 1;
+        }
+        cursor += 4;
+        if (arrayId < arrayCount) {
+            long descriptor = cursor + arrayId * 12;
+            if (readUnsigned(artifact, descriptor, 4) == arrayId) {
+                return descriptor;
+            }
+        }
+        return -1;
+    }
+
+    private long arrayOperandsValid(
+        byteview artifact,
+        long cursor,
+        long opcode,
+        long typesOffset,
+        long globalCount,
+        long recordCount,
+        long arrayCount,
+        long localCount,
+        long activeTypes
+    ) {
+        long destination = readUnsigned(artifact, cursor + 8, 8);
+        if (opcode == OPCODE_ARRAY_NEW) {
+            long typeId = readUnsigned(artifact, cursor + 16, 8);
+            long elementBase = readUnsigned(artifact, cursor + 24, 8);
+            long elementCount = readUnsigned(artifact, cursor + 32, 8);
+            long descriptor = arrayDescriptor(
+                artifact,
+                typesOffset,
+                globalCount,
+                recordCount,
+                arrayCount,
+                typeId);
+            if (descriptor < 0) {
+                return 0;
+            }
+            if (differs(
+                    readUnsigned(artifact, descriptor + 8, 4),
+                    elementCount)) {
+                return 0;
+            }
+            if (localCount < elementBase + elementCount) {
+                return 0;
+            }
+            if (destination < localCount) {
+                if (localType(artifact, activeTypes, destination)
+                        == TYPE_ARRAY + typeId) {
+                } else {
+                    return 0;
+                }
+            } else {
+                return 0;
+            }
+            long element = 0;
+            while (element < elementCount)
+                limit INTERPRETER_AGGREGATE_FIELDS {
+                if (localType(
+                        artifact,
+                        activeTypes,
+                        elementBase + element)
+                        == readUnsigned(artifact, descriptor + 4, 4)) {
+                } else {
+                    return 0;
+                }
+                element += 1;
+            }
+            return 1;
+        }
+        long source = readUnsigned(artifact, cursor + 16, 8);
+        long indexLocal = readUnsigned(artifact, cursor + 24, 8);
+        if (destination < localCount) {
+            if (source < localCount) {
+                if (indexLocal < localCount) {
+                    long sourceType = localType(
+                        artifact, activeTypes, source);
+                    if (isArrayType(sourceType)) {
+                        long getDescriptor = arrayDescriptor(
+                            artifact,
+                            typesOffset,
+                            globalCount,
+                            recordCount,
+                            arrayCount,
+                            arrayTypeId(sourceType));
+                        if (0 < getDescriptor) {
+                            if (localType(
+                                    artifact,
+                                    activeTypes,
+                                    indexLocal) == TYPE_SIGNED) {
+                                if (localType(
+                                        artifact,
+                                        activeTypes,
+                                        destination)
+                                        == readUnsigned(
+                                            artifact,
+                                            getDescriptor + 4,
+                                            4)) {
+                                    return 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+
+    private long sliceDescriptor(
+        byteview artifact,
+        long typesOffset,
+        long globalCount,
+        long recordCount,
+        long arrayCount,
+        long sliceCount,
+        long sliceId
+    ) {
+        long cursor = typesOffset + 8 + globalCount * 16;
+        long record = 0;
+        while (record < recordCount) limit INTERPRETER_AGGREGATE_COUNT {
+            long fieldCount = readUnsigned(artifact, cursor + 8, 4);
+            cursor += 12 + fieldCount * 8;
+            record += 1;
+        }
+        cursor += 4 + arrayCount * 12 + 4;
+        if (sliceId < sliceCount) {
+            long descriptor = cursor + sliceId * 8;
+            if (readUnsigned(artifact, descriptor, 4) == sliceId) {
+                return descriptor;
+            }
+        }
+        return -1;
+    }
+
+    private long sliceOperandsValid(
+        byteview artifact,
+        long cursor,
+        long opcode,
+        long typesOffset,
+        long globalCount,
+        long recordCount,
+        long arrayCount,
+        long sliceCount,
+        long localCount,
+        long activeTypes
+    ) {
+        long destination = readUnsigned(artifact, cursor + 8, 8);
+        if (opcode == OPCODE_SLICE_NEW) {
+            long typeId = readUnsigned(artifact, cursor + 16, 8);
+            long sourceArray = readUnsigned(artifact, cursor + 24, 8);
+            long startLocal = readUnsigned(artifact, cursor + 32, 8);
+            long lengthLocal = readUnsigned(artifact, cursor + 40, 8);
+            if (destination < localCount) {
+                if (sourceArray < localCount) {
+                    if (startLocal < localCount) {
+                        if (lengthLocal < localCount) {
+                            long sourceType = localType(
+                                artifact, activeTypes, sourceArray);
+                            if (isArrayType(sourceType)) {
+                                long arrayInfo = arrayDescriptor(
+                                    artifact,
+                                    typesOffset,
+                                    globalCount,
+                                    recordCount,
+                                    arrayCount,
+                                    arrayTypeId(sourceType));
+                                long sliceInfo = sliceDescriptor(
+                                    artifact,
+                                    typesOffset,
+                                    globalCount,
+                                    recordCount,
+                                    arrayCount,
+                                    sliceCount,
+                                    typeId);
+                                if (0 < arrayInfo) {
+                                    if (0 < sliceInfo) {
+                                        if (localType(
+                                                artifact,
+                                                activeTypes,
+                                                destination)
+                                                == TYPE_SLICE + typeId) {
+                                            if (localType(
+                                                    artifact,
+                                                    activeTypes,
+                                                    startLocal)
+                                                    == TYPE_SIGNED) {
+                                                if (localType(
+                                                        artifact,
+                                                        activeTypes,
+                                                        lengthLocal)
+                                                        == TYPE_SIGNED) {
+                                                    if (readUnsigned(
+                                                            artifact,
+                                                            arrayInfo + 4,
+                                                            4)
+                                                            == readUnsigned(
+                                                                artifact,
+                                                                sliceInfo + 4,
+                                                                4)) {
+                                                        return 1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+        long sourceSlice = readUnsigned(artifact, cursor + 16, 8);
+        long indexLocal = readUnsigned(artifact, cursor + 24, 8);
+        if (destination < localCount) {
+            if (sourceSlice < localCount) {
+                if (indexLocal < localCount) {
+                    long getSourceType = localType(
+                        artifact, activeTypes, sourceSlice);
+                    if (isSliceType(getSourceType)) {
+                        long getInfo = sliceDescriptor(
+                            artifact,
+                            typesOffset,
+                            globalCount,
+                            recordCount,
+                            arrayCount,
+                            sliceCount,
+                            sliceTypeId(getSourceType));
+                        if (0 < getInfo) {
+                            if (localType(
+                                    artifact,
+                                    activeTypes,
+                                    indexLocal) == TYPE_SIGNED) {
+                                if (localType(
+                                        artifact,
+                                        activeTypes,
+                                        destination)
+                                        == readUnsigned(
+                                            artifact, getInfo + 4, 4)) {
+                                    return 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+
     public long aggregateOperandsValid(
         byteview artifact,
         long cursor,
@@ -308,6 +573,8 @@ classical class AggregateVerifier {
         long globalCount,
         long recordCount,
         long variantCount,
+        long arrayCount,
+        long sliceCount,
         long localCount,
         long activeTypes
     ) {
@@ -360,6 +627,56 @@ classical class AggregateVerifier {
                 opcode,
                 variantsOffset,
                 variantCount,
+                localCount,
+                activeTypes);
+        }
+        if (opcode == OPCODE_ARRAY_NEW) {
+            return arrayOperandsValid(
+                artifact,
+                cursor,
+                opcode,
+                typesOffset,
+                globalCount,
+                recordCount,
+                arrayCount,
+                localCount,
+                activeTypes);
+        }
+        if (opcode == OPCODE_ARRAY_GET) {
+            return arrayOperandsValid(
+                artifact,
+                cursor,
+                opcode,
+                typesOffset,
+                globalCount,
+                recordCount,
+                arrayCount,
+                localCount,
+                activeTypes);
+        }
+        if (opcode == OPCODE_SLICE_NEW) {
+            return sliceOperandsValid(
+                artifact,
+                cursor,
+                opcode,
+                typesOffset,
+                globalCount,
+                recordCount,
+                arrayCount,
+                sliceCount,
+                localCount,
+                activeTypes);
+        }
+        if (opcode == OPCODE_SLICE_GET) {
+            return sliceOperandsValid(
+                artifact,
+                cursor,
+                opcode,
+                typesOffset,
+                globalCount,
+                recordCount,
+                arrayCount,
+                sliceCount,
                 localCount,
                 activeTypes);
         }

@@ -7,6 +7,8 @@ classical class TypeCodes {
     public const long TYPE_KIND_MASK = 0xf0000000;
     public const long TYPE_RECORD = 0x10000000;
     public const long TYPE_VARIANT = 0x20000000;
+    public const long TYPE_ARRAY = 0x30000000;
+    public const long TYPE_SLICE = 0x40000000;
 
     public boolean isRecordType(long typeCode) {
         return (typeCode & TYPE_KIND_MASK) == TYPE_RECORD;
@@ -21,6 +23,22 @@ classical class TypeCodes {
     }
 
     public long variantTypeId(long typeCode) {
+        return typeCode & TYPE_DESCRIPTOR_MASK;
+    }
+
+    public boolean isArrayType(long typeCode) {
+        return (typeCode & TYPE_KIND_MASK) == TYPE_ARRAY;
+    }
+
+    public long arrayTypeId(long typeCode) {
+        return typeCode & TYPE_DESCRIPTOR_MASK;
+    }
+
+    public boolean isSliceType(long typeCode) {
+        return (typeCode & TYPE_KIND_MASK) == TYPE_SLICE;
+    }
+
+    public long sliceTypeId(long typeCode) {
         return typeCode & TYPE_DESCRIPTOR_MASK;
     }
 }
