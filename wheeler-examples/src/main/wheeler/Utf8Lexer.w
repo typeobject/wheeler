@@ -3,6 +3,7 @@ classical class Utf8Lexer {
     state long tokenCount = 0;
     state long numberStart = 0;
     state long commentStart = 0;
+    state long numericValue = 0;
     state long finalCursor = 0;
 
     long tokenKind(long scalar) {
@@ -36,6 +37,17 @@ classical class Utf8Lexer {
         return 3;
     }
 
+    long parseNumber(utf8 source, long start, long end) {
+        long value = 0;
+        long cursor = start;
+        while (cursor < end) limit 10 {
+            long digit = utf8Scalar(source, cursor) - 48;
+            value = value * 10 + digit;
+            cursor += utf8Width(source, cursor);
+        }
+        return value;
+    }
+
     boolean startsComment(utf8 source, long cursor, long sourceLength) {
         long next = cursor + utf8Width(source, cursor);
         if (next < sourceLength) {
@@ -45,7 +57,7 @@ classical class Utf8Lexer {
     }
 
     entry void main() {
-        region arena = new region(266, 3);
+        region arena = new region(394, 4);
         bytes raw = allocateBytes(arena, 10);
         setByte(raw, 0, 120);
         setByte(raw, 1, 61);
@@ -61,6 +73,7 @@ classical class Utf8Lexer {
 
         words tokenKinds = allocate(arena, 16);
         words tokenStarts = allocate(arena, 16);
+        words tokenLengths = allocate(arena, 16);
         long sourceLength = bufferLength(source);
         long count = 0;
         long cursor = 0;
@@ -78,8 +91,10 @@ classical class Utf8Lexer {
             if (kind == 0) {
                 cursor += width;
             } else {
-                set(tokenKinds, count, kind);
-                set(tokenStarts, count, cursor);
+                long tokenIndex = count;
+                long tokenStart = cursor;
+                set(tokenKinds, tokenIndex, kind);
+                set(tokenStarts, tokenIndex, tokenStart);
                 count += 1;
                 cursor += width;
 
@@ -115,18 +130,23 @@ classical class Utf8Lexer {
                         }
                     }
                 }
+                set(tokenLengths, tokenIndex, cursor - tokenStart);
             }
         }
 
         tokenCount = count;
         numberStart = tokenStarts[2];
         commentStart = tokenStarts[4];
+        long numberEnd = numberStart + tokenLengths[2];
+        numericValue = parseNumber(source, numberStart, numberEnd);
         finalCursor = cursor;
         assert tokenCount == 5;
         assert numberStart == 2;
         assert commentStart == 6;
+        assert numericValue == 123;
         assert finalCursor == 10;
 
+        drop(tokenLengths);
         drop(tokenStarts);
         drop(tokenKinds);
         drop(source);

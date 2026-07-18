@@ -305,7 +305,7 @@ Typed value function
 
 classical class Values {
   long add(long left, long right) {
-    return left + right;
+    return left + right * 2;
   }
   boolean same(boolean left, boolean right) {
     return left == right;
@@ -342,7 +342,11 @@ classical class Values {
                     (expression
                       (identifier))
                     (expression
-                      (identifier)))))))))
+                      (binary_expression
+                        (expression
+                          (identifier))
+                        (expression
+                          (integer_literal)))))))))))
       (member_declaration
         (method_declaration
           (value_type)

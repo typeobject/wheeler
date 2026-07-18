@@ -158,6 +158,29 @@ class WheelerCompilerTest {
   }
 
   @Test
+  void checkedMultiplicationUsesConventionalPrecedenceAndTrapsOnOverflow() {
+    Program program = new WheelerCompiler().compile("""
+        classical class Product {
+          state long result = 0;
+          entry void main() { result = 2 + 3 * 4; assert result == 14; }
+        }
+        """);
+    VirtualMachine machine = new VirtualMachine(program);
+    machine.run();
+    assertEquals(14, machine.global("result"));
+
+    VirtualMachine overflow = new VirtualMachine(new WheelerCompiler().compile("""
+        classical class Overflow {
+          entry void main() {
+            long maximum = 9223372036854775807;
+            long product = maximum * 2;
+          }
+        }
+        """));
+    assertThrows(VmTrap.class, overflow::run);
+  }
+
+  @Test
   void typedLocalsBranchesAndBoundedLoopsExecute() {
     String source = """
         classical class Control {

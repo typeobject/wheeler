@@ -284,7 +284,7 @@ public final class BytecodeVerifier {
           fail(location(owner, pc) + " uses the wrong copy/move operation");
         }
       }
-      case LOCAL_ADD, LOCAL_SUB -> {
+      case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL -> {
         for (long operand : instruction.operands()) {
           requireType(owner, verifyLocal(owner, operand, pc), ValueType.SIGNED, pc);
         }
@@ -677,7 +677,8 @@ public final class BytecodeVerifier {
       case LOCAL_MOVE, OWNED_MOVE, UTF8_FREEZE, UTF8_BORROW, MAP_BORROW,
           BUFFER_BORROW, REGION_BORROW ->
           new int[] {1};
-      case LOCAL_ADD, LOCAL_SUB, LOCAL_XOR, LOCAL_EQ, LOCAL_LT -> new int[] {1, 2};
+      case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_XOR, LOCAL_EQ, LOCAL_LT ->
+          new int[] {1, 2};
       case JUMP_IF_ZERO -> new int[] {0};
       case LOCAL_LOOP_CHECK -> new int[] {0, 1};
       case RETURN_VALUE -> new int[] {0};
@@ -703,7 +704,8 @@ public final class BytecodeVerifier {
   private static int writtenLocal(Instruction instruction) {
     return switch (instruction.opcode()) {
       case LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, OWNED_MOVE,
-          LOCAL_ADD, LOCAL_SUB, LOCAL_XOR, LOCAL_EQ, LOCAL_LT, LOCAL_LOOP_CHECK,
+          LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_XOR, LOCAL_EQ, LOCAL_LT,
+          LOCAL_LOOP_CHECK,
           RECORD_NEW, RECORD_GET, VARIANT_NEW, VARIANT_TAG_EQ, VARIANT_GET,
           ARRAY_NEW, ARRAY_GET, SLICE_NEW, SLICE_GET, REGION_NEW,
           WORDS_ALLOC, WORDS_GET, BYTES_ALLOC, BYTES_GET,

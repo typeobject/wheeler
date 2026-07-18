@@ -707,11 +707,23 @@ final class SourceParser extends SourceStatementParser {
   }
 
   private String parseAdditive(List<Statement> body) {
-    String left = parsePrimary(body);
+    String left = parseMultiplicative(body);
     while (match(Type.PLUS, Type.MINUS)) {
       SourceToken operator = previous();
       left = binary(
-          body, operator, operator.type() == Type.PLUS ? "add" : "sub", left, parsePrimary(body));
+          body,
+          operator,
+          operator.type() == Type.PLUS ? "add" : "sub",
+          left,
+          parseMultiplicative(body));
+    }
+    return left;
+  }
+
+  private String parseMultiplicative(List<Statement> body) {
+    String left = parsePrimary(body);
+    while (match(Type.STAR)) {
+      left = binary(body, previous(), "mul", left, parsePrimary(body));
     }
     return left;
   }

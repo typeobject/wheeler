@@ -20,6 +20,7 @@ record SourceToken(Type type, String text, int line, int column, int offset) {
     XOR_ASSIGN,
     PLUS,
     MINUS,
+    STAR,
     XOR,
     LESS,
     END

@@ -30,6 +30,7 @@ public enum Opcode {
   LOCAL_ADD(0x0410, 3, Reversibility.CHECKED),
   LOCAL_SUB(0x0411, 3, Reversibility.CHECKED),
   LOCAL_XOR(0x0412, 3, Reversibility.CHECKED),
+  LOCAL_MUL(0x0413, 3, Reversibility.CHECKED),
   LOCAL_EQ(0x0420, 3, Reversibility.CHECKED),
   LOCAL_LT(0x0421, 3, Reversibility.CHECKED),
   JUMP(0x0430, 1, Reversibility.CHECKED),

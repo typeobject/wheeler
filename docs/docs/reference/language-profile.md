@@ -69,7 +69,7 @@ This executes `reverse second();` and then `reverse first();`.
 
 ## Local expressions and bounded control
 
-Ordinary classical methods support signed `long` and `boolean` locals, left-to-right expressions over `+`, `-`, `^`, `<`, and `==`, `if`/`else`, source-bounded `while`, and source-bounded `for`. Arithmetic and ordering require signed operands. Equality requires equal operand types and returns Boolean. XOR accepts two signed values or two Booleans and preserves their type. Conditions require Boolean values; integers are never truthy:
+Ordinary classical methods support signed `long` and `boolean` locals, expressions over checked `*`, `+`, `-`, bitwise `^`, `<`, and `==` with multiplication binding before addition/subtraction, `if`/`else`, source-bounded `while`, and source-bounded `for`. Arithmetic and ordering require signed operands. Addition, subtraction, and multiplication trap before destination mutation on signed 64-bit overflow. Equality requires equal operand types and returns Boolean. XOR accepts two signed values or two Booleans and preserves their type. Conditions require Boolean values; integers are never truthy:
 
 ```java
 long i = 0;

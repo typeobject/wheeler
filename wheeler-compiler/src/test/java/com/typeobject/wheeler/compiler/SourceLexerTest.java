@@ -11,13 +11,14 @@ import org.junit.jupiter.api.Test;
 class SourceLexerTest {
   @Test
   void recordsLocationsAndUsesLongestOperatorMatch() {
-    List<SourceToken> tokens = new SourceLexer("// heading\ncount += 0x1f;").lex();
+    List<SourceToken> tokens = new SourceLexer("// heading\ncount += 0x1f * 2;").lex();
 
     assertEquals("count", tokens.get(0).text());
     assertEquals(2, tokens.get(0).line());
     assertEquals(1, tokens.get(0).column());
     assertEquals(Type.PLUS_ASSIGN, tokens.get(1).type());
     assertEquals("0x1f", tokens.get(2).text());
+    assertEquals(Type.STAR, tokens.get(3).type());
   }
 
   @Test
