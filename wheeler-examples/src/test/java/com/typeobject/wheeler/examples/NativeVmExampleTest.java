@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.examples;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -9,6 +10,7 @@ import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -45,8 +47,9 @@ class NativeVmExampleTest {
     }
     assertEquals(initial, machine.snapshot());
 
-    byte[] counter = compiler.compileToBytecode(
-        Files.readString(root.resolve("Counter.w")));
+    String counterSource = Files.readString(root.resolve("Counter.w"));
+    byte[] counter = compileInWheeler(root, counterSource);
+    assertArrayEquals(compiler.compileToBytecode(counterSource), counter);
     VirtualMachine counterMachine = VirtualMachine.withBinaryInput(
         interpreter, counter);
     counterMachine.run();
@@ -58,5 +61,32 @@ class NativeVmExampleTest {
     VirtualMachine rejected = VirtualMachine.withBinaryInput(
         interpreter, malformed);
     assertThrows(VmTrap.class, rejected::run);
+  }
+
+  private static byte[] compileInWheeler(Path root, String source) throws Exception {
+    Program compiler = new WheelerCompiler().compileModuleFiles(
+        Map.ofEntries(
+            Map.entry("Codegen.w", Files.readString(root.resolve("compiler/Codegen.w"))),
+            Map.entry("Encoding.w", Files.readString(root.resolve("compiler/Encoding.w"))),
+            Map.entry(
+                "HelperParser.w",
+                Files.readString(root.resolve("compiler/HelperParser.w"))),
+            Map.entry("Ir.w", Files.readString(root.resolve("compiler/Ir.w"))),
+            Map.entry(
+                "MinimalCompiler.w", Files.readString(root.resolve("MinimalCompiler.w"))),
+            Map.entry("Parser.w", Files.readString(root.resolve("compiler/Parser.w"))),
+            Map.entry("Scanner.w", Files.readString(root.resolve("lexer/Scanner.w"))),
+            Map.entry(
+                "Statements.w", Files.readString(root.resolve("compiler/Statements.w"))),
+            Map.entry(
+                "StringTable.w", Files.readString(root.resolve("compiler/StringTable.w"))),
+            Map.entry("Structure.w", Files.readString(root.resolve("compiler/Structure.w"))),
+            Map.entry("Tokens.w", Files.readString(root.resolve("compiler/Tokens.w"))),
+            Map.entry("Verifier.w", Files.readString(root.resolve("compiler/Verifier.w")))),
+        "examples.compiler.seed");
+    VirtualMachine machine = new VirtualMachine(
+        compiler, source.getBytes(StandardCharsets.UTF_8), 1024);
+    machine.run();
+    return machine.hostOutput();
   }
 }

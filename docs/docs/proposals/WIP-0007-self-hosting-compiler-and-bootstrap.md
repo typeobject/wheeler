@@ -138,6 +138,14 @@ These are Wheeler modules, not host extension points. Stage 0 follows the same b
 
 The parser remains hand-written and deterministic unless another implementation proves simpler. Tree-sitter is editor tooling and a differential syntax oracle; it is not linked into the production compiler.
 
+### Incubation and promotion
+
+`wheeler-examples` is the executable incubator for the first Wheeler-written compiler slices because stage 0 can already compile, package-select, run, rewind, and differentially test those modules there. It is not their permanent address. Incubation keeps an incomplete compiler from becoming the build authority merely because somebody found a serious directory name for it.
+
+Promotion happens after the modules expose one bounded source-set/options/result API, own stable diagnostics, compile the `Counter.w` milestone through Wheeler verification and execution, and have an explicit package target with no dependency on example-only code. The accepted source set then moves atomically into the canonical compiler tool package. It is not copied and wrapped: package manifests, tests, documentation links, and bootstrap scripts move in the same series; superseded example targets and module paths are deleted. Afterward, checked-in examples consume the pinned compiler package like any other client.
+
+Later phase promotion follows the same rule. A lexer, verifier, interpreter, or encoder may begin as an independently testable example module, but only one implementation remains authoritative after its package boundary is accepted. The repository does not collect prototype organs in jars.
+
 ## Reversibility and effects
 
 Self-hosting does not imply that compilation is physically or logically reversible. Parsing allocates, diagnostics observe malformed input, and artifact writing is external I/O. These operations use ordinary, checked, logged, or barrier semantics as appropriate.
@@ -186,11 +194,12 @@ The launcher grants read-only source inputs and one atomic artifact destination.
 2. Add typed parameters, returns, locals, conditionals, bounded loops, records, variants, strings, bytes, and deterministic collections in vertical parser-to-VM slices.
 3. Add module manifests and explicit source/artifact effects.
 4. Implement `.wbc` and proof-certificate decoding and encoding in Wheeler and compare them against stage 0.
-5. Port lexer and parser, then resolution, checking, lowering, verification, and the driver.
-6. Produce stage 1 and stage 2; require fixed-point and differential conformance tests in CI.
-7. Switch ordinary builds to the Wheeler compiler artifact.
-8. Delete the Java lexer, parser, source model, lowerers, and artifact-generation path as part of the WIP-0008 no-Java cutover.
-9. Retain only the pinned `.wbc` recovery seed, native Wheeler launcher, and generation provenance; do not retain a parallel Java compiler or VM.
+5. Port lexer and parser, then resolution, checking, lowering, verification, and the driver in executable example slices.
+6. Promote the accepted source set by moving it into the canonical compiler tool package; move manifests, tests, and documentation and delete the superseded example targets in the same series.
+7. Produce stage 1 and stage 2; require fixed-point and differential conformance tests in CI.
+8. Switch ordinary builds to the Wheeler compiler artifact.
+9. Delete the Java lexer, parser, source model, lowerers, and artifact-generation path as part of the WIP-0008 no-Java cutover.
+10. Retain only the pinned `.wbc` recovery seed, native Wheeler launcher, and generation provenance; do not retain a parallel Java compiler or VM.
 
 ## Progress
 
