@@ -72,6 +72,14 @@ final class WorkspaceProject {
     }
   }
 
+  int test() throws IOException {
+    int executed = 0;
+    for (MemberProject member : members) {
+      executed += member.project().test();
+    }
+    return executed;
+  }
+
   BuildPlan plan(String compilerIdentity) throws IOException {
     List<BuildPlan.Node> nodes = new ArrayList<>();
     for (MemberProject member : members) {

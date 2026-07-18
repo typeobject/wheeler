@@ -2,6 +2,9 @@ package com.typeobject.wheeler.tools;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.packageformat.BuildPlan;
+import com.typeobject.wheeler.packageformat.PackageManifest.TargetKind;
+import com.typeobject.wheeler.runtime.WheelerRuntime;
+import com.typeobject.wheeler.runtime.quantum.StateVectorTarget;
 import com.typeobject.wheeler.packageformat.PackageArchive;
 import com.typeobject.wheeler.packageformat.PackageFormatException;
 import com.typeobject.wheeler.packageformat.PackageManifest;
@@ -54,6 +57,19 @@ final class PackageProject {
     for (PackageManifest.Target target : manifest.targets()) {
       compiler.compile(source(target));
     }
+  }
+
+  int test() throws IOException {
+    WheelerCompiler compiler = new WheelerCompiler();
+    WheelerRuntime runtime = new WheelerRuntime();
+    int executed = 0;
+    for (PackageManifest.Target target : manifest.targets()) {
+      if (target.kind() == TargetKind.TEST) {
+        runtime.execute(compiler.compile(source(target)), new StateVectorTarget());
+        executed++;
+      }
+    }
+    return executed;
   }
 
   Map<String, byte[]> compile() throws IOException {

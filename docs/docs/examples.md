@@ -2,7 +2,7 @@
 
 Every checked-in `.w` file is accepted by the compiler and Tree-sitter grammar. Classical examples execute on the VM. Quantum and hybrid examples execute through asynchronous `QuantumTarget` jobs on the ideal state-vector target. The bytecode round trip must be canonical before an example runs.
 
-The examples are deliberately bounded. They demonstrate implemented semantics and state unsupported boundaries directly.
+The examples are deliberately bounded. They demonstrate implemented semantics and state unsupported boundaries directly. `QFTProof.w` is also the workspace's declared `test` target, so `wheeler test .` exercises package-driven compilation and execution rather than a special fixture path.
 
 | Example | Contract | Expected final state |
 | --- | --- | --- |
@@ -39,6 +39,7 @@ The canonical [`wheeler.package`](../../wheeler-examples/wheeler.package) declar
 
 ```bash
 ./gradlew :wheeler-tools:wheeler --args='check .'
+./gradlew :wheeler-tools:wheeler --args='test .'
 ```
 
 Use the [development guide](reference/development.md) for the complete gate. The ordinary `check` and `treeSitterTest` tasks cover every example. No example is excluded as future syntax.

@@ -107,6 +107,36 @@ class WheelerCommandTest {
   }
 
   @Test
+  void testSubcommandExecutesOnlyDeclaredTestTargets() throws Exception {
+    Path project = temporary.resolve("tests");
+    Files.createDirectories(project.resolve("src"));
+    Files.writeString(project.resolve("wheeler.package"), """
+        package "demo.tests" version "1.0.0" profile "bootstrap-1";
+        target example "example" root "src/Example.w";
+        target test "law" root "src/Law.w";
+        """);
+    Files.writeString(project.resolve("src/Example.w"), """
+        classical class Example {
+            state long value = 0;
+            entry void main() { value += 1; }
+        }
+        """);
+    Files.writeString(project.resolve("src/Law.w"), """
+        classical class Law {
+            state long value = 0;
+            entry void main() { value += 2; assert value == 2; }
+        }
+        """);
+    ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+
+    assertEquals(0, Wheeler.execute(
+        new String[] {"test", project.toString()},
+        new PrintStream(stdout),
+        new PrintStream(new ByteArrayOutputStream())));
+    assertTrue(stdout.toString(StandardCharsets.UTF_8).contains("tested demo.tests (1 targets)"));
+  }
+
+  @Test
   void compileSubcommandReplacesTheStandaloneCompilerPath() throws Exception {
     Path source = temporary.resolve("Counter.w");
     Path output = temporary.resolve("custom.wbc");

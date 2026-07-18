@@ -301,7 +301,7 @@ Secrets are opaque host-owned handles and are prohibited from canonical output, 
 - [x] The stage-0 in-memory resolver deterministically selects one version per package with bounded backtracking, explicit development scope, and cycle rejection.
 - [ ] Physical local archive catalogs are sorted, bounded, integrity-checked, and covered end to end; vendored layouts and registry catalog loading remain.
 - [x] The root `wheeler.workspace` and example package manifest form an executable stage-0 workspace.
-- [x] The unified stage-0 `wheeler` command checks and builds canonical local workspaces; packages and verifies local artifacts; resolves explicit verified archive catalogs; emits and verifies dependency-free build plans; verifies locks; and compiles, runs, disassembles, and emits OpenQASM.
+- [x] The unified stage-0 `wheeler` command checks, builds, and executes declared test targets in canonical local workspaces; packages and verifies local artifacts; resolves explicit verified archive catalogs; emits and verifies dependency-free build plans; verifies locks; and compiles, runs, disassembles, and emits OpenQASM.
 - [ ] Wheeler-written `wheeler` loads locked dependencies and builds and tests the complete workspace.
 - [ ] Native no-Java recovery uses only committed manifests, lockfile, and vendor inputs.
 - [ ] Gradle and duplicate build paths are deleted.
@@ -316,7 +316,7 @@ Secrets are opaque host-owned handles and are prohibited from canonical output, 
 - [ ] Cache deletion, cache poisoning, mirror selection, and vendor relocation cannot alter verified output.
 - [ ] Build tools cannot observe or mutate undeclared files, environment, network, clock, random state, credentials, or quantum targets.
 - [ ] Cyclic package dependencies produce stable diagnostics; cyclic modules, profile conflicts, feature conflicts, and ABI conflicts remain.
-- [ ] Compiler, runtime, tools, examples, docs, and negative fixtures build and test through `wheeler`.
+- [ ] Declared Wheeler test targets execute through `wheeler`; compiler, runtime, package manager, tools, docs, and negative fixtures still require package migration.
 - [x] Package archives verify without extraction and reject duplicate, unordered, escaping, corrupt, oversized, malformed, and trailing members; links and special files are unrepresentable.
 - [ ] Publication is idempotent by content identity and cannot overwrite an existing version.
 - [ ] Live target tests are opt-in, budgeted, capability-gated, and excluded from package output identities.

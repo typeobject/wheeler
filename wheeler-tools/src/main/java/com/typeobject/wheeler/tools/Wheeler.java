@@ -51,6 +51,7 @@ public final class Wheeler {
       case "compile" -> compile(args, out, error);
       case "check" -> check(args, out, error);
       case "build" -> build(args, out, error);
+      case "test" -> test(args, out, error);
       case "package" -> packageProject(args, out, error);
       case "verify" -> verify(args, out, error);
       case "disassemble" -> disassemble(args, out, error);
@@ -142,6 +143,27 @@ public final class Wheeler {
       project.build(output);
       out.println("built " + project.manifest().name() + " into " + output);
     }
+    return 0;
+  }
+
+  private static int test(String[] args, PrintStream out, PrintStream error) throws Exception {
+    if (args.length != 2) {
+      error.println("Usage: wheeler test <package-or-workspace-directory>");
+      return 2;
+    }
+    Path root = Path.of(args[1]);
+    int executed;
+    String name;
+    if (WorkspaceProject.exists(root)) {
+      WorkspaceProject workspace = WorkspaceProject.load(root);
+      executed = workspace.test();
+      name = "workspace " + workspace.manifest().name();
+    } else {
+      PackageProject project = PackageProject.load(root);
+      executed = project.test();
+      name = project.manifest().name();
+    }
+    out.println("tested " + name + " (" + executed + " targets)");
     return 0;
   }
 
@@ -358,7 +380,7 @@ public final class Wheeler {
 
   private static void usage(PrintStream error) {
     error.println(
-        "Usage: wheeler <run|compile|check|build|package|verify|resolve|verify-lock|"
+        "Usage: wheeler <run|compile|check|build|test|package|verify|resolve|verify-lock|"
             + "plan|verify-plan|disassemble|qasm> ...");
   }
 }
