@@ -82,6 +82,26 @@ classical class MinimalCompiler {
         }
     }
 
+    private long globalOpcode(long opcode) {
+        if (opcode == 1040) {
+            return 256;
+        }
+        if (opcode == 1041) {
+            return 257;
+        }
+        return 258;
+    }
+
+    private long inverseGlobalOpcode(long opcode) {
+        if (opcode == 256) {
+            return 257;
+        }
+        if (opcode == 257) {
+            return 256;
+        }
+        return 258;
+    }
+
     private long statementLocalCount(long opcode) {
         if (opcode == 768) {
             return 0;
@@ -607,12 +627,17 @@ classical class MinimalCompiler {
 
         if (program.helperCount == 1) {
             if (program.helperReversible == 1) {
-                cursor = writeInstructionHeader(output, cursor, 256, 2);
+                cursor = writeInstructionHeader(
+                    output, cursor, globalOpcode(program.helperOpcode), 2);
                 cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
                 cursor = writeSignedLittleEndian(
                     output, cursor, program.helperOperand, 8);
                 cursor = writeInstructionHeader(output, cursor, 2, 0);
-                cursor = writeInstructionHeader(output, cursor, 257, 2);
+                cursor = writeInstructionHeader(
+                    output,
+                    cursor,
+                    inverseGlobalOpcode(globalOpcode(program.helperOpcode)),
+                    2);
                 cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
                 cursor = writeSignedLittleEndian(
                     output, cursor, program.helperOperand, 8);

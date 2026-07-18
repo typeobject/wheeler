@@ -164,6 +164,22 @@ class MinimalCompilerExampleTest {
         1);
     assertDifferentialExecution(
         writerProgram,
+        "classical class SubtractiveReverse { state long value = 5; "
+            + "rev void lower() { value -= 2; } "
+            + "entry void main() { lower(); reverse { lower(); } "
+            + "assert value == 5; } }",
+        "value",
+        5);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class XorReverse { state long value = 5; "
+            + "rev void flip() { value ^= 6; } "
+            + "entry void main() { flip(); reverse { flip(); } "
+            + "assert value == 5; } }",
+        "value",
+        5);
+    assertDifferentialExecution(
+        writerProgram,
         "classical class Certified { state long value = 1; "
             + "rev void bump() { value += 2; } "
             + "theorem bumpInverse proves inverse(bump); "
@@ -205,6 +221,16 @@ class MinimalCompilerExampleTest {
         512);
     assertThrows(VmTrap.class, duplicate::run);
     assertArrayEquals(new byte[512], duplicate.hostOutput());
+
+    VirtualMachine irreversibleHelper = new VirtualMachine(
+        writerProgram,
+        ("classical class BadReverse { state long value = 1; "
+            + "rev void set() { value = 2; } "
+            + "entry void main() { set(); reverse { set(); } } }")
+            .getBytes(StandardCharsets.UTF_8),
+        1024);
+    assertThrows(VmTrap.class, irreversibleHelper::run);
+    assertArrayEquals(new byte[1024], irreversibleHelper.hostOutput());
 
     VirtualMachine signedOverflow = new VirtualMachine(
         writerProgram,

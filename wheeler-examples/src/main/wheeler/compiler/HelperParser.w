@@ -4,6 +4,23 @@ import examples.compiler.statements;
 import examples.compiler.structure;
 import examples.compiler.tokens;
 classical class HelperParser {
+    private boolean reversibleBodyValid(
+        utf8 source,
+        words tokenStarts,
+        words tokenLengths,
+        long statementStart
+    ) {
+        long opcode = statementOpcode(
+            source, tokenStarts, tokenLengths, statementStart);
+        if (opcode == 1040) {
+            return true;
+        }
+        if (opcode == 1041) {
+            return true;
+        }
+        return opcode == 1042;
+    }
+
     private boolean callValid(
         utf8 source,
         words tokenKinds,
@@ -192,6 +209,18 @@ classical class HelperParser {
                                         tokenStarts,
                                         tokenLengths,
                                         helperBody);
+                                    if (reversible == 1) {
+                                        boolean reversibleBody = reversibleBodyValid(
+                                            source,
+                                            tokenStarts,
+                                            tokenLengths,
+                                            helperBody);
+                                        if (reversibleBody) {
+                                            helperWidth = helperWidth;
+                                        } else {
+                                            helperWidth = -1;
+                                        }
+                                    }
                                     if (0 < helperWidth) {
                                         long helperEnd = helperBody + helperWidth;
                                         if (punctuationAt(
