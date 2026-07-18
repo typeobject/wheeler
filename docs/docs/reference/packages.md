@@ -1,6 +1,6 @@
 # Package format
 
-Wheeler package metadata uses its own declarative syntax and canonical archive. The current stage-0 implementation parses `wheeler.workspace` and `wheeler.package`, resolves an immutable package catalog, reads and writes canonical `wheeler.lock`, emits verified build plans, and reads and writes content-addressed `.wpk` archives. Locked dependency loading, registry transport, and the Wheeler-written native implementation remain package-system work.
+Wheeler package metadata uses its own declarative syntax and canonical archive. The current stage-0 implementation parses `wheeler.workspace` and `wheeler.package`, resolves an immutable package catalog, reads and writes canonical `wheeler.lock`, loads exact offline dependencies, emits verified build plans, and reads and writes content-addressed `.wpk` archives. Registry transport, source module imports, and the Wheeler-written native implementation remain package-system work.
 
 ## Workspace manifest
 
@@ -92,7 +92,7 @@ byte[32] payload_sha256
 
 A string is a `u32` byte length followed by strict UTF-8 and is limited to 4,096 bytes. Lists carry bounded `u32` counts. Target kind codes 1 through 5 denote library, binary, tool, test, and example. The complete plan is limited to 16 MiB. Decoding verifies the payload digest, every embedded identity and invariant, complete consumption, and byte-for-byte canonical re-encoding.
 
-The current workspace planner accepts packages without dependencies and hashes only declared physical target roots. A package with dependencies fails until exact locked archive inputs can be attached; dependencies are never silently omitted. Capability records are requests for root policy, not grants.
+The workspace planner hashes every physical root target and every target source loaded from a locked archive. Dependency nodes precede their consumers, use isolated output paths, and identify their immediate archive inputs. Root nodes identify their immediate locked inputs. Capability records are requests for root policy, not grants.
 
 ## Canonicalization
 
@@ -155,7 +155,7 @@ wheeler disassemble <program.wbc>
 wheeler qasm <program.wbc> <output.qasm>
 ```
 
-`check` compiles and verifies every declared target without writing outputs. `build` writes one canonical `.wbc` per target, named from the target. Workspace builds place each package in its member-named output directory. `test` compiles and executes only targets declared with kind `test`, in canonical workspace/package/target order, using the same ideal state-vector target as ordinary deterministic CI. A package with no test targets succeeds with a zero-target report. `clean` removes only the default physical `out` tree and rejects files or symbolic links at any level before deleting anything. `package` includes canonical manifest data and every declared target root. `verify` performs strict archive decoding before printing identity. `resolve` selects from an explicit verified archive catalog and atomically writes canonical lock data; development dependencies enter only with `--development`. `verify-lock` accepts only canonical lock encoding before printing identity. `vendor` materializes exactly the locked archive set plus the canonical lockfile from an explicit verified catalog. `plan` hashes declared workspace sources and emits a canonical build plan with an explicit compiler identity. `verify-plan` validates all structural and content identities before printing plan identity. `run` accepts either a verified artifact or an explicitly selected binary, tool, or example package target; library and test targets use their dedicated operations. Output replacement uses a sibling temporary file and atomic move when the host supports it.
+`check` compiles and verifies every declared target without writing outputs. `build` writes one canonical `.wbc` per target, named from the target. Locked dependency outputs reside under `dependencies/<package-name>/`; workspace builds place each root package and its dependency tree in the member-named output directory. `test` compiles and executes only targets declared with kind `test`, in canonical workspace/package/target order, using the same ideal state-vector target as ordinary deterministic CI. A package with no test targets succeeds with a zero-target report. `clean` removes only the default physical `out` tree and rejects files or symbolic links at any level before deleting anything. `package` includes canonical manifest data and every declared target root. `verify` performs strict archive decoding before printing identity. `resolve` selects from an explicit verified archive catalog and atomically writes canonical lock data; development dependencies enter only with `--development`. `verify-lock` accepts only canonical lock encoding before printing identity. `vendor` materializes exactly the locked archive set plus the canonical lockfile from an explicit verified catalog. `plan` hashes declared workspace sources and emits a canonical build plan with an explicit compiler identity. `verify-plan` validates all structural and content identities before printing plan identity. `run` accepts either a verified artifact or an explicitly selected binary, tool, or example package target; library and test targets use their dedicated operations. Output replacement uses a sibling temporary file and atomic move when the host supports it.
 
 ## Vendored inputs
 
@@ -163,9 +163,11 @@ A vendor tree is a flat, relocatable offline input set. Archive names contain pa
 
 Vendoring verifies archive and manifest identities against every lock entry. An existing output directory is accepted only when its complete file-name set and every byte already match the expected tree, making retries idempotent. Missing, extra, corrupt, linked, nonregular, or duplicate-version inputs fail without being treated as a cache hit. A new tree is assembled and verified in a sibling temporary directory before an atomic directory move when supported. The output directory path does not enter any content identity.
 
-## Unsupported dependency compilation
+## Locked dependency compilation
 
-Local check, build, test, run, and plan operations fail closed when a manifest declares dependencies because locked archive loading is not yet attached to compilation. Resolution may produce and verify a lock, but no operation silently ignores that graph.
+A package with dependencies must contain a physical `vendor/` directory produced by `wheeler vendor`. The loader verifies its canonical lock against the root manifest, requires exactly one correctly named archive per lock entry and no extra files, decodes every archive, checks package/version/archive/manifest/profile identities, validates constraints and complete dependency edges, rejects unreachable entries and cycles, and then compiles dependencies in canonical dependency-first order. `check`, `build`, `test`, selected-target `run`, and workspace `plan` all use this path; none resolve, fetch, consult an ambient cache, or silently omit dependencies. Development edges are loaded only when present in the canonical lock generated with `--development`.
+
+Wheeler source does not yet expose package module imports, so this slice validates and builds each locked package as an independently verified target graph. WIP-0007 module names and visibility will connect exported APIs without changing archive or lock identity.
 
 The local host adapter requires a physical package directory, manifest, and target files. A target path that crosses a symbolic link or resolves outside the package fails before compilation. It reads only the manifest and declared target roots; capability requests remain policy data and do not grant broader host access.
 

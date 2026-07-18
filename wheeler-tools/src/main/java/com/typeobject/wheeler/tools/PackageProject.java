@@ -55,7 +55,10 @@ final class PackageProject {
   }
 
   void check() throws IOException {
-    requireDependencyFree("check");
+    LockedPackageSet dependencies = dependencies();
+    if (dependencies != null) {
+      dependencies.check();
+    }
     WheelerCompiler compiler = new WheelerCompiler();
     for (PackageManifest.Target target : manifest.targets()) {
       compiler.compile(source(target));
@@ -63,7 +66,10 @@ final class PackageProject {
   }
 
   Program compileRunnable(String targetName) throws IOException {
-    requireDependencyFree("run");
+    LockedPackageSet dependencies = dependencies();
+    if (dependencies != null) {
+      dependencies.check();
+    }
     PackageManifest.Target selected = manifest.targets().stream()
         .filter(target -> target.name().equals(targetName))
         .findFirst()
@@ -76,7 +82,10 @@ final class PackageProject {
   }
 
   int test() throws IOException {
-    requireDependencyFree("test");
+    LockedPackageSet dependencies = dependencies();
+    if (dependencies != null) {
+      dependencies.check();
+    }
     WheelerCompiler compiler = new WheelerCompiler();
     WheelerRuntime runtime = new WheelerRuntime();
     int executed = 0;
@@ -90,9 +99,12 @@ final class PackageProject {
   }
 
   Map<String, byte[]> compile() throws IOException {
-    requireDependencyFree("build");
+    LockedPackageSet dependencies = dependencies();
     WheelerCompiler compiler = new WheelerCompiler();
     Map<String, byte[]> artifacts = new TreeMap<>();
+    if (dependencies != null) {
+      artifacts.putAll(dependencies.compile());
+    }
     for (PackageManifest.Target target : manifest.targets()) {
       artifacts.put(target.name() + ".wbc", compiler.compileToBytecode(source(target)));
     }
@@ -111,8 +123,13 @@ final class PackageProject {
   }
 
   List<BuildPlan.Node> planNodes(String memberName) throws IOException {
-    requireDependencyFree("plan");
+    LockedPackageSet dependencies = dependencies();
     List<BuildPlan.Node> nodes = new ArrayList<>();
+    List<BuildPlan.PackageInput> inputs = List.of();
+    if (dependencies != null) {
+      nodes.addAll(dependencies.planNodes(memberName));
+      inputs = dependencies.rootInputs(manifest);
+    }
     for (PackageManifest.Target target : manifest.targets()) {
       nodes.add(BuildPlan.Node.create(
           manifest.name(),
@@ -122,7 +139,7 @@ final class PackageProject {
           target.kind(),
           sha256(Files.readAllBytes(source(target))),
           memberName + "/" + target.name() + ".wbc",
-          List.of(),
+          inputs,
           manifest.capabilities()));
     }
     return List.copyOf(nodes);
@@ -148,12 +165,8 @@ final class PackageProject {
     return root.resolve(manifest.name() + "-" + manifest.version() + ".wpk");
   }
 
-  private void requireDependencyFree(String operation) {
-    if (!manifest.dependencies().isEmpty()) {
-      throw new PackageFormatException(
-          "Cannot " + operation + " " + manifest.name()
-              + " without locked dependency loading");
-    }
+  private LockedPackageSet dependencies() throws IOException {
+    return manifest.dependencies().isEmpty() ? null : LockedPackageSet.load(root, manifest);
   }
 
   private Path source(PackageManifest.Target target) throws IOException {
@@ -173,7 +186,7 @@ final class PackageProject {
     return source;
   }
 
-  private static String sha256(byte[] bytes) {
+  static String sha256(byte[] bytes) {
     try {
       return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
     } catch (NoSuchAlgorithmException exception) {

@@ -297,12 +297,12 @@ Secrets are opaque host-owned handles and are prohibited from canonical output, 
 - [x] Canonical `.wbc` provides a portable artifact identity for package outputs.
 - [x] WIP-0007 and WIP-0008 define compiler and native recovery requirements.
 - [ ] Workspace, package, lockfile, and archive schemas have strict stage-0 codecs; the initial build-plan codec covers compiler, source, package-input, output, and capability-request identities, while execution limits and grants remain.
-- [ ] Stage-0 manifests, resolution, lockfiles, build plans, and archives are content-addressed and reproducible; dependency-aware workspace builds remain.
+- [ ] Stage-0 manifests, resolution, lockfiles, build plans, and archives are content-addressed and reproducible; exact offline dependency targets now build in dependency-first order, while module linking and native build execution remain.
 - [x] The stage-0 in-memory resolver deterministically selects one version per package with bounded backtracking, explicit development scope, and cycle rejection.
 - [ ] Physical local catalogs and idempotent exact vendor trees are sorted, bounded, integrity-checked, and covered end to end; registry catalog loading remains.
 - [x] The root `wheeler.workspace` and example package manifest form an executable stage-0 workspace.
-- [x] The unified stage-0 `wheeler` command checks, builds, executes declared test targets, and safely cleans canonical local workspaces; packages and verifies local artifacts; resolves explicit verified archive catalogs and materializes exact offline vendor trees; emits and verifies dependency-free build plans; verifies locks; and compiles, runs, disassembles, and emits OpenQASM.
-- [ ] Wheeler-written `wheeler` loads locked dependencies and builds and tests the complete workspace.
+- [x] The unified stage-0 `wheeler` command checks, builds, executes declared test targets, and safely cleans canonical local workspaces; packages and verifies local artifacts; resolves explicit verified archive catalogs and materializes exact offline vendor trees; emits and verifies plans with exact package inputs; verifies locks; and compiles, runs, disassembles, and emits OpenQASM.
+- [ ] Stage 0 loads and validates exact locked offline dependency graphs for check, build, test, selected-target run, and planning; Wheeler-written execution, exported module linking, and migration of the complete workspace remain.
 - [ ] Native no-Java recovery uses only committed manifests, lockfile, and vendor inputs.
 - [ ] Gradle and duplicate build paths are deleted.
 - [ ] Registry publication and immutable namespace ownership are operational.
@@ -311,7 +311,7 @@ Secrets are opaque host-owned handles and are prohibited from canonical output, 
 
 - [ ] Manifest and lock parsers reject malformed UTF-8, duplicates, unknown required fields, traversal, excessive nesting, and oversized values; both stage-0 parsers fail closed and broader generative coverage remains.
 - [ ] Resolution is identical under catalog and manifest insertion order with bounded backtracking; filesystem, registry transport, and task completion inputs remain to test.
-- [ ] Locked and offline builds never perform resolution or network access.
+- [x] Locked and offline stage-0 builds consume only a package-local exact vendor tree and never perform resolution, network access, or ambient cache lookup.
 - [ ] Build-plan codecs are order-independent and reject corruption and forged node identities; two complete clean builds must still prove identical `.wbc`, lockfile, package archive, plan, and provenance identities.
 - [ ] Vendor retries and relocation preserve exact locked bytes and reject poisoned files; cache deletion, remote cache poisoning, and mirror selection remain.
 - [ ] Build tools cannot observe or mutate undeclared files, environment, network, clock, random state, credentials, or quantum targets.

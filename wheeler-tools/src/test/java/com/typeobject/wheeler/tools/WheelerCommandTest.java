@@ -207,7 +207,7 @@ class WheelerCommandTest {
         lock.entries().stream().map(PackageLock.Entry::name).toList());
     assertEquals(0, Wheeler.execute(
         new String[] {"verify-lock", lockPath.toString()}, output, sink));
-    Path vendor = temporary.resolve("vendor");
+    Path vendor = application.resolve("vendor");
     String[] vendorCommand = {
         "vendor", lockPath.toString(), "--catalog", catalog.toString(),
         "-o", vendor.toString()
@@ -218,6 +218,35 @@ class WheelerCommandTest {
     try (var files = Files.list(vendor)) {
       assertEquals(2, files.count());
     }
+    assertEquals(0, Wheeler.execute(
+        new String[] {"check", application.toString()}, output, sink));
+    assertEquals(0, Wheeler.execute(
+        new String[] {"build", application.toString()}, output, sink));
+    assertTrue(Files.isRegularFile(application.resolve("out/main.wbc")));
+    assertTrue(Files.isRegularFile(
+        application.resolve("out/dependencies/demo.library/main.wbc")));
+    assertEquals(0, Wheeler.execute(
+        new String[] {"run", application.toString(), "--target", "main"}, output, sink));
+
+    Files.writeString(temporary.resolve("wheeler.workspace"), """
+        workspace "locked" profile "bootstrap-1";
+        member "application" path "application";
+        """);
+    Path planPath = temporary.resolve("locked.plan");
+    assertEquals(0, Wheeler.execute(
+        new String[] {
+            "plan", temporary.toString(), "--compiler", "b".repeat(64),
+            "-o", planPath.toString()
+        },
+        output,
+        sink));
+    BuildPlan dependencyPlan = new BuildPlanCodec().decode(Files.readAllBytes(planPath));
+    assertEquals(2, dependencyPlan.nodes().size());
+    assertEquals(List.of("demo.library"), dependencyPlan.nodes().stream()
+        .filter(node -> node.packageName().equals("demo.application"))
+        .findFirst().orElseThrow().packageInputs().stream()
+        .map(BuildPlan.PackageInput::name).toList());
+
     Path vendoredArchive;
     try (var files = Files.list(vendor)) {
       vendoredArchive = files
@@ -227,12 +256,11 @@ class WheelerCommandTest {
     }
     Files.write(vendoredArchive, new byte[] {1});
     assertThrows(java.io.IOException.class, () -> Wheeler.execute(vendorCommand, output, sink));
-    assertTrue(stdout.toString(StandardCharsets.UTF_8).contains(lock.identity()));
-    var unsupported = assertThrows(
+    assertThrows(
         com.typeobject.wheeler.packageformat.PackageFormatException.class,
         () -> Wheeler.execute(
             new String[] {"check", application.toString()}, output, sink));
-    assertTrue(unsupported.getMessage().contains("without locked dependency loading"));
+    assertTrue(stdout.toString(StandardCharsets.UTF_8).contains(lock.identity()));
   }
 
   @Test
