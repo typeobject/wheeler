@@ -92,3 +92,4 @@ Use “Not applicable” with a reason for unaffected template sections. Split w
 | [WIP-0013](WIP-0013-typed-frames-control-flow-and-storage.md) | Implementing | Typed frames, control flow, and bounded storage | Types, VM, storage, bootstrap |
 | [WIP-0014](WIP-0014-bounded-certified-program-synthesis.md) | Draft | Bounded certified program synthesis | Finite types, synthesis, quantum search, proofs, packages |
 | [WIP-0015](WIP-0015-certified-adversarial-schedule-exploration.md) | Draft | Certified adversarial schedule exploration | Protocol models, concurrency, replay, proofs |
+| [WIP-0016](WIP-0016-nonconfigurable-source-formatter.md) | Draft | One nonconfigurable source formatter with documentation enforcement | Source formatting, documentation, editor and build tooling |

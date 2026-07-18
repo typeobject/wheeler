@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler language, tooling, and documentation maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-07-17 |
+| Updated | 2026-07-18 |
 | Area | Parser, concrete syntax, Tree-sitter, diagnostics, teaching |
 | Depends on | WIP-0005 |
 | Supersedes | None |
@@ -60,7 +60,7 @@ A **teaching level** is a set of already implemented language features and examp
 
 `wheeler-compiler` owns the authoritative lexical and semantic diagnostics used for compilation. `tree-sitter-wheeler` owns incremental concrete parsing and editor queries. WIP-0005 owns language meaning. Documentation and examples own the teaching sequence.
 
-The two parsers share corpus source fixtures and a checked grammar contract, not generated implementation code.
+The two parsers share corpus source fixtures and a checked grammar contract, not generated implementation code. WIP-0016 owns the one fixed formatter style, lossless trivia boundary, and mandatory `///` file/function documentation policy; this WIP supplies the syntax and recovery contract it must not fork.
 
 ## Design
 
@@ -162,5 +162,6 @@ Rejected. ASCII Java-shaped syntax is easier to type, teach, search, and support
 
 - [WIP-0005](WIP-0005-wheeler-source-language.md)
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
+- [WIP-0016](WIP-0016-nonconfigurable-source-formatter.md)
 - [Language profile](../reference/language-profile.md)
 - [`tree-sitter-wheeler`](../../../tree-sitter-wheeler/grammar.js)
