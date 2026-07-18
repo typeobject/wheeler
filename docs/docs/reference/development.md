@@ -12,6 +12,12 @@ export PATH="$JAVA_HOME/bin:$PATH"
 
 Java compilation enables all lint warnings and treats warnings as errors. `check` runs JUnit and generates JaCoCo reports for modules with tests. `treeSitterTest` installs the pinned CLI, regenerates the parser, runs the syntax corpus, and compiles editor queries.
 
+## Documentation check
+
+`wheeler check-docs <file-or-directory>...` walks physical nonsymlink `.w` files in lexical path order, reads bounded strict UTF-8, prints stable `WDOC` diagnostics, and never writes source. `wheeler check-docs --stdin` checks one bounded buffer and reports it as `<stdin>`. Duplicate normalized inputs, symbolic links, malformed UTF-8, non-`.w` files, and more than 65,535 selected sources fail closed.
+
+The implemented checker requires a first-content nonempty `//!` file summary and adjacent nonempty `///` documentation for public and Wheeler-semantic member declarations. It checks canonical facet order and the required `Effects`, `Inverse`, `Coherent`, and `Adjoint` facets. This is the stage-0 lexical declaration slice; formatter publication and parser-range attachment remain WIP-0016 work. The command does not discover configuration, phone home, or write a tasteful stub about “leveraging synergies.”
+
 ## Design workflow
 
 Cross-cutting semantic changes begin as a [Wheeler Improvement Proposal](../proposals/README.md). Reference pages describe implemented behavior only. A WIP becomes Implemented after its acceptance tests, documentation, migration, and required deletion are complete.

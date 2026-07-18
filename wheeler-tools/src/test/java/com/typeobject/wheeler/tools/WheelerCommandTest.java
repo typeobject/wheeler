@@ -15,6 +15,7 @@ import com.typeobject.wheeler.packageformat.PackageArchive.DecodedPackage;
 import com.typeobject.wheeler.packageformat.PackageFormatException;
 import com.typeobject.wheeler.packageformat.PackageLock;
 import com.typeobject.wheeler.packageformat.PackageLockParser;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -126,6 +127,68 @@ class WheelerCommandTest {
     assertTrue(output.contains(archive.identity()));
     assertTrue(output.contains("cleaned demo.counter"));
     assertEquals("", stderrBytes.toString(StandardCharsets.UTF_8));
+  }
+
+  @Test
+  void checkDocsWalksSourcesCanonicallyAndWritesNothing() throws Exception {
+    Path documented = temporary.resolve("Documented.w");
+    Files.writeString(documented, """
+        //! Documented command fixture.
+        classical class Documented {
+            /// Runs without observable effects.
+            ///
+            /// - Effects: Performs no host effects.
+            entry void main() {}
+        }
+        """);
+    ByteArrayOutputStream outputBytes = new ByteArrayOutputStream();
+    PrintStream output = new PrintStream(outputBytes, true, StandardCharsets.UTF_8);
+    PrintStream error = new PrintStream(new ByteArrayOutputStream());
+
+    assertEquals(
+        0,
+        Wheeler.execute(
+            new String[] {"check-docs", documented.toString()}, output, error));
+    assertEquals("", outputBytes.toString(StandardCharsets.UTF_8));
+    assertEquals(
+        0,
+        DocumentationCommand.execute(
+            new String[] {"check-docs", "--stdin"},
+            new ByteArrayInputStream(Files.readAllBytes(documented)),
+            output,
+            error));
+    assertThrows(
+        IOException.class,
+        () -> DocumentationCommand.execute(
+            new String[] {"check-docs", "--stdin"},
+            new ByteArrayInputStream(new byte[] {(byte) 0xc0}),
+            output,
+            error));
+
+    Path directory = temporary.resolve("undocumented");
+    Files.createDirectories(directory);
+    Path first = directory.resolve("a.w");
+    Path second = directory.resolve("b.w");
+    Files.writeString(first, "classical class A {}\n");
+    Files.writeString(second, "classical class B {}\n");
+    assertEquals(
+        1,
+        Wheeler.execute(
+            new String[] {"check-docs", directory.toString()}, output, error));
+    String diagnostics = outputBytes.toString(StandardCharsets.UTF_8);
+    assertTrue(diagnostics.indexOf(first.toString()) < diagnostics.indexOf(second.toString()));
+    assertTrue(diagnostics.contains(
+        "WDOC001 " + first + ":1:1 source file requires nonempty //! documentation"));
+    assertThrows(
+        IOException.class,
+        () -> Wheeler.execute(
+            new String[] {"check-docs", documented.toString(), documented.toString()},
+            output,
+            error));
+
+    byte[] before = Files.readAllBytes(first);
+    assertEquals(before.length, Files.size(first));
+    assertArrayEquals(before, Files.readAllBytes(first));
   }
 
   @Test

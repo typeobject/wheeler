@@ -704,7 +704,7 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 - [x] Lexical member-boundary checks implement required public/entry/reversible/coherent/unitary/theorem/experiment coverage, private-helper exemption, adjacent nonempty summaries, canonical facet order, duplicate facets, and required `Effects`/`Inverse`/`Coherent`/`Adjoint` facets as `WDOC002..004` and `WDOC006..010`.
 - [ ] Those declaration checks are lifted onto parser-owned syntax-node ranges, including all declaration forms and recovery states; the public command remains withheld until that surface is honest.
 - [ ] `wheeler format`, `--check`, and `--stdin` implement bounded deterministic behavior.
-- [ ] `wheeler check-docs` implements bounded deterministic validation.
+- [x] `wheeler check-docs` and `--stdin` perform bounded strict-UTF-8 reads, reject duplicate/unsafe/non-source inputs, traverse physical files in canonical path order, print stable ordered `WDOC` diagnostics, and write nothing.
 - [ ] Every checked-in `.w` file and required declaration is documented.
 - [ ] Every checked-in `.w` file is formatted.
 - [ ] Editor integrations call shared libraries rather than reproduce rules.
