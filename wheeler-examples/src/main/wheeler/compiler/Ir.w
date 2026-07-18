@@ -11,7 +11,11 @@ classical class CompilerIr {
         long opcode,
         long operand,
         long secondOpcode,
-        long secondOperand
+        long secondOperand,
+        long thirdOpcode,
+        long thirdOperand,
+        long fourthOpcode,
+        long fourthOperand
     ) {}
 
     public variant MinimalProgramResult {

@@ -135,6 +135,13 @@ class MinimalCompilerExampleTest {
             + "entry void main() { value += 2; value ^= 7; } }",
         "value",
         4);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class Four { state long value = 1; "
+            + "entry void main() { value += 2; value ^= 7; "
+            + "value -= 1; assert value == 3; } }",
+        "value",
+        3);
 
     VirtualMachine duplicate = new VirtualMachine(
         writerProgram,

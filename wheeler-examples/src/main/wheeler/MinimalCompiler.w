@@ -23,7 +23,19 @@ classical class MinimalCompiler {
                 SourceRange scanName = new SourceRange(diagnostic.offset, 0);
                 SourceRange scanGlobal = new SourceRange(diagnostic.offset, 0);
                 return new MinimalProgram(
-                    scanName, scanGlobal, 0, 0, 0, 0, 0, 0, 0);
+                    scanName,
+                    scanGlobal,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0);
             }
             case ScanResult.Value(long count) {
                 MinimalProgramResult parsed = parseMinimalProgram(
@@ -36,6 +48,10 @@ classical class MinimalCompiler {
                         return new MinimalProgram(
                             parseName,
                             parseGlobal,
+                            0,
+                            0,
+                            0,
+                            0,
                             0,
                             0,
                             0,
@@ -129,10 +145,10 @@ classical class MinimalCompiler {
     }
 
     entry void main(utf8 source, bytes output) {
-        region arena = new region(768, 3);
-        words tokenKinds = allocate(arena, 32);
-        words tokenStarts = allocate(arena, 32);
-        words tokenLengths = allocate(arena, 32);
+        region arena = new region(1536, 3);
+        words tokenKinds = allocate(arena, 64);
+        words tokenStarts = allocate(arena, 64);
+        words tokenLengths = allocate(arena, 64);
         MinimalProgram program = requireMinimalProgram(
             source, tokenKinds, tokenStarts, tokenLengths);
         long nameLength = program.name.length;
@@ -200,11 +216,21 @@ classical class MinimalCompiler {
         long variantsOffset = align8(typesOffset + typesLength);
         long functionsOffset = align8(variantsOffset + 4);
         long firstLocalCount = statementLocalCount(program.opcode);
+        long secondLocalCount = statementLocalCount(program.secondOpcode);
+        long thirdLocalCount = statementLocalCount(program.thirdOpcode);
         long localCount = firstLocalCount;
         long codeLength = 8 + statementCodeLength(program.opcode);
-        if (program.statementCount == 2) {
-            localCount += statementLocalCount(program.secondOpcode);
+        if (1 < program.statementCount) {
+            localCount += secondLocalCount;
             codeLength += statementCodeLength(program.secondOpcode);
+        }
+        if (2 < program.statementCount) {
+            localCount += thirdLocalCount;
+            codeLength += statementCodeLength(program.thirdOpcode);
+        }
+        if (3 < program.statementCount) {
+            localCount += statementLocalCount(program.fourthOpcode);
+            codeLength += statementCodeLength(program.fourthOpcode);
         }
         long functionsLength = 44 + localCount * 4;
         long codeOffset = align8(functionsOffset + functionsLength);
@@ -297,7 +323,7 @@ classical class MinimalCompiler {
         cursor = writeUnsignedLittleEndian(output, cursor, localCount, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         long localType = 0;
-        while (localType < localCount) limit 4 {
+        while (localType < localCount) limit 8 {
             cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
             localType += 1;
         }
@@ -311,13 +337,29 @@ classical class MinimalCompiler {
                 program.operand,
                 0);
         }
-        if (program.statementCount == 2) {
+        if (1 < program.statementCount) {
             cursor = writeStatement(
                 output,
                 cursor,
                 program.secondOpcode,
                 program.secondOperand,
                 firstLocalCount);
+        }
+        if (2 < program.statementCount) {
+            cursor = writeStatement(
+                output,
+                cursor,
+                program.thirdOpcode,
+                program.thirdOperand,
+                firstLocalCount + secondLocalCount);
+        }
+        if (3 < program.statementCount) {
+            cursor = writeStatement(
+                output,
+                cursor,
+                program.fourthOpcode,
+                program.fourthOperand,
+                firstLocalCount + secondLocalCount + thirdLocalCount);
         }
         cursor = writeUnsignedLittleEndian(output, cursor, 1, 2);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 2);

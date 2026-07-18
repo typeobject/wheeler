@@ -284,7 +284,9 @@ classical class Parser {
         words tokenStarts,
         words tokenLengths,
         long firstStart,
-        long secondStart
+        long secondStart,
+        long thirdStart,
+        long fourthStart
     ) {
         long initial = parsedSignedNumber(
             source, tokenStarts, tokenLengths, 8);
@@ -297,6 +299,10 @@ classical class Parser {
         long statementCount = 1;
         long secondOpcode = -1;
         long secondOperand = 0;
+        long thirdOpcode = -1;
+        long thirdOperand = 0;
+        long fourthOpcode = -1;
+        long fourthOperand = 0;
         if (0 < secondStart) {
             statementCount = 2;
             secondOpcode = statementOpcode(
@@ -308,6 +314,30 @@ classical class Parser {
                 tokenStarts,
                 tokenLengths,
                 secondOperandToken);
+        }
+        if (0 < thirdStart) {
+            statementCount = 3;
+            thirdOpcode = statementOpcode(
+                source, tokenStarts, tokenLengths, thirdStart);
+            long thirdOperandToken = statementOperandToken(
+                source, tokenStarts, tokenLengths, thirdStart);
+            thirdOperand = parsedSignedNumber(
+                source,
+                tokenStarts,
+                tokenLengths,
+                thirdOperandToken);
+        }
+        if (0 < fourthStart) {
+            statementCount = 4;
+            fourthOpcode = statementOpcode(
+                source, tokenStarts, tokenLengths, fourthStart);
+            long fourthOperandToken = statementOperandToken(
+                source, tokenStarts, tokenLengths, fourthStart);
+            fourthOperand = parsedSignedNumber(
+                source,
+                tokenStarts,
+                tokenLengths,
+                fourthOperandToken);
         }
         SourceRange name = new SourceRange(
             tokenStarts[2], tokenLengths[2]);
@@ -322,7 +352,11 @@ classical class Parser {
             opcode,
             operand,
             secondOpcode,
-            secondOperand);
+            secondOperand,
+            thirdOpcode,
+            thirdOperand,
+            fourthOpcode,
+            fourthOperand);
         return new MinimalProgramResult.Value(program);
     }
 
@@ -338,7 +372,19 @@ classical class Parser {
         SourceRange global = new SourceRange(
             tokenStarts[6], tokenLengths[6]);
         MinimalProgram program = new MinimalProgram(
-            name, global, 1, initial, 0, -1, 0, -1, 0);
+            name,
+            global,
+            1,
+            initial,
+            0,
+            -1,
+            0,
+            -1,
+            0,
+            -1,
+            0,
+            -1,
+            0);
         return new MinimalProgramResult.Value(program);
     }
 
@@ -418,6 +464,10 @@ classical class Parser {
             statementCount,
             opcode,
             operand,
+            -1,
+            0,
+            -1,
+            0,
             -1,
             0);
         return new MinimalProgramResult.Value(program);
@@ -508,9 +558,30 @@ classical class Parser {
         return new MinimalProgramResult.Error(0);
     }
 
+    private boolean bodyClosesAt(
+        utf8 source,
+        words tokenKinds,
+        words tokenStarts,
+        long statementEnd,
+        long count
+    ) {
+        if (punctuationAt(
+                source, tokenKinds, tokenStarts, statementEnd, 125)) {
+            if (punctuationAt(
+                    source,
+                    tokenKinds,
+                    tokenStarts,
+                    statementEnd + 1,
+                    125)) {
+                return count == statementEnd + 2;
+            }
+        }
+        return false;
+    }
+
     private boolean minimalStateCountSupported(long count) {
         if (17 < count) {
-            return count < 32;
+            return count < 64;
         }
         return false;
     }
@@ -578,27 +649,20 @@ classical class Parser {
                         bodyStart);
                     if (0 < firstWidth) {
                         long firstEnd = bodyStart + firstWidth;
-                        if (punctuationAt(
+                        if (bodyClosesAt(
                                 source,
                                 tokenKinds,
                                 tokenStarts,
                                 firstEnd,
-                                125)) {
-                            if (punctuationAt(
-                                    source,
-                                    tokenKinds,
-                                    tokenStarts,
-                                    firstEnd + 1,
-                                    125)) {
-                                if (count == firstEnd + 2) {
-                                    return minimalProgramValue(
-                                        source,
-                                        tokenStarts,
-                                        tokenLengths,
-                                        bodyStart,
-                                        -1);
-                                }
-                            }
+                                count)) {
+                            return minimalProgramValue(
+                                source,
+                                tokenStarts,
+                                tokenLengths,
+                                bodyStart,
+                                -1,
+                                -1,
+                                -1);
                         }
                         long secondWidth = statementWidth(
                             source,
@@ -608,25 +672,66 @@ classical class Parser {
                             firstEnd);
                         if (0 < secondWidth) {
                             long secondEnd = firstEnd + secondWidth;
-                            if (punctuationAt(
+                            if (bodyClosesAt(
                                     source,
                                     tokenKinds,
                                     tokenStarts,
                                     secondEnd,
-                                    125)) {
-                                if (punctuationAt(
+                                    count)) {
+                                return minimalProgramValue(
+                                    source,
+                                    tokenStarts,
+                                    tokenLengths,
+                                    bodyStart,
+                                    firstEnd,
+                                    -1,
+                                    -1);
+                            }
+                            long thirdWidth = statementWidth(
+                                source,
+                                tokenKinds,
+                                tokenStarts,
+                                tokenLengths,
+                                secondEnd);
+                            if (0 < thirdWidth) {
+                                long thirdEnd = secondEnd + thirdWidth;
+                                if (bodyClosesAt(
                                         source,
                                         tokenKinds,
                                         tokenStarts,
-                                        secondEnd + 1,
-                                        125)) {
-                                    if (count == secondEnd + 2) {
+                                        thirdEnd,
+                                        count)) {
+                                    return minimalProgramValue(
+                                        source,
+                                        tokenStarts,
+                                        tokenLengths,
+                                        bodyStart,
+                                        firstEnd,
+                                        secondEnd,
+                                        -1);
+                                }
+                                long fourthWidth = statementWidth(
+                                    source,
+                                    tokenKinds,
+                                    tokenStarts,
+                                    tokenLengths,
+                                    thirdEnd);
+                                if (0 < fourthWidth) {
+                                    long fourthEnd = thirdEnd + fourthWidth;
+                                    if (bodyClosesAt(
+                                            source,
+                                            tokenKinds,
+                                            tokenStarts,
+                                            fourthEnd,
+                                            count)) {
                                         return minimalProgramValue(
                                             source,
                                             tokenStarts,
                                             tokenLengths,
                                             bodyStart,
-                                            firstEnd);
+                                            firstEnd,
+                                            secondEnd,
+                                            thirdEnd);
                                     }
                                 }
                             }
