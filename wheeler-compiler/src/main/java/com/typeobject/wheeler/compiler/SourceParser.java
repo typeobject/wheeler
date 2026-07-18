@@ -744,9 +744,17 @@ final class SourceParser extends SourceStatementParser {
   }
 
   private String parseXor(List<Statement> body) {
-    String left = parseAdditive(body);
+    String left = parseAnd(body);
     while (match(Type.XOR)) {
-      left = binary(body, previous(), "xor", left, parseAdditive(body));
+      left = binary(body, previous(), "xor", left, parseAnd(body));
+    }
+    return left;
+  }
+
+  private String parseAnd(List<Statement> body) {
+    String left = parseAdditive(body);
+    while (match(Type.AND)) {
+      left = binary(body, previous(), "and", left, parseAdditive(body));
     }
     return left;
   }

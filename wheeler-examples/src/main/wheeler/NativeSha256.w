@@ -5,7 +5,7 @@ classical class NativeSha256 {
     state long digestLength = 0;
 
     entry void main(byteview input, bytes digest) {
-        region arena = new region(576, 2);
+        region arena = new region(1088, 3);
         inputLength = bufferLength(input);
         hashSha256(input, digest, arena);
         digestLength = 32;

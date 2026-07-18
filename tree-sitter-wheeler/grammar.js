@@ -272,8 +272,9 @@ module.exports = grammar({
       prec.left(1, seq($.expression, field('operator', '=='), $.expression)),
       prec.left(2, seq($.expression, field('operator', '<'), $.expression)),
       prec.left(3, seq($.expression, field('operator', '^'), $.expression)),
-      prec.left(4, seq($.expression, field('operator', choice('+', '-')), $.expression)),
-      prec.left(5, seq($.expression, field('operator', choice('*', '/', '%')), $.expression)),
+      prec.left(4, seq($.expression, field('operator', '&'), $.expression)),
+      prec.left(5, seq($.expression, field('operator', choice('+', '-')), $.expression)),
+      prec.left(6, seq($.expression, field('operator', choice('*', '/', '%')), $.expression)),
     ),
     record_creation: $ => seq(
       'new',
@@ -283,12 +284,12 @@ module.exports = grammar({
       optional($.argument_list),
       ')',
     ),
-    field_expression: $ => prec(6, seq(
+    field_expression: $ => prec(7, seq(
       field('value', $.expression),
       '.',
       field('field', $.identifier),
     )),
-    array_access_expression: $ => prec(6, seq(
+    array_access_expression: $ => prec(7, seq(
       field('array', $.expression),
       '[',
       field('index', $.expression),

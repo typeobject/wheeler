@@ -216,11 +216,17 @@ Archive signatures and registry namespace authorization are separate layers. Con
 
 ## Wheeler-native lock slice
 
-`NativeLock.w` uses the shared scanner, name/version checks, and token boundary to parse schema 1, one or two sorted package records, lowercase 64-nybble root/archive/manifest identities, and one edge from the first package to the second. shared `LineEmitter.w` emits one canonical record per line, including the final newline; the independent stage-0 lock parser accepts those bytes. The fixture rejects schema drift, uppercase hex, duplicate or unsorted packages, and unknown or reversed edges. Larger package sets and complete edge lists remain, as does hashing the bytes rather than merely checking that a digest has dressed correctly for dinner.
+`NativeLock.w` uses the shared scanner, name/version checks, and token boundary to parse schema 1, one or two sorted package records, lowercase 64-nybble root/archive/manifest identities, and one edge from the first package to the second. Shared `LineEmitter.w` emits one canonical record per line, including the final newline; the independent stage-0 lock parser accepts those bytes. The fixture rejects schema drift, uppercase hex, duplicate or unsorted packages, and unknown or reversed edges. Larger package sets and complete edge lists remain, as does hashing the bytes rather than merely checking that a digest has dressed correctly for dinner.
 
 ## Wheeler-native workspace slice
 
 `NativeWorkspace.w` and `packages/Workspace.w` parse a checked workspace/profile header and one or two member-name-sorted records. Names follow the stage-0 lowercase dot/hyphen profile, paths use strict alphanumeric/underscore/hyphen components with nonempty dotted segments, and two members must have distinct nonnested paths. Shared `LineEmitter.w` normalizes trivia to canonical records with a final newline; the independent stage-0 workspace parser accepts the result. Duplicate names, duplicate or nested paths, traversal, malformed names, and input order masquerading as canonical order all fail closed. Larger workspaces remain, because manually enumerating ten thousand record fields would be technically bounded and morally unhelpful.
+
+## Wheeler-native plan slice
+
+`NativePlan.w` and `packages/Plan.w` consume a binary `byteview`, require `WPLN` schema 1 framing and exact payload/file lengths, hash only the declared payload through Wheeler-written `crypto/Sha256.w`, and compare all 32 trailing digest bytes. The bounded decoder accepts exactly one node with no package inputs or capabilities, validates ASCII profile/package/target names, a numeric three-part release, a logical output path, target-kind code 1 through 5, and the five hard-bounded execution limits, and consumes the payload exactly. The fixture accepts an independently encoded stage-0 plan, rewinds to its caller-owned input baseline, and rejects payload or digest damage plus an invalid kind even after the test recomputes the payload digest.
+
+This slice does not yet rederive the node identity, decode multiple nodes, inputs, requests, grants, prereleases, or Unicode strings, or canonically re-encode the model. Consequently it is a digest-checked structural inspector, not authorization to execute the plan. SHA-256 detects accidental and unauthenticated changes only when the expected digest is itself trusted; cryptography remains stubbornly unimpressed by optimistic variable names.
 
 ## Implementation direction
 

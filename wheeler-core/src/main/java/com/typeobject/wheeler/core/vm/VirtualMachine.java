@@ -310,6 +310,8 @@ public final class VirtualMachine {
       case LOCAL_MOD -> setLocalAndAdvance(
           localIndex(instruction, 0),
           localValue(instruction, 1) % localValue(instruction, 2));
+      case LOCAL_AND -> setLocalAndAdvance(
+          localIndex(instruction, 0), localValue(instruction, 1) & localValue(instruction, 2));
       case LOCAL_XOR -> setLocalAndAdvance(
           localIndex(instruction, 0), localValue(instruction, 1) ^ localValue(instruction, 2));
       case LOCAL_EQ -> setLocalAndAdvance(
@@ -611,7 +613,7 @@ public final class VirtualMachine {
           localIndex(instruction, 0);
           localIndex(instruction, 1);
         }
-        case LOCAL_XOR, LOCAL_EQ, LOCAL_LT -> {
+        case LOCAL_AND, LOCAL_XOR, LOCAL_EQ, LOCAL_LT -> {
           localIndex(instruction, 0);
           localIndex(instruction, 1);
           localIndex(instruction, 2);
@@ -824,7 +826,8 @@ public final class VirtualMachine {
           OUTPUT_LENGTH,
           EXPECT_EQ, CHECKPOINT, COMMIT,
           LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, LOCAL_ADD, LOCAL_SUB,
-          LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_XOR, LOCAL_EQ, LOCAL_LT, JUMP, JUMP_IF_ZERO, LOCAL_LOOP_CHECK,
+          LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR, LOCAL_EQ, LOCAL_LT,
+          JUMP, JUMP_IF_ZERO, LOCAL_LOOP_CHECK,
           RECORD_NEW, RECORD_GET -> {
         // These instructions alter only control or status state.
       }
