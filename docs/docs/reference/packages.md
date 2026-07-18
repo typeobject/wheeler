@@ -228,6 +228,12 @@ Archive signatures and registry namespace authorization are separate layers. Con
 
 This slice does not yet rederive the node identity, decode multiple nodes, inputs, requests, grants, prereleases, or Unicode strings, or canonically re-encode the model. Consequently it is a digest-checked structural inspector, not authorization to execute the plan. SHA-256 detects accidental and unauthenticated changes only when the expected digest is itself trusted; cryptography remains stubbornly unimpressed by optimistic variable names.
 
+## Wheeler-native archive slice
+
+`NativeArchive.w` and `packages/Archive.w` consume one binary `.wpk`, verify the trailing whole-payload SHA-256, schema-1 magic, bounded manifest length, one entry header, a checked printable-ASCII logical path, exact file consumption, and the entry-data SHA-256. Both digests come from Wheeler `crypto/Sha256.w`; the fixture is encoded and independently accepted by stage 0. Damage to the outer digest fails, and changing either entry data or path still fails after the test deliberately recomputes the outer digest. The successful run rewinds all scratch and caller-visible state.
+
+The current manifest check covers a nonempty printable canonical envelope ending in newline, not the complete native manifest grammar. The slice also omits multiple-entry ordering, reserved `wheeler.package` rejection, target-source closure, UTF-8 paths, and archive identity over the final bytes. It therefore inspects one integrity-checked archive; it does not yet install one. An extractor without closure checks is just `cp` with better stationery.
+
 ## Implementation direction
 
 The workspace and package parsers, resolver, lock codec, build-plan codec, and archive codec are stage-0 conformance implementations. Their malformed-input, resolution, and ordering suites define executable schemas for the Wheeler implementation. The package manager, standard library, and self-hosted compiler will consume the same canonical records; the Java implementation is removed at native cutover rather than retained as a second resolver.

@@ -1,5 +1,6 @@
 module examples.packages.plan;
 import examples.crypto.sha256;
+import examples.packages.binary;
 classical class Plan {
     public record PlanModel(
         long profileLength,
@@ -20,24 +21,6 @@ classical class Plan {
         case Error(long offset);
     }
 
-    private long readUnsigned(
-        byteview source,
-        long offset,
-        long width
-    ) {
-        long result = 0;
-        long multiplier = 1;
-        long cursor = 0;
-        while (cursor < width) limit 8 {
-            result += source[offset + cursor] * multiplier;
-            cursor += 1;
-            if (cursor < width) {
-                multiplier = multiplier * 256;
-            }
-        }
-        return result;
-    }
-
     private boolean magicValid(byteview source) {
         if (source[0] == 87) {
             if (source[1] == 80) {
@@ -55,178 +38,6 @@ classical class Plan {
             }
         }
         return false;
-    }
-
-    private boolean lowercase(long value) {
-        if (96 < value) {
-            return value < 123;
-        }
-        return false;
-    }
-
-    private boolean digit(long value) {
-        if (47 < value) {
-            return value < 58;
-        }
-        return false;
-    }
-
-    private boolean validName(
-        byteview source,
-        long start,
-        long length
-    ) {
-        if (length == 0) {
-            return false;
-        }
-        if (lowercase(source[start])) {
-        } else {
-            return false;
-        }
-        boolean needValue = false;
-        long cursor = 1;
-        while (cursor < length) limit 256 {
-            long value = source[start + cursor];
-            if (needValue) {
-                if (lowercase(value)) {
-                    needValue = false;
-                } else {
-                    if (digit(value)) {
-                        needValue = false;
-                    } else {
-                        return false;
-                    }
-                }
-            } else {
-                if (lowercase(value)) {
-                } else {
-                    if (digit(value)) {
-                    } else {
-                        if (value == 45) {
-                            needValue = true;
-                        } else {
-                            if (value == 46) {
-                                needValue = true;
-                            } else {
-                                return false;
-                            }
-                        }
-                    }
-                }
-            }
-            cursor += 1;
-        }
-        if (needValue) {
-            return false;
-        }
-        return true;
-    }
-
-    private boolean validRelease(
-        byteview source,
-        long start,
-        long length
-    ) {
-        if (length < 5) {
-            return false;
-        }
-        long component = 0;
-        long digits = 0;
-        long cursor = 0;
-        boolean leadingZero = false;
-        while (cursor < length) limit 64 {
-            long value = source[start + cursor];
-            if (digit(value)) {
-                if (digits == 0) {
-                    leadingZero = value == 48;
-                } else {
-                    if (leadingZero) {
-                        return false;
-                    }
-                }
-                digits += 1;
-            } else {
-                if (value == 46) {
-                    if (digits == 0) {
-                        return false;
-                    }
-                    component += 1;
-                    digits = 0;
-                    leadingZero = false;
-                } else {
-                    return false;
-                }
-            }
-            cursor += 1;
-        }
-        if (digits == 0) {
-            return false;
-        }
-        return component == 2;
-    }
-
-    private boolean validPath(
-        byteview source,
-        long start,
-        long length
-    ) {
-        if (length == 0) {
-            return false;
-        }
-        if (source[start] == 47) {
-            return false;
-        }
-        if (source[start + length - 1] == 47) {
-            return false;
-        }
-        long componentStart = 0;
-        long cursor = 0;
-        while (cursor < length) limit 256 {
-            long value = source[start + cursor];
-            if (value < 32) {
-                return false;
-            }
-            if (126 < value) {
-                return false;
-            }
-            if (value == 92) {
-                return false;
-            }
-            if (value == 47) {
-                long componentLength = cursor - componentStart;
-                if (componentLength == 0) {
-                    return false;
-                }
-                if (componentLength == 1) {
-                    if (source[start + componentStart] == 46) {
-                        return false;
-                    }
-                }
-                if (componentLength == 2) {
-                    if (source[start + componentStart] == 46) {
-                        if (source[start + componentStart + 1] == 46) {
-                            return false;
-                        }
-                    }
-                }
-                componentStart = cursor + 1;
-            }
-            cursor += 1;
-        }
-        long finalLength = length - componentStart;
-        if (finalLength == 1) {
-            if (source[start + componentStart] == 46) {
-                return false;
-            }
-        }
-        if (finalLength == 2) {
-            if (source[start + componentStart] == 46) {
-                if (source[start + componentStart + 1] == 46) {
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 
     private boolean digestMatches(
@@ -285,7 +96,7 @@ classical class Plan {
         } else {
             return new PlanResult.Error(cursor);
         }
-        if (validName(source, cursor, profileLength)) {
+        if (validAsciiName(source, cursor, profileLength)) {
         } else {
             return new PlanResult.Error(cursor);
         }
@@ -298,21 +109,21 @@ classical class Plan {
         cursor += 32;
         long packageLength = readUnsigned(source, cursor, 4);
         cursor += 4;
-        if (validName(source, cursor, packageLength)) {
+        if (validAsciiName(source, cursor, packageLength)) {
         } else {
             return new PlanResult.Error(cursor);
         }
         cursor += packageLength;
         long versionLength = readUnsigned(source, cursor, 4);
         cursor += 4;
-        if (validRelease(source, cursor, versionLength)) {
+        if (validNumericRelease(source, cursor, versionLength)) {
         } else {
             return new PlanResult.Error(cursor);
         }
         cursor += versionLength + 32;
         long targetLength = readUnsigned(source, cursor, 4);
         cursor += 4;
-        if (validName(source, cursor, targetLength)) {
+        if (validAsciiName(source, cursor, targetLength)) {
         } else {
             return new PlanResult.Error(cursor);
         }
@@ -327,7 +138,7 @@ classical class Plan {
         cursor += 4 + 32;
         long outputLength = readUnsigned(source, cursor, 4);
         cursor += 4;
-        if (validPath(source, cursor, outputLength)) {
+        if (validAsciiPath(source, cursor, outputLength)) {
         } else {
             return new PlanResult.Error(cursor);
         }

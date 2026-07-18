@@ -27,6 +27,7 @@ class NativePlanExampleTest {
     Path root = Path.of("src/main/wheeler");
     Program inspector = new WheelerCompiler().compileModuleFiles(
         Map.of(
+            "Binary.w", Files.readString(root.resolve("packages/Binary.w")),
             "NativePlan.w", Files.readString(root.resolve("NativePlan.w")),
             "Plan.w", Files.readString(root.resolve("packages/Plan.w")),
             "Sha256.w", Files.readString(root.resolve("crypto/Sha256.w"))),
