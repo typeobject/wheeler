@@ -254,6 +254,9 @@ classical class StorageVerifier {
                         if (lengthType == TYPE_UTF8) {
                             return 1;
                         }
+                        if (lengthType == TYPE_UTF8_BORROW) {
+                            return 1;
+                        }
                     }
                 }
             }

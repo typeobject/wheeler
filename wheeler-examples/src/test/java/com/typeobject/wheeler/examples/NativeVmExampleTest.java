@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
+import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
@@ -220,9 +221,14 @@ class NativeVmExampleTest {
             + "assert valid == 0; drop(packet); drop(arena); } }",
         "valid",
         0);
+    Program frozenUtf8 = compiler.compileModuleFiles(
+        Map.of(
+            "FrozenUtf8.w", Files.readString(root.resolve("FrozenUtf8.w")),
+            "CoreUtf8.w", Files.readString(CoreSources.path("text/Utf8.w"))),
+        "examples.text.frozen_utf8_main");
     assertInterpretedTwoGlobals(
         interpreter,
-        Files.readString(root.resolve("FrozenUtf8.w")),
+        new BytecodeWriter().write(frozenUtf8),
         "byteLength",
         6,
         "scalarCount",
@@ -361,7 +367,22 @@ class NativeVmExampleTest {
       long firstExpected,
       String secondGlobal,
       long secondExpected) {
-    byte[] artifact = new WheelerCompiler().compileToBytecode(source);
+    assertInterpretedTwoGlobals(
+        interpreter,
+        new WheelerCompiler().compileToBytecode(source),
+        firstGlobal,
+        firstExpected,
+        secondGlobal,
+        secondExpected);
+  }
+
+  private static void assertInterpretedTwoGlobals(
+      Program interpreter,
+      byte[] artifact,
+      String firstGlobal,
+      long firstExpected,
+      String secondGlobal,
+      long secondExpected) {
     VirtualMachine nativeMachine = VirtualMachine.withBinaryInput(interpreter, artifact);
     var initial = nativeMachine.snapshot();
     nativeMachine.run();

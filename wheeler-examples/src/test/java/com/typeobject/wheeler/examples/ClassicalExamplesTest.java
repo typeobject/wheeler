@@ -32,6 +32,13 @@ class ClassicalExamplesTest {
           "CoreFixedLongs.w",
           "collections/FixedLongs.w",
           "examples.collections.fixed_arrays_main");
+    } else if (file.equals("FrozenUtf8.w")) {
+      program = compileCoreExample(
+          compiler,
+          source,
+          "CoreUtf8.w",
+          "text/Utf8.w",
+          "examples.text.frozen_utf8_main");
     } else if (file.equals("LongMap.w")) {
       program = compileCoreExample(
           compiler,

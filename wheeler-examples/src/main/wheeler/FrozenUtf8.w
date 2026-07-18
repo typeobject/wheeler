@@ -1,17 +1,12 @@
-//! Freeze a validated byte owner into an immutable affine UTF-8 value.
+//! Freezes a byte owner and inspects it through the immutable core UTF-8 API.
+
+module examples.text.frozen_utf8_main;
+import wheeler.core.text.utf8;
 classical class FrozenUtf8 {
     state long byteLength = 0;
     state long scalarCount = 0;
     state long middleScalar = 0;
     state long valid = 0;
-
-    long scalarAt(utf8 text, long index) {
-        return utf8Scalar(text, index);
-    }
-
-    long middle(utf8 text) {
-        return scalarAt(text, 1);
-    }
 
     /// Runs the bounded `FrozenUtf8` fixture.
     ///
@@ -27,10 +22,10 @@ classical class FrozenUtf8 {
         setByte(raw, 5, 162);
 
         utf8 text = freezeUtf8(raw);
-        byteLength = bufferLength(text);
-        scalarCount = utf8Count(text);
-        middleScalar = middle(text);
-        boolean isValid = utf8Valid(text);
+        byteLength = byteLength(text);
+        scalarCount = scalarCount(text);
+        middleScalar = scalarAtByte(text, 1);
+        boolean isValid = valid(text);
         if (isValid) {
             valid = 1;
         } else {
