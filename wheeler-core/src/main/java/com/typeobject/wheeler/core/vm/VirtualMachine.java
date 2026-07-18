@@ -282,6 +282,12 @@ public final class VirtualMachine {
       case LOCAL_MUL -> setLocalAndAdvance(
           localIndex(instruction, 0),
           Math.multiplyExact(localValue(instruction, 1), localValue(instruction, 2)));
+      case LOCAL_DIV -> setLocalAndAdvance(
+          localIndex(instruction, 0),
+          localValue(instruction, 1) / localValue(instruction, 2));
+      case LOCAL_MOD -> setLocalAndAdvance(
+          localIndex(instruction, 0),
+          localValue(instruction, 1) % localValue(instruction, 2));
       case LOCAL_XOR -> setLocalAndAdvance(
           localIndex(instruction, 0), localValue(instruction, 1) ^ localValue(instruction, 2));
       case LOCAL_EQ -> setLocalAndAdvance(
@@ -571,6 +577,18 @@ public final class VirtualMachine {
           localIndex(instruction, 0);
           Math.multiplyExact(localValue(instruction, 1), localValue(instruction, 2));
         }
+        case LOCAL_DIV, LOCAL_MOD -> {
+          localIndex(instruction, 0);
+          long dividend = localValue(instruction, 1);
+          long divisor = localValue(instruction, 2);
+          if (divisor == 0) {
+            trap("Division by zero");
+          }
+          if (instruction.opcode() == Opcode.LOCAL_DIV
+              && dividend == Long.MIN_VALUE && divisor == -1) {
+            trap("Arithmetic overflow in LOCAL_DIV");
+          }
+        }
         case LOCAL_CONST -> localIndex(instruction, 0);
         case LOCAL_LOAD_GLOBAL -> {
           localIndex(instruction, 0);
@@ -786,7 +804,7 @@ public final class VirtualMachine {
       case NOP, HALT, RETURN, RETURN_VALUE, CALL, UNCALL, CALL_VALUE,
           EXPECT_EQ, CHECKPOINT, COMMIT,
           LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, LOCAL_ADD, LOCAL_SUB,
-          LOCAL_MUL, LOCAL_XOR, LOCAL_EQ, LOCAL_LT, JUMP, JUMP_IF_ZERO, LOCAL_LOOP_CHECK,
+          LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_XOR, LOCAL_EQ, LOCAL_LT, JUMP, JUMP_IF_ZERO, LOCAL_LOOP_CHECK,
           RECORD_NEW, RECORD_GET -> {
         // These instructions alter only control or status state.
       }

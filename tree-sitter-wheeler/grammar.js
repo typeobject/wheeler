@@ -268,7 +268,7 @@ module.exports = grammar({
       prec.left(2, seq($.expression, field('operator', '<'), $.expression)),
       prec.left(3, seq($.expression, field('operator', '^'), $.expression)),
       prec.left(4, seq($.expression, field('operator', choice('+', '-')), $.expression)),
-      prec.left(5, seq($.expression, field('operator', '*'), $.expression)),
+      prec.left(5, seq($.expression, field('operator', choice('*', '/', '%')), $.expression)),
     ),
     record_creation: $ => seq(
       'new',

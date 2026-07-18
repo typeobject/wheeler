@@ -195,12 +195,28 @@ class WheelerCompilerTest {
     Program program = new WheelerCompiler().compile("""
         classical class Product {
           state long result = 0;
-          entry void main() { result = 2 + 3 * 4; assert result == 14; }
+          state long quotient = 0;
+          state long remainder = 0;
+          entry void main() {
+            result = 2 + 3 * 4;
+            quotient = 20 / 3;
+            remainder = 20 % 3;
+            assert result == 14;
+            assert quotient == 6;
+            assert remainder == 2;
+          }
         }
         """);
     VirtualMachine machine = new VirtualMachine(program);
+    var initial = machine.snapshot();
     machine.run();
     assertEquals(14, machine.global("result"));
+    assertEquals(6, machine.global("quotient"));
+    assertEquals(2, machine.global("remainder"));
+    while (machine.historySize() > 0) {
+      machine.rewindOne();
+    }
+    assertEquals(initial, machine.snapshot());
 
     VirtualMachine overflow = new VirtualMachine(new WheelerCompiler().compile("""
         classical class Overflow {
@@ -211,6 +227,16 @@ class WheelerCompilerTest {
         }
         """));
     assertThrows(VmTrap.class, overflow::run);
+
+    VirtualMachine divisionByZero = new VirtualMachine(new WheelerCompiler().compile("""
+        classical class DivisionByZero {
+          entry void main() {
+            long zero = 0;
+            long invalid = 1 / zero;
+          }
+        }
+        """));
+    assertThrows(VmTrap.class, divisionByZero::run);
   }
 
   @Test

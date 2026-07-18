@@ -122,6 +122,8 @@ final class SourceLexer {
       case '-' -> match('=') ? Type.MINUS_ASSIGN : Type.MINUS;
       case '+' -> match('=') ? Type.PLUS_ASSIGN : Type.PLUS;
       case '*' -> Type.STAR;
+      case '/' -> Type.SLASH;
+      case '%' -> Type.PERCENT;
       case '^' -> match('=') ? Type.XOR_ASSIGN : Type.XOR;
       case '<' -> Type.LESS;
       case '=' -> match('=') ? Type.EQUAL : Type.ASSIGN;

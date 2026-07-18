@@ -508,7 +508,7 @@ final class ClassicalLowerer {
       String operator = arguments.get(1);
       ValueType resultType;
       switch (operator) {
-        case "add", "sub", "mul", "lt" -> {
+        case "add", "sub", "mul", "div", "mod", "lt" -> {
           requireType(left, ValueType.SIGNED, statement.line());
           requireType(right, ValueType.SIGNED, statement.line());
           resultType = operator.equals("lt") ? ValueType.BOOLEAN : ValueType.SIGNED;
@@ -816,6 +816,8 @@ final class ClassicalLowerer {
         case "sub" -> Opcode.LOCAL_SUB;
         case "xor" -> Opcode.LOCAL_XOR;
         case "mul" -> Opcode.LOCAL_MUL;
+        case "div" -> Opcode.LOCAL_DIV;
+        case "mod" -> Opcode.LOCAL_MOD;
         case "eq" -> Opcode.LOCAL_EQ;
         case "lt" -> Opcode.LOCAL_LT;
         default -> throw new CompilerException(line, "unsupported local operator: " + operator);

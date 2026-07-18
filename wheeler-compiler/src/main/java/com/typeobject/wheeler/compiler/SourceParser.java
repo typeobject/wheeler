@@ -729,8 +729,15 @@ final class SourceParser extends SourceStatementParser {
 
   private String parseMultiplicative(List<Statement> body) {
     String left = parsePrimary(body);
-    while (match(Type.STAR)) {
-      left = binary(body, previous(), "mul", left, parsePrimary(body));
+    while (match(Type.STAR, Type.SLASH, Type.PERCENT)) {
+      SourceToken operator = previous();
+      String operation = switch (operator.type()) {
+        case STAR -> "mul";
+        case SLASH -> "div";
+        case PERCENT -> "mod";
+        default -> throw new AssertionError();
+      };
+      left = binary(body, operator, operation, left, parsePrimary(body));
     }
     return left;
   }

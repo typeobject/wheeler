@@ -21,6 +21,8 @@ record SourceToken(Type type, String text, int line, int column, int offset) {
     PLUS,
     MINUS,
     STAR,
+    SLASH,
+    PERCENT,
     XOR,
     LESS,
     END
