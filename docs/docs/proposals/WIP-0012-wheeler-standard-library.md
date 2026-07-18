@@ -19,7 +19,7 @@ The library is layered. `wheeler.core` is available without heap allocation or h
 
 Every public operation declares type, ownership, effects, failure, allocation, bounds, and reversibility. A method is `rev` only when its inverse is valid under stated contracts. A method is coherently liftable only when it denotes an exact finite permutation and uses no hidden allocation, history, measurement, or host effect. Logged containers, transactional APIs, and replay records do not pretend to be intrinsically reversible.
 
-The standard library is distributed as locked Wheeler packages under WIP-0009, compiled by the self-hosted compiler, documented by `wheel doc`, and included in the native recovery graph. Java, JVM collections, provider SDK types, and host serialization are not part of its contract.
+The standard library is distributed as locked Wheeler packages under WIP-0009, compiled by the self-hosted compiler, documented by `wheeler doc`, and included in the native recovery graph. Java, JVM collections, provider SDK types, and host serialization are not part of its contract.
 
 ## Motivation
 
@@ -451,7 +451,7 @@ The standard library is accepted through concrete Wheeler programs:
 6. Implement affine quantum resources, circuits, parameters, observables, tasks, batches, and results.
 7. Implement hybrid event, persistence, target, and transaction records.
 8. Implement proof and test support and certify critical library laws.
-9. Build and test the full library through native `wheel` in the recovery graph.
+9. Build and test the full library through native `wheeler` in the recovery graph.
 10. Delete JVM collection adapters, Java serialization, host path leakage, provider-type wrappers, and duplicate stage-0 library implementations at cutover.
 
 ## Progress
@@ -482,7 +482,7 @@ The standard library is accepted through concrete Wheeler programs:
 - [ ] Host capabilities cannot be forged, serialized, logged, cached, or acquired through import.
 - [ ] Canonical decoders reject duplicate, cyclic, noncanonical, oversized, unknown required, and trailing records.
 - [ ] Proof certificates validate critical equality, ordering, encoding, inverse, and quantum laws.
-- [ ] Standard-library packages build, test, document, and package offline through `wheel`.
+- [ ] Standard-library packages build, test, document, and package offline through `wheeler`.
 - [ ] The self-hosted compiler, runtime, package manager, proof kernel, and application portfolio use the Wheeler standard library.
 - [ ] No Java or provider SDK type appears in a public Wheeler library signature after native cutover.
 

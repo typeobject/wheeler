@@ -274,7 +274,7 @@ The test suite stops and restores the run in queued, running, succeeded, failed,
 
 ### Hermetic workspace build
 
-The Wheeler workspace builds compiler, runtime, package manager, tools, examples, and documentation inputs through `wheel` with network disabled. Two clean builds produce identical canonical artifacts, lockfile, package archives, and plans.
+The Wheeler workspace builds compiler, runtime, package manager, tools, examples, and documentation inputs through `wheeler` with network disabled. Two clean builds produce identical canonical artifacts, lockfile, package archives, and plans.
 
 ### Capability-denied build tool
 

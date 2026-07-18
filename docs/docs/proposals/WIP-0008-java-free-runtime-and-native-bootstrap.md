@@ -29,7 +29,7 @@ The migration must nevertheless remain testable. Replacing Java in one unverifie
 
 ## Goals
 
-- Ship `wheelc`, `wheel`, `wheeldis`, `wheelqasm`, and the conformance runner without a JRE or JDK.
+- Ship `wheelc`, `wheeler`, `wheeldis`, `wheelqasm`, and the conformance runner without a JRE or JDK.
 - Implement production compiler and runtime logic in Wheeler.
 - Preserve `.wbc` as the canonical portable artifact regardless of native caching or linking.
 - Define a small versioned platform ABI with explicit capabilities and bounded data.
@@ -155,7 +155,7 @@ Migration proceeds in replaceable slices:
 6. Port quantum IR, ideal simulator, OpenQASM emission, and hybrid runtime.
 7. Run every corpus and example on Java interpretation, Wheeler interpretation, and native execution; compare semantic traces and artifacts.
 8. Bootstrap from a prior native release in clean CI with no Java on `PATH`.
-9. Replace Gradle orchestration with the WIP-0009 `wheel` package and build driver plus minimal platform packaging.
+9. Replace Gradle orchestration with the WIP-0009 `wheeler` package and build driver plus minimal platform packaging.
 10. Delete all production and test Java sources, Gradle files, Java CI setup, and JVM documentation in one cutover series.
 
 A temporary differential harness is migration code. It is removed after native fixtures and trace readers become authoritative.
@@ -182,7 +182,7 @@ Recovery releases are signed or content-addressed by release policy. Bootstrap s
 
 ## Testing and acceptance
 
-- [ ] `wheelc`, `wheel`, `wheeldis`, and `wheelqasm` run in a container with no Java or Python installation.
+- [ ] `wheelc`, `wheeler`, `wheeldis`, and `wheelqasm` run in a container with no Java or Python installation.
 - [ ] Interpreted and native runs produce identical classical state, traps, commit horizons, and semantic event traces.
 - [ ] Bytecode verifier accept/reject decisions match across all transition implementations.
 - [ ] Native checked arithmetic, call frames, inverse execution, rewind, and history exhaustion pass the WIP-0001 corpus.

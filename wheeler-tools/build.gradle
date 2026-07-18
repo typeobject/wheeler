@@ -9,9 +9,9 @@ tasks.register('wheelc', JavaExec) {
     mainClass = 'com.typeobject.wheeler.tools.Wheelc'
 }
 
-tasks.register('wheel', JavaExec) {
+tasks.register('wheeler', JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'com.typeobject.wheeler.tools.Wheel'
+    mainClass = 'com.typeobject.wheeler.tools.Wheeler'
 }
 
 tasks.register('wheeldis', JavaExec) {

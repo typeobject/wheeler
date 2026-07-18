@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Draft |
+| Status | Implementing |
 | Owners | Wheeler package, build, compiler, security, and release maintainers |
 | Created | 2026-07-17 |
 | Updated | 2026-07-17 |
@@ -13,7 +13,7 @@
 
 ## Summary
 
-Wheeler shall have a package manager and build system written in Wheeler and designed for Wheeler. The `wheel` command owns workspaces, dependency resolution, compilation, testing, documentation, native lowering, content-addressed packaging, and registry operations. It ships in the native recovery release and replaces Gradle after WIP-0008 cutover.
+Wheeler shall have a package manager and build system written in Wheeler and designed for Wheeler. The `wheeler` command owns workspaces, dependency resolution, compilation, testing, documentation, native lowering, content-addressed packaging, and registry operations. It ships in the native recovery release and replaces Gradle after WIP-0008 cutover.
 
 The system borrows the useful shape of modern language package tools—a single command, declarative manifests, exact lockfiles, reproducible builds, workspaces, package registries, and hermetic tests—but it is not a Cargo front end. Wheeler packages carry language-profile, reversibility, quantum-region, proof, target-capability, effect, and native-ABI metadata that generic Java or Rust package systems cannot enforce.
 
@@ -39,33 +39,33 @@ The package system is therefore language infrastructure and a Wheeler acceptance
 A repository contains one workspace manifest and one or more packages:
 
 ```text
-wheel.workspace
-wheel.lock
+wheeler.workspace
+wheeler.lock
 compiler/
-  wheel.package
+  wheeler.package
   src/
 runtime/
-  wheel.package
+  wheeler.package
 examples/
-  wheel.package
+  wheeler.package
 ```
 
 The command surface begins with:
 
 ```text
-wheel new
-wheel check
-wheel build
-wheel test
-wheel run
-wheel doc
-wheel format
-wheel package
-wheel publish
-wheel fetch
-wheel vendor
-wheel clean
-wheel explain
+wheeler new
+wheeler check
+wheeler build
+wheeler test
+wheeler run
+wheeler doc
+wheeler format
+wheeler package
+wheeler publish
+wheeler fetch
+wheeler vendor
+wheeler clean
+wheeler explain
 ```
 
 Commands operate on the workspace graph by default and accept explicit package, target, profile, offline, locked, and capability-policy selections. Ordinary commands do not execute provider hardware. Hardware tests require an explicit named target grant and remain outside deterministic default CI.
@@ -94,9 +94,9 @@ Commands operate on the workspace graph by default and accept explicit package, 
 
 ## Names and files
 
-`wheel` is the Wheeler toolchain driver. The current stage-0 artifact runner is an early command subset, not a separate permanent program. At cutover, `wheel run <package-or-artifact>` subsumes it.
+`wheeler` is the Wheeler toolchain driver. `wheeler run <package-or-artifact>` executes a selected package target or verified artifact.
 
-`wheel.package` is a UTF-8 Wheeler package manifest. `wheel.workspace` is the optional workspace manifest. `wheel.lock` is the generated canonical resolution. `.wpkg` is the canonical package archive. Names and suffixes are Wheeler contracts and do not alias host package formats.
+`wheeler.package` is a UTF-8 Wheeler package manifest. `wheeler.workspace` is the optional workspace manifest. `wheeler.lock` is the generated canonical resolution. `.wpk` is the canonical package archive. Names and suffixes are Wheeler contracts and do not alias host package formats.
 
 A package identity contains:
 
@@ -110,28 +110,14 @@ A resolved dependency additionally fixes its archive content hash and registry o
 
 The manifest is a small declarative grammar with source spans and a canonical data model. It is not general Wheeler source and has no loops, method calls, I/O, conditionals, interpolation, or hidden defaults dependent on the host.
 
-An illustrative shape is:
+The implemented stage-0 shape is:
 
 ```text
-package {
-    name = "wheeler.compiler";
-    version = "0.1.0";
-    profile = "bootstrap-1";
-}
-
-target library {
-    root = "src/compiler.w";
-    export = ["compiler.Compiler"];
-}
-
-dependencies {
-    "wheeler.bytecode" = { version = "^0.1.0"; };
-}
-
-capabilities {
-    build.read = ["src/**"];
-    build.write = ["out/**"];
-}
+package "wheeler.compiler" version "0.1.0" profile "bootstrap-1";
+target tool "wheelc" root "src/compiler.w";
+dependency build "wheeler.bytecode" version "^0.1.0";
+capability "build.read" path "src/**";
+capability "build.write" path "out/**";
 ```
 
 The final grammar will use Wheeler lexical conventions, explicit semicolons, ordered records, and no whitespace-sensitive constructs. Unknown required fields fail closed. Extension fields are namespaced and preserved only when the schema declares that behavior.
@@ -158,7 +144,7 @@ Resolution:
 2. verifies names, versions, source identities, and dependency phases;
 3. obtains a signed or content-addressed registry index snapshot unless offline;
 4. selects one deterministic solution under the version and profile constraints;
-5. records every package, content hash, feature, source, and relevant schema identity in `wheel.lock`;
+5. records every package, content hash, feature, source, and relevant schema identity in `wheeler.lock`;
 6. verifies the complete graph before fetching or building code.
 
 A locked build does not re-resolve. If a locked archive disappears or has different bytes, the build fails. It does not choose a convenient replacement.
@@ -167,7 +153,7 @@ The initial resolver may require one version of each package identity in a final
 
 ## Lockfile
 
-`wheel.lock` is generated canonical data. It is committed for applications, tools, and the Wheeler recovery workspace. Libraries may commit it for development reproducibility without forcing consumers to use that graph.
+`wheeler.lock` is generated canonical data. It is committed for applications, tools, and the Wheeler recovery workspace. Libraries may commit it for development reproducibility without forcing consumers to use that graph.
 
 The lockfile records:
 
@@ -185,7 +171,7 @@ Lockfile updates are atomic. A failed resolution leaves the prior lockfile untou
 
 ## Package archive
 
-A `.wpkg` archive is a canonical, bounded, content-addressed container. It includes:
+A `.wpk` archive is a canonical, bounded, content-addressed container. It includes:
 
 - the canonical package manifest;
 - declared source and resource files in logical path order;
@@ -201,7 +187,7 @@ Archives reject duplicate paths, traversal, links escaping the package root, spe
 
 ## Build graph
 
-`wheel` converts the locked package graph into a deterministic build plan. Nodes declare:
+`wheeler` converts the locked package graph into a deterministic build plan. Nodes declare:
 
 - tool artifact and entry point;
 - canonical input identities;
@@ -225,7 +211,7 @@ Generated files belong to declared output trees and are never silently written i
 
 ## Tests, examples, and quantum targets
 
-Packages declare test targets and fixtures. `wheel test` builds a deterministic test plan, isolates writable state, seeds declared simulators, and reports results in package and source order.
+Packages declare test targets and fixtures. `wheeler test` builds a deterministic test plan, isolates writable state, seeds declared simulators, and reports results in package and source order.
 
 Test classes include:
 
@@ -246,7 +232,7 @@ A registry stores immutable package archives by content identity and a signed ap
 
 Namespaces have explicit ownership and delegation. Clients verify archive hash, manifest identity, namespace authorization, and package limits before resolution. Registry mirrors and offline vendor stores preserve identities; changing the download location does not change the package.
 
-`wheel publish` performs, in order:
+`wheeler publish` performs, in order:
 
 1. locked clean build and test under publication policy;
 2. manifest and public-API validation;
@@ -264,7 +250,7 @@ The package manager, build planner, manifest parser, resolver, archive codec, re
 
 A recovery release contains:
 
-- native `wheel` for each supported host;
+- native `wheeler` for each supported host;
 - canonical compiler, runtime, and package-manager `.wbc` artifacts;
 - the recovery workspace manifests and lockfile;
 - all bootstrap package archives or a verified vendor set;
@@ -295,14 +281,14 @@ Secrets are opaque host-owned handles and are prohibited from canonical output, 
 
 ## Migration and deletion
 
-1. Specify executable schemas for `wheel.package`, `wheel.workspace`, `wheel.lock`, `.wpkg`, and build plans.
+1. Specify executable schemas for `wheeler.package`, `wheeler.workspace`, `wheeler.lock`, `.wpk`, and build plans.
 2. Add stage-0 readers and canonical writers with malformed-input and reproducibility suites.
 3. Implement workspace module resolution and replace hard-coded Gradle project knowledge.
 4. Implement locked local/path dependencies, then vendored and registry dependencies.
 5. Implement check, build, test, run, doc, package, and clean over the Wheeler compiler and native runtime.
 6. Implement the Wheeler package manager and compare every plan, lockfile, archive, diagnostic, and failure with stage 0.
 7. Bootstrap the complete repository from a vendored recovery workspace with no network.
-8. Switch ordinary CI and release jobs to native `wheel`.
+8. Switch ordinary CI and release jobs to native `wheeler`.
 9. Delete Gradle files, wrappers, Java package tasks, host-language manifest readers, and duplicate shell orchestration.
 10. Add registry publication only after local, vendored, and recovery builds are stable.
 
@@ -310,25 +296,25 @@ Secrets are opaque host-owned handles and are prohibited from canonical output, 
 
 - [x] Canonical `.wbc` provides a portable artifact identity for package outputs.
 - [x] WIP-0007 and WIP-0008 define compiler and native recovery requirements.
-- [ ] Manifest, lockfile, archive, and build-plan schemas are accepted.
-- [ ] Stage-0 workspace builds are content-addressed and reproducible.
+- [ ] Manifest and archive schemas have strict stage-0 codecs; lockfile and build-plan schemas remain.
+- [ ] Stage-0 manifest and archive output is content-addressed and reproducible; workspace builds remain.
 - [ ] Local, vendored, and registry dependency resolution pass conformance tests.
-- [ ] Wheeler-written `wheel` builds and tests the complete workspace.
+- [ ] Wheeler-written `wheeler` builds and tests the complete workspace.
 - [ ] Native no-Java recovery uses only committed manifests, lockfile, and vendor inputs.
 - [ ] Gradle and duplicate build paths are deleted.
 - [ ] Registry publication and immutable namespace ownership are operational.
 
 ## Testing and acceptance
 
-- [ ] Manifest and lock parsers reject malformed UTF-8, duplicate keys, unknown required fields, traversal, excessive nesting, and oversized values.
+- [ ] Manifest and lock parsers reject malformed UTF-8, duplicates, unknown required fields, traversal, excessive nesting, and oversized values; manifest coverage is implemented.
 - [ ] Resolution is identical under randomized registry response, manifest insertion, filesystem, and task completion order.
 - [ ] Locked and offline builds never perform resolution or network access.
 - [ ] Two clean builds produce identical `.wbc`, lockfile, package archive, plan, and provenance identities.
 - [ ] Cache deletion, cache poisoning, mirror selection, and vendor relocation cannot alter verified output.
 - [ ] Build tools cannot observe or mutate undeclared files, environment, network, clock, random state, credentials, or quantum targets.
 - [ ] Cyclic modules, cyclic dependencies, profile conflicts, feature conflicts, and ABI conflicts produce stable diagnostics.
-- [ ] Compiler, runtime, tools, examples, docs, and negative fixtures build and test through `wheel`.
-- [ ] Package archives verify without extraction and reject duplicate, linked, special, escaping, or over-expanding members.
+- [ ] Compiler, runtime, tools, examples, docs, and negative fixtures build and test through `wheeler`.
+- [x] Package archives verify without extraction and reject duplicate, unordered, escaping, corrupt, oversized, malformed, and trailing members; links and special files are unrepresentable.
 - [ ] Publication is idempotent by content identity and cannot overwrite an existing version.
 - [ ] Live target tests are opt-in, budgeted, capability-gated, and excluded from package output identities.
 - [ ] A clean bootstrap with no Java, Gradle, Rust, Cargo, or network rebuilds and tests the recovery workspace.
@@ -361,7 +347,7 @@ Rejected. Credentials, queue selection, calibration, budgets, and hardware avail
 - Which exact declarative syntax and canonical binary schema should back the first manifests and lockfiles? — **Owner:** package and language maintainers — **Decide by:** before stage-0 manifest implementation
 - Should the first resolver permit multiple versions of one package identity? — **Owner:** package and type-system maintainers — **Decide by:** before registry resolution
 - Which signature and namespace transparency design should the first registry deploy? — **Owner:** registry and security maintainers — **Decide by:** before public publication
-- Which documentation renderer belongs in the recovery graph without expanding the bootstrap excessively? — **Owner:** documentation and build maintainers — **Decide by:** before `wheel doc` becomes required for recovery
+- Which documentation renderer belongs in the recovery graph without expanding the bootstrap excessively? — **Owner:** documentation and build maintainers — **Decide by:** before `wheeler doc` becomes required for recovery
 
 ## References
 

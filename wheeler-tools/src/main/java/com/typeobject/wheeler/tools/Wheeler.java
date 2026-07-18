@@ -9,12 +9,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /** Execute a verified classical, quantum, or hybrid Wheeler artifact. */
-public final class Wheel {
-  private Wheel() {}
+public final class Wheeler {
+  private Wheeler() {}
 
   public static void main(String[] args) throws Exception {
     if (args.length != 1) {
-      System.err.println("Usage: wheel <program.wbc>");
+      System.err.println("Usage: wheeler <program.wbc>");
       System.exit(2);
     }
     Program program = new BytecodeReader().read(Files.readAllBytes(Path.of(args[0])));

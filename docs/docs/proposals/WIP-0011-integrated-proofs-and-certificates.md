@@ -359,7 +359,7 @@ Each fixture first lands as an executable law if necessary, then gains a formal 
 - [ ] Proof output and diagnostics are deterministic under task, map, solver, and cache-order variation.
 - [ ] Kernel limits fail closed without partially proved artifacts.
 - [ ] Self-hosted stages produce byte-identical proof metadata and verify their own required compiler certificates.
-- [ ] `wheel` packages, locks, verifies, documents, and publishes proof-bearing APIs without hidden host tools.
+- [ ] `wheeler` packages, locks, verifies, documents, and publishes proof-bearing APIs without hidden host tools.
 
 ## Alternatives
 
