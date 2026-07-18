@@ -363,6 +363,18 @@ class SourceProfileNegativeTest {
           entry void main() { }
         }
         """;
+    String aliasedMapBorrow = """
+        classical class AliasedMapBorrow {
+          long read(longmap left, longmap right) { return mapGet(left, 0); }
+          entry void main() {
+            region arena = new region(24, 1);
+            longmap values = allocateMap(arena, 1);
+            long value = read(values, values);
+            drop(values);
+            drop(arena);
+          }
+        }
+        """;
     String droppedBorrow = """
         classical class DroppedBorrow {
           long read(utf8 text) { drop(text); return 0; }
@@ -400,6 +412,8 @@ class SourceProfileNegativeTest {
         CompilerException.class, () -> new WheelerCompiler().compile(wrongBufferKind));
     CompilerException mutable = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(mutableParameter));
+    CompilerException aliased = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(aliasedMapBorrow));
     CompilerException borrowed = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(droppedBorrow));
     CompilerException immutable = assertThrows(
@@ -412,6 +426,7 @@ class SourceProfileNegativeTest {
     assertTrue(result.getMessage().contains("cannot escape as results"));
     assertTrue(kind.getMessage().contains("expected bytes expression"));
     assertTrue(mutable.getMessage().contains("mutable owned values"));
+    assertTrue(aliased.getMessage().contains("cannot alias multiple mutable parameters"));
     assertTrue(borrowed.getMessage().contains("drop requires an owned value"));
     assertTrue(immutable.getMessage().contains("expected bytes expression"));
     assertTrue(aggregate.getMessage().contains("cannot be array or slice elements"));

@@ -239,6 +239,58 @@ class BytecodeVerifierTest {
     assertEquals(ValueType.UTF8, ValueType.fromCode(ValueType.UTF8.code()));
     assertEquals(
         ValueType.UTF8_BORROW, ValueType.fromCode(ValueType.UTF8_BORROW.code()));
+    assertEquals(
+        ValueType.LONG_MAP_BORROW,
+        ValueType.fromCode(ValueType.LONG_MAP_BORROW.code()));
+  }
+
+  @Test
+  void rejectsAliasedMutableMapBorrowWindows() {
+    FunctionBody read = new FunctionBody(
+        0,
+        "read",
+        false,
+        2,
+        List.of(
+            ValueType.LONG_MAP_BORROW,
+            ValueType.LONG_MAP_BORROW,
+            ValueType.SIGNED,
+            ValueType.SIGNED),
+        ValueType.SIGNED,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 2, 0),
+            Instruction.of(Opcode.MAP_GET, 3, 0, 2),
+            Instruction.of(Opcode.RETURN_VALUE, 3)),
+        List.of());
+    FunctionBody main = new FunctionBody(
+        1,
+        "main",
+        false,
+        0,
+        List.of(
+            ValueType.REGION,
+            ValueType.SIGNED,
+            ValueType.LONG_MAP,
+            ValueType.LONG_MAP_BORROW,
+            ValueType.LONG_MAP_BORROW,
+            ValueType.SIGNED),
+        null,
+        List.of(
+            Instruction.of(Opcode.REGION_NEW, 0, 24, 1),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 1),
+            Instruction.of(Opcode.MAP_ALLOC, 2, 0, 1),
+            Instruction.of(Opcode.MAP_BORROW, 3, 2),
+            Instruction.of(Opcode.MAP_BORROW, 4, 2),
+            Instruction.of(Opcode.CALL_VALUE, 0, 3, 2, 5),
+            Instruction.of(Opcode.BUFFER_DROP, 2),
+            Instruction.of(Opcode.REGION_DROP, 0),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    Program program = Program.classical(
+        "AliasedBorrow", 1, List.of(), List.of(), List.of(), List.of(), List.of(),
+        List.of(read, main), List.of());
+
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(program));
   }
 
   @Test

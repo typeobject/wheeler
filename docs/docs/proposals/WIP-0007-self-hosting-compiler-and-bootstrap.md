@@ -197,10 +197,10 @@ The launcher grants read-only source inputs and one atomic artifact destination.
 - [x] Canonical `.wbc` and a deterministic stage-0 compiler exist.
 - [x] The accepted source grammar is formatting-independent and covered by Tree-sitter tooling.
 - [ ] Bootstrap feature and module manifests are specified as executable schemas.
-- [ ] Signed/Boolean parameters and results, typed frames, static calls, aggregate values, bounded control, affine local regions, word/byte buffers, immutable validated UTF-8 owners, and fixed signed maps and nested immutable UTF-8 parameter borrows execute; mutable cross-function ownership, library strings, generic collections, exported variant/collection module APIs, cross-package linking, and compiler-scale arenas remain.
+- [ ] Signed/Boolean parameters and results, typed frames, static calls, aggregate values, bounded control, affine local regions, word/byte buffers, immutable validated UTF-8 owners, and fixed signed maps, nested immutable UTF-8 borrows, and exclusive nested map borrows execute; general cross-function ownership/borrowing, library strings, generic collections, exported variant/collection module APIs, cross-package linking, and compiler-scale arenas remain.
 - [ ] Stage 0 links bounded classical function modules with exact sorted imports, direct public visibility, closed DAG inputs, deterministic dependency-first naming, and exact manifest-bound source sets across local/locked builds, and direct public immutable-record APIs; the Wheeler implementation and full module surface remain.
 - [ ] Wheeler `.wbc` codec passes stage-0 differential tests.
-- [ ] `Utf8Lexer.w` executes a bounded UTF-8 scanner with explicit token-kind/start buffers; complete token schemas, comments/numbers, diagnostics, source input capabilities, parser construction, and corpus parity remain.
+- [ ] `Utf8Lexer.w` executes a bounded immutable UTF-8 scanner for identifiers, decimal runs, punctuation, whitespace, and line comments with explicit token-kind/start buffers; complete token schemas, literals/escapes/block comments, diagnostics, source input capabilities, parser construction, and corpus parity remain.
 - [ ] Wheeler semantic analysis and lowering compile all examples.
 - [ ] Stage 1 and stage 2 reach a byte-identical fixed point.
 - [ ] Ordinary builds use the Wheeler compiler and the Java compiler path is deleted.

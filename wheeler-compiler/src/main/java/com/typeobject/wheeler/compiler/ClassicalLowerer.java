@@ -72,7 +72,7 @@ final class ClassicalLowerer {
           .map(parameter -> {
             ValueType type = SourceTypeLowerer.resolve(
                 parameter.type(), function.line(), typeReferences);
-            return type.equals(ValueType.UTF8) ? ValueType.UTF8_BORROW : type;
+            return parameterType(type);
           })
           .toList();
       if (parameterTypes.stream().anyMatch(ClassicalLowerer::owned)) {
@@ -161,6 +161,16 @@ final class ClassicalLowerer {
         entryId,
         globalIds,
         functionIds);
+  }
+
+  private static ValueType parameterType(ValueType type) {
+    if (type.equals(ValueType.UTF8)) {
+      return ValueType.UTF8_BORROW;
+    }
+    if (type.equals(ValueType.LONG_MAP)) {
+      return ValueType.LONG_MAP_BORROW;
+    }
+    return type;
   }
 
   private static String namespace(String functionName) {
@@ -358,7 +368,7 @@ final class ClassicalLowerer {
         declareUser(
             parameter.name(),
             owner.line(),
-            type.equals(ValueType.UTF8) ? ValueType.UTF8_BORROW : type);
+            parameterType(type));
       }
     }
 
@@ -745,6 +755,7 @@ final class ClassicalLowerer {
         throw new CompilerException(statement.line(), "value call signature mismatch: " + functionName);
       }
       int argumentBase = 0;
+      Set<Integer> mutableBorrows = new HashSet<>();
       if (argumentCount > 0) {
         argumentBase = locals.size();
         for (int index = 0; index < argumentCount; index++) {
@@ -759,6 +770,17 @@ final class ClassicalLowerer {
                   statement.line(), "UTF-8 parameter requires immutable UTF-8");
             }
             copy = Opcode.UTF8_BORROW;
+          } else if (parameterType.equals(ValueType.LONG_MAP_BORROW)) {
+            if (!sourceType.equals(ValueType.LONG_MAP)
+                && !sourceType.equals(ValueType.LONG_MAP_BORROW)) {
+              throw new CompilerException(
+                  statement.line(), "longmap parameter requires a signed map");
+            }
+            if (!mutableBorrows.add(source)) {
+              throw new CompilerException(
+                  statement.line(), "one map cannot alias multiple mutable parameters");
+            }
+            copy = Opcode.MAP_BORROW;
           } else {
             requireType(source, parameterType, statement.line());
           }

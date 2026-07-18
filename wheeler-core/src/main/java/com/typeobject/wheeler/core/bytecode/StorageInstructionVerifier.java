@@ -26,6 +26,7 @@ final class StorageInstructionVerifier {
       case BYTES_SET -> verifySet(owner, instruction, pc, ValueType.BYTES);
       case UTF8_FREEZE -> verifyFreeze(owner, instruction, pc);
       case UTF8_BORROW -> verifyBorrow(owner, instruction, pc);
+      case MAP_BORROW -> verifyMapBorrow(owner, instruction, pc);
       case UTF8_VALID -> verifyUtf8Whole(owner, instruction, pc, ValueType.BOOLEAN);
       case UTF8_COUNT -> verifyUtf8Whole(owner, instruction, pc, ValueType.SIGNED);
       case UTF8_SCALAR, UTF8_WIDTH -> verifyUtf8At(owner, instruction, pc);
@@ -100,9 +101,19 @@ final class StorageInstructionVerifier {
     }
   }
 
+  private static void verifyMapBorrow(
+      FunctionBody owner, Instruction instruction, int pc) {
+    require(owner, instruction, 0, ValueType.LONG_MAP_BORROW, pc);
+    int source = local(owner, instruction.operands().get(1), pc);
+    ValueType type = owner.localType(source);
+    if (!type.equals(ValueType.LONG_MAP) && !type.equals(ValueType.LONG_MAP_BORROW)) {
+      fail(owner, pc, "map borrow requires a signed-map source");
+    }
+  }
+
   private static void verifyMapPut(
       FunctionBody owner, Instruction instruction, int pc) {
-    require(owner, instruction, 0, ValueType.LONG_MAP, pc);
+    requireMap(owner, instruction, 0, pc);
     require(owner, instruction, 1, ValueType.SIGNED, pc);
     require(owner, instruction, 2, ValueType.SIGNED, pc);
   }
@@ -110,7 +121,7 @@ final class StorageInstructionVerifier {
   private static void verifyMapRead(
       FunctionBody owner, Instruction instruction, int pc, ValueType result) {
     require(owner, instruction, 0, result, pc);
-    require(owner, instruction, 1, ValueType.LONG_MAP, pc);
+    requireMap(owner, instruction, 1, pc);
     require(owner, instruction, 2, ValueType.SIGNED, pc);
   }
 
@@ -131,6 +142,15 @@ final class StorageInstructionVerifier {
     if (!isBuffer(type) && !type.equals(ValueType.LONG_MAP)
         && !type.equals(ValueType.UTF8)) {
       fail(owner, pc, "buffer drop requires words, bytes, longmap, or utf8");
+    }
+  }
+
+  private static void requireMap(
+      FunctionBody owner, Instruction instruction, int operand, int pc) {
+    int local = local(owner, instruction.operands().get(operand), pc);
+    ValueType type = owner.localType(local);
+    if (!type.equals(ValueType.LONG_MAP) && !type.equals(ValueType.LONG_MAP_BORROW)) {
+      fail(owner, pc, "expected longmap or a map borrow local " + local);
     }
   }
 

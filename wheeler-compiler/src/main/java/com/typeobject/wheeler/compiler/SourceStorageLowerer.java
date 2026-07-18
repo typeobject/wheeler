@@ -52,7 +52,7 @@ final class SourceStorageLowerer {
     requireArguments(statement, 4);
     int map = context.requireLocal(statement.arguments().get(2), statement.line());
     int key = context.requireLocal(statement.arguments().get(3), statement.line());
-    context.requireType(map, ValueType.LONG_MAP, statement.line());
+    requireMap(context, map, statement.line());
     context.requireType(key, ValueType.SIGNED, statement.line());
     boolean membership = statement.operation().equals("map_has");
     ValueType result = membership ? ValueType.BOOLEAN : ValueType.SIGNED;
@@ -116,7 +116,11 @@ final class SourceStorageLowerer {
       case "map_put" -> ValueType.LONG_MAP;
       default -> throw new IllegalStateException();
     };
-    context.requireType(buffer, expected, statement.line());
+    if (expected.equals(ValueType.LONG_MAP)) {
+      requireMap(context, buffer, statement.line());
+    } else {
+      context.requireType(buffer, expected, statement.line());
+    }
     context.requireType(index, ValueType.SIGNED, statement.line());
     context.requireType(value, ValueType.SIGNED, statement.line());
     Opcode opcode = expected.equals(ValueType.WORDS)
@@ -187,6 +191,13 @@ final class SourceStorageLowerer {
       throw new CompilerException(statement.line(), "drop requires an owned value");
     }
     context.emit(Instruction.of(opcode, local));
+  }
+
+  private static void requireMap(Context context, int local, int line) {
+    ValueType type = context.localType(local);
+    if (!type.equals(ValueType.LONG_MAP) && !type.equals(ValueType.LONG_MAP_BORROW)) {
+      throw new CompilerException(line, "map operation requires longmap or a map borrow");
+    }
   }
 
   private static void requireUtf8Sequence(Context context, int local, int line) {

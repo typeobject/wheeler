@@ -5,18 +5,28 @@ classical class LongMap {
     state long missing = 0;
     state long zeroKey = 0;
 
+    long write(longmap values, long key, long value) {
+        put(values, key, value);
+        return mapGet(values, key);
+    }
+
+    long replace(longmap values, long key, long value) {
+        return write(values, key, value);
+    }
+
+    boolean contains(longmap values, long key) {
+        return mapHas(values, key);
+    }
+
     entry void main() {
         region arena = new region(96, 1);
         longmap values = allocateMap(arena, 4);
         put(values, 7, 11);
         put(values, 9, 13);
-        put(values, 7, 17);
-        put(values, 0, 5);
-
-        selected = mapGet(values, 7);
-        zeroKey = mapGet(values, 0);
-        boolean hasNine = mapHas(values, 9);
-        boolean hasThree = mapHas(values, 3);
+        selected = replace(values, 7, 17);
+        zeroKey = write(values, 0, 5);
+        boolean hasNine = contains(values, 9);
+        boolean hasThree = contains(values, 3);
         if (hasNine) {
             present = 1;
         } else {

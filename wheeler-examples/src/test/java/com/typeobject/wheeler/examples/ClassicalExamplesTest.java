@@ -53,7 +53,7 @@ class ClassicalExamplesTest {
         Arguments.of("RegionStorage.w", Map.of("first", 7L, "byteValue", 65L, "utf8Scalars", 3L, "validUtf8", 1L, "byteLength", 6L,
             "decodedScalars", 3L, "scalarSum", 8591L)),
         Arguments.of("Utf8Lexer.w", Map.of(
-            "tokenCount", 5L, "numberStart", 11L, "finalCursor", 15L)),
+            "tokenCount", 5L, "numberStart", 2L, "commentStart", 6L, "finalCursor", 10L)),
         Arguments.of("Variants.w", Map.of("selected", 9L, "equal", 1L)));
   }
 }

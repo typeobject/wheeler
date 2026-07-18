@@ -200,7 +200,8 @@ public final class BytecodeVerifier {
   }
 
   private static boolean nonescaping(ValueType type) {
-    return owned(type) || type.equals(ValueType.UTF8_BORROW);
+    return owned(type) || type.equals(ValueType.UTF8_BORROW)
+        || type.equals(ValueType.LONG_MAP_BORROW);
   }
 
   private static void verifyTypeReference(
@@ -231,42 +232,8 @@ public final class BytecodeVerifier {
     for (int pc = 0; pc < body.size(); pc++) {
       verifyInstruction(program, owner, body.get(pc), pc, inverseBody);
     }
-    verifyBorrowWindows(program, owner, body);
+    BorrowWindowVerifier.verify(program, owner, body);
     verifyLocalFlow(owner, body);
-  }
-
-  private static void verifyBorrowWindows(
-      Program program, FunctionBody owner, List<Instruction> body) {
-    for (int pc = 0; pc < body.size(); pc++) {
-      Instruction borrow = body.get(pc);
-      if (borrow.opcode() != Opcode.UTF8_BORROW) {
-        continue;
-      }
-      int destination = Math.toIntExact(borrow.operands().getFirst());
-      Instruction call = null;
-      for (int next = pc + 1; next < body.size(); next++) {
-        Opcode opcode = body.get(next).opcode();
-        if (opcode == Opcode.CALL_VALUE) {
-          call = body.get(next);
-          break;
-        }
-        if (opcode != Opcode.LOCAL_MOVE && opcode != Opcode.UTF8_BORROW) {
-          break;
-        }
-      }
-      if (call == null) {
-        fail(owner.name() + "[" + pc + "] UTF-8 borrow is not a transient call argument");
-      }
-      int targetId = Math.toIntExact(call.operands().get(0));
-      int base = Math.toIntExact(call.operands().get(1));
-      int count = Math.toIntExact(call.operands().get(2));
-      int parameter = destination - base;
-      FunctionBody target = program.function(targetId);
-      if (parameter < 0 || parameter >= count
-          || !target.localType(parameter).equals(ValueType.UTF8_BORROW)) {
-        fail(owner.name() + "[" + pc + "] UTF-8 borrow targets a nonborrowed argument");
-      }
-    }
   }
 
   private static void verifyInstruction(
@@ -374,7 +341,8 @@ public final class BytecodeVerifier {
       case REGION_NEW, WORDS_ALLOC, WORDS_GET, WORDS_SET,
           BYTES_ALLOC, BYTES_GET, BYTES_SET, BUFFER_DROP, REGION_DROP,
           UTF8_VALID, UTF8_COUNT, BUFFER_LENGTH, UTF8_SCALAR, UTF8_WIDTH,
-          MAP_ALLOC, MAP_PUT, MAP_GET, MAP_HAS, UTF8_FREEZE, UTF8_BORROW ->
+          MAP_ALLOC, MAP_PUT, MAP_GET, MAP_HAS, UTF8_FREEZE, UTF8_BORROW,
+          MAP_BORROW ->
           StorageInstructionVerifier.verify(owner, instruction, pc);
       case SWAP -> {
         verifyGlobal(program, instruction.operands().get(0), owner, pc);
@@ -627,7 +595,8 @@ public final class BytecodeVerifier {
         int base = Math.toIntExact(instruction.operands().get(1));
         int count = Math.toIntExact(instruction.operands().get(2));
         for (int local = base; local < base + count; local++) {
-          if (owner.localType(local).equals(ValueType.UTF8_BORROW)) {
+          if (owner.localType(local).equals(ValueType.UTF8_BORROW)
+              || owner.localType(local).equals(ValueType.LONG_MAP_BORROW)) {
             assigned.clear(local);
           }
         }
@@ -695,7 +664,8 @@ public final class BytecodeVerifier {
     }
     int[] reads = switch (instruction.opcode()) {
       case LOCAL_STORE_GLOBAL -> new int[] {1};
-      case LOCAL_MOVE, OWNED_MOVE, UTF8_FREEZE, UTF8_BORROW -> new int[] {1};
+      case LOCAL_MOVE, OWNED_MOVE, UTF8_FREEZE, UTF8_BORROW, MAP_BORROW ->
+          new int[] {1};
       case LOCAL_ADD, LOCAL_SUB, LOCAL_XOR, LOCAL_EQ, LOCAL_LT -> new int[] {1, 2};
       case JUMP_IF_ZERO -> new int[] {0};
       case LOCAL_LOOP_CHECK -> new int[] {0, 1};
@@ -727,7 +697,7 @@ public final class BytecodeVerifier {
           ARRAY_NEW, ARRAY_GET, SLICE_NEW, SLICE_GET, REGION_NEW,
           WORDS_ALLOC, WORDS_GET, BYTES_ALLOC, BYTES_GET,
           UTF8_VALID, UTF8_COUNT, BUFFER_LENGTH, UTF8_SCALAR, UTF8_WIDTH,
-          MAP_ALLOC, MAP_GET, MAP_HAS, UTF8_FREEZE, UTF8_BORROW ->
+          MAP_ALLOC, MAP_GET, MAP_HAS, UTF8_FREEZE, UTF8_BORROW, MAP_BORROW ->
           Math.toIntExact(instruction.operands().getFirst());
       case CALL_VALUE -> Math.toIntExact(instruction.operands().get(3));
       default -> -1;
