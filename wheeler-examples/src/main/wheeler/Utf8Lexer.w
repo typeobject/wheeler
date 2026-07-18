@@ -12,7 +12,24 @@ classical class Utf8Lexer {
     state long commentStart = 0;
     state long numericValue = 0;
     state long parseError = -1;
+    state long outputLength = 0;
     state long finalCursor = 0;
+
+    long emitNumber(
+        utf8 source,
+        words tokenStarts,
+        words tokenLengths,
+        bytes output
+    ) {
+        long start = tokenStarts[2];
+        long length = tokenLengths[2];
+        long cursor = 0;
+        while (cursor < length) limit 10 {
+            setByte(output, cursor, utf8Scalar(source, start + cursor));
+            cursor += 1;
+        }
+        return cursor;
+    }
 
     Assignment parseAssignment(
         utf8 source,
@@ -44,7 +61,7 @@ classical class Utf8Lexer {
         return new Assignment.Error(0);
     }
 
-    entry void main(utf8 source) {
+    entry void main(utf8 source, bytes output) {
         region arena = new region(384, 3);
         words tokenKinds = allocate(arena, 16);
         words tokenStarts = allocate(arena, 16);
@@ -124,12 +141,14 @@ classical class Utf8Lexer {
                 parseError = offset + 1;
             }
         }
+        outputLength = emitNumber(source, tokenStarts, tokenLengths, output);
         finalCursor = cursor;
         assert tokenCount == 5;
         assert numberStart == 2;
         assert commentStart == 6;
         assert numericValue == 123;
         assert parseError == 0;
+        assert outputLength == 3;
         assert finalCursor == 10;
 
         drop(tokenLengths);

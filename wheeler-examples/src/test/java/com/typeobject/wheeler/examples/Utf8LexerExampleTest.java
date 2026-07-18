@@ -23,7 +23,7 @@ class Utf8LexerExampleTest {
             Files.readString(root.resolve("lexer/Scanner.w"))),
         "examples.lexer.main");
     VirtualMachine machine = new VirtualMachine(
-        program, "x=123;//c\n".getBytes(StandardCharsets.UTF_8));
+        program, "x=123;//c\n".getBytes(StandardCharsets.UTF_8), 3);
     var initial = machine.snapshot();
 
     machine.run();
@@ -34,6 +34,8 @@ class Utf8LexerExampleTest {
     assertEquals(6, machine.global("commentStart"));
     assertEquals(123, machine.global("numericValue"));
     assertEquals(0, machine.global("parseError"));
+    assertEquals(3, machine.global("outputLength"));
+    assertEquals("123", new String(machine.hostOutput(), StandardCharsets.UTF_8));
     assertEquals(10, machine.global("finalCursor"));
     while (machine.historySize() > 0) {
       machine.rewindOne();
