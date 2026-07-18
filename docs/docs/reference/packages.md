@@ -216,7 +216,11 @@ Archive signatures and registry namespace authorization are separate layers. Con
 
 ## Wheeler-native lock slice
 
-`NativeLock.w` uses the shared scanner, name/version checks, and token boundary to parse schema 1, one or two sorted package records, lowercase 64-nybble root/archive/manifest identities, and one edge from the first package to the second. `LockEmitter.w` emits one canonical record per line, including the final newline; the independent stage-0 lock parser accepts those bytes. The fixture rejects schema drift, uppercase hex, duplicate or unsorted packages, and unknown or reversed edges. Larger package sets and complete edge lists remain, as does hashing the bytes rather than merely checking that a digest has dressed correctly for dinner.
+`NativeLock.w` uses the shared scanner, name/version checks, and token boundary to parse schema 1, one or two sorted package records, lowercase 64-nybble root/archive/manifest identities, and one edge from the first package to the second. shared `LineEmitter.w` emits one canonical record per line, including the final newline; the independent stage-0 lock parser accepts those bytes. The fixture rejects schema drift, uppercase hex, duplicate or unsorted packages, and unknown or reversed edges. Larger package sets and complete edge lists remain, as does hashing the bytes rather than merely checking that a digest has dressed correctly for dinner.
+
+## Wheeler-native workspace slice
+
+`NativeWorkspace.w` and `packages/Workspace.w` parse a checked workspace/profile header and one or two member-name-sorted records. Names follow the stage-0 lowercase dot/hyphen profile, paths use strict alphanumeric/underscore/hyphen components with nonempty dotted segments, and two members must have distinct nonnested paths. Shared `LineEmitter.w` normalizes trivia to canonical records with a final newline; the independent stage-0 workspace parser accepts the result. Duplicate names, duplicate or nested paths, traversal, malformed names, and input order masquerading as canonical order all fail closed. Larger workspaces remain, because manually enumerating ten thousand record fields would be technically bounded and morally unhelpful.
 
 ## Implementation direction
 

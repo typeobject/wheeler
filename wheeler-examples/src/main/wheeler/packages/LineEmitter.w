@@ -1,5 +1,5 @@
-module examples.packages.lock_emitter;
-classical class LockEmitter {
+module examples.packages.line_emitter;
+classical class LineEmitter {
     private long copyToken(
         utf8 source,
         long start,
@@ -18,7 +18,7 @@ classical class LockEmitter {
         return cursor;
     }
 
-    public long emitCanonicalLock(
+    public long emitCanonicalLines(
         utf8 source,
         words starts,
         words lengths,

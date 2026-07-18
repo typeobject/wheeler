@@ -78,6 +78,58 @@ classical class Names {
         return true;
     }
 
+    public boolean validWorkspaceName(
+        utf8 source,
+        long start,
+        long length
+    ) {
+        if (length == 0) {
+            return false;
+        }
+        long cursor = start;
+        long end = start + length;
+        boolean needValue = true;
+        while (cursor < end) limit 256 {
+            long scalar = utf8Scalar(source, cursor);
+            boolean letter = lowercase(scalar);
+            boolean numeric = digit(scalar);
+            if (needValue) {
+                if (letter) {
+                    needValue = false;
+                } else {
+                    if (numeric) {
+                        needValue = false;
+                    } else {
+                        return false;
+                    }
+                }
+            } else {
+                if (letter) {
+                    needValue = false;
+                } else {
+                    if (numeric) {
+                        needValue = false;
+                    } else {
+                        if (scalar == 45) {
+                            needValue = true;
+                        } else {
+                            if (scalar == 46) {
+                                needValue = true;
+                            } else {
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+            cursor += utf8Width(source, cursor);
+        }
+        if (needValue) {
+            return false;
+        }
+        return lowercase(utf8Scalar(source, start));
+    }
+
     public boolean validPackageName(
         utf8 source,
         long start,

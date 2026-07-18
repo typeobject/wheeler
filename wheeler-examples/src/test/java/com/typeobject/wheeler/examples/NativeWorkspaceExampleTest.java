@@ -7,73 +7,66 @@ import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
-import com.typeobject.wheeler.packageformat.PackageLockParser;
+import com.typeobject.wheeler.packageformat.WorkspaceManifestParser;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-class NativeLockExampleTest {
+class NativeWorkspaceExampleTest {
   @Test
-  void wheelerParsesAndCanonicalizesABoundedLock() throws Exception {
+  void wheelerParsesAndCanonicalizesABoundedWorkspace() throws Exception {
     Path root = Path.of("src/main/wheeler");
     Program program = new WheelerCompiler().compileModuleFiles(
         Map.of(
-            "Lock.w", Files.readString(root.resolve("packages/Lock.w")),
             "LineEmitter.w", Files.readString(root.resolve("packages/LineEmitter.w")),
             "ManifestTokens.w", Files.readString(root.resolve("packages/ManifestTokens.w")),
             "Names.w", Files.readString(root.resolve("packages/Names.w")),
-            "NativeLock.w", Files.readString(root.resolve("NativeLock.w")),
+            "NativeWorkspace.w", Files.readString(root.resolve("NativeWorkspace.w")),
+            "Paths.w", Files.readString(root.resolve("packages/Paths.w")),
             "Scanner.w", Files.readString(root.resolve("lexer/Scanner.w")),
-            "Semver.w", Files.readString(root.resolve("packages/Semver.w"))),
-        "examples.packages.lock_main");
-    String a = "a".repeat(64);
-    String b = "b".repeat(64);
-    String c = "c".repeat(64);
-    String d = "d".repeat(64);
-    String e = "e".repeat(64);
+            "Workspace.w", Files.readString(root.resolve("packages/Workspace.w"))),
+        "examples.packages.workspace_main");
     String canonical =
-        "lock 1 root \"" + a + "\";\n"
-            + "package \"demo.app\" version \"1.0.0\" archive \"" + b
-            + "\" manifest \"" + c + "\";\n"
-            + "package \"demo.base\" version \"2.1.0\" archive \"" + d
-            + "\" manifest \"" + e + "\";\n"
-            + "edge \"demo.app\" \"demo.base\";\n";
-    String input = canonical.replace(" package", "  package")
-        .replace("\n", "\n  ");
+        "workspace \"demo-workspace\" profile \"bootstrap-1\";\n"
+            + "member \"app\" path \"packages/app\";\n"
+            + "member \"base\" path \"packages/base\";\n";
+    String input = canonical.replace("\n", "\n   ");
     VirtualMachine machine = vm(program, input);
     var initial = machine.snapshot();
 
     machine.run();
 
-    assertEquals(13, machine.global("rootStart"));
-    assertEquals(2, machine.global("packageCount"));
-    assertEquals(8, machine.global("firstNameLength"));
-    assertEquals(5, machine.global("firstVersionLength"));
-    assertEquals(9, machine.global("secondNameLength"));
-    assertEquals(1, machine.global("edgeCount"));
+    assertEquals(11, machine.global("nameStart"));
+    assertEquals(14, machine.global("nameLength"));
+    assertEquals(11, machine.global("profileLength"));
+    assertEquals(2, machine.global("memberCount"));
+    assertEquals(3, machine.global("firstMemberNameLength"));
+    assertEquals(12, machine.global("firstMemberPathLength"));
+    assertEquals(4, machine.global("secondMemberNameLength"));
+    assertEquals(13, machine.global("secondMemberPathLength"));
     assertEquals(canonical.length(), machine.global("emittedLength"));
     assertEquals(input.length(), machine.global("finalCursor"));
     assertEquals(canonical, new String(machine.hostOutput(), StandardCharsets.UTF_8));
-    new PackageLockParser().parse(machine.hostOutput());
+    new WorkspaceManifestParser().parse(machine.hostOutput());
     while (machine.historySize() > 0) {
       machine.rewindOne();
     }
     assertEquals(initial, machine.snapshot());
 
-    assertTraps(program, canonical.replace("lock 1", "lock 2"));
-    assertTraps(program, canonical.replace(a, "A" + a.substring(1)));
+    assertTraps(program, canonical.replace("demo-workspace", "Demo"));
+    assertTraps(program, canonical.replace("\"base\" path", "\"app\" path"));
     assertTraps(
         program,
         canonical.replace(
-            "package \"demo.app\" version \"1.0.0\"",
-            "package \"demo.base\" version \"1.0.0\""));
-    assertTraps(
-        program,
-        canonical.replace(
-            "edge \"demo.app\" \"demo.base\"",
-            "edge \"demo.base\" \"demo.app\""));
+            "member \"app\" path \"packages/app\";\n"
+                + "member \"base\" path \"packages/base\";",
+            "member \"base\" path \"packages/base\";\n"
+                + "member \"app\" path \"packages/app\";"));
+    assertTraps(program, canonical.replace("packages/base", "packages/app"));
+    assertTraps(program, canonical.replace("packages/base", "packages/app/nested"));
+    assertTraps(program, canonical.replace("packages/base", "packages/../base"));
   }
 
   private static void assertTraps(Program program, String source) {

@@ -1,7 +1,7 @@
 module examples.packages.lock_main;
 import examples.lexer.scanner;
+import examples.packages.line_emitter;
 import examples.packages.lock;
-import examples.packages.lock_emitter;
 classical class NativeLock {
     state long rootStart = 0;
     state long packageCount = 0;
@@ -36,7 +36,7 @@ classical class NativeLock {
                 firstVersionLength = lock.first.versionLength;
                 secondNameLength = lock.second.nameLength;
                 edgeCount = lock.edgeCount;
-                emittedLength = emitCanonicalLock(
+                emittedLength = emitCanonicalLines(
                     source,
                     starts,
                     lengths,
