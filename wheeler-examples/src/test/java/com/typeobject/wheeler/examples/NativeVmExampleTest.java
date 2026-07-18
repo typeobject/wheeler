@@ -112,6 +112,13 @@ class NativeVmExampleTest {
         Files.readString(root.resolve("RecursiveValue.w")),
         "result",
         6);
+    assertInterpretedTwoGlobals(
+        interpreter,
+        Files.readString(root.resolve("LoopControl.w")),
+        "sum",
+        12,
+        "selected",
+        7);
     byte[] forgedBound = withForgedProofBound(
         compiler.compileToBytecode(functionValues));
     assertThrows(
@@ -156,6 +163,30 @@ class NativeVmExampleTest {
     stageZero.run();
     assertEquals(expected, stageZero.global(global));
     assertEquals(stageZero.global(global), nativeMachine.global("finalGlobal"));
+    while (nativeMachine.historySize() > 0) {
+      nativeMachine.rewindOne();
+    }
+    assertEquals(initial, nativeMachine.snapshot());
+  }
+
+  private static void assertInterpretedTwoGlobals(
+      Program interpreter,
+      String source,
+      String firstGlobal,
+      long firstExpected,
+      String secondGlobal,
+      long secondExpected) {
+    byte[] artifact = new WheelerCompiler().compileToBytecode(source);
+    VirtualMachine nativeMachine = VirtualMachine.withBinaryInput(interpreter, artifact);
+    var initial = nativeMachine.snapshot();
+    nativeMachine.run();
+    VirtualMachine stageZero = new VirtualMachine(new BytecodeReader().read(artifact));
+    stageZero.run();
+    assertEquals(firstExpected, stageZero.global(firstGlobal));
+    assertEquals(secondExpected, stageZero.global(secondGlobal));
+    assertEquals(stageZero.global(firstGlobal), nativeMachine.global("finalGlobal"));
+    assertEquals(stageZero.global(secondGlobal), nativeMachine.global("finalGlobalOne"));
+    assertEquals(2, nativeMachine.global("interpretedGlobalCount"));
     while (nativeMachine.historySize() > 0) {
       nativeMachine.rewindOne();
     }

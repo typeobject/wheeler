@@ -3,7 +3,12 @@ import examples.compiler.opcodes;
 import examples.compiler.verifier;
 import examples.packages.binary;
 classical class Interpreter {
-    public record Execution(long globalValue, long steps) {}
+    public record Execution(
+        long globalZero,
+        long globalOne,
+        long globalCount,
+        long steps
+    ) {}
 
     public variant ExecutionResult {
         case Value(Execution execution);
@@ -58,6 +63,7 @@ classical class Interpreter {
 
     public ExecutionResult executeArtifact(
         byteview artifact,
+        words globals,
         words locals,
         words returnCursors,
         words returnStarts,
@@ -74,9 +80,13 @@ classical class Interpreter {
         long functionsOffset = sectionOffset(artifact, 4);
         long codeOffset = sectionOffset(artifact, 5);
         long globalCount = readUnsigned(artifact, typesOffset, 4);
-        long globalValue = 0;
-        if (globalCount == 1) {
-            globalValue = readSigned(artifact, typesOffset + 12);
+        long global = 0;
+        while (global < globalCount) limit INTERPRETER_GLOBAL_COUNT {
+            set(
+                globals,
+                global,
+                readSigned(artifact, typesOffset + 12 + global * 16));
+            global += 1;
         }
         long functionCount = readUnsigned(artifact, functionsOffset, 4);
         long entry = readUnsigned(artifact, manifestOffset + 4, 4);
@@ -108,7 +118,8 @@ classical class Interpreter {
             long next = cursor + instructionLength;
             if (opcode == OPCODE_HALT) {
                 if (depth == 0) {
-                    Execution execution = new Execution(globalValue, steps + 1);
+                    Execution execution = new Execution(
+                        globals[0], globals[1], globalCount, steps + 1);
                     return new ExecutionResult.Value(execution);
                 }
                 return new ExecutionResult.Error(cursor);
@@ -152,13 +163,31 @@ classical class Interpreter {
                     }
                 } else {
                     if (opcode == OPCODE_ADD_CONST) {
-                        globalValue += readSigned(artifact, cursor + 16);
+                        long addGlobal = readUnsigned(
+                            artifact, cursor + 8, 8);
+                        set(
+                            globals,
+                            addGlobal,
+                            globals[addGlobal]
+                                + readSigned(artifact, cursor + 16));
                     }
                     if (opcode == OPCODE_SUB_CONST) {
-                        globalValue -= readSigned(artifact, cursor + 16);
+                        long subtractGlobal = readUnsigned(
+                            artifact, cursor + 8, 8);
+                        set(
+                            globals,
+                            subtractGlobal,
+                            globals[subtractGlobal]
+                                - readSigned(artifact, cursor + 16));
                     }
                     if (opcode == OPCODE_XOR_CONST) {
-                        globalValue ^= readSigned(artifact, cursor + 16);
+                        long xorGlobal = readUnsigned(
+                            artifact, cursor + 8, 8);
+                        set(
+                            globals,
+                            xorGlobal,
+                            globals[xorGlobal]
+                                ^ readSigned(artifact, cursor + 16));
                     }
                     if (opcode == OPCODE_CALL) {
                         long callTarget = readUnsigned(artifact, cursor + 8, 8);
@@ -309,8 +338,10 @@ classical class Interpreter {
                         }
                     }
                     if (opcode == OPCODE_EXPECT_EQ) {
+                        long expectedGlobal = readUnsigned(
+                            artifact, cursor + 8, 8);
                         long expected = readSigned(artifact, cursor + 16);
-                        if (globalValue == expected) {
+                        if (globals[expectedGlobal] == expected) {
                         } else {
                             return new ExecutionResult.Error(cursor);
                         }
@@ -326,11 +357,21 @@ classical class Interpreter {
                     if (opcode == OPCODE_LOCAL_LOAD_GLOBAL) {
                         long loadDestination = readUnsigned(
                             artifact, cursor + 8, 8);
-                        set(locals, localIndex(depth, loadDestination), globalValue);
+                        long loadGlobal = readUnsigned(
+                            artifact, cursor + 16, 8);
+                        set(
+                            locals,
+                            localIndex(depth, loadDestination),
+                            globals[loadGlobal]);
                     }
                     if (opcode == OPCODE_LOCAL_STORE_GLOBAL) {
+                        long storeGlobal = readUnsigned(
+                            artifact, cursor + 8, 8);
                         long storeSource = readUnsigned(artifact, cursor + 16, 8);
-                        globalValue = locals[localIndex(depth, storeSource)];
+                        set(
+                            globals,
+                            storeGlobal,
+                            locals[localIndex(depth, storeSource)]);
                     }
                     if (opcode == OPCODE_LOCAL_MOVE) {
                         long moveDestination = readUnsigned(

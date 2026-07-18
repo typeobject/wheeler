@@ -36,6 +36,7 @@ classical class Opcodes {
     public const long INTERPRETER_LOCAL_WIDTH = 32;
     public const long INTERPRETER_FRAME_COUNT = 8;
     public const long INTERPRETER_FUNCTION_COUNT = 8;
+    public const long INTERPRETER_GLOBAL_COUNT = 8;
     public const long INTERPRETER_LOCAL_CAPACITY =
         INTERPRETER_LOCAL_WIDTH * INTERPRETER_FRAME_COUNT;
     public const long INTERPRETER_MAX_CALL_DEPTH =

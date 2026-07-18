@@ -5,11 +5,14 @@ import examples.compiler.verifier;
 import examples.packages.binary;
 classical class NativeVm {
     state long finalGlobal = 0;
+    state long finalGlobalOne = 0;
+    state long interpretedGlobalCount = 0;
     state long interpretedSteps = 0;
     state long artifactLength = 0;
 
     entry void main(byteview artifact) {
-        region arena = new region(2304, 5);
+        region arena = new region(2368, 6);
+        words globals = allocate(arena, INTERPRETER_GLOBAL_COUNT);
         words locals = allocate(arena, INTERPRETER_LOCAL_CAPACITY);
         words returnCursors = allocate(arena, INTERPRETER_FRAME_COUNT);
         words returnStarts = allocate(arena, INTERPRETER_FRAME_COUNT);
@@ -18,6 +21,7 @@ classical class NativeVm {
             arena, INTERPRETER_FRAME_COUNT);
         ExecutionResult result = executeArtifact(
             artifact,
+            globals,
             locals,
             returnCursors,
             returnStarts,
@@ -25,7 +29,9 @@ classical class NativeVm {
             returnDestinations);
         match (result) {
             case ExecutionResult.Value(Execution execution) {
-                finalGlobal = execution.globalValue;
+                finalGlobal = execution.globalZero;
+                finalGlobalOne = execution.globalOne;
+                interpretedGlobalCount = execution.globalCount;
                 interpretedSteps = execution.steps;
             }
             case ExecutionResult.Error(long offset) {
@@ -38,6 +44,7 @@ classical class NativeVm {
         drop(returnStarts);
         drop(returnCursors);
         drop(locals);
+        drop(globals);
         drop(arena);
     }
 }

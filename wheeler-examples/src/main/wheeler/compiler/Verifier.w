@@ -1,5 +1,6 @@
 module examples.compiler.verifier;
 import examples.compiler.function_verifier;
+import examples.compiler.opcodes;
 import examples.compiler.proof_verifier;
 import examples.compiler.type_codes;
 classical class Verifier {
@@ -122,8 +123,7 @@ classical class Verifier {
         long stringCount = readUnsigned(artifact, stringsOffset, 4);
         long functionCount = readUnsigned(artifact, functionsOffset, 4);
         long entryFunction = readUnsigned(artifact, manifestOffset + 4, 4);
-        if (globalCount < 2) {
-        } else {
+        if (INTERPRETER_GLOBAL_COUNT < globalCount) {
             return 0;
         }
         if (differs(directoryField(artifact, 0, 16, 8), 24)) {
@@ -137,17 +137,19 @@ classical class Verifier {
         if (differs(directoryField(artifact, 3, 16, 8), 4)) {
             return 0;
         }
-        if (globalCount == 1) {
-            long globalName = readUnsigned(artifact, typesOffset + 4, 4);
-            if (globalName < stringCount) {
+        long global = 0;
+        while (global < globalCount) limit INTERPRETER_GLOBAL_COUNT {
+            long globalDescriptor = typesOffset + 4 + global * 16;
+            if (readUnsigned(artifact, globalDescriptor, 4) < stringCount) {
             } else {
                 return 0;
             }
             if (differs(
-                    readUnsigned(artifact, typesOffset + 8, 4),
+                    readUnsigned(artifact, globalDescriptor + 4, 4),
                     TYPE_SIGNED)) {
                 return 0;
             }
+            global += 1;
         }
         if (differs(
                 stringCount,
