@@ -1,3 +1,4 @@
+// Wheeler documentation-site policy; semantic docs are validated before this renderer runs.
 // @ts-check
 import {themes as prismThemes} from 'prism-react-renderer';
 

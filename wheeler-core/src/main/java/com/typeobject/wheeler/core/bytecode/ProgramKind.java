@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.core.bytecode;
 
+/** Declared classical, quantum, or hybrid semantic profile of an artifact. */
 public enum ProgramKind {
   CLASSICAL(0),
   QUANTUM(1),

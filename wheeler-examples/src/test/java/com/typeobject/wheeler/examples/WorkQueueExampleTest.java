@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for the Wheeler-owned bounded queue example. */
 class WorkQueueExampleTest {
   @Test
   void boundedWheelerQueueReturnsExplicitPushAndPopResults() throws Exception {

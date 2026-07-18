@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for file and declaration documentation diagnostics. */
 class SourceDocumentationTest {
   @Test
   void acceptsAFirstContentSummaryWithParagraphs() {

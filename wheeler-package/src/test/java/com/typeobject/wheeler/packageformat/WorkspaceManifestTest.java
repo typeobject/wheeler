@@ -8,6 +8,7 @@ import com.typeobject.wheeler.packageformat.WorkspaceManifest.Member;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for canonical workspace parsing and member validation. */
 class WorkspaceManifestTest {
   @Test
   void parserCanonicalizesMemberOrderAndComments() {

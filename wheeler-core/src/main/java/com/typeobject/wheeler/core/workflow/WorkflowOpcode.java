@@ -2,6 +2,7 @@ package com.typeobject.wheeler.core.workflow;
 
 import com.typeobject.wheeler.core.bytecode.BytecodeException;
 
+/** Stable semantic operations in a canonical hybrid workflow. */
 public enum WorkflowOpcode {
   PREPARE,
   APPLY,

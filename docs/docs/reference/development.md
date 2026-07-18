@@ -10,7 +10,7 @@ export PATH="$JAVA_HOME/bin:$PATH"
 ./gradlew clean check treeSitterTest
 ```
 
-Java compilation enables all lint warnings and treats warnings as errors. `check` runs JUnit and generates JaCoCo reports for modules with tests. `treeSitterTest` installs the pinned CLI, regenerates the parser, runs the syntax corpus, and compiles editor queries.
+Java compilation enables all lint warnings and treats warnings as errors. `check` runs JUnit, generates JaCoCo reports for modules with tests, and invokes `sourceHeaderTest`. That gate requires every authored Java, Wheeler, JavaScript, stylesheet, Gradle, Tree-sitter query, shell, and Python code file to begin its owned surface with a suitable documentation comment; generated parser and website output stay outside the authored set. `treeSitterTest` installs the pinned CLI, regenerates the parser, runs the syntax corpus, and compiles editor queries.
 
 ## Documentation check
 

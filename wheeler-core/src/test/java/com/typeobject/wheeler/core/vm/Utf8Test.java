@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for strict UTF-8 validation, scalar decoding, and malformed-input rejection. */
 class Utf8Test {
   @Test
   void acceptsCanonicalOneThroughFourByteScalars() {

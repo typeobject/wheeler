@@ -15,6 +15,7 @@ import com.typeobject.wheeler.core.vm.VmTrap;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for explicit immutable binary host input without content guessing. */
 class HostBinaryInputExampleTest {
   @Test
   void immutableBinaryInputExecutesPublishesAndRewinds() throws Exception {

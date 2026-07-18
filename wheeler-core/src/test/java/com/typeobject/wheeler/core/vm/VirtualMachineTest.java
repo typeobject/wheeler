@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Random;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for verified execution, exact rewind, calls, aggregates, and effects. */
 class VirtualMachineTest {
   @Test
   void callsForwardAndInverseBodies() {

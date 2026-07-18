@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for canonical manifests, source sets, and package archives. */
 class PackageFormatTest {
   private static final String MANIFEST = """
       package "wheeler.compiler" version "0.1.0" profile "bootstrap-1";

@@ -1,3 +1,4 @@
+// Executable bootstrap incubator and conformance portfolio; never a production dependency.
 dependencies {
     testImplementation project(':wheeler-core')
     testImplementation project(':wheeler-compiler')

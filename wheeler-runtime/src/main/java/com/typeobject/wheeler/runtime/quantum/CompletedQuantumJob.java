@@ -3,6 +3,7 @@ package com.typeobject.wheeler.runtime.quantum;
 import java.time.Duration;
 import java.util.Objects;
 
+/** Immutable already-completed quantum job used by deterministic local targets. */
 final class CompletedQuantumJob implements QuantumJob {
   private final QuantumResult result;
 

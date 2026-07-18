@@ -1,3 +1,4 @@
+// Stable Docusaurus navigation over the authored Wheeler manual and WIP tree.
 // @ts-check
 
 /** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */

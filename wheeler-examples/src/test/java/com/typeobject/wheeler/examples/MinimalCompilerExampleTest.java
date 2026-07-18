@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for the Wheeler-written compiler seed and canonical artifact parity. */
 class MinimalCompilerExampleTest {
   @Test
   void wheelerCompilesMinimalSourceToACanonicalExecutableArtifact() throws Exception {

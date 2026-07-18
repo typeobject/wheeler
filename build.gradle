@@ -1,3 +1,4 @@
+// Root build policy for the bounded stage-0 modules and Tree-sitter conformance gate.
 allprojects {
     group = 'com.typeobject.wheeler'
     version = '0.1.0-SNAPSHOT'
@@ -16,6 +17,51 @@ tasks.register('treeSitterTest', Exec) {
     dependsOn treeSitterInstall
     workingDir 'tree-sitter-wheeler'
     commandLine 'npm', 'test'
+}
+
+tasks.register('sourceHeaderTest') {
+    group = 'verification'
+    description = 'Requires an owned header comment on every authored code file.'
+    doLast {
+        def sources = fileTree(rootDir) {
+            include '**/*.java', '**/*.w', '**/*.js', '**/*.css', '**/*.gradle',
+                    '**/*.scm', '**/*.sh', '**/*.py'
+            exclude '.git/**', '**/build/**', '**/node_modules/**', 'docs/.docusaurus/**',
+                    'tree-sitter-wheeler/src/**'
+        }
+        def missing = []
+        sources.files.sort().each { file ->
+            def text = file.getText('UTF-8')
+            def valid = true
+            if (file.name.endsWith('.java')) {
+                def declaration = text =~ /(?m)^(?:@[\w.]+(?:\([^\n]*\))?\s*)*(?:(?:public|protected|private|abstract|final|sealed|non-sealed|static)\s+)*(?:class|record|enum|interface)\s+\w+/
+                valid = declaration.find()
+                        && text.substring(0, declaration.start()).stripTrailing().endsWith('*/')
+            } else if (file.name.endsWith('.w')) {
+                valid = text.startsWith('//! ')
+            } else if (file.name.endsWith('.js')) {
+                valid = text.readLines().take(3).any { it.startsWith('//') }
+            } else if (file.name.endsWith('.css')) {
+                valid = text.stripLeading().startsWith('/*')
+            } else if (file.name.endsWith('.gradle')) {
+                valid = text.stripLeading().startsWith('//')
+            } else if (file.name.endsWith('.scm')) {
+                valid = text.stripLeading().startsWith(';')
+            } else if (file.name.endsWith('.sh')) {
+                valid = text.readLines().take(3).count { it.startsWith('#') } >= 2
+            } else if (file.name.endsWith('.py')) {
+                def start = text.stripLeading()
+                valid = start.startsWith('#') || start.startsWith('"""')
+                        || start.startsWith("'''")
+            }
+            if (!valid) {
+                missing.add(rootDir.toPath().relativize(file.toPath()).toString())
+            }
+        }
+        if (!missing.isEmpty()) {
+            throw new GradleException('Code files require owned header comments:\n' + missing.join('\n'))
+        }
+    }
 }
 
 subprojects {
@@ -57,4 +103,5 @@ subprojects {
     }
 
     check.dependsOn jacocoTestReport
+    check.dependsOn rootProject.tasks.named('sourceHeaderTest')
 }

@@ -1,3 +1,4 @@
+// Source compiler seed; canonical bytecode semantics remain in wheeler-core.
 dependencies {
     implementation project(':wheeler-core')
 }

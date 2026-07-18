@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for the bounded ideal state-vector target contract. */
 class StateVectorTargetTest {
   @Test
   void targetIdentityAndMissingCapabilityDiagnosticsAreCanonical() {

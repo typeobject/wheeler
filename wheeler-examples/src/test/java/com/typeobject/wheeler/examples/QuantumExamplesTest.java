@@ -22,6 +22,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+/** Conformance tests for the executable quantum and hybrid Wheeler examples. */
 class QuantumExamplesTest {
   @ParameterizedTest
   @MethodSource("examples")

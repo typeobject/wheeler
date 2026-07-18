@@ -29,6 +29,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+/** Conformance tests for the unified stage-0 command and its physical host boundaries. */
 class WheelerCommandTest {
   @TempDir
   Path temporary;

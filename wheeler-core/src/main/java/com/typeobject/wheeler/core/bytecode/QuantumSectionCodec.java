@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/** Strict bounded codec for canonical quantum registers and circuits. */
 final class QuantumSectionCodec {
   record QuantumContent(List<QuantumRegister> registers, List<QuantumCircuit> circuits) {}
 

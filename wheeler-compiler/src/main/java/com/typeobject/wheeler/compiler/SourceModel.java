@@ -2,6 +2,7 @@ package com.typeobject.wheeler.compiler;
 
 import java.util.List;
 
+/** Internal immutable source IR shared by parser, linker, and lowerers. */
 final class SourceModel {
   record State(String name, long initialValue, int line) {}
 

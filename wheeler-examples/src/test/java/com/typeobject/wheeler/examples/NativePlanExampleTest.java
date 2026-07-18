@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for Wheeler-native build-plan verification. */
 class NativePlanExampleTest {
   @Test
   void wheelerInspectsOneDigestCheckedBuildNode() throws Exception {

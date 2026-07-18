@@ -17,6 +17,7 @@ import java.security.MessageDigest;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for Wheeler-native canonical package archive inspection. */
 class NativeArchiveExampleTest {
   @Test
   void wheelerInspectsOuterAndEntryDigestCheckedArchive() throws Exception {

@@ -6,6 +6,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 
+/** Derives the canonical content identity of a verified Wheeler artifact. */
 final class ArtifactIdentity {
   private ArtifactIdentity() {}
 

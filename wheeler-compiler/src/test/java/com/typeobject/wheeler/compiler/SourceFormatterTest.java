@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for lossless deterministic formatting and corpus stability. */
 class SourceFormatterTest {
   @Test
   void formatsFixedWhitespacePreservesTokensAndIsIdempotent() {

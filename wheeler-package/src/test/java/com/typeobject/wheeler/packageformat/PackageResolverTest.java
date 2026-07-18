@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for bounded deterministic dependency resolution. */
 class PackageResolverTest {
   @Test
   void semanticVersionsAndConstraintsFollowStableOrdering() {

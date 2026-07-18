@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for closed module linking, visibility, and nominal value APIs. */
 class ModuleExamplesTest {
   @Test
   void classicalFunctionModuleTargetLinksAndExecutes() throws Exception {

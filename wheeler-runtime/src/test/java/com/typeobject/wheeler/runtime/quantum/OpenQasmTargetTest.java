@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for deterministic OpenQASM target lowering and execution boundaries. */
 class OpenQasmTargetTest {
   @Test
   void portableExecutorReceivesQasmAndReturnsValidatedOutcomes() {

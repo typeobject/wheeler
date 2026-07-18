@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/** Lowers verified source quantum regions and hybrid workflow edges to canonical IR. */
 final class QuantumLowerer {
   Program lower(SourceProgram source, ClassicalContent classical) {
     List<QuantumRegister> registers = lowerRegisters(source);

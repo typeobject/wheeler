@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for structural, typed, control-flow, storage, and proof verification. */
 class BytecodeVerifierTest {
   @Test
   void rejectsOutOfRangeGlobalAndFunctionReferences() {

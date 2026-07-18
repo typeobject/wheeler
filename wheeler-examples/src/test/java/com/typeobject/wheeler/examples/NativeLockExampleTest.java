@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for Wheeler-native dependency-lock parsing and emission. */
 class NativeLockExampleTest {
   @Test
   void wheelerParsesAndCanonicalizesABoundedLock() throws Exception {

@@ -7,6 +7,7 @@ import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import java.util.List;
 
+/** Conformance tests for canonical core artifacts shared by verifier and VM tests. */
 public final class ProgramFixtures {
   private ProgramFixtures() {}
 

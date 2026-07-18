@@ -13,6 +13,7 @@ import java.security.MessageDigest;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for the provider-free Wheeler SHA-256 implementation. */
 class NativeSha256ExampleTest {
   @Test
   void wheelerHashesTextBinaryAndPaddingBoundaries() throws Exception {

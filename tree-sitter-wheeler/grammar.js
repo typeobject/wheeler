@@ -1,3 +1,4 @@
+// Editor grammar for Wheeler's accepted source profile; the compiler remains authoritative.
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
 

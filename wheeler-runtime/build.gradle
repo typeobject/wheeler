@@ -1,3 +1,4 @@
+// Provider-neutral execution adapters layered strictly above canonical core semantics.
 dependencies {
     implementation project(':wheeler-core')
 }

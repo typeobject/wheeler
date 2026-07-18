@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for Wheeler-native canonical bytecode verification. */
 class NativeVerifierExampleTest {
   @Test
   void wheelerVerifiesACanonicalBinaryArtifactAndRewinds() throws Exception {

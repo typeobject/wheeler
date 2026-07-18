@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for lossless parser-owned ranges, comments, and recovery states. */
 class SourceConcreteSyntaxTest {
   @Test
   void reconstructsEveryTokenCommentAndWhitespaceByteForByte() {

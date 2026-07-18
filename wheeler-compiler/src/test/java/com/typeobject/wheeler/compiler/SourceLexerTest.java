@@ -8,6 +8,7 @@ import com.typeobject.wheeler.compiler.SourceToken.Type;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for formatting-independent tokens, literals, comments, and limits. */
 class SourceLexerTest {
   @Test
   void recordsLocationsAndUsesLongestOperatorMatch() {

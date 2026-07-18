@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for Wheeler-native package-manifest parsing and emission. */
 class NativeManifestExampleTest {
   @Test
   void wheelerParsesAndCanonicalizesTheBoundedManifest() throws Exception {

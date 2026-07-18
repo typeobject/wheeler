@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for fail-closed source grammar and semantic boundaries. */
 class SourceProfileNegativeTest {
   @Test
   void rejectsUnsupportedJavaDeclaration() {

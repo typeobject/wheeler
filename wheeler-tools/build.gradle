@@ -1,3 +1,4 @@
+// Explicit host-effect command adapters over compiler, runtime, package, and core APIs.
 dependencies {
     implementation project(':wheeler-core')
     implementation project(':wheeler-compiler')

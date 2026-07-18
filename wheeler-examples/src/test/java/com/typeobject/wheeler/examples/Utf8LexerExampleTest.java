@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for the Wheeler-written strict UTF-8 scanner and declaration parser. */
 class Utf8LexerExampleTest {
   @Test
   void scannerParsesSignedMaximumAndReportsDecimalOverflow() throws Exception {

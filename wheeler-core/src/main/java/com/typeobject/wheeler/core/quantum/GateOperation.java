@@ -3,6 +3,7 @@ package com.typeobject.wheeler.core.quantum;
 import java.util.List;
 import java.util.Objects;
 
+/** One immutable semantic gate application over ordered logical qubits. */
 public record GateOperation(Gate gate, List<Integer> qubits, double parameter)
     implements QuantumOperation {
   public GateOperation {

@@ -17,6 +17,7 @@ import java.util.HexFormat;
 import java.util.Random;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for canonical bytecode encoding, decoding, and disassembly. */
 class BytecodeCodecTest {
   private final BytecodeWriter writer = new BytecodeWriter();
   private final BytecodeReader reader = new BytecodeReader();

@@ -15,6 +15,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+/** Conformance tests for the executable classical Wheeler example portfolio. */
 class ClassicalExamplesTest {
   @ParameterizedTest
   @MethodSource("examples")

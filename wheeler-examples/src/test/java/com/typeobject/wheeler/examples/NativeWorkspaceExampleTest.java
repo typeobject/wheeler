@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for Wheeler-native workspace-manifest parsing and emission. */
 class NativeWorkspaceExampleTest {
   @Test
   void wheelerParsesAndCanonicalizesABoundedWorkspace() throws Exception {

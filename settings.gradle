@@ -1,3 +1,4 @@
+// Authoritative stage-0 module graph; examples depend inward and never become libraries.
 pluginManagement {
     repositories {
         gradlePluginPortal()

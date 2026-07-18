@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.compiler;
 
+/** One formatting-independent source token with its exact source location. */
 record SourceToken(Type type, String text, int line, int column, int offset) {
   enum Type {
     IDENTIFIER,

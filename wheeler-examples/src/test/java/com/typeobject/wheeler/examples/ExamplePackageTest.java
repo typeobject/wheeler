@@ -12,6 +12,7 @@ import java.util.TreeMap;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for the checked-in example package manifest and target graph. */
 class ExamplePackageTest {
   @Test
   void checkedInManifestIsCanonicalAndCoversEveryExample() throws Exception {

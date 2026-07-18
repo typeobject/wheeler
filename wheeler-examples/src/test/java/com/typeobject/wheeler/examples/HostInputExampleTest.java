@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for explicit strict UTF-8 host input and bounded output publication. */
 class HostInputExampleTest {
   @Test
   void explicitStrictUtf8InputExecutesAndRewindsWithoutAmbientState() throws Exception {

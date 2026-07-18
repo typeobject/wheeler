@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for affine owned storage, borrows, mutation, and deterministic maps. */
 class OwnedStoreTest {
   @Test
   void boundedMapSupportsZeroKeysUpdatesMembershipAndRewind() {

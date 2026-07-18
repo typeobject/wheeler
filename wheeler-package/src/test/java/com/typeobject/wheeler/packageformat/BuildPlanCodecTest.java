@@ -12,6 +12,7 @@ import com.typeobject.wheeler.packageformat.PackageManifest.TargetKind;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for canonical source-bound build-plan encoding and identity. */
 class BuildPlanCodecTest {
   @Test
   void planIsCanonicalContentAddressedAndOrderIndependent() {

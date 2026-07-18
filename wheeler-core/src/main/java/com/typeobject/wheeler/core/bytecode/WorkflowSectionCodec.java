@@ -7,6 +7,7 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Strict bounded codec for the canonical workflow section. */
 final class WorkflowSectionCodec {
   private static final int RECORD_BYTES = 32;
 

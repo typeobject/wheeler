@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for source-to-bytecode lowering across the accepted language profile. */
 class WheelerCompilerTest {
   private static final String COUNTER = """
       classical class Counter {

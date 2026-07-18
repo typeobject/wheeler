@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for durable hybrid event reduction, replay, retry, and commit semantics. */
 class HybridRunTest {
   private static final Duration TIMEOUT = Duration.ofSeconds(1);
 

@@ -1,3 +1,4 @@
+; Wheeler semantic highlighting captures for editors; these do not define validity.
 (line_comment) @comment
 (block_comment) @comment
 

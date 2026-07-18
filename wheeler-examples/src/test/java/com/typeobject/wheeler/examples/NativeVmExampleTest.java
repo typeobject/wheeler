@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
+/** Conformance tests for Wheeler-native verification and interpreted execution parity. */
 class NativeVmExampleTest {
   @Test
   void wheelerInterpretsBoundedArtifactsIncludingCounter() throws Exception {

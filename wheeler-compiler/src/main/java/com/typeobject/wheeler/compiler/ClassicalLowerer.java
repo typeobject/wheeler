@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/** Lowers typed classical source IR to verified functions and canonical metadata. */
 final class ClassicalLowerer {
   record ClassicalContent(
       List<Global> globals,
