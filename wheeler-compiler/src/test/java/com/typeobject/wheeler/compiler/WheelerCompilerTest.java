@@ -123,6 +123,96 @@ class WheelerCompilerTest {
   }
 
   @Test
+  void earlyReturnBreakAndContinuePreserveBoundedControl() {
+    Program program = new WheelerCompiler().compile("""
+        classical class LoopControl {
+          state long sum = 0;
+          state long stopped = 0;
+          long choose(boolean first) {
+            if (first) { return 7; }
+            return 9;
+          }
+          entry void main() {
+            long i = 0;
+            while (i < 6) limit 6 {
+              i += 1;
+              if (i < 3) { continue; }
+              sum += i;
+              if (i == 5) { break; }
+            }
+            stopped = choose(i == 5);
+            assert sum == 12;
+            assert stopped == 7;
+          }
+        }
+        """);
+    VirtualMachine machine = new VirtualMachine(program);
+
+    machine.run();
+
+    assertEquals(12, machine.global("sum"));
+    assertEquals(7, machine.global("stopped"));
+  }
+
+  @Test
+  void nestedLoopJumpsTargetTheInnermostLoop() {
+    Program program = new WheelerCompiler().compile("""
+        classical class NestedLoops {
+          state long count = 0;
+          entry void main() {
+            long outer = 0;
+            while (outer < 2) limit 2 {
+              outer += 1;
+              long inner = 0;
+              while (inner < 3) limit 3 {
+                inner += 1;
+                if (inner == 2) { break; }
+                count += 1;
+              }
+              count += 10;
+            }
+            assert count == 22;
+          }
+        }
+        """);
+    VirtualMachine machine = new VirtualMachine(program);
+
+    machine.run();
+
+    assertEquals(22, machine.global("count"));
+  }
+
+  @Test
+  void zeroIterationLoopAndGlobalStepDefenseRemainIndependent() {
+    Program zero = new WheelerCompiler().compile("""
+        classical class ZeroLoop {
+          state long count = 0;
+          entry void main() {
+            while (false) limit 0 { count += 1; }
+            assert count == 0;
+          }
+        }
+        """);
+    VirtualMachine zeroMachine = new VirtualMachine(zero);
+    zeroMachine.run();
+    assertEquals(0, zeroMachine.global("count"));
+
+    Program source = new WheelerCompiler().compile("""
+        classical class StepDefense {
+          entry void main() { while (true) limit 100 { } }
+        }
+        """);
+    Program constrained = new Program(
+        source.name(),
+        source.entryFunctionId(),
+        source.globals(),
+        source.functions(),
+        100,
+        3);
+    assertThrows(VmTrap.class, () -> new VirtualMachine(constrained).run());
+  }
+
+  @Test
   void loopLimitTrapsBeforeAnExtraIteration() {
     Program program = new WheelerCompiler().compile("""
         classical class Bounded {

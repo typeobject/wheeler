@@ -76,10 +76,14 @@ module.exports = grammar({
       $.reverse_statement,
       $.if_statement,
       $.while_statement,
+      $.break_statement,
+      $.continue_statement,
       $.return_statement,
     ),
 
     return_statement: $ => seq('return', $.expression, ';'),
+    break_statement: _ => seq('break', ';'),
+    continue_statement: _ => seq('continue', ';'),
 
     local_declaration: $ => seq(
       field('type', choice('long', 'boolean')),

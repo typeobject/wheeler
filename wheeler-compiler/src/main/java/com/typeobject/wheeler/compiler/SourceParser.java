@@ -8,7 +8,9 @@ import com.typeobject.wheeler.compiler.SourceModel.SourceProgram;
 import com.typeobject.wheeler.compiler.SourceModel.State;
 import com.typeobject.wheeler.compiler.SourceModel.Statement;
 import com.typeobject.wheeler.compiler.SourceToken.Type;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -29,6 +31,7 @@ final class SourceParser {
   private boolean valueReturnsAllowed;
   private int temporarySequence;
   private int labelSequence;
+  private final Deque<LoopLabels> loops = new ArrayDeque<>();
 
   SourceProgram parse(String source) {
     tokens = new SourceLexer(source).lex();
@@ -37,6 +40,7 @@ final class SourceParser {
     functions.clear();
     registers.clear();
     circuits.clear();
+    loops.clear();
 
     SourceToken domain = expect(Type.IDENTIFIER, "computation domain");
     if (!DOMAINS.contains(domain.text())) {
@@ -183,11 +187,13 @@ final class SourceParser {
         parseIf(body, previous());
       } else if (structuredStatements && matchText("while")) {
         parseWhile(body, previous());
+      } else if (structuredStatements && (matchText("break") || matchText("continue"))) {
+        parseLoopJump(body, previous());
       } else if (structuredStatements && isAssignmentStart()) {
         parseStructuredAssignment(body);
       } else if (!structuredStatements
           && (checkLocalType() || checkText("if") || checkText("while")
-              || checkText("return"))) {
+              || checkText("return") || checkText("break") || checkText("continue"))) {
         fail(peek(), "local control flow is not available in this method kind");
       } else if (matchText("reverse")) {
         SourceToken reverse = previous();
@@ -284,7 +290,9 @@ final class SourceParser {
     body.addAll(conditionCode);
     body.add(statement("jump_zero", start.line(), condition, done));
     body.add(statement("loop_check", start.line(), iterations, limit));
+    loops.push(new LoopLabels(repeat, done));
     parseStructuredBlock(body, "while");
+    loops.pop();
     body.add(statement("jump", start.line(), repeat));
     body.add(statement("label", start.line(), done));
   }
@@ -300,6 +308,8 @@ final class SourceParser {
         parseIf(body, previous());
       } else if (matchText("while")) {
         parseWhile(body, previous());
+      } else if (matchText("break") || matchText("continue")) {
+        parseLoopJump(body, previous());
       } else if (isAssignmentStart()) {
         parseStructuredAssignment(body);
       } else {
@@ -307,6 +317,18 @@ final class SourceParser {
       }
     }
     expect(Type.RIGHT_BRACE, "'}' after " + owner + " body");
+  }
+
+  private void parseLoopJump(List<Statement> body, SourceToken keyword) {
+    if (loops.isEmpty()) {
+      fail(keyword, keyword.text() + " is only valid inside a bounded loop");
+    }
+    expect(Type.SEMICOLON, "';' after " + keyword.text());
+    LoopLabels loop = loops.getFirst();
+    body.add(statement(
+        "jump",
+        keyword.line(),
+        keyword.text().equals("break") ? loop.done() : loop.repeat()));
   }
 
   private String parseExpression(List<Statement> body) {
@@ -651,6 +673,8 @@ final class SourceParser {
   private static void fail(SourceToken token, String message) {
     throw new CompilerException(token.line(), message + " at column " + token.column());
   }
+
+  private record LoopLabels(String repeat, String done) {}
 
   private record QubitReference(String register, int index) {}
 }

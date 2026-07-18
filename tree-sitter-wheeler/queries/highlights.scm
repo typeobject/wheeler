@@ -3,7 +3,7 @@
 
 ["classical" "quantum" "hybrid" "class" "state" "qreg" "new" "void"] @keyword
 ["long" "boolean"] @type.builtin
-["entry" "rev" "coherent" "unitary" "reverse" "assert"] @keyword.control
+["entry" "rev" "coherent" "unitary" "reverse" "assert" "if" "else" "while" "limit" "break" "continue" "return"] @keyword.control
 (visibility_modifier) @keyword.modifier
 (method_modifier) @keyword.modifier
 

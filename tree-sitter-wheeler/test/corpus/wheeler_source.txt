@@ -188,8 +188,10 @@ classical class Control {
   entry void main() {
     long i = 0;
     while (i < 5) limit 5 {
-      sum += i;
       i += 1;
+      if (i < 2) { continue; }
+      sum += i;
+      if (i == 4) { break; }
     }
     boolean complete = sum == 10;
     if (complete) { sum = 1; } else { sum = 2; }
@@ -233,12 +235,34 @@ classical class Control {
                     (assignment_statement
                       (identifier)
                       (expression
-                        (identifier))))
+                        (integer_literal))))
+                  (statement
+                    (if_statement
+                      (expression
+                        (binary_expression
+                          (expression
+                            (identifier))
+                          (expression
+                            (integer_literal))))
+                      (block
+                        (statement
+                          (continue_statement)))))
                   (statement
                     (assignment_statement
                       (identifier)
                       (expression
-                        (integer_literal)))))))
+                        (identifier))))
+                  (statement
+                    (if_statement
+                      (expression
+                        (binary_expression
+                          (expression
+                            (identifier))
+                          (expression
+                            (integer_literal))))
+                      (block
+                        (statement
+                          (break_statement))))))))
             (statement
               (local_declaration
                 (identifier)

@@ -85,9 +85,9 @@ if (complete) {
 }
 ```
 
-The loop limit is evaluated once before entry. Wheeler checks it before every body iteration and traps before executing an iteration beyond the bound. The whole-program step limit remains a separate defense.
+The loop limit is evaluated once before entry. Wheeler checks it before every body iteration and traps before executing an iteration beyond the bound. `continue;` transfers to condition reevaluation and therefore cannot evade the next bound check. `break;` exits the innermost bounded loop. Both are rejected outside a loop. Nested loops carry distinct targets and counters. The whole-program step limit remains a separate defense.
 
-Value calls evaluate arguments left to right, move them through a verified contiguous typed call window, initialize callee parameter registers, and place one signed or Boolean result in a caller register of the exact declared type. Every reachable path in a value-returning method must end in `return expression;`. Static recursion is permitted under the VM's hard 1,024-frame ceiling and the program step ceiling.
+Value calls evaluate arguments left to right, move them through a verified contiguous typed call window, initialize callee parameter registers, and place one signed or Boolean result in a caller register of the exact declared type. A value-returning method may return early from a conditional, but every reachable path must end in `return expression;` of the declared type. Static recursion is permitted under the VM's hard 1,024-frame ceiling and the program step ceiling.
 
 Local control compiles to verified typed frame registers and explicit control-flow targets. The function descriptor stores one canonical type code per register. The verifier rejects unknown type codes, invalid targets, out-of-range locals, reads not definitely assigned on every incoming path, operand or call type mismatches, non-Boolean conditions, invalid Boolean constants, and a function that falls through its body.
 

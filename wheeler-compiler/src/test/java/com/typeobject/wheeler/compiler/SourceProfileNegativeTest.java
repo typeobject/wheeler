@@ -67,8 +67,12 @@ class SourceProfileNegativeTest {
         CompilerException.class, () -> new WheelerCompiler().compile(unbounded));
     CompilerException branch = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(reversible));
+    CompilerException loopJump = assertThrows(
+        CompilerException.class,
+        () -> compile("state long value = 0;", "break;"));
     assertTrue(loop.getMessage().contains("expected 'limit'"));
     assertTrue(branch.getMessage().contains("local control flow is not available"));
+    assertTrue(loopJump.getMessage().contains("only valid inside a bounded loop"));
   }
 
   @Test
