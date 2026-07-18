@@ -32,6 +32,35 @@ classical class Binary {
         return false;
     }
 
+    public long compareAsciiRanges(
+        byteview source,
+        long leftStart,
+        long leftLength,
+        long rightStart,
+        long rightLength
+    ) {
+        long cursor = 0;
+        while (cursor < leftLength) limit 4096 {
+            if (cursor < rightLength) {
+                long left = source[leftStart + cursor];
+                long right = source[rightStart + cursor];
+                if (left < right) {
+                    return -1;
+                }
+                if (right < left) {
+                    return 1;
+                }
+                cursor += 1;
+            } else {
+                return 1;
+            }
+        }
+        if (cursor < rightLength) {
+            return -1;
+        }
+        return 0;
+    }
+
     public boolean validAsciiName(
         byteview source,
         long start,

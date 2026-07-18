@@ -11,7 +11,7 @@ import java.util.Objects;
 
 /** Immutable decoded Wheeler program across classical, quantum, and proof regions. */
 public final class Program {
-  public static final int DEFAULT_MAX_HISTORY = 100_000;
+  public static final int DEFAULT_MAX_HISTORY = 1_000_000;
   public static final long DEFAULT_MAX_STEPS = 1_000_000L;
 
   private final String name;

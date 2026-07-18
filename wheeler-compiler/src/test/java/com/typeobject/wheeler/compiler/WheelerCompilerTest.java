@@ -560,6 +560,40 @@ class WheelerCompilerTest {
   }
 
   @Test
+  void lowersCheckedBitwiseAndRotateRight32() {
+    WheelerCompiler compiler = new WheelerCompiler();
+    Program program = compiler.compile("""
+        classical class BitWords {
+          state long result = 0;
+          entry void main() {
+            long selected = 4294967295 & 252645135;
+            result = rotateRight32(selected, 4);
+          }
+        }
+        """);
+    VirtualMachine machine = new VirtualMachine(program);
+    var initial = machine.snapshot();
+
+    machine.run();
+
+    assertEquals(4042322160L, machine.global("result"));
+    while (machine.historySize() > 0) {
+      machine.rewindOne();
+    }
+    assertEquals(initial, machine.snapshot());
+
+    Program invalid = compiler.compile("""
+        classical class BadRotate {
+          state long result = 9;
+          entry void main() { result = rotateRight32(1, 32); }
+        }
+        """);
+    VirtualMachine rejected = new VirtualMachine(invalid);
+    assertThrows(VmTrap.class, rejected::run);
+    assertEquals(9, rejected.global("result"));
+  }
+
+  @Test
   void sourceProducesCanonicalBytecode() {
     WheelerCompiler compiler = new WheelerCompiler();
     byte[] encoded = compiler.compileToBytecode(COUNTER);

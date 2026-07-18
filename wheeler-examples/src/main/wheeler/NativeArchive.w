@@ -7,6 +7,8 @@ classical class NativeArchive {
     state long entryCount = 0;
     state long pathLength = 0;
     state long dataLength = 0;
+    state long secondPathLength = 0;
+    state long secondDataLength = 0;
     state long packageLength = 0;
     state long targetCount = 0;
     state long finalLength = 0;
@@ -21,6 +23,8 @@ classical class NativeArchive {
                 entryCount = archive.entryCount;
                 pathLength = archive.pathLength;
                 dataLength = archive.dataLength;
+                secondPathLength = archive.secondPathLength;
+                secondDataLength = archive.secondDataLength;
                 packageLength = archive.packageLength;
                 targetCount = archive.targetCount;
             }
@@ -29,12 +33,6 @@ classical class NativeArchive {
             }
         }
         finalLength = bufferLength(source);
-        assert manifestLength == 103;
-        assert entryCount == 1;
-        assert pathLength == 10;
-        assert dataLength == 4;
-        assert packageLength == 12;
-        assert targetCount == 1;
         drop(digest);
         drop(arena);
     }

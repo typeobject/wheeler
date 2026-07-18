@@ -186,18 +186,18 @@ classical class Sha256 {
             }
             while (wordIndex < 64) limit 48 {
                 long sigmaOneValue = schedule[wordIndex - 2];
-                long sigmaOneRight17 = sigmaOneValue / 131072
-                    + sigmaOneValue % 131072 * 32768;
-                long sigmaOneRight19 = sigmaOneValue / 524288
-                    + sigmaOneValue % 524288 * 8192;
+                long sigmaOneRight17 = rotateRight32(
+                    sigmaOneValue, 17);
+                long sigmaOneRight19 = rotateRight32(
+                    sigmaOneValue, 19);
                 long sigmaOne = sigmaOneRight17
                     ^ sigmaOneRight19
                     ^ sigmaOneValue / 1024;
                 long sigmaZeroValue = schedule[wordIndex - 15];
-                long sigmaZeroRight7 = sigmaZeroValue / 128
-                    + sigmaZeroValue % 128 * 33554432;
-                long sigmaZeroRight18 = sigmaZeroValue / 262144
-                    + sigmaZeroValue % 262144 * 16384;
+                long sigmaZeroRight7 = rotateRight32(
+                    sigmaZeroValue, 7);
+                long sigmaZeroRight18 = rotateRight32(
+                    sigmaZeroValue, 18);
                 long sigmaZero = sigmaZeroRight7
                     ^ sigmaZeroRight18
                     ^ sigmaZeroValue / 8;
@@ -217,9 +217,9 @@ classical class Sha256 {
             long h = hash[7];
             long round = 0;
             while (round < 64) limit 64 {
-                long eRight6 = e / 64 + e % 64 * 67108864;
-                long eRight11 = e / 2048 + e % 2048 * 2097152;
-                long eRight25 = e / 33554432 + e % 33554432 * 128;
+                long eRight6 = rotateRight32(e, 6);
+                long eRight11 = rotateRight32(e, 11);
+                long eRight25 = rotateRight32(e, 25);
                 long eSigma = eRight6 ^ eRight11 ^ eRight25;
                 long selected = e & f;
                 long complement = 4294967295 - e;
@@ -229,9 +229,9 @@ classical class Sha256 {
                 temporary1 += constants[round];
                 temporary1 += schedule[round];
                 temporary1 = temporary1 % 4294967296;
-                long aRight2 = a / 4 + a % 4 * 1073741824;
-                long aRight13 = a / 8192 + a % 8192 * 524288;
-                long aRight22 = a / 4194304 + a % 4194304 * 1024;
+                long aRight2 = rotateRight32(a, 2);
+                long aRight13 = rotateRight32(a, 13);
+                long aRight22 = rotateRight32(a, 22);
                 long aSigma = aRight2 ^ aRight13 ^ aRight22;
                 long ab = a & b;
                 long ac = a & c;

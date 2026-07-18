@@ -15,7 +15,7 @@ The machine owns:
 - an ordered bounded stack of step records;
 - a monotonic transition sequence within the current run.
 
-Raw host pointers and masked segmented addresses are not machine values.
+Raw host pointers and masked segmented addresses are not machine values. Source compilation currently records ceilings of 1,000,000 steps and 1,000,000 retained history records; exhaustion traps before another mutation. The larger history default admits bounded compiler/package passes without sneaking in a commit horizon, while artifact and embedding policy may choose lower verified limits.
 
 A classical entry may borrow one strict UTF-8 input or immutable binary `byteview`, one mutable byte output, or one input followed by the output. VM construction requires the exact declared effects and an explicit text/binary binding API, caps each at 16 MiB, defensively copies input into externally owned baseline storage, and initializes only borrow registers. Output has a fixed maximum capacity and is zero-initialized. `OUTPUT_LENGTH` may select a prefix only from the entry output borrow; wrong handles and lengths outside `0..capacity` trap before mutation. The selected length participates in snapshots and exact rewind, and `hostOutput()` returns a defensive copy of that prefix. Missing, unexpected, kind-mismatched, malformed UTF-8, or oversized effects fail before stepping; arbitrary binary input is never decoded as text. Effect bytes and output capacity are runtime data and never alter `.wbc` identity.
 

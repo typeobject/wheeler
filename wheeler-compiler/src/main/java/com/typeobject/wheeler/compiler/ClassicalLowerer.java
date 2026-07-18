@@ -403,6 +403,7 @@ final class ClassicalLowerer {
         }
         case "local_read" -> lowerRead(statement);
         case "local_binary" -> lowerBinary(statement);
+        case "local_rotate_right32" -> lowerRotateRight32(statement);
         case "record_new" -> lowerRecordNew(statement);
         case "record_get" -> lowerRecordGet(statement);
         case "variant_new" -> lowerVariantNew(statement);
@@ -535,6 +536,17 @@ final class ClassicalLowerer {
       int destination = declareInternal(arguments.get(0), statement.line(), resultType);
       output.add(Instruction.of(
           binaryOpcode(operator, statement.line()), destination, left, right));
+    }
+
+    private void lowerRotateRight32(Statement statement) {
+      requireArguments(statement, 4);
+      int value = requireLocal(statement.arguments().get(2), statement.line());
+      int amount = requireLocal(statement.arguments().get(3), statement.line());
+      requireType(value, ValueType.SIGNED, statement.line());
+      requireType(amount, ValueType.SIGNED, statement.line());
+      int destination = declareInternal(
+          statement.arguments().get(0), statement.line(), ValueType.SIGNED);
+      output.add(Instruction.of(Opcode.LOCAL_ROTR32, destination, value, amount));
     }
 
     private void lowerRecordNew(Statement statement) {

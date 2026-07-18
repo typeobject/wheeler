@@ -59,6 +59,22 @@ class NativeArchiveExampleTest {
     assertEquals(initial, machine.snapshot());
     new PackageArchive().decode(encoded);
 
+    String modularManifestText =
+        "package \"a\" version \"1.0.0\" profile \"b\";\n"
+            + "target example \"m\" root \"a\" module \"a.b\" "
+            + "source \"a\" source \"b\";\n";
+    byte[] modular = new PackageArchive().encode(
+        new PackageManifestParser().parse(modularManifestText),
+        Map.of("a", new byte[] {5}, "b", new byte[] {6}));
+    VirtualMachine modularMachine = VirtualMachine.withBinaryInput(inspector, modular);
+    modularMachine.run();
+    assertEquals(2, modularMachine.global("entryCount"));
+    assertEquals(1, modularMachine.global("pathLength"));
+    assertEquals(1, modularMachine.global("dataLength"));
+    assertEquals(1, modularMachine.global("secondPathLength"));
+    assertEquals(1, modularMachine.global("secondDataLength"));
+    new PackageArchive().decode(modular);
+
     byte[] badOuterDigest = encoded.clone();
     badOuterDigest[badOuterDigest.length - 1] ^= 1;
     assertRejected(inspector, badOuterDigest);

@@ -90,6 +90,7 @@ final class SourceCallParser {
       case "utf8Width" -> "utf8_width";
       case "mapGet" -> "map_get";
       case "mapHas" -> "map_has";
+      case "rotateRight32" -> "local_rotate_right32";
       default -> "call_value";
     };
     body.add(new Statement(operation, call, start.line()));

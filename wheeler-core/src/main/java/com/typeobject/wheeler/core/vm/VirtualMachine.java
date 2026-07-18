@@ -312,6 +312,10 @@ public final class VirtualMachine {
           localValue(instruction, 1) % localValue(instruction, 2));
       case LOCAL_AND -> setLocalAndAdvance(
           localIndex(instruction, 0), localValue(instruction, 1) & localValue(instruction, 2));
+      case LOCAL_ROTR32 -> setLocalAndAdvance(
+          localIndex(instruction, 0),
+          Integer.toUnsignedLong(Integer.rotateRight(
+              (int) localValue(instruction, 1), Math.toIntExact(localValue(instruction, 2)))));
       case LOCAL_XOR -> setLocalAndAdvance(
           localIndex(instruction, 0), localValue(instruction, 1) ^ localValue(instruction, 2));
       case LOCAL_EQ -> setLocalAndAdvance(
@@ -618,6 +622,14 @@ public final class VirtualMachine {
           localIndex(instruction, 1);
           localIndex(instruction, 2);
         }
+        case LOCAL_ROTR32 -> {
+          localIndex(instruction, 0);
+          localIndex(instruction, 1);
+          long amount = localValue(instruction, 2);
+          if (amount < 0 || amount > 31) {
+            trap("32-bit rotate amount must be between 0 and 31");
+          }
+        }
         case JUMP -> checkedJumpTarget(instruction, 0);
         case JUMP_IF_ZERO -> {
           localIndex(instruction, 0);
@@ -826,7 +838,7 @@ public final class VirtualMachine {
           OUTPUT_LENGTH,
           EXPECT_EQ, CHECKPOINT, COMMIT,
           LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, LOCAL_ADD, LOCAL_SUB,
-          LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR, LOCAL_EQ, LOCAL_LT,
+          LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_ROTR32, LOCAL_XOR, LOCAL_EQ, LOCAL_LT,
           JUMP, JUMP_IF_ZERO, LOCAL_LOOP_CHECK,
           RECORD_NEW, RECORD_GET -> {
         // These instructions alter only control or status state.

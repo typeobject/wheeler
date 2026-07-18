@@ -10,6 +10,8 @@ classical class Archive {
         long entryCount,
         long pathLength,
         long dataLength,
+        long secondPathLength,
+        long secondDataLength,
         long packageLength,
         long targetCount
     ) {}
@@ -88,6 +90,30 @@ classical class Archive {
         return true;
     }
 
+    private boolean pathMatchesManifest(
+        byteview source,
+        long pathStart,
+        long pathLength,
+        utf8 manifest,
+        long expectedStart,
+        long expectedLength
+    ) {
+        if (pathLength == expectedLength) {
+        } else {
+            return false;
+        }
+        long cursor = 0;
+        while (cursor < pathLength) limit 4096 {
+            if (source[pathStart + cursor]
+                    == utf8Scalar(manifest, expectedStart + cursor)) {
+                cursor += 1;
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public ArchiveResult inspectArchive(
         byteview source,
         bytes digest,
@@ -115,8 +141,10 @@ classical class Archive {
         if (4096 < manifestLength) {
             return new ArchiveResult.Error(8);
         }
-        if (entryCount == 1) {
-        } else {
+        if (entryCount < 1) {
+            return new ArchiveResult.Error(12);
+        }
+        if (2 < entryCount) {
             return new ArchiveResult.Error(12);
         }
         long manifestStart = 16;
@@ -145,9 +173,17 @@ classical class Archive {
         long pathStart = cursor;
         long entryDigest = pathStart + pathLength;
         long dataStart = entryDigest + 32;
-        if (dataStart + dataLength == payloadLength) {
+        long firstEnd = dataStart + dataLength;
+        if (firstEnd < payloadLength) {
         } else {
-            return new ArchiveResult.Error(cursor);
+            if (entryCount == 1) {
+                if (firstEnd == payloadLength) {
+                } else {
+                    return new ArchiveResult.Error(cursor);
+                }
+            } else {
+                return new ArchiveResult.Error(cursor);
+            }
         }
         if (validAsciiPath(source, pathStart, pathLength)) {
         } else {
@@ -162,6 +198,59 @@ classical class Archive {
                 arena)) {
         } else {
             return new ArchiveResult.Error(entryDigest);
+        }
+        long secondPathStart = 0;
+        long secondPathLength = 0;
+        long secondDataLength = 0;
+        if (entryCount == 2) {
+            cursor = firstEnd;
+            if (payloadLength < cursor + 12) {
+                return new ArchiveResult.Error(cursor);
+            }
+            secondPathLength = readUnsigned(source, cursor, 4);
+            cursor += 4;
+            secondDataLength = readUnsigned(source, cursor, 8);
+            cursor += 8;
+            if (secondPathLength < 1) {
+                return new ArchiveResult.Error(cursor);
+            }
+            if (4096 < secondPathLength) {
+                return new ArchiveResult.Error(cursor);
+            }
+            if (16777216 < secondDataLength) {
+                return new ArchiveResult.Error(cursor);
+            }
+            secondPathStart = cursor;
+            long secondDigest = secondPathStart + secondPathLength;
+            long secondData = secondDigest + 32;
+            if (secondData + secondDataLength == payloadLength) {
+            } else {
+                return new ArchiveResult.Error(cursor);
+            }
+            if (validAsciiPath(
+                    source, secondPathStart, secondPathLength)) {
+            } else {
+                return new ArchiveResult.Error(secondPathStart);
+            }
+            if (compareAsciiRanges(
+                    source,
+                    pathStart,
+                    pathLength,
+                    secondPathStart,
+                    secondPathLength) < 0) {
+            } else {
+                return new ArchiveResult.Error(secondPathStart);
+            }
+            if (digestMatches(
+                    source,
+                    secondData,
+                    secondDataLength,
+                    secondDigest,
+                    digest,
+                    arena)) {
+            } else {
+                return new ArchiveResult.Error(secondDigest);
+            }
         }
         bytes manifestBytes = allocateBytes(arena, manifestLength);
         long copyCursor = 0;
@@ -190,8 +279,11 @@ classical class Archive {
         }
         long packageLength = 0;
         long targetCount = 0;
-        long rootStart = 0;
-        long rootLength = 0;
+        long firstSourceStart = 0;
+        long firstSourceLength = 0;
+        long secondSourceStart = 0;
+        long secondSourceLength = 0;
+        long sourceCount = 0;
         if (valid) {
             ManifestResult parsed = parseHeader(
                 manifest, kinds, starts, lengths, tokenCount);
@@ -199,8 +291,16 @@ classical class Archive {
                 case ManifestResult.Value(ManifestHeader header) {
                     packageLength = header.name.length;
                     targetCount = header.targetCount;
-                    rootStart = header.targetRoot.start;
-                    rootLength = header.targetRoot.length;
+                    sourceCount = header.targetSourceCount;
+                    if (sourceCount == 0) {
+                        firstSourceStart = header.targetRoot.start;
+                        firstSourceLength = header.targetRoot.length;
+                    } else {
+                        firstSourceStart = header.targetSource.start;
+                        firstSourceLength = header.targetSource.length;
+                        secondSourceStart = header.targetSecondSource.start;
+                        secondSourceLength = header.targetSecondSource.length;
+                    }
                 }
                 case ManifestResult.Error(long parseOffset) {
                     valid = false;
@@ -227,20 +327,37 @@ classical class Archive {
             }
             compareCursor += 1;
         }
-        if (rootLength == pathLength) {
+        if (targetCount == 1) {
         } else {
             valid = false;
         }
-        long pathCursor = 0;
-        while (pathCursor < pathLength) limit 4096 {
+        long expectedEntries = sourceCount;
+        if (expectedEntries == 0) {
+            expectedEntries = 1;
+        }
+        if (expectedEntries == entryCount) {
+        } else {
+            valid = false;
+        }
+        if (valid) {
+            valid = pathMatchesManifest(
+                source,
+                pathStart,
+                pathLength,
+                manifest,
+                firstSourceStart,
+                firstSourceLength);
+        }
+        if (entryCount == 2) {
             if (valid) {
-                if (source[pathStart + pathCursor]
-                        == utf8Scalar(manifest, rootStart + pathCursor)) {
-                } else {
-                    valid = false;
-                }
+                valid = pathMatchesManifest(
+                    source,
+                    secondPathStart,
+                    secondPathLength,
+                    manifest,
+                    secondSourceStart,
+                    secondSourceLength);
             }
-            pathCursor += 1;
         }
         drop(canonical);
         drop(lengths);
@@ -253,6 +370,8 @@ classical class Archive {
                 entryCount,
                 pathLength,
                 dataLength,
+                secondPathLength,
+                secondDataLength,
                 packageLength,
                 targetCount);
             return new ArchiveResult.Value(archive);
