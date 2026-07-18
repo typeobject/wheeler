@@ -34,9 +34,21 @@ classical class Scanner {
     public long parseNumber(utf8 source, long start, long end) {
         long value = 0;
         long cursor = start;
-        while (cursor < end) limit 10 {
+        while (cursor < end) limit 19 {
             long digit = utf8Scalar(source, cursor) - 48;
-            value = value * 10 + digit;
+            if (value < 922337203685477580) {
+                value = value * 10 + digit;
+            } else {
+                if (value == 922337203685477580) {
+                    if (digit < 8) {
+                        value = value * 10 + digit;
+                    } else {
+                        return -1;
+                    }
+                } else {
+                    return -1;
+                }
+            }
             cursor += utf8Width(source, cursor);
         }
         return value;

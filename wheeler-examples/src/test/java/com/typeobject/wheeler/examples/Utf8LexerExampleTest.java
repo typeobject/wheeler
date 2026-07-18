@@ -13,6 +13,35 @@ import org.junit.jupiter.api.Test;
 
 class Utf8LexerExampleTest {
   @Test
+  void scannerParsesSignedMaximumAndReportsDecimalOverflow() throws Exception {
+    String rootSource = """
+        module examples.lexer.test;
+        import examples.lexer.scanner;
+        classical class ScannerTest {
+          state long parsed = 0;
+          entry void main(utf8 source) {
+            parsed = parseNumber(source, 0, bufferLength(source));
+          }
+        }
+        """;
+    String scanner = Files.readString(
+        Path.of("src/main/wheeler/lexer/Scanner.w"));
+    var program = new WheelerCompiler().compileModuleFiles(
+        Map.of("Scanner.w", scanner, "ScannerTest.w", rootSource),
+        "examples.lexer.test");
+    VirtualMachine maximum = new VirtualMachine(
+        program, "9223372036854775807".getBytes(StandardCharsets.UTF_8));
+    VirtualMachine overflow = new VirtualMachine(
+        program, "9223372036854775808".getBytes(StandardCharsets.UTF_8));
+
+    maximum.run();
+    overflow.run();
+
+    assertEquals(Long.MAX_VALUE, maximum.global("parsed"));
+    assertEquals(-1, overflow.global("parsed"));
+  }
+
+  @Test
   void explicitSourceInputIsTokenizedParsedAndExactlyRewound() throws Exception {
     Path root = Path.of("src/main/wheeler");
     var program = new WheelerCompiler().compileModuleFiles(

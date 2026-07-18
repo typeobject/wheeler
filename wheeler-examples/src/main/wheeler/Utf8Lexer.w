@@ -49,6 +49,9 @@ classical class Utf8Lexer {
                                         long end = tokenStarts[2] + tokenLengths[2];
                                         long value = parseNumber(
                                             source, tokenStarts[2], end);
+                                        if (value < 0) {
+                                            return new Assignment.Error(tokenStarts[2]);
+                                        }
                                         return new Assignment.Value(value);
                                     }
                                 }
