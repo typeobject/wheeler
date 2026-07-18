@@ -61,6 +61,12 @@ class MinimalCompilerExampleTest {
 
     assertDifferentialExecution(
         writerProgram,
+        "classical class Set { state long result = 4; "
+            + "entry void main() { result = 99; } }",
+        "result",
+        99);
+    assertDifferentialExecution(
+        writerProgram,
         "classical class zebra { state long alpha = 0; "
             + "entry void main() { alpha += 0; } }",
         "alpha",
