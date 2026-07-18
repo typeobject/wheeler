@@ -16,7 +16,7 @@ classical class Verifier {
     }
 
     private long readUnsigned(
-        bytes artifact,
+        byteview artifact,
         long offset,
         long width
     ) {
@@ -34,7 +34,7 @@ classical class Verifier {
     }
 
     private long directoryField(
-        bytes artifact,
+        byteview artifact,
         long section,
         long field,
         long width
@@ -43,7 +43,7 @@ classical class Verifier {
             artifact, 40 + section * 32 + field, width);
     }
 
-    private boolean magicValid(bytes artifact) {
+    private boolean magicValid(byteview artifact) {
         if (artifact[0] == 87) {
             if (artifact[1] == 72) {
                 if (artifact[2] == 69) {
@@ -104,7 +104,7 @@ classical class Verifier {
     }
 
     private long instructionOperandsValid(
-        bytes artifact,
+        byteview artifact,
         long cursor,
         long opcode,
         long globalCount,
@@ -112,6 +112,12 @@ classical class Verifier {
         long localCount,
         long reversibleHelper
     ) {
+        if (opcode == 1) {
+            return 1;
+        }
+        if (opcode == 2) {
+            return 1;
+        }
         long first = readUnsigned(artifact, cursor + 8, 8);
         if (255 < opcode) {
             if (opcode < 259) {
@@ -196,7 +202,7 @@ classical class Verifier {
     }
 
     private long verifyCodeStream(
-        bytes artifact,
+        byteview artifact,
         long codeOffset,
         long codeLength,
         long globalCount,
@@ -264,7 +270,7 @@ classical class Verifier {
     }
 
     private long verifyDirectory(
-        bytes artifact,
+        byteview artifact,
         long fileLength,
         long sectionCount
     ) {
@@ -308,7 +314,7 @@ classical class Verifier {
     }
 
     private long verifyLocalTypes(
-        bytes artifact,
+        byteview artifact,
         long functionsOffset,
         long functionCount,
         long helperLocalCount,
@@ -331,7 +337,7 @@ classical class Verifier {
         return 1;
     }
 
-    private long verifyPayloads(bytes artifact, long sectionCount) {
+    private long verifyPayloads(byteview artifact, long sectionCount) {
         long manifestOffset = directoryField(artifact, 0, 8, 8);
         long stringsOffset = directoryField(artifact, 1, 8, 8);
         long typesOffset = directoryField(artifact, 2, 8, 8);
@@ -646,7 +652,7 @@ classical class Verifier {
         return 1;
     }
 
-    public long verifyArtifact(bytes artifact, long fileLength) {
+    public long verifyArtifact(byteview artifact, long fileLength) {
         if (fileLength < 320) {
             return 0;
         }

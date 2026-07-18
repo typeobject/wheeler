@@ -41,6 +41,7 @@ final class ArgumentCallBinder {
         || type.equals(ValueType.LONG_MAP_BORROW)
         || type.equals(ValueType.WORDS_BORROW)
         || type.equals(ValueType.BYTES_BORROW)
-        || type.equals(ValueType.REGION_BORROW);
+        || type.equals(ValueType.REGION_BORROW)
+        || type.equals(ValueType.BYTE_VIEW);
   }
 }

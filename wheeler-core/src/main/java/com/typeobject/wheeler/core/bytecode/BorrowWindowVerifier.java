@@ -38,7 +38,9 @@ final class BorrowWindowVerifier {
           || !target.localType(parameter).equals(expected)) {
         fail(owner, pc, "borrow targets a nonborrowed argument");
       }
-      if (borrow.opcode() != Opcode.UTF8_BORROW
+      boolean immutable = borrow.opcode() == Opcode.UTF8_BORROW
+          || owner.localType(destination).equals(ValueType.BYTE_VIEW);
+      if (!immutable
           && !mutableSources.computeIfAbsent(callPc, ignored -> new HashSet<>())
               .add(borrow.operands().get(1))) {
         fail(owner, pc, "one storage owner aliases multiple mutable parameters");

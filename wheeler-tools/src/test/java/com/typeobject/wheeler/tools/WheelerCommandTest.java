@@ -386,6 +386,27 @@ class WheelerCommandTest {
   }
 
   @Test
+  void packageSelectedWheelerVerifierConsumesBinaryArtifact() throws Exception {
+    Path artifact = temporary.resolve("native-subject.wbc");
+    Files.write(
+        artifact,
+        new WheelerCompiler().compileToBytecode(
+            "classical class NativeSubject { state long value = 2; "
+                + "entry void main() { value += 3; } }"));
+    ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+
+    assertEquals(0, Wheeler.execute(
+        new String[] {
+            "run", Path.of("../wheeler-examples").toString(),
+            "--target", "nativeverifier",
+            "--input-bytes", artifact.toString()
+        },
+        new PrintStream(stdout),
+        new PrintStream(new ByteArrayOutputStream())));
+    assertTrue(stdout.toString(StandardCharsets.UTF_8).contains("verification = 1"));
+  }
+
+  @Test
   void runPublishesAWheelerWrittenExecutableArtifact() throws Exception {
     Path project = temporary.resolve("seed-writer");
     Files.createDirectories(project.resolve("src/compiler"));

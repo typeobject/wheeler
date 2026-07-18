@@ -131,7 +131,8 @@ final class StorageInstructionVerifier {
     ValueType expectedOwner;
     if (owner.localType(destination).equals(ValueType.WORDS_BORROW)) {
       expectedOwner = ValueType.WORDS;
-    } else if (owner.localType(destination).equals(ValueType.BYTES_BORROW)) {
+    } else if (owner.localType(destination).equals(ValueType.BYTES_BORROW)
+        || owner.localType(destination).equals(ValueType.BYTE_VIEW)) {
       expectedOwner = ValueType.BYTES;
     } else {
       fail(owner, pc, "buffer borrow destination has the wrong type");
@@ -142,7 +143,8 @@ final class StorageInstructionVerifier {
         && !(expectedOwner.equals(ValueType.WORDS)
             && sourceType.equals(ValueType.WORDS_BORROW))
         && !(expectedOwner.equals(ValueType.BYTES)
-            && sourceType.equals(ValueType.BYTES_BORROW))) {
+            && (sourceType.equals(ValueType.BYTES_BORROW)
+                || sourceType.equals(ValueType.BYTE_VIEW)))) {
       fail(owner, pc, "buffer borrow source kind differs from its destination");
     }
   }

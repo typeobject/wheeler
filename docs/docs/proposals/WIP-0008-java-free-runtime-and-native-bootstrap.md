@@ -172,6 +172,7 @@ Recovery releases are signed or content-addressed by release policy. Bootstrap s
 
 - [x] `.wbc` semantics and encoding are independent of JVM bytecode.
 - [x] Provider-neutral quantum IR and OpenQASM lowering do not require Python.
+- [x] Package-selected `NativeVerifier.w` consumes exact binary `.wbc` through immutable `byteview`, accepts the bounded self-hosted compiler profile, rejects damaged artifacts, and rewinds exactly. This is a Wheeler-executed verifier milestone, not yet a native machine-code verifier; changing the adjective would not change the executable.
 - [ ] Platform ABI and native-image identity are specified.
 - [ ] Native backend executes the classical bootstrap profile.
 - [ ] Wheeler-written verifier and VM pass Java differential traces.

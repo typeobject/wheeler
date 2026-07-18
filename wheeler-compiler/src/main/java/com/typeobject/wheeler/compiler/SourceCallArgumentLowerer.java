@@ -40,6 +40,14 @@ final class SourceCallArgumentLowerer {
       }
       return Opcode.UTF8_BORROW;
     }
+    if (parameterType.equals(ValueType.BYTE_VIEW)) {
+      if (!sourceType.equals(ValueType.BYTES)
+          && !sourceType.equals(ValueType.BYTES_BORROW)
+          && !sourceType.equals(ValueType.BYTE_VIEW)) {
+        throw new CompilerException(line, "byteview parameter requires byte storage");
+      }
+      return Opcode.BUFFER_BORROW;
+    }
     if (parameterType.equals(ValueType.LONG_MAP_BORROW)) {
       if (!sourceType.equals(ValueType.LONG_MAP)
           && !sourceType.equals(ValueType.LONG_MAP_BORROW)) {
