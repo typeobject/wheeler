@@ -265,7 +265,7 @@ The repository currently includes:
 - an asynchronous ideal state-vector target and application-supplied OpenQASM 3 execution interface;
 - durable hybrid events, recovery, replay, retry, cancellation, quarantine, and transaction phases;
 - canonical package, workspace, lock, build-plan, vendor, and `.wpk` archive formats;
-- exact offline locked dependency builds;
+- exact offline locked dependency builds and source-bound sealed-plan execution with explicit grants and atomic output publication;
 - Tree-sitter grammar, corpus, highlighting, and executable examples.
 
 Checked-in examples cover reversible state, typed aggregate values, bounded and recursive control, one function used classically and coherently, QFT with a generated adjoint, a bounded hybrid optimizer, circuit normalization, and static error-correction structure.

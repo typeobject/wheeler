@@ -10,9 +10,11 @@ import com.typeobject.wheeler.packageformat.BuildPlan;
 import com.typeobject.wheeler.packageformat.BuildPlanCodec;
 import com.typeobject.wheeler.packageformat.PackageArchive;
 import com.typeobject.wheeler.packageformat.PackageArchive.DecodedPackage;
+import com.typeobject.wheeler.packageformat.PackageFormatException;
 import com.typeobject.wheeler.packageformat.PackageLock;
 import com.typeobject.wheeler.packageformat.PackageLockParser;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -162,6 +164,42 @@ class WheelerCommandTest {
     assertTrue(plan.nodes().stream().allMatch(node -> node.capabilityGrants().isEmpty()));
     assertEquals(0, Wheeler.execute(
         new String[] {"verify-plan", planPath.toString()}, new PrintStream(stdout), sink));
+    assertThrows(PackageFormatException.class, () -> Wheeler.execute(
+        new String[] {
+            "execute-plan", temporary.toString(), planPath.toString(),
+            "-o", temporary.resolve("denied").toString()
+        }, new PrintStream(stdout), sink));
+
+    Path grantedPlan = temporary.resolve("granted.plan");
+    assertEquals(0, Wheeler.execute(
+        new String[] {
+            "plan", temporary.toString(), "--compiler", "a".repeat(64),
+            "--grant-requested", "-o", grantedPlan.toString()
+        }, new PrintStream(stdout), sink));
+    Path plannedOutput = temporary.resolve("planned-artifacts");
+    assertEquals(0, Wheeler.execute(
+        new String[] {
+            "execute-plan", temporary.toString(), grantedPlan.toString(),
+            "-o", plannedOutput.toString()
+        }, new PrintStream(stdout), sink));
+    assertArrayEquals(
+        Files.readAllBytes(output.resolve("first/main.wbc")),
+        Files.readAllBytes(plannedOutput.resolve("first/main.wbc")));
+    assertArrayEquals(
+        Files.readAllBytes(output.resolve("second/main.wbc")),
+        Files.readAllBytes(plannedOutput.resolve("second/main.wbc")));
+    assertThrows(IOException.class, () -> Wheeler.execute(
+        new String[] {
+            "execute-plan", temporary.toString(), grantedPlan.toString(),
+            "-o", plannedOutput.toString()
+        }, new PrintStream(stdout), sink));
+
+    Files.writeString(temporary.resolve("first/src/Main.w"), "classical class Changed {");
+    assertThrows(PackageFormatException.class, () -> Wheeler.execute(
+        new String[] {
+            "execute-plan", temporary.toString(), grantedPlan.toString(),
+            "-o", temporary.resolve("stale").toString()
+        }, new PrintStream(stdout), sink));
     assertTrue(stdout.toString(StandardCharsets.UTF_8).contains("checked workspace demo (2 targets)"));
   }
 

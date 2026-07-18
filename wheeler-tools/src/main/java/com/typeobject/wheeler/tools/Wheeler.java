@@ -65,6 +65,7 @@ public final class Wheeler {
       case "fetch" -> fetch(args, out, error);
       case "plan" -> plan(args, out, error);
       case "verify-plan" -> verifyPlan(args, out, error);
+      case "execute-plan" -> executePlan(args, out, error);
       default -> {
         error.println("Unknown Wheeler command: " + args[0]);
         usage(error);
@@ -407,6 +408,21 @@ public final class Wheeler {
     return 0;
   }
 
+  private static int executePlan(
+      String[] args, PrintStream out, PrintStream error) throws Exception {
+    if (args.length != 5 || !args[3].equals("-o")) {
+      error.println(
+          "Usage: wheeler execute-plan <workspace-directory> <wheeler.plan> -o <output>");
+      return 2;
+    }
+    WorkspaceProject workspace = WorkspaceProject.load(Path.of(args[1]));
+    BuildPlan plan = new BuildPlanCodec().decode(Files.readAllBytes(Path.of(args[2])));
+    Path output = Path.of(args[4]);
+    BuildPlanExecutor.execute(workspace, plan, output);
+    out.println("executed " + plan.nodes().size() + " planned targets into " + output);
+    return 0;
+  }
+
   private static int disassemble(
       String[] args, PrintStream out, PrintStream error) throws Exception {
     if (args.length != 2) {
@@ -503,6 +519,6 @@ public final class Wheeler {
   private static void usage(PrintStream error) {
     error.println(
         "Usage: wheeler <run|compile|check|build|test|clean|package|verify|resolve|verify-lock|vendor|"
-            + "publish|fetch|plan|verify-plan|disassemble|qasm> ...");
+            + "publish|fetch|plan|verify-plan|execute-plan|disassemble|qasm> ...");
   }
 }

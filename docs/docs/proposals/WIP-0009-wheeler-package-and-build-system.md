@@ -296,12 +296,12 @@ Secrets are opaque host-owned handles and are prohibited from canonical output, 
 
 - [x] Canonical `.wbc` provides a portable artifact identity for package outputs.
 - [x] WIP-0007 and WIP-0008 define compiler and native recovery requirements.
-- [ ] Workspace, package, lockfile, and archive schemas have strict stage-0 codecs; build plans now cover compiler, source, package-input, output, capability-request, execution-limit, and explicit grant identities, while native plan execution remains.
+- [ ] Workspace, package, lockfile, and archive schemas have strict stage-0 codecs; build plans cover compiler, source, package-input, output, capability-request, execution-limit, and explicit grant identities; sealed stage-0 execution now rederives plans and publishes exact verified outputs atomically, while isolated native memory/work enforcement remains.
 - [ ] Stage-0 manifests, resolution, lockfiles, build plans, and archives are content-addressed and reproducible; exact offline dependency targets now build in dependency-first order, while module linking and native build execution remain.
 - [x] The stage-0 in-memory resolver deterministically selects one version per package with bounded backtracking, explicit development scope, and cycle rejection.
 - [ ] Physical catalogs, exact vendor trees, and immutable local registry publish/fetch transport are bounded, integrity-checked, and covered end to end; signed network registry snapshots remain.
 - [x] The root `wheeler.workspace` and example package manifest form an executable stage-0 workspace.
-- [x] The unified stage-0 `wheeler` command checks, builds, executes declared test targets, and safely cleans canonical local workspaces; packages and verifies local artifacts; resolves explicit verified archive catalogs, materializes exact offline vendor trees, publishes/fetches immutable local registry releases; emits and verifies plans with exact package inputs, bounded execution policy, and request-scoped grants; verifies locks; and compiles, runs, disassembles, and emits OpenQASM.
+- [x] The unified stage-0 `wheeler` command checks, builds, executes declared test targets, and safely cleans canonical local workspaces; packages and verifies local artifacts; resolves explicit verified archive catalogs, materializes exact offline vendor trees, publishes/fetches immutable local registry releases; emits, verifies, and executes source-bound plans with exact package inputs, bounded output/time policy, complete request-scoped grants, exact artifact sets, and atomic publication; verifies locks; and compiles, runs, disassembles, and emits OpenQASM.
 - [ ] Stage 0 loads and validates exact locked offline dependency graphs for check, build, test, selected-target run, and planning; Wheeler-written execution, exported module linking, and migration of the complete workspace remain.
 - [ ] Native no-Java recovery uses only committed manifests, lockfile, and vendor inputs.
 - [ ] Gradle and duplicate build paths are deleted.
@@ -312,7 +312,7 @@ Secrets are opaque host-owned handles and are prohibited from canonical output, 
 - [ ] Manifest and lock parsers reject malformed UTF-8, duplicates, unknown required fields, traversal, excessive nesting, and oversized values; both stage-0 parsers fail closed and broader generative coverage remains.
 - [ ] Resolution is identical under catalog and manifest insertion order with bounded backtracking; filesystem, registry transport, and task completion inputs remain to test.
 - [x] Locked and offline stage-0 builds consume only a package-local exact vendor tree and never perform resolution, network access, or ambient cache lookup.
-- [ ] Build-plan codecs are order-independent and reject corruption and forged node identities; two complete clean builds must still prove identical `.wbc`, lockfile, package archive, plan, and provenance identities.
+- [ ] Build-plan codecs are order-independent and reject corruption and forged node identities; direct and sealed-plan clean builds produce byte-identical `.wbc`, while complete lockfile, package archive, plan, and provenance reproduction remains.
 - [ ] Vendor retries and relocation preserve exact locked bytes and reject poisoned files; cache deletion, remote cache poisoning, and mirror selection remain.
 - [ ] Build tools cannot observe or mutate undeclared files, environment, network, clock, random state, credentials, or quantum targets.
 - [ ] Cyclic package dependencies produce stable diagnostics; cyclic modules, profile conflicts, feature conflicts, and ABI conflicts remain.
