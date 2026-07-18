@@ -22,7 +22,27 @@ module.exports = grammar({
     class_body: $ => seq('{', repeat($.member_declaration), '}'),
     member_declaration: $ => seq(
       repeat($.visibility_modifier),
-      choice($.state_declaration, $.qreg_declaration, $.method_declaration),
+      choice(
+        $.record_declaration,
+        $.state_declaration,
+        $.qreg_declaration,
+        $.method_declaration,
+      ),
+    ),
+
+    record_declaration: $ => seq(
+      'record',
+      field('name', $.identifier),
+      '(',
+      $.record_component,
+      repeat(seq(',', $.record_component)),
+      ')',
+      '{',
+      '}',
+    ),
+    record_component: $ => seq(
+      field('type', $.value_type),
+      field('name', $.identifier),
     ),
 
     state_declaration: $ => seq(
@@ -48,7 +68,7 @@ module.exports = grammar({
 
     method_declaration: $ => seq(
       repeat($.method_modifier),
-      field('return_type', choice('void', 'long', 'boolean')),
+      field('return_type', choice('void', $.value_type)),
       field('name', $.identifier),
       field('parameters', $.parameter_list),
       field('body', $.block),
@@ -61,8 +81,9 @@ module.exports = grammar({
       optional(seq($.parameter, repeat(seq(',', $.parameter)))),
       ')',
     ),
+    value_type: $ => choice('long', 'boolean', alias($.identifier, $.type_identifier)),
     parameter: $ => seq(
-      field('type', choice('long', 'boolean')),
+      field('type', $.value_type),
       field('name', $.identifier),
     ),
     block: $ => seq('{', repeat($.statement), '}'),
@@ -87,7 +108,7 @@ module.exports = grammar({
     continue_statement: _ => seq('continue', ';'),
 
     local_declaration: $ => seq(
-      field('type', choice('long', 'boolean')),
+      field('type', $.value_type),
       field('name', $.identifier),
       '=',
       field('value', $.expression),
@@ -157,6 +178,8 @@ module.exports = grammar({
       $.number_literal,
       $.identifier,
       $.call_expression,
+      $.record_creation,
+      $.field_expression,
       $.qubit_reference,
       $.parenthesized_expression,
       $.binary_expression,
@@ -168,6 +191,18 @@ module.exports = grammar({
       prec.left(3, seq($.expression, field('operator', '^'), $.expression)),
       prec.left(4, seq($.expression, field('operator', choice('+', '-')), $.expression)),
     ),
+    record_creation: $ => seq(
+      'new',
+      field('type', $.identifier),
+      '(',
+      optional($.argument_list),
+      ')',
+    ),
+    field_expression: $ => prec(5, seq(
+      field('value', $.expression),
+      '.',
+      field('field', $.identifier),
+    )),
     call_expression: $ => seq(
       field('function', $.identifier),
       '(',
@@ -184,6 +219,7 @@ module.exports = grammar({
       /-?0[bB][01][01_]*/,
     )),
     number_literal: _ => token(/-?[0-9][0-9_]*\.[0-9][0-9_]*(?:[eE][+-]?[0-9]+)?/),
+    type_identifier: _ => /[A-Za-z_][A-Za-z0-9_]*/,
     identifier: _ => /[A-Za-z_][A-Za-z0-9_]*/,
     line_comment: _ => token(seq('//', /[^\n]*/)),
     block_comment: _ => token(seq('/*', /[^*]*\*+([^/*][^*]*\*+)*/, '/')),

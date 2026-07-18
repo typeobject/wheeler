@@ -10,6 +10,7 @@ target test "qftproof" root "src/main/wheeler/QFTProof.w";
 target example "quantumcompiler" root "src/main/wheeler/QuantumCompiler.w";
 target example "quantumneuralnetwork" root "src/main/wheeler/QuantumNeuralNetwork.w";
 target example "quantumoptimizer" root "src/main/wheeler/QuantumOptimizer.w";
+target example "records" root "src/main/wheeler/Records.w";
 target example "recursivevalue" root "src/main/wheeler/RecursiveValue.w";
 target example "surfacecode" root "src/main/wheeler/SurfaceCode.w";
 capability "build.read" path "src/main/wheeler/**";

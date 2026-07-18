@@ -23,6 +23,7 @@ public final class WheelerCompiler {
             parsed.name(),
             classicalContent.entryId(),
             classicalContent.globals(),
+            classicalContent.recordTypes(),
             classicalContent.functions())
         : new QuantumLowerer().lower(parsed, classicalContent);
     BytecodeVerifier.verify(program);

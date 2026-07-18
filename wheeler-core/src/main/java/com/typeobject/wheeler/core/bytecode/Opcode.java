@@ -34,7 +34,10 @@ public enum Opcode {
   LOCAL_LT(0x0421, 3, Reversibility.CHECKED),
   JUMP(0x0430, 1, Reversibility.CHECKED),
   JUMP_IF_ZERO(0x0431, 2, Reversibility.CHECKED),
-  LOCAL_LOOP_CHECK(0x0432, 2, Reversibility.CHECKED);
+  LOCAL_LOOP_CHECK(0x0432, 2, Reversibility.CHECKED),
+
+  RECORD_NEW(0x0500, 4, Reversibility.CHECKED),
+  RECORD_GET(0x0501, 3, Reversibility.CHECKED);
 
   private final int code;
   private final int operandCount;

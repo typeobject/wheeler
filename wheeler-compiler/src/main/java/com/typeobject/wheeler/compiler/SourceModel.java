@@ -9,6 +9,14 @@ final class SourceModel {
 
   record Parameter(String name, String type) {}
 
+  record RecordField(String name, String type) {}
+
+  record RecordDefinition(String name, List<RecordField> fields, int line) {
+    RecordDefinition {
+      fields = List.copyOf(fields);
+    }
+  }
+
   record Statement(String operation, List<String> arguments, int line) {
     Statement {
       arguments = List.copyOf(arguments);
@@ -44,11 +52,13 @@ final class SourceModel {
       String name,
       String kind,
       List<State> states,
+      List<RecordDefinition> records,
       List<Function> functions,
       List<QuantumRegisterSource> quantumRegisters,
       List<Circuit> circuits) {
     SourceProgram {
       states = List.copyOf(states);
+      records = List.copyOf(records);
       functions = List.copyOf(functions);
       quantumRegisters = List.copyOf(quantumRegisters);
       circuits = List.copyOf(circuits);

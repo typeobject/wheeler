@@ -142,6 +142,41 @@ class SourceProfileNegativeTest {
   }
 
   @Test
+  void rejectsMalformedRecordDeclarationsConstructionAndAccess() {
+    String duplicateField = """
+        classical class DuplicateField {
+          record Pair(long value, boolean value) {}
+          entry void main() { }
+        }
+        """;
+    String wrongConstruction = """
+        classical class WrongRecord {
+          record Pair(long value, boolean valid) {}
+          entry void main() { Pair pair = new Pair(true, 1); }
+        }
+        """;
+    String missingField = """
+        classical class MissingField {
+          record Pair(long value) {}
+          entry void main() {
+            Pair pair = new Pair(1);
+            long value = pair.missing;
+          }
+        }
+        """;
+
+    CompilerException duplicate = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(duplicateField));
+    CompilerException construction = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(wrongConstruction));
+    CompilerException field = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(missingField));
+    assertTrue(duplicate.getMessage().contains("duplicate record field"));
+    assertTrue(construction.getMessage().contains("expected signed expression"));
+    assertTrue(field.getMessage().contains("unknown field missing"));
+  }
+
+  @Test
   void rejectsOutOfRangeQuantumReference() {
     String source = """
         quantum class BrokenQubit {

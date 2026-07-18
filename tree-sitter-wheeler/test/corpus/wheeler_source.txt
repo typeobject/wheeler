@@ -163,12 +163,14 @@ classical class Broken {
     (computation_domain)
     (identifier)
     (class_body
-      (ERROR
-        (identifier)
-        (integer_literal)
-        (identifier))
+      (member_declaration
+        (state_declaration
+          (identifier)
+          (integer_literal)
+          (MISSING ";")))
       (member_declaration
         (method_declaration
+          (method_modifier)
           (identifier)
           (parameter_list)
           (block
@@ -217,6 +219,7 @@ classical class Control {
           (block
             (statement
               (local_declaration
+                (value_type)
                 (identifier)
                 (expression
                   (integer_literal))))
@@ -265,6 +268,7 @@ classical class Control {
                           (break_statement))))))))
             (statement
               (local_declaration
+                (value_type)
                 (identifier)
                 (expression
                   (binary_expression
@@ -315,11 +319,14 @@ classical class Values {
     (class_body
       (member_declaration
         (method_declaration
+          (value_type)
           (identifier)
           (parameter_list
             (parameter
+              (value_type)
               (identifier))
             (parameter
+              (value_type)
               (identifier)))
           (block
             (statement
@@ -332,11 +339,14 @@ classical class Values {
                       (identifier)))))))))
       (member_declaration
         (method_declaration
+          (value_type)
           (identifier)
           (parameter_list
             (parameter
+              (value_type)
               (identifier))
             (parameter
+              (value_type)
               (identifier)))
           (block
             (statement
@@ -355,6 +365,7 @@ classical class Values {
           (block
             (statement
               (local_declaration
+                (value_type)
                 (identifier)
                 (expression
                   (call_expression
@@ -366,6 +377,7 @@ classical class Values {
                         (integer_literal)))))))
             (statement
               (local_declaration
+                (value_type)
                 (identifier)
                 (expression
                   (call_expression
@@ -411,6 +423,7 @@ classical class ForControl {
             (statement
               (for_statement
                 (local_declaration
+                  (value_type)
                   (identifier)
                   (expression
                     (integer_literal)))
@@ -454,3 +467,114 @@ classical class ForControl {
                       (block
                         (statement
                           (break_statement))))))))))))))
+
+==================
+Nominal value records
+==================
+
+classical class Records {
+  record Span(long start, long end) {}
+  record Token(Span span, boolean valid) {}
+  state long width = 0;
+  Token token(Span span) { return new Token(span, true); }
+  entry void main() {
+    Token value = token(new Span(3, 8));
+    width = value.span.end - value.span.start;
+  }
+}
+
+---
+
+(source_file
+  (class_declaration
+    (computation_domain)
+    (identifier)
+    (class_body
+      (member_declaration
+        (record_declaration
+          (identifier)
+          (record_component
+            (value_type)
+            (identifier))
+          (record_component
+            (value_type)
+            (identifier))))
+      (member_declaration
+        (record_declaration
+          (identifier)
+          (record_component
+            (value_type
+              (type_identifier))
+            (identifier))
+          (record_component
+            (value_type)
+            (identifier))))
+      (member_declaration
+        (state_declaration
+          (identifier)
+          (integer_literal)))
+      (member_declaration
+        (method_declaration
+          (value_type
+            (type_identifier))
+          (identifier)
+          (parameter_list
+            (parameter
+              (value_type
+                (type_identifier))
+              (identifier)))
+          (block
+            (statement
+              (return_statement
+                (expression
+                  (record_creation
+                    (identifier)
+                    (argument_list
+                      (expression
+                        (identifier))
+                      (expression
+                        (boolean_literal))))))))))
+      (member_declaration
+        (method_declaration
+          (method_modifier)
+          (identifier)
+          (parameter_list)
+          (block
+            (statement
+              (local_declaration
+                (value_type
+                  (type_identifier))
+                (identifier)
+                (expression
+                  (call_expression
+                    (identifier)
+                    (argument_list
+                      (expression
+                        (record_creation
+                          (identifier)
+                          (argument_list
+                            (expression
+                              (integer_literal))
+                            (expression
+                              (integer_literal))))))))))
+            (statement
+              (assignment_statement
+                (identifier)
+                (expression
+                  (binary_expression
+                    (expression
+                      (field_expression
+                        (expression
+                          (field_expression
+                            (expression
+                              (identifier))
+                            (identifier)))
+                        (identifier)))
+                    (expression
+                      (field_expression
+                        (expression
+                          (field_expression
+                            (expression
+                              (identifier))
+                            (identifier)))
+                        (identifier)))))))))))))

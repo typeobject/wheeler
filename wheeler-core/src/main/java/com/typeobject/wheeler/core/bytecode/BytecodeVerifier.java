@@ -163,6 +163,9 @@ public final class BytecodeVerifier {
           verifyGlobal(program, instruction.operands().getFirst(), owner, pc);
       case LOCAL_CONST -> {
         int destination = verifyLocal(owner, instruction.operands().getFirst(), pc);
+        if (owner.localType(destination).kind() == ValueType.Kind.RECORD) {
+          fail(location(owner, pc) + " record local requires RECORD_NEW");
+        }
         if (owner.localType(destination).equals(ValueType.BOOLEAN)) {
           long value = instruction.operands().get(1);
           if (value != 0 && value != 1) {
@@ -196,6 +199,9 @@ public final class BytecodeVerifier {
         int right = verifyLocal(owner, instruction.operands().get(2), pc);
         requireSameType(owner, destination, left, pc);
         requireSameType(owner, destination, right, pc);
+        if (owner.localType(destination).kind() == ValueType.Kind.RECORD) {
+          fail(location(owner, pc) + " XOR does not accept record values");
+        }
       }
       case LOCAL_EQ -> {
         int destination = verifyLocal(owner, instruction.operands().get(0), pc);
@@ -224,6 +230,8 @@ public final class BytecodeVerifier {
         requireType(
             owner, verifyLocal(owner, instruction.operands().get(1), pc), ValueType.SIGNED, pc);
       }
+      case RECORD_NEW -> verifyRecordNew(program, owner, instruction, pc);
+      case RECORD_GET -> verifyRecordGet(program, owner, instruction, pc);
       case SWAP -> {
         verifyGlobal(program, instruction.operands().get(0), owner, pc);
         verifyGlobal(program, instruction.operands().get(1), owner, pc);
@@ -287,6 +295,43 @@ public final class BytecodeVerifier {
     }
   }
 
+  private static void verifyRecordNew(
+      Program program, FunctionBody owner, Instruction instruction, int pc) {
+    int destination = verifyLocal(owner, instruction.operands().get(0), pc);
+    int typeId = Math.toIntExact(instruction.operands().get(1));
+    int base = Math.toIntExact(instruction.operands().get(2));
+    int count = Math.toIntExact(instruction.operands().get(3));
+    RecordType record = program.recordType(typeId);
+    if (!owner.localType(destination).equals(ValueType.record(typeId))
+        || count != record.fields().size()
+        || base < 0
+        || count < 0
+        || base > owner.localCount() - count) {
+      fail(location(owner, pc) + " record construction signature mismatch");
+    }
+    for (int field = 0; field < count; field++) {
+      if (!owner.localType(base + field).equals(record.fields().get(field).type())) {
+        fail(location(owner, pc) + " record field type mismatch at " + field);
+      }
+    }
+  }
+
+  private static void verifyRecordGet(
+      Program program, FunctionBody owner, Instruction instruction, int pc) {
+    int destination = verifyLocal(owner, instruction.operands().get(0), pc);
+    int source = verifyLocal(owner, instruction.operands().get(1), pc);
+    int field = Math.toIntExact(instruction.operands().get(2));
+    ValueType sourceType = owner.localType(source);
+    if (sourceType.kind() != ValueType.Kind.RECORD) {
+      fail(location(owner, pc) + " field access requires a record");
+    }
+    RecordType record = program.recordType(sourceType.descriptorId());
+    if (field < 0 || field >= record.fields().size()
+        || !owner.localType(destination).equals(record.fields().get(field).type())) {
+      fail(location(owner, pc) + " record field access signature mismatch");
+    }
+  }
+
   private static void verifyLocalFlow(FunctionBody owner, List<Instruction> body) {
     BitSet[] incoming = new BitSet[body.size()];
     incoming[0] = new BitSet(owner.localCount());
@@ -320,9 +365,12 @@ public final class BytecodeVerifier {
 
   private static void requireAssignedLocals(
       FunctionBody owner, Instruction instruction, int pc, BitSet assigned) {
-    if (instruction.opcode() == Opcode.CALL_VALUE) {
-      int base = Math.toIntExact(instruction.operands().get(1));
-      int count = Math.toIntExact(instruction.operands().get(2));
+    if (instruction.opcode() == Opcode.CALL_VALUE
+        || instruction.opcode() == Opcode.RECORD_NEW) {
+      int baseOperand = instruction.opcode() == Opcode.CALL_VALUE ? 1 : 2;
+      int countOperand = instruction.opcode() == Opcode.CALL_VALUE ? 2 : 3;
+      int base = Math.toIntExact(instruction.operands().get(baseOperand));
+      int count = Math.toIntExact(instruction.operands().get(countOperand));
       for (int local = base; local < base + count; local++) {
         if (!assigned.get(local)) {
           fail(location(owner, pc) + " reads uninitialized local " + local);
@@ -337,6 +385,7 @@ public final class BytecodeVerifier {
       case JUMP_IF_ZERO -> new int[] {0};
       case LOCAL_LOOP_CHECK -> new int[] {0, 1};
       case RETURN_VALUE -> new int[] {0};
+      case RECORD_GET -> new int[] {1};
       default -> new int[0];
     };
     for (int operandIndex : reads) {
@@ -350,7 +399,7 @@ public final class BytecodeVerifier {
   private static int writtenLocal(Instruction instruction) {
     return switch (instruction.opcode()) {
       case LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, LOCAL_ADD, LOCAL_SUB,
-          LOCAL_XOR, LOCAL_EQ, LOCAL_LT, LOCAL_LOOP_CHECK ->
+          LOCAL_XOR, LOCAL_EQ, LOCAL_LT, LOCAL_LOOP_CHECK, RECORD_NEW, RECORD_GET ->
           Math.toIntExact(instruction.operands().getFirst());
       case CALL_VALUE -> Math.toIntExact(instruction.operands().get(3));
       default -> -1;

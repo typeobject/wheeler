@@ -104,6 +104,26 @@ public final class Program {
         maxSteps);
   }
 
+  public Program(
+      String name,
+      int entryFunctionId,
+      List<Global> globals,
+      List<RecordType> recordTypes,
+      List<FunctionBody> functions) {
+    this(
+        name,
+        ProgramKind.CLASSICAL,
+        entryFunctionId,
+        globals,
+        recordTypes,
+        functions,
+        List.of(),
+        List.of(),
+        List.of(),
+        DEFAULT_MAX_HISTORY,
+        DEFAULT_MAX_STEPS);
+  }
+
   public Program(String name, int entryFunctionId, List<Global> globals, List<FunctionBody> functions) {
     this(name, entryFunctionId, globals, functions, DEFAULT_MAX_HISTORY, DEFAULT_MAX_STEPS);
   }

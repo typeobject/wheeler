@@ -11,6 +11,7 @@ The examples are deliberately bounded. They demonstrate implemented semantics an
 | [`BootstrapControl.w`](../../wheeler-examples/src/main/wheeler/BootstrapControl.w) | Typed signed and Boolean locals, expressions, branch joins, and a bounded counted `for` | `sum = 10`, `branch = 1` |
 | [`FunctionValues.w`](../../wheeler-examples/src/main/wheeler/FunctionValues.w) | Signed and Boolean parameters/results, nested expressions, typed static value calls, and callee loop | `result = 10` |
 | [`LoopControl.w`](../../wheeler-examples/src/main/wheeler/LoopControl.w) | Early typed return plus bounded `break` and `continue` edges | `sum = 12`, `selected = 7` |
+| [`Records.w`](../../wheeler-examples/src/main/wheeler/Records.w) | Nested immutable records, typed record calls, fields, and structural equality | `width = 5`, `equal = 1` |
 | [`RecursiveValue.w`](../../wheeler-examples/src/main/wheeler/RecursiveValue.w) | Recursive signed value call under frame and step ceilings | `result = 6` |
 | [`CoherentOracle.w`](../../wheeler-examples/src/main/wheeler/CoherentOracle.w) | One XOR function over classical and coherent data | `bit = 0`, `measured = 1` |
 | [`QFT.w`](../../wheeler-examples/src/main/wheeler/QFT.w) | Three-qubit quantum Fourier transform and generated adjoint | `measured = 5` |

@@ -36,6 +36,7 @@ class ClassicalExamplesTest {
         Arguments.of("BootstrapControl.w", Map.of("sum", 10L, "branch", 1L)),
         Arguments.of("FunctionValues.w", Map.of("result", 10L)),
         Arguments.of("LoopControl.w", Map.of("sum", 12L, "selected", 7L)),
+        Arguments.of("Records.w", Map.of("width", 5L, "equal", 1L)),
         Arguments.of("RecursiveValue.w", Map.of("result", 6L)));
   }
 }

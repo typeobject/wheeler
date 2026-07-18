@@ -6,6 +6,7 @@ import com.typeobject.wheeler.core.bytecode.FunctionBody;
 import com.typeobject.wheeler.core.bytecode.Global;
 import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Opcode;
+import com.typeobject.wheeler.core.bytecode.RecordType;
 import com.typeobject.wheeler.core.bytecode.ValueType;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,6 +19,7 @@ import java.util.Set;
 final class ClassicalLowerer {
   record ClassicalContent(
       List<Global> globals,
+      List<RecordType> recordTypes,
       List<FunctionBody> functions,
       int entryId,
       Map<String, Integer> globalIds,
@@ -38,6 +40,8 @@ final class ClassicalLowerer {
 
   ClassicalContent lower(SourceProgram source, boolean classicalEntry) {
     List<Global> globals = lowerGlobals(source);
+    List<RecordType> recordTypes = lowerRecordTypes(source);
+    Map<String, ValueType> typeReferences = typeReferences(recordTypes);
     Map<String, Integer> globalIds = indexGlobals(globals);
     Map<String, Integer> functionIds = indexFunctions(source);
     Map<String, Boolean> reversibleFunctions = new HashMap<>();
@@ -49,9 +53,9 @@ final class ClassicalLowerer {
           new FunctionSignature(
               functionIds.get(function.name()),
               function.parameters().stream()
-                  .map(parameter -> sourceType(parameter.type(), function.line()))
+                  .map(parameter -> sourceType(parameter.type(), function.line(), typeReferences))
                   .toList(),
-              function.returnsValue() ? sourceType(function.returnType(), function.line()) : null));
+              function.returnsValue() ? sourceType(function.returnType(), function.line(), typeReferences) : null));
     });
 
     List<FunctionBody> functions = new ArrayList<>();
@@ -68,7 +72,13 @@ final class ClassicalLowerer {
         localTypes = List.of();
       } else {
         LoweredBody lowered = lowerStatements(
-            sourceFunction, globalIds, functionIds, reversibleFunctions, signatures);
+            sourceFunction,
+            globalIds,
+            functionIds,
+            reversibleFunctions,
+            signatures,
+            typeReferences,
+            recordTypes);
         forward = lowered.instructions();
         localTypes = lowered.localTypes();
       }
@@ -96,13 +106,42 @@ final class ClassicalLowerer {
           sourceFunction.parameters().size(),
           localTypes,
           sourceFunction.returnsValue()
-              ? sourceType(sourceFunction.returnType(), sourceFunction.line())
+              ? sourceType(sourceFunction.returnType(), sourceFunction.line(), typeReferences)
               : null,
           forward,
           inverse));
     }
     return new ClassicalContent(
-        globals, List.copyOf(functions), entryId, globalIds, functionIds);
+        globals, recordTypes, List.copyOf(functions), entryId, globalIds, functionIds);
+  }
+
+  private static List<RecordType> lowerRecordTypes(SourceProgram source) {
+    List<RecordType> result = new ArrayList<>();
+    Map<String, ValueType> types = new LinkedHashMap<>();
+    types.put("long", ValueType.SIGNED);
+    types.put("boolean", ValueType.BOOLEAN);
+    Set<String> names = new HashSet<>();
+    for (SourceModel.RecordDefinition record : source.records()) {
+      if (!names.add(record.name())) {
+        throw new CompilerException(record.line(), "duplicate record type: " + record.name());
+      }
+      List<RecordType.Field> fields = record.fields().stream()
+          .map(field -> new RecordType.Field(
+              field.name(), sourceType(field.type(), record.line(), types)))
+          .toList();
+      RecordType descriptor = new RecordType(result.size(), record.name(), fields);
+      result.add(descriptor);
+      types.put(record.name(), ValueType.record(descriptor.id()));
+    }
+    return List.copyOf(result);
+  }
+
+  private static Map<String, ValueType> typeReferences(List<RecordType> records) {
+    Map<String, ValueType> result = new LinkedHashMap<>();
+    result.put("long", ValueType.SIGNED);
+    result.put("boolean", ValueType.BOOLEAN);
+    records.forEach(record -> result.put(record.name(), ValueType.record(record.id())));
+    return Map.copyOf(result);
   }
 
   private static List<Global> lowerGlobals(SourceProgram source) {
@@ -141,9 +180,17 @@ final class ClassicalLowerer {
       Map<String, Integer> globals,
       Map<String, Integer> functions,
       Map<String, Boolean> reversibleFunctions,
-      Map<String, FunctionSignature> signatures) {
+      Map<String, FunctionSignature> signatures,
+      Map<String, ValueType> typeReferences,
+      List<RecordType> recordTypes) {
     return new LocalAssembler(
-        owner, globals, functions, reversibleFunctions, signatures).lower();
+        owner,
+        globals,
+        functions,
+        reversibleFunctions,
+        signatures,
+        typeReferences,
+        recordTypes).lower();
   }
 
   private static Instruction lowerStatement(
@@ -209,12 +256,13 @@ final class ClassicalLowerer {
     return id;
   }
 
-  private static ValueType sourceType(String type, int line) {
-    return switch (type) {
-      case "long" -> ValueType.SIGNED;
-      case "boolean" -> ValueType.BOOLEAN;
-      default -> throw new CompilerException(line, "unsupported value type: " + type);
-    };
+  private static ValueType sourceType(
+      String type, int line, Map<String, ValueType> typeReferences) {
+    ValueType result = typeReferences.get(type);
+    if (result == null) {
+      throw new CompilerException(line, "unsupported value type: " + type);
+    }
+    return result;
   }
 
   private static void requireArguments(Statement statement, int count) {
@@ -232,6 +280,8 @@ final class ClassicalLowerer {
     private final Map<String, Integer> functions;
     private final Map<String, Boolean> reversibleFunctions;
     private final Map<String, FunctionSignature> signatures;
+    private final Map<String, ValueType> typeReferences;
+    private final Map<String, RecordType> records;
     private final Map<String, Integer> locals = new LinkedHashMap<>();
     private final List<ValueType> localTypes = new ArrayList<>();
     private final Map<String, Integer> labels = new HashMap<>();
@@ -244,14 +294,20 @@ final class ClassicalLowerer {
         Map<String, Integer> globals,
         Map<String, Integer> functions,
         Map<String, Boolean> reversibleFunctions,
-        Map<String, FunctionSignature> signatures) {
+        Map<String, FunctionSignature> signatures,
+        Map<String, ValueType> typeReferences,
+        List<RecordType> recordTypes) {
       this.owner = owner;
       this.globals = globals;
       this.functions = functions;
       this.reversibleFunctions = reversibleFunctions;
       this.signatures = signatures;
+      this.typeReferences = typeReferences;
+      Map<String, RecordType> records = new HashMap<>();
+      recordTypes.forEach(record -> records.put(record.name(), record));
+      this.records = Map.copyOf(records);
       for (SourceModel.Parameter parameter : owner.parameters()) {
-        declareUser(parameter.name(), owner.line(), sourceType(parameter.type(), owner.line()));
+        declareUser(parameter.name(), owner.line(), sourceType(parameter.type(), owner.line(), typeReferences));
       }
     }
 
@@ -295,10 +351,12 @@ final class ClassicalLowerer {
         }
         case "local_read" -> lowerRead(statement);
         case "local_binary" -> lowerBinary(statement);
+        case "record_new" -> lowerRecordNew(statement);
+        case "record_get" -> lowerRecordGet(statement);
         case "local_bind" -> {
           requireArguments(statement, 3);
           int source = requireLocal(arguments.get(1), statement.line());
-          ValueType declaredType = sourceType(arguments.get(2), statement.line());
+          ValueType declaredType = sourceType(arguments.get(2), statement.line(), typeReferences);
           requireType(source, declaredType, statement.line());
           int destination = declareUser(arguments.get(0), statement.line(), declaredType);
           output.add(Instruction.of(Opcode.LOCAL_MOVE, destination, source));
@@ -308,7 +366,7 @@ final class ClassicalLowerer {
         case "return_value" -> {
           requireArguments(statement, 1);
           int result = requireLocal(statement.arguments().getFirst(), statement.line());
-          requireType(result, sourceType(owner.returnType(), statement.line()), statement.line());
+          requireType(result, sourceType(owner.returnType(), statement.line(), typeReferences), statement.line());
           output.add(Instruction.of(Opcode.RETURN_VALUE, result));
         }
         case "label" -> {
@@ -386,6 +444,9 @@ final class ClassicalLowerer {
         case "xor" -> {
           requireSameType(left, right, statement.line());
           resultType = localTypes.get(left);
+          if (resultType.kind() == ValueType.Kind.RECORD) {
+            throw new CompilerException(statement.line(), "XOR does not accept records");
+          }
         }
         case "eq" -> {
           requireSameType(left, right, statement.line());
@@ -397,6 +458,58 @@ final class ClassicalLowerer {
       int destination = declareInternal(arguments.get(0), statement.line(), resultType);
       output.add(Instruction.of(
           binaryOpcode(operator, statement.line()), destination, left, right));
+    }
+
+    private void lowerRecordNew(Statement statement) {
+      if (statement.arguments().size() < 2) {
+        throw new CompilerException(statement.line(), "malformed record construction");
+      }
+      String destinationName = statement.arguments().get(0);
+      RecordType record = records.get(statement.arguments().get(1));
+      int fieldCount = statement.arguments().size() - 2;
+      if (record == null || fieldCount != record.fields().size()) {
+        throw new CompilerException(statement.line(), "record construction signature mismatch");
+      }
+      int fieldBase = locals.size();
+      for (int field = 0; field < fieldCount; field++) {
+        int source = requireLocal(statement.arguments().get(field + 2), statement.line());
+        ValueType fieldType = record.fields().get(field).type();
+        requireType(source, fieldType, statement.line());
+        int window = declareInternal(
+            "$record" + assemblyTemporary++, statement.line(), fieldType);
+        output.add(Instruction.of(Opcode.LOCAL_MOVE, window, source));
+      }
+      int destination = declareInternal(
+          destinationName, statement.line(), ValueType.record(record.id()));
+      output.add(Instruction.of(
+          Opcode.RECORD_NEW, destination, record.id(), fieldBase, fieldCount));
+    }
+
+    private void lowerRecordGet(Statement statement) {
+      requireArguments(statement, 3);
+      int source = requireLocal(statement.arguments().get(1), statement.line());
+      ValueType sourceType = localTypes.get(source);
+      if (sourceType.kind() != ValueType.Kind.RECORD) {
+        throw new CompilerException(statement.line(), "field access requires a record");
+      }
+      RecordType record = records.values().stream()
+          .filter(candidate -> candidate.id() == sourceType.descriptorId())
+          .findFirst()
+          .orElseThrow(() -> new CompilerException(statement.line(), "unknown record type"));
+      int fieldIndex = -1;
+      for (int index = 0; index < record.fields().size(); index++) {
+        if (record.fields().get(index).name().equals(statement.arguments().get(2))) {
+          fieldIndex = index;
+          break;
+        }
+      }
+      if (fieldIndex < 0) {
+        throw new CompilerException(
+            statement.line(), "unknown field " + statement.arguments().get(2));
+      }
+      int destination = declareInternal(
+          statement.arguments().get(0), statement.line(), record.fields().get(fieldIndex).type());
+      output.add(Instruction.of(Opcode.RECORD_GET, destination, source, fieldIndex));
     }
 
     private void lowerValueCall(Statement statement) {

@@ -13,7 +13,8 @@ public record StepRecord(
     int changedGlobal,
     long previousValue,
     int changedLocal,
-    long previousLocalValue) {
+    long previousLocalValue,
+    int previousRecordCount) {
   public static final int NO_GLOBAL = -1;
   public static final int NO_LOCAL = -1;
 
@@ -22,6 +23,9 @@ public record StepRecord(
     Objects.requireNonNull(previousStatus, "previousStatus");
     Objects.requireNonNull(controlChange, "controlChange");
     Objects.requireNonNull(previousFrame, "previousFrame");
+    if (previousRecordCount < 0) {
+      throw new IllegalArgumentException("Negative previous record count");
+    }
   }
 
   public enum ControlChange {

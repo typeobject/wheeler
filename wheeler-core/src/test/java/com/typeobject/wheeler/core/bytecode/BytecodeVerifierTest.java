@@ -100,6 +100,33 @@ class BytecodeVerifierTest {
         Program.DEFAULT_MAX_STEPS);
 
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(invalid));
+
+    RecordType pair = new RecordType(
+        0,
+        "Pair",
+        List.of(
+            new RecordType.Field("value", ValueType.SIGNED),
+            new RecordType.Field("valid", ValueType.BOOLEAN)));
+    FunctionBody badConstruction = typedMain(
+        List.of(ValueType.SIGNED, ValueType.BOOLEAN, ValueType.record(0)),
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 1),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 1),
+            Instruction.of(Opcode.RECORD_NEW, 2, 0, 0, 1),
+            Instruction.of(Opcode.HALT)));
+    Program malformed = new Program(
+        "MalformedRecord",
+        ProgramKind.CLASSICAL,
+        0,
+        List.of(),
+        List.of(pair),
+        List.of(badConstruction),
+        List.of(),
+        List.of(),
+        List.of(),
+        Program.DEFAULT_MAX_HISTORY,
+        Program.DEFAULT_MAX_STEPS);
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(malformed));
   }
 
   @Test

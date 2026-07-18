@@ -244,7 +244,7 @@ A feature that cannot express or simplify one of these modules needs separate ju
 - [x] Register metadata uses bounded 32-bit scalar or aggregate references; canonical nominal record descriptors reject duplicate, forward, cyclic, and unresolved type IDs.
 - [x] Local constants, state load/store, move, arithmetic, comparison, branches, loop checks, value calls, and value returns execute and rewind.
 - [ ] Typed signed/Boolean parameters, returns, local bindings, expressions, static calls, `if`/`else`, and bounded `while` compile end to end; aggregate types remain.
-- [ ] Records, variants, arrays, and slices execute with ownership checks.
+- [ ] Immutable nominal records execute with canonical descriptors, typed construction/access/calls, structural equality, snapshots, and rewind; variants, arrays, slices, and mutable ownership checks remain.
 - [ ] Region storage supports compiler arenas under hard limits.
 - [ ] Reversible protected control forms generate checked inverses.
 - [ ] Lexer, parser, codec, verifier, and package graph fixtures run in Wheeler.
@@ -258,7 +258,7 @@ A feature that cannot express or simplify one of these modules needs separate ju
 - [ ] Branch tests cover both paths, join assignment, early typed return, and source diagnostics; unreachable-block diagnostics remain.
 - [x] `while` and counted `for` tests cover zero and exact bounds, exceeded bounds, update-on-continue, innermost `break`, nested loops, and the independent global step defense.
 - [ ] Reversible methods reject unprotected branch/loop forms and accept only forms with checked inverse laws.
-- [ ] Record and variant tests cover layout-independent equality, exhaustive selection, malformed tags, and canonical encoding.
+- [ ] Record tests cover canonical encoding, nested fields, nominal structural equality, malformed descriptors, source type errors, deterministic interning, and rewind; variants and native layout parity remain.
 - [ ] Array/slice tests cover boundaries, split/join, overlap, escape, move, and borrow lifetime.
 - [ ] Region tests cover exhaustion, drop, escape, dangling borrow, canonical output independence, and commit.
 - [ ] Stage-0 and Wheeler compilers produce identical typed metadata, code, diagnostics, and artifacts for the shared profile.

@@ -101,6 +101,22 @@ Local control compiles to verified typed frame registers and explicit control-fl
 
 Control flow is not accepted in `rev` or `coherent rev` methods yet. Wheeler will add reversible branches and loops only with an exact branch or iteration witness; it does not retain hidden history automatically.
 
+## Value records
+
+A nominal record declares one or more ordered, immutable fields:
+
+```java
+record Span(long start, long end) {}
+record Token(Span span, boolean valid) {}
+
+Token token = new Token(new Span(3, 8), true);
+long width = token.span.end - token.span.start;
+```
+
+A field may use a scalar or a previously declared record type. Requiring prior declaration makes recursive and cyclic inline values impossible. Construction is left to right and checks exact arity and field types. Field access is read-only. Records may be locals, parameters, and results; `==` compares nominal type and complete immutable field values.
+
+The VM interns equal immutable values in deterministic construction order. Handles are verified implementation values, not source integers or artifact identity. Rewind removes allocations made by the rewound step, and snapshots include the record table. The current hard ceiling is 65,535 distinct record values per machine.
+
 ## Quantum statements
 
 Unitary methods use Java-shaped gate calls over indexed registers:
@@ -158,7 +174,7 @@ The compiler lexer records line, column, and source offset. The parser is format
 
 ## Bootstrap direction
 
-The current compiler and VM use Java only as stage-0 infrastructure. The production compiler will be Wheeler source and must compile itself to a byte-identical second-stage `.wbc` artifact. Signed and Boolean registers, typed value parameters and returns, static calls, and bounded classical control form the first bootstrap slice. Records, variants, strings, bytes, deterministic collections, modules, and explicit file effects follow as complete vertical slices.
+The current compiler and VM use Java only as stage-0 infrastructure. The production compiler will be Wheeler source and must compile itself to a byte-identical second-stage `.wbc` artifact. Signed, Boolean, and immutable record values, typed parameters and returns, static calls, and bounded classical control form the current bootstrap slice. Variants, arrays, slices, strings, bytes, deterministic collections, modules, and explicit file effects follow as complete vertical slices.
 
 After native runtime conformance, the Java compiler, VM, tools, Gradle build, and JVM deployment path will be deleted. A cold build will use a content-addressed prior native Wheeler release and `.wbc` recovery seed. Java APIs and object semantics are therefore not prospective Wheeler contracts.
 

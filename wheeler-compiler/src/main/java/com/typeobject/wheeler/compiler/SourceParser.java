@@ -4,6 +4,8 @@ import com.typeobject.wheeler.compiler.SourceModel.Circuit;
 import com.typeobject.wheeler.compiler.SourceModel.Function;
 import com.typeobject.wheeler.compiler.SourceModel.Parameter;
 import com.typeobject.wheeler.compiler.SourceModel.QuantumRegisterSource;
+import com.typeobject.wheeler.compiler.SourceModel.RecordDefinition;
+import com.typeobject.wheeler.compiler.SourceModel.RecordField;
 import com.typeobject.wheeler.compiler.SourceModel.SourceProgram;
 import com.typeobject.wheeler.compiler.SourceModel.State;
 import com.typeobject.wheeler.compiler.SourceModel.Statement;
@@ -24,6 +26,7 @@ final class SourceParser {
   private int current;
   private final List<State> states = new ArrayList<>();
   private final List<Function> functions = new ArrayList<>();
+  private final List<RecordDefinition> records = new ArrayList<>();
   private final List<QuantumRegisterSource> registers = new ArrayList<>();
   private final List<Circuit> circuits = new ArrayList<>();
   private String domain;
@@ -38,6 +41,7 @@ final class SourceParser {
     current = 0;
     states.clear();
     functions.clear();
+    records.clear();
     registers.clear();
     circuits.clear();
     loops.clear();
@@ -60,12 +64,16 @@ final class SourceParser {
       fail(domain, "exactly one 'entry void main()' method is required");
     }
     return new SourceProgram(
-        name, domain.text(), states, functions, registers, circuits);
+        name, domain.text(), states, records, functions, registers, circuits);
   }
 
   private void parseMember() {
     while (checkTextIn(VISIBILITY)) {
       advance();
+    }
+    if (matchText("record")) {
+      parseRecord(previous());
+      return;
     }
     if (matchText("state")) {
       parseState(previous());
@@ -76,6 +84,36 @@ final class SourceParser {
       return;
     }
     parseMethod();
+  }
+
+  private void parseRecord(SourceToken start) {
+    String name = expect(Type.IDENTIFIER, "record name").text();
+    if (isValueType(name) || records.stream().anyMatch(record -> record.name().equals(name))) {
+      fail(start, "duplicate or reserved record type: " + name);
+    }
+    expect(Type.LEFT_PAREN, "'(' after record name");
+    List<RecordField> fields = new ArrayList<>();
+    Set<String> fieldNames = new java.util.HashSet<>();
+    if (!check(Type.RIGHT_PAREN)) {
+      do {
+        SourceToken type = expect(Type.IDENTIFIER, "record field type");
+        if (!isValueType(type.text())) {
+          fail(type, "record field type must be scalar or previously declared record");
+        }
+        SourceToken field = expect(Type.IDENTIFIER, "record field name");
+        if (!fieldNames.add(field.text())) {
+          fail(field, "duplicate record field: " + field.text());
+        }
+        fields.add(new RecordField(field.text(), type.text()));
+      } while (match(Type.COMMA));
+    }
+    if (fields.isEmpty()) {
+      fail(start, "record must declare at least one field");
+    }
+    expect(Type.RIGHT_PAREN, "')' after record fields");
+    expect(Type.LEFT_BRACE, "'{' in record declaration");
+    expect(Type.RIGHT_BRACE, "'}' in record declaration");
+    records.add(new RecordDefinition(name, fields, start.line()));
   }
 
   private void parseState(SourceToken start) {
@@ -109,9 +147,8 @@ final class SourceParser {
     boolean entry = false;
     SourceToken start = peek();
 
-    while (!checkText("void") && !checkText("long") && !checkText("boolean")
-        && !check(Type.END)) {
-      String modifier = expect(Type.IDENTIFIER, "method modifier or void").text();
+    while (checkTextIn(Set.of("static", "coherent", "rev", "unitary", "entry"))) {
+      String modifier = advance().text();
       switch (modifier) {
         case "static" -> { /* Accepted for Java familiarity; entry remains statically owned. */ }
         case "coherent" -> coherent = true;
@@ -123,8 +160,8 @@ final class SourceParser {
     }
     SourceToken returnToken = expect(Type.IDENTIFIER, "method return type");
     String returnType = returnToken.text();
-    if (!Set.of("void", "long", "boolean").contains(returnType)) {
-      fail(returnToken, "expected void, long, or boolean return type");
+    if (!returnType.equals("void") && !isValueType(returnType)) {
+      fail(returnToken, "expected void or declared value return type");
     }
     boolean returnsValue = !returnType.equals("void");
     String name = expect(Type.IDENTIFIER, "method name").text();
@@ -133,8 +170,8 @@ final class SourceParser {
     if (!check(Type.RIGHT_PAREN)) {
       do {
         SourceToken type = expect(Type.IDENTIFIER, "parameter type");
-        if (!type.text().equals("long") && !type.text().equals("boolean")) {
-          fail(type, "expected long or boolean parameter type");
+        if (!isValueType(type.text())) {
+          fail(type, "expected declared parameter type");
         }
         parameters.add(new Parameter(
             expect(Type.IDENTIFIER, "parameter name").text(), type.text()));
@@ -243,8 +280,8 @@ final class SourceParser {
   private void parseLocalDeclaration(List<Statement> body) {
     SourceToken start = advance();
     String type = start.text();
-    if (!type.equals("long") && !type.equals("boolean")) {
-      fail(start, "expected long or boolean local type");
+    if (!isValueType(type)) {
+      fail(start, "expected declared local type");
     }
     String name = expect(Type.IDENTIFIER, "local name").text();
     expect(Type.ASSIGN, "'=' in local declaration");
@@ -419,7 +456,7 @@ final class SourceParser {
     if (match(Type.LEFT_PAREN)) {
       String value = parseExpression(body);
       expect(Type.RIGHT_PAREN, "')' after expression");
-      return value;
+      return parseFieldAccess(body, value, previous().line());
     }
     SourceToken start = peek();
     if (match(Type.MINUS)) {
@@ -428,6 +465,27 @@ final class SourceParser {
     }
     if (match(Type.NUMBER)) {
       return constant(body, previous(), previous().text());
+    }
+    if (matchText("new")) {
+      SourceToken type = expect(Type.IDENTIFIER, "record type after new");
+      if (records.stream().noneMatch(record -> record.name().equals(type.text()))) {
+        fail(type, "unknown record type: " + type.text());
+      }
+      expect(Type.LEFT_PAREN, "'(' after record type");
+      List<String> arguments = new ArrayList<>();
+      if (!check(Type.RIGHT_PAREN)) {
+        do {
+          arguments.add(parseExpression(body));
+        } while (match(Type.COMMA));
+      }
+      expect(Type.RIGHT_PAREN, "')' after record fields");
+      String result = temporary();
+      List<String> construction = new ArrayList<>();
+      construction.add(result);
+      construction.add(type.text());
+      construction.addAll(arguments);
+      body.add(new Statement("record_new", construction, start.line()));
+      return parseFieldAccess(body, result, start.line());
     }
     if (checkText("true") || checkText("false")) {
       SourceToken value = advance();
@@ -451,14 +509,25 @@ final class SourceParser {
         call.add(start.text());
         call.addAll(arguments);
         body.add(new Statement("call_value", call, start.line()));
-        return result;
+        return parseFieldAccess(body, result, start.line());
       }
       String result = temporary();
       body.add(statement("local_read", start.line(), result, start.text()));
-      return result;
+      return parseFieldAccess(body, result, start.line());
     }
     fail(start, "expected expression");
     throw new AssertionError("unreachable");
+  }
+
+  private String parseFieldAccess(List<Statement> body, String source, int line) {
+    String value = source;
+    while (match(Type.DOT)) {
+      String field = expect(Type.IDENTIFIER, "record field name").text();
+      String result = temporary();
+      body.add(statement("record_get", line, result, value, field));
+      value = result;
+    }
+    return value;
   }
 
   private String constant(List<Statement> body, SourceToken source, String value) {
@@ -475,7 +544,12 @@ final class SourceParser {
   }
 
   private boolean checkLocalType() {
-    return checkText("long") || checkText("boolean");
+    return check(Type.IDENTIFIER) && isValueType(peek().text());
+  }
+
+  private boolean isValueType(String name) {
+    return name.equals("long") || name.equals("boolean")
+        || records.stream().anyMatch(record -> record.name().equals(name));
   }
 
   private boolean isAssignmentStart() {

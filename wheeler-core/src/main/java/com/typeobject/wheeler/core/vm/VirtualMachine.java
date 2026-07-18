@@ -5,6 +5,8 @@ import com.typeobject.wheeler.core.bytecode.FunctionBody;
 import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.bytecode.RecordType;
+import com.typeobject.wheeler.core.bytecode.ValueType;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -19,6 +21,8 @@ public final class VirtualMachine {
   private final Program program;
   private final long[] globals;
   private final List<Frame> frames = new ArrayList<>();
+  private final List<RecordValue> records = new ArrayList<>();
+  private final Map<RecordValue, Integer> recordHandles = new LinkedHashMap<>();
   private final Deque<StepRecord> history = new ArrayDeque<>();
   private MachineStatus status = MachineStatus.READY;
   private long sequence;
@@ -76,6 +80,9 @@ public final class VirtualMachine {
       throw new VmTrap("No reversible history is available");
     }
     undoData(record);
+    while (records.size() > record.previousRecordCount()) {
+      recordHandles.remove(records.removeLast());
+    }
     switch (record.controlChange()) {
       case ADVANCE -> replaceCurrentFrame(record.previousFrame());
       case CALL -> {
@@ -159,7 +166,12 @@ public final class VirtualMachine {
       values.put(program.globals().get(i).name(), globals[i]);
     }
     return new MachineSnapshot(
-        status, List.copyOf(frames), Map.copyOf(values), history.size(), sequence);
+        status,
+        List.copyOf(frames),
+        Map.copyOf(values),
+        List.copyOf(records),
+        history.size(),
+        sequence);
   }
 
   public MachineStatus status() {
@@ -178,6 +190,7 @@ public final class VirtualMachine {
     int changedLocal = StepRecord.NO_LOCAL;
     long previousLocalValue = 0;
     StepRecord.ControlChange control = StepRecord.ControlChange.ADVANCE;
+    int previousRecordCount = records.size();
 
     switch (opcode) {
       case ADD_CONST -> {
@@ -245,6 +258,30 @@ public final class VirtualMachine {
       }
       case LOCAL_LOOP_CHECK -> setLocalAndAdvance(
           localIndex(instruction, 0), Math.addExact(localValue(instruction, 0), 1));
+      case RECORD_NEW -> {
+        int destination = localIndex(instruction, 0);
+        int typeId = Math.toIntExact(operand(instruction, 1));
+        int base = Math.toIntExact(operand(instruction, 2));
+        int count = Math.toIntExact(operand(instruction, 3));
+        List<Long> fields = new ArrayList<>(count);
+        for (int field = 0; field < count; field++) {
+          fields.add(currentFrame().local(base + field));
+        }
+        RecordValue value = new RecordValue(typeId, fields);
+        Integer handle = recordHandles.get(value);
+        if (handle == null) {
+          records.add(value);
+          handle = records.size();
+          recordHandles.put(value, handle);
+        }
+        setLocalAndAdvance(destination, handle);
+      }
+      case RECORD_GET -> {
+        int destination = localIndex(instruction, 0);
+        RecordValue value = recordValue(localValue(instruction, 1));
+        int field = Math.toIntExact(operand(instruction, 2));
+        setLocalAndAdvance(destination, value.fields().get(field));
+      }
       case CALL, UNCALL -> {
         int functionId = Math.toIntExact(operand(instruction, 0));
         advanceCurrentFrame();
@@ -296,7 +333,8 @@ public final class VirtualMachine {
         changedGlobal,
         previousValue,
         changedLocal,
-        previousLocalValue);
+        previousLocalValue,
+        previousRecordCount);
   }
 
   private void validateBeforeMutation(Instruction instruction) {
@@ -344,6 +382,34 @@ public final class VirtualMachine {
             trap("Loop iteration limit exceeded");
           }
           Math.addExact(iteration, 1);
+        }
+        case RECORD_NEW -> {
+          localIndex(instruction, 0);
+          RecordType type = program.recordType(Math.toIntExact(operand(instruction, 1)));
+          int base = Math.toIntExact(operand(instruction, 2));
+          int count = Math.toIntExact(operand(instruction, 3));
+          List<Long> fields = new ArrayList<>(count);
+          for (int field = 0; field < count; field++) {
+            long value = currentFrame().local(base + field);
+            fields.add(value);
+            ValueType fieldType = type.fields().get(field).type();
+            if (fieldType.kind() == ValueType.Kind.RECORD
+                && recordValue(value).typeId() != fieldType.descriptorId()) {
+              trap("Nested record type mismatch");
+            }
+          }
+          if (!recordHandles.containsKey(new RecordValue(type.id(), fields))
+              && records.size() >= 65_535) {
+            trap("Record value limit exceeded");
+          }
+        }
+        case RECORD_GET -> {
+          localIndex(instruction, 0);
+          RecordValue value = recordValue(localValue(instruction, 1));
+          int field = Math.toIntExact(operand(instruction, 2));
+          if (field < 0 || field >= value.fields().size()) {
+            trap("Record field index out of range");
+          }
         }
         case CALL -> {
           requireCallCapacity();
@@ -419,7 +485,8 @@ public final class VirtualMachine {
       case NOP, HALT, RETURN, RETURN_VALUE, CALL, UNCALL, CALL_VALUE,
           EXPECT_EQ, CHECKPOINT, COMMIT,
           LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, LOCAL_ADD, LOCAL_SUB,
-          LOCAL_XOR, LOCAL_EQ, LOCAL_LT, JUMP, JUMP_IF_ZERO, LOCAL_LOOP_CHECK -> {
+          LOCAL_XOR, LOCAL_EQ, LOCAL_LT, JUMP, JUMP_IF_ZERO, LOCAL_LOOP_CHECK,
+          RECORD_NEW, RECORD_GET -> {
         // These instructions alter only control or status state.
       }
     }
@@ -474,6 +541,13 @@ public final class VirtualMachine {
 
   private long localValue(Instruction instruction, int operandIndex) {
     return currentFrame().local(localIndex(instruction, operandIndex));
+  }
+
+  private RecordValue recordValue(long handle) {
+    if (handle <= 0 || handle > records.size()) {
+      trap("Invalid record handle " + handle);
+    }
+    return records.get(Math.toIntExact(handle - 1));
   }
 
   private int checkedJumpTarget(Instruction instruction, int operandIndex) {

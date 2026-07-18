@@ -13,6 +13,7 @@ import com.typeobject.wheeler.core.bytecode.Global;
 import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.bytecode.RecordType;
 import com.typeobject.wheeler.core.bytecode.ValueType;
 import java.util.ArrayList;
 import java.util.List;
@@ -176,6 +177,64 @@ class VirtualMachineTest {
     machine.run();
 
     assertEquals(10, machine.global("sum"));
+    while (machine.historySize() > 0) {
+      machine.rewindOne();
+    }
+    assertEquals(initial, machine.snapshot());
+  }
+
+  @Test
+  void immutableRecordConstructionAccessEqualityAndRewind() {
+    RecordType point = new RecordType(
+        0,
+        "Point",
+        List.of(
+            new RecordType.Field("x", ValueType.SIGNED),
+            new RecordType.Field("visible", ValueType.BOOLEAN)));
+    FunctionBody main = new FunctionBody(
+        0,
+        "main",
+        false,
+        0,
+        List.of(
+            ValueType.SIGNED,
+            ValueType.BOOLEAN,
+            ValueType.record(0),
+            ValueType.SIGNED,
+            ValueType.BOOLEAN,
+            ValueType.record(0),
+            ValueType.BOOLEAN),
+        null,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 7),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 1),
+            Instruction.of(Opcode.RECORD_NEW, 2, 0, 0, 2),
+            Instruction.of(Opcode.RECORD_GET, 3, 2, 0),
+            Instruction.of(Opcode.RECORD_GET, 4, 2, 1),
+            Instruction.of(Opcode.RECORD_NEW, 5, 0, 0, 2),
+            Instruction.of(Opcode.LOCAL_EQ, 6, 2, 5),
+            Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 3),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    Program program = new Program(
+        "Records",
+        com.typeobject.wheeler.core.bytecode.ProgramKind.CLASSICAL,
+        0,
+        List.of(new Global("result", 0)),
+        List.of(point),
+        List.of(main),
+        List.of(),
+        List.of(),
+        List.of(),
+        100,
+        100);
+    VirtualMachine machine = new VirtualMachine(program);
+    MachineSnapshot initial = machine.snapshot();
+
+    machine.run();
+
+    assertEquals(7, machine.global("result"));
+    assertEquals(1, machine.snapshot().records().size());
     while (machine.historySize() > 0) {
       machine.rewindOne();
     }

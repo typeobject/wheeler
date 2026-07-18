@@ -8,5 +8,6 @@ public record MachineSnapshot(
     MachineStatus status,
     List<Frame> frames,
     Map<String, Long> globals,
+    List<RecordValue> records,
     int historyRecords,
     long sequence) {}
