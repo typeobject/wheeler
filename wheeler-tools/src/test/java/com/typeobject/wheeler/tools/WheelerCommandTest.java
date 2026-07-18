@@ -355,6 +355,8 @@ class WheelerCommandTest {
     Files.copy(
         examples.resolve("compiler/Encoding.w"),
         project.resolve("src/compiler/Encoding.w"));
+    Path className = temporary.resolve("class-name.txt");
+    Files.writeString(className, "LongClass", StandardCharsets.UTF_8);
     Path artifact = temporary.resolve("seed.wbc");
     ByteArrayOutputStream bytes = new ByteArrayOutputStream();
     PrintStream output = new PrintStream(bytes, true, StandardCharsets.UTF_8);
@@ -362,6 +364,7 @@ class WheelerCommandTest {
     assertEquals(0, Wheeler.execute(
         new String[] {
             "run", project.toString(), "--target", "seed",
+            "--input", className.toString(),
             "--output", artifact.toString(), "--output-bytes", "512"
         },
         output,
@@ -369,7 +372,7 @@ class WheelerCommandTest {
     new BytecodeReader().read(Files.readAllBytes(artifact));
     assertEquals(0, Wheeler.execute(
         new String[] {"run", artifact.toString()}, output, output));
-    assertTrue(bytes.toString(StandardCharsets.UTF_8).contains("finalCursor = 360"));
+    assertTrue(bytes.toString(StandardCharsets.UTF_8).contains("finalCursor = 368"));
   }
 
   @Test

@@ -5,6 +5,12 @@ dependencies {
     implementation project(':wheeler-package')
 }
 
+tasks.named('test') {
+    inputs.files(project(':wheeler-examples').fileTree('src/main/wheeler') {
+        include '**/*.w'
+    }).withPathSensitivity(PathSensitivity.RELATIVE)
+}
+
 tasks.register('wheeler', JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.typeobject.wheeler.tools.Wheeler'
