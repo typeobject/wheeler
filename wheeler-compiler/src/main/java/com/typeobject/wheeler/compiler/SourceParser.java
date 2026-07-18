@@ -187,12 +187,14 @@ final class SourceParser {
         parseIf(body, previous());
       } else if (structuredStatements && matchText("while")) {
         parseWhile(body, previous());
+      } else if (structuredStatements && matchText("for")) {
+        parseFor(body, previous());
       } else if (structuredStatements && (matchText("break") || matchText("continue"))) {
         parseLoopJump(body, previous());
       } else if (structuredStatements && isAssignmentStart()) {
         parseStructuredAssignment(body);
       } else if (!structuredStatements
-          && (checkLocalType() || checkText("if") || checkText("while")
+          && (checkLocalType() || checkText("if") || checkText("while") || checkText("for")
               || checkText("return") || checkText("break") || checkText("continue"))) {
         fail(peek(), "local control flow is not available in this method kind");
       } else if (matchText("reverse")) {
@@ -297,6 +299,48 @@ final class SourceParser {
     body.add(statement("label", start.line(), done));
   }
 
+  private void parseFor(List<Statement> body, SourceToken start) {
+    expect(Type.LEFT_PAREN, "'(' after for");
+    if (!checkLocalType()) {
+      fail(peek(), "for initializer must declare a typed local");
+    }
+    parseLocalDeclaration(body);
+    List<Statement> conditionCode = new ArrayList<>();
+    String condition = parseExpression(conditionCode);
+    expect(Type.SEMICOLON, "';' after for condition");
+    List<Statement> updateCode = new ArrayList<>();
+    parseForUpdate(updateCode);
+    expect(Type.RIGHT_PAREN, "')' after for update");
+    expectText("limit");
+    String limit = parseExpression(body);
+    String iterations = temporary();
+    body.add(statement("local_const", start.line(), iterations, "0"));
+    String repeat = label();
+    String update = label();
+    String done = label();
+    body.add(statement("label", start.line(), repeat));
+    body.addAll(conditionCode);
+    body.add(statement("jump_zero", start.line(), condition, done));
+    body.add(statement("loop_check", start.line(), iterations, limit));
+    loops.push(new LoopLabels(update, done));
+    parseStructuredBlock(body, "for");
+    loops.pop();
+    body.add(statement("label", start.line(), update));
+    body.addAll(updateCode);
+    body.add(statement("jump", start.line(), repeat));
+    body.add(statement("label", start.line(), done));
+  }
+
+  private void parseForUpdate(List<Statement> body) {
+    SourceToken target = expect(Type.IDENTIFIER, "for update target");
+    if (!match(Type.ASSIGN, Type.PLUS_ASSIGN, Type.MINUS_ASSIGN, Type.XOR_ASSIGN)) {
+      fail(peek(), "expected assignment in for update");
+    }
+    Type operator = previous().type();
+    String value = parseExpression(body);
+    body.add(statement("assign", target.line(), target.text(), operator.name(), value));
+  }
+
   private void parseStructuredBlock(List<Statement> body, String owner) {
     expect(Type.LEFT_BRACE, "'{' before " + owner + " body");
     while (!check(Type.RIGHT_BRACE) && !check(Type.END)) {
@@ -308,6 +352,8 @@ final class SourceParser {
         parseIf(body, previous());
       } else if (matchText("while")) {
         parseWhile(body, previous());
+      } else if (matchText("for")) {
+        parseFor(body, previous());
       } else if (matchText("break") || matchText("continue")) {
         parseLoopJump(body, previous());
       } else if (isAssignmentStart()) {

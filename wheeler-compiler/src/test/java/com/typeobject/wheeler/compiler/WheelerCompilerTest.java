@@ -155,6 +155,28 @@ class WheelerCompilerTest {
   }
 
   @Test
+  void boundedForExecutesUpdateOnContinueAndSkipsItOnBreak() {
+    Program program = new WheelerCompiler().compile("""
+        classical class ForControl {
+          state long sum = 0;
+          entry void main() {
+            for (long i = 0; i < 6; i += 1) limit 6 {
+              if (i < 2) { continue; }
+              sum += i;
+              if (i == 4) { break; }
+            }
+            assert sum == 9;
+          }
+        }
+        """);
+    VirtualMachine machine = new VirtualMachine(program);
+
+    machine.run();
+
+    assertEquals(9, machine.global("sum"));
+  }
+
+  @Test
   void nestedLoopJumpsTargetTheInnermostLoop() {
     Program program = new WheelerCompiler().compile("""
         classical class NestedLoops {

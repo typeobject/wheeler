@@ -119,7 +119,7 @@ The first profile supports:
 - signed `long` and `boolean` parameters and returns for ordinary classical methods; zero-argument `void` entry, reversible, coherent, and unitary methods;
 - `rev`, `coherent rev`, `unitary`, and `entry` methods;
 - `+=`, `-=`, `^=`, direct logged assignment, method calls, assertions, checkpoint, and commit;
-- signed `long` and `boolean` locals, typed left-to-right arithmetic/comparison expressions, static typed value calls, `return`, `if`/`else`, early return, and `while (...) limit ...` with `break`/`continue` in ordinary classical methods;
+- signed `long` and `boolean` locals, typed left-to-right arithmetic/comparison expressions, static typed value calls, `return`, `if`/`else`, early return, bounded `while` and counted `for`, and `break`/`continue` in ordinary classical methods;
 - direct inverse calls and reverse blocks;
 - H, X, Z, phase, controlled phase, CNOT, CZ, and swap gates;
 - `prepare`, full-register computational-basis measurement, unitary call/adjoint, and coherent method reference;

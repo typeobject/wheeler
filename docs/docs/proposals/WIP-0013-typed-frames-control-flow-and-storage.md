@@ -242,7 +242,7 @@ A feature that cannot express or simplify one of these modules needs separate ju
 - [x] Source and bytecode distinguish state fields from function control.
 - [x] Signed and Boolean parameter, local, and optional result signatures are canonically encoded and verified.
 - [x] Local constants, state load/store, move, arithmetic, comparison, branches, loop checks, value calls, and value returns execute and rewind.
-- [ ] Typed signed/Boolean parameters, returns, local bindings, expressions, static calls, `if`/`else`, and bounded `while` compile end to end; `for` and aggregate types remain.
+- [ ] Typed signed/Boolean parameters, returns, local bindings, expressions, static calls, `if`/`else`, and bounded `while` compile end to end; aggregate types remain.
 - [ ] Records, variants, arrays, and slices execute with ownership checks.
 - [ ] Region storage supports compiler arenas under hard limits.
 - [ ] Reversible protected control forms generate checked inverses.
@@ -255,7 +255,7 @@ A feature that cannot express or simplify one of these modules needs separate ju
 - [x] VM tests cover the initial signed-local instruction set forward and rewind, including loop and arithmetic traps before mutation.
 - [ ] Calls cover exact signed/Boolean argument and result transfer, recursive execution, 1,024-frame exhaustion, and rewind; aggregate copy, move, borrow, inverse signatures, and nested trap behavior remain.
 - [ ] Branch tests cover both paths, join assignment, early typed return, and source diagnostics; unreachable-block diagnostics remain.
-- [x] Loop tests cover zero and exact bounds, exceeded bounds, innermost `break`, `continue`, nested loops, and the independent global step defense.
+- [x] `while` and counted `for` tests cover zero and exact bounds, exceeded bounds, update-on-continue, innermost `break`, nested loops, and the independent global step defense.
 - [ ] Reversible methods reject unprotected branch/loop forms and accept only forms with checked inverse laws.
 - [ ] Record and variant tests cover layout-independent equality, exhaustive selection, malformed tags, and canonical encoding.
 - [ ] Array/slice tests cover boundaries, split/join, overlap, escape, move, and borrow lifetime.

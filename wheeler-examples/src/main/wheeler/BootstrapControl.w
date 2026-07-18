@@ -4,10 +4,8 @@ classical class BootstrapControl {
     state long branch = 0;
 
     entry void main() {
-        long i = 0;
-        while (i < 5) limit 5 {
+        for (long i = 0; i < 5; i += 1) limit 5 {
             sum += i;
-            i += 1;
         }
 
         boolean complete = sum == 10;

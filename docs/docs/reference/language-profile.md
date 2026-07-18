@@ -69,7 +69,7 @@ This executes `reverse second();` and then `reverse first();`.
 
 ## Local expressions and bounded control
 
-Ordinary classical methods support signed `long` and `boolean` locals, left-to-right expressions over `+`, `-`, `^`, `<`, and `==`, `if`/`else`, and source-bounded `while`. Arithmetic and ordering require signed operands. Equality requires equal operand types and returns Boolean. XOR accepts two signed values or two Booleans and preserves their type. Conditions require Boolean values; integers are never truthy:
+Ordinary classical methods support signed `long` and `boolean` locals, left-to-right expressions over `+`, `-`, `^`, `<`, and `==`, `if`/`else`, source-bounded `while`, and source-bounded `for`. Arithmetic and ordering require signed operands. Equality requires equal operand types and returns Boolean. XOR accepts two signed values or two Booleans and preserves their type. Conditions require Boolean values; integers are never truthy:
 
 ```java
 long i = 0;
@@ -85,7 +85,15 @@ if (complete) {
 }
 ```
 
-The loop limit is evaluated once before entry. Wheeler checks it before every body iteration and traps before executing an iteration beyond the bound. `continue;` transfers to condition reevaluation and therefore cannot evade the next bound check. `break;` exits the innermost bounded loop. Both are rejected outside a loop. Nested loops carry distinct targets and counters. The whole-program step limit remains a separate defense.
+A familiar counted loop carries the same mandatory semantic bound:
+
+```java
+for (long i = 0; i < 5; i += 1) limit 5 {
+    sum += i;
+}
+```
+
+Its initializer executes once, then the limit is evaluated once. Wheeler checks the limit before every body iteration and traps before executing an iteration beyond the bound. In a `while`, `continue;` transfers to condition reevaluation; in a `for`, it executes the update before reevaluating the condition and therefore cannot evade the next bound check. `break;` exits the innermost bounded loop. Both are rejected outside a loop. Nested loops carry distinct targets and counters. The whole-program step limit remains a separate defense.
 
 Value calls evaluate arguments left to right, move them through a verified contiguous typed call window, initialize callee parameter registers, and place one signed or Boolean result in a caller register of the exact declared type. A value-returning method may return early from a conditional, but every reachable path must end in `return expression;` of the declared type. Static recursion is permitted under the VM's hard 1,024-frame ceiling and the program step ceiling.
 

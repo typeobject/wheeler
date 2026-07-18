@@ -76,6 +76,7 @@ module.exports = grammar({
       $.reverse_statement,
       $.if_statement,
       $.while_statement,
+      $.for_statement,
       $.break_statement,
       $.continue_statement,
       $.return_statement,
@@ -100,6 +101,24 @@ module.exports = grammar({
       ')',
       field('consequence', $.block),
       optional(seq('else', field('alternative', $.block))),
+    ),
+
+    for_statement: $ => seq(
+      'for',
+      '(',
+      field('initializer', $.local_declaration),
+      field('condition', $.expression),
+      ';',
+      field('update', $.assignment_expression),
+      ')',
+      'limit',
+      field('limit', $.expression),
+      field('body', $.block),
+    ),
+    assignment_expression: $ => seq(
+      field('target', $.identifier),
+      field('operator', choice('=', '+=', '-=', '^=')),
+      field('value', $.expression),
     ),
 
     while_statement: $ => seq(

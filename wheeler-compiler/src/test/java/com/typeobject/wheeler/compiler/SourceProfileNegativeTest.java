@@ -53,6 +53,13 @@ class SourceProfileNegativeTest {
           }
         }
         """;
+    String unboundedFor = """
+        classical class UnboundedFor {
+          entry void main() {
+            for (long i = 0; i < 2; i += 1) { }
+          }
+        }
+        """;
     String reversible = """
         classical class ReversibleBranch {
           state long value = 0;
@@ -65,12 +72,15 @@ class SourceProfileNegativeTest {
 
     CompilerException loop = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(unbounded));
+    CompilerException forLoop = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(unboundedFor));
     CompilerException branch = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(reversible));
     CompilerException loopJump = assertThrows(
         CompilerException.class,
         () -> compile("state long value = 0;", "break;"));
     assertTrue(loop.getMessage().contains("expected 'limit'"));
+    assertTrue(forLoop.getMessage().contains("expected 'limit'"));
     assertTrue(branch.getMessage().contains("local control flow is not available"));
     assertTrue(loopJump.getMessage().contains("only valid inside a bounded loop"));
   }
