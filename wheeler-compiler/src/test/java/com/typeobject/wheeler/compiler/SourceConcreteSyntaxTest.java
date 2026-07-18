@@ -45,6 +45,35 @@ class SourceConcreteSyntaxTest {
     assertEquals("/* keep  two spaces */", block.text());
     assertEquals(source.indexOf(block.text()), block.offset());
     assertEquals(5, block.line());
+
+    SourceConcreteSyntax.CommentAttachment fileDocumentation = document.comments().stream()
+        .filter(comment -> document.elements().get(comment.commentElement()).text()
+            .equals("//! File summary."))
+        .findFirst()
+        .orElseThrow();
+    assertEquals(SourceConcreteSyntax.Placement.LEADING, fileDocumentation.placement());
+    assertEquals("module", document.elements().get(fileDocumentation.targetElement()).text());
+    SourceConcreteSyntax.CommentAttachment trailing = document.comments().stream()
+        .filter(comment -> document.elements().get(comment.commentElement()).text()
+            .equals("// trailing"))
+        .findFirst()
+        .orElseThrow();
+    assertEquals(SourceConcreteSyntax.Placement.TRAILING, trailing.placement());
+  }
+
+  @Test
+  void distinguishesInnerAndDetachedComments() {
+    SourceConcreteSyntax.Document inner = SourceConcreteSyntax.scan(
+        "classical class Empty { /* retained */ }\n");
+    assertEquals(SourceConcreteSyntax.Placement.INNER, inner.comments().getFirst().placement());
+    assertEquals("{", inner.elements().get(inner.comments().getFirst().targetElement()).text());
+
+    SourceConcreteSyntax.Document detached = SourceConcreteSyntax.scan(
+        "// detached\n\nclassical class Later {}\n");
+    assertEquals(
+        SourceConcreteSyntax.Placement.DETACHED,
+        detached.comments().getFirst().placement());
+    assertEquals(-1, detached.comments().getFirst().targetElement());
   }
 
   @Test

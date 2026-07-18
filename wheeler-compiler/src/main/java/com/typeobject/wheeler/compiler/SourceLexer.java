@@ -69,7 +69,7 @@ final class SourceLexer {
     int start = offset;
     int startLine = line;
     int startColumn = column;
-    while (!atEnd() && peek() != '\n') {
+    while (!atEnd() && peek() != '\n' && peek() != '\r') {
       advance();
     }
     emitPiece(
