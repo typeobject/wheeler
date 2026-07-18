@@ -21,14 +21,7 @@ public final class VirtualMachine {
   private final Program program;
   private final long[] globals;
   private final List<Frame> frames = new ArrayList<>();
-  private final List<RecordValue> records = new ArrayList<>();
-  private final Map<RecordValue, Integer> recordHandles = new LinkedHashMap<>();
-  private final List<VariantValue> variants = new ArrayList<>();
-  private final Map<VariantValue, Integer> variantHandles = new LinkedHashMap<>();
-  private final List<ArrayValue> arrays = new ArrayList<>();
-  private final Map<ArrayValue, Integer> arrayHandles = new LinkedHashMap<>();
-  private final List<SliceValue> slices = new ArrayList<>();
-  private final Map<SliceValue, Integer> sliceHandles = new LinkedHashMap<>();
+  private final AggregateStore aggregates = new AggregateStore();
   private final Deque<StepRecord> history = new ArrayDeque<>();
   private MachineStatus status = MachineStatus.READY;
   private long sequence;
@@ -86,18 +79,11 @@ public final class VirtualMachine {
       throw new VmTrap("No reversible history is available");
     }
     undoData(record);
-    while (records.size() > record.previousRecordCount()) {
-      recordHandles.remove(records.removeLast());
-    }
-    while (variants.size() > record.previousVariantCount()) {
-      variantHandles.remove(variants.removeLast());
-    }
-    while (arrays.size() > record.previousArrayCount()) {
-      arrayHandles.remove(arrays.removeLast());
-    }
-    while (slices.size() > record.previousSliceCount()) {
-      sliceHandles.remove(slices.removeLast());
-    }
+    aggregates.rewind(new AggregateStore.Counts(
+        record.previousRecordCount(),
+        record.previousVariantCount(),
+        record.previousArrayCount(),
+        record.previousSliceCount()));
     switch (record.controlChange()) {
       case ADVANCE -> replaceCurrentFrame(record.previousFrame());
       case CALL -> {
@@ -184,10 +170,10 @@ public final class VirtualMachine {
         status,
         List.copyOf(frames),
         Map.copyOf(values),
-        List.copyOf(records),
-        List.copyOf(variants),
-        List.copyOf(arrays),
-        List.copyOf(slices),
+        aggregates.records(),
+        aggregates.variants(),
+        aggregates.arrays(),
+        aggregates.slices(),
         history.size(),
         sequence);
   }
@@ -208,10 +194,7 @@ public final class VirtualMachine {
     int changedLocal = StepRecord.NO_LOCAL;
     long previousLocalValue = 0;
     StepRecord.ControlChange control = StepRecord.ControlChange.ADVANCE;
-    int previousRecordCount = records.size();
-    int previousVariantCount = variants.size();
-    int previousArrayCount = arrays.size();
-    int previousSliceCount = slices.size();
+    AggregateStore.Counts previousCounts = aggregates.counts();
 
     switch (opcode) {
       case ADD_CONST -> {
@@ -289,13 +272,7 @@ public final class VirtualMachine {
           fields.add(currentFrame().local(base + field));
         }
         RecordValue value = new RecordValue(typeId, fields);
-        Integer handle = recordHandles.get(value);
-        if (handle == null) {
-          records.add(value);
-          handle = records.size();
-          recordHandles.put(value, handle);
-        }
-        setLocalAndAdvance(destination, handle);
+        setLocalAndAdvance(destination, aggregates.intern(value));
       }
       case RECORD_GET -> {
         int destination = localIndex(instruction, 0);
@@ -314,13 +291,7 @@ public final class VirtualMachine {
           fields.add(currentFrame().local(base + field));
         }
         VariantValue value = new VariantValue(typeId, tag, fields);
-        Integer handle = variantHandles.get(value);
-        if (handle == null) {
-          variants.add(value);
-          handle = variants.size();
-          variantHandles.put(value, handle);
-        }
-        setLocalAndAdvance(destination, handle);
+        setLocalAndAdvance(destination, aggregates.intern(value));
       }
       case VARIANT_TAG_EQ -> {
         VariantValue value = variantValue(localValue(instruction, 1));
@@ -347,13 +318,7 @@ public final class VirtualMachine {
           elements.add(currentFrame().local(base + element));
         }
         ArrayValue value = new ArrayValue(typeId, elements);
-        Integer handle = arrayHandles.get(value);
-        if (handle == null) {
-          arrays.add(value);
-          handle = arrays.size();
-          arrayHandles.put(value, handle);
-        }
-        setLocalAndAdvance(destination, handle);
+        setLocalAndAdvance(destination, aggregates.intern(value));
       }
       case ARRAY_GET -> {
         ArrayValue value = arrayValue(localValue(instruction, 1));
@@ -367,13 +332,7 @@ public final class VirtualMachine {
         int start = Math.toIntExact(localValue(instruction, 3));
         int length = Math.toIntExact(localValue(instruction, 4));
         SliceValue value = new SliceValue(typeId, arrayHandle, start, length);
-        Integer handle = sliceHandles.get(value);
-        if (handle == null) {
-          slices.add(value);
-          handle = slices.size();
-          sliceHandles.put(value, handle);
-        }
-        setLocalAndAdvance(destination, handle);
+        setLocalAndAdvance(destination, aggregates.intern(value));
       }
       case SLICE_GET -> {
         SliceValue slice = sliceValue(localValue(instruction, 1));
@@ -434,10 +393,10 @@ public final class VirtualMachine {
         previousValue,
         changedLocal,
         previousLocalValue,
-        previousRecordCount,
-        previousVariantCount,
-        previousArrayCount,
-        previousSliceCount);
+        previousCounts.records(),
+        previousCounts.variants(),
+        previousCounts.arrays(),
+        previousCounts.slices());
   }
 
   private void validateBeforeMutation(Instruction instruction) {
@@ -501,8 +460,7 @@ public final class VirtualMachine {
               trap("Nested record type mismatch");
             }
           }
-          if (!recordHandles.containsKey(new RecordValue(type.id(), fields))
-              && records.size() >= 65_535) {
+          if (aggregates.fullForNew(new RecordValue(type.id(), fields))) {
             trap("Record value limit exceeded");
           }
         }
@@ -527,8 +485,7 @@ public final class VirtualMachine {
             validateAggregateValue(variantCase.fields().get(field).type(), value);
             fields.add(value);
           }
-          if (!variantHandles.containsKey(new VariantValue(type.id(), tag, fields))
-              && variants.size() >= 65_535) {
+          if (aggregates.fullForNew(new VariantValue(type.id(), tag, fields))) {
             trap("Variant value limit exceeded");
           }
         }
@@ -560,8 +517,7 @@ public final class VirtualMachine {
             validateAggregateValue(type.elementType(), value);
             elements.add(value);
           }
-          if (!arrayHandles.containsKey(new ArrayValue(type.id(), elements))
-              && arrays.size() >= 65_535) {
+          if (aggregates.fullForNew(new ArrayValue(type.id(), elements))) {
             trap("Array value limit exceeded");
           }
         }
@@ -587,7 +543,7 @@ public final class VirtualMachine {
               localValue(instruction, 2),
               Math.toIntExact(start),
               Math.toIntExact(length));
-          if (!sliceHandles.containsKey(value) && slices.size() >= 65_535) {
+          if (aggregates.fullForNew(value)) {
             trap("Slice value limit exceeded");
           }
         }
@@ -732,17 +688,11 @@ public final class VirtualMachine {
   }
 
   private RecordValue recordValue(long handle) {
-    if (handle <= 0 || handle > records.size()) {
-      trap("Invalid record handle " + handle);
-    }
-    return records.get(Math.toIntExact(handle - 1));
+    return aggregates.record(handle);
   }
 
   private VariantValue variantValue(long handle) {
-    if (handle <= 0 || handle > variants.size()) {
-      trap("Invalid variant handle " + handle);
-    }
-    return variants.get(Math.toIntExact(handle - 1));
+    return aggregates.variant(handle);
   }
 
   private VariantValue checkedVariantSource(Instruction instruction, int operandIndex) {
@@ -771,10 +721,7 @@ public final class VirtualMachine {
   }
 
   private ArrayValue arrayValue(long handle) {
-    if (handle <= 0 || handle > arrays.size()) {
-      trap("Invalid array handle " + handle);
-    }
-    return arrays.get(Math.toIntExact(handle - 1));
+    return aggregates.array(handle);
   }
 
   private ArrayValue checkedArraySource(Instruction instruction, int operandIndex) {
@@ -788,10 +735,7 @@ public final class VirtualMachine {
   }
 
   private SliceValue sliceValue(long handle) {
-    if (handle <= 0 || handle > slices.size()) {
-      trap("Invalid slice handle " + handle);
-    }
-    return slices.get(Math.toIntExact(handle - 1));
+    return aggregates.slice(handle);
   }
 
   private SliceValue checkedSliceSource(Instruction instruction, int operandIndex) {

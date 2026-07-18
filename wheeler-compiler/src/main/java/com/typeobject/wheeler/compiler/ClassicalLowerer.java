@@ -12,7 +12,6 @@ import com.typeobject.wheeler.core.bytecode.SliceType;
 import com.typeobject.wheeler.core.bytecode.ValueType;
 import com.typeobject.wheeler.core.bytecode.VariantType;
 import com.typeobject.wheeler.core.proof.ProofCertificate;
-import com.typeobject.wheeler.core.proof.ProofRule;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -134,7 +133,7 @@ final class ClassicalLowerer {
           forward,
           inverse));
     }
-    List<ProofCertificate> proofs = lowerProofs(
+    List<ProofCertificate> proofs = SourceProofLowerer.classical(
         source, functionIds, reversibleFunctions, classicalEntry);
     return new ClassicalContent(
         globals,
@@ -147,46 +146,6 @@ final class ClassicalLowerer {
         entryId,
         globalIds,
         functionIds);
-  }
-
-  private static List<ProofCertificate> lowerProofs(
-      SourceProgram source,
-      Map<String, Integer> functions,
-      Map<String, Boolean> reversibleFunctions,
-      boolean classicalEntry) {
-    List<ProofCertificate> result = new ArrayList<>();
-    Set<String> names = new HashSet<>();
-    for (SourceModel.ProofDeclaration proof : source.proofs()) {
-      boolean classicalRule = proof.rule().equals("inverse") || proof.rule().equals("steps");
-      if (!classicalRule) {
-        if (classicalEntry) {
-          throw new CompilerException(
-              proof.line(), proof.rule() + " theorem requires a unitary circuit");
-        }
-        continue;
-      }
-      Integer function = functions.get(proof.subject());
-      if (!names.add(proof.name())) {
-        throw new CompilerException(proof.line(), "duplicate theorem: " + proof.name());
-      }
-      if (function == null) {
-        throw new CompilerException(proof.line(), "theorem requires a declared function");
-      }
-      if (proof.rule().equals("inverse")
-          && !reversibleFunctions.getOrDefault(proof.subject(), false)) {
-        throw new CompilerException(
-            proof.line(), "inverse theorem requires a reversible function");
-      }
-      if (proof.rule().equals("steps") && (proof.argument() == null || proof.argument() <= 0)) {
-        throw new CompilerException(proof.line(), "step theorem requires a positive bound");
-      }
-      ProofRule rule = proof.rule().equals("inverse")
-          ? ProofRule.GENERATED_INVERSE : ProofRule.STATIC_STEP_BOUND;
-      long argument = proof.argument() == null ? -1 : proof.argument();
-      result.add(new ProofCertificate(
-          result.size(), proof.name(), rule, function, argument));
-    }
-    return List.copyOf(result);
   }
 
   private static List<Global> lowerGlobals(SourceProgram source) {
