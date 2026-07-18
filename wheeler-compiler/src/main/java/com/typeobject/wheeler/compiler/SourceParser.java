@@ -625,6 +625,7 @@ final class SourceParser extends SourceStatementParser {
     expect(Type.RIGHT_BRACE, "'}' after match cases");
     VariantDefinition variant = validateMatch(parsed, start);
     String done = label();
+    boolean joinsDone = false;
     for (int index = 0; index < parsed.size(); index++) {
       MatchCase selected = parsed.get(index);
       VariantCase descriptor = variant.cases().stream()
@@ -649,12 +650,19 @@ final class SourceParser extends SourceStatementParser {
             Integer.toString(field)));
       }
       body.addAll(selected.body());
+      boolean exits = !selected.body().isEmpty()
+          && selected.body().getLast().operation().equals("return_value");
       if (next != null) {
-        body.add(statement("jump", selected.line(), done));
+        if (!exits) {
+          body.add(statement("jump", selected.line(), done));
+          joinsDone = true;
+        }
         body.add(statement("label", selected.line(), next));
       }
     }
-    body.add(statement("label", start.line(), done));
+    if (joinsDone) {
+      body.add(statement("label", start.line(), done));
+    }
   }
 
   private VariantDefinition validateMatch(List<MatchCase> cases, SourceToken start) {

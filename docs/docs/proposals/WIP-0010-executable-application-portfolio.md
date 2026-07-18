@@ -342,6 +342,7 @@ Portfolio work follows these rules:
 - [x] QFT and executable adjoint-law fixtures execute.
 - [x] Bounded optimizer records observations and replays without target calls.
 - [x] Circuit normalization and static correction fixtures execute.
+- [x] A bounded manifest-linked FIFO exercises word-buffer borrowing, immutable cursors, and explicit full/empty results.
 
 ### Reversible systems
 
