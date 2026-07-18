@@ -9,6 +9,7 @@ classical class Utf8Lexer {
     state long commentStart = 0;
     state long numericValue = 0;
     state long parseError = -1;
+    state long lexicalCode = 0;
     state long lexicalError = 0;
     state long outputLength = 0;
     state long finalCursor = 0;
@@ -42,7 +43,8 @@ classical class Utf8Lexer {
             case ScanResult.Value(long scannedCount) {
                 count = scannedCount;
             }
-            case ScanResult.Error(long scanOffset) {
+            case ScanResult.Error(long scanCode, long scanOffset) {
+                lexicalCode = scanCode;
                 lexicalError = scanOffset + 1;
             }
         }
@@ -70,13 +72,14 @@ classical class Utf8Lexer {
         outputLength = emitNumber(source, tokenStarts, tokenLengths, output);
         finalCursor = sourceLength;
         assert tokenCount == 6;
-        assert numberStart == 7;
-        assert commentStart == 11;
+        assert numberStart == 8;
+        assert commentStart == 12;
         assert numericValue == 123;
         assert parseError == 0;
+        assert lexicalCode == 0;
         assert lexicalError == 0;
         assert outputLength == 3;
-        assert finalCursor == 16;
+        assert finalCursor == 17;
 
         drop(tokenLengths);
         drop(tokenStarts);

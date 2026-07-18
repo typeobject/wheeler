@@ -15,7 +15,7 @@ classical class MinimalCompiler {
         ScanResult scanned = scan(
             source, tokenKinds, tokenStarts, tokenLengths);
         match (scanned) {
-            case ScanResult.Error(long scanOffset) {
+            case ScanResult.Error(long scanCode, long scanOffset) {
                 assert finalCursor == 1;
                 SourceRange scanName = new SourceRange(scanOffset, 0);
                 SourceRange scanGlobal = new SourceRange(scanOffset, 0);

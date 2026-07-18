@@ -102,6 +102,57 @@ class Utf8LexerExampleTest {
   }
 
   @Test
+  void scannerReturnsStableDiagnosticCodesAndOffsets() throws Exception {
+    String rootSource = """
+        module examples.lexer.diagnostictest;
+        import examples.lexer.scanner;
+        classical class DiagnosticTest {
+          state long code = 0;
+          state long offset = 0;
+          entry void main(utf8 source) {
+            region arena = new region(96, 3);
+            words kinds = allocate(arena, 4);
+            words starts = allocate(arena, 4);
+            words lengths = allocate(arena, 4);
+            ScanResult result = scan(source, kinds, starts, lengths);
+            match (result) {
+              case ScanResult.Value(long count) { offset = count; }
+              case ScanResult.Error(long errorCode, long errorOffset) {
+                code = errorCode;
+                offset = errorOffset;
+              }
+            }
+            drop(lengths);
+            drop(starts);
+            drop(kinds);
+            drop(arena);
+          }
+        }
+        """;
+    String scanner = Files.readString(Path.of("src/main/wheeler/lexer/Scanner.w"));
+    var program = new WheelerCompiler().compileModuleFiles(
+        Map.of("Scanner.w", scanner, "DiagnosticTest.w", rootSource),
+        "examples.lexer.diagnostictest");
+    VirtualMachine comment = new VirtualMachine(
+        program, "x /*".getBytes(StandardCharsets.UTF_8));
+    VirtualMachine literal = new VirtualMachine(
+        program, "\"open".getBytes(StandardCharsets.UTF_8));
+    VirtualMachine capacity = new VirtualMachine(
+        program, "a b c d e".getBytes(StandardCharsets.UTF_8));
+
+    comment.run();
+    literal.run();
+    capacity.run();
+
+    assertEquals(1, comment.global("code"));
+    assertEquals(2, comment.global("offset"));
+    assertEquals(2, literal.global("code"));
+    assertEquals(0, literal.global("offset"));
+    assertEquals(3, capacity.global("code"));
+    assertEquals(8, capacity.global("offset"));
+  }
+
+  @Test
   void explicitSourceInputIsTokenizedParsedAndExactlyRewound() throws Exception {
     Path root = Path.of("src/main/wheeler");
     var program = new WheelerCompiler().compileModuleFiles(
@@ -114,21 +165,22 @@ class Utf8LexerExampleTest {
             Files.readString(root.resolve("lexer/Scanner.w"))),
         "examples.lexer.main");
     VirtualMachine machine = new VirtualMachine(
-        program, "long x=123;/*c*/".getBytes(StandardCharsets.UTF_8), 3);
+        program, "long x2=123;/*c*/".getBytes(StandardCharsets.UTF_8), 3);
     var initial = machine.snapshot();
 
     machine.run();
 
     assertEquals(MachineStatus.HALTED, machine.status());
     assertEquals(6, machine.global("tokenCount"));
-    assertEquals(7, machine.global("numberStart"));
-    assertEquals(11, machine.global("commentStart"));
+    assertEquals(8, machine.global("numberStart"));
+    assertEquals(12, machine.global("commentStart"));
     assertEquals(123, machine.global("numericValue"));
     assertEquals(0, machine.global("parseError"));
+    assertEquals(0, machine.global("lexicalCode"));
     assertEquals(0, machine.global("lexicalError"));
     assertEquals(3, machine.global("outputLength"));
     assertEquals("123", new String(machine.hostOutput(), StandardCharsets.UTF_8));
-    assertEquals(16, machine.global("finalCursor"));
+    assertEquals(17, machine.global("finalCursor"));
     while (machine.historySize() > 0) {
       machine.rewindOne();
     }
