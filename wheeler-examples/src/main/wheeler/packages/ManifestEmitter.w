@@ -35,7 +35,7 @@ classical class ManifestEmitter {
     ) {
         long token = 0;
         long cursor = 0;
-        while (token < count) limit 24 {
+        while (token < count) limit 32 {
             cursor = copyToken(
                 source,
                 starts[token],

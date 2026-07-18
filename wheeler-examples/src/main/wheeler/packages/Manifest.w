@@ -12,6 +12,9 @@ classical class Manifest {
         QuotedRange profile,
         QuotedRange targetName,
         QuotedRange targetRoot,
+        QuotedRange targetModule,
+        QuotedRange targetSource,
+        long targetSourceCount,
         long targetCount,
         QuotedRange dependencyName,
         QuotedRange dependencyVersion,
@@ -50,6 +53,31 @@ classical class Manifest {
         long hash
     ) {
         return tokenHash(source, starts, lengths, token) == hash;
+    }
+
+    private boolean sameTokenText(
+        utf8 source,
+        words starts,
+        words lengths,
+        long left,
+        long right
+    ) {
+        if (lengths[left] < lengths[right]) {
+            return false;
+        }
+        if (lengths[right] < lengths[left]) {
+            return false;
+        }
+        long offset = 0;
+        while (offset < lengths[left]) limit 256 {
+            if (utf8Scalar(source, starts[left] + offset)
+                    == utf8Scalar(source, starts[right] + offset)) {
+                offset += 1;
+            } else {
+                return false;
+            }
+        }
+        return true;
     }
 
     private boolean quoted(words kinds, words lengths, long token) {
@@ -146,9 +174,11 @@ classical class Manifest {
     private boolean dependencyKindValid(
         utf8 source,
         words starts,
-        words lengths
+        words lengths,
+        long recordStart
     ) {
-        long hash = tokenHash(source, starts, lengths, 14);
+        long hash = tokenHash(
+            source, starts, lengths, recordStart + 1);
         if (hash == 3255221479) {
             return true;
         }
@@ -162,20 +192,47 @@ classical class Manifest {
         utf8 source,
         words kinds,
         words starts,
-        words lengths
+        words lengths,
+        long modular
     ) {
         boolean validRoot = validLogicalPath(
             source,
             starts[11] + 1,
             lengths[11] - 2);
+        boolean baseValid = false;
         if (keywordAt(source, starts, lengths, 7, 3414061457)) {
             if (targetKindValid(source, starts, lengths)) {
                 if (quoted(kinds, lengths, 9)) {
                     if (keywordAt(source, starts, lengths, 10, 3506402)) {
                         if (quoted(kinds, lengths, 11)) {
-                            if (validRoot) {
-                                return semicolonAt(
-                                    source, kinds, starts, 12);
+                            baseValid = validRoot;
+                        }
+                    }
+                }
+            }
+        }
+        if (baseValid) {
+            if (modular == 0) {
+                return semicolonAt(source, kinds, starts, 12);
+            }
+            boolean validModule = validModuleName(
+                source, starts[13] + 1, lengths[13] - 2);
+            boolean validSource = validLogicalPath(
+                source, starts[15] + 1, lengths[15] - 2);
+            boolean sourceIncludesRoot = sameTokenText(
+                source, starts, lengths, 11, 15);
+            if (keywordAt(source, starts, lengths, 12, 3226183276)) {
+                if (quoted(kinds, lengths, 13)) {
+                    if (validModule) {
+                        if (keywordAt(
+                                source, starts, lengths, 14, 3398461467)) {
+                            if (quoted(kinds, lengths, 15)) {
+                                if (validSource) {
+                                    if (sourceIncludesRoot) {
+                                        return semicolonAt(
+                                            source, kinds, starts, 16);
+                                    }
+                                }
                             }
                         }
                     }
@@ -189,31 +246,40 @@ classical class Manifest {
         utf8 source,
         words kinds,
         words starts,
-        words lengths
+        words lengths,
+        long recordStart
     ) {
         boolean validName = validPackageName(
             source,
-            starts[15] + 1,
-            lengths[15] - 2);
+            starts[recordStart + 2] + 1,
+            lengths[recordStart + 2] - 2);
         boolean validVersion = validConstraint(
             source,
-            starts[17] + 1,
-            lengths[17] - 2);
+            starts[recordStart + 4] + 1,
+            lengths[recordStart + 4] - 2);
         if (keywordAt(
-                source, starts, lengths, 13, 2733278506177355)) {
-            if (dependencyKindValid(source, starts, lengths)) {
-                if (quoted(kinds, lengths, 15)) {
+                source,
+                starts,
+                lengths,
+                recordStart,
+                2733278506177355)) {
+            if (dependencyKindValid(
+                    source, starts, lengths, recordStart)) {
+                if (quoted(kinds, lengths, recordStart + 2)) {
                     if (validName) {
                         if (keywordAt(
                                 source,
                                 starts,
                                 lengths,
-                                16,
+                                recordStart + 3,
                                 107725790424)) {
-                            if (quoted(kinds, lengths, 17)) {
+                            if (quoted(kinds, lengths, recordStart + 4)) {
                                 if (validVersion) {
                                     return semicolonAt(
-                                        source, kinds, starts, 18);
+                                        source,
+                                        kinds,
+                                        starts,
+                                        recordStart + 5);
                                 }
                             }
                         }
@@ -228,20 +294,33 @@ classical class Manifest {
         utf8 source,
         words kinds,
         words starts,
-        words lengths
+        words lengths,
+        long recordStart
     ) {
         boolean validPath = validLogicalPath(
             source,
-            starts[22] + 1,
-            lengths[22] - 2);
+            starts[recordStart + 3] + 1,
+            lengths[recordStart + 3] - 2);
         if (keywordAt(
-                source, starts, lengths, 19, 2703423431124248)) {
-            if (quoted(kinds, lengths, 20)) {
-                if (keywordAt(source, starts, lengths, 21, 3433509)) {
-                    if (quoted(kinds, lengths, 22)) {
+                source,
+                starts,
+                lengths,
+                recordStart,
+                2703423431124248)) {
+            if (quoted(kinds, lengths, recordStart + 1)) {
+                if (keywordAt(
+                        source,
+                        starts,
+                        lengths,
+                        recordStart + 2,
+                        3433509)) {
+                    if (quoted(kinds, lengths, recordStart + 3)) {
                         if (validPath) {
                             return semicolonAt(
-                                source, kinds, starts, 23);
+                                source,
+                                kinds,
+                                starts,
+                                recordStart + 4);
                         }
                     }
                 }
@@ -255,11 +334,15 @@ classical class Manifest {
         words lengths,
         long targetCount,
         long dependencyCount,
-        long capabilityCount
+        long capabilityCount,
+        long recordShift
     ) {
         QuotedRange empty = new QuotedRange(0, 0);
         QuotedRange targetName = empty;
         QuotedRange targetRoot = empty;
+        QuotedRange targetModule = empty;
+        QuotedRange targetSource = empty;
+        long targetSourceCount = 0;
         QuotedRange dependencyName = empty;
         QuotedRange dependencyVersion = empty;
         QuotedRange capabilityName = empty;
@@ -268,13 +351,22 @@ classical class Manifest {
             targetName = quotedRange(starts, lengths, 9);
             targetRoot = quotedRange(starts, lengths, 11);
         }
+        if (recordShift == 4) {
+            targetModule = quotedRange(starts, lengths, 13);
+            targetSource = quotedRange(starts, lengths, 15);
+            targetSourceCount = 1;
+        }
         if (dependencyCount == 1) {
-            dependencyName = quotedRange(starts, lengths, 15);
-            dependencyVersion = quotedRange(starts, lengths, 17);
+            dependencyName = quotedRange(
+                starts, lengths, 15 + recordShift);
+            dependencyVersion = quotedRange(
+                starts, lengths, 17 + recordShift);
         }
         if (capabilityCount == 1) {
-            capabilityName = quotedRange(starts, lengths, 20);
-            capabilityPath = quotedRange(starts, lengths, 22);
+            capabilityName = quotedRange(
+                starts, lengths, 20 + recordShift);
+            capabilityPath = quotedRange(
+                starts, lengths, 22 + recordShift);
         }
         return new ManifestHeader(
             quotedRange(starts, lengths, 1),
@@ -282,6 +374,9 @@ classical class Manifest {
             quotedRange(starts, lengths, 5),
             targetName,
             targetRoot,
+            targetModule,
+            targetSource,
+            targetSourceCount,
             targetCount,
             dependencyName,
             dependencyVersion,
@@ -289,6 +384,54 @@ classical class Manifest {
             capabilityName,
             capabilityPath,
             capabilityCount);
+    }
+
+    private ManifestResult parseRecords(
+        utf8 source,
+        words kinds,
+        words starts,
+        words lengths,
+        long count,
+        long modular,
+        long recordShift
+    ) {
+        if (targetValid(
+                source, kinds, starts, lengths, modular)) {
+            if (count == 13 + recordShift) {
+                return new ManifestResult.Value(
+                    header(starts, lengths, 1, 0, 0, recordShift));
+            }
+            if (count == 19 + recordShift) {
+                if (dependencyValid(
+                        source,
+                        kinds,
+                        starts,
+                        lengths,
+                        13 + recordShift)) {
+                    return new ManifestResult.Value(
+                        header(starts, lengths, 1, 1, 0, recordShift));
+                }
+            }
+            if (count == 24 + recordShift) {
+                if (dependencyValid(
+                        source,
+                        kinds,
+                        starts,
+                        lengths,
+                        13 + recordShift)) {
+                    if (capabilityValid(
+                            source,
+                            kinds,
+                            starts,
+                            lengths,
+                            19 + recordShift)) {
+                        return new ManifestResult.Value(
+                            header(starts, lengths, 1, 1, 1, recordShift));
+                    }
+                }
+            }
+        }
+        return new ManifestResult.Error(0);
     }
 
     public ManifestResult parseHeader(
@@ -301,27 +444,31 @@ classical class Manifest {
         if (baseHeaderValid(source, kinds, starts, lengths)) {
             if (count == 7) {
                 return new ManifestResult.Value(
-                    header(starts, lengths, 0, 0, 0));
+                    header(starts, lengths, 0, 0, 0, 0));
             }
-            if (targetValid(source, kinds, starts, lengths)) {
-                if (count == 13) {
-                    return new ManifestResult.Value(
-                        header(starts, lengths, 1, 0, 0));
-                }
-                if (count == 19) {
-                    if (dependencyValid(source, kinds, starts, lengths)) {
-                        return new ManifestResult.Value(
-                            header(starts, lengths, 1, 1, 0));
-                    }
-                }
-                if (count == 24) {
-                    if (dependencyValid(source, kinds, starts, lengths)) {
-                        if (capabilityValid(source, kinds, starts, lengths)) {
-                            return new ManifestResult.Value(
-                                header(starts, lengths, 1, 1, 1));
-                        }
-                    }
-                }
+            if (count == 13) {
+                return parseRecords(
+                    source, kinds, starts, lengths, count, 0, 0);
+            }
+            if (count == 19) {
+                return parseRecords(
+                    source, kinds, starts, lengths, count, 0, 0);
+            }
+            if (count == 24) {
+                return parseRecords(
+                    source, kinds, starts, lengths, count, 0, 0);
+            }
+            if (count == 17) {
+                return parseRecords(
+                    source, kinds, starts, lengths, count, 1, 4);
+            }
+            if (count == 23) {
+                return parseRecords(
+                    source, kinds, starts, lengths, count, 1, 4);
+            }
+            if (count == 28) {
+                return parseRecords(
+                    source, kinds, starts, lengths, count, 1, 4);
             }
         }
         return new ManifestResult.Error(0);
