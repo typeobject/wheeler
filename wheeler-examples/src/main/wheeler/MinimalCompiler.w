@@ -19,7 +19,8 @@ classical class MinimalCompiler {
                 assert finalCursor == 1;
                 SourceRange scanName = new SourceRange(diagnostic.offset, 0);
                 SourceRange scanGlobal = new SourceRange(diagnostic.offset, 0);
-                return new MinimalProgram(scanName, scanGlobal, 0, 0, 0, 0);
+                return new MinimalProgram(
+                    scanName, scanGlobal, 0, 0, 0, 0, 0, 0, 0);
             }
             case ScanResult.Value(long count) {
                 MinimalProgramResult parsed = parseMinimalProgram(
@@ -29,7 +30,16 @@ classical class MinimalCompiler {
                         assert finalCursor == 1;
                         SourceRange parseName = new SourceRange(parseOffset, 0);
                         SourceRange parseGlobal = new SourceRange(parseOffset, 0);
-                        return new MinimalProgram(parseName, parseGlobal, 0, 0, 0, 0);
+                        return new MinimalProgram(
+                            parseName,
+                            parseGlobal,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0);
                     }
                     case MinimalProgramResult.Value(MinimalProgram program) {
                         return program;
@@ -37,6 +47,58 @@ classical class MinimalCompiler {
                 }
             }
         }
+    }
+
+    private long statementLocalCount(long opcode) {
+        if (opcode == 0) {
+            return 1;
+        }
+        if (0 < opcode) {
+            return 2;
+        }
+        return 0;
+    }
+
+    private long statementCodeLength(long opcode) {
+        if (opcode == 0) {
+            return 48;
+        }
+        if (0 < opcode) {
+            return 104;
+        }
+        return 0;
+    }
+
+    private long writeStatement(
+        bytes output,
+        long cursor,
+        long opcode,
+        long operand,
+        long localBase
+    ) {
+        cursor = writeInstructionHeader(output, cursor, 1024, 2);
+        cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
+        cursor = writeUnsignedLittleEndian(output, cursor, operand, 8);
+        if (opcode == 0) {
+            cursor = writeInstructionHeader(output, cursor, 1026, 2);
+            cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+            return writeUnsignedLittleEndian(
+                output, cursor, localBase, 8);
+        }
+        cursor = writeInstructionHeader(output, cursor, 1025, 2);
+        cursor = writeUnsignedLittleEndian(
+            output, cursor, localBase + 1, 8);
+        cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+        cursor = writeInstructionHeader(output, cursor, opcode, 3);
+        cursor = writeUnsignedLittleEndian(
+            output, cursor, localBase + 1, 8);
+        cursor = writeUnsignedLittleEndian(
+            output, cursor, localBase + 1, 8);
+        cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
+        cursor = writeInstructionHeader(output, cursor, 1026, 2);
+        cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+        return writeUnsignedLittleEndian(
+            output, cursor, localBase + 1, 8);
     }
 
     entry void main(utf8 source, bytes output) {
@@ -110,19 +172,14 @@ classical class MinimalCompiler {
         long typesOffset = align8(stringsOffset + stringsLength);
         long variantsOffset = align8(typesOffset + typesLength);
         long functionsOffset = align8(variantsOffset + 4);
-        long localCount = 2;
-        long functionsLength = 52;
-        long codeLength = 112;
-        if (program.opcode == 0) {
-            localCount = 1;
-            functionsLength = 48;
-            codeLength = 56;
+        long firstLocalCount = statementLocalCount(program.opcode);
+        long localCount = firstLocalCount;
+        long codeLength = 8 + statementCodeLength(program.opcode);
+        if (program.statementCount == 2) {
+            localCount += statementLocalCount(program.secondOpcode);
+            codeLength += statementCodeLength(program.secondOpcode);
         }
-        if (program.opcode < 0) {
-            localCount = 0;
-            functionsLength = 44;
-            codeLength = 8;
-        }
+        long functionsLength = 44 + localCount * 4;
         long codeOffset = align8(functionsOffset + functionsLength);
         long fileLength = align8(codeOffset + codeLength);
         codeStart = codeOffset;
@@ -212,34 +269,28 @@ classical class MinimalCompiler {
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, localCount, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
-        if (program.opcode < 0) {
-            cursor = align8(cursor);
-        } else {
+        long localType = 0;
+        while (localType < localCount) limit 4 {
             cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
-            if (0 < program.opcode) {
-                cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
-            }
-            cursor = align8(cursor);
+            localType += 1;
+        }
+        cursor = align8(cursor);
 
-            cursor = writeInstructionHeader(output, cursor, 1024, 2);
-            cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
-            cursor = writeUnsignedLittleEndian(output, cursor, program.operand, 8);
-            if (program.opcode == 0) {
-                cursor = writeInstructionHeader(output, cursor, 1026, 2);
-                cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
-                cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
-            } else {
-                cursor = writeInstructionHeader(output, cursor, 1025, 2);
-                cursor = writeUnsignedLittleEndian(output, cursor, 1, 8);
-                cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
-                cursor = writeInstructionHeader(output, cursor, program.opcode, 3);
-                cursor = writeUnsignedLittleEndian(output, cursor, 1, 8);
-                cursor = writeUnsignedLittleEndian(output, cursor, 1, 8);
-                cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
-                cursor = writeInstructionHeader(output, cursor, 1026, 2);
-                cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
-                cursor = writeUnsignedLittleEndian(output, cursor, 1, 8);
-            }
+        if (0 < program.statementCount) {
+            cursor = writeStatement(
+                output,
+                cursor,
+                program.opcode,
+                program.operand,
+                0);
+        }
+        if (program.statementCount == 2) {
+            cursor = writeStatement(
+                output,
+                cursor,
+                program.secondOpcode,
+                program.secondOperand,
+                firstLocalCount);
         }
         cursor = writeUnsignedLittleEndian(output, cursor, 1, 2);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 2);

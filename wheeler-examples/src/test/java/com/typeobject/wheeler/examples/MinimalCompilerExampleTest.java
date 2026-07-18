@@ -92,6 +92,18 @@ class MinimalCompilerExampleTest {
             + "entry void main() { mask ^= 9; } }",
         "mask",
         15);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class Mixed { state long total = 10; "
+            + "entry void main() { total = 4; total ^= 7; } }",
+        "total",
+        3);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class Series { state long value = 1; "
+            + "entry void main() { value += 2; value ^= 7; } }",
+        "value",
+        4);
 
     VirtualMachine duplicate = new VirtualMachine(
         writerProgram,
@@ -116,7 +128,7 @@ class MinimalCompilerExampleTest {
       Program writerProgram,
       String source) {
     VirtualMachine writer = new VirtualMachine(
-        writerProgram, source.getBytes(StandardCharsets.UTF_8), 512);
+        writerProgram, source.getBytes(StandardCharsets.UTF_8), 1024);
     writer.run();
     assertArrayEquals(
         new WheelerCompiler().compileToBytecode(source),
@@ -133,7 +145,7 @@ class MinimalCompilerExampleTest {
       String global,
       long expected) {
     VirtualMachine writer = new VirtualMachine(
-        writerProgram, source.getBytes(StandardCharsets.UTF_8), 512);
+        writerProgram, source.getBytes(StandardCharsets.UTF_8), 1024);
     writer.run();
     assertArrayEquals(
         new WheelerCompiler().compileToBytecode(source),
