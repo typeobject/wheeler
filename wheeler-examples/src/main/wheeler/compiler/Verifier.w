@@ -62,12 +62,20 @@ classical class Verifier {
         return false;
     }
 
-    private long verifyDirectory(bytes artifact, long fileLength) {
+    private long verifyDirectory(
+        bytes artifact,
+        long fileLength,
+        long sectionCount
+    ) {
         long section = 0;
-        long expectedOffset = 232;
-        while (section < 6) limit 6 {
+        long expectedOffset = align8(40 + sectionCount * 32);
+        while (section < sectionCount) limit 7 {
             long sectionType = directoryField(artifact, section, 0, 4);
-            if (differs(sectionType, section + 1)) {
+            long expectedType = section + 1;
+            if (section == 6) {
+                expectedType = 10;
+            }
+            if (differs(sectionType, expectedType)) {
                 return 0;
             }
             if (differs(directoryField(artifact, section, 4, 4), 1)) {
@@ -98,7 +106,7 @@ classical class Verifier {
         return 1;
     }
 
-    private long verifyPayloads(bytes artifact) {
+    private long verifyPayloads(bytes artifact, long sectionCount) {
         long manifestOffset = directoryField(artifact, 0, 8, 8);
         long stringsOffset = directoryField(artifact, 1, 8, 8);
         long typesOffset = directoryField(artifact, 2, 8, 8);
@@ -142,7 +150,9 @@ classical class Verifier {
         } else {
             return 0;
         }
-        if (differs(stringCount, globalCount + 1 + functionCount)) {
+        if (differs(
+                stringCount,
+                globalCount + 1 + functionCount + sectionCount - 6)) {
             return 0;
         }
         long typeCounts = typesOffset + 4 + globalCount * 16;
@@ -335,6 +345,29 @@ classical class Verifier {
                 1000000)) {
             return 0;
         }
+        if (sectionCount == 7) {
+            long proofOffset = directoryField(artifact, 6, 8, 8);
+            if (differs(directoryField(artifact, 6, 16, 8), 28)) {
+                return 0;
+            }
+            if (differs(readUnsigned(artifact, proofOffset, 4), 1)) {
+                return 0;
+            }
+            if (differs(readUnsigned(artifact, proofOffset + 4, 4), 0)) {
+                return 0;
+            }
+            long proofName = readUnsigned(artifact, proofOffset + 8, 4);
+            if (proofName < stringCount) {
+            } else {
+                return 0;
+            }
+            if (differs(readUnsigned(artifact, proofOffset + 12, 4), 1)) {
+                return 0;
+            }
+            if (differs(readUnsigned(artifact, proofOffset + 16, 4), 0)) {
+                return 0;
+            }
+        }
         return 1;
     }
 
@@ -361,7 +394,11 @@ classical class Verifier {
         if (differs(readUnsigned(artifact, 16, 8), fileLength)) {
             return 0;
         }
-        if (differs(readUnsigned(artifact, 24, 4), 6)) {
+        long sectionCount = readUnsigned(artifact, 24, 4);
+        if (sectionCount < 6) {
+            return 0;
+        }
+        if (7 < sectionCount) {
             return 0;
         }
         if (differs(readUnsigned(artifact, 28, 4), 32)) {
@@ -370,8 +407,9 @@ classical class Verifier {
         if (differs(readUnsigned(artifact, 32, 8), 40)) {
             return 0;
         }
-        if (verifyDirectory(artifact, fileLength) == 1) {
-            return verifyPayloads(artifact);
+        if (verifyDirectory(
+                artifact, fileLength, sectionCount) == 1) {
+            return verifyPayloads(artifact, sectionCount);
         }
         return 0;
     }

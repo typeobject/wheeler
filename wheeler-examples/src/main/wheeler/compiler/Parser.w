@@ -89,6 +89,8 @@ classical class Parser {
             0,
             -1,
             0,
+            0,
+            helper,
             0);
         return new MinimalProgramResult.Value(program);
     }
@@ -123,6 +125,8 @@ classical class Parser {
             0,
             -1,
             0,
+            0,
+            helper,
             0);
         return new MinimalProgramResult.Value(program);
     }
@@ -213,6 +217,8 @@ classical class Parser {
             0,
             -1,
             0,
+            0,
+            global,
             0);
         return new MinimalProgramResult.Value(program);
     }

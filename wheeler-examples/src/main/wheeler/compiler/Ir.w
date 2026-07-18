@@ -20,7 +20,9 @@ classical class CompilerIr {
         long helperCount,
         long helperOpcode,
         long helperOperand,
-        long helperReversible
+        long helperReversible,
+        SourceRange proofName,
+        long proofCount
     ) {}
 
     public variant MinimalProgramResult {

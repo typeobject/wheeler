@@ -40,6 +40,8 @@ classical class MinimalCompiler {
                     0,
                     -1,
                     0,
+                    0,
+                    scanGlobal,
                     0);
             }
             case ScanResult.Value(long count) {
@@ -68,6 +70,8 @@ classical class MinimalCompiler {
                             0,
                             -1,
                             0,
+                            0,
+                            parseGlobal,
                             0);
                     }
                     case MinimalProgramResult.Value(MinimalProgram program) {
@@ -189,6 +193,7 @@ classical class MinimalCompiler {
         long nameLength = program.name.length;
         long globalLength = program.global.length;
         long helperLength = program.helperName.length;
+        long proofLength = program.proofName.length;
         long nameMainOrder = compareAsciiSliceToMain(
             source, program.name.start, nameLength);
         if (nameMainOrder == 0) {
@@ -197,6 +202,7 @@ classical class MinimalCompiler {
         long nameIndex = 0;
         long globalIndex = 0;
         long helperIndex = 0;
+        long proofIndex = 0;
         long mainIndex = 0;
         if (0 < nameMainOrder) {
             nameIndex = 1;
@@ -322,8 +328,69 @@ classical class MinimalCompiler {
             stringCount = 4;
             stringsLength = 24 + nameLength + globalLength + helperLength;
         }
-        long manifestOffset = 232;
-        long stringsOffset = 256;
+        if (program.proofCount == 1) {
+            long proofNameOrder = compareAsciiSlices(
+                source,
+                program.name.start,
+                nameLength,
+                program.proofName.start,
+                proofLength);
+            long proofGlobalOrder = compareAsciiSlices(
+                source,
+                program.global.start,
+                globalLength,
+                program.proofName.start,
+                proofLength);
+            long proofHelperOrder = compareAsciiSlices(
+                source,
+                program.helperName.start,
+                helperLength,
+                program.proofName.start,
+                proofLength);
+            long proofMainOrder = compareAsciiSliceToMain(
+                source, program.proofName.start, proofLength);
+            if (proofNameOrder == 0) {
+                assert finalCursor == 1;
+            }
+            if (proofGlobalOrder == 0) {
+                assert finalCursor == 1;
+            }
+            if (proofHelperOrder == 0) {
+                assert finalCursor == 1;
+            }
+            if (proofMainOrder == 0) {
+                assert finalCursor == 1;
+            }
+            if (0 < proofNameOrder) {
+                nameIndex += 1;
+            } else {
+                proofIndex += 1;
+            }
+            if (0 < proofGlobalOrder) {
+                globalIndex += 1;
+            } else {
+                proofIndex += 1;
+            }
+            if (0 < proofHelperOrder) {
+                helperIndex += 1;
+            } else {
+                proofIndex += 1;
+            }
+            if (proofMainOrder < 0) {
+                mainIndex += 1;
+            } else {
+                proofIndex += 1;
+            }
+            stringCount = 5;
+            stringsLength = 28
+                + nameLength
+                + globalLength
+                + helperLength
+                + proofLength;
+        }
+        long sectionCount = 6 + program.proofCount;
+        long manifestOffset = align8(40 + sectionCount * 32);
+        long stringsOffset = align8(manifestOffset + 24);
         long typesOffset = align8(stringsOffset + stringsLength);
         long variantsOffset = align8(typesOffset + typesLength);
         long functionsOffset = align8(variantsOffset + 4);
@@ -365,7 +432,11 @@ classical class MinimalCompiler {
                 + entryForwardLength;
         }
         long codeOffset = align8(functionsOffset + functionsLength);
+        long proofOffset = align8(codeOffset + codeLength);
         long fileLength = align8(codeOffset + codeLength);
+        if (program.proofCount == 1) {
+            fileLength = align8(proofOffset + 28);
+        }
         codeStart = codeOffset;
 
         writeAscii(output, 0, "WHEELBC");
@@ -374,7 +445,7 @@ classical class MinimalCompiler {
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 2);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, fileLength, 8);
-        cursor = writeUnsignedLittleEndian(output, cursor, 6, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, sectionCount, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 32, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 40, 8);
 
@@ -390,6 +461,11 @@ classical class MinimalCompiler {
             output, cursor, 5, functionsOffset, functionsLength);
         cursor = writeDirectoryEntry(
             output, cursor, 6, codeOffset, codeLength);
+        if (program.proofCount == 1) {
+            cursor = writeDirectoryEntry(
+                output, cursor, 10, proofOffset, 28);
+        }
+        cursor = align8(cursor);
 
         cursor = writeUnsignedLittleEndian(output, cursor, nameIndex, 4);
         cursor = writeUnsignedLittleEndian(
@@ -400,7 +476,7 @@ classical class MinimalCompiler {
 
         cursor = writeUnsignedLittleEndian(output, cursor, stringCount, 4);
         long stringIndex = 0;
-        while (stringIndex < stringCount) limit 4 {
+        while (stringIndex < stringCount) limit 5 {
             if (stringIndex == nameIndex) {
                 cursor = writeUnsignedLittleEndian(
                     output, cursor, nameLength, 4);
@@ -429,6 +505,18 @@ classical class MinimalCompiler {
                         source,
                         program.helperName.start,
                         helperLength);
+                }
+            }
+            if (program.proofCount == 1) {
+                if (stringIndex == proofIndex) {
+                    cursor = writeUnsignedLittleEndian(
+                        output, cursor, proofLength, 4);
+                    cursor = writeAsciiSlice(
+                        output,
+                        cursor,
+                        source,
+                        program.proofName.start,
+                        proofLength);
                 }
             }
             if (stringIndex == mainIndex) {
@@ -572,6 +660,16 @@ classical class MinimalCompiler {
         cursor = writeUnsignedLittleEndian(output, cursor, 1, 2);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 2);
         cursor = writeUnsignedLittleEndian(output, cursor, 8, 4);
+        if (program.proofCount == 1) {
+            cursor = align8(cursor);
+            cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
+            cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
+            cursor = writeUnsignedLittleEndian(output, cursor, proofIndex, 4);
+            cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
+            cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
+            cursor = writeSignedLittleEndian(output, cursor, -1, 8);
+            cursor = align8(cursor);
+        }
         finalCursor = cursor;
         verification = verifyArtifact(output, finalCursor);
         assert verification == 1;

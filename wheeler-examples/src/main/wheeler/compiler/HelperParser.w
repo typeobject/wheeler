@@ -36,7 +36,9 @@ classical class HelperParser {
         words tokenLengths,
         long nameToken,
         long helperBody,
-        long reversible
+        long reversible,
+        long proofToken,
+        long proofCount
     ) {
         long operandToken = statementOperandToken(
             source, tokenStarts, tokenLengths, helperBody);
@@ -46,6 +48,11 @@ classical class HelperParser {
             tokenStarts[6], tokenLengths[6]);
         SourceRange helper = new SourceRange(
             tokenStarts[nameToken], tokenLengths[nameToken]);
+        SourceRange proof = new SourceRange(0, 0);
+        if (proofCount == 1) {
+            proof = new SourceRange(
+                tokenStarts[proofToken], tokenLengths[proofToken]);
+        }
         MinimalProgram program = new MinimalProgram(
             name,
             global,
@@ -66,7 +73,9 @@ classical class HelperParser {
                 source, tokenStarts, tokenLengths, helperBody),
             parsedSignedNumber(
                 source, tokenStarts, tokenLengths, operandToken),
-            reversible);
+            reversible,
+            proof,
+            proofCount);
         return new MinimalProgramResult.Value(program);
     }
 
@@ -127,6 +136,64 @@ classical class HelperParser {
                                                 helperEnd,
                                                 125)) {
                                             long entryStart = helperEnd + 1;
+                                            long proofToken = -1;
+                                            long proofCount = 0;
+                                            if (reversible == 1) {
+                                                if (tokenHash(
+                                                        source,
+                                                        tokenStarts,
+                                                        tokenLengths,
+                                                        entryStart)
+                                                        == 106024553916) {
+                                                    if (tokenKinds[entryStart + 1] == 1) {
+                                                        if (tokenHash(
+                                                                source,
+                                                                tokenStarts,
+                                                                tokenLengths,
+                                                                entryStart + 2)
+                                                                == 3315169751) {
+                                                            if (tokenHash(
+                                                                    source,
+                                                                    tokenStarts,
+                                                                    tokenLengths,
+                                                                    entryStart + 3)
+                                                                    == 96449190704) {
+                                                                if (punctuationAt(
+                                                                        source,
+                                                                        tokenKinds,
+                                                                        tokenStarts,
+                                                                        entryStart + 4,
+                                                                        40)) {
+                                                                    if (sameTokenText(
+                                                                            source,
+                                                                            tokenStarts,
+                                                                            tokenLengths,
+                                                                            nameToken,
+                                                                            entryStart + 5)) {
+                                                                        if (punctuationAt(
+                                                                                source,
+                                                                                tokenKinds,
+                                                                                tokenStarts,
+                                                                                entryStart + 6,
+                                                                                41)) {
+                                                                            if (punctuationAt(
+                                                                                    source,
+                                                                                    tokenKinds,
+                                                                                    tokenStarts,
+                                                                                    entryStart + 7,
+                                                                                    59)) {
+                                                                                proofToken = entryStart + 1;
+                                                                                proofCount = 1;
+                                                                                entryStart += 8;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
                                             long entryBody = minimalBodyStart(
                                                 source,
                                                 tokenKinds,
@@ -161,7 +228,9 @@ classical class HelperParser {
                                                                         tokenLengths,
                                                                         nameToken,
                                                                         helperBody,
-                                                                        reversible);
+                                                                        reversible,
+                                                                        proofToken,
+                                                                        proofCount);
                                                                 }
                                                             }
                                                         }
@@ -211,7 +280,9 @@ classical class HelperParser {
                                                                                         tokenLengths,
                                                                                         nameToken,
                                                                                         helperBody,
-                                                                                        reversible);
+                                                                                        reversible,
+                                                                                        proofToken,
+                                                                                        proofCount);
                                                                                 }
                                                                             }
                                                                         }
