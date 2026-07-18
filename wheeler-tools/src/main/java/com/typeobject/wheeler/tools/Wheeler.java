@@ -54,6 +54,7 @@ public final class Wheeler {
       case "check" -> check(args, out, error);
       case "check-docs" -> DocumentationCommand.execute(
           args, System.in, out, error);
+      case "docs" -> DocumentationBundleCommand.execute(args, out, error);
       case "format" -> FormatCommand.execute(args, System.in, out, error);
       case "build" -> build(args, out, error);
       case "test" -> test(args, out, error);
@@ -589,7 +590,7 @@ public final class Wheeler {
 
   private static void usage(PrintStream error) {
     error.println(
-        "Usage: wheeler <run|compile|check|check-docs|format|build|test|clean|package|verify|resolve|verify-lock|vendor|"
+        "Usage: wheeler <run|compile|check|check-docs|docs|format|build|test|clean|package|verify|resolve|verify-lock|vendor|"
             + "publish|fetch|plan|verify-plan|execute-plan|disassemble|qasm> ...");
   }
 }

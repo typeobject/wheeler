@@ -18,6 +18,12 @@ Java compilation enables all lint warnings and treats warnings as errors. `check
 
 The implemented checker requires a first-content nonempty `//!` file summary and adjacent nonempty `///` documentation for public and Wheeler-semantic member declarations. It checks canonical facet order and the required `Effects`, `Inverse`, `Coherent`, and `Adjoint` facets. Declaration attachment uses the shared parser-owned module, type, member, and block ranges; malformed structural recovery is never mistaken for a declaration. The command does not discover configuration, phone home, or write a tasteful stub about “leveraging synergies.” The same parser-owned boundary exports module identity plus selected declaration kinds, names, source positions, modifiers, summaries, and ordered facets for the stage-0 documentation bundle work. A renderer consumes that model; it does not take a second vote on what Wheeler source declares.
 
+## Documentation bundle
+
+`wheeler docs <manual-dir> --wheeler <source-dir>... -o <bundle-dir>` builds the renderer-neutral stage-0 bundle from explicit physical roots. Inputs are strict UTF-8, nonsymlink files selected in logical-path order. The command validates Wheeler `//!`/`///` documentation through the compiler export, emits sorted manual and Wheeler API nodes plus navigation/search indexes, copies inert Markdown under `pages/`, records every emitted digest in `manifest.json`, and publishes a new directory with one required atomic move. Existing destinations, malformed source, missing manual titles, duplicate node identities, links in the input tree, and nonphysical parents fail before publication.
+
+The current profile is `wheeler-doc-bundle-1`. It derives manual IDs from logical paths and Wheeler IDs from module or source identity plus declaration name. Java doclet nodes, graph edges and link resolution, examples, proof references, generated reference tables, and Docusaurus bundle-only rendering remain WIP-0019 work. This is a bundle rivet, not a claim that an empty `edges.json` has become graph theory by positive thinking.
+
 ## Source formatting
 
 `wheeler format <file-or-directory>...` formats the same bounded, strict-UTF-8, physical `.w` input set in canonical path order. It parses every selected file before publication, stages changed bytes in verified sibling files, preserves ordinary POSIX permission bits where available, and requires atomic replacement. A validation failure publishes nothing; a crash during replacement may leave a sorted prefix updated, and an idempotent rerun converges.
