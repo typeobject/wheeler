@@ -14,6 +14,9 @@ classical class Manifest {
         QuotedRange targetRoot,
         QuotedRange targetModule,
         QuotedRange targetSource,
+        QuotedRange targetSecondSource,
+        QuotedRange targetThirdSource,
+        QuotedRange targetFourthSource,
         long targetSourceCount,
         long targetCount,
         QuotedRange dependencyName,
@@ -78,6 +81,38 @@ classical class Manifest {
             }
         }
         return true;
+    }
+
+    private long compareTokenText(
+        utf8 source,
+        words starts,
+        words lengths,
+        long left,
+        long right
+    ) {
+        long offset = 0;
+        long commonLength = lengths[left];
+        if (lengths[right] < commonLength) {
+            commonLength = lengths[right];
+        }
+        while (offset < commonLength) limit 256 {
+            long leftScalar = utf8Scalar(source, starts[left] + offset);
+            long rightScalar = utf8Scalar(source, starts[right] + offset);
+            if (leftScalar < rightScalar) {
+                return -1;
+            }
+            if (rightScalar < leftScalar) {
+                return 1;
+            }
+            offset += 1;
+        }
+        if (lengths[left] < lengths[right]) {
+            return -1;
+        }
+        if (lengths[right] < lengths[left]) {
+            return 1;
+        }
+        return 0;
     }
 
     private boolean quoted(words kinds, words lengths, long token) {
@@ -188,12 +223,49 @@ classical class Manifest {
         return hash == 94094958;
     }
 
+    private long moduleSourceCount(
+        utf8 source,
+        words kinds,
+        words starts,
+        words lengths
+    ) {
+        if (semicolonAt(source, kinds, starts, 12)) {
+            return 0;
+        }
+        if (keywordAt(source, starts, lengths, 12, 3226183276)) {
+            if (quoted(kinds, lengths, 13)) {
+                long count = 0;
+                long cursor = 14;
+                boolean scanning = true;
+                while (scanning) limit 4 {
+                    if (keywordAt(
+                            source, starts, lengths, cursor, 3398461467)) {
+                        if (quoted(kinds, lengths, cursor + 1)) {
+                            count += 1;
+                            cursor += 2;
+                        } else {
+                            scanning = false;
+                        }
+                    } else {
+                        scanning = false;
+                    }
+                }
+                if (0 < count) {
+                    if (semicolonAt(source, kinds, starts, cursor)) {
+                        return count;
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+
     private boolean targetValid(
         utf8 source,
         words kinds,
         words starts,
         words lengths,
-        long modular
+        long sourceCount
     ) {
         boolean validRoot = validLogicalPath(
             source,
@@ -212,27 +284,61 @@ classical class Manifest {
             }
         }
         if (baseValid) {
-            if (modular == 0) {
+            if (sourceCount == 0) {
                 return semicolonAt(source, kinds, starts, 12);
             }
             boolean validModule = validModuleName(
                 source, starts[13] + 1, lengths[13] - 2);
-            boolean validSource = validLogicalPath(
-                source, starts[15] + 1, lengths[15] - 2);
-            boolean sourceIncludesRoot = sameTokenText(
-                source, starts, lengths, 11, 15);
             if (keywordAt(source, starts, lengths, 12, 3226183276)) {
                 if (quoted(kinds, lengths, 13)) {
                     if (validModule) {
-                        if (keywordAt(
-                                source, starts, lengths, 14, 3398461467)) {
-                            if (quoted(kinds, lengths, 15)) {
-                                if (validSource) {
-                                    if (sourceIncludesRoot) {
-                                        return semicolonAt(
-                                            source, kinds, starts, 16);
+                        long sourceNumber = 0;
+                        long sourceToken = 15;
+                        long previousToken = -1;
+                        boolean sourcesValid = true;
+                        boolean sourceIncludesRoot = false;
+                        while (sourceNumber < sourceCount) limit 4 {
+                            boolean validSource = validLogicalPath(
+                                source,
+                                starts[sourceToken] + 1,
+                                lengths[sourceToken] - 2);
+                            if (validSource) {
+                                if (sameTokenText(
+                                        source,
+                                        starts,
+                                        lengths,
+                                        11,
+                                        sourceToken)) {
+                                    sourceIncludesRoot = true;
+                                }
+                                if (-1 < previousToken) {
+                                    long sourceOrder = compareTokenText(
+                                        source,
+                                        starts,
+                                        lengths,
+                                        previousToken,
+                                        sourceToken);
+                                    if (sourceOrder == 0) {
+                                        sourcesValid = false;
+                                    }
+                                    if (0 < sourceOrder) {
+                                        sourcesValid = false;
                                     }
                                 }
+                            } else {
+                                sourcesValid = false;
+                            }
+                            previousToken = sourceToken;
+                            sourceToken += 2;
+                            sourceNumber += 1;
+                        }
+                        if (sourcesValid) {
+                            if (sourceIncludesRoot) {
+                                return semicolonAt(
+                                    source,
+                                    kinds,
+                                    starts,
+                                    14 + sourceCount * 2);
                             }
                         }
                     }
@@ -335,13 +441,17 @@ classical class Manifest {
         long targetCount,
         long dependencyCount,
         long capabilityCount,
-        long recordShift
+        long recordShift,
+        long sourceCount
     ) {
         QuotedRange empty = new QuotedRange(0, 0);
         QuotedRange targetName = empty;
         QuotedRange targetRoot = empty;
         QuotedRange targetModule = empty;
         QuotedRange targetSource = empty;
+        QuotedRange targetSecondSource = empty;
+        QuotedRange targetThirdSource = empty;
+        QuotedRange targetFourthSource = empty;
         long targetSourceCount = 0;
         QuotedRange dependencyName = empty;
         QuotedRange dependencyVersion = empty;
@@ -351,10 +461,19 @@ classical class Manifest {
             targetName = quotedRange(starts, lengths, 9);
             targetRoot = quotedRange(starts, lengths, 11);
         }
-        if (recordShift == 4) {
+        if (0 < sourceCount) {
             targetModule = quotedRange(starts, lengths, 13);
             targetSource = quotedRange(starts, lengths, 15);
-            targetSourceCount = 1;
+            targetSourceCount = sourceCount;
+        }
+        if (1 < sourceCount) {
+            targetSecondSource = quotedRange(starts, lengths, 17);
+        }
+        if (2 < sourceCount) {
+            targetThirdSource = quotedRange(starts, lengths, 19);
+        }
+        if (3 < sourceCount) {
+            targetFourthSource = quotedRange(starts, lengths, 21);
         }
         if (dependencyCount == 1) {
             dependencyName = quotedRange(
@@ -376,6 +495,9 @@ classical class Manifest {
             targetRoot,
             targetModule,
             targetSource,
+            targetSecondSource,
+            targetThirdSource,
+            targetFourthSource,
             targetSourceCount,
             targetCount,
             dependencyName,
@@ -392,14 +514,21 @@ classical class Manifest {
         words starts,
         words lengths,
         long count,
-        long modular,
+        long sourceCount,
         long recordShift
     ) {
         if (targetValid(
-                source, kinds, starts, lengths, modular)) {
+                source, kinds, starts, lengths, sourceCount)) {
             if (count == 13 + recordShift) {
                 return new ManifestResult.Value(
-                    header(starts, lengths, 1, 0, 0, recordShift));
+                    header(
+                        starts,
+                        lengths,
+                        1,
+                        0,
+                        0,
+                        recordShift,
+                        sourceCount));
             }
             if (count == 19 + recordShift) {
                 if (dependencyValid(
@@ -409,7 +538,14 @@ classical class Manifest {
                         lengths,
                         13 + recordShift)) {
                     return new ManifestResult.Value(
-                        header(starts, lengths, 1, 1, 0, recordShift));
+                        header(
+                            starts,
+                            lengths,
+                            1,
+                            1,
+                            0,
+                            recordShift,
+                            sourceCount));
                 }
             }
             if (count == 24 + recordShift) {
@@ -426,7 +562,14 @@ classical class Manifest {
                             lengths,
                             19 + recordShift)) {
                         return new ManifestResult.Value(
-                            header(starts, lengths, 1, 1, 1, recordShift));
+                            header(
+                                starts,
+                                lengths,
+                                1,
+                                1,
+                                1,
+                                recordShift,
+                                sourceCount));
                     }
                 }
             }
@@ -444,31 +587,23 @@ classical class Manifest {
         if (baseHeaderValid(source, kinds, starts, lengths)) {
             if (count == 7) {
                 return new ManifestResult.Value(
-                    header(starts, lengths, 0, 0, 0, 0));
+                    header(starts, lengths, 0, 0, 0, 0, 0));
             }
-            if (count == 13) {
+            long sourceCount = moduleSourceCount(
+                source, kinds, starts, lengths);
+            if (-1 < sourceCount) {
+                long recordShift = 0;
+                if (0 < sourceCount) {
+                    recordShift = 2 + sourceCount * 2;
+                }
                 return parseRecords(
-                    source, kinds, starts, lengths, count, 0, 0);
-            }
-            if (count == 19) {
-                return parseRecords(
-                    source, kinds, starts, lengths, count, 0, 0);
-            }
-            if (count == 24) {
-                return parseRecords(
-                    source, kinds, starts, lengths, count, 0, 0);
-            }
-            if (count == 17) {
-                return parseRecords(
-                    source, kinds, starts, lengths, count, 1, 4);
-            }
-            if (count == 23) {
-                return parseRecords(
-                    source, kinds, starts, lengths, count, 1, 4);
-            }
-            if (count == 28) {
-                return parseRecords(
-                    source, kinds, starts, lengths, count, 1, 4);
+                    source,
+                    kinds,
+                    starts,
+                    lengths,
+                    count,
+                    sourceCount,
+                    recordShift);
             }
         }
         return new ManifestResult.Error(0);

@@ -13,6 +13,7 @@ classical class NativeManifest {
     state long targetModuleLength = 0;
     state long targetSourceCount = 0;
     state long targetSourceLength = 0;
+    state long targetSecondSourceLength = 0;
     state long dependencyCount = 0;
     state long dependencyNameLength = 0;
     state long dependencyVersionLength = 0;
@@ -23,10 +24,10 @@ classical class NativeManifest {
     state long finalCursor = 0;
 
     entry void main(utf8 source, bytes canonical) {
-        region arena = new region(768, 3);
-        words kinds = allocate(arena, 32);
-        words starts = allocate(arena, 32);
-        words lengths = allocate(arena, 32);
+        region arena = new region(1152, 3);
+        words kinds = allocate(arena, 48);
+        words starts = allocate(arena, 48);
+        words lengths = allocate(arena, 48);
         long count = 0;
         ScanResult scanned = scan(source, kinds, starts, lengths);
         match (scanned) {
@@ -51,6 +52,7 @@ classical class NativeManifest {
                 targetModuleLength = header.targetModule.length;
                 targetSourceCount = header.targetSourceCount;
                 targetSourceLength = header.targetSource.length;
+                targetSecondSourceLength = header.targetSecondSource.length;
                 dependencyCount = header.dependencyCount;
                 dependencyNameLength = header.dependencyName.length;
                 dependencyVersionLength = header.dependencyVersion.length;
@@ -76,8 +78,9 @@ classical class NativeManifest {
         assert targetNameLength == 3;
         assert targetRootLength == 11;
         assert targetModuleLength == 8;
-        assert targetSourceCount == 1;
+        assert targetSourceCount == 2;
         assert targetSourceLength == 11;
+        assert targetSecondSourceLength == 12;
         assert dependencyCount == 1;
         assert dependencyNameLength == 9;
         assert dependencyVersionLength == 6;

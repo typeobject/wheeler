@@ -30,7 +30,8 @@ class NativeManifestExampleTest {
     String source =
         "package \"demo.native\" version \"1.2.3-rc.1\" profile \"boot\\\"strap\"; "
             + "target example \"app\" root \"src/A\\\"pp.w\" "
-            + "module \"demo.app\" source \"src/A\\\"pp.w\"; "
+            + "module \"demo.app\" source \"src/A\\\"pp.w\" "
+            + "source \"src/Helper.w\"; "
             + "dependency normal \"demo.base\" version \"^1.0.0\"; "
             + "capability \"fixture\" path \"test-data\";";
     String input = source.replace("; target", ";   target");
@@ -47,8 +48,9 @@ class NativeManifestExampleTest {
     assertEquals(3, machine.global("targetNameLength"));
     assertEquals(11, machine.global("targetRootLength"));
     assertEquals(8, machine.global("targetModuleLength"));
-    assertEquals(1, machine.global("targetSourceCount"));
+    assertEquals(2, machine.global("targetSourceCount"));
     assertEquals(11, machine.global("targetSourceLength"));
+    assertEquals(12, machine.global("targetSecondSourceLength"));
     assertEquals(1, machine.global("dependencyCount"));
     assertEquals(9, machine.global("dependencyNameLength"));
     assertEquals(6, machine.global("dependencyVersionLength"));
@@ -94,6 +96,16 @@ class NativeManifestExampleTest {
         source.replace(
             "source \"src/A\\\"pp.w\"",
             "source \"src/Other.w\""));
+    assertTraps(
+        program,
+        source.replace(
+            "source \"src/A\\\"pp.w\" source \"src/Helper.w\"",
+            "source \"src/Helper.w\" source \"src/A\\\"pp.w\""));
+    assertTraps(
+        program,
+        source.replace(
+            "source \"src/Helper.w\"",
+            "source \"src/A\\\"pp.w\""));
     assertTraps(program, source.replace("source \"src/A\\\"pp.w\"", "source \"../App.w\""));
     assertTraps(program, source.replace("dependency normal", "dependency runtime"));
     assertTraps(program, source.replace("src/A\\\"pp.w", "src/../App.w"));
