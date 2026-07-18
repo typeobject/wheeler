@@ -338,10 +338,11 @@ class NativeVmExampleTest {
     VirtualMachine nativeMachine = VirtualMachine.withBinaryInput(interpreter, artifact);
     var initial = nativeMachine.snapshot();
     nativeMachine.run();
-    VirtualMachine stageZero = new VirtualMachine(new BytecodeReader().read(artifact));
+    Program decoded = new BytecodeReader().read(artifact);
+    VirtualMachine stageZero = new VirtualMachine(decoded);
     stageZero.run();
     assertEquals(expected, stageZero.global(global));
-    assertEquals(stageZero.global(global), nativeMachine.global("finalGlobal"));
+    assertAllInterpretedGlobals(decoded, stageZero, nativeMachine);
     while (nativeMachine.historySize() > 0) {
       nativeMachine.rewindOne();
     }
@@ -364,13 +365,32 @@ class NativeVmExampleTest {
     stageZero.run();
     assertEquals(firstExpected, stageZero.global(firstGlobal));
     assertEquals(secondExpected, stageZero.global(secondGlobal));
-    assertEquals(stageZero.global(firstGlobal), nativeMachine.global("finalGlobal"));
-    assertEquals(stageZero.global(secondGlobal), nativeMachine.global("finalGlobalOne"));
-    assertEquals(decoded.globals().size(), nativeMachine.global("interpretedGlobalCount"));
+    assertAllInterpretedGlobals(decoded, stageZero, nativeMachine);
     while (nativeMachine.historySize() > 0) {
       nativeMachine.rewindOne();
     }
     assertEquals(initial, nativeMachine.snapshot());
+  }
+
+  private static void assertAllInterpretedGlobals(
+      Program program, VirtualMachine stageZero, VirtualMachine nativeMachine) {
+    assertEquals(program.globals().size(), nativeMachine.global("interpretedGlobalCount"));
+    for (int index = 0; index < program.globals().size(); index++) {
+      String nativeName = switch (index) {
+        case 0 -> "finalGlobal";
+        case 1 -> "finalGlobalOne";
+        case 2 -> "finalGlobalTwo";
+        case 3 -> "finalGlobalThree";
+        case 4 -> "finalGlobalFour";
+        case 5 -> "finalGlobalFive";
+        case 6 -> "finalGlobalSix";
+        case 7 -> "finalGlobalSeven";
+        default -> throw new AssertionError("native global profile exceeded");
+      };
+      assertEquals(
+          stageZero.global(program.globals().get(index).name()),
+          nativeMachine.global(nativeName));
+    }
   }
 
   private static byte[] withBadJumpTarget(byte[] artifact) {

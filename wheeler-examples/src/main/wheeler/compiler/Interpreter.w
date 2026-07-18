@@ -9,6 +9,12 @@ classical class Interpreter {
     public record Execution(
         long globalZero,
         long globalOne,
+        long globalTwo,
+        long globalThree,
+        long globalFour,
+        long globalFive,
+        long globalSix,
+        long globalSeven,
         long globalCount,
         long steps
     ) {}
@@ -140,7 +146,16 @@ classical class Interpreter {
             if (opcode == OPCODE_HALT) {
                 if (depth == 0) {
                     Execution execution = new Execution(
-                        globals[0], globals[1], globalCount, steps + 1);
+                        globals[0],
+                        globals[1],
+                        globals[2],
+                        globals[3],
+                        globals[4],
+                        globals[5],
+                        globals[6],
+                        globals[7],
+                        globalCount,
+                        steps + 1);
                     return new ExecutionResult.Value(execution);
                 }
                 return new ExecutionResult.Error(cursor);

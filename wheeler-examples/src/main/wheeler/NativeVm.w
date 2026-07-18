@@ -6,6 +6,12 @@ import examples.packages.binary;
 classical class NativeVm {
     state long finalGlobal = 0;
     state long finalGlobalOne = 0;
+    state long finalGlobalTwo = 0;
+    state long finalGlobalThree = 0;
+    state long finalGlobalFour = 0;
+    state long finalGlobalFive = 0;
+    state long finalGlobalSix = 0;
+    state long finalGlobalSeven = 0;
     state long interpretedGlobalCount = 0;
     state long interpretedSteps = 0;
     state long artifactLength = 0;
@@ -66,6 +72,12 @@ classical class NativeVm {
             case ExecutionResult.Value(Execution execution) {
                 finalGlobal = execution.globalZero;
                 finalGlobalOne = execution.globalOne;
+                finalGlobalTwo = execution.globalTwo;
+                finalGlobalThree = execution.globalThree;
+                finalGlobalFour = execution.globalFour;
+                finalGlobalFive = execution.globalFive;
+                finalGlobalSix = execution.globalSix;
+                finalGlobalSeven = execution.globalSeven;
                 interpretedGlobalCount = execution.globalCount;
                 interpretedSteps = execution.steps;
             }
