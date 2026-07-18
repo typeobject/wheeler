@@ -139,6 +139,12 @@ final class SourceModuleLinker {
             requirePublicLocalType(module, field.type(), record.line()));
       }
     }
+    for (VariantDefinition variant : module.variants()) {
+      if (variant.exported()) {
+        variant.cases().forEach(variantCase -> variantCase.fields().forEach(field ->
+            requirePublicLocalType(module, field.type(), variant.line())));
+      }
+    }
     for (Function function : module.functions()) {
       if (function.exported()) {
         requirePublicLocalType(module, function.returnType(), function.line());
@@ -147,11 +153,10 @@ final class SourceModuleLinker {
       }
     }
     if (!root && (!module.states().isEmpty()
-        || !module.variants().isEmpty()
         || !module.proofs().isEmpty()
         || !module.quantumRegisters().isEmpty()
         || !module.circuits().isEmpty())) {
-      fail("dependency modules currently contain functions and records only: " + expectedName);
+      fail("dependency modules currently contain functions and value types only: " + expectedName);
     }
   }
 
@@ -164,8 +169,18 @@ final class SourceModuleLinker {
         .filter(record -> record.name().equals(type))
         .findFirst()
         .orElse(null);
-    if (local != null && !local.exported()) {
-      throw new CompilerException(line, "public API exposes private record: " + type);
+    if (local != null) {
+      if (!local.exported()) {
+        throw new CompilerException(line, "public API exposes private record: " + type);
+      }
+      return;
+    }
+    VariantDefinition variant = module.variants().stream()
+        .filter(candidate -> candidate.name().equals(type))
+        .findFirst()
+        .orElse(null);
+    if (variant != null && !variant.exported()) {
+      throw new CompilerException(line, "public API exposes private variant: " + type);
     }
   }
 
@@ -210,18 +225,33 @@ final class SourceModuleLinker {
       result.put(variant.name(), linkedName(moduleName, variant.name()));
     }
     for (String importedName : module.imports()) {
-      for (RecordDefinition record : modules.get(importedName).records()) {
-        if (!record.exported() || localNames.contains(record.name())) {
-          continue;
-        }
-        String prior = result.putIfAbsent(
-            record.name(), linkedName(importedName, record.name()));
-        if (prior != null) {
-          fail("ambiguous imported record " + record.name() + " in " + moduleName);
-        }
+      SourceProgram imported = modules.get(importedName);
+      for (RecordDefinition record : imported.records()) {
+        addImportedType(result, localNames, moduleName, importedName,
+            record.name(), record.exported());
+      }
+      for (VariantDefinition variant : imported.variants()) {
+        addImportedType(result, localNames, moduleName, importedName,
+            variant.name(), variant.exported());
       }
     }
     return Map.copyOf(result);
+  }
+
+  private static void addImportedType(
+      Map<String, String> result,
+      Set<String> localNames,
+      String moduleName,
+      String importedName,
+      String typeName,
+      boolean exported) {
+    if (!exported || localNames.contains(typeName)) {
+      return;
+    }
+    String prior = result.putIfAbsent(typeName, linkedName(importedName, typeName));
+    if (prior != null) {
+      fail("ambiguous imported type " + typeName + " in " + moduleName);
+    }
   }
 
   private static VariantDefinition linkVariant(
@@ -235,7 +265,10 @@ final class SourceModuleLinker {
                 .toList()))
         .toList();
     return new VariantDefinition(
-        linkedName(moduleName, variant.name()), cases, variant.line());
+        linkedName(moduleName, variant.name()),
+        variant.exported(),
+        cases,
+        variant.line());
   }
 
   private static RecordDefinition linkRecord(

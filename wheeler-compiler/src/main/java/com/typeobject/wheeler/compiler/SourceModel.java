@@ -28,7 +28,8 @@ final class SourceModel {
     }
   }
 
-  record VariantDefinition(String name, List<VariantCase> cases, int line) {
+  record VariantDefinition(
+      String name, boolean exported, List<VariantCase> cases, int line) {
     VariantDefinition {
       cases = List.copyOf(cases);
     }

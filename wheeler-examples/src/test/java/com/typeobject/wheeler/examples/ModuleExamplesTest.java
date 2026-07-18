@@ -18,7 +18,9 @@ class ModuleExamplesTest {
         "src/main/wheeler/modules/Arithmetic.w",
         Files.readString(directory.resolve("Arithmetic.w")),
         "src/main/wheeler/modules/ModuleMain.w",
-        Files.readString(directory.resolve("ModuleMain.w")));
+        Files.readString(directory.resolve("ModuleMain.w")),
+        "src/main/wheeler/modules/Results.w",
+        Files.readString(directory.resolve("Results.w")));
     var program = new WheelerCompiler().compileModuleFiles(sources, "examples.main");
     VirtualMachine machine = new VirtualMachine(program);
 
@@ -26,6 +28,8 @@ class ModuleExamplesTest {
 
     assertEquals(MachineStatus.HALTED, machine.status());
     assertEquals("examples.arithmetic::Pair", program.recordTypes().getFirst().name());
+    assertEquals("examples.results::Outcome", program.variantTypes().getFirst().name());
     assertEquals(18, machine.global("result"));
+    assertEquals(9, machine.global("decoded"));
   }
 }

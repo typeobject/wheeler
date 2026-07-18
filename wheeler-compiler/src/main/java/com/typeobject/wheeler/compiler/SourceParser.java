@@ -122,7 +122,7 @@ final class SourceParser extends SourceStatementParser {
       return;
     }
     if (matchText("variant")) {
-      parseVariant(previous());
+      parseVariant(previous(), exported);
       return;
     }
     if (matchText("theorem")) {
@@ -173,7 +173,7 @@ final class SourceParser extends SourceStatementParser {
     records.add(new RecordDefinition(name, exported, fields, start.line()));
   }
 
-  private void parseVariant(SourceToken start) {
+  private void parseVariant(SourceToken start, boolean exported) {
     String name = expect(Type.IDENTIFIER, "variant name").text();
     if (isValueType(name)) {
       fail(start, "duplicate or reserved variant type: " + name);
@@ -193,7 +193,8 @@ final class SourceParser extends SourceStatementParser {
       if (!check(Type.RIGHT_PAREN)) {
         do {
           SourceToken type = expect(Type.IDENTIFIER, "variant payload type");
-          if (!isValueType(type.text())) {
+          if (!isValueType(type.text())
+              && (moduleName == null || !isNominalName(type.text()))) {
             fail(type, "variant payload type must be previously declared");
           }
           SourceToken field = expect(Type.IDENTIFIER, "variant payload name");
@@ -211,7 +212,7 @@ final class SourceParser extends SourceStatementParser {
       fail(start, "variant must declare at least one case");
     }
     expect(Type.RIGHT_BRACE, "'}' after variant declaration");
-    variants.add(new VariantDefinition(name, cases, start.line()));
+    variants.add(new VariantDefinition(name, exported, cases, start.line()));
   }
 
   private void parseTheorem(SourceToken start) {

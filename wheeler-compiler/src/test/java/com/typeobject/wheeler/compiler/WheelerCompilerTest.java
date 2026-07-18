@@ -139,6 +139,20 @@ class WheelerCompilerTest {
         import leaky;
         classical class LeakRoot { entry void main() { } }
         """;
+    String leakyVariant = """
+        module leakyvariant;
+        classical class LeakyVariant {
+          private variant SecretResult { case Value(long value); }
+          public SecretResult expose(long value) {
+            return new SecretResult.Value(value);
+          }
+        }
+        """;
+    String leakyVariantRoot = """
+        module variantroot;
+        import leakyvariant;
+        classical class VariantRoot { entry void main() { } }
+        """;
     String unused = """
         module unused;
         classical class Unused { }
@@ -151,6 +165,9 @@ class WheelerCompilerTest {
         Map.of("a", cycleA, "b", cycleB), "a"));
     assertThrows(CompilerException.class, () -> compiler.compileModules(
         Map.of("leakroot", leakyRoot, "leaky", leakyDependency), "leakroot"));
+    assertThrows(CompilerException.class, () -> compiler.compileModules(
+        Map.of("variantroot", leakyVariantRoot, "leakyvariant", leakyVariant),
+        "variantroot"));
     assertThrows(CompilerException.class, () -> compiler.compileModules(
         Map.of("root", hiddenCall.replace("long value = hidden(1);", ""),
             "dep", dependency,
