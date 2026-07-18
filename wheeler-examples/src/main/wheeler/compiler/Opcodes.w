@@ -48,6 +48,10 @@ classical class Opcodes {
     public const long OPCODE_WORDS_SET = 0x0544;
     public const long OPCODE_BUFFER_DROP = 0x0545;
     public const long OPCODE_REGION_DROP = 0x0546;
+    public const long OPCODE_BYTES_ALLOC = 0x0547;
+    public const long OPCODE_BYTES_GET = 0x0548;
+    public const long OPCODE_BYTES_SET = 0x0549;
+    public const long OPCODE_BUFFER_LENGTH = 0x054c;
 
     public const long INTERPRETER_STORAGE_COUNT = 16;
     public const long INTERPRETER_STORAGE_WORDS = 128;

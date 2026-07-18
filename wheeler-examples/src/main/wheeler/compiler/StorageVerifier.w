@@ -25,7 +25,31 @@ classical class StorageVerifier {
         if (typeCode == TYPE_REGION) {
             return true;
         }
-        return typeCode == TYPE_WORDS;
+        if (typeCode == TYPE_WORDS) {
+            return true;
+        }
+        return typeCode == TYPE_BYTES;
+    }
+
+    private boolean allocationOpcode(long opcode) {
+        if (opcode == OPCODE_WORDS_ALLOC) {
+            return true;
+        }
+        return opcode == OPCODE_BYTES_ALLOC;
+    }
+
+    private boolean getOpcode(long opcode) {
+        if (opcode == OPCODE_WORDS_GET) {
+            return true;
+        }
+        return opcode == OPCODE_BYTES_GET;
+    }
+
+    private boolean setOpcode(long opcode) {
+        if (opcode == OPCODE_WORDS_SET) {
+            return true;
+        }
+        return opcode == OPCODE_BYTES_SET;
     }
 
     public long storageOperandsValid(
@@ -35,6 +59,12 @@ classical class StorageVerifier {
         long localCount,
         long activeTypes
     ) {
+        if (opcode < OPCODE_OWNED_MOVE) {
+            return -1;
+        }
+        if (OPCODE_BUFFER_LENGTH < opcode) {
+            return -1;
+        }
         long first = readUnsigned(artifact, cursor + 8, 8);
         if (opcode == OPCODE_OWNED_MOVE) {
             long source = readUnsigned(artifact, cursor + 16, 8);
@@ -71,14 +101,21 @@ classical class StorageVerifier {
             }
             return 0;
         }
-        if (opcode == OPCODE_WORDS_ALLOC) {
+        if (allocationOpcode(opcode)) {
             long region = readUnsigned(artifact, cursor + 16, 8);
             long length = readUnsigned(artifact, cursor + 24, 8);
+            long allocationType = TYPE_WORDS;
+            if (opcode == OPCODE_BYTES_ALLOC) {
+                allocationType = TYPE_BYTES;
+            }
             if (first < localCount) {
                 if (region < localCount) {
                     if (length < localCount) {
                         if (localHasType(
-                                artifact, activeTypes, first, TYPE_WORDS)) {
+                                artifact,
+                                activeTypes,
+                                first,
+                                allocationType)) {
                             if (localHasType(
                                     artifact,
                                     activeTypes,
@@ -98,9 +135,13 @@ classical class StorageVerifier {
             }
             return 0;
         }
-        if (opcode == OPCODE_WORDS_GET) {
+        if (getOpcode(opcode)) {
             long getBuffer = readUnsigned(artifact, cursor + 16, 8);
             long getIndex = readUnsigned(artifact, cursor + 24, 8);
+            long getExpectedType = TYPE_WORDS;
+            if (opcode == OPCODE_BYTES_GET) {
+                getExpectedType = TYPE_BYTES;
+            }
             if (first < localCount) {
                 if (getBuffer < localCount) {
                     if (getIndex < localCount) {
@@ -110,7 +151,7 @@ classical class StorageVerifier {
                                     artifact,
                                     activeTypes,
                                     getBuffer,
-                                    TYPE_WORDS)) {
+                                    getExpectedType)) {
                                 if (localHasType(
                                         artifact,
                                         activeTypes,
@@ -125,14 +166,21 @@ classical class StorageVerifier {
             }
             return 0;
         }
-        if (opcode == OPCODE_WORDS_SET) {
+        if (setOpcode(opcode)) {
             long setIndex = readUnsigned(artifact, cursor + 16, 8);
             long setValue = readUnsigned(artifact, cursor + 24, 8);
+            long setExpectedType = TYPE_WORDS;
+            if (opcode == OPCODE_BYTES_SET) {
+                setExpectedType = TYPE_BYTES;
+            }
             if (first < localCount) {
                 if (setIndex < localCount) {
                     if (setValue < localCount) {
                         if (localHasType(
-                                artifact, activeTypes, first, TYPE_WORDS)) {
+                                artifact,
+                                activeTypes,
+                                first,
+                                setExpectedType)) {
                             if (localHasType(
                                     artifact,
                                     activeTypes,
@@ -154,9 +202,31 @@ classical class StorageVerifier {
         }
         if (opcode == OPCODE_BUFFER_DROP) {
             if (first < localCount) {
-                if (localHasType(
-                        artifact, activeTypes, first, TYPE_WORDS)) {
+                long dropType = localType(artifact, activeTypes, first);
+                if (dropType == TYPE_WORDS) {
                     return 1;
+                }
+                if (dropType == TYPE_BYTES) {
+                    return 1;
+                }
+            }
+            return 0;
+        }
+        if (opcode == OPCODE_BUFFER_LENGTH) {
+            long lengthBuffer = readUnsigned(artifact, cursor + 16, 8);
+            if (first < localCount) {
+                if (lengthBuffer < localCount) {
+                    if (localHasType(
+                            artifact, activeTypes, first, TYPE_SIGNED)) {
+                        long lengthType = localType(
+                            artifact, activeTypes, lengthBuffer);
+                        if (lengthType == TYPE_WORDS) {
+                            return 1;
+                        }
+                        if (lengthType == TYPE_BYTES) {
+                            return 1;
+                        }
+                    }
                 }
             }
             return 0;

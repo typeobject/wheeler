@@ -31,6 +31,9 @@ classical class FunctionVerifier {
         if (typeCode == TYPE_WORDS) {
             return true;
         }
+        if (typeCode == TYPE_BYTES) {
+            return true;
+        }
         if (isRecordType(typeCode)) {
             return recordTypeId(typeCode) < recordCount;
         }

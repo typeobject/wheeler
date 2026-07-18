@@ -227,6 +227,18 @@ classical class InstructionVerifier {
         if (opcode == OPCODE_REGION_DROP) {
             return 1;
         }
+        if (opcode == OPCODE_BYTES_ALLOC) {
+            return 3;
+        }
+        if (opcode == OPCODE_BYTES_GET) {
+            return 3;
+        }
+        if (opcode == OPCODE_BYTES_SET) {
+            return 3;
+        }
+        if (opcode == OPCODE_BUFFER_LENGTH) {
+            return 2;
+        }
         return -1;
     }
 

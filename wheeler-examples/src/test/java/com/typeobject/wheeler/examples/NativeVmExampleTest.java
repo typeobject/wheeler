@@ -156,17 +156,29 @@ class NativeVmExampleTest {
         VmTrap.class,
         () -> VirtualMachine.withBinaryInput(interpreter, forgedSlice).run());
     String storage = "classical class NativeStorage { "
-        + "state long first = 0; entry void main() { "
-        + "region arena = new region(16, 1); long length = 2; "
+        + "state long first = 0; state long byteValue = 0; "
+        + "entry void main() { "
+        + "region arena = new region(24, 2); long length = 2; "
         + "words data = allocate(arena, length); set(data, 0, 7); "
-        + "first = data[0]; assert first == 7; "
-        + "drop(data); drop(arena); } }";
-    assertInterpretedGlobal(interpreter, storage, "first", 7);
+        + "first = data[0]; long packetLength = 3; "
+        + "bytes packet = allocateBytes(arena, packetLength); "
+        + "setByte(packet, 1, 194); byteValue = packet[1]; "
+        + "long measuredLength = bufferLength(packet); "
+        + "first = measuredLength; assert first == 3; first = 7; "
+        + "assert first == 7; assert byteValue == 194; "
+        + "drop(packet); drop(data); drop(arena); } }";
+    assertInterpretedTwoGlobals(
+        interpreter, storage, "first", 7, "byteValue", 194);
     byte[] forgedStorage = withBadWordsIndex(
         compiler.compileToBytecode(storage));
     assertThrows(
         VmTrap.class,
         () -> VirtualMachine.withBinaryInput(interpreter, forgedStorage).run());
+    byte[] forgedBytes = withBadBytesIndex(
+        compiler.compileToBytecode(storage));
+    assertThrows(
+        VmTrap.class,
+        () -> VirtualMachine.withBinaryInput(interpreter, forgedBytes).run());
     String records = Files.readString(root.resolve("Records.w"));
     assertInterpretedTwoGlobals(
         interpreter, records, "width", 5, "equal", 1);
@@ -302,6 +314,23 @@ class NativeVmExampleTest {
       cursor += bytes.getInt(cursor + 4);
     }
     throw new AssertionError("call fixture has no argument call");
+  }
+
+  private static byte[] withBadBytesIndex(byte[] artifact) {
+    byte[] damaged = artifact.clone();
+    ByteBuffer bytes = ByteBuffer.wrap(damaged).order(ByteOrder.LITTLE_ENDIAN);
+    int codeDirectory = 40 + 5 * 32;
+    int cursor = Math.toIntExact(bytes.getLong(codeDirectory + 8));
+    int end = cursor + Math.toIntExact(bytes.getLong(codeDirectory + 16));
+    while (cursor < end) {
+      int opcode = Short.toUnsignedInt(bytes.getShort(cursor));
+      if (opcode == Opcode.BYTES_GET.code()) {
+        bytes.putLong(cursor + 24, Long.MAX_VALUE);
+        return damaged;
+      }
+      cursor += bytes.getInt(cursor + 4);
+    }
+    throw new AssertionError("storage fixture has no byte read");
   }
 
   private static byte[] withBadWordsIndex(byte[] artifact) {
