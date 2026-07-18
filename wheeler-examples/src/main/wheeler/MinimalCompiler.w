@@ -275,7 +275,7 @@ classical class MinimalCompiler {
         cursor = writeUnsignedLittleEndian(output, cursor, nameIndex, 4);
         cursor = writeUnsignedLittleEndian(
             output, cursor, program.helperCount, 4);
-        cursor = writeUnsignedLittleEndian(output, cursor, 1000000, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, 250000, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
         cursor = writeUnsignedLittleEndian(output, cursor, 1000000, 8);
 

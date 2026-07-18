@@ -294,7 +294,7 @@ Artifact bytes, assembly, debug names, effect payloads, and persisted history ar
 - [x] Signed and Boolean frame parameters, results, locals, typed value calls, branch targets, definite assignment, and bounded-loop checks execute and verify.
 - [x] Bytecode and source counter fixtures run forward and inverse.
 - [x] Existing incompatible bytecode and memory paths are deleted.
-- [x] Checked `LOCAL_AND` and low-32-bit `LOCAL_ROTR32` execute, verify, rewind, and provide bounded cryptographic word operations without smuggling host arithmetic into SHA-256. Source artifacts now default to matching one-million step/history ceilings; both remain explicit manifest limits, and exhaustion still wins before mutation. Memory is a budget, not a mood.
+- [x] Checked `LOCAL_AND` and low-32-bit `LOCAL_ROTR32` execute, verify, rewind, and provide bounded cryptographic word operations without smuggling host arithmetic into SHA-256. Source artifacts now default to one million steps and 250,000 history records; both remain explicit manifest limits, and exhaustion still wins before mutation. Immutable frames use persistent 32-register chunks so control steps share storage and local writes copy one chunk rather than a boxed full frame. Memory is a budget, not a mood.
 - [x] A Wheeler-written compiler slice parses a bounded minimal Wheeler source file and emits every byte of its canonical artifact with derived aligned layout; stage 0 agrees byte-for-byte, the strict decoder accepts it, canonical re-encoding is identical, and the VM executes it.
 
 ## Testing and acceptance

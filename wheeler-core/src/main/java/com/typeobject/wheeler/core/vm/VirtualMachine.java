@@ -774,7 +774,7 @@ public final class VirtualMachine {
             localIndex(instruction, 3);
           }
           if (target.returnsValue() != returnsValue || target.parameterCount() != count
-              || base < 0 || count < 0 || base > currentFrame().locals().size() - count) {
+              || base < 0 || count < 0 || base > currentFrame().localCount() - count) {
             trap("Argument call signature mismatch for " + target.name());
           }
         }
@@ -887,7 +887,7 @@ public final class VirtualMachine {
 
   private int localIndex(Instruction instruction, int operandIndex) {
     int index = Math.toIntExact(operand(instruction, operandIndex));
-    if (index < 0 || index >= currentFrame().locals().size()) {
+    if (index < 0 || index >= currentFrame().localCount()) {
       throw new VmTrap("Invalid local index " + index);
     }
     return index;
