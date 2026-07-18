@@ -78,7 +78,7 @@ classical class Opcodes {
         INTERPRETER_LOCAL_WIDTH * INTERPRETER_FRAME_COUNT;
     public const long INTERPRETER_MAX_CALL_DEPTH =
         INTERPRETER_FRAME_COUNT - 1;
-    public const long MAX_CODE_INSTRUCTIONS = 64;
+    public const long MAX_CODE_INSTRUCTIONS = 128;
     public const long MAX_INTERPRETED_STEPS = 512;
 
     /// Reports whether an opcode mutates one global with a constant operand.

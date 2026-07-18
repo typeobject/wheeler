@@ -270,6 +270,8 @@ class NativeVmExampleTest {
         1);
     assertInterpretedGlobal(
         interpreter, wideLocalSource(), "result", 16);
+    assertInterpretedGlobal(
+        interpreter, wideCodeSource(), "result", 0);
     byte[] forgedMap = withBadMapKey(
         compiler.compileToBytecode(map));
     assertThrows(
@@ -372,6 +374,15 @@ class NativeVmExampleTest {
       nativeMachine.rewindOne();
     }
     assertEquals(initial, nativeMachine.snapshot());
+  }
+
+  private static String wideCodeSource() {
+    StringBuilder source = new StringBuilder(
+        "classical class WideCode { state long result = 0; entry void main() { ");
+    for (int statement = 0; statement < 80; statement++) {
+      source.append("assert result == 0; ");
+    }
+    return source.append("} }").toString();
   }
 
   private static String wideLocalSource() {
