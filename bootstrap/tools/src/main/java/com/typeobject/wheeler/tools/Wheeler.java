@@ -390,7 +390,7 @@ public final class Wheeler {
     }
     PackageProject project = PackageProject.load(packageRoot);
     PackageLock preferred = null;
-    if (Files.exists(output, LinkOption.NOFOLLOW_LINKS)) {
+    if (!updateAll && Files.exists(output, LinkOption.NOFOLLOW_LINKS)) {
       if (!Files.isRegularFile(output, LinkOption.NOFOLLOW_LINKS)) {
         throw new IOException("Existing lock is not a physical file: " + output);
       }

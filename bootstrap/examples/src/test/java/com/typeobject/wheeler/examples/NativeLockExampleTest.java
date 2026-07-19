@@ -35,17 +35,19 @@ class NativeLockExampleTest {
     String d = "d".repeat(64);
     String e = "e".repeat(64);
     String canonical =
-        "schema: 1\n"
+        "schema: 2\n"
             + "root: \"" + a + "\"\n"
             + "packages:\n"
             + "  - name: \"demo.app\"\n"
             + "    version: \"1.0.0\"\n"
+            + "    repository: \"" + a + "\"\n"
             + "    archive: \"" + b + "\"\n"
             + "    manifest: \"" + c + "\"\n"
             + "    dependencies:\n"
             + "      - \"demo.base\"\n"
             + "  - name: \"demo.base\"\n"
             + "    version: \"2.1.0\"\n"
+            + "    repository: \"" + a + "\"\n"
             + "    archive: \"" + d + "\"\n"
             + "    manifest: \"" + e + "\"\n"
             + "    dependencies: []\n";
@@ -69,7 +71,7 @@ class NativeLockExampleTest {
     }
     assertEquals(initial, machine.snapshot());
 
-    assertTraps(program, canonical.replace("schema: 1", "schema: 2"));
+    assertTraps(program, canonical.replace("schema: 2", "schema: 1"));
     assertTraps(program, canonical.replace(a, "A" + a.substring(1)));
     assertTraps(
         program,

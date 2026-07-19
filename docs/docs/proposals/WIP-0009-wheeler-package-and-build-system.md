@@ -185,15 +185,12 @@ The initial resolver may require one version of each package identity in a final
 `wheeler.package.lock.yaml` is generated canonical YAML data. It is committed for applications, tools, and the Wheeler recovery workspace. Libraries may commit it for development reproducibility without forcing consumers to use that graph.
 
 ```yaml
-schema: 1
+schema: 2
 root: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-repositories:
-  - id: "local"
-    snapshot: "89abcdef0123456789abcdef0123456789abcdef0123456789abcdef01234567"
 packages:
   - name: "wheeler.core"
     version: "0.1.0"
-    repository: "local"
+    repository: "89abcdef0123456789abcdef0123456789abcdef0123456789abcdef01234567"
     archive: "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
     manifest: "76543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba98"
     dependencies: []
@@ -406,7 +403,8 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 - [x] The stage-0 in-memory resolver deterministically selects one version per package with backtracking bounded by a deterministic 10,000-unit total-work budget, exact root/dependency source-profile matching, preference for still-valid exact selections from an existing lock plus explicit targeted/full update modes, explicit root-only nontransitive development scope, cycle rejection, and stable ranges that ignore prerelease candidates unless the requirement names one.
 - [x] Physical catalogs, exact vendor trees, and immutable local file-repository publish/fetch transport are bounded and integrity-checked. The closed YAML repository policy preserves trust order, identities, enabled state, file transports, and sorted namespace authority; XDG fallback/override paths are explicit, relative overrides are diagnosed and ignored, policy updates are atomic, default publication targets `local`, and exact fetch uses first-authoritative ordered fallback.
 - [x] Unlocked stage-0 resolution scans canonical release mappings in configured repository order, filters namespace authority, chooses the first repository with a profile/range-admissible release, and never merges its candidates with lower trust domains.
-- [ ] Repository and snapshot identity in locks, build-input-keyed artifact reuse, quarantine/GC, mirrors, and signed network snapshots remain.
+- [x] Lock schema 2 binds every selected package to the stable repository identity that owned its candidate set; aliases, URLs, list positions, and physical paths remain outside lock identity. Sealed explicit catalogs use one domain-separated bootstrap identity rather than laundering their path into the graph.
+- [ ] Snapshot identity in locks, build-input-keyed artifact reuse, quarantine/GC, mirrors, and signed network snapshots remain.
 - [x] The root `wheeler.workspace.yaml`, canonical core, compiler, runtime, and package-codec packages, and example package form an executable stage-0 workspace. Workspace commands rebuild member archives in memory, require their identities to match each package's committed lock, and need no checked-in vendor directories or source-directory side door.
 - [x] Wheeler-written `crypto/Sha256.w` now matches independent digest vectors over bounded binary input and supplies the content-identity primitive required by native lock/plan/archive verification.
 - [x] Canonical `wheeler.core.encoding.binary` owns bounded little-endian reads and ASCII name/release/path checks for binary package codecs; `Plan.w` no longer carries a private copy of the rules. A helper module is cheaper than two subtly different security boundaries.

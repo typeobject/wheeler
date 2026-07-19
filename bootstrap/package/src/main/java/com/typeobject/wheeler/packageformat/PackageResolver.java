@@ -18,11 +18,18 @@ import java.util.TreeSet;
 public final class PackageResolver {
   private static final int MAX_PACKAGES = 10_000;
   private static final int MAX_WORK_UNITS = 10_000;
+  public static final String SEALED_CATALOG_IDENTITY =
+      "ee9855ff0d7866533c49b81a7eeb7d1a2cac9d7efbd300c583d29e699516efb0";
 
-  private final List<Map<String, List<PackageRelease>>> repositories;
+  private final List<AvailableRepository> repositories;
 
   public PackageResolver(Collection<PackageRelease> releases) {
-    this.repositories = List.of(group(releases));
+    this(SEALED_CATALOG_IDENTITY, releases);
+  }
+
+  public PackageResolver(String repositoryIdentity, Collection<PackageRelease> releases) {
+    this.repositories = List.of(
+        new AvailableRepository(repositoryIdentity, group(releases)));
   }
 
   private PackageResolver(List<RepositoryCatalog> repositories) {
@@ -30,13 +37,13 @@ public final class PackageResolver {
       throw new PackageFormatException("Resolver requires 1..64 ordered repositories");
     }
     Set<String> identities = new HashSet<>();
-    List<Map<String, List<PackageRelease>>> grouped = new ArrayList<>();
+    List<AvailableRepository> grouped = new ArrayList<>();
     for (RepositoryCatalog repository : repositories) {
       if (!identities.add(repository.identity())) {
         throw new PackageFormatException(
             "Duplicate resolver repository identity " + repository.identity());
       }
-      grouped.add(group(repository.releases()));
+      grouped.add(new AvailableRepository(repository.identity(), group(repository.releases())));
     }
     this.repositories = List.copyOf(grouped);
   }
@@ -126,6 +133,7 @@ public final class PackageResolver {
       entries.add(new PackageLock.Entry(
           name,
           release.manifest().version(),
+          repositoryIdentity(name, release),
           release.archiveIdentity(),
           release.manifest().identity(),
           dependencies));
@@ -223,15 +231,18 @@ public final class PackageResolver {
       List<VersionConstraint> requirements,
       String requiredProfile) {
     List<PackageRelease> ordered = List.of();
-    for (Map<String, List<PackageRelease>> repository : repositories) {
-      List<PackageRelease> offered = repository.getOrDefault(name, List.of());
+    String authorityIdentity = null;
+    for (AvailableRepository repository : repositories) {
+      List<PackageRelease> offered = repository.releases().getOrDefault(name, List.of());
       if (offered.stream().anyMatch(candidate -> accepts(
           requirements, candidate, requiredProfile))) {
         ordered = offered;
+        authorityIdentity = repository.identity();
         break;
       }
     }
-    if (ordered.isEmpty() || preference == null) {
+    if (ordered.isEmpty() || preference == null
+        || !preference.repositoryIdentity().equals(authorityIdentity)) {
       return ordered;
     }
     PackageRelease retained = ordered.stream()
@@ -247,6 +258,15 @@ public final class PackageResolver {
     preferred.add(retained);
     ordered.stream().filter(candidate -> !candidate.equals(retained)).forEach(preferred::add);
     return List.copyOf(preferred);
+  }
+
+  private String repositoryIdentity(String name, PackageRelease selected) {
+    for (AvailableRepository repository : repositories) {
+      if (repository.releases().getOrDefault(name, List.of()).contains(selected)) {
+        return repository.identity();
+      }
+    }
+    throw new IllegalStateException("Selected package has no repository authority: " + name);
   }
 
   private static Map<String, PackageLock.Entry> preferences(PackageLock preferred) {
@@ -312,6 +332,16 @@ public final class PackageResolver {
     requirements.forEach((name, values) -> canonical.put(
         name, values.stream().map(VersionConstraint::toString).sorted().toList()));
     return canonical.toString();
+  }
+
+  private record AvailableRepository(
+      String identity, Map<String, List<PackageRelease>> releases) {
+    private AvailableRepository {
+      if (identity == null || !identity.matches("[0-9a-f]{64}")) {
+        throw new PackageFormatException("Invalid resolver repository identity " + identity);
+      }
+      releases = Map.copyOf(releases);
+    }
   }
 
   /** One stable repository identity and its internally ordered release candidates. */

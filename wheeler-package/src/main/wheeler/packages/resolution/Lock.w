@@ -113,7 +113,7 @@ classical class Lock {
     long count,
     long cursor
   ) {
-    if (cursor + 13 < count) {
+    if (cursor + 16 < count) {
       if (dashAt(source, kinds, starts, cursor)) {
         if (key(source, kinds, starts, lengths, count, cursor + 1, 3373707)) {
           if (quoted(kinds, lengths, cursor + 3)) {
@@ -134,7 +134,15 @@ classical class Lock {
                   );
                   if (validVersion) {
                     if (
-                      key(source, kinds, starts, lengths, count, cursor + 7, 89446211778)
+                      key(
+                        source,
+                        kinds,
+                        starts,
+                        lengths,
+                        count,
+                        cursor + 7,
+                        3103442239675210
+                      )
                     ) {
                       if (hexDigest(source, kinds, starts, lengths, cursor + 9)) {
                         if (
@@ -145,10 +153,24 @@ classical class Lock {
                             lengths,
                             count,
                             cursor + 10,
-                            3088212110895
+                            89446211778
                           )
                         ) {
-                          return hexDigest(source, kinds, starts, lengths, cursor + 12);
+                          if (hexDigest(source, kinds, starts, lengths, cursor + 12)) {
+                            if (
+                              key(
+                                source,
+                                kinds,
+                                starts,
+                                lengths,
+                                count,
+                                cursor + 13,
+                                3088212110895
+                              )
+                            ) {
+                              return hexDigest(source, kinds, starts, lengths, cursor + 15);
+                            }
+                          }
                         }
                       }
                     }
@@ -173,8 +195,8 @@ classical class Lock {
       starts[cursor + 3] + 1,
       lengths[cursor + 3] - 2,
       lengths[cursor + 6] - 2,
-      starts[cursor + 9] + 1,
-      starts[cursor + 12] + 1
+      starts[cursor + 12] + 1,
+      starts[cursor + 15] + 1
     );
   }
 
@@ -186,12 +208,12 @@ classical class Lock {
     borrow mut words lengths,
     long count
   ) {
-    if (count < 42) {
+    if (count < 48) {
       return new LockResult.Error(0);
     }
 
     if (key(source, kinds, starts, lengths, count, 0, 3386979745)) {
-      if (tokenHash(source, starts, lengths, 2) == 49) {
+      if (tokenHash(source, starts, lengths, 2) == 50) {
         if (key(source, kinds, starts, lengths, count, 3, 3506402)) {
           if (hexDigest(source, kinds, starts, lengths, 5)) {
             if (key(source, kinds, starts, lengths, count, 6, 3170436732141)) {
@@ -206,13 +228,13 @@ classical class Lock {
                     starts,
                     lengths,
                     count,
-                    firstCursor + 13,
+                    firstCursor + 16,
                     2626680644436426025
                   )
                 ) {
-                  if (dashAt(source, kinds, starts, firstCursor + 15)) {
-                    if (quoted(kinds, lengths, firstCursor + 16)) {
-                      long secondCursor = firstCursor + 17;
+                  if (dashAt(source, kinds, starts, firstCursor + 18)) {
+                    if (quoted(kinds, lengths, firstCursor + 19)) {
+                      long secondCursor = firstCursor + 20;
                       if (
                         packageFieldsValid(
                           source,
@@ -230,17 +252,17 @@ classical class Lock {
                             starts,
                             lengths,
                             count,
-                            secondCursor + 13,
+                            secondCursor + 16,
                             2626680644436426025
                           )
                         ) {
                           if (
-                            punctuation(source, kinds, starts, secondCursor + 15, 91)
+                            punctuation(source, kinds, starts, secondCursor + 18, 91)
                           ) {
                             if (
-                              punctuation(source, kinds, starts, secondCursor + 16, 93)
+                              punctuation(source, kinds, starts, secondCursor + 19, 93)
                             ) {
-                              if (count == secondCursor + 17) {
+                              if (count == secondCursor + 20) {
                                 long order = compareTokenText(
                                   source,
                                   starts,
@@ -252,7 +274,7 @@ classical class Lock {
                                   source,
                                   starts,
                                   lengths,
-                                  firstCursor + 16,
+                                  firstCursor + 19,
                                   secondCursor + 3
                                 );
                                 if (order < 0) {

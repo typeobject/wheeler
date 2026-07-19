@@ -69,12 +69,15 @@ class PackageResolverTest {
         new PackageResolver.RepositoryCatalog("1".repeat(64), List.of(privateLow)),
         new PackageResolver.RepositoryCatalog("2".repeat(64), List.of(publicHigh))));
 
-    assertEquals("1.0.0", resolver.resolve(root, false).entries().getFirst().version());
+    PackageLock privateLock = resolver.resolve(root, false);
+    assertEquals("1.0.0", privateLock.entries().getFirst().version());
+    assertEquals("1".repeat(64), privateLock.entries().getFirst().repositoryIdentity());
 
     PackageManifest requiresHigh = manifest("root.app", "1.0.0", List.of(
         dependency("lib.a", "=1.9.0", DependencyKind.NORMAL)));
-    assertEquals("1.9.0",
-        resolver.resolve(requiresHigh, false).entries().getFirst().version());
+    PackageLock publicLock = resolver.resolve(requiresHigh, false);
+    assertEquals("1.9.0", publicLock.entries().getFirst().version());
+    assertEquals("2".repeat(64), publicLock.entries().getFirst().repositoryIdentity());
   }
 
   @Test
@@ -216,9 +219,11 @@ class PackageResolverTest {
         "0".repeat(64),
         List.of(
             new PackageLock.Entry(
-                "lib.a", "1.0.0", "1".repeat(64), "2".repeat(64), List.of("lib.b")),
+                "lib.a", "1.0.0", "a".repeat(64), "1".repeat(64), "2".repeat(64),
+                List.of("lib.b")),
             new PackageLock.Entry(
-                "lib.b", "1.0.0", "3".repeat(64), "4".repeat(64), List.of())));
+                "lib.b", "1.0.0", "a".repeat(64), "3".repeat(64), "4".repeat(64),
+                List.of())));
     PackageLockParser parser = new PackageLockParser();
 
     assertThrows(PackageFormatException.class, () -> parser.parse(new byte[] {(byte) 0xc3}));

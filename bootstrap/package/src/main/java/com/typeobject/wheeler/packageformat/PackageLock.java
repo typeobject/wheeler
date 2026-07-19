@@ -14,7 +14,7 @@ import java.util.Set;
 /** Canonical exact dependency graph for {@code wheeler.package.lock.yaml}. */
 public record PackageLock(int schemaVersion, String rootManifestIdentity, List<Entry> entries) {
   public static final String FILE_NAME = "wheeler.package.lock.yaml";
-  public static final int SCHEMA_VERSION = 1;
+  public static final int SCHEMA_VERSION = 2;
 
   public PackageLock {
     if (schemaVersion != SCHEMA_VERSION || !hash(rootManifestIdentity)) {
@@ -50,6 +50,8 @@ public record PackageLock(int schemaVersion, String rootManifestIdentity, List<E
     for (Entry entry : entries) {
       text.append("  - name: ").append(CanonicalYaml.quote(entry.name())).append('\n')
           .append("    version: ").append(CanonicalYaml.quote(entry.version())).append('\n')
+          .append("    repository: ")
+          .append(CanonicalYaml.quote(entry.repositoryIdentity())).append('\n')
           .append("    archive: ").append(CanonicalYaml.quote(entry.archiveIdentity())).append('\n')
           .append("    manifest: ").append(CanonicalYaml.quote(entry.manifestIdentity())).append('\n');
       if (entry.dependencies().isEmpty()) {
@@ -76,6 +78,7 @@ public record PackageLock(int schemaVersion, String rootManifestIdentity, List<E
   public record Entry(
       String name,
       String version,
+      String repositoryIdentity,
       String archiveIdentity,
       String manifestIdentity,
       List<String> dependencies) {
@@ -85,7 +88,7 @@ public record PackageLock(int schemaVersion, String rootManifestIdentity, List<E
         throw new PackageFormatException("Invalid locked package name " + name);
       }
       SemanticVersion.parse(version);
-      if (!hash(archiveIdentity) || !hash(manifestIdentity)) {
+      if (!hash(repositoryIdentity) || !hash(archiveIdentity) || !hash(manifestIdentity)) {
         throw new PackageFormatException("Invalid locked package identity");
       }
       List<String> ordered = new ArrayList<>(List.copyOf(dependencies));

@@ -78,30 +78,32 @@ A manifest must declare at least one target. Package and dependency names use lo
 
 ## Resolution and lockfiles
 
-`PackageResolver` operates only on an application-supplied immutable catalog of manifests and verified archive identities. When the output lock already exists, `wheeler resolve` strictly decodes it and tries each exact archive/manifest selection first. Every preferred selection is rechecked against current requirements, profiles, catalog bytes, and transitive dependencies; invalid preferences fall back to ordinary canonical candidate order. `wheeler resolve` supplies that catalog from physical `.wpk` files in one explicit directory, sorted by file name and strictly decoded before resolution. It ignores unrelated file suffixes and rejects archive symlinks. Neither layer reads a network, registry, clock, environment, or implicit host package cache. It sorts package names and candidate releases, tries the highest version satisfying both the range and the root's exact source profile, and performs bounded deterministic backtracking when transitive requirements or profiles conflict. Exact profile matching is the current bootstrap rule; WIP-0022 owns richer source, bytecode, proof, target, platform, and ABI compatibility.
+`PackageResolver` consumes ordered immutable repository catalogs of verified manifests and archive identities. Configured file repositories are scanned through canonical release mappings and namespace authority; an explicit alias list preserves caller order, while `--catalog` supplies one sealed bootstrap domain. When the output lock already exists, `wheeler resolve` tries each exact repository/archive/manifest selection first. Every preference is rechecked against current authority, requirements, profile, bytes, and transitive dependencies; invalid preferences fall back to ordinary candidate order. Physical enumeration is sorted, archive symlinks are rejected, and no layer reads a network, clock, or artifact cache. Candidates sort by release within one repository, but the first repository with an admissible release owns that package lookup. Lower trust domains do not operate a newer-version buffet. Exact profile matching is the current bootstrap rule; WIP-0022 owns richer source, bytecode, proof, target, platform, and ABI compatibility.
 
 Exact requirements select one version. Caret requirements remain below the next compatible major boundary, with the usual narrower `0.x` boundaries. Tilde requirements remain within one major/minor pair. A requirement whose minimum is stable rejects every prerelease candidate, even one with a higher release tuple; a requirement that explicitly names a prerelease may select compatible prerelease or stable candidates. Stable releases sort after prereleases for an equal release tuple. Duplicate catalog versions, missing solutions, root self-dependencies, cyclic selected graphs, and graphs over 10,000 packages fail closed. The current solver additionally permits at most 10,000 deterministic solver-state and candidate visits across the complete search; exhaustion reports a work-limit error, never `No package solution` with its pockets turned out. Development dependencies enter the graph only when explicitly requested for the root. A selected dependency's development edges never propagate into solving, cycle checks, or lock output; otherwise one test helper could recruit another test helper until the lockfile resembled a conference badge.
 
-The generated `wheeler.package.lock.yaml` records the schema, root manifest identity, exact selected versions, archive identities, manifest identities, and dependency edges:
+The generated `wheeler.package.lock.yaml` schema 2 records the root manifest identity plus each exact repository, version, archive, manifest, and dependency selection:
 
 ```yaml
-schema: 1
+schema: 2
 root: "0000000000000000000000000000000000000000000000000000000000000000"
 packages:
   - name: "wheeler.bytecode"
     version: "0.1.0"
+    repository: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     archive: "1111111111111111111111111111111111111111111111111111111111111111"
     manifest: "2222222222222222222222222222222222222222222222222222222222222222"
     dependencies: []
   - name: "wheeler.compiler"
     version: "0.1.0"
+    repository: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     archive: "3333333333333333333333333333333333333333333333333333333333333333"
     manifest: "4444444444444444444444444444444444444444444444444444444444444444"
     dependencies:
       - "wheeler.bytecode"
 ```
 
-Package records and each dependency list are sorted. `PackageLockParser` accepts only the closed YAML schema, valid identities, and dependency names whose packages exist. Lock identity is SHA-256 over canonical bytes.
+Package records and each dependency list are sorted. `repository` is the stable trust-domain identity, never an alias, URL, list position, or XDG path. `PackageLockParser` accepts only schema 2, valid lowercase identities, and dependency names whose packages exist. Lock identity is SHA-256 over canonical bytes.
 
 ## Build plan
 
@@ -276,7 +278,7 @@ The Wheeler-written package codecs live under canonical `wheeler.packages`. Its 
 
 ## Wheeler-native lock slice
 
-`NativeLock.w` uses the shared scanner, name/version checks, and token boundary to parse schema 1, one or two sorted package records, lowercase 64-nybble root/archive/manifest identities, and one edge from the first package to the second. Shared `LineEmitter.w` emits one canonical record per line, including the final newline; the independent stage-0 lock parser accepts those bytes. The fixture rejects schema drift, uppercase hex, duplicate or unsorted packages, and unknown or reversed edges. Larger package sets and complete edge lists remain, as does hashing the bytes rather than merely checking that a digest has dressed correctly for dinner.
+`NativeLock.w` uses the shared scanner and name/version checks to parse the bounded schema-2 YAML fixture: two sorted packages, lowercase repository/archive/manifest identities, and one dependency from the first package to the second. Shared `LineEmitter.w` publishes the exact validated bytes, and the independent stage-0 lock parser accepts them. The fixture rejects schema drift, uppercase hex, duplicate packages, and an unknown or reversed dependency. General package sets remain, as does hashing the bytes rather than merely checking that a digest has dressed correctly for dinner.
 
 ## Wheeler-native workspace slice
 

@@ -16,7 +16,7 @@ public final class PackageLockParser {
   private static final int MAX_BYTES = 4 * 1024 * 1024;
   private static final Set<String> ROOT_FIELDS = Set.of("schema", "root", "packages");
   private static final Set<String> PACKAGE_FIELDS = Set.of(
-      "name", "version", "archive", "manifest", "dependencies");
+      "name", "version", "repository", "archive", "manifest", "dependencies");
 
   public PackageLock parse(byte[] utf8) {
     if (utf8.length > MAX_BYTES) {
@@ -54,6 +54,7 @@ public final class PackageLockParser {
       entries.add(new PackageLock.Entry(
           requiredString(entry, "name"),
           requiredString(entry, "version"),
+          requiredString(entry, "repository"),
           requiredString(entry, "archive"),
           requiredString(entry, "manifest"),
           stringList(CanonicalYaml.sequence(

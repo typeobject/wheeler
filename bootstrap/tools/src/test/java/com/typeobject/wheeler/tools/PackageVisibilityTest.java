@@ -9,6 +9,7 @@ import com.typeobject.wheeler.packageformat.PackageArchive;
 import com.typeobject.wheeler.packageformat.PackageLock;
 import com.typeobject.wheeler.packageformat.PackageManifest;
 import com.typeobject.wheeler.packageformat.PackageManifestParser;
+import com.typeobject.wheeler.packageformat.PackageResolver;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -138,9 +139,11 @@ class PackageVisibilityTest {
     writeArchive(vendor, middle, middleIdentity, middleArchive);
     PackageLock lock = new PackageLock(PackageLock.SCHEMA_VERSION, rootManifest.identity(), List.of(
         new PackageLock.Entry(
-            leaf.name(), leaf.version(), leafIdentity, leaf.identity(), List.of()),
+            leaf.name(), leaf.version(), PackageResolver.SEALED_CATALOG_IDENTITY,
+            leafIdentity, leaf.identity(), List.of()),
         new PackageLock.Entry(
-            middle.name(), middle.version(), middleIdentity, middle.identity(),
+            middle.name(), middle.version(), PackageResolver.SEALED_CATALOG_IDENTITY,
+            middleIdentity, middle.identity(),
             List.of(leaf.name()))));
     Files.writeString(vendor.resolve("wheeler.package.lock.yaml"), lock.canonicalText());
     return new Fixture(root);
