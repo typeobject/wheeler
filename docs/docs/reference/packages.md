@@ -2,6 +2,8 @@
 
 Wheeler package metadata uses its own declarative syntax and canonical archive. The current stage-0 implementation parses `wheeler.workspace` and `wheeler.package`, resolves an immutable package catalog, reads and writes canonical `wheeler.package.lock`, loads exact offline dependencies, emits, verifies, and executes source-bound build plans, and reads and writes content-addressed `.wpk` archives. A physical local registry supports immutable publish/fetch transport. Network transport, namespace authorization, source module imports, and the Wheeler-written native implementation remain package-system work.
 
+The implemented registry and catalog commands still require explicit physical paths. [WIP-0009](../proposals/WIP-0009-wheeler-package-and-build-system.md#xdg-local-repository-and-artifact-cache) specifies the future XDG policy/data/cache/state split and Conan-style ordered repository lookup; [WIP-0023](../proposals/WIP-0023-recipe-repositories-and-reproducible-builds.md#xdg-local-objects-and-reusable-artifacts) owns repository/build-input/PREV semantics. There is no current ambient XDG lookup or build cache. Reference documentation will not wish one into existence with an especially confident pathname.
+
 ## Workspace manifest
 
 A workspace manifest names one profile and one or more package directories:

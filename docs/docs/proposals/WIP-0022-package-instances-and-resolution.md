@@ -64,7 +64,7 @@ These are graph semantics, not cleanup items. Once third-party packages depend o
 
 ## Terms and semantic model
 
-A **repository identity** names one trust domain, not one URL. Mirrors serve the same signed snapshots and objects. Different repository identities never compete for a package name implicitly.
+A **repository identity** names one trust domain, not one URL. Mirrors serve the same signed snapshots and objects. Different repository identities never merge candidate sets. WIP-0009's canonical ordered policy may explicitly try trust domains in sequence; the first authoritative repository with an admissible candidate binds that package-instance lookup, and later repositories do not compete until a requirement names another alias.
 
 A human package coordinate is:
 
@@ -181,7 +181,7 @@ Hard limits cover roots, instances, edges, candidates, incompatibilities, decisi
 
 The ordinary update objective preserves the maximum valid locked instances, changes explicitly selected packages and forced dependents, minimizes changed contextual edges, then prefers highest compatible stable versions with canonical tie-breakers. Resolver/objective versions enter the lock.
 
-A workspace names members, root targets, repository aliases/snapshots, explicit content-identified overrides, and capability policy. Member dependencies bind directly to exact member source identity and cannot be published accidentally as upstream coordinates.
+A workspace names members, root targets, an ordered repository-alias/snapshot policy, explicit content-identified overrides, and capability policy. Member dependencies bind directly to exact member source identity and cannot be published accidentally as upstream coordinates.
 
 Capabilities are keyed by:
 

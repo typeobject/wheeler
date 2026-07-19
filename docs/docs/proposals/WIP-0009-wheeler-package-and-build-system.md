@@ -82,7 +82,7 @@ Commands operate on the workspace graph by default and accept explicit package, 
 - Make dependency and build output identity deterministic and content-addressed.
 - Model source profile, bytecode version, effects, quantum capabilities, proofs, native ABI, and target requirements explicitly.
 - Execute build tools under least authority with declared inputs, outputs, limits, and network policy.
-- Support offline, vendored, mirrored, and air-gapped operation.
+- Support offline, vendored, mirrored, air-gapped, and XDG-local repository operation.
 - Bootstrap the compiler, runtime, and package manager from a prior native Wheeler recovery release.
 
 ## Non-goals
@@ -94,6 +94,7 @@ Commands operate on the workspace graph by default and accept explicit package, 
 - Resolve dependencies differently according to registry response order, wall-clock time, locale, or filesystem order.
 - Guarantee that every package version builds on every target.
 - Make live quantum jobs part of package publication.
+- Treat a local artifact cache as package authority, provenance, or a substitute for verification.
 
 ## Names and files
 
@@ -203,7 +204,7 @@ Archives reject duplicate paths, traversal, links escaping the package root, spe
 - CPU-step, memory, file-byte, output-byte, and deadline policy limits;
 - cacheability and reproducibility requirements.
 
-The plan is content-addressed. Cache hits are accepted only after output hash and schema verification. Remote caches are untrusted stores; signatures may establish provenance but never replace local structural verification.
+The plan is content-addressed. Cache hits are accepted only after complete build-input-key matching plus output hash and schema verification. XDG-local and remote caches are equally untrusted stores; signatures may establish provenance but never replace local structural verification.
 
 Independent nodes may execute concurrently. Semantic output order, diagnostics, archive members, and lock updates are reduced in canonical graph order rather than task completion order.
 
@@ -237,6 +238,29 @@ Checked-in examples are normal workspace packages with deployable or tool target
 A registry stores immutable package archives by content identity and a signed append-only mapping from package names and versions to archive identities. Publication never mutates an existing `(namespace, name, version)` mapping.
 
 Namespaces have explicit ownership and delegation. Clients verify archive hash, manifest identity, namespace authorization, and package limits before resolution. Registry mirrors and offline vendor stores preserve identities; changing the download location does not change the package.
+
+### XDG local repository and artifact cache
+
+The default developer repository follows the XDG base-directory contract. Wheeler does not create `/.wheeler`, a dot directory directly below `$HOME`, or a repository in whichever directory the shell happened to enter:
+
+| Purpose | Physical root | Semantics |
+|---|---|---|
+| Ordered repository policy | `${XDG_CONFIG_HOME:-$HOME/.config}/wheeler/wheeler.repositories` | Canonical alias, repository identity, transport, trust, and lookup order |
+| Durable local publication | `${XDG_DATA_HOME:-$HOME/.local/share}/wheeler/repository` | Immutable package objects and no-replace name/version mappings for the default `local` repository |
+| Disposable artifact reuse | `${XDG_CACHE_HOME:-$HOME/.cache}/wheeler/artifacts` | Verified build outputs indexed by complete build-input identity |
+| Local journals and quarantine state | `${XDG_STATE_HOME:-$HOME/.local/state}/wheeler` | Retry records, quarantine decisions, and bounded GC/accounting state |
+
+An XDG variable participates only when it is an absolute physical path, as the XDG specification requires. A missing variable uses the listed fallback; a relative value is ignored with a stable diagnostic rather than reinterpreted beneath the workspace. Repository-policy bytes and selected repository/snapshot identities are deterministic resolver inputs, but their physical XDG location is not. These physical roots never enter `wheeler.package.lock`, package identity, plan identity, diagnostics intended for comparison, or canonical provenance. The selected object, repository trust domain, snapshot, build-input identity, and bytes do.
+
+The repository policy is an ordered list, in the useful Conan 2 sense rather than an unordered bucket of URLs. `wheeler repository add`, `remove`, `enable`, `disable`, `move`, and `list` update or print one canonical file atomically; aliases are unique, repository identities are stable, and physical transports are not identities. The default list contains the XDG data repository as `local`. Command-line repository selections may choose one alias or an explicit ordered subset, but they do not mutate policy behind the user's back.
+
+Unlocked lookup visits enabled repositories in declared order. For one package instance, the first repository that authoritatively serves its namespace and has any admissible release owns that lookup; lower-priority repositories do not donate newer versions to the same instance. This is ordered fallback, not a highest-version buffet assembled across unrelated trust domains. WIP-0022's explicit aliases may select another repository or permit separate instances. Locks record stable repository and snapshot identities for every selection, never the alias, list position, URL, or XDG path. A locked lookup contacts only the bound repository or an identity-preserving mirror/cache; finding equal-looking bytes in the next repository is not authority to switch.
+
+Without an explicit repository argument, `publish` targets `local`, while `fetch` and unlocked developer resolution use the configured order. An explicit repository may select local or remote transport without changing object identity. Local publication verifies canonical bytes, stages the object and mapping privately, rejects a conflicting `(name, version)`, and publishes with no-replace semantics. Equal publication is idempotent. Atomic visibility is not a durability receipt; WIP-0032 must name any stronger evidence instead of asking `rename(2)` to wear a medal.
+
+The cache may hold verified outputs produced from workspace source, vendored packages, local publication, recipe builds, mirrors, or independent builders. Origin is provenance, not a cache key shortcut. A hit requires the complete compiler/tool/kernel identities, source and package inputs, profile, target, options, grants, limits that affect bytes, canonical plan node, output schema, length, and digest to match. Wheeler then re-verifies the artifact exactly as if it had arrived from a hostile USB stick. Missing, corrupt, divergent, oversized, or schema-wrong entries are deleted or quarantined and rebuilt; they never become resolver candidates by being nearby.
+
+Cache insertion is bounded and atomic. Eviction and `wheeler cache gc` are external maintenance effects over disposable objects and cannot alter resolution, output bytes, diagnostics, or lock data. `wheeler clean` removes the repository build tree, not vendored inputs, durable local publications, or the XDG cache. Credentials, provider output, coherent quantum state, raw loans, descriptors, registered addresses, and remote keys are forbidden cache payloads.
 
 `wheeler publish` performs, in order:
 
@@ -301,7 +325,7 @@ Dependency resolution is deterministic computation over immutable manifests and 
 
 A failed build transaction discards private outputs. It does not claim to reverse network transfer or terminal output. Lockfile, archive, and artifact replacement use atomic host effects. Publication acknowledgement is a commit barrier; recovery reconciles by content and idempotency identity before retrying.
 
-Build-event logs may be replayed for diagnostics and provenance, but replay cannot substitute unavailable package payloads or rerun a publication under an old identity. Clean removes caches only; it cannot make a committed package version cease to exist.
+Build-event logs may be replayed for diagnostics and provenance, but replay cannot substitute unavailable package payloads or rerun a publication under an old identity. `wheeler clean` removes only the selected repository build tree; explicit cache GC cannot make a durable local or remote package version cease to exist.
 
 ## Security and limits
 
@@ -325,12 +349,13 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 2. Add stage-0 readers and canonical writers with malformed-input and reproducibility suites.
 3. Implement workspace module resolution and replace hard-coded Gradle project knowledge.
 4. Implement locked local/path dependencies, then vendored and registry dependencies.
-5. Implement check, build, test, run, doc, package, and clean over the Wheeler compiler and native runtime.
-6. Implement the Wheeler package manager and compare every plan, lockfile, archive, diagnostic, and failure with stage 0.
-7. Bootstrap the complete repository from a vendored recovery workspace with no network.
-8. Switch ordinary CI and release jobs to native `wheeler`.
-9. Delete Gradle files, wrappers, Java package tasks, host-language manifest readers, and duplicate shell orchestration.
-10. Add registry publication only after local, vendored, and recovery builds are stable.
+5. Add the XDG data repository, content-keyed artifact cache, quarantine state, and explicit cache maintenance.
+6. Implement check, build, test, run, doc, package, and clean over the Wheeler compiler and native runtime.
+7. Implement the Wheeler package manager and compare every plan, lockfile, archive, diagnostic, and failure with stage 0.
+8. Bootstrap the complete repository from a vendored recovery workspace with no network.
+9. Switch ordinary CI and release jobs to native `wheeler`.
+10. Delete Gradle files, wrappers, Java package tasks, host-language manifest readers, and duplicate shell orchestration.
+11. Add remote registry publication only after local, vendored, cached, and recovery builds are stable.
 
 ## Progress
 
@@ -339,7 +364,7 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 - [ ] Workspace, package, lockfile, and archive schemas have strict stage-0 codecs; build plans cover compiler, source, package-input, output, capability-request, execution-limit, and explicit grant identities; sealed stage-0 execution derives and checks the executing compiler/core class identity, rederives plans, and publishes exact verified outputs atomically, while isolated native memory/work enforcement remains.
 - [ ] Stage-0 manifests, resolution, lockfiles, build plans, and archives are content-addressed and reproducible; exact offline dependency targets build in dependency-first order. Modular entryless `library` targets emit a verified inert-entry artifact, and consuming package targets source-link only reachable public modules from exact locked archives, including qualified functions, records, closed variants, fixed arrays/slices, and exhaustive matches; root shadowing, private APIs, cycles, and unreachable local source fail closed. Native build execution and stable binary-library linkage remain.
 - [x] The stage-0 in-memory resolver deterministically selects one version per package with backtracking bounded by a deterministic 10,000-unit total-work budget, exact root/dependency source-profile matching, preference for still-valid exact selections from an existing lock plus explicit targeted/full update modes, explicit root-only nontransitive development scope, cycle rejection, and stable ranges that ignore prerelease candidates unless the requirement names one.
-- [ ] Physical catalogs, exact vendor trees, and immutable local registry publish/fetch transport are bounded, integrity-checked, and covered end to end; signed network registry snapshots remain.
+- [ ] Physical catalogs, exact vendor trees, and immutable local registry publish/fetch transport are bounded, integrity-checked, and covered end to end; canonical ordered multi-repository policy, XDG-default repository/cache placement, build-input-keyed reuse, quarantine/GC, and signed network registry snapshots remain.
 - [x] The root `wheeler.workspace`, canonical core, compiler, runtime, and package-codec packages, and example package form an executable stage-0 workspace. The examples bind the exact compiler archive through their committed lock and vendor tree rather than a source-directory side door.
 - [x] Wheeler-written `crypto/Sha256.w` now matches independent digest vectors over bounded binary input and supplies the content-identity primitive required by native lock/plan/archive verification.
 - [x] Canonical `wheeler.core.encoding.binary` owns bounded little-endian reads and ASCII name/release/path checks for binary package codecs; `Plan.w` no longer carries a private copy of the rules. A helper module is cheaper than two subtly different security boundaries.
@@ -360,10 +385,10 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 ## Testing and acceptance
 
 - [ ] Manifest and lock parsers reject malformed UTF-8, duplicates, unknown required fields, traversal, excessive nesting, and oversized values; both stage-0 parsers fail closed and broader generative coverage remains.
-- [ ] Resolution is identical under catalog and manifest insertion order with bounded backtracking; filesystem, registry transport, and task completion inputs remain to test.
+- [ ] Resolution is identical under catalog and manifest insertion order with bounded backtracking; configured repository order is honored exactly, the first authoritative admissible repository wins without cross-repository version mixing, and filesystem, transport, and task-completion order otherwise remain irrelevant.
 - [x] Locked and offline stage-0 builds consume only a package-local exact vendor tree and never perform resolution, network access, or ambient cache lookup.
 - [ ] Build-plan codecs are order-independent and reject corruption and forged node identities; direct and sealed-plan clean builds produce byte-identical `.wbc` and a forged executing-compiler identity is rejected, while complete lockfile, package archive, plan, and provenance reproduction remains.
-- [ ] Vendor retries and relocation preserve exact locked bytes and reject poisoned files; cache deletion, remote cache poisoning, and mirror selection remain.
+- [ ] Vendor retries and relocation preserve exact locked bytes and reject poisoned files; XDG fallback/override paths are identity-neutral, local and remote cache poisoning fails closed, cache deletion changes no result, and mirror selection preserves repository identity.
 - [ ] Build tools cannot observe or mutate undeclared files, environment, network, clock, random state, credentials, or quantum targets.
 - [x] Cyclic package and source-module dependencies, dependency module shadowing, private exports, unreachable local modules, and profile conflicts fail closed; feature and future binary ABI conflicts remain.
 - [ ] Test-selected Wheeler tools execute through `wheeler`; compiler, runtime, package manager, tools, docs, and negative fixtures still require package migration.

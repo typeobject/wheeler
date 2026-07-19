@@ -26,7 +26,7 @@ The package system must therefore identify repository state, recipe closure, sem
 ## Goals
 
 - Define repository identity, signed snapshots, namespace authority, key rotation, and mirrors.
-- Support public, private, vendored, and air-gapped trust domains.
+- Support ordered public, private, XDG-local, vendored, and air-gapped trust domains.
 - Define declarative recipes and exact digest/length-bound source objects.
 - Define RREV, `variant_id`, `build_input_id`, and PREV.
 - Permit immutable recipe revisions under one semantic version.
@@ -133,7 +133,15 @@ A semantic version may map to several historical RREVs. Locks pin one. Explicit 
 
 Typed recipe operations include unpacking verified archives, applying exact patches, copying declared files, invoking locked tools, compiling Wheeler/native source, running declared tests, constructing an install tree, emitting interface metadata, packaging outputs, and building a WIP-0026 image. Every operation declares inputs, outputs, arguments, limits, and capabilities.
 
-Root policy binds repository aliases to IDs and namespace allowlists. Overlap is explicit. Public and private repositories never compete by convenience.
+Root policy binds repository aliases to IDs and namespace allowlists. Overlap is explicit. Public and private repositories never compete by convenience. WIP-0009 owns the canonical ordered alias list and lookup algorithm: the first authoritative repository with an admissible release owns one unlocked package-instance lookup, and lower entries do not leak versions into it.
+
+### XDG local objects and reusable artifacts
+
+WIP-0009 owns user-facing placement and commands. Repository data lives below `${XDG_DATA_HOME:-$HOME/.local/share}/wheeler/repository`, reusable build artifacts below `${XDG_CACHE_HOME:-$HOME/.cache}/wheeler/artifacts`, policy below `${XDG_CONFIG_HOME:-$HOME/.config}/wheeler/wheeler.repositories`, and journals/quarantine state below `${XDG_STATE_HOME:-$HOME/.local/state}/wheeler`. The paths are adapter state, not RREV, variant, build-input, PREV, snapshot, or repository identity.
+
+The data repository is an immutable trust domain and the default `local` publication target. The artifact cache is not a repository and contributes no resolver candidates. It may reuse outputs acquired from any repository, workspace, vendor closure, recipe build, mirror, or independent builder only when the complete `build_input_id`, output kind, canonical length, and PREV match. Every hit is decoded and verified under current limits before use. A source label records provenance; it does not let two causes share a key because their filenames looked friendly.
+
+Cache corruption or deletion causes a miss, quarantine, or rebuild and cannot alter selected instances or canonical output. GC is bounded reachability over disposable cache entries. Durable repository GC separately respects snapshots, locks, yanks, quarantine, and holds. Neither operation silently promotes cached bytes into publication.
 
 A complete vendor closure may contain snapshots, recipes, sources, packages, attestations, and the lock. Extra objects are inert, not candidates.
 
@@ -199,6 +207,7 @@ Reject noncanonical snapshots, invalid delegations, conflicting mappings, source
 - [ ] Repository, snapshot, and recipe schemas accepted.
 - [ ] RREV/variant/build-input/PREV implemented.
 - [ ] Fetch separated from build.
+- [ ] XDG local repository, ordered policy, reusable artifact cache, and quarantine state implemented.
 - [ ] Reproducibility normalization passes.
 - [ ] Quarantine and independent attestations implemented.
 - [ ] Compatibility checks and signed snapshots implemented.
@@ -213,6 +222,8 @@ Reject noncanonical snapshots, invalid delegations, conflicting mappings, source
 - [ ] Source replacement fails before build.
 - [ ] Vendored locked builds use no network.
 - [ ] Mirrors yield identical objects and never compete as repositories.
+- [ ] Ordered repository lookup stops at the first authoritative admissible trust domain; lower repositories cannot inject a newer release, while an explicit alias selects the intended domain.
+- [ ] XDG overrides and fallback paths change placement only; cache hits from every supported origin reverify complete build-input identity and bytes, and cache deletion changes no result.
 - [ ] Path, identity, locale, timezone, order, timestamp, and job count do not alter bytes.
 - [ ] Independent builds produce one PREV; divergence is quarantined.
 - [ ] Equal publication is idempotent and conflicts cannot overwrite.
