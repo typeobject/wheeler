@@ -7,15 +7,12 @@ import wheeler.packages.paths;
 import wheeler.packages.tokens;
 
 classical class Workspace {
-  /// Carries the bounded two-member recovery workspace.
+  /// Carries scalar ranges and counts for one validated workspace.
   public record WorkspaceModel(
     long nameStart,
     long nameLength,
+    long profileStart,
     long profileLength,
-    long firstMemberNameLength,
-    long firstMemberPathLength,
-    long secondMemberNameLength,
-    long secondMemberPathLength,
     long memberCount
   ) {}
 
@@ -79,23 +76,18 @@ classical class Workspace {
     return false;
   }
 
-  private boolean nestedPath(
+  private boolean sameRange(
     borrow utf8 source,
-    borrow mut words starts,
-    borrow mut words lengths,
-    long parent,
-    long child
+    long leftStart,
+    long leftLength,
+    long rightStart,
+    long rightLength
   ) {
-    long parentLength = lengths[parent] - 2;
-    long childLength = lengths[child] - 2;
-    if (parentLength < childLength) {
+    if (leftLength == rightLength) {
       long offset = 0;
-      while (offset < parentLength) limit 256 {
+      while (offset < leftLength) limit 4096 {
         if (
-          utf8Scalar(source, starts[parent] + 1 + offset) == utf8Scalar(
-            source,
-            starts[child] + 1 + offset
-          )
+          utf8Scalar(source, leftStart + offset) == utf8Scalar(source, rightStart + offset)
         ) {
           offset += 1;
         } else {
@@ -103,19 +95,66 @@ classical class Workspace {
         }
       }
 
-      return utf8Scalar(source, starts[child] + 1 + parentLength) == 47;
+      return true;
     }
 
     return false;
   }
 
-  private boolean workspaceShape(
+  private boolean nestedRange(
+    borrow utf8 source,
+    long parentStart,
+    long parentLength,
+    long childStart,
+    long childLength
+  ) {
+    if (parentLength < childLength) {
+      long offset = 0;
+      while (offset < parentLength) limit 4096 {
+        if (
+          utf8Scalar(source, parentStart + offset) == utf8Scalar(source, childStart + offset)
+        ) {
+          offset += 1;
+        } else {
+          return false;
+        }
+      }
+
+      return utf8Scalar(source, childStart + parentLength) == 47;
+    }
+
+    return false;
+  }
+
+  private boolean capacity(
+    borrow mut words memberNameStarts,
+    borrow mut words memberNameLengths,
+    borrow mut words memberPathStarts,
+    borrow mut words memberPathLengths,
+    long member
+  ) {
+    if (member < bufferLength(memberNameStarts)) {
+      if (member < bufferLength(memberNameLengths)) {
+        if (member < bufferLength(memberPathStarts)) {
+          return member < bufferLength(memberPathLengths);
+        }
+      }
+    }
+
+    return false;
+  }
+
+  private boolean validHeader(
     borrow utf8 source,
     borrow mut words kinds,
     borrow mut words starts,
     borrow mut words lengths,
     long count
   ) {
+    if (count < 20) {
+      return false;
+    }
+
     boolean valid = key(source, kinds, starts, lengths, count, 0, 3386979745);
     if (valid) {
       valid = tokenHash(source, starts, lengths, 2) == 49;
@@ -134,6 +173,10 @@ classical class Workspace {
     }
 
     if (valid) {
+      valid = validWorkspaceName(source, starts[7] + 1, lengths[7] - 2);
+    }
+
+    if (valid) {
       valid = key(source, kinds, starts, lengths, count, 8, 102769789353);
     }
 
@@ -142,70 +185,120 @@ classical class Workspace {
     }
 
     if (valid) {
+      valid = validWorkspaceName(source, starts[10] + 1, lengths[10] - 2);
+    }
+
+    if (valid) {
       valid = key(source, kinds, starts, lengths, count, 11, 99733129497);
-    }
-
-    if (valid) {
-      valid = memberValid(source, kinds, starts, lengths, count, 13);
-    }
-
-    if (valid) {
-      valid = memberValid(source, kinds, starts, lengths, count, 20);
     }
 
     return valid;
   }
 
-  /// Parses the canonical two-member YAML shape used by the native recovery fixture.
+  /// Parses every canonical member that fits the caller-provided bounded tables.
   public WorkspaceResult parseWorkspace(
     borrow utf8 source,
     borrow mut words kinds,
     borrow mut words starts,
     borrow mut words lengths,
-    long count
+    long count,
+    borrow mut words memberNameStarts,
+    borrow mut words memberNameLengths,
+    borrow mut words memberPathStarts,
+    borrow mut words memberPathLengths
   ) {
-    if (count == 27) {
-      boolean validName = validWorkspaceName(source, starts[7] + 1, lengths[7] - 2);
-      boolean validProfile = validWorkspaceName(source, starts[10] + 1, lengths[10] - 2);
-      boolean shape = workspaceShape(source, kinds, starts, lengths, count);
-      if (validName) {
-        if (validProfile) {
-          if (shape) {
-            long order = compareTokenText(source, starts, lengths, 16, 23);
-            boolean samePath = sameTokenText(source, starts, lengths, 19, 26);
-            boolean firstContains = nestedPath(source, starts, lengths, 19, 26);
-            boolean secondContains = nestedPath(source, starts, lengths, 26, 19);
-            if (order < 0) {
-              if (samePath) {
-                return new WorkspaceResult.Error(starts[26]);
-              }
-
-              if (firstContains) {
-                return new WorkspaceResult.Error(starts[26]);
-              }
-
-              if (secondContains) {
-                return new WorkspaceResult.Error(starts[26]);
-              }
-
-              WorkspaceModel workspace = new WorkspaceModel(
-                starts[7] + 1,
-                lengths[7] - 2,
-                lengths[10] - 2,
-                lengths[16] - 2,
-                lengths[19] - 2,
-                lengths[23] - 2,
-                lengths[26] - 2,
-                2
-              );
-              return new WorkspaceResult.Value(workspace);
-            }
-          }
-        }
-      }
+    if (validHeader(source, kinds, starts, lengths, count) == false) {
+      return new WorkspaceResult.Error(0);
     }
 
-    return new WorkspaceResult.Error(0);
-  }
+    long cursor = 13;
+    long memberCount = 0;
+    long previousNameToken = -1;
+    while (cursor < count) limit 512 {
+      if (memberValid(source, kinds, starts, lengths, count, cursor) == false) {
+        return new WorkspaceResult.Error(starts[cursor]);
+      }
 
+      if (
+        capacity(
+          memberNameStarts,
+          memberNameLengths,
+          memberPathStarts,
+          memberPathLengths,
+          memberCount
+        ) == false
+      ) {
+        return new WorkspaceResult.Error(starts[cursor]);
+      }
+
+      if (-1 < previousNameToken) {
+        long order = compareTokenText(source, starts, lengths, previousNameToken, cursor + 3);
+        boolean ordered = order < 0;
+        if (ordered == false) {
+          return new WorkspaceResult.Error(starts[cursor + 3]);
+        }
+      }
+
+      long pathStart = starts[cursor + 6] + 1;
+      long pathLength = lengths[cursor + 6] - 2;
+      long prior = 0;
+      while (prior < memberCount) limit 512 {
+        boolean same = sameRange(
+          source,
+          memberPathStarts[prior],
+          memberPathLengths[prior],
+          pathStart,
+          pathLength
+        );
+        boolean priorContains = nestedRange(
+          source,
+          memberPathStarts[prior],
+          memberPathLengths[prior],
+          pathStart,
+          pathLength
+        );
+        boolean currentContains = nestedRange(
+          source,
+          pathStart,
+          pathLength,
+          memberPathStarts[prior],
+          memberPathLengths[prior]
+        );
+        if (same) {
+          return new WorkspaceResult.Error(starts[cursor + 6]);
+        }
+
+        if (priorContains) {
+          return new WorkspaceResult.Error(starts[cursor + 6]);
+        }
+
+        if (currentContains) {
+          return new WorkspaceResult.Error(starts[cursor + 6]);
+        }
+
+        prior += 1;
+      }
+
+      set(memberNameStarts, memberCount, starts[cursor + 3] + 1);
+      set(memberNameLengths, memberCount, lengths[cursor + 3] - 2);
+      set(memberPathStarts, memberCount, pathStart);
+      set(memberPathLengths, memberCount, pathLength);
+      memberCount += 1;
+      previousNameToken = cursor + 3;
+      cursor += 7;
+    }
+
+    if (memberCount == 0) {
+      return new WorkspaceResult.Error(0);
+    }
+
+    WorkspaceModel workspace = new WorkspaceModel(
+      starts[7] + 1,
+      lengths[7] - 2,
+      starts[10] + 1,
+      lengths[10] - 2,
+      memberCount
+    );
+    return new WorkspaceResult.Value(workspace);
+  }
 }

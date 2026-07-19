@@ -49,7 +49,7 @@ classical class ManifestTokens {
     }
 
     long offset = 0;
-    while (offset < lengths[left]) limit 256 {
+    while (offset < lengths[left]) limit 4096 {
       if (
         utf8Scalar(source, starts[left] + offset) == utf8Scalar(source, starts[right] + offset)
       ) {
@@ -76,7 +76,7 @@ classical class ManifestTokens {
       commonLength = lengths[right];
     }
 
-    while (offset < commonLength) limit 256 {
+    while (offset < commonLength) limit 4096 {
       long leftScalar = utf8Scalar(source, starts[left] + offset);
       long rightScalar = utf8Scalar(source, starts[right] + offset);
       if (leftScalar < rightScalar) {

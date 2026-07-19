@@ -17,7 +17,7 @@ packages:
   - name: "wheeler.packages"
     version: "0.1.0"
     repository: "ee9855ff0d7866533c49b81a7eeb7d1a2cac9d7efbd300c583d29e699516efb0"
-    archive: "14a0e3983794b3d1a21ff79165c6b49fd736149f89e03f4ee519dda51d05c404"
+    archive: "c57e2492604d7ebcf696d6b3c06740f0406603322c3520a08e4a9839421df9dc"
     manifest: "4321af51a08dbad7c95cfc255398f2ffe822084352fbe70a7a4b441e3e46e2c9"
     dependencies:
       - "wheeler.compiler"

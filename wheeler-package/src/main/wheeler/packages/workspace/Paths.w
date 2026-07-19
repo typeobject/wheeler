@@ -50,7 +50,7 @@ classical class Paths {
     long cursor = start;
     long end = start + length;
     boolean needValue = true;
-    while (cursor < end) limit 256 {
+    while (cursor < end) limit 4096 {
       long scalar = utf8Scalar(source, cursor);
       if (scalar == 47) {
         if (needValue) {
@@ -95,7 +95,7 @@ classical class Paths {
     long end = start + length;
     long componentLength = 0;
     long dotCount = 0;
-    while (cursor < end) limit 256 {
+    while (cursor < end) limit 4096 {
       long scalar = utf8Scalar(source, cursor);
       if (scalar == 92) {
         cursor += utf8Width(source, cursor);

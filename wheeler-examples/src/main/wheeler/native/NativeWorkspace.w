@@ -15,6 +15,8 @@ classical class NativeWorkspace {
   state long firstMemberPathLength = 0;
   state long secondMemberNameLength = 0;
   state long secondMemberPathLength = 0;
+  state long lastMemberNameLength = 0;
+  state long lastMemberPathLength = 0;
   state long emittedLength = 0;
   state long finalCursor = 0;
 
@@ -22,10 +24,14 @@ classical class NativeWorkspace {
   ///
   /// - Effects: Mutates declared state and caller-owned byte output.
   entry void main(borrow utf8 source, borrow mut bytes canonical) {
-    region arena = new region(768, 3);
-    words kinds = allocate(arena, 32);
-    words starts = allocate(arena, 32);
-    words lengths = allocate(arena, 32);
+    region arena = new region(7168, 7);
+    words kinds = allocate(arena, 256);
+    words starts = allocate(arena, 256);
+    words lengths = allocate(arena, 256);
+    words memberNameStarts = allocate(arena, 16);
+    words memberNameLengths = allocate(arena, 16);
+    words memberPathStarts = allocate(arena, 16);
+    words memberPathLengths = allocate(arena, 16);
     long count = 0;
     ScanResult scanned = scan(source, kinds, starts, lengths);
     match (scanned) {
@@ -37,17 +43,29 @@ classical class NativeWorkspace {
       }
     }
 
-    WorkspaceResult parsed = parseWorkspace(source, kinds, starts, lengths, count);
+    WorkspaceResult parsed = parseWorkspace(
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      memberNameStarts,
+      memberNameLengths,
+      memberPathStarts,
+      memberPathLengths
+    );
     match (parsed) {
       case WorkspaceResult.Value(WorkspaceModel workspace) {
         nameStart = workspace.nameStart;
         nameLength = workspace.nameLength;
         profileLength = workspace.profileLength;
         memberCount = workspace.memberCount;
-        firstMemberNameLength = workspace.firstMemberNameLength;
-        firstMemberPathLength = workspace.firstMemberPathLength;
-        secondMemberNameLength = workspace.secondMemberNameLength;
-        secondMemberPathLength = workspace.secondMemberPathLength;
+        firstMemberNameLength = memberNameLengths[0];
+        firstMemberPathLength = memberPathLengths[0];
+        secondMemberNameLength = memberNameLengths[1];
+        secondMemberPathLength = memberPathLengths[1];
+        lastMemberNameLength = memberNameLengths[memberCount - 1];
+        lastMemberPathLength = memberPathLengths[memberCount - 1];
         emittedLength = emitCanonicalLines(source, starts, lengths, count, canonical);
       }
       case WorkspaceResult.Error(long parseOffset) {
@@ -59,12 +77,11 @@ classical class NativeWorkspace {
     assert(nameStart == 30);
     assert(nameLength == 14);
     assert(profileLength == 11);
-    assert(memberCount == 2);
-    assert(firstMemberNameLength == 3);
-    assert(firstMemberPathLength == 12);
-    assert(secondMemberNameLength == 4);
-    assert(secondMemberPathLength == 13);
     setOutputLength(canonical, emittedLength);
+    drop(memberPathLengths);
+    drop(memberPathStarts);
+    drop(memberNameLengths);
+    drop(memberNameStarts);
     drop(lengths);
     drop(starts);
     drop(kinds);

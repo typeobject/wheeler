@@ -50,7 +50,7 @@ classical class Names {
     long cursor = start;
     long end = start + length;
     boolean segmentStart = true;
-    while (cursor < end) limit 256 {
+    while (cursor < end) limit 4096 {
       long scalar = utf8Scalar(source, cursor);
       if (segmentStart) {
         boolean startScalar = moduleStart(scalar);
@@ -96,7 +96,7 @@ classical class Names {
     long cursor = start;
     long end = start + length;
     boolean needValue = true;
-    while (cursor < end) limit 256 {
+    while (cursor < end) limit 4096 {
       long scalar = utf8Scalar(source, cursor);
       boolean letter = lowercase(scalar);
       boolean numeric = digit(scalar);
@@ -149,7 +149,7 @@ classical class Names {
     long cursor = start;
     long end = start + length;
     boolean segmentStart = true;
-    while (cursor < end) limit 128 {
+    while (cursor < end) limit 4096 {
       long scalar = utf8Scalar(source, cursor);
       if (segmentStart) {
         boolean letter = lowercase(scalar);

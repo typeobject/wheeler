@@ -39,6 +39,12 @@ class NativeWorkspaceExampleTest {
             path: "packages/app"
           - name: "base"
             path: "packages/base"
+          - name: "compiler"
+            path: "packages/compiler"
+          - name: "runtime"
+            path: "packages/runtime"
+          - name: "tools"
+            path: "packages/tools"
         """;
     VirtualMachine machine = vm(program, canonical);
     var initial = machine.snapshot();
@@ -48,11 +54,13 @@ class NativeWorkspaceExampleTest {
     assertEquals(30, machine.global("nameStart"));
     assertEquals(14, machine.global("nameLength"));
     assertEquals(11, machine.global("profileLength"));
-    assertEquals(2, machine.global("memberCount"));
+    assertEquals(5, machine.global("memberCount"));
     assertEquals(3, machine.global("firstMemberNameLength"));
     assertEquals(12, machine.global("firstMemberPathLength"));
     assertEquals(4, machine.global("secondMemberNameLength"));
     assertEquals(13, machine.global("secondMemberPathLength"));
+    assertEquals(5, machine.global("lastMemberNameLength"));
+    assertEquals(14, machine.global("lastMemberPathLength"));
     assertEquals(canonical.length(), machine.global("emittedLength"));
     assertEquals(canonical.length(), machine.global("finalCursor"));
     assertEquals(canonical, new String(machine.hostOutput(), StandardCharsets.UTF_8));
@@ -61,6 +69,16 @@ class NativeWorkspaceExampleTest {
       machine.rewindOne();
     }
     assertEquals(initial, machine.snapshot());
+
+    String sixteenMembers = workspaceWithMembers(16);
+    VirtualMachine larger = vm(program, sixteenMembers);
+    larger.run();
+    assertEquals(16, larger.global("memberCount"));
+    assertEquals(8, larger.global("lastMemberNameLength"));
+    assertEquals(17, larger.global("lastMemberPathLength"));
+    assertEquals(sixteenMembers, new String(larger.hostOutput(), StandardCharsets.UTF_8));
+    new WorkspaceManifestParser().parse(larger.hostOutput());
+    assertTraps(program, workspaceWithMembers(17));
 
     assertTraps(program, canonical.replace("schema: 1", "schema: 2"));
     assertTraps(program, canonical.replace("members:", "plugins:"));
@@ -76,6 +94,22 @@ class NativeWorkspaceExampleTest {
     assertTraps(program, canonical.replace("packages/base", "packages/app"));
     assertTraps(program, canonical.replace("packages/base", "packages/app/nested"));
     assertTraps(program, canonical.replace("packages/base", "packages/../base"));
+  }
+
+  private static String workspaceWithMembers(int count) {
+    StringBuilder source = new StringBuilder("""
+        schema: 1
+        workspace:
+          name: "demo-workspace"
+          profile: "bootstrap-1"
+        members:
+        """);
+    for (int index = 0; index < count; index++) {
+      String suffix = index < 10 ? "0" + index : Integer.toString(index);
+      source.append("  - name: \"member").append(suffix).append("\"\n")
+          .append("    path: \"packages/member").append(suffix).append("\"\n");
+    }
+    return source.toString();
   }
 
   private static void assertTraps(Program program, String source) {
