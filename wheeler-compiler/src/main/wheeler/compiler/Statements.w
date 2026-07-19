@@ -5,6 +5,68 @@ module wheeler.compiler.statements;
 import wheeler.compiler.tokens;
 
 classical class Statements {
+  /// Returns the typed-local width required by one parsed statement.
+  public long statementLocalCount(long opcode) {
+    if (opcode == STATEMENT_ASSERT_EQ) {
+      return 0;
+    }
+
+    if (opcode == STATEMENT_ASSERT_BOOLEAN) {
+      return 1;
+    }
+
+    if (opcode == STATEMENT_ASSERT_BOOLEAN_NOT) {
+      return 3;
+    }
+
+    if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {
+      return 1;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG) {
+      return 2;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN) {
+      return 2;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT) {
+      return 4;
+    }
+
+    if (opcode == STATEMENT_ASSIGN) {
+      return 1;
+    }
+
+    if (opcode == STATEMENT_UPDATE_ADD) {
+      return 2;
+    }
+
+    if (opcode == STATEMENT_UPDATE_SUB) {
+      return 2;
+    }
+
+    if (opcode == STATEMENT_UPDATE_XOR) {
+      return 2;
+    }
+
+    return 0;
+  }
+
+  /// Returns the initialized result local for a declaration statement.
+  public long statementResultLocal(long opcode, long localBase) {
+    if (opcode == STATEMENT_LOCAL_BOOLEAN) {
+      return localBase + 1;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT) {
+      return localBase + 3;
+    }
+
+    return -1;
+  }
+
   /// Returns the token width of one bounded source statement.
   public long statementWidth(
     borrow utf8 source,
@@ -162,6 +224,44 @@ classical class Statements {
               ) {
                 return 6;
               }
+            }
+          }
+        }
+      }
+
+      return -1;
+    }
+
+    if (statementKind == STATEMENT_ASSERT_LOCAL_BOOLEAN) {
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 1,
+          PUNCTUATION_OPEN_PAREN
+        )
+      ) {
+        if (tokenKinds[statementStart + 2] == 1) {
+          if (
+            punctuationAt(
+              source,
+              tokenKinds,
+              tokenStarts,
+              statementStart + 3,
+              PUNCTUATION_CLOSE_PAREN
+            )
+          ) {
+            if (
+              punctuationAt(
+                source,
+                tokenKinds,
+                tokenStarts,
+                statementStart + 4,
+                PUNCTUATION_SEMICOLON
+              )
+            ) {
+              return 5;
             }
           }
         }
@@ -366,6 +466,10 @@ classical class Statements {
       return 0;
     }
 
+    if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {
+      return -1;
+    }
+
     return parsedSignedNumber(source, tokenStarts, tokenLengths, operandToken);
   }
 
@@ -395,6 +499,10 @@ classical class Statements {
 
     if (opcode == STATEMENT_ASSERT_BOOLEAN_NOT) {
       return statementStart + 3;
+    }
+
+    if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {
+      return statementStart + 2;
     }
 
     return statementStart + 3;

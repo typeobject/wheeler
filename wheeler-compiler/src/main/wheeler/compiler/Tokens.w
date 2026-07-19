@@ -52,6 +52,8 @@ classical class Tokens {
   public const long STATEMENT_ASSERT_BOOLEAN = 772;
   /// Names the parser IR code for a negated Boolean literal assertion.
   public const long STATEMENT_ASSERT_BOOLEAN_NOT = 773;
+  /// Names the parser IR code for an assertion over a prior Boolean local.
+  public const long STATEMENT_ASSERT_LOCAL_BOOLEAN = 774;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -184,6 +186,12 @@ classical class Tokens {
 
       if (utf8Scalar(source, tokenStarts[assertExpression]) == PUNCTUATION_BANG) {
         return STATEMENT_ASSERT_BOOLEAN_NOT;
+      }
+
+      if (
+        utf8Scalar(source, tokenStarts[statementStart + 3]) == PUNCTUATION_CLOSE_PAREN
+      ) {
+        return STATEMENT_ASSERT_LOCAL_BOOLEAN;
       }
 
       return STATEMENT_ASSERT_EQ;

@@ -10,6 +10,87 @@ import wheeler.compiler.tokens;
 
 classical class Parser {
 
+  private boolean booleanDeclaration(long opcode) {
+    if (opcode == STATEMENT_LOCAL_BOOLEAN) {
+      return true;
+    }
+
+    return opcode == STATEMENT_LOCAL_BOOLEAN_NOT;
+  }
+
+  private boolean sequenceOperandValid(long opcode, long operand) {
+    if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {
+      return -1 < operand;
+    }
+
+    return true;
+  }
+
+  private long sequenceStatementOperand(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart,
+    long firstPrevious,
+    long secondPrevious,
+    long thirdPrevious
+  ) {
+    long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {} else {
+      return statementOperand(source, tokenStarts, tokenLengths, statementStart);
+    }
+
+    long assertedName = statementStart + 2;
+    long localBase = 0;
+    long matchedLocal = -1;
+    long matchCount = 0;
+    if (0 < firstPrevious) {
+      long firstOpcode = statementOpcode(source, tokenStarts, tokenLengths, firstPrevious);
+      if (booleanDeclaration(firstOpcode)) {
+        if (
+          sameTokenText(source, tokenStarts, tokenLengths, firstPrevious + 1, assertedName)
+        ) {
+          matchedLocal = statementResultLocal(firstOpcode, localBase);
+          matchCount += 1;
+        }
+      }
+
+      localBase += statementLocalCount(firstOpcode);
+    }
+
+    if (0 < secondPrevious) {
+      long secondOpcode = statementOpcode(source, tokenStarts, tokenLengths, secondPrevious);
+      if (booleanDeclaration(secondOpcode)) {
+        if (
+          sameTokenText(source, tokenStarts, tokenLengths, secondPrevious + 1, assertedName)
+        ) {
+          matchedLocal = statementResultLocal(secondOpcode, localBase);
+          matchCount += 1;
+        }
+      }
+
+      localBase += statementLocalCount(secondOpcode);
+    }
+
+    if (0 < thirdPrevious) {
+      long thirdOpcode = statementOpcode(source, tokenStarts, tokenLengths, thirdPrevious);
+      if (booleanDeclaration(thirdOpcode)) {
+        if (
+          sameTokenText(source, tokenStarts, tokenLengths, thirdPrevious + 1, assertedName)
+        ) {
+          matchedLocal = statementResultLocal(thirdOpcode, localBase);
+          matchCount += 1;
+        }
+      }
+    }
+
+    if (matchCount == 1) {
+      return matchedLocal;
+    }
+
+    return -1;
+  }
+
   private MinimalProgramResult minimalProgramValue(
     borrow utf8 source,
     borrow mut words tokenStarts,
@@ -21,7 +102,15 @@ classical class Parser {
   ) {
     long initial = parsedSignedNumber(source, tokenStarts, tokenLengths, 8);
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, firstStart);
-    long operand = statementOperand(source, tokenStarts, tokenLengths, firstStart);
+    long operand = sequenceStatementOperand(
+      source,
+      tokenStarts,
+      tokenLengths,
+      firstStart,
+      -1,
+      -1,
+      -1
+    );
     long statementCount = 1;
     long secondOpcode = -1;
     long secondOperand = 0;
@@ -32,19 +121,59 @@ classical class Parser {
     if (0 < secondStart) {
       statementCount = 2;
       secondOpcode = statementOpcode(source, tokenStarts, tokenLengths, secondStart);
-      secondOperand = statementOperand(source, tokenStarts, tokenLengths, secondStart);
+      secondOperand = sequenceStatementOperand(
+        source,
+        tokenStarts,
+        tokenLengths,
+        secondStart,
+        firstStart,
+        -1,
+        -1
+      );
     }
 
     if (0 < thirdStart) {
       statementCount = 3;
       thirdOpcode = statementOpcode(source, tokenStarts, tokenLengths, thirdStart);
-      thirdOperand = statementOperand(source, tokenStarts, tokenLengths, thirdStart);
+      thirdOperand = sequenceStatementOperand(
+        source,
+        tokenStarts,
+        tokenLengths,
+        thirdStart,
+        firstStart,
+        secondStart,
+        -1
+      );
     }
 
     if (0 < fourthStart) {
       statementCount = 4;
       fourthOpcode = statementOpcode(source, tokenStarts, tokenLengths, fourthStart);
-      fourthOperand = statementOperand(source, tokenStarts, tokenLengths, fourthStart);
+      fourthOperand = sequenceStatementOperand(
+        source,
+        tokenStarts,
+        tokenLengths,
+        fourthStart,
+        firstStart,
+        secondStart,
+        thirdStart
+      );
+    }
+
+    if (sequenceOperandValid(opcode, operand) == false) {
+      return new MinimalProgramResult.Error(0);
+    }
+
+    if (sequenceOperandValid(secondOpcode, secondOperand) == false) {
+      return new MinimalProgramResult.Error(0);
+    }
+
+    if (sequenceOperandValid(thirdOpcode, thirdOperand) == false) {
+      return new MinimalProgramResult.Error(0);
+    }
+
+    if (sequenceOperandValid(fourthOpcode, fourthOperand) == false) {
+      return new MinimalProgramResult.Error(0);
     }
 
     SourceRange name = new SourceRange(tokenStarts[2], tokenLengths[2]);
@@ -181,25 +310,73 @@ classical class Parser {
     if (0 < firstStart) {
       statementCount = 1;
       opcode = statementOpcode(source, tokenStarts, tokenLengths, firstStart);
-      operand = statementOperand(source, tokenStarts, tokenLengths, firstStart);
+      operand = sequenceStatementOperand(
+        source,
+        tokenStarts,
+        tokenLengths,
+        firstStart,
+        -1,
+        -1,
+        -1
+      );
     }
 
     if (0 < secondStart) {
       statementCount = 2;
       secondOpcode = statementOpcode(source, tokenStarts, tokenLengths, secondStart);
-      secondOperand = statementOperand(source, tokenStarts, tokenLengths, secondStart);
+      secondOperand = sequenceStatementOperand(
+        source,
+        tokenStarts,
+        tokenLengths,
+        secondStart,
+        firstStart,
+        -1,
+        -1
+      );
     }
 
     if (0 < thirdStart) {
       statementCount = 3;
       thirdOpcode = statementOpcode(source, tokenStarts, tokenLengths, thirdStart);
-      thirdOperand = statementOperand(source, tokenStarts, tokenLengths, thirdStart);
+      thirdOperand = sequenceStatementOperand(
+        source,
+        tokenStarts,
+        tokenLengths,
+        thirdStart,
+        firstStart,
+        secondStart,
+        -1
+      );
     }
 
     if (0 < fourthStart) {
       statementCount = 4;
       fourthOpcode = statementOpcode(source, tokenStarts, tokenLengths, fourthStart);
-      fourthOperand = statementOperand(source, tokenStarts, tokenLengths, fourthStart);
+      fourthOperand = sequenceStatementOperand(
+        source,
+        tokenStarts,
+        tokenLengths,
+        fourthStart,
+        firstStart,
+        secondStart,
+        thirdStart
+      );
+    }
+
+    if (sequenceOperandValid(opcode, operand) == false) {
+      return new MinimalProgramResult.Error(0);
+    }
+
+    if (sequenceOperandValid(secondOpcode, secondOperand) == false) {
+      return new MinimalProgramResult.Error(0);
+    }
+
+    if (sequenceOperandValid(thirdOpcode, thirdOperand) == false) {
+      return new MinimalProgramResult.Error(0);
+    }
+
+    if (sequenceOperandValid(fourthOpcode, fourthOperand) == false) {
+      return new MinimalProgramResult.Error(0);
     }
 
     SourceRange name = new SourceRange(tokenStarts[2], tokenLengths[2]);
@@ -263,6 +440,10 @@ classical class Parser {
     }
 
     if (opcode == STATEMENT_ASSERT_BOOLEAN_NOT) {
+      supported = true;
+    }
+
+    if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {
       supported = true;
     }
 

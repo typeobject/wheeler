@@ -7,6 +7,7 @@ import wheeler.compiler.encoding;
 import wheeler.compiler.ir;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.parser;
+import wheeler.compiler.statements;
 import wheeler.compiler.string_table;
 import wheeler.compiler.verifier;
 import wheeler.lexer.scanner;
