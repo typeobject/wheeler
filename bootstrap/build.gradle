@@ -136,6 +136,11 @@ subprojects {
 
     test {
         useJUnitPlatform()
+        // A bounded seed must not turn host CPU count into test-process fan-out.
+        maxParallelForks = 1
+        forkEvery = 0
+        maxHeapSize = '768m'
+        jvmArgs '-XX:ActiveProcessorCount=2'
         testLogging {
             events 'failed', 'skipped'
             exceptionFormat = 'full'
