@@ -47,6 +47,9 @@ jacoco/
 # Docusaurus
 /docs/node_modules
 /docs/build
+/docs/.generated-bundle
+/docs/.generated-docs
+/docs/.generated-static
 .docusaurus
 .cache-loader
 .env.local

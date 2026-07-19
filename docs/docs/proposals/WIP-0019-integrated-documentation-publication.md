@@ -263,7 +263,7 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
 - [x] `wheeler docs` walks explicit physical manual and Wheeler roots with strict UTF-8 and bounded counts, validates Wheeler documentation, emits canonically ordered manual/API nodes, validates explicit `manual:`/`wheeler:` links into sorted `links-to` edges, builds navigation and search indexes, copies inert manual pages, binds every emitted file digest in `manifest.json`, and atomically publishes a renderer-neutral profile-1 bundle. The full repository currently yields 331 nodes without asking Docusaurus what a declaration is.
 - [ ] Documentation graph, identity, link, and bundle contracts are accepted.
 - [ ] One manual page, Wheeler API declaration, Java stage-0 declaration, and executable example produce one validated bundle.
-- [ ] Docusaurus renders only the bundle and publishes a verified manifest.
+- [x] Docusaurus renders only pages copied from a freshly verified semantic bundle. The local adapter rejects missing, duplicate, escaping, digest-mismatched, special, and unmanifested bundle files, then publishes bundle, adapter, renderer-lock, and Node identities as `publication-manifest.json` without consulting the authored tree.
 - [ ] Cross-package/version links, search, proof references, and malformed-input diagnostics pass.
 - [ ] A Wheeler-written generator emits the stage-0 bundle byte-for-byte.
 - [ ] Duplicate hand-authored/generated authorities are deleted.

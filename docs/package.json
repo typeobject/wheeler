@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
-    "start": "docusaurus start",
-    "build": "docusaurus build",
+    "prepare-bundle": "node prepare-bundle.mjs",
+    "start": "node prepare-bundle.mjs && docusaurus start",
+    "build": "node prepare-bundle.mjs && docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",

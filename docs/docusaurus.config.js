@@ -9,6 +9,7 @@ const config = {
   favicon: 'img/wheeler-mark.svg',
   url: 'https://wheeler.typeobject.com',
   baseUrl: '/',
+  staticDirectories: ['static', '.generated-static'],
   organizationName: 'typeobject',
   projectName: 'wheeler',
   onBrokenLinks: 'throw',
@@ -19,6 +20,7 @@ const config = {
       'classic',
       {
         docs: {
+          path: './.generated-docs',
           routeBasePath: '/',
           sidebarPath: './sidebars.js',
           editUrl: 'https://github.com/typeobject/wheeler/tree/master/docs/',
