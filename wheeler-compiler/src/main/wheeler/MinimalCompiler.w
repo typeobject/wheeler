@@ -75,6 +75,8 @@ classical class MinimalCompiler {
           0,
           0,
           0,
+          0,
+          0,
           scanGlobal,
           0,
           -1,
@@ -110,6 +112,8 @@ classical class MinimalCompiler {
             return new MinimalProgram(
               parseName,
               parseGlobal,
+              0,
+              0,
               0,
               0,
               0,
@@ -186,6 +190,7 @@ classical class MinimalCompiler {
     long firstLocalCount = statementLocalCount(program.opcode);
     long secondLocalCount = statementLocalCount(program.secondOpcode);
     long thirdLocalCount = statementLocalCount(program.thirdOpcode);
+    long fourthLocalCount = statementLocalCount(program.fourthOpcode);
     long localCount = firstLocalCount;
     long codeLength = 8 + statementCodeLength(program.opcode);
     if (1 < program.statementCount) {
@@ -199,8 +204,13 @@ classical class MinimalCompiler {
     }
 
     if (3 < program.statementCount) {
-      localCount += statementLocalCount(program.fourthOpcode);
+      localCount += fourthLocalCount;
       codeLength += statementCodeLength(program.fourthOpcode);
+    }
+
+    if (4 < program.statementCount) {
+      localCount += statementLocalCount(program.fifthOpcode);
+      codeLength += statementCodeLength(program.fifthOpcode);
     }
 
     long entryLocalCount = localCount;
@@ -371,6 +381,10 @@ classical class MinimalCompiler {
 
       if (3 < program.statementCount) {
         cursor = writeStatementLocalTypes(output, cursor, program.fourthOpcode);
+      }
+
+      if (4 < program.statementCount) {
+        cursor = writeStatementLocalTypes(output, cursor, program.fifthOpcode);
       }
     }
 
@@ -548,6 +562,16 @@ classical class MinimalCompiler {
           program.fourthOpcode,
           program.fourthOperand,
           firstLocalCount + secondLocalCount + thirdLocalCount
+        );
+      }
+
+      if (4 < program.statementCount) {
+        cursor = writeStatement(
+          output,
+          cursor,
+          program.fifthOpcode,
+          program.fifthOperand,
+          firstLocalCount + secondLocalCount + thirdLocalCount + fourthLocalCount
         );
       }
     }

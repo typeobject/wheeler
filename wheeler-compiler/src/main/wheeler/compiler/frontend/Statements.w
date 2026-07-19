@@ -22,7 +22,7 @@ classical class Statements {
     return true;
   }
 
-  /// Resolves one statement operand against up to three prior local declarations.
+  /// Resolves one statement operand against up to four prior local declarations.
   public long sequenceStatementOperand(
     borrow utf8 source,
     borrow mut words tokenStarts,
@@ -30,7 +30,8 @@ classical class Statements {
     long statementStart,
     long firstPrevious,
     long secondPrevious,
-    long thirdPrevious
+    long thirdPrevious,
+    long fourthPrevious
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
     if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {} else {
@@ -76,6 +77,20 @@ classical class Statements {
           sameTokenText(source, tokenStarts, tokenLengths, thirdPrevious + 1, assertedName)
         ) {
           matchedLocal = statementResultLocal(thirdOpcode, localBase);
+          matchCount += 1;
+        }
+      }
+
+      localBase += statementLocalCount(thirdOpcode);
+    }
+
+    if (0 < fourthPrevious) {
+      long fourthOpcode = statementOpcode(source, tokenStarts, tokenLengths, fourthPrevious);
+      if (booleanDeclaration(fourthOpcode)) {
+        if (
+          sameTokenText(source, tokenStarts, tokenLengths, fourthPrevious + 1, assertedName)
+        ) {
+          matchedLocal = statementResultLocal(fourthOpcode, localBase);
           matchCount += 1;
         }
       }

@@ -17,7 +17,8 @@ classical class Parser {
     long firstStart,
     long secondStart,
     long thirdStart,
-    long fourthStart
+    long fourthStart,
+    long fifthStart
   ) {
     long initial = parsedSignedNumber(source, tokenStarts, tokenLengths, 8);
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, firstStart);
@@ -26,6 +27,7 @@ classical class Parser {
       tokenStarts,
       tokenLengths,
       firstStart,
+      -1,
       -1,
       -1,
       -1
@@ -37,6 +39,8 @@ classical class Parser {
     long thirdOperand = 0;
     long fourthOpcode = -1;
     long fourthOperand = 0;
+    long fifthOpcode = -1;
+    long fifthOperand = 0;
     if (0 < secondStart) {
       statementCount = 2;
       secondOpcode = statementOpcode(source, tokenStarts, tokenLengths, secondStart);
@@ -46,6 +50,7 @@ classical class Parser {
         tokenLengths,
         secondStart,
         firstStart,
+        -1,
         -1,
         -1
       );
@@ -61,6 +66,7 @@ classical class Parser {
         thirdStart,
         firstStart,
         secondStart,
+        -1,
         -1
       );
     }
@@ -75,7 +81,23 @@ classical class Parser {
         fourthStart,
         firstStart,
         secondStart,
-        thirdStart
+        thirdStart,
+        -1
+      );
+    }
+
+    if (0 < fifthStart) {
+      statementCount = 5;
+      fifthOpcode = statementOpcode(source, tokenStarts, tokenLengths, fifthStart);
+      fifthOperand = sequenceStatementOperand(
+        source,
+        tokenStarts,
+        tokenLengths,
+        fifthStart,
+        firstStart,
+        secondStart,
+        thirdStart,
+        fourthStart
       );
     }
 
@@ -92,6 +114,10 @@ classical class Parser {
     }
 
     if (sequenceOperandValid(fourthOpcode, fourthOperand) == false) {
+      return new MinimalProgramResult.Error(0);
+    }
+
+    if (sequenceOperandValid(fifthOpcode, fifthOperand) == false) {
       return new MinimalProgramResult.Error(0);
     }
 
@@ -112,6 +138,8 @@ classical class Parser {
       thirdOperand,
       fourthOpcode,
       fourthOperand,
+      fifthOpcode,
+      fifthOperand,
       helper,
       0,
       -1,
@@ -146,6 +174,8 @@ classical class Parser {
       global,
       1,
       initial,
+      0,
+      -1,
       0,
       -1,
       0,
@@ -235,7 +265,8 @@ classical class Parser {
     long firstStart,
     long secondStart,
     long thirdStart,
-    long fourthStart
+    long fourthStart,
+    long fifthStart
   ) {
     long statementCount = 0;
     long opcode = -1;
@@ -246,6 +277,8 @@ classical class Parser {
     long thirdOperand = 0;
     long fourthOpcode = -1;
     long fourthOperand = 0;
+    long fifthOpcode = -1;
+    long fifthOperand = 0;
     if (0 < firstStart) {
       statementCount = 1;
       opcode = statementOpcode(source, tokenStarts, tokenLengths, firstStart);
@@ -254,6 +287,7 @@ classical class Parser {
         tokenStarts,
         tokenLengths,
         firstStart,
+        -1,
         -1,
         -1,
         -1
@@ -270,6 +304,7 @@ classical class Parser {
         secondStart,
         firstStart,
         -1,
+        -1,
         -1
       );
     }
@@ -284,6 +319,7 @@ classical class Parser {
         thirdStart,
         firstStart,
         secondStart,
+        -1,
         -1
       );
     }
@@ -298,7 +334,23 @@ classical class Parser {
         fourthStart,
         firstStart,
         secondStart,
-        thirdStart
+        thirdStart,
+        -1
+      );
+    }
+
+    if (0 < fifthStart) {
+      statementCount = 5;
+      fifthOpcode = statementOpcode(source, tokenStarts, tokenLengths, fifthStart);
+      fifthOperand = sequenceStatementOperand(
+        source,
+        tokenStarts,
+        tokenLengths,
+        fifthStart,
+        firstStart,
+        secondStart,
+        thirdStart,
+        fourthStart
       );
     }
 
@@ -318,6 +370,10 @@ classical class Parser {
       return new MinimalProgramResult.Error(0);
     }
 
+    if (sequenceOperandValid(fifthOpcode, fifthOperand) == false) {
+      return new MinimalProgramResult.Error(0);
+    }
+
     SourceRange name = new SourceRange(tokenStarts[2], tokenLengths[2]);
     SourceRange global = new SourceRange(0, 0);
     MinimalProgram program = new MinimalProgram(
@@ -334,6 +390,8 @@ classical class Parser {
       thirdOperand,
       fourthOpcode,
       fourthOperand,
+      fifthOpcode,
+      fifthOperand,
       global,
       0,
       -1,
@@ -437,6 +495,12 @@ classical class Parser {
       return new MinimalProgramResult.Error(0);
     }
 
+    if (
+      noGlobalStatementSupported(source, tokenStarts, tokenLengths, statements.fifth) == false
+    ) {
+      return new MinimalProgramResult.Error(0);
+    }
+
     return minimalNoGlobalValue(
       source,
       tokenStarts,
@@ -444,7 +508,8 @@ classical class Parser {
       statements.first,
       statements.second,
       statements.third,
-      statements.fourth
+      statements.fourth,
+      statements.fifth
     );
   }
 
@@ -479,6 +544,7 @@ classical class Parser {
     long second,
     long third,
     long fourth,
+    long fifth,
     boolean valid
   ) {}
 
@@ -491,47 +557,57 @@ classical class Parser {
     long count
   ) {
     if (bodyClosesAt(source, tokenKinds, tokenStarts, bodyStart, count)) {
-      return new BodyStatements(-1, -1, -1, -1, true);
+      return new BodyStatements(-1, -1, -1, -1, -1, true);
     }
 
     long firstWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, bodyStart);
     if (firstWidth < 1) {
-      return new BodyStatements(-1, -1, -1, -1, false);
+      return new BodyStatements(-1, -1, -1, -1, -1, false);
     }
 
     long firstEnd = bodyStart + firstWidth;
     if (bodyClosesAt(source, tokenKinds, tokenStarts, firstEnd, count)) {
-      return new BodyStatements(bodyStart, -1, -1, -1, true);
+      return new BodyStatements(bodyStart, -1, -1, -1, -1, true);
     }
 
     long secondWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, firstEnd);
     if (secondWidth < 1) {
-      return new BodyStatements(bodyStart, firstEnd, -1, -1, false);
+      return new BodyStatements(bodyStart, firstEnd, -1, -1, -1, false);
     }
 
     long secondEnd = firstEnd + secondWidth;
     if (bodyClosesAt(source, tokenKinds, tokenStarts, secondEnd, count)) {
-      return new BodyStatements(bodyStart, firstEnd, -1, -1, true);
+      return new BodyStatements(bodyStart, firstEnd, -1, -1, -1, true);
     }
 
     long thirdWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, secondEnd);
     if (thirdWidth < 1) {
-      return new BodyStatements(bodyStart, firstEnd, secondEnd, -1, false);
+      return new BodyStatements(bodyStart, firstEnd, secondEnd, -1, -1, false);
     }
 
     long thirdEnd = secondEnd + thirdWidth;
     if (bodyClosesAt(source, tokenKinds, tokenStarts, thirdEnd, count)) {
-      return new BodyStatements(bodyStart, firstEnd, secondEnd, -1, true);
+      return new BodyStatements(bodyStart, firstEnd, secondEnd, -1, -1, true);
     }
 
     long fourthWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, thirdEnd);
     if (fourthWidth < 1) {
-      return new BodyStatements(bodyStart, firstEnd, secondEnd, thirdEnd, false);
+      return new BodyStatements(bodyStart, firstEnd, secondEnd, thirdEnd, -1, false);
     }
 
     long fourthEnd = thirdEnd + fourthWidth;
-    boolean valid = bodyClosesAt(source, tokenKinds, tokenStarts, fourthEnd, count);
-    return new BodyStatements(bodyStart, firstEnd, secondEnd, thirdEnd, valid);
+    if (bodyClosesAt(source, tokenKinds, tokenStarts, fourthEnd, count)) {
+      return new BodyStatements(bodyStart, firstEnd, secondEnd, thirdEnd, -1, true);
+    }
+
+    long fifthWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, fourthEnd);
+    if (fifthWidth < 1) {
+      return new BodyStatements(bodyStart, firstEnd, secondEnd, thirdEnd, fourthEnd, false);
+    }
+
+    long fifthEnd = fourthEnd + fifthWidth;
+    boolean valid = bodyClosesAt(source, tokenKinds, tokenStarts, fifthEnd, count);
+    return new BodyStatements(bodyStart, firstEnd, secondEnd, thirdEnd, fourthEnd, valid);
   }
 
   private boolean minimalStateCountSupported(long count) {
@@ -611,7 +687,8 @@ classical class Parser {
               statements.first,
               statements.second,
               statements.third,
-              statements.fourth
+              statements.fourth,
+              statements.fifth
             );
           }
         }

@@ -93,6 +93,7 @@ classical class HelperParser {
       helperBody,
       -1,
       -1,
+      -1,
       -1
     );
     long helperStatementCount = 1;
@@ -117,6 +118,7 @@ classical class HelperParser {
         helperSecondStatement,
         helperBody,
         -1,
+        -1,
         -1
       );
     }
@@ -136,6 +138,7 @@ classical class HelperParser {
         helperThirdStatement,
         helperBody,
         helperSecondStatement,
+        -1,
         -1
       );
     }
@@ -155,7 +158,8 @@ classical class HelperParser {
         helperFourthStatement,
         helperBody,
         helperSecondStatement,
-        helperThirdStatement
+        helperThirdStatement,
+        -1
       );
     }
 
@@ -176,6 +180,7 @@ classical class HelperParser {
         preReverseStatement,
         -1,
         -1,
+        -1,
         -1
       );
     }
@@ -191,6 +196,7 @@ classical class HelperParser {
           entryStatement,
           -1,
           -1,
+          -1,
           -1
         );
       } else {
@@ -202,6 +208,7 @@ classical class HelperParser {
           tokenLengths,
           entryStatement,
           preReverseStatement,
+          -1,
           -1,
           -1
         );
@@ -242,6 +249,8 @@ classical class HelperParser {
       entryOperand,
       secondEntryOpcode,
       secondEntryOperand,
+      -1,
+      0,
       -1,
       0,
       -1,

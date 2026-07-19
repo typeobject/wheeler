@@ -21,6 +21,8 @@ classical class CompilerIr {
     long thirdOperand,
     long fourthOpcode,
     long fourthOperand,
+    long fifthOpcode,
+    long fifthOperand,
     SourceRange helperName,
     long helperCount,
     long helperOpcode,

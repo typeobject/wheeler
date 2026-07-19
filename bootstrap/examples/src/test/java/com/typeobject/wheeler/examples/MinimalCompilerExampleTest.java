@@ -150,6 +150,11 @@ class MinimalCompilerExampleTest {
         writerProgram,
         "classical class LocalTruth { entry void main() { "
             + "boolean ready = !false; assert(ready); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class FifthLocal { entry void main() { "
+            + "boolean first = false; boolean second = false; boolean third = false; "
+            + "boolean fourth = true; assert(fourth); } }");
     assertDifferentialTrap(
         writerProgram,
         "classical class LocalFalse { entry void main() { "
@@ -356,6 +361,13 @@ class MinimalCompilerExampleTest {
             + "value -= 1; assert(value == 3); } }",
         "value",
         3);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class Five { state long value = 1; "
+            + "entry void main() { value += 2; value ^= 7; "
+            + "value -= 1; value += 4; assert(value == 7); } }",
+        "value",
+        7);
 
     VirtualMachine duplicate = new VirtualMachine(
         writerProgram,
@@ -420,15 +432,15 @@ class MinimalCompilerExampleTest {
     assertThrows(VmTrap.class, doubleNegation::run);
     assertArrayEquals(new byte[512], doubleNegation.hostOutput());
 
-    VirtualMachine fifthStatement = new VirtualMachine(
+    VirtualMachine sixthStatement = new VirtualMachine(
         writerProgram,
-        ("classical class FiveLocals { entry void main() { "
+        ("classical class SixLocals { entry void main() { "
             + "boolean a = true; boolean b = false; boolean c = true; "
-            + "boolean d = false; boolean e = true; } }")
+            + "boolean d = false; boolean e = true; boolean f = false; } }")
             .getBytes(StandardCharsets.UTF_8),
         1024);
-    assertThrows(VmTrap.class, fifthStatement::run);
-    assertArrayEquals(new byte[1024], fifthStatement.hostOutput());
+    assertThrows(VmTrap.class, sixthStatement::run);
+    assertArrayEquals(new byte[1024], sixthStatement.hostOutput());
 
     VirtualMachine unresolvedLocal = new VirtualMachine(
         writerProgram,
