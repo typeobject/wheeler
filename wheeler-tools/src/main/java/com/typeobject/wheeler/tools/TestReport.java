@@ -37,7 +37,7 @@ final class TestReport {
     this.cases = List.copyOf(sorted);
     String runnerIdentity = Stage0CompilerIdentity.current();
     identity = digest(digest -> {
-      field(digest, "wheeler.test-report/1");
+      field(digest, "wheeler.test-report/2");
       field(digest, runnerIdentity);
       integer(digest, sorted.size());
       sorted.forEach(result -> result.digestInto(digest));
@@ -92,7 +92,8 @@ final class TestReport {
       String sourceIdentity,
       String artifactIdentity,
       ExecutionResult execution,
-      String coverageIdentity) {
+      String coverageIdentity,
+      long assertions) {
     return new CaseResult(
         packageName,
         packageVersion,
@@ -103,6 +104,7 @@ final class TestReport {
         Status.PASS,
         "",
         "",
+        assertions,
         execution.workflowSteps(),
         executionIdentity(execution),
         coverageIdentity);
@@ -116,7 +118,8 @@ final class TestReport {
       String sourceIdentity,
       String artifactIdentity,
       String diagnosticCode,
-      String diagnosticMessage) {
+      String diagnosticMessage,
+      long assertions) {
     return new CaseResult(
         packageName,
         packageVersion,
@@ -127,6 +130,7 @@ final class TestReport {
         Status.FAIL,
         diagnosticCode,
         boundedDiagnostic(diagnosticMessage),
+        assertions,
         0,
         "",
         "");
@@ -203,6 +207,7 @@ final class TestReport {
       Status status,
       String diagnosticCode,
       String diagnosticMessage,
+      long assertions,
       long workflowSteps,
       String executionIdentity,
       String coverageIdentity) {
@@ -211,7 +216,8 @@ final class TestReport {
           || !hex(caseIdentity) || !hex(sourceIdentity)
           || !artifactIdentity.isEmpty() && !hex(artifactIdentity)
           || status == null || diagnosticCode == null || diagnosticMessage == null
-          || workflowSteps < 0 || executionIdentity == null || coverageIdentity == null
+          || assertions < 0 || workflowSteps < 0
+          || executionIdentity == null || coverageIdentity == null
           || !executionIdentity.isEmpty() && !hex(executionIdentity)
           || !coverageIdentity.isEmpty() && !hex(coverageIdentity)) {
         throw new IllegalArgumentException("Invalid test case result");
@@ -236,6 +242,7 @@ final class TestReport {
       field(digest, status.name());
       field(digest, diagnosticCode);
       field(digest, diagnosticMessage);
+      signed(digest, assertions);
       signed(digest, workflowSteps);
       field(digest, executionIdentity);
       field(digest, coverageIdentity);

@@ -39,6 +39,7 @@ class SemanticCoverageTest {
     assertTrue(report.contains("\"direction\":\"inverse\""));
     assertTrue(report.contains("\"direction\":\"rewind_forward\""));
     assertTrue(report.contains("\"direction\":\"rewind_inverse\""));
+    assertEquals(1, coverage.successfulAssertions());
 
     SemanticCoverage repeated = new SemanticCoverage();
     VirtualMachine rerun = new VirtualMachine(program, repeated);

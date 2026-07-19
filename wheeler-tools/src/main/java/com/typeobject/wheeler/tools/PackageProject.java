@@ -114,7 +114,7 @@ final class PackageProject {
             manifest.identity(), target.name(), sourceIdentity);
         cases.add(TestReport.fail(
             manifest.name(), manifest.version(), target.name(), caseIdentity,
-            sourceIdentity, "", "WTEST001", exception.getMessage()));
+            sourceIdentity, "", "WTEST001", exception.getMessage(), 0));
         continue;
       }
       for (CompiledCase compiledCase : compiled) {
@@ -124,9 +124,9 @@ final class PackageProject {
             manifest.identity(), caseName, sourceIdentity);
         Program program = compiledCase.program();
         String artifactIdentity = sha256(writer.write(program));
+        SemanticCoverage coverage = new SemanticCoverage();
         try {
           WheelerRuntime runtime = new WheelerRuntime();
-          SemanticCoverage coverage = new SemanticCoverage();
           ExecutionResult execution = program.kind() == ProgramKind.CLASSICAL
               ? runtime.executeObserved(program, coverage)
               : runtime.execute(program, new StateVectorTarget());
@@ -134,13 +134,17 @@ final class PackageProject {
               ? coverage.identity() : "";
           cases.add(TestReport.pass(
               manifest.name(), manifest.version(), caseName, caseIdentity,
-              sourceIdentity, artifactIdentity, execution, coverageIdentity));
+              sourceIdentity, artifactIdentity, execution, coverageIdentity,
+              coverage.successfulAssertions()));
         } catch (VmTrap exception) {
           cases.add(TestReport.fail(
               manifest.name(), manifest.version(), caseName, caseIdentity,
               sourceIdentity, artifactIdentity,
               exception.code() == VmTrap.Code.ASSERTION ? "WTEST003" : "WTEST002",
-              exception.getMessage()));
+              exception.getMessage(),
+              Math.addExact(
+                  coverage.successfulAssertions(),
+                  exception.code() == VmTrap.Code.ASSERTION ? 1 : 0)));
         }
       }
     }

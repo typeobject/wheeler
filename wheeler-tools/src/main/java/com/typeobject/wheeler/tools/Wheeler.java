@@ -258,6 +258,7 @@ public final class Wheeler {
     for (TestReport.CaseResult result : report.cases()) {
       out.println(result.status().name() + " " + result.packageName() + "::"
           + result.targetName() + " " + result.caseIdentity()
+          + " assertions " + result.assertions()
           + (result.coverageIdentity().isEmpty() ? ""
               : " coverage " + result.coverageIdentity())
           + (result.diagnosticCode().isEmpty() ? ""

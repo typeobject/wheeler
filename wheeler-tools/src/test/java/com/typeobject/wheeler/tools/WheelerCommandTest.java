@@ -303,6 +303,10 @@ class WheelerCommandTest {
     assertTrue(firstReport.contains("PASS demo.tests::law::accepts[1]"));
     assertTrue(firstReport.contains("PASS demo.tests::law::addsTwo"));
     assertTrue(firstReport.contains("PASS demo.tests::law::startsAtZero"));
+    assertTrue(firstReport.lines().anyMatch(line ->
+        line.contains("law::addsTwo") && line.contains(" assertions 1 ")));
+    assertTrue(firstReport.lines().anyMatch(line ->
+        line.contains("law::accepts[0]") && line.contains(" assertions 0 ")));
     assertTrue(firstReport.contains(" coverage "));
     assertTrue(firstReport.contains("tested demo.tests (4 cases, 4 passed, 0 failed, report "));
     stdout.reset();
@@ -396,6 +400,8 @@ class WheelerCommandTest {
     assertTrue(report.contains("WTEST002"));
     assertTrue(report.contains("FAIL demo.failures::assertion"));
     assertTrue(report.contains("WTEST003"));
+    assertTrue(report.lines().anyMatch(line ->
+        line.contains("demo.failures::assertion") && line.contains(" assertions 1 ")));
     assertTrue(report.contains("3 cases, 0 passed, 3 failed, report "));
   }
 

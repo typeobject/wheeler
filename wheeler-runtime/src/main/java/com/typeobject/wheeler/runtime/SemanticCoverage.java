@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.runtime;
 
+import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.vm.TransitionObserver;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -45,6 +46,16 @@ public final class SemanticCoverage implements TransitionObserver {
           .append(",\"opcode\":\"").append(point.opcode()).append("\"}");
     }
     return json.append("],\"profile\":\"wheeler-transition-coverage-1\"}\n").toString();
+  }
+
+  /** Counts successful assertion transitions without conflating them with test-case status. */
+  public long successfulAssertions() {
+    return hits.entrySet().stream()
+        .filter(entry -> !entry.getKey().direction().startsWith("rewind_"))
+        .filter(entry -> entry.getKey().opcode().equals(Opcode.EXPECT_EQ.name())
+            || entry.getKey().opcode().equals(Opcode.EXPECT_TRUE.name()))
+        .mapToLong(Map.Entry::getValue)
+        .reduce(0L, Math::addExact);
   }
 
   /** Returns the domain-separated identity of the canonical transition report. */
