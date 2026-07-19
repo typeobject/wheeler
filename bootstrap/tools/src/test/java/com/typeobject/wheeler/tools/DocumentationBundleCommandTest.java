@@ -31,7 +31,11 @@ class DocumentationBundleCommandTest {
 
         A small manual with no renderer tricks up its sleeve.
 
-        See [the doubling API](wheeler:demo.api#twice).
+        See [the details](#details) and [the doubling API](wheeler:demo.api#twice).
+
+        ## Details
+
+        The heading is part of the graph rather than renderer folklore.
         """);
     Files.writeString(sources.resolve("Api.w"), """
         //! Public arithmetic API.
@@ -55,14 +59,17 @@ class DocumentationBundleCommandTest {
     }
     String nodes = Files.readString(first.resolve("nodes.json"));
     assertTrue(nodes.contains("\"id\":\"manual:guide\""));
+    assertTrue(nodes.contains("\"id\":\"manual:guide#details\""));
     assertTrue(nodes.contains("\"id\":\"wheeler:demo.api#twice\""));
     assertTrue(nodes.indexOf("manual:guide") < nodes.indexOf("wheeler:demo.api#twice"));
     String edges = Files.readString(first.resolve("edges.json"));
     assertTrue(edges.contains(
+        "\"source\":\"manual:guide\",\"target\":\"manual:guide#details\""));
+    assertTrue(edges.contains(
         "\"source\":\"manual:guide\",\"target\":\"wheeler:demo.api#twice\""));
     String manifest = Files.readString(first.resolve("manifest.json"));
     assertTrue(manifest.contains("\"profile\":\"wheeler-doc-bundle-1\""));
-    assertTrue(output.toString(StandardCharsets.UTF_8).contains("documented 2 nodes"));
+    assertTrue(output.toString(StandardCharsets.UTF_8).contains("documented 4 nodes"));
     assertThrows(IOException.class, () -> execute(
         manuals, sources, first, new ByteArrayOutputStream()));
 
@@ -72,8 +79,45 @@ class DocumentationBundleCommandTest {
     PackageFormatException missingLink = assertThrows(
         PackageFormatException.class,
         () -> execute(manuals, sources, missing, new ByteArrayOutputStream()));
-    assertTrue(missingLink.getMessage().contains("Missing explicit documentation link"));
+    assertTrue(missingLink.getMessage().contains("Missing documentation link"));
     assertFalse(Files.exists(missing));
+  }
+
+  @Test
+  void resolvesRelativePagesAndCanonicalHeadingAnchors() throws Exception {
+    Path manuals = temporary.resolve("linked-manuals");
+    Path sources = temporary.resolve("linked-sources");
+    Files.createDirectories(manuals.resolve("nested"));
+    Files.createDirectories(sources);
+    Files.writeString(manuals.resolve("guide.md"), """
+        # Guide
+
+        Read [the answer](nested/answer.md#the-answer).
+        """);
+    Files.writeString(manuals.resolve("nested/answer.md"), """
+        # Answer
+
+        ## The answer
+
+        Forty-two, within the documented execution limit.
+        """);
+    Path output = temporary.resolve("linked-bundle");
+
+    assertEquals(0, execute(manuals, sources, output, new ByteArrayOutputStream()));
+    String edges = Files.readString(output.resolve("edges.json"));
+    assertTrue(edges.contains(
+        "\"source\":\"manual:guide\",\"target\":"
+            + "\"manual:nested/answer#the-answer\""));
+
+    Files.writeString(manuals.resolve("guide.md"), "# Guide\n\n[Bad](../escape.md).\n");
+    PackageFormatException escape = assertThrows(
+        PackageFormatException.class,
+        () -> execute(
+            manuals,
+            sources,
+            temporary.resolve("escape-bundle"),
+            new ByteArrayOutputStream()));
+    assertTrue(escape.getMessage().contains("escapes the manual root"));
   }
 
   @Test

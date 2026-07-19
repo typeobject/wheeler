@@ -31,8 +31,8 @@ import java.util.regex.Pattern;
 final class DocumentationBundleCommand {
   private static final int MAX_FILES = 65_535;
   private static final int MAX_BYTES = 16 * 1024 * 1024;
-  private static final Pattern EXPLICIT_LINK = Pattern.compile(
-      "\\]\\(((?:manual|wheeler):[^)\\s]+)\\)");
+  private static final Pattern MARKDOWN_LINK = Pattern.compile("\\]\\(([^)\\s]+)\\)");
+  private static final Pattern HEADING = Pattern.compile("^(#{1,6})[ \\t]+(.+?)[ \\t]*#*$");
 
   private DocumentationBundleCommand() {}
 
@@ -64,6 +64,14 @@ final class DocumentationBundleCommand {
       String title = title(manual.text(), manual.logicalPath());
       String id = "manual:" + page;
       nodes.add(new Node(id, "manual", title, manual.logicalPath(), summary(manual.text())));
+      for (Heading heading : headings(manual)) {
+        nodes.add(new Node(
+            id + "#" + heading.anchor(),
+            "manual-heading",
+            heading.title(),
+            manual.logicalPath() + ":" + heading.line(),
+            ""));
+      }
       pages.put("pages/" + manual.logicalPath(), manual.text());
     }
     for (Input source : wheeler) {
@@ -91,7 +99,7 @@ final class DocumentationBundleCommand {
 
     Map<String, String> files = new LinkedHashMap<>();
     files.put("nodes.json", nodesJson(nodes));
-    files.put("edges.json", edgesJson(explicitEdges(manuals, nodes)));
+    files.put("edges.json", edgesJson(documentationEdges(manuals, nodes)));
     files.put("navigation.json", navigationJson(nodes));
     files.put("search.json", searchJson(nodes));
     pages.forEach(files::put);
@@ -213,24 +221,64 @@ final class DocumentationBundleCommand {
     return json.append("]}\n").toString();
   }
 
-  private static List<Edge> explicitEdges(List<Input> manuals, List<Node> nodes) {
+  private static List<Edge> documentationEdges(List<Input> manuals, List<Node> nodes) {
     Set<String> identities = new TreeSet<>();
     nodes.forEach(node -> identities.add(node.id()));
     Set<Edge> edges = new TreeSet<>(Comparator.comparing(Edge::source)
         .thenComparing(Edge::target));
     for (Input manual : manuals) {
       String source = "manual:" + stripSuffix(manual.logicalPath(), ".md");
-      Matcher matcher = EXPLICIT_LINK.matcher(manual.text());
+      Matcher matcher = MARKDOWN_LINK.matcher(manual.text());
       while (matcher.find()) {
-        String target = matcher.group(1);
+        String link = matcher.group(1);
+        String target;
+        if (link.startsWith("manual:") || link.startsWith("wheeler:")) {
+          target = link;
+        } else {
+          target = relativeManualTarget(manual.logicalPath(), link);
+          if (target == null) {
+            continue;
+          }
+        }
         if (!identities.contains(target)) {
           throw new PackageFormatException(
-              "Missing explicit documentation link " + target + " from " + source);
+              "Missing documentation link " + target + " from " + source);
         }
         edges.add(new Edge(source, target));
       }
     }
     return List.copyOf(edges);
+  }
+
+  private static String relativeManualTarget(String sourcePath, String link) {
+    if (link.contains(":")) {
+      return null;
+    }
+    int separator = link.indexOf('#');
+    String path = separator < 0 ? link : link.substring(0, separator);
+    String anchor = separator < 0 ? "" : link.substring(separator + 1);
+    if ((!path.isEmpty() && !path.endsWith(".md")) || link.indexOf('#', separator + 1) >= 0) {
+      return null;
+    }
+    Path source = Path.of(sourcePath);
+    Path parent = source.getParent();
+    Path resolved = path.isEmpty()
+        ? source
+        : (parent == null ? Path.of(path) : parent.resolve(path)).normalize();
+    String logical = resolved.toString().replace(resolved.getFileSystem().getSeparator(), "/");
+    if (resolved.isAbsolute() || logical.equals("..") || logical.startsWith("../")) {
+      throw new PackageFormatException(
+          "Relative documentation link escapes the manual root: " + link + " from " + sourcePath);
+    }
+    String target = "manual:" + stripSuffix(logical, ".md");
+    if (!anchor.isEmpty()) {
+      if (!anchor.equals(canonicalAnchor(anchor))) {
+        throw new PackageFormatException(
+            "Documentation heading link is not canonical: " + link + " from " + sourcePath);
+      }
+      target += "#" + anchor;
+    }
+    return target;
   }
 
   private static String edgesJson(List<Edge> edges) {
@@ -309,6 +357,59 @@ final class DocumentationBundleCommand {
     return "";
   }
 
+  private static List<Heading> headings(Input manual) {
+    List<Heading> result = new ArrayList<>();
+    Map<String, Integer> occurrences = new LinkedHashMap<>();
+    boolean fenced = false;
+    String[] lines = manual.text().split("\\R", -1);
+    for (int index = 0; index < lines.length; index++) {
+      String stripped = lines[index].stripLeading();
+      if (stripped.startsWith("```") || stripped.startsWith("~~~")) {
+        fenced = !fenced;
+        continue;
+      }
+      if (fenced) {
+        continue;
+      }
+      Matcher matcher = HEADING.matcher(lines[index]);
+      if (!matcher.matches()) {
+        continue;
+      }
+      String title = matcher.group(2).trim();
+      String base = canonicalAnchor(title);
+      if (base.isEmpty()) {
+        throw new PackageFormatException(
+            "Manual heading has an empty canonical identity: "
+                + manual.logicalPath() + ":" + (index + 1));
+      }
+      int occurrence = occurrences.merge(base, 1, Math::addExact) - 1;
+      String anchor = occurrence == 0 ? base : base + "-" + occurrence;
+      result.add(new Heading(anchor, title, index + 1));
+      if (result.size() > 10_000) {
+        throw new PackageFormatException(
+            "Manual exceeds 10,000 headings: " + manual.logicalPath());
+      }
+    }
+    return List.copyOf(result);
+  }
+
+  private static String canonicalAnchor(String title) {
+    StringBuilder result = new StringBuilder();
+    boolean separator = false;
+    for (int codePoint : title.toLowerCase(java.util.Locale.ROOT).codePoints().toArray()) {
+      if (Character.isLetterOrDigit(codePoint) || codePoint == '_') {
+        if (separator && !result.isEmpty() && result.charAt(result.length() - 1) != '-') {
+          result.append('-');
+        }
+        separator = false;
+        result.appendCodePoint(codePoint);
+      } else if (Character.isWhitespace(codePoint) || codePoint == '-') {
+        separator = true;
+      }
+    }
+    return result.toString();
+  }
+
   private static void rejectDuplicateLogicalPaths(List<Input> inputs, String kind) {
     for (int index = 1; index < inputs.size(); index++) {
       if (inputs.get(index - 1).logicalPath().equals(inputs.get(index).logicalPath())) {
@@ -364,6 +465,8 @@ final class DocumentationBundleCommand {
   private record Node(String id, String kind, String title, String source, String summary) {}
 
   private record Edge(String source, String target) {}
+
+  private record Heading(String anchor, String title, int line) {}
 
   private record Bundle(Map<String, String> files, int nodes, String identity) {}
 
