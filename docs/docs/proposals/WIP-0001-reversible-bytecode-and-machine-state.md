@@ -273,6 +273,12 @@ An instruction either completes and appends one valid step record or leaves pre-
 
 Artifact bytes, assembly, debug names, effect payloads, and persisted history are untrusted input. Verification has bounded time and memory proportional to declared and host-capped artifact limits.
 
+## Unified I/O effects
+
+WIP-0032 owns structured asynchronous I/O requests, operation scopes, cancellation races, completion, visibility and durability receipts, and external-operation uncertainty.
+
+Submitting or awaiting external I/O remains a typed `EFFECT_CALL` barrier unless an effect-specific compensation contract applies. Pure request construction is not submission, and completion is not durability. WIP-0004 may replay a recorded read observation, but machine rewind never rereads or unwrites an external resource.
+
 ## Migration and deletion
 
 1. Add immutable container models, canonical encoder/decoder, and malformed corpus tests.
@@ -345,6 +351,7 @@ Rejected. Quantum regions have different ownership, linearity, execution, and ca
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)
 - [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
 - [Proposal process](README.md)
 - [Bytecode reference](../reference/bytecode.md)
 - [Virtual-machine reference](../reference/virtual-machine.md)

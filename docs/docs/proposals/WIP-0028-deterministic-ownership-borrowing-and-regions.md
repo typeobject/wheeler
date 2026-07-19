@@ -87,7 +87,7 @@ borrow mut Qubit right = q.borrowMut(1);
 CNOT(left, right);
 ```
 
-`File` must close, move, or return on every successful path; scope exit cannot invent a successful host close. Quantum loans must be disjoint and end before measurement or register movement.
+`File` must close, move, or return on every successful path; scope exit cannot invent a successful host close. Close releases the resource and provides no WIP-0032 durability receipt. Quantum loans must be disjoint and end before measurement or register movement.
 
 ### Native pinning
 
@@ -150,7 +150,9 @@ drop(o) =>
 
 Simultaneous exclusive loans to `p` and `q` require static proof or a checked prepublication test of `disjoint(p, q)`. A failed dynamic range test publishes neither loan.
 
-Initial loans are second-class. They cannot enter ordinary owned aggregates, persisted state, package archives, certificates, workflow events, retained FFI state, escaping closures, another task, asynchronous suspension, target submission, measurement transition, or `commit`. A public return or borrowed ABI names its origin explicitly.
+Initial loans are second-class. They cannot enter ordinary owned aggregates, persisted state, package archives, certificates, workflow events, retained FFI state, escaping closures, an unrelated task, target submission, measurement transition, or `commit`. A public return or borrowed ABI names its origin explicitly.
+
+WIP-0032 supplies the one suspension exception: an affine operation may own a verifier-visible loan across asynchronous suspension while the continuation cannot access the overlapping place. That loan still cannot enter persisted continuation state; process suspension first completes, cancels and reconciles, or converts the operation to canonical owned resumable state.
 
 ### Partial moves and captures
 
@@ -218,6 +220,12 @@ Capabilities and external resources are affine or scoped. Importing a package gr
 This WIP defines no shared-memory synchronization. Moving immutable owners between structured tasks and sharing immutable values require future `Send`/`Share` evidence. `borrow mut` is not a memory model.
 
 WIP-0025 may lower a loan to one bounded native span when the exact descriptor permits it, storage is pinned or copied for the call, mutability/aliasing agree, and callbacks or retention cannot outlive the scope. Retention requires transfer to an affine foreign owner.
+
+## Asynchronous I/O loans
+
+WIP-0032 requests capture owners or loans without submitting an effect. Submission moves those obligations into an affine `Operation<T>`: reads hold an exclusive destination loan, writes hold a shared source loan, and moved buffers return through terminal results. The loan ends only at final resource-release completion, not at a convenient earlier transport notification.
+
+Provided-buffer leases, registered regions, remote advertisements, tier allocations, and target sessions are bounded affine resources. A live operation is must-consume; scope exit must cancel or complete, reconcile uncertainty, release every held loan, and reap exactly once.
 
 ## Reversible IR, proof, bytecode, and packages
 
@@ -337,6 +345,7 @@ Rejected. WIP-0025 already names the native trust boundary. An unnamed escape ha
 - [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
 - [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
 - [Rust ownership and borrowing](https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html)
 - [Linear Haskell](https://doi.org/10.1145/3158093)
 - [Region-Based Memory Management in Cyclone](https://doi.org/10.1145/512529.512563)

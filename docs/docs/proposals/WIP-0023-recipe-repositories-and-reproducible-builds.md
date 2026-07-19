@@ -161,6 +161,12 @@ Yanks affect new unlocked resolution but preserve bytes and exact locks. Advisor
 
 Patch/minor publication mechanically rejects removed exports, incompatible parameters/results/layouts, stronger ownership, added effects, lost reversible/coherent/unitary status, and incompatible proof/target/native ABI profiles unless versioning or an explicit reviewed exception permits it.
 
+## Sealed build I/O
+
+WIP-0032 may implement the build driver's acquisition, output publication, and backend scheduling, but it does not relax the sealed recipe contract. Build programs receive immutable declared inputs and explicit output capabilities only; live network, clock, random, host discovery, and undeclared filesystem access remain forbidden.
+
+Publication acknowledgement and exact persistence evidence are separate external effects. A content digest identifies bytes but neither grants authority nor proves those bytes survived a named failure.
+
 ## Reversibility and determinism
 
 Canonicalization, planning, hashing, and verification are deterministic. Fetch, signing, publication, yanking, and GC are external effects. Publication acknowledgement is a commit barrier; retry reconciles immutable identities. Worker concurrency cannot alter bytes or mapping order.
@@ -228,6 +234,7 @@ Upstream-only packaging cannot carry reviewed downstream fixes. Conan's review l
 ## References
 
 - [WIP-0022](WIP-0022-package-instances-and-resolution.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
 - [Conan revisions](https://docs.conan.io/2/tutorial/versioning/revisions.html)
 - [Conan package ID](https://docs.conan.io/2/reference/binary_model/package_id.html)
 - [SOURCE_DATE_EPOCH](https://reproducible-builds.org/specs/source-date-epoch/)

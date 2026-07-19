@@ -610,7 +610,7 @@ Formatting bytes in memory is a pure deterministic transformation and requires n
 
 Documentation checking is a pure deterministic validation and requires no VM history.
 
-Replacing a host file is an explicit irreversible effect owned by the command driver. The driver does not describe a filesystem rename as a `rev` operation.
+Replacing a host file is an explicit irreversible effect owned by the command driver. WIP-0032 owns that driver's I/O operation and completion API; the formatter defines only canonical source transformation and publication policy. The driver does not describe a filesystem rename as a `rev` operation or a durability receipt.
 
 A failed parse, format, bounded write, temporary-file validation, or prepublication path check leaves destination bytes unchanged. After successful replacement, reversal means restoring caller-owned bytes or version-control state; it is not VM rewind.
 
@@ -842,5 +842,6 @@ Rejected. That is an indentation fixer rather than a formatter and leaves syntac
 - [WIP-0012](WIP-0012-wheeler-standard-library.md)
 - [WIP-0017](WIP-0017-compile-time-constants-and-finite-enums.md)
 - [WIP-0019](WIP-0019-integrated-documentation-publication.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
 - [Language profile](../reference/language-profile.md)
 - [Development and testing](../reference/development.md)

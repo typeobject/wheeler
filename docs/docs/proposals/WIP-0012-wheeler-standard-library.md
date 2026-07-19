@@ -338,7 +338,7 @@ The standard hybrid API includes immutable values for:
 
 Adapters implement host-owned target capabilities. The library owns provider-neutral records and validation. Credentials and provider SDK objects remain embedding-host values outside portable Wheeler state.
 
-Async APIs use structured tasks or explicit polling/futures specified by a concurrency WIP. They do not inherit Java threads or promise callbacks. Local completion follows the same lifecycle as remote work.
+WIP-0032 owns structured I/O requests, operations, scopes, batches, graphs, selection, cancellation, and completion. The standard API does not expose backend polling or require callbacks. Local inline completion follows the same lifecycle as delayed remote work.
 
 ## Effects and capabilities
 
@@ -395,7 +395,7 @@ Test randomness is explicit input. Failed property cases report a replayable see
 
 Collection thread safety is not ambient. Immutable values may be shared according to ownership rules. Mutable sharing requires a structured-concurrency and synchronization contract; no type silently maps to Java monitors or volatile fields.
 
-Async target jobs and build tasks use deterministic result reduction independent of completion order. Operational scheduling types are separate from semantic event order.
+WIP-0032 asynchronous operations and target/build tasks use deterministic result reduction independent of physical completion order unless the program explicitly selects a race. Required concurrency is distinct from independent work that a conforming backend may complete inline. Operational lanes and queues remain separate from semantic event order.
 
 ## Canonical encoding
 
@@ -443,6 +443,12 @@ The standard library is accepted through concrete Wheeler programs:
 - `Teleportation.w`: affine qubits, dynamic measurement, conditions, and ownership transition;
 - `ExperimentCampaign.w`: jobs, events, persistence, replay, retry, budgets, and deadlines;
 - `PackageProvenance.w`: canonical decoding, hashes, proof certificates, and package identities.
+
+## Unified I/O library
+
+WIP-0032 exclusively owns the portable I/O lifecycle and method registry, including `Io`, `IoScope`, `Request<T>`, `Operation<T>`, batches, graphs, buffer pools, and receipt types. `wheeler.io` implements that contract; this WIP does not define a parallel API.
+
+Filesystem and network libraries contribute domain types and adapters over that fabric. Positional operations are primary for addressable storage; sequential readers and writers are ergonomic cursor views under WIP-0032. The standard library has no second future, stream, callback, cancellation, or universal `flush()` durability contract, because one ambiguous verb has already done enough damage.
 
 ## Migration and deletion
 
@@ -541,3 +547,4 @@ Rejected. Provider SDKs are adapter implementation details. Portable library val
 - [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
 - [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)

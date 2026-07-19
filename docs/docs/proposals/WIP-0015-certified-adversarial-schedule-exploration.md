@@ -193,6 +193,12 @@ The result is a closed variant:
 
 No Boolean `safe` result exists without a proof value. Reports must preserve this distinction visually and in machine-readable encoding.
 
+## I/O schedule integration
+
+WIP-0032 owns I/O requests, scopes, operations, cancellation, completion, and receipts. This WIP may explore a finite WIP-0032 model by choosing admitted completion orders, partial progress, cancellation races, credit exhaustion, and uncertainty outcomes; it does not define another scheduler or I/O method family.
+
+A replay package records canonical operation and schedule identities, not payloads or native queue state. A checked schedule can establish behavior of the finite model. It cannot turn simulated persistence into device evidence or infer that a timed-out external effect never occurred.
+
 ## Package output
 
 A counterexample replay package contains:
@@ -320,3 +326,4 @@ Allowed only as “shortest known.” The unqualified word “shortest” requir
 - [WIP-0010](WIP-0010-executable-application-portfolio.md)
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
 - [WIP-0014](WIP-0014-bounded-certified-program-synthesis.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)

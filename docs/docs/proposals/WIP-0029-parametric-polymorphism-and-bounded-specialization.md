@@ -295,6 +295,12 @@ The section's numeric ID, limits, and exact encoding are frozen before implement
 
 Transparent aliases normalize before identity. Opaque nominal types retain exact package/declaration identity and expose only declared operations/evidence. All user generic parameters are invariant initially; compiler-owned borrowed views may support lifetime shortening.
 
+## Generic I/O values
+
+WIP-0032 owns generic I/O declarations such as requests, operations, results, and receipt families. This WIP supplies only the kind checking, ownership propagation, definition-site validation, instance identities, specialization bounds, and canonical generic IR needed to compile them.
+
+Specialization cannot duplicate a must-consume operation, shorten a held buffer loan, erase effects, remove cancellation/uncertainty variants, or strengthen receipt evidence. Physical backend type, queue, pointer, and completion order never enter a portable instantiation identity.
+
 ## Reversible, coherent, quantum, and proof code
 
 WIP-0031 owns detailed callable rules. This WIP requires deterministic specialization and the commutation law:
@@ -417,3 +423,4 @@ Rejected. Both obscure API meaning and make resolution dependent on context. Com
 - [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)
 - [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)

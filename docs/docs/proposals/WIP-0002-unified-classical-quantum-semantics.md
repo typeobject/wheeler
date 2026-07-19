@@ -258,6 +258,12 @@ The compiler rejects cloning, overlapping mutable slices, use after consume, dir
 
 A target capability failure occurs before submission whenever possible. No fallback silently changes ideal semantics, noise policy, shot count, measurement basis, or error-mitigation method.
 
+## Host and target I/O boundary
+
+WIP-0032 supplies the asynchronous lifecycle for classical target submission, cancellation, result delivery, large classical payloads, and session recovery.
+
+Quantum state is not a byte stream, file, mapped object, direct-I/O buffer, or RDMA region. Coherent target interaction remains typed quantum-region IR. Measurement, reset, submission, classical transport, replay, and retry remain distinct transitions.
+
 ## Migration and deletion
 
 1. Define effect and affine ownership models independent of the current AST hierarchy.
@@ -335,6 +341,7 @@ Rejected by no-cloning. It copies known basis information in a restricted case a
 - [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
 - [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
 - [`Counter.w`](../../../wheeler-examples/src/main/wheeler/Counter.w)
 - [`QFT.w`](../../../wheeler-examples/src/main/wheeler/QFT.w)
 - [`QuantumOptimizer.w`](../../../wheeler-examples/src/main/wheeler/QuantumOptimizer.w)

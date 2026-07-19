@@ -158,6 +158,8 @@ Reversible compiler functions still obey WIP-0001. A data transformation marked 
 
 A compilation transaction writes output only after parse, check, lower, verify, and encoding succeed. Abort discards the private output buffer and arena. Replacing a prior filesystem artifact is an explicit atomic host effect, not VM rewind.
 
+WIP-0032 exclusively owns the launcher's I/O request and completion API. The compiler library continues to consume bounded owned inputs and produce an owned artifact or diagnostics; it does not discover files or grow a compiler-specific stream/future family. Atomic output replacement establishes no data or namespace durability without an exact receipt.
+
 ## Determinism and canonical output
 
 Canonical compilation fixes:
@@ -310,5 +312,6 @@ Rejected. The canonical executable is `.wbc`; provider formats and host-native i
 - [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
 - [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
 - [Wheeler source language profile](../reference/language-profile.md)
 - [Ken Thompson, “Reflections on Trusting Trust”](https://dl.acm.org/doi/10.1145/358198.358210)

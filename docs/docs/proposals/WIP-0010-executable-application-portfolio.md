@@ -202,6 +202,14 @@ Acceptance requires:
 
 `AmplitudeRisk.w` encodes a small discrete loss distribution and estimates a tail probability. It states all approximation, fixed-point, qubit, shot, and confidence bounds. It does not claim an advantage from a fixture-sized instance.
 
+## Unified I/O application
+
+### I/O lifecycle conformance
+
+`IoFabricConformance.w` will exercise WIP-0032 positional independence, structured operation ownership, bounded backpressure, cancellation races, deterministic replay, graph dependencies, and receipt separation over deterministic and bounded threaded backends. A companion negative fixture will reject operation leaks, early buffer reuse, hidden fallback, and receipt upgrades.
+
+WIP-0032 owns every I/O type and method used by these fixtures. This portfolio WIP owns only the executable acceptance story. No `.w` file lands until the generic, ownership, effect, parser, bytecode, runtime, Tree-sitter, and package slices execute end to end; until then the [future I/O page](../future/io-fabric.md) remains clearly speculative.
+
 ## Dynamic and fault-tolerant applications
 
 ### Teleportation
@@ -377,8 +385,9 @@ Portfolio work follows these rules:
 - [ ] Distributed entanglement session.
 - [ ] Delegated computation protocol.
 
-### Durable hybrid
+### Unified I/O and durable hybrid
 
+- [ ] WIP-0032 I/O lifecycle conformance and negative fixtures.
 - [ ] Recoverable iterative optimizer lifecycle matrix.
 - [ ] Calibration-aware compiler.
 - [ ] Adaptive replay decision tree.
@@ -449,4 +458,5 @@ Rejected. Deterministic simulators and lifecycle mocks establish semantics. Opt-
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
 - [WIP-0012](WIP-0012-wheeler-standard-library.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
 - [Executable examples](../examples.md)

@@ -45,6 +45,8 @@ The examples are deliberately bounded. They demonstrate implemented semantics an
 
 ## Scope boundaries
 
+No checked-in example claims the WIP-0032 unified I/O API yet. `HostInput.w`, `HostBinaryInput.w`, and current asynchronous quantum jobs exercise implemented narrow host boundaries, not `IoScope`, operation graphs, or durability receipts. The planned conformance fixture stays in [WIP-0010](proposals/WIP-0010-executable-application-portfolio.md) and the [future I/O page](future/io-fabric.md) until its full vertical slice compiles, parses, formats, and executes.
+
 `BinaryTree.w` uses three fixed state slots. It does not claim that generic nodes, allocation, ownership, or unbounded traversal exist. Those facilities belong to the self-hosting language expansion.
 
 `QFTProof.w` is an executable conformance law, not a theorem accepted by a trusted proof kernel. It checks that the generated adjoint restores a basis state on the semantic simulator.

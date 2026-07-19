@@ -148,7 +148,7 @@ Reverse blocks only accept operations with a declared language-level inverse. Ex
 
 ## Concurrency and determinism
 
-The initial profile has no Java threads, monitors, volatile fields, or asynchronous syntax. WIP-0004 target jobs remain runtime-managed. A later structured-concurrency WIP must define Java-shaped syntax without inheriting accidental JVM memory semantics.
+The implemented profile has no Java threads, monitors, volatile fields, or asynchronous syntax. WIP-0004 target jobs remain runtime-managed. Draft WIP-0032 owns future `IoScope`, request submission, direct `await`, and the distinction between independent asynchronous work and required concurrency without inheriting accidental JVM memory semantics.
 
 ## Quantum and proof implications
 
@@ -225,4 +225,5 @@ Rejected. Reversibility, affine quantum resources, reverse blocks, and measureme
 - [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
 - [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
 - [Language profile](../reference/language-profile.md)

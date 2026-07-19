@@ -303,6 +303,12 @@ Decoders reject cycles where acyclic terms are required, invalid de Bruijn or sy
 
 Kernel failure cannot produce an executable artifact marked as proved. Policy decides whether an unproved optional theorem blocks ordinary compilation; required contracts and transformation certificates always block their dependent operation.
 
+## I/O receipts and conditional proofs
+
+WIP-0032 receipt-chain, range-disjointness, graph-ordering, idempotency-key, operation-lifecycle, and backend-profile obligations may be WIP-0011 proof subjects. The kernel can prove that accepted evidence satisfies a declared rule; it cannot prove that an unmodeled device actually persisted bytes, that a network peer acted, or that a replica survived a failure nobody modeled.
+
+Durability theorems therefore bind the exact protected subject, failure model, operation, backend/profile evidence, assumptions, and receipt chain. A proof cannot cast `WriteCompleted` into `DataStable` or empirical provider output into theorem authority.
+
 ## Application fixtures
 
 The integrated proof profile is driven by executable applications:
@@ -408,3 +414,4 @@ Rejected. Simulation can establish exact finite cases under its model or provide
 - [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
 - [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)

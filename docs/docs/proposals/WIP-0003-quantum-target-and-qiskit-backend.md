@@ -236,6 +236,12 @@ Adapter processes are untrusted capability holders with least-privilege credenti
 
 Structured failures distinguish invalid Wheeler IR, missing target capability, lowering failure, provider rejection, queue timeout, execution failure, cancellation state, malformed result, stale descriptor, and adapter incompatibility. No failure silently switches backend, increases shots, enables approximation, or changes mitigation.
 
+## Unified target-operation lifecycle
+
+WIP-0032 supplies the common future lifecycle for target submission, observation, cancellation, result delivery, and recoverable sessions. Target requests and results remain quantum-domain types carrying WIP-0004 identities; they are not generic file writes wearing provider credentials.
+
+The current `QuantumJob` API is an executable stage-0 slice of that lifecycle. Migration preserves its submit/acknowledge/validate/recover behavior while moving ownership, queue credit, completion, and cancellation races under `IoScope`. Coherent state never enters the fabric as bytes.
+
 ## Migration and deletion
 
 1. Define immutable target, plan, executable, job, and result interfaces plus mock-target tests.
@@ -304,6 +310,7 @@ Rejected. Decomposition must preserve semantics and error budgets; host splittin
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)
 - [WIP-0004](WIP-0004-hybrid-jobs-history-and-replay.md)
 - [WIP-0010](WIP-0010-executable-application-portfolio.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
 - [`QFT.w`](../../../wheeler-examples/src/main/wheeler/QFT.w)
 - [`QuantumOptimizer.w`](../../../wheeler-examples/src/main/wheeler/QuantumOptimizer.w)
 - [`SurfaceCode.w`](../../../wheeler-examples/src/main/wheeler/SurfaceCode.w)

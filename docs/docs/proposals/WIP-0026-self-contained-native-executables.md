@@ -165,6 +165,12 @@ The image plan pins capsule, runtime/objects, compiler/assembler/linker, sysroot
 
 Capsule and unsigned image construction finish before signing. ELF repository/distro signatures, Mach-O code signatures/notarization, PE Authenticode, app bundles, DMGs, installers, and system packages are linked release artifacts and do not change capsule ID.
 
+## Embedded I/O boundary
+
+The root receives one explicit WIP-0032 `Io` implementation plus exact granted resource capabilities. The image, capsule, runtime mode, or linked provider grants no ambient file, network, clock, credential, device, or target access.
+
+WIP-0032 owns request and completion methods. This WIP records the required host-I/O shape and binds backends/providers into the image plan; it does not fork the API. Image replacement and update publication likewise claim no durability beyond an exact accepted receipt.
+
 ## Reversibility, concurrency, quantum, and proofs
 
 Capsule/layout/hashing/verification are deterministic. Linking, writing, signing, notarization, and replacement are external effects. Embedded execution obeys ordinary Wheeler semantics; packaging does not make host effects reversible.
@@ -230,6 +236,7 @@ Adjacent launch directories permit substitution and partial updates. Opaque trai
 - [WIP-0023](WIP-0023-recipe-repositories-and-reproducible-builds.md)
 - [WIP-0024](WIP-0024-system-package-exports.md)
 - [WIP-0025](WIP-0025-native-ffi-and-system-integration.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
 - [ELF program loading](https://gabi.xinuos.com/elf/07-loading-intro.html)
 - [Mach-O overview](https://developer.apple.com/library/archive/documentation/Performance/Conceptual/CodeFootprint/Articles/MachOOverview.html)
 - [Microsoft PE format](https://learn.microsoft.com/en-us/windows/win32/debug/pe-format)

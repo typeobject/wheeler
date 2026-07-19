@@ -238,6 +238,12 @@ Persistence uses integrity checks and atomic checkpoint/event commits. Recovery 
 
 Retries are never infinite by default. Compensation and cancellation failures are recorded and surfaced. A user can see whether a run is active, waiting, uncertain, partially compensated, completed, trapped, or unrecoverable.
 
+## Unified external-operation lifecycle
+
+WIP-0032 generalizes the pending external-operation lifecycle used by quantum jobs into one I/O request, completion, cancellation, uncertainty, and receipt model.
+
+A persisted continuation contains canonical owned request state, external operation identity, capability reference, expected result schema, and correlation or idempotency data. It never contains process borrows, native descriptors, registered-memory addresses, or remote keys. Hardware souvenirs make poor recovery formats.
+
 ## Migration and deletion
 
 1. Implement in-memory `HybridRun`, canonical event identities, and deterministic reduction over a mock target.
@@ -311,6 +317,7 @@ Rejected as the semantic model. Typed continuations plus WIP-0001 checkpoints an
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)
 - [WIP-0003](WIP-0003-quantum-target-and-qiskit-backend.md)
 - [WIP-0010](WIP-0010-executable-application-portfolio.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
 - [`QuantumOptimizer.w`](../../../wheeler-examples/src/main/wheeler/QuantumOptimizer.w)
 - [`QuantumNeuralNetwork.w`](../../../wheeler-examples/src/main/wheeler/QuantumNeuralNetwork.w)
 - [`SurfaceCode.w`](../../../wheeler-examples/src/main/wheeler/SurfaceCode.w)

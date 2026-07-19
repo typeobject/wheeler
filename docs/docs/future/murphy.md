@@ -50,7 +50,7 @@ Search evidence alone cannot establish either result. A proposed schedule is dec
 
 ## Speculative source sketch
 
-The notation below assumes finite-domain types, bounded maps and queues, first-class protocol artifacts, explicit logged reversibility, coherent finite interpreters, proof-producing model checking, structured asynchronous effects, and proof-bearing replay packages.
+The notation below assumes finite-domain types, bounded maps and queues, first-class protocol artifacts, explicit logged reversibility, coherent finite interpreters, proof-producing model checking, [WIP-0032](../proposals/WIP-0032-unified-io-fabric-and-durability-receipts.md) structured asynchronous effects, and proof-bearing replay packages. Its model scheduler is not a second host-I/O API.
 
 ```java
 package future.murphy.ledger;
@@ -831,4 +831,4 @@ The same machinery could investigate consensus, databases, distributed filesyste
 
 > Under every bounded ordering of completion, cancellation, retry, replay, recovery, and duplicate delivery, one quantum observation is applied at most once.
 
-The governing design work is [WIP-0015](../proposals/WIP-0015-certified-adversarial-schedule-exploration.md). `Murphy.w` remains documentation until every dependency is implemented and the ordinary CI gate can compile, parse, execute, replay, and verify it.
+The governing design work is [WIP-0015](../proposals/WIP-0015-certified-adversarial-schedule-exploration.md), with live external operations owned by [WIP-0032](../proposals/WIP-0032-unified-io-fabric-and-durability-receipts.md). `Murphy.w` remains documentation until every dependency is implemented and the ordinary CI gate can compile, parse, execute, replay, and verify it.

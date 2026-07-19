@@ -113,6 +113,12 @@ A system package records upstream repository/snapshot, coordinate/RREV, variant,
 
 Unsigned bytes are the reproducible revision. If a format embeds signatures, release metadata binds both unsigned payload and signed artifact identities.
 
+## Installation I/O boundary
+
+WIP-0032 owns any Wheeler-side requests used to write, verify, publish, or fetch an install image. This WIP defines distribution policy and package-manager lifecycle only; it does not introduce another file, network, completion, or durability API.
+
+An adapter's successful write, rename, signing, upload, or package-manager transaction returns only its exact domain result. Stronger data, namespace, repository, or quorum stability requires the corresponding WIP-0032 receipt and failure model.
+
 ## Reversibility, concurrency, and proofs
 
 Install-image construction and encoding are deterministic. Writing, signing, publishing, and installing are external effects. Installation rollback belongs to the OS package manager, not Wheeler `rev`.
@@ -174,5 +180,6 @@ Direct distro emission from package manifests mixes policy layers. Arbitrary spe
 - [WIP-0023](WIP-0023-recipe-repositories-and-reproducible-builds.md)
 - [WIP-0025](WIP-0025-native-ffi-and-system-integration.md)
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
 - [Debian Policy](https://www.debian.org/doc/debian-policy/)
 - [RPM spec format](https://rpm-software-management.github.io/rpm/manual/spec.html)

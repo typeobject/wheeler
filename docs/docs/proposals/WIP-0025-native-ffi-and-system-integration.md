@@ -139,6 +139,12 @@ Bytecode gains versioned foreign descriptors and call references. A call identif
 
 Limits cover descriptors, symbols, types, nesting, buffers, handles, concurrent calls, duration, memory, stubs, providers, and diagnostics. Reject unsupported ABI, symbol/layout mismatch, undeclared dependencies, ambient paths, invalid pointer/length, mutable aliasing, lifetime errors, callback/varargs, exception crossing, restricted-context calls, missing capability, link conflicts, unmapped provider, PREV mismatch, and exhaustion.
 
+## Native I/O backends
+
+Native asynchronous I/O backends implement WIP-0032 instead of exposing raw completion handles as the Wheeler source API.
+
+FFI requests declare buffer-retention, callback, cancellation, thread, partial-progress, uncertainty, and final-release semantics compatible with `Operation<T>`. A native success code cannot mint a stronger visibility or durability receipt than the adapter's checked profile establishes.
+
 ## Migration and deletion
 
 1. Define ABI/interface schemas and scalar/buffer/handle model.
@@ -191,3 +197,4 @@ Raw loading/function pointers, libffi as language contract, ambient headers, C++
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)

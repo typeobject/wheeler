@@ -193,6 +193,12 @@ Phases include fetch, build, test, documentation, native image construction, and
 
 The next lock schema records resolver version, roots, repository snapshots, instance IDs, coordinates/RREVs, profiles/features, aliases, typed edges, contexts, singleton decisions, capability requests/grants, and exact source/archive identities. Edges name instance IDs, never bare package names.
 
+## I/O capability instances
+
+WIP-0032 capability requests name resource domains and operation classes, including file ranges, connect/listen endpoints, direct storage, persistence evidence, registration/remote access, and target submission. The `Io` fabric itself grants scheduling, not resource authority.
+
+Each request and grant remains keyed by package instance, target, phase, capability name, and canonical resource pattern. Backend packages may provide implementations, but dependency selection cannot turn a provider into ambient access or silently strengthen a requested durability profile.
+
 ## Reversibility and determinism
 
 Resolution and lock verification are pure deterministic computations. Atomic lock replacement is an external effect; failure leaves the old lock unchanged. Fetch/cache insertion reconciles by immutable identity rather than pretending to be reversible.
@@ -281,5 +287,6 @@ One version per name forces ecosystem lockstep; actual singleton constraints are
 - [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
 - [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
 - [Conan lockfiles](https://docs.conan.io/2/tutorial/versioning/lockfiles.html)
 - [Conan build and host contexts](https://docs.conan.io/2/tutorial/consuming_packages/cross_building_with_conan.html)

@@ -308,6 +308,12 @@ Capability grants are visible in build plans and diagnostics. A dependency canno
 
 Secrets are opaque host-owned handles and are prohibited from canonical output, lockfiles, caches, traces, and package archives. Redaction is a last defense, not the ownership model.
 
+## I/O capabilities and builds
+
+Package capability requests may name WIP-0032 resource domains and operation classes, including file read/write, network connect/listen, direct storage, persistence evidence, RDMA registration/remote access, and target submission.
+
+The `Io` fabric grants scheduling only. Resource authority remains target- and phase-scoped under root policy. A reproducible build program receives no ambient live I/O merely because the runtime happens to know how sockets work.
+
 ## Migration and deletion
 
 1. Specify executable schemas for `wheeler.package`, `wheeler.workspace`, `wheeler.lock`, `.wpk`, and build plans.
@@ -408,3 +414,4 @@ Rejected. Credentials, queue selection, calibration, budgets, and hardware avail
 - [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
 - [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)

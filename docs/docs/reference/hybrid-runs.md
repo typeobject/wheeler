@@ -78,6 +78,8 @@ Recovery replays deterministic workflow edges and accepted observations from the
 
 Provider SDK objects, credentials, host pointers, arbitrary object graphs, and raw quantum handles are not persisted.
 
+Atomic replacement protects publication from a torn userspace write when the host supports it; the current store does not return data, metadata, or namespace durability evidence. [WIP-0032](../proposals/WIP-0032-unified-io-fabric-and-durability-receipts.md) will place snapshot I/O under the unified operation lifecycle and typed receipt model. Until then, “snapshot written” is not a power-loss theorem.
+
 ## Replay and retry
 
 Replay and retry are different operations.

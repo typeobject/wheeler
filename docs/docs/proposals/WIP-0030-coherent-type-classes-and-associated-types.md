@@ -283,6 +283,12 @@ A method used by generic `rev` code requires certified inverse behavior. Before 
 
 WIP-0011 propositions may quantify over constraints, associated members, instance identities, and laws. Certificates bind exact class/instance/body/package identities; the kernel checks proof terms, not compiler dictionary layout.
 
+## I/O classes and evidence
+
+WIP-0032 may expose optional `IoAction` composition, codec, topology, or receipt-checking classes after their direct APIs stabilize. Instances cannot hide capabilities, serialize independent requests through import-order accidents, widen effects, or upgrade completion/visibility evidence into durability.
+
+Receipt strength remains compiler/runtime-owned nominal evidence under WIP-0032 and WIP-0011. A user-defined class instance may check or transform evidence only through an admitted rule over exact identities; `instance Durable<WriteCompleted>` is not clever, merely false with extra paperwork.
+
 ## Package, bytecode, documentation, and determinism
 
 Package metadata records classes, stable member IDs, superclasses, associated members, laws/policies, instances/heads/contexts, certificate identities, owner classification, and adapter activation. Tools report instance-set changes and conflicts.
@@ -392,5 +398,6 @@ Rejected for privileged semantics. Tests and prose are valuable, but canonical i
 - [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)
 - [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
 - [How to make ad-hoc polymorphism less ad hoc](https://doi.org/10.1145/75277.75283)
 - [GHC instance declarations and resolution](https://downloads.haskell.org/ghc/latest/docs/users_guide/exts/instances.html)

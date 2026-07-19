@@ -183,6 +183,12 @@ A crash-recovery test can therefore require both recovery-state coverage and exa
 
 Output, filesystem, network, and provider payloads remain private caller-owned effects. Coverage stores bounded identities and status classes, not credentials or arbitrary payload bytes.
 
+## I/O lifecycle coverage
+
+WIP-0032 coverage distinguishes request construction, submission, progress, terminal completion, cancellation relation, uncertainty, resource release, reaping, replay, and each visibility or persistence transition. A completion hit cannot cover a durability point, and replay cannot inflate unique live submissions.
+
+Reports retain bounded operation, request, resource, backend-profile, receipt, and attempt identities. They exclude payloads, credentials, descriptors, remote keys, and native queue state. Physical completion order is evidence only when the program explicitly observes a selection race.
+
 ## Quantum coverage
 
 Quantum coverage has two noninterchangeable profiles.
@@ -350,3 +356,4 @@ Rejected. Failure paths are often the useful paths. Valid observations remain ev
 - [WIP-0015](WIP-0015-certified-adversarial-schedule-exploration.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0019](WIP-0019-integrated-documentation-publication.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)

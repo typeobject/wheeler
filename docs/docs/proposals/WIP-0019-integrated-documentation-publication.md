@@ -168,6 +168,12 @@ Hardware examples default to recorded evidence and replay. Regeneration is an ex
 
 A passing example proves only its declared expectation. The site labels sampled evidence, bounded proof, speculative design, and implemented behavior separately.
 
+## I/O documentation ownership
+
+WIP-0032 is the sole source of the portable I/O lifecycle and method registry. Standard-library, target, package, native, and example pages link to that contract and add only their domain facts; copied future, stream, callback, cancellation, or durability APIs fail review rather than becoming “alternative documentation.”
+
+Until its executable slice lands, every WIP-0032 page and fenced example is labeled Draft or speculative. Current reference pages describe only implemented host loans and target jobs, then identify their migration boundary. Durability prose names exact evidence; atomic replacement, close, rename, staging, direct completion, transport completion, and replication acknowledgement never receive a promotion from the copy editor.
+
 ## Navigation, versions, and search
 
 Navigation is a canonical tree over node IDs. Each visible node has at most one navigation parent but may have many graph links. Duplicate positions or cycles reject.
@@ -260,10 +266,10 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
 ## Progress
 
 - [x] The stage-0 concrete-syntax boundary exports parser-owned module identity, file summary, selected public/semantic declaration kind, name, source position, modifiers, summary, and ordered facets. Bundle generators no longer need to rediscover Wheeler declarations with a website parser; that road ends in anchors made of cheese.
-- [x] `wheeler docs` walks explicit physical manual and Wheeler roots with strict UTF-8 and bounded counts, validates Wheeler documentation, emits canonically ordered manual/heading/API nodes, validates explicit `manual:`/`wheeler:` links and root-contained relative Markdown page/heading links into sorted `links-to` edges, builds navigation and search indexes, copies inert manual pages, binds every emitted file digest in `manifest.json`, and atomically publishes a renderer-neutral profile-2 bundle. Canonical heading identities have deterministic duplicate suffixes, fenced pseudo-headings remain code, and escaping/noncanonical/missing targets fail closed. The full repository currently yields 1,506 nodes without asking the renderer what a declaration is.
+- [x] `wheeler docs` walks explicit physical manual and Wheeler roots with strict UTF-8 and bounded counts, validates Wheeler documentation, emits canonically ordered manual/heading/API nodes, validates explicit `manual:`/`wheeler:` links and root-contained relative Markdown page/heading links into sorted `links-to` edges, builds navigation and search indexes, copies inert manual pages, binds every emitted file digest in `manifest.json`, and atomically publishes a renderer-neutral profile-2 bundle. Canonical heading identities have deterministic duplicate suffixes, fenced pseudo-headings remain code, and escaping/noncanonical/missing targets fail closed. The full repository currently yields a bounded graph without asking the renderer what a declaration is.
 - [ ] Documentation graph, identity, link, and bundle contracts are accepted.
 - [ ] One manual page, Wheeler API declaration, Java stage-0 declaration, and executable example produce one validated bundle.
-- [x] The zero-configuration `wheeler site` command builds canonical roots, re-verifies the complete semantic bundle, consumes bounded MDX-style front matter without rendering it, safely renders headings, prose, links, code, lists, tables, quotes, and admonitions, emits one Manual/Reference/Proposals/Future sidebar, hides the proposal template from navigation, and emits no scripts or header slogan. It derives `sitemap.xml` from every HTML route and a digest of exact page content. It binds bundle/renderer/output identities in `publication-manifest.json` and atomically publishes static HTML/CSS. The current local build emits 45 linked HTML pages; the renderer package graph, duplicated deployment-test workflow, and generic website configuration are deleted. Hosted run `29670968033` built and deployed the navigation/front-matter slice at `2dea61e`; hosted evidence remains commit-qualified rather than silently inheriting later renderer identities.
+- [x] The zero-configuration `wheeler site` command builds canonical roots, re-verifies the complete semantic bundle, consumes bounded MDX-style front matter without rendering it, safely renders headings, prose, links, code, lists, tables, quotes, and admonitions, emits one Manual/Reference/Proposals/Future sidebar, hides the proposal template from navigation, and emits no scripts or header slogan. It derives `sitemap.xml` from every HTML route and a digest of exact page content. It binds bundle/renderer/output identities in `publication-manifest.json` and atomically publishes static HTML/CSS. The current local build emits 47 linked HTML pages; the renderer package graph, duplicated deployment-test workflow, and generic website configuration are deleted. Hosted run `29670968033` built and deployed the navigation/front-matter slice at `2dea61e`; hosted evidence remains commit-qualified rather than silently inheriting later renderer identities.
 - [ ] Cross-package/version links, search, proof references, and malformed-input diagnostics pass.
 - [ ] A Wheeler-written generator emits the stage-0 bundle byte-for-byte.
 - [ ] Duplicate hand-authored/generated authorities are deleted.
@@ -323,4 +329,5 @@ Rejected. Themes, plugins, package locks, and runtime-side Markdown interpretati
 - [WIP-0016](WIP-0016-nonconfigurable-source-formatter.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
 - [Development guide](../reference/development.md)

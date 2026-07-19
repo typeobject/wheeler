@@ -243,6 +243,12 @@ Malformed descriptors, duplicate identities, unsupported assertions, invalid fix
 
 The runner publishes a report only after canonical reduction succeeds. Partial worker files remain untrusted recovery inputs and are never mistaken for a complete run.
 
+## I/O conformance testing
+
+WIP-0032 supplies a deterministic backend that schedules inline or delayed completions in bounded chosen orders and injects partial progress, cancellation races, exhausted credits, uncertain outcomes, fallback, tier failure, and crash boundaries. Tests record any selected race as an observation; they do not promote a simulated receipt into evidence about real hardware.
+
+The common conformance suite runs over deterministic, threaded, readiness, completion, polling, native, and VM implementations. Lifecycle, resource release, replay identity, and result encodings must agree even when physical completion order does not.
+
 ## Ownership and boundaries
 
 The language owns test declaration typing and test-only visibility. The compiler owns descriptor lowering and source mappings. The bytecode verifier owns descriptor/function/type consistency. The VM owns program transitions, traps, snapshots, and rewind. The test runner owns isolation, fixtures, selection, attempts, event reduction, and report publication.
@@ -333,3 +339,4 @@ Rejected. Assertions, event recording, target submission, fixture I/O, and repor
 - [WIP-0019](WIP-0019-integrated-documentation-publication.md)
 - [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md)
 - [WIP-0021](WIP-0021-uniform-call-and-assertion-syntax.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)

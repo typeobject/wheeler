@@ -143,6 +143,12 @@ Platform calls are effects. File replacement, terminal output, memory mapping, a
 
 Quantum adjoints and hybrid replay retain the meanings specified by WIP-0002 and WIP-0004. Native code does not gain access to provider qubit pointers merely because an embedding application has them.
 
+## Native I/O fabric
+
+The native runtime implements WIP-0032 behind one explicit application-supplied `Io` interface. Deterministic inline and bounded threaded backends come before platform-tuned completion, polling, direct-storage, RDMA, or target adapters. Native paths preserve operation ownership, cancellation uncertainty, buffer release, bounds, and receipt meaning exactly.
+
+Java stage-0 file, network, and target helpers remain quarantined migration infrastructure. They do not define Wheeler's source API, canonical bytecode, or durability semantics.
+
 ## Conformance and migration
 
 Migration proceeds in replaceable slices:
@@ -235,3 +241,4 @@ Rejected. The current implementation is the executable migration oracle. It is t
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)

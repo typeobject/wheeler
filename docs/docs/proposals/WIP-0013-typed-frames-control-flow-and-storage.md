@@ -224,6 +224,12 @@ This profile is accepted against Wheeler implementations of:
 
 A feature that cannot express or simplify one of these modules needs separate justification.
 
+## I/O operation ownership
+
+WIP-0032 operations hold WIP-0013 and WIP-0028 buffer loans until final resource-release completion. Live operations are must-consume values; a scope verifies that each operation is terminal and reaped before releasing its storage.
+
+Registered and provided buffers remain bounded affine resources. Native queue entries, descriptors, addresses, and remote keys never become portable region addresses.
+
 ## Migration and deletion
 
 1. Add function signature and typed local metadata while preserving canonical zero-local functions.
@@ -305,3 +311,4 @@ Rejected as the default. Hidden history changes effect and space semantics. Logg
 - [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)
 - [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)

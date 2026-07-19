@@ -122,3 +122,4 @@ Source syntax, generic specialization, class evidence, tests, proofs, packages, 
 | [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md) | Draft | Parametric polymorphism, kinds, const generics, and bounded specialization | Types, generics, kinds, specialization |
 | [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md) | Draft | Coherent type classes, associated types, instances, and laws | Classes, evidence, laws, packages |
 | [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md) | Draft | Effect-, reversible-, coherent-, and unitary-polymorphic callables | Effects, callables, reversibility, quantum operations |
+| [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md) | Draft | Unified asynchronous I/O fabric, operation graphs, and durability receipts | I/O, storage, networking, RDMA, durability, quantum workflows |

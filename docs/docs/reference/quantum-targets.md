@@ -19,6 +19,8 @@ The runtime submits an immutable `QuantumTask` containing the verified artifact,
 
 `QuantumTarget.recover(jobId, task)` reconciles an acknowledged job without submitting it again. The local targets recover jobs retained by the target instance. A remote adapter must map the durable external identity and reject unknown or mismatched tasks; it must not interpret recovery as permission to resubmit.
 
+[WIP-0032](../proposals/WIP-0032-unified-io-fabric-and-durability-receipts.md) will move this lifecycle under `IoScope` while retaining target-specific request/result types and WIP-0004 identities. That proposal is Draft: the current `QuantumJob` API does not yet implement the general fabric. In either model, target submission moves classical descriptions and observations; coherent quantum state never becomes an I/O buffer.
+
 ## Ideal state-vector target
 
 `StateVectorTarget` is the semantic reference for the current static gate subset. It supports up to 20 qubits and reruns a complete prepare-unitary-measure task for every shot. Explicit seeds make its samples repeatable; those seeds do not imply deterministic hardware.

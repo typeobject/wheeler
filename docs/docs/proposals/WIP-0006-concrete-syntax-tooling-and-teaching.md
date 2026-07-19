@@ -98,7 +98,7 @@ Syntax and teaching material consistently distinguish `reverse` from debugger re
 
 ## Concurrency and determinism
 
-Parsing is deterministic. The first teaching levels avoid concurrency. Later job examples use explicit runtime lifecycle language rather than Java thread syntax.
+Parsing is deterministic. The first teaching levels avoid concurrency. Draft WIP-0032 owns later `IoScope`, request, operation, batch, graph, selection, asynchronous, and required-concurrent syntax. Tooling must not copy Java threads or expose a backend poll state machine as the language merely because both have punctuation.
 
 ## Quantum and proof implications
 
@@ -164,5 +164,6 @@ Rejected. ASCII Java-shaped syntax is easier to type, teach, search, and support
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
 - [WIP-0016](WIP-0016-nonconfigurable-source-formatter.md)
 - [WIP-0017](WIP-0017-compile-time-constants-and-finite-enums.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
 - [Language profile](../reference/language-profile.md)
 - [`tree-sitter-wheeler`](../../../tree-sitter-wheeler/grammar.js)

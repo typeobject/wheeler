@@ -344,6 +344,12 @@ Limits cover parameters/results, labels/variables, captures, indirect targets, i
 
 Ambiguous conversion, unresolved variable, masking, invalid capture, missing inverse, incoherent evidence, nonfinite coherent type, invalid adjoint/control, measurement in unitary code, dynamic quantum dispatch, resource overflow, malformed metadata, and limit exhaustion fail before publication. No partial callable table or circuit is emitted.
 
+## I/O effects and indexed actions
+
+WIP-0032 operations carry explicit host or target effects and suspension behavior. Higher-order I/O may propagate effect variables, but it cannot erase capability use, cancellation, uncertainty, persistence stages, measurement, or target submission.
+
+An optional `IoAction<Effects, Result>` or `QuantumAction<Input, Output, Effects, Result>` is a library and semantic view. Direct request/scope style remains authoritative. Quantum state is not a conventional duplicable state monad, no matter how charming the notation looks on a whiteboard.
+
 ## Migration and deletion
 
 1. Define canonical effect rows and callable descriptors.
@@ -448,6 +454,7 @@ Rejected. Static semantic IR and checked universal evidence are required. Tests 
 - [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)
 - [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
 - [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
+- [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
 - [Koka: Programming with Row Polymorphic Effect Types](https://arxiv.org/abs/1406.2061)
 - [Q# functor application](https://learn.microsoft.com/azure/quantum/user-guide/language/expressions/functorapplication)
 - [Q# ApplyToEachCA](https://learn.microsoft.com/qsharp/api/qsharp-lang/std.canon/applytoeachca)
