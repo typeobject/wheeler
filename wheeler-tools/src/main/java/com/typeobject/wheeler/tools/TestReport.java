@@ -91,7 +91,8 @@ final class TestReport {
       String caseIdentity,
       String sourceIdentity,
       String artifactIdentity,
-      ExecutionResult execution) {
+      ExecutionResult execution,
+      String coverageIdentity) {
     return new CaseResult(
         packageName,
         packageVersion,
@@ -103,7 +104,8 @@ final class TestReport {
         "",
         "",
         execution.workflowSteps(),
-        executionIdentity(execution));
+        executionIdentity(execution),
+        coverageIdentity);
   }
 
   static CaseResult fail(
@@ -126,6 +128,7 @@ final class TestReport {
         diagnosticCode,
         boundedDiagnostic(diagnosticMessage),
         0,
+        "",
         "");
   }
 
@@ -201,14 +204,16 @@ final class TestReport {
       String diagnosticCode,
       String diagnosticMessage,
       long workflowSteps,
-      String executionIdentity) {
+      String executionIdentity,
+      String coverageIdentity) {
     CaseResult {
       if (packageName == null || packageVersion == null || targetName == null
           || !hex(caseIdentity) || !hex(sourceIdentity)
           || !artifactIdentity.isEmpty() && !hex(artifactIdentity)
           || status == null || diagnosticCode == null || diagnosticMessage == null
-          || workflowSteps < 0 || executionIdentity == null
-          || !executionIdentity.isEmpty() && !hex(executionIdentity)) {
+          || workflowSteps < 0 || executionIdentity == null || coverageIdentity == null
+          || !executionIdentity.isEmpty() && !hex(executionIdentity)
+          || !coverageIdentity.isEmpty() && !hex(coverageIdentity)) {
         throw new IllegalArgumentException("Invalid test case result");
       }
       if (status == Status.PASS
@@ -233,6 +238,7 @@ final class TestReport {
       field(digest, diagnosticMessage);
       signed(digest, workflowSteps);
       field(digest, executionIdentity);
+      field(digest, coverageIdentity);
     }
 
     private static boolean hex(String value) {

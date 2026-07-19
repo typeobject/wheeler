@@ -297,6 +297,7 @@ class WheelerCommandTest {
         new PrintStream(new ByteArrayOutputStream())));
     String firstReport = stdout.toString(StandardCharsets.UTF_8);
     assertTrue(firstReport.contains("PASS demo.tests::law"));
+    assertTrue(firstReport.contains(" coverage "));
     assertTrue(firstReport.contains("tested demo.tests (1 targets, 1 passed, 0 failed, report "));
     stdout.reset();
     assertEquals(0, Wheeler.execute(

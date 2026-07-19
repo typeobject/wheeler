@@ -267,7 +267,7 @@ JUnit adapters consume semantic reports during migration. They do not discover W
 
 ## Progress
 
-- [x] The stage-0 package runner discovers only exact `target tool ... test` source sets, derives domain-separated case/source/artifact/execution/report identities, executes each target with a fresh runtime and state-vector target, reduces compile failures and VM traps to `WTEST001..002`, sorts cases canonically, and emits a rerun-stable terminal report. This is the executable seed, not the proposed declaration model in a false moustache.
+- [x] The stage-0 package runner discovers only exact `target tool ... test` source sets, derives domain-separated case/source/artifact/execution/report identities, executes each target with a fresh runtime and state-vector target, reduces compile failures and VM traps to `WTEST001..002`, sorts cases canonically, and emits a rerun-stable terminal report. Classical cases additionally collect a noninstrumenting typed transition-coverage report and bind its printed identity into the test report; quantum cases leave that dimension absent rather than forging a flattering zero. This is the executable seed, not the proposed declaration model in a false moustache.
 - [ ] Test declaration and descriptor semantics are accepted.
 - [ ] One Wheeler case compiles, is discovered through an exact package target, runs in a fresh VM, and emits a canonical result.
 - [ ] Parameter rows, lifecycle fixtures, tags, and deterministic sharding execute.

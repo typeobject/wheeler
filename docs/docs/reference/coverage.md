@@ -20,6 +20,6 @@ The observer receives no mutable machine state and cannot change bytecode, instr
 
 `SemanticCoverage` reduces observations into points keyed by direction, function, instruction, and opcode. Counts use checked arithmetic. Its canonical JSON profile is `wheeler-transition-coverage-1`; points are sorted independently of observation-map insertion order, and the report identity is domain-separated SHA-256 over those bytes.
 
-The report deliberately contains no percentage. This slice knows which transitions ran, but it does not yet own a complete source/IR denominator. Dividing a trustworthy numerator by a number found behind the sofa remains unsupported.
+Fresh classical cases selected by `wheeler test` collect this report, print its identity beside the case, and bind the identity into the canonical package test report. Quantum cases omit the classical transition identity. The report deliberately contains no percentage. This slice knows which transitions ran, but it does not yet own a complete source/IR denominator. Dividing a trustworthy numerator by a number found behind the sofa remains unsupported.
 
 Source points, compound conditions, match arms, traps, test-attempt lineage, sharded merge, quantum structure, proof obligations, thresholds, adapters, and Wheeler-written reduction remain [WIP-0020](../proposals/WIP-0020-semantic-coverage-and-evidence-accounting.md) work. JaCoCo continues to measure Java seed implementation code only; it is not Wheeler semantic evidence.

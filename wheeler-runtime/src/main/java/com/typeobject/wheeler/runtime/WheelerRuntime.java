@@ -2,6 +2,7 @@ package com.typeobject.wheeler.runtime;
 
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.ProgramKind;
+import com.typeobject.wheeler.core.vm.TransitionObserver;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.runtime.hybrid.HybridRun;
 import com.typeobject.wheeler.runtime.quantum.QuantumTarget;
@@ -34,6 +35,15 @@ public final class WheelerRuntime {
 
     return executeClassical(
         program, new VirtualMachine(program, utf8Input, outputBytes));
+  }
+
+  /** Executes a classical program while emitting immutable successful-transition observations. */
+  public ExecutionResult executeObserved(
+      Program program, TransitionObserver observer) {
+    if (program.kind() != ProgramKind.CLASSICAL) {
+      throw new IllegalArgumentException("Transition observation is currently classical only");
+    }
+    return executeClassical(program, new VirtualMachine(program, observer));
   }
 
   public ExecutionResult executeBinaryInput(

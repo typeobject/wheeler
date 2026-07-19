@@ -4,9 +4,12 @@ import com.typeobject.wheeler.compiler.CompilerException;
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.bytecode.ProgramKind;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import com.typeobject.wheeler.packageformat.BuildPlan;
 import com.typeobject.wheeler.packageformat.PackageManifest.TargetKind;
+import com.typeobject.wheeler.runtime.ExecutionResult;
+import com.typeobject.wheeler.runtime.SemanticCoverage;
 import com.typeobject.wheeler.runtime.WheelerRuntime;
 import com.typeobject.wheeler.runtime.quantum.StateVectorTarget;
 import com.typeobject.wheeler.packageformat.PackageArchive;
@@ -116,10 +119,16 @@ final class PackageProject {
       }
       String artifactIdentity = sha256(writer.write(program));
       try {
+        WheelerRuntime runtime = new WheelerRuntime();
+        SemanticCoverage coverage = new SemanticCoverage();
+        ExecutionResult execution = program.kind() == ProgramKind.CLASSICAL
+            ? runtime.executeObserved(program, coverage)
+            : runtime.execute(program, new StateVectorTarget());
+        String coverageIdentity = program.kind() == ProgramKind.CLASSICAL
+            ? coverage.identity() : "";
         cases.add(TestReport.pass(
             manifest.name(), manifest.version(), target.name(), caseIdentity,
-            sourceIdentity, artifactIdentity,
-            new WheelerRuntime().execute(program, new StateVectorTarget())));
+            sourceIdentity, artifactIdentity, execution, coverageIdentity));
       } catch (VmTrap exception) {
         cases.add(TestReport.fail(
             manifest.name(), manifest.version(), target.name(), caseIdentity,
