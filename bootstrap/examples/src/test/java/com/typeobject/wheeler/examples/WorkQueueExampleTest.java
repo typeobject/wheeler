@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 class WorkQueueExampleTest {
   @Test
   void boundedWheelerQueueReturnsExplicitPushAndPopResults() throws Exception {
-    String root = Files.readString(Path.of("src/main/wheeler/WorkQueue.w"));
+    String root = Files.readString(Path.of("src/main/wheeler/classical/data/WorkQueue.w"));
     String queue = Files.readString(
         CoreSources.path("collections/LongQueue.w"));
     var program = new WheelerCompiler().compileModuleFiles(

@@ -20,7 +20,7 @@ class HostBinaryInputExampleTest {
   @Test
   void immutableBinaryInputExecutesPublishesAndRewinds() throws Exception {
     WheelerCompiler compiler = new WheelerCompiler();
-    var program = compiler.compile(Path.of("src/main/wheeler/HostBinaryInput.w"));
+    var program = compiler.compile(Path.of("src/main/wheeler/host/HostBinaryInput.w"));
     byte[] encoded = new BytecodeWriter().write(program);
     var decoded = new BytecodeReader().read(encoded);
     assertArrayEquals(encoded, new BytecodeWriter().write(decoded));

@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 class PackageFormatTest {
   private static final String MANIFEST = """
       package "wheeler.compiler" version "0.1.0" profile "bootstrap-1";
-      capability "build.write" path "out/**";
+      capability "build.write" path "build/**";
       target tool "compiler" root "src/compiler.w";
       dependency build "wheeler.bytecode" version "^0.1.0";
       capability "build.read" path "src/**";
@@ -31,7 +31,7 @@ class PackageFormatTest {
         capability "build.read" path "src/**";
         dependency build "wheeler.bytecode" version "^0.1.0";
         target tool "compiler" root "src/compiler.w";
-        capability "build.write" path "out/**";
+        capability "build.write" path "build/**";
         """);
 
     assertEquals(first, second);

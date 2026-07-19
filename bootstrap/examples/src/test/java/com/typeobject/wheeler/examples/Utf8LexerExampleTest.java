@@ -168,8 +168,8 @@ class Utf8LexerExampleTest {
     Path root = Path.of("src/main/wheeler");
     var program = new WheelerCompiler().compileModuleFiles(
         Map.of(
-            "src/main/wheeler/Utf8Lexer.w",
-            Files.readString(root.resolve("Utf8Lexer.w")),
+            "src/main/wheeler/text/Utf8Lexer.w",
+            Files.readString(root.resolve("text/Utf8Lexer.w")),
             "src/main/wheeler/lexer/Parser.w",
             Files.readString(root.resolve("lexer/Parser.w")),
             "src/main/wheeler/lexer/Scanner.w",

@@ -50,7 +50,7 @@ classical class NativePlan {
     assert(packageLength == 9);
     assert(versionLength == 5);
     assert(targetLength == 4);
-    assert(outputLength == 12);
+    assert(outputLength == 14);
     assert(targetKind == 2);
     assert(maxSteps == 1000);
     assert(timeout == 5000);

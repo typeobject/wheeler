@@ -33,36 +33,36 @@ class NativeVmExampleTest {
                 RuntimeSources.read("runtime/AggregateInterpreter.w")),
             Map.entry(
                 "AggregateVerifier.w",
-                CompilerSources.read("compiler/AggregateVerifier.w")),
+                CompilerSources.read("compiler/verification/AggregateVerifier.w")),
             Map.entry("Binary.w", CoreSources.read("encoding/Binary.w")),
             Map.entry(
                 "FunctionVerifier.w",
-                CompilerSources.read("compiler/FunctionVerifier.w")),
+                CompilerSources.read("compiler/verification/FunctionVerifier.w")),
             Map.entry(
                 "InstructionVerifier.w",
-                CompilerSources.read("compiler/InstructionVerifier.w")),
+                CompilerSources.read("compiler/verification/InstructionVerifier.w")),
             Map.entry(
                 "Interpreter.w", RuntimeSources.read("runtime/Interpreter.w")),
             Map.entry(
                 "MapInterpreter.w",
                 RuntimeSources.read("runtime/MapInterpreter.w")),
-            Map.entry("NativeVm.w", Files.readString(root.resolve("NativeVm.w"))),
-            Map.entry("Opcodes.w", CompilerSources.read("compiler/Opcodes.w")),
-            Map.entry("ProofRules.w", CompilerSources.read("compiler/ProofRules.w")),
+            Map.entry("NativeVm.w", Files.readString(root.resolve("native/NativeVm.w"))),
+            Map.entry("Opcodes.w", CompilerSources.read("compiler/ir/Opcodes.w")),
+            Map.entry("ProofRules.w", CompilerSources.read("compiler/ir/ProofRules.w")),
             Map.entry(
                 "ProofVerifier.w",
-                CompilerSources.read("compiler/ProofVerifier.w")),
+                CompilerSources.read("compiler/verification/ProofVerifier.w")),
             Map.entry(
                 "StorageInterpreter.w",
                 RuntimeSources.read("runtime/StorageInterpreter.w")),
             Map.entry(
                 "StorageVerifier.w",
-                CompilerSources.read("compiler/StorageVerifier.w")),
-            Map.entry("TypeCodes.w", CompilerSources.read("compiler/TypeCodes.w")),
+                CompilerSources.read("compiler/verification/StorageVerifier.w")),
+            Map.entry("TypeCodes.w", CompilerSources.read("compiler/ir/TypeCodes.w")),
             Map.entry(
                 "Utf8Interpreter.w",
                 RuntimeSources.read("runtime/Utf8Interpreter.w")),
-            Map.entry("Verifier.w", CompilerSources.read("compiler/Verifier.w"))),
+            Map.entry("Verifier.w", CompilerSources.read("compiler/verification/Verifier.w"))),
         "examples.runtime.native_vm");
     WheelerCompiler compiler = new WheelerCompiler();
     byte[] update = compiler.compileToBytecode(
@@ -137,16 +137,16 @@ class NativeVmExampleTest {
             + "if (valid) { value = doubled; } assert(value == 10); } }",
         "value",
         10);
-    String functionValues = Files.readString(root.resolve("FunctionValues.w"));
+    String functionValues = Files.readString(root.resolve("classical/control/FunctionValues.w"));
     assertInterpretedGlobal(interpreter, functionValues, "result", 10);
     assertInterpretedGlobal(
         interpreter,
-        Files.readString(root.resolve("RecursiveValue.w")),
+        Files.readString(root.resolve("classical/control/RecursiveValue.w")),
         "result",
         6);
     assertInterpretedTwoGlobals(
         interpreter,
-        Files.readString(root.resolve("LoopControl.w")),
+        Files.readString(root.resolve("classical/control/LoopControl.w")),
         "sum",
         12,
         "selected",
@@ -191,7 +191,7 @@ class NativeVmExampleTest {
         + "drop(packet); drop(data); drop(arena); } }";
     assertInterpretedTwoGlobals(
         interpreter, storage, "first", 7, "byteValue", 194);
-    String ownedReturns = Files.readString(root.resolve("OwnedReturns.w"));
+    String ownedReturns = Files.readString(root.resolve("classical/ownership/OwnedReturns.w"));
     assertInterpretedTwoGlobals(
         interpreter, ownedReturns, "wordValue", 17, "byteValue", 65);
     byte[] forgedOwnedParameter = withOwnedParameter(
@@ -238,7 +238,7 @@ class NativeVmExampleTest {
         0);
     Program frozenUtf8 = compiler.compileModuleFiles(
         Map.of(
-            "FrozenUtf8.w", Files.readString(root.resolve("FrozenUtf8.w")),
+            "FrozenUtf8.w", Files.readString(root.resolve("text/FrozenUtf8.w")),
             "CoreUtf8.w", Files.readString(CoreSources.path("text/Utf8.w"))),
         "examples.text.frozen_utf8_main");
     assertInterpretedTwoGlobals(
@@ -299,15 +299,15 @@ class NativeVmExampleTest {
     assertThrows(
         VmTrap.class,
         () -> VirtualMachine.withBinaryInput(interpreter, forgedMap).run());
-    String records = Files.readString(root.resolve("Records.w"));
+    String records = Files.readString(root.resolve("classical/data/Records.w"));
     assertInterpretedTwoGlobals(
         interpreter, records, "width", 5, "equal", 1);
     assertInterpretedGlobal(
         interpreter,
-        Files.readString(root.resolve("FiniteEnums.w")),
+        Files.readString(root.resolve("classical/data/FiniteEnums.w")),
         "selected",
         7);
-    String variants = Files.readString(root.resolve("Variants.w"));
+    String variants = Files.readString(root.resolve("classical/data/Variants.w"));
     assertInterpretedTwoGlobals(
         interpreter, variants, "selected", 9, "equal", 1);
     byte[] forgedVariant = withBadVariantTag(
@@ -338,7 +338,7 @@ class NativeVmExampleTest {
     }
     assertEquals(initial, machine.snapshot());
 
-    String counterSource = Files.readString(root.resolve("Counter.w"));
+    String counterSource = Files.readString(root.resolve("classical/control/Counter.w"));
     byte[] counter = compileInWheeler(root, counterSource);
     assertArrayEquals(compiler.compileToBytecode(counterSource), counter);
     VirtualMachine counterMachine = VirtualMachine.withBinaryInput(
@@ -675,39 +675,39 @@ class NativeVmExampleTest {
         Map.ofEntries(
             Map.entry(
                 "AggregateVerifier.w",
-                CompilerSources.read("compiler/AggregateVerifier.w")),
-            Map.entry("Codegen.w", CompilerSources.read("compiler/Codegen.w")),
-            Map.entry("Encoding.w", CompilerSources.read("compiler/Encoding.w")),
+                CompilerSources.read("compiler/verification/AggregateVerifier.w")),
+            Map.entry("Codegen.w", CompilerSources.read("compiler/backend/Codegen.w")),
+            Map.entry("Encoding.w", CompilerSources.read("compiler/backend/Encoding.w")),
             Map.entry(
                 "FunctionVerifier.w",
-                CompilerSources.read("compiler/FunctionVerifier.w")),
+                CompilerSources.read("compiler/verification/FunctionVerifier.w")),
             Map.entry(
                 "HelperParser.w",
-                CompilerSources.read("compiler/HelperParser.w")),
+                CompilerSources.read("compiler/frontend/HelperParser.w")),
             Map.entry(
                 "InstructionVerifier.w",
-                CompilerSources.read("compiler/InstructionVerifier.w")),
-            Map.entry("Ir.w", CompilerSources.read("compiler/Ir.w")),
+                CompilerSources.read("compiler/verification/InstructionVerifier.w")),
+            Map.entry("Ir.w", CompilerSources.read("compiler/ir/Ir.w")),
             Map.entry(
                 "MinimalCompiler.w", CompilerSources.read("MinimalCompiler.w")),
-            Map.entry("Opcodes.w", CompilerSources.read("compiler/Opcodes.w")),
-            Map.entry("Parser.w", CompilerSources.read("compiler/Parser.w")),
-            Map.entry("ProofRules.w", CompilerSources.read("compiler/ProofRules.w")),
+            Map.entry("Opcodes.w", CompilerSources.read("compiler/ir/Opcodes.w")),
+            Map.entry("Parser.w", CompilerSources.read("compiler/frontend/Parser.w")),
+            Map.entry("ProofRules.w", CompilerSources.read("compiler/ir/ProofRules.w")),
             Map.entry(
                 "ProofVerifier.w",
-                CompilerSources.read("compiler/ProofVerifier.w")),
+                CompilerSources.read("compiler/verification/ProofVerifier.w")),
             Map.entry("Scanner.w", CompilerSources.read("lexer/Scanner.w")),
             Map.entry(
-                "Statements.w", CompilerSources.read("compiler/Statements.w")),
+                "Statements.w", CompilerSources.read("compiler/frontend/Statements.w")),
             Map.entry(
                 "StorageVerifier.w",
-                CompilerSources.read("compiler/StorageVerifier.w")),
+                CompilerSources.read("compiler/verification/StorageVerifier.w")),
             Map.entry(
-                "StringTable.w", CompilerSources.read("compiler/StringTable.w")),
-            Map.entry("Structure.w", CompilerSources.read("compiler/Structure.w")),
-            Map.entry("Tokens.w", CompilerSources.read("compiler/Tokens.w")),
-            Map.entry("TypeCodes.w", CompilerSources.read("compiler/TypeCodes.w")),
-            Map.entry("Verifier.w", CompilerSources.read("compiler/Verifier.w")),
+                "StringTable.w", CompilerSources.read("compiler/backend/StringTable.w")),
+            Map.entry("Structure.w", CompilerSources.read("compiler/frontend/Structure.w")),
+            Map.entry("Tokens.w", CompilerSources.read("compiler/frontend/Tokens.w")),
+            Map.entry("TypeCodes.w", CompilerSources.read("compiler/ir/TypeCodes.w")),
+            Map.entry("Verifier.w", CompilerSources.read("compiler/verification/Verifier.w")),
             Map.entry("Binary.w", CoreSources.read("encoding/Binary.w"))),
         "wheeler.compiler.driver");
     VirtualMachine machine = new VirtualMachine(

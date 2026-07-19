@@ -14,6 +14,7 @@ import java.util.List;
 /** Capability-minimal host adapter for one local Wheeler workspace. */
 final class WorkspaceProject {
   static final String MANIFEST_NAME = "wheeler.workspace";
+  static final String PLAN_FILE_NAME = "wheeler.workspace.plan";
 
   private final Path root;
   private final WorkspaceManifest manifest;
@@ -111,11 +112,11 @@ final class WorkspaceProject {
   }
 
   Path defaultBuildDirectory() {
-    return root.resolve("out");
+    return root.resolve(PackageProject.BUILD_DIRECTORY_NAME);
   }
 
   Path defaultPlanPath() {
-    return root.resolve("wheeler.plan");
+    return defaultBuildDirectory().resolve(PLAN_FILE_NAME);
   }
 
   private static Path physicalMember(Path root, String logicalPath) throws IOException {

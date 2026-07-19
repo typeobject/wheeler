@@ -277,10 +277,10 @@ Public constant and enum declarations participate in direct module export. Impor
 The bootstrap should introduce domain modules rather than one junk drawer:
 
 ```text
-compiler/Opcodes.w
+compiler/ir/Opcodes.w
 compiler/SectionKinds.w
-compiler/TypeCodes.w
-compiler/ProofRules.w
+compiler/ir/TypeCodes.w
+compiler/ir/ProofRules.w
 packages/RecordKinds.w
 lexer/TokenKinds.w
 ```
@@ -355,7 +355,7 @@ Promotion follows WIP-0007: the identity modules incubate with executable compil
 - [ ] Reversible finite permutation checking exists.
 - [ ] Power-of-two coherent enum basis/permutation semantics exist.
 - [x] Tree-sitter nodes, highlighting, corpus fixtures, and the fixed formatter contract cover both declarations.
-- [x] `compiler/Opcodes.w`, `compiler/TypeCodes.w`, and `compiler/ProofRules.w` own the bounded Wheeler verifier/interpreter opcode/type/proof identities, interpreter limits, and membership predicates; those consumers contain no raw opcode/type dispatch literals.
+- [x] `compiler/ir/Opcodes.w`, `compiler/ir/TypeCodes.w`, and `compiler/ir/ProofRules.w` own the bounded Wheeler verifier/interpreter opcode/type/proof identities, interpreter limits, and membership predicates; those consumers contain no raw opcode/type dispatch literals.
 - [ ] Duplicate stage-0 tables and migration shims are deleted at compiler promotion/cutover.
 
 ## Testing and acceptance

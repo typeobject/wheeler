@@ -10,7 +10,7 @@ export PATH="$JAVA_HOME/bin:$PATH"
 ./bootstrap/gradlew -p bootstrap clean check treeSitterTest
 ```
 
-Java compilation enables all lint warnings and treats warnings as errors. `check` runs JUnit, generates JaCoCo reports for modules with tests, and invokes `sourceHeaderTest`. That gate requires every authored Java, Wheeler, JavaScript, stylesheet, Gradle, Tree-sitter query, shell, and Python code file to begin its owned surface with a suitable documentation comment; generated parser and website output stay outside the authored set. `treeSitterTest` installs the pinned CLI, regenerates the parser, runs the syntax corpus, and compiles editor queries.
+Java compilation enables all lint warnings and treats warnings as errors. `check` runs JUnit, generates JaCoCo reports for modules with tests, and invokes the source conformance gates. `sourceHeaderTest` requires every authored Java, Wheeler, JavaScript, stylesheet, Gradle, Tree-sitter query, shell, and Python code file to begin its owned surface with a suitable documentation comment; `sourceLayoutTest` limits every physical Wheeler source directory to ten files; generated parser and website output stay outside the authored set. `treeSitterTest` installs the pinned CLI, regenerates the parser, runs the syntax corpus, and compiles editor queries.
 
 ## Documentation check
 
@@ -41,6 +41,7 @@ Cross-cutting semantic changes begin as a [Wheeler Improvement Proposal](../prop
 ## Maintenance rules
 
 - Keep source files focused and below 1,000 lines.
+- Group Wheeler files by concern and keep at most ten in one physical directory. Compiler backend/frontend/IR/verification, package archive/manifest/resolution/workspace, and example domain directories are the current map; `misc` is not a concern.
 - Delete replaced implementations; do not maintain parallel authorities.
 - Add negative tests for every parser, verifier, capability, and lifecycle boundary.
 - Prefer pure transition functions and immutable artifact models.

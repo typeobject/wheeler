@@ -22,19 +22,19 @@ import org.junit.jupiter.api.Test;
 class NativeArchiveExampleTest {
   @Test
   void wheelerInspectsOuterAndEntryDigestCheckedArchive() throws Exception {
-    Path root = Path.of("src/main/wheeler");
+    Path root = Path.of("src/main/wheeler/native");
     Program inspector = new WheelerCompiler().compileModuleFiles(
         Map.ofEntries(
-            Map.entry("Archive.w", PackageSources.read("packages/Archive.w")),
+            Map.entry("Archive.w", PackageSources.read("packages/archive/Archive.w")),
             Map.entry("Binary.w", CoreSources.read("encoding/Binary.w")),
-            Map.entry("LineEmitter.w", PackageSources.read("packages/LineEmitter.w")),
-            Map.entry("Manifest.w", PackageSources.read("packages/Manifest.w")),
-            Map.entry("ManifestTokens.w", PackageSources.read("packages/ManifestTokens.w")),
-            Map.entry("Names.w", PackageSources.read("packages/Names.w")),
+            Map.entry("LineEmitter.w", PackageSources.read("packages/manifest/LineEmitter.w")),
+            Map.entry("Manifest.w", PackageSources.read("packages/manifest/Manifest.w")),
+            Map.entry("ManifestTokens.w", PackageSources.read("packages/manifest/ManifestTokens.w")),
+            Map.entry("Names.w", PackageSources.read("packages/workspace/Names.w")),
             Map.entry("NativeArchive.w", Files.readString(root.resolve("NativeArchive.w"))),
-            Map.entry("Paths.w", PackageSources.read("packages/Paths.w")),
+            Map.entry("Paths.w", PackageSources.read("packages/workspace/Paths.w")),
             Map.entry("Scanner.w", CompilerSources.read("lexer/Scanner.w")),
-            Map.entry("Semver.w", PackageSources.read("packages/Semver.w")),
+            Map.entry("Semver.w", PackageSources.read("packages/resolution/Semver.w")),
             Map.entry("Sha256.w", CoreSources.read("crypto/Sha256.w"))),
         "examples.packages.archive_main");
     String manifestText =

@@ -9,7 +9,6 @@ build/
 *.iws
 *.iml
 *.ipr
-out/
 
 # Eclipse
 .project

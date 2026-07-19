@@ -18,16 +18,16 @@ import org.junit.jupiter.api.Test;
 class NativeLockExampleTest {
   @Test
   void wheelerParsesAndCanonicalizesABoundedLock() throws Exception {
-    Path root = Path.of("src/main/wheeler");
+    Path root = Path.of("src/main/wheeler/native");
     Program program = new WheelerCompiler().compileModuleFiles(
         Map.of(
-            "Lock.w", PackageSources.read("packages/Lock.w"),
-            "LineEmitter.w", PackageSources.read("packages/LineEmitter.w"),
-            "ManifestTokens.w", PackageSources.read("packages/ManifestTokens.w"),
-            "Names.w", PackageSources.read("packages/Names.w"),
+            "Lock.w", PackageSources.read("packages/resolution/Lock.w"),
+            "LineEmitter.w", PackageSources.read("packages/manifest/LineEmitter.w"),
+            "ManifestTokens.w", PackageSources.read("packages/manifest/ManifestTokens.w"),
+            "Names.w", PackageSources.read("packages/workspace/Names.w"),
             "NativeLock.w", Files.readString(root.resolve("NativeLock.w")),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
-            "Semver.w", PackageSources.read("packages/Semver.w")),
+            "Semver.w", PackageSources.read("packages/resolution/Semver.w")),
         "examples.packages.lock_main");
     String a = "a".repeat(64);
     String b = "b".repeat(64);

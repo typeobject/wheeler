@@ -26,7 +26,7 @@ class BuildPlanCodecTest {
         "compiler/compiler.wbc",
         List.of(new PackageInput("wheeler.bytecode", "3".repeat(64))),
         List.of(
-            new Capability("build.write", "out/**"),
+            new Capability("build.write", "build/**"),
             new Capability("build.read", "src/**")),
         new ExecutionLimits(1_000, 2_000, 3_000, 4_000, 5_000),
         List.of(new Capability("build.read", "src/**")));
@@ -60,6 +60,52 @@ class BuildPlanCodecTest {
     assertArrayEquals(encoded, codec.encode(second));
     assertEquals(first, codec.decode(encoded));
     assertEquals(64, codec.identity(encoded).length());
+  }
+
+  @Test
+  void repeatedDependencyTargetsAreScopedByCanonicalOutputPath() {
+    Node first = Node.create(
+        "demo.shared",
+        "1.0.0",
+        "1".repeat(64),
+        "library",
+        TargetKind.LIBRARY,
+        "2".repeat(64),
+        "first/dependencies/demo.shared/library.wbc",
+        List.of(),
+        List.of(),
+        ExecutionLimits.DEFAULT,
+        List.of());
+    Node second = Node.create(
+        "demo.shared",
+        "1.0.0",
+        "1".repeat(64),
+        "library",
+        TargetKind.LIBRARY,
+        "2".repeat(64),
+        "second/dependencies/demo.shared/library.wbc",
+        List.of(),
+        List.of(),
+        ExecutionLimits.DEFAULT,
+        List.of());
+    BuildPlan plan = new BuildPlan(
+        BuildPlan.SCHEMA_VERSION,
+        "3".repeat(64),
+        "4".repeat(64),
+        "bootstrap-1",
+        List.of(second, first));
+    BuildPlanCodec codec = new BuildPlanCodec();
+
+    assertEquals(List.of(first, second), plan.nodes());
+    assertEquals(plan, codec.decode(codec.encode(plan)));
+    assertThrows(
+        PackageFormatException.class,
+        () -> new BuildPlan(
+            BuildPlan.SCHEMA_VERSION,
+            "3".repeat(64),
+            "4".repeat(64),
+            "bootstrap-1",
+            List.of(first, first)));
   }
 
   @Test

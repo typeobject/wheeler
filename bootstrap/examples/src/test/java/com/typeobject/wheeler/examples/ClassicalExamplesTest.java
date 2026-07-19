@@ -23,23 +23,24 @@ class ClassicalExamplesTest {
   void checkedInClassicalExamplesCompileEncodeAndRun(String file, Map<String, Long> expected)
       throws Exception {
     Path source = Path.of("src/main/wheeler", file);
+    String name = source.getFileName().toString();
     WheelerCompiler compiler = new WheelerCompiler();
     Program program;
-    if (file.equals("FixedArrays.w")) {
+    if (name.equals("FixedArrays.w")) {
       program = compileCoreExample(
           compiler,
           source,
           "CoreFixedLongs.w",
           "collections/FixedLongs.w",
           "examples.collections.fixed_arrays_main");
-    } else if (file.equals("FrozenUtf8.w")) {
+    } else if (name.equals("FrozenUtf8.w")) {
       program = compileCoreExample(
           compiler,
           source,
           "CoreUtf8.w",
           "text/Utf8.w",
           "examples.text.frozen_utf8_main");
-    } else if (file.equals("LongMap.w")) {
+    } else if (name.equals("LongMap.w")) {
       program = compileCoreExample(
           compiler,
           source,
@@ -56,9 +57,9 @@ class ClassicalExamplesTest {
     machine.run();
 
     assertEquals(MachineStatus.HALTED, machine.status());
-    if (file.equals("Counter.w")) {
+    if (name.equals("Counter.w")) {
       assertEquals(ProofRule.GENERATED_INVERSE, program.proofCertificates().getFirst().rule());
-    } else if (file.equals("FunctionValues.w")) {
+    } else if (name.equals("FunctionValues.w")) {
       assertEquals(ProofRule.STATIC_STEP_BOUND, program.proofCertificates().getFirst().rule());
     }
     expected.forEach((global, value) -> assertEquals(value, machine.global(global), global));
@@ -83,23 +84,23 @@ class ClassicalExamplesTest {
 
   static Stream<Arguments> examples() {
     return Stream.of(
-        Arguments.of("Counter.w", Map.of("count", 0L)),
-        Arguments.of("BinaryTree.w", Map.of("root", 0L, "left", 0L, "right", 0L)),
-        Arguments.of("BootstrapControl.w", Map.of("sum", 10L, "branch", 1L)),
-        Arguments.of("FiniteEnums.w", Map.of("selected", 7L)),
-        Arguments.of("FixedArrays.w", Map.of("selected", 6L, "sum", 20L, "middleSum", 10L, "equal", 1L)),
-        Arguments.of("FrozenUtf8.w", Map.of(
+        Arguments.of("classical/control/Counter.w", Map.of("count", 0L)),
+        Arguments.of("classical/data/BinaryTree.w", Map.of("root", 0L, "left", 0L, "right", 0L)),
+        Arguments.of("classical/control/BootstrapControl.w", Map.of("sum", 10L, "branch", 1L)),
+        Arguments.of("classical/data/FiniteEnums.w", Map.of("selected", 7L)),
+        Arguments.of("classical/data/FixedArrays.w", Map.of("selected", 6L, "sum", 20L, "middleSum", 10L, "equal", 1L)),
+        Arguments.of("text/FrozenUtf8.w", Map.of(
             "byteLength", 6L, "scalarCount", 3L, "middleScalar", 8364L, "valid", 1L)),
-        Arguments.of("FunctionValues.w", Map.of("result", 10L)),
-        Arguments.of("LoopControl.w", Map.of("sum", 12L, "selected", 7L)),
-        Arguments.of("LongMap.w", Map.of(
+        Arguments.of("classical/control/FunctionValues.w", Map.of("result", 10L)),
+        Arguments.of("classical/control/LoopControl.w", Map.of("sum", 12L, "selected", 7L)),
+        Arguments.of("classical/data/LongMap.w", Map.of(
             "selected", 17L, "zeroKey", 5L, "present", 1L, "missing", 1L)),
-        Arguments.of("OwnedReturns.w", Map.of(
+        Arguments.of("classical/ownership/OwnedReturns.w", Map.of(
             "wordValue", 17L, "byteValue", 65L, "scalarCount", 2L, "mapValue", 23L)),
-        Arguments.of("Records.w", Map.of("width", 5L, "equal", 1L)),
-        Arguments.of("RecursiveValue.w", Map.of("result", 6L)),
-        Arguments.of("RegionStorage.w", Map.of("first", 7L, "byteValue", 65L, "utf8Scalars", 3L, "validUtf8", 1L, "byteLength", 6L,
+        Arguments.of("classical/data/Records.w", Map.of("width", 5L, "equal", 1L)),
+        Arguments.of("classical/control/RecursiveValue.w", Map.of("result", 6L)),
+        Arguments.of("classical/ownership/RegionStorage.w", Map.of("first", 7L, "byteValue", 65L, "utf8Scalars", 3L, "validUtf8", 1L, "byteLength", 6L,
             "decodedScalars", 3L, "scalarSum", 8591L, "scratchValue", 19L)),
-        Arguments.of("Variants.w", Map.of("selected", 9L, "equal", 1L)));
+        Arguments.of("classical/data/Variants.w", Map.of("selected", 9L, "equal", 1L)));
   }
 }

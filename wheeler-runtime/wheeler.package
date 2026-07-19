@@ -3,4 +3,4 @@ target library "library" root "src/main/wheeler/RuntimeLibrary.w" module "wheele
 dependency normal "wheeler.compiler" version "=0.1.0";
 dependency normal "wheeler.core" version "=0.1.0";
 capability "build.read" path "src/main/wheeler/**";
-capability "build.write" path "out/**";
+capability "build.write" path "build/**";

@@ -40,7 +40,10 @@ A repository contains one workspace manifest and one or more packages:
 
 ```text
 wheeler.workspace
-wheeler.lock
+wheeler.package.lock
+build/
+  wheeler-compiler/
+  wheeler-runtime/
 compiler/
   wheeler.package
   src/
@@ -96,7 +99,9 @@ Commands operate on the workspace graph by default and accept explicit package, 
 
 `wheeler` is the Wheeler toolchain driver. `wheeler run <package-or-artifact>` executes a selected package target or verified artifact.
 
-`wheeler.package` is a UTF-8 Wheeler package manifest. `wheeler.workspace` is the optional workspace manifest. `wheeler.lock` is the generated canonical resolution. `.wpk` is the canonical package archive. Names and suffixes are Wheeler contracts and do not alias host package formats.
+`wheeler.package` is a UTF-8 Wheeler package manifest. `wheeler.workspace` is the optional workspace manifest. `wheeler.package.lock` is the generated canonical resolution. `.wpk` is the canonical package archive. Names and suffixes are Wheeler contracts and do not alias host package formats.
+
+Generated target artifacts and default package archives live below `<repository>/build/<workspace-member>/`; `wheeler clean` owns that tree. A directly invoked member discovers the adjacent workspace and uses the same group, while a standalone package uses its own `build/`. A package-local `vendor/` is different: it is the committed, content-addressed dependency input closure required for offline and recovery builds. Cleaning inputs because their transport happens to be `.wpk` would be tidy in the same sense as shredding the seed compiler.
 
 A package identity contains:
 
@@ -118,7 +123,7 @@ target tool "compiler" root "src/compiler.w";
 target tool "compiler-laws" root "test/compiler_laws.w" test;
 dependency build "wheeler.bytecode" version "^0.1.0";
 capability "build.read" path "src/**";
-capability "build.write" path "out/**";
+capability "build.write" path "build/**";
 ```
 
 The target kind set is closed: `deployable`, `library`, and `tool`. `test` is a selector attached to a runnable target, not a kind in a fake moustache. Examples use the ordinary deployable or tool kind according to their behavior. The final grammar will use Wheeler lexical conventions, explicit semicolons, ordered records, and no whitespace-sensitive constructs. Unknown required fields fail closed. Extension fields are namespaced and preserved only when the schema declares that behavior.
@@ -145,7 +150,7 @@ Resolution:
 2. verifies names, versions, source identities, and dependency phases;
 3. obtains a signed or content-addressed registry index snapshot unless offline;
 4. selects one deterministic solution under the version and profile constraints;
-5. records every package, content hash, feature, source, and relevant schema identity in `wheeler.lock`;
+5. records every package, content hash, feature, source, and relevant schema identity in `wheeler.package.lock`;
 6. verifies the complete graph before fetching or building code.
 
 A locked build does not re-resolve. If a locked archive disappears or has different bytes, the build fails. It does not choose a convenient replacement.
@@ -154,7 +159,7 @@ The initial resolver may require one version of each package identity in a final
 
 ## Lockfile
 
-`wheeler.lock` is generated canonical data. It is committed for applications, tools, and the Wheeler recovery workspace. Libraries may commit it for development reproducibility without forcing consumers to use that graph.
+`wheeler.package.lock` is generated canonical data. It is committed for applications, tools, and the Wheeler recovery workspace. Libraries may commit it for development reproducibility without forcing consumers to use that graph.
 
 The lockfile records:
 
@@ -316,7 +321,7 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 
 ## Migration and deletion
 
-1. Specify executable schemas for `wheeler.package`, `wheeler.workspace`, `wheeler.lock`, `.wpk`, and build plans.
+1. Specify executable schemas for `wheeler.package`, `wheeler.workspace`, `wheeler.package.lock`, `.wpk`, and build plans.
 2. Add stage-0 readers and canonical writers with malformed-input and reproducibility suites.
 3. Implement workspace module resolution and replace hard-coded Gradle project knowledge.
 4. Implement locked local/path dependencies, then vendored and registry dependencies.
@@ -338,10 +343,10 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 - [x] The root `wheeler.workspace`, canonical core, compiler, runtime, and package-codec packages, and example package form an executable stage-0 workspace. The examples bind the exact compiler archive through their committed lock and vendor tree rather than a source-directory side door.
 - [x] Wheeler-written `crypto/Sha256.w` now matches independent digest vectors over bounded binary input and supplies the content-identity primitive required by native lock/plan/archive verification.
 - [x] Canonical `wheeler.core.encoding.binary` owns bounded little-endian reads and ASCII name/release/path checks for binary package codecs; `Plan.w` no longer carries a private copy of the rules. A helper module is cheaper than two subtly different security boundaries.
-- [x] `NativeArchive.w` and `packages/Archive.w` verify Wheeler-computed outer and one entry-data SHA-256 digest, schema framing, a copied and strictly frozen manifest parsed by the shared native scanner/manifest modules, byte-for-byte canonical line re-emission, one or two sorted checked ASCII logical paths tied exactly to the declared target source set, exact lengths/consumption, stage-0 decode compatibility, and exact rewind. Outer damage, re-signed data damage, traversal, a valid but undeclared source path, and noncanonical manifest trivia fail. Reserved-path rejection, the wider manifest profile, Unicode paths, and entry sets beyond two remain.
-- [x] `NativePlan.w`, `packages/Plan.w`, and focused `PlanIdentity.w` consume canonical binary plan bytes, verify exact framing/schema/payload length and Wheeler-computed payload SHA-256, decode one node with zero or one package input and zero or one requested capability plus an equal optional grant, validate bounded ASCII names, numeric three-part release, output path, target kind, all five execution limits, and the node identity rederived from the exact length-prefixed domain/name/version/hex-identity/kind/path/count/limit fields, rewind exactly, and reject payload/digest corruption plus a re-signed invalid kind or forged node identity. Multiple nodes, larger input/capability lists, Unicode strings, prereleases, and canonical re-encoding remain. A payload digest catches rot; it does not deputize every field as honest.
-- [x] `NativeWorkspace.w` and `packages/Workspace.w` parse one or two sorted members with checked workspace/profile/member names, strict paths, distinct nonnested roots, canonical line output through shared `LineEmitter.w`, exact rewind, and stage-0 parser acceptance. Larger member sets remain; two directories are a workspace, while one directory is merely confident.
-- [x] `NativeLock.w`, `packages/Lock.w`, and shared `LineEmitter.w` parse schema 1, one or two sorted package records, lowercase 64-nybble identities, and one known package edge; re-emit exact canonical newline records through bounded output; rewind exactly; and reject wrong schemas, uppercase digests, duplicates, and unknown/reversed edges. Larger graphs and complete edge sorting remain. The lock is small because the test graph is small, not because dependency resolution has discovered inner peace.
+- [x] `NativeArchive.w` and `packages/archive/Archive.w` verify Wheeler-computed outer and one entry-data SHA-256 digest, schema framing, a copied and strictly frozen manifest parsed by the shared native scanner/manifest modules, byte-for-byte canonical line re-emission, one or two sorted checked ASCII logical paths tied exactly to the declared target source set, exact lengths/consumption, stage-0 decode compatibility, and exact rewind. Outer damage, re-signed data damage, traversal, a valid but undeclared source path, and noncanonical manifest trivia fail. Reserved-path rejection, the wider manifest profile, Unicode paths, and entry sets beyond two remain.
+- [x] `NativePlan.w`, `packages/resolution/Plan.w`, and focused `PlanIdentity.w` consume canonical binary plan bytes, verify exact framing/schema/payload length and Wheeler-computed payload SHA-256, decode one node with zero or one package input and zero or one requested capability plus an equal optional grant, validate bounded ASCII names, numeric three-part release, output path, target kind, all five execution limits, and the node identity rederived from the exact length-prefixed domain/name/version/hex-identity/kind/path/count/limit fields, rewind exactly, and reject payload/digest corruption plus a re-signed invalid kind or forged node identity. Multiple nodes, larger input/capability lists, Unicode strings, prereleases, and canonical re-encoding remain. A payload digest catches rot; it does not deputize every field as honest.
+- [x] `NativeWorkspace.w` and `packages/workspace/Workspace.w` parse one or two sorted members with checked workspace/profile/member names, strict paths, distinct nonnested roots, canonical line output through shared `LineEmitter.w`, exact rewind, and stage-0 parser acceptance. Larger member sets remain; two directories are a workspace, while one directory is merely confident.
+- [x] `NativeLock.w`, `packages/resolution/Lock.w`, and shared `LineEmitter.w` parse schema 1, one or two sorted package records, lowercase 64-nybble identities, and one known package edge; re-emit exact canonical newline records through bounded output; rewind exactly; and reject wrong schemas, uppercase digests, duplicates, and unknown/reversed edges. Larger graphs and complete edge sorting remain. The lock is small because the test graph is small, not because dependency resolution has discovered inner peace.
 - [x] `NativeManifest.w` and the `packages` modules scan explicit UTF-8 in Wheeler and parse the mandatory package/name/version/profile header, one or two sorted unique targets, with an optional root module on the first with one to four sorted unique sources including the root, zero to two sorted unique dependencies and zero to two name/path tuple-sorted unique capabilities into typed source ranges. They validate the closed `deployable`, `library`, and `tool` target-kind set, preserve the optional test-selection bit on either runnable kind while rejecting it on a library, and validate every dependency kind, Java-style dotted module names, lowercase dotted package names, nonempty fields, escaped quote/backslash pairs, safe logical paths over decoded scalars, SemVer prereleases, and exact/caret/tilde constraints with checked 64-bit components; reject bad keywords fail closed; canonically re-emit validated tokens through bounded host output; and rewind exactly. Target lists beyond two entries and modular secondary targets, capability lists beyond two entries, dependency lists beyond two entries, source lists beyond four entries, logical patterns, build metadata, owned decoded field values, duplicate checks beyond the one-record bounds, and general canonical ordering remain. Nine strings still do not a package manager make, despite what marketing may have been told.
 - [x] The unified stage-0 `wheeler` command checks, builds, executes test-selected runnable targets, and safely cleans canonical local workspaces; packages and verifies local artifacts; resolves explicit verified archive catalogs, materializes exact offline vendor trees, publishes/fetches immutable local registry releases; emits, verifies, and executes source-bound plans with exact package inputs, bounded output/time policy, complete request-scoped grants, exact artifact sets, and atomic publication; verifies locks; and compiles, runs, disassembles, and emits OpenQASM.
 - [x] Stage 0 loads and validates exact locked offline dependency graphs for check, build, test, selected-target run, and planning; exported library modules source-link dependency-first from verified archive bytes, and direct/sealed builds retain package input identities.

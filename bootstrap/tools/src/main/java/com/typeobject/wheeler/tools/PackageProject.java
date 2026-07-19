@@ -32,6 +32,7 @@ import java.util.stream.Stream;
 
 /** Capability-minimal host adapter for one local Wheeler package directory. */
 final class PackageProject {
+  static final String BUILD_DIRECTORY_NAME = "build";
   static final String MANIFEST_NAME = "wheeler.package";
 
   private final Path root;
@@ -229,11 +230,20 @@ final class PackageProject {
   }
 
   Path defaultBuildDirectory() {
-    return root.resolve("out");
+    Path repositoryRoot = root.getParent();
+    if (repositoryRoot != null) {
+      Path workspace = repositoryRoot.resolve(WorkspaceProject.MANIFEST_NAME);
+      if (Files.isRegularFile(workspace, LinkOption.NOFOLLOW_LINKS)
+          && !Files.isSymbolicLink(workspace)) {
+        return repositoryRoot.resolve(BUILD_DIRECTORY_NAME).resolve(root.getFileName());
+      }
+    }
+    return root.resolve(BUILD_DIRECTORY_NAME);
   }
 
   Path defaultArchivePath() {
-    return root.resolve(manifest.name() + "-" + manifest.version() + ".wpk");
+    return defaultBuildDirectory().resolve(
+        manifest.name() + "-" + manifest.version() + ".wpk");
   }
 
   private LockedPackageSet dependencies() throws IOException {

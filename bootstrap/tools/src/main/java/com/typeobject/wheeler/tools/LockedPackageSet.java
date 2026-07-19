@@ -64,7 +64,7 @@ final class LockedPackageSet {
         || Files.isSymbolicLink(vendor)) {
       throw new IOException("Vendor input is not a physical package directory: " + requested);
     }
-    Path lockPath = vendor.resolve("wheeler.lock");
+    Path lockPath = vendor.resolve(PackageLock.FILE_NAME);
     requirePhysicalFile(lockPath, "vendor lock");
     PackageLock lock = new PackageLockParser().parse(Files.readAllBytes(lockPath));
     if (!lock.rootManifestIdentity().equals(root.identity())) {
@@ -73,7 +73,7 @@ final class LockedPackageSet {
 
     Map<String, DecodedPackage> packages = new LinkedHashMap<>();
     Set<String> expectedFiles = new TreeSet<>();
-    expectedFiles.add("wheeler.lock");
+    expectedFiles.add(PackageLock.FILE_NAME);
     PackageArchive codec = new PackageArchive();
     for (PackageLock.Entry entry : lock.entries()) {
       String filename = entry.name() + "-" + entry.version() + "-"

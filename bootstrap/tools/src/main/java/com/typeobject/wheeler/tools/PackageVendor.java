@@ -24,7 +24,7 @@ final class PackageVendor {
   static int vendor(PackageLock lock, Path catalog, Path requestedOutput) throws IOException {
     Map<String, PackageCatalog.Entry> available = index(PackageCatalog.loadEntries(catalog));
     Map<String, byte[]> expected = new TreeMap<>();
-    expected.put("wheeler.lock", lock.canonicalText().getBytes(StandardCharsets.UTF_8));
+    expected.put(PackageLock.FILE_NAME, lock.canonicalText().getBytes(StandardCharsets.UTF_8));
     for (PackageLock.Entry locked : lock.entries()) {
       PackageCatalog.Entry source = available.get(key(locked.name(), locked.version()));
       if (source == null

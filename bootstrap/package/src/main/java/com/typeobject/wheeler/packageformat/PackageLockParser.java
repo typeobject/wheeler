@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Strict canonical decoder for generated {@code wheeler.lock}. */
+/** Strict canonical decoder for generated {@code wheeler.package.lock}. */
 public final class PackageLockParser {
   private static final int MAX_BYTES = 4 * 1024 * 1024;
   private static final Pattern HEADER = Pattern.compile("lock ([0-9]+) root \"([0-9a-f]{64})\";");

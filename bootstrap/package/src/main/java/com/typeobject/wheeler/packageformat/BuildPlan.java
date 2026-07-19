@@ -35,15 +35,12 @@ public record BuildPlan(
       throw new PackageFormatException("Build plan has too many nodes");
     }
     List<Node> ordered = new ArrayList<>(List.copyOf(nodes));
-    ordered.sort(Comparator.comparing(Node::packageName).thenComparing(Node::targetName));
-    Set<String> coordinates = new HashSet<>();
+    ordered.sort(Comparator.comparing(Node::packageName)
+        .thenComparing(Node::targetName)
+        .thenComparing(Node::outputPath));
     Set<String> outputs = new HashSet<>();
     Set<String> identities = new HashSet<>();
     for (Node node : ordered) {
-      if (!coordinates.add(node.packageName() + "\u0000" + node.targetName())) {
-        throw new PackageFormatException("Duplicate build target " + node.packageName()
-            + ":" + node.targetName());
-      }
       if (!outputs.add(node.outputPath())) {
         throw new PackageFormatException("Colliding build output " + node.outputPath());
       }

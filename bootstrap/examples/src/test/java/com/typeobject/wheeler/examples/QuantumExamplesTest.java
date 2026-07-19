@@ -29,7 +29,8 @@ class QuantumExamplesTest {
   void checkedInQuantumExamplesRoundTripAndRun(String file, Map<String, Long> expected)
       throws Exception {
     WheelerCompiler compiler = new WheelerCompiler();
-    byte[] first = compiler.compileToBytecode(Files.readString(Path.of("src/main/wheeler", file)));
+    byte[] first = compiler.compileToBytecode(
+        Files.readString(Path.of("src/main/wheeler/quantum", file)));
     Program decoded = new BytecodeReader().read(first);
     byte[] second = new BytecodeWriter().write(decoded);
 
@@ -47,7 +48,7 @@ class QuantumExamplesTest {
   @Test
   void optimizerObservationsReplayWithoutAnotherTargetSubmission() throws Exception {
     Program program = new WheelerCompiler().compile(
-        Path.of("src/main/wheeler/QuantumOptimizer.w"));
+        Path.of("src/main/wheeler/quantum/QuantumOptimizer.w"));
     StateVectorTarget target = new StateVectorTarget();
     HybridRun run = HybridRun.start(program, target);
     ExecutionResult recorded = run.runToCompletion(Duration.ofSeconds(1));

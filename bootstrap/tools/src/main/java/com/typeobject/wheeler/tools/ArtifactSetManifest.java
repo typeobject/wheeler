@@ -19,7 +19,7 @@ import java.util.Objects;
 
 /** Canonical verified identity manifest for one closed tree of Wheeler artifacts. */
 final class ArtifactSetManifest {
-  static final String FILE_NAME = "artifact-set.json";
+  static final String FILE_NAME = "wheeler.artifact-set.json";
   private static final String PROFILE = "wheeler.artifact-set/1";
   private static final int MAX_ARTIFACTS = 65_535;
   private static final long MAX_ARTIFACT_BYTES = 16L * 1024 * 1024;

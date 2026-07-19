@@ -27,13 +27,13 @@ import org.junit.jupiter.api.Test;
 class NativePlanExampleTest {
   @Test
   void wheelerInspectsOneDigestCheckedBuildNode() throws Exception {
-    Path root = Path.of("src/main/wheeler");
+    Path root = Path.of("src/main/wheeler/native");
     Program inspector = new WheelerCompiler().compileModuleFiles(
         Map.of(
             "Binary.w", CoreSources.read("encoding/Binary.w"),
             "NativePlan.w", Files.readString(root.resolve("NativePlan.w")),
-            "Plan.w", PackageSources.read("packages/Plan.w"),
-            "PlanIdentity.w", PackageSources.read("packages/PlanIdentity.w"),
+            "Plan.w", PackageSources.read("packages/resolution/Plan.w"),
+            "PlanIdentity.w", PackageSources.read("packages/resolution/PlanIdentity.w"),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
         "examples.packages.plan_main");
     Node node = Node.create(
@@ -43,7 +43,7 @@ class NativePlanExampleTest {
         "main",
         TargetKind.DEPLOYABLE,
         "2".repeat(64),
-        "out/main.wbc",
+        "build/main.wbc",
         List.of(),
         List.of(),
         new ExecutionLimits(1_000, 2_000, 3_000, 4_000, 5_000),
@@ -63,7 +63,7 @@ class NativePlanExampleTest {
     assertEquals(9, machine.global("packageLength"));
     assertEquals(5, machine.global("versionLength"));
     assertEquals(4, machine.global("targetLength"));
-    assertEquals(12, machine.global("outputLength"));
+    assertEquals(14, machine.global("outputLength"));
     assertEquals(2, machine.global("targetKind"));
     assertEquals(0, machine.global("inputCount"));
     assertEquals(0, machine.global("requestCount"));
@@ -83,7 +83,7 @@ class NativePlanExampleTest {
         "main",
         TargetKind.DEPLOYABLE,
         "2".repeat(64),
-        "out/main.wbc",
+        "build/main.wbc",
         List.of(new PackageInput("demo.input", "3".repeat(64))),
         List.of(new Capability("build.read", "src/**")),
         new ExecutionLimits(1_000, 2_000, 3_000, 4_000, 5_000),

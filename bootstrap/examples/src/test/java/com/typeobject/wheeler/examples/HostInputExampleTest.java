@@ -16,7 +16,7 @@ class HostInputExampleTest {
   @Test
   void explicitStrictUtf8InputExecutesAndRewindsWithoutAmbientState() throws Exception {
     var program = new WheelerCompiler().compile(
-        Path.of("src/main/wheeler/HostInput.w"));
+        Path.of("src/main/wheeler/host/HostInput.w"));
     assertThrows(VmTrap.class, () -> new VirtualMachine(program));
     VirtualMachine machine = new VirtualMachine(
         program, "A¢".getBytes(StandardCharsets.UTF_8), 2);

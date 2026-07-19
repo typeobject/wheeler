@@ -328,7 +328,7 @@ public final class Wheeler {
     }
     Path packageRoot = Path.of(args[1]);
     Path catalog = null;
-    Path output = packageRoot.resolve("wheeler.lock");
+    Path output = packageRoot.resolve(PackageLock.FILE_NAME);
     boolean outputSpecified = false;
     boolean development = false;
     boolean updateAll = false;
@@ -405,7 +405,7 @@ public final class Wheeler {
   private static int verifyLock(
       String[] args, PrintStream out, PrintStream error) throws Exception {
     if (args.length != 2) {
-      error.println("Usage: wheeler verify-lock <wheeler.lock>");
+      error.println("Usage: wheeler verify-lock <" + PackageLock.FILE_NAME + ">");
       return 2;
     }
     PackageLock lock = new PackageLockParser().parse(Files.readAllBytes(Path.of(args[1])));
@@ -417,8 +417,8 @@ public final class Wheeler {
       String[] args, PrintStream out, PrintStream error) throws Exception {
     if (args.length != 6 || !args[2].equals("--catalog") || !args[4].equals("-o")) {
       error.println(
-          "Usage: wheeler vendor <wheeler.lock> --catalog <archive-directory>"
-              + " -o <vendor-directory>");
+          "Usage: wheeler vendor <" + PackageLock.FILE_NAME
+              + "> --catalog <archive-directory> -o <vendor-directory>");
       return 2;
     }
     PackageLock lock = new PackageLockParser().parse(Files.readAllBytes(Path.of(args[1])));
@@ -492,10 +492,10 @@ public final class Wheeler {
       output = workspace.defaultPlanPath();
     }
     BuildPlanCodec codec = new BuildPlanCodec();
-    byte[] encoded = codec.encode(
-        workspace.plan(Stage0CompilerIdentity.current(), grantRequested));
+    BuildPlan plan = workspace.plan(Stage0CompilerIdentity.current(), grantRequested);
+    byte[] encoded = codec.encode(plan);
     PackageProject.writeAtomically(output, encoded);
-    out.println("planned " + workspace.targetCount() + " targets into " + output
+    out.println("planned " + plan.nodes().size() + " targets into " + output
         + " (" + codec.identity(encoded) + ")");
     return 0;
   }
@@ -503,7 +503,7 @@ public final class Wheeler {
   private static int verifyPlan(
       String[] args, PrintStream out, PrintStream error) throws Exception {
     if (args.length != 2) {
-      error.println("Usage: wheeler verify-plan <wheeler.plan>");
+      error.println("Usage: wheeler verify-plan <" + WorkspaceProject.PLAN_FILE_NAME + ">");
       return 2;
     }
     byte[] encoded = Files.readAllBytes(Path.of(args[1]));
@@ -517,7 +517,8 @@ public final class Wheeler {
       String[] args, PrintStream out, PrintStream error) throws Exception {
     if (args.length != 5 || !args[3].equals("-o")) {
       error.println(
-          "Usage: wheeler execute-plan <workspace-directory> <wheeler.plan> -o <output>");
+          "Usage: wheeler execute-plan <workspace-directory> <"
+              + WorkspaceProject.PLAN_FILE_NAME + "> -o <output>");
       return 2;
     }
     WorkspaceProject workspace = WorkspaceProject.load(Path.of(args[1]));
@@ -612,14 +613,14 @@ public final class Wheeler {
   private static void resolveUsage(PrintStream error) {
     error.println(
         "Usage: wheeler resolve <package-directory> --catalog <archive-directory>"
-            + " [-o wheeler.lock] [--development]"
+            + " [-o " + PackageLock.FILE_NAME + "] [--development]"
             + " [--update <package> ... | --update-all]");
   }
 
   private static void planUsage(PrintStream error) {
     error.println(
         "Usage: wheeler plan <workspace-directory>"
-            + " [--grant-requested] [-o wheeler.plan]");
+            + " [--grant-requested] [-o " + WorkspaceProject.PLAN_FILE_NAME + "]");
   }
 
   private static void usage(PrintStream error) {

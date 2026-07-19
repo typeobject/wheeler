@@ -51,9 +51,9 @@ Documentation uses one fixed repository convention and no renderer configuration
 
 Executable examples:
 
-- [`Counter.w`](wheeler-examples/src/main/wheeler/Counter.w) — reversible classical state;
-- [`CoherentOracle.w`](wheeler-examples/src/main/wheeler/CoherentOracle.w) — one function over classical and coherent data;
-- [`QFT.w`](wheeler-examples/src/main/wheeler/QFT.w) — the [quantum Fourier transform](https://en.wikipedia.org/wiki/Quantum_Fourier_transform) and its generated adjoint.
+- [`Counter.w`](wheeler-examples/src/main/wheeler/classical/control/Counter.w) — reversible classical state;
+- [`CoherentOracle.w`](wheeler-examples/src/main/wheeler/quantum/CoherentOracle.w) — one function over classical and coherent data;
+- [`QFT.w`](wheeler-examples/src/main/wheeler/quantum/QFT.w) — the [quantum Fourier transform](https://en.wikipedia.org/wiki/Quantum_Fourier_transform) and its generated adjoint.
 
 ## License
 

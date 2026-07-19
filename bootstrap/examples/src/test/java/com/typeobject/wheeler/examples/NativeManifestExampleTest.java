@@ -17,17 +17,17 @@ import org.junit.jupiter.api.Test;
 class NativeManifestExampleTest {
   @Test
   void wheelerParsesAndCanonicalizesTheBoundedManifest() throws Exception {
-    Path root = Path.of("src/main/wheeler");
+    Path root = Path.of("src/main/wheeler/native");
     var program = new WheelerCompiler().compileModuleFiles(
         Map.of(
-            "ManifestEmitter.w", PackageSources.read("packages/ManifestEmitter.w"),
-            "Manifest.w", PackageSources.read("packages/Manifest.w"),
-            "ManifestTokens.w", PackageSources.read("packages/ManifestTokens.w"),
-            "Names.w", PackageSources.read("packages/Names.w"),
+            "ManifestEmitter.w", PackageSources.read("packages/manifest/ManifestEmitter.w"),
+            "Manifest.w", PackageSources.read("packages/manifest/Manifest.w"),
+            "ManifestTokens.w", PackageSources.read("packages/manifest/ManifestTokens.w"),
+            "Names.w", PackageSources.read("packages/workspace/Names.w"),
             "NativeManifest.w", Files.readString(root.resolve("NativeManifest.w")),
-            "Paths.w", PackageSources.read("packages/Paths.w"),
+            "Paths.w", PackageSources.read("packages/workspace/Paths.w"),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
-            "Semver.w", PackageSources.read("packages/Semver.w")),
+            "Semver.w", PackageSources.read("packages/resolution/Semver.w")),
         "examples.packages.main");
     String source =
         "package \"demo.native\" version \"1.2.3-rc.1\" profile \"boot\\\"strap\"; "

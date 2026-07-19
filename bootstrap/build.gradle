@@ -1,5 +1,6 @@
 // Root build policy for the bounded stage-0 modules and repository conformance gates.
 ext.repositoryRoot = rootDir.parentFile
+ext.maxWheelerSourceFilesPerDirectory = 10
 
 allprojects {
     group = 'com.typeobject.wheeler'
@@ -62,6 +63,29 @@ tasks.register('sourceSyntaxTest') {
         if (!failures.isEmpty()) {
             throw new GradleException('Wheeler assertion syntax has one authority:\n'
                     + failures.join('\n'))
+        }
+    }
+}
+
+tasks.register('sourceLayoutTest') {
+    group = 'verification'
+    description = 'Keeps Wheeler source directories small enough to navigate without a sextant.'
+    doLast {
+        def byDirectory = fileTree(repositoryRoot) {
+            include '**/*.w'
+            exclude '.git/**', '**/build/**', '**/node_modules/**'
+        }.files.groupBy { it.parentFile }
+        def crowded = byDirectory.findAll {
+            _, files -> files.size() > maxWheelerSourceFilesPerDirectory
+        }.collect { directory, files ->
+            def logical = repositoryRoot.toPath().relativize(directory.toPath()).toString()
+            "${logical}: ${files.size()} files"
+        }.sort()
+        if (!crowded.isEmpty()) {
+            throw new GradleException(
+                    "Wheeler source directories may contain at most "
+                            + "${maxWheelerSourceFilesPerDirectory} files; split by concern:\n"
+                            + crowded.join('\n'))
         }
     }
 }
@@ -157,5 +181,6 @@ subprojects {
     check.dependsOn jacocoTestReport
     check.dependsOn rootProject.tasks.named('bootstrapContainmentTest')
     check.dependsOn rootProject.tasks.named('sourceHeaderTest')
+    check.dependsOn rootProject.tasks.named('sourceLayoutTest')
     check.dependsOn rootProject.tasks.named('sourceSyntaxTest')
 }

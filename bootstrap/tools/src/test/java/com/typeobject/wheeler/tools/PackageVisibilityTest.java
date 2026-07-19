@@ -102,7 +102,7 @@ class PackageVisibilityTest {
         new PackageLock.Entry(
             middle.name(), middle.version(), middleIdentity, middle.identity(),
             List.of(leaf.name()))));
-    Files.writeString(vendor.resolve("wheeler.lock"), lock.canonicalText());
+    Files.writeString(vendor.resolve("wheeler.package.lock"), lock.canonicalText());
     return new Fixture(root);
   }
 

@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 class NativeSha256ExampleTest {
   @Test
   void wheelerHashesTextBinaryAndPaddingBoundaries() throws Exception {
-    Path root = Path.of("src/main/wheeler");
+    Path root = Path.of("src/main/wheeler/native");
     Program program = new WheelerCompiler().compileModuleFiles(
         Map.of(
             "NativeSha256.w", Files.readString(root.resolve("NativeSha256.w")),

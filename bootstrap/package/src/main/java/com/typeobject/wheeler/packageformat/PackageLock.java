@@ -11,8 +11,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-/** Canonical exact dependency graph for {@code wheeler.lock}. */
+/** Canonical exact dependency graph for {@code wheeler.package.lock}. */
 public record PackageLock(int schemaVersion, String rootManifestIdentity, List<Entry> entries) {
+  public static final String FILE_NAME = "wheeler.package.lock";
   public static final int SCHEMA_VERSION = 1;
 
   public PackageLock {
