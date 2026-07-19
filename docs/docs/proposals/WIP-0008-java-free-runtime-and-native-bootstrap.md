@@ -230,3 +230,6 @@ Rejected. The current implementation is the executable migration oracle. It is t
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0010](WIP-0010-executable-application-portfolio.md)
+- [WIP-0023](WIP-0023-recipe-repositories-and-reproducible-builds.md)
+- [WIP-0025](WIP-0025-native-ffi-and-system-integration.md)
+- [WIP-0026](WIP-0026-self-contained-native-executables.md)

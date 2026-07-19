@@ -245,6 +245,32 @@ Namespaces have explicit ownership and delegation. Clients verify archive hash, 
 
 Yanking marks a version ineligible for new unlocked resolution but does not break existing lockfiles or delete the archive. Security advisories are separately signed metadata and never rewrite historical package bytes.
 
+## Hardening and distribution series
+
+The implemented stage-0 archive and locked-build core remains the foundation: declarative manifests, exactly three target kinds, canonical bounded archives, immutable publication, explicit vendor sets, source-bound plans, and no ambient lookup. Before a broad third-party ecosystem, five follow-up WIPs close graph, repository, distribution, native, and image boundaries:
+
+1. [WIP-0022](WIP-0022-package-instances-and-resolution.md) replaces name-global resolution and flat transitive module candidates with target-scoped package instances, direct aliases, build/target contexts, bounded incompatibility solving, minimal updates, one workspace graph, and scoped capabilities.
+2. [WIP-0023](WIP-0023-recipe-repositories-and-reproducible-builds.md) defines repository trust domains, signed snapshots, declarative recipes, RREV/variant/build-input/PREV identities, sealed reproducibility, independent attestations, quarantine, and no-replace publication.
+3. [WIP-0024](WIP-0024-system-package-exports.md) derives Debian, RPM, and later deployment formats from one canonical install image and typed lifecycle policy.
+4. [WIP-0025](WIP-0025-native-ffi-and-system-integration.md) defines exact native ABI descriptors, affine foreign ownership, irreversible effects, package-visible providers, and explicit system capabilities without ambient loading.
+5. [WIP-0026](WIP-0026-self-contained-native-executables.md) defines one loader-native ELF, Mach-O, or PE file containing a verified read-only Wheeler capsule and embedded runtime.
+
+The series preserves these rules:
+
+- a package name is not an instance, and only direct declared dependencies are importable;
+- target edges retain normal/build/development kind and build/target context;
+- repository identity participates in dependency meaning, while mirrors remain transport;
+- locks pin realizable graphs and updates preserve valid instances by default;
+- recipes and revisions are immutable and one build-input identity admits at most one PREV;
+- system packages remain derived policy artifacts;
+- native calls are explicit irreversible effect boundaries;
+- native images contain format-native read-only capsules rather than adjacent or appended ambient payloads;
+- no resolver, builder, FFI loader, image launcher, or distribution adapter performs ambient discovery.
+
+The shared identity chain is coordinate → RREV → variant → build-input ID → PREV, with separate capsule, native-image, signed-release, and distribution identities. Each arrow adds declared information; none is allowed to erase inconvenient inputs using a callback named `packageId()` and a hopeful expression.
+
+A public-ecosystem release waits for direct imports, profile/prerelease-aware bounded solving, lock-preserving updates, repository snapshots and namespace authority, PREV uniqueness with independent rebuild verification, and native closure verification. Archive integrity alone is necessary. It is not the whole supply chain wearing a small hat.
+
 ## Self-hosting and recovery
 
 The package manager, build planner, manifest parser, resolver, archive codec, registry client, and command driver are Wheeler packages. They are built by the WIP-0007 compiler and execute on the WIP-0008 native runtime.
@@ -371,3 +397,8 @@ Rejected. Credentials, queue selection, calibration, budgets, and hardware avail
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
 - [WIP-0012](WIP-0012-wheeler-standard-library.md)
 - [WIP-0016](WIP-0016-nonconfigurable-source-formatter.md)
+- [WIP-0022](WIP-0022-package-instances-and-resolution.md)
+- [WIP-0023](WIP-0023-recipe-repositories-and-reproducible-builds.md)
+- [WIP-0024](WIP-0024-system-package-exports.md)
+- [WIP-0025](WIP-0025-native-ffi-and-system-integration.md)
+- [WIP-0026](WIP-0026-self-contained-native-executables.md)

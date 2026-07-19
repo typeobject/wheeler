@@ -302,5 +302,7 @@ Rejected. The canonical executable is `.wbc`; provider formats and host-native i
 - [WIP-0013](WIP-0013-typed-frames-control-flow-and-storage.md)
 - [WIP-0016](WIP-0016-nonconfigurable-source-formatter.md)
 - [WIP-0017](WIP-0017-compile-time-constants-and-finite-enums.md)
+- [WIP-0023](WIP-0023-recipe-repositories-and-reproducible-builds.md)
+- [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [Wheeler source language profile](../reference/language-profile.md)
 - [Ken Thompson, “Reflections on Trusting Trust”](https://dl.acm.org/doi/10.1145/358198.358210)

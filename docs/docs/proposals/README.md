@@ -98,3 +98,8 @@ Use “Not applicable” with a reason for unaffected template sections. Split w
 | [WIP-0019](WIP-0019-integrated-documentation-publication.md) | Draft | Integrated documentation publication | Wheeler API docs, Markdown, Javadoc, Docusaurus, links and search |
 | [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md) | Draft | Semantic coverage and evidence accounting | Classical, reversible, quantum, workflow and proof coverage |
 | [WIP-0021](WIP-0021-uniform-call-and-assertion-syntax.md) | Implementing | Uniform call and assertion syntax | Source syntax, assertions, reversible and quantum evidence, typed test doubles |
+| [WIP-0022](WIP-0022-package-instances-and-resolution.md) | Draft | Package instances and deterministic target graphs | Packages, resolver, modules, lockfiles |
+| [WIP-0023](WIP-0023-recipe-repositories-and-reproducible-builds.md) | Draft | Recipe repositories and reproducible package revisions | Repositories, revisions, provenance, publication |
+| [WIP-0024](WIP-0024-system-package-exports.md) | Draft | Canonical install images and system-package export | Debian, RPM, distribution tooling |
+| [WIP-0025](WIP-0025-native-ffi-and-system-integration.md) | Draft | Native ABI descriptors, FFI, and system capabilities | Language, runtime, native ABI, packages |
+| [WIP-0026](WIP-0026-self-contained-native-executables.md) | Draft | Self-contained platform-native Wheeler executables | Native images, ELF, Mach-O, PE, embedded WBC |
