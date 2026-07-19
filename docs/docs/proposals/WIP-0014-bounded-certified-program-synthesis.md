@@ -13,26 +13,28 @@
 
 ## Summary
 
-Wheeler may eventually support bounded certified program synthesis: search a finite, canonical grammar of Wheeler reversible IR operations for an implementation of a finite mathematical specification, check the implementation exactly, prove minimality within the selected grammar and resource metric, and publish proof-carrying source and canonical `.wbc`. Candidate syntax, search encodings, SAT terms, and provider circuits are derivations; only independently verified closed IR and kernel evidence can be promoted.
+Wheeler may later support bounded certified program synthesis. The system would search a finite, canonical grammar of Wheeler IR operations for a program that meets a finite mathematical specification. It would then check the program exactly, prove minimality within the chosen grammar and resource metric, and publish proof-carrying source with canonical `.wbc`.
 
-`Foundry.w` is the driving application. Its first target is the smallest reversible comparator network, within an explicit comparator bound, that sorts eight 4-bit integers while retaining and cleaning an exact inverse witness.
+Candidate syntax, search encodings, SAT terms, and provider circuits are derived data. Only independently verified closed IR and kernel evidence may be published as accepted output.
 
-This WIP reserves no current syntax. It defines the semantic decomposition and acceptance boundary needed before a future syntax proposal can be credible.
+`Foundry.w` is the main application. Its first target is the smallest reversible comparator network, within a stated comparator limit, that sorts eight 4-bit integers while keeping and cleaning an exact inverse witness.
+
+This WIP does not reserve source syntax today. It defines the semantic parts and acceptance rules that a later syntax proposal must satisfy.
 
 ## Motivation
 
-Wheeler combines properties that are separately useful for bounded synthesis:
+Wheeler already has several useful parts for bounded synthesis:
 
-- finite encodings suitable for exact enumeration and coherent interpretation;
-- explicit language inverses and uncomputation;
+- finite encodings that support exact enumeration and coherent interpretation;
+- explicit inverses and uncomputation;
 - provider-neutral quantum regions and target capabilities;
 - durable replayable workflows;
 - a small certificate kernel;
 - canonical compiler and package identities.
 
-The synthesis service must not become a second compiler, proof authority, package format, or target API. Search may be heuristic, distributed, quantum-assisted, or replaced outright. Acceptance remains deterministic and content-addressed.
+The synthesis service must not become a second compiler, proof authority, package format, or target API. Search may use heuristics, distributed workers, quantum assistance, or a different algorithm later. Acceptance remains deterministic and content-addressed.
 
-The input is a specification, candidate grammar, and limits. There is no dataset, learned checkpoint, or sampled correctness criterion.
+The input is a specification, a candidate grammar, and fixed limits. There's no training dataset, model checkpoint, or sampled correctness standard.
 
 ## Goals
 
@@ -88,7 +90,7 @@ Cardinality arithmetic is checked and bounded. A quantifier whose domain exceeds
 
 ### Candidate identity
 
-Candidate source text is not the search identity. A grammar-specific canonical AST or instruction vector is. Equivalent encodings are removed by construction or by a deterministic normalization certificate.
+Candidate source text isn't the search identity. A grammar-specific canonical AST or instruction vector is. Equivalent encodings are removed by construction or by a deterministic normalization certificate.
 
 For comparator networks, each instruction names two distinct indices in canonical order. Inactive slots have one required zero encoding. Network length is part of the candidate value. Scheduling symmetries may be normalized only by a checked rule.
 
@@ -126,7 +128,7 @@ The claim does not extend to another instruction set, arithmetic semantics, widt
 
 ## Syntax requirements
 
-A future syntax proposal must define, rather than merely illustrate:
+A future syntax proposal must define, instead of only illustrate:
 
 - `type`, finite-width integer, finite array, and index declarations;
 - generic and dependent bounds;
@@ -180,7 +182,7 @@ Publication requires an explicit capability and follows WIP-0009 immutability ru
 
 ## Determinism and bounds
 
-Every source of work is bounded: finite cardinality, candidate bits, candidate length, interpreter steps, workspace words, logical qubits, gates, shots, job attempts, event count, proof nodes, solver-certificate bytes, kernel recursion, package bytes, and total duration policy.
+Every source of work is bounded. Limits cover finite cardinality, candidate bits and length, interpreter steps, workspace words, qubits, gates, shots, job attempts, events, proof nodes, certificate bytes, kernel recursion, package bytes, and total duration.
 
 Parallel or distributed search may finish in any order. Candidate selection reduces results by canonical metric then candidate encoding. Proof diagnostics and package members reduce in canonical order. Scheduling, hash iteration, wall clock, provider queue order, and allocation address cannot change a successful package.
 
@@ -200,7 +202,7 @@ The implementation fails closed on:
 - compiler, grammar, specification, or resource identity mismatch;
 - package output without authority.
 
-No partial package is published. A failed publication does not retroactively invalidate a checked theorem, but it does not create a release.
+No partial package is published. A failed publication leaves a checked theorem valid and creates no release.
 
 ## Implementation order
 
@@ -226,7 +228,7 @@ No partial package is published. A failed publication does not retroactively inv
 - [ ] Coherent candidate interpretation and amplitude-amplification planning are implemented.
 - [ ] Durable synthesis search and absence-proof accumulation are implemented.
 - [ ] Generated module/package publication is implemented.
-- [ ] `Foundry.w` is an ordinary executable, tested package rather than documentation syntax.
+- [ ] `Foundry.w` is an ordinary executable, tested package instead of documentation syntax.
 
 ## Testing and acceptance
 
@@ -254,7 +256,7 @@ A proof of finite correctness is not a proof that the specification is desirable
 
 ### Treat exhaustive tests as a certificate
 
-Rejected. A test transcript is needlessly large and does not prove canonical coverage unless the checker already trusts its enumeration and reduction. A bounded proof term should state the finite reasoning directly.
+Rejected. A test transcript is too large and proves canonical coverage only when the checker already trusts its enumeration and reduction. A bounded proof term states the finite reasoning directly.
 
 ### Trust the synthesis or quantum service
 
@@ -270,11 +272,11 @@ Rejected. Minimality without a grammar and metric is not a finite proposition.
 
 ## Open questions
 
-- Which finite-type primitives keep enumeration, coherent encoding, and kernel terms small? — **Owner:** type and proof maintainers — **Decide by:** before finite quantifiers
-- Which candidate normalization rules are cheap enough to check but strong enough to remove comparator-network symmetries? — **Owner:** synthesis maintainers — **Decide by:** before candidate encoding
-- Which proof-producing engine establishes useful network absence bounds without entering the TCB? — **Owner:** proof-search maintainers — **Decide by:** before minimality certificates
-- Which target capability describes coherent finite model checking without pretending that it is one hardware instruction? — **Owner:** target maintainers — **Decide by:** before quantum search planning
-- Which resource metric is the first accepted comparator-network minimality claim: comparator count, depth, or lexicographic pair? — **Owner:** application maintainers — **Decide by:** before the first Foundry fixture
+- Which finite-type primitives keep enumeration, coherent encoding, and kernel terms small (owner: type and proof maintainers; decision point: before finite quantifiers)?
+- Which candidate normalization rules are cheap enough to check but strong enough to remove comparator-network symmetries (owner: synthesis maintainers; decision point: before candidate encoding)?
+- Which proof-producing engine establishes useful network absence bounds without entering the TCB (owner: proof-search maintainers; decision point: before minimality certificates)?
+- Which target capability describes coherent finite model checking without describing it as one hardware instruction (owner: target maintainers; decision point: before quantum search planning)?
+- Which resource metric is the first accepted comparator-network minimality claim: comparator count, depth, or lexicographic pair (owner: application maintainers; decision point: before the first Foundry fixture)?
 
 ## References
 

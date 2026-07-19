@@ -13,15 +13,19 @@
 
 ## Summary
 
-Wheeler repositories are immutable trust domains with signed content-addressed snapshots. A deployment may expose a Git-reviewed recipe index, source store, binary store, attestations, and advisories through one service or several, but mirrors preserve repository and snapshot identity.
+Wheeler repositories are immutable trust domains built from signed, content-addressed snapshots. A deployment may place the reviewed recipe index, source store, binary store, attestations, and advisories in one service or several services. Mirrors must preserve repository and snapshot identity.
 
-The model adopts Conan's useful distinction among semantic version, recipe revision (`RREV`), configuration-derived variant, and package revision (`PREV`) without importing unrestricted Python recipes or mutable package-ID functions. Recipes are canonical declarative data. Exact sources, patches, dependencies, tools, exports, tests, and compatibility metadata enter RREV. A complete `build_input_id` records every declared cause of output, including the Wheeler reversible-IR/compiler profile. PREV hashes exact unsigned package bytes. One build-input identity has at most one accepted PREV; a differing rebuild is quarantined rather than promoted as a newer flavor of nondeterminism. Reproducibility never blesses malformed inverse, effect, ownership, proof, or quantum metadata; every rebuilt `.wbc` is independently verified.
+The model uses a useful separation from Conan: semantic version, recipe revision (`RREV`), configuration-based variant, and package revision (`PREV`). Wheeler does not import unrestricted Python recipes or mutable package-ID functions.
+
+Recipes are canonical declarative data. Exact sources, patches, dependencies, tools, exports, tests, and compatibility metadata contribute to RREV. A complete `build_input_id` records every declared cause of an output, including the Wheeler compiler and IR profile. PREV hashes the exact unsigned package bytes.
+
+One build-input identity may have at most one accepted PREV. A rebuild that produces different bytes is quarantined, not published as another valid result. Reproducibility also cannot approve invalid ownership, effects, inverses, proofs, or quantum metadata. Each rebuilt `.wbc` is verified again.
 
 ## Motivation
 
-A public ecosystem needs reviewable recipe ownership, immutable packaging patches, exact source acquisition, explicit build variants, dependency-confusion resistance, offline rebuilding, race-safe publication, and byte-level reproducibility. A lock can reproduce a graph while bytes still vary through timestamps, physical paths, locale, filesystem order, random seeds, scheduling, undeclared tools, headers, libraries, archive metadata, or signing.
+A public package ecosystem needs reviewed recipe ownership, immutable patches, exact source acquisition, explicit variants, resistance to dependency confusion, offline rebuilds, safe publication, and byte-level reproducibility. A lock can reproduce the dependency graph while output bytes still change because of timestamps, paths, locale, file order, random seeds, scheduling, undeclared tools, headers, libraries, archive metadata, or signing.
 
-The package system must therefore identify repository state, recipe closure, semantic variant, complete build inputs, and exact output independently. “Version 1.2.3 built somewhere on Tuesday” is provenance in the same way fog is a map.
+The package system must identify repository state, recipe closure, semantic variant, all build inputs, and exact output as separate facts. A version number plus an unknown build machine is not useful provenance.
 
 ## Goals
 
@@ -43,7 +47,7 @@ The package system must therefore identify repository state, recipe closure, sem
 - Run arbitrary Python, shell, or unrestricted Wheeler recipes.
 - Treat a branch, mutable directory, tag, URL, or mirror order as identity.
 - Accept divergent PREVs and select whichever was uploaded last.
-- Hide undeclared native tools or system libraries in a “captured environment.”
+- Hide undeclared native tools or system libraries inside captured environment metadata.
 - Define graph semantics, OS packages, FFI, or native image layout; WIP-0022, WIP-0024, WIP-0025, and WIP-0026 own those.
 - Let signatures replace digest and canonical decoding.
 
@@ -117,29 +121,29 @@ PREV = hash(canonical unsigned package bytes)
 
 For one build-input ID, accepted PREV count is at most one.
 
-Reproducibility has four distinct levels: graph, build plan, exact bytes, and independently verified bytes from separately provisioned builders. An attestation binds build-input ID, PREV, builder/policy, snapshot, checks, deviations, comparison result, and signer without changing PREV.
+Reproducibility has four distinct levels: graph, build plan, exact bytes, and independently verified bytes from separately provisioned builders. An attestation binds the build-input ID, PREV, builder/policy, snapshot, checks, deviations, comparison result, and signer without changing PREV.
 
 A quarantine record binds expected and observed PREVs, build-input ID, attestations, diff-summary identity, and disposition. Quarantined bytes are not resolver candidates.
 
 ## Ownership and boundaries
 
-The recipe index owns reviewed packaging intent. Snapshot services own immutable availability and namespace authorization. Source stores own exact bytes. WIP-0022 resolves graphs. The planner owns build-input identity. The executor owns sealed operations. The codec owns canonical package bytes/PREV. Rebuild services compare independent output and quarantine divergence. Publication owns immutable mappings, signatures, yanks, advisories, and acknowledgements. Mirrors own transport only.
+The recipe index owns reviewed packaging intent. Snapshot services own immutable availability and namespace authorization. Source stores own exact bytes. WIP-0022 resolves graphs. The planner owns build-input identity; the executor owns sealed operations. The codec owns canonical package bytes/PREV. Rebuild services compare independent output and quarantine divergence. Publication owns immutable mappings, signatures, yanks, advisories, and acknowledgements. Mirrors own transport only.
 
 ## Design
 
 A contribution validates one package directory, verifies sources, builds declared variants under sealed policy, runs consumption tests, checks API/ABI compatibility, receives review, enters a candidate snapshot, and publishes only after required matching attestations.
 
-A semantic version may map to several historical RREVs. Locks pin one. Explicit unlocked policy may select a newer approved RREV; locked builds never follow “latest.”
+A semantic version may map to several historical RREVs. Locks pin one. Explicit unlocked policy may select a newer approved RREV. Locked builds never select an unpinned latest revision.
 
-Typed recipe operations include unpacking verified archives, applying exact patches, copying declared files, invoking locked tools, compiling Wheeler/native source, running declared tests, constructing an install tree, emitting interface metadata, packaging outputs, and building a WIP-0026 image. Every operation declares inputs, outputs, arguments, limits, and capabilities.
+Typed recipe operations can unpack verified archives, apply exact patches, copy declared files, and invoke locked tools. They can also compile Wheeler or native source, run declared tests, construct an install tree, emit interface metadata, package outputs, and build a WIP-0026 image.
 
 Root policy binds repository aliases to IDs and namespace allowlists. Overlap is explicit. Public and private repositories never compete by convenience. WIP-0009 owns the canonical ordered alias list and lookup algorithm: the first authoritative repository with an admissible release owns one unlocked package-instance lookup, and lower entries do not leak versions into it.
 
 ### XDG local objects and reusable artifacts
 
-WIP-0009 owns user-facing placement and commands. Repository data lives below `${XDG_DATA_HOME:-$HOME/.local/share}/wheeler/repository`, reusable build artifacts below `${XDG_CACHE_HOME:-$HOME/.cache}/wheeler/artifacts`, policy below `${XDG_CONFIG_HOME:-$HOME/.config}/wheeler/wheeler.repositories.yaml`, and journals/quarantine state below `${XDG_STATE_HOME:-$HOME/.local/state}/wheeler`. The paths are adapter state, not RREV, variant, build-input, PREV, snapshot, or repository identity.
+WIP-0009 owns user-facing placement and commands. Repository data lives below `${XDG_DATA_HOME:-$HOME/.local/share}/wheeler/repository`; reusable build artifacts go under `${XDG_CACHE_HOME:-$HOME/.cache}/wheeler/artifacts`. The policy lives at `${XDG_CONFIG_HOME:-$HOME/.config}/wheeler/wheeler.repositories.yaml`; journals and quarantine state use `${XDG_STATE_HOME:-$HOME/.local/state}/wheeler`. These adapter paths do not affect RREV, variant, build-input, PREV, snapshot, or repository identity.
 
-The data repository is an immutable trust domain and the default `local` publication target. The artifact cache is not a repository and contributes no resolver candidates. It may reuse outputs acquired from any repository, workspace, vendor closure, recipe build, mirror, or independent builder only when the complete `build_input_id`, output kind, canonical length, and PREV match. Every hit is decoded and verified under current limits before use. A source label records provenance; it does not let two causes share a key because their filenames looked friendly.
+The data repository is an immutable trust domain and the default `local` publication target. The artifact cache is not a repository and contributes no resolver candidates. It may reuse outputs acquired from any repository, workspace, vendor closure, recipe build, mirror, or independent builder only when the complete `build_input_id`, output kind, canonical length, and PREV match. Every hit is decoded and verified under current limits before use. A source label records provenance. Two causes cannot share a key merely because their filenames match.
 
 Cache corruption or deletion causes a miss, quarantine, or rebuild and cannot alter selected instances or canonical output. GC is bounded reachability over disposable cache entries. Durable repository GC separately respects snapshots, locks, yanks, quarantine, and holds. Neither operation silently promotes cached bytes into publication.
 
@@ -167,7 +171,7 @@ A differing PREV enters quarantine, cannot replace canonical output, emits a rep
 
 Yanks affect new unlocked resolution but preserve bytes and exact locks. Advisories are signed and may bind coordinate, RREV, variant, PREV, or capability profile. Garbage collection is a separate audited reachability operation over retained snapshots, locks, quarantines, and holds.
 
-Patch/minor publication mechanically rejects removed exports, incompatible parameters/results/layouts, stronger ownership, added effects, lost reversible/coherent/unitary status, and incompatible proof/target/native ABI profiles unless versioning or an explicit reviewed exception permits it.
+Patch or minor publication rejects removed exports, incompatible parameters, results, or layouts, stronger ownership, added effects, and lost reversible, coherent, or unitary status. It also rejects incompatible proof, target, or native ABI profiles unless the version changes or a reviewed exception allows the break.
 
 ## Sealed build I/O
 
@@ -185,7 +189,7 @@ Proof artifacts and kernels are exact inputs. Mutable calibration, credentials, 
 
 ## Persistence and safety
 
-Descriptors, snapshots, recipes, sources, attestations, quarantine records, and packages are canonical versioned schemas. Schema migration creates new identity rather than silently reinterpreting bytes.
+Descriptors, snapshots, recipes, sources, attestations, quarantine records, and packages are canonical versioned schemas. Schema migration creates new identity instead of silently reinterpreting bytes.
 
 Reject noncanonical snapshots, invalid delegations, conflicting mappings, source mismatch, unsafe extraction, undeclared effects, output escape, host paths/timestamps, divergent PREV, overwrite publication, mirror substitution, namespace confusion, unverifiable compatibility exceptions, and exhausted limits.
 
@@ -241,11 +245,11 @@ Upstream-only packaging cannot carry reviewed downstream fixes. Conan's review l
 
 ## Open questions
 
-- Separate versions/recipe/source files or one canonical record? — **Owner:** repository maintainers — **Decide by:** schema implementation
-- Which digest-agility and transparency-witness policy follows SHA-256? — **Owner:** security maintainers — **Decide by:** public launch
-- Which independent-builder level applies to each package class? — **Owner:** release maintainers — **Decide by:** binary publication
-- How is source epoch derived? — **Owner:** reproducibility maintainers — **Decide by:** native adapters
-- Should source, built, and native-image containers be distinct formats or explicit kinds? — **Owner:** format maintainers — **Decide by:** publication
+- Separate versions/recipe/source files or one canonical record (owner: repository maintainers; decision point: schema implementation)?
+- Which digest-agility and transparency-witness policy follows SHA-256 (owner: security maintainers; decision point: public launch)?
+- Which independent-builder level applies to each package class (owner: release maintainers; decision point: binary publication)?
+- How is source epoch derived (owner: reproducibility maintainers; decision point: native adapters)?
+- Should source, built, and native-image containers be distinct formats or explicit kinds (owner: format maintainers; decision point: publication)?
 
 ## References
 

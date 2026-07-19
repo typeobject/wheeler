@@ -1,48 +1,42 @@
 ---
 sidebar_position: 1
 slug: /
-title: What Is Wheeler?
+title: What is Wheeler?
 description: Wheeler's reversible, quantum, and systems programming model, its executable core, and the work still in progress.
 ---
 
-# What Is Wheeler?
+# What is Wheeler?
 
-*A reversible, quantum, systems programming language for people wondering why all of those words need to be in the same sentence.*
+Wheeler is under active development. It has an executable core and one canonical bytecode format. This page also covers planned parts of the language that are not finished yet.
 
-> **Project status:** Wheeler is under active development. It has an executable core and one canonical bytecode format. The broader language described here is the destination, not a claim that every feature is finished today.
+Wheeler is a programming language for reversible computing, quantum computing, and software that uses both quantum and classical code.
 
-## Okay, what is all of this?
+Most languages let programs overwrite or discard information; a variable changes value; a temporary object disappears. A program prints output or calls an API, then keeps going.
 
-Wheeler is a programming language for **reversible computing**, **quantum computing**, and programs that combine quantum work with ordinary classical software.
+That works well on an ordinary computer. Reversible and quantum programs need stricter rules about where information goes.
 
-That sentence is technically accurate and emotionally unhelpful, so let us try again.
+A reversible operation must keep enough information to run backward exactly. Quantum operations have more limits. Quantum data cannot be copied, read, or discarded like normal data, and temporary quantum state often has to be uncomputed on purpose.
 
-Most programming languages are built around doing things and moving on. They overwrite variables, discard temporary values, delete objects, print output, call APIs, and generally leave a trail of lost information behind them. On an ordinary computer, this is normal. Nobody calls an incident-response team because `x = 7` forgot that `x` used to be `4`.
+Wheeler puts those rules in the language. The compiler and runtime do not have to guess what a comment or helper library meant.
 
-Reversible and quantum computation care much more about where information goes.
+Wheeler follows these rules:
 
-A reversible operation must preserve enough information to run backward exactly. A quantum operation obeys stricter rules still: quantum data cannot be casually copied, inspected, or thrown away, and useful temporary state often has to be deliberately **uncomputed**.
+- use ordinary classical code where it fits;
+- mark an operation as reversible when the compiler can check it and build its inverse;
+- write quantum operations without tying source code to one provider;
+- reuse supported reversible logic as coherent quantum logic;
+- make measurement, external effects, retries, and replay visible;
+- place machine-checkable claims next to the code as proof support grows.
 
-Wheeler makes those concerns part of the language instead of leaving them as comments, conventions, helper libraries, and prayers.
+Each form lowers to one typed Wheeler IR. Reversibility here means careful information accounting. It does not mean that printing a message can somehow be undone.
 
-The basic idea is:
+A destructive classical step records bounded rewind data. A host observation creates a barrier. A coherent call describes an exact finite permutation, while a unitary region has an adjoint. Measurement and workflow boundaries stay visible. Native code and provider circuits come from the same IR, so they do not replace its meaning.
 
-- write ordinary classical code when ordinary classical code is appropriate;
-- mark operations as reversible when the compiler can validate and generate an inverse;
-- write provider-neutral quantum operations with generated adjoints;
-- reuse eligible reversible logic as coherent quantum logic;
-- make measurement, external effects, retries, and replay explicit;
-- attach machine-checkable claims to the same code as the proof profile lands.
-
-All of those forms lower to one reversible typed Wheeler IR. “Reversible” is an accounting discipline, not a claim that printing a diagnostic is bijective: ordinary destructive transitions declare bounded rewind data, host observations declare barriers, coherent calls declare exact finite permutations, and unitary regions declare adjoints. Measurement and workflow edges stay visible. Native code and provider circuits are derived from that IR rather than quietly replacing it.
-
-Wheeler asks not only **“What does this program do?”** but also **“What information did it consume, what can be undone, and what evidence do we have that any of this is correct?”**
-
-That is the project in one paragraph. The rest explains why it is interesting rather than merely exhausting.
+Wheeler tracks what a program does, what information it uses, what can be undone, and what evidence supports its claims.
 
 ## The smallest useful example
 
-Here is an executable reversible counter:
+This reversible counter is executable:
 
 ```java
 classical class Counter {
@@ -67,41 +61,41 @@ classical class Counter {
 }
 ```
 
-The `rev` declaration says that `increment` is reversible. Wheeler generates its inverse: subtract one instead of adding one.
+The `rev` keyword says that `increment` is reversible. Wheeler generates the inverse, which subtracts one instead of adding it.
 
-The `reverse` block executes inverse calls in reverse lexical order. This is not a saved screenshot of the machine. It is new execution of mathematically inverse operations.
+The `reverse` block calls those inverses in reverse source order. It doesn't restore a saved copy of the machine. The program runs new operations that are mathematical inverses of the earlier ones.
 
-That distinction sounds fussy until a program includes measurement, files, network requests, remote jobs, or a payment API. At that point, “just reverse it” becomes less of a design and more of a hostage negotiation.
+This difference matters once a program measures qubits, writes files, sends network requests, starts remote jobs, or calls a payment service. Those effects cannot all be handled as one generic kind of undo.
 
-## Is Wheeler a time machine?
+## Does Wheeler reverse time?
 
 No.
 
-Wheeler is strict about several operations that are often lazily called “reverse” even though they mean different things.
+Several related operations are often called "reverse," but they do different jobs.
 
-**Inverse execution** runs the mathematical inverse of a reversible function.
+Inverse execution runs the mathematical inverse of a reversible function.
 
-**VM rewind** walks backward through retained classical execution history.
+VM rewind walks backward through saved classical execution history.
 
-**Uncomputation** cleans temporary reversible or quantum state by applying inverse operations.
+Uncomputation clears temporary reversible or quantum state by applying inverse operations.
 
-**Replay** reuses recorded observations so later classical decisions can be reproduced.
+Replay uses recorded observations again so later classical choices can be reproduced.
 
-**Retry** prepares new state and performs the work again, possibly obtaining a different result.
+Retry prepares fresh state and runs the work again. The new run may return a different result.
 
-These operations are related, but not interchangeable. Replaying a measurement does not undo the original measurement. Retrying a hardware job does not restore the original qubits. Running an inverse circuit after a quantum state has disappeared is not “rewinding the universe.” The universe, regrettably, has no customer-support escalation path.
+These operations cannot replace one another. Replaying a measurement does not undo it. Retrying a hardware job does not restore the old qubits, and an inverse circuit cannot recover a quantum state that no longer exists.
 
-This vocabulary is one of Wheeler’s central contracts. It prevents programs from making promises that physics, remote services, or discarded history cannot keep.
+Wheeler keeps the terms separate so programs do not promise more than physics, a remote service, or saved history can provide.
 
-## Why should I care?
+## Why does this matter?
 
-There are five large reasons.
+Five parts of the design are especially useful.
 
-### 1. Stop writing the same algorithm twice
+### 1. Write one algorithm instead of two
 
-Quantum algorithms often need a classical reference implementation and a separate quantum oracle or circuit implementation. The two versions are supposed to mean the same thing. Then one gets fixed, the other does not, and six months later everyone is comparing results with the solemn expression of people defusing a bomb.
+A quantum algorithm often needs a classical reference and a separate quantum oracle or circuit. Both versions should mean the same thing, yet they can drift apart as the code changes.
 
-Wheeler’s `coherent rev` model reduces that duplication:
+Wheeler's `coherent rev` model reduces that duplication:
 
 ```java
 hybrid class CoherentOracle {
@@ -131,17 +125,17 @@ hybrid class CoherentOracle {
 }
 ```
 
-The same exact finite permutation executes over ordinary classical state and is lifted into coherent execution. The implemented subset begins with simple finite permutations such as XOR. Width-explicit modular arithmetic, table lookup, reversible comparison, and richer oracle building blocks remain planned work.
+The same exact finite permutation runs over classical state and can also run coherently. The current implementation starts with simple permutations such as XOR. Wider modular arithmetic, table lookup, reversible comparison, and richer oracle tools are planned.
 
-Why care? The classical implementation becomes the testable reference, the quantum implementation, and eventually the subject of proof obligations. One source definition gets several jobs instead of several definitions getting one opportunity each to disagree.
+One source definition can be both the testable classical reference and the quantum operation. Later, it can also carry proof duties. That gives the two execution paths less room to disagree.
 
-### 2. Let the compiler handle the mistakes humans repeat
+### 2. Generate inverses instead of maintaining them by hand
 
-Quantum code frequently needs an adjoint: the operations in reverse order, with each gate replaced by its inverse.
+Quantum code often needs an adjoint. The adjoint reverses the operation order and replaces each gate with its inverse.
 
-Humans can maintain that manually. Humans can also synchronize distributed databases with handwritten shell scripts. The question is not whether it is possible. The question is what kind of week you would like to have.
+A person can write and update that code by hand. The compiler can do it more consistently.
 
-A Wheeler `unitary` method receives a generated adjoint. The checked-in QFT writes one forward circuit and invokes it in reverse:
+A Wheeler `unitary` method gets a generated adjoint. The checked-in QFT example writes one forward circuit and then invokes it in reverse:
 
 ```java
 quantum class QFT {
@@ -168,157 +162,149 @@ quantum class QFT {
 }
 ```
 
-The executable profile already verifies static register references, circuit structure, generated adjoints, coherent calls, and measurement workflow. Complete affine quantum slices, dirty-ancilla checking, and dynamic resource control remain WIP work.
+The executable profile already checks static register references, circuit shape, generated adjoints, coherent calls, and the measurement workflow. Full affine quantum slices, dirty-ancilla checks, and dynamic resource control are still being designed.
 
-Why care? Generated inverses, affine ownership, and explicit uncomputation turn subtle correctness conventions into compiler-enforced structure.
+Generated inverses and explicit uncomputation move common correctness rules into the compiler. Affine ownership will add more checks as that work lands.
 
-### 3. Treat quantum programs as workflows, not glamorous function calls
+### 3. Model quantum work as a durable workflow
 
-A useful quantum program is usually not:
+A real quantum program usually does more than call a function and receive a result.
 
 ```text
 result = quantumComputer.doQuantumThing();
 ```
 
-It is closer to:
+In practice, it must do work like this:
 
-1. construct parameters;
-2. select a target;
+1. build parameters;
+2. choose a target;
 3. lower a circuit for that target;
 4. submit a job;
-5. retain its durable identity;
-6. wait somewhere between milliseconds and geological time;
-7. handle failure, cancellation, duplicate delivery, stale capabilities, or process restart;
+5. save the job identity;
+6. wait for completion;
+7. handle failure, cancellation, duplicate delivery, stale capabilities, or a restart;
 8. validate the result;
 9. update classical state;
-10. repeat.
+10. repeat when needed.
 
-Wheeler models hybrid quantum/classical work as a durable lifecycle. The current runtime has content-identified tasks and events, acknowledged-job recovery, bounded persistence, result validation, branch quarantine, retry, cancellation, replay, and commit horizons. The source profile exercises a bounded optimizer; production-scale continuation syntax and more dynamic applications remain unfinished.
+Wheeler treats hybrid quantum and classical work as a durable lifecycle. The current runtime has content-identified tasks and events, recovery for accepted jobs, bounded persistence, result checks, branch quarantine, retry, cancellation, replay, and commit horizons. The source profile includes a bounded optimizer. Production continuation syntax and more dynamic applications remain unfinished.
 
-A long-running optimizer can therefore preserve a submission identity, recover an accepted result, and apply it exactly once. It can replay a recorded observation to reproduce later classical state without submitting another paid job. Or it can deliberately retry, producing a new physical lineage.
+A long-running optimizer can save a submission identity, recover its accepted result, and apply that result once. It may replay a recorded observation without buying another hardware run. A deliberate retry creates a new physical lineage instead.
 
-Why care? Real quantum hardware is remote, asynchronous, capability-dependent, and nondeterministic. Wheeler designs for the machine that exists, not the one implied by a tidy five-line tutorial.
+This model matches remote, asynchronous, capability-based hardware. It also makes failures and restarts part of the design.
 
-### 4. Keep proofs and experiments adjacent without pretending they are the same
+### 4. Keep proofs separate from experiments
 
-Reversible and quantum programs naturally produce claims:
+Reversible and quantum programs make claims such as these:
 
-- this inverse restores the original state;
-- this circuit is unitary;
-- this generated adjoint is exact;
-- these circuits are equivalent;
+- an inverse restores the starting state;
+- a circuit is unitary;
+- a generated adjoint is exact;
+- two circuits have the same meaning;
 - every temporary qubit returns clean;
-- this plan stays below a qubit or depth limit;
+- a plan stays within its qubit or depth limit;
 - replay never submits another target job.
 
-Today, such claims often live in prose, tests, or the reassuring tone of a pull-request description.
+Those claims often live in prose or tests. Wheeler is moving contracts, theorems, proof blocks, resource claims, and canonical certificates into the language and package model.
 
-Wheeler’s proof direction puts contracts, theorems, proof blocks, resource claims, and canonical certificates in the language and package model. The first trusted-kernel slices now check generated inverses, generated quantum adjoints, adjacent-inverse circuit rewrites, and straight-line step bounds against exact artifact bodies. General propositions, contracts, quantum/resource rules, and structured proof terms remain unimplemented; `QFTProof.w` is still an executable conformance law, not a trusted quantum theorem certificate.
+The first trusted-kernel pieces can check generated inverses, generated quantum adjoints, adjacent-inverse circuit rewrites, and straight-line step bounds against exact artifact bodies. General propositions, contracts, quantum and resource rules, and structured proof terms are not implemented yet. `QFTProof.w` remains an executable conformance law, not a trusted quantum theorem certificate.
 
-Proof is also distinct from experiment. A simulator run or a 4,096-shot hardware result may be useful evidence, but it is not a universal theorem. Wheeler records experimental provenance—target identity, request, shots, estimator, and observations—without allowing “it passed on Tuesday” to mature into mathematics through repetition.
+An experiment is useful evidence, but it is not a universal proof. A simulator run or a 4,096-shot hardware result describes what happened during that run. Wheeler records the target, request, shot count, estimator, and observations without treating repeated success as a theorem.
 
-Why care? Quantum software combines ordinary software bugs, mathematical claims, and probabilistic hardware. Keeping those categories distinct is not academic fussiness. It is basic hygiene.
+Quantum software mixes normal bugs, mathematical claims, and probabilistic hardware; clear boundaries make each kind of evidence easier to judge.
 
-### 5. Build a systems language, not only a circuit notation
+### 5. Build a systems language around the quantum parts
 
-The destination is not a language that can express three famous algorithms and then asks Python to handle everything difficult.
+Wheeler is meant to do more than express a few circuits and hand the rest of the work to Python.
 
-The executable core already has signed and Boolean values, immutable records, tagged variants, fixed arrays, nonescaping slices, typed calls, bounded loops, bounded regions, owner-returning word/byte/UTF-8/map factories, nonescaping storage borrows, strict validation, deterministic classical function-module linking, canonical bytecode, deterministic package formats, and exact offline dependency inputs. Owning parameters, returned loans, mutable slices, UTF-8 strings, generic deterministic collections, full nominal/package modules, and streaming effects remain under construction; explicit bounded UTF-8/binary input and byte-output entry effects with checked publish lengths already execute.
+The executable core already has signed and Boolean values, immutable records, tagged variants, fixed arrays, nonescaping slices, typed calls, bounded loops, and bounded regions. It also has factories for owned word, byte, UTF-8, and map storage; nonescaping storage borrows; strict validation; deterministic module linking; canonical bytecode; deterministic package formats; and exact offline dependency inputs.
 
-The production compiler is intended to be written in Wheeler. The package manager, verifier, runtime, [OpenQASM](https://openqasm.com/) emitter, build planner, and test tools are intended to become Wheeler programs as well. A successful self-hosting bootstrap compiles the compiler twice and requires byte-identical canonical `.wbc` artifacts.
+Some major pieces are still under construction. These include owning parameters, returned loans, mutable slices, fuller UTF-8 strings, generic deterministic collections, complete nominal and package modules, and streaming effects. Explicit bounded UTF-8 and binary input already run, as does byte output with checked publish lengths.
 
-Why care? Self-hosting is a ruthless test of whether a language is general-purpose. A compiler needs strings, variants, maps, graphs, errors, modules, file input, output, allocation, and enough control flow to become annoyed with all of them. If Wheeler can build Wheeler, it has escaped the “interesting demo language” enclosure.
+The production compiler is intended to be written in Wheeler. The same applies to the package manager, verifier, runtime, [OpenQASM](https://openqasm.com/) emitter, build planner, and test tools. A successful self-hosting bootstrap compiles the compiler twice and requires byte-identical canonical `.wbc` output.
 
-## What could you build with it?
+A compiler uses many parts of a general-purpose language. Building Wheeler with Wheeler will test whether those parts work together under real load.
 
-Once the remaining language and standard-library slices land, useful projects extend well beyond textbook quantum algorithms.
+## Possible projects
 
-A **reversible packet codec** could parse bytes into typed records and run its inverse to recreate the exact canonical frame.
+Once the remaining language and standard-library work lands, Wheeler could support projects beyond textbook quantum algorithms.
 
-A **reversible image transform** could apply an integer wavelet transform to a tile and reconstruct the original bytes exactly.
+A reversible packet codec could parse bytes into typed records, then run its inverse to recreate the canonical frame exactly.
 
-A **time-travel debugger** could distinguish machine rewind from inverse execution, making the difference visible instead of hiding both behind one suspiciously cheerful undo button.
+A reversible image transform could apply an integer wavelet transform to a tile and recover the original bytes.
 
-A **quantum search playground** could use one predicate as a classical testable function and as the coherent oracle inside Grover search.
+A time-travel debugger could show the difference between VM rewind and inverse execution instead of calling both actions "undo."
 
-A **certifying circuit optimizer** could emit a smaller circuit with checkable evidence that it preserves the old circuit’s meaning.
+A quantum search playground could use one predicate as a classical test and as the coherent oracle for Grover search.
 
-A **recoverable molecular-energy experiment** could persist optimizer steps, submissions, results, uncertainty estimates, and target identities, then resume after a crash or replay without spending another hardware budget.
+A certifying circuit optimizer could produce a smaller circuit with checkable evidence that its meaning did not change.
 
-A **fault-tolerance planner** could calculate logical qubits, code distance, correction cycles, magic-state throughput, and failure budgets before asking a target to do anything expensive.
+A recoverable molecular-energy experiment could save optimizer steps, submissions, results, uncertainty estimates, and target identities. After a crash, it could resume or replay without spending another hardware budget.
 
-A **distributed entanglement workflow** could track session identities, delayed heralding, timeout, cancellation, and branch discard without claiming that deleting a database row destroyed a Bell pair in another building.
+A fault-tolerance planner could calculate logical qubits, code distance, correction cycles, magic-state throughput, and failure budgets before submitting costly work.
 
-A **hermetic package forge** could build offline from exact content identities, verify provenance and proof certificates, and deny undeclared filesystem or network access before the effect occurs.
+A distributed entanglement workflow could track sessions, delayed heralding, timeouts, cancellation, and discarded branches. Deleting a database row wouldn't be confused with destroying a Bell pair elsewhere.
 
-A far-future **[algorithm foundry](future/foundry.md)** could search a finite program grammar, uncompute rejected candidates, check every bounded input, prove correctness and relative minimality, and publish the discovered implementation as a normal Wheeler package. That is a hardware- and proof-system moonshot, not current syntax or a roadmap promise.
+A hermetic package builder could work offline from exact content identities. It could verify provenance and proof certificates, then block undeclared file or network access before the effect starts.
 
-A future **[adversarial timeline debugger](future/murphy.md)** could generate every bounded message/fault schedule for a distributed protocol, replay a proposed failure, prove the shortest counterexample, or return an exact bounded-safety certificate. No counterexample and no certificate means `Inconclusive`, not “probably cosmic rays.”
+The far-future [algorithm foundry](future/foundry.md) explores a bounded program grammar, uncomputes rejected candidates, checks every bounded input, proves correctness and relative minimality, and publishes the result as a normal Wheeler package. It is a research direction, not a current feature or roadmap promise.
 
-And, naturally, someone will build a reversible todo list. Completing an item will be mathematically invertible. Avoiding the item will remain an unsolved human problem.
+The future [adversarial timeline debugger](future/murphy.md) explores every bounded message and fault schedule for a distributed protocol. It can replay a failure, prove the shortest counterexample, or return an exact bounded-safety certificate. Without a counterexample or certificate, the result is `Inconclusive`.
 
 ## What works today?
 
-Wheeler is not starting from a whiteboard.
+Wheeler already has an executable base.
 
-The repository currently includes:
+The repository includes:
 
 - familiar class and method syntax with source-located diagnostics;
-- signed and Boolean values, immutable records, tagged variants, fixed arrays, nonescaping slices, typed calls, recursion, conditionals, bounded loops, and function-local bounded regions with affine mutable word/byte buffers, immutable UTF-8 owners, signed maps, and bounded classical function modules;
+- signed and Boolean values, immutable records, tagged variants, fixed arrays, nonescaping slices, typed calls, recursion, conditionals, bounded loops, and function-local bounded regions;
+- affine mutable word and byte buffers, immutable UTF-8 owners, signed maps, and bounded classical function modules;
 - generated inverses for the supported reversible subset;
-- one canonical `.wbc` format, strict decoding, semantic verification, disassembly, exact VM rewind, and finite generated-inverse, generated-adjoint, circuit-rewrite, and static-step-bound proof rules;
+- one canonical `.wbc` format, strict decoding, semantic verification, disassembly, and exact VM rewind;
+- finite proof rules for generated inverses, generated adjoints, circuit rewrites, and static step bounds;
 - provider-neutral quantum regions, generated circuit adjoints, and coherent XOR lifting;
-- an asynchronous ideal state-vector target and application-supplied OpenQASM 3 execution interface;
+- an asynchronous ideal state-vector target and an application-supplied OpenQASM 3 execution interface;
 - durable hybrid events, recovery, replay, retry, cancellation, quarantine, and transaction phases;
 - canonical package, workspace, lock, build-plan, vendor, and `.wpk` archive formats;
-- exact offline locked dependency builds and source-bound sealed-plan execution with explicit grants and atomic output publication;
-- Tree-sitter grammar, corpus, highlighting, and executable examples.
+- exact offline locked builds, sealed-plan execution, explicit grants, and atomic output publication;
+- a Tree-sitter grammar, corpus, highlighting, and executable examples.
 
-Checked-in examples cover reversible state, typed aggregate values, bounded and recursive control, exact classical module source sets, one function used classically and coherently, QFT with a generated adjoint, a bounded hybrid optimizer, circuit normalization, and static error-correction structure.
+The examples cover reversible state, typed aggregate values, bounded and recursive control, classical modules, coherent reuse, QFT with a generated adjoint, a bounded hybrid optimizer, circuit normalization, and static error-correction structure.
 
-Major unfinished work includes borrowing, mutable slices, compiler-scale region storage, a Wheeler standard library, a self-hosted compiler and package manager, native Java-free execution, dynamic target-resident control, richer coherent arithmetic, complete application fixtures, and the complete proof language and kernel.
+Large areas are still unfinished. They include borrowing, mutable slices, and compiler-scale region storage. The project also needs a standard library, self-hosted tools, and native Java-free execution. Dynamic target control, richer coherent arithmetic, complete application fixtures, and the full proof system remain open.
 
-The honest answer is: **Wheeler is executable, but it is not finished.** WIPs are reviewed design commitments and work plans, not a magical bag of features summoned by adding an import.
+Wheeler runs today, but the language is not complete. The WIPs describe reviewed design work and implementation plans; they do not claim that every proposed feature already exists.
 
-## What Wheeler is not
+## Common questions
 
-### It is not “Java, but backward”
+### Does Wheeler run on Java?
 
-The syntax is intentionally familiar, and the stage-0 implementation uses Java. Java is not Wheeler’s runtime contract. The project intends to self-host and delete the Java and Gradle path once the native Wheeler toolchain reaches conformance.
+The syntax is familiar, and the stage-0 implementation uses Java. Wheeler's runtime contract is independent of Java. The project plans to self-host, then remove the Java and Gradle path after the native Wheeler toolchain reaches conformance.
 
-### It is not Qiskit with different punctuation
+### Does Wheeler replace provider SDKs?
 
-Wheeler uses provider-neutral quantum regions and lowers supported programs to [OpenQASM 3](https://openqasm.com/). Qiskit or another provider SDK may consume that output outside Wheeler, but Python APIs, credentials, provider objects, and SDK state are not Wheeler language values or artifact semantics.
+Wheeler uses provider-neutral quantum regions and can lower supported programs to [OpenQASM 3](https://openqasm.com/). Qiskit or another SDK may consume that output outside Wheeler. Python APIs, credentials, provider objects, and SDK state do not become Wheeler values or artifact semantics.
 
-### It does not pretend measurement is reversible
+### Can measurement be reversed?
 
-Measurement creates a classical observation. Wheeler can record and replay that observation or prepare new state and retry. It cannot restore the original unknown quantum state because a transaction rolled back. Physics reviewed the feature request and marked it “working as designed.”
+Measurement creates a classical observation. Wheeler can record and replay that observation, or it can prepare new state and retry. Rolling back a transaction cannot restore an unknown quantum state.
 
-### It does not promise every classical function becomes quantum code
+### What code can run coherently?
 
-Only exact finite reversible functions with supported coherent lowerings can be lifted. File I/O, random values, measurement, unchecked allocation, floating-point accidents, and “trust me, this is bijective” do not become unitary because somebody adds a modifier.
+Only supported exact finite reversible functions can be lifted into coherent execution. File I/O, randomness, measurement, unchecked allocation, and floating-point behavior do not become unitary because a modifier was added.
 
-### It does not require every program to be reversible
+### Must every Wheeler program be reversible?
 
-Compilers allocate memory. Programs read files. Tools print diagnostics. Hybrid workflows receive measurements. Wheeler does not label everything reversible. It makes reversible, logged, irreversible, quantum, and external effects explicit enough for the compiler and runtime to know which promises remain valid.
+Compilers allocate memory. Tools read files and print diagnostics. Hybrid workflows receive measurements. Wheeler labels reversible, logged, irreversible, quantum, and external effects so the compiler and runtime know which guarantees still hold.
 
-## Who is Wheeler for?
+## Who uses Wheeler?
 
-Wheeler is for people working at the intersection of programming languages, quantum software, formal methods, runtimes, compilers, reproducible systems, and anyone who has looked at an “undo” feature and muttered, “That is absolutely not what undo means.”
+Wheeler is aimed at people working on programming languages, quantum software, formal methods, runtimes, compilers, and reproducible systems. It also applies to tools that need exact undo, replay, or evidence.
 
-You do not need a quantum computer to care about the project. Reversible state, exact round trips, deterministic artifacts, replayable workflows, capability-scoped tools, and proof-carrying packages are useful systems ideas on their own.
+You do not need a quantum computer to use these ideas. Reversible state, exact round trips, deterministic artifacts, replayable workflows, scoped capabilities, and proof-carrying packages also matter in classical systems.
 
-You also do not need to believe every future computer will be quantum. Wheeler’s bet is narrower: when software crosses classical, reversible, quantum, and external-effect boundaries, those boundaries should be visible and enforceable.
-
-## The one-paragraph answer
-
-Wheeler makes information flow a first-class part of programming. It lets ordinary code remain ordinary, gives reversible functions compiler-validated inverses, lets eligible reversible logic run classically or coherently, represents quantum work without binding source code to one provider, treats remote quantum execution as a durable workflow, and aims to connect executable programs with checkable proofs and resource claims. That can eliminate duplicated classical and quantum implementations, make uncomputation and ownership safer, make experiments reproducible, and turn “we think this circuit still means the same thing” into something a machine can check.
-
-Or, more briefly:
-
-> **Wheeler is trying to make “do it, undo it, run it quantumly, resume it tomorrow, and prove what happened” one coherent programming model.**
-
-Admittedly, “coherent” is doing a lot of work in that sentence.
+When software crosses classical, reversible, quantum, and external-effect boundaries, Wheeler makes those boundaries visible and enforceable.
 
 ## Further reading
 

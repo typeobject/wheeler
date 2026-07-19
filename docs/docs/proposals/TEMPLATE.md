@@ -10,105 +10,107 @@ sidebar_position: 2
 | Owners | Name or team |
 | Created | YYYY-MM-DD |
 | Updated | YYYY-MM-DD |
-| Area | Language, VM, bytecode, compiler, runtime, quantum, proofs, tools, or another concise area |
+| Area | Language, VM, bytecode, compiler, runtime, quantum, proofs, tools, or another short area |
 | Depends on | None or earlier WIP numbers |
 | Supersedes | None |
 | Superseded by | None |
 
 ## Summary
 
-State the decision in a short paragraph. A reader should understand the direction without reading the entire proposal.
+State the decision in one short paragraph. A reader should understand the direction without reading the full proposal.
 
 ## Motivation
 
-Describe the concrete problem, who encounters it, and why a local repair would leave the larger contract unresolved. Distinguish current behavior from intended behavior.
+Describe the real problem, who faces it, and why a local fix would leave the larger contract unclear. Separate current behavior from the intended behavior.
 
 ## Use cases
 
-Give two to four concrete scenarios that exercise the proposed contract. Include at least one reverse-execution, failure, lifecycle, malformed-input, or concurrent case when applicable. Use cases explain why the contract exists; they are not implementation task lists.
+Give two to four concrete cases that exercise the contract; when relevant, include reversal, failure, lifecycle, malformed input, or concurrency. Use cases explain why the contract exists. They are not a task list.
 
 ## Goals
 
-- List observable outcomes.
+- List visible outcomes.
 
 ## Non-goals
 
-- Name tempting adjacent work this proposal does not take on.
+- Name related work that this proposal does not cover.
 
 ## Terms and semantic model
 
-Define important terms, machine state, values, and state transitions. State invariants precisely enough for an independent implementation or conformance test. Prefer pseudocode, transition rules, or a small diagram over ambiguous prose.
+Define key terms, machine state, values, and transitions. State each rule clearly enough for another implementation or a conformance test. Prefer pseudocode, transition rules, or a small diagram when prose would be unclear.
 
 ## Ownership and boundaries
 
-State what the language, compiler, bytecode verifier, VM, runtime, tools, and host integrations own. Name the authoritative component for shared mutable state and identify information that may cross each boundary.
+Explain what the language, compiler, bytecode verifier, VM, runtime, tools, and host integrations own. Name the authority for shared mutable state. Also say what information may cross each boundary.
 
 ## Design
 
-Describe the chosen contract and its major data structures or operations. State how it preserves Wheeler's common reversible typed IR: intrinsic/checked inverse, logged rewind, irreversible barrier, coherent permutation, unitary adjoint, or an explicit nonunitary workflow edge. Cover deterministic behavior, validation, diagnostics, lifecycle, and extension points. Introduce concrete APIs and encodings only after the semantic contract is clear.
+Describe the chosen contract and its main data structures or operations. Explain how it fits Wheeler's shared reversible typed IR: intrinsic or checked inverse, logged rewind, irreversible barrier, coherent permutation, unitary adjoint, or an explicit nonunitary workflow edge.
+
+Cover deterministic behavior, validation, diagnostics, lifecycle, and extension points. Define APIs and encodings only after the semantic contract is clear.
 
 ## Reversibility and history
 
-Define forward and reverse transitions. State whether each affected operation is bijective, uses retained history, requires uncomputation, or is intentionally irreversible. Specify history records, ordering, ownership, bounds, exhaustion, checkpoints, and behavior across exceptions or process termination.
+Define forward and reverse transitions. For each affected operation, say whether it is bijective, uses retained history, needs uncomputation, or is intentionally irreversible. Describe history records, order, ownership, limits, exhaustion, checkpoints, and behavior after exceptions or process exit.
 
-Write “Not applicable” with a reason if the proposal cannot change machine state.
+Write "Not applicable" and give a reason when the proposal cannot change machine state.
 
 ## Concurrency and determinism
 
-Describe scheduling, synchronization, memory visibility, transaction boundaries, inter-thread history, replay, deadlock behavior, and deterministic ordering as applicable. Identify nondeterministic inputs and how they are recorded or rejected.
+Cover scheduling, synchronization, memory visibility, transaction boundaries, cross-thread history, replay, deadlock behavior, and stable ordering where they apply. Name nondeterministic inputs and explain how Wheeler records or rejects them.
 
 ## Quantum and proof implications
 
-Describe effects on quantum state, gates, measurement, simulation or hardware backends, proof obligations, soundness, and the trusted computing base. Keep quantum reversibility, classical rollback, and formal proof claims distinct.
+Explain effects on quantum state, gates, measurement, simulators, hardware backends, proof duties, soundness, and the trusted computing base. Keep quantum reversal, classical rollback, and formal proof claims separate.
 
-Write “Not applicable” with a reason when these boundaries are unaffected.
+Write "Not applicable" and give a reason when these areas are unchanged.
 
 ## Bytecode, persistence, and compatibility
 
-Describe instruction encoding, artifact containers, verification, loaders, persisted history, version negotiation, and rolling compatibility. State how old artifacts are accepted, rejected, or migrated. Write “Not applicable” with a reason when no serialized boundary changes.
+Describe instruction encoding, artifact containers, verification, loaders, stored history, version negotiation, and rolling compatibility. State how old artifacts are accepted, rejected, or migrated. Write "Not applicable" and give a reason when no serialized boundary changes.
 
 ## Safety, limits, and failures
 
-Specify malformed input, arithmetic traps, invalid state, resource limits, history exhaustion, cancellation, unsupported capabilities, and diagnostic behavior. State which failures are recoverable and whether reversal remains possible after each failure class.
+Cover malformed input, arithmetic traps, invalid state, resource limits, history exhaustion, cancellation, unsupported capabilities, and diagnostics. State which failures can recover and whether reversal still works after each failure class.
 
 ## Migration and deletion
 
 1. List implementation stages in dependency order.
-2. Name old types, adapters, opcodes, fields, files, or formats deleted after each stage.
-3. Avoid an indefinite period with two authoritative implementations.
+2. Name old types, adapters, opcodes, fields, files, or formats removed after each stage.
+3. Do not leave two authoritative implementations in place.
 
 ## Progress
 
-- [ ] First independently verifiable milestone.
+- [ ] First milestone that can be checked on its own.
 - [ ] Conformance or semantic-law fixtures pass.
-- [ ] Required old path is deleted.
+- [ ] The required old path is removed.
 
-Keep this checklist factual while the WIP is **Implementing**. Remove stale narrative that can be recovered from Git history.
+Keep this list factual while the WIP is **Implementing**. Remove stale narrative that Git history already preserves.
 
 ## Testing and acceptance
 
-- [ ] Forward behavior is covered by focused tests.
-- [ ] Reverse execution restores the defined state for every affected successful transition.
-- [ ] Failed or partial transitions obey the specified rollback rule.
-- [ ] Encoding and decoding round-trip and reject malformed input as specified.
+- [ ] Focused tests cover forward behavior.
+- [ ] Reverse execution restores the defined state after every affected successful transition.
+- [ ] Failed or partial transitions follow the stated rollback rule.
+- [ ] Encoders and decoders round-trip valid data and reject malformed input as specified.
 - [ ] Concurrent and replay behavior is deterministic where promised.
-- [ ] Resource and history bounds are tested.
-- [ ] Quantum backend parity and proof soundness cases are covered when applicable.
+- [ ] Tests cover resource and history limits.
+- [ ] Tests cover quantum backend parity and proof soundness when they apply.
 - [ ] An end-to-end fixture crosses every changed module boundary.
-- [ ] Current reference documentation describes the implemented result without relying on this proposal.
+- [ ] Current reference docs describe the implemented result without depending on this proposal.
 
-Remove or mark inapplicable checklist items with a reason rather than claiming irrelevant coverage.
+Remove checklist items that do not apply, or mark them inapplicable and explain why.
 
 ## Alternatives
 
-Describe serious alternatives and why they were rejected. Do not invent weak alternatives merely to fill the section.
+Describe serious options and why they were rejected. Do not invent weak choices just to fill this section.
 
 ## Open questions
 
-- Question — **Owner:** name — **Decide by:** date
+- Question. **Owner:** name. **Decide by:** date.
 
-Use `None` when acceptance has no unresolved design questions.
+Write `None` when no design questions remain for acceptance.
 
 ## References
 
-- Link related WIPs, current reference pages, issues, papers, or external specifications. Links point from the proposal to the manual; current documentation should not rely on an unfinished proposal.
+- Link related WIPs, current reference pages, issues, papers, or outside specifications. Proposals may link to the manual. Current docs should not depend on an unfinished proposal.

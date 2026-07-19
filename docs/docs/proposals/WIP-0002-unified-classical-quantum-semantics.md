@@ -13,26 +13,26 @@
 
 ## Summary
 
-Wheeler uses one typed effect and region model across classical reversible execution, coherent quantum execution, measurement, and host effects. A verified classical `rev` function that satisfies the coherent subset can run as ordinary WIP-0001 bytecode on a CPU or be lifted automatically to a unitary operation when called with coherent operands. Quantum regions lower to backend-neutral region IR inside the same `.wbc` artifact; they are not foreign-language strings or opaque provider circuits.
+Wheeler uses one typed model for classical reversible work, coherent quantum work, measurement, and host effects. A verified classical `rev` function that meets the coherent rules can run as WIP-0001 bytecode on a CPU. With coherent operands, the compiler may lift the same function into a unitary operation.
 
-Transitions are seamless in source but explicit in Wheeler's reversible typed IR. Classical bodies retain WIP-0001 inverse/log/barrier classes; coherent bodies are exact finite permutations; unitary bodies are backend-neutral quantum regions with adjoints; measurement, reset, target submission, replay, and retry remain distinct typed edges. Provider payloads are derived output, never the semantic IR.
+Quantum regions lower to backend-neutral IR inside the same `.wbc` artifact. They are not foreign-language text or opaque provider circuits. Source transitions may look smooth, but the IR keeps each kind of edge explicit. Classical bodies retain inverse, log, and barrier classes. Coherent bodies are exact finite permutations. Unitary bodies are quantum regions with adjoints. Measurement, reset, target submission, replay, and retry remain separate typed operations.
 
-Known classical data may parameterize or prepare quantum state. Measurement consumes coherent state and produces classical observations. Quantum data is affine, cannot be cloned or inspected, and must be uncomputed, measured, reset, or returned according to its resource contract. Measurement and remote submission are not described as physically reversible; Wheeler records observations and can replay or restart a workflow according to WIP-0004.
+Known classical values may configure or prepare quantum state. Measurement consumes coherent state and returns classical observations. Quantum data is affine, so code cannot clone or inspect it. A resource must be uncomputed, measured, reset, or returned under its contract. Wheeler does not call measurement or remote submission physically reversible. It records observations and may replay or restart the workflow under WIP-0004.
 
 ## Motivation
 
-The examples already describe the intended language as more than a classical VM with a quantum library:
+The examples require more than a classical VM plus a quantum library:
 
-- `Counter` and `BinaryTree` require ordinary reversible classical state.
-- `QFT` is a closed unitary circuit with a natural inverse.
-- `QuantumOptimizer` and `QuantumNeuralNetwork` alternate parameterized quantum execution and classical optimization.
-- `SurfaceCode` requires mid-circuit measurement, classical decoding, and target-resident feedback.
-- `QuantumCompiler` mixes classical circuit transformation with quantum calibration work.
-- `QFTProof` wants unitary, inverse, and resource properties tied to the same program.
+- `Counter` and `BinaryTree` need reversible classical state.
+- `QFT` needs a closed unitary circuit and its inverse.
+- `QuantumOptimizer` and `QuantumNeuralNetwork` move between quantum execution and classical optimization.
+- `SurfaceCode` needs mid-circuit measurement, decoding, and target-side feedback.
+- `QuantumCompiler` combines classical circuit changes with calibration work.
+- `QFTProof` ties unitary, inverse, and resource claims to the same program.
 
-The current sketches blur several boundaries. Measurement appears inside reversible transactions, arbitrary quantum state is treated as copyable through CNOT, `clean` appears able to erase an unknown register, and a `quantum pure` function measures a qubit. Those operations cannot share one undifferentiated notion of “reverse.”
+Earlier sketches mixed boundaries that must stay separate. They placed measurement inside reversible transactions, treated arbitrary quantum state as copyable through CNOT, let `clean` appear to erase an unknown register, and allowed a `quantum pure` function to measure a qubit. One vague meaning of "reverse" cannot describe all of those operations.
 
-Wheeler needs a model that remains valid for today's noisy gate devices, simulators, future fault-tolerant logical machines, and possible tightly coupled classical/quantum processors. Provider APIs will change over decades; linear quantum information, unitary evolution, measurement, and classical observations remain the durable boundary.
+The model must work for noisy gate devices, simulators, future fault-tolerant machines, and tightly coupled classical-quantum processors. Provider APIs will change. Linear quantum information, unitary evolution, measurement, and classical observation are the stable parts of the contract.
 
 ## Use cases
 
@@ -71,7 +71,7 @@ A lifted reversible computation borrows ancillas initialized to zero, computes a
 
 - Promise that every classical Wheeler function can execute coherently.
 - Make floating-point optimization, I/O, arbitrary allocation, exceptions, or logged history unitary.
-- Hide measurement or pretend a hardware measurement can be undone.
+- Hide measurement or claim that a hardware measurement can be undone.
 - Define provider queues, credentials, jobs, or Qiskit transport; WIP-0003 does that.
 - Define durable workflow history and retry; WIP-0004 does that.
 - Accept the existing proof syntax as a sound theorem system.
@@ -123,13 +123,13 @@ There is no implicit coherent-to-classical conversion. Passing classical gate an
 
 Wheeler uses distinct terms:
 
-- **inverse/adjoint:** execute the mathematical inverse of a classical permutation or unitary region;
-- **uncompute:** apply inverses to return temporary coherent or reversible state to its required clean value;
-- **machine rewind:** consume WIP-0001 step records for classical execution;
-- **replay:** reuse recorded nondeterministic observations without claiming to restore physical state;
-- **retry:** prepare a new target state and execute a region again.
+- Inverse and adjoint execution applies the mathematical inverse of a classical permutation or unitary region.
+- Uncompute applies inverses until temporary coherent or reversible state returns to its required clean value.
+- Machine rewind consumes WIP-0001 step records for classical execution.
+- Replay reuses recorded nondeterministic observations without claiming to restore physical state.
+- Retry prepares a new target state and executes the region again.
 
-Source documentation and diagnostics must name the applicable operation instead of calling all five “reverse.”
+Source documentation and diagnostics must name the applicable operation instead of calling all five "reverse."
 
 ## Ownership and boundaries
 
@@ -205,7 +205,7 @@ Partitioning is observable in cost and latency but not in typed program results.
 
 Before measurement, a transaction consisting only of classical reversible and unitary operations may abort by applying inverses while resources remain live.
 
-After measurement, reset, submission, or external effect, abort cannot restore an unknown physical pre-measurement state. It may restore classical state, discard observations, reset/reprepare resources, and retry according to WIP-0004. Source `rollback` must therefore carry an effect-sensitive type and cannot promise physical time reversal.
+After measurement, reset, submission, or external effect, abort cannot restore an unknown physical pre-measurement state; it may restore classical state, discard observations, reset/reprepare resources, and retry according to WIP-0004. Source `rollback` must therefore carry an effect-sensitive type and cannot promise physical time reversal.
 
 ### Example interpretation
 
@@ -213,7 +213,7 @@ After measurement, reset, submission, or external effect, abort cannot restore a
 | --- | --- |
 | `Counter` | Classical `rev`; printing is an effect, while inverse calls remain valid. |
 | `BinaryTree` | Reversible API using bounded logged mutation; history cleanup creates a commit horizon. |
-| `QFT` | Closed unitary region; inverse should be generated or validated rather than maintained independently without checking. |
+| `QFT` | Closed unitary region; inverse should be generated or validated instead of maintained independently without checking. |
 | `QFTProof` | Supplies future proof goals; measurements cannot be theorem variables for an unknown preserved pre-measurement state. |
 | `QuantumOptimizer` | Parameterized circuit template plus repeated measurement and classical updates. |
 | `QuantumNeuralNetwork` | Hybrid job loop; CNOT recording creates entanglement, not a clone, and ancillas must be uncomputed before destructive boundaries. |
@@ -240,11 +240,11 @@ This proposal does not define shared-memory VM threads. A later concurrency desi
 
 This proposal establishes the semantic facts a later proof system may trust: operation signatures, effect sets, affine resource flow, inverse/adjoint relationships, region boundaries, and target requirements. It does not trust textual `because` clauses or make a compiler test equivalent to a mathematical proof.
 
-A future proof certificate may establish unitary equivalence, ancilla cleanup, bounds, decomposition equivalence, or properties such as QFT correctness. Runtime execution remains safe without such certificates; unsupported optimization or theorem claims are rejected rather than assumed.
+A future proof certificate may establish unitary equivalence, ancilla cleanup, bounds, decomposition equivalence, or properties such as QFT correctness. Runtime execution remains safe without such certificates; unsupported optimization or theorem claims are rejected instead of assumed.
 
 ## Bytecode, persistence, and compatibility
 
-WIP-0002 activates WIP-0001 section types 7 and 8. Region and quantum records are length-delimited and versioned. Function descriptors gain explicit effect sets, coherent eligibility, and quantum-body references.
+WIP-0002 activates WIP-0001 section types 7 and 8; region and quantum records are length-delimited and versioned. Function descriptors gain explicit effect sets, coherent eligibility, and quantum-body references.
 
 Provider-compiled circuits, physical layouts, calibration snapshots, and credentials are not canonical semantic bytecode. They may be cached as target-qualified derived artifacts keyed by semantic region hash and target fingerprint.
 
@@ -274,7 +274,7 @@ Quantum state is not a byte stream, file, mapped object, direct-I/O buffer, or R
 6. Compile `QFT` with generated adjoint and compare it against the hand-written inverse fixture.
 7. Rewrite `QuantumOptimizer` as the first measured hybrid fixture.
 8. Correct no-cloning, cleanup, purity, transaction, and remote-lifetime violations in the larger examples.
-9. Delete AST and grammar constructs that cannot be assigned accepted semantics rather than retaining nonfunctional syntax.
+9. Delete AST and grammar constructs that cannot be assigned accepted semantics instead of retaining nonfunctional syntax.
 
 ## Progress
 
@@ -311,7 +311,7 @@ Rejected. Foreign strings lose Wheeler types, source maps, inverse relationships
 
 ### Make transitions entirely implicit
 
-Rejected. Automatic region partitioning is valuable, but preparation and measurement change information domains and must remain visible in semantics and diagnostics.
+Rejected. Automatic region partitioning is useful, but preparation and measurement change information domains and must remain visible in semantics and diagnostics.
 
 ### Treat measurement as logged reversible mutation
 
@@ -327,9 +327,9 @@ Rejected by no-cloning. It copies known basis information in a restricted case a
 
 ## Open questions
 
-- What source annotation should require, rather than merely infer, coherent eligibility for a `rev` function? — **Owner:** language maintainers — **Decide by:** before this WIP enters Review
-- Which small semantic gate set gives stable meaning while keeping decomposition practical for today's targets? — **Owner:** quantum compiler maintainers — **Decide by:** before quantum-body encoding is frozen
-- Which finite classical data encodings are required in the first coherent-lifting slice beyond bits and fixed-width unsigned integers? — **Owner:** type-system maintainers — **Decide by:** before implementation begins
+- What source annotation should require, instead of only infer, coherent eligibility for a `rev` function (owner: language maintainers; decision point: before this WIP enters Review)?
+- Which small semantic gate set gives stable meaning while keeping decomposition practical for today's targets (owner: quantum compiler maintainers; decision point: before quantum-body encoding is frozen)?
+- Which finite classical data encodings are required in the first coherent-lifting slice beyond bits and fixed-width unsigned integers (owner: type-system maintainers; decision point: before implementation begins)?
 
 ## References
 

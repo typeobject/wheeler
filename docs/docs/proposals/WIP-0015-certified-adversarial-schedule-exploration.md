@@ -13,24 +13,24 @@
 
 ## Summary
 
-Wheeler may eventually explore every execution admitted by a finite distributed-protocol model and bounded fault grammar. `Murphy.w` is the driving application: search schedules in increasing length, replay proposed failures deterministically, prove each accepted counterexample, prove no shorter schedule fails, or return a checked bounded-safety result.
+Wheeler may later explore every execution allowed by a finite distributed-protocol model and a bounded fault grammar. `Murphy.w` is the main application. It searches schedules from shortest to longest, replays proposed failures in a stable order, checks each counterexample, proves that no shorter schedule fails, or returns a verified bounded-safety result.
 
-The schedule space is generated from the protocol, initial state, event grammar, and fault budget. Production traffic and logs are optional debugging inputs, not semantic inputs or proof evidence.
+The protocol, initial state, event grammar, and fault budget define the search space. Production traffic and logs may help debugging, but they are not semantic input or proof evidence.
 
-This WIP reserves no current syntax. It defines the model and trust boundary required before protocol-artifact, logged-transition, coherent-interpreter, or schedule-proof syntax can be accepted. Modeled transitions must lower to Wheeler's reversible IR with explicit inverse witnesses or logged destruction; external delivery and failure observations remain workflow events rather than magically reversible network packets.
+This WIP does not reserve source syntax. It defines the model and trust boundary needed before Wheeler accepts syntax for protocol artifacts, logged transitions, coherent interpreters, or schedule proofs. Modeled transitions lower to Wheeler's reversible IR with explicit inverses or logged destruction. External delivery and failure observations remain workflow events; network packets are not physically reversible.
 
 ## Motivation
 
-Concurrency defects depend on event order and failure placement. Randomized stress testing can expose them but cannot establish coverage, preserve timing-independent reproducers, or prove bounded absence. Existing model checking addresses much of this problem; Wheeler must not claim novelty for bounded state exploration alone.
+Concurrency bugs depend on event order and fault placement. Random stress tests may find them, but they cannot show complete bounded coverage, preserve timing-independent reproducers, or prove that no failure exists within a limit. Model checkers already solve much of this problem, so Wheeler should not claim that bounded state exploration is new.
 
-The proposed Wheeler integration has narrower value:
+Wheeler's value is a tighter integration:
 
 - finite protocol and event artifacts have canonical identities;
-- every modeled destructive transition carries an explicit inverse witness;
-- candidate state can be uncomputed during search;
-- target evidence, deterministic replay, and proof are distinct artifacts;
-- long-running search uses durable event/recovery semantics;
-- counterexamples and certificates ship as ordinary Wheeler packages.
+- each modeled destructive transition carries an explicit inverse witness;
+- search can uncompute candidate state;
+- target evidence, deterministic replay, and proof stay separate;
+- long searches use durable event and recovery rules;
+- counterexamples and certificates ship as normal Wheeler packages.
 
 ## Goals
 
@@ -38,7 +38,7 @@ The proposed Wheeler integration has narrower value:
 - Define canonical schedule encodings with no duplicate semantic schedule unless an explicit equivalence relation is certified.
 - Model delivery, loss, duplication, crash, restart, partition, healing, timeout, and time advance under exact bounds.
 - Make enabledness and fault-budget accounting deterministic and checked.
-- Reverse model transitions with explicit witnesses rather than whole-cluster snapshots.
+- Reverse model transitions with explicit witnesses instead of whole-cluster snapshots.
 - Search schedule lengths in increasing order.
 - Replay and normalize every proposed counterexample classically.
 - Prove the exact violation and absence of every shorter counterexample.
@@ -97,7 +97,7 @@ Changing any component creates a different claim. A proof about five crash-stop 
 
 ## Canonical schedules
 
-A schedule encoding has one declared active prefix. Inactive slots contain one required zero value. Fault counts are computed from active events and must equal any cached count fields. IDs use canonical finite encodings. Partition sides are disjoint and normalized. Time advances are positive and bounded.
+A schedule encoding has one declared active prefix. Inactive slots contain one required zero value. Fault counts are computed from active events and must equal any cached count fields. IDs use canonical finite encodings. Partition sides are disjoint and normalized; time advances are positive and bounded.
 
 Two independent messages may commute. The first profile may retain both orders as distinct schedules. Partial-order reduction enters only with a checked independence relation and a certificate that the removed order cannot change enabledness or the safety result.
 
@@ -124,13 +124,13 @@ The inverse consumes the witness, restores the exact state, and returns the witn
 
 Safety predicates are total bounded functions over modeled state. They cannot perform I/O, consult wall time, submit jobs, sample randomness, or observe host allocation.
 
-A replicated property must identify its view. “Total money” may mean each replica independently, one committed logical ledger, or a quorum-derived view. Summing replicated copies is not conservation. “Applied at most once” counts externally visible effects under a declared observation model, not how many replicas store an `Applied` marker.
+A replicated property must identify its view. Total money may mean each replica independently, one committed logical ledger, or a quorum-derived view. Summing replicated copies does not measure conservation. The applied-at-most-once property counts externally visible effects under a declared observation model. Replica storage of an `Applied` marker is a separate fact.
 
 Liveness is separate. A finite schedule cannot establish eventual delivery without a fairness and horizon model.
 
 ## Search and shortestness
 
-Search proceeds by timeline length. A target or classical search engine may propose candidate encodings. Every proposal is decoded and replayed by the deterministic checker.
+Search proceeds by timeline length. A target or classical search engine may propose candidate encodings; every proposal is decoded and replayed by the deterministic checker.
 
 Failure to find a candidate at length `L` does not permit search at `L+1` when shortestness is claimed. Advancement requires a checked certificate that no length-`L` counterexample exists. The accumulated prefix establishes global length minimality for the first accepted counterexample.
 
@@ -179,7 +179,7 @@ A counterexample certificate proves:
 - exact transition reduction;
 - the final named safety violation.
 
-A minimality certificate proves absence at every shorter length. A bounded-safety certificate proves absence through the configured maximum.
+A minimality certificate proves absence at every shorter length; a bounded-safety certificate proves absence through the configured maximum.
 
 Proof-producing search may use induction over the transition trace, finite enumeration, bit-vector certificates, SAT resolution, BDD certificates, partial-order lemmas, or protocol invariants. All elaborate to bounded canonical terms checked without invoking the producer.
 
@@ -197,7 +197,7 @@ No Boolean `safe` result exists without a proof value. Reports must preserve thi
 
 WIP-0032 owns I/O requests, scopes, operations, cancellation, completion, and receipts. This WIP may explore a finite WIP-0032 model by choosing admitted completion orders, partial progress, cancellation races, credit exhaustion, and uncertainty outcomes; it does not define another scheduler or I/O method family.
 
-A replay package records canonical operation and schedule identities, not payloads or native queue state. A checked schedule can establish behavior of the finite model. It cannot turn simulated persistence into device evidence or infer that a timed-out external effect never occurred.
+A replay package records canonical operation and schedule identities, instead of payloads or native queue state. A checked schedule can establish behavior of the finite model. It cannot turn simulated persistence into device evidence or infer that a timed-out external effect never occurred.
 
 ## Package output
 
@@ -217,7 +217,7 @@ Publication is immutable, atomic, capability-gated, and offline-verifiable. Cred
 
 ## Determinism and limits
 
-The implementation bounds protocol bytes, nodes, state objects, messages, timers, events, event operands, queue/map capacity, handler steps, emitted messages, fault counts, candidate bits, logical time, search attempts, shots, jobs, durable events, trace bytes, proof nodes, recursion, diagnostics, and package bytes.
+The implementation bounds protocol bytes, nodes, state objects, messages, timers, events, queues, maps, handler work, emitted messages, and fault counts. It limits candidate bits, logical time, search attempts, shots, jobs, durable events, traces, proofs, recursion, diagnostics, and package bytes.
 
 Candidate and diagnostic reduction uses timeline length then canonical encoding. Parallel completion, target queue order, hash insertion, solver order, host scheduling, wall clock, and allocation address cannot change a successful result.
 
@@ -301,21 +301,21 @@ Rejected as the semantic boundary. Stress tests remain useful candidate producer
 
 Rejected as the Wheeler model. It is a valid model-checker implementation strategy, but it does not exercise explicit ownership, inverse witnesses, or coherent cleanup and can obscure omitted state.
 
-### Trust a model checker or quantum target's “safe” result
+### Trust a model checker or quantum target without checking the result
 
 Rejected. Producers emit checkable certificates or evidence. The kernel establishes the claim.
 
 ### Report the shortest trace found
 
-Allowed only as “shortest known.” The unqualified word “shortest” requires checked absence of every shorter admitted timeline.
+Allowed only as a shortest-known claim. An unqualified shortest claim requires checked absence of every shorter admitted timeline.
 
 ## Open questions
 
-- Which structured-concurrency semantics are small enough for canonical finite protocol artifacts? — **Owner:** concurrency maintainers — **Decide by:** before protocol schema
-- Which event independence relation supports useful checked partial-order reduction? — **Owner:** model-checking maintainers — **Decide by:** before absence certificates
-- Which proof format handles bounded transition reachability and nonreachability without trusting the solver? — **Owner:** proof maintainers — **Decide by:** before safety certification
-- Which application effects are eligible for coherent finite interpretation? — **Owner:** quantum/compiler maintainers — **Decide by:** before failure-oracle lowering
-- Which observation model defines “applied at most once” for replicated external effects? — **Owner:** application maintainers — **Decide by:** before the ledger fixture
+- Which structured-concurrency semantics are small enough for canonical finite protocol artifacts (owner: concurrency maintainers; decision point: before protocol schema)?
+- Which event independence relation supports useful checked partial-order reduction (owner: model-checking maintainers; decision point: before absence certificates)?
+- Which proof format handles bounded transition reachability and nonreachability without trusting the solver (owner: proof maintainers; decision point: before safety certification)?
+- Which application effects are eligible for coherent finite interpretation (owner: quantum/compiler maintainers; decision point: before failure-oracle lowering)?
+- Which observation model defines the applied-at-most-once property for replicated external effects (owner: application maintainers; decision point: before the ledger fixture)?
 
 ## References
 

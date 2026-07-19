@@ -1,55 +1,130 @@
 # Reversible virtual machine
 
-The implemented VM is the deterministic, single-threaded transition kernel for Wheeler's first bytecode format.
+The current VM is Wheeler's deterministic, single-threaded transition kernel for bytecode format 1.0.
 
 ## State
 
 The machine owns:
 
-- one verified immutable program;
-- a status (`ready`, `running`, `halted`, or `trapped`);
-- a bounded stack of immutable control frames with descriptor-typed signed and Boolean local registers;
+- one verified, immutable program;
+- a status of `ready`, `running`, `halted`, or `trapped`;
+- a bounded stack of immutable control frames;
+- descriptor-typed signed and Boolean local registers in each frame;
 - typed signed 64-bit global locations;
-- separate deterministic bounded tables of immutable nominal records, tagged variants, fixed arrays, and nonescaping slices;
-- bounded owned regions and mutable signed-word/byte buffers, immutable frozen UTF-8 owners, and fixed-capacity signed maps with explicit live/dropped state and byte/object accounting;
+- separate bounded tables for immutable records, tagged variants, fixed arrays, and nonescaping slices;
+- bounded owned regions and mutable signed-word or byte buffers;
+- immutable frozen UTF-8 owners and fixed-capacity signed maps;
+- explicit live or dropped state with byte and object accounting;
 - an ordered bounded stack of step records;
-- a monotonic transition sequence within the current run.
+- a monotonic transition number for the current run.
 
-Raw host pointers and masked segmented addresses are not machine values. Source compilation currently records ceilings of 1,000,000 steps and 250,000 retained history records; exhaustion traps before another mutation. The history default admits bounded compiler/package passes without sneaking in a commit horizon, while artifact and embedding policy may choose lower verified limits.
+Raw host pointers and masked segmented addresses are not machine values.
 
-A classical entry may borrow one strict UTF-8 input or immutable binary `byteview`, one mutable byte output, or one input followed by the output. VM construction requires the exact declared effects and an explicit text/binary binding API, caps each at 16 MiB, defensively copies input into externally owned baseline storage, and initializes only borrow registers. Output has a fixed maximum capacity and is zero-initialized. `OUTPUT_LENGTH` may select a prefix only from the entry output borrow; wrong handles and lengths outside `0..capacity` trap before mutation. The selected length participates in snapshots and exact rewind, and `hostOutput()` returns a defensive copy of that prefix. Missing, unexpected, kind-mismatched, malformed UTF-8, or oversized effects fail before stepping; arbitrary binary input is never decoded as text. Effect bytes and output capacity are runtime data and never alter `.wbc` identity.
+Source compilation currently writes limits of 1,000,000 steps and 250,000 retained history records. The VM traps before another mutation when either limit is exhausted. These defaults allow bounded compiler and package work without adding a commit horizon. An artifact or embedding host may choose lower verified limits.
 
-These entry loans are the implemented narrow host boundary, not the planned asynchronous I/O API. [WIP-0032](../proposals/WIP-0032-unified-io-fabric-and-durability-receipts.md) will lower submitted I/O through typed effects and continuations while preserving the same ownership and fail-closed rules. Live I/O remains a rewind barrier; request construction alone is not submission.
+A classical entry may borrow one strict UTF-8 input, one immutable binary `byteview`, one mutable byte output, or one input followed by the output. VM construction requires the exact declared effects and an explicit text or binary binding API.
+
+Each input or output is capped at 16 MiB. The VM copies input into external baseline storage and initializes only the declared borrow registers. Output has a fixed capacity and starts filled with zero bytes.
+
+`OUTPUT_LENGTH` selects a prefix only from the entry's output borrow. A wrong handle or a length outside `0..capacity` traps before mutation. The chosen length is part of snapshots and exact rewind, while `hostOutput()` returns a defensive copy of that prefix.
+
+Missing, extra, mismatched, malformed UTF-8, or oversized effects fail before the first step. Binary input is never decoded as text. Effect bytes and output capacity are runtime data, so they do not change `.wbc` identity.
+
+These entry loans are the narrow host boundary that exists today. They are not the planned asynchronous I/O API. [WIP-0032](../proposals/WIP-0032-unified-io-fabric-and-durability-receipts.md) will lower submitted I/O through typed effects and continuations while keeping the same ownership and fail-closed rules.
+
+Live I/O remains a rewind barrier. Building a request doesn't submit it.
 
 ## Wheeler-written bounded interpreter
 
-`NativeVm.w` imports `runtime/Interpreter.w` and the split Wheeler-native framing/payload and instruction verifiers. It accepts an immutable binary `.wbc`, verifies the bounded self-hosted compiler profile, initializes up to eight signed globals from the type section, and executes up to 512 interpreted instructions with eight bounded frames, up to eight functions, and sixty-four typed locals per frame (only the active function window is cleared) and up to 128 instructions per function. `compiler/ir/Opcodes.w`, `compiler/ir/TypeCodes.w`, and `compiler/ir/ProofRules.w` own the names at that boundary. `compiler/verification/FunctionVerifier.w` validates generic bounded descriptor/type/code windows, `compiler/verification/AggregateVerifier.w` validates immutable aggregate metadata use, `compiler/verification/StorageVerifier.w` validates bounded region/word/byte/map storage, borrow, and UTF-8 operands, while `compiler/verification/ProofVerifier.w` checks generated-inverse records and static straight-line step bounds. The current opcode surface covers direct reversible global add/subtract/XOR, local constants and state load/store/move, checked arithmetic including `LOCAL_AND` and `LOCAL_ROTR32`, signed/Boolean equality and comparison, bounded loop checks, bounded structurally interned immutable record, finite-variant, fixed-array, and slice construction, inspection, indexed reads, field reads, and equality, plus bounded owned regions and mutable word/byte buffers with checked allocation/access/length/drop and byte-range enforcement, strict bounded UTF-8 validation/count/scalar/width operations, validated freezing, nested read-only UTF-8 and byte loans with borrowed buffer length, nested mutable region/word/byte/map loans, owning primitive-storage calls, and deterministic fixed-capacity signed maps with insert/update/lookup/membership/drop, instruction-index branches, global expectations, zero-argument `CALL`/`UNCALL`, typed signed/Boolean `CALL_VALUE`/`CALL_VOID`, `RETURN`/`RETURN_VALUE`, and `HALT`.
+`NativeVm.w` imports `runtime/Interpreter.w` plus the Wheeler-written framing, payload, and instruction verifiers. It accepts immutable binary `.wbc` and verifies the bounded self-hosted compiler profile.
 
-The direct checked-update fixture produces the same final global as the stage-0 VM and the outer Wheeler execution rewinds exactly. The Wheeler-written compiler emits the checked-in proof-bearing `Counter.w` artifact byte-for-byte with stage 0; the Wheeler-written interpreter then exercises its repeated forward and inverse calls and finishes at zero. Conditional branches, a three-iteration bounded loop, a two-argument signed value call, a signed void call, and the four-function signed/Boolean/negation/looping `FunctionValues.w` graph, six-level `RecursiveValue.w` recursion, and two-global early-return/break/continue `LoopControl.w`, nested structurally equal `Records.w` values, payload-free `FiniteEnums.w`, and payload-carrying `Variants.w`, a checked fixed-array/slice artifact, and a checked owned-region/word/byte-buffer artifact valid/malformed UTF-8 artifacts, full `FrozenUtf8.w`, and a checked signed-map artifact differentially agree with stage 0 across every declared global (up to eight) and rewind exactly; forged record field, variant-tag, array-index-local, slice-index-local, word/byte-index-local, UTF-8-index-local and map-key-local operands, a forged static-step bound, and a structurally valid but semantically wrong generated inverse are rejected by Wheeler proof checks; a forged branch target fails Wheeler verification before execution. This remains an interpreter vertical slice, not yet the authoritative transition kernel: host effects, workflows, and interpreter-level step history remain stage-0 behavior. A bounded interpreter with missing effect, borrow, and quantum opcodes is still a bootstrap fixture; nouns do not implement opcodes.
+The interpreter supports:
+
+- up to eight signed globals;
+- up to 512 interpreted instructions;
+- eight bounded frames;
+- up to eight functions;
+- sixty-four typed locals per frame;
+- up to 128 instructions per function.
+
+Only the active function's local window is cleared. `compiler/ir/Opcodes.w`, `compiler/ir/TypeCodes.w`, and `compiler/ir/ProofRules.w` define the names used at this boundary.
+
+`compiler/verification/FunctionVerifier.w` checks descriptor, type, and code windows. `compiler/verification/AggregateVerifier.w` checks immutable aggregate metadata. `compiler/verification/StorageVerifier.w` checks regions, buffers, maps, loans, and UTF-8 operands. `compiler/verification/ProofVerifier.w` verifies generated-inverse records and straight-line step bounds.
+
+The current opcode set includes:
+
+- reversible global add, subtract, and XOR;
+- local constants, state load or store, and moves;
+- checked arithmetic, including `LOCAL_AND` and `LOCAL_ROTR32`;
+- signed and Boolean equality or comparison;
+- bounded loop checks;
+- immutable records, finite variants, fixed arrays, and slices;
+- bounded owned regions and mutable word or byte buffers;
+- strict UTF-8 validation, count, scalar, width, and freeze operations;
+- read-only UTF-8 and byte loans;
+- mutable region, word, byte, and map loans;
+- owner-returning primitive-storage calls;
+- deterministic fixed-capacity signed maps;
+- instruction-index branches and global expectations;
+- zero-argument `CALL` and `UNCALL`;
+- typed `CALL_VALUE`, `CALL_VOID`, `RETURN`, and `RETURN_VALUE`;
+- `HALT`.
+
+The direct checked-update fixture matches the final global value produced by the stage-0 VM, and the outer Wheeler run rewinds exactly. The Wheeler compiler also emits the proof-bearing `Counter.w` artifact byte for byte with stage 0. The Wheeler interpreter runs its repeated forward and inverse calls, then finishes at zero.
+
+Differential tests also cover branches, a three-iteration bounded loop, signed calls, and Boolean logic in `FunctionValues.w`. Six-level recursion runs through `RecursiveValue.w`, while `LoopControl.w` covers early return, `break`, and `continue`.
+
+Data fixtures include nested `Records.w` values, payload-free `FiniteEnums.w`, payload-carrying `Variants.w`, arrays, slices, owned storage, valid and invalid UTF-8, `FrozenUtf8.w`, and signed maps. Every declared global, up to eight, must match stage 0 before exact rewind.
+
+Negative tests forge record-field, variant-tag, array-index-local, slice-index-local, word-index-local, byte-index-local, UTF-8-index-local, and map-key-local operands. They also forge step bounds, branch targets, and generated inverses. The Wheeler verifier must reject each case before interpretation.
+
+This remains a bounded interpreter slice. It is not yet the final transition kernel because host effects, workflows, and interpreter-level history still use stage-0 behavior. Missing effect, loan, or quantum opcodes remain real limits even when the surrounding types already exist.
 
 ## Forward and reverse laws
 
-A successful step produces a new state and one minimal record:
+A successful step creates one new state and one minimal undo record:
 
 ```text
 step(C, instruction) = (C', undo)
 unstep(C', undo) = C
 ```
 
-Intrinsic operations recover data from their inverse operation. Logged operations retain the value they overwrite. Local register and control operations retain the prior immutable frame needed to restore program counter and locals. Frames use persistent 32-register chunks: control-only steps share all register storage, while a local write copies only its chunk and the shallow chunk index. Snapshots still expose ordinary immutable lists, and equality remains structural. This keeps a declared history budget from quietly becoming `records × every local × boxed object`, an allocator policy best left unpublished. Aggregate construction interns by nominal type, variant tag where present, and ordered field values; rewind restores prior record-, variant-, array-, and slice-table lengths as well as the frame. Region operations retain bounded deltas for changed region accounting, changed buffer contents/drop state, and prior table lengths. Call and return records retain the control information needed to restore frame depth. The VM never restores state and then also executes an inverse handler.
+Intrinsic operations recover information through their inverse; logged operations save the value they overwrite. Local-register and control operations retain the earlier immutable frame needed to restore the program counter and local values.
+
+Frames use persistent chunks of 32 registers; a control-only step shares all register storage. A local write copies only its chunk and the shallow chunk index.
+
+Snapshots still expose ordinary immutable lists, and equality stays structural. This keeps the declared history budget tied to actual changes instead of charging `records × every local × boxed object`.
+
+Aggregate construction interns values by nominal type, variant tag when present, and ordered fields; rewind restores earlier record, variant, array, and slice table lengths along with the frame.
+
+Region operations save bounded deltas for accounting, changed buffer contents, drop state, and earlier table lengths. Call and return records keep the control data needed to restore frame depth.
+
+A reverse step restores state once. The VM never restores an earlier state and then also runs an inverse handler for the same step.
 
 ## Function inverse versus rewind
 
-`CALL` executes a zero-argument void function body. `UNCALL` executes its generated inverse body as new forward work. `CALL_VALUE` transfers an exact initialized, type-compatible argument window—including transient verified borrows—into callee parameter registers and names one caller register matching the declared result; `RETURN_VALUE` checks and moves that result back. Every call and return adds history and can itself be rewound, including the caller result write.
+`CALL` runs the forward body of a zero-argument void function; `UNCALL` runs its generated inverse body as new forward work.
 
-`rewindOne` consumes the newest step record and restores the exact prior machine state. It does not call the function inverse.
+`CALL_VALUE` moves an exact initialized argument window into the callee's parameter registers. The window may include transient verified loans. It also names one caller register whose type matches the declared result.
+
+`RETURN_VALUE` checks the result and moves it back to the caller. Every call and return adds history, including the write to the caller's result register, so each transition can be rewound.
+
+`rewindOne` consumes the newest step record and restores the exact earlier machine state. It does not call a function inverse.
 
 ## Commit horizons
 
-`COMMIT` clears earlier step records after advancing successfully. The machine cannot rewind before that point even if an implementation happens to retain unrelated cached bytes. A future persistence layer will make checkpoint and replay availability explicit.
+`COMMIT` advances successfully, then clears older step records. The VM cannot rewind before that point, even when an implementation still holds unrelated cached bytes.
+
+A future persistence layer will make checkpoint and replay availability explicit.
 
 ## Traps and limits
 
-An optional transition observer receives immutable function/instruction/opcode observations only after successful mutation. It classifies forward, inverse, rewind-forward, and rewind-inverse separately and receives no mutable machine state; the stage-0 semantic coverage reducer described in [semantic coverage](coverage.md) uses this boundary without changing artifacts or history.
+An optional transition observer receives an immutable function, instruction, and opcode observation only after a successful mutation. It reports forward, inverse, rewind-forward, and rewind-inverse transitions separately. The observer receives no mutable machine state.
 
-Invalid expectations, overflow, missing inverses, invalid local or branch access, register type mismatches, non-Boolean conditions, exceeded source loop limits, call depth above 1,024 frames, escaped instruction pointers, exhausted history, and exceeded step limits trap deterministically. Owned moves, region/buffer exhaustion, use after move or drop, buffer kind/range/bounds, UTF-8 freeze validity, immutable borrow kind/owner state, exclusive region/buffer/map-borrow kind and aliasing, map capacity/absence, malformed UTF-8 counting, dropping an owner with live buffers, ownership-divergent joins, and leaked owned locals are also checked. A failing instruction does not partially mutate globals, frames, region accounting, or buffer contents.
+The stage-0 semantic coverage reducer in [semantic coverage](coverage.md) uses this boundary without changing artifacts or history.
+
+The VM traps deterministically on invalid expectations, overflow, or missing inverses. It also traps on bad local or branch access, register type mismatches, and non-Boolean conditions. Other failures include exhausted loop limits, call depth above 1,024 frames, escaped instruction pointers, full history, and an exceeded step limit.
+
+Ownership checks cover moves, use after move or drop, and leaked owned locals. Storage checks cover region or buffer exhaustion, buffer kind and range, and live buffers during region drop. The VM also checks UTF-8 validity, malformed decoding, immutable-loan state, exclusive-loan aliasing, map capacity or missing keys, and ownership-divergent joins.
+
+A failing instruction makes no partial change to globals, frames, region accounting, or buffer contents.

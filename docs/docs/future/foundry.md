@@ -7,19 +7,19 @@ sidebar_position: 1
 
 :::caution Future design, not current Wheeler
 
-`Foundry.w` is a hypothetical fault-tolerant-era application. None of the syntax on this page is accepted by the current compiler unless it also appears in the [language reference](../reference/language-profile.md). This page is a design target, not a checked-in `.w` fixture, hardware promise, benchmark result, or release schedule.
+`Foundry.w` is a possible application for a future fault-tolerant system. The current compiler accepts only the syntax that also appears in the [language reference](../reference/language-profile.md). This page is a design target. It is not a checked-in `.w` example, a hardware promise, a benchmark result, or a release schedule.
 
 :::
 
-`Foundry.w` receives a finite mathematical specification, a candidate grammar, and explicit resource bounds. It searches for an implementation, checks every input in the declared finite domain, emits kernel-checkable correctness and minimality certificates, and publishes the result as an ordinary Wheeler package.
+`Foundry.w` takes a finite mathematical specification, a candidate grammar, and clear resource bounds. It searches for an implementation and checks every input in the declared domain. The run then creates kernel-checkable correctness and minimality certificates before publishing a normal Wheeler package.
 
-The concrete challenge is deliberately small to state and brutal to execute:
+The example is easy to state and very hard to run:
 
 > Find the smallest reversible sorting network for eight 4-bit integers.
 
-No corpus is supplied. `Array<BitInt<4>, 8>` defines all `2^32` inputs. The candidate grammar defines the programs. The selected comparator-count, gate, memory, proof, and time ceilings define the theorem's boundary.
+There is no training corpus. `Array<BitInt<4>, 8>` defines all `2^32` inputs, while the candidate grammar defines the allowed programs. Limits on comparators, gates, memory, proof work, and time set the exact boundary of the claim.
 
-The only training data is mathematics and regret.
+The search uses the specification and the bounded program grammar.
 
 ## Required result
 
@@ -35,11 +35,11 @@ A conforming Foundry run would:
 8. emit source, canonical `.wbc`, certificates, provenance, and a package manifest;
 9. publish through an explicit output capability.
 
-Quantum evidence is not proof. Sampling may choose what to check next; it cannot authorize a theorem, establish absence, or publish an artifact.
+Quantum samples may help choose the next candidate to check. They cannot prove a theorem, prove that no candidate exists, or authorize publication. Only deterministic checking can do that.
 
 ## Speculative source sketch
 
-The notation below is intentionally ahead of the language. It assumes finite-domain generics, affine borrows, first-class propositions and proofs, bounded synthesis, proof-producing model checking, coherent candidate interpreters, durable asynchronous workflows, and proof-bearing packages.
+The sketch uses syntax that Wheeler does not support yet. It assumes finite-domain generics, affine borrows, first-class propositions and proofs, bounded synthesis, proof-producing model checking, coherent candidate interpreters, durable asynchronous workflows, and proof-bearing packages.
 
 ```java
 package future.foundry.sort8;
@@ -399,7 +399,7 @@ hybrid class AlgorithmFoundry {
 
 ## Syntax review
 
-The sketch uses separate notation for separate claims:
+Each form in the sketch has one job:
 
 - `rev` states a language-level inverse law; it is not debugger rewind.
 - `borrow` cannot escape, while `inout` transfers exclusive mutable access.
@@ -411,13 +411,13 @@ The sketch uses separate notation for separate claims:
 - `record ... await` creates durable evidence; `commit` advances the recovery horizon.
 - capability parameters authorize effects. Imports do not grant authority.
 
-Several details must be fixed before any of this becomes language syntax. Finite-type enumeration order needs a canonical encoding. Candidate decoding must map one semantic network to one bitstring. Reverse lowering for `compareExchange` must prove that the saved bit is cleared after restoring the original pair. Quantum oracle cleanup must cover candidate decoding, model-check workspace, phase flags, and failure paths. Proof budgets and target limits need integer units and canonical identities. Dependent values such as `network.length` cannot leak unchecked host arithmetic into types.
+Several rules must be settled before this can become real syntax. Finite types need a canonical enumeration order, and each semantic network must have one bitstring encoding; reverse lowering for `compareExchange` must prove that it clears the saved bit after restoring the pair. Oracle cleanup must cover candidate decoding, model-checking workspace, phase flags, and failure paths. Proof budgets and target limits need integer units and stable identities. Values such as `network.length` also need checked rules before they can affect types.
 
-The generated declaration should live in Wheeler's eventual module model; the current one-class source profile does not permit top-level functions, packages, or imports.
+The generated declaration belongs in Wheeler's future module model. The current one-class profile does not allow top-level functions, packages, or imports.
 
 ## What gets published
 
-The result is not a weights file. It is a normal content-addressed Wheeler package containing:
+The result is a normal content-addressed Wheeler package. It contains:
 
 - readable generated Wheeler source;
 - canonical `.wbc` built by an identified compiler;
@@ -454,14 +454,14 @@ public rev void discoveredSort8(
 
 ## Scale and limits
 
-The bounded claim avoids undecidability; it does not make the search cheap. The input domain alone has `2^32` arrays. There are 28 ordered index pairs for each comparator slot before scheduling symmetries. Candidate count grows exponentially with network length. Amplitude amplification can reduce an unstructured candidate-search factor quadratically; it does not remove exact model checking, certificate construction, fault-tolerant overhead, or minimality proof cost.
+A finite bound makes the claim decidable, but the search is still expensive. The input domain alone contains `2^32` arrays. Each comparator slot has 28 ordered index pairs before accounting for scheduling symmetries, and the number of candidates grows exponentially with network length. Amplitude amplification may cut one unstructured search factor from `N` to about `sqrt(N)`. Exact model checking, certificate construction, fault-tolerant overhead, and minimality proofs still remain.
 
-A credible execution therefore needs advances in fault-tolerant logical qubits, reversible finite-domain interpreters, proof-producing SAT/SMT or specialized sorting-network reasoning, large bounded proof search, durable multi-week jobs, and independent certificate checking. Better mathematics may matter more than better hardware.
+A practical run would need better fault-tolerant logical qubits, reversible finite-domain interpreters, proof-producing SAT or SMT tools, specialized sorting-network reasoning, large bounded proof searches, durable long-running jobs, and independent certificate checks. Better algorithms may matter as much as better hardware.
 
-Minimality is relative to `ComparatorNetworkGrammar`, its canonical encoding, `MAX_COMPARATORS`, the arithmetic profile, and the stated resource metric. Foundry does not prove that no shorter algorithm exists in every computational model, including one invented by a sufficiently argumentative alien.
+Minimality is relative to `ComparatorNetworkGrammar`, its canonical encoding, `MAX_COMPARATORS`, the arithmetic profile, and the chosen resource metric. The result makes no claim about every possible computational model.
 
 ## Generalization
 
-Changing the bounded specification could target a reversible compression transform, arithmetic oracle, quantum error-correction decoder, semantics-preserving compiler rewrite, finite cryptographic permutation, bounded distributed protocol, state-preparation circuit, or strategy for a finite game. Every case must retain the same separation between search, execution, empirical evidence, exact checking, proof, and publication.
+A different bounded specification could target a reversible compression transform, arithmetic oracle, quantum error-correction decoder, compiler rewrite, finite cryptographic permutation, bounded distributed protocol, state-preparation circuit, or finite-game strategy. In each case, search, execution, experimental evidence, exact checking, proof, and publication must stay separate.
 
-The governing design work is [WIP-0014](../proposals/WIP-0014-bounded-certified-program-synthesis.md). The application remains documentation until every dependency is implemented as an executable vertical slice.
+[WIP-0014](../proposals/WIP-0014-bounded-certified-program-synthesis.md) owns the design. This application remains a document until every dependency works in one executable vertical slice.

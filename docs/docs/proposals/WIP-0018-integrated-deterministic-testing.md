@@ -13,28 +13,30 @@
 
 ## Summary
 
-Wheeler will provide one integrated test framework with JUnit 5's useful shape—declarative cases, lifecycle fixtures, parameterized tests, tags, assertions, discovery, and tool reports—without importing Java reflection, exception, thread, or class-loader semantics.
+Wheeler will provide one integrated test framework. It keeps the useful parts of JUnit 5, such as declared cases, fixtures, parameterized inputs, tags, assertions, discovery, and reports. It does not import Java reflection, exceptions, threads, or class loaders.
 
-Tests are Wheeler declarations compiled into canonical `.wbc`, selected by exact package targets, and executed in fresh bounded VM instances. They observe the same reversible typed IR as production code without injecting semantic counters or rewriting it into a test dialect. Discovery, case identity, parameter order, scheduling, shrinking, diagnostics, and report reduction are deterministic. Reversible, coherent, unitary, measurement, hybrid, workflow, proof, and malformed-artifact tests receive distinct assertion contracts; “the test passed after rewind” is not accepted as evidence that an inverse exists.
+Tests are Wheeler declarations compiled into canonical `.wbc`. Exact package targets select them, and each case runs in a fresh bounded VM. Tests observe the same typed IR as production code. The framework does not inject semantic counters or create a separate test dialect.
 
-This WIP reserves a testing model, not a licence to rename JUnit classes and declare victory. Java/JUnit remains a stage-0 conformance harness until Wheeler can run the same semantic suites itself.
+Discovery, case identity, parameter order, scheduling, shrinking, diagnostics, and report reduction are deterministic. Reversible, coherent, unitary, measurement, hybrid, workflow, proof, and malformed-artifact tests use different assertion contracts. A test that passes after VM rewind does not prove that a language-level inverse exists.
+
+This WIP defines a Wheeler testing model. It does not rename JUnit classes and treat that as integration. Java and JUnit remain a stage-0 conformance harness until Wheeler can run the same semantic suites itself.
 
 ## Motivation
 
-The current repository uses JUnit to drive stage-0 compiler, VM, runtime, package, and example tests. That is appropriate while Java is the seed, but it is not a self-hosted testing contract. A Wheeler compiler cannot finish bootstrapping if its acceptance suite requires Java reflection to discover tests and Java exceptions to report failure.
+The repository currently uses JUnit to test the stage-0 compiler, VM, runtime, packages, and examples. That is reasonable while Java is the seed. It is not a self-hosted test contract. Bootstrap cannot finish while Java reflection discovers Wheeler tests and Java exceptions define failure.
 
-Wheeler also has test dimensions that a conventional unit framework cannot infer:
+Wheeler also has testing needs that a normal unit framework cannot infer:
 
-- a reversible operation may need forward-state, inverse-state, and exact-history assertions;
-- VM rewind and language inversion are different operations and must remain different test events;
-- a coherent operation must restore clean workspace and preserve amplitudes, not merely return the right measured bit once;
-- a hardware target produces bounded evidence, not a theorem;
-- replay must not silently resubmit jobs;
-- proof tests must distinguish kernel acceptance, rejection, and theorem meaning;
-- package tests must execute exact locked source and capability sets;
-- distributed or parallel test execution must merge into one canonical report.
+- A reversible operation may need forward-state, inverse-state, and exact-history checks.
+- VM rewind and language inversion are separate events.
+- A coherent operation must return the expected bit, preserve amplitudes, and clean its workspace.
+- Hardware results provide bounded evidence, not a theorem.
+- Replay must not submit jobs again.
+- Proof tests must separate kernel acceptance, rejection, and theorem meaning.
+- Package tests must use exact locked source and capabilities.
+- Parallel or distributed runs must reduce to one canonical report.
 
-Leaving these rules in helper libraries would create several discovery mechanisms, several notions of timeout, and at least one test named `worksUsually`. The framework needs one model before the bootstrap starts depending on it.
+Helper libraries would create several discovery systems, timeout rules, and report formats. Wheeler needs one model before bootstrap work depends on it.
 
 ## Use cases
 
@@ -100,13 +102,13 @@ Cancel(reason_code, durable_checkpoint?)
 Inconclusive(reason_code, evidence_ids)
 ```
 
-`Inconclusive` is required when bounded evidence cannot justify pass or fail. It is not a polite spelling of pass.
+`Inconclusive` is required when bounded evidence cannot justify pass or fail. It does not count as a pass.
 
 A **test run** is the canonical map from selected case identity to one accepted terminal attempt plus ordered runner metadata. Every selected case appears exactly once.
 
 ## Source declarations and discovery
 
-The accepted first declaration is explicit rather than annotation-reflective:
+The accepted first declaration is explicit instead of annotation-reflective:
 
 ```java
 test void addition() {
@@ -118,13 +120,13 @@ test void signedIdentity(long value) cases(-1, 0, 1) {
 }
 ```
 
-The accepted forms are parameterless classical `test void name()` and one-parameter `long` or `boolean` tests with 1–1,024 unique inline scalar `cases(...)`. Each row compiles only when selected as a case, is omitted from ordinary artifacts, and cannot borrow entry effects. Multi-parameter products, named sources, and descriptor grammar remain subject to WIP-0005 review.
+The accepted forms are parameterless classical `test void name()` and one-parameter `long` or `boolean` tests with 1 to 1,024 unique inline scalar `cases(...)`. Each row compiles only when selected as a case, is omitted from ordinary artifacts, and cannot borrow entry effects. Multi-parameter products, named sources, and descriptor grammar remain subject to WIP-0005 review.
 
 Discovery reads only the exact source set of a test-selected runnable package target. It does not scan classpaths, process resources, current directories, or loaded modules. Descriptors are sorted by canonical qualified declaration identity. Parameter cases are sorted by canonical encoded value unless the source declares an already canonical finite sequence.
 
 Duplicate qualified names, duplicate case identities, unstable encodings, unsupported parameter types, and cases exceeding declared limits fail compilation or discovery before execution.
 
-A test declaration cannot be called from a production target. Shared setup and assertion helpers live in ordinary test-source modules. Production builds omit test descriptors and bodies by source-set construction rather than bytecode stripping.
+A test declaration cannot be called from a production target; shared setup and assertion helpers live in ordinary test-source modules. Production builds omit test descriptors and bodies by source-set construction instead of bytecode stripping.
 
 ## Assertions
 
@@ -145,7 +147,7 @@ The first profile includes:
 - event-log, replay, retry, commit, and recovery expectations;
 - proof-kernel acceptance or rejection of an exact certificate and proposition.
 
-Assertion messages are bounded inert UTF-8 values. Rendering may show structural diffs, but semantic failure stores bounded typed expected/actual values and stable diagnostic codes. A renderer does not get to reinterpret `NaN`, truncate a digest, or call two different variants “close enough.”
+Assertion messages are bounded inert UTF-8 values. Rendering may show structural diffs. Semantic failure still stores bounded typed expected and actual values plus stable diagnostic codes. A renderer cannot reinterpret `NaN`, truncate a digest, or treat two different variants as equal.
 
 ## Lifecycle and isolation
 
@@ -209,9 +211,9 @@ Cases are isolated and may execute concurrently. Within one case, scheduling fol
 
 The semantic report is sorted by case identity, then attempt identity, then event sequence. Durations, CPU use, worker names, and wall timestamps are optional presentation fields outside semantic comparison.
 
-A fail-fast command may stop scheduling new cases, but unscheduled selected cases appear as `Cancel(fail_fast)`. Running cases reach a declared cancellation boundary. The report never pretends they were not selected.
+A fail-fast command may stop scheduling new cases, but unscheduled selected cases appear as `Cancel(fail_fast)`. Running cases reach a declared cancellation boundary. The semantic report records every case as selected.
 
-Resource locks are explicit fixture capabilities sorted by canonical identity. Cyclic or dynamically discovered lock sets fail before case execution. “Usually the database test runs first” is not synchronization; it is a confession.
+Resource locks are explicit fixture capabilities sorted by canonical identity. Cyclic or dynamically discovered lock sets fail before any case executes. Tests cannot use their usual database order as synchronization.
 
 ## Quantum and proof implications
 
@@ -221,17 +223,17 @@ Sampled assertions record target identity, circuit identity, shots, seed when su
 
 Measurement is irreversible and cannot be uncalled. A test expecting measurement replay consumes recorded measurement evidence.
 
-Proof assertions invoke the trusted kernel on an exact proposition and certificate. Kernel acceptance proves only that proposition under the named kernel profile. A test that checks “the kernel accepts this forged certificate” must fail; a test that merely finds a theorem by name has checked upholstery.
+Proof assertions invoke the trusted kernel on an exact proposition and certificate. Kernel acceptance proves only that proposition under the named kernel profile. Any test that expects acceptance of a forged certificate must always fail immediately. Finding a theorem by name does not verify its proposition or certificate.
 
 ## Bytecode, reports, and compatibility
 
 Canonical `.wbc` format 1.0 gains an optional test-descriptor section only after WIP-0001 verification rules are accepted. The section references ordinary verified functions and canonical parameter metadata. Unknown required descriptor kinds reject. No second bytecode format is introduced.
 
-Test-report semantics are represented by a canonical Wheeler value schema with domain-separated identities. Terminal text, JSON, JUnit XML, and CI service messages are derived adapters. Adapter bytes are not proof evidence and do not define result ordering.
+Test-report semantics are represented by a canonical Wheeler value schema with domain-separated identities. Terminal text, JSON, JUnit XML, and CI service messages are derived adapters. Adapter bytes are not proof evidence and don't define result ordering.
 
-Reports include package, lock, compiler, artifact, runner, target, fixture-policy, and test-selection identities. Reports containing secrets, absolute host paths, or ambient environment snapshots reject publication.
+Reports include package, lock, compiler, artifact, runner, target, fixture-policy, and test-selection identities; reports containing secrets, absolute host paths, or ambient environment snapshots reject publication.
 
-Format evolution uses optional fields and explicit required-feature identities inside the report schema. Readers fail closed on unknown required semantics. There is no “best effort” decoder for a report used as release evidence.
+Format evolution uses optional fields and explicit required-feature identities inside the report schema. Readers fail closed on unknown required semantics. Reports used as release evidence do not allow best-effort decoding.
 
 ## Safety, limits, and failures
 
@@ -251,7 +253,7 @@ The common conformance suite runs over deterministic, threaded, readiness, compl
 
 ## Ownership and boundaries
 
-The language owns test declaration typing and test-only visibility. The compiler owns descriptor lowering and source mappings. The bytecode verifier owns descriptor/function/type consistency. The VM owns program transitions, traps, snapshots, and rewind. The test runner owns isolation, fixtures, selection, attempts, event reduction, and report publication.
+The language owns test declaration typing and test-only visibility. The compiler owns descriptor lowering and source mappings; the bytecode verifier owns descriptor/function/type consistency. The VM owns program transitions, traps, snapshots, and rewind. The test runner owns isolation, fixtures, selection, attempts, event reduction, and report publication.
 
 The package system owns exact test source sets, dependency locks, capabilities, and test policies. Quantum targets own target execution evidence but not pass semantics. The proof kernel owns certificate validity. Coverage belongs to WIP-0020. Documentation examples and doctests belong to WIP-0019.
 
@@ -272,8 +274,8 @@ JUnit adapters consume semantic reports during migration. They do not discover W
 
 ## Progress
 
-- [x] The stage-0 package runner discovers only exact runnable `test` target source sets, derives domain-separated case/source/artifact/execution/report identities, executes each case with a fresh runtime, reduces compile failures, runtime traps, and failed Wheeler assertions to `WTEST001..003`, sorts cases canonically, and emits a rerun-stable terminal report. Cases bind a bounded assertion-attempt count into test-report profile 2. Classical cases additionally collect a noninstrumenting typed transition-coverage report and bind its printed identity into the test report; quantum cases leave that dimension absent rather than forging a flattering zero.
-- [x] Classical `test void name()` declarations and bounded one-scalar `cases(...)` rows parse in the compiler and Tree-sitter grammar. For a selected nonmodular target or modular root source, the compiler discovers names lexically, links the exact reachable package graph, emits one verified artifact whose sole test entry is the selected declaration, omits all test bodies from ordinary artifacts, and preserves normal `run` behavior.
+- [x] The stage-0 runner discovers only exact runnable `test` target source sets. It derives separate case, source, artifact, execution, and report identities. Each case gets a fresh runtime. Compile errors, runtime traps, and failed assertions map to `WTEST001..003`. Cases are sorted canonically, and the terminal report is stable across reruns.
+- [x] Classical `test void name()` declarations and bounded one-scalar `cases(...)` rows parse in the compiler and Tree-sitter grammar. For a selected target or modular root, the compiler finds names lexically and links the exact reachable package graph. It emits one verified artifact whose only test entry is the selected declaration. Ordinary artifacts omit every test body, and normal `run` behavior stays unchanged.
 - [ ] Full test descriptor semantics, including modular qualification, parameters, fixtures, tags, and limits, are accepted.
 - [x] Two Wheeler cases compile from one exact package target, run in separate fresh VMs, carry distinct identities and coverage reports, and reduce into one rerun-stable report.
 - [x] Bounded inline `long` and `boolean` parameter rows parse, receive indexed stable names, compile through a synthetic no-argument entry wrapper, and execute independently.
@@ -318,14 +320,14 @@ Rejected. Multiple frameworks mean multiple discovery and report authorities. As
 
 ### Make every test reversible
 
-Rejected. Assertions, event recording, target submission, fixture I/O, and report publication are observations or effects. Tests can verify reversible code without pretending the laboratory notebook un-writes itself.
+Rejected. Assertions, event recording, target submission, fixture I/O, and report publication are observations or effects. Tests can verify reversible code while keeping assertions, reports, and other observations irreversible.
 
 ## Open questions
 
-- Which explicit grammar should extend accepted `test void name()` declarations with parameter rows, tags, fixtures, and per-case limits? — **Owner:** language and tooling maintainers — **Decide by:** before descriptor implementation
-- Which canonical report encoding is smallest while remaining independently inspectable during bootstrap? — **Owner:** runtime and package maintainers — **Decide by:** before report persistence
-- Which exact simulator tolerance profiles are portable enough for semantic assertions? — **Owner:** quantum and numerical maintainers — **Decide by:** before quantum assertion acceptance
-- Which fixture capabilities belong in the first self-host compiler suite? — **Owner:** compiler and package maintainers — **Decide by:** before bootstrap runner promotion
+- Which explicit grammar should extend accepted `test void name()` declarations with parameter rows, tags, fixtures, and per-case limits (owner: language and tooling maintainers; decision point: before descriptor implementation)?
+- Which canonical report encoding is smallest while remaining independently inspectable during bootstrap (owner: runtime and package maintainers; decision point: before report persistence)?
+- Which exact simulator tolerance profiles are portable enough for semantic assertions (owner: quantum and numerical maintainers; decision point: before quantum assertion acceptance)?
+- Which fixture capabilities belong in the first self-host compiler suite (owner: compiler and package maintainers; decision point: before bootstrap runner promotion)?
 
 ## References
 

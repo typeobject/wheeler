@@ -13,9 +13,9 @@
 
 ## Summary
 
-Wheeler supports generic abstraction over callable behavior without collapsing ordinary functions, reversible functions, coherent permutations, unitary operations, measurements, and host effects into one universal function type.
+Wheeler supports generic code over callable behavior while keeping ordinary functions, reversible functions, coherent permutations, unitary operations, measurements, and host effects distinct.
 
-A callable signature records parameter/result types and ownership modes, effect row, trap contract, callable kind, inverse/adjoint/controlled availability, capture ownership, and static resource bounds. Initial callable kinds are:
+A callable signature records parameter and result types, ownership modes, an effect row, trap contract, callable kind, inverse or adjoint availability, controlled support, capture ownership, and static resource limits. The first callable kinds are:
 
 ```text
 Function
@@ -24,13 +24,13 @@ CoherentFunction
 UnitaryOperation
 ```
 
-Hybrid and asynchronous work remains ordinary effectful callable code using WIP-0004 lifecycle values. It does not become unitary because a queue eventually returned something.
+Hybrid and asynchronous work remains normal effectful code built on WIP-0004 lifecycle values. A completed queue item does not make an operation unitary.
 
-Effect variables support bounded row-like propagation. A higher-order wrapper may expose the effects of an argument but cannot erase them or forge the required capabilities.
+Effect variables support bounded row-like propagation. A higher-order wrapper may expose the effects of its argument. It cannot erase those effects or create the capabilities they need.
 
-Generic reversible, coherent, and unitary code resolves all WIP-0029 arguments, WIP-0030 evidence, associated constants, callable specializations, and quantum shapes before inverse generation or semantic quantum lowering. The first coherent/unitary profile has no runtime class or callable dispatch.
+Before inverse generation or quantum lowering, generic reversible, coherent, and unitary code resolves every WIP-0029 argument, WIP-0030 evidence value, associated constant, callable specialization, and quantum shape. The first coherent and unitary profile has no runtime class or callable dispatch.
 
-Accepted generic transformations satisfy canonical commutation laws:
+Accepted generic transformations obey these laws:
 
 ```text
 instantiate(inverse(g), arguments)
@@ -40,17 +40,17 @@ instantiate(adjoint(u), arguments)
     == adjoint(instantiate(u, arguments))
 ```
 
-A name or annotation cannot confer reversible, coherent, or unitary authority. Bodies, effects, ownership, finite encoding, and required WIP-0011 evidence must agree.
+A name or annotation cannot make code reversible, coherent, or unitary. The body, effects, ownership, finite encoding, and required WIP-0011 evidence must all agree.
 
 ## Motivation
 
-Wheeler already distinguishes ordinary forward calls, generated inverses, VM rewind, coherent lifting, unitary application, generated adjoints, measurement, replay, retry, and host/target effects. Generic programming must preserve the distinctions rather than putting them in a bag marked `Function`.
+Wheeler already separates forward calls, generated inverses, VM rewind, coherent lifting, unitary application, generated adjoints, measurement, replay, retry, and host or target effects. Generic code must keep those meanings.
 
-A Java-style `Function<A, B>` omits moves and borrows, allocation/history/measurement/host effects, inverse or adjoint identity, controlled support, and quantum resource bounds. Dynamic trait objects defer choices the compiler needs before verified `.wbc`, inverse generation, and quantum-region emission.
+A Java-style `Function<A, B>` omits moves and borrows, allocation, history, measurement, host effects, inverse or adjoint identity, controlled support, and quantum resource limits. Dynamic trait objects postpone choices that the compiler must settle before verified `.wbc`, inverse generation, and quantum-region emission.
 
-Duplicating every algorithm for ordinary, reversible, coherent, and unitary calls is no better. The library needs safe reusable composition, repetition, apply-to-each, effect propagation, caller-owned clean workspace, generic circuits, and adjoint/controlled transformations.
+Duplicating every algorithm for ordinary, reversible, coherent, and unitary calls would also be wasteful. The library needs safe composition, repetition, apply-to-each, effect propagation, caller-owned clean workspace, generic circuits, and adjoint or controlled transformations.
 
-Q# usefully places adjoint and controlled characteristics in operation types. Wheeler needs a broader contract because classical inverse, coherent lifting, VM history, affine ownership, proof evidence, and hybrid effects are separate things.
+Q# usefully records adjoint and controlled characteristics in operation types. Wheeler needs a wider contract because classical inverse, coherent lifting, VM history, affine ownership, proof evidence, and hybrid effects remain separate.
 
 ## Representative source
 
@@ -117,13 +117,13 @@ A closure capturing a move-only owner is move-only. One capturing an exclusive l
 - Define callable kinds separately from nominal value classes.
 - Record ownership, borrows, origins, effects, traps, captures, characteristics, and bounds in signatures.
 - Support ordinary higher-order functions and WIP-0028-safe closures.
-- Support bounded effect variables, union, subset constraints, and honest propagation.
+- Support bounded effect variables, union, subset constraints, and accurate propagation.
 - Define reversible callable values with exact inverse evidence and composition.
 - Define coherent callable values with finite permutation evidence.
 - Define unitary callable values with adjoint and optional controlled evidence.
 - Resolve every generic/evidence choice statically before coherent or unitary lowering.
 - Preserve inverse/adjoint behavior through WIP-0029 specialization.
-- Expose allocation, release, history, measurement, host, target, workflow, and failure honestly.
+- Keep allocation, release, history, measurement, host, target, workflow, and failure explicit.
 - Prevent class wrappers or effect variables from masking effects or granting capabilities.
 - Bind callable/effect/resource/proof metadata into `.wbc` and package compatibility.
 - Keep runtime dispatch out of first-profile coherent/unitary code.
@@ -131,7 +131,23 @@ A closure capturing a move-only owner is move-only. One capturing an exclusive l
 
 ## Non-goals
 
-This WIP does not define one universal callable, infer semantic authority from provider behavior, permit dynamic dispatch in quantum regions, trust named class instances without evidence, hide measurement/allocation/target/history/host effects, equate rewind or compensation with inverse, treat cleanup callbacks as inverse evidence, admit arbitrary host callbacks in semantic code, add unrestricted effect handlers, let a `Monad` erase effects, violate capture ownership, adjoint measurement, reflect on callable characteristics at runtime, leave quantum bounds unresolved, or require heap allocation for every higher-order call.
+This WIP does not:
+
+- define one universal callable;
+- infer semantic authority from provider behavior;
+- permit dynamic dispatch in quantum regions;
+- trust named class instances without evidence;
+- hide measurement, allocation, target, history, or host effects;
+- equate rewind or compensation with an inverse;
+- treat cleanup callbacks as inverse evidence;
+- admit arbitrary host callbacks in semantic code;
+- add unrestricted effect handlers;
+- let a `Monad` erase effects;
+- violate capture ownership;
+- adjoint measurement;
+- reflect on callable characteristics at runtime;
+- leave quantum bounds unresolved;
+- require heap allocation for every higher-order call.
 
 ## Callable model
 
@@ -166,7 +182,7 @@ CallableSignature {
 }
 ```
 
-Unused descriptors are absent. Callable equality, if exposed, uses declaration/instance identity rather than a code pointer.
+Unused descriptors are absent. Callable equality, if exposed, uses declaration/instance identity instead of a code pointer.
 
 Illustrative source may use:
 
@@ -217,11 +233,11 @@ The body performs no effects outside `E`. Bounds may require `E subset determini
 
 A public callable exposes its complete row; broadening it may be a compatibility break. A wrapper cannot declare fewer effects than its body. Transforming or handling an effect requires a separately specified checked boundary, not a smaller annotation.
 
-An effect label grants no capability. A `file` row without a file capability remains unable to open anything, which is the correct amount of magic.
+An effect label grants no capability. A `file` row without a file capability remains unable to open anything, as required.
 
 ## Ordinary higher-order calls and closures
 
-An ordinary higher-order function may borrow, move, or—when structurally `Copy`—copy a closure; receive an explicit WIP-0030 strategy; or refer to a static declaration. Ordinary classical execution may use a verified closure environment plus callable-table identity. Indirect call targets are exact descriptors, never native addresses.
+An ordinary higher-order function may borrow or move a closure. When the closure is structurally `Copy`, the function may copy it instead. The function may also receive an explicit WIP-0030 strategy or refer to a static declaration. Ordinary classical execution may use a verified closure environment plus callable-table identity. Indirect call targets are exact descriptors, never native addresses.
 
 Capture ownership follows WIP-0028:
 
@@ -235,9 +251,9 @@ Capture ownership follows WIP-0028:
 
 ## Reversible callables
 
-A `ReversibleFunction<A, B>` carries forward/inverse identities and a checked relation. Simple value functions have `forward: A -> B` and `inverse: B -> A`; stateful descriptors additionally record owner/frame pre- and postconditions.
+A `ReversibleFunction<A, B>` carries forward/inverse identities and a checked relation. Simple value functions have `forward: A -> B` and `inverse: B -> A`; stateful descriptors also record owner/frame pre- and postconditions.
 
-A generic `rev` body checks under abstract constraints. Every called class method requires certified reversible evidence. Inverse generation before and after monomorphization must agree:
+A generic `rev` body checks under abstract constraints; every called class method requires certified reversible evidence. Inverse generation before and after monomorphization must agree:
 
 ```text
 Monomorph(inverse(G), args, evidence)
@@ -251,13 +267,13 @@ Composition reverses order:
 inverse(second ∘ first) = inverse(first) ∘ inverse(second)
 ```
 
-A reversible signature names preconditions and trap exclusions; arbitrary trapping calls are not presumed reversible. Legal implementation tools include moves, swaps, loans, clean caller-owned workspace, and certified reversible collections/allocators. It may not discard information, close external resources, or allocate and abandon storage.
+A reversible signature names preconditions and trap exclusions; arbitrary trapping calls aren't presumed reversible. Legal implementation tools include moves, swaps, loans, clean caller-owned workspace, and certified reversible collections/allocators. It may not discard information, close external resources, or allocate and abandon storage.
 
 ## Coherent callables
 
 A `CoherentFunction<A, B>` is a closed exact finite permutation accepted by WIP-0002. Every type has certified cardinality, basis mapping, width, ownership, and validity evidence.
 
-The first profile follows WIP-0017 and accepts exact power-of-two bases with no invalid bit patterns. A later subspace profile may admit non-power-of-two domains only with a complete valid-subspace permutation, leakage behavior, and target/lowering contract. Padding states never receive “whatever the backend did” semantics.
+The first profile follows WIP-0017 and accepts exact power-of-two bases with no invalid bit patterns. A later subspace profile may admit non-power-of-two domains only with a complete valid-subspace permutation, leakage behavior, and target or lowering contract. Padding states have no backend-defined fallback semantics.
 
 Allowed operations are coherent primitives, certified static calls, finite control, and clean workspace. Disallowed behavior includes unmodeled allocation/release, history, measurement, host/target effects, clock/random, FFI, admissible-input traps, runtime dispatch, and shared mutable state.
 
@@ -328,7 +344,7 @@ Public higher-order APIs record callable kind, ownership, effects, traps, generi
 
 ## Reversible IR, bytecode, and native lowering
 
-Callables are typed edges in Wheeler's reversible IR. An ordinary edge declares forward effects plus inverse/log/barrier class; a reversible edge binds an exact inverse relation; a coherent edge binds a complete finite permutation; a unitary edge binds a semantic quantum region and adjoint. Measurement, reset, target work, replay, and compensation remain explicit nonunitary edges. No lowering pass may flatten these into an untyped call and reconstruct semantics from a method name later.
+Callables are typed edges in Wheeler's reversible IR. An ordinary edge declares its forward effects and its inverse, log, or barrier class. A reversible edge binds an exact inverse relation. A coherent edge binds a complete finite permutation, while a unitary edge binds a semantic quantum region and adjoint. Measurement, reset, target work, replay, and compensation remain explicit nonunitary edges. No lowering pass may flatten these into an untyped call and reconstruct semantics from a method name later.
 
 Canonical `.wbc` callable metadata records kind, ownership, effect row, direct/indirect target descriptor, closure layout, inverse/adjoint/controlled IDs, evidence, bounds, and generic relation. Indirect calls use bounded verified callable tables.
 
@@ -398,7 +414,7 @@ An optional `IoAction<Effects, Result>` or `QuantumAction<Input, Output, Effects
 - [ ] Resource bounds close and pass before target submission.
 - [ ] Classical operation selection is recorded in circuit identity.
 - [ ] Replay-only generic code rejects fresh target/FFI effects.
-- [ ] Fake class evidence cannot grant semantic characteristics.
+- [ ] Forged class evidence cannot grant semantic characteristics.
 - [ ] Forged callable/effect metadata fails verification.
 - [ ] VM, simulator, native runtime, and proof kernel agree on accepted semantics.
 - [ ] Generic quantum examples compile without provider-specific dispatch.
@@ -423,7 +439,7 @@ Rejected. Builders may allocate, branch, measure, submit, or perform host effect
 
 ### Copy Q# characteristics unchanged
 
-Rejected as a direct transplant. Adjoint/control are useful; Wheeler additionally distinguishes classical inverse, coherent lifting, rewind, ownership, proofs, and hybrid effects.
+Rejected as a direct transplant. Adjoint/control are useful; Wheeler also distinguishes classical inverse, coherent lifting, rewind, ownership, proofs, and hybrid effects.
 
 ### Use `Monad` as the effect system
 
@@ -431,16 +447,16 @@ Rejected. A library class may compose values, but cannot erase capabilities, mea
 
 ### Dynamic trait objects in quantum regions or tests as proof
 
-Rejected. Static semantic IR and checked universal evidence are required. Tests remain tests, however vigorous their naming.
+Rejected. Static semantic IR and checked universal evidence are required. Tests do not replace either requirement.
 
 ## Open questions
 
-- Does the trap contract remain wholly separate from rows, or do selected recoverable traps also carry a row label? — **Owner:** language and runtime maintainers — **Decide by:** effect syntax freeze
-- Which callable type syntax avoids punctuation soup while retaining Java-shaped readability? — **Owner:** language and formatter maintainers — **Decide by:** parser implementation
-- Is controlled specialization first-profile acceptance or its immediate successor? — **Owner:** quantum and compiler maintainers — **Decide by:** WIP acceptance
-- Which acceptance fixtures are mandatory: QFT, arithmetic oracle, apply-to-each, phase estimation, or all four? — **Owner:** quantum and library maintainers — **Decide by:** implementation
-- May ordinary classical code share verified runtime closure/dictionary representations, or are all first-profile calls monomorphized? — **Owner:** compiler and native maintainers — **Decide by:** optimization
-- Which effect labels are compiler-owned and which may be package-qualified? — **Owner:** type-system and capability maintainers — **Decide by:** public effect APIs
+- Does the trap contract remain wholly separate from rows, or do selected recoverable traps also carry a row label (owner: language and runtime maintainers; decision point: effect syntax freeze)?
+- Which callable type syntax avoids dense punctuation while retaining Java-shaped readability (owner: language and formatter maintainers; decision point: parser implementation)?
+- Is controlled specialization first-profile acceptance or its immediate successor (owner: quantum and compiler maintainers; decision point: WIP acceptance)?
+- Which acceptance fixtures are mandatory: QFT, arithmetic oracle, apply-to-each, phase estimation, or all four (owner: quantum and library maintainers; decision point: implementation)?
+- May ordinary classical code share verified runtime closure/dictionary representations, or are all first-profile calls monomorphized (owner: compiler and native maintainers; decision point: optimization)?
+- Which effect labels are compiler-owned and which may be package-qualified (owner: type-system and capability maintainers; decision point: public effect APIs)?
 
 ## References
 

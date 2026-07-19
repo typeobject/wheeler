@@ -13,43 +13,43 @@
 
 ## Summary
 
-Wheeler uses Haskell-style type classes as its primary mechanism for coherent ad-hoc polymorphism.
+Wheeler uses Haskell-style type classes for coherent ad-hoc polymorphism.
 
-A type class declares methods, associated types or finite constants, superclasses, ownership/effect requirements, and laws. An instance supplies one canonical implementation for a class head. The active implicit instance set is exact, target-scoped, package-visible, bounded, and independent of source/import/traversal order.
+A class declares methods, associated types or finite constants, superclasses, ownership and effect requirements, and laws. An instance gives one canonical implementation for a class head. The active implicit instance set is exact, scoped to the selected target, visible through packages, bounded, and independent of source, import, or traversal order.
 
-The initial rules are deliberately dull where dullness is a security feature:
+The first rules favor predictability:
 
-- at most one matching active instance for a ground class head;
-- package-level orphan ownership;
+- at most one active match for a ground class head;
+- package-level ownership of orphan instances;
 - no overlapping or incoherent implicit instances;
-- direct, explicit activation of adapter instances;
-- structurally terminating bounded resolution;
-- canonical class, member, instance, and evidence identities;
-- explicit strategy values when one type legitimately needs several orderings, encoders, allocators, or policies.
+- direct activation of adapter instances;
+- bounded, structurally terminating resolution;
+- canonical identities for classes, members, instances, and evidence;
+- explicit strategy values when one type needs several orderings, encoders, allocators, or policies.
 
-Implicit evidence resolves statically. WIP-0029 normally monomorphizes generic calls to direct static methods. Runtime dictionary dispatch is absent from reversible, coherent, unitary, proof, and bootstrap-trusted code.
+Implicit evidence resolves statically. WIP-0029 normally specializes generic calls into direct static methods. Reversible, coherent, unitary, proof, and bootstrap-trusted code has no runtime dictionary dispatch.
 
-Wheeler distinguishes:
+Wheeler separates three kinds of classes:
 
-1. **operational classes** for ordinary methods such as formatting or comparison;
-2. **lawful classes** whose algebraic laws are documented, tested, or proved;
-3. **certified semantic classes** whose use for ownership, canonical identity, reversibility, coherent representation, unitary behavior, or proof authority requires compiler verification, a trusted intrinsic, or WIP-0011 evidence.
+1. Operational classes cover normal methods such as comparison or formatting.
+2. Lawful classes have algebraic rules that are documented, tested, or proved.
+3. Certified semantic classes require compiler checks, a trusted intrinsic, or WIP-0011 evidence when used for ownership, canonical identity, reversibility, coherent representation, unitarity, or proof authority.
 
-An instance named `Copy`, `Drop`, `CanonicalEncode`, `Reversible`, `Coherent`, or `Unitary` does not confer the advertised power by typography. The compiler has met strings before.
+A name such as `Copy`, `Drop`, `CanonicalEncode`, `Reversible`, `Coherent`, or `Unitary` does not grant the named property. The implementation and evidence must support it.
 
 ## Motivation
 
-Wheeler needs reusable algorithms over equality, ordering, deterministic hashing, canonical codecs, formatting, iteration, allocation, finite encodings, inverse-bearing transformations, coherent permutations, unitary operations, and decidable propositions.
+Wheeler needs reusable algorithms over equality, ordering, deterministic hashing, canonical codecs, formatting, iteration, allocation, finite encodings, inverse-bearing changes, coherent permutations, unitary operations, and decidable propositions.
 
-Object inheritance is a poor primary fit. Records and variants are values; built-in and third-party types need independent protocols; generic code needs static constraints; package identity matters; and reversible/quantum code requires proof-bearing operations rather than virtual calls.
+Object inheritance is a poor main tool. Records and variants are values. Built-in and third-party types need independent protocols. Generic code needs static constraints, package identity matters, and reversible or quantum code may need proof-bearing operations instead of virtual calls.
 
-Type classes separate a type from overloaded operations and elaborate constraints into evidence. Unrestricted instance extensions, however, invite distant orphans, overlap, import-sensitive behavior, solver loops, and downstream changes that silently pick a new implementation. Wheeler's exact lock and reproducible artifact model requires one coherent active evidence graph.
+Type classes separate a type from its overloaded operations and turn constraints into evidence. Unrestricted instances would still be dangerous. Distant orphans, overlaps, import-sensitive selection, solver loops, and downstream changes could silently choose a new implementation. Wheeler's exact locks and reproducible artifacts need one coherent evidence graph.
 
-The distinction between operational and certified evidence matters. A questionable `Eq` can break an application. A questionable canonical encoder can break artifact identity. A questionable unitary can break the claim that there was a unitary. Those are different blast radii and deserve different admission rules.
+Operational and certified evidence have different risks; a bad `Eq` may break an application. A bad canonical encoder may change artifact identity, while a bad unitary claim can invalidate the program's semantics. Their admission rules should reflect those differences.
 
 ## Representative source
 
-This series uses `typeclass` rather than `class`: Wheeler already has Java-shaped classes, while a type class is compile-time evidence and not an object hierarchy.
+This series uses `typeclass` instead of `class`: Wheeler already has Java-shaped classes, while a type class is compile-time evidence and not an object hierarchy.
 
 ### Equality and laws
 
@@ -93,7 +93,7 @@ Order<Version> prereleaseFirst = VersionOrder.prereleaseFirst();
 sort(versions, using prereleaseFirst);
 ```
 
-One global `Ord<Version>` remains canonical. A second ordering is an explicit ordinary value, not an overlapping instance smuggled in by import order.
+One global `Ord<Version>` remains canonical. A second ordering is an explicit ordinary value. Import order cannot introduce an overlapping instance.
 
 ### Associated members
 
@@ -145,9 +145,22 @@ WIP-0029 owns constructor kinds. WIP-0031 owns callable and effect rows. `Functo
 
 ## Non-goals
 
-This WIP does not copy every GHC extension; permit `OVERLAPPING`, `OVERLAPPABLE`, or `INCOHERENT`; select by imports; allow unrestricted orphans, negative/local implicit instances, undecidable search, arbitrary code during resolution, or method-body-based selection; infer lawfulness from names; turn classes into runtime objects; grant `Monad` control over Wheeler effects; serialize implicit dictionaries as portable state; expose native reflection; or treat property tests as proof of a certified law.
+This WIP does not:
 
-Not every class needs multiple parameters or higher kinds. Not every strategy belongs in the global implicit set. “Pass it explicitly” remains a feature, not an admission of defeat.
+- copy every GHC extension;
+- permit `OVERLAPPING`, `OVERLAPPABLE`, or `INCOHERENT`;
+- select instances by import order;
+- allow unrestricted orphans or negative and local implicit instances;
+- allow undecidable search or arbitrary code during resolution;
+- select an instance from its method body;
+- infer lawfulness from a name;
+- turn classes into runtime objects;
+- give `Monad` control over Wheeler effects;
+- serialize implicit dictionaries as portable state;
+- expose native reflection;
+- treat property tests as proof of a certified law.
+
+Many classes need neither multiple parameters nor higher kinds. Some strategies belong outside the global implicit set. Explicit strategy passing remains a supported choice.
 
 ## Semantic model
 
@@ -177,7 +190,7 @@ An **explicit evidence value** is an ordinary typed strategy selected at a call 
 
 Coherence means each implicit ground constraint in a complete selected target has one canonical instance independent of declaration, import, graph traversal, repository response, map, or task order.
 
-Two heads overlap when some substitution makes them equal. The initial profile rejects both, even if one looks “more specific”:
+Two heads overlap when some substitution makes them equal. The initial profile rejects both even when one appears more specific:
 
 ```wheeler
 instance<T> Show<List<T>> where T: Show
@@ -198,9 +211,9 @@ typeclass Ord<T> extends Eq<T> {
 
 requires one exact `Eq<T>` evidence path. Superclass graphs are acyclic; conflicting inherited members/laws fail at declaration time.
 
-An associated type or constant is uniquely fixed by the selected instance. Constants use WIP-0017/WIP-0029 finite evaluation. Equations cannot overlap or depend on runtime values. Reduction participates in generic normalization and proof identity.
+An associated type or constant is uniquely fixed by the selected instance. Constants use WIP-0017/WIP-0029 finite evaluation. Equations cannot overlap or depend on runtime values; reduction participates in generic normalization and proof identity.
 
-A default method checks once using only class methods, superclasses, declared constraints, and allowed Wheeler code. An instance either uses that exact body or supplies a conforming replacement. Default selection and body identity enter instance, package, and downstream build identity. A default implementation is not a default proof.
+A default method checks once using only class methods, superclasses, declared constraints, and allowed Wheeler code. An instance either uses that exact body or supplies a conforming replacement; default selection and body identity enter instance, package, and downstream build identity. A default implementation is not a default proof.
 
 Multiple-parameter classes such as `Convert<From, To>` and `Index<Collection, Key>` are allowed when every parameter affects a method, associated member, law, or explicit determination rule. The first profile may reject inference that does not determine all parameters. Associated types and explicit determination replace first-profile functional dependencies.
 
@@ -255,9 +268,9 @@ A later verified optimization may share an ordinary classical body behind a hidd
 
 A law is a named proposition with one declared policy:
 
-- **Documented:** API contract, not mechanically required.
-- **Tested:** every published instance supplies deterministic WIP-0018 evidence.
-- **Certified:** every instance supplies a WIP-0011 proof or admitted certificate.
+- A documented law is part of the API contract but is not mechanically required.
+- A tested law requires every published instance to supply deterministic WIP-0018 evidence.
+- A certified law requires every instance to supply a WIP-0011 proof or admitted certificate.
 
 Test evidence never satisfies a certified obligation. Policy and exact evidence identity are public API.
 
@@ -265,7 +278,7 @@ Compiler-privileged classes include concepts equivalent to `Copy`, `Drop`, `Must
 
 Ownership properties are compiler-derived or sealed. A native handle cannot become `Copy` by instance declaration. An encoder used for package/artifact identity requires certified deterministic, bounded, schema-appropriate behavior; an ordinary formatter or uncertified encoder cannot affect identity. Reversible, coherent, and unitary evidence binds exact ownership/effect/frame/finite-basis/adjoint facts under WIP-0031.
 
-User-defined certified instances are allowed only through their class's admission policy. “Certified” means checked evidence, not that the author used a confident adjective.
+User-defined certified instances are allowed only through their class's admission policy. Certification requires checked evidence under that policy.
 
 ## Core library classes
 
@@ -287,7 +300,7 @@ WIP-0011 propositions may quantify over constraints, associated members, instanc
 
 WIP-0032 may expose optional `IoAction` composition, codec, topology, or receipt-checking classes after their direct APIs stabilize. Instances cannot hide capabilities, serialize independent requests through import-order accidents, widen effects, or upgrade completion/visibility evidence into durability.
 
-Receipt strength remains compiler/runtime-owned nominal evidence under WIP-0032 and WIP-0011. A user-defined class instance may check or transform evidence only through an admitted rule over exact identities; `instance Durable<WriteCompleted>` is not clever, merely false with extra paperwork.
+Receipt strength remains compiler/runtime-owned nominal evidence under WIP-0032 and WIP-0011. A user-defined class instance may check or transform evidence only through an admitted rule over exact identities; `instance Durable<WriteCompleted>` remains false regardless of extra declarations.
 
 ## Package, bytecode, documentation, and determinism
 
@@ -345,8 +358,8 @@ Malformed metadata, duplicate member IDs, kind mismatch, orphan violation, undec
 - [ ] Defaults have deterministic identity and exact effects.
 - [ ] Instance additions/removals appear in package API diffs and locks.
 - [ ] `Hash` compatibility is tested or certified under declared policy.
-- [ ] Fake `Copy` cannot copy an owner; fake canonical encoding cannot affect artifact identity.
-- [ ] Fake reversible/coherent/unitary evidence cannot enter privileged lowering.
+- [ ] A forged `Copy` instance cannot copy an owner; forged canonical encoding cannot affect artifact identity.
+- [ ] Forged reversible, coherent, or unitary evidence cannot enter privileged lowering.
 - [ ] Certified laws bind exact body/package identities.
 - [ ] Constructor-kinded classes normalize and monomorphize deterministically.
 - [ ] Coherent/unitary output contains no runtime dictionary dispatch.
@@ -361,7 +374,7 @@ Insufficient as the primary mechanism. Runtime object hierarchies and accidental
 
 ### Rust traits exactly
 
-Close in spirit, but Wheeler's package-global evidence, class-law certificates, quantum semantics, and source model require an explicit contract. Borrowing good ideas does not require importing every corner case in the shipping crate.
+Close in spirit, but Wheeler's package-global evidence, class-law certificates, quantum semantics, and source model require an explicit contract. Wheeler can use the useful ideas without adopting every corner case.
 
 ### GHC overlap/incoherence
 
@@ -369,23 +382,23 @@ Rejected initially. Flexibility that changes behavior by module assembly is inco
 
 ### Pass every strategy explicitly
 
-Safe but needlessly verbose for one canonical equality/order/hash/encoding. Explicit values remain the answer when plurality is real.
+Safe, but too verbose for one canonical equality, order, hash, or encoding. Use explicit values when several choices are valid.
 
-### Compiler magic for every protocol
+### Compiler-specific handling for every protocol
 
 Rejected. A small sealed safety kernel is necessary; ordinary algebraic protocols belong in libraries.
 
 ### Comments or tests as all law evidence
 
-Rejected for privileged semantics. Tests and prose are valuable, but canonical identity and unitary/inverse claims require the declared stronger evidence.
+Rejected for privileged semantics. Tests and prose are useful, but canonical identity and unitary/inverse claims require the declared stronger evidence.
 
 ## Open questions
 
-- For multiple principal nominal arguments, which package owns the implicit instance? — **Owner:** package and type-system maintainers — **Decide by:** multi-parameter support
-- Which first standard classes require certified rather than tested laws? — **Owner:** proof and library maintainers — **Decide by:** public class stabilization
-- Are generic heads such as `Eq<Option<T>> where T: Eq` in the first implementation or immediately after ground heads? — **Owner:** compiler maintainers — **Decide by:** solver implementation
-- Which constructor-kinded classes validate the design without bloating the prelude? — **Owner:** library and type-system maintainers — **Decide by:** higher-kinded acceptance
-- How does package SemVer classify adding a legal but potentially conflicting instance? — **Owner:** package and compatibility maintainers — **Decide by:** public instance publication
+- For multiple principal nominal arguments, which package owns the implicit instance (owner: package and type-system maintainers; decision point: multi-parameter support)?
+- Which first standard classes require certified instead of tested laws (owner: proof and library maintainers; decision point: public class stabilization)?
+- Are generic heads such as `Eq<Option<T>> where T: Eq` in the first implementation or immediately after ground heads (owner: compiler maintainers; decision point: solver implementation)?
+- Which constructor-kinded classes validate the design without bloating the prelude (owner: library and type-system maintainers; decision point: higher-kinded acceptance)?
+- How does package SemVer classify adding a legal but potentially conflicting instance (owner: package and compatibility maintainers; decision point: public instance publication)?
 
 ## References
 

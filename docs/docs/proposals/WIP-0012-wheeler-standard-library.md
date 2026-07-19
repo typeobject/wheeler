@@ -13,21 +13,23 @@
 
 ## Summary
 
-Wheeler shall have a standard library written in Wheeler. It supplies the value, collection, text, byte, arithmetic, reversible, quantum, hybrid, proof, capability, package, and test abstractions required by ordinary applications and by Wheeler's self-hosted compiler, runtime, and package manager.
+Wheeler will have a standard library written in Wheeler. It provides the values, collections, text, bytes, arithmetic, reversible operations, quantum resources, hybrid workflows, proofs, capabilities, packages, and test tools needed by applications. The self-hosted compiler, runtime, and package manager use the same library.
 
-The library is layered. `wheeler.core` is available without heap allocation or host effects. `wheeler.alloc` adds owned bounded storage. `wheeler.std` adds capability-scoped host services and higher-level packages. Quantum modules expose affine logical `Qubit` and `Qreg` values, disjoint borrowed views, circuits, parameters, observables, results, and target requirements without exposing provider objects or physical qubit pointers.
+The library has three layers. `wheeler.core` works without heap allocation or host effects. `wheeler.alloc` adds owned bounded storage. `wheeler.std` adds capability-scoped host services and higher-level packages.
 
-Every public operation declares type, ownership, effects, failure, allocation, bounds, and reversibility and lowers through Wheeler's common reversible typed IR. A method is `rev` only when its inverse is valid under stated contracts. A method is coherently liftable only when it denotes an exact finite permutation and uses no hidden allocation, history, measurement, or host effect. Unitary operations retain semantic regions and adjoints. Logged containers, transactional APIs, compensation, and replay records do not pretend to be intrinsically reversible.
+Quantum modules expose affine logical `Qubit` and `Qreg` values, disjoint borrowed views, circuits, parameters, observables, results, and target requirements. They do not expose provider objects or physical qubit pointers.
 
-The standard library is distributed as locked Wheeler packages under WIP-0009, compiled by the self-hosted compiler, documented by `wheeler doc`, and included in the native recovery graph. Java, JVM collections, provider SDK types, and host serialization are not part of its contract.
+Every public operation declares its type, ownership, effects, failures, allocation, limits, and reversibility. A method is `rev` only when its inverse is valid under the stated contract. Coherent lifting requires an exact finite permutation with no hidden allocation, history, measurement, or host effect. Unitary operations keep their semantic regions and adjoints. Logged containers, transactions, compensation, and replay records are never described as intrinsic inverses.
+
+The standard library ships as locked Wheeler packages under WIP-0009. The self-hosted compiler builds it, `wheeler doc` documents it, and the native recovery graph includes it. Java, JVM collections, provider SDK types, and host serialization are outside the contract.
 
 ## Motivation
 
-Self-hosting requires more than syntax and bytecode. A compiler needs source text, UTF-8 decoding, byte builders, spans, records, tagged variants, deterministic maps, queues, arenas, diagnostics, paths, and result values. A package manager needs canonical manifests, hashes, graph algorithms, archive readers, capabilities, and atomic output. A proof kernel needs immutable terms, bounded recursion, exact arithmetic, and canonical encodings.
+Self-hosting needs more than syntax and bytecode. A compiler needs source text, UTF-8 decoding, byte builders, spans, records, tagged variants, deterministic maps, queues, arenas, diagnostics, paths, and result values. A package manager needs canonical manifests, hashes, graph algorithms, archive readers, capabilities, and atomic output. A proof kernel needs immutable terms, bounded recursion, exact arithmetic, and canonical encodings.
 
-Quantum applications need equally careful types. Treating a qubit as an integer or provider object loses affine ownership, register identity, disjointness, target requirements, and measurement transitions. Reusing arbitrary classical collections for live qubits permits copying and aliasing that the language must reject.
+Quantum applications need equally strict types. Treating a qubit as an integer or provider object loses affine ownership, register identity, disjointness, target requirements, and measurement transitions. Using general classical collections for live qubits would allow copies and aliases that Wheeler must reject.
 
-Importing Java's standard library would make Java object identity, exceptions, hash iteration, Unicode behavior, threads, serialization, and allocation part of Wheeler in practice. Thin wrappers would preserve the dependency while hiding it. Wheeler needs small explicit abstractions whose semantics can be implemented by its VM and native runtime and reasoned about by its proof system.
+Importing Java's standard library would make Java object identity, exceptions, hash order, Unicode behavior, threads, serialization, and allocation part of Wheeler in practice. Thin wrappers would hide the dependency without removing it. Wheeler needs small, explicit abstractions that its VM and native runtime can implement and its proof system can reason about.
 
 ## Goals
 
@@ -124,7 +126,7 @@ Floating-point APIs specify NaN, infinity, signed zero, rounding, comparison, an
 
 Records have named fields and structural value semantics unless declared opaque. Tagged variants are exhaustive and carry bounded payloads. `Option<T>` replaces ambient null. `Result<T, E>` carries ordinary recoverable failure.
 
-A variant tag and record layout have canonical `.wbc` type metadata. Native layout remains derived and cannot change value equality or serialization.
+A variant tag and record layout have canonical `.wbc` type metadata; native layout remains derived and cannot change value equality or serialization.
 
 ### Ownership classes
 
@@ -187,7 +189,7 @@ These types drive arithmetic oracles, packet codecs, bytecode flags, proof finit
 
 Compiler phases use immutable values or phase-owned arenas so self-hosting does not require a general tracing collector initially. Values that escape a region are copied, moved to a longer-lived owner, or rejected.
 
-The current language substrate has bounded affine regions, fixed-length mutable signed-word/byte buffers, immutable validated UTF-8 owners, and signed maps with hard byte/object ceilings, checked access, explicit drop, and nonescaping immutable UTF-8, exclusive region allocation, and exclusive mutable word/byte/map parameter borrows. Primitive region and storage owners may transfer into or return across a frame: caller-region factory functions and owner relays preserve one owner, while ownership flow rejects caller reuse and an abandoned callee owner. It deliberately lacks `Arena`, library `String` APIs, generic collections, returned loans, typed allocation failure, and collection APIs; those remain library/profile work rather than being inferred from the primitive.
+The current language substrate has bounded affine regions, fixed-length mutable word and byte buffers, validated UTF-8 owners, and signed maps. Hard byte and object limits apply. Access is checked, drop is explicit, and parameters may use nonescaping immutable UTF-8 borrows, exclusive region allocation borrows, or exclusive mutable word, byte, and map borrows.
 
 ## Reversible data structures
 
@@ -203,7 +205,7 @@ A reversible push consumes an owned element and known spare clean slot; its inve
 
 ### Reversible map operations
 
-Insertion requires proof or checked evidence that the key is absent and returns an insertion witness. Removal consumes that witness or returns the complete entry and structural information under a representation-independent theorem. Callers cannot infer intrinsic reversal from an implementation's retained node pointer.
+Insertion requires proof or checked evidence that the key is absent and returns an insertion witness; removal consumes that witness or returns the complete entry and structural information under a representation-independent theorem. Callers cannot infer intrinsic reversal from an implementation's retained node pointer.
 
 ### Logged and transactional containers
 
@@ -233,9 +235,9 @@ Canonical encoders write to caller-owned or transaction-owned buffers and publis
 
 ### Formatting and parsing
 
-Formatting uses deterministic templates and caller-owned writers. Debug formatting has depth and byte limits. Locale, terminal width, pointer address, and map hash order do not enter canonical output.
+Formatting uses deterministic templates and caller-owned writers; debug formatting has depth and byte limits; locale, terminal width, pointer address, and map hash order do not enter canonical output.
 
-Integer and floating parsing specify radix, underscore, exponent, overflow, NaN, infinity, and trailing-input behavior. Source literal parsing and standard-library parsing share tested conversion laws but retain source diagnostics.
+Integer and floating parsing specify radix, underscore, exponent, overflow, NaN, infinity, and trailing-input behavior; source literal parsing and standard-library parsing share tested conversion laws but retain source diagnostics.
 
 ## Paths and source inputs
 
@@ -243,7 +245,7 @@ Integer and floating parsing specify radix, underscore, exponent, overflow, NaN,
 
 Compiler and package APIs accept `SourceInput` and manifests with logical identities and bytes. They do not open arbitrary paths. Directory enumeration is converted by the host or package manager into a sorted bounded manifest before Wheeler code observes it.
 
-Atomic output is a capability operation taking complete bytes and expected destination identity. Partial temporary files are operational host state, not language values or successful artifacts.
+Atomic output is a capability operation taking complete bytes and expected destination identity; partial temporary files are operational host state, not language values or successful artifacts.
 
 ## Arithmetic and scientific types
 
@@ -281,7 +283,7 @@ A qubit can participate in gates, controlled operations, measurement, reset when
 
 ### Quantum registers
 
-`Qreg<N>` or a dynamically bounded `Qreg` owns an ordered logical register. Construction is preparation under explicit target/runtime semantics, not ordinary heap allocation.
+`Qreg<N>` or a dynamically bounded `Qreg` owns an ordered logical register; construction is preparation under explicit target/runtime semantics, not ordinary heap allocation.
 
 Operations include:
 
@@ -303,7 +305,7 @@ Ordinary remote `Qreg` values do not survive a job boundary. Persistent quantum 
 
 Builders reject use-after-measure, overlapping mutable qubit views, dirty ancilla release, unsupported control flow, and unbounded construction. Generated adjoint is available only for unitary circuits.
 
-`Unitary<In, Out>` identifies a checked unitary region. `Adjoint<U>` and composition preserve exact semantic identity. Target-native circuits remain derived executable records.
+`Unitary<In, Out>` identifies a checked unitary region; `Adjoint<U>` and composition preserve exact semantic identity. Target-native circuits remain derived executable records.
 
 ### Gates
 
@@ -313,7 +315,7 @@ Provider-native gates belong to versioned target extension packages and require 
 
 ### Parameters
 
-`Parameter<T>` has stable declaration and position identity. `BindingSet` maps a complete parameter schema to canonical finite values. Batch tasks identify schema and bindings independently of provider order.
+`Parameter<T>` has stable declaration and position identity. `BindingSet` maps a complete parameter schema to canonical finite values; batch tasks identify schema and bindings independently of provider order.
 
 Parameter expressions are bounded symbolic DAGs with canonical ordering and finite evaluation. Unknown functions or nonfinite bindings fail before submission.
 
@@ -321,7 +323,7 @@ Parameter expressions are bounded symbolic DAGs with canonical ordering and fini
 
 `Pauli`, `PauliString`, `Observable`, `ExpectationRequest`, `SampleRequest`, and corresponding result types state register layout and endianness.
 
-Counts, per-shot memory, estimates, uncertainty, and diagnostics are separate bounded products. A result always carries task, target, job, request, and schema identity. Convenience access cannot drop provenance silently.
+Counts, per-shot memory, estimates, uncertainty, and diagnostics are separate bounded products; a result always carries task, target, job, request, and schema identity. Convenience access cannot drop provenance silently.
 
 ## Hybrid runtime types
 
@@ -338,7 +340,7 @@ The standard hybrid API includes immutable values for:
 
 Adapters implement host-owned target capabilities. The library owns provider-neutral records and validation. Credentials and provider SDK objects remain embedding-host values outside portable Wheeler state.
 
-WIP-0032 owns structured I/O requests, operations, scopes, batches, graphs, selection, cancellation, and completion. The standard API does not expose backend polling or require callbacks. Local inline completion follows the same lifecycle as delayed remote work.
+WIP-0032 owns structured I/O requests, operations, scopes, batches, graphs, selection, cancellation, and completion. The standard API doesn't expose backend polling or require callbacks. Local inline completion follows the same lifecycle as delayed remote work.
 
 ## Effects and capabilities
 
@@ -362,7 +364,7 @@ Effects appear in function types and contracts. Reversible and proof contexts re
 
 Recoverable library failure uses `Result`. Optional values use `Option`. Invariant violations at verified boundaries may trap with stable codes. Native crashes, provider failures, cancellation, timeout, malformed data, and resource exhaustion remain distinct variants.
 
-`Diagnostic` contains stable code, severity, primary span, bounded labels, notes, and structured causes. Human rendering is derived. Canonical tests compare structured diagnostics rather than terminal color or host paths.
+`Diagnostic` contains stable code, severity, primary span, bounded labels, notes, and structured causes. Human rendering is derived. Canonical tests compare structured diagnostics instead of terminal color or host paths.
 
 Error values own no unrestricted provider payload. Attachments are bounded, typed, redacted at ownership boundaries, or content-addressed under policy.
 
@@ -448,7 +450,7 @@ The standard library is accepted through concrete Wheeler programs:
 
 WIP-0032 exclusively owns the portable I/O lifecycle and method registry, including `Io`, `IoScope`, `Request<T>`, `Operation<T>`, batches, graphs, buffer pools, and receipt types. `wheeler.io` implements that contract; this WIP does not define a parallel API.
 
-Filesystem and network libraries contribute domain types and adapters over that fabric. Positional operations are primary for addressable storage; sequential readers and writers are ergonomic cursor views under WIP-0032. The standard library has no second future, stream, callback, cancellation, or universal `flush()` durability contract, because one ambiguous verb has already done enough damage.
+Filesystem and network libraries contribute domain types and adapters over that fabric. Positional operations are primary for addressable storage; sequential readers and writers are ergonomic cursor views under WIP-0032. The standard library doesn't define a second future, stream, callback, cancellation, or universal `flush()` durability contract. WIP-0032 owns those semantics.
 
 ## Migration and deletion
 
@@ -468,8 +470,24 @@ Filesystem and network libraries contribute domain types and adapters over that 
 - [x] Stage-0 code has immutable provider-neutral bytecode, quantum, target, result, and hybrid event records that define initial library schemas.
 - [x] Deterministic little-endian outcomes, task identities, target capabilities, and bounded snapshots execute.
 - [ ] Core ownership/effect protocols and package layering are accepted.
-- [ ] Scalar/aggregate values, affine byte buffers, strict UTF-8 freezing/scalar decoding with nested read-only parameter borrowing, borrowed region scratch allocation, primitive region/storage owner parameters and results, mutable word/byte buffers, and fixed signed maps with checked exclusive nested borrowing execute as language/VM substrate. `OwnedReturns.w` builds every primitive owner in a factory, uses them in the caller, then transfers all five through owning parameters to one consuming sink; typed owner-result relays are covered directly by the bytecode verifier and VM. Both paths agree under exact rewind, and the example agrees under the Wheeler-written verifier/interpreter. Explicit strict host UTF-8 or immutable arbitrary-binary `byteview` input and bounded byte-output entry borrows with a checked rewindable publish length execute below the library; the canonical `wheeler.core.encoding.binary` module performs bounded nonnegative little-endian reads/emission, ASCII identity checks, and checked eight-byte layout alignment for compiler and package-codec slices; `crypto/Sha256.w` computes provider-free SHA-256 across empty/text/binary and one-/two-block padding fixtures using canonical checked `LOCAL_AND`/`LOCAL_ROTR32` plus explicit region scratch and supports checked subrange hashing for framed codecs; and the canonical entryless `wheeler.core` package exports a signed FIFO using an exclusive word-buffer borrow, immutable cursor, and explicit `Full`/`Empty` variants plus deterministic insert/lookup and membership operations over an exclusive signed-map borrow, fixed four-array/two-slice reductions, and immutable UTF-8 metrics/scalar inspection over nonescaping borrows. `WorkQueue.w`, `LongMap.w`, `FixedArrays.w`, and `FrozenUtf8.w` consume that exact locked archive rather than an example-side copy. Wheeler generic option/result, library `String`, normalization, generic maps/sets/owned queues, iteration, canonical collection encoding, decode errors, and the broader package layers remain.
-- [x] The accepted bounded signed FIFO, signed-map operation, fixed-array/slice reduction, immutable UTF-8 inspection, binary encoding, and SHA-256 APIs live in the entryless `wheeler.core` package, build from an exact source set, and are consumed by the example package through its committed lock and the exact archive rebuilt from the core workspace member.
+- [ ] The language and VM substrate now executes:
+  - scalar and aggregate values;
+  - affine byte buffers and mutable word buffers;
+  - strict UTF-8 freezing and scalar decoding with nested read-only parameter borrows;
+  - borrowed region scratch allocation;
+  - primitive storage owners in parameters and results;
+  - fixed signed maps with checked nested exclusive borrowing.
+
+  `OwnedReturns.w` creates every primitive owner in a factory, uses each one in the caller, and transfers all five to a consuming sink. The bytecode verifier and VM also cover typed owner-result relays. Both paths agree under exact rewind, including the Wheeler-written verifier and interpreter.
+
+  Entry code can receive strict UTF-8 or immutable binary `byteview` input. It can publish a bounded byte-output prefix with checked rewind. Below the library, `wheeler.core.encoding.binary` provides bounded nonnegative little-endian reads and writes, ASCII identity checks, and eight-byte layout alignment.
+
+  `crypto/Sha256.w` computes provider-free SHA-256 for empty, text, binary, and one- or two-block padding fixtures. It uses checked `LOCAL_AND` and `LOCAL_ROTR32`, explicit region scratch, and checked subrange hashing.
+
+  The entryless `wheeler.core` package exports a signed FIFO over an exclusive word-buffer borrow with explicit `Full` and `Empty` results. It also exports signed-map operations, four-array and two-slice reductions, and immutable UTF-8 metrics and scalar inspection over nonescaping borrows. `WorkQueue.w`, `LongMap.w`, `FixedArrays.w`, and `FrozenUtf8.w` use that exact locked archive.
+
+  Generic option and result types, library `String`, normalization, generic maps, sets, queues, iteration, canonical collection encoding, decode errors, and broader package layers remain.
+- [x] The accepted FIFO, signed-map operations, array and slice reductions, UTF-8 inspection, binary encoding, and SHA-256 APIs live in the entryless `wheeler.core` package. They build from one exact source set. The example package consumes them through its committed lock and the archive rebuilt from the core workspace member.
 - [ ] Wheeler arenas, vectors, strings, maps, sets, queues, and diagnostics support compiler modules.
 - [ ] Reversible collection contracts and witnesses execute and carry proof obligations.
 - [ ] Affine qubit/register views and semantic circuit builders execute.
@@ -524,11 +542,11 @@ Rejected. Provider SDKs are adapter implementation details. Portable library val
 
 ## Open questions
 
-- Which ownership protocol surface gives affine quantum resources and ordinary compiler aggregates one coherent model? — **Owner:** language and library maintainers — **Decide by:** before aggregate bytecode acceptance
-- Which deterministic map representation should bootstrap first, and what iteration law becomes stable? — **Owner:** compiler and library maintainers — **Decide by:** before Wheeler symbol tables
-- Which Unicode versioning and normalization policy belongs in `core` versus package/compiler policy? — **Owner:** text and package maintainers — **Decide by:** before Unicode identifiers
-- Which exact scalar tower supports quantum simulation and proof without overloading the bootstrap graph? — **Owner:** math, quantum, and proof maintainers — **Decide by:** before exact QFT certificates
-- Which async/structured-concurrency types are required for target and build jobs? — **Owner:** runtime and language maintainers — **Decide by:** before public async syntax
+- Which ownership protocol surface gives affine quantum resources and ordinary compiler aggregates one coherent model (owner: language and library maintainers; decision point: before aggregate bytecode acceptance)?
+- Which deterministic map representation should bootstrap first, and what iteration law becomes stable (owner: compiler and library maintainers; decision point: before Wheeler symbol tables)?
+- Which Unicode versioning and normalization policy belongs in `core` versus package/compiler policy (owner: text and package maintainers; decision point: before Unicode identifiers)?
+- Which exact scalar tower supports quantum simulation and proof without overloading the bootstrap graph (owner: math, quantum, and proof maintainers; decision point: before exact QFT certificates)?
+- Which async/structured-concurrency types are required for target and build jobs (owner: runtime and language maintainers; decision point: before public async syntax)?
 
 ## References
 

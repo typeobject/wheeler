@@ -13,17 +13,21 @@
 
 ## Summary
 
-Wheeler executes hybrid programs as a typed workflow graph over Wheeler's reversible IR: deterministic classical continuations are separated by explicit preparation, quantum submission, observation, reset, and host-effect edges. A `HybridRun` owns classical reversible state, a bounded ordered event log, durable quantum job identities, target provenance, and commit horizons. Local simulators and remote hardware use the same asynchronous lifecycle even when local work completes immediately.
+Wheeler runs hybrid programs as typed workflow graphs over its reversible IR. Deterministic classical continuations are separated by explicit preparation, quantum submission, observation, reset, and host-effect edges. A `HybridRun` owns the reversible classical state, a bounded ordered event log, durable job identities, target provenance, and commit horizons.
 
-The runtime distinguishes undo from replay and retry. Classical WIP-0001 transitions can be rewound to the latest committed barrier. Recorded measurement and provider results can be replayed to reproduce later classical decisions without rerunning hardware. Retrying creates a new physical preparation and submission lineage. A transaction that has crossed measurement or submission can restore classical state and discard or compensate outputs, but it cannot claim to recreate an unknown prior quantum state.
+Local simulators and remote hardware follow the same asynchronous lifecycle, even when local work completes at once.
+
+The runtime keeps undo, replay, and retry separate. WIP-0001 classical steps may rewind to the latest committed barrier. Recorded measurements and provider results may be replayed, which reproduces later classical choices without running hardware again. A retry creates a new physical preparation and submission lineage.
+
+After measurement or submission, a transaction may restore classical state and discard or compensate outputs. It cannot claim to recreate an unknown earlier quantum state.
 
 ## Motivation
 
-The hybrid examples are workflows, not single instruction streams. `QuantumOptimizer` and `QuantumNeuralNetwork` repeatedly prepare circuits, wait for sampled results, and update classical parameters. `SurfaceCode` needs target-resident fast feedback for one cycle and host-visible history across cycles. `QuantumCompiler` runs calibration experiments whose results may become stale as hardware changes.
+The hybrid examples are workflows, not single instruction streams. `QuantumOptimizer` and `QuantumNeuralNetwork` prepare circuits, wait for samples, and update classical parameters many times. `SurfaceCode` needs fast target-side feedback within a cycle and host-visible history across cycles. `QuantumCompiler` runs calibration experiments whose results can expire as hardware changes.
 
-Today's cloud quantum execution is queued, asynchronous, fallible, capability-dependent, and nondeterministic. Future tightly coupled systems may make the same boundary faster, but Wheeler should not define different program semantics based on whether a job takes microseconds or hours.
+Cloud quantum work is queued, asynchronous, fallible, capability-dependent, and nondeterministic. A future tightly coupled system may make the boundary much faster, but speed must not change program meaning.
 
-A reversible language also needs to be precise about external observations. Retaining a measurement outcome permits deterministic replay of the classical suffix; it does not reverse collapse. Cancelling a provider job may race with completion. Cleaning history makes old execution intentionally unavailable. These rules belong to one runtime contract rather than ad hoc `transaction`, `hist`, and `clean` syntax.
+External observations also need precise rules. Saving a measurement result allows deterministic replay of the later classical work. It does not reverse collapse. Cancellation may race with provider completion, and deleting history makes old execution unavailable on purpose. These rules belong in one runtime contract, not in unrelated uses of `transaction`, `hist`, and `clean`.
 
 ## Use cases
 
@@ -45,7 +49,7 @@ A hybrid transaction updates tentative classical state, submits a circuit, and r
 
 ### Target-resident correction cycle
 
-A supported target executes gates, syndrome measurement, reset, bounded decoding, and correction inside one WIP-0002 region. The host event log records the region submission and result rather than pretending every target-internal operation was a local reversible VM step.
+A supported target executes gates, syndrome measurement, reset, bounded decoding, and correction inside one WIP-0002 region. The host event log records the region submission and result instead of pretending every target-internal operation was a local reversible VM step.
 
 ## Goals
 
@@ -103,12 +107,12 @@ The active state is a deterministic reduction of the checkpoint and accepted eve
 
 ### Distinct operations
 
-- **Rewind** consumes WIP-0001 classical step records down to the commit horizon.
-- **Replay** re-applies recorded accepted events and observations to reproduce classical state.
-- **Retry** creates a new child lineage with a new submission identity.
-- **Compensate** invokes an effect-specific external operation and records its result.
-- **Cancel** asks a target to stop work; it may not succeed.
-- **Discard** prevents an event or branch from affecting active state while retaining provenance according to policy.
+- Rewind consumes WIP-0001 classical step records down to the commit horizon.
+- Replay reapplies recorded accepted events and observations to reproduce classical state.
+- Retry creates a new child lineage with a new submission identity.
+- Compensate invokes an effect-specific external operation and records its result.
+- Cancel asks a target to stop work, though the request may not succeed.
+- Discard prevents an event or branch from affecting active state while retaining provenance according to policy.
 
 These terms appear in APIs, diagnostics, and documentation.
 
@@ -146,7 +150,7 @@ A quantum submission identity covers:
 - lowering and mitigation policy identities;
 - declared cost and result ceilings.
 
-Provider acknowledgement adds a redacted external job identity. Resubmitting after an ambiguous failure requires reconciliation or a new retry lineage; the runtime never assumes “no acknowledgement” means “not submitted.”
+Provider acknowledgement adds a redacted external job identity. After an ambiguous failure, resubmission requires reconciliation or a new retry lineage. Missing acknowledgement does not prove that no submission occurred.
 
 ### Result application
 
@@ -169,10 +173,10 @@ Replay validates artifact, semantic region, parameter, schema, and policy identi
 
 A transaction tracks its current effect phase:
 
-1. **Reversible phase:** only WIP-0001 reversible classical operations and live WIP-0002 unitary operations. Abort applies inverse/uncompute and rewinds classical state.
-2. **Prepared external phase:** a submission or effect request exists but has not produced an accepted observation. Abort restores classical state and requests cancellation; the external job may continue and is quarantined from the active branch.
-3. **Observed phase:** measurement or another external receipt has been accepted. Abort restores the classical checkpoint, discards the active observation branch, and performs declared compensation where possible. Unknown physical state is not restored.
-4. **Committed phase:** external outputs and history before the horizon are no longer reversible by this transaction.
+1. In the reversible phase, the transaction permits only WIP-0001 reversible classical operations and live WIP-0002 unitary operations. Abort applies inverse or uncompute operations and rewinds classical state.
+2. In the prepared external phase, a submission or effect request exists without an accepted observation. Abort restores classical state and requests cancellation. The external job may continue, so the runtime quarantines it from the active branch.
+3. In the observed phase, measurement or another external receipt has been accepted. Abort restores the classical checkpoint, discards the active observation branch, and performs declared compensation where possible. It cannot restore unknown physical state.
+4. In the committed phase, this transaction can no longer reverse external outputs or history before the horizon.
 
 The compiler rejects transaction code whose declared rollback guarantee is stronger than its effects permit. `rollback` after measurement means branch rollback, not physical inverse.
 
@@ -186,13 +190,13 @@ Three records remain conceptually separate even if stored together:
 
 `commit` advances the active rewind horizon only after required event and state persistence succeeds. `clean history before ...` requests retention policy and cannot remove records still referenced by an active continuation, retry lineage, proof, or audit requirement.
 
-Deletion may preserve a cryptographic or content identity without preserving replayable payloads. After payload deletion, the runtime reports that replay is unavailable rather than fetching fresh nondeterminism under the old identity.
+Deletion may preserve a cryptographic or content identity without preserving replayable payloads. After payload deletion, the runtime reports that replay is unavailable instead of fetching fresh nondeterminism under the old identity.
 
 ### Iterative hybrid workflows
 
 Loops such as `QuantumOptimizer.optimize` compile into repeated classical continuation and quantum region stages. Circuit templates and target executables may be cached; bindings, result requests, and observations remain iteration-specific.
 
-A QNN gradient computation may submit parameter-shift or other explicitly selected batches. The language does not pretend a measured training register survives into the next iteration. State that persists is classical parameter/history state or an explicit target session capability.
+A QNN gradient computation may submit parameter-shift or other explicitly selected batches. A measured training register does not survive into the next iteration. State that persists is classical parameter/history state or an explicit target session capability.
 
 ### Target-resident workflows
 
@@ -210,7 +214,7 @@ After a commit horizon, Wheeler makes no promise to rewind earlier state even if
 
 ## Concurrency and determinism
 
-Each `HybridRun` has one total semantic event order. Jobs may execute and complete concurrently, but completion arrival does not determine application order. A continuation declares which results it awaits and the deterministic reduction order for batches.
+Each `HybridRun` has one total semantic event order. Jobs may execute and complete concurrently, but completion arrival doesn't determine application order. A continuation declares which results it awaits and the deterministic reduction order for batches.
 
 Event producers use idempotency keys and bounded queues. Polling schedules, provider queue times, wall-clock timestamps, and log ordering are operational metadata unless the program explicitly requests a time effect.
 
@@ -218,7 +222,7 @@ General parallel branches require a later structured-concurrency WIP. This propo
 
 ## Quantum and proof implications
 
-Replay logs can support empirical reproducibility and later proof checking, but sampled evidence does not prove a theorem. A future proof system may reference semantic region hashes, target-independent certificates, or bounded empirical claims with explicit confidence.
+Replay logs can support empirical reproducibility and later proof checking, but sampled evidence doesn't prove a theorem. A future proof system may reference semantic region hashes, target-independent certificates, or bounded empirical claims with explicit confidence.
 
 A proof about a unitary region is independent from a particular noisy run. A claim about hardware fidelity identifies target, calibration, shots, estimator, and uncertainty through event provenance.
 
@@ -242,7 +246,7 @@ Retries are never infinite by default. Compensation and cancellation failures ar
 
 WIP-0032 generalizes the pending external-operation lifecycle used by quantum jobs into one I/O request, completion, cancellation, uncertainty, and receipt model.
 
-A persisted continuation contains canonical owned request state, external operation identity, capability reference, expected result schema, and correlation or idempotency data. It never contains process borrows, native descriptors, registered-memory addresses, or remote keys. Hardware souvenirs make poor recovery formats.
+A persisted continuation contains canonical owned request state, external operation identity, capability reference, expected result schema, and correlation or idempotency data. It never contains process borrows, native descriptors, registered-memory addresses, or remote keys. Hardware-specific state is not a valid recovery format.
 
 ## Migration and deletion
 
@@ -307,9 +311,9 @@ Rejected as the semantic model. Typed continuations plus WIP-0001 checkpoints an
 
 ## Open questions
 
-- Which event-log persistence encoding and integrity mechanism should be standardized first? — **Owner:** runtime maintainers — **Decide by:** before durable recovery implementation
-- Which stale-result policies are generic runtime choices versus application-supplied decisions? — **Owner:** runtime and language maintainers — **Decide by:** before this WIP enters Review
-- What minimum target-session lifecycle is needed before a quantum handle may legally appear in a persisted continuation? — **Owner:** quantum runtime maintainers — **Decide by:** before session support is implemented
+- Which event-log persistence encoding and integrity mechanism should be standardized first (owner: runtime maintainers; decision point: before durable recovery implementation)?
+- Which stale-result policies are generic runtime choices versus application-supplied decisions (owner: runtime and language maintainers; decision point: before this WIP enters Review)?
+- What minimum target-session lifecycle is needed before a quantum handle may legally appear in a persisted continuation (owner: quantum runtime maintainers; decision point: before session support is implemented)?
 
 ## References
 

@@ -13,15 +13,19 @@
 
 ## Summary
 
-Wheeler will expose native calls through canonical ABI descriptors and package-visible providers. The first profile is a deliberately small C ABI subset. A provider is either an exact bundled package artifact or a system capability granted by deployment policy and mapped by WIP-0024. Symbols are never found by searching the host.
+Wheeler will expose native calls through canonical ABI descriptors and package-visible providers; the first profile supports a small, deliberate subset of the C ABI. A provider is either an exact bundled package artifact or a system capability granted by deployment policy and mapped through WIP-0024. Wheeler never finds symbols by searching the host.
 
-Foreign calls are typed WIP-0031 effectful operations and are forbidden in `rev`, `coherent rev`, `unitary`, proof evaluation, and reverse blocks. Every foreign call is initially an explicit barrier edge in Wheeler's reversible typed IR: rewind, inverse, compensation, and foreign cleanup do not impersonate one another. Raw pointers are not Wheeler values; memory crosses as exact scalars, immutable views, exclusive mutable borrows, opaque affine handles, or explicitly owned foreign buffers.
+Foreign calls are typed WIP-0031 effectful operations. They are forbidden in `rev`, `coherent rev`, `unitary`, proof evaluation, and reverse blocks. Every foreign call starts as an explicit barrier in Wheeler's typed IR. Rewind, inverse, compensation, and foreign cleanup remain different operations.
 
-Calling convention, target ABI, symbols, layouts, ownership, errors, effects, blocking, threading, and callbacks are package identity. Generic `dlopen`, `dlsym`, C++ ABI binding, exceptions, varargs, callbacks, and ambient search are outside the first profile.
+Raw pointers are not Wheeler values. Memory crosses the boundary as exact scalars, immutable views, exclusive mutable borrows, opaque affine handles, or explicitly owned foreign buffers.
+
+Calling convention, target ABI, symbols, layouts, ownership, errors, effects, blocking, threading, and callbacks are part of package identity. The first profile excludes generic `dlopen`, `dlsym`, C++ ABI binding, exceptions, varargs, callbacks, and ambient search.
 
 ## Motivation
 
-FFI is needed for operating systems, established C libraries, databases, graphics, devices, and native toolchains. Unrestricted FFI would also import ambient library/header search, implementation-defined layout, pointer aliasing, hidden threads, native exceptions, undeclared I/O, irreversible state, and installed-host variance. It therefore needs one language, verifier, runtime, package, reproducibility, and deployment contract.
+Wheeler needs FFI access to operating systems, established C libraries, databases, graphics systems, devices, and native toolchains. An unrestricted FFI would also import ambient library and header search, implementation-defined layouts, pointer aliasing, hidden threads, native exceptions, undeclared I/O, irreversible state, and differences between installed hosts.
+
+The boundary therefore needs one contract shared by the language, verifier, runtime, package system, reproducible build, and deployment tools.
 
 ## Goals
 
@@ -103,7 +107,7 @@ Provider selection is package/deployment policy, never a source path.
 
 Binding generation consumes exact headers, target ABI, definitions, include closure, frontend, declaration allowlist, ownership/effect annotations, and symbol metadata. Ambient include paths/defaults are forbidden. Fixed aggregates verify size, alignment, offsets, representations, ABI, and tool identity; unsupported layout fails.
 
-A bundled dynamic provider loads only from one exact approved image/package path. Runtime verifies identity, descriptor, ABI, soname/install name, required symbols/versions, and transitive imports. It does not search working directory, home, `PATH`, loader environment, defaults, registry, or caches.
+A bundled dynamic provider loads only from one exact approved image/package path. Runtime verifies identity, descriptor, ABI, soname/install name, required symbols/versions, and transitive imports. It doesn't search working directory, home, `PATH`, loader environment, defaults, registry, or caches.
 
 Static link plans identify every object/archive, order/group semantics, exports, linker/arguments, ABI, runtime libraries, and link groups. Static linkage does not confer reversibility.
 
@@ -113,7 +117,7 @@ Buffer marshalling validates liveness/ownership/range, stabilizes storage, exclu
 
 Handle flow rejects copy, address equality, use after destroy, double destroy, wrong-thread movement, borrowed-as-owned return, live owned exit, unsupported persistence, and rewind across creation/destruction.
 
-Foreign calls require explicit commit/effect boundaries and are rejected in inverse/quantum/proof contexts. A future reversible FFI would require a formal foreign state model and verified inverse pair; a destructor wearing a bow tie is not enough.
+Foreign calls require explicit commit/effect boundaries and are rejected in inverse/quantum/proof contexts. A future reversible FFI would require a formal foreign state model and verified inverse pair; a destructor alone does not provide that contract.
 
 Invoking a compiler or linker during build is a process capability, not runtime FFI. Both share exact package/reproducibility rules but differ in lifetime and semantics.
 
@@ -129,7 +133,7 @@ Foreign calls are irreversible. VM history does not restore foreign memory, kern
 
 Thread/reentrancy rules are explicit and the runtime serializes nonreentrant/process-global providers. Native clock/random/thread/I/O can make execution nondeterministic and must be declared.
 
-Foreign calls are forbidden in unitary, coherent, and proof execution. Native numerical output is not proof evidence. Quantum SDKs remain behind structured target adapters rather than generic source FFI.
+Foreign calls are forbidden in unitary, coherent, and proof execution. Native numerical output is not proof evidence. Quantum SDKs remain behind structured target adapters instead of generic source FFI.
 
 ## Bytecode and persistence
 
@@ -182,11 +186,11 @@ Raw loading/function pointers, libffi as language contract, ambient headers, C++
 
 ## Open questions
 
-- Which C ABIs and targets form the first conformance set? — **Owner:** native maintainers — **Decide by:** implementation
-- Direct stubs, generated shim, or libffi underneath? — **Owner:** runtime maintainers — **Decide by:** runtime work
-- Are structs in the first slice? — **Owner:** ABI maintainers — **Decide by:** parser acceptance
-- Which crash isolation and callback subset require successors? — **Owner:** security/runtime maintainers — **Decide by:** public packages
-- What evidence proves a system provider? — **Owner:** distribution/security maintainers — **Decide by:** WIP-0024 integration
+- Which C ABIs and targets form the first conformance set (owner: native maintainers; decision point: implementation)?
+- Direct stubs, generated shim, or libffi underneath (owner: runtime maintainers; decision point: runtime work)?
+- Are structs in the first slice (owner: ABI maintainers; decision point: parser acceptance)?
+- Which crash isolation and callback subset require successors (owner: security/runtime maintainers; decision point: public packages)?
+- What evidence proves a system provider (owner: distribution/security maintainers; decision point: WIP-0024 integration)?
 
 ## References
 

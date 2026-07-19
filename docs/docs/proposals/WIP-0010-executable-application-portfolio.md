@@ -13,16 +13,18 @@
 
 ## Summary
 
-Wheeler's application portfolio is an executable conformance surface, not a syntax gallery. It shall demonstrate reversible systems programming, coherent classical/quantum reuse, current hardware workflows, durable hybrid computation, self-hosting, package management, native execution, and checkable claims.
+Wheeler's application portfolio is an executable conformance suite, not a collection of syntax samples. It must show reversible systems programming, coherent classical and quantum reuse, current hardware workflows, durable hybrid work, self-hosting, package management, native execution, and checkable claims.
 
-Each portfolio item has a named semantic purpose and an implementation gate. A `.w` file enters the repository only when the compiler, reversible typed IR, verifier, runtime or target planner, Tree-sitter grammar, tests, and documentation support every construct it uses. Fixtures identify whether each transition is inverse, logged rewind, barrier, coherent permutation, unitary/adjoint, measurement, replay, or retry; passing one category never stands in for another. Designs that need future syntax remain in this WIP until that vertical slice exists.
+Each application has one stated purpose and a clear implementation gate. A `.w` file enters the repository only after every construct it uses works across the compiler, typed IR, verifier, runtime or target planner, Tree-sitter grammar, tests, and docs. Fixtures label each transition as an inverse, logged rewind, barrier, coherent permutation, unitary or adjoint, measurement, replay, or retry. Success in one category does not prove another.
 
-The portfolio is intentionally broader than textbook quantum algorithms. Wheeler must prove useful for compilers, codecs, package resolution, transactional state, simulation, optimization, error correction, target planning, and long-running recovery. Quantum examples must state whether they require static circuits, batches, expectations, dynamic control, logical qubits, sessions, networking, or proof support.
+Designs that need future syntax stay in this WIP until their full vertical slice exists.
+
+The portfolio goes beyond textbook quantum algorithms. Wheeler must also handle compilers, codecs, package resolution, transactional state, simulation, optimization, error correction, target planning, and long-running recovery. Each quantum example states whether it needs static circuits, batches, expectations, dynamic control, logical qubits, sessions, networking, or proof support.
 
 ## Goals
 
 - Maintain a concrete application target for every major semantic and tooling capability.
-- Exercise Wheeler as a general systems language rather than a gate-circuit notation.
+- Exercise Wheeler as a general systems language instead of a gate-circuit notation.
 - Demonstrate one-source classical execution and coherent lifting where mathematically valid.
 - Cover local, OpenQASM, delayed, recovered, replayed, retried, dynamic, logical, and distributed target plans.
 - Drive self-hosting and native runtime work with Wheeler programs of increasing scale.
@@ -52,9 +54,9 @@ Every executable fixture provides:
 7. explicit qubit, shot, event, memory, stack, and step ceilings;
 8. a concise reference entry explaining what the fixture proves and what it does not prove.
 
-A formal fixture additionally identifies its trusted checker, claim schema, assumptions, and certificate bounds. A native or bootstrap fixture identifies its compiler, runtime, platform ABI, package lock, and reproducibility inputs.
+A formal fixture also identifies its trusted checker, claim schema, assumptions, and certificate bounds. A native or bootstrap fixture identifies its compiler, runtime, platform ABI, package lock, and reproducibility inputs.
 
-No authored fixture file exceeds 1,000 lines. Larger applications are packages composed of smaller modules.
+No authored fixture file exceeds 1,000 lines; larger applications are packages composed of smaller modules.
 
 ## Current executable base
 
@@ -126,7 +128,7 @@ Acceptance requires deterministic shape, no leaked nodes after abort, exact reco
 
 ### Wheeler parser
 
-`compiler/parse.w` builds records and tagged syntax variants with bounded recovery. It compiles every portfolio source and matches the stable negative corpus. Tree-sitter remains a differential concrete-syntax implementation, not a linked parser dependency.
+`compiler/parse.w` builds records and tagged syntax variants with bounded recovery. It compiles every portfolio source and matches the stable negative corpus; Tree-sitter remains a differential concrete-syntax implementation, not a linked parser dependency.
 
 ### Bytecode codec and verifier
 
@@ -176,7 +178,7 @@ This fixture is the gate for broadening coherent eligibility beyond XOR. Checked
 
 ### Molecular energy
 
-`VqeHydrogen.w` estimates a small molecular Hamiltonian with parameterized circuit batches and expectation results. The fixture pins the Hamiltonian, ansatz, optimizer policy, seeds, shot allocation, and confidence criterion.
+`VqeHydrogen.w` estimates a small molecular Hamiltonian with parameterized circuit batches and expectation results; the fixture pins the Hamiltonian, ansatz, optimizer policy, seeds, shot allocation, and confidence criterion.
 
 Acceptance requires:
 
@@ -188,7 +190,7 @@ Acceptance requires:
 
 ### Graph optimization
 
-`QaoaMaxCut.w` solves a small fixed graph. It exercises graph aggregates, parameter binding, commuting gate scheduling, expectation evaluation, and target-depth planning. The result contract compares objective value and observed cut distribution rather than one lucky sample.
+`QaoaMaxCut.w` solves a small fixed graph. It exercises graph aggregates, parameter binding, commuting gate scheduling, expectation evaluation, and target-depth planning. The result contract compares objective value and observed cut distribution instead of one lucky sample.
 
 ### Quantum kernel classifier
 
@@ -200,7 +202,7 @@ Acceptance requires:
 
 ### Monte Carlo risk estimate
 
-`AmplitudeRisk.w` encodes a small discrete loss distribution and estimates a tail probability. It states all approximation, fixed-point, qubit, shot, and confidence bounds. It does not claim an advantage from a fixture-sized instance.
+`AmplitudeRisk.w` encodes a small discrete loss distribution and estimates a tail probability. It states all approximation, fixed-point, qubit, shot, and confidence bounds. It doesn't claim an advantage from a fixture-sized instance.
 
 ## Unified I/O application
 
@@ -224,7 +226,7 @@ Acceptance requires target-resident feedback capability, bounded decoder latency
 
 ### Logical lattice operation
 
-`LogicalCnot.w` expresses a logical operation and resource request without physical coupling-map assumptions. A mock logical target plans code distance, logical qubits, cycles, and failure budget. A physical static target rejects the semantic operation unless an explicit verified lowering is available.
+`LogicalCnot.w` expresses a logical operation and resource request without physical coupling-map assumptions; a mock logical target plans code distance, logical qubits, cycles, and failure budget. A physical static target rejects the semantic operation unless an explicit verified lowering is available.
 
 ### Magic-state resource plan
 
@@ -274,7 +276,7 @@ The test suite stops and restores the run in queued, running, succeeded, failed,
 
 ### Circuit equivalence
 
-`CircuitEquivalence.w` proves or exhaustively certifies that source and normalized circuits in `QuantumCompiler.w` have the same small-width unitary up to declared global phase. Larger claims require a specified proof method rather than simulator sampling.
+`CircuitEquivalence.w` proves or exhaustively certifies that source and normalized circuits in `QuantumCompiler.w` have the same small-width unitary up to declared global phase. Larger claims require a specified proof method instead of simulator sampling.
 
 ### Resource-bound certificate
 
@@ -290,7 +292,7 @@ The test suite stops and restores the run in queued, running, succeeded, failed,
 
 ### Bounded algorithm foundry
 
-`Foundry.w` is the fault-tolerant-era capstone from WIP-0014. It searches a canonical finite candidate grammar for the smallest reversible sorting network over eight 4-bit values, uncomputes candidate executions, checks the complete `2^32`-value input domain, accumulates checked no-shorter-candidate certificates, and publishes the winner as a proof-bearing package. Search samples are evidence only; exact checking and the trusted kernel authorize the result. The [future-system design](../future/foundry.md) remains documentation syntax until all dependencies execute end to end.
+`Foundry.w` is the fault-tolerant-era capstone from WIP-0014. It searches a canonical finite grammar for the smallest reversible sorting network over eight 4-bit values. Each candidate execution is uncomputed, and the full `2^32`-value input domain is checked. The run also checks certificates showing that no shorter candidate works, then publishes the winner as a proof-bearing package. Search samples are evidence only. Exact checking and the trusted kernel authorize the result. The [future-system design](../future/foundry.md) remains documentation syntax until every dependency runs end to end.
 
 ## Native and package applications
 
@@ -335,7 +337,7 @@ Portfolio work follows these rules:
 - The required semantic WIP is accepted or implementing before source syntax lands.
 - One feature slice lands parser, model, bytecode, verifier, runtime, Tree-sitter, negative tests, reference text, and at least one fixture together.
 - The fixture states exact current scope in source comments and reference documentation.
-- Mock targets model lifecycle and capabilities; they do not report fake hardware fidelity.
+- Mock targets model lifecycle and capabilities. They do not claim measured hardware fidelity.
 - Randomized tests record seeds and bound case counts.
 - Statistical tests state null hypothesis, confidence, tolerance, and flake budget.
 - Live tests are opt-in and never gate deterministic CI.
@@ -364,7 +366,14 @@ Portfolio work follows these rules:
 ### Toolchain
 
 - [ ] Wheeler lexer and parser.
-- [ ] Wheeler bytecode codec and verifier: `MinimalCompiler.w` parses a minimal source file and emits its complete artifact with canonically sorted source strings and derived section layout through the same bounded encoding module; all 504 bytes for `LongClass` with `state long value = 7` and `value += 5` match stage 0; no-global empty or one- through five-statement signed/Boolean/assertion entries, one-global empty entries, and zero- through five-statement local/assignment/add/subtract/XOR/assertion variants and named helper/static-call, reversible-helper/reverse-block, and generated-inverse-certificate forms do likewise with derived zero through twenty local slots and code sizes, including checked signed decimal constants, Boolean literals, unary negation, literal and prior-local truth assertions in entries and ordinary helpers, exact Boolean local type windows, named token/punctuation/statement identities, decoding, canonical re-encoding, and execution. The emitted bytes now pass a Wheeler-native bounded profile verifier before publication; general IR payloads and full control/type/resource verification remain.
+- [ ] Wheeler bytecode codec and verifier:
+  - `MinimalCompiler.w` parses a bounded source file and emits the full artifact through the shared encoding module.
+  - Source strings are sorted canonically, and section layout is derived.
+  - All 504 bytes for `LongClass` with `state long value = 7` and `value += 5` match stage 0.
+  - Empty and one- through five-statement entry bodies also match. The suite covers signed and Boolean locals, assertions, one global, assignment, checked arithmetic, XOR, static helpers, reverse blocks, and generated inverse certificates.
+  - The compiler derives zero through twenty local slots and exact code sizes.
+  - Tests cover signed constants, Boolean literals, unary negation, literal and prior-local assertions, exact type windows, shared token and statement identities, decoding, canonical re-encoding, and execution.
+  - A Wheeler-native bounded verifier checks emitted bytes before publication. General IR payloads and full control, type, and resource verification remain.
 - [ ] Self-hosting compiler fixed point.
 - [ ] Wheeler package resolver.
 - [ ] Native transition trace parity.
@@ -428,7 +437,7 @@ Rejected. Minimal fixtures do not force the aggregate values, effects, persisten
 
 ### Check in aspirational source files
 
-Rejected. Unsupported `.w` files create a second fictional language. Planned programs stay in this WIP until executable.
+Rejected. Unsupported `.w` files create a second fictional language; planned programs stay in this WIP until executable.
 
 ### Use benchmark kernels without expected semantics
 
@@ -440,10 +449,10 @@ Rejected. Deterministic simulators and lifecycle mocks establish semantics. Opt-
 
 ## Open questions
 
-- Which three aggregate/storage fixtures should define the first bootstrap heap profile? — **Owner:** language, VM, and compiler maintainers — **Decide by:** before aggregate bytecode lands
-- Which dynamic simulator and capability vocabulary should gate teleportation and correction fixtures? — **Owner:** quantum target maintainers — **Decide by:** before dynamic workflow implementation
-- Which proof checker is small enough to join the trusted recovery graph? — **Owner:** proof and bootstrap maintainers — **Decide by:** before formal QFT claims land
-- Which statistical testing library and report schema belong in the Wheeler package test contract? — **Owner:** runtime and package maintainers — **Decide by:** before sampled portfolio tests expand
+- Which three aggregate/storage fixtures should define the first bootstrap heap profile (owner: language, VM, and compiler maintainers; decision point: before aggregate bytecode lands)?
+- Which dynamic simulator and capability vocabulary should gate teleportation and correction fixtures (owner: quantum target maintainers; decision point: before dynamic workflow implementation)?
+- Which proof checker is small enough to join the trusted recovery graph (owner: proof and bootstrap maintainers; decision point: before formal QFT claims land)?
+- Which statistical testing library and report schema belong in the Wheeler package test contract (owner: runtime and package maintainers; decision point: before sampled portfolio tests expand)?
 
 ## References
 

@@ -13,31 +13,31 @@
 
 ## Summary
 
-Wheeler supports immutable compile-time constants and finite enum types. Constants are typed names evaluated by the compiler. They allocate no globals, execute no initializer, and depend on no module load order. WIP-0029 reuses this exact bounded evaluator for const-generic lengths, widths, moduli, shapes, resource limits, and finite-basis cardinalities; it does not add arbitrary compile-time execution.
+Wheeler supports typed compile-time constants and finite enum types; a constant is a name evaluated by the compiler. It creates no global storage, runs no initializer, and depends on no module load order. WIP-0029 reuses this bounded evaluator for const-generic lengths, widths, moduli, shapes, resource limits, and finite-basis sizes. It does not add arbitrary compile-time program execution.
 
-An enum is the nullary case of Wheeler's existing closed variant model, not a second object hierarchy. Enum members have semantic names but no implicit ordinal, integer conversion, singleton identity, or hidden wire value. Protocol encodings remain explicit ordinary Wheeler functions built from named constants, exhaustive enum matches, and checked decode results.
+An enum is the nullary form of Wheeler's closed variant model. It is not a second object hierarchy. Enum members have semantic names, but they have no hidden ordinal, integer conversion, singleton identity, or wire value. Protocol encoding stays explicit through normal Wheeler functions, named constants, exhaustive matches, and checked decoders.
 
-This separation matters. `Opcode.Halt` is a semantic member of a finite type. `OPCODE_HALT = 0x0001` is a bytecode-format constant. Equating the two by invisible ordinal works until a source reorder changes a protocol, a quantum basis, and everybody's afternoon.
+The difference matters. `Opcode.Halt` names one case in a finite type. `OPCODE_HALT = 0x0001` names a bytecode value. An invisible ordinal must not connect them, because source reordering could then change a protocol or quantum basis.
 
-WIP-0017 is a prerequisite for widening the Wheeler-written bootstrap compiler, verifier, and interpreter. Those modules should stop accumulating raw opcode, section, token, proof-rule, diagnostic, and package-record integers before they learn more of the machine.
+This WIP is required before the Wheeler-written compiler, verifier, and interpreter grow much larger. Those modules should stop repeating raw integers for opcodes, sections, tokens, proof rules, diagnostics, and package records.
 
 ## Motivation
 
-The bounded self-hosting slices currently recognize protocol identities as raw `long` literals. That was tolerable while a module handled six cases. It does not scale to a readable verifier or interpreter: reviewers must remember which domain owns `513`, accidental cross-domain comparisons type-check, and duplicated tables drift.
+Current bootstrap slices use raw `long` values for protocol identities. That works for a few cases, but it does not scale. Reviewers must remember which domain owns `513`, unrelated values can be compared, and repeated tables can drift.
 
-Constants give limits and wire identities one source name. Enums give finite semantic domains exhaustive handling and nominal separation. Wheeler needs both, but they must not be collapsed:
+Constants give limits and wire values one source name. Enums give finite semantic domains nominal separation and exhaustive handling. Wheeler needs both, with clear roles:
 
-- constants model values known during compilation;
-- enums model closed choices;
-- codecs model representations at trust boundaries;
-- variants model closed choices with payloads;
-- proofs establish properties of those models rather than being inferred from confident capitalization.
+- constants are values known during compilation;
+- enums are closed choices;
+- codecs define representations at trust boundaries;
+- variants are closed choices with payloads;
+- proofs establish properties of those models.
 
-Haskell's algebraic-data-type lesson applies: a finite choice is a sum type, not a small integer in formal wear. Wheeler adds explicit reversible, coherent, artifact, and host-effect boundaries on top.
+A finite choice is a sum type, not a small integer with a different font. Wheeler adds explicit boundaries for reversal, coherent work, artifacts, and host effects.
 
 ## Use cases
 
-1. A verifier compares an encoded instruction with `OPCODE_HALT`, imported from one bytecode-format module, rather than `1`.
+1. A verifier compares an encoded instruction with `OPCODE_HALT`, imported from one bytecode-format module, instead of `1`.
 2. A decoder returns `OpcodeDecode.Value(Opcode.Halt)` or `OpcodeDecode.Unknown(raw)`. A match over `Opcode` is exhaustive.
 3. A package codec uses `MAX_PLAN_NODES` as a compile-time bound. No state slot or initializer appears in `.wbc`.
 4. A reversible transformation permutes all members of a finite enum. The compiler checks bijectivity and derives the inverse table.
@@ -52,10 +52,10 @@ Haskell's algebraic-data-type lesson applies: a finite choice is a sum type, not
 - Keep semantic enum membership separate from integer/wire encoding.
 - Support exhaustive classical matches over enum members.
 - Define reversible enum operations as checked finite permutations.
-- Define a sound path for coherent enum operations without reserving bogus current syntax.
+- Define a sound path for coherent enum operations without reserving unsupported syntax.
 - Support public export, direct import, and canonical module qualification.
 - Give compiler, Tree-sitter, formatter, documentation, and diagnostics stable nodes.
-- Replace bootstrap number soup before expanding the native verifier/interpreter opcode surface.
+- Replace raw bootstrap numeric tables before expanding the native verifier/interpreter opcode surface.
 
 ## Non-goals
 
@@ -80,7 +80,7 @@ private const boolean VERIFY_OPERANDS = true;
 public const long OPCODE_CALL = 0x0200;
 ```
 
-`const` is not `state`. It creates no global slot, cannot be assigned, cannot be borrowed, and has no address or object identity. The first profile permits `long` and `boolean`; later immutable values require an explicit extension because “known at compile time” is not a storage model.
+`const` is not `state`. It creates no global slot, cannot be assigned, cannot be borrowed, and has no address or object identity. The first profile permits `long` and `boolean`. Later immutable values require an explicit extension because compile-time availability does not define a storage model.
 
 Public constants should use `UPPER_SNAKE_CASE`. Naming is a tooling convention, not an alternate resolver.
 
@@ -108,7 +108,7 @@ public variant Opcode {
 }
 ```
 
-The two spellings cannot declare distinguishable runtime types. The compiler, bytecode verifier, VM, match checker, debugger, documentation generator, and proof kernel share one case/type authority. An enum cannot later grow payload on one case; changing it to `variant` is an explicit source migration.
+The two spellings cannot declare distinguishable runtime types. The compiler, bytecode verifier, VM, match checker, debugger, documentation generator, and proof kernel share one case/type authority. An enum cannot add payload to one case; changing it to `variant` requires an explicit source migration.
 
 Cases use ordinary nominal values:
 
@@ -123,7 +123,7 @@ match (operation) {
 }
 ```
 
-The first canonical value and match spelling is exact variant parity: `new Opcode.Call()` constructs a value and `case Opcode.Call()` selects it. `enum` removes payload punctuation from declarations, not from the value model. A later terse value spelling would require a separate syntax decision and must elaborate to the same case; the bootstrap does not need another parser path merely to save five characters.
+The first canonical value and match spelling is exact variant parity: `new Opcode.Call()` constructs a value and `case Opcode.Call()` selects it. `enum` removes payload punctuation from declarations, not from the value model. A later terse value spelling would require a separate syntax decision and must elaborate to the same case; the bootstrap does not need another parser path only to save five characters.
 
 ### Protocol encodings
 
@@ -153,9 +153,9 @@ public OpcodeDecode decodeOpcode(long raw) {
 }
 ```
 
-`OpcodeDecode` is an ordinary explicit variant. There is no unchecked `Opcode(raw)` constructor. The type checker can recognize total enum encoders and duplicate constant values for diagnostics and future proof generation, but the source mapping remains inspectable code rather than a hidden derived instance.
+`OpcodeDecode` is an ordinary explicit variant. There is no unchecked `Opcode(raw)` constructor. The type checker can recognize total enum encoders and duplicate constant values for diagnostics and future proof generation, but the source mapping remains inspectable code instead of a hidden derived instance.
 
-A future declaration-level codec shorthand may elaborate to this pattern only after its generated API, diagnostics, proofs, and deletion behavior are specified. WIP-0017 does not need one to remove number soup.
+A future declaration-level codec shorthand may elaborate to this pattern only after its generated API, diagnostics, proofs, and deletion behavior are specified. WIP-0017 can remove unlabeled numeric IDs without that shorthand.
 
 ### Qualification
 
@@ -186,7 +186,7 @@ Constant expressions cannot read state, locals, parameters, host input, aggregat
 
 The compiler builds one dependency graph for constants in the closed source set. Resolution and evaluation use canonical qualified-name order, not map iteration or parser arrival order. Forward references are valid. Cycles report a bounded complete cycle and produce no artifact.
 
-Evaluation uses Wheeler runtime arithmetic rules: signed overflow traps; division and remainder by zero fail; `Long.MIN_VALUE / -1` fails; rotation ranges are checked. A `long` result remains signed 64-bit. There is no host-language narrowing, unlimited intermediate integer, or “close enough” literal.
+Evaluation uses Wheeler runtime arithmetic rules: signed overflow traps; division and remainder by zero fail; `Long.MIN_VALUE / -1` fails; rotation ranges are checked. A `long` result remains signed 64-bit. The evaluator allows no host-language narrowing, unlimited intermediate integer, or approximate literal.
 
 ## Semantic model
 
@@ -196,7 +196,7 @@ An enum is a finite nominal type with cardinality equal to its case count. Case 
 
 Renaming, adding, or removing a case changes the enum type identity. A protocol codec may preserve old wire values deliberately, but no compiler-assigned ordinal survives the type change because none exists.
 
-Enum equality is permitted only within one enum type. Cross-enum equality and enum/integer operations fail statically. Pattern matching is exhaustive using the same rules as variants. Empty enums are rejected; bottom types deserve their own design rather than an accidental empty brace.
+Enum equality is permitted only within one enum type. Cross-enum equality and enum/integer operations fail statically. Pattern matching is exhaustive using the same rules as variants. Empty enums are rejected; bottom types need a separate design instead of an accidental empty brace.
 
 ## Compiler and artifact boundaries
 
@@ -212,7 +212,7 @@ Artifact decoders reject unknown enum/variant type IDs, unknown case IDs, payloa
 
 Finite type does not mean reversible operation. A function from `Opcode` to `boolean` loses information; a function mapping every opcode to `Halt` is not rescued by a small domain.
 
-A reversible enum transformation must be a permutation of the complete case set. For a finite pattern-defined function, the compiler can construct its table and require:
+A reversible enum transformation must be a permutation of the complete case set; for a finite pattern-defined function, the compiler can construct its table and require:
 
 - every input case is covered exactly once;
 - every output case appears exactly once;
@@ -234,7 +234,7 @@ rev Opcode swapCallDirection(Opcode opcode) {
 
 The current source profile does not yet accept this parameter/result form for `rev`; the example states the required semantics, not implemented syntax. Until typed reversible calls exist, enum values follow ordinary immutable local and variant rules.
 
-Destructive enum assignment is logged or ordinary according to its context. Reversible mutation uses a checked permutation, swap, or retained prior value. VM rewind restores the exact nominal value from ordinary frame history. Language inversion and rewind remain different mechanisms.
+Destructive enum assignment is logged or ordinary according to its context; reversible mutation uses a checked permutation, swap, or retained prior value. VM rewind restores the exact nominal value from ordinary frame history. Language inversion and rewind remain different mechanisms.
 
 Encoding an enum to a `long` is injective only if the explicit codec values are distinct. Decoding is partial over all `long` values. Ordinary package/bytecode decoders should remain ordinary checked functions; labeling partial input validation `rev` would not improve its inverse.
 
@@ -242,7 +242,7 @@ Encoding an enum to a `long` is injective only if the explicit codec values are 
 
 A finite enum is a useful candidate for a quantum basis, but no wire encoding defines that basis. Wheeler derives coherent basis identity from canonical enum case identity, never from protocol integers.
 
-The first coherent enum profile permits only cardinalities that are exact powers of two. An enum with `2^n` cases maps to `n` qubits in canonical qualified-case-name order. This avoids unused computational-basis states. Non-power-of-two enums remain valid classical types but cannot cross a coherent boundary until a later proposal defines subspace validity, leakage behavior, and uncomputation obligations.
+The first coherent enum profile permits only cardinalities that are exact powers of two; an enum with `2^n` cases maps to `n` qubits in canonical qualified-case-name order. This avoids unused computational-basis states. Non-power-of-two enums remain valid classical types but cannot cross a coherent boundary until a later proposal defines subspace validity, leakage behavior, and uncomputation obligations.
 
 A coherent enum transformation must be a permutation of all cases and therefore induces a unitary permutation matrix. The compiler may synthesize a circuit and inverse from a checked finite permutation. The artifact records enum type identity, canonical case-to-basis mapping, and permutation identity. A target cannot reorder cases according to a vendor enum or calibration table.
 
@@ -274,7 +274,7 @@ Constants and enum values are immutable and freely copyable unless contained in 
 
 Public constant and enum declarations participate in direct module export. Import ambiguity fails closed. The package manifest still defines the closed source set and source order; constants cannot be overridden by package features, environment variables, command-line `-D` flags, editor settings, or target selection.
 
-The bootstrap should introduce domain modules rather than one junk drawer:
+The bootstrap should introduce domain modules instead of one junk drawer:
 
 ```text
 compiler/ir/Opcodes.w
@@ -285,7 +285,7 @@ packages/RecordKinds.w
 lexer/TokenKinds.w
 ```
 
-Each module owns related constants/enums/codecs. A thousand-line `Constants.w` is number soup with an index.
+Each module owns related constants, enums, and codecs. A thousand-line `Constants.w` turns into an index of unrelated values.
 
 ## Diagnostics
 
@@ -321,7 +321,7 @@ Naming a protocol integer does not validate it. Decoders still check framing, va
 
 ## Formatter, Tree-sitter, and documentation
 
-WIP-0016 formats one constant per line. Enum cases remain one per line even when compact form fits because case additions deserve local diffs. The formatter never sorts cases or rewrites codecs.
+WIP-0016 formats one constant per line. Enum cases remain one per line even when compact form fits. This keeps case additions local in diffs. The formatter never sorts cases or rewrites codecs.
 
 Mandatory file/function documentation applies normally. Public constants and enum declarations require adjacent documentation before WIP-0016 acceptance; case-level prose is encouraged for protocol domains but not initially mandatory.
 
@@ -342,7 +342,7 @@ Compiler and Tree-sitter corpora cover compact, multiline, commented, malformed,
 9. Add repository checks for unexplained protocol literals in migrated modules while allowing arithmetic, offsets, and malformed golden fixtures.
 10. Delete duplicate Java/Wheeler tables, aliases, migration shims, and raw-literal branches when each authority moves.
 
-Promotion follows WIP-0007: the identity modules incubate with executable compiler slices, then move with the compiler into its production package. They are not copied into a proper directory and left behind “for examples.”
+Promotion follows WIP-0007. The identity modules start with executable compiler slices, then move into the compiler's production package. The migration removes the original copies.
 
 ## Progress
 
@@ -355,7 +355,7 @@ Promotion follows WIP-0007: the identity modules incubate with executable compil
 - [ ] Reversible finite permutation checking exists.
 - [ ] Power-of-two coherent enum basis/permutation semantics exist.
 - [x] Tree-sitter nodes, highlighting, corpus fixtures, and the fixed formatter contract cover both declarations.
-- [x] `compiler/ir/Opcodes.w`, `compiler/ir/TypeCodes.w`, and `compiler/ir/ProofRules.w` own the bounded Wheeler verifier/interpreter opcode/type/proof identities, interpreter limits, and membership predicates; those consumers contain no raw opcode/type dispatch literals.
+- [x] `compiler/ir/Opcodes.w`, `compiler/ir/TypeCodes.w`, and `compiler/ir/ProofRules.w` own opcode, type, and proof identities. They also own interpreter limits and membership checks. The bounded Wheeler verifier and interpreter no longer dispatch on raw numeric literals.
 - [ ] Duplicate stage-0 tables and migration shims are deleted at compiler promotion/cutover.
 
 ## Testing and acceptance
@@ -382,7 +382,7 @@ Promotion follows WIP-0007: the identity modules incubate with executable compil
 
 ### Keep raw integers with comments
 
-Rejected. Comments drift and cannot prevent cross-domain mistakes. `513 // UNCALL` is a confession, not an abstraction.
+Rejected. Comments drift and cannot prevent cross-domain mistakes. `513 // UNCALL` still leaves a raw opcode in source.
 
 ### Use backed integer enums
 
@@ -410,15 +410,15 @@ Deferred. It requires termination, effect, cache-identity, and resource models f
 
 ### Store constants as immutable globals
 
-Rejected. That adds state, startup order, bytecode, and history for values already known to the compiler. The VM need not attend every naming ceremony.
+Rejected. That adds state, startup order, bytecode, and history for values already known to the compiler. These values need no runtime initialization.
 
 ### Permit coherent encoding for any enum cardinality
 
-Deferred. Non-power-of-two domains leave invalid computational-basis states and require a subspace/leakage contract. Refusing them initially is less clever and more correct.
+Deferred. Non-power-of-two domains leave invalid computational-basis states and require a subspace/leakage contract. Refusing them at first keeps the rule correct.
 
 ## Open questions
 
-- What certificate rule should connect an explicit codec's exhaustive encoder and partial decoder to a checked round-trip theorem? — **Owner:** proof maintainers — **Decide by:** before codec proof claims
+- What certificate rule should connect an explicit codec's exhaustive encoder and partial decoder to a checked round-trip theorem (owner: proof maintainers; decision point: before codec proof claims)?
 
 ## References
 

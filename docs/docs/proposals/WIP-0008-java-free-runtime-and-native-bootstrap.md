@@ -13,19 +13,23 @@
 
 ## Summary
 
-Wheeler's production toolchain and runtime shall have no Java dependency. The current Java compiler, VM, runtime, and Gradle build are quarantined below top-level `bootstrap/` as stage-0 infrastructure. They exist to establish semantics and seed the self-hosted implementation; they are deleted after a conforming Wheeler-written toolchain can rebuild and test itself from a pinned native recovery release. WIP-0009 supplies the Wheeler-native package and build system that replaces Gradle.
+Wheeler's production runtime and toolchain will not depend on Java. The current Java compiler, VM, runtime, and Gradle build stay under top-level `bootstrap/` as stage-0 tools. They establish the initial rules and seed the self-hosted system. Once a Wheeler-written toolchain can rebuild and test itself from a pinned native recovery release, these Java paths are removed.
 
-Canonical `.wbc` remains the portable executable and semantic boundary: its classical inverse/log/barrier bodies and semantic quantum regions are Wheeler's reversible typed IR. A native backend lowers verified `.wbc` to derived host IR and machine code for distribution and bootstrapping; backend IR cannot redefine ownership, effects, traps, inverse relations, or adjoints. The Wheeler compiler, verifier, VM or execution runtime, disassembler, OpenQASM emitter, and build driver become Wheeler programs. A narrow platform ABI supplies memory, process arguments, bounded file operations, and other explicitly granted host effects. It does not expose JVM objects or reproduce the Java class library.
+WIP-0009 provides the Wheeler package and build system that replaces Gradle.
 
-No self-hosted language builds from literal nothing. A cold build starts from a reviewed prior Wheeler native release and its content-addressed `.wbc` seed, just as WIP-0007 starts from a prior compiler stage. Fixed-point reproduction is paired with diverse double compilation and complete provenance; otherwise a malicious ancestor can reproduce itself perfectly and call that success. The trust chain is explicit, reproducible, replaceable, and independently challengeable; Java is not in it after cutover.
+Canonical `.wbc` remains the portable executable and semantic boundary. A native backend lowers verified `.wbc` into host IR and machine code for distribution and bootstrap use. Derived backend data cannot change ownership, effects, traps, inverse relations, or adjoints.
+
+The Wheeler compiler, verifier, VM or execution runtime, disassembler, OpenQASM emitter, and build driver become Wheeler programs. A small platform ABI provides memory, process arguments, bounded file operations, and other granted host effects. It does not expose JVM objects or copy the Java class library.
+
+A cold build starts from a reviewed earlier Wheeler native release and a content-addressed `.wbc` seed. Fixed-point reproduction is paired with diverse double compilation and full provenance. A malicious old compiler can reproduce its own output, so a matching fixed point is useful but not enough. After cutover, Java is no longer part of the trust chain.
 
 ## Motivation
 
-Compiler self-hosting alone is insufficient if every Wheeler artifact still requires a JVM to execute. It would move source code into Wheeler while retaining Java as the actual platform contract, deployment cost, and trusted runtime.
+Self-hosting the compiler does not remove Java when every Wheeler artifact still needs a JVM. That would change the source language while leaving Java as the real platform, deployment cost, and trusted runtime.
 
-The language already defines machine state, verification, bounded effects, quantum region IR, and hybrid persistence independently of Java. Keeping Java forever would let host collection order, object identity, exceptions, serialization, threads, and numeric conversion leak back into those contracts. It would also prevent small native deployments and make long-lived toolchain maintenance depend on an unrelated managed runtime.
+Wheeler already defines machine state, verification, bounded effects, quantum IR, and hybrid persistence without Java. Keeping Java would let host collection order, object identity, exceptions, serialization, threads, and numeric conversions affect those contracts. It would also block small native deployments and tie long-term maintenance to an unrelated managed runtime.
 
-The migration must nevertheless remain testable. Replacing Java in one unverified rewrite would discard the executable semantic oracle before the new runtime proves parity. This WIP therefore defines a staged cross-runtime conformance period followed by complete deletion, not permanent dual implementation.
+The migration still needs an executable reference. Replacing Java in one unverified rewrite would remove the current oracle before the new runtime proves parity. This WIP uses a limited cross-runtime conformance period, then requires full deletion. It does not create two permanent implementations.
 
 ## Goals
 
@@ -101,7 +105,7 @@ The ABI may have a small C-compatible shim per operating system. That shim conta
 
 The first native backend lowers verified `.wbc` through a documented target-neutral native IR and a selected machine-code toolchain. LLVM is a likely implementation component, not the language execution model. A backend WIP shall fix object identity, calling convention, stack maps, traps, and runtime linkage before native output becomes a release artifact.
 
-Ahead-of-time lowering preserves explicit bounds checks, arithmetic traps, effect barriers, history operations, and source mappings. Optimizations must be validated against bytecode semantics and cannot erase observable traps or reorder effects.
+Ahead-of-time lowering preserves explicit bounds checks, arithmetic traps, effect barriers, history operations, and source mappings; optimizations must be validated against bytecode semantics and cannot erase observable traps or reorder effects.
 
 An interpreter remains useful for conformance and unusual targets, but its production implementation is Wheeler code and ships as a native image. It is not the old Java VM.
 
@@ -109,7 +113,7 @@ An interpreter remains useful for conformance and unusual targets, but its produ
 
 The Wheeler runtime owns typed stacks, frames, history, regions, and managed values. The platform layer supplies raw bounded memory only. The first native compiler may use compilation arenas and immutable shared values; long-lived applications require a later specified collector or region ownership model.
 
-Object layout is an ABI between generated native code and the Wheeler runtime, not a source-language promise. Persisted hybrid values continue to use versioned canonical schemas rather than dumping native memory.
+Object layout is an ABI between generated native code and the Wheeler runtime, not a source-language promise. Persisted hybrid values continue to use versioned canonical schemas instead of dumping native memory.
 
 ## Bootstrap chain
 
@@ -141,7 +145,7 @@ Native execution must preserve WIP-0001 history and inverse rules exactly. A bac
 
 Platform calls are effects. File replacement, terminal output, memory mapping, and target submission are not physically reversed by native stack unwinding. Wheeler effect, transaction, replay, compensation, and commit rules remain authoritative.
 
-Quantum adjoints and hybrid replay retain the meanings specified by WIP-0002 and WIP-0004. Native code does not gain access to provider qubit pointers merely because an embedding application has them.
+Quantum adjoints and hybrid replay retain the meanings specified by WIP-0002 and WIP-0004. Native code does not gain access to provider qubit pointers only because an embedding application has them.
 
 ## Native I/O fabric
 
@@ -179,9 +183,34 @@ Recovery releases are signed or content-addressed by release policy. Bootstrap s
 - [x] All Java source, Java tests, Gradle modules, and the Gradle wrapper are confined to `bootstrap/`; canonical Wheeler package directories contain no Java or Gradle files.
 - [x] `.wbc` semantics and encoding are independent of JVM bytecode.
 - [x] Provider-neutral quantum IR and OpenQASM lowering do not require Python.
-- [x] Package-selected `NativeVerifier.w` consumes exact binary `.wbc` through immutable `byteview`; `compiler/verification/Verifier.w` owns framing/payload policy; `compiler/verification/FunctionVerifier.w` owns bounded descriptors/type/code windows; `compiler/verification/InstructionVerifier.w` owns opcode framing, scalar/call operands, and branch targets; `compiler/verification/AggregateVerifier.w` owns immutable aggregate operand checks; `compiler/verification/StorageVerifier.w` owns bounded region/word/byte/map storage and UTF-8 operand checks; `compiler/verification/ProofVerifier.w` owns generated-inverse/static-step records. The graph accepts the bounded self-hosted compiler profile, rejects damaged artifacts, and rewinds exactly. This is a Wheeler-executed verifier milestone, not yet a native machine-code verifier; changing the adjective would not change the executable.
-- [x] The accepted aggregate, storage, UTF-8, map, and transition interpreters live only in the entryless `wheeler.runtime` package, locked to `wheeler.compiler` verification and `wheeler.core` binary primitives. The examples consume its exact vendored archive; no runtime implementation remains disguised as compiler or example source.
-- [x] `NativeVm.w` and `runtime/Interpreter.w` execute the verified bounded compiler profile inside Wheeler: initialization and indexed access for up to eight signed globals, sixty-four typed locals in each of eight bounded frames, with only the active function window cleared, up to 128 instructions per function, and up to eight functions, constants/load/store/move/arithmetic, equality/less-than, instruction-index branches, bounded loop checks, expectations, direct reversible global operations, `CALL`, `UNCALL`, bounded structurally interned immutable record, finite-variant, fixed-array, and slice construction, inspection, indexed reads, field reads, and equality, plus bounded owned regions and mutable word/byte buffers with checked allocation/access/length/drop and byte-range enforcement, strict bounded UTF-8 validation/count/scalar/width operations, validated freezing, nested read-only UTF-8 and byte loans, nested mutable region/word/byte/map loans, owning primitive-storage calls, and deterministic fixed-capacity signed maps with insert/update/lookup/membership/drop, typed signed/Boolean `CALL_VALUE`/`CALL_VOID`, `RETURN`/`RETURN_VALUE`, and `HALT`. A checked update agrees with the stage-0 VM and rewinds the outer interpreter exactly; the proof-bearing `Counter.w` artifact emitted by the Wheeler-written compiler matches stage 0 byte-for-byte and returns to zero. Conditionals, a bounded loop, a two-argument value call, an argument-bearing void call, and the four-function signed/Boolean/negation/looping `FunctionValues.w` artifact, a generated thirty-five-local frame artifact, a generated eighty-expectation code-window artifact, six-level `RecursiveValue.w` recursion, and the two-global early-return/break/continue `LoopControl.w`, nested structurally equal `Records.w` values, payload-free `FiniteEnums.w`, and payload-carrying `Variants.w`, a checked fixed-array/slice artifact, and a checked owned-region/word/byte-buffer artifact, valid/malformed UTF-8 artifacts, full `FrozenUtf8.w`, and a checked signed-map artifact agree with stage 0 across every declared global (up to eight) and rewind exactly. `FunctionVerifier.w` checks generic bounded descriptor/type/code windows; `AggregateVerifier.w` checks immutable aggregate metadata use; `StorageVerifier.w` checks bounded owned-storage operands; `ProofVerifier.w` rederives generated inverse instruction order/opcodes/operands and checks static straight-line step bounds, rejecting a structurally valid wrong inverse and a forged smaller bound. Forged branch/call targets, record field operands, variant tags, array index locals, slice index locals, word/byte index locals, UTF-8 index locals, and map key locals also fail Wheeler verification. Opcode-family guards avoid calling aggregate/storage verifiers and executors for scalar instructions; this preserves transitions without billing every `LOCAL_MOVE` for a tour of the heap. Returned public loans, interpreter-level rewind records, workflows, and native machine code remain. The runtime has entered the building, but it has not yet found every light switch.
+- [x] Package-selected `NativeVerifier.w` reads exact binary `.wbc` through immutable `byteview`.
+  - `compiler/verification/Verifier.w` checks framing and payload policy.
+  - `compiler/verification/FunctionVerifier.w` checks bounded descriptors, type windows, and code windows.
+  - `compiler/verification/InstructionVerifier.w` checks opcode framing, scalar and call operands, and branch targets.
+  - `compiler/verification/AggregateVerifier.w` checks immutable aggregate operands.
+  - `compiler/verification/StorageVerifier.w` checks bounded region, word, byte, map, and UTF-8 operands.
+  - `compiler/verification/ProofVerifier.w` checks generated-inverse and static-step records.
+  - The graph accepts the bounded self-hosted compiler profile, rejects damaged artifacts, and rewinds exactly.
+  - This is a Wheeler-executed verifier milestone, not a native machine-code verifier.
+- [x] The accepted aggregate, storage, UTF-8, map, and transition interpreters live only in the entryless `wheeler.runtime` package, locked to `wheeler.compiler` verification and `wheeler.core` binary primitives. The examples consume its exact vendored archive. No runtime implementation remains in compiler or example source.
+- [x] `NativeVm.w` and `runtime/Interpreter.w` execute the verified bounded compiler profile inside Wheeler.
+  - The profile supports up to eight signed globals, eight frames, sixty-four typed locals per frame, 128 instructions per function, and eight functions. Only the active function window is cleared.
+  - It executes constants, loads, stores, moves, arithmetic, comparisons, branches, bounded loops, expectations, reversible global operations, `CALL`, `UNCALL`, `CALL_VALUE`, `CALL_VOID`, `RETURN`, `RETURN_VALUE`, and `HALT`.
+  - Aggregate support covers immutable records, finite variants, fixed arrays, and slices. It includes construction, inspection, indexed or field reads, and equality.
+  - Storage support covers bounded regions, mutable word and byte buffers, strict UTF-8, nested read-only and mutable loans, owner-carrying calls, and fixed-capacity signed maps.
+  - A checked local and global update matches stage 0 and rewinds the outer interpreter exactly.
+  - The Wheeler compiler emits the proof-bearing `Counter.w` artifact byte for byte with stage 0. The interpreter runs its forward and inverse calls back to zero.
+  - Control fixtures cover conditionals, a bounded loop, a two-argument value call, an argument-bearing void call, and the four-function `FunctionValues.w` graph.
+  - Stress fixtures cover a 35-local frame, an 80-expectation code window, six levels of `RecursiveValue.w`, and `LoopControl.w` with early return, `break`, and `continue`.
+  - Aggregate fixtures include nested `Records.w`, payload-free `FiniteEnums.w`, payload-carrying `Variants.w`, fixed arrays, and slices.
+  - Storage fixtures include owned regions, word and byte buffers, nested mutable loans, valid and malformed UTF-8, `FrozenUtf8.w`, and a signed map.
+  - Every declared global, up to eight, agrees with stage 0 before exact rewind.
+  - `FunctionVerifier.w`, `AggregateVerifier.w`, `StorageVerifier.w`, and `ProofVerifier.w` each check their own metadata and operands.
+  - The proof verifier rejects a structurally valid but wrong inverse and a forged smaller step bound.
+  - Forged branch and call targets fail before interpretation.
+  - Forged record-field, variant-tag, array-index-local, slice-index-local, word-index-local, byte-index-local, UTF-8-index-local, and map-key-local operands fail at the same boundary.
+  - Opcode-family guards avoid running aggregate or storage checks for scalar instructions. A `LOCAL_MOVE` does not scan unrelated heap state.
+  - Returned public loans, interpreter-level rewind records, workflows, and native machine code remain unfinished.
 - [ ] Platform ABI and native-image identity are specified.
 - [ ] Native backend executes the classical bootstrap profile.
 - [ ] Wheeler-written verifier and VM pass Java differential traces.
@@ -224,9 +253,9 @@ Rejected. The current implementation is the executable migration oracle. It is t
 
 ## Open questions
 
-- Which derived native backend IR and code generator form the first supported AOT path? — **Owner:** compiler and platform maintainers — **Decide by:** before native code enters ordinary CI
-- What is the smallest C-compatible ABI shim that supports tier-1 systems without owning language semantics? — **Owner:** runtime maintainers — **Decide by:** before Wheeler allocator implementation
-- Which object formats can provide byte-reproducible native releases, and where must the manifest compare normalized identities instead? — **Owner:** release maintainers — **Decide by:** before the first recovery release
+- Which derived native backend IR and code generator form the first supported AOT path (owner: compiler and platform maintainers; decision point: before native code enters ordinary CI)?
+- What is the smallest C-compatible ABI shim that supports tier-1 systems without owning language semantics (owner: runtime maintainers; decision point: before Wheeler allocator implementation)?
+- Which object formats can provide byte-reproducible native releases, and where must the manifest compare normalized identities instead (owner: release maintainers; decision point: before the first recovery release)?
 
 ## References
 

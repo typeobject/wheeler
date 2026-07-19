@@ -13,28 +13,30 @@
 
 ## Summary
 
-Proofs are a Wheeler language feature. Contracts attach to ordinary, reversible, coherent, unitary, and hybrid declarations; theorem declarations inhabit the same module and type system as executable code; proof blocks use structured, source-located syntax checked by a small deterministic kernel. Tree-sitter, package metadata, bytecode, diagnostics, documentation, and editor tooling expose the same proof structure.
+Proofs are part of the Wheeler language. Contracts attach to ordinary, reversible, coherent, unitary, and hybrid declarations. Theorem declarations use the same modules and types as executable code. Structured proof blocks carry source locations and are checked by a small deterministic kernel; Tree-sitter, package metadata, bytecode, diagnostics, docs, and editor tools expose the same proof structure.
 
-Proof text is not a comment, free-form `because` string, provider assertion, or host-language annotation. Propositions refer to Wheeler's reversible typed IR relations—forward transition, exact inverse, logged rewind boundary, coherent permutation, unitary adjoint, measurement/workflow transition—not an optimizing host IR or provider circuit. A successful theorem produces a bounded canonical certificate tied to exact declarations, semantic region identities, type/effect assumptions, and compiler profile. Consumers may verify that certificate without rerunning a solver or trusting the compiler that produced it.
+Proof text is not a comment, a free-form `because` string, a provider claim, or a host-language annotation. Propositions refer to Wheeler's typed IR relations: forward transition, exact inverse, logged rewind boundary, coherent permutation, unitary adjoint, and measurement or workflow transition. They do not refer to an optimizing host IR or provider circuit.
 
-Wheeler distinguishes mathematical claims from empirical evidence. A unitary, inverse, ownership, totality, or resource theorem is checked against formal semantics. A sampled hardware statement is an `experiment` with target, calibration, estimator, shots, uncertainty, and confidence provenance; it cannot satisfy a theorem requiring universal or exact evidence.
+A successful theorem creates a bounded canonical certificate. The certificate binds exact declarations, semantic region identities, type and effect assumptions, and compiler profile. A consumer can verify it without rerunning a solver or trusting the compiler that found the proof.
+
+Wheeler keeps formal claims separate from measurements. Theorems about unitarity, inverse behavior, ownership, totality, or resources are checked against formal rules. A sampled hardware claim is an `experiment` with target, calibration, estimator, shots, uncertainty, and confidence data. It cannot satisfy a theorem that requires exact or universal evidence.
 
 ## Motivation
 
-Reversibility and quantum computation carry proof obligations in ordinary programming:
+Reversible and quantum programs carry proof duties during normal development:
 
-- a generated inverse must restore owned state under its preconditions;
-- coherent lifting must denote an exact finite permutation;
-- ancillas must return to declared clean values;
-- a unitary method and its generated adjoint must compose to identity;
-- optimizer and compiler rewrites must preserve a semantic region;
-- target plans must satisfy qubit, depth, error, event, and retry bounds;
-- affine quantum resources must not be cloned, leaked, or used after measurement;
-- replay must reproduce classical reduction without claiming to reconstruct quantum state.
+- A generated inverse must restore owned state under its preconditions.
+- Coherent lifting must define an exact finite permutation.
+- Ancillas must return to their declared clean values.
+- A unitary method followed by its adjoint must compose to identity.
+- Optimizer and compiler rewrites must preserve a semantic region.
+- Target plans must stay within qubit, depth, error, event, and retry limits.
+- Affine quantum resources must not be cloned, leaked, or used after measurement.
+- Replay must reproduce classical reduction without claiming to rebuild quantum state.
 
-Leaving these claims in prose prevents the compiler and package system from checking them. Building a separate proof language duplicates names, types, modules, source maps, effects, and quantum semantics. Integrating proof syntax lets executable declarations and claims evolve under one resolver and one compatibility model.
+Prose alone cannot let the compiler or package system check these claims. A separate proof language would duplicate names, types, modules, source maps, effects, and quantum rules. Integrated proof syntax lets executable code and its claims evolve under one resolver and one compatibility model.
 
-The trusted base must remain small. Elaborators, automation, SMT integrations, and circuit simplifiers may search for proofs, but only a bounded kernel validates canonical proof terms.
+The trusted base must stay small. Elaborators, automation, SMT tools, and circuit simplifiers may search for a proof; only the bounded kernel decides whether the canonical proof term is valid.
 
 ## Goals
 
@@ -77,7 +79,7 @@ rev long increment(long value)
 }
 ```
 
-`old(expression)` names the value at the declaration boundary selected by the contract. It is not VM history access. `result` has the declaration's return type. `modifies` names owned mutable locations or `nothing`; effects and quantum resource transitions are also available as typed contract terms.
+`old(expression)` names the value at the declaration boundary selected by the contract. It isn't VM history access. `result` has the declaration's return type. `modifies` names owned mutable locations or `nothing`; effects and quantum resource transitions are also available as typed contract terms.
 
 A `rev` contract is checked in both directions. Forward preconditions become obligations for callers. The generated inverse receives the mechanically derived inverse relation plus any explicit inverse-side conditions.
 
@@ -115,13 +117,13 @@ Proof blocks contain a small structured statement set:
 - `exact proofValue;` closes the goal with an explicit term;
 - `qed;` closes a goal only when no obligations remain.
 
-Every construct has a concrete syntax node and elaboration rule. There is no `because "free-form explanation"` escape hatch.
+Every construct has a concrete syntax node and elaboration rule. The `because` form cannot accept a free-form explanation string.
 
 ### Proof values
 
 Proofs may be passed, returned, stored in immutable package metadata, or erased after certificate emission according to type and visibility. A proposition `P` has proof type `Proof<P>`. Runtime code cannot forge that value from bytes; certificate decoding invokes the kernel.
 
-Proof irrelevance applies to semantic equality unless a declaration explicitly processes certificate metadata. Two valid proofs of the same proposition do not make executable values unequal.
+Proof irrelevance applies to semantic equality unless a declaration explicitly processes certificate metadata. Two valid proofs of the same proposition don't make executable values unequal.
 
 ## Proposition language
 
@@ -154,7 +156,7 @@ A proof declaration is deterministic and total under declared bounds. The checke
 
 Proof elaboration may allocate in a bounded private arena and emit diagnostics. Those implementation effects do not enter theorem terms. Kernel checking has explicit term-node, recursion-depth, rewrite-step, memory-byte, and elapsed-policy ceilings.
 
-An exhausted automation budget means “proof not established,” not false. A certificate that already exists is checked under kernel limits independent of the search process that found it.
+An exhausted automation budget leaves the proof unresolved. It does not make the proposition false. An existing certificate is checked under kernel limits independent of the search process that found it.
 
 ## Reversibility claims
 
@@ -188,7 +190,7 @@ The initial exact quantum rules cover:
 - ancilla preparation and clean return;
 - no-cloning and affine ownership transitions.
 
-A theorem about ideal region unitarity survives target lowering only as an ideal semantic claim. A theorem about a physical implementation additionally needs a verified lowering certificate and a formal target model. Calibration samples cannot turn an ideal theorem into a physical guarantee.
+A theorem about ideal region unitarity survives target lowering only as an ideal semantic claim. A theorem about a physical implementation also needs a verified lowering certificate and a formal target model. Calibration samples cannot turn an ideal theorem into a physical guarantee.
 
 Measurement changes the proposition domain. Post-measurement claims describe distributions, typed outcomes, ownership transitions, and classical continuation state. They do not assert an inverse collapse.
 
@@ -261,7 +263,7 @@ Package policy may reject certificates using unsafe assumptions, classical choic
 
 Theorems, propositions, proof-producing functions, and contracts use normal package/module visibility. Public declaration identity includes observable contracts and theorem signatures. Strengthening a postcondition may be compatible; strengthening a required precondition is not silently compatible.
 
-Imports can select executable and proof namespaces without duplicating declaration identity. Cyclic theorem dependencies are rejected unless accepted mutual induction rules apply.
+Imports can select executable and proof namespaces without duplicating declaration identity; cyclic theorem dependencies are rejected unless accepted mutual induction rules apply.
 
 Documentation renders contracts next to declarations, theorem statements with assumption sets, and certificate status. Source navigation moves between an executable declaration, generated obligations, proofs, and uses.
 
@@ -277,7 +279,7 @@ Documentation renders contracts next to declarations, theorem statements with as
 - kernel, scalar, arithmetic, quantum-semantics, and resource-model profile identities;
 - optional source maps with no semantic authority.
 
-Executable loading may omit proof payloads when policy does not require them, but cannot claim a proof was checked without a verified certificate identity. Optimizers using proof-directed transformations retain the exact input theorem and transformation certificate identities.
+Executable loading may omit proof payloads when policy does not require them. It cannot claim that a proof was checked without a verified certificate identity. Optimizers using proof-directed transformations must retain the exact input theorem and transformation certificate identities.
 
 Unknown required proof records fail closed. Certificate compression is bounded and does not alter canonical uncompressed identity.
 
@@ -297,7 +299,7 @@ Proof caches key exact source declaration, imported API, semantic IR, elaborator
 
 ## Safety and limits
 
-Source and certificate limits include proposition depth, quantified domain size, proof nodes, local hypotheses, rewrite steps, normalization fuel, recursion depth, arithmetic term width, matrix dimension, qubit count, resource-polynomial size, diagnostics, attachment bytes, and total kernel memory.
+Source and certificate limits cover proposition depth, quantified-domain size, proof nodes, local hypotheses, rewrite steps, normalization fuel, and recursion depth. They also bound arithmetic width, matrix size, qubits, resource-polynomial size, diagnostics, attachment bytes, and total kernel memory.
 
 Decoders reject cycles where acyclic terms are required, invalid de Bruijn or symbol references, duplicate records, noncanonical terms, forged identities, unknown rules, profile mismatch, excessive expansion, and trailing payload.
 
@@ -305,7 +307,7 @@ Kernel failure cannot produce an executable artifact marked as proved. Policy de
 
 ## I/O receipts and conditional proofs
 
-WIP-0032 receipt-chain, range-disjointness, graph-ordering, idempotency-key, operation-lifecycle, and backend-profile obligations may be WIP-0011 proof subjects. The kernel can prove that accepted evidence satisfies a declared rule; it cannot prove that an unmodeled device actually persisted bytes, that a network peer acted, or that a replica survived a failure nobody modeled.
+WIP-0032 receipt-chain, range-disjointness, graph-ordering, idempotency-key, operation-lifecycle, and backend-profile obligations may be WIP-0011 proof subjects. The kernel can prove that accepted evidence satisfies a declared rule. It cannot prove that an unmodeled device persisted bytes, that a network peer acted, or that a replica survived an unmodeled failure.
 
 Durability theorems therefore bind the exact protected subject, failure model, operation, backend/profile evidence, assumptions, and receipt chain. A proof cannot cast `WriteCompleted` into `DataStable` or empirical provider output into theorem authority.
 
@@ -345,7 +347,7 @@ Each fixture first lands as an executable law if necessary, then gains a formal 
 - [ ] Contract and theorem syntax parses and resolves.
 - [ ] Finite classical proof kernel checks canonical terms.
 - [x] Explicit generated-inverse theorems over straight-line reversible functions emit canonical certificates checked independently from compiler lowering.
-- [x] The Wheeler-written bounded compiler slice parses an optional inverse theorem, derives its fifth sorted string and seventh section, emits the 28-byte `GENERATED_INVERSE` payload, verifies the profile in Wheeler, and produces bytes accepted by the independent proof kernel. This is certificate emission, not the full Wheeler kernel sneaking in through the kitchen window.
+- [x] The Wheeler-written compiler slice parses an optional inverse theorem. It derives the fifth sorted string and seventh section, then emits the 28-byte `GENERATED_INVERSE` payload. Wheeler verifies the profile, and the independent proof kernel accepts the resulting bytes.
 - [ ] The finite kernel checks exact QFT adjoint involution and same-register adjacent-inverse rewrite certificates; semantic composition, general rewrite equivalence, scalar normalization, and global-phase rules remain.
 - [ ] Straight-line function step-bound certificates are checked against exact instruction bodies and the program ceiling; composition, loops, recursion, circuits, workflows, and target-plan resource bounds remain.
 - [ ] Experiment declarations integrate with hybrid provenance without inhabiting theorem types.
@@ -394,10 +396,10 @@ Rejected. Simulation can establish exact finite cases under its model or provide
 
 ## Open questions
 
-- Which minimal dependent or indexed type features are required for useful resource and quantum-shape propositions? — **Owner:** type-system and proof maintainers — **Decide by:** before proposition schema acceptance
-- Which exact scalar representation should support finite quantum certificates without trusting floating-point approximations? — **Owner:** quantum and proof maintainers — **Decide by:** before QFT certificate implementation
-- Which proof terms remain inline in `.wbc` and which use content-addressed package attachments? — **Owner:** bytecode and package maintainers — **Decide by:** before certificate section acceptance
-- Which automation tools belong in the recovery graph while keeping the kernel small? — **Owner:** bootstrap and proof maintainers — **Decide by:** before self-hosted elaboration
+- Which minimal dependent or indexed type features are required for useful resource and quantum-shape propositions (owner: type-system and proof maintainers; decision point: before proposition schema acceptance)?
+- Which exact scalar representation should support finite quantum certificates without trusting floating-point approximations (owner: quantum and proof maintainers; decision point: before QFT certificate implementation)?
+- Which proof terms remain inline in `.wbc` and which use content-addressed package attachments (owner: bytecode and package maintainers; decision point: before certificate section acceptance)?
+- Which automation tools belong in the recovery graph while keeping the kernel small (owner: bootstrap and proof maintainers; decision point: before self-hosted elaboration)?
 
 ## References
 

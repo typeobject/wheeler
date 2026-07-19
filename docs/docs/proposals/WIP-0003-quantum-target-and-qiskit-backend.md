@@ -13,23 +13,27 @@
 
 ## Summary
 
-Wheeler executes WIP-0002 quantum regions through a capability-based `QuantumTarget` contract. Those regions are the unitary/measurement portion of Wheeler's reversible typed IR and remain authoritative through planning. Targets describe semantic operations, topology, qubit kind, dynamic control, reset, parameter binding, sampling, expectation estimation, limits, timing, and result guarantees without exposing provider objects to Wheeler programs. Lowering produces a target-qualified derived executable; asynchronous submission produces versioned results and provenance. OpenQASM, provider circuits, pulse plans, and job payloads never replace the source region's inverse/adjoint, ownership, effect, or proof identity.
+Wheeler runs WIP-0002 quantum regions through a capability-based `QuantumTarget` contract. A target describes supported operations, topology, qubit kind, dynamic control, reset, parameter binding, sampling, expectation estimates, limits, timing, and result guarantees. Wheeler programs never receive provider objects.
 
-The first implementations are a deterministic semantic simulator and an OpenQASM 3 target boundary. Wheeler lowers supported static regions to portable OpenQASM and submits them through an application-supplied executor that may use a provider REST API, appliance SDK, queue, local engine, or external tool. Qiskit remains one possible OpenQASM consumer rather than a Wheeler runtime dependency. The core contract also accommodates future fault-tolerant logical targets, target-resident classical kernels, and tightly coupled processors without making today's coupling maps or cloud queues permanent language concepts.
+The Wheeler region remains authoritative during planning. Lowering creates a target-specific executable, and asynchronous submission returns versioned results with provenance. OpenQASM, provider circuits, pulse plans, and job payloads are derived data. They do not replace the source region's ownership, effects, adjoint, inverse, or proof identity.
+
+The first targets are a deterministic semantic simulator and an OpenQASM 3 boundary. Wheeler lowers supported static regions to portable OpenQASM. An application-supplied executor may then use a REST API, appliance SDK, queue, local engine, or external tool. Qiskit is one possible OpenQASM consumer, not a Wheeler runtime dependency.
+
+The same contract can later support logical fault-tolerant targets, target-side classical kernels, and tightly coupled processors. It does not make today's coupling maps or cloud queues part of the language.
 
 ## Motivation
 
-Running on a simulator is not enough, but compiling Wheeler directly against one Qiskit API would age poorly. Today's devices differ in native gates, topology, qubit count, reset, mid-circuit measurement, conditional control, shot limits, parameter handling, queueing, calibration, and result products. Future systems may expose logical qubits, lattice-surgery operations, distributed entanglement, long-lived sessions, or coherent reversible coprocessors rather than today's physical circuit interface.
+A simulator is useful, but direct dependence on one Qiskit API would age badly. Current devices differ in native gates, topology, qubit count, reset, mid-circuit measurement, conditional control, shot limits, parameters, queues, calibration, and result formats. Future systems may expose logical qubits, lattice-surgery operations, distributed entanglement, long sessions, or coherent coprocessors.
 
-The examples exercise several target shapes:
+The examples also need different target shapes:
 
-- `QFT` needs static unitary circuit execution.
-- `QuantumOptimizer` needs parameterized repeated sampling.
+- `QFT` needs static unitary execution.
+- `QuantumOptimizer` needs repeated parameterized sampling.
 - `QuantumNeuralNetwork` needs repeated circuits and gradient-related observations.
-- `SurfaceCode` needs dynamic measurement, reset, decoding latency, and feed-forward.
-- `QuantumCompiler` needs topology and calibration metadata but should not make those provider values part of source semantics.
+- `SurfaceCode` needs measurement, reset, low-latency decoding, and feed-forward.
+- `QuantumCompiler` needs topology and calibration data without making provider values part of source meaning.
 
-A durable boundary must make capability differences explicit, preserve the ideal Wheeler program, and reject unsupported plans before expensive submission.
+A stable target boundary must expose these differences, preserve the ideal Wheeler program, and reject unsupported plans before submission begins.
 
 ## Use cases
 
@@ -51,7 +55,7 @@ A fault-tolerant target advertises logical qubits and operations, code distance 
 
 ### Reproducible derived executable
 
-A cached target executable identifies the semantic region hash, target descriptor fingerprint, lowering pipeline and versions, mapping, native operations, calibration epoch when applicable, and optimization policy. A changed target snapshot causes deliberate relowering rather than accidental reuse.
+A cached target executable identifies the semantic region hash, target descriptor fingerprint, lowering pipeline and versions, mapping, native operations, calibration epoch when applicable, and optimization policy. A changed target snapshot causes deliberate relowering instead of accidental reuse.
 
 ## Goals
 
@@ -61,7 +65,7 @@ A cached target executable identifies the semantic region hash, target descripto
 - Negotiate capabilities before submission and preserve actionable diagnostics.
 - Support static circuits, parameterized sampling, expectation estimation, and optional dynamic circuits.
 - Make local simulation and remote hardware share lifecycle semantics even when one completes immediately.
-- Model future logical and tightly coupled targets through capabilities rather than a fixed NISQ hierarchy.
+- Model future logical and tightly coupled targets through capabilities instead of a fixed NISQ hierarchy.
 - Record enough provenance for WIP-0004 replay and scientific comparison.
 
 ## Non-goals
@@ -78,7 +82,7 @@ A cached target executable identifies the semantic region hash, target descripto
 
 A **semantic region** is WIP-0002 backend-neutral quantum IR with ideal operations and declared requirements.
 
-A **target descriptor** is an immutable, bounded capability snapshot used for one planning decision. It has a stable fingerprint and expiry or freshness policy where provider data changes.
+A **target descriptor** is an immutable, bounded capability snapshot used for one planning decision; it has a stable fingerprint and expiry or freshness policy where provider data changes.
 
 A **lowering plan** maps one semantic region to target operations while preserving its declared ideal semantics and recording policy choices.
 
@@ -86,7 +90,7 @@ A **target executable** is derived, target-qualified content. It is not canonica
 
 A **submission** combines a target executable, parameter bindings, result request, execution options, and provenance identity.
 
-A **job** has an asynchronous lifecycle and may outlive the process that submitted it. A **result** is an immutable typed observation product, never a surviving provider qubit reference.
+A **job** has an asynchronous lifecycle and may outlive the process that submitted it; a **result** is an immutable typed observation product, never a surviving provider qubit reference.
 
 ## Ownership and boundaries
 
@@ -96,15 +100,15 @@ A **job** has an asynchronous lifecycle and may outlive the process that submitt
 
 Target adapters own provider translation, native decomposition assigned to them, provider job handles, polling, cancellation requests, and provider metadata normalization.
 
-The OpenQASM executor owner handles provider compatibility and transport. Provider SDK types do not cross the target boundary.
+The OpenQASM executor owner handles provider compatibility and transport. Provider SDK types don't cross the target boundary.
 
-Hosts own target selection, credentials, network policy, account configuration, and authorization. Credentials never enter `.wbc`, job results, debug dumps, or replay logs.
+Hosts own target selection, credentials, network policy, account configuration, and authorization; credentials never enter `.wbc`, job results, debug dumps, or replay logs.
 
 ## Design
 
 ### Target descriptor
 
-A descriptor identifies adapter, provider, backend, snapshot version, and qubit model. It advertises bounded capability records rather than one linear “generation” number. Initial records cover:
+A descriptor identifies adapter, provider, backend, snapshot version, and qubit model; it advertises bounded capability records instead of one linear "generation" number. Initial records cover:
 
 - physical, simulated, or logical qubit kind and available count;
 - semantic operations accepted directly or through certified decomposition;
@@ -170,7 +174,7 @@ Counts use canonical bit/register ordering independent of provider display conve
 
 ### Semantic simulator
 
-The reference simulator implements ideal semantics for the accepted gate and control subset. It prioritizes conformance, source traces, inverse checks, and explicit limits over large-scale performance. Statevector, stabilizer, tensor-network, density-matrix, or noisy simulators may implement the same target contract with distinct capability descriptors.
+The reference simulator implements ideal semantics for the accepted gate and control subset; it prioritizes conformance, source traces, inverse checks, and explicit limits over large-scale performance. Statevector, stabilizer, tensor-network, density-matrix, or noisy simulators may implement the same target contract with distinct capability descriptors.
 
 Seeded simulation records algorithm, seed, and version. Exact amplitudes are a simulator-only diagnostic capability and are never portable hardware program output.
 
@@ -182,7 +186,7 @@ An executor may submit through a provider REST API, appliance SDK, queue service
 
 Qiskit can import emitted OpenQASM, but Wheeler does not embed Python or Qiskit. `wheeler qasm` emits a static submission for external tools. Future Java or native provider adapters implement the same executor contract without changing source or bytecode.
 
-OpenQASM 3 does not replace canonical Wheeler region IR. Regions requiring dynamic feedback, future logical operations, or semantics not represented losslessly require another capability-specific lowering rather than provider text hidden in source.
+OpenQASM 3 does not replace canonical Wheeler region IR. Regions requiring dynamic feedback, future logical operations, or semantics not represented losslessly require another capability-specific lowering instead of provider text hidden in source.
 
 ### Future target evolution
 
@@ -200,7 +204,7 @@ New capabilities do not weaken affine ownership, explicit measurement, result pr
 
 ## Reversibility and history
 
-Planning preserves ideal inverse relationships, but submitting an inverse circuit is not machine rewind. On hardware it is another physical execution subject to noise, queueing, and state-lifetime constraints.
+Planning preserves ideal inverse relationships, but submitting an inverse circuit is not machine rewind. On hardware it's another physical execution subject to noise, queueing, and state-lifetime constraints.
 
 A target may apply a unitary and its adjoint within one live region. Once measurement, reset, job termination, or loss of session state occurs, Wheeler does not claim to restore the prior physical state. WIP-0004 may replay observations or prepare and retry.
 
@@ -216,7 +220,7 @@ Hardware samples are nondeterministic. Simulator determinism is declared as a ca
 
 ## Quantum and proof implications
 
-A lowering report may carry checkable equivalence witnesses for gate decomposition, routing, adjoint preservation, and approximation bounds. Those witnesses are not trusted merely because an adapter emits them; a later proof WIP will define accepted certificate forms and trusted checkers.
+A lowering report may carry checkable equivalence witnesses for gate decomposition, routing, adjoint preservation, and approximation bounds. Those witnesses are not trusted only because an adapter emits them; a later proof WIP will define accepted certificate forms and trusted checkers.
 
 Calibration and empirical fidelity are evidence about a target run, not proofs of source-level unitarity or correctness. `QuantumCompiler.w` must distinguish semantic verification, classical compilation, and calibration experiments.
 
@@ -238,7 +242,7 @@ Structured failures distinguish invalid Wheeler IR, missing target capability, l
 
 ## Unified target-operation lifecycle
 
-WIP-0032 supplies the common future lifecycle for target submission, observation, cancellation, result delivery, and recoverable sessions. Target requests and results remain quantum-domain types carrying WIP-0004 identities; they are not generic file writes wearing provider credentials.
+WIP-0032 supplies the common future lifecycle for target submission, observation, cancellation, result delivery, and recoverable sessions. Target requests and results remain quantum-domain types carrying WIP-0004 identities; they are not generic file writes with provider credentials attached.
 
 The current `QuantumJob` API is an executable stage-0 slice of that lifecycle. Migration preserves its submit/acknowledge/validate/recover behavior while moving ownership, queue credit, completion, and cancellation races under `IoScope`. Coherent state never enters the fabric as bytes.
 
@@ -290,7 +294,7 @@ Rejected as the sole boundary. It is useful interchange for many current circuit
 
 ### Standardize only QIR
 
-Rejected for the same reason. QIR may be a valuable lowering target, but it is not Wheeler's complete source, workflow, capability, or result model.
+Rejected for the same reason. QIR may be a useful lowering target, but it is not Wheeler's complete source, workflow, capability, or result model.
 
 ### Compile separately for each provider in source code
 
@@ -302,8 +306,8 @@ Rejected. Decomposition must preserve semantics and error budgets; host splittin
 
 ## Open questions
 
-- Which provider REST executor should be the first maintained live-hardware adapter? — **Owner:** target maintainers — **Decide by:** before live hardware enters CI documentation
-- Which expectation and observable model belongs in the first result contract rather than a later extension? — **Owner:** quantum API maintainers — **Decide by:** before this WIP enters Review
+- Which provider REST executor should be the first maintained live-hardware adapter (owner: target maintainers; decision point: before live hardware enters CI documentation)?
+- Which expectation and observable model belongs in the first result contract instead of a later extension (owner: quantum API maintainers; decision point: before this WIP enters Review)?
 
 ## References
 

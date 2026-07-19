@@ -1,16 +1,11 @@
 # Bootstrap evidence
 
-Wheeler promotes no recovery compiler merely because it can reproduce its own
-bad habits. WIP-0007 requires two separate checks:
+A compiler can reproduce its own bugs. That alone doesn't make it trustworthy. WIP-0007 requires two separate checks:
 
-1. stage 0 produces stage 1, and stage 1 produces byte-identical stage 2;
-2. an independently derived trusted compiler produces the same bytes without
-   first executing candidate-produced code.
+1. stage 0 builds stage 1, and stage 1 builds a byte-identical stage 2;
+2. an independently derived trusted compiler produces the same bytes without first running code from the candidate compiler.
 
-The checked bootstrap gate records successful evidence in
-`wheeler.bootstrap.yaml`. The repository does not contain such a manifest yet:
-the bounded Wheeler compiler is not self-hosting, and a manifest fabricated in
-advance would be a YAML-shaped pep talk.
+The bootstrap gate records successful evidence in `wheeler.bootstrap.yaml`. The repository does not contain that manifest yet because the bounded Wheeler compiler is not self-hosting. Creating the file early would not provide real evidence.
 
 ## Evidence command
 
@@ -39,31 +34,29 @@ wheeler bootstrap-manifest \
   --output wheeler.bootstrap.yaml
 ```
 
-Every file argument must name a physical, nonsymbolic file of at most 16 MiB.
-Only either diagnostics file may be empty. The acceptance argument must name a closed artifact tree whose canonical
-`wheeler.artifact-set.json` still matches every contained `.wbc`. Inputs are
-read with before-and-after file checks; changing a file while it is hashed is an
-error, not an exciting new build mode.
+Each file argument must point to a physical, nonsymlink file no larger than 16 MiB. Only the two diagnostics files may be empty.
 
-Before publishing anything, the command:
+The acceptance argument must point to a closed artifact tree. Its canonical `wheeler.artifact-set.json` must still match every `.wbc` file in that tree. The command checks each input before and after reading it, so a file that changes during hashing causes an error.
+
+Before it publishes anything, the command:
 
 - strictly decodes the canonical `wheeler.compiler` package archive;
-- parses the schema-3 snapshot-bound lock, requires its exact canonical YAML bytes, and binds it to the source manifest;
-- parses exact schema-1 compiler options and limits, and requires the option profile to match the source package;
+- parses the schema-3 snapshot-bound lock and requires its exact canonical YAML bytes;
+- binds that lock to the source manifest;
+- parses exact schema-1 compiler options and limits;
+- requires the option profile to match the source package;
 - independently decodes and re-encodes stage 1, stage 2, and the diverse output;
 - compares all three complete `.wbc` byte strings;
-- compares ordinary and diverse diagnostic bytes;
-- requires distinct ordinary and diverse toolchain identities;
-- requires distinct ordinary and diverse compiler identities;
-- recomputes the closed acceptance artifact-set identity and requires that set to contain the compiler fixed point; and
-- parses its own output before atomically replacing the destination.
+- compares the ordinary and diverse diagnostic bytes;
+- requires different ordinary and diverse toolchain identities;
+- requires different ordinary and diverse compiler identities;
+- recomputes the closed acceptance artifact-set identity;
+- requires that set to contain the compiler fixed point;
+- parses its own output before replacing the destination atomically.
 
-The command never executes a candidate artifact. Pipeline ordering still has to
-show that diverse comparison preceded candidate execution; a static file cannot
-prove what an earlier shell script did. The eventual promotion job therefore
-binds the independently produced toolchain provenance files and runs acceptance
-only after this comparison gate. Two copies of one opaque compiler with
-slightly different filenames remain one opaque compiler.
+The command never runs a candidate artifact. A static manifest also cannot prove that an earlier build script followed the right order. The promotion job must show that the diverse comparison happened before candidate execution, bind both toolchain provenance files, and run acceptance only after the comparison gate.
+
+Two copies of the same opaque compiler do not count as independent derivations, even when their filenames differ.
 
 ## Compiler input schemas
 
@@ -93,15 +86,11 @@ limits:
   steps: 10000000
 ```
 
-Every limit is a positive canonical integer no larger than 1,073,741,824. The
-schema requires all ten ceilings and rejects unknown keys. A launcher must apply
-these exact values to both derivations; hashing an attractive limits file while
-using other limits is provenance fraud, not an implementation technique. Source
-maps may be enabled only when their normalized logical source identities are
-part of canonical output.
+Each limit is a positive canonical integer no larger than 1,073,741,824. The schema requires all ten limits and rejects unknown keys; a launcher must apply the same values to both derivations. Hashing one limits file while using different limits would make the provenance false.
 
-Each ordinary and diverse toolchain argument is exact canonical
-`wheeler.toolchain.yaml`:
+Source maps may be enabled only when their normalized logical source identities are part of the canonical output.
+
+Each ordinary and diverse toolchain argument uses exact canonical `wheeler.toolchain.yaml`:
 
 ```yaml
 schema: 1
@@ -113,17 +102,13 @@ toolchain:
   environment: "<sha256>"
 ```
 
-`kind` is one of `recovery-seed`, `independent-stage0`, or `host-source`.
-`source` binds reviewed toolchain sources, `builder` binds the compiler that
-built the toolchain, `dependencies` binds its closed dependency set, and
-`environment` binds the normalized build environment. The kind is an audit
-category, not diversity dust: promotion still requires distinct complete
-provenance and compiler identities plus review that the derivations are
-actually independent.
+`kind` is `recovery-seed`, `independent-stage0`, or `host-source`. The other fields bind the reviewed toolchain source, its builder, its closed dependency set, and its normalized build environment.
+
+The kind is only an audit category. Promotion still requires distinct full provenance and compiler identities, plus a review that confirms the two derivations are truly independent.
 
 ## Canonical evidence schema
 
-The sole schema-1 `wheeler.bootstrap.yaml` representation is strict canonical YAML:
+Schema 1 has one strict canonical `wheeler.bootstrap.yaml` form:
 
 ```yaml
 schema: 1
@@ -153,15 +138,11 @@ acceptance:
   artifact-set: "<sha256>"
 ```
 
-All identities are lowercase SHA-256. `source.archive` is the canonical package
-archive identity; `source.manifest` is the package-manifest identity;
-`source.lock` is the canonical lock identity. Options and limits are separate
-inputs so that changing a resource ceiling cannot masquerade as the same
-compilation. Toolchain, compiler, runtime, and verifier identities describe the
-complete two derivations rather than the hostname on which they happened to
-run.
+All identities are lowercase SHA-256 values. `source.archive` identifies the canonical package archive, `source.manifest` identifies the package manifest, and `source.lock` identifies the canonical lock.
 
-The schema constructor itself enforces:
+Options and limits remain separate inputs. A changed resource limit must not look like the same compilation. Toolchain, compiler, runtime, and verifier identities describe both complete derivations instead of the host that ran them.
+
+The schema constructor enforces these rules:
 
 ```text
 ordinary.stage-1 == ordinary.stage-2
@@ -171,27 +152,16 @@ ordinary.toolchain != diverse.toolchain
 ordinary.compiler != diverse.compiler
 ```
 
-These are necessary promotion conditions, not a theorem of source
-correspondence. Review, reproducible host builds, the strict verifier, source
-comparison, fixed-point evidence, and diverse derivation remain separate legs
-of the trust argument. Sawing off five legs because one hash looked sturdy is
-not simplification.
+These checks are required for promotion, but they do not prove that source and output match by themselves. The trust case also depends on review, reproducible host builds, the strict verifier, source comparison, fixed-point evidence, and independent derivation.
 
 ## Publication and retention
 
-A recovery candidate consists of the compiler artifact, its canonical source
-archive and lock, `wheeler.bootstrap.yaml`, the referenced provenance inputs,
-and the closed acceptance artifact set. Publication is content-addressed and
-all-or-nothing. Cache location, repository alias, download URL, CI run number,
-wall clock, and username are transport or commentary; none enters artifact or
-bootstrap identity.
+A recovery candidate includes the compiler artifact, its canonical source archive and lock, `wheeler.bootstrap.yaml`, every referenced provenance input, and the closed acceptance artifact set. Publication is content-addressed and all-or-nothing.
 
-The manifest is generated, never hand-edited. A failed comparison emits no new
-manifest. Deleting disposable cache copies must not change the evidence graph;
-losing a referenced provenance object does make the candidate unverifiable and
-therefore unpromotable. This is deliberate. Trust data that can disappear
-without consequence was decoration.
+Cache paths, repository aliases, download URLs, CI run numbers, wall-clock times, and usernames are transport details. They do not affect the artifact or bootstrap identity.
 
-See [WIP-0007](../proposals/WIP-0007-self-hosting-compiler-and-bootstrap.md)
-for the bootstrap procedure and [package and build reference](packages.md) for
-canonical package, lock, repository, and artifact-set identities.
+The manifest is generated and must not be hand-edited. A failed comparison produces no new manifest.
+
+Deleting extra cache copies must not change the evidence graph. Losing a referenced provenance object makes the candidate impossible to verify, so the candidate cannot be promoted.
+
+See [WIP-0007](../proposals/WIP-0007-self-hosting-compiler-and-bootstrap.md) for the bootstrap process. The [package and build reference](packages.md) defines canonical package, lock, repository, and artifact-set identities.

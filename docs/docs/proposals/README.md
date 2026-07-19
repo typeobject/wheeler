@@ -5,88 +5,90 @@ sidebar_position: 1
 
 # Wheeler Improvement Proposals
 
-A Wheeler Improvement Proposal, or WIP, records a decision that is too broad to leave buried in an issue or pull request. It states the problem, defines the relevant semantics and invariants, assigns ownership, chooses a design, and describes how the decision will be tested and adopted.
+A Wheeler Improvement Proposal, or WIP, records a decision that is too large for an issue or pull request. It explains the problem, sets the rules, assigns ownership, chooses a design, and says how the work will be tested and adopted.
 
-WIPs are Wheeler's durable decision log. A numbered `WIP-NNNN` is a proposal identifier; it does not mean that the work is necessarily “in progress.” Proposals describe proposed, accepted, or in-progress contracts. User guides and reference pages describe behavior that exists today and should not present an unfinished WIP as implemented behavior.
+WIPs are Wheeler's long-term decision record; a `WIP-NNNN` number identifies a proposal. It does not mean the work is currently underway. Proposals may describe planned, accepted, or active work. Guides and reference pages describe features that work today, so they must not present an unfinished WIP as current behavior.
 
 ## When to write a WIP
 
 Write a WIP for a change to:
 
-- source-language syntax, typing, proof rules, or observable semantics;
-- the definition of reversibility, retained history, uncomputation, or irreversible effects;
+- source syntax, types, proof rules, or visible behavior;
+- reversibility, retained history, uncomputation, or irreversible effects;
 - the VM instruction set, memory model, scheduler, concurrency, transactions, or synchronization;
 - bytecode containers, loaders, verification, versioning, or compatibility;
-- quantum state, gate, measurement, simulation, or hardware-backend semantics;
-- the trusted computing base for proofs or program verification;
-- compiler, runtime, tool, or module ownership across project boundaries;
-- determinism, resource limits, safety, security, diagnostics, or failure behavior;
-- a compatibility removal or migration spanning multiple modules or tools.
+- quantum state, gates, measurement, simulation, or hardware backends;
+- the trusted computing base for proofs or program checks;
+- ownership shared by the compiler, runtime, tools, or modules;
+- determinism, limits, safety, security, diagnostics, or failure behavior;
+- a compatibility removal or migration that crosses several modules or tools.
 
-A local refactor, isolated bug fix, test addition, documentation correction, or private optimization does not need a WIP unless it changes one of those contracts.
+A local refactor, small bug fix, test, documentation correction, or private optimization does not need a WIP. Write one only when the change affects one of these contracts.
 
 ## Statuses
 
 | Status | Meaning |
 | --- | --- |
-| Draft | The author is shaping the problem and design. |
-| Review | The proposal is ready for semantic, implementation, and migration review. |
-| Accepted | Maintainers approved the decision; implementation has not started. |
+| Draft | The author is still shaping the problem and design. |
+| Review | The proposal is ready for review of its meaning, implementation, and migration. |
+| Accepted | Maintainers approved the decision, but implementation has not started. |
 | Implementing | Work is underway, and the progress checklist must stay current. |
-| Implemented | The acceptance suite, documentation, migration, and required deletion are complete. |
-| Superseded | A later WIP replaces all or part of the decision. |
-| Withdrawn | The proposal will not be pursued. |
+| Implemented | Tests, documentation, migration, and required deletion are complete. |
+| Superseded | A later WIP replaces all or part of this decision. |
+| Withdrawn | The proposal will not move forward. |
 
-Only maintainers change a WIP to **Accepted**, **Implemented**, **Superseded**, or **Withdrawn**. A material semantic or architectural change sends an accepted proposal back to **Review**.
+Only maintainers may change a WIP to **Accepted**, **Implemented**, **Superseded**, or **Withdrawn**. A major change to the meaning or architecture sends an accepted proposal back to **Review**.
 
 ## How to create a proposal
 
-1. Copy [the template](TEMPLATE.md) to `WIP-NNNN-short-title.md`, using the next unused four-digit number.
-2. Fill in every metadata field, including dependencies, owners, and dates.
-3. Write the summary, motivation, and concrete use cases before choosing opcodes, classes, or APIs.
-4. State the semantic model and invariants. Define forward and reverse behavior explicitly when state can change.
-5. Keep the scope to one primary decision with an acceptance suite that can finish independently.
-6. Mark the proposal **Review** and request feedback from every affected boundary owner.
-7. Resolve open questions or assign each one an owner and decision date.
-8. After acceptance, implement the design in reviewable stages and update the progress checklist in the same pull requests.
-9. Update current reference documentation once behavior is implemented.
-10. Mark the proposal **Implemented** only after tests, documentation, migration, and required deletion are complete.
+1. Copy [the template](TEMPLATE.md) to `WIP-NNNN-short-title.md`; use the next unused four-digit number.
+2. Fill in every metadata field, including owners, dates, and dependencies.
+3. Write the summary, motivation, and use cases before choosing opcodes, classes, or APIs.
+4. Define the semantic model and its invariants. When state can change, explain forward and reverse behavior.
+5. Keep the proposal focused on one main decision with an acceptance suite that can finish on its own.
+6. Change the status to **Review** and ask each affected owner for feedback.
+7. Resolve every open question, or give it an owner and decision date.
+8. After acceptance, implement the design in reviewable stages. Update the progress checklist in the same pull requests.
+9. Update the current reference docs after the feature works.
+10. Mark the proposal **Implemented** only when tests, docs, migration, and required deletion are done.
 
-After a proposal leaves **Draft**, its number and filename never change. A Draft may be atomically renamed or split before review when its scope is plainly wrong; update every link in the same patch, reuse no unrelated number, and leave no redirect document pretending two authorities exist. Git already keeps the archaeology. Do not reuse the number of a withdrawn proposal. If a later decision replaces a reviewed proposal, retain both files and connect them through the `Supersedes` and `Superseded by` fields.
+Once a proposal leaves **Draft**, its number and filename stay fixed. A Draft may be renamed or split before review when its scope is wrong. Update every link in the same change, do not reuse another proposal's number, and do not leave a redirect file that creates two sources of truth. Git keeps the old history. Never reuse the number of a withdrawn proposal. When a later decision replaces a reviewed proposal, keep both files and connect them through `Supersedes` and `Superseded by`.
 
-`Depends on` lists hard implementation prerequisites, not every related proposal. Put non-blocking relationships in References. Status records decision maturity, not implementation priority.
+`Depends on` lists hard implementation requirements. Put related but nonblocking work in References. Status shows how mature the decision is, not how urgent the work is.
 
 ## Design expectations
 
-Wheeler proposals should:
+A Wheeler proposal should:
 
-- define observable semantics before selecting an encoding or Java API;
-- identify one authoritative owner for each piece of mutable state;
-- distinguish logically reversible operations from operations made reversible by retained history;
-- state what happens at measurements, I/O, exceptions, allocation, thread interaction, and other irreversible boundaries;
-- specify scheduler and replay determinism when concurrency is affected;
-- define malformed-input behavior, resource bounds, and history exhaustion;
-- describe bytecode and persisted-state compatibility when representation changes;
-- separate classical reversible semantics, quantum semantics, and proof claims rather than treating them as interchangeable;
-- include executable laws or conformance fixtures for important invariants;
-- name obsolete code, formats, and compatibility paths that will be removed.
+- define visible behavior before choosing an encoding or Java API;
+- name one owner for each piece of mutable state;
+- separate operations that are truly reversible from operations that need saved history;
+- explain measurement, I/O, exceptions, allocation, thread interaction, and other irreversible boundaries;
+- define scheduling and replay order when concurrency changes;
+- cover malformed input, resource limits, and history exhaustion;
+- explain bytecode and stored-state compatibility when a representation changes;
+- keep classical reversal, quantum behavior, and proof claims separate;
+- include executable laws or conformance fixtures for important rules;
+- name obsolete code, formats, and compatibility paths that must be removed.
 
-Use “Not applicable” with a reason for unaffected template sections. Split work that can be accepted, implemented, or rolled back independently. Exact API reference belongs in the manual after implementation; task-level planning belongs in issues.
+Write "Not applicable" and give a reason for sections that do not apply. Split work that can be accepted, implemented, or rolled back alone. Put final API reference in the manual after implementation. Keep task planning in issues.
 
 ## Cross-proposal IR invariant
 
-Every WIP preserves one Wheeler intermediate-language model. Canonical `.wbc` 1.0 is the sole semantic artifact and contains the closed typed IR needed by its selected target: classical register/region bodies, reversible relations and inverse bodies, ordered hybrid workflows, backend-neutral quantum regions, effects, ownership, proofs, and bounds. WIP-0029 may add non-executable generic typed bodies as a versioned library section inside `.wbc`; it does not create a source-template or host-object authority.
+Every WIP must preserve one Wheeler intermediate-language model. Canonical `.wbc` 1.0 is the only semantic artifact. It contains the closed typed IR needed by the selected target: classical register and region bodies, reversible relations and inverse bodies, ordered hybrid workflows, backend-neutral quantum regions, effects, ownership, proofs, and bounds.
 
-“Reversible IR” does not mean pretending every operation is bijective. Each operation declares one honest relation:
+WIP-0029 may add non-executable generic typed bodies as a versioned library section inside `.wbc`. Those bodies do not create a separate source-template or host-object authority.
 
-- intrinsic or checked inverse for information-preserving classical work;
-- bounded logged history for destructive work that supports VM rewind but not intrinsic inverse;
+"Reversible IR" does not mean every operation is bijective. Each operation declares one explicit relation:
+
+- an intrinsic or checked inverse for information-preserving classical work;
+- bounded logged history for destructive work that supports VM rewind but has no intrinsic inverse;
 - an explicit barrier for irreversible host observation;
 - an exact finite permutation for coherent classical lifting;
 - an adjoint-bearing semantic region for unitary quantum work;
-- an explicit measurement, reset, target, or workflow transition where information crosses domains.
+- an explicit measurement, reset, target, or workflow transition when information crosses domains.
 
-Source syntax, generic specialization, class evidence, tests, proofs, packages, native lowering, and documentation must retain those distinctions. No WIP may turn rewind into inverse, replay into physical reversal, compensation into uncomputation, a provider circuit into semantic IR, or an unchecked annotation into proof. Host ASTs, JVM bytecode, LLVM IR, native objects, and provider payloads are derived implementation material. They do not outrank verified Wheeler IR, even when they arrive wearing a very serious file extension.
+Source syntax, generic specialization, class evidence, tests, proofs, packages, native lowering, and documentation must keep those differences. No WIP may treat rewind as inverse, replay as physical reversal, compensation as uncomputation, a provider circuit as semantic IR, or an unchecked annotation as proof. Host ASTs, JVM bytecode, LLVM IR, native objects, and provider payloads are derived implementation data. Verified Wheeler IR remains authoritative.
 
 ## Proposals
 

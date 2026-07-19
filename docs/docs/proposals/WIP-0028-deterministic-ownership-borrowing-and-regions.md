@@ -13,9 +13,9 @@
 
 ## Summary
 
-Wheeler uses deterministic ownership and region-based storage as its ordinary memory model. The language neither requires nor silently supplies a tracing garbage collector.
+Wheeler uses deterministic ownership and region-based storage as its normal memory model. The language doesn't require or silently provide a tracing garbage collector.
 
-Dynamic mutable values have one owner unless an explicit sharing abstraction says otherwise. Copy, move, borrow, mutation, destruction, and escape are statically checked and represented in verified bytecode. The access law is pleasantly short:
+A dynamic mutable value has one owner unless code uses an explicit sharing type. The compiler checks copying, moves, borrows, mutation, destruction, and escape, and verified bytecode records those choices. The core access rule is simple:
 
 ```text
 one exclusive mutable borrow
@@ -23,21 +23,21 @@ or
 any number of shared immutable borrows
 ```
 
-The referent must remain alive and unmoved for the complete loan. Wheeler adopts that safety invariant and Rust-like move discipline without cloning Rust's syntax, complete lifetime calculus, auto-trait menagerie, interior-mutation conventions, arbitrary `unsafe`, or effectful destructor behavior.
+The referenced value must stay alive and unmoved for the full loan. Wheeler adopts this safety rule and Rust-like move behavior without copying Rust's syntax, full lifetime system, auto traits, interior-mutation patterns, broad `unsafe`, or effectful destructors.
 
-Ordinary storage consists of inline values, unique dynamic owners, bounded lexical or dynamic regions, phase arenas with typed IDs, and nonescaping loans. Explicit immutable `Shared<T>` may be a library feature. Host capabilities and foreign resources obey separate effect contracts.
+Normal storage includes inline values, unique dynamic owners, bounded lexical or dynamic regions, phase arenas with typed IDs, and nonescaping loans. An explicit immutable `Shared<T>` may later be a library type. Host capabilities and foreign resources follow separate effect rules.
 
-Memory reclamation is deterministic. Automatic destruction may release Wheeler-owned memory and internal accounting; it cannot quietly perform file, network, process, target, provider, clock, random, or other external effects. Those complete through explicit typed operations.
+Memory release is deterministic. Automatic destruction may free Wheeler-owned memory and update internal accounting. It cannot perform file, network, process, target, provider, clock, random, or other outside effects. Those actions finish through explicit typed operations.
 
-Quantum resources use the same ownership framework in a stricter must-consume affine mode. Qubits and registers cannot be copied, implicitly dropped, reference counted, serialized, or tucked into an ordinary shared graph and forgotten behind the sofa.
+Quantum resources use the same ownership base with stricter must-consume rules. Qubits and registers cannot be copied, dropped without an operation, reference counted, serialized, or stored in a normal shared graph.
 
 ## Motivation
 
-The implemented machine already has bounded affine regions, move/drop state, exclusive mutable buffer and map borrows, immutable UTF-8 borrows, primitive owner-returning calls, disjoint slices, affine quantum resources, exact ownership rewind, and hard byte/object ceilings.
+The current machine already supports bounded affine regions, move and drop state, mutable buffer and map borrows, and immutable UTF-8 borrows. It also supports owner-returning calls, disjoint slices, affine quantum resources, exact ownership rewind, and hard byte and object limits.
 
-The next profile needs compiler-scale arenas, owners crossing calls, borrowed results, package/runtime resource types, and the generic collections specified by WIP-0029. Starting with a general object heap would make reachability an implicit lifetime rule, couple VM/native behavior to collector policy, complicate rewind and FFI pinning, invite finalizers, and make compiler bounds depend on heap weather.
+The next profile needs compiler-sized arenas, owners that cross calls, borrowed results, package and runtime resources, and the generic collections from WIP-0029. A general object heap would make reachability an implicit lifetime rule. It would also tie VM and native behavior to collector policy, complicate rewind and FFI pinning, invite finalizers, and make compiler limits depend on collector behavior.
 
-Wheeler's smaller contract is ownership modes, places, origins, loans, regions, deterministic memory reclamation, explicit external cleanup, and bounded compiler/verifier dataflow. VM rewind and source inverse remain distinct; quantum values are affine semantic resources; and the compiler and package manager are acceptance programs rather than toy linked lists with excellent public relations.
+Wheeler uses a smaller contract: ownership modes, places, origins, loans, regions, deterministic memory release, explicit external cleanup, and bounded compiler and verifier analysis. VM rewind stays separate from source inverse. Quantum values remain affine semantic resources. The compiler and package manager are the full acceptance programs.
 
 ## Representative source
 
@@ -108,9 +108,20 @@ A bounded `Pin<T>` may stabilize storage for one exact WIP-0025 call scope. Pinn
 
 ## Non-goals
 
-This WIP does not copy every Rust lifetime, coercion, trait, or `unsafe` rule; require tracing collection; add Java object identity, reflection, finalizers, resurrection, or weak-finalization queues; expose pointers or addresses; permit arbitrary pointer arithmetic; fall back to GC after a failed ownership proof; reference-count every value; run user code during automatic destruction; hide fallible resource cleanup; make allocation/drop intrinsically reversible; persist raw loans; stabilize shared-memory concurrency; or permit quantum resources to be copied or casually dropped by generic containers.
+The first profile leaves out:
 
-General self-referential owners remain rejected. Cycles use one region/graph owner and typed IDs. Advanced abstractions may retain bounded checks; “zero runtime checks” is not a sacrament.
+- the full Rust lifetime, coercion, trait, and `unsafe` model;
+- tracing collection, reference counting, or a fallback GC;
+- Java object identity, reflection, finalizers, resurrection, and weak-finalization queues;
+- exposed pointers, addresses, or arbitrary pointer arithmetic;
+- user code during automatic destruction;
+- hidden failure during resource cleanup;
+- intrinsically reversible allocation or drop;
+- persisted raw loans;
+- shared-memory concurrency;
+- copying or implicit dropping of quantum resources through generic containers.
+
+General self-referential owners remain rejected. Cycles use one region or graph owner plus typed IDs. Advanced abstractions may retain bounded checks. The design does not require zero runtime checks.
 
 ## Semantic model
 
@@ -118,12 +129,12 @@ General self-referential owners remain rejected. Cycles use one region/graph own
 
 Every closed type has compiler-derived canonical properties:
 
-- **Copy:** duplication preserves value and ownership. Bounded scalars, small immutable enums, admitted proof-irrelevant evidence, and all-`Copy` immutable records qualify.
-- **Owned:** one binding or aggregate place owns the value. Assignment, passing, and return move unless `Copy` applies.
-- **Affine:** the value may be consumed at most once; copying is forbidden. Ordinary unique allocations are affine but may be droppable.
-- **Must-consume:** every successful path moves, returns, transforms, or explicitly consumes the value. Live qubits, registers, capabilities, transactions, and external handles may use this mode.
-- **Droppable:** deterministic memory-only destruction is valid under the sealed `Drop` contract. A must-consume type may deliberately lack it.
-- **Borrowed:** a scoped permission referring to an owner or shorter reborrow; it owns nothing.
+- Copy means duplication preserves both value and ownership. Bounded scalars, small immutable enums, admitted proof-irrelevant evidence, and immutable records whose fields are all `Copy` qualify.
+- Owned means one binding or aggregate place owns the value. Assignment, passing, and return move it unless `Copy` applies.
+- Affine values may be consumed at most once, so copying is forbidden. Ordinary unique allocations are affine but may be droppable.
+- Must-consume values must be moved, returned, transformed, or explicitly consumed on every successful path. Live qubits, registers, capabilities, transactions, and external handles may use this mode.
+- Droppable values permit deterministic memory-only destruction under the sealed `Drop` contract. A must-consume type may deliberately lack this property.
+- Borrowed values are scoped permissions that refer to an owner or shorter reborrow. They own nothing.
 
 `Copy`, `Drop`, and must-consume status are compiler-derived or admitted by sealed evidence. An ordinary WIP-0030 instance cannot make a socket copyable or teach a dirty qubit to disappear.
 
@@ -174,7 +185,7 @@ Owned `Vec<T>`, `String`, builders, maps, sets, and queues expose mutation throu
 
 A lexical region belongs to one scope. A dynamic region is an affine owner that may cross calls. Both carry unique identity, byte/object limits, allocation policy, child relation, allocation table, and open/closed state.
 
-A region closes only with no live loan, escaped allocation, unfinished child owner, or outstanding explicit resource transition. Successful lexical exit satisfies those rules statically. Trap cleanup follows the separate failure contract below rather than pretending an unclosed file became closed through positive thinking.
+A region closes only with no live loan, escaped allocation, unfinished child owner, or outstanding explicit resource transition. Successful lexical exit satisfies those rules statically. Trap cleanup follows the separate failure contract below instead of treating an unfinished external cleanup as complete.
 
 Compiler/package phases allocate immutable or phase-owned nodes in arenas and refer to them through nominal `NodeId`, `TypeId`, or `SymbolId`. IDs are meaningful only with access to their arena and are never persisted as addresses.
 
@@ -201,7 +212,7 @@ On a trap, the runtime deterministically reclaims private frame/region memory wi
 
 Move marking and loan lifetime changes are often compile-time facts and may appear in `rev` code when the ownership relation remains invertible. Swapping or permuting complete owners may be intrinsically reversible.
 
-Allocation and deallocation are ordinary effects. A `rev` body may use caller-owned clean workspace or a certified reversible allocator protocol; it may not allocate and discard. Drop is valid in intrinsic reversal only for a statically clean/empty value or when exact owned evidence recreates it. Logged history makes rollback possible, not intrinsic inverse.
+Allocation and deallocation are ordinary effects. A `rev` body may use caller-owned clean workspace or a certified reversible allocator protocol; it may not allocate and discard. Drop is valid during intrinsic reversal only for statically clean/empty values or when exact owned evidence recreates them. Logged history makes rollback possible, not intrinsic inverse.
 
 The VM records allocation, mutation, move, loan, and drop state above the commit horizon and can restore it during rewind. WIP-0001 rewind still does not make allocation/drop legal in a generated inverse. Commit permanently discards older history and permits source-unreachable memory reclamation; no loan spans that horizon.
 
@@ -229,7 +240,7 @@ Provided-buffer leases, registered regions, remote advertisements, tier allocati
 
 ## Reversible IR, proof, bytecode, and packages
 
-Ownership is part of Wheeler's reversible typed IR rather than a source-only lint. Every move, initialization, mutation, loan boundary that survives lowering, release, and resource transition has an exact forward state rule plus its WIP-0001 inverse, logged-rewind, or barrier classification. `rev` bodies may contain only ownership transitions whose inverse relation is checked; coherent and unitary bodies additionally satisfy WIP-0002/WIP-0031 affine resource rules. Native lowering consumes these facts and cannot rediscover weaker alias rules from machine pointers.
+Ownership is part of Wheeler's reversible typed IR instead of a source-only lint. Every move, initialization, mutation, loan boundary that survives lowering, release, and resource transition has an exact forward state rule plus its WIP-0001 inverse, logged-rewind, or barrier classification. `rev` bodies may contain only ownership transitions whose inverse relation is checked; coherent and unitary bodies must also satisfy WIP-0002/WIP-0031 affine resource rules. Native lowering consumes these facts and cannot rediscover weaker alias rules from machine pointers.
 
 Compiler/verifier evidence covers use-after-move, double drop, borrow escape, shared/exclusive compatibility, disjoint split, must-consume completion, region nonescape, and no live loan at destruction. WIP-0011 may expose stronger propositions, but a theorem never disables verifier safety.
 
@@ -262,7 +273,7 @@ Exhaustion is a deterministic diagnostic, never permission to compile unsafely. 
 8. Add quantum split/join and ancilla obligations.
 9. Add optional acyclic immutable `Shared<T>`.
 10. Add WIP-0025 pinning and native conformance.
-11. Delete host-GC-backed source values, hidden finalizers, duplicate manual owner flags, and pointer-like bootstrap shortcuts rather than maintaining an ownership museum.
+11. Delete host-GC-backed source values, hidden finalizers, duplicate manual owner flags, and pointer-like bootstrap shortcuts instead of keeping obsolete ownership paths.
 
 ## Progress
 
@@ -328,10 +339,10 @@ Rejected. WIP-0025 already names the native trust boundary. An unnamed escape ha
 
 ## Open questions
 
-- Is `Shared<T>` required for this WIP's first acceptance or its immediate library milestone? — **Owner:** runtime and library maintainers — **Decide by:** standard collection stabilization
-- Which must-consume resources receive runtime-managed abort on trap, if any? — **Owner:** runtime and workflow maintainers — **Decide by:** external resource type states
-- Are named regions visible in ordinary collection types or only ambiguous public signatures? — **Owner:** type-system and library maintainers — **Decide by:** cross-function borrow support
-- Which ownership facts are stored in `.wbc` and which are rederived? — **Owner:** bytecode and verifier maintainers — **Decide by:** ownership section freeze
+- Is `Shared<T>` required for this WIP's first acceptance or its immediate library milestone (owner: runtime and library maintainers; decision point: standard collection stabilization)?
+- Which must-consume resources receive runtime-managed abort on trap, if any (owner: runtime and workflow maintainers; decision point: external resource type states)?
+- Are named regions visible in ordinary collection types or only ambiguous public signatures (owner: type-system and library maintainers; decision point: cross-function borrow support)?
+- Which ownership facts are stored in `.wbc` and which are rederived (owner: bytecode and verifier maintainers; decision point: ownership section freeze)?
 
 ## References
 

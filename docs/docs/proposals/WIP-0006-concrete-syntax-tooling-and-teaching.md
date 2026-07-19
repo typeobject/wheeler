@@ -13,15 +13,19 @@
 
 ## Summary
 
-Wheeler defines a formatting-independent, unambiguous concrete syntax with stable source locations and a mirrored Tree-sitter grammar. The compiler lexer records line, column, and offset for every token. Editor tooling receives named syntax nodes, highlights, folds, comments, and `.w` file identity without depending on compiler implementation classes.
+Wheeler has formatting-independent, unambiguous syntax with stable source locations. The compiler lexer records the line, column, and offset of each token. A matching Tree-sitter grammar gives editors named nodes, highlighting, folds, comments, and `.w` file support without exposing compiler classes.
 
-The language is also organized as a teaching progression matching Wheeler's reversible typed IR: ordinary state and explicit barriers, reversible methods and reverse blocks, exact coherent permutations, unitary circuits and adjoints, measurement, and finally hybrid target workflows. Concrete syntax gives each boundary a stable node; it does not infer semantics or merge them for highlighting convenience. Examples introduce one boundary at a time and never explain measurement as ordinary reversible assignment.
+The language also follows a clear teaching order. It starts with ordinary state and effect barriers, then adds reversible methods and reverse blocks. Later steps cover coherent permutations, unitary circuits and adjoints, measurement, and hybrid target workflows.
+
+Each semantic boundary has a stable syntax node. Editor tools must not infer meaning or merge distinct operations just to simplify highlighting. Examples introduce one boundary at a time, and they never describe measurement as a normal reversible assignment.
 
 ## Motivation
 
-Wheeler source must work equally well in a compiler, editor, notebook, code browser, classroom, and research tool. A parser that depends on line breaks or accepts broad syntax only to discard unsupported nodes is hostile to all of those uses. Quantum programming is already conceptually demanding; syntax should expose semantic boundaries without unnecessary punctuation or provider-specific ceremony.
+Wheeler source must work in compilers, editors, notebooks, code browsers, classrooms, and research tools. A parser that depends on line breaks will be fragile in each setting. A parser that accepts broad syntax and discards unsupported nodes is just as harmful.
 
-Tree-sitter-like tools need a stable concrete tree even while type checking and target support evolve. Learners need runnable examples, deterministic simulators, useful failures, and vocabulary that distinguishes inverse, uncompute, rewind, replay, and retry.
+Quantum programming already asks readers to learn difficult ideas. The syntax should make important boundaries visible without extra punctuation or provider-specific terms.
+
+Editor parsers need a stable concrete tree while type checking and target support continue to grow. Learners need runnable examples, deterministic simulators, useful errors, and exact words for inverse, uncompute, rewind, replay, and retry.
 
 ## Use cases
 
@@ -68,7 +72,7 @@ The two parsers share corpus source fixtures and a checked grammar contract, not
 
 Comments are `//` or `/* ... */`. Identifiers use the documented ASCII profile initially. Numeric forms are explicit. Keywords are closed and provider-independent. Operators use longest-match tokenization. Tokens retain line, column, and source offset.
 
-Whitespace, comments, and line breaks may occur between tokens. A statement does not need to occupy one line. Semicolons terminate simple statements; braces delimit classes, methods, and reverse blocks.
+Whitespace, comments, and line breaks may occur between tokens. A statement doesn't need to occupy one line. Semicolons terminate simple statements; braces delimit classes, methods, and reverse blocks.
 
 ### Concrete tree
 
@@ -82,23 +86,23 @@ Class, method, and statement delimiters provide synchronization points. Compiler
 
 ### Teaching sequence
 
-1. **Classical state:** fields, arithmetic, assertions, and deterministic execution.
-2. **Reversible methods:** generated inverses, reverse calls/blocks, and history versus inverse.
-3. **Coherent values:** an exact XOR permutation on a classical bit and quantum basis state.
-4. **Unitary circuits:** H, controlled operations, QFT, and generated adjoints.
-5. **Measurement:** affine consumption, classical observations, and sampling.
-6. **Hybrid workflows:** parameter binding, jobs, replay, and target capabilities.
-7. **Advanced systems:** dynamic correction, resource estimates, proofs, and future logical hardware.
+1. Classical state covers fields, arithmetic, assertions, and deterministic execution.
+2. Reversible methods introduce generated inverses, reverse calls and blocks, and the difference between history and inverse execution.
+3. Coherent values use an exact XOR permutation on a classical bit and a quantum basis state.
+4. Unitary circuits add H, controlled operations, QFT, and generated adjoints.
+5. Measurement introduces affine consumption, classical observations, and sampling.
+6. Hybrid workflows cover parameter binding, jobs, replay, and target capabilities.
+7. Advanced systems add dynamic correction, resource estimates, proofs, and future logical hardware.
 
 Every level has at least one checked-in source file and an automated expected result.
 
 ## Reversibility and history
 
-Syntax and teaching material consistently distinguish `reverse` from debugger rewind. `q.apply(method)` describes coherent lifting; unitary method reversal describes an adjoint. Measurement examples explain replay/retry rather than inverse collapse.
+Syntax and teaching material consistently distinguish `reverse` from debugger rewind. `q.apply(method)` describes coherent lifting; unitary method reversal describes an adjoint. Measurement examples explain replay/retry instead of inverse collapse.
 
 ## Concurrency and determinism
 
-Parsing is deterministic. The first teaching levels avoid concurrency. Draft WIP-0032 owns later `IoScope`, request, operation, batch, graph, selection, asynchronous, and required-concurrent syntax. Tooling must not copy Java threads or expose a backend poll state machine as the language merely because both have punctuation.
+Parsing is deterministic. The first teaching levels avoid concurrency. Draft WIP-0032 owns later `IoScope`, request, operation, batch, graph, selection, asynchronous, and required-concurrent syntax. Tooling must not copy Java threads or expose a backend poll state machine as source syntax. Similar punctuation does not make the models equivalent.
 
 ## Quantum and proof implications
 
@@ -110,7 +114,7 @@ Concrete syntax is not bytecode. Syntax changes follow WIP migration rules and T
 
 ## Safety, limits, and failures
 
-The compiler bounds input bytes and characters, token and line counts, token width, declarations, and structured-block nesting before lowering. Block comments must close; identifiers use the required ASCII profile. Numeric overflow and malformed encodings produce diagnostics rather than partial artifacts. Tree-sitter editor hosts remain responsible for document-size policy; the repository gate applies the grammar to every bounded checked-in source.
+The compiler bounds input bytes and characters, token and line counts, token width, declarations, and structured-block nesting before lowering. Block comments must close; identifiers use the required ASCII profile. Numeric overflow and malformed encodings produce diagnostics instead of partial artifacts. Tree-sitter editor hosts remain responsible for document-size policy; the repository gate applies the grammar to every bounded checked-in source.
 
 ## Migration and deletion
 
@@ -155,8 +159,8 @@ Rejected. ASCII Java-shaped syntax is easier to type, teach, search, and support
 
 ## Open questions
 
-- When should the initial ASCII identifier profile expand to full Unicode identifier classes? — **Owner:** language and tooling maintainers — **Decide by:** before module/package syntax
-- Which stable syntax-node compatibility policy begins with the first external editor integration? — **Owner:** tooling maintainers — **Decide by:** before grammar package release
+- When should the initial ASCII identifier profile expand to full Unicode identifier classes (owner: language and tooling maintainers; decision point: before module/package syntax)?
+- Which stable syntax-node compatibility policy begins with the first external editor integration (owner: tooling maintainers; decision point: before grammar package release)?
 
 ## References
 

@@ -1,12 +1,16 @@
 # Wheeler source language profile
 
-Wheeler uses familiar class, field, method, call, assignment, and block forms while giving reversibility and quantum resources explicit semantics. Accepted source lowers to one reversible typed `.wbc` IR that keeps exact inverses, logged rewind, effect barriers, coherent permutations, unitary adjoints, and measurement/workflow transitions distinct. The profile grows only when a construct has parser, verifier, runtime, negative, editor-grammar, and end-to-end tests.
+Wheeler uses familiar classes, fields, methods, calls, assignments, and blocks. It adds explicit rules for reversibility and quantum resources.
 
-Whitespace and line breaks are not semantic. Simple statements end in semicolons. `//` and `/* ... */` comments are supported.
+Accepted source lowers to one typed `.wbc` IR. That IR keeps function inverses, logged rewind, effect barriers, coherent permutations, unitary adjoints, measurements, and workflow transitions separate.
+
+The source profile grows only after a feature has parser, verifier, runtime, negative, editor-grammar, and end-to-end tests.
+
+Whitespace and line breaks do not change meaning. Simple statements end with semicolons; Wheeler supports both `//` and `/* ... */` comments.
 
 ## Classes and state
 
-A file contains one computation-domain class:
+A source file contains one computation-domain class:
 
 ```java
 classical class Counter {
@@ -14,14 +18,14 @@ classical class Counter {
 }
 ```
 
-The available domains are `classical`, `quantum`, and `hybrid`. The first format supports signed 64-bit classical state and affine logical quantum registers:
+The available domains are `classical`, `quantum`, and `hybrid`. Format 1.0 supports signed 64-bit classical state and affine logical quantum registers:
 
 ```java
 state long measured = 0;
 qreg q = new qreg(3);
 ```
 
-Raw provider qubits are never source values.
+Raw provider qubits are never Wheeler source values.
 
 ## Methods
 
@@ -36,14 +40,21 @@ test void signed(long value) cases(-1, 0, 1) { ... }
 entry void main() { ... }
 ```
 
-- A normal classical method may take supported scalar, aggregate, slice, or storage-borrow parameters and return a supported value or `void`.
-- A `rev` method receives a compiler-validated inverse.
-- A `coherent rev` method also satisfies the exact finite subset that can become a unitary operation.
-- A `unitary` method lowers to backend-neutral quantum region IR and receives a generated adjoint.
-- A `test` method is a classical `void` declaration with either no parameters or one `long` or `boolean` parameter. A parameter requires an inline `cases(...)` list of 1–1,024 unique type-correct scalar values; no hidden generator or ambient seed is involved. On a runnable target carrying the package `test` selector, each nonmodular declaration row or root-module declaration row compiles to its own verified entry artifact and runs in a fresh VM in lexical qualified-name order. Ordinary build and run artifacts omit test methods.
-- Exactly one entry defines ordinary execution; it may borrow an optional `utf8` input followed by an optional mutable `bytes` output.
+A normal classical method may take supported scalar, aggregate, slice, owner, or loan parameters. It returns a supported value or `void`.
 
-`public`, `private`, `protected`, and `static` are accepted where meaningful for familiar organization. Ordinary classical methods have typed signed or Boolean parameters, return values, and local bindings, plus bounded control flow. `rev`, `coherent rev`, and `unitary` methods remain zero-argument and `void` until their parameter ownership and inverse signatures are implemented.
+A `rev` method gets a compiler-checked inverse. A `coherent rev` method must also fit the exact finite subset that can become a unitary operation. A `unitary` method lowers to provider-neutral quantum region IR and gets a generated adjoint.
+
+A `test` method is a classical `void` method. It has no parameters, or one `long` or `boolean` parameter.
+
+A parameterized test must include an inline `cases(...)` list with 1 through 1,024 unique values of the right type. There is no hidden generator or ambient random seed.
+
+When a runnable target has the package `test` selector, each nonmodular test or root-module test compiles into its own verified entry artifact. Tests run in fresh VMs and in lexical qualified-name order. Normal build and run artifacts omit test methods.
+
+Exactly one `entry` method defines ordinary execution. It may borrow an optional `utf8` input followed by an optional mutable `bytes` output.
+
+`public`, `private`, `protected`, and `static` are accepted where they make sense. Normal classical methods support signed and Boolean parameters, return values, local bindings, and bounded control flow.
+
+For now, `rev`, `coherent rev`, and `unitary` methods take no arguments and return `void`. Their parameter ownership and inverse-signature rules are still being built.
 
 ## Classical statements
 
@@ -59,9 +70,15 @@ entry void main() { ... }
 | `checkpoint();` | Add a reversible checkpoint marker. |
 | `commit();` | Advance the local rewind horizon. |
 
-`assert(condition);` is the sole direct assertion spelling. Classical entries, ordinary methods, and tests accept the implemented Boolean expression profile, evaluate it once, and lower the resulting Boolean local to checked `EXPECT_TRUE`; direct signed-global/literal equality retains compact `EXPECT_EQ`. A false condition traps before later mutation. Current quantum and hybrid entries retain only the compact global/literal equality slice. Wheeler does not define `assertTrue`, `assertFalse`, `assertEquals`, `expectEqual`, matcher objects, or bare `assert condition;` aliases. Typed reversible, quantum, workflow, and proof evidence remains WIP-0021 and WIP-0018 work; this reference does not claim it early merely to make the table look busy.
+`assert(condition);` is the only direct assertion form. Classical entries, normal methods, and tests accept the current Boolean expression profile.
 
-A reverse block invokes supported calls in reverse lexical order:
+The condition is evaluated once. The result lowers to checked `EXPECT_TRUE`. Direct equality between a signed global and a literal keeps the smaller `EXPECT_EQ` form.
+
+A false assertion traps before any later mutation. Current quantum and hybrid entries support only the compact global-and-literal equality form.
+
+Wheeler does not define `assertTrue`, `assertFalse`, `assertEquals`, `expectEqual`, matcher objects, or bare `assert condition;` aliases. Typed reversible, quantum, workflow, and proof assertions remain work for WIP-0021 and WIP-0018.
+
+A reverse block calls supported inverses in reverse source order:
 
 ```java
 reverse {
@@ -70,11 +87,21 @@ reverse {
 }
 ```
 
-This executes `reverse second();` and then `reverse first();`.
+This runs `reverse second();` and then `reverse first();`.
 
 ## Local expressions and bounded control
 
-Ordinary classical methods support signed `long` and `boolean` locals, expressions over checked `*`, `/`, `%`, `+`, `-`, bitwise/Boolean `^`, Boolean `!`, `<`, and `==` with multiplication binding before addition/subtraction and right-associative logical negation binding before multiplication, `if`/`else`, source-bounded `while`, and source-bounded `for`. Arithmetic and ordering require signed operands. Addition, subtraction, and multiplication trap before destination mutation on signed 64-bit overflow. Division truncates toward zero; remainder follows that quotient. A zero divisor and `Long.MIN_VALUE / -1` trap before writing the destination. Equality requires equal operand types and returns Boolean. XOR accepts two signed values or two Booleans and preserves their type. Logical `!` accepts only Boolean, binds tighter than binary operators, and evaluates its operand exactly once. Conditions require Boolean values; integers are never truthy:
+Normal classical methods support `long` and `boolean` locals. Expressions include checked `*`, `/`, `%`, `+`, and `-`; signed or Boolean `^`; Boolean `!`; `<`; and `==`.
+
+Multiplication binds before addition and subtraction. Logical negation binds before multiplication and associates to the right.
+
+Arithmetic and ordering require signed operands. Addition, subtraction, and multiplication trap before changing the destination when signed 64-bit overflow would occur.
+
+Division truncates toward zero, and remainder follows that quotient. A zero divisor traps. `Long.MIN_VALUE / -1` also traps before any write.
+
+Equality requires both operands to have the same type and returns a Boolean; XOR accepts either two signed values or two Booleans, then preserves that type. Logical `!` accepts only Boolean input and evaluates it once.
+
+Conditions must be Boolean. Integer values are never treated as true or false.
 
 ```java
 long i = 0;
@@ -91,7 +118,7 @@ if (complete) {
 }
 ```
 
-A familiar counted loop carries the same mandatory semantic bound:
+A counted loop uses the same required bound:
 
 ```java
 for (long i = 0; i < 5; i += 1) limit 5 {
@@ -99,17 +126,31 @@ for (long i = 0; i < 5; i += 1) limit 5 {
 }
 ```
 
-Its initializer executes once, then the limit is evaluated once. Wheeler checks the limit before every body iteration and traps before executing an iteration beyond the bound. In a `while`, `continue;` transfers to condition reevaluation; in a `for`, it executes the update before reevaluating the condition and therefore cannot evade the next bound check. `break;` exits the innermost bounded loop. Both are rejected outside a loop. Nested loops carry distinct targets and counters. The whole-program step limit remains a separate defense.
+The initializer runs once, and the limit is evaluated once. Wheeler checks that limit before each body iteration. It traps before an iteration that would exceed the bound.
 
-Calls evaluate arguments left to right and move them through a verified contiguous typed call window. A plain affine-owner parameter consumes its argument; `borrow T` creates a shared nonescaping loan and `borrow mut T` creates an exclusive nonescaping loan. Use after an owning call is rejected by definite-ownership flow. A value call places one exact declared result in a caller register. A `void` call may carry the same value, owner, and loan types without manufacturing or discarding a result register. A value-returning method may return early from a conditional, but every reachable path must end in `return expression;` of the declared type. Static recursion is permitted under the VM's hard 1,024-frame ceiling and the program step ceiling.
+In a `while`, `continue;` goes back to the condition. In a `for`, it runs the update first and then checks the condition again. It cannot skip the next bound check.
 
-Local control compiles to verified typed frame registers and explicit control-flow targets. The function descriptor stores one canonical type code per register. The verifier rejects unknown type codes, invalid targets, out-of-range locals, reads not definitely assigned on every incoming path, operand or call type mismatches, non-Boolean conditions, invalid Boolean constants, and a function that falls through its body.
+`break;` exits the nearest bounded loop. Both `break` and `continue` are invalid outside a loop. Nested loops keep separate targets and counters. The whole-program step limit remains an independent safeguard.
 
-Control flow is not accepted in `rev` or `coherent rev` methods yet. Wheeler will add reversible branches and loops only with an exact branch or iteration witness; it does not retain hidden history automatically.
+Calls evaluate arguments from left to right and move them through one verified, contiguous type window.
+
+A plain affine-owner parameter consumes its argument. `borrow T` creates a shared nonescaping loan, while `borrow mut T` creates an exclusive nonescaping loan. Definite-ownership flow rejects later use of an owner passed to an owning call.
+
+A value call writes one exact declared result into a caller register. A `void` call may use the same value, owner, and loan parameter types without creating or dropping a result register.
+
+A value-returning method may return early from a branch. Every reachable path must still end with `return expression;` of the declared type.
+
+Static recursion is allowed under the VM limit of 1,024 frames and the program step limit.
+
+Local control lowers to typed frame registers and explicit branch targets; each function descriptor stores one canonical type code for every register.
+
+The verifier rejects unknown type codes, bad targets, invalid local indexes, reads without definite assignment, type mismatches, non-Boolean conditions, invalid Boolean constants, and functions that fall through without returning.
+
+Control flow is not yet allowed in `rev` or `coherent rev` methods. Reversible branches and loops will need exact branch or iteration witnesses. Wheeler does not create hidden history for them.
 
 ## Compile-time constants and finite enums
 
-A scalar constant is evaluated while parsing/lowering and contributes no global, initializer function, or runtime lookup:
+A scalar constant is evaluated during parsing and lowering; it adds no global, initializer function, or runtime lookup:
 
 ```java
 const long BASE = 0x0200;
@@ -117,9 +158,15 @@ public const long OPCODE_CALL = BASE;
 const boolean ENABLED = OPCODE_CALL == 512;
 ```
 
-The implemented profile accepts `long` and `boolean`, parentheses, checked numeric negation/arithmetic, logical Boolean `!`, `^`, `&`, `==`, `<`, declaration-order-independent same-module constants, direct imported public constants, canonical `module::NAME` qualification, and checked `rotateRight32`. Arithmetic follows VM trap rules. The compiler evaluates the bounded dependency graph in canonical name order; cycles report their complete canonical path. Reordering independent declarations leaves semantic `.wbc` unchanged. Constant expressions are accepted in scalar constant declarations, signed state initializers, qreg sizes, static theorem step bounds, and ordinary local expressions. Private, missing, ambiguous, duplicate, effectful, or type-mismatched declarations fail before artifact emission.
+The current profile supports `long` and `boolean`, parentheses, checked numeric negation and arithmetic, Boolean `!`, `^`, `&`, `==`, `<`, and checked `rotateRight32`.
 
-A finite enum is canonical sugar for a payload-free tagged variant:
+A constant may refer to another same-module constant regardless of declaration order. It may also use a directly imported public constant or canonical `module::NAME` qualification.
+
+Arithmetic follows VM trap rules. The compiler evaluates the bounded dependency graph in canonical name order. A cycle reports its complete canonical path. Reordering independent constants does not change semantic `.wbc`.
+
+Constant expressions may appear in scalar constants, signed state initializers, qreg sizes, static theorem step bounds, and normal local expressions. Private, missing, ambiguous, duplicate, effectful, or type-mismatched references fail before artifact output.
+
+A finite enum is canonical shorthand for a payload-free tagged variant:
 
 ```java
 public enum Direction {
@@ -134,11 +181,15 @@ match (direction) {
 }
 ```
 
-Construction, nominal equality, exhaustive matching, artifact metadata, VM values, and rewind use the existing variant path. Enum cases carry no integer ordinal or wire value. The compiler canonicalizes enum cases by name, so reordering declarations does not change semantic `.wbc`. Protocol numbers belong in named constants and explicit encode/decode functions; quantum basis identity and reversible finite permutations remain specified but unimplemented WIP-0017 work.
+Construction, nominal equality, exhaustive matching, artifact metadata, VM values, and rewind use the existing variant path.
+
+Enum cases have no integer ordinal or wire value. The compiler sorts cases by name for semantic output, so source reordering does not change `.wbc`.
+
+Protocol numbers belong in named constants and explicit encode or decode functions. Quantum basis identity and reversible finite permutations remain planned WIP-0017 work.
 
 ## Value records
 
-A nominal record declares one or more ordered, immutable fields:
+A nominal record declares one or more ordered immutable fields:
 
 ```java
 record Span(long start, long end) {}
@@ -148,13 +199,19 @@ Token token = new Token(new Span(3, 8), true);
 long width = token.span.end - token.span.start;
 ```
 
-A record name begins with an ASCII upper-case letter, keeping nominal type declarations syntactically distinct from statements during standalone module parsing. A field may use a scalar or a previously declared record type. Requiring prior declaration makes recursive and cyclic inline values impossible. Construction is left to right and checks exact arity and field types. Field access is read-only. Records may be locals, parameters, and results; `==` compares nominal type and complete immutable field values.
+A record name begins with an ASCII upper-case letter. This keeps nominal declarations distinct from statements during standalone module parsing.
 
-The VM interns equal immutable values in deterministic construction order. Handles are verified implementation values, not source integers or artifact identity. Rewind removes allocations made by the rewound step, and snapshots include the record table. The current hard ceiling is 65,535 distinct record values per machine.
+A field may use a scalar or a record declared earlier in the file. That rule makes recursive and cyclic inline records impossible.
+
+Construction runs from left to right and checks exact arity and field types. Fields are read-only. Records may be locals, parameters, and results. `==` compares nominal type and every immutable field value.
+
+The VM interns equal records in deterministic construction order. Handles are verified implementation values, not source integers or artifact identity.
+
+Rewind removes values created by the rewound step, and snapshots include the record table. One machine may hold at most 65,535 distinct record values.
 
 ## Tagged variants
 
-A variant declares a closed ordered case set. Cases carry zero or more typed payload fields:
+A variant declares a closed, ordered set of cases. Each case may have zero or more typed payload fields:
 
 ```java
 variant Option {
@@ -169,20 +226,30 @@ match (option) {
 }
 ```
 
-Payload types must already be declared, preventing recursive inline layouts. Construction checks the nominal type, case, arity, and payload types. `match` names one variant type in every arm, rejects duplicate or unknown cases, checks binding types, and requires the complete case set. The final arm is safe without a fallback because verified values can carry only descriptor tags. Bindings are typed locals in their case body. Variants may be parameters and results, and `==` uses nominal structural equality.
+Payload types must already exist, so recursive inline layouts are impossible. Construction checks the nominal type, case, arity, and payload types.
 
-The VM interns variants separately from records under a 65,535-value ceiling. Snapshots and rewind include both tables; a checked payload read traps before mutation if its expected tag does not match.
+Every arm in a `match` must name the same variant type. The compiler rejects duplicate or unknown cases, checks binding types, and requires the full case set.
+
+The final arm needs no fallback because verified values can carry only declared tags. Case bindings become typed locals in that arm.
+
+Variants may be parameters and results. `==` uses nominal structural equality.
+
+The VM interns variants in their own table with a 65,535-value limit. Snapshots and rewind include that table. A payload read with the wrong expected tag traps before mutation.
 
 ## Fixed arrays
 
-A fixed array owns an immutable, homogeneous sequence whose length is part of its type:
+A fixed array owns an immutable, homogeneous sequence. Its length is part of the type:
 
 ```java
 long[4] values = new long[4](2, 4, 6, 8);
 long selected = values[2];
 ```
 
-Construction requires exactly the declared number of left-to-right elements and checks every element type. Arrays may be locals, parameters, and results. Index expressions are signed values and trap before mutation when negative or at least the array length. `==` compares the complete typed value. Lengths range from 1 through 65,535; nested array syntax and mutation are not in this slice.
+Construction requires exactly the declared number of values and checks each type from left to right. Arrays may be locals, parameters, and results.
+
+An index is a signed value. A negative index or one at least as large as the array length traps before mutation.
+
+`==` compares the complete typed value. Array lengths range from 1 through 65,535. Nested array syntax and mutation are outside this slice.
 
 An immutable borrowed slice uses `T[]` and an explicit checked constructor:
 
@@ -191,13 +258,17 @@ long[] middle = slice(values, 1, 2);
 long selected = middle[1];
 ```
 
-The constructor retains the array origin plus start and length, rejects negative or overflowing ranges before allocation, and never copies elements. Slice indexing is relative and checked. Slices may be locals and parameters but cannot be function results or aggregate elements, so a borrow cannot escape its owner. Mutable slices, split/join, and overlapping-borrow analysis remain future work.
+The slice keeps its array origin plus a start and length. Invalid, negative, or overflowing ranges fail before allocation. No elements are copied.
 
-Equal arrays and slices are interned in deterministic construction order under separate 65,535-value machine ceilings. Handles remain unobservable and type-specific. Snapshots and rewind include both tables.
+Slice indexing is relative and checked. Slices may be locals and parameters, but they cannot be function results or aggregate fields. This prevents the loan from escaping its owner.
+
+Mutable slices, split and join, and overlapping-loan analysis remain future work.
+
+Equal arrays and slices are interned in deterministic order under separate 65,535-value limits. Their handles remain unobservable and type-specific; snapshots and rewind include both tables.
 
 ## Bounded owned regions
 
-The dynamic-storage slice provides function-local `region` owners plus mutable signed-word and byte buffers:
+The current dynamic-storage slice has function-local `region` owners plus mutable signed-word and byte buffers:
 
 ```java
 region arena = new region(32, 2);
@@ -214,15 +285,33 @@ drop(data);
 drop(arena);
 ```
 
-`writeAscii(raw, offset, "WHEELBC")` is a bootstrap encoding statement. Its literal is at most 4,096 printable ASCII characters, has no escape syntax, and is not a first-class string value. The compiler expands it to checked byte writes starting at the supplied signed offset. A failed run cannot publish an external output file, and ordinary VM rewind still restores every expanded write.
+`writeAscii(raw, offset, "WHEELBC")` is a bootstrap encoding statement. The literal may contain at most 4,096 printable ASCII characters and has no escape syntax. It is not a first-class string.
 
-A region declares hard byte and live-object ceilings; the VM also caps total live region storage at 16 MiB. `words` charges eight bytes per signed element. `bytes` charges one byte per element, and `setByte` accepts only 0 through 255. Both allocations are zero-initialized and trap before mutation on a zero/negative length, byte exhaustion, object exhaustion, invalid handle, wrong buffer kind, out-of-range byte, dropped owner, or checked-index failure. Buffers must be dropped before their region; dropping returns their byte and object charge and releases visible contents, while rewind data retains only what is required until commit.
+The compiler expands the statement into checked byte writes starting at the signed offset; a failed run publishes no external output, and VM rewind restores each expanded write.
 
-`bufferLength(buffer)` returns the fixed element count for either buffer kind without consuming it. `utf8Valid(buffer)` performs strict RFC 3629 validation over the complete byte buffer. `utf8Count(buffer)` returns the number of Unicode scalar values and traps before destination mutation when the encoding is malformed. `utf8Scalar(buffer, index)` and `utf8Width(buffer, index)` decode one scalar at an exact leading-byte boundary; a continuation, truncation, malformed sequence, or out-of-range index traps before writing the result. The decoder rejects overlong forms, surrogate encodings, values above U+10FFFF, stray continuations, illegal leaders, and truncation; an empty buffer is valid with count zero. Neither operation normalizes text or claims grapheme indexing.
+A region declares hard byte and live-object limits. The VM also caps total live region storage at 16 MiB.
 
-`freezeUtf8(raw)` validates and consumes a `bytes` owner, yielding an affine immutable `utf8` owner over the same charged allocation. Validation failure leaves the source live and unchanged. A frozen value permits byte length, scalar count, scalar-boundary decode, validation, and drop, but no byte mutation or arbitrary string indexing. This primitive is the bootstrap representation below the future library `String`; it does not provide normalization, concatenation, comparison, grapheme segmentation, or canonical text serialization.
+A `words` element costs eight bytes. A `bytes` element costs one byte, and `setByte` accepts values from 0 through 255. Both allocation forms start with zero-filled storage.
 
-An explicit `borrow utf8` function parameter is an immutable synchronous loan rather than an ownership transfer:
+Allocation and access trap before mutation on invalid length, exhausted bytes or objects, bad handles, the wrong storage kind, invalid byte values, dropped owners, or an out-of-range index.
+
+Buffers must be dropped before their region. Dropping a buffer returns its byte and object charge and releases visible content. Rewind data keeps only what is needed until commit.
+
+`bufferLength(buffer)` returns a fixed element count without consuming the value. `utf8Valid(buffer)` performs strict RFC 3629 validation over the whole byte buffer.
+
+`utf8Count(buffer)` returns the number of Unicode scalar values. It traps before writing a result when the encoding is malformed.
+
+`utf8Scalar(buffer, index)` and `utf8Width(buffer, index)` decode one scalar at an exact leading-byte position. A continuation byte, truncation, malformed sequence, or invalid index traps first.
+
+The decoder rejects overlong encodings, surrogate values, code points above U+10FFFF, stray continuations, invalid leaders, and truncated input. An empty buffer is valid and has zero scalars. These operations do not normalize text or count grapheme clusters.
+
+`freezeUtf8(raw)` validates and consumes a `bytes` owner. It returns an affine immutable `utf8` owner over the same charged allocation.
+
+If validation fails, the byte owner remains live and unchanged. A frozen value supports byte length, scalar count, scalar-boundary decoding, validation, and drop. It does not allow byte mutation or unchecked string indexing.
+
+This type is the bootstrap layer below a future library `String`. It does not provide normalization, concatenation, comparison, grapheme handling, or canonical text serialization.
+
+An explicit `borrow utf8` parameter is an immutable synchronous loan:
 
 ```java
 long scalarAt(borrow utf8 text, long index) {
@@ -230,17 +319,39 @@ long scalarAt(borrow utf8 text, long index) {
 }
 ```
 
-The caller retains and must eventually drop the owner. The callee may inspect the value and reborrow it for another call, but cannot move, drop, return, aggregate, or mutate it. Bytecode gives borrowed parameters a distinct verified register type; call lowering creates only transient loan windows. A plain `utf8` parameter instead transfers ownership and must be consumed or returned by the callee. The same plain-parameter rule applies to every primitive owner. Runtime owner/kind checks defend malformed artifacts, while verifier rules prevent a valid artifact from turning a loan into an owner.
+The caller keeps ownership and must later drop the value. The callee may inspect or reborrow it. The callee cannot move, drop, return, aggregate, or mutate the value.
 
-`borrow byteview` is the immutable binary counterpart at an entry or ordinary parameter. It exposes only checked octet indexing and `bufferLength`; it performs no UTF-8 validation, permits every byte sequence including empty input, and cannot be written, dropped, returned, or embedded in an aggregate. Passing a mutable byte owner or loan to that parameter creates an immutable transient call window without granting a second writer. An entry declares either `borrow utf8` or `borrow byteview` input, never both, followed by an optional `borrow mut bytes` output. The embedding API selects the input kind explicitly. Guessing from content would make `0xc0 0x80` a protocol decision, which is not a job for wishful Unicode.
+Bytecode uses a separate register type for these loans. Call lowering creates only temporary loan windows.
 
-`crypto/Sha256.w` implements bounded SHA-256 in Wheeler over `byteview`, a caller-owned 32-byte output borrow, and a 1,088-byte/three-object scratch region. Its unsigned 32-bit state stays in nonnegative `long` values, reduces additions modulo 2³², and uses checked signed `&` plus `rotateRight32(value, amount)` over those normalized words; no provider or host digest API enters artifact semantics. The current loop bound admits at most 4,096 padded blocks, while ordinary program step/history limits may impose a lower operational ceiling. It is a deterministic identity primitive, not a claim of side-channel resistance.
+A plain `utf8` parameter transfers ownership instead; the callee must consume or return it. The same rule applies to each primitive owner type.
 
-A `borrow mut region` parameter is a synchronous exclusive allocation loan. The callee may allocate owned buffers/maps under the caller's unchanged byte/object ceilings, use or reborrow them, and must drop every allocation before returning. It cannot drop or return the borrowed region. This gives compiler helpers bounded scratch arenas without transferring or duplicating ownership.
+Runtime owner and kind checks defend against malformed artifacts. Verifier rules stop valid bytecode from turning a loan into an owner.
 
-`borrow mut words` and `borrow mut bytes` parameters are synchronous exclusive mutable loans. They support checked reads, writes, length, and—on byte loans—strict UTF-8 inspection. Loans may be nested through calls. One owner cannot fill two mutable parameter slots of the same call, and a loan cannot be moved, dropped, returned, frozen into an owner, or embedded in a value. `borrow bytes` is the shared read-only form and lowers to the same immutable binary view as `borrow byteview`.
+`borrow byteview` is the immutable binary form for an entry or normal parameter. It provides checked byte indexing and `bufferLength` only.
 
-A region can also own one fixed-capacity signed map:
+A `byteview` performs no UTF-8 validation and accepts any byte sequence, including empty input. It cannot be written, dropped, returned, or stored inside an aggregate.
+
+Passing mutable bytes to that parameter creates a temporary read-only view. It does not grant another writer.
+
+An entry may declare `borrow utf8` or `borrow byteview`, but never both. An optional `borrow mut bytes` output may follow. The embedding API chooses the input kind directly instead of guessing from the byte content. For example, the invalid UTF-8 bytes `0xc0 0x80` remain binary input instead of becoming a protocol guess.
+
+`crypto/Sha256.w` implements bounded SHA-256 in Wheeler. It uses a `byteview`, a caller-owned 32-byte output loan, and a scratch region with 1,088 bytes and three objects.
+
+Its unsigned 32-bit state stays in nonnegative `long` values. Additions reduce modulo 2³², while checked signed `&` and `rotateRight32(value, amount)` operate on normalized words.
+
+No host or provider digest API enters artifact semantics. The current loop limit permits up to 4,096 padded blocks, though normal step and history limits may set a smaller practical bound. This is a deterministic identity primitive, not a side-channel claim.
+
+A `borrow mut region` parameter is a synchronous exclusive allocation loan. The callee may allocate buffers or maps under the caller's existing limits, then use or reborrow them.
+
+Every allocation made through the loan must be dropped before return. The callee cannot drop or return the region itself. This gives compiler helpers bounded scratch storage without transferring ownership.
+
+`borrow mut words` and `borrow mut bytes` are synchronous exclusive mutable loans. They allow checked reads, writes, and length queries. Byte loans also support strict UTF-8 inspection.
+
+Loans may be nested through calls. One owner cannot fill two mutable parameters in the same call. A loan cannot be moved, dropped, returned, frozen into an owner, or stored in a value.
+
+`borrow bytes` is the shared read-only form. It lowers to the same immutable binary view as `borrow byteview`.
+
+A region may also own one fixed-capacity signed map:
 
 ```java
 longmap symbols = allocateMap(arena, 16);
@@ -249,19 +360,41 @@ boolean present = mapHas(symbols, 7);
 long value = mapGet(symbols, 7);
 ```
 
-`longmap` accepts every signed key, including zero. `put` inserts or updates in deterministic lowest-free-slot order. Capacity is charged at 24 bytes per entry when allocated. `mapHas` is total; `mapGet` traps before destination mutation when the key is absent. The first slice has no deletion or iteration, so insertion history remains internal VM state and no map encoding is yet exposed as a canonical value.
+`longmap` accepts every signed key, including zero. `put` inserts or updates in deterministic lowest-free-slot order.
 
-A `borrow mut longmap` parameter is a synchronous exclusive mutable loan. The callee may update, query, and reborrow the map in nested calls. The caller retains ownership but cannot execute while the callee frame is active. One call cannot pass the same map to two mutable parameters; compiler and bytecode-verifier checks reject that alias before execution. A map loan cannot be moved, dropped, returned, or stored in an aggregate.
+Capacity is charged at 24 bytes per slot when allocated. `mapHas` is total. `mapGet` traps before changing its destination when the key is absent.
 
-An ordinary function may return one `region`, `words`, `bytes`, `utf8`, or `longmap` owner. `return` consumes that local and requires every other callee owner dead. A returned region is therefore empty. Other returned storage remains charged to a live caller-owned region supplied through a nonescaping region borrow; returning a buffer while leaking a callee-owned region fails ownership flow. Borrowed, slice, and `byteview` results remain rejected because a naked handle is not a lifetime proof.
+The first slice has no deletion or iteration. Insertion history stays inside VM state, and no canonical map value encoding exists yet.
 
-`region`, `words`, `bytes`, `utf8`, and `longmap` locals are affine owners. Binding, passing to an unqualified owner parameter, or returning one moves the handle and invalidates the source; ordinary copy and equality are rejected. An explicit `borrow` or `borrow mut` parameter receives only its checked nonescaping loan. Owners may be function parameters and results but cannot yet be aggregate elements, arrays, or slices. Definite-ownership dataflow rejects use after move/drop/call, live-owner overwrite, control-flow joins with different ownership states, and any function exit with a live owned local. An owning callee must drop, move onward, or return its parameter. Runtime dropped-state and owner checks remain defense in depth. Snapshots expose canonical region/buffer state, and rewind restores allocation, frame-spanning parameter/result ownership, mutation, loan-call windows, move, and drop exactly.
+A `borrow mut longmap` parameter is a synchronous exclusive mutable loan. The callee may update, query, and reborrow the map in nested calls.
 
-This slice is enough to build bounded storage in factory functions, relay its unique owner through further calls, return it, and continue using and dropping it in the final caller. It also exercises region scratch loans, exclusive word/byte mutation, strict UTF-8 freezing/scalar decoding, and signed symbol maps; it is not yet a compiler arena. Library strings and normalization remain WIP-0012 work. WIP-0028 still owns public borrow origins, non-lexical loans, split/join, recoverable allocation, and commit-aware reclamation over the WIP-0013 machine substrate; WIP-0029 adds generic maps, sets, and queues; WIP-0030 supplies their coherent static protocol evidence.
+The caller keeps ownership but does not execute while the callee frame is active. Compiler and bytecode checks reject one map passed to two mutable parameters in the same call.
+
+A map loan cannot be moved, dropped, returned, or stored in an aggregate.
+
+A normal function may return one `region`, `words`, `bytes`, `utf8`, or `longmap` owner; `return` consumes that local and requires every other callee owner to be dead.
+
+A returned region must therefore be empty. Other returned storage must remain charged to a live caller region reached through a nonescaping region loan.
+
+Returning a buffer while leaking a callee-owned region fails ownership flow. Borrowed values, slices, and `byteview` results remain invalid because a raw handle does not prove a safe lifetime.
+
+`region`, `words`, `bytes`, `utf8`, and `longmap` locals are affine owners. Binding, passing to an owning parameter, or returning one moves the handle and invalidates its source. Normal copy and equality are not allowed.
+
+An explicit `borrow` or `borrow mut` parameter receives only a checked, nonescaping loan. Owners may be function parameters and results, but they cannot yet appear in aggregates, arrays, or slices.
+
+Definite-ownership flow rejects use after move, drop, or owning call. It also rejects overwriting a live owner, joining branches with different ownership state, and leaving any owned local live at function exit.
+
+An owning callee must drop, move onward, or return its parameter; runtime dropped-state and owner checks remain a second line of defense.
+
+Snapshots expose canonical region and buffer state. Rewind restores allocation, mutation, parameter and result ownership, loan windows, moves, and drops exactly.
+
+This slice supports bounded storage factories, owner transfer through calls, owner return, final-caller use, and explicit drop; it also covers scratch-region loans, exclusive buffer mutation, strict UTF-8 freezing and decoding, and signed symbol maps.
+
+It is not yet a full compiler arena. Library strings and normalization remain WIP-0012 work. WIP-0028 owns public loan origins, non-lexical loans, split and join, recoverable allocation, and commit-aware reclamation over the WIP-0013 machine substrate. WIP-0029 adds generic collections, while WIP-0030 adds their coherent static protocol evidence.
 
 ## Generated inverse and adjoint theorems
 
-The initial proof slice accepts four closed theorem forms:
+The first proof slice accepts four closed theorem forms:
 
 ```java
 theorem incrementInverse proves inverse(increment);
@@ -270,13 +403,27 @@ theorem normalized proves equivalent(sourceCircuit, normalizedCircuit);
 theorem addBound proves steps(add, 4);
 ```
 
-The compiler resolves each subject and emits a canonical rule certificate tied to the function or circuit ID. `GENERATED_INVERSE` requires a `rev` function; the trusted `ProofKernel` reconstructs its expected inverse from the forward opcodes. `GENERATED_ADJOINT` requires a `unitary` circuit; the kernel reverses its operation order, inverts every semantic gate or coherent call, and checks that taking the adjoint twice restores the exact circuit body. `CIRCUIT_EQUIVALENCE` requires two circuits on the same register and checks equality after deterministic cancellation of adjacent inverse operations. `STATIC_STEP_BOUND` requires a straight-line function with no calls or branches and checks that its complete forward instruction count does not exceed the stated positive bound or the program ceiling. Unknown subjects, unsupported operations, noncanonical IDs, unknown rules, changed inverse bodies, and malformed metadata reject before execution. This is formal structural evidence, unlike an executable round-trip test.
+The compiler resolves each subject and emits a canonical rule certificate tied to the function or circuit ID.
 
-These rules prove exact compiler generation, one named cancellation rewrite, and straight-line static instruction bounds for the accepted subsets. They do not yet establish matrix-level circuit equivalence under arbitrary rewrites or global phase. General propositions, contracts, proof terms, resource certificates, assumptions, and experiments remain WIP-0011 work.
+`GENERATED_INVERSE` requires a `rev` function. The trusted `ProofKernel` rebuilds its expected inverse from the forward opcodes.
+
+`GENERATED_ADJOINT` requires a `unitary` circuit. The kernel reverses operation order, inverts each semantic gate or coherent call, and checks that a second adjoint returns the exact original body.
+
+`CIRCUIT_EQUIVALENCE` requires two circuits on the same register. It checks equality after deterministic cancellation of adjacent inverse operations.
+
+`STATIC_STEP_BOUND` requires a straight-line function with no calls or branches. The full forward instruction count must fit both the positive theorem bound and the program limit.
+
+Unknown subjects, unsupported operations, noncanonical IDs, unknown rules, changed inverse bodies, and malformed metadata reject the artifact before execution.
+
+These certificates are formal structural evidence. They are different from an executable round-trip test.
+
+The rules prove exact compiler generation, one named cancellation rewrite, and static instruction bounds for the accepted subsets. They do not prove matrix-level equivalence for arbitrary circuit rewrites or global phase.
+
+General propositions, contracts, proof terms, resource certificates, assumptions, and experiments remain WIP-0011 work.
 
 ## Quantum statements
 
-Unitary methods use Java-shaped gate calls over indexed registers:
+Unitary methods use familiar gate calls over indexed registers:
 
 ```java
 unitary void bell() {
@@ -285,7 +432,7 @@ unitary void bell() {
 }
 ```
 
-The current semantic gates are `H`, `X`, `Z`, `Phase`, `CPhase`, `CNOT`, `CZ`, and `Swap`. Target adapters may decompose them but cannot change their ideal meaning.
+The current semantic gates are `H`, `X`, `Z`, `Phase`, `CPhase`, `CNOT`, `CZ`, and `Swap`; a target adapter may decompose these gates, but it cannot change their ideal meaning.
 
 Preparation and measurement are explicit:
 
@@ -295,11 +442,11 @@ bell();
 measured = measure(q);
 ```
 
-Measurement creates a classical observation and cannot be hidden in a `pure`, `rev`, or `unitary` method.
+Measurement creates a classical observation. It cannot be hidden inside a `pure`, `rev`, or `unitary` method.
 
 ## Coherent lifting
 
-The first coherent subset supports finite XOR permutations. The same checked method may run on classical state and be referenced from a quantum register:
+The first coherent subset supports finite XOR permutations. One checked method may run over classical state and also be referenced from a quantum register:
 
 ```java
 coherent rev void flip() {
@@ -311,17 +458,17 @@ unitary void oracle() {
 }
 ```
 
-The compiler rejects checked arithmetic, logged writes, measurement, I/O, and other non-unitary operations from this subset. Broader exact finite arithmetic will be added with explicit width semantics.
+The compiler rejects checked arithmetic, logged writes, measurement, I/O, and other nonunitary operations from this subset. Broader exact finite arithmetic will need explicit width rules.
 
 ## Distinct meanings of reverse
 
-- `reverse method();` is new execution of a verified inverse or adjoint.
-- VM rewind consumes prior classical step records.
+- `reverse method();` runs a verified inverse or adjoint as new work.
+- VM rewind consumes earlier classical step records.
 - Uncomputation returns temporary coherent state to its required clean value.
-- Replay reuses recorded observations.
-- Retry performs a fresh preparation and target execution.
+- Replay uses recorded observations again.
+- Retry prepares fresh state and performs a new target run.
 
-These operations are related but not interchangeable.
+These operations are related, but one cannot replace another.
 
 ## Classical source modules
 
@@ -334,7 +481,7 @@ classical class Arithmetic {
 }
 ```
 
-A root names imports before its class declaration:
+A root lists imports before its class:
 
 ```java
 module bootstrap.main;
@@ -345,15 +492,37 @@ classical class Main {
 }
 ```
 
-`compileModules(sources, root)` receives the complete named source map. Every map key must equal its source `module` declaration; names are dotted ASCII identifiers; imports are unique and lexically sorted. Resolution requires a closed acyclic graph, rejects missing and unreachable inputs, processes dependencies before importers, caps the graph at 1,024 modules, and caps aggregate UTF-8 source input at 64 MiB. Input map iteration order cannot affect `.wbc` bytes.
+`compileModules(sources, root)` receives the complete named source map. Every key must match the source `module` declaration. Module names use dotted ASCII identifiers, and imports must be unique and sorted.
 
-The root declares exactly one entry and may use its private records and closed variants. A dependency declares no entry and, in this slice, contains functions, immutable records, closed variants, and structural fixed-array/slice descriptors only. Nominal record names begin with an ASCII upper-case letter. `public` functions, records, closed variants, and fixed-array/slice signatures over scalar or direct public nominal element types are visible to direct importers; imported variant schemas support typed construction and exhaustive matching in the importer; unqualified references prefer same-module declarations and otherwise resolve one unambiguous direct public import. `example.math::twice(value)` names a public function and `example.math::Pair` names a public value type in an exact direct import. Qualified nominal types work in locals, signatures, construction, matches, arrays, and slices. Qualification does not grant transitive or private access. Colliding short names are unavailable unqualified but remain usable by full module name. Private helpers and value types remain usable inside their declaring module, but a public function, record, or variant cannot expose a private local value type in its API. The linker assigns collision-free internal function/type names before ordinary type checking and bytecode lowering. Non-public references, ambiguous exports, import cycles, unsorted imports, quantum domains, dependency state/proofs and transitive implicit access fail closed.
+Resolution requires a closed acyclic graph. It rejects missing or unreachable inputs and processes dependencies before importers.
 
-Single-source `compile` rejects module declarations. A modular `wheeler.package.yaml` target declares its exact sorted source set and root module; local, workspace, planned, archived, and locked offline builds use the same linker with no path-derived imports. Direct locked cross-package modules link through exact archive identities and package visibility. Stateful modules, circuits, and proofs do not yet cross that boundary. Those omissions are explicit WIP-0007/WIP-0009 work, not ambient classpath behavior.
+The graph may contain at most 1,024 modules, with no more than 64 MiB of combined UTF-8 source. Map iteration order cannot change `.wbc` output.
+
+The root declares exactly one entry and may use its private records and closed variants. A dependency has no entry. In this slice, dependencies may contain functions, immutable records, closed variants, and fixed-array or slice descriptors.
+
+Public functions, records, closed variants, and supported fixed-array or slice signatures are visible to direct importers. Imported variants may be constructed and matched exhaustively by the importer.
+
+An unqualified name first checks the same module. It may then resolve one unambiguous public declaration from a direct import.
+
+`example.math::twice(value)` names a public function. `example.math::Pair` names a public value type from an exact direct import.
+
+Qualified nominal types work in locals, signatures, constructors, matches, arrays, and slices. Qualification does not grant transitive or private access.
+
+When short names collide, callers must use full module names. Private helpers and types remain available inside their own module, but a public function, record, or variant cannot expose a private type in its API.
+
+The linker assigns collision-free internal function and type names before normal type checking and bytecode lowering.
+
+Nonpublic references, ambiguous exports, import cycles, unsorted imports, quantum dependency domains, dependency state or proofs, and implicit transitive access all fail closed.
+
+Single-source `compile` rejects module declarations. A modular `wheeler.package.yaml` target lists its exact sorted source set and root module.
+
+Local, workspace, planned, archived, and locked offline builds use the same linker. Imports do not come from file paths.
+
+Direct locked cross-package modules link through exact archive identities and package visibility. Stateful modules, circuits, and proofs do not yet cross that boundary. WIP-0007 and WIP-0009 own those additions.
 
 ## Explicit host input and output
 
-A classical entry may request immutable input and mutable output borrows:
+A classical entry may request immutable input and mutable output loans:
 
 ```java
 entry void main(borrow utf8 source, borrow mut bytes output) {
@@ -363,39 +532,81 @@ entry void main(borrow utf8 source, borrow mut bytes output) {
 }
 ```
 
-Input-only and output-only entries are also valid; when both exist, input comes first.
+Input-only and output-only entries are valid. When both are present, input comes first.
 
-The entry signature is part of canonical bytecode. It does not read a file, environment variable, standard input stream, package resource, or network endpoint. The embedding API supplies exact bytes when constructing the VM or calling `WheelerRuntime`; `wheeler run ... --input <path>` is a capability-minimal host adapter for one explicit physical nonsymlink file. `--output <path> --output-bytes <count>` supplies one bounded zero-initialized external byte owner. By default the complete capacity is published; `setOutputLength(output, used)` selects a checked prefix after sizing and emission. Publication remains atomic and occurs only after successful execution. Each side is capped at 16 MiB. Input is validated as strict UTF-8 before execution. Missing, unexpected, malformed, oversized, nonregular, linked, or incompletely specified effects fail before the first instruction or before output replacement.
+The entry signature becomes part of canonical bytecode. It does not read a file, environment variable, standard input stream, package resource, or network endpoint by itself.
 
-The VM installs both effects as externally owned baseline storage and gives the entry only verified borrows. External owners are visible in the initial snapshot, cannot be moved or dropped by Wheeler code, and remain the rewind baseline. `ExecutionResult` returns a defensive copy of output bytes. These effects are classical, bounded, and caller-bound. Output-length changes are rewindable and cannot exceed capacity. General path values, streaming, multiple named effects, and package-resource binding remain WIP-0007/WIP-0012 work.
+The embedding API provides exact bytes when it creates the VM or calls `WheelerRuntime`. `wheeler run ... --input <path>` is a small host adapter for one explicit, physical, nonsymlink file.
+
+`--output <path> --output-bytes <count>` supplies one bounded, zero-filled external byte owner. By default, successful execution publishes the full capacity. `setOutputLength(output, used)` selects a checked prefix after the program sizes and writes its result.
+
+Publication is atomic and happens only after success. Each side is capped at 16 MiB. Text input is checked as strict UTF-8 before execution.
+
+Missing, extra, malformed, oversized, nonregular, linked, or incomplete effects fail before the first instruction or before output replacement.
+
+The VM installs both effects as external baseline storage and gives the entry only verified loans. Wheeler code cannot move or drop those external owners.
+
+The owners remain part of the rewind baseline, and `ExecutionResult` returns a defensive copy of output bytes. Output-length changes are rewindable and cannot exceed capacity.
+
+These effects are classical, bounded, and supplied by the caller. General path values, streaming, named effects, and package-resource binding remain future work.
 
 ## Parser and editor tooling
 
-The compiler lexer records line, column, and stage-0 UTF-16 source-character offset. The Wheeler scanner slice records byte ranges and stable error records containing code, byte offset, and one-based line/column; codes 1, 2, and 3 mean unterminated block comment, malformed raw-ASCII literal, and exhausted token capacity. Required identifiers are ASCII letters, digits, and underscore; Unicode remains valid in comments, not names. Inputs are capped at 64 MiB and 16 Mi source characters, tokens at 4,096 characters, token and line counts at 1,000,000 each, declarations at 65,535, and structured block nesting at 256. The parser is formatting-independent and rejects unsupported constructs rather than dropping them.
+The compiler lexer records line, column, and stage-0 UTF-16 source-character offset. The Wheeler scanner slice also records byte ranges and stable errors with a code, byte offset, and one-based line and column.
 
-`tree-sitter-wheeler` provides an incremental grammar, corpus, highlighting, and fold queries for `.w` files. Its concrete syntax tree does not attempt type checking; method and gate meaning are resolved by the compiler.
+Codes 1, 2, and 3 mean an unterminated block comment, malformed raw-ASCII literal, and exhausted token capacity.
+
+Identifiers use ASCII letters, digits, and underscore. Unicode remains valid in comments but not in names.
+
+Input is capped at 64 MiB and 16 million source characters. One token may contain at most 4,096 characters. Token and line counts each stop at 1,000,000, declarations at 65,535, and block nesting at 256.
+
+The parser does not depend on formatting. It rejects unsupported syntax instead of dropping unknown nodes.
+
+`tree-sitter-wheeler` provides an incremental grammar, corpus, highlighting, and fold queries for `.w` files. Its concrete syntax tree does not perform type checking. The compiler resolves method and gate meaning.
 
 ## Bootstrap direction
 
-The current compiler and VM use Java only as stage-0 infrastructure. The production compiler will be Wheeler source and must compile itself to a byte-identical second-stage `.wbc` artifact. Signed/Boolean values, immutable records/variants/arrays/slices, typed calls/control, deterministic classical source-module linking, bounded regions, transferred and returned primitive storage owners, and explicit nonescaping storage loans form the current bootstrap substrate. Library strings, generic deterministic collections, public returned loans, qualified/re-exported and cross-package modules, and streaming or multiple file effects remain complete vertical slices.
+Java is stage-0 infrastructure for the current compiler and VM. The production compiler will be Wheeler source and must compile itself into a byte-identical second-stage `.wbc` artifact.
 
-After native runtime conformance, the Java compiler, VM, tools, Gradle build, and JVM deployment path will be deleted. A cold build will use a content-addressed prior native Wheeler release and `.wbc` recovery seed. Java APIs and object semantics are therefore not prospective Wheeler contracts.
+The current bootstrap base includes signed and Boolean values, immutable records and variants, arrays and slices, typed calls and control, deterministic classical module linking, bounded regions, transferred or returned primitive owners, and explicit nonescaping loans.
 
-See [WIP-0007](../proposals/WIP-0007-self-hosting-compiler-and-bootstrap.md), [WIP-0008](../proposals/WIP-0008-java-free-runtime-and-native-bootstrap.md), and the Wheeler-native package/build contract in [WIP-0009](../proposals/WIP-0009-wheeler-package-and-build-system.md).
+Library strings, generic deterministic collections, public returned loans, richer modules, cross-package modules, streaming, and multiple file effects still need complete vertical slices.
+
+After native runtime conformance, the project plans to remove the Java compiler, VM, tools, Gradle build, and JVM deployment path. A cold build will use a content-addressed earlier native Wheeler release and `.wbc` recovery seed.
+
+Java APIs and object behavior are not future Wheeler contracts.
+
+See [WIP-0007](../proposals/WIP-0007-self-hosting-compiler-and-bootstrap.md), [WIP-0008](../proposals/WIP-0008-java-free-runtime-and-native-bootstrap.md), and [WIP-0009](../proposals/WIP-0009-wheeler-package-and-build-system.md).
 
 ## Proof direction
 
-Proofs will use integrated Wheeler syntax and semantics. Contracts attach to executable declarations; theorem and experiment declarations resolve through ordinary modules; structured proof blocks elaborate to canonical terms checked by a small trusted kernel. Formal theorem evidence remains distinct from simulator tests and sampled hardware results.
+Proofs will use Wheeler syntax and semantics. Contracts attach to executable declarations. Theorems and experiments resolve through normal modules, and structured proof blocks lower to canonical terms checked by a small trusted kernel.
 
-The current `QFTProof.w` is an executable inverse law, not a formal theorem. `Counter.w`, `QFT.w`, and `QuantumCompiler.w` carry the initial finite-rule certificates. General proposition terms, contracts, matrix-level quantum proofs, resource claims, and tooling contracts remain specified work in [WIP-0011](../proposals/WIP-0011-integrated-proofs-and-certificates.md).
+Formal theorem evidence stays separate from simulator tests and sampled hardware results.
+
+`QFTProof.w` is currently an executable inverse law, not a formal theorem; `Counter.w`, `QFT.w`, and `QuantumCompiler.w` carry the first finite-rule certificates.
+
+General proposition terms, contracts, matrix-level quantum proofs, resource claims, and tool contracts remain specified work in [WIP-0011](../proposals/WIP-0011-integrated-proofs-and-certificates.md).
 
 ## Standard library direction
 
-The Wheeler-written standard library will provide allocation-free core values, owned deterministic collections, bytes and UTF-8, explicit host capabilities, reversible data structures with honest inverse contracts, affine logical qubits and registers, circuits, observables, target jobs, proof support, and test utilities. Its package layering and ownership rules are specified in [WIP-0012](../proposals/WIP-0012-wheeler-standard-library.md).
+The Wheeler-written standard library will provide allocation-free core values and owned deterministic collections. It will include bytes, UTF-8, explicit host capabilities, and reversible data structures with exact inverse contracts. Quantum support will cover affine logical qubits and registers, circuits, observables, and target jobs. The library will also include proof support and test tools.
+
+[WIP-0012](../proposals/WIP-0012-wheeler-standard-library.md) defines its package layers and ownership rules.
 
 ## Generic and ownership direction
 
-The current profile has concrete nominal aggregates, fixed arrays/slices, transferred and returned primitive storage owners, and a deliberately narrow set of explicit region and storage loan rules. It has no generic declaration, type class, associated type, const-generic parameter, returned loan, closure, effect variable, or runtime class dispatch. [WIP-0028](../proposals/WIP-0028-deterministic-ownership-borrowing-and-regions.md) specifies affine ownership, inferred local loans, public origins, deterministic destruction, and no required collector. [WIP-0029](../proposals/WIP-0029-parametric-polymorphism-and-bounded-specialization.md) specifies definition-site generics, kinds, bounded values, and deterministic specialization. [WIP-0030](../proposals/WIP-0030-coherent-type-classes-and-associated-types.md) specifies coherent static classes and certified semantic evidence. [WIP-0031](../proposals/WIP-0031-reversible-quantum-and-effect-polymorphism.md) specifies closure ownership, effect rows, and distinct reversible/coherent/unitary callable kinds. All lower to the same reversible typed `.wbc` IR; none is implemented merely because this paragraph has acquired angle brackets.
+The current profile has concrete nominal aggregates, fixed arrays and slices, primitive storage owners that can move or return, and a narrow set of explicit region and storage loans.
+
+It has no generic declarations, type classes, associated types, const-generic parameters, returned loans, closures, effect variables, or runtime class dispatch.
+
+[WIP-0028](../proposals/WIP-0028-deterministic-ownership-borrowing-and-regions.md) defines affine ownership, inferred local loans, public origins, deterministic destruction, and no required collector.
+
+[WIP-0029](../proposals/WIP-0029-parametric-polymorphism-and-bounded-specialization.md) defines checked generics, kinds, bounded values, and deterministic specialization. [WIP-0030](../proposals/WIP-0030-coherent-type-classes-and-associated-types.md) adds coherent static classes and certified semantic evidence.
+
+[WIP-0031](../proposals/WIP-0031-reversible-quantum-and-effect-polymorphism.md) defines closure ownership, effect rows, and distinct reversible, coherent, and unitary callable kinds.
+
+Each feature must still lower to the same typed reversible `.wbc` IR; none is implemented yet unless the reference above describes its executable slice.
 
 ## Teaching path
 
@@ -405,6 +616,6 @@ The current profile has concrete nominal aggregates, fixed arrays/slices, transf
 4. `QFT.w` and `QFTProof.w`: unitary regions, generated adjoints, and executable inverse laws.
 5. `QuantumOptimizer.w`: repeated target observations, classical acceptance, commit, and target-free replay.
 6. `QuantumCompiler.w`: semantic comparison of source and normalized circuits.
-7. `SurfaceCode.w`: a static correction kernel whose documentation states the dynamic-target boundary.
+7. `SurfaceCode.w`: a static correction kernel with an explicit dynamic-target boundary.
 
-See [executable examples](../examples.md) for exact results and scope. Every checked-in example compiles, executes, and parses without Tree-sitter error nodes in the ordinary test gate.
+See [executable examples](../examples.md) for exact results and scope. Every checked-in example compiles, runs, and parses without Tree-sitter error nodes in the normal test gate.

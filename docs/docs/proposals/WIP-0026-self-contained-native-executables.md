@@ -13,19 +13,19 @@
 
 ## Summary
 
-Wheeler will produce one loader-recognized platform-native executable for an application target: ELF on ELF systems, Mach-O on macOS, and PE/COFF when implemented. It is not a script, self-extractor, or Wheeler file with a launcher glued to the front. Read-only format-native segments contain a canonical Wheeler application capsule.
+Wheeler will produce one loader-recognized native executable for an application target: ELF on ELF systems, Mach-O on macOS, and PE/COFF when supported. The result is not a script, a self-extracting archive, or a Wheeler file with a launcher prefix. Read-only native segments hold a canonical Wheeler application capsule.
 
-The capsule carries exact WBC artifacts, root entry, package/lock receipts, runtime profile and limits, immutable resources, selected proof material, provider descriptors, bundled native data, provenance, and identities. The first image embeds a Wheeler VM/runtime, verifies capsule and every WBC, and runs one fixed entry. It needs no adjacent `.wbc`, Wheeler install, vendor tree, package cache, or network.
+The capsule contains exact WBC artifacts, the root entry, package and lock receipts, runtime profile and limits, immutable resources, selected proof data, provider descriptors, bundled native data, provenance, and identities. The first image includes a Wheeler VM or runtime, verifies the capsule and each WBC, and runs one fixed entry. It needs no nearby `.wbc`, Wheeler installation, vendor tree, package cache, or network.
 
-A later AOT mode still embeds the canonical WBC closure. AOT is an execution mode over the same reversible typed IR identity—classical inverse/log/barrier relations, workflows, ownership/effects, and quantum regions/adjoints—not an opportunity to misplace the semantics in a native optimizer.
+A later AOT mode still embeds the canonical WBC closure. AOT changes execution, not semantic identity. Classical inverse and history rules, workflows, ownership, effects, quantum regions, and adjoints remain bound to the same typed IR.
 
-Self-contained excludes the kernel and declared platform baseline. A sealed image bundles or statically links every nonbaseline dependency; a system-baseline image depends only on explicit WIP-0025 capabilities mapped by WIP-0024. Unsigned native bytes are reproducible WIP-0023 output with a PREV. Signing/notarization happens afterward under separate identity.
+In this proposal, self-contained excludes the kernel and a declared platform baseline. A sealed image bundles or statically links each nonbaseline dependency. A system-baseline image depends only on explicit WIP-0025 capabilities mapped by WIP-0024. Unsigned native bytes are reproducible WIP-0023 output with a PREV. Signing and notarization happen later under separate identities.
 
 ## Motivation
 
-A launch directory containing launcher, VM, WBCs, lock, resources, and libraries permits partial updates, component substitution, path/cache influence, complicated signing, and brittle distribution. One native file gives direct launch, one atomic update, one signing subject, one content identity, offline execution, exact provenance, and simple system-package export.
+A launch directory with a launcher, VM, WBC files, lock, resources, and libraries allows partial updates, component swaps, path or cache influence, complex signing, and fragile distribution. One native file gives direct launch, atomic replacement, one signing subject, one content identity, offline execution, exact provenance, and simple system-package export.
 
-The design rejects opaque appended trailers: loader tools, stripping, universal binaries, signing, antivirus, and reproducibility disagree about bytes outside native structure. Wheeler bytes belong in ordinary read-only segments before signing.
+The design also rejects opaque trailers appended after the native file. Loaders, stripping tools, universal binaries, signing systems, antivirus tools, and reproducible-build checks may disagree about bytes outside the native structure. Wheeler data belongs in normal read-only segments before signing.
 
 ## Goals
 
@@ -113,7 +113,7 @@ The complete unsigned native file PREV is the output identity. Signing yields `s
 
 ## Ownership and boundaries
 
-Compiler/package linking owns exact WBC closure and entry. The bytecode verifier owns every embedded executable artifact. Capsule builder owns canonical bytes/ID. Native runtime owns startup and execution. Format adapters own platform layout. WIP-0023 owns exact tools, reproducibility, PREV, and publication. WIP-0025 owns providers/link groups. WIP-0024 owns installation and signing policy. The OS loader owns loading; host policy grants runtime authority.
+Compiler/package linking owns exact WBC closure and entry. The bytecode verifier owns every embedded executable artifact. Capsule builder owns canonical bytes/ID; native runtime owns startup and execution. Format adapters own platform layout. WIP-0023 owns exact tools, reproducibility, PREV, and publication. WIP-0025 owns providers/link groups. WIP-0024 owns installation and signing policy. The OS loader owns loading; host policy grants runtime authority.
 
 ## Design
 
@@ -125,7 +125,7 @@ Immutable resources use logical names and a read-only capability. Mutable config
 
 ### Startup
 
-Native entry performs minimal platform initialization, locates the loader-mapped capsule, validates segment bounds/permissions and canonical framing/digests, validates baseline/profile/receipts, verifies every WBC, constructs bounded runtime state, binds explicit capabilities, invokes the fixed root, and returns a deterministic declared exit status. Failure before entry emits a stable image diagnostic and executes no application bytecode.
+Native entry performs only the required platform setup. It locates the loader-mapped capsule, checks segment ranges and permissions, then verifies canonical framing and digests. It also checks the baseline, profile, receipts, and every WBC. After that, it creates bounded runtime state, binds explicit capabilities, calls the fixed root, and returns the declared deterministic exit status.
 
 The locator cannot depend on executable path, `/proc/self/exe`, current directory, environment, package caches, debug symbols, or section headers that stripping may remove. The adapter emits a small linker-visible locator in loadable read-only data and runtime cross-checks it against segment bounds.
 
@@ -185,7 +185,7 @@ Capsule schema and supported WBC profiles are versioned. Unsupported schema/prof
 
 Limits cover native/capsule size, entry counts/names/sizes, alignment, receipts, proofs/providers, verification work, runtime memory/steps, native imports, and diagnostics.
 
-Reject malformed native structure, overlapping/escaping ranges, writable/executable capsule, bad/missing locator, unordered/duplicate entries, digest mismatch, trailing data, unsupported baseline, malformed WBC, undeclared imports, unequal universal capsule IDs, host variance, unsupported signing state, and output excess. Corruption never falls back to adjacent files or network.
+Reject malformed native structure, overlapping or escaping ranges, a writable and executable capsule, a bad locator, unordered entries, and duplicate entries. Also reject digest mismatch, trailing data, unsupported baselines, malformed WBC, undeclared imports, unequal universal capsule IDs, host variance, unsupported signing state, and excess output.
 
 ## Migration and deletion
 
@@ -221,15 +221,15 @@ Reject malformed native structure, overlapping/escaping ranges, writable/executa
 
 ## Alternatives
 
-Adjacent launch directories permit substitution and partial updates. Opaque trailers have inconsistent loader/signing behavior. App bundles are useful wrappers but not the one-file profile. Requiring AOT increases compiler risk; omitting WBC loses semantic provenance. Reopening by path and storing only debug sections are brittle. Temp extraction of shared libraries is deferred. Signed bytes alone are not reproducible content identity. Runtime package resolution and in-place WBC updates violate the closed immutable graph. All are rejected.
+Adjacent launch directories permit substitution and partial updates. Opaque trailers have inconsistent loader/signing behavior. App bundles are useful wrappers but not the one-file profile; requiring AOT increases compiler risk; omitting WBC loses semantic provenance. Reopening by path and storing only debug sections are brittle. Temp extraction of shared libraries is deferred. Signed bytes alone are not reproducible content identity. Runtime package resolution and in-place WBC updates violate the closed immutable graph. All are rejected.
 
 ## Open questions
 
-- Which canonical capsule encoding and deterministic compression profile? — **Owner:** format maintainers — **Decide by:** schema freeze
-- Exact ELF locator/note and first Linux baseline? — **Owner:** ELF/runtime maintainers — **Decide by:** ELF adapter
-- First macOS versions/slices and universal duplication policy? — **Owner:** platform maintainers — **Decide by:** Mach-O adapter
-- Which host-input capabilities are required for the first CLI? — **Owner:** standard-library maintainers — **Decide by:** startup
-- Which conformance gate admits AOT, and is PE in first acceptance or successor? — **Owner:** compiler/platform maintainers — **Decide by:** acceptance
+- Which canonical capsule encoding and deterministic compression profile (owner: format maintainers; decision point: schema freeze)?
+- Exact ELF locator/note and first Linux baseline (owner: ELF/runtime maintainers; decision point: ELF adapter)?
+- First macOS versions/slices and universal duplication policy (owner: platform maintainers; decision point: Mach-O adapter)?
+- Which host-input capabilities are required for the first CLI (owner: standard-library maintainers; decision point: startup)?
+- Which conformance gate admits AOT, and is PE in first acceptance or successor (owner: compiler/platform maintainers; decision point: acceptance)?
 
 ## References
 

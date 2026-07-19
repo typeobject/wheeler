@@ -13,15 +13,17 @@
 
 ## Summary
 
-Wheeler will convert exact verified build outputs into a canonical format-neutral install image, then convert that image into target system packages such as `.deb` and `.rpm`. System packages are derived deployment artifacts. They do not redefine source identity, dependency resolution, proof meaning, `.wbc` identity, reversible-IR ownership/effect/inverse/adjoint semantics, or package PREV.
+Wheeler will turn exact verified build outputs into a canonical, format-neutral install image. It will then convert that image into system packages such as `.deb` and `.rpm`.
 
-The pipeline constructs an install image, applies one pinned distribution profile and dependency-mapping snapshot, invokes one exact sealed adapter, emits reproducible unsigned package bytes, and performs signing/publication as separate release effects. Arbitrary maintainer scripts are excluded from the first profile; lifecycle behavior uses a small typed model.
+System packages are deployment artifacts. They do not change source identity, dependency resolution, proof meaning, `.wbc` identity, IR ownership or effects, inverse or adjoint rules, or package PREV.
+
+The pipeline creates an install image, applies one pinned distribution profile and dependency-mapping snapshot, runs one exact sealed adapter, and emits reproducible unsigned package bytes. Signing and publication are separate release effects. The first profile excludes arbitrary maintainer scripts and uses a small typed lifecycle model.
 
 ## Motivation
 
-Operating systems own filesystem layout, ownership/conflicts, distro dependency namespaces, configuration preservation, services/users/state directories, lifecycle behavior, architecture/version fields, signatures, and repository policy. Putting those in `wheeler.package.yaml` mixes upstream semantics with downstream policy. Emitting them from ad hoc scripts reintroduces ambient tools, host queries, timestamps, and opaque scriptlets.
+Operating systems control file layout, ownership and conflicts, distribution dependency names, configuration preservation, services, users, state directories, lifecycle behavior, architecture and version fields, signatures, and repository policy. Putting all of that in `wheeler.package.yaml` would mix upstream program meaning with downstream packaging policy.
 
-One canonical intermediate keeps adapters mechanical, reproducible, and reviewable. A downstream packaging revision can change without pretending the Wheeler source or PREV changed.
+Ad hoc scripts would bring back ambient tools, host queries, timestamps, and opaque scriptlets. One canonical intermediate keeps adapters mechanical, reproducible, and easy to review. A distribution packaging revision may change without claiming that Wheeler source or PREV changed.
 
 ## Goals
 
@@ -66,7 +68,7 @@ An entry records logical path, kind, content identity, mode, owner/group classes
 
 Roles include executable, library, data, configuration, documentation, license, manual, service definition, completion, debug data, and metadata. Owner classes are root, declared service identity, or package-manager default; build-host UID/GID never enters.
 
-Configuration is immutable data, administrator-preserved content, or a sample. Generated mutable state is declared as lifecycle state rather than shipped as stale bytes.
+Configuration is immutable data, administrator-preserved content, or a sample. Generated mutable state is declared as lifecycle state instead of shipped as stale bytes.
 
 Typed lifecycle operations may create users/groups or state/cache/log/runtime directories, install service definitions, reload named manager metadata, apply explicit enable/restart policy, update a named cache, and purge declared generated state. Every action has target mapping, order, idempotency, failure behavior, and ownership. Unsupported behavior fails instead of becoming an opaque script.
 
@@ -89,7 +91,7 @@ One exact export input has one accepted distribution revision. Signing creates a
 
 ## Ownership and boundaries
 
-The Wheeler build owns source, WBC, native image, tests, proofs, and PREV. Package targets own generic install intent without adding a fourth target kind. Distribution profiles own layout, naming, mappings, service policy, and adapters. The mapping repository owns OS dependency policy. The adapter owns format encoding. The target package manager owns installation transactions. Release tooling owns signing and upload.
+The Wheeler build owns source, WBC, native image, tests, proofs, and PREV; package targets own generic install intent without adding a fourth target kind. Distribution profiles own layout, naming, mappings, service policy, and adapters. The mapping repository owns OS dependency policy. The adapter owns format encoding. The target package manager owns installation transactions. Release tooling owns signing and upload.
 
 ## Design
 
@@ -105,7 +107,7 @@ The Debian adapter emits deterministic control/data archives, configuration poli
 
 The RPM adapter maps equivalent semantics and may generate a canonical spec internally or drive a sealed exact toolchain. Author `%prep`, `%build`, `%install`, scriptlets, Lua, ambient macros, and dynamic fragments are excluded.
 
-Stage 0 may use sealed exact distro tools; Wheeler-native encoders may replace them after conformance. Any native tool, rootfs, support file, macro set, argument, and environment enters export build-input identity.
+Stage 0 may use sealed exact distro tools; Wheeler-native encoders may replace them after conformance; any native tool, rootfs, support file, macro set, argument, and environment enters export build-input identity.
 
 Normalization covers timestamps, locale/timezone, file/control order, owner/group, roots, modes/links, compression headers/threading, changelog dates, macros, random seeds, and debug/build paths. Temporary path, CPU count, user, mirror, and wall clock cannot affect unsigned bytes.
 
@@ -131,7 +133,7 @@ Proof certificates may be installed as verified files. Credentials, calibration,
 
 The install-image schema is canonical and versioned. Adapter or policy changes create new distribution outputs without changing Wheeler PREV.
 
-Reject escaping paths/links, special files, duplicate ownership, undeclared native imports, missing mappings, host-derived dependencies, arbitrary scriptlets, noncanonical output, divergent revisions, embedded host paths/timestamps, output escape, and signatures that fail to bind the unsigned revision.
+Reject paths or links that escape, special files, duplicate ownership, undeclared native imports, missing mappings, host-derived dependencies, and arbitrary scriptlets. Also reject noncanonical output, divergent revisions, embedded host paths or timestamps, output escape, and signatures that do not bind the unsigned revision.
 
 ## Migration and deletion
 
@@ -166,14 +168,14 @@ Reject escaping paths/links, special files, duplicate ownership, undeclared nati
 
 ## Alternatives
 
-Direct distro emission from package manifests mixes policy layers. Arbitrary spec/control files and scripts are unbounded programs. Unpinned host tools and automatic dependency discovery are ambient inputs. Bundling everything is useful but not universal. Signed bytes alone are not a stable reproducibility target. Using the OS dependency graph as the Wheeler lock omits source, proofs, tools, and portable artifacts. All are rejected.
+Direct distro emission from package manifests mixes policy layers; arbitrary spec/control files and scripts are unbounded programs. Unpinned host tools and automatic dependency discovery are ambient inputs. Bundling everything is useful but not universal. Signed bytes alone are not a stable reproducibility target. Using the OS dependency graph as the Wheeler lock omits source, proofs, tools, and portable artifacts. All are rejected.
 
 ## Open questions
 
-- Which canonical install-image encoding should be used? — **Owner:** format maintainers — **Decide by:** adapters
-- Which lifecycle operations form the first closed set? — **Owner:** distribution/security maintainers — **Decide by:** acceptance
-- Sealed native tools or Wheeler encoders first? — **Owner:** bootstrap maintainers — **Decide by:** implementation
-- Which split and virtual-provide conventions are generic? — **Owner:** distribution maintainers — **Decide by:** split support
+- Which canonical install-image encoding should be used (owner: format maintainers; decision point: adapters)?
+- Which lifecycle operations form the first closed set (owner: distribution/security maintainers; decision point: acceptance)?
+- Sealed native tools or Wheeler encoders first (owner: bootstrap maintainers; decision point: implementation)?
+- Which split and virtual-provide conventions are generic (owner: distribution maintainers; decision point: split support)?
 
 ## References
 

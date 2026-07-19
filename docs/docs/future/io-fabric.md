@@ -1,8 +1,8 @@
 # Unified I/O fabric
 
-WIP-0032 specifies Wheeler's planned asynchronous I/O foundation. It is a **Draft**, not an implemented source API. The current stage-0 host bindings and `QuantumJob` classes are migration fixtures; they must not be mistaken for a second I/O design merely because they currently answer the phone.
+WIP-0032 defines Wheeler's planned asynchronous I/O foundation. It is still a **Draft**, so the source API does not exist yet. The current stage-0 host bindings and `QuantumJob` classes are migration tools, not a second I/O model.
 
-The proposal keeps the common model small:
+The shared model has four parts:
 
 ```text
 resource operation -> Request<T>
@@ -11,7 +11,7 @@ operation owns pending work
 result type says what happened
 ```
 
-One request may be awaited directly, submitted for overlap, placed in an independent batch, connected in a dependency graph, or selected under an explicit race, quorum, deadline, or all-results policy.
+A caller may await one request directly or submit it for overlapping work. Requests may also join a batch or dependency graph; selection policies cover races, quorums, deadlines, and all-results waits.
 
 ## Fixed semantic rules
 
@@ -29,8 +29,8 @@ One request may be awaited directly, submitted for overlap, placed in an indepen
 
 ## Current implementation boundary
 
-Today Wheeler implements explicit bounded entry input/output loans, canonical hybrid job events, target submission and recovery, atomic host publication where supported, package capability requests, and native FFI ownership checks. Those pieces establish useful constraints but do not yet implement `IoScope`, `Request<T>`, operation graphs, buffer registration, direct I/O, RDMA, storage tiers, or durability receipts.
+Today Wheeler has bounded entry input and output loans, canonical hybrid job events, target submission and recovery, atomic host publication where the platform supports it, package capability requests, and native FFI ownership checks. These pieces set useful rules. They do not yet provide `IoScope`, `Request<T>`, operation graphs, buffer registration, direct I/O, RDMA, storage tiers, or durability receipts.
 
-Until typed receipts execute, an atomic replacement is only an atomic publication attempt under the host contract. It is not evidence that data, metadata, or namespace survived a crash or power loss. `fsync` folklore has been asked to wait outside.
+Until typed receipts exist, an atomic replacement proves only that the host attempted atomic publication. It does not prove that data, metadata, or the namespace survived a crash or power loss. Durability needs its own evidence. An `fsync` call by itself is not a durability receipt.
 
 The complete contract, migration order, acceptance suite, and research references live in [WIP-0032](../proposals/WIP-0032-unified-io-fabric-and-durability-receipts.md).

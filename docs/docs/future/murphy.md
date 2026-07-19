@@ -7,19 +7,19 @@ sidebar_position: 2
 
 :::caution Future design, not current Wheeler
 
-`Murphy.w` is a hypothetical fault-tolerant-era application. Its syntax is not accepted by the current compiler unless the same construct appears in the [language reference](../reference/language-profile.md). This is a bounded model-checking and proof-system target, not a claim that quantum hardware currently improves distributed debugging.
+`Murphy.w` is a possible application for a future fault-tolerant system. The current compiler accepts only the syntax that also appears in the [language reference](../reference/language-profile.md). This page describes a bounded model-checking and proof target. It does not claim that today's quantum hardware improves distributed debugging.
 
 :::
 
-`Murphy.w` receives a canonical distributed protocol artifact, finite initial state, safety invariants, and an explicit fault bound. It searches all admitted schedules of delivery, duplication, loss, crash, restart, partition, healing, timeout, and logical-time advance. It returns one of three honest results:
+`Murphy.w` takes a canonical protocol artifact, a finite starting state, safety rules, and a clear fault bound. It searches every allowed schedule of delivery, duplication, loss, crash, restart, partition, healing, timeout, and logical-time advance. The run returns one of three results:
 
 - a deterministically replayable, kernel-certified counterexample;
 - a kernel-checked proof that no counterexample exists within the exact bound;
 - `inconclusive`.
 
-No production log, traffic archive, packet corpus, or learned model is an input. The schedule space is generated from the program and fault grammar.
+The search does not use production logs, traffic archives, packet corpora, or a learned model. It builds the schedule space from the program and the fault grammar.
 
-The dataset is every bad thing that can happen, generated fresh by mathematics.
+The finite model defines every failure the search may explore.
 
 ## Concrete investigation
 
@@ -44,13 +44,13 @@ The initial profile admits at most:
 128 live messages
 ```
 
-A successful counterexample might show that node 3 credits a transfer, crashes before its durable idempotency marker, reconstructs the transfer as prepared, and applies a duplicated commit after restart.
+One counterexample might show node 3 crediting a transfer, then crashing before it writes a durable idempotency marker. After restart, the node rebuilds the transfer as prepared and applies a duplicated commit.
 
-Search evidence alone cannot establish either result. A proposed schedule is decoded and replayed classically. “No useful sample was observed” is not a proof of safety. A universal bounded-safety claim requires a separate canonical certificate checked by Wheeler's trusted kernel.
+Search evidence alone cannot prove a failure or bounded safety. Wheeler decodes each proposed schedule and replays it with exact classical semantics. An empty sample set proves nothing. A bounded-safety claim needs a separate canonical certificate that the trusted kernel accepts.
 
 ## Speculative source sketch
 
-The notation below assumes finite-domain types, bounded maps and queues, first-class protocol artifacts, explicit logged reversibility, coherent finite interpreters, proof-producing model checking, [WIP-0032](../proposals/WIP-0032-unified-io-fabric-and-durability-receipts.md) structured asynchronous effects, and proof-bearing replay packages. Its model scheduler is not a second host-I/O API.
+The sketch assumes finite-domain types, bounded maps and queues, first-class protocol artifacts, logged reversibility, coherent finite interpreters, proof-producing model checking, [WIP-0032](../proposals/WIP-0032-unified-io-fabric-and-durability-receipts.md) asynchronous effects, and proof-bearing replay packages. The model scheduler does not define another host-I/O API.
 
 ```java
 package future.murphy.ledger;
@@ -749,7 +749,7 @@ hybrid class Murphy {
 
 ## Syntax review
 
-The sketch intentionally distinguishes mechanisms that are often conflated:
+The sketch keeps several mechanisms separate:
 
 - `logged rev` means the finite simulator carries explicit event witnesses. It does not claim that real crashes or packet loss run backward.
 - `borrow` and `inout` express alias and mutation ownership; a protocol artifact cannot acquire host authority through interpretation.
@@ -759,9 +759,9 @@ The sketch intentionally distinguishes mechanisms that are often conflated:
 - `NoCounterexampleAtLength` is required before search advances to a longer timeline. An empty quantum sample set proves nothing.
 - the counterexample's minimality proof is relative to the exact event grammar, canonical encoding, protocol artifact, initial state, fault budget, and timeline-length metric.
 
-The original moonshot needs several semantic corrections before it could become syntax. A locally minimized trace is not necessarily the globally shortest trace; shortestness requires checked absence at every smaller length. A replicated ledger must state whether money conservation applies independently to each replica or to one logical committed view; summing all replica copies is wrong. Delivery and timer witnesses must retain network cursors and emitted envelopes, not only recipient state. Fault counters must be derived from canonical events rather than trusted fields. Coherent classification requires a finite reversible interpreter for every map, queue, handler, and safety operation it invokes.
+Several semantic rules must be settled before this can become real syntax. A locally minimized trace may still be longer than another trace, so global shortestness needs an absence proof for every smaller length. A replicated ledger must say whether conservation applies to each replica or to one committed logical view. Adding every replica balance together would be wrong. Delivery and timer witnesses must keep recipient state, network cursors, and emitted envelopes. Fault counts must come from canonical events instead of trusted fields. Coherent execution also needs a finite reversible interpreter for every map, queue, handler, and safety operation it calls.
 
-The current Wheeler profile has none of the package/import, protocol-artifact, structured-concurrency, generic finite-type, logged-transition, coherent-lambda, proposition, or capability-interface syntax shown here.
+The current Wheeler profile does not support the package, import, protocol artifact, structured concurrency, generic finite type, logged transition, coherent lambda, proposition, or capability interface syntax used here.
 
 ## Example report
 
@@ -807,11 +807,11 @@ Replay package:
   counterexample-8f41a92c.wpk
 ```
 
-That is stronger than “CI failed once on a Tuesday; could not reproduce.”
+This report gives an exact reproducer and checked evidence, not a one-time CI failure.
 
 ## What quantum search changes
 
-Conventional explicit-state and symbolic model checkers already explore bounded schedules. Murphy is not justified by renaming model checking. Its Wheeler-specific target is composition:
+Existing explicit-state and symbolic model checkers already explore bounded schedules. Murphy's Wheeler-specific goal is to combine several parts in one system:
 
 - explicit reversible witnesses avoid copying a complete cluster at every branch;
 - one finite schedule classifier can execute classically and, when eligible, coherently;
@@ -821,14 +821,14 @@ Conventional explicit-state and symbolic model checkers already explore bounded 
 - durable workflow state survives long searches and distinguishes replay from retry;
 - the package system publishes the exact reproducer and certificates.
 
-Quantum search does not remove state-space explosion, fault-tolerant overhead, oracle cleanup, certificate cost, or the need for better partial-order reduction and protocol-specific lemmas. A classical checker may remain faster for every practical bound.
+Quantum search does not remove state-space growth, fault-tolerant overhead, oracle cleanup, certificate cost, or the need for partial-order reduction and protocol-specific lemmas. A classical checker may still be faster at every practical bound.
 
 ## Boundaries
 
-A bounded safety proof says nothing beyond its protocol artifact, compiler and semantics identities, initial state, node/message/timer limits, event grammar, fault budget, arithmetic model, and step bound. Liveness generally needs a fairness model and is not inferred from finite safety exploration. Real clocks, weak memory, cryptography, storage corruption, Byzantine behavior, and network semantics enter only when explicitly modeled.
+A bounded safety proof applies only to its exact protocol artifact, compiler and semantics identities, starting state, node, message, and timer limits, event grammar, fault budget, arithmetic model, and step bound. Liveness usually needs a fairness model, so finite safety exploration cannot establish it by itself. Real clocks, weak memory, cryptography, storage corruption, Byzantine behavior, and network rules count only when the model includes them.
 
-The same machinery could investigate consensus, databases, distributed filesystems, cache coherence, spacecraft swarms, robot coordination, package registries, game servers, or Wheeler's own durable hybrid runtime. A particularly useful conformance target is:
+The same machinery could study consensus, databases, distributed file systems, cache coherence, spacecraft swarms, robot coordination, package registries, game servers, or Wheeler's own durable hybrid runtime. One useful conformance target is:
 
 > Under every bounded ordering of completion, cancellation, retry, replay, recovery, and duplicate delivery, one quantum observation is applied at most once.
 
-The governing design work is [WIP-0015](../proposals/WIP-0015-certified-adversarial-schedule-exploration.md), with live external operations owned by [WIP-0032](../proposals/WIP-0032-unified-io-fabric-and-durability-receipts.md). `Murphy.w` remains documentation until every dependency is implemented and the ordinary CI gate can compile, parse, execute, replay, and verify it.
+[WIP-0015](../proposals/WIP-0015-certified-adversarial-schedule-exploration.md) owns the exploration design, while [WIP-0032](../proposals/WIP-0032-unified-io-fabric-and-durability-receipts.md) owns live external operations. `Murphy.w` remains a document until the normal CI gate can compile, parse, run, replay, and verify the full application.

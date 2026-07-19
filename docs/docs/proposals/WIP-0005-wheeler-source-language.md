@@ -13,15 +13,21 @@
 
 ## Summary
 
-Wheeler source is a deliberately familiar class-based language with explicit reversible and quantum semantics. Classes, fields, methods, calls, assignments, assertions, and block structure use Java-like ergonomics without claiming Java source or binary compatibility. Wheeler adds computation-domain class modifiers, `rev` and `coherent rev` methods, `unitary` methods, affine `qreg` fields, `reverse`, preparation, measurement, and target-aware execution.
+Wheeler is a class-based language with familiar syntax and explicit rules for reversible and quantum work. Classes, fields, methods, calls, assignments, assertions, and blocks look Java-like. Wheeler does not claim Java source or binary compatibility.
 
-The implementation grows as complete executable profiles rather than accepting broad Java syntax into placeholder AST nodes. Unsupported Java or quantum constructs produce source diagnostics. Every accepted declaration lowers into one Wheeler reversible typed IR: WIP-0001 classical bodies retain inverse/log/barrier semantics, WIP-0002 quantum regions retain affine resources and adjoints, and measurement or host work remains an explicit effect edge. The compiler deletes each superseded parser path instead of maintaining dialects; a Java-shaped surface never means Java-shaped semantics underneath.
+The language adds computation-domain class modifiers, `rev` and `coherent rev` methods, `unitary` methods, affine `qreg` fields, `reverse`, preparation, measurement, and target-aware execution.
+
+Implementation advances through small profiles that work end to end. The parser does not accept broad Java syntax and store unsupported placeholder nodes. Unsupported Java or quantum features produce clear source errors. Each accepted declaration lowers to the same Wheeler typed IR. WIP-0001 covers classical inverse, log, and barrier behavior. WIP-0002 covers affine quantum resources and adjoints. Measurement and host work stay visible as effect edges.
+
+When a new parser path replaces an old one, the compiler removes the old path. Familiar syntax must not hide Java semantics underneath.
 
 ## Motivation
 
-Wheeler should feel like a plausible evolution of Java for reversible and quantum systems. The first executable implementation used a temporary line-oriented declaration format to validate bytecode. Keeping that format would make the VM testable but would not satisfy the language's purpose or the ergonomics demonstrated by the original examples.
+Wheeler should feel like a practical next step for Java programmers working with reversible and quantum systems. Its first executable compiler used a temporary line-based declaration format to test bytecode. That format helped validate the VM, but it did not meet the language's goals or match the examples.
 
-At the same time, copying all of Java's grammar before semantics exist recreates the deleted placeholder compiler. The project needs a Java-shaped subset whose every construct has parsing, diagnostics, lowering, verification, execution, and example coverage. It must grow toward the WIP-0007 bootstrap profile: the compiler is a Wheeler acceptance program, not a permanent Java service.
+Copying all of Java's grammar before Wheeler can implement the meaning would repeat the old placeholder compiler. Wheeler instead needs a focused Java-shaped subset. Every accepted construct must have parsing, diagnostics, lowering, verification, execution, and example coverage.
+
+That subset must grow toward the WIP-0007 bootstrap profile. The compiler itself is a Wheeler acceptance program, not a permanent Java-based service.
 
 ## Use cases
 
@@ -99,7 +105,7 @@ A `coherent rev` method is callable normally from classical code and may be refe
 
 A `state long` field is classical mutable state in the first bytecode format. A `qreg` field is an affine logical quantum resource. Ordinary Java-like local variables, parameters, object fields, and richer exact types are added only with bytecode and ownership support.
 
-A `rev` method has a compiler-validated inverse body. A `coherent rev` method additionally satisfies WIP-0002 coherent eligibility. A `unitary` method lowers to quantum region IR and receives a generated adjoint. WIP-0031 carries those distinctions into callable values and effect-polymorphic APIs; it does not merge them into a universal function type.
+A `rev` method has a compiler-validated inverse body. A `coherent rev` method also satisfies WIP-0002 coherent eligibility. A `unitary` method lowers to quantum region IR and receives a generated adjoint. WIP-0031 carries those distinctions into callable values and effect-polymorphic APIs; it does not merge them into a universal function type.
 
 `reverse method();` invokes one method inverse. A `reverse { ... }` block inverses supported calls in reverse lexical order. It is language-level inverse execution, not VM history rewind.
 
@@ -120,7 +126,15 @@ The first profile supports:
 - signed `long` and `boolean` parameters and returns for ordinary classical methods; zero-argument `void` entry, reversible, coherent, and unitary methods;
 - `rev`, `coherent rev`, `unitary`, and `entry` methods;
 - `+=`, `-=`, `^=`, direct logged assignment, method calls, assertions, checkpoint, and commit;
-- signed `long`, `boolean`, immutable nominal records, closed tagged variants with exhaustive `match`, fixed immutable arrays with checked indexing, nonescaping immutable slices, and function-local affine `region`/`words`/`bytes`/`utf8`/`longmap` storage with nonescaping immutable `utf8` and exclusive `region`/`words`/`bytes`/`longmap` parameters with bounded allocation, checked mutation, strict UTF-8 validation/counting, and explicit drop; typed left-to-right expressions and static calls; `return`, `if`/`else`, early return, bounded `while` and counted `for`, and `break`/`continue` in ordinary classical methods;
+- classical values and storage, including:
+  - signed `long` and `boolean` values;
+  - immutable nominal records and closed tagged variants with exhaustive `match`;
+  - fixed immutable arrays with checked indexing and nonescaping immutable slices;
+  - function-local affine `region`, `words`, `bytes`, `utf8`, and `longmap` storage;
+  - nonescaping immutable `utf8` parameters and exclusive `region`, `words`, `bytes`, and `longmap` parameters;
+  - bounded allocation, checked mutation, strict UTF-8 validation and counting, and explicit drop;
+- typed expressions that evaluate left to right, plus static calls;
+- `return`, `if`/`else`, early return, bounded `while`, counted `for`, and `break`/`continue` in ordinary classical methods;
 - direct inverse calls, reverse blocks, and finite `inverse(function)`, `adjoint(circuit)`, `equivalent(left, right)`, and `steps(function, bound)` theorem declarations;
 - H, X, Z, phase, controlled phase, CNOT, CZ, and swap gates;
 - `prepare`, full-register computational-basis measurement, unitary call/adjoint, and coherent method reference;
@@ -142,7 +156,7 @@ Wheeler adopts Java familiarity, not Java source or binary compatibility. Constr
 
 ## Reversibility and history
 
-Assignments lower according to WIP-0001 reversibility classes. `+=`, `-=`, and `^=` have generated inverses in eligible methods. Direct assignment is logged and is rejected from methods requiring a generated inverse.
+Assignments lower according to WIP-0001 reversibility classes; `+=`, `-=`, and `^=` have generated inverses in eligible methods. Direct assignment is logged and is rejected from methods requiring a generated inverse.
 
 Reverse blocks only accept operations with a declared language-level inverse. External effects, measurement, and commit cannot hide in a reverse block.
 
@@ -152,7 +166,7 @@ The implemented profile has no Java threads, monitors, volatile fields, or async
 
 ## Quantum and proof implications
 
-Quantum register references are affine semantic values even when field syntax resembles Java. Gate calls do not expose provider qubit objects. Measurement produces classical state through an explicit operation.
+Quantum register references are affine semantic values even when field syntax resembles Java. Gate calls don't expose provider qubit objects. Measurement produces classical state through an explicit operation.
 
 The initial WIP-0011 slice resolves generated-inverse, generated-adjoint, finite circuit-equivalence, and straight-line step-bound theorem declarations and emits canonical certificates checked by the finite kernel. Contracts, general propositions and terms, structured proof blocks, experiments, circuit/resource rules, and package proof APIs remain.
 
@@ -175,7 +189,7 @@ The parser bounds source bytes, lines, declarations, methods, statements, regist
 ## Progress
 
 - [x] Wheeler class, field, and method declarations parse.
-- [x] Classical state, compile-time signed/Boolean constants, signed/Boolean/record/variant/finite-enum/array values, nonescaping slices, function-local affine region word/byte/immutable-UTF-8 and signed-map storage, bounded control flow, exhaustive selection, checked indexing, and reverse blocks lower to WIP-0001 major version 1 typed frames.
+- [x] Classical state and compile-time signed or Boolean constants lower to WIP-0001 major version 1 typed frames. The same path handles records, variants, finite enums, arrays, and nonescaping slices. It also handles affine region storage, signed maps, bounded control flow, exhaustive selection, checked indexing, and reverse blocks.
 - [x] Unitary methods and quantum entry operations lower to WIP-0002.
 - [x] Coherent method references execute on classical and simulated quantum data.
 - [x] Counter, QFT, and coherent-oracle examples use only the Wheeler source profile.
@@ -205,12 +219,12 @@ Rejected. The removed grammar accepted far more syntax than the AST, verifier, o
 
 ### Use Java annotations only
 
-Rejected. Reversibility, affine quantum resources, reverse blocks, and measurement are core language semantics and deserve direct readable syntax.
+Rejected. Reversibility, affine quantum resources, reverse blocks, and measurement are core language semantics. They need direct, readable syntax.
 
 ## Open questions
 
-- Which exact local-variable, parameter, and aggregate profile is the smallest complete WIP-0007 bootstrap subset? — **Owner:** language and compiler maintainers — **Decide by:** before the BinaryTree migration
-- Should coherent invocation eventually use ordinary overload resolution on coherent value types, method references, or both? — **Owner:** language and quantum maintainers — **Decide by:** before parameters are added
+- Which exact local-variable, parameter, and aggregate profile is the smallest complete WIP-0007 bootstrap subset (owner: language and compiler maintainers; decision point: before the BinaryTree migration)?
+- Should coherent invocation eventually use ordinary overload resolution on coherent value types, method references, or both (owner: language and quantum maintainers; decision point: before parameters are added)?
 
 ## References
 

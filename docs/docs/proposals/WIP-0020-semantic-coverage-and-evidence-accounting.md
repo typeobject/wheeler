@@ -13,28 +13,30 @@
 
 ## Summary
 
-Wheeler will provide one bounded coverage system over canonical reversible-IR observation maps and VM/runtime events. It reports classical declarations, instructions, decisions, conditions, match arms, calls, traps, reversible forward/inverse pairs, rewind, coherent permutations, unitary/adjoint regions, measurement, workflow/replay states, quantum structure and sampled outcomes, and proof-kernel obligations without pretending those dimensions mean the same thing.
+Wheeler will provide one bounded coverage system built on canonical IR observation maps and VM or runtime events. The report keeps several dimensions separate. Classical coverage includes declarations, instructions, choices, conditions, match arms, calls, and traps. Reversible coverage tracks forward work, language inverses, and rewind. Other dimensions cover coherent permutations, unitary and adjoint regions, measurement, workflow and replay states, quantum structure and samples, and proof-kernel duties.
 
-Coverage observation is caller-owned and outside program state. It cannot add hidden counters, alter bytecode control flow, consume Wheeler history, measure a quantum state, resubmit a job, or bless an unchecked proof. Serial, parallel, sharded, retried, and replayed runs reduce to canonical reports with explicit attempt and evidence identities.
+These dimensions do not mean the same thing, so the reports keep them separate.
 
-A green `100%` means every selected denominator point was observed under the stated policy. It does not mean the program is correct, reversible, coherent, secure, useful, or house-trained.
+Coverage state belongs to the caller and stays outside program state. It cannot add hidden counters, change bytecode control flow, consume Wheeler history, measure quantum state, submit a job again, or approve an unchecked proof. Serial, parallel, sharded, retried, and replayed runs reduce to canonical reports with explicit attempt and evidence identities.
+
+A green `100%` means every selected denominator point was observed under the named policy. It does not prove correctness, reversibility, coherence, security, or usefulness.
 
 ## Motivation
 
-Conventional coverage tools count source lines or instrument branches. Wheeler needs those basics, but a single percentage would erase important distinctions:
+Normal coverage tools count source lines or instrument branches. Wheeler needs those basics, but one percentage would hide important differences:
 
-- executing a reversible function forward does not cover its inverse;
-- rewinding VM history is not inverse execution;
-- generated uncomputation is useful only if workspace is clean;
-- replaying recorded evidence is not retrying an effect;
-- a coherent branch cannot be observed by inserting a measurement counter;
-- a quantum circuit submitted to hardware yields sampled evidence, not exact path coverage;
-- kernel rule execution is not theorem correctness;
-- a recovered workflow attempt is not a fresh attempt;
-- source points, lowered instructions, generated inverses, and native probes need a checked correspondence;
-- distributed report merging must reject duplicate attempts rather than count them twice because CI was feeling productive.
+- Running a reversible function forward does not cover its inverse.
+- VM rewind is not language-level inverse execution.
+- Generated uncomputation matters only when workspace returns clean.
+- Replaying saved evidence is not retrying an effect.
+- A coherent branch cannot be observed by adding a measurement counter.
+- Hardware execution gives sampled evidence, not exact path coverage.
+- Kernel rule execution does not prove that a theorem is true.
+- A recovered workflow attempt is not a new attempt.
+- Source points, lowered instructions, generated inverses, and native probes need a checked mapping.
+- Distributed merges must reject duplicate attempts instead of counting them twice.
 
-Without a shared model, every backend will choose convenient counters and dashboards will compare unrelated numbers. This WIP defines observation and accounting before percentages become compatibility commitments.
+Without one model, each backend will choose convenient counters and dashboards will compare unrelated values. This WIP defines observation and accounting before those percentages become compatibility promises.
 
 ## Use cases
 
@@ -70,7 +72,7 @@ Without a shared model, every backend will choose convenient counters and dashbo
 - Instrument by mutating source, inserting hidden globals, or rewriting verified control flow.
 - Observe coherent control by measuring it.
 - Count VM rewind as generated inverse execution or replay as a fresh effect.
-- Merge reports from unrelated artifacts merely because paths and line numbers look similar.
+- Merge reports from unrelated artifacts only because paths and line numbers look similar.
 - Permit arbitrary inline exclusions or denominator changes that are invisible in package review.
 - Make wall-clock duration or profiler sampling part of semantic coverage.
 - Replace test results, proof certificates, target evidence, fuzz findings, or schedule-exploration certificates.
@@ -86,7 +88,7 @@ A **coverage policy** selects dimensions, denominators, generated-code treatment
 
 An **observation** is a runner-owned record that one point occurred in one exact WIP-0018 attempt, execution direction, target/evidence context, and event sequence.
 
-A **hit set** records whether selected points occurred. A **count map** records bounded nonnegative occurrence counts. Counts are secondary evidence; threshold policy defaults to hit sets.
+A **hit set** records whether selected points occurred; a **count map** records bounded nonnegative occurrence counts. Counts are secondary evidence; threshold policy defaults to hit sets.
 
 A **denominator** is the exact canonical set of points eligible under one policy. A point absent from the denominator cannot improve or damage its percentage.
 
@@ -147,7 +149,7 @@ Compiler-inserted executable counter instructions are forbidden in the canonical
 
 ## Classical decisions and conditions
 
-Statement coverage requires entry to each selected executable syntax point. Declaration coverage requires entry to the declaration body. Decision coverage requires every feasible declared outgoing edge. Condition coverage requires each independently evaluated condition to produce each feasible Boolean outcome.
+Statement coverage requires entry to each selected executable syntax point. Declaration coverage requires entry to the declaration body; decision coverage requires every feasible declared outgoing edge. Condition coverage requires each independently evaluated condition to produce each feasible Boolean outcome.
 
 Short-circuit and coherent Boolean operators retain their actual language semantics. A condition not evaluated due to short circuit is not hit.
 
@@ -167,9 +169,9 @@ vm-rewind
 replay-reduction
 ```
 
-Forward/inverse pair coverage requires both exact mated points under one compatible state/test contract. Round-trip coverage additionally requires an explicit WIP-0018 restoration assertion. Clean-uncompute coverage requires a successful resource-cleanliness assertion. None follows from merely hitting both instructions.
+Forward/inverse pair coverage requires both exact mated points under one compatible state/test contract. Round-trip coverage also requires an explicit WIP-0018 restoration assertion. Clean-uncompute coverage requires a successful resource-cleanliness assertion; none follows from only hitting both instructions.
 
-VM rewind observations refer to undo records and checkpoints, not inverse bytecode points. Rewound forward observations remain in the attempt hit set because execution happened. A report also carries **net-state accounting** showing which checkpoint was ultimately retained. Attempt coverage and net-state accounting are separate views.
+VM rewind observations refer to undo records and checkpoints, not inverse bytecode points. Rewound forward observations remain in the attempt hit set because execution happened; a report also carries **net-state accounting** showing which checkpoint was ultimately retained. Attempt coverage and net-state accounting are separate views.
 
 History overflow preserves observations through the last completed transition and marks the attempt/report partial or failed according to test policy. It never erases the inconvenient part of the run.
 
@@ -187,13 +189,13 @@ Output, filesystem, network, and provider payloads remain private caller-owned e
 
 WIP-0032 coverage distinguishes request construction, submission, progress, terminal completion, cancellation relation, uncertainty, resource release, reaping, replay, and each visibility or persistence transition. A completion hit cannot cover a durability point, and replay cannot inflate unique live submissions.
 
-Reports retain bounded operation, request, resource, backend-profile, receipt, and attempt identities. They exclude payloads, credentials, descriptors, remote keys, and native queue state. Physical completion order is evidence only when the program explicitly observes a selection race.
+Reports retain bounded operation, request, resource, backend-profile, receipt, and attempt identities; they exclude payloads, credentials, descriptors, remote keys, and native queue state. Physical completion order is evidence only when the program explicitly observes a selection race.
 
 ## Quantum coverage
 
 Quantum coverage has two noninterchangeable profiles.
 
-**Structural execution coverage** records that verified circuit operations, controls, generated adjoints, measurements, resets where legal, and target-lowering nodes were constructed/submitted/executed according to runtime events. It does not observe amplitudes or “which coherent branch ran.”
+Structural execution coverage records when verified circuit operations, controls, generated adjoints, measurements, legal resets, and target-lowering nodes were constructed, submitted, or executed. It cannot observe amplitudes or identify a coherent branch as having run.
 
 **Sampled evidence coverage** records measurement-site outcomes, shots, target/job/evidence identities, and declared statistical bins. It reports observed support under that sample only. Unobserved outcomes are not proved impossible; observed outcomes are not exact probabilities.
 
@@ -203,7 +205,7 @@ Inserting measurement, dephasing, random seeds, or target queries solely for cov
 
 ## Proof coverage
 
-Proof coverage records exact propositions, obligations, certificate identities, kernel rule invocations, and terminal acceptance/rejection. It answers questions such as “did this suite exercise the forged-subject rejection path?”
+Proof coverage records exact propositions, obligations, certificate identities, kernel rule invocations, and terminal acceptance or rejection. It can show whether the suite exercised the forged-subject rejection path.
 
 It does not rank theorem importance, prove completeness, or imply that a theorem covers source statements. Search, name resolution, and certificate parsing are separate points from kernel acceptance.
 
@@ -213,7 +215,7 @@ Thresholds may require selected proof obligations to have accepted certificates 
 
 Generated-required points, including generated inverses and adjoints selected by policy, are visible denominators. Generated-diagnostic scaffolding may be reported separately. User source cannot hide points with comments or attributes.
 
-Exclusions live in reviewed package coverage policy and identify exact point IDs plus reason codes. Allowed reasons initially include foreign/provider boundary, platform-impossible target, checked unreachable proof, and generated presentation adapter. “Annoying red bar” did not survive review.
+Exclusions live in reviewed package coverage policy and identify exact point IDs plus reason codes. Allowed reasons initially include foreign or provider boundaries, platform-impossible targets, checked unreachable proofs, and generated presentation adapters. A failing coverage indicator is not an allowed reason.
 
 Policy changes alter policy identity and invalidate threshold comparison until explicitly accepted. Reports display excluded points and reasons; exclusion is not deletion.
 
@@ -228,7 +230,7 @@ Each observation binds a unique attempt identity from WIP-0018. Partial reports 
 - count overflow or exhausted merge limits;
 - missing required evidence.
 
-Hit sets merge by union. Counts sum once per unique attempt using checked bounded arithmetic. Sampled outcomes additionally retain shot/evidence identities so replay cannot inflate counts.
+Hit sets merge by union. Counts sum once per unique attempt using checked bounded arithmetic. Sampled outcomes also retain shot/evidence identities so replay cannot inflate counts.
 
 Canonical output sorts denominator points, attempts, observations, witnesses, diagnostics, and evidence by identity. Worker order and report filename are irrelevant.
 
@@ -258,7 +260,7 @@ Coverage maps use an optional verified format-1 artifact section or exact bound 
 
 Unknown required point kinds, dimensions, merge semantics, or threshold rules reject. Unknown optional presentation fields may be ignored after canonical validation.
 
-Partial reports publish atomically after each closed attempt set. Final reports publish atomically after merge and threshold evaluation. A failed run may publish a valid final coverage report with failed test status; a malformed or incomplete report cannot satisfy release policy.
+Partial reports publish atomically after each closed attempt set; final reports publish atomically after merge and threshold evaluation. A failed run may publish a valid final coverage report with failed test status; a malformed or incomplete report cannot satisfy release policy.
 
 ## Safety, privacy, and limits
 
@@ -291,7 +293,7 @@ Quantum targets own execution evidence, not coverage interpretation. The proof k
 
 ## Progress
 
-- [x] The stage-0 VM emits immutable successful-transition observations without executable instrumentation. Forward, language-inverse, rewind-forward, and rewind-inverse dimensions remain distinct, and successful `JUMP_IF_ZERO` observations record taken versus fallthrough outcome; the reducer emits sorted checked counts and a domain-separated canonical report identity, while collection-on/off tests require identical terminal and rewound machine snapshots. Classical package-test cases collect this report in their fresh VM, print its identity, and bind that identity into the canonical test report; quantum cases do not counterfeit a classical transition report. No denominator means no percentage, however lonely the dashboard looks.
+- [x] The stage-0 VM emits immutable observations for successful transitions without changing executable code. Forward, language-inverse, rewind-forward, and rewind-inverse coverage stay separate. A successful `JUMP_IF_ZERO` records whether the branch was taken. The reducer emits sorted checked counts and a domain-separated report identity. Tests require identical terminal and rewound snapshots with collection on or off. Classical package tests collect the report in a fresh VM, print its identity, and bind that identity into the test report. Quantum cases do not claim a classical transition report. A policy with no denominator reports no percentage.
 - [ ] Coverage point, map, observation, policy, and report contracts are accepted.
 - [ ] Classical source/bytecode points collect without program instrumentation.
 - [ ] WIP-0018 attempts merge deterministically across serial and sharded runs.
@@ -340,10 +342,10 @@ Rejected. Failure paths are often the useful paths. Valid observations remain ev
 
 ## Open questions
 
-- Which source syntax-node identity survives harmless formatting while remaining exact enough for audit? — **Owner:** compiler and formatter maintainers — **Decide by:** before map acceptance
-- Which condition forms enter first-profile MC/DC without exponential witness growth? — **Owner:** compiler and test maintainers — **Decide by:** before condition coverage implementation
-- Should production sidecar maps be encrypted, access-controlled by publication policy, or simply omitted? — **Owner:** release and security maintainers — **Decide by:** before production integration
-- Which native probe correspondence requires kernel checking rather than differential conformance? — **Owner:** native runtime and proof maintainers — **Decide by:** before Java-free promotion
+- Which source syntax-node identity survives harmless formatting while remaining exact enough for audit (owner: compiler and formatter maintainers; decision point: before map acceptance)?
+- Which condition forms enter first-profile MC/DC without exponential witness growth (owner: compiler and test maintainers; decision point: before condition coverage implementation)?
+- Should production sidecar maps be encrypted, access-controlled by publication policy, or omitted (owner: release and security maintainers; decision point: before production integration)?
+- Which native probe correspondence requires kernel checking instead of differential conformance (owner: native runtime and proof maintainers; decision point: before Java-free promotion)?
 
 ## References
 
