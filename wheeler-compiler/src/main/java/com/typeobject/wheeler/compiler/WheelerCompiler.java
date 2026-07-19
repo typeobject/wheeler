@@ -84,6 +84,27 @@ public final class WheelerCompiler {
         parsePackageModuleFiles(rootSources, dependencySources, rootModule), rootModule);
   }
 
+  /** Discovers root-module tests and compiles one exact linked artifact per declaration. */
+  public List<TestCase> compilePackageTests(
+      Map<String, String> rootSources,
+      Map<String, String> dependencySources,
+      String rootModule) {
+    Map<String, SourceProgram> parsed =
+        parsePackageModuleFiles(rootSources, dependencySources, rootModule);
+    SourceProgram root = parsed.get(rootModule);
+    return root.functions().stream()
+        .filter(SourceModel.Function::test)
+        .sorted(java.util.Comparator.comparing(SourceModel.Function::name))
+        .map(function -> {
+          Map<String, SourceProgram> selected = new TreeMap<>(parsed);
+          selected.put(rootModule, withTestEntry(root, function));
+          return new TestCase(
+              rootModule + "::" + function.name(),
+              compileLinkedModules(selected, rootModule));
+        })
+        .toList();
+  }
+
   /** Links one exact package library against only its reachable locked library modules. */
   public Program compilePackageLibraryModuleFiles(
       Map<String, String> rootSources,

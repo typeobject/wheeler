@@ -229,13 +229,19 @@ final class PackageProject {
       WheelerCompiler compiler,
       PackageManifest.Target target,
       Map<String, String> linkedModules) throws IOException {
-    if (!target.modular()) {
-      List<WheelerCompiler.TestCase> declarations = compiler.compileTests(source(target.root()));
-      if (!declarations.isEmpty()) {
-        return declarations.stream()
-            .map(test -> new CompiledCase(test.name(), test.program()))
-            .toList();
-      }
+    List<WheelerCompiler.TestCase> declarations;
+    if (target.modular()) {
+      Map<String, String> sources = TargetSourceSet.strictText(
+          target, targetEntries(target, false));
+      declarations = compiler.compilePackageTests(
+          sources, linkedModules, target.module());
+    } else {
+      declarations = compiler.compileTests(source(target.root()));
+    }
+    if (!declarations.isEmpty()) {
+      return declarations.stream()
+          .map(test -> new CompiledCase(test.name(), test.program()))
+          .toList();
     }
     return List.of(new CompiledCase("", compileTarget(compiler, target, linkedModules)));
   }

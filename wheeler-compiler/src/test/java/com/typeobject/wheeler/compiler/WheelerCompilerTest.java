@@ -92,6 +92,37 @@ class WheelerCompilerTest {
   }
 
   @Test
+  void compilesRootModuleTestsAgainstExactDependencies() {
+    String dependency = """
+        module laws.math;
+        classical class Math {
+          public long two() { return 2; }
+        }
+        """;
+    String root = """
+        module laws.main;
+        import laws.math;
+        classical class Main {
+          state long result = 0;
+          test void imported() {
+            result = laws.math::two();
+            assert result == 2;
+          }
+          entry void main() { result = 1; }
+        }
+        """;
+
+    List<WheelerCompiler.TestCase> tests = new WheelerCompiler().compilePackageTests(
+        Map.of("src/Main.w", root), Map.of("vendor/Math.w", dependency), "laws.main");
+
+    assertEquals(List.of("laws.main::imported"), tests.stream().map(
+        WheelerCompiler.TestCase::name).toList());
+    VirtualMachine machine = new VirtualMachine(tests.getFirst().program());
+    machine.run();
+    assertEquals(2, machine.global("result"));
+  }
+
+  @Test
   void rejectsUnsupportedTestShapes() {
     WheelerCompiler compiler = new WheelerCompiler();
 

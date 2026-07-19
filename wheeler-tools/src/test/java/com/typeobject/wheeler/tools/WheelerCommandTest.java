@@ -317,6 +317,46 @@ class WheelerCommandTest {
   }
 
   @Test
+  void testSubcommandDiscoversRootModuleTests() throws Exception {
+    Path project = temporary.resolve("module-tests");
+    Files.createDirectories(project.resolve("src"));
+    Files.writeString(project.resolve("wheeler.package"), """
+        package "demo.modules" version "1.0.0" profile "bootstrap-1";
+        target tool "laws" root "src/Main.w" module "tests.main"
+            source "src/Helper.w" source "src/Main.w" test;
+        """);
+    Files.writeString(project.resolve("src/Helper.w"), """
+        module tests.helper;
+        classical class Helper {
+          public long answer() { return 42; }
+        }
+        """);
+    Files.writeString(project.resolve("src/Main.w"), """
+        module tests.main;
+        import tests.helper;
+        classical class Main {
+          state long result = 0;
+          test void checksHelper() {
+            result = tests.helper::answer();
+            assert result == 42;
+          }
+          entry void main() { result = 1; }
+        }
+        """);
+    ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+
+    assertEquals(0, Wheeler.execute(
+        new String[] {"test", project.toString()},
+        new PrintStream(stdout),
+        new PrintStream(new ByteArrayOutputStream())));
+
+    String report = stdout.toString(StandardCharsets.UTF_8);
+    assertTrue(report.contains(
+        "PASS demo.modules::laws::tests.main::checksHelper"));
+    assertTrue(report.contains("(1 cases, 1 passed, 0 failed, report "));
+  }
+
+  @Test
   void testSubcommandReducesCompileAndRuntimeFailuresIntoTheReport() throws Exception {
     Path project = temporary.resolve("test-failures");
     Files.createDirectories(project.resolve("src"));
