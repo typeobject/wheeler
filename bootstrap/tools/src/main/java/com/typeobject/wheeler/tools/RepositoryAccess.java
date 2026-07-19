@@ -1,6 +1,8 @@
 package com.typeobject.wheeler.tools;
 
 import com.typeobject.wheeler.packageformat.PackageFormatException;
+import com.typeobject.wheeler.packageformat.PackageRelease;
+import com.typeobject.wheeler.packageformat.PackageResolver;
 import com.typeobject.wheeler.packageformat.RepositoryPolicy;
 import com.typeobject.wheeler.packageformat.RepositoryPolicy.Repository;
 import com.typeobject.wheeler.packageformat.RepositoryPolicy.Transport;
@@ -8,6 +10,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /** Connects ordered repository policy to physical file transports without changing identity. */
 final class RepositoryAccess {
@@ -17,6 +23,43 @@ final class RepositoryAccess {
     Repository repository = RepositoryPolicyStore.load(paths).require(alias);
     requireEnabledFile(repository);
     return PackageRegistry.openOrCreate(Path.of(repository.location()));
+  }
+
+  static PackageResolver resolver(XdgPaths paths, List<String> selectedAliases)
+      throws IOException {
+    RepositoryPolicy policy = RepositoryPolicyStore.load(paths);
+    List<Repository> selected;
+    if (selectedAliases.isEmpty()) {
+      selected = policy.repositories();
+    } else {
+      Set<String> unique = new HashSet<>();
+      List<Repository> requested = new ArrayList<>();
+      for (String alias : selectedAliases) {
+        if (!unique.add(alias)) {
+          throw new PackageFormatException("Duplicate selected repository " + alias);
+        }
+        requested.add(policy.require(alias));
+      }
+      selected = List.copyOf(requested);
+    }
+    List<PackageResolver.RepositoryCatalog> catalogs = new ArrayList<>();
+    for (Repository repository : selected) {
+      if (!repository.enabled()) {
+        continue;
+      }
+      requireEnabledFile(repository);
+      Path root = Path.of(repository.location());
+      List<PackageRelease> releases = Files.exists(root, LinkOption.NOFOLLOW_LINKS)
+          ? PackageRegistry.open(root).releases().stream()
+              .filter(release -> repository.authoritativeFor(release.manifest().name()))
+              .toList()
+          : List.of();
+      catalogs.add(new PackageResolver.RepositoryCatalog(repository.identity(), releases));
+    }
+    if (catalogs.isEmpty()) {
+      throw new PackageFormatException("No enabled repositories are selected");
+    }
+    return PackageResolver.orderedRepositories(catalogs);
   }
 
   static byte[] fetch(XdgPaths paths, String selectedAlias, String name, String version)

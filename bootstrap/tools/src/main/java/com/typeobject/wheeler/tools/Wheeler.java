@@ -24,7 +24,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -323,7 +325,7 @@ public final class Wheeler {
 
   private static int resolve(
       String[] args, PrintStream out, PrintStream error) throws Exception {
-    if (args.length < 4) {
+    if (args.length < 2) {
       resolveUsage(error);
       return 2;
     }
@@ -334,14 +336,22 @@ public final class Wheeler {
     boolean development = false;
     boolean updateAll = false;
     Set<String> updates = new TreeSet<>();
+    List<String> repositories = new ArrayList<>();
     for (int index = 2; index < args.length; index++) {
       switch (args[index]) {
         case "--catalog" -> {
-          if (catalog != null || index + 1 >= args.length) {
+          if (catalog != null || !repositories.isEmpty() || index + 1 >= args.length) {
             resolveUsage(error);
             return 2;
           }
           catalog = Path.of(args[++index]);
+        }
+        case "--repository" -> {
+          if (catalog != null || index + 1 >= args.length) {
+            resolveUsage(error);
+            return 2;
+          }
+          repositories.add(args[++index]);
         }
         case "-o" -> {
           if (outputSpecified || index + 1 >= args.length) {
@@ -378,10 +388,6 @@ public final class Wheeler {
         }
       }
     }
-    if (catalog == null) {
-      resolveUsage(error);
-      return 2;
-    }
     PackageProject project = PackageProject.load(packageRoot);
     PackageLock preferred = null;
     if (Files.exists(output, LinkOption.NOFOLLOW_LINKS)) {
@@ -390,12 +396,19 @@ public final class Wheeler {
       }
       preferred = new PackageLockParser().parse(Files.readAllBytes(output));
     }
-    PackageLock lock = new PackageResolver(PackageCatalog.load(catalog))
-        .resolve(
-            project.manifest(),
-            development,
-            updateAll ? null : preferred,
-            updates);
+    PackageResolver resolver;
+    if (catalog != null) {
+      resolver = new PackageResolver(PackageCatalog.load(catalog));
+    } else {
+      XdgPaths paths = XdgPaths.system();
+      printXdgDiagnostics(paths, error);
+      resolver = RepositoryAccess.resolver(paths, repositories);
+    }
+    PackageLock lock = resolver.resolve(
+        project.manifest(),
+        development,
+        updateAll ? null : preferred,
+        updates);
     PackageProject.writeAtomically(
         output, lock.canonicalText().getBytes(StandardCharsets.UTF_8));
     out.println("resolved " + lock.entries().size() + " packages into " + output
@@ -641,7 +654,8 @@ public final class Wheeler {
 
   private static void resolveUsage(PrintStream error) {
     error.println(
-        "Usage: wheeler resolve <package-directory> --catalog <archive-directory>"
+        "Usage: wheeler resolve <package-directory>"
+            + " [--repository <alias> ... | --catalog <archive-directory>]"
             + " [-o " + PackageLock.FILE_NAME + "] [--development]"
             + " [--update <package> ... | --update-all]");
   }

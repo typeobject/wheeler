@@ -208,7 +208,8 @@ Reject noncanonical snapshots, invalid delegations, conflicting mappings, source
 - [ ] RREV/variant/build-input/PREV implemented.
 - [ ] Fetch separated from build.
 - [x] XDG path resolution, canonical ordered file-repository policy, immutable local publication, canonical release mappings, and exact first-authoritative fetch are implemented in stage 0.
-- [ ] Unlocked repository resolution, repository-bound locks, reusable artifact cache, quarantine state, and identity-preserving mirrors remain.
+- [x] Unlocked stage-0 resolution honors namespace authority and first-admissible configured repository order without candidate mixing.
+- [ ] Repository-bound locks, reusable artifact cache, quarantine state, and identity-preserving mirrors remain.
 - [ ] Reproducibility normalization passes.
 - [ ] Quarantine and independent attestations implemented.
 - [ ] Compatibility checks and signed snapshots implemented.

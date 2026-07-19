@@ -3,6 +3,7 @@ package com.typeobject.wheeler.tools;
 import com.typeobject.wheeler.packageformat.PackageArchive;
 import com.typeobject.wheeler.packageformat.PackageArchive.DecodedPackage;
 import com.typeobject.wheeler.packageformat.PackageFormatException;
+import com.typeobject.wheeler.packageformat.PackageRelease;
 import com.typeobject.wheeler.packageformat.RepositoryRelease;
 import com.typeobject.wheeler.packageformat.SemanticVersion;
 import java.io.IOException;
@@ -10,10 +11,15 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Stream;
 
 /** Immutable content-addressed local registry transport with idempotent publication. */
 final class PackageRegistry {
+  private static final int MAX_RELEASES = 10_000;
   private final Path root;
   private final PackageArchive codec = new PackageArchive();
 
@@ -104,6 +110,52 @@ final class PackageRegistry {
       throw new PackageFormatException("Registry release content does not match its mapping");
     }
     return bytes;
+  }
+
+  List<PackageRelease> releases() throws IOException {
+    Path releaseRoot = root.resolve("releases");
+    if (!Files.exists(releaseRoot, LinkOption.NOFOLLOW_LINKS)) {
+      return List.of();
+    }
+    if (!Files.isDirectory(releaseRoot, LinkOption.NOFOLLOW_LINKS)
+        || Files.isSymbolicLink(releaseRoot)) {
+      throw new IOException("Repository releases path is not a physical directory");
+    }
+    List<Path> packages;
+    try (Stream<Path> entries = Files.list(releaseRoot)) {
+      packages = entries.sorted(Comparator.comparing(path -> path.getFileName().toString()))
+          .toList();
+    }
+    List<PackageRelease> result = new ArrayList<>();
+    for (Path packageDirectory : packages) {
+      if (!Files.isDirectory(packageDirectory, LinkOption.NOFOLLOW_LINKS)
+          || Files.isSymbolicLink(packageDirectory)) {
+        throw new IOException(
+            "Repository release entry is not a physical directory: " + packageDirectory);
+      }
+      String name = packageDirectory.getFileName().toString();
+      requirePackageName(name);
+      List<Path> mappings;
+      try (Stream<Path> entries = Files.list(packageDirectory)) {
+        mappings = entries.sorted(Comparator.comparing(path -> path.getFileName().toString()))
+            .toList();
+      }
+      for (Path mapping : mappings) {
+        String fileName = mapping.getFileName().toString();
+        if (!fileName.endsWith(RepositoryRelease.SUFFIX)) {
+          throw new IOException("Unknown repository release entry: " + mapping);
+        }
+        String version = fileName.substring(
+            0, fileName.length() - RepositoryRelease.SUFFIX.length());
+        byte[] bytes = fetch(name, version);
+        DecodedPackage decoded = codec.decode(bytes);
+        result.add(new PackageRelease(decoded.manifest(), decoded.identity()));
+        if (result.size() > MAX_RELEASES) {
+          throw new IOException("Repository exceeds " + MAX_RELEASES + " releases");
+        }
+      }
+    }
+    return List.copyOf(result);
   }
 
   private RepositoryRelease verifyRelease(Path mapping, String name, String version)

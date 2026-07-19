@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.packageformat.PackageArchive;
 import com.typeobject.wheeler.packageformat.PackageManifest;
+import com.typeobject.wheeler.packageformat.PackageManifest.Dependency;
+import com.typeobject.wheeler.packageformat.PackageManifest.DependencyKind;
 import com.typeobject.wheeler.packageformat.RepositoryPolicy;
 import com.typeobject.wheeler.packageformat.RepositoryPolicy.Repository;
 import com.typeobject.wheeler.packageformat.RepositoryPolicy.Transport;
@@ -106,6 +108,19 @@ class RepositoryCommandTest {
         privateBytes, RepositoryAccess.fetch(paths, null, "demo.library", "1.0.0"));
     assertArrayEquals(
         localBytes, RepositoryAccess.fetch(paths, "local", "demo.library", "1.0.0"));
+
+    PackageManifest root = new PackageManifest(
+        "demo.application",
+        "1.0.0",
+        "bootstrap-1",
+        List.of(new PackageManifest.Target(
+            PackageManifest.TargetKind.DEPLOYABLE, "main", "src/Main.w")),
+        List.of(new Dependency(DependencyKind.NORMAL, "demo.library", "^1.0.0")),
+        List.of());
+    assertEquals(
+        new PackageArchive().identity(privateBytes),
+        RepositoryAccess.resolver(paths, List.of()).resolve(root, false)
+            .entries().getFirst().archiveIdentity());
   }
 
   @Test

@@ -60,6 +60,24 @@ class PackageResolverTest {
   }
 
   @Test
+  void firstRepositoryWithAnAdmissibleReleaseOwnsTheLookup() {
+    PackageManifest root = manifest("root.app", "1.0.0", List.of(
+        dependency("lib.a", "^1.0.0", DependencyKind.NORMAL)));
+    PackageRelease privateLow = release(manifest("lib.a", "1.0.0", List.of()), 'a');
+    PackageRelease publicHigh = release(manifest("lib.a", "1.9.0", List.of()), 'b');
+    PackageResolver resolver = PackageResolver.orderedRepositories(List.of(
+        new PackageResolver.RepositoryCatalog("1".repeat(64), List.of(privateLow)),
+        new PackageResolver.RepositoryCatalog("2".repeat(64), List.of(publicHigh))));
+
+    assertEquals("1.0.0", resolver.resolve(root, false).entries().getFirst().version());
+
+    PackageManifest requiresHigh = manifest("root.app", "1.0.0", List.of(
+        dependency("lib.a", "=1.9.0", DependencyKind.NORMAL)));
+    assertEquals("1.9.0",
+        resolver.resolve(requiresHigh, false).entries().getFirst().version());
+  }
+
+  @Test
   void stableRequirementsIgnorePrereleaseCandidatesUnlessNamed() {
     PackageRelease preview = release(manifest("lib.a", "1.1.0-preview.1", List.of()), 'a');
     PackageRelease stable = release(manifest("lib.a", "1.0.9", List.of()), 'b');

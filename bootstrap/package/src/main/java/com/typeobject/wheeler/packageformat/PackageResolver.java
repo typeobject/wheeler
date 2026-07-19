@@ -19,17 +19,42 @@ public final class PackageResolver {
   private static final int MAX_PACKAGES = 10_000;
   private static final int MAX_WORK_UNITS = 10_000;
 
-  private final Map<String, List<PackageRelease>> available;
+  private final List<Map<String, List<PackageRelease>>> repositories;
 
   public PackageResolver(Collection<PackageRelease> releases) {
+    this.repositories = List.of(group(releases));
+  }
+
+  private PackageResolver(List<RepositoryCatalog> repositories) {
+    if (repositories.isEmpty() || repositories.size() > 64) {
+      throw new PackageFormatException("Resolver requires 1..64 ordered repositories");
+    }
+    Set<String> identities = new HashSet<>();
+    List<Map<String, List<PackageRelease>>> grouped = new ArrayList<>();
+    for (RepositoryCatalog repository : repositories) {
+      if (!identities.add(repository.identity())) {
+        throw new PackageFormatException(
+            "Duplicate resolver repository identity " + repository.identity());
+      }
+      grouped.add(group(repository.releases()));
+    }
+    this.repositories = List.copyOf(grouped);
+  }
+
+  /** Creates a resolver whose repository order is authority, not a version tie-breaker. */
+  public static PackageResolver orderedRepositories(List<RepositoryCatalog> repositories) {
+    return new PackageResolver(List.copyOf(repositories));
+  }
+
+  private static Map<String, List<PackageRelease>> group(Collection<PackageRelease> releases) {
     if (releases.size() > MAX_PACKAGES * 100L) {
       throw new PackageFormatException("Available package catalog is too large");
     }
     Map<String, List<PackageRelease>> grouped = new HashMap<>();
-    Set<String> identities = new HashSet<>();
+    Set<String> coordinates = new HashSet<>();
     for (PackageRelease release : releases) {
-      String identity = release.manifest().name() + "\u0000" + release.manifest().version();
-      if (!identities.add(identity)) {
+      String coordinate = release.manifest().name() + "\u0000" + release.manifest().version();
+      if (!coordinates.add(coordinate)) {
         throw new PackageFormatException(
             "Catalog contains duplicate package version " + release.manifest().name()
                 + " " + release.manifest().version());
@@ -45,7 +70,7 @@ public final class PackageResolver {
           .thenComparing(PackageRelease::archiveIdentity));
       ordered.put(name, List.copyOf(candidates));
     });
-    this.available = Map.copyOf(ordered);
+    return Map.copyOf(ordered);
   }
 
   public PackageLock resolve(PackageManifest root, boolean includeDevelopment) {
@@ -137,7 +162,8 @@ public final class PackageResolver {
       return Map.copyOf(new TreeMap<>(selected));
     }
     PackageLock.Entry preference = updates.contains(next) ? null : preferences.get(next);
-    for (PackageRelease candidate : candidates(next, preference)) {
+    for (PackageRelease candidate : candidates(
+        next, preference, requirements.get(next), requiredProfile)) {
       work.charge();
       if (!accepts(requirements.get(next), candidate, requiredProfile)) {
         continue;
@@ -192,9 +218,20 @@ public final class PackageResolver {
   }
 
   private List<PackageRelease> candidates(
-      String name, PackageLock.Entry preference) {
-    List<PackageRelease> ordered = available.getOrDefault(name, List.of());
-    if (preference == null) {
+      String name,
+      PackageLock.Entry preference,
+      List<VersionConstraint> requirements,
+      String requiredProfile) {
+    List<PackageRelease> ordered = List.of();
+    for (Map<String, List<PackageRelease>> repository : repositories) {
+      List<PackageRelease> offered = repository.getOrDefault(name, List.of());
+      if (offered.stream().anyMatch(candidate -> accepts(
+          requirements, candidate, requiredProfile))) {
+        ordered = offered;
+        break;
+      }
+    }
+    if (ordered.isEmpty() || preference == null) {
       return ordered;
     }
     PackageRelease retained = ordered.stream()
@@ -275,6 +312,16 @@ public final class PackageResolver {
     requirements.forEach((name, values) -> canonical.put(
         name, values.stream().map(VersionConstraint::toString).sorted().toList()));
     return canonical.toString();
+  }
+
+  /** One stable repository identity and its internally ordered release candidates. */
+  public record RepositoryCatalog(String identity, List<PackageRelease> releases) {
+    public RepositoryCatalog {
+      if (identity == null || !identity.matches("[0-9a-f]{64}")) {
+        throw new PackageFormatException("Invalid resolver repository identity " + identity);
+      }
+      releases = List.copyOf(releases);
+    }
   }
 
   /** Counts deterministic solver-state and candidate visits across the complete search. */
