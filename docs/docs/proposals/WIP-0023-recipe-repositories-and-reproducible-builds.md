@@ -137,7 +137,7 @@ Root policy binds repository aliases to IDs and namespace allowlists. Overlap is
 
 ### XDG local objects and reusable artifacts
 
-WIP-0009 owns user-facing placement and commands. Repository data lives below `${XDG_DATA_HOME:-$HOME/.local/share}/wheeler/repository`, reusable build artifacts below `${XDG_CACHE_HOME:-$HOME/.cache}/wheeler/artifacts`, policy below `${XDG_CONFIG_HOME:-$HOME/.config}/wheeler/wheeler.repositories`, and journals/quarantine state below `${XDG_STATE_HOME:-$HOME/.local/state}/wheeler`. The paths are adapter state, not RREV, variant, build-input, PREV, snapshot, or repository identity.
+WIP-0009 owns user-facing placement and commands. Repository data lives below `${XDG_DATA_HOME:-$HOME/.local/share}/wheeler/repository`, reusable build artifacts below `${XDG_CACHE_HOME:-$HOME/.cache}/wheeler/artifacts`, policy below `${XDG_CONFIG_HOME:-$HOME/.config}/wheeler/wheeler.repositories.yaml`, and journals/quarantine state below `${XDG_STATE_HOME:-$HOME/.local/state}/wheeler`. The paths are adapter state, not RREV, variant, build-input, PREV, snapshot, or repository identity.
 
 The data repository is an immutable trust domain and the default `local` publication target. The artifact cache is not a repository and contributes no resolver candidates. It may reuse outputs acquired from any repository, workspace, vendor closure, recipe build, mirror, or independent builder only when the complete `build_input_id`, output kind, canonical length, and PREV match. Every hit is decoded and verified under current limits before use. A source label records provenance; it does not let two causes share a key because their filenames looked friendly.
 

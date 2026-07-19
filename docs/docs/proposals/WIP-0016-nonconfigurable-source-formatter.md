@@ -73,7 +73,7 @@ The formatter must not enforce documentation coverage as a precondition to forma
 - Inventing documentation summaries, stubs, examples, or semantic facets.
 - Implementing a complete Markdown or HTML engine in the formatter.
 - Defining the final generated API-documentation site, search index, package publication format, or cross-package link resolver.
-- Formatting `wheeler.package`, `wheeler.workspace`, `wheeler.package.lock`, `.wbc`, `.wpk`, build plans, JSON, Markdown, or OpenQASM.
+- Formatting `wheeler.package.yaml`, `wheeler.workspace.yaml`, `wheeler.package.lock.yaml`, `.wbc`, `.wpk`, build plans, JSON, Markdown, or OpenQASM.
 - Range formatting in the first implementation. Editors format a complete in-memory file and apply the returned minimal text edit.
 - Formatter-disabling directives such as `fmt: off`.
 - Enforcing a particular natural language, spelling dictionary, or prose grammar.

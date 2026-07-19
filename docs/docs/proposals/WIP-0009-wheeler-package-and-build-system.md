@@ -39,18 +39,18 @@ The package system is therefore language infrastructure and a Wheeler acceptance
 A repository contains one workspace manifest and one or more packages:
 
 ```text
-wheeler.workspace
-wheeler.package.lock
+wheeler.workspace.yaml
+wheeler.package.lock.yaml
 build/
   wheeler-compiler/
   wheeler-runtime/
 compiler/
-  wheeler.package
+  wheeler.package.yaml
   src/
 runtime/
-  wheeler.package
+  wheeler.package.yaml
 examples/
-  wheeler.package
+  wheeler.package.yaml
 ```
 
 The command surface begins with:
@@ -100,7 +100,7 @@ Commands operate on the workspace graph by default and accept explicit package, 
 
 `wheeler` is the Wheeler toolchain driver. `wheeler run <package-or-artifact>` executes a selected package target or verified artifact.
 
-`wheeler.package` is a UTF-8 Wheeler package manifest. `wheeler.workspace` is the optional workspace manifest. `wheeler.package.lock` is the generated canonical resolution. `.wpk` is the canonical package archive. Names and suffixes are Wheeler contracts and do not alias host package formats.
+`wheeler.package.yaml` is a UTF-8 Wheeler package manifest. `wheeler.workspace.yaml` is the optional workspace manifest. `wheeler.package.lock.yaml` is the generated canonical resolution. `.wpk` is the canonical package archive and `wheeler.workspace.plan` remains the canonical binary build plan. Names and suffixes are Wheeler contracts and do not alias host package formats. The retired extensionless metadata names have no fallback lookup; one package graph does not need two front doors.
 
 Generated target artifacts and default package archives live below `<repository>/build/<workspace-member>/`; `wheeler clean` owns that tree. A directly invoked member discovers the adjacent workspace and uses the same group, while a standalone package uses its own `build/`. A package-local `vendor/` is different: it is a generated, content-addressed dependency input closure for standalone offline builds and is ignored by Git. The recovery workspace keeps exact locks and canonical member sources; workspace commands reconstruct matching dependency archives in memory. An exported air-gap bundle may still carry a verified vendor set, but the source repository need not impersonate one.
 
@@ -114,22 +114,48 @@ A resolved dependency additionally fixes its archive content hash and registry o
 
 ## Manifest language
 
-The manifest is a small declarative grammar with source spans and a canonical data model. It is not general Wheeler source and has no loops, method calls, I/O, conditionals, interpolation, or hidden defaults dependent on the host.
+Package metadata uses a closed, canonical YAML 1.2 profile. The sectioned shape borrows the useful part of `pyproject.toml`: one obvious project header followed by targets, dependencies, features, and tool authority. It does not borrow executable build hooks, arbitrary extension tables, or the theory that every typo deserves to become somebody's plugin namespace.
 
-The implemented stage-0 shape is:
-
-```text
-package "wheeler.compiler" version "0.1.0" profile "bootstrap-1";
-target tool "compiler" root "src/compiler.w";
-target tool "compiler-laws" root "test/compiler_laws.w" test;
-dependency build "wheeler.bytecode" version "^0.1.0";
-capability "build.read" path "src/**";
-capability "build.write" path "build/**";
+```yaml
+schema: 1
+package:
+  name: "wheeler.compiler"
+  version: "0.1.0"
+  profile: "bootstrap-1"
+targets:
+  - kind: "tool"
+    name: "compiler"
+    root: "src/main/wheeler/MinimalCompiler.w"
+    module: "wheeler.compiler.driver"
+    sources:
+      - "src/main/wheeler/MinimalCompiler.w"
+      - "src/main/wheeler/compiler"
+      - "src/main/wheeler/lexer"
+    test: false
+  - kind: "tool"
+    name: "compiler-laws"
+    root: "test/compiler_laws.w"
+    test: true
+dependencies:
+  - kind: "build"
+    name: "wheeler.bytecode"
+    version: "^0.1.0"
+features:
+  default: []
+  diagnostics:
+    - "wheeler.bytecode/diagnostics"
+capabilities:
+  - name: "build.read"
+    path: "src/**"
+  - name: "build.write"
+    path: "build/**"
 ```
 
-The target kind set is closed: `deployable`, `library`, and `tool`. `test` is a selector attached to a runnable target, not a kind in a fake moustache. Examples use the ordinary deployable or tool kind according to their behavior. The final grammar will use Wheeler lexical conventions, explicit semicolons, ordered records, and no whitespace-sensitive constructs. Unknown required fields fail closed. Extension fields are namespaced and preserved only when the schema declares that behavior.
+The target kind set is closed: `deployable`, `library`, and `tool`. `test` is a selector attached to a runnable target, not a kind in a fake moustache. Features are additive named lists: they may enable optional dependency features or declared target facets, but cannot remove checks, grant capabilities, select credentials, or execute code. Unknown keys fail closed unless a later schema explicitly owns them.
 
-Manifest canonicalization fixes Unicode normalization policy, key ordering, integer representation, path grammar, duplicate handling, and line-ending treatment. Logical package paths use `/`, reject traversal and absolute roots, and are case-sensitive independent of the host filesystem. A modular source selector may name one file or one directory; directory expansion admits only physical nonsymlink `.w` files, sorts canonical logical paths, rejects empty and over-limit expansions, and must cover the declared root. It is concise discovery inside an explicit package boundary, not permission to archive `node_modules` because it looked lonely.
+This is not "whatever libyaml accepts." The accepted profile has one document, UTF-8, LF, two-space indentation, plain mapping keys, block mappings/sequences, quoted strings, canonical decimal integers, booleans, and full-line comments. It rejects duplicate keys, tabs, implicit scalar typing, nulls, floats, timestamps, anchors, aliases, merge keys, tags, directives, flow collections, block scalars, multi-document streams, and unknown fields. Canonical emission fixes key order, list order where semantic order is absent, escaping, normalization, and one final newline. Ordinary YAML 1.2 readers can inspect it; Wheeler's bounded parser does not import YAML's entire attic.
+
+Logical package paths use `/`, reject traversal and absolute roots, and are case-sensitive independent of the host filesystem. A modular source selector may name one file or one directory; directory expansion admits only physical nonsymlink `.w` files, sorts canonical logical paths, rejects empty and over-limit expansions, and must cover the declared root. It is concise discovery inside an explicit package boundary, not permission to archive `node_modules` because it looked lonely.
 
 ## Modules and visibility
 
@@ -151,7 +177,7 @@ Resolution:
 2. verifies names, versions, source identities, and dependency phases;
 3. obtains a signed or content-addressed registry index snapshot unless offline;
 4. selects one deterministic solution under the version and profile constraints;
-5. records every package, content hash, feature, source, and relevant schema identity in `wheeler.package.lock`;
+5. records every package, content hash, feature, source, and relevant schema identity in `wheeler.package.lock.yaml`;
 6. verifies the complete graph before fetching or building code.
 
 A locked build does not re-resolve. If a locked archive disappears or has different bytes, the build fails. It does not choose a convenient replacement.
@@ -160,7 +186,24 @@ The initial resolver may require one version of each package identity in a final
 
 ## Lockfile
 
-`wheeler.package.lock` is generated canonical data. It is committed for applications, tools, and the Wheeler recovery workspace. Libraries may commit it for development reproducibility without forcing consumers to use that graph.
+`wheeler.package.lock.yaml` is generated canonical YAML data. It is committed for applications, tools, and the Wheeler recovery workspace. Libraries may commit it for development reproducibility without forcing consumers to use that graph.
+
+```yaml
+schema: 1
+root: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+repositories:
+  - id: "local"
+    snapshot: "89abcdef0123456789abcdef0123456789abcdef0123456789abcdef01234567"
+packages:
+  - name: "wheeler.core"
+    version: "0.1.0"
+    repository: "local"
+    archive: "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+    manifest: "76543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba98"
+    dependencies: []
+```
+
+The lock uses the same closed YAML profile and canonical writer as the manifest. It is data for review and merge tooling, but the resolver remains its only author; hand-edited hashes still fail structural and graph verification.
 
 The lockfile records:
 
@@ -245,12 +288,12 @@ The default developer repository follows the XDG base-directory contract. Wheele
 
 | Purpose | Physical root | Semantics |
 |---|---|---|
-| Ordered repository policy | `${XDG_CONFIG_HOME:-$HOME/.config}/wheeler/wheeler.repositories` | Canonical alias, repository identity, transport, trust, and lookup order |
+| Ordered repository policy | `${XDG_CONFIG_HOME:-$HOME/.config}/wheeler/wheeler.repositories.yaml` | Canonical alias, repository identity, transport, trust, and lookup order |
 | Durable local publication | `${XDG_DATA_HOME:-$HOME/.local/share}/wheeler/repository` | Immutable package objects and no-replace name/version mappings for the default `local` repository |
 | Disposable artifact reuse | `${XDG_CACHE_HOME:-$HOME/.cache}/wheeler/artifacts` | Verified build outputs indexed by complete build-input identity |
 | Local journals and quarantine state | `${XDG_STATE_HOME:-$HOME/.local/state}/wheeler` | Retry records, quarantine decisions, and bounded GC/accounting state |
 
-An XDG variable participates only when it is an absolute physical path, as the XDG specification requires. A missing variable uses the listed fallback; a relative value is ignored with a stable diagnostic rather than reinterpreted beneath the workspace. Repository-policy bytes and selected repository/snapshot identities are deterministic resolver inputs, but their physical XDG location is not. These physical roots never enter `wheeler.package.lock`, package identity, plan identity, diagnostics intended for comparison, or canonical provenance. The selected object, repository trust domain, snapshot, build-input identity, and bytes do.
+An XDG variable participates only when it is an absolute physical path, as the XDG specification requires. A missing variable uses the listed fallback; a relative value is ignored with a stable diagnostic rather than reinterpreted beneath the workspace. Repository-policy bytes and selected repository/snapshot identities are deterministic resolver inputs, but their physical XDG location is not. These physical roots never enter `wheeler.package.lock.yaml`, package identity, plan identity, diagnostics intended for comparison, or canonical provenance. The selected object, repository trust domain, snapshot, build-input identity, and bytes do.
 
 The repository policy is an ordered list, in the useful Conan 2 sense rather than an unordered bucket of URLs. `wheeler repository add`, `remove`, `enable`, `disable`, `move`, and `list` update or print one canonical file atomically; aliases are unique, repository identities are stable, and physical transports are not identities. The default list contains the XDG data repository as `local`. Command-line repository selections may choose one alias or an explicit ordered subset, but they do not mutate policy behind the user's back.
 
@@ -345,7 +388,7 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 
 ## Migration and deletion
 
-1. Specify executable schemas for `wheeler.package`, `wheeler.workspace`, `wheeler.package.lock`, `.wpk`, and build plans.
+1. Specify executable schemas for `wheeler.package.yaml`, `wheeler.workspace.yaml`, `wheeler.package.lock.yaml`, `.wpk`, and build plans.
 2. Add stage-0 readers and canonical writers with malformed-input and reproducibility suites.
 3. Implement workspace module resolution and replace hard-coded Gradle project knowledge.
 4. Implement locked local/path dependencies, then vendored and registry dependencies.
@@ -359,13 +402,14 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 
 ## Progress
 
+- [ ] Replace extensionless package/workspace/lock metadata and both stage-0/native record parsers atomically with the closed `wheeler.package.yaml`, `wheeler.workspace.yaml`, and `wheeler.package.lock.yaml` profile; delete the retired grammar rather than retaining format sniffing.
 - [x] Canonical `.wbc` provides a portable artifact identity for package outputs.
 - [x] WIP-0007 and WIP-0008 define compiler and native recovery requirements.
 - [ ] Workspace, package, lockfile, and archive schemas have strict stage-0 codecs; build plans cover compiler, source, package-input, output, capability-request, execution-limit, and explicit grant identities; sealed stage-0 execution derives and checks the executing compiler/core class identity, rederives plans, and publishes exact verified outputs atomically, while isolated native memory/work enforcement remains.
 - [ ] Stage-0 manifests, resolution, lockfiles, build plans, and archives are content-addressed and reproducible; exact offline dependency targets build in dependency-first order. Modular entryless `library` targets emit a verified inert-entry artifact, and consuming package targets source-link only reachable public modules from exact locked archives, including qualified functions, records, closed variants, fixed arrays/slices, and exhaustive matches; root shadowing, private APIs, cycles, and unreachable local source fail closed. Native build execution and stable binary-library linkage remain.
 - [x] The stage-0 in-memory resolver deterministically selects one version per package with backtracking bounded by a deterministic 10,000-unit total-work budget, exact root/dependency source-profile matching, preference for still-valid exact selections from an existing lock plus explicit targeted/full update modes, explicit root-only nontransitive development scope, cycle rejection, and stable ranges that ignore prerelease candidates unless the requirement names one.
 - [ ] Physical catalogs, exact vendor trees, and immutable local registry publish/fetch transport are bounded, integrity-checked, and covered end to end; canonical ordered multi-repository policy, XDG-default repository/cache placement, build-input-keyed reuse, quarantine/GC, and signed network registry snapshots remain.
-- [x] The root `wheeler.workspace`, canonical core, compiler, runtime, and package-codec packages, and example package form an executable stage-0 workspace. Workspace commands rebuild member archives in memory, require their identities to match each package's committed lock, and need no checked-in vendor directories or source-directory side door.
+- [x] The root `wheeler.workspace.yaml`, canonical core, compiler, runtime, and package-codec packages, and example package form an executable stage-0 workspace. Workspace commands rebuild member archives in memory, require their identities to match each package's committed lock, and need no checked-in vendor directories or source-directory side door.
 - [x] Wheeler-written `crypto/Sha256.w` now matches independent digest vectors over bounded binary input and supplies the content-identity primitive required by native lock/plan/archive verification.
 - [x] Canonical `wheeler.core.encoding.binary` owns bounded little-endian reads and ASCII name/release/path checks for binary package codecs; `Plan.w` no longer carries a private copy of the rules. A helper module is cheaper than two subtly different security boundaries.
 - [x] `NativeArchive.w` and `packages/archive/Archive.w` verify Wheeler-computed outer and one entry-data SHA-256 digest, schema framing, a copied and strictly frozen manifest parsed by the shared native scanner/manifest modules, byte-for-byte canonical line re-emission, one or two sorted checked ASCII logical paths tied exactly to the declared target source set, exact lengths/consumption, stage-0 decode compatibility, and exact rewind. Outer damage, re-signed data damage, traversal, a valid but undeclared source path, and noncanonical manifest trivia fail. Reserved-path rejection, the wider manifest profile, Unicode paths, and entry sets beyond two remain.
@@ -384,7 +428,7 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 
 ## Testing and acceptance
 
-- [ ] Manifest and lock parsers reject malformed UTF-8, duplicates, unknown required fields, traversal, excessive nesting, and oversized values; both stage-0 parsers fail closed and broader generative coverage remains.
+- [ ] Manifest, workspace, lock, and repository-policy parsers accept only the closed YAML profile and reject malformed UTF-8, duplicate/unknown keys, implicit types, aliases/tags/merges, bad indentation, traversal, excessive nesting, and oversized values; stage 0 and Wheeler canonical emission agree byte-for-byte.
 - [ ] Resolution is identical under catalog and manifest insertion order with bounded backtracking; configured repository order is honored exactly, the first authoritative admissible repository wins without cross-repository version mixing, and filesystem, transport, and task-completion order otherwise remain irrelevant.
 - [x] Locked and offline stage-0 builds consume either exact in-memory workspace-member archives or a package-local generated vendor tree and never perform resolution, network access, or ambient cache lookup.
 - [ ] Build-plan codecs are order-independent and reject corruption and forged node identities; direct and sealed-plan clean builds produce byte-identical `.wbc` and a forged executing-compiler identity is rejected, while complete lockfile, package archive, plan, and provenance reproduction remains.
@@ -407,6 +451,10 @@ Rejected. It preserves Java in Wheeler's bootstrap and makes host plugins an unr
 ### Use Cargo directly
 
 Rejected. Cargo is a strong model for user experience, but Wheeler packages need Wheeler modules, effects, reversibility, quantum capabilities, `.wbc`, proof metadata, and native recovery identities. Depending on Cargo would also replace a Java bootstrap dependency with Rust's.
+
+### Accept arbitrary YAML
+
+Rejected. Familiar indentation is useful; YAML's implicit typing, aliases, merge keys, tags, multiple documents, and duplicate-key folklore are not package semantics. Wheeler emits and accepts one closed YAML 1.2 subset that ordinary readers can inspect without making a general YAML implementation part of the recovery seed.
 
 ### Use arbitrary Wheeler build scripts
 
@@ -445,3 +493,7 @@ Rejected. Credentials, queue selection, calibration, budgets, and hardware avail
 - [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
 - [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
+- [YAML 1.2.2](https://yaml.org/spec/1.2.2/)
+- [Python packaging: `pyproject.toml`](https://packaging.python.org/en/latest/specifications/pyproject-toml/)
+- [Conan 2 remotes](https://docs.conan.io/2/reference/commands/remote.html)
+- [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/latest/)
