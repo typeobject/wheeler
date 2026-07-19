@@ -4,7 +4,7 @@ packages:
   - name: "wheeler.compiler"
     version: "0.1.0"
     repository: "ee9855ff0d7866533c49b81a7eeb7d1a2cac9d7efbd300c583d29e699516efb0"
-    archive: "60865e8b7f1e79c2efd968a5d7266ca5e2617536f0a6f121d45579375ce0c087"
+    archive: "0dc55e8b2f29686202dd34d8c4fe48844518127d68fc4dde335f4022dc1e6b96"
     manifest: "d7d6fb54d4a202cba069d191c7efe75d4d467d2b7a06d06a7cb7d56fc28e2cf9"
     dependencies:
       - "wheeler.core"
