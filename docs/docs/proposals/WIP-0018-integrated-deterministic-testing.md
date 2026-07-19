@@ -110,11 +110,11 @@ The accepted first declaration is explicit rather than annotation-reflective:
 
 ```java
 test void addition() {
-    expectEqual(add(2, 3), 5);
+    assert(add(2, 3) == 5);
 }
 
 test void signedIdentity(long value) cases(-1, 0, 1) {
-    expectEqual(value, value);
+    assert(value == value);
 }
 ```
 
@@ -128,7 +128,7 @@ A test declaration cannot be called from a production target. Shared setup and a
 
 ## Assertions
 
-Assertions are ordinary typed calls lowered to runner-recognized outcomes. They do not throw Java exceptions or mutate hidden test globals.
+Direct assertions use the single `assert(condition);` form defined by WIP-0021 and lower to runner-recognized outcomes. The framework does not duplicate Boolean truth as `assertTrue`, `assertEquals`, or matcher syntax. Reversible, rewind, quantum, workflow, and proof operations produce distinct typed evidence over which a case may assert; they do not collapse into aliases. Assertions do not throw Java exceptions or mutate hidden test globals.
 
 The first profile includes:
 
@@ -332,3 +332,4 @@ Rejected. Assertions, event recording, target submission, fixture I/O, and repor
 - [WIP-0015](WIP-0015-certified-adversarial-schedule-exploration.md)
 - [WIP-0019](WIP-0019-integrated-documentation-publication.md)
 - [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md)
+- [WIP-0021](WIP-0021-uniform-call-and-assertion-syntax.md)
