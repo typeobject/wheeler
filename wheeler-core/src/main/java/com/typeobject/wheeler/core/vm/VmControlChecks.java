@@ -22,7 +22,8 @@ final class VmControlChecks {
   static void requireGlobalEqual(
       Program program, long[] globals, int global, long expected) {
     if (globals[global] != expected) {
-      throw new VmTrap("Expectation failed for %s: expected %d, got %d"
+      throw new VmTrap(VmTrap.Code.ASSERTION,
+          "Expectation failed for %s: expected %d, got %d"
           .formatted(program.globals().get(global).name(), expected, globals[global]));
     }
   }
@@ -30,7 +31,7 @@ final class VmControlChecks {
   /** Requires one canonical Boolean local to hold true. */
   static void requireTrue(Frame frame, int local) {
     if (frame.local(local) != 1) {
-      throw new VmTrap("Assertion failed");
+      throw new VmTrap(VmTrap.Code.ASSERTION, "Assertion failed");
     }
   }
 

@@ -138,7 +138,9 @@ final class PackageProject {
         } catch (VmTrap exception) {
           cases.add(TestReport.fail(
               manifest.name(), manifest.version(), caseName, caseIdentity,
-              sourceIdentity, artifactIdentity, "WTEST002", exception.getMessage()));
+              sourceIdentity, artifactIdentity,
+              exception.code() == VmTrap.Code.ASSERTION ? "WTEST003" : "WTEST002",
+              exception.getMessage()));
         }
       }
     }

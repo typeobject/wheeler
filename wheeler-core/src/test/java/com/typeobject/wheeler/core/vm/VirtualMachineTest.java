@@ -217,8 +217,9 @@ class VirtualMachineTest {
     machine.step();
     MachineSnapshot beforeAssertion = machine.snapshot();
 
-    assertThrows(VmTrap.class, machine::step);
+    VmTrap trap = assertThrows(VmTrap.class, machine::step);
 
+    assertEquals(VmTrap.Code.ASSERTION, trap.code());
     assertEquals(beforeAssertion, machine.snapshot());
     assertEquals(1, machine.historySize());
   }

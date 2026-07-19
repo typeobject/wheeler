@@ -367,11 +367,18 @@ class WheelerCommandTest {
         package "demo.failures" version "1.0.0" profile "bootstrap-1";
         target tool "compile" root "src/Compile.w" test;
         target tool "runtime" root "src/Runtime.w" test;
+        target tool "assertion" root "src/Assertion.w" test;
         """);
     Files.writeString(project.resolve("src/Compile.w"),
         "classical class Compile { entry void main(] {} }");
     Files.writeString(project.resolve("src/Runtime.w"), """
         classical class Runtime {
+            state long value = 1;
+            entry void main() { long zero = 0; value = value / zero; }
+        }
+        """);
+    Files.writeString(project.resolve("src/Assertion.w"), """
+        classical class Assertion {
             state long value = 1;
             entry void main() { assert(value == 2); }
         }
@@ -387,7 +394,9 @@ class WheelerCommandTest {
     assertTrue(report.contains("WTEST001"));
     assertTrue(report.contains("FAIL demo.failures::runtime"));
     assertTrue(report.contains("WTEST002"));
-    assertTrue(report.contains("2 cases, 0 passed, 2 failed, report "));
+    assertTrue(report.contains("FAIL demo.failures::assertion"));
+    assertTrue(report.contains("WTEST003"));
+    assertTrue(report.contains("3 cases, 0 passed, 3 failed, report "));
   }
 
   @Test
