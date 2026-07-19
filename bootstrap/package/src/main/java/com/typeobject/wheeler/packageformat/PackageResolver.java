@@ -16,6 +16,7 @@ import java.util.TreeMap;
 /** Deterministic bounded backtracking resolver over immutable available releases. */
 public final class PackageResolver {
   private static final int MAX_PACKAGES = 10_000;
+  private static final int MAX_WORK_UNITS = 10_000;
 
   private final Map<String, List<PackageRelease>> available;
 
@@ -59,6 +60,7 @@ public final class PackageResolver {
         includeDevelopment,
         root.name(),
         root.profile(),
+        new WorkBudget(),
         0);
     if (selected == null) {
       throw new PackageFormatException(
@@ -89,7 +91,9 @@ public final class PackageResolver {
       boolean includeDevelopment,
       String rootName,
       String requiredProfile,
+      WorkBudget work,
       int depth) {
+    work.charge();
     if (depth > MAX_PACKAGES || requirements.size() > MAX_PACKAGES) {
       throw new PackageFormatException("Dependency graph exceeds package limit");
     }
@@ -109,6 +113,7 @@ public final class PackageResolver {
       return Map.copyOf(new TreeMap<>(selected));
     }
     for (PackageRelease candidate : available.getOrDefault(next, List.of())) {
+      work.charge();
       if (!accepts(requirements.get(next), candidate, requiredProfile)) {
         continue;
       }
@@ -130,6 +135,7 @@ public final class PackageResolver {
           includeDevelopment,
           rootName,
           requiredProfile,
+          work,
           depth + 1);
       if (solved != null) {
         return solved;
@@ -216,6 +222,19 @@ public final class PackageResolver {
     requirements.forEach((name, values) -> canonical.put(
         name, values.stream().map(VersionConstraint::toString).sorted().toList()));
     return canonical.toString();
+  }
+
+  /** Counts deterministic solver-state and candidate visits across the complete search. */
+  private static final class WorkBudget {
+    private int units;
+
+    private void charge() {
+      units++;
+      if (units > MAX_WORK_UNITS) {
+        throw new PackageFormatException(
+            "Resolver work limit exceeded after " + MAX_WORK_UNITS + " units");
+      }
+    }
   }
 
   private static final class UnsatisfiedRootCycle extends RuntimeException {

@@ -233,7 +233,8 @@ Reject unknown repositories/snapshots, unauthorized namespaces, duplicate aliase
 - [x] Stable exact, caret, and tilde requirements exclude prerelease candidates unless the requirement itself names a prerelease. Candidate ordering still prefers the highest compatible release, but a newly uploaded preview cannot ambush an unchanged stable range.
 - [x] Stage 0 filters dependency candidates by the root's exact source profile during solving, so an incompatible higher release backtracks to a compatible lower one rather than failing after selection.
 - [ ] Bytecode, proof, target, platform, ABI, richer source-profile compatibility, and explicit prerelease-policy filtering implemented.
-- [ ] Bounded conflict-driven resolver implemented.
+- [x] The current deterministic backtracking solver has a 10,000-unit total budget over solver-state and candidate visits; exhaustion is a distinct error rather than counterfeit unsatisfiability.
+- [ ] Incompatibility-driven solving, learned failed states, canonical derivations, and the complete versioned work schedule implemented.
 - [ ] Lock preference and targeted updates implemented.
 - [ ] Workspace graph and target-scoped capabilities implemented.
 - [ ] Multiple instances compile safely.
@@ -249,7 +250,7 @@ Reject unknown repositories/snapshots, unauthorized namespaces, duplicate aliase
 - [ ] Singleton conflicts are deterministic.
 - [x] Version- or source-profile-incompatible high releases backtrack and stable ranges exclude prereleases; focused insertion-order, profile, and preview-candidate fixtures cover all three.
 - [ ] Input order cannot alter the graph.
-- [ ] Work exhaustion differs from unsatisfiability.
+- [x] Work exhaustion differs from unsatisfiability in diagnostics and focused worst-order candidate tests.
 - [ ] Conflict explanations name causal edges.
 - [ ] Unrelated additions do not change a valid lock.
 - [ ] Targeted updates preserve unrelated instances.

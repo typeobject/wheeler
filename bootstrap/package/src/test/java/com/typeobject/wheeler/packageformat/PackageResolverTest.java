@@ -112,6 +112,27 @@ class PackageResolverTest {
   }
 
   @Test
+  void workExhaustionIsDistinctFromUnsatisfiability() {
+    PackageManifest root = manifest("root.app", "1.0.0", List.of(
+        dependency("lib.a", "=0.0.0", DependencyKind.NORMAL)));
+    List<PackageRelease> largeCatalog = new ArrayList<>();
+    for (int minor = 0; minor <= 10_000; minor++) {
+      largeCatalog.add(release(manifest("lib.a", "0." + minor + ".0", List.of()), 'a'));
+    }
+
+    PackageFormatException exhausted = assertThrows(
+        PackageFormatException.class,
+        () -> new PackageResolver(largeCatalog).resolve(root, false));
+    PackageFormatException unsatisfied = assertThrows(
+        PackageFormatException.class,
+        () -> new PackageResolver(List.of(
+            release(manifest("lib.a", "0.1.0", List.of()), 'b'))).resolve(root, false));
+
+    assertTrue(exhausted.getMessage().contains("work limit exceeded after 10000 units"));
+    assertTrue(unsatisfied.getMessage().contains("No package solution"));
+  }
+
+  @Test
   void duplicateVersionsCyclesAndNoncanonicalLocksAreRejected() {
     PackageRelease duplicate = release(manifest("lib.a", "1.0.0", List.of()), '1');
     assertThrows(
