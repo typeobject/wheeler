@@ -95,7 +95,7 @@ Use “Not applicable” with a reason for unaffected template sections. Split w
 | [WIP-0016](WIP-0016-nonconfigurable-source-formatter.md) | Draft | One nonconfigurable source formatter with documentation enforcement | Source formatting, documentation, editor and build tooling |
 | [WIP-0017](WIP-0017-compile-time-constants-and-finite-enums.md) | Implementing | Compile-time constants and finite enums | Named values, finite types, reversible and coherent semantics |
 | [WIP-0018](WIP-0018-integrated-deterministic-testing.md) | Draft | Integrated deterministic testing | Test declarations, runners, fixtures, replay, quantum and proof assertions |
-| [WIP-0019](WIP-0019-integrated-documentation-publication.md) | Draft | Integrated documentation publication | Wheeler API docs, Markdown, Javadoc, Docusaurus, links and search |
+| [WIP-0019](WIP-0019-integrated-documentation-publication.md) | Implementing | Integrated documentation publication | Wheeler API docs, safe static rendering, Javadoc, links and search |
 | [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md) | Draft | Semantic coverage and evidence accounting | Classical, reversible, quantum, workflow and proof coverage |
 | [WIP-0021](WIP-0021-uniform-call-and-assertion-syntax.md) | Implementing | Uniform call and assertion syntax | Source syntax, assertions, reversible and quantum evidence, typed test doubles |
 | [WIP-0022](WIP-0022-package-instances-and-resolution.md) | Draft | Package instances and deterministic target graphs | Packages, resolver, modules, lockfiles |

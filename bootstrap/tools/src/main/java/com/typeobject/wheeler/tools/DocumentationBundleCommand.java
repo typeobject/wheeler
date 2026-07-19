@@ -272,7 +272,7 @@ final class DocumentationBundleCommand {
     }
     String target = "manual:" + stripSuffix(logical, ".md");
     if (!anchor.isEmpty()) {
-      if (!anchor.equals(canonicalAnchor(anchor))) {
+      if (!anchor.equals(DocumentationAnchors.canonical(anchor))) {
         throw new PackageFormatException(
             "Documentation heading link is not canonical: " + link + " from " + sourcePath);
       }
@@ -376,7 +376,7 @@ final class DocumentationBundleCommand {
         continue;
       }
       String title = matcher.group(2).trim();
-      String base = canonicalAnchor(title);
+      String base = DocumentationAnchors.canonical(title);
       if (base.isEmpty()) {
         throw new PackageFormatException(
             "Manual heading has an empty canonical identity: "
@@ -391,23 +391,6 @@ final class DocumentationBundleCommand {
       }
     }
     return List.copyOf(result);
-  }
-
-  private static String canonicalAnchor(String title) {
-    StringBuilder result = new StringBuilder();
-    boolean separator = false;
-    for (int codePoint : title.toLowerCase(java.util.Locale.ROOT).codePoints().toArray()) {
-      if (Character.isLetterOrDigit(codePoint) || codePoint == '_') {
-        if (separator && !result.isEmpty() && result.charAt(result.length() - 1) != '-') {
-          result.append('-');
-        }
-        separator = false;
-        result.appendCodePoint(codePoint);
-      } else if (Character.isWhitespace(codePoint) || codePoint == '-') {
-        separator = true;
-      }
-    }
-    return result.toString();
   }
 
   private static void rejectDuplicateLogicalPaths(List<Input> inputs, String kind) {

@@ -12,7 +12,8 @@ Wheeler is pre-release, but changes are welcome when they preserve one semantic 
 export JAVA_HOME="$(brew --prefix openjdk)/libexec/openjdk.jdk/Contents/Home"
 export PATH="$JAVA_HOME/bin:$PATH"
 ./bootstrap/gradlew -p bootstrap clean check treeSitterTest
-cd docs && npm ci && npm run build
+rm -rf docs-site
+./bootstrap/gradlew -p bootstrap :tools:wheeler --args='site -o docs-site'
 ```
 
 ## Patch rules
@@ -31,4 +32,4 @@ Compiler warnings are errors. Broken documentation links are errors. Tree-sitter
 
 ## Review standard
 
-Review starts from invariants, failure behavior, bounds, and migration deletion. Compatibility is deliberate, not inferred from old experimental files. A proposal is not Implemented until code, tests, examples, documentation, and required deletion agree.
+Review starts from invariants, failure behavior, bounds, and migration deletion. There is no pre-release backward-compatibility burden: replaced experimental files and profiles are deleted, not preserved behind switches. A proposal is not Implemented until code, tests, examples, documentation, and required deletion agree.

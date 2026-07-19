@@ -74,7 +74,6 @@ tasks.register('sourceHeaderTest') {
             include '**/*.java', '**/*.w', '**/*.js', '**/*.css', '**/*.gradle',
                     '**/*.scm', '**/*.sh', '**/*.py'
             exclude '.git/**', '**/.gradle/**', '**/build/**', '**/node_modules/**',
-                    'docs/.docusaurus/**',
                     'tree-sitter-wheeler/src/**'
         }
         def missing = []

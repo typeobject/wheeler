@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-# Launches the pinned local documentation renderer from its owned package root.
+# Builds the fixed verified Wheeler documentation site without a renderer package manager.
 set -euo pipefail
 
-cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
-npm start
+repository="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd -- "$repository"
+rm -rf -- docs-site
+./bootstrap/gradlew -p bootstrap -q :tools:wheeler --args='site -o docs-site'
+printf 'Wheeler documentation: %s/docs-site/index.html\n' "$repository"

@@ -34,7 +34,9 @@ Wheeler currently includes canonical `.wbc` artifacts, strict verification, a re
 
 Package targets have exactly three kinds: `deployable`, `library`, and `tool`. A runnable target may carry the orthogonal `test` selector; examples need no ceremonial fourth kind. The Wheeler-written core, compiler, runtime, and package-codec slices are ordinary entryless packages with exact committed locks and vendor archives. `wheeler-examples` consumes those archives and retains executable roots, not spare implementation copies kept “just in case.”
 
-All Java source and Gradle machinery is quarantined under [`bootstrap/`](bootstrap/). It is a disposable stage-0 seed and conformance oracle, not the canonical compiler. The production source is [`wheeler-compiler/`](wheeler-compiler/): stage 0 builds stage 1, stage 1 builds byte-identical stage 2, and recovery-seed promotion additionally requires independent diverse-bootstrap evidence. A fixed point catches drift; by itself it does not catch a compiler that learned Thompson's joke.
+All Java source and Gradle machinery is quarantined under [`bootstrap/`](bootstrap/). It is a disposable stage-0 seed and conformance oracle, not the canonical compiler. The production source is [`wheeler-compiler/`](wheeler-compiler/). Its bounded native slices compile and verify current examples; a complete stage-1/stage-2 fixed point and independent diverse-bootstrap gate remain WIP-0007 acceptance work. A fixed point catches drift; by itself it does not catch a compiler that learned Thompson's joke.
+
+Documentation uses one fixed repository convention and no renderer configuration: `./bootstrap/gradlew -p bootstrap :tools:wheeler --args='site -o docs-site'` validates the semantic graph and atomically emits the static site.
 
 ## Read next
 

@@ -1,57 +1,47 @@
-name: Deploy to GitHub Pages
+name: Wheeler documentation site
 
 on:
   push:
-    branches:
-      - master
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
 
 jobs:
   build:
-    name: Build Docusaurus
+    name: Build with Wheeler
     runs-on: ubuntu-latest
     permissions:
       contents: read
-
     steps:
       - uses: actions/checkout@v4
+      - name: Set up JDK 26 seed
+        uses: actions/setup-java@v4
         with:
-          fetch-depth: 0
-
-      - uses: actions/setup-node@v4
-        with:
-          cache-dependency-path: docs/package-lock.json
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-        working-directory: docs
-
-      - name: Build website
-        run: npm run build
-        working-directory: docs
-
-      - name: Upload Build Artifact
+          java-version: '26'
+          distribution: 'temurin'
+      - name: Set up Gradle seed
+        uses: gradle/actions/setup-gradle@v4
+      - name: Build verified static site
+        run: ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2 -q :tools:wheeler --args='site -o docs-site'
+      - name: Upload Pages artifact
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/build
+          path: docs-site
 
   deploy:
-    name: Deploy to GitHub Pages
+    name: Deploy verified site
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     needs: build
-
-    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
     permissions:
-      pages: write # to deploy to Pages
-      id-token: write # to verify the deployment originates from an appropriate source
-
-    # Deploy to the github-pages environment
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to GitHub Pages
+      - name: Deploy immutable Pages artifact
         id: deployment
         uses: actions/deploy-pages@v4

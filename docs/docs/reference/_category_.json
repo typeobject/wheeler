@@ -1,8 +1,0 @@
-{
-  "label": "Reference",
-  "position": 20,
-  "link": {
-    "type": "generated-index",
-    "description": "Implemented Wheeler language, bytecode, VM, and development contracts."
-  }
-}
