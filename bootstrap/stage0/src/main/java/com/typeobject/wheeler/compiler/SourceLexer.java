@@ -182,6 +182,7 @@ final class SourceLexer {
       case '*' -> Type.STAR;
       case '/' -> Type.SLASH;
       case '%' -> Type.PERCENT;
+      case '!' -> Type.NOT;
       case '&' -> Type.AND;
       case '^' -> match('=') ? Type.XOR_ASSIGN : Type.XOR;
       case '<' -> Type.LESS;

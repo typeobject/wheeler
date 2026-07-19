@@ -773,6 +773,34 @@ class WheelerCompilerTest {
   }
 
   @Test
+  void booleanNegationFoldsAndEvaluatesItsOperandOnce() {
+    WheelerCompiler compiler = new WheelerCompiler();
+    Program program = compiler.compile("""
+        classical class Negation {
+          const boolean DISABLED = !true;
+          state long calls = 0;
+          boolean falseOnce() { calls += 1; return false; }
+          entry void main() {
+            assert(!DISABLED);
+            assert(!falseOnce());
+            assert(!!true);
+            assert(calls == 1);
+          }
+        }
+        """);
+
+    VirtualMachine machine = new VirtualMachine(program);
+    machine.run();
+
+    assertEquals(1, machine.global("calls"));
+    CompilerException nonBoolean = assertThrows(
+        CompilerException.class,
+        () -> compiler.compile(
+            "classical class Bad { entry void main() { assert(!1); } }"));
+    assertTrue(nonBoolean.getMessage().contains("expression type mismatch"));
+  }
+
+  @Test
   void constantsFoldWithoutAddingGlobalState() {
     Program program = new WheelerCompiler().compile("""
         classical class NamedValues {

@@ -715,7 +715,7 @@ final class SourceParser extends SourceStatementParser {
   }
 
   private String parseMultiplicative(List<Statement> body) {
-    String left = parsePrimary(body);
+    String left = parseUnary(body);
     while (match(Type.STAR, Type.SLASH, Type.PERCENT)) {
       SourceToken operator = previous();
       String operation = switch (operator.type()) {
@@ -724,9 +724,20 @@ final class SourceParser extends SourceStatementParser {
         case PERCENT -> "mod";
         default -> throw new AssertionError();
       };
-      left = binary(body, operator, operation, left, parsePrimary(body));
+      left = binary(body, operator, operation, left, parseUnary(body));
     }
     return left;
+  }
+
+  private String parseUnary(List<Statement> body) {
+    if (!match(Type.NOT)) {
+      return parsePrimary(body);
+    }
+    SourceToken operator = previous();
+    String value = parseUnary(body);
+    String truth = temporary();
+    body.add(statement("local_boolean", operator.line(), truth, "1"));
+    return binary(body, operator, "xor", value, truth);
   }
 
   private String parsePrimary(List<Statement> body) {

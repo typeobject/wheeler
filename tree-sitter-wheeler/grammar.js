@@ -303,9 +303,14 @@ module.exports = grammar({
       $.field_expression,
       $.array_access_expression,
       $.parenthesized_expression,
+      $.unary_expression,
       $.binary_expression,
     ),
     parenthesized_expression: $ => seq('(', $.expression, ')'),
+    unary_expression: $ => prec(8, seq(
+      field('operator', '!'),
+      field('operand', $.expression),
+    )),
     binary_expression: $ => choice(
       prec.left(1, seq($.expression, field('operator', '=='), $.expression)),
       prec.left(2, seq($.expression, field('operator', '<'), $.expression)),

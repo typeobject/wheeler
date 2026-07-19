@@ -143,10 +143,10 @@ final class SourceConstantParser {
 
   private static ConstantValue parseMultiplicative(
       SourceTokenCursor parser, ConstantResolver resolver) {
-    ConstantValue left = parsePrimary(parser, resolver);
+    ConstantValue left = parseUnary(parser, resolver);
     while (parser.match(Type.STAR, Type.SLASH, Type.PERCENT)) {
       SourceToken operator = parser.previous();
-      ConstantValue right = parsePrimary(parser, resolver);
+      ConstantValue right = parseUnary(parser, resolver);
       requireLong(left, operator);
       requireLong(right, operator);
       try {
@@ -162,6 +162,19 @@ final class SourceConstantParser {
       }
     }
     return left;
+  }
+
+  private static ConstantValue parseUnary(
+      SourceTokenCursor parser, ConstantResolver resolver) {
+    if (!parser.match(Type.NOT)) {
+      return parsePrimary(parser, resolver);
+    }
+    SourceToken operator = parser.previous();
+    ConstantValue value = parseUnary(parser, resolver);
+    if (!value.type().equals("boolean")) {
+      SourceTokenCursor.fail(operator, "constant negation requires a boolean operand");
+    }
+    return new ConstantValue("boolean", value.value() == 0 ? 1 : 0);
   }
 
   private static ConstantValue parsePrimary(

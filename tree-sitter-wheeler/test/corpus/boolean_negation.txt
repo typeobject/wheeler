@@ -1,0 +1,41 @@
+==================
+Boolean negation
+==================
+
+classical class Negation {
+  test void accepts(boolean value) cases(false, true) {
+    assert(!value == !false);
+  }
+}
+
+---
+
+(source_file
+  (class_declaration
+    (computation_domain)
+    (identifier)
+    (class_body
+      (member_declaration
+        (method_declaration
+          (method_modifier)
+          (identifier)
+          (parameter_list
+            (parameter
+              (value_type)
+              (identifier)))
+          (test_case_list
+            (test_case)
+            (test_case))
+          (block
+            (statement
+              (assert_statement
+                (expression
+                  (binary_expression
+                    (expression
+                      (unary_expression
+                        (expression
+                          (identifier))))
+                    (expression
+                      (unary_expression
+                        (expression
+                          (boolean_literal))))))))))))))

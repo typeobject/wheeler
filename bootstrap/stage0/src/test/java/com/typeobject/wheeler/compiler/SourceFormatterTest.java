@@ -90,17 +90,19 @@ class SourceFormatterTest {
   }
 
   @Test
-  void keepsUnarySignsTightAfterReturnsAndVerticalCommas() {
+  void keepsUnaryOperatorsTightAfterReturnsAndVerticalCommas() {
     String source = "classical class Signed { public long choose(long firstArgument, "
         + "long secondArgument, long thirdArgument, long fourthArgument, "
         + "long fifthArgument) { call(firstArgument, secondArgument, thirdArgument, "
         + "fourthArgument, fifthArgument, firstArgument, secondArgument, "
-        + "thirdArgument, fourthArgument, -1); return -2; } }";
+        + "thirdArgument, fourthArgument, -1); assert(!!false); return -2; } }";
 
     String formatted = SourceFormatter.format(source);
 
     assertTrue(formatted.contains("\n            -1\n"));
     assertTrue(formatted.contains("return -2;"));
+    assertTrue(formatted.contains("assert(!!false);"));
+    assertFalse(formatted.contains("! !"));
     assertFalse(formatted.contains("- 1"));
     assertFalse(formatted.contains("- 2"));
   }

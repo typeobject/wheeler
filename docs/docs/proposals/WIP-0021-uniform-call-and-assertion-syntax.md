@@ -240,7 +240,7 @@ Near-miss syntax is rejected deterministically:
 
 - [x] The syntax inconsistency and repository-wide migration surface are documented before implementation.
 - [x] Stage-0 parser, Wheeler-native parser, Tree-sitter, and formatter agree on the call-shaped equality-assertion slice.
-- [x] The implemented classical expression profile—including Boolean locals, calls, equality, ordering, arithmetic, and composition—type-checks as one assertion condition, evaluates once, and lowers to typed `EXPECT_TRUE`; direct signed-global/literal equality retains compact `EXPECT_EQ`.
+- [x] The implemented classical expression profile—including Boolean locals, calls, equality, ordering, right-associative logical negation, arithmetic, and composition—type-checks as one assertion condition, evaluates once, and lowers to typed `EXPECT_TRUE`; direct signed-global/literal equality retains compact `EXPECT_EQ`.
 - [x] Bare, empty, multiple-argument, non-Boolean, and duplicate `assertEquals` forms fail with focused diagnostics.
 - [x] Stage-0 and Wheeler-native compilers emit byte-identical artifacts for assertion fixtures and both reject bare syntax.
 - [x] Canonical Wheeler packages, rebuilt compiler archives and locks, examples, embedded source fixtures, current manuals, and future sketches use the accepted spelling; a root build gate rejects bare and duplicate assertion APIs in authored `.w` files.
@@ -249,12 +249,13 @@ Near-miss syntax is rejected deterministically:
 
 ## Testing and acceptance
 
-- [ ] Positive parser tests cover literals, locals, calls, equality, ordering, negation, and composed Boolean expressions; all except a not-yet-implemented negation operator execute now.
+- [x] Stage-0 and Tree-sitter parser tests cover literals, locals, calls, equality, ordering, right-associative negation, and composed Boolean expressions; logical negation executes its operand once and constant-folds under the same Boolean-only rule.
+- [ ] The Wheeler-native source compiler matches stage 0 for logical-negation fixtures.
 - [x] Negative parser and type tests cover bare, empty, multiple-argument, non-Boolean, duplicate-name, and malformed assertions.
 - [x] An assertion expression is evaluated once, including a stateful function call.
 - [x] A false assertion traps before mutation and creates no successful transition-history record.
 - [ ] Forward execution, inverse invocation, and rewind retain distinct assertion evidence.
-- [x] Formatter output is deterministic, comment-preserving, minimal-diff, and idempotent for the implemented equality slice.
+- [x] Formatter output is deterministic, comment-preserving, minimal-diff, and idempotent for equality and tight unary logical negation.
 - [x] Tree-sitter parses every checked-in Wheeler file and the migrated assertion corpus.
 - [x] Stage-0 and native compiler outputs match for accepted equality assertion fixtures and reject the bare form.
 - [ ] A typed failing double and a bounded event-recording double run through package discovery without ambient state.
