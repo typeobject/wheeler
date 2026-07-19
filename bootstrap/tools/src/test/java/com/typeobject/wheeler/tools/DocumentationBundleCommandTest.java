@@ -68,7 +68,7 @@ class DocumentationBundleCommandTest {
     assertTrue(edges.contains(
         "\"source\":\"manual:guide\",\"target\":\"wheeler:demo.api#twice\""));
     String manifest = Files.readString(first.resolve("manifest.json"));
-    assertTrue(manifest.contains("\"profile\":\"wheeler-doc-bundle-1\""));
+    assertTrue(manifest.contains("\"profile\":\"wheeler-doc-bundle-2\""));
     assertTrue(output.toString(StandardCharsets.UTF_8).contains("documented 4 nodes"));
     assertThrows(IOException.class, () -> execute(
         manuals, sources, first, new ByteArrayOutputStream()));

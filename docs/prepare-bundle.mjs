@@ -40,7 +40,7 @@ if (command.status !== 0) {
 
 const manifestBytes = await readFile(path.join(bundle, 'manifest.json'));
 const manifest = JSON.parse(manifestBytes.toString('utf8'));
-if (manifest.profile !== 'wheeler-doc-bundle-1' || !Array.isArray(manifest.files)) {
+if (manifest.profile !== 'wheeler-doc-bundle-2' || !Array.isArray(manifest.files)) {
   throw new Error('documentation bundle has an unsupported manifest profile');
 }
 const expected = new Set(['manifest.json']);

@@ -331,7 +331,7 @@ final class DocumentationBundleCommand {
               file.getValue().getBytes(StandardCharsets.UTF_8)))).append('}');
     }
     json.append("],\"manualSources\":").append(manuals.size())
-        .append(",\"profile\":\"wheeler-doc-bundle-1\",\"wheelerSources\":")
+        .append(",\"profile\":\"wheeler-doc-bundle-2\",\"wheelerSources\":")
         .append(wheeler.size()).append("}\n");
     return json.toString();
   }
