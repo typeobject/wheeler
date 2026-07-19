@@ -46,6 +46,9 @@ classical class ProofVerifier {
         if (opcode == OPCODE_EXPECT_EQ) {
             return OPCODE_EXPECT_EQ;
         }
+        if (opcode == OPCODE_EXPECT_TRUE) {
+            return OPCODE_EXPECT_TRUE;
+        }
         return -1;
     }
 

@@ -5,7 +5,7 @@ Classical reversible class
 classical class Counter {
   state long count = 0;
   rev void increment() { count += 1; }
-  test void remembers(long input) cases(-1, 0, 1) { assert(count == 0); }
+  test void remembers(long input) cases(-1, 0, 1) { assert(input == input); }
   entry void main() {
     increment();
     reverse { increment(); }
@@ -55,8 +55,12 @@ classical class Counter {
           (block
             (statement
               (assert_statement
-                (identifier)
-                (integer_literal))))))
+                (expression
+                  (binary_expression
+                    (expression
+                      (identifier))
+                    (expression
+                      (identifier)))))))))
       (member_declaration
         (method_declaration
           (method_modifier)
@@ -76,8 +80,12 @@ classical class Counter {
                         (identifier)))))))
             (statement
               (assert_statement
-                (identifier)
-                (integer_literal)))))))))
+                (expression
+                  (binary_expression
+                    (expression
+                      (identifier))
+                    (expression
+                      (integer_literal))))))))))))
 
 ==================
 Quantum class

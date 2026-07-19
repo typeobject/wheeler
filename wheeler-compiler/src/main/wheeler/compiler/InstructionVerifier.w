@@ -132,6 +132,9 @@ classical class InstructionVerifier {
         if (opcode == OPCODE_EXPECT_EQ) {
             return 2;
         }
+        if (opcode == OPCODE_EXPECT_TRUE) {
+            return 1;
+        }
         if (opcode == OPCODE_LOCAL_CONST) {
             return 2;
         }
@@ -434,6 +437,14 @@ classical class InstructionVerifier {
         if (opcode == OPCODE_EXPECT_EQ) {
             if (first < globalCount) {
                 return 1;
+            }
+            return 0;
+        }
+        if (opcode == OPCODE_EXPECT_TRUE) {
+            if (first < localCount) {
+                if (localHasType(artifact, activeTypes, first, TYPE_BOOLEAN)) {
+                    return 1;
+                }
             }
             return 0;
         }

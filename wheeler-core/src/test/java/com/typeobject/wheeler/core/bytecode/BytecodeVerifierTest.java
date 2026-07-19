@@ -63,6 +63,17 @@ class BytecodeVerifierTest {
             Instruction.of(Opcode.LOCAL_CONST, 0, 1),
             Instruction.of(Opcode.JUMP_IF_ZERO, 0, 2),
             Instruction.of(Opcode.HALT)));
+    FunctionBody signedAssertion = typedMain(
+        List.of(ValueType.SIGNED),
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 1),
+            Instruction.of(Opcode.EXPECT_TRUE, 0),
+            Instruction.of(Opcode.HALT)));
+    FunctionBody uninitializedAssertion = typedMain(
+        List.of(ValueType.BOOLEAN),
+        List.of(
+            Instruction.of(Opcode.EXPECT_TRUE, 0),
+            Instruction.of(Opcode.HALT)));
     FunctionBody booleanStore = typedMain(
         List.of(ValueType.BOOLEAN),
         List.of(
@@ -82,6 +93,9 @@ class BytecodeVerifierTest {
 
     assertEquals(ValueType.record(7), ValueType.fromCode(ValueType.record(7).code()));
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(signedCondition)));
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(signedAssertion)));
+    assertThrows(
+        BytecodeException.class, () -> BytecodeVerifier.verify(programWith(uninitializedAssertion)));
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(booleanStore)));
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(invalidBoolean)));
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(unresolvedRecord)));

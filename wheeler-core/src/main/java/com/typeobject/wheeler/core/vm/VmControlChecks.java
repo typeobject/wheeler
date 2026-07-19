@@ -18,6 +18,22 @@ final class VmControlChecks {
     return target;
   }
 
+  /** Requires one signed global to equal its assertion operand. */
+  static void requireGlobalEqual(
+      Program program, long[] globals, int global, long expected) {
+    if (globals[global] != expected) {
+      throw new VmTrap("Expectation failed for %s: expected %d, got %d"
+          .formatted(program.globals().get(global).name(), expected, globals[global]));
+    }
+  }
+
+  /** Requires one canonical Boolean local to hold true. */
+  static void requireTrue(Frame frame, int local) {
+    if (frame.local(local) != 1) {
+      throw new VmTrap("Assertion failed");
+    }
+  }
+
   /** Decodes one UTF-8 scalar using checked local handles from the active frame. */
   static Utf8.Scalar utf8Scalar(
       OwnedStore owned, Frame frame, Instruction instruction) {

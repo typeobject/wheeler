@@ -112,6 +112,12 @@ final class ClassicalLocalAssembler implements SourceStorageLowerer.Context {
             declareInternal(arguments.get(0), statement.line(), ValueType.BOOLEAN),
             SourceParser.parseInteger(arguments.get(1), statement.line())));
       }
+      case "local_expect" -> {
+        ClassicalLowerer.requireArguments(statement, 1);
+        int condition = requireLocal(arguments.getFirst(), statement.line());
+        requireType(condition, ValueType.BOOLEAN, statement.line());
+        output.add(Instruction.of(Opcode.EXPECT_TRUE, condition));
+      }
       case "local_read" -> lowerRead(statement);
       case "local_binary" -> lowerBinary(statement);
       case "local_rotate_right32" -> lowerRotateRight32(statement);

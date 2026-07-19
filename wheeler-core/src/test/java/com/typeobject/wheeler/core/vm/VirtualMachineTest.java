@@ -199,6 +199,31 @@ class VirtualMachineTest {
   }
 
   @Test
+  void failedBooleanAssertionAddsNoTransition() {
+    FunctionBody main = new FunctionBody(
+        0,
+        "main",
+        false,
+        0,
+        List.of(ValueType.BOOLEAN),
+        null,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 0),
+            Instruction.of(Opcode.EXPECT_TRUE, 0),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    VirtualMachine machine = new VirtualMachine(new Program(
+        "FalseAssertion", 0, List.of(), List.of(main), 10, 10));
+    machine.step();
+    MachineSnapshot beforeAssertion = machine.snapshot();
+
+    assertThrows(VmTrap.class, machine::step);
+
+    assertEquals(beforeAssertion, machine.snapshot());
+    assertEquals(1, machine.historySize());
+  }
+
+  @Test
   void typedLocalsAndBoundedControlFlowRoundTripAndRewind() {
     FunctionBody main = new FunctionBody(
         0,

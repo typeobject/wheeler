@@ -343,6 +343,12 @@ classical class Interpreter {
                             return new ExecutionResult.Error(cursor);
                         }
                     }
+                    if (opcode == OPCODE_EXPECT_TRUE) {
+                        long expectedLocal = readUnsigned(artifact, cursor + 8, 8);
+                        if (locals[localIndex(depth, expectedLocal)] == 1) {} else {
+                            return new ExecutionResult.Error(cursor);
+                        }
+                    }
                     if (opcode == OPCODE_LOCAL_CONST) {
                         long constantDestination = readUnsigned(artifact, cursor + 8, 8);
                         set(

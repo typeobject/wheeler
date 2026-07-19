@@ -557,7 +557,7 @@ public final class VirtualMachine {
         replaceCurrentFrame(currentFrame().withLocal(destination, result));
         control = StepRecord.ControlChange.RETURN;
       }
-      case EXPECT_EQ, NOP, CHECKPOINT, COMMIT -> advanceCurrentFrame();
+      case EXPECT_EQ, EXPECT_TRUE, NOP, CHECKPOINT, COMMIT -> advanceCurrentFrame();
       case HALT -> {
         advanceCurrentFrame();
         status = MachineStatus.HALTED;
@@ -814,14 +814,10 @@ public final class VirtualMachine {
             trap("Invalid value return");
           }
         }
-        case EXPECT_EQ -> {
-          int index = globalIndex(instruction, 0);
-          long expected = operand(instruction, 1);
-          if (globals[index] != expected) {
-            trap("Expectation failed for %s: expected %d, got %d"
-                .formatted(program.globals().get(index).name(), expected, globals[index]));
-          }
-        }
+        case EXPECT_EQ -> VmControlChecks.requireGlobalEqual(
+            program, globals, globalIndex(instruction, 0), operand(instruction, 1));
+        case EXPECT_TRUE -> VmControlChecks.requireTrue(
+            currentFrame(), localIndex(instruction, 0));
         case HALT, NOP, XOR_CONST, SWAP, SET_LOGGED, CHECKPOINT, COMMIT -> {
           // The verifier and operand access establish all remaining preconditions.
         }
@@ -854,7 +850,7 @@ public final class VirtualMachine {
           globals[record.changedGlobal()] = record.previousValue();
       case NOP, HALT, RETURN, RETURN_VALUE, CALL, UNCALL, CALL_VALUE, CALL_VOID,
           OUTPUT_LENGTH,
-          EXPECT_EQ, CHECKPOINT, COMMIT,
+          EXPECT_EQ, EXPECT_TRUE, CHECKPOINT, COMMIT,
           LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, LOCAL_ADD, LOCAL_SUB,
           LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_ROTR32, LOCAL_XOR, LOCAL_EQ, LOCAL_LT,
           JUMP, JUMP_IF_ZERO, LOCAL_LOOP_CHECK,

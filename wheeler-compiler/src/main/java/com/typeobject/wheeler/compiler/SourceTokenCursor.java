@@ -73,8 +73,17 @@ abstract class SourceTokenCursor {
   }
 
   protected final Type lookaheadType(int distance) {
+    return lookahead(distance).type();
+  }
+
+  protected final String lookaheadText(int distance) {
+    return lookahead(distance).text();
+  }
+
+  private SourceToken lookahead(int distance) {
     int index = current + distance;
-    return index < tokens.size() ? tokens.get(index).type() : Type.END;
+    return index < tokens.size()
+        ? tokens.get(index) : tokens.getLast();
   }
 
   protected final SourceToken advance() {

@@ -100,6 +100,12 @@ class NativeVmExampleTest {
         4);
     assertInterpretedGlobal(
         interpreter,
+        "classical class LocalAssertion { state long value = 0; "
+            + "entry void main() { long x = 3; assert(x == 3); value = 4; } }",
+        "value",
+        4);
+    assertInterpretedGlobal(
+        interpreter,
         "classical class ValueCall { state long value = 0; "
             + "long add(long left, long right) { return left + right; } "
             + "entry void main() { value = add(4, 5); assert(value == 9); } }",

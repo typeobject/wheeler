@@ -252,6 +252,10 @@ public final class BytecodeVerifier {
     switch (opcode) {
       case ADD_CONST, SUB_CONST, XOR_CONST, SET_LOGGED, EXPECT_EQ ->
           verifyGlobal(program, instruction.operands().getFirst(), owner, pc);
+      case EXPECT_TRUE -> {
+        int condition = verifyLocal(owner, instruction.operands().getFirst(), pc);
+        requireType(owner, condition, ValueType.BOOLEAN, pc);
+      }
       case LOCAL_CONST -> {
         int destination = verifyLocal(owner, instruction.operands().getFirst(), pc);
         if (owner.localType(destination).kind() == ValueType.Kind.RECORD
@@ -678,7 +682,7 @@ public final class BytecodeVerifier {
       case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND,
           LOCAL_ROTR32, LOCAL_XOR, LOCAL_EQ, LOCAL_LT ->
           new int[] {1, 2};
-      case JUMP_IF_ZERO -> new int[] {0};
+      case JUMP_IF_ZERO, EXPECT_TRUE -> new int[] {0};
       case LOCAL_LOOP_CHECK -> new int[] {0, 1};
       case RETURN_VALUE -> new int[] {0};
       case RECORD_GET, VARIANT_TAG_EQ, VARIANT_GET -> new int[] {1};

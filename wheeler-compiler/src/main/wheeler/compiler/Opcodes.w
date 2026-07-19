@@ -26,6 +26,9 @@ classical class Opcodes {
     /// Names the compile-time `OPCODE_EXPECT_EQ` value owned by this module.
     public const long OPCODE_EXPECT_EQ = 0x0300;
 
+    /// Names the compile-time `OPCODE_EXPECT_TRUE` value owned by this module.
+    public const long OPCODE_EXPECT_TRUE = 0x0303;
+
     /// Names the compile-time `OPCODE_LOCAL_CONST` value owned by this module.
     public const long OPCODE_LOCAL_CONST = 0x0400;
     /// Names the compile-time `OPCODE_LOCAL_LOAD_GLOBAL` value owned by this module.

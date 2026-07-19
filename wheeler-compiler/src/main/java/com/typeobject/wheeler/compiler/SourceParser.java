@@ -297,7 +297,7 @@ final class SourceParser extends SourceStatementParser {
       } else if (structuredStatements && matchText("drop")) {
         parseOwnedDrop(body, previous());
       } else if (structuredStatements && checkText("assert")) {
-        body.add(parseStatement());
+        parseAssertion(body);
       } else if (structuredStatements && SourceCallParser.statementCallAhead(this)) {
         SourceCallParser.parseVoid(this, body);
       } else if (structuredStatements && isAssignmentStart()) {
@@ -470,6 +470,32 @@ final class SourceParser extends SourceStatementParser {
     body.add(statement("assign", target.line(), target.text(), operator.name(), value));
   }
 
+  private void parseAssertion(List<Statement> body) {
+    if (simpleGlobalAssertionAhead()) {
+      body.add(parseStatement());
+      return;
+    }
+    SourceToken start = expectText("assert");
+    expect(Type.LEFT_PAREN, "'(' after assert");
+    String condition = parseExpression(body);
+    expect(Type.RIGHT_PAREN, "')' after assertion");
+    expect(Type.SEMICOLON, "';' after assertion");
+    body.add(statement("local_expect", start.line(), condition));
+  }
+
+  private boolean simpleGlobalAssertionAhead() {
+    if (lookaheadType(1) != Type.LEFT_PAREN
+        || lookaheadType(2) != Type.IDENTIFIER
+        || lookaheadType(3) != Type.EQUAL
+        || states.stream().noneMatch(state -> state.name().equals(lookaheadText(2)))) {
+      return false;
+    }
+    int value = lookaheadType(4) == Type.MINUS ? 5 : 4;
+    return lookaheadType(value) == Type.NUMBER
+        && lookaheadType(value + 1) == Type.RIGHT_PAREN
+        && lookaheadType(value + 2) == Type.SEMICOLON;
+  }
+
   private void parseStructuredBlock(List<Statement> body, String owner) {
     if (++blockDepth > MAX_BLOCK_DEPTH) {
       fail(peek(), "source exceeds the 256-block nesting limit");
@@ -504,7 +530,7 @@ final class SourceParser extends SourceStatementParser {
         } else if (matchText("drop")) {
           parseOwnedDrop(body, previous());
         } else if (checkText("assert")) {
-          body.add(parseStatement());
+          parseAssertion(body);
         } else if (SourceCallParser.statementCallAhead(this)) {
           SourceCallParser.parseVoid(this, body);
         } else if (isAssignmentStart()) {

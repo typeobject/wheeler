@@ -62,9 +62,19 @@ class WheelerCompilerTest {
     CompilerException duplicate = assertThrows(CompilerException.class, () -> compiler.compile(
         "classical class Bad { state long value = 1; "
             + "entry void main() { assertEquals(value, 1); } }"));
+    CompilerException empty = assertThrows(CompilerException.class, () -> compiler.compile(
+        "classical class Bad { entry void main() { assert(); } }"));
+    CompilerException multiple = assertThrows(CompilerException.class, () -> compiler.compile(
+        "classical class Bad { state long value = 1; "
+            + "entry void main() { assert(value == 1, value == 1); } }"));
+    CompilerException nonBoolean = assertThrows(CompilerException.class, () -> compiler.compile(
+        "classical class Bad { state long value = 1; entry void main() { assert(value); } }"));
 
     assertTrue(bare.getMessage().contains("expected '(' after assert"));
     assertTrue(duplicate.getMessage().contains("void call signature mismatch: assertEquals"));
+    assertTrue(empty.getMessage().contains("expected expression"));
+    assertTrue(multiple.getMessage().contains("expected ')' after assertion"));
+    assertTrue(nonBoolean.getMessage().contains("expected boolean expression"));
   }
 
   @Test
@@ -85,12 +95,18 @@ class WheelerCompilerTest {
     String source = """
         classical class Laws {
           state long value = 0;
+          boolean observe(boolean input) { value += 1; return input; }
           test void beta() { assert(value == 1); }
           test void alpha() { assert(value == 0); }
           test void flag(boolean input) cases(false, true) {
             if (input) { value = 1; } else { value = 0; }
+            assert(observe(input) == input);
           }
-          test void remembers(long input) cases(-1, 0, 2) { value = input; }
+          test void remembers(long input) cases(-1, 0, 2) {
+            value = input;
+            assert(input == value);
+            assert(input < input + 1);
+          }
           entry void main() { value += 2; }
         }
         """;
@@ -105,10 +121,13 @@ class WheelerCompilerTest {
         tests.stream().map(WheelerCompiler.TestCase::name).toList());
     new VirtualMachine(tests.getFirst().program()).run();
     assertThrows(VmTrap.class, () -> new VirtualMachine(tests.get(1).program()).run());
+    assertTrue(tests.get(2).program().functions().stream()
+        .flatMap(function -> function.forward().stream())
+        .anyMatch(instruction -> instruction.opcode() == Opcode.EXPECT_TRUE));
     for (int index = 0; index < 2; index++) {
       VirtualMachine flag = new VirtualMachine(tests.get(index + 2).program());
       flag.run();
-      assertEquals(index, flag.global("value"));
+      assertEquals(index + 1, flag.global("value"));
     }
     for (int index = 0; index < 3; index++) {
       VirtualMachine parameterized = new VirtualMachine(tests.get(index + 4).program());
@@ -116,10 +135,19 @@ class WheelerCompilerTest {
       assertEquals(List.of(-1L, 0L, 2L).get(index), parameterized.global("value"));
     }
     Program production = compiler.compile(source);
-    assertEquals(1, production.functions().size());
+    assertEquals(2, production.functions().size());
     VirtualMachine ordinary = new VirtualMachine(production);
     ordinary.run();
     assertEquals(2, ordinary.global("value"));
+
+    Program falseAssertion = compiler.compileTests("""
+        classical class FalseAssertion {
+          test void rejects(boolean input) cases(false) { assert(input); }
+        }
+        """).getFirst().program();
+    VmTrap trap = assertThrows(
+        VmTrap.class, () -> new VirtualMachine(falseAssertion).run());
+    assertEquals("Assertion failed", trap.getMessage());
   }
 
   @Test

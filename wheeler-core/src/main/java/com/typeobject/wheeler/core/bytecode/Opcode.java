@@ -23,6 +23,7 @@ public enum Opcode {
   EXPECT_EQ(0x0300, 2, Reversibility.CHECKED),
   CHECKPOINT(0x0301, 0, Reversibility.INTRINSIC),
   COMMIT(0x0302, 0, Reversibility.BARRIER),
+  EXPECT_TRUE(0x0303, 1, Reversibility.CHECKED),
 
   LOCAL_CONST(0x0400, 2, Reversibility.CHECKED),
   LOCAL_LOAD_GLOBAL(0x0401, 2, Reversibility.CHECKED),
@@ -111,7 +112,7 @@ public enum Opcode {
     return switch (this) {
       case ADD_CONST -> SUB_CONST;
       case SUB_CONST -> ADD_CONST;
-      case XOR_CONST, SWAP, NOP, EXPECT_EQ, CHECKPOINT -> this;
+      case XOR_CONST, SWAP, NOP, EXPECT_EQ, EXPECT_TRUE, CHECKPOINT -> this;
       case CALL -> UNCALL;
       case UNCALL -> CALL;
       default -> throw new IllegalStateException(name() + " has no generated language-level inverse");
@@ -120,7 +121,8 @@ public enum Opcode {
 
   public boolean supportsGeneratedInverse() {
     return switch (this) {
-      case ADD_CONST, SUB_CONST, XOR_CONST, SWAP, NOP, EXPECT_EQ, CHECKPOINT, CALL, UNCALL -> true;
+      case ADD_CONST, SUB_CONST, XOR_CONST, SWAP, NOP, EXPECT_EQ, EXPECT_TRUE,
+          CHECKPOINT, CALL, UNCALL -> true;
       default -> false;
     };
   }

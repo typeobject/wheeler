@@ -59,7 +59,7 @@ entry void main() { ... }
 | `checkpoint();` | Add a reversible checkpoint marker. |
 | `commit();` | Advance the local rewind horizon. |
 
-`assert(condition);` is the sole direct assertion spelling. The current executable slice accepts a signed global compared with a signed integer literal and traps before mutation when the comparison is false. It does not define `assertTrue`, `assertFalse`, `assertEquals`, `expectEqual`, matcher objects, or bare `assert condition;` aliases. Broader Boolean expression assertions and typed reversible, quantum, workflow, and proof evidence follow WIP-0021 and WIP-0018; this reference does not claim them early merely to make the table look busy.
+`assert(condition);` is the sole direct assertion spelling. Classical entries, ordinary methods, and tests accept the implemented Boolean expression profile, evaluate it once, and lower the resulting Boolean local to checked `EXPECT_TRUE`; direct signed-global/literal equality retains compact `EXPECT_EQ`. A false condition traps before later mutation. Current quantum and hybrid entries retain only the compact global/literal equality slice. Wheeler does not define `assertTrue`, `assertFalse`, `assertEquals`, `expectEqual`, matcher objects, or bare `assert condition;` aliases. Typed reversible, quantum, workflow, and proof evidence remains WIP-0021 and WIP-0018 work; this reference does not claim it early merely to make the table look busy.
 
 A reverse block invokes supported calls in reverse lexical order:
 
