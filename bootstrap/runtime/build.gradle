@@ -1,0 +1,15 @@
+// Java stage-0 runtime oracle layered strictly above canonical core semantics.
+dependencies {
+    implementation project(':core')
+}
+
+def wheelerRoot = new File(rootProject.repositoryRoot, 'wheeler-runtime')
+tasks.named('test') {
+    workingDir wheelerRoot
+    inputs.files(
+        fileTree(new File(wheelerRoot, 'src/main/wheeler')) { include '**/*.w' },
+        new File(wheelerRoot, 'wheeler.package'),
+        new File(wheelerRoot, 'wheeler.lock'),
+        fileTree(new File(wheelerRoot, 'vendor')) { include '*.wpk', 'wheeler.lock' })
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+}

@@ -11,7 +11,7 @@ Wheeler is pre-release, but changes are welcome when they preserve one semantic 
 ```bash
 export JAVA_HOME="$(brew --prefix openjdk)/libexec/openjdk.jdk/Contents/Home"
 export PATH="$JAVA_HOME/bin:$PATH"
-./gradlew clean check treeSitterTest
+./bootstrap/gradlew -p bootstrap clean check treeSitterTest
 cd docs && npm ci && npm run build
 ```
 
@@ -20,6 +20,7 @@ cd docs && npm ci && npm run build
 - State observable semantics before choosing an API or opcode.
 - Add positive, negative, boundary, and end-to-end tests.
 - Keep authored code files below 1,000 lines.
+- Keep every Java and Gradle-owned file below `bootstrap/`; canonical Wheeler package roots do not host Java helpers.
 - Delete the replaced implementation in the same series; do not leave two authorities.
 - Keep provider objects, credentials, and generated SDK types outside canonical bytecode.
 - Update examples and current reference pages with behavior changes.

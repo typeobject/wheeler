@@ -83,7 +83,7 @@ Use “Not applicable” with a reason for unaffected template sections. Split w
 | [WIP-0004](WIP-0004-hybrid-jobs-history-and-replay.md) | Implementing | Hybrid jobs, history, and replay | Runtime, jobs, transactions, replay |
 | [WIP-0005](WIP-0005-wheeler-source-language.md) | Implementing | Wheeler source language profile | Language, compiler, ergonomics |
 | [WIP-0006](WIP-0006-concrete-syntax-tooling-and-teaching.md) | Implementing | Concrete syntax, editor tooling, and teaching profile | Parser, Tree-sitter, documentation |
-| [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md) | Draft | Self-hosting compiler and reproducible bootstrap | Compiler, language, trust chain |
+| [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md) | Implementing | Self-hosting compiler and reproducible bootstrap | Compiler, language, trust chain |
 | [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md) | Draft | Java-free runtime and native bootstrap | Runtime, native code, distribution |
 | [WIP-0009](WIP-0009-wheeler-package-and-build-system.md) | Implementing | Wheeler package and build system | Packages, builds, registry, tooling |
 | [WIP-0010](WIP-0010-executable-application-portfolio.md) | Draft | Executable application portfolio | Examples, conformance, applications |

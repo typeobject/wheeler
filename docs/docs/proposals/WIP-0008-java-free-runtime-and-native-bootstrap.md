@@ -13,11 +13,11 @@
 
 ## Summary
 
-Wheeler's production toolchain and runtime shall have no Java dependency. The current Java compiler, VM, runtime, and Gradle build are stage-0 infrastructure. They exist to establish semantics and seed the self-hosted implementation; they are deleted after a conforming Wheeler-written toolchain can rebuild and test itself from a pinned native recovery release. WIP-0009 supplies the Wheeler-native package and build system that replaces Gradle.
+Wheeler's production toolchain and runtime shall have no Java dependency. The current Java compiler, VM, runtime, and Gradle build are quarantined below top-level `bootstrap/` as stage-0 infrastructure. They exist to establish semantics and seed the self-hosted implementation; they are deleted after a conforming Wheeler-written toolchain can rebuild and test itself from a pinned native recovery release. WIP-0009 supplies the Wheeler-native package and build system that replaces Gradle.
 
 Canonical `.wbc` remains the portable executable and semantic boundary. A native backend lowers verified `.wbc` to host code for distribution and bootstrapping. The Wheeler compiler, verifier, VM or execution runtime, disassembler, OpenQASM emitter, and build driver become Wheeler programs. A narrow platform ABI supplies memory, process arguments, bounded file operations, and other explicitly granted host effects. It does not expose JVM objects or reproduce the Java class library.
 
-No self-hosted language builds from literal nothing. A cold build starts from a reviewed prior Wheeler native release and its content-addressed `.wbc` seed, just as WIP-0007 starts from a prior compiler stage. The trust chain is explicit, reproducible, and replaceable; Java is not in it after cutover.
+No self-hosted language builds from literal nothing. A cold build starts from a reviewed prior Wheeler native release and its content-addressed `.wbc` seed, just as WIP-0007 starts from a prior compiler stage. Fixed-point reproduction is paired with diverse double compilation and complete provenance; otherwise a malicious ancestor can reproduce itself perfectly and call that success. The trust chain is explicit, reproducible, replaceable, and independently challengeable; Java is not in it after cutover.
 
 ## Motivation
 
@@ -170,6 +170,7 @@ Recovery releases are signed or content-addressed by release policy. Bootstrap s
 
 ## Progress
 
+- [x] All Java source, Java tests, Gradle modules, and the Gradle wrapper are confined to `bootstrap/`; canonical Wheeler package directories contain no Java or Gradle files.
 - [x] `.wbc` semantics and encoding are independent of JVM bytecode.
 - [x] Provider-neutral quantum IR and OpenQASM lowering do not require Python.
 - [x] Package-selected `NativeVerifier.w` consumes exact binary `.wbc` through immutable `byteview`; `compiler/Verifier.w` owns framing/payload policy; `compiler/FunctionVerifier.w` owns bounded descriptors/type/code windows; `compiler/InstructionVerifier.w` owns opcode framing, scalar/call operands, and branch targets; `compiler/AggregateVerifier.w` owns immutable aggregate operand checks; `compiler/StorageVerifier.w` owns bounded region/word/byte/map storage and UTF-8 operand checks; `compiler/ProofVerifier.w` owns generated-inverse/static-step records. The graph accepts the bounded self-hosted compiler profile, rejects damaged artifacts, and rewinds exactly. This is a Wheeler-executed verifier milestone, not yet a native machine-code verifier; changing the adjective would not change the executable.

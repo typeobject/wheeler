@@ -192,7 +192,7 @@ The local host adapter requires a physical package directory, manifest, and targ
 From a source checkout, invoke it through the stage-0 Gradle launcher:
 
 ```bash
-./gradlew :wheeler-tools:wheeler --args='check .'
+./bootstrap/gradlew -p bootstrap :tools:wheeler --args='check .'
 ```
 
 ## Local registry transport

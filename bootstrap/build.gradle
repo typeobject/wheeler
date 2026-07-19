@@ -1,4 +1,6 @@
-// Root build policy for the bounded stage-0 modules and Tree-sitter conformance gate.
+// Root build policy for the bounded stage-0 modules and repository conformance gates.
+ext.repositoryRoot = rootDir.parentFile
+
 allprojects {
     group = 'com.typeobject.wheeler'
     version = '0.1.0-SNAPSHOT'
@@ -9,14 +11,32 @@ allprojects {
 }
 
 tasks.register('treeSitterInstall', Exec) {
-    workingDir 'tree-sitter-wheeler'
+    workingDir new File(repositoryRoot, 'tree-sitter-wheeler')
     commandLine 'npm', 'ci'
 }
 
 tasks.register('treeSitterTest', Exec) {
     dependsOn treeSitterInstall
-    workingDir 'tree-sitter-wheeler'
+    workingDir new File(repositoryRoot, 'tree-sitter-wheeler')
     commandLine 'npm', 'test'
+}
+
+tasks.register('bootstrapContainmentTest') {
+    group = 'verification'
+    description = 'Confines all Java and Gradle-owned files to the disposable bootstrap tree.'
+    doLast {
+        def escaped = fileTree(repositoryRoot) {
+            include '**/*.java', '**/*.gradle', '**/gradlew', '**/gradlew.bat',
+                    '**/gradle-wrapper.jar', '**/gradle-wrapper.properties'
+            exclude '.git/**', 'bootstrap/**', '**/build/**', '**/node_modules/**'
+        }.files.sort().collect {
+            repositoryRoot.toPath().relativize(it.toPath()).toString()
+        }
+        if (!escaped.isEmpty()) {
+            throw new GradleException('Java and Gradle files escaped bootstrap/:\n'
+                    + escaped.join('\n'))
+        }
+    }
 }
 
 tasks.register('sourceSyntaxTest') {
@@ -24,19 +44,19 @@ tasks.register('sourceSyntaxTest') {
     description = 'Rejects competing assertion spellings in authored Wheeler source.'
     doLast {
         def failures = []
-        fileTree(rootDir) {
+        fileTree(repositoryRoot) {
             include '**/*.w'
             exclude '**/build/**', '**/node_modules/**'
         }.files.sort().each { file ->
             def text = file.getText('UTF-8')
             if ((text =~ /(?m)\bassert\s+(?!\()/).find()) {
-                failures.add("${rootDir.toPath().relativize(file.toPath())}: bare assert")
+                failures.add("${repositoryRoot.toPath().relativize(file.toPath())}: bare assert")
             }
             if ((text =~ /\b(?:assertTrue|assertFalse|assertEquals|expectEqual)\s*\(/).find()) {
-                failures.add("${rootDir.toPath().relativize(file.toPath())}: duplicate assertion API")
+                failures.add("${repositoryRoot.toPath().relativize(file.toPath())}: duplicate assertion API")
             }
             if ((text =~ /\b(?:mock|when)\s*\(/).find()) {
-                failures.add("${rootDir.toPath().relativize(file.toPath())}: ambient mock API")
+                failures.add("${repositoryRoot.toPath().relativize(file.toPath())}: ambient mock API")
             }
         }
         if (!failures.isEmpty()) {
@@ -50,10 +70,11 @@ tasks.register('sourceHeaderTest') {
     group = 'verification'
     description = 'Requires an owned header comment on every authored code file.'
     doLast {
-        def sources = fileTree(rootDir) {
+        def sources = fileTree(repositoryRoot) {
             include '**/*.java', '**/*.w', '**/*.js', '**/*.css', '**/*.gradle',
                     '**/*.scm', '**/*.sh', '**/*.py'
-            exclude '.git/**', '**/build/**', '**/node_modules/**', 'docs/.docusaurus/**',
+            exclude '.git/**', '**/.gradle/**', '**/build/**', '**/node_modules/**',
+                    'docs/.docusaurus/**',
                     'tree-sitter-wheeler/src/**'
         }
         def missing = []
@@ -82,7 +103,7 @@ tasks.register('sourceHeaderTest') {
                         || start.startsWith("'''")
             }
             if (!valid) {
-                missing.add(rootDir.toPath().relativize(file.toPath()).toString())
+                missing.add(repositoryRoot.toPath().relativize(file.toPath()).toString())
             }
         }
         if (!missing.isEmpty()) {
@@ -130,6 +151,7 @@ subprojects {
     }
 
     check.dependsOn jacocoTestReport
+    check.dependsOn rootProject.tasks.named('bootstrapContainmentTest')
     check.dependsOn rootProject.tasks.named('sourceHeaderTest')
     check.dependsOn rootProject.tasks.named('sourceSyntaxTest')
 }

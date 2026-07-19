@@ -1,0 +1,16 @@
+// Disposable Java bootstrap graph; canonical Wheeler packages remain one directory above.
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'wheeler-bootstrap'
+
+include 'core'
+include 'stage0'
+include 'runtime'
+include 'package'
+include 'tools'
+include 'examples'

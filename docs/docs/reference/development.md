@@ -7,7 +7,7 @@ Use JDK 26 and the checked-in Gradle wrapper:
 ```bash
 export JAVA_HOME="$(brew --prefix openjdk)/libexec/openjdk.jdk/Contents/Home"
 export PATH="$JAVA_HOME/bin:$PATH"
-./gradlew clean check treeSitterTest
+./bootstrap/gradlew -p bootstrap clean check treeSitterTest
 ```
 
 Java compilation enables all lint warnings and treats warnings as errors. `check` runs JUnit, generates JaCoCo reports for modules with tests, and invokes `sourceHeaderTest`. That gate requires every authored Java, Wheeler, JavaScript, stylesheet, Gradle, Tree-sitter query, shell, and Python code file to begin its owned surface with a suitable documentation comment; generated parser and website output stay outside the authored set. `treeSitterTest` installs the pinned CLI, regenerates the parser, runs the syntax corpus, and compiles editor queries.
@@ -48,13 +48,15 @@ Cross-cutting semantic changes begin as a [Wheeler Improvement Proposal](../prop
 ## Module dependency direction
 
 ```text
-wheeler-core <- wheeler-compiler
-wheeler-core <- wheeler-runtime
-wheeler-package
-wheeler-core + compiler + runtime + package <- wheeler-tools
-wheeler-core + compiler + runtime + package <- wheeler-examples tests
+bootstrap/core <- bootstrap/stage0
+bootstrap/core <- bootstrap/runtime
+bootstrap/package
+bootstrap/core + stage0 + runtime + package <- bootstrap/tools
+bootstrap/core + stage0 + runtime + package <- bootstrap/examples tests
 ```
 
-Core has no runtime dependencies. Source parsing does not depend on a provider. Quantum adapters will implement runtime contracts rather than entering language semantics.
+All Java and Gradle files are confined below `bootstrap/`; there is no root Gradle project and no Java source inside a canonical Wheeler package. The gate runs as `./bootstrap/gradlew -p bootstrap ...`. Bootstrap core has no runtime dependencies. Source parsing does not depend on a provider. Quantum adapters implement runtime contracts rather than entering language semantics.
 
-The Java project name does double duty during stage 0, but the Wheeler-written compiler sources have one authority: `wheeler-compiler/src/main/wheeler`. Its package exposes a `compiler` tool and an entryless `library`. `wheeler-examples` consumes the latter from its exact committed lock and vendor archive; tests resolve canonical compiler source fixtures through that root rather than keeping a pet copy under examples. The initial allocation-free library, binary-encoding, and SHA-256 modules likewise live only under `wheeler-core/src/main/wheeler`; `wheeler.compiler`, `WorkQueue.w`, and the other core consumers reach them through the exact `wheeler.core` archive. The bounded interpreter follows suit under `wheeler-runtime/src/main/wheeler`, locked to compiler verification and core primitives. The same rule applies to `wheeler-package/src/main/wheeler`: its entryless `wheeler.packages` library owns the accepted package codecs and consumes core SHA-256, while examples retain only executable consumers.
+The Wheeler-written compiler sources have one authority: `wheeler-compiler/src/main/wheeler`. Its package exposes a `compiler` tool and an entryless `library`. `wheeler-examples` consumes the latter from its exact committed lock and vendor archive; tests resolve canonical compiler source fixtures through that root rather than keeping a pet copy under examples. The initial allocation-free library, binary-encoding, and SHA-256 modules likewise live only under `wheeler-core/src/main/wheeler`; `wheeler.compiler`, `WorkQueue.w`, and the other core consumers reach them through the exact `wheeler.core` archive. The bounded interpreter follows suit under `wheeler-runtime/src/main/wheeler`, locked to compiler verification and core primitives. The same rule applies to `wheeler-package/src/main/wheeler`: its entryless `wheeler.packages` library owns the accepted package codecs and consumes core SHA-256, while examples retain only executable consumers.
+
+`bootstrap/stage0` eventually compiles that exact compiler package into stage 1; stage 1 compiles it into stage 2. Byte-identical stages prove a fixed point but not a benign ancestry. Recovery-seed promotion additionally requires WIP-0007's diverse double-compilation path, complete provenance manifest, and comparison before candidate-produced code executes. Calling the same compromised compiler twice is excellent reproducibility and poor counterintelligence.

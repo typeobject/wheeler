@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Draft |
+| Status | Implementing |
 | Owners | Wheeler language, compiler, bytecode, and runtime maintainers |
 | Created | 2026-07-17 |
 | Updated | 2026-07-18 |
@@ -13,7 +13,7 @@
 
 ## Summary
 
-The production Wheeler compiler shall be a Wheeler program. The current Java compiler and VM are temporary stage-0 infrastructure, not permanent dependencies or second implementations. Stage 1 compiles the compiler sources into stage 2, and a successful bootstrap requires canonical stage-1 and stage-2 `.wbc` artifacts to be byte-for-byte identical. WIP-0008 then moves execution and ordinary builds to a native Wheeler toolchain and removes Java completely.
+The production Wheeler compiler shall be a Wheeler program. Every Java source and Gradle file is quarantined under top-level `bootstrap/`; those modules are temporary stage-0 infrastructure and conformance oracles, not permanent dependencies or second implementations. Stage 1 compiles the compiler sources into stage 2, and a successful bootstrap requires canonical stage-1 and stage-2 `.wbc` artifacts to be byte-for-byte identical. WIP-0008 then moves execution and ordinary builds to a native Wheeler toolchain and removes Java completely.
 
 This requirement shapes the language and VM now. The bootstrap profile needs ordinary compiler construction facilities—typed local values, records and tagged variants, bounded sequences, strings and bytes, deterministic maps, control flow, modules, result values, and explicit file effects—without importing JVM object or exception semantics into Wheeler. Every added facility must remain compatible with reversibility, bounded execution, canonical bytecode, and future quantum compilation.
 
@@ -83,6 +83,10 @@ The following invariants are mandatory:
 4. Compiler input order, symbol order, constant order, diagnostics, and artifact bytes are deterministic.
 5. A failed or resource-exhausted compilation emits no partial canonical artifact.
 6. Unknown bytecode or source constructs fail closed at every stage.
+7. Stage-0 Java code and Gradle machinery remain below `bootstrap/`; canonical Wheeler packages contain no Java source or build file.
+8. Fixed-point equality is reproducibility evidence, not proof that the seed is benign.
+9. Recovery-seed promotion requires diverse double-compilation evidence from an independently derived trusted path plus the ordinary fixed point.
+10. The candidate seed is not executed in the diverse path before its output has been compared with the trusted derivation.
 
 ## Bootstrap language profile
 
@@ -178,9 +182,27 @@ The build executes these steps:
 3. Compare complete artifacts byte for byte and report the first differing section on failure.
 4. Compile the conformance examples with both stages and compare artifacts and diagnostics.
 5. Run the stage-2 artifact through the compiler acceptance suite.
-6. Publish the stage-2 content identity and build manifest as the next recovery-seed candidate.
+6. Rebuild the stage-0 seed or stage-1 compiler through an independently derived trusted path and perform diverse double compilation of the canonical Wheeler compiler sources.
+7. Compare the complete diverse output with the ordinary stage-1 artifact before executing the candidate output.
+8. Publish the stage-2 content identity, diverse evidence, and build manifest as the next recovery-seed candidate.
 
-A seed update is reviewed like source code. CI rebuilds from the prior seed and proves the new fixed point before accepting it.
+A seed update is reviewed like source code. CI rebuilds from the prior seed, proves the new fixed point, and verifies diverse evidence before accepting it.
+
+## Trusting trust and diverse bootstrap
+
+A stage-1/stage-2 fixed point answers one question: does this compiler reproduce itself under the declared inputs? It does not answer whether the seed inserted behavior absent from source and arranged to reproduce that behavior. Repeating a compromised lineage is not an exorcism; it is merely a very deterministic haunting.
+
+Recovery-seed promotion therefore follows diverse double compilation:
+
+1. choose a trusted compiler derivation independent of the candidate seed—an earlier independently reproduced Wheeler seed, a separately reviewed stage-0 implementation, or a separately sourced host toolchain capable of rebuilding the Java seed;
+2. bind that toolchain, its complete inputs, verifier, options, and limits into the bootstrap manifest;
+3. compile the canonical source without first executing candidate-produced code;
+4. compare complete canonical artifacts and diagnostics against the ordinary bootstrap path;
+5. only after equality may the candidate execute the acceptance suite and become a seed candidate.
+
+Two vendor labels on binaries built from one opaque lineage do not constitute diversity. The evidence records hashes and provenance rather than a reassuring string such as `different=true`. Diverse agreement still leaves hardware, firmware, the chosen trusted path, and review in the trusted computing base; this WIP makes that trust inspectable and smaller instead of claiming its abolition.
+
+The strict independent bytecode verifier is part of both paths. It prevents either compiler from granting itself malformed or privileged opcodes, but it cannot prove source correspondence. Fixed point, differential conformance, verifier acceptance, source review, reproducible host builds, and diverse double compilation are complementary gates.
 
 ## Safety and limits
 
@@ -203,6 +225,8 @@ The launcher grants read-only source inputs and one atomic artifact destination.
 
 ## Progress
 
+- [x] Every Java source, Java test, Gradle module, wrapper, and Gradle build file lives below top-level `bootstrap/`. Canonical Wheeler package roots contain only Wheeler sources and package metadata; host code can no longer pass as compiler source by sharing the directory.
+- [x] `bootstrap/stage0` owns the disposable Java compiler seed, while `wheeler-compiler` owns the exact Wheeler package compiled into later stages.
 - [x] Canonical `.wbc` and a deterministic stage-0 compiler exist.
 - [x] The accepted source grammar is formatting-independent and covered by Tree-sitter tooling.
 - [ ] Bootstrap feature and module manifests are specified as executable schemas.
@@ -233,6 +257,8 @@ The launcher grants read-only source inputs and one atomic artifact destination.
 - [ ] Malformed UTF-8, literal overflow, deep nesting, cyclic imports, duplicate symbols, and malformed bytecode fail identically.
 - [ ] The self-hosted compiler emits classical, coherent, quantum, and hybrid examples accepted by the independent verifier.
 - [ ] The recovery seed can rebuild its successor from a clean checkout.
+- [ ] Diverse double compilation reproduces the candidate artifact without executing candidate-produced code before comparison.
+- [ ] The bootstrap manifest binds both derivation paths, source trees, tools, options, limits, verifiers, and complete output identities.
 - [ ] No Java parser, lowerer, or `.wbc` writer remains on the normal compiler path after cutover.
 - [ ] Current compiler documentation explains the trust chain, fixed-point test, limits, and seed update procedure.
 

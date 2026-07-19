@@ -1,0 +1,10 @@
+// Java stage-0 bytecode and VM oracle over the canonical Wheeler core package.
+def wheelerRoot = new File(rootProject.repositoryRoot, 'wheeler-core')
+
+tasks.named('test') {
+    workingDir wheelerRoot
+    inputs.files(
+        fileTree(new File(wheelerRoot, 'src/main/wheeler')) { include '**/*.w' },
+        new File(wheelerRoot, 'wheeler.package'))
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+}

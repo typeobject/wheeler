@@ -345,6 +345,6 @@ Rejected. Quantum regions have different ownership, linearity, execution, and ca
 - [Proposal process](README.md)
 - [Bytecode reference](../reference/bytecode.md)
 - [Virtual-machine reference](../reference/virtual-machine.md)
-- [`Instruction`](../../../wheeler-core/src/main/java/com/typeobject/wheeler/core/bytecode/Instruction.java)
-- [`VirtualMachine`](../../../wheeler-core/src/main/java/com/typeobject/wheeler/core/vm/VirtualMachine.java)
+- [`Instruction`](../../../bootstrap/core/src/main/java/com/typeobject/wheeler/core/bytecode/Instruction.java)
+- [`VirtualMachine`](../../../bootstrap/core/src/main/java/com/typeobject/wheeler/core/vm/VirtualMachine.java)
 - [`Counter.w`](../../../wheeler-examples/src/main/wheeler/Counter.w)

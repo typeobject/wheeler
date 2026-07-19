@@ -18,10 +18,12 @@ await Promise.all([
 ]);
 
 const command = spawnSync(
-    path.join(repository, 'gradlew'),
+    path.join(repository, 'bootstrap', 'gradlew'),
     [
+      '-p',
+      'bootstrap',
       '-q',
-      ':wheeler-tools:wheeler',
+      ':tools:wheeler',
       '--args=docs docs/docs'
         + ' --wheeler wheeler-core/src/main/wheeler'
         + ' --wheeler wheeler-compiler/src/main/wheeler'
