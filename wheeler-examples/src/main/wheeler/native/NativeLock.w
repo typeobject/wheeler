@@ -12,6 +12,7 @@ classical class NativeLock {
   state long firstNameLength = 0;
   state long firstVersionLength = 0;
   state long secondNameLength = 0;
+  state long lastNameLength = 0;
   state long edgeCount = 0;
   state long emittedLength = 0;
   state long finalCursor = 0;
@@ -20,10 +21,21 @@ classical class NativeLock {
   ///
   /// - Effects: Mutates declared state and caller-owned byte output.
   entry void main(borrow utf8 source, borrow mut bytes canonical) {
-    region arena = new region(1536, 3);
-    words kinds = allocate(arena, 64);
-    words starts = allocate(arena, 64);
-    words lengths = allocate(arena, 64);
+    region arena = new region(14336, 14);
+    words kinds = allocate(arena, 512);
+    words starts = allocate(arena, 512);
+    words lengths = allocate(arena, 512);
+    words packageNameStarts = allocate(arena, 8);
+    words packageNameLengths = allocate(arena, 8);
+    words versionStarts = allocate(arena, 8);
+    words versionLengths = allocate(arena, 8);
+    words repositoryStarts = allocate(arena, 8);
+    words archiveStarts = allocate(arena, 8);
+    words manifestStarts = allocate(arena, 8);
+    words dependencyOffsets = allocate(arena, 8);
+    words dependencyCounts = allocate(arena, 8);
+    words edgeTargetStarts = allocate(arena, 16);
+    words edgeTargetLengths = allocate(arena, 16);
     long count = 0;
     ScanResult scanned = scan(source, kinds, starts, lengths);
     match (scanned) {
@@ -35,14 +47,38 @@ classical class NativeLock {
       }
     }
 
-    LockResult parsed = parse(source, kinds, starts, lengths, count);
+    LockResult parsed = parse(
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      packageNameStarts,
+      packageNameLengths,
+      versionStarts,
+      versionLengths,
+      repositoryStarts,
+      archiveStarts,
+      manifestStarts,
+      dependencyOffsets,
+      dependencyCounts,
+      edgeTargetStarts,
+      edgeTargetLengths
+    );
     match (parsed) {
       case LockResult.Value(LockModel lock) {
         rootStart = lock.rootStart;
         packageCount = lock.packageCount;
-        firstNameLength = lock.first.nameLength;
-        firstVersionLength = lock.first.versionLength;
-        secondNameLength = lock.second.nameLength;
+        if (0 < packageCount) {
+          firstNameLength = packageNameLengths[0];
+          firstVersionLength = versionLengths[0];
+          lastNameLength = packageNameLengths[packageCount - 1];
+        }
+
+        if (1 < packageCount) {
+          secondNameLength = packageNameLengths[1];
+        }
+
         edgeCount = lock.edgeCount;
         emittedLength = emitCanonicalLines(source, starts, lengths, count, canonical);
       }
@@ -53,12 +89,18 @@ classical class NativeLock {
 
     finalCursor = bufferLength(source);
     assert(rootStart == 17);
-    assert(packageCount == 2);
-    assert(firstNameLength == 8);
-    assert(firstVersionLength == 5);
-    assert(secondNameLength == 9);
-    assert(edgeCount == 1);
     setOutputLength(canonical, emittedLength);
+    drop(edgeTargetLengths);
+    drop(edgeTargetStarts);
+    drop(dependencyCounts);
+    drop(dependencyOffsets);
+    drop(manifestStarts);
+    drop(archiveStarts);
+    drop(repositoryStarts);
+    drop(versionLengths);
+    drop(versionStarts);
+    drop(packageNameLengths);
+    drop(packageNameStarts);
     drop(lengths);
     drop(starts);
     drop(kinds);

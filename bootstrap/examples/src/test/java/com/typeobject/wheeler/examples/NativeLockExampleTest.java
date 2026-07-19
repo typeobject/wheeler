@@ -71,6 +71,22 @@ class NativeLockExampleTest {
     }
     assertEquals(initial, machine.snapshot());
 
+    String eightPackages = lockWithPackages(8, a, b, c);
+    VirtualMachine larger = vm(program, eightPackages);
+    larger.run();
+    assertEquals(8, larger.global("packageCount"));
+    assertEquals(8, larger.global("lastNameLength"));
+    assertEquals(0, larger.global("edgeCount"));
+    assertEquals(eightPackages, new String(larger.hostOutput(), StandardCharsets.UTF_8));
+    new PackageLockParser().parse(larger.hostOutput());
+    assertTraps(program, lockWithPackages(9, a, b, c));
+
+    String empty = "schema: 2\nroot: \"" + a + "\"\npackages: []\n";
+    VirtualMachine emptyMachine = vm(program, empty);
+    emptyMachine.run();
+    assertEquals(0, emptyMachine.global("packageCount"));
+    new PackageLockParser().parse(emptyMachine.hostOutput());
+
     assertTraps(program, canonical.replace("schema: 2", "schema: 1"));
     assertTraps(program, canonical.replace(a, "A" + a.substring(1)));
     assertTraps(
@@ -78,7 +94,28 @@ class NativeLockExampleTest {
         canonical.replace("name: \"demo.app\"", "name: \"demo.base\""));
     assertTraps(
         program,
-        canonical.replace("      - \"demo.base\"", "      - \"demo.app\""));
+        canonical.replace("      - \"demo.base\"", "      - \"demo.missing\""));
+    assertTraps(
+        program,
+        canonical.replace(
+            "      - \"demo.base\"\n",
+            "      - \"demo.base\"\n      - \"demo.app\"\n"));
+  }
+
+  private static String lockWithPackages(
+      int count, String repository, String archive, String manifest) {
+    StringBuilder source = new StringBuilder()
+        .append("schema: 2\nroot: \"").append(repository).append("\"\npackages:\n");
+    for (int index = 0; index < count; index++) {
+      String suffix = index < 10 ? "0" + index : Integer.toString(index);
+      source.append("  - name: \"demo.p").append(suffix).append("\"\n")
+          .append("    version: \"1.0.0\"\n")
+          .append("    repository: \"").append(repository).append("\"\n")
+          .append("    archive: \"").append(archive).append("\"\n")
+          .append("    manifest: \"").append(manifest).append("\"\n")
+          .append("    dependencies: []\n");
+    }
+    return source.toString();
   }
 
   private static void assertTraps(Program program, String source) {
