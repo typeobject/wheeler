@@ -47,6 +47,19 @@ class DocumentationSiteCommandTest {
     assertTrue(index.contains("Content-Security-Policy"));
     assertTrue(index.contains("Generated from the verified Wheeler documentation graph"));
     assertFalse(index.contains("<script"));
+    assertFalse(index.contains("sidebar_position:"));
+    assertFalse(index.contains("description: Wheeler"));
+    assertFalse(index.contains("reversible classical/quantum systems"));
+    int manual = index.indexOf("<section><h2>manual</h2>");
+    int reference = index.indexOf("<section><h2>reference</h2>");
+    int proposals = index.indexOf("<section><h2>proposals</h2>");
+    int future = index.indexOf("<section><h2>future</h2>");
+    assertTrue(manual >= 0 && manual < reference && reference < proposals && proposals < future);
+    assertTrue(index.indexOf(">What Is Wheeler?</a>")
+        < index.indexOf(">Executable examples</a>"));
+    assertFalse(index.contains("WIP-XXXX: Short decision title"));
+    assertTrue(Files.isRegularFile(first.resolve(
+        "proposals/WIP-0031-reversible-quantum-and-effect-polymorphism.html")));
     assertEquals(Files.readString(first.resolve("proposals/index.html")),
         Files.readString(second.resolve("proposals/index.html")));
     assertTrue(output.toString(StandardCharsets.UTF_8)

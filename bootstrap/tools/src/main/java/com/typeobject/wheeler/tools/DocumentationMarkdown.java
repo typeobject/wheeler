@@ -19,6 +19,9 @@ final class DocumentationMarkdown {
       "`([^`]+)`|\\[([^]\\n]+)]\\(([^)\\s]+)\\)|\\*\\*([^*\\n]+)\\*\\*|\\*([^*\\n]+)\\*");
   private static final Pattern TABLE_SEPARATOR = Pattern.compile(
       "^\\|?[ \\t]*:?-{3,}:?[ \\t]*(?:\\|[ \\t]*:?-{3,}:?[ \\t]*)+\\|?$");
+  private static final Pattern FRONT_MATTER_FIELD = Pattern.compile(
+      "^([A-Za-z_][A-Za-z0-9_]*):[ \\t]*(.+)$");
+  private static final int NO_SIDEBAR_POSITION = Integer.MAX_VALUE;
 
   private final List<Page> pages;
   private final Map<String, String> routes;
@@ -31,8 +34,9 @@ final class DocumentationMarkdown {
       if (routeMap.put(entry.getKey(), output) != null) {
         throw new PackageFormatException("Duplicate documentation page " + entry.getKey());
       }
-      ordered.add(new Page(entry.getKey(), title(entry.getValue(), entry.getKey()), output,
-          entry.getValue()));
+      Document document = document(entry.getValue(), entry.getKey());
+      ordered.add(new Page(entry.getKey(), title(document.markdown(), entry.getKey()), output,
+          document.markdown(), document.sidebarPosition()));
     });
     pages = List.copyOf(ordered);
     routes = Map.copyOf(routeMap);
@@ -56,7 +60,7 @@ final class DocumentationMarkdown {
         .append(escapeAttribute(relative(page.output(), "style.css")))
         .append("\">\n</head><body>\n<header><a class=\"brand\" href=\"")
         .append(escapeAttribute(relative(page.output(), "index.html")))
-        .append("\">Wheeler</a><span>reversible classical/quantum systems</span></header>\n")
+        .append("\">Wheeler</a></header>\n")
         .append("<div class=\"layout\"><nav aria-label=\"Documentation\">\n")
         .append(navigation(page))
         .append("</nav><main>\n")
@@ -69,9 +73,14 @@ final class DocumentationMarkdown {
   private String navigation(Page current) {
     StringBuilder html = new StringBuilder();
     String group = null;
-    for (Page page : pages.stream().sorted(Comparator.comparing(Page::source)).toList()) {
-      String nextGroup = page.source().contains("/")
-          ? page.source().substring(0, page.source().indexOf('/')) : "manual";
+    List<Page> navigation = pages.stream()
+        .filter(page -> !page.source().equals("proposals/TEMPLATE.md"))
+        .sorted(Comparator.comparingInt(DocumentationMarkdown::groupOrder)
+            .thenComparingInt(DocumentationMarkdown::pageOrder)
+            .thenComparing(Page::source))
+        .toList();
+    for (Page page : navigation) {
+      String nextGroup = group(page);
       if (!nextGroup.equals(group)) {
         if (group != null) {
           html.append("</section>\n");
@@ -88,6 +97,53 @@ final class DocumentationMarkdown {
       html.append("</section>\n");
     }
     return html.toString();
+  }
+
+  private static int groupOrder(Page page) {
+    return switch (group(page)) {
+      case "manual" -> 0;
+      case "reference" -> 1;
+      case "proposals" -> 2;
+      case "future" -> 3;
+      default -> 4;
+    };
+  }
+
+  private static String group(Page page) {
+    return page.source().contains("/")
+        ? page.source().substring(0, page.source().indexOf('/')) : "manual";
+  }
+
+  private static int pageOrder(Page page) {
+    if (page.sidebarPosition() != NO_SIDEBAR_POSITION) {
+      return page.sidebarPosition();
+    }
+    if (page.source().equals("intro.md")) {
+      return 0;
+    }
+    if (page.source().equals("examples.md")) {
+      return 10;
+    }
+    if (page.source().equals("proposals/README.md")) {
+      return 0;
+    }
+    if (page.source().startsWith("proposals/WIP-")) {
+      return 100;
+    }
+    if (page.source().startsWith("reference/")) {
+      return switch (page.source()) {
+        case "reference/language-profile.md" -> 0;
+        case "reference/bytecode.md" -> 10;
+        case "reference/virtual-machine.md" -> 20;
+        case "reference/packages.md" -> 30;
+        case "reference/hybrid-runs.md" -> 40;
+        case "reference/quantum-targets.md" -> 50;
+        case "reference/coverage.md" -> 60;
+        case "reference/development.md" -> 70;
+        default -> 100;
+      };
+    }
+    return 100;
   }
 
   private String body(Page page) {
@@ -337,6 +393,55 @@ final class DocumentationMarkdown {
     return logical.isEmpty() ? Path.of(to).getFileName().toString() : logical;
   }
 
+  private static Document document(String sourceText, String source) {
+    String[] lines = sourceText.split("\\R", -1);
+    if (lines.length == 0 || !lines[0].equals("---")) {
+      return new Document(sourceText, NO_SIDEBAR_POSITION);
+    }
+    int closing = 1;
+    while (closing < lines.length && !lines[closing].equals("---")) {
+      closing++;
+    }
+    if (closing == lines.length) {
+      throw new PackageFormatException("Unclosed Markdown front matter in " + source);
+    }
+    Map<String, String> fields = new LinkedHashMap<>();
+    for (int index = 1; index < closing; index++) {
+      Matcher matcher = FRONT_MATTER_FIELD.matcher(lines[index]);
+      if (!matcher.matches() || fields.put(matcher.group(1), matcher.group(2).trim()) != null) {
+        throw new PackageFormatException("Malformed Markdown front matter in " + source);
+      }
+    }
+    int sidebarPosition = NO_SIDEBAR_POSITION;
+    if (fields.containsKey("sidebar_position")) {
+      try {
+        sidebarPosition = Integer.parseInt(fields.get("sidebar_position"));
+      } catch (NumberFormatException exception) {
+        throw new PackageFormatException("Invalid sidebar_position in " + source);
+      }
+      if (sidebarPosition < 0 || sidebarPosition > 1_000_000) {
+        throw new PackageFormatException("Invalid sidebar_position in " + source);
+      }
+    }
+    String markdown = String.join("\n", java.util.Arrays.copyOfRange(
+        lines, Math.min(closing + 1, lines.length), lines.length));
+    String headingTitle = title(markdown, source);
+    if (fields.containsKey("title")
+        && !frontMatterScalar(fields.get("title")).equals(headingTitle)) {
+      throw new PackageFormatException("Markdown front-matter title disagrees with heading in "
+          + source);
+    }
+    return new Document(markdown, sidebarPosition);
+  }
+
+  private static String frontMatterScalar(String value) {
+    if (value.length() >= 2 && ((value.startsWith("\"") && value.endsWith("\""))
+        || (value.startsWith("'") && value.endsWith("'")))) {
+      return value.substring(1, value.length() - 1);
+    }
+    return value;
+  }
+
   private static String title(String markdown, String source) {
     for (String line : markdown.split("\\R")) {
       if (line.startsWith("# ") && line.length() > 2) {
@@ -358,5 +463,8 @@ final class DocumentationMarkdown {
     return path.toString().replace(path.getFileSystem().getSeparator(), "/");
   }
 
-  record Page(String source, String title, String output, String markdown) {}
+  private record Document(String markdown, int sidebarPosition) {}
+
+  record Page(
+      String source, String title, String output, String markdown, int sidebarPosition) {}
 }

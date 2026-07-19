@@ -224,7 +224,6 @@ final class DocumentationSiteCommand {
         padding: .8rem max(1rem, calc((100vw - 92rem) / 2)); border-bottom: 1px solid var(--line);
         background: var(--paper); }
       .brand { color: var(--ink); font-size: 1.35rem; font-weight: 800; text-decoration: none; }
-      header span { color: color-mix(in srgb, var(--ink) 65%, transparent); }
       .layout { display: grid; grid-template-columns: minmax(14rem, 20rem) minmax(0, 60rem);
         gap: 3rem; max-width: 92rem; margin: 0 auto; padding: 2rem 1rem 5rem; }
       nav { position: sticky; top: 5rem; align-self: start; max-height: calc(100vh - 6rem);
