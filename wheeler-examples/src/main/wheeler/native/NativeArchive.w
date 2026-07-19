@@ -21,7 +21,7 @@ classical class NativeArchive {
   ///
   /// - Effects: Mutates only the fixture's declared state.
   entry void main(borrow byteview source) {
-    region arena = new region(11300, 6);
+    region arena = new region(12288, 10);
     bytes digest = allocateBytes(arena, 32);
     ArchiveResult parsed = inspectArchive(source, digest, arena);
     match (parsed) {

@@ -12,28 +12,13 @@ classical class NativeManifest {
   state long profileLength = 0;
   state long versionLength = 0;
   state long targetCount = 0;
-  state long targetNameLength = 0;
-  state long targetRootLength = 0;
-  state long targetModuleLength = 0;
   state long targetSourceCount = 0;
-  state long targetSourceLength = 0;
-  state long targetSecondSourceLength = 0;
-  state long targetThirdSourceLength = 0;
-  state long targetFourthSourceLength = 0;
-  state long targetTest = 0;
-  state long secondTargetNameLength = 0;
-  state long secondTargetRootLength = 0;
-  state long secondTargetTest = 0;
   state long dependencyCount = 0;
-  state long dependencyNameLength = 0;
-  state long dependencyVersionLength = 0;
-  state long secondDependencyNameLength = 0;
-  state long secondDependencyVersionLength = 0;
   state long capabilityCount = 0;
-  state long capabilityNameLength = 0;
-  state long capabilityPathLength = 0;
-  state long secondCapabilityNameLength = 0;
-  state long secondCapabilityPathLength = 0;
+  state long firstTargetNameLength = 0;
+  state long lastTargetNameLength = 0;
+  state long lastDependencyNameLength = 0;
+  state long lastCapabilityNameLength = 0;
   state long emittedLength = 0;
   state long finalCursor = 0;
 
@@ -41,10 +26,14 @@ classical class NativeManifest {
   ///
   /// - Effects: Mutates declared state and caller-owned byte output.
   entry void main(borrow utf8 source, borrow mut bytes canonical) {
-    region arena = new region(3072, 3);
-    words kinds = allocate(arena, 128);
-    words starts = allocate(arena, 128);
-    words lengths = allocate(arena, 128);
+    region arena = new region(15360, 7);
+    words kinds = allocate(arena, 512);
+    words starts = allocate(arena, 512);
+    words lengths = allocate(arena, 512);
+    words targetRows = allocate(arena, 80);
+    words sourceRows = allocate(arena, 64);
+    words dependencyRows = allocate(arena, 40);
+    words capabilityRows = allocate(arena, 32);
     long count = 0;
     ScanResult scanned = scan(source, kinds, starts, lengths);
     match (scanned) {
@@ -56,36 +45,40 @@ classical class NativeManifest {
       }
     }
 
-    ManifestResult parsed = parseHeader(source, kinds, starts, lengths, count);
+    ManifestResult parsed = parseManifest(
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      targetRows,
+      sourceRows,
+      dependencyRows,
+      capabilityRows
+    );
     match (parsed) {
-      case ManifestResult.Value(ManifestHeader header) {
-        nameStart = header.name.start;
-        nameLength = header.name.length;
-        versionLength = header.version.length;
-        profileLength = header.profile.length;
-        targetCount = header.targetCount;
-        targetNameLength = header.targetName.length;
-        targetRootLength = header.targetRoot.length;
-        targetModuleLength = header.targetModule.length;
-        targetSourceCount = header.targetSourceCount;
-        targetSourceLength = header.targetSource.length;
-        targetSecondSourceLength = header.targetSecondSource.length;
-        targetThirdSourceLength = header.targetThirdSource.length;
-        targetFourthSourceLength = header.targetFourthSource.length;
-        targetTest = header.targetTest;
-        secondTargetNameLength = header.secondTargetName.length;
-        secondTargetRootLength = header.secondTargetRoot.length;
-        secondTargetTest = header.secondTargetTest;
-        dependencyCount = header.dependencyCount;
-        dependencyNameLength = header.dependencyName.length;
-        dependencyVersionLength = header.dependencyVersion.length;
-        secondDependencyNameLength = header.secondDependencyName.length;
-        secondDependencyVersionLength = header.secondDependencyVersion.length;
-        capabilityCount = header.capabilityCount;
-        capabilityNameLength = header.capabilityName.length;
-        capabilityPathLength = header.capabilityPath.length;
-        secondCapabilityNameLength = header.secondCapabilityName.length;
-        secondCapabilityPathLength = header.secondCapabilityPath.length;
+      case ManifestResult.Value(ManifestModel manifest) {
+        nameStart = manifest.name.start;
+        nameLength = manifest.name.length;
+        versionLength = manifest.version.length;
+        profileLength = manifest.profile.length;
+        targetCount = manifest.targetCount;
+        targetSourceCount = manifest.sourceCount;
+        dependencyCount = manifest.dependencyCount;
+        capabilityCount = manifest.capabilityCount;
+        firstTargetNameLength = targetRows[TARGET_NAME_LENGTH];
+        lastTargetNameLength = targetRows[(targetCount - 1) * TARGET_ROW_WIDTH
+          + TARGET_NAME_LENGTH];
+        if (0 < dependencyCount) {
+          lastDependencyNameLength = dependencyRows[(dependencyCount - 1) * DEPENDENCY_ROW_WIDTH
+            + 2];
+        }
+
+        if (0 < capabilityCount) {
+          lastCapabilityNameLength = capabilityRows[(capabilityCount - 1) * CAPABILITY_ROW_WIDTH
+            + 1];
+        }
+
         emittedLength = emitCanonical(source, starts, lengths, count, canonical);
       }
       case ManifestResult.Error(long parseOffset) {
@@ -97,26 +90,12 @@ classical class NativeManifest {
     assert(nameLength == 11);
     assert(versionLength == 10);
     assert(profileLength == 11);
-    assert(targetNameLength == 3);
-    assert(targetRootLength == 9);
-    assert(targetModuleLength == 8);
-    assert(targetSourceLength == 9);
-    assert(targetSecondSourceLength == 12);
-    assert(targetCount == 2);
-    assert(secondTargetNameLength == 4);
-    assert(secondTargetRootLength == 10);
-    assert(dependencyCount == 2);
-    assert(dependencyNameLength == 9);
-    assert(dependencyVersionLength == 6);
-    assert(secondDependencyNameLength == 10);
-    assert(secondDependencyVersionLength == 6);
-    assert(capabilityCount == 2);
-    assert(capabilityNameLength == 7);
-    assert(capabilityPathLength == 9);
-    assert(secondCapabilityNameLength == 4);
-    assert(secondCapabilityPathLength == 4);
     setOutputLength(canonical, emittedLength);
 
+    drop(capabilityRows);
+    drop(dependencyRows);
+    drop(sourceRows);
+    drop(targetRows);
     drop(lengths);
     drop(starts);
     drop(kinds);

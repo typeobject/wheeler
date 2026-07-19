@@ -82,10 +82,50 @@ class NativeManifestExampleTest {
     }
     assertEquals(initial, machine.snapshot());
 
+    String eightTargets = manifestWithTargets(8);
+    VirtualMachine larger = vm(program, eightTargets);
+    larger.run();
+    assertEquals(8, larger.global("targetCount"));
+    assertEquals(0, larger.global("targetSourceCount"));
+    assertEquals(0, larger.global("dependencyCount"));
+    assertEquals(0, larger.global("capabilityCount"));
+    assertEquals(6, larger.global("firstTargetNameLength"));
+    assertEquals(6, larger.global("lastTargetNameLength"));
+    assertEquals(eightTargets, new String(larger.hostOutput(), StandardCharsets.UTF_8));
+    new com.typeobject.wheeler.packageformat.PackageManifestParser()
+        .parse(larger.hostOutput());
+    assertTraps(program, manifestWithTargets(9));
+
     assertTraps(program, MANIFEST.replace("schema: 1", "schema: 2"));
     assertTraps(program, MANIFEST.replace("kind: \"tool\"", "kind: \"plugin\""));
+    assertTraps(program, MANIFEST.replace("kind: \"tool\"", "kind: \"library\""));
     assertTraps(program, MANIFEST.replace("name: \"demo.base\"", "name: \"demo.-base\""));
     assertTraps(program, MANIFEST.replace("root: \"src/App.w\"", "root: \"../App.w\""));
+    assertTraps(program, MANIFEST.replace("- \"src/App.w\"", "- \"src/Aardvark.w\""));
+    assertTraps(
+        program,
+        MANIFEST.replace(
+            "      - \"src/App.w\"\n      - \"src/Helper.w\"",
+            "      - \"src/Helper.w\"\n      - \"src/App.w\""));
+  }
+
+  private static String manifestWithTargets(int count) {
+    StringBuilder source = new StringBuilder("""
+        schema: 1
+        package:
+          name: "demo.native"
+          version: "1.2.3-rc.1"
+          profile: "bootstrap-1"
+        targets:
+        """);
+    for (int index = 0; index < count; index++) {
+      String suffix = index < 10 ? "0" + index : Integer.toString(index);
+      source.append("  - kind: \"tool\"\n")
+          .append("    name: \"tool").append(suffix).append("\"\n")
+          .append("    root: \"src/Tool").append(suffix).append(".w\"\n")
+          .append("    test: false\n");
+    }
+    return source.append("dependencies: []\ncapabilities: []\n").toString();
   }
 
   private static void assertTraps(Program program, String input) {

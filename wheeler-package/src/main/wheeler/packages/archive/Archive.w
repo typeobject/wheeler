@@ -266,6 +266,10 @@ classical class Archive {
     words kinds = allocate(arena, 128);
     words starts = allocate(arena, 128);
     words lengths = allocate(arena, 128);
+    words targetRows = allocate(arena, TARGET_ROW_WIDTH);
+    words sourceRows = allocate(arena, SOURCE_ROW_WIDTH * 2);
+    words dependencyRows = allocate(arena, DEPENDENCY_ROW_WIDTH * 2);
+    words capabilityRows = allocate(arena, CAPABILITY_ROW_WIDTH * 2);
     bytes canonical = allocateBytes(arena, manifestLength);
     long tokenCount = 0;
     boolean valid = true;
@@ -287,20 +291,30 @@ classical class Archive {
     long secondSourceLength = 0;
     long sourceCount = 0;
     if (valid) {
-      ManifestResult parsed = parseHeader(manifest, kinds, starts, lengths, tokenCount);
+      ManifestResult parsed = parseManifest(
+        manifest,
+        kinds,
+        starts,
+        lengths,
+        tokenCount,
+        targetRows,
+        sourceRows,
+        dependencyRows,
+        capabilityRows
+      );
       match (parsed) {
-        case ManifestResult.Value(ManifestHeader header) {
-          packageLength = header.name.length;
-          targetCount = header.targetCount;
-          sourceCount = header.targetSourceCount;
+        case ManifestResult.Value(ManifestModel model) {
+          packageLength = model.name.length;
+          targetCount = model.targetCount;
+          sourceCount = targetRows[TARGET_SOURCE_COUNT];
           if (sourceCount == 0) {
-            firstSourceStart = header.targetRoot.start;
-            firstSourceLength = header.targetRoot.length;
+            firstSourceStart = targetRows[TARGET_ROOT_START];
+            firstSourceLength = targetRows[TARGET_ROOT_LENGTH];
           } else {
-            firstSourceStart = header.targetSource.start;
-            firstSourceLength = header.targetSource.length;
-            secondSourceStart = header.targetSecondSource.start;
-            secondSourceLength = header.targetSecondSource.length;
+            firstSourceStart = sourceRows[0];
+            firstSourceLength = sourceRows[1];
+            secondSourceStart = sourceRows[2];
+            secondSourceLength = sourceRows[3];
           }
         }
         case ManifestResult.Error(long parseOffset) {
@@ -366,6 +380,10 @@ classical class Archive {
     }
 
     drop(canonical);
+    drop(capabilityRows);
+    drop(dependencyRows);
+    drop(sourceRows);
+    drop(targetRows);
     drop(lengths);
     drop(starts);
     drop(kinds);

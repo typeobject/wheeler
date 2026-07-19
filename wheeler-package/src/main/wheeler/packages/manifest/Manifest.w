@@ -8,55 +8,64 @@ import wheeler.packages.semver;
 import wheeler.packages.tokens;
 
 classical class Manifest {
+  /// Number of words in one target row.
+  public const long TARGET_ROW_WIDTH = 10;
+  /// Target-kind column.
+  public const long TARGET_KIND = 0;
+  /// Target-name start column.
+  public const long TARGET_NAME_START = 1;
+  /// Target-name length column.
+  public const long TARGET_NAME_LENGTH = 2;
+  /// Target-root start column.
+  public const long TARGET_ROOT_START = 3;
+  /// Target-root length column.
+  public const long TARGET_ROOT_LENGTH = 4;
+  /// Target-module start column, or zero for a nonmodular target.
+  public const long TARGET_MODULE_START = 5;
+  /// Target-module length column, or zero for a nonmodular target.
+  public const long TARGET_MODULE_LENGTH = 6;
+  /// First source-selector row column.
+  public const long TARGET_SOURCE_OFFSET = 7;
+  /// Source-selector count column.
+  public const long TARGET_SOURCE_COUNT = 8;
+  /// Test-selection Boolean column.
+  public const long TARGET_TEST = 9;
+
+  /// Number of words in one source-selector row.
+  public const long SOURCE_ROW_WIDTH = 2;
+  /// Number of words in one dependency row.
+  public const long DEPENDENCY_ROW_WIDTH = 5;
+  /// Number of words in one capability row.
+  public const long CAPABILITY_ROW_WIDTH = 4;
+
   /// Defines one quoted source range without copying its bytes.
   public record QuotedRange(long start, long length) {}
 
-  /// Carries the bounded manifest fields used by the recovery examples.
-  public record ManifestHeader(
+  /// Carries scalar ranges and collection counts for one validated manifest.
+  public record ManifestModel(
     QuotedRange name,
     QuotedRange version,
     QuotedRange profile,
-    QuotedRange targetName,
-    QuotedRange targetRoot,
-    QuotedRange targetModule,
-    QuotedRange targetSource,
-    QuotedRange targetSecondSource,
-    QuotedRange targetThirdSource,
-    QuotedRange targetFourthSource,
-    long targetSourceCount,
-    long targetTest,
-    QuotedRange secondTargetName,
-    QuotedRange secondTargetRoot,
-    long secondTargetTest,
     long targetCount,
-    QuotedRange dependencyName,
-    QuotedRange dependencyVersion,
-    QuotedRange secondDependencyName,
-    QuotedRange secondDependencyVersion,
+    long sourceCount,
     long dependencyCount,
-    QuotedRange capabilityName,
-    QuotedRange capabilityPath,
-    QuotedRange secondCapabilityName,
-    QuotedRange secondCapabilityPath,
     long capabilityCount
   ) {}
 
-  /// Defines the closed parse result; malformed YAML never returns a partial model.
+  /// Defines the closed parse result; malformed YAML never returns a model.
   public variant ManifestResult {
-    case Value(ManifestHeader header);
+    case Value(ManifestModel manifest);
     case Error(long offset);
   }
 
   private record TargetParse(
     boolean valid,
     long next,
-    QuotedRange name,
-    QuotedRange root,
-    QuotedRange module,
-    QuotedRange firstSource,
-    QuotedRange secondSource,
-    QuotedRange thirdSource,
-    QuotedRange fourthSource,
+    long kind,
+    long nameToken,
+    long rootToken,
+    long moduleToken,
+    long sourceOffset,
     long sourceCount,
     long test
   ) {}
@@ -64,23 +73,12 @@ classical class Manifest {
   private record DependencyParse(
     boolean valid,
     long next,
-    QuotedRange name,
-    QuotedRange version
+    long kind,
+    long nameToken,
+    long versionToken
   ) {}
 
-  private record CapabilityParse(boolean valid, long next, QuotedRange name, QuotedRange path) {}
-
-  private boolean negated(boolean value) {
-    if (value) {
-      return false;
-    }
-
-    return true;
-  }
-
-  private QuotedRange emptyRange() {
-    return new QuotedRange(0, 0);
-  }
+  private record CapabilityParse(boolean valid, long next, long nameToken, long pathToken) {}
 
   private QuotedRange range(borrow mut words starts, borrow mut words lengths, long token) {
     return new QuotedRange(starts[token] + 1, lengths[token] - 2);
@@ -98,6 +96,23 @@ classical class Manifest {
     if (token + 1 < count) {
       if (keywordAt(source, starts, lengths, token, hash)) {
         return colonAt(source, kinds, starts, token + 1);
+      }
+    }
+
+    return false;
+  }
+
+  private boolean punctuation(
+    borrow utf8 source,
+    borrow mut words kinds,
+    borrow mut words starts,
+    long count,
+    long token,
+    long scalar
+  ) {
+    if (token < count) {
+      if (kinds[token] == 3) {
+        return utf8Scalar(source, starts[token]) == scalar;
       }
     }
 
@@ -122,7 +137,7 @@ classical class Manifest {
     return -1;
   }
 
-  private boolean targetKind(
+  private long targetKind(
     borrow utf8 source,
     borrow mut words kinds,
     borrow mut words starts,
@@ -132,20 +147,22 @@ classical class Manifest {
     if (quoted(kinds, lengths, token)) {
       long hash = quotedHash(source, starts, lengths, token);
       if (hash == 2733284766595777) {
-        return true;
+        return 1;
       }
 
       if (hash == 98950456507) {
-        return true;
+        return 2;
       }
 
-      return hash == 3565976;
+      if (hash == 3565976) {
+        return 3;
+      }
     }
 
-    return false;
+    return 0;
   }
 
-  private boolean dependencyKind(
+  private long dependencyKind(
     borrow utf8 source,
     borrow mut words kinds,
     borrow mut words starts,
@@ -155,14 +172,68 @@ classical class Manifest {
     if (quoted(kinds, lengths, token)) {
       long hash = quotedHash(source, starts, lengths, token);
       if (hash == 3255221479) {
-        return true;
+        return 1;
       }
 
       if (hash == 84736749587766587) {
-        return true;
+        return 2;
       }
 
-      return hash == 94094958;
+      if (hash == 94094958) {
+        return 3;
+      }
+    }
+
+    return 0;
+  }
+
+  private boolean rowCapacity(borrow mut words rows, long row, long width) {
+    long finalColumn = row * width + width - 1;
+    return finalColumn < bufferLength(rows);
+  }
+
+  private boolean selectorCoversRoot(
+    borrow utf8 source,
+    borrow mut words starts,
+    borrow mut words lengths,
+    long selectorToken,
+    long rootToken
+  ) {
+    long selectorStart = starts[selectorToken] + 1;
+    long selectorLength = lengths[selectorToken] - 2;
+    long rootStart = starts[rootToken] + 1;
+    long rootLength = lengths[rootToken] - 2;
+    if (selectorLength < rootLength) {
+      long offset = 0;
+      while (offset < selectorLength) limit 4096 {
+        if (
+          utf8Scalar(source, selectorStart + offset) == utf8Scalar(source, rootStart + offset)
+        ) {
+          offset += 1;
+        } else {
+          return false;
+        }
+      }
+
+      return utf8Scalar(source, rootStart + selectorLength) == 47;
+    }
+
+    if (selectorLength == rootLength) {
+      long equalOffset = 0;
+      while (equalOffset < selectorLength) limit 4096 {
+        if (
+          utf8Scalar(source, selectorStart + equalOffset) == utf8Scalar(
+            source,
+            rootStart + equalOffset
+          )
+        ) {
+          equalOffset += 1;
+        } else {
+          return false;
+        }
+      }
+
+      return true;
     }
 
     return false;
@@ -174,139 +245,164 @@ classical class Manifest {
     borrow mut words starts,
     borrow mut words lengths,
     long count,
-    long cursor
+    long cursor,
+    borrow mut words sourceRows,
+    long sourceOffset
   ) {
-    QuotedRange empty = emptyRange();
-    TargetParse invalid = new TargetParse(
-      false,
-      cursor,
-      empty,
-      empty,
-      empty,
-      empty,
-      empty,
-      empty,
-      empty,
-      0,
-      0
-    );
+    TargetParse invalid = new TargetParse(false, cursor, 0, 0, 0, 0, sourceOffset, 0, 0);
     if (cursor + 12 < count) {
       if (dashAt(source, kinds, starts, cursor)) {
         if (key(source, kinds, starts, lengths, count, cursor + 1, 3292052)) {
-          if (targetKind(source, kinds, starts, lengths, cursor + 3)) {
+          long kind = targetKind(source, kinds, starts, lengths, cursor + 3);
+          if (0 < kind) {
             if (key(source, kinds, starts, lengths, count, cursor + 4, 3373707)) {
               if (quoted(kinds, lengths, cursor + 6)) {
-                if (
-                  key(source, kinds, starts, lengths, count, cursor + 7, 3506402)
-                ) {
-                  if (quoted(kinds, lengths, cursor + 9)) {
-                    boolean validRoot = validLogicalPath(
-                      source,
-                      starts[cursor + 9] + 1,
-                      lengths[cursor + 9] - 2
-                    );
-                    if (validRoot) {
-                      QuotedRange name = range(starts, lengths, cursor + 6);
-                      QuotedRange root = range(starts, lengths, cursor + 9);
-                      QuotedRange module = empty;
-                      QuotedRange first = empty;
-                      QuotedRange second = empty;
-                      QuotedRange third = empty;
-                      QuotedRange fourth = empty;
-                      long sourceCount = 0;
-                      long next = cursor + 10;
-                      if (
-                        key(source, kinds, starts, lengths, count, next, 3226183276)
-                      ) {
-                        if (quoted(kinds, lengths, next + 2)) {
-                          boolean validModule = validModuleName(
-                            source,
-                            starts[next + 2] + 1,
-                            lengths[next + 2] - 2
-                          );
-                          if (validModule) {
-                            module = range(starts, lengths, next + 2);
+                boolean validName = validWorkspaceName(
+                  source,
+                  starts[cursor + 6] + 1,
+                  lengths[cursor + 6] - 2
+                );
+                if (validName) {
+                  if (
+                    key(source, kinds, starts, lengths, count, cursor + 7, 3506402)
+                  ) {
+                    if (quoted(kinds, lengths, cursor + 9)) {
+                      boolean validRoot = validLogicalPath(
+                        source,
+                        starts[cursor + 9] + 1,
+                        lengths[cursor + 9] - 2
+                      );
+                      if (validRoot) {
+                        long moduleToken = -1;
+                        long sourceCount = 0;
+                        long next = cursor + 10;
+                        if (
+                          key(source, kinds, starts, lengths, count, next, 3226183276)
+                        ) {
+                          if (quoted(kinds, lengths, next + 2)) {
+                            boolean validModule = validModuleName(
+                              source,
+                              starts[next + 2] + 1,
+                              lengths[next + 2] - 2
+                            );
+                            if (validModule == false) {
+                              return invalid;
+                            }
 
+                            moduleToken = next + 2;
                             next += 3;
                             if (
                               key(source, kinds, starts, lengths, count, next, 105352305592)
+                                == false
                             ) {
-                              next += 2;
-                              boolean scanning = true;
-                              while (scanning) limit 4 {
-                                if (next + 1 < count) {
-                                  if (dashAt(source, kinds, starts, next)) {
-                                    if (quoted(kinds, lengths, next + 1)) {
-                                      boolean validSource = validLogicalPath(
+                              return invalid;
+                            }
+
+                            next += 2;
+                            long previousSourceToken = -1;
+                            boolean rootCovered = false;
+                            boolean scanning = true;
+                            while (scanning) limit 1024 {
+                              if (next + 1 < count) {
+                                if (dashAt(source, kinds, starts, next)) {
+                                  if (quoted(kinds, lengths, next + 1)) {
+                                    boolean validSource = validLogicalPath(
+                                      source,
+                                      starts[next + 1] + 1,
+                                      lengths[next + 1] - 2
+                                    );
+                                    if (validSource == false) {
+                                      return invalid;
+                                    }
+
+                                    if (
+                                      rowCapacity(
+                                        sourceRows,
+                                        sourceOffset + sourceCount,
+                                        SOURCE_ROW_WIDTH
+                                      ) == false
+                                    ) {
+                                      return invalid;
+                                    }
+
+                                    if (-1 < previousSourceToken) {
+                                      long sourceOrder = compareTokenText(
                                         source,
-                                        starts[next + 1] + 1,
-                                        lengths[next + 1] - 2
+                                        starts,
+                                        lengths,
+                                        previousSourceToken,
+                                        next + 1
                                       );
-                                      if (validSource) {
-                                        if (sourceCount == 0) {
-                                          first = range(starts, lengths, next + 1);
-                                        }
-
-                                        if (sourceCount == 1) {
-                                          second = range(starts, lengths, next + 1);
-                                        }
-
-                                        if (sourceCount == 2) {
-                                          third = range(starts, lengths, next + 1);
-                                        }
-
-                                        if (sourceCount == 3) {
-                                          fourth = range(starts, lengths, next + 1);
-                                        }
-
-                                        sourceCount += 1;
-                                        next += 2;
-                                      } else {
+                                      boolean sourcesOrdered = sourceOrder < 0;
+                                      if (sourcesOrdered == false) {
                                         return invalid;
                                       }
-                                    } else {
-                                      scanning = false;
                                     }
+
+                                    boolean covers = selectorCoversRoot(
+                                      source,
+                                      starts,
+                                      lengths,
+                                      next + 1,
+                                      cursor + 9
+                                    );
+                                    if (covers) {
+                                      rootCovered = true;
+                                    }
+
+                                    long sourceBase = (sourceOffset + sourceCount)
+                                      * SOURCE_ROW_WIDTH;
+                                    set(sourceRows, sourceBase, starts[next + 1] + 1);
+                                    set(sourceRows, sourceBase + 1, lengths[next + 1] - 2);
+                                    sourceCount += 1;
+                                    previousSourceToken = next + 1;
+                                    next += 2;
                                   } else {
                                     scanning = false;
                                   }
                                 } else {
                                   scanning = false;
                                 }
+                              } else {
+                                scanning = false;
                               }
+                            }
 
-                              if (sourceCount == 0) {
-                                return invalid;
-                              }
-                            } else {
+                            if (sourceCount == 0) {
+                              return invalid;
+                            }
+
+                            if (rootCovered == false) {
                               return invalid;
                             }
                           } else {
                             return invalid;
                           }
-                        } else {
-                          return invalid;
                         }
-                      }
 
-                      if (
-                        key(source, kinds, starts, lengths, count, next, 3556498)
-                      ) {
-                        long test = booleanToken(source, starts, lengths, next + 2);
-                        if (-1 < test) {
-                          return new TargetParse(
-                            true,
-                            next + 3,
-                            name,
-                            root,
-                            module,
-                            first,
-                            second,
-                            third,
-                            fourth,
-                            sourceCount,
-                            test
-                          );
+                        if (
+                          key(source, kinds, starts, lengths, count, next, 3556498)
+                        ) {
+                          long test = booleanToken(source, starts, lengths, next + 2);
+                          if (-1 < test) {
+                            if (kind == 2) {
+                              if (test == 1) {
+                                return invalid;
+                              }
+                            }
+
+                            return new TargetParse(
+                              true,
+                              next + 3,
+                              kind,
+                              cursor + 6,
+                              cursor + 9,
+                              moduleToken,
+                              sourceOffset,
+                              sourceCount,
+                              test
+                            );
+                          }
                         }
                       }
                     }
@@ -330,12 +426,12 @@ classical class Manifest {
     long count,
     long cursor
   ) {
-    QuotedRange empty = emptyRange();
-    DependencyParse invalid = new DependencyParse(false, cursor, empty, empty);
+    DependencyParse invalid = new DependencyParse(false, cursor, 0, 0, 0);
     if (cursor + 9 < count) {
       if (dashAt(source, kinds, starts, cursor)) {
         if (key(source, kinds, starts, lengths, count, cursor + 1, 3292052)) {
-          if (dependencyKind(source, kinds, starts, lengths, cursor + 3)) {
+          long kind = dependencyKind(source, kinds, starts, lengths, cursor + 3);
+          if (0 < kind) {
             if (key(source, kinds, starts, lengths, count, cursor + 4, 3373707)) {
               if (quoted(kinds, lengths, cursor + 6)) {
                 boolean validName = validPackageName(
@@ -357,8 +453,9 @@ classical class Manifest {
                         return new DependencyParse(
                           true,
                           cursor + 10,
-                          range(starts, lengths, cursor + 6),
-                          range(starts, lengths, cursor + 9)
+                          kind,
+                          cursor + 6,
+                          cursor + 9
                         );
                       }
                     }
@@ -382,8 +479,7 @@ classical class Manifest {
     long count,
     long cursor
   ) {
-    QuotedRange empty = emptyRange();
-    CapabilityParse invalid = new CapabilityParse(false, cursor, empty, empty);
+    CapabilityParse invalid = new CapabilityParse(false, cursor, 0, 0);
     if (cursor + 6 < count) {
       if (dashAt(source, kinds, starts, cursor)) {
         if (key(source, kinds, starts, lengths, count, cursor + 1, 3373707)) {
@@ -396,12 +492,7 @@ classical class Manifest {
                   lengths[cursor + 6] - 2
                 );
                 if (validPath) {
-                  return new CapabilityParse(
-                    true,
-                    cursor + 7,
-                    range(starts, lengths, cursor + 3),
-                    range(starts, lengths, cursor + 6)
-                  );
+                  return new CapabilityParse(true, cursor + 7, cursor + 3, cursor + 6);
                 }
               }
             }
@@ -413,166 +504,301 @@ classical class Manifest {
     return invalid;
   }
 
-  /// Parses one canonical YAML manifest with at most two records per trailing section.
-  public ManifestResult parseHeader(
+  private boolean validHeader(
     borrow utf8 source,
     borrow mut words kinds,
     borrow mut words starts,
     borrow mut words lengths,
     long count
   ) {
-    QuotedRange empty = emptyRange();
     if (count < 35) {
+      return false;
+    }
+
+    boolean valid = key(source, kinds, starts, lengths, count, 0, 3386979745);
+    if (valid) {
+      valid = tokenHash(source, starts, lengths, 2) == 49;
+    }
+
+    if (valid) {
+      valid = key(source, kinds, starts, lengths, count, 3, 102272152646);
+    }
+
+    if (valid) {
+      valid = key(source, kinds, starts, lengths, count, 5, 3373707);
+    }
+
+    if (valid) {
+      valid = quoted(kinds, lengths, 7);
+    }
+
+    if (valid) {
+      valid = validPackageName(source, starts[7] + 1, lengths[7] - 2);
+    }
+
+    if (valid) {
+      valid = key(source, kinds, starts, lengths, count, 8, 107725790424);
+    }
+
+    if (valid) {
+      valid = quoted(kinds, lengths, 10);
+    }
+
+    if (valid) {
+      valid = validRelease(source, starts[10] + 1, lengths[10] - 2);
+    }
+
+    if (valid) {
+      valid = key(source, kinds, starts, lengths, count, 11, 102769789353);
+    }
+
+    if (valid) {
+      valid = quoted(kinds, lengths, 13);
+    }
+
+    if (valid) {
+      valid = key(source, kinds, starts, lengths, count, 14, 105835905282);
+    }
+
+    return valid;
+  }
+
+  /// Parses every canonical collection row that fits the caller-owned tables.
+  public ManifestResult parseManifest(
+    borrow utf8 source,
+    borrow mut words kinds,
+    borrow mut words starts,
+    borrow mut words lengths,
+    long count,
+    borrow mut words targetRows,
+    borrow mut words sourceRows,
+    borrow mut words dependencyRows,
+    borrow mut words capabilityRows
+  ) {
+    if (validHeader(source, kinds, starts, lengths, count) == false) {
       return new ManifestResult.Error(0);
     }
 
-    if (negated(key(source, kinds, starts, lengths, count, 0, 3386979745))) {
-      return new ManifestResult.Error(starts[0]);
-    }
-
-    long schema = tokenHash(source, starts, lengths, 2);
-    if (schema < 49) {
-      return new ManifestResult.Error(starts[2]);
-    }
-
-    if (49 < schema) {
-      return new ManifestResult.Error(starts[2]);
-    }
-
-    if (negated(key(source, kinds, starts, lengths, count, 3, 102272152646))) {
-      return new ManifestResult.Error(starts[3]);
-    }
-
-    if (negated(key(source, kinds, starts, lengths, count, 5, 3373707))) {
-      return new ManifestResult.Error(starts[5]);
-    }
-
-    if (negated(quoted(kinds, lengths, 7))) {
-      return new ManifestResult.Error(starts[7]);
-    }
-
-    if (negated(validPackageName(source, starts[7] + 1, lengths[7] - 2))) {
-      return new ManifestResult.Error(starts[7]);
-    }
-
-    if (negated(key(source, kinds, starts, lengths, count, 8, 107725790424))) {
-      return new ManifestResult.Error(starts[8]);
-    }
-
-    if (negated(quoted(kinds, lengths, 10))) {
-      return new ManifestResult.Error(starts[10]);
-    }
-
-    if (negated(validRelease(source, starts[10] + 1, lengths[10] - 2))) {
-      return new ManifestResult.Error(starts[10]);
-    }
-
-    if (negated(key(source, kinds, starts, lengths, count, 11, 102769789353))) {
-      return new ManifestResult.Error(starts[11]);
-    }
-
-    if (negated(quoted(kinds, lengths, 13))) {
-      return new ManifestResult.Error(starts[13]);
-    }
-
-    if (negated(key(source, kinds, starts, lengths, count, 14, 105835905282))) {
-      return new ManifestResult.Error(starts[14]);
-    }
-
     long cursor = 16;
-    TargetParse firstTarget = parseTarget(source, kinds, starts, lengths, count, cursor);
-    if (negated(firstTarget.valid)) {
-      return new ManifestResult.Error(starts[cursor]);
-    }
+    long targetCount = 0;
+    long sourceCount = 0;
+    long previousTargetToken = -1;
+    boolean parsingTargets = true;
+    while (parsingTargets) limit 512 {
+      if (cursor < count) {
+        if (dashAt(source, kinds, starts, cursor)) {
+          if (rowCapacity(targetRows, targetCount, TARGET_ROW_WIDTH) == false) {
+            return new ManifestResult.Error(starts[cursor]);
+          }
 
-    cursor = firstTarget.next;
-    TargetParse secondTarget = new TargetParse(
-      false,
-      cursor,
-      empty,
-      empty,
-      empty,
-      empty,
-      empty,
-      empty,
-      empty,
-      0,
-      0
-    );
-    long targetCount = 1;
-    if (cursor < count) {
-      if (dashAt(source, kinds, starts, cursor)) {
-        secondTarget = parseTarget(source, kinds, starts, lengths, count, cursor);
-        if (negated(secondTarget.valid)) {
-          return new ManifestResult.Error(starts[cursor]);
+          TargetParse target = parseTarget(
+            source,
+            kinds,
+            starts,
+            lengths,
+            count,
+            cursor,
+            sourceRows,
+            sourceCount
+          );
+          if (target.valid == false) {
+            return new ManifestResult.Error(starts[cursor]);
+          }
+
+          if (-1 < previousTargetToken) {
+            long targetOrder = compareTokenText(
+              source,
+              starts,
+              lengths,
+              previousTargetToken,
+              target.nameToken
+            );
+            boolean targetsOrdered = targetOrder < 0;
+            if (targetsOrdered == false) {
+              return new ManifestResult.Error(starts[target.nameToken]);
+            }
+          }
+
+          long targetBase = targetCount * TARGET_ROW_WIDTH;
+          set(targetRows, targetBase + TARGET_KIND, target.kind);
+          set(targetRows, targetBase + TARGET_NAME_START, starts[target.nameToken] + 1);
+          set(targetRows, targetBase + TARGET_NAME_LENGTH, lengths[target.nameToken] - 2);
+          set(targetRows, targetBase + TARGET_ROOT_START, starts[target.rootToken] + 1);
+          set(targetRows, targetBase + TARGET_ROOT_LENGTH, lengths[target.rootToken] - 2);
+          if (-1 < target.moduleToken) {
+            set(targetRows, targetBase + TARGET_MODULE_START, starts[target.moduleToken] + 1);
+            set(targetRows, targetBase + TARGET_MODULE_LENGTH, lengths[target.moduleToken] - 2);
+          } else {
+            set(targetRows, targetBase + TARGET_MODULE_START, 0);
+            set(targetRows, targetBase + TARGET_MODULE_LENGTH, 0);
+          }
+
+          set(targetRows, targetBase + TARGET_SOURCE_OFFSET, target.sourceOffset);
+          set(targetRows, targetBase + TARGET_SOURCE_COUNT, target.sourceCount);
+          set(targetRows, targetBase + TARGET_TEST, target.test);
+          targetCount += 1;
+          sourceCount += target.sourceCount;
+          previousTargetToken = target.nameToken;
+          cursor = target.next;
+        } else {
+          parsingTargets = false;
         }
-
-        cursor = secondTarget.next;
-        targetCount = 2;
+      } else {
+        parsingTargets = false;
       }
     }
 
+    if (targetCount == 0) {
+      return new ManifestResult.Error(0);
+    }
+
     if (
-      negated(key(source, kinds, starts, lengths, count, cursor, 2626680644436426025))
+      key(source, kinds, starts, lengths, count, cursor, 2626680644436426025) == false
     ) {
       return new ManifestResult.Error(starts[cursor]);
     }
 
     cursor += 2;
-    DependencyParse firstDependency = parseDependency(
-      source,
-      kinds,
-      starts,
-      lengths,
-      count,
-      cursor
-    );
-    if (negated(firstDependency.valid)) {
-      return new ManifestResult.Error(starts[cursor]);
-    }
+    long dependencyCount = 0;
+    if (punctuation(source, kinds, starts, count, cursor, 91)) {
+      if (punctuation(source, kinds, starts, count, cursor + 1, 93)) {
+        cursor += 2;
+      } else {
+        return new ManifestResult.Error(starts[cursor]);
+      }
+    } else {
+      long previousDependencyToken = -1;
+      boolean parsingDependencies = true;
+      while (parsingDependencies) limit 512 {
+        if (cursor < count) {
+          if (dashAt(source, kinds, starts, cursor)) {
+            if (
+              rowCapacity(dependencyRows, dependencyCount, DEPENDENCY_ROW_WIDTH) == false
+            ) {
+              return new ManifestResult.Error(starts[cursor]);
+            }
 
-    cursor = firstDependency.next;
-    DependencyParse secondDependency = new DependencyParse(false, cursor, empty, empty);
-    long dependencyCount = 1;
-    if (cursor < count) {
-      if (dashAt(source, kinds, starts, cursor)) {
-        secondDependency = parseDependency(source, kinds, starts, lengths, count, cursor);
-        if (negated(secondDependency.valid)) {
-          return new ManifestResult.Error(starts[cursor]);
+            DependencyParse dependency = parseDependency(
+              source,
+              kinds,
+              starts,
+              lengths,
+              count,
+              cursor
+            );
+            if (dependency.valid == false) {
+              return new ManifestResult.Error(starts[cursor]);
+            }
+
+            if (-1 < previousDependencyToken) {
+              long dependencyOrder = compareTokenText(
+                source,
+                starts,
+                lengths,
+                previousDependencyToken,
+                dependency.nameToken
+              );
+              boolean dependenciesOrdered = dependencyOrder < 0;
+              if (dependenciesOrdered == false) {
+                return new ManifestResult.Error(starts[dependency.nameToken]);
+              }
+            }
+
+            long dependencyBase = dependencyCount * DEPENDENCY_ROW_WIDTH;
+            set(dependencyRows, dependencyBase, dependency.kind);
+            set(dependencyRows, dependencyBase + 1, starts[dependency.nameToken] + 1);
+            set(dependencyRows, dependencyBase + 2, lengths[dependency.nameToken] - 2);
+            set(dependencyRows, dependencyBase + 3, starts[dependency.versionToken] + 1);
+            set(dependencyRows, dependencyBase + 4, lengths[dependency.versionToken] - 2);
+            dependencyCount += 1;
+            previousDependencyToken = dependency.nameToken;
+            cursor = dependency.next;
+          } else {
+            parsingDependencies = false;
+          }
+        } else {
+          parsingDependencies = false;
         }
+      }
 
-        cursor = secondDependency.next;
-        dependencyCount = 2;
+      if (dependencyCount == 0) {
+        return new ManifestResult.Error(0);
       }
     }
 
     if (
-      negated(key(source, kinds, starts, lengths, count, cursor, 2597989917310390198))
+      key(source, kinds, starts, lengths, count, cursor, 2597989917310390198) == false
     ) {
       return new ManifestResult.Error(starts[cursor]);
     }
 
     cursor += 2;
-    CapabilityParse firstCapability = parseCapability(
-      source,
-      kinds,
-      starts,
-      lengths,
-      count,
-      cursor
-    );
-    if (negated(firstCapability.valid)) {
-      return new ManifestResult.Error(starts[cursor]);
-    }
+    long capabilityCount = 0;
+    if (punctuation(source, kinds, starts, count, cursor, 91)) {
+      if (punctuation(source, kinds, starts, count, cursor + 1, 93)) {
+        cursor += 2;
+      } else {
+        return new ManifestResult.Error(starts[cursor]);
+      }
+    } else {
+      long previousCapabilityName = -1;
+      long previousCapabilityPath = -1;
+      while (cursor < count) limit 512 {
+        if (
+          rowCapacity(capabilityRows, capabilityCount, CAPABILITY_ROW_WIDTH) == false
+        ) {
+          return new ManifestResult.Error(starts[cursor]);
+        }
 
-    cursor = firstCapability.next;
-    CapabilityParse secondCapability = new CapabilityParse(false, cursor, empty, empty);
-    long capabilityCount = 1;
-    if (cursor < count) {
-      secondCapability = parseCapability(source, kinds, starts, lengths, count, cursor);
-      if (secondCapability.valid) {
-        cursor = secondCapability.next;
-        capabilityCount = 2;
+        CapabilityParse capability = parseCapability(
+          source,
+          kinds,
+          starts,
+          lengths,
+          count,
+          cursor
+        );
+        if (capability.valid == false) {
+          return new ManifestResult.Error(starts[cursor]);
+        }
+
+        if (-1 < previousCapabilityName) {
+          long capabilityOrder = compareTokenText(
+            source,
+            starts,
+            lengths,
+            previousCapabilityName,
+            capability.nameToken
+          );
+          if (capabilityOrder == 0) {
+            capabilityOrder = compareTokenText(
+              source,
+              starts,
+              lengths,
+              previousCapabilityPath,
+              capability.pathToken
+            );
+          }
+
+          boolean capabilitiesOrdered = capabilityOrder < 0;
+          if (capabilitiesOrdered == false) {
+            return new ManifestResult.Error(starts[capability.nameToken]);
+          }
+        }
+
+        long capabilityBase = capabilityCount * CAPABILITY_ROW_WIDTH;
+        set(capabilityRows, capabilityBase, starts[capability.nameToken] + 1);
+        set(capabilityRows, capabilityBase + 1, lengths[capability.nameToken] - 2);
+        set(capabilityRows, capabilityBase + 2, starts[capability.pathToken] + 1);
+        set(capabilityRows, capabilityBase + 3, lengths[capability.pathToken] - 2);
+        capabilityCount += 1;
+        previousCapabilityName = capability.nameToken;
+        previousCapabilityPath = capability.pathToken;
+        cursor = capability.next;
+      }
+
+      if (capabilityCount == 0) {
+        return new ManifestResult.Error(0);
       }
     }
 
@@ -580,34 +806,15 @@ classical class Manifest {
       return new ManifestResult.Error(starts[cursor]);
     }
 
-    ManifestHeader header = new ManifestHeader(
+    ManifestModel manifest = new ManifestModel(
       range(starts, lengths, 7),
       range(starts, lengths, 10),
       range(starts, lengths, 13),
-      firstTarget.name,
-      firstTarget.root,
-      firstTarget.module,
-      firstTarget.firstSource,
-      firstTarget.secondSource,
-      firstTarget.thirdSource,
-      firstTarget.fourthSource,
-      firstTarget.sourceCount,
-      firstTarget.test,
-      secondTarget.name,
-      secondTarget.root,
-      secondTarget.test,
       targetCount,
-      firstDependency.name,
-      firstDependency.version,
-      secondDependency.name,
-      secondDependency.version,
+      sourceCount,
       dependencyCount,
-      firstCapability.name,
-      firstCapability.path,
-      secondCapability.name,
-      secondCapability.path,
       capabilityCount
     );
-    return new ManifestResult.Value(header);
+    return new ManifestResult.Value(manifest);
   }
 }
