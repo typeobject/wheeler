@@ -48,6 +48,9 @@ jobs:
     - name: Build the complete canonical workspace
       run: ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2 -q :tools:wheeler --args='build . -o bootstrap-output'
 
+    - name: Manifest the verified artifact set
+      run: ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2 -q :tools:wheeler --args='manifest-artifacts bootstrap-output'
+
     - name: Upload canonical bootstrap outputs
       uses: actions/upload-artifact@v4
       with:

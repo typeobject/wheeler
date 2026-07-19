@@ -71,6 +71,7 @@ public final class Wheeler {
       case "plan" -> plan(args, out, error);
       case "verify-plan" -> verifyPlan(args, out, error);
       case "execute-plan" -> executePlan(args, out, error);
+      case "manifest-artifacts" -> ArtifactSetManifest.execute(args, out, error);
       default -> {
         error.println("Unknown Wheeler command: " + args[0]);
         usage(error);
@@ -594,6 +595,7 @@ public final class Wheeler {
   private static void usage(PrintStream error) {
     error.println(
         "Usage: wheeler <run|compile|check|check-docs|docs|format|build|test|clean|package|verify|resolve|verify-lock|vendor|"
-            + "publish|fetch|plan|verify-plan|execute-plan|disassemble|qasm> ...");
+            + "publish|fetch|plan|verify-plan|execute-plan|manifest-artifacts|"
+            + "disassemble|qasm> ...");
   }
 }

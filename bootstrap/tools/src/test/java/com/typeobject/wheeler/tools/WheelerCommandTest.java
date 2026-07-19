@@ -674,6 +674,45 @@ class WheelerCommandTest {
   }
 
   @Test
+  void manifestsAClosedVerifiedArtifactSetCanonically() throws Exception {
+    Path set = temporary.resolve("artifact-set");
+    Path nested = set.resolve("nested");
+    Files.createDirectories(nested);
+    Files.write(
+        set.resolve("first.wbc"),
+        new WheelerCompiler().compileToBytecode(
+            "classical class First { entry void main() {} }"));
+    Files.write(
+        nested.resolve("second.wbc"),
+        new WheelerCompiler().compileToBytecode(
+            "classical class Second { entry void main() {} }"));
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    PrintStream sink = new PrintStream(new ByteArrayOutputStream());
+
+    assertEquals(0, Wheeler.execute(
+        new String[] {"manifest-artifacts", set.toString()},
+        new PrintStream(output),
+        sink));
+    String first = Files.readString(set.resolve(ArtifactSetManifest.FILE_NAME));
+    assertTrue(first.contains("\"profile\":\"wheeler.artifact-set/1\""));
+    assertTrue(first.contains("\"path\":\"first.wbc\""));
+    assertTrue(first.contains("\"path\":\"nested/second.wbc\""));
+    assertTrue(output.toString(StandardCharsets.UTF_8).contains("manifested 2 artifacts"));
+
+    assertEquals(0, Wheeler.execute(
+        new String[] {"manifest-artifacts", set.toString()},
+        new PrintStream(new ByteArrayOutputStream()),
+        sink));
+    assertEquals(first, Files.readString(set.resolve(ArtifactSetManifest.FILE_NAME)));
+
+    Files.writeString(set.resolve("ambient.txt"), "not part of the artifact graph\n");
+    assertThrows(IOException.class, () -> Wheeler.execute(
+        new String[] {"manifest-artifacts", set.toString()},
+        new PrintStream(new ByteArrayOutputStream()),
+        sink));
+  }
+
+  @Test
   void resolveSubcommandConsumesVerifiedArchivesAndWritesCanonicalLock() throws Exception {
     Path library = temporary.resolve("library");
     createPackage(library, "demo.library", "Library", 1);
