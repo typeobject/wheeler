@@ -37,6 +37,8 @@ A fixed point proves reproducibility, not innocence. A malicious seed can reprod
 
 The diverse path must not execute the candidate seed before comparing its result. It may use an independently built prior Wheeler recovery compiler, another reviewed stage-0 implementation, or a separately sourced host toolchain capable of reproducing this seed. Agreement narrows the trust argument; it does not repeal the need to trust hardware, reviewers, and at least one derivation path.
 
+`wheeler bootstrap-manifest` is the final stage-0 evidence gate. It compares canonical stage 1, stage 2, diverse output, and diagnostic bytes; verifies the source package, schema-2 lock, and closed acceptance artifact set; then atomically writes `wheeler.bootstrap.yaml`. It never executes the candidate and it rejects identical ordinary/diverse compiler or toolchain identities. The full option list and schema are in [`../docs/docs/reference/bootstrap.md`](../docs/docs/reference/bootstrap.md). There is intentionally no checked-in bootstrap manifest until the repository can supply real fixed-point and diverse evidence. Empty ceremony is still empty, even in canonical YAML.
+
 ## Scope and deletion
 
 Stage 0 grows only when canonical Wheeler compiler source cannot yet be compiled or independently checked without that slice. New package, test, documentation, coverage, optimizer, provider, or editor behavior belongs in Wheeler unless it is strictly required to cross the bootstrap boundary. Each promoted Wheeler authority deletes its Java counterpart.

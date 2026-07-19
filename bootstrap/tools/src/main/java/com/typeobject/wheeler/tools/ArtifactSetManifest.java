@@ -12,10 +12,13 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /** Canonical verified identity manifest for one closed tree of Wheeler artifacts. */
 final class ArtifactSetManifest {
@@ -37,10 +40,53 @@ final class ArtifactSetManifest {
     List<Entry> entries = collect(root);
     String identity = identity(entries);
     String manifest = canonicalJson(entries, identity);
+    if (!entries.equals(collect(root))) {
+      throw new IOException("Artifact set changed while its manifest was prepared");
+    }
     PackageProject.writeAtomically(
         root.resolve(FILE_NAME), manifest.getBytes(StandardCharsets.UTF_8));
     out.println("manifested " + entries.size() + " artifacts (" + identity + ")");
     return 0;
+  }
+
+  /** Recomputes a closed set and returns its identity only if its checked manifest is exact. */
+  static VerifiedSet verify(Path requested) throws IOException {
+    Path root = physicalDirectory(requested);
+    List<Entry> entries = collect(root);
+    String identity = identity(entries);
+    byte[] expected = canonicalJson(entries, identity).getBytes(StandardCharsets.UTF_8);
+    Path manifest = root.resolve(FILE_NAME);
+    byte[] actual = stableManifest(manifest);
+    if (!Arrays.equals(actual, expected) || !entries.equals(collect(root))) {
+      throw new IOException("Artifact set manifest does not match the closed tree: " + manifest);
+    }
+    return new VerifiedSet(
+        identity,
+        entries.stream().map(Entry::sha256).collect(Collectors.toUnmodifiableSet()));
+  }
+
+  private static byte[] stableManifest(Path manifest) throws IOException {
+    if (!Files.isRegularFile(manifest, LinkOption.NOFOLLOW_LINKS)
+        || Files.isSymbolicLink(manifest)) {
+      throw new IOException("Artifact set has no physical manifest: " + manifest);
+    }
+    BasicFileAttributes before = Files.readAttributes(
+        manifest, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+    if (before.size() > MAX_ARTIFACT_BYTES) {
+      throw new IOException("Artifact set manifest exceeds 16 MiB: " + manifest);
+    }
+    byte[] bytes = Files.readAllBytes(manifest);
+    BasicFileAttributes after = Files.readAttributes(
+        manifest, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+    if (!after.isRegularFile()
+        || before.size() != bytes.length
+        || after.size() != bytes.length
+        || before.fileKey() != null && after.fileKey() != null
+            && !Objects.equals(before.fileKey(), after.fileKey())
+        || !before.lastModifiedTime().equals(after.lastModifiedTime())) {
+      throw new IOException("Artifact set manifest changed while being read: " + manifest);
+    }
+    return bytes;
   }
 
   private static Path physicalDirectory(Path requested) throws IOException {
@@ -162,6 +208,12 @@ final class ArtifactSetManifest {
       return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
     } catch (NoSuchAlgorithmException exception) {
       throw new IllegalStateException("SHA-256 is unavailable", exception);
+    }
+  }
+
+  record VerifiedSet(String identity, Set<String> artifactIdentities) {
+    VerifiedSet {
+      artifactIdentities = Set.copyOf(artifactIdentities);
     }
   }
 
