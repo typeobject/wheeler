@@ -113,13 +113,12 @@ test void addition() {
     expectEqual(add(2, 3), 5);
 }
 
-parameterized test void roundTrip(long value)
-    cases signedEdges() {
-    expectEqual(decode(encode(value)), value);
+test void signedIdentity(long value) cases(-1, 0, 1) {
+    expectEqual(value, value);
 }
 ```
 
-The first accepted form is parameterless classical `test void name()`. It compiles only when selected as a case, is omitted from ordinary artifacts, and cannot borrow entry effects. Parameter and descriptor grammar remains subject to WIP-0005 review.
+The accepted forms are parameterless classical `test void name()` and one-parameter `long` or `boolean` tests with 1–1,024 unique inline scalar `cases(...)`. Each row compiles only when selected as a case, is omitted from ordinary artifacts, and cannot borrow entry effects. Multi-parameter products, named sources, and descriptor grammar remain subject to WIP-0005 review.
 
 Discovery reads only the exact source set of a test-selected runnable package target. It does not scan classpaths, process resources, current directories, or loaded modules. Descriptors are sorted by canonical qualified declaration identity. Parameter cases are sorted by canonical encoded value unless the source declares an already canonical finite sequence.
 
@@ -268,10 +267,11 @@ JUnit adapters consume semantic reports during migration. They do not discover W
 ## Progress
 
 - [x] The stage-0 package runner discovers only exact runnable `test` target source sets, derives domain-separated case/source/artifact/execution/report identities, executes each case with a fresh runtime, reduces compile failures and VM traps to `WTEST001..002`, sorts cases canonically, and emits a rerun-stable terminal report. Classical cases additionally collect a noninstrumenting typed transition-coverage report and bind its printed identity into the test report; quantum cases leave that dimension absent rather than forging a flattering zero.
-- [x] Parameterless classical `test void name()` declarations parse in the compiler and Tree-sitter grammar. For a selected nonmodular target or modular root source, the compiler discovers names lexically, links the exact reachable package graph, emits one verified artifact whose sole test entry is the selected declaration, omits all test bodies from ordinary artifacts, and preserves normal `run` behavior.
+- [x] Classical `test void name()` declarations and bounded one-scalar `cases(...)` rows parse in the compiler and Tree-sitter grammar. For a selected nonmodular target or modular root source, the compiler discovers names lexically, links the exact reachable package graph, emits one verified artifact whose sole test entry is the selected declaration, omits all test bodies from ordinary artifacts, and preserves normal `run` behavior.
 - [ ] Full test descriptor semantics, including modular qualification, parameters, fixtures, tags, and limits, are accepted.
 - [x] Two Wheeler cases compile from one exact package target, run in separate fresh VMs, carry distinct identities and coverage reports, and reduce into one rerun-stable report.
-- [ ] Parameter rows, lifecycle fixtures, tags, and deterministic sharding execute.
+- [x] Bounded inline `long` and `boolean` parameter rows parse, receive indexed stable names, compile through a synthetic no-argument entry wrapper, and execute independently.
+- [ ] Parameter products, lifecycle fixtures, tags, and deterministic sharding execute.
 - [ ] Inverse, rewind, quantum, workflow, package, and proof assertions execute with distinct semantics.
 - [ ] A Wheeler-written runner reproduces the stage-0 semantic report.
 - [ ] Superseded JUnit semantic authorities are deleted.

@@ -288,6 +288,8 @@ final class SourceParser extends SourceStatementParser {
       } while (match(Type.COMMA));
     }
     expect(Type.RIGHT_PAREN, "')' after parameters");
+    List<List<String>> testCases = SourceTestCaseParser.parse(
+        this, test, parameters, start);
     expect(Type.LEFT_BRACE, "'{' before method body");
 
     if (coherent && !reversible) {
@@ -310,9 +312,8 @@ final class SourceParser extends SourceStatementParser {
     if (entry && (!name.equals("main") || returnsValue || !validEntryParameters)) {
       fail(start, "entry parameters must be optional utf8/byteview input then optional bytes output");
     }
-    if (test && (!domain.equals("classical") || returnsValue || !parameters.isEmpty())) {
-      fail(start, "test methods must be parameterless classical void methods");
-    }
+    SourceTestCaseParser.validateShape(
+        test, domain, returnsValue, parameters, testCases, start);
     if ((reversible || coherent || unitary) && (returnsValue || !parameters.isEmpty())) {
       fail(start, "parameters and return values are currently ordinary classical only");
     }
@@ -321,7 +322,8 @@ final class SourceParser extends SourceStatementParser {
       circuits.add(parseCircuit(name, start.line()));
     } else {
       functions.add(parseFunction(
-          name, exported, entry, test, reversible, coherent, parameters, returnType, start.line()));
+          name, exported, entry, test, reversible, coherent, parameters, testCases,
+          returnType, start.line()));
     }
   }
 
@@ -333,6 +335,7 @@ final class SourceParser extends SourceStatementParser {
       boolean reversible,
       boolean coherent,
       List<Parameter> parameters,
+      List<List<String>> testCases,
       String returnType,
       int line) {
     List<Statement> body = new ArrayList<>();
@@ -407,7 +410,8 @@ final class SourceParser extends SourceStatementParser {
       body.add(statement("halt", line));
     }
     return new Function(
-        name, exported, entry, test, reversible, coherent, parameters, returnType, body, line);
+        name, exported, entry, test, reversible, coherent, parameters, testCases,
+        returnType, body, line);
   }
 
   private void parseReturn(List<Statement> body, SourceToken start) {

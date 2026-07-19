@@ -287,6 +287,7 @@ class WheelerCommandTest {
         classical class Law {
             state long value = 0;
             test void startsAtZero() { assert value == 0; }
+            test void accepts(long input) cases(-1, 2) { value = input; }
             test void addsTwo() { value += 2; assert value == 2; }
             entry void main() { value += 2; assert value == 2; }
         }
@@ -298,10 +299,12 @@ class WheelerCommandTest {
         new PrintStream(stdout),
         new PrintStream(new ByteArrayOutputStream())));
     String firstReport = stdout.toString(StandardCharsets.UTF_8);
+    assertTrue(firstReport.contains("PASS demo.tests::law::accepts[0]"));
+    assertTrue(firstReport.contains("PASS demo.tests::law::accepts[1]"));
     assertTrue(firstReport.contains("PASS demo.tests::law::addsTwo"));
     assertTrue(firstReport.contains("PASS demo.tests::law::startsAtZero"));
     assertTrue(firstReport.contains(" coverage "));
-    assertTrue(firstReport.contains("tested demo.tests (2 cases, 2 passed, 0 failed, report "));
+    assertTrue(firstReport.contains("tested demo.tests (4 cases, 4 passed, 0 failed, report "));
     stdout.reset();
     assertEquals(0, Wheeler.execute(
         new String[] {"test", project.toString()},

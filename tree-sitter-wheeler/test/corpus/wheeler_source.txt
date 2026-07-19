@@ -5,7 +5,7 @@ Classical reversible class
 classical class Counter {
   state long count = 0;
   rev void increment() { count += 1; }
-  test void startsAtZero() { assert count == 0; }
+  test void remembers(long input) cases(-1, 0, 1) { assert count == 0; }
   entry void main() {
     increment();
     reverse { increment(); }
@@ -41,7 +41,17 @@ classical class Counter {
         (method_declaration
           (method_modifier)
           (identifier)
-          (parameter_list)
+          (parameter_list
+            (parameter
+              (value_type)
+              (identifier)))
+          (test_case_list
+            (test_case
+              (integer_literal))
+            (test_case
+              (integer_literal))
+            (test_case
+              (integer_literal)))
           (block
             (statement
               (assert_statement

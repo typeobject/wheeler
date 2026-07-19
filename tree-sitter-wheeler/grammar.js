@@ -152,6 +152,7 @@ module.exports = grammar({
       field('return_type', choice('void', $.value_type)),
       field('name', $.identifier),
       field('parameters', $.parameter_list),
+      optional(field('cases', $.test_case_list)),
       field('body', $.block),
     ),
 
@@ -161,6 +162,17 @@ module.exports = grammar({
       '(',
       optional(seq($.parameter, repeat(seq(',', $.parameter)))),
       ')',
+    ),
+    test_case_list: $ => seq(
+      'cases',
+      '(',
+      optional(seq($.test_case, repeat(seq(',', $.test_case)))),
+      ')',
+    ),
+    test_case: $ => choice(
+      seq(optional('-'), $.integer_literal),
+      'true',
+      'false',
     ),
     value_type: $ => seq(
       choice(

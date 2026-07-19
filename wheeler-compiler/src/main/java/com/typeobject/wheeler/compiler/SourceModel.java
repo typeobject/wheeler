@@ -61,11 +61,13 @@ final class SourceModel {
       boolean reversible,
       boolean coherent,
       List<Parameter> parameters,
+      List<List<String>> testCases,
       String returnType,
       List<Statement> statements,
       int line) {
     Function {
       parameters = List.copyOf(parameters);
+      testCases = testCases.stream().map(List::copyOf).toList();
       statements = List.copyOf(statements);
     }
 

@@ -35,7 +35,7 @@ public final class WheelerCompiler {
     return compileParsed(parsed);
   }
 
-  /** Discovers and independently compiles parameterless classical test declarations. */
+  /** Discovers and independently compiles bounded classical test cases. */
   public List<TestCase> compileTests(String source) {
     SourceProgram parsed = new SourceParser().parse(source, false);
     if (parsed.moduleName() != null || !parsed.imports().isEmpty()) {
@@ -44,8 +44,11 @@ public final class WheelerCompiler {
     return parsed.functions().stream()
         .filter(SourceModel.Function::test)
         .sorted(java.util.Comparator.comparing(SourceModel.Function::name))
-        .map(function -> new TestCase(
-            function.name(), compileParsed(withTestEntry(parsed, function))))
+        .flatMap(function -> java.util.stream.IntStream.range(0, testRows(function).size())
+            .mapToObj(index -> new TestCase(
+                testCaseName(function, index),
+                compileParsed(withTestEntry(
+                    parsed, function, testRows(function).get(index))))))
         .toList();
   }
 
@@ -95,13 +98,15 @@ public final class WheelerCompiler {
     return root.functions().stream()
         .filter(SourceModel.Function::test)
         .sorted(java.util.Comparator.comparing(SourceModel.Function::name))
-        .map(function -> {
-          Map<String, SourceProgram> selected = new TreeMap<>(parsed);
-          selected.put(rootModule, withTestEntry(root, function));
-          return new TestCase(
-              rootModule + "::" + function.name(),
-              compileLinkedModules(selected, rootModule));
-        })
+        .flatMap(function -> java.util.stream.IntStream.range(0, testRows(function).size())
+            .mapToObj(index -> {
+              Map<String, SourceProgram> selected = new TreeMap<>(parsed);
+              selected.put(rootModule, withTestEntry(
+                  root, function, testRows(function).get(index)));
+              return new TestCase(
+                  rootModule + "::" + testCaseName(function, index),
+                  compileLinkedModules(selected, rootModule));
+            }))
         .toList();
   }
 
@@ -125,6 +130,7 @@ public final class WheelerCompiler {
         false,
         false,
         false,
+        List.of(),
         List.of(),
         "void",
         List.of(new SourceModel.Statement("halt", List.of(), 1)),
@@ -258,27 +264,59 @@ public final class WheelerCompiler {
   }
 
   private static SourceProgram withTestEntry(
-      SourceProgram source, SourceModel.Function selected) {
-    List<SourceModel.Function> functions = source.functions().stream()
+      SourceProgram source, SourceModel.Function selected, List<String> arguments) {
+    List<SourceModel.Function> functions = new java.util.ArrayList<>();
+    source.functions().stream()
         .map(function -> new SourceModel.Function(
             function.name(),
             function.exported(),
-            function == selected,
-            function.test(),
+            false,
+            function == selected ? false : function.test(),
             function.reversible(),
             function.coherent(),
             function.parameters(),
+            function.testCases(),
             function.returnType(),
-            function == selected
-                ? withHalt(function.statements(), function.line())
-                : withoutEntryHalt(function),
+            withoutEntryHalt(function),
             function.line()))
-        .toList();
+        .forEach(functions::add);
+    functions.add(testEntry(selected, arguments));
     return new SourceProgram(
         source.moduleName(), source.imports(), source.name(), source.kind(),
         source.states(), source.constants(), source.records(), source.variants(),
         source.arrays(), source.slices(), source.proofs(), functions,
         source.quantumRegisters(), source.circuits());
+  }
+
+  private static List<List<String>> testRows(SourceModel.Function function) {
+    return function.testCases().isEmpty() ? List.of(List.of()) : function.testCases();
+  }
+
+  private static String testCaseName(SourceModel.Function function, int index) {
+    return function.testCases().isEmpty()
+        ? function.name() : function.name() + "[" + index + "]";
+  }
+
+  private static SourceModel.Function testEntry(
+      SourceModel.Function selected, List<String> arguments) {
+    List<SourceModel.Statement> statements = new java.util.ArrayList<>();
+    List<String> call = new java.util.ArrayList<>();
+    call.add(selected.name());
+    for (int index = 0; index < arguments.size(); index++) {
+      String local = "$case" + index;
+      String type = selected.parameters().get(index).type();
+      String value = arguments.get(index);
+      statements.add(new SourceModel.Statement(
+          type.equals("boolean") ? "local_boolean" : "local_const",
+          List.of(local, type.equals("boolean") ? (value.equals("true") ? "1" : "0") : value),
+          selected.line()));
+      call.add(local);
+    }
+    statements.add(new SourceModel.Statement("call_void", call, selected.line()));
+    statements.add(new SourceModel.Statement("halt", List.of(), selected.line()));
+    return new SourceModel.Function(
+        "$test", false, true, false, false, false, List.of(), List.of(), "void",
+        statements, selected.line());
   }
 
   private static List<SourceModel.Statement> withoutEntryHalt(
@@ -287,13 +325,6 @@ public final class WheelerCompiler {
       return function.statements();
     }
     return function.statements().subList(0, function.statements().size() - 1);
-  }
-
-  private static List<SourceModel.Statement> withHalt(
-      List<SourceModel.Statement> statements, int line) {
-    List<SourceModel.Statement> result = new java.util.ArrayList<>(statements);
-    result.add(new SourceModel.Statement("halt", List.of(), line));
-    return List.copyOf(result);
   }
 
   private Program compileParsed(SourceProgram parsed) {

@@ -73,6 +73,10 @@ class WheelerCompilerTest {
           state long value = 0;
           test void beta() { assert value == 1; }
           test void alpha() { assert value == 0; }
+          test void flag(boolean input) cases(false, true) {
+            if (input) { value = 1; } else { value = 0; }
+          }
+          test void remembers(long input) cases(-1, 0, 2) { value = input; }
           entry void main() { value += 2; }
         }
         """;
@@ -80,10 +84,23 @@ class WheelerCompilerTest {
     WheelerCompiler compiler = new WheelerCompiler();
     List<WheelerCompiler.TestCase> tests = compiler.compileTests(source);
 
-    assertEquals(List.of("alpha", "beta"), tests.stream().map(
-        WheelerCompiler.TestCase::name).toList());
+    assertEquals(
+        List.of(
+            "alpha", "beta", "flag[0]", "flag[1]",
+            "remembers[0]", "remembers[1]", "remembers[2]"),
+        tests.stream().map(WheelerCompiler.TestCase::name).toList());
     new VirtualMachine(tests.getFirst().program()).run();
     assertThrows(VmTrap.class, () -> new VirtualMachine(tests.get(1).program()).run());
+    for (int index = 0; index < 2; index++) {
+      VirtualMachine flag = new VirtualMachine(tests.get(index + 2).program());
+      flag.run();
+      assertEquals(index, flag.global("value"));
+    }
+    for (int index = 0; index < 3; index++) {
+      VirtualMachine parameterized = new VirtualMachine(tests.get(index + 4).program());
+      parameterized.run();
+      assertEquals(List.of(-1L, 0L, 2L).get(index), parameterized.global("value"));
+    }
     Program production = compiler.compile(source);
     assertEquals(1, production.functions().size());
     VirtualMachine ordinary = new VirtualMachine(production);
@@ -130,6 +147,10 @@ class WheelerCompilerTest {
         "classical class Bad { test void row(long value) {} }"));
     assertThrows(CompilerException.class, () -> compiler.compileTests(
         "quantum class Bad { test void measured() {} }"));
+    assertThrows(CompilerException.class, () -> compiler.compileTests(
+        "classical class Bad { test void row(long value) cases(1, 1) {} }"));
+    assertThrows(CompilerException.class, () -> compiler.compileTests(
+        "classical class Bad { test void row(boolean value) cases(maybe) {} }"));
     assertThrows(CompilerException.class, () -> compiler.compile(
         "classical class Bad { test rev void confused() {} entry void main() {} }"));
   }

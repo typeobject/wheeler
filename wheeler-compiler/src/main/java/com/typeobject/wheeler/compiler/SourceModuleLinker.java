@@ -424,6 +424,7 @@ final class SourceModuleLinker {
             .map(parameter -> new Parameter(
                 parameter.name(), resolveType(types, parameter.type(), function.line())))
             .toList(),
+        function.testCases(),
         resolveType(types, function.returnType(), function.line()),
         statements,
         function.line());

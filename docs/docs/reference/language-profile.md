@@ -32,6 +32,7 @@ rev void increment() { ... }
 coherent rev void flip() { ... }
 unitary void qft() { ... }
 test void startsAtZero() { assert count == 0; }
+test void signed(long value) cases(-1, 0, 1) { ... }
 entry void main() { ... }
 ```
 
@@ -39,7 +40,7 @@ entry void main() { ... }
 - A `rev` method receives a compiler-validated inverse.
 - A `coherent rev` method also satisfies the exact finite subset that can become a unitary operation.
 - A `unitary` method lowers to backend-neutral quantum region IR and receives a generated adjoint.
-- A `test` method is a parameterless classical `void` declaration. On a runnable target carrying the package `test` selector, each nonmodular declaration or root-module declaration compiles to its own verified entry artifact and runs in a fresh VM in lexical qualified-name order. Ordinary build and run artifacts omit test methods.
+- A `test` method is a classical `void` declaration with either no parameters or one `long` or `boolean` parameter. A parameter requires an inline `cases(...)` list of 1–1,024 unique type-correct scalar values; no hidden generator or ambient seed is involved. On a runnable target carrying the package `test` selector, each nonmodular declaration row or root-module declaration row compiles to its own verified entry artifact and runs in a fresh VM in lexical qualified-name order. Ordinary build and run artifacts omit test methods.
 - Exactly one entry defines ordinary execution; it may borrow an optional `utf8` input followed by an optional mutable `bytes` output.
 
 `public`, `private`, `protected`, and `static` are accepted where meaningful for familiar organization. Ordinary classical methods have typed signed or Boolean parameters, return values, and local bindings, plus bounded control flow. `rev`, `coherent rev`, and `unitary` methods remain zero-argument and `void` until their parameter ownership and inverse signatures are implemented.
