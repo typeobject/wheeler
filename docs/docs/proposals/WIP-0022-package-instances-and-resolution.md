@@ -226,7 +226,8 @@ Reject unknown repositories/snapshots, unauthorized namespaces, duplicate aliase
 ## Progress
 
 - [ ] Instance and typed-edge model accepted.
-- [ ] Direct imports and context rules accepted.
+- [x] Stage 0 rejects package-source imports outside the package's own modules and direct declared dependencies while retaining the private transitive closure needed to compile those direct dependencies.
+- [ ] Alias-qualified direct imports and full build/target context rules accepted.
 - [ ] Profile/prerelease filtering implemented.
 - [ ] Bounded conflict-driven resolver implemented.
 - [ ] Lock preference and targeted updates implemented.

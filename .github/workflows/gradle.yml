@@ -39,11 +39,14 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
-    - name: Build with Gradle Wrapper and test editor grammar
-      run: ./bootstrap/gradlew -p bootstrap --max-workers 2 build treeSitterTest
+    - name: Test the command adapter before other test workers
+      run: ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2 :tools:check
+
+    - name: Build remaining modules and test the editor grammar
+      run: ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2 build treeSitterTest -x :tools:check
 
     - name: Build the complete canonical workspace
-      run: ./bootstrap/gradlew -p bootstrap --max-workers 2 -q :tools:wheeler --args='build . -o bootstrap-output'
+      run: ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2 -q :tools:wheeler --args='build . -o bootstrap-output'
 
     - name: Upload canonical bootstrap outputs
       uses: actions/upload-artifact@v4

@@ -68,8 +68,10 @@ final class PackageProject {
     WheelerCompiler compiler = new WheelerCompiler();
     Map<String, String> linkedModules = dependencies == null
         ? Map.of() : dependencies.moduleSources();
+    Map<String, String> directModules = dependencies == null
+        ? Map.of() : dependencies.directModuleSources();
     for (PackageManifest.Target target : manifest.targets()) {
-      compileTarget(compiler, target, linkedModules);
+      compileTarget(compiler, target, linkedModules, directModules);
     }
   }
 
@@ -87,8 +89,10 @@ final class PackageProject {
           "Target is not directly runnable: " + selected.name());
     }
     return compileTarget(
-        new WheelerCompiler(), selected,
-        dependencies == null ? Map.of() : dependencies.moduleSources());
+        new WheelerCompiler(),
+        selected,
+        dependencies == null ? Map.of() : dependencies.moduleSources(),
+        dependencies == null ? Map.of() : dependencies.directModuleSources());
   }
 
   TestReport test() throws IOException {
@@ -100,6 +104,8 @@ final class PackageProject {
     BytecodeWriter writer = new BytecodeWriter();
     Map<String, String> linkedModules = dependencies == null
         ? Map.of() : dependencies.moduleSources();
+    Map<String, String> directModules = dependencies == null
+        ? Map.of() : dependencies.directModuleSources();
     List<TestReport.CaseResult> cases = new ArrayList<>();
     for (PackageManifest.Target target : manifest.targets()) {
       if (!target.test()) {
@@ -108,7 +114,7 @@ final class PackageProject {
       String sourceIdentity = sha256(readPlanInput(target));
       List<CompiledCase> compiled;
       try {
-        compiled = compileTestCases(compiler, target, linkedModules);
+        compiled = compileTestCases(compiler, target, linkedModules, directModules);
       } catch (CompilerException exception) {
         String caseIdentity = TestReport.caseIdentity(
             manifest.identity(), target.name(), sourceIdentity);
@@ -160,10 +166,13 @@ final class PackageProject {
     }
     Map<String, String> linkedModules = dependencies == null
         ? Map.of() : dependencies.moduleSources();
+    Map<String, String> directModules = dependencies == null
+        ? Map.of() : dependencies.directModuleSources();
     for (PackageManifest.Target target : manifest.targets()) {
       artifacts.put(
           target.name() + ".wbc",
-          new BytecodeWriter().write(compileTarget(compiler, target, linkedModules)));
+          new BytecodeWriter().write(
+              compileTarget(compiler, target, linkedModules, directModules)));
     }
     return Map.copyOf(artifacts);
   }
@@ -234,11 +243,13 @@ final class PackageProject {
   private List<CompiledCase> compileTestCases(
       WheelerCompiler compiler,
       PackageManifest.Target target,
-      Map<String, String> linkedModules) throws IOException {
+      Map<String, String> linkedModules,
+      Map<String, String> directModules) throws IOException {
     List<WheelerCompiler.TestCase> declarations;
     if (target.modular()) {
       Map<String, String> sources = TargetSourceSet.strictText(
           target, targetEntries(target, false));
+      compiler.validateDirectPackageImports(sources, directModules);
       declarations = compiler.compilePackageTests(
           sources, linkedModules, target.module());
     } else {
@@ -249,13 +260,15 @@ final class PackageProject {
           .map(test -> new CompiledCase(test.name(), test.program()))
           .toList();
     }
-    return List.of(new CompiledCase("", compileTarget(compiler, target, linkedModules)));
+    return List.of(new CompiledCase(
+        "", compileTarget(compiler, target, linkedModules, directModules)));
   }
 
   private Program compileTarget(
       WheelerCompiler compiler,
       PackageManifest.Target target,
-      Map<String, String> linkedModules) throws IOException {
+      Map<String, String> linkedModules,
+      Map<String, String> directModules) throws IOException {
     if (!target.modular()) {
       if (target.kind() == TargetKind.LIBRARY) {
         throw new PackageFormatException(
@@ -265,6 +278,7 @@ final class PackageProject {
     }
     Map<String, String> sources = TargetSourceSet.strictText(
         target, targetEntries(target, false));
+    compiler.validateDirectPackageImports(sources, directModules);
     return target.kind() == TargetKind.LIBRARY
         ? compiler.compilePackageLibraryModuleFiles(sources, linkedModules, target.module())
         : compiler.compilePackageModuleFiles(sources, linkedModules, target.module());

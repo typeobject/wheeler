@@ -78,6 +78,29 @@ public final class WheelerCompiler {
     return compileLibraryModules(parseModuleFiles(sources, rootModule), rootModule);
   }
 
+  /**
+   * Rejects imports from packages outside the caller's direct dependency set.
+   *
+   * <p>The linker still receives a transitive source closure because a directly imported module
+   * may itself need its own dependencies. Visibility is checked before that closure is traversed.
+   */
+  public void validateDirectPackageImports(
+      Map<String, String> packageSources, Map<String, String> directDependencySources) {
+    Map<String, String> ownModules = moduleFileSources(packageSources);
+    Set<String> visible = new HashSet<>(ownModules.keySet());
+    visible.addAll(moduleFileSources(directDependencySources).keySet());
+    for (Map.Entry<String, String> entry : ownModules.entrySet()) {
+      for (String imported : SourceModuleHeaderParser.parseSource(entry.getValue()).imports()) {
+        if (!visible.contains(imported)) {
+          throw new CompilerException(
+              1,
+              "module " + entry.getKey()
+                  + " imports an undeclared package dependency module: " + imported);
+        }
+      }
+    }
+  }
+
   /** Links one exact package target against only its reachable locked library modules. */
   public Program compilePackageModuleFiles(
       Map<String, String> rootSources,

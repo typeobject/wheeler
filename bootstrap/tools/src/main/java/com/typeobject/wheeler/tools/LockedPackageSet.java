@@ -36,16 +36,19 @@ final class LockedPackageSet {
   private final PackageLock lock;
   private final Map<String, DecodedPackage> packages;
   private final List<String> buildOrder;
+  private final List<Dependency> rootDependencies;
   private final boolean development;
 
   private LockedPackageSet(
       PackageLock lock,
       Map<String, DecodedPackage> packages,
       List<String> buildOrder,
+      List<Dependency> rootDependencies,
       boolean development) {
     this.lock = lock;
     this.packages = Map.copyOf(packages);
     this.buildOrder = List.copyOf(buildOrder);
+    this.rootDependencies = List.copyOf(rootDependencies);
     this.development = development;
   }
 
@@ -101,42 +104,76 @@ final class LockedPackageSet {
     }
     boolean includeDevelopment = !normal && development;
     return new LockedPackageSet(
-        lock, packages, topologicalOrder(root, lock, includeDevelopment), includeDevelopment);
+        lock,
+        packages,
+        topologicalOrder(root, lock, includeDevelopment),
+        root.dependencies(),
+        includeDevelopment);
   }
 
   void check() {
     WheelerCompiler compiler = new WheelerCompiler();
-    Map<String, String> linkedModules = new TreeMap<>();
     for (String name : buildOrder) {
       DecodedPackage dependency = packages.get(name);
+      Map<String, String> transitiveModules = allModuleSourcesExcept(name);
+      Map<String, String> directModules = moduleSourcesFor(
+          dependency.manifest().dependencies());
       for (PackageManifest.Target target : dependency.manifest().targets()) {
-        compileTarget(compiler, dependency, target, linkedModules);
+        compileTarget(compiler, dependency, target, transitiveModules, directModules);
       }
-      addLibrarySources(name, dependency, linkedModules);
     }
   }
 
   Map<String, byte[]> compile() {
     WheelerCompiler compiler = new WheelerCompiler();
     Map<String, byte[]> artifacts = new LinkedHashMap<>();
-    Map<String, String> linkedModules = new TreeMap<>();
     for (String name : buildOrder) {
       DecodedPackage dependency = packages.get(name);
+      Map<String, String> transitiveModules = allModuleSourcesExcept(name);
+      Map<String, String> directModules = moduleSourcesFor(
+          dependency.manifest().dependencies());
       for (PackageManifest.Target target : dependency.manifest().targets()) {
         artifacts.put(
             "dependencies/" + name + "/" + target.name() + ".wbc",
             new BytecodeWriter().write(
-                compileTarget(compiler, dependency, target, linkedModules)));
+                compileTarget(
+                    compiler, dependency, target, transitiveModules, directModules)));
       }
-      addLibrarySources(name, dependency, linkedModules);
     }
     return Map.copyOf(artifacts);
   }
 
   Map<String, String> moduleSources() {
+    return allModuleSources();
+  }
+
+  Map<String, String> directModuleSources() {
+    return moduleSourcesFor(rootDependencies);
+  }
+
+  private Map<String, String> allModuleSources() {
+    return allModuleSourcesExcept(null);
+  }
+
+  private Map<String, String> allModuleSourcesExcept(String excludedPackage) {
     Map<String, String> result = new TreeMap<>();
     for (String name : buildOrder) {
-      addLibrarySources(name, packages.get(name), result);
+      if (!name.equals(excludedPackage)) {
+        addLibrarySources(name, packages.get(name), result);
+      }
+    }
+    return Map.copyOf(result);
+  }
+
+  private Map<String, String> moduleSourcesFor(List<Dependency> dependencies) {
+    Map<String, String> result = new TreeMap<>();
+    for (String name : included(dependencies, development).stream()
+        .map(Dependency::name).sorted().toList()) {
+      DecodedPackage dependency = packages.get(name);
+      if (dependency == null) {
+        throw new PackageFormatException("Missing direct locked dependency " + name);
+      }
+      addLibrarySources(name, dependency, result);
     }
     return Map.copyOf(result);
   }
@@ -279,7 +316,8 @@ final class LockedPackageSet {
       WheelerCompiler compiler,
       DecodedPackage dependency,
       PackageManifest.Target target,
-      Map<String, String> linkedModules) {
+      Map<String, String> linkedModules,
+      Map<String, String> directModules) {
     Map<String, String> sources = TargetSourceSet.strictText(target, dependency.entries());
     if (!target.modular()) {
       if (target.kind() == TargetKind.LIBRARY) {
@@ -288,6 +326,7 @@ final class LockedPackageSet {
       }
       return compiler.compile(sources.get(target.root()));
     }
+    compiler.validateDirectPackageImports(sources, directModules);
     return target.kind() == TargetKind.LIBRARY
         ? compiler.compilePackageLibraryModuleFiles(sources, linkedModules, target.module())
         : compiler.compilePackageModuleFiles(sources, linkedModules, target.module());
