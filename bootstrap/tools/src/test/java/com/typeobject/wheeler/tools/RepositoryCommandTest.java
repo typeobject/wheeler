@@ -133,6 +133,17 @@ class RepositoryCommandTest {
         new PackageArchive().identity(privateBytes),
         RepositoryAccess.resolver(paths, List.of()).resolve(root, false)
             .entries().getFirst().archiveIdentity());
+
+    Path junk = paths.artifactCache().resolve("packages/junk");
+    Files.write(junk, new byte[] {9});
+    ByteArrayOutputStream gcOutput = new ByteArrayOutputStream();
+    assertEquals(0, CacheCommand.execute(
+        new String[] {"cache", "gc"},
+        new PrintStream(gcOutput),
+        new PrintStream(new ByteArrayOutputStream()),
+        paths));
+    assertTrue(gcOutput.toString(StandardCharsets.UTF_8).contains("removed 1"));
+    assertFalse(Files.exists(junk));
   }
 
   @Test

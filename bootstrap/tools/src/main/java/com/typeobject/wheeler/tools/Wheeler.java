@@ -62,6 +62,7 @@ public final class Wheeler {
       case "site" -> DocumentationSiteCommand.execute(args, out, error);
       case "format" -> FormatCommand.execute(args, System.in, out, error);
       case "build" -> build(args, out, error);
+      case "cache" -> CacheCommand.execute(args, out, error);
       case "test" -> test(args, out, error);
       case "clean" -> clean(args, out, error);
       case "package" -> packageProject(args, out, error);
@@ -674,7 +675,7 @@ public final class Wheeler {
 
   private static void usage(PrintStream error) {
     error.println(
-        "Usage: wheeler <run|compile|check|check-docs|docs|site|format|build|test|clean|package|verify|resolve|verify-lock|vendor|"
+        "Usage: wheeler <run|compile|check|check-docs|docs|site|format|build|cache|test|clean|package|verify|resolve|verify-lock|vendor|"
             + "publish|fetch|repository|plan|verify-plan|execute-plan|manifest-artifacts|"
             + "disassemble|qasm> ...");
   }

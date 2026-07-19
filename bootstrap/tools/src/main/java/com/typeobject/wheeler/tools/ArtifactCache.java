@@ -8,10 +8,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Stream;
 
 /** Disposable verified package-object cache that never contributes resolver authority. */
 final class ArtifactCache {
   private static final long MAX_ARCHIVE_BYTES = 16L * 1024L * 1024L;
+  private static final int MAX_OBJECTS = 10_000;
   private final Path packages;
   private final PackageArchive codec = new PackageArchive();
 
@@ -61,12 +65,60 @@ final class ArtifactCache {
     }
   }
 
+  GcResult gc() throws IOException {
+    if (!Files.exists(packages, LinkOption.NOFOLLOW_LINKS)) {
+      return new GcResult(0, 0);
+    }
+    if (!Files.isDirectory(packages, LinkOption.NOFOLLOW_LINKS)
+        || Files.isSymbolicLink(packages)) {
+      throw new IOException("Package cache is not a physical directory: " + packages);
+    }
+    List<Path> entries;
+    try (Stream<Path> listed = Files.list(packages)) {
+      entries = listed.sorted(Comparator.comparing(path -> path.getFileName().toString())).toList();
+    }
+    if (entries.size() > MAX_OBJECTS) {
+      throw new IOException("Package cache exceeds " + MAX_OBJECTS + " objects");
+    }
+    int retained = 0;
+    int removed = 0;
+    for (Path entry : entries) {
+      if (!Files.isRegularFile(entry, LinkOption.NOFOLLOW_LINKS)
+          || Files.isSymbolicLink(entry)) {
+        throw new IOException("Cache entry is not a physical file: " + entry);
+      }
+      String fileName = entry.getFileName().toString();
+      boolean valid = fileName.matches("[0-9a-f]{64}\\.wpk")
+          && Files.size(entry) <= MAX_ARCHIVE_BYTES;
+      if (valid) {
+        try {
+          byte[] bytes = Files.readAllBytes(entry);
+          valid = codec.identity(bytes).equals(fileName.substring(0, 64));
+          if (valid) {
+            codec.decode(bytes);
+          }
+        } catch (PackageFormatException exception) {
+          valid = false;
+        }
+      }
+      if (valid) {
+        retained++;
+      } else {
+        Files.delete(entry);
+        removed++;
+      }
+    }
+    return new GcResult(retained, removed);
+  }
+
   Path path(String archiveIdentity) {
     if (archiveIdentity == null || !archiveIdentity.matches("[0-9a-f]{64}")) {
       throw new PackageFormatException("Invalid cache object identity " + archiveIdentity);
     }
     return packages.resolve(archiveIdentity + ".wpk");
   }
+
+  record GcResult(int retained, int removed) {}
 
   private static void requireExpected(DecodedPackage decoded, RepositoryRelease expected) {
     if (!decoded.identity().equals(expected.archiveIdentity())
