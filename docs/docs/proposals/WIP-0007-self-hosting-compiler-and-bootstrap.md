@@ -227,6 +227,7 @@ The launcher grants read-only source inputs and one atomic artifact destination.
 
 - [x] Every Java source, Java test, Gradle module, wrapper, and Gradle build file lives below top-level `bootstrap/`. Canonical Wheeler package roots contain only Wheeler sources and package metadata; host code can no longer pass as compiler source by sharing the directory.
 - [x] `bootstrap/stage0` owns the disposable Java compiler seed, while `wheeler-compiler` owns the exact Wheeler package compiled into later stages.
+- [ ] CI builds the full canonical workspace under independently distributed Temurin and Zulu JDK 26 toolchains and compares every output byte; the workflow is configured, but this checklist remains open until hosted runs provide the evidence.
 - [x] Canonical `.wbc` and a deterministic stage-0 compiler exist.
 - [x] The accepted source grammar is formatting-independent and covered by Tree-sitter tooling.
 - [ ] Bootstrap feature and module manifests are specified as executable schemas.

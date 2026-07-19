@@ -10,6 +10,10 @@ on:
 
 jobs:
   build:
+    strategy:
+      fail-fast: false
+      matrix:
+        distribution: [temurin, zulu]
 
     runs-on: ubuntu-latest
     permissions:
@@ -21,7 +25,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         java-version: '26'
-        distribution: 'temurin'
+        distribution: ${{ matrix.distribution }}
 
     - name: Set up Node for Tree-sitter tests
       uses: actions/setup-node@v4
@@ -38,6 +42,34 @@ jobs:
     - name: Build with Gradle Wrapper and test editor grammar
       run: ./bootstrap/gradlew -p bootstrap build treeSitterTest
 
+    - name: Build the complete canonical workspace
+      run: ./bootstrap/gradlew -p bootstrap -q :tools:wheeler --args='build . -o bootstrap-output'
+
+    - name: Upload canonical bootstrap outputs
+      uses: actions/upload-artifact@v4
+      with:
+        name: bootstrap-output-${{ matrix.distribution }}
+        path: bootstrap-output
+        if-no-files-found: error
+
+  compare-bootstrap-outputs:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - name: Download Temurin outputs
+      uses: actions/download-artifact@v4
+      with:
+        name: bootstrap-output-temurin
+        path: temurin
+    - name: Download Zulu outputs
+      uses: actions/download-artifact@v4
+      with:
+        name: bootstrap-output-zulu
+        path: zulu
+    - name: Require byte-identical Wheeler artifacts
+      run: diff -r --no-dereference temurin zulu
 
   dependency-submission:
 
