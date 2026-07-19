@@ -18,7 +18,12 @@ public final class SemanticCoverage implements TransitionObserver {
         observation.direction().name().toLowerCase(java.util.Locale.ROOT),
         observation.functionId(),
         observation.instructionIndex(),
-        observation.opcode().name());
+        observation.opcode().name(),
+        switch (observation.branchOutcome()) {
+          case 0 -> "fallthrough";
+          case 1 -> "taken";
+          default -> "none";
+        });
     hits.merge(point, 1L, Math::addExact);
   }
 
@@ -32,7 +37,8 @@ public final class SemanticCoverage implements TransitionObserver {
         json.append(',');
       }
       Point point = entry.getKey();
-      json.append("{\"count\":").append(entry.getValue())
+      json.append("{\"branch\":\"").append(point.branch())
+          .append("\",\"count\":").append(entry.getValue())
           .append(",\"direction\":\"").append(point.direction())
           .append("\",\"function\":").append(point.function())
           .append(",\"instruction\":").append(point.instruction())
@@ -54,7 +60,8 @@ public final class SemanticCoverage implements TransitionObserver {
     }
   }
 
-  private record Point(String direction, int function, int instruction, String opcode)
+  private record Point(
+      String direction, int function, int instruction, String opcode, String branch)
       implements Comparable<Point> {
     @Override
     public int compareTo(Point other) {
@@ -65,7 +72,10 @@ public final class SemanticCoverage implements TransitionObserver {
       if (order == 0) {
         order = Integer.compare(instruction, other.instruction);
       }
-      return order == 0 ? opcode.compareTo(other.opcode) : order;
+      if (order == 0) {
+        order = opcode.compareTo(other.opcode);
+      }
+      return order == 0 ? branch.compareTo(other.branch) : order;
     }
   }
 }

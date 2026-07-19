@@ -8,6 +8,7 @@ import com.typeobject.wheeler.core.bytecode.Global;
 import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.bytecode.ValueType;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -16,7 +17,7 @@ import org.junit.jupiter.api.Test;
 class SemanticCoverageTest {
   @Test
   void collectionPreservesStateAndKeepsExecutionAndRewindDistinct() {
-    Program program = reversibleProgram();
+    Program program = reversibleProgram(0);
     SemanticCoverage coverage = new SemanticCoverage();
     VirtualMachine observed = new VirtualMachine(program, coverage);
     VirtualMachine plain = new VirtualMachine(program);
@@ -34,6 +35,7 @@ class SemanticCoverageTest {
     assertEquals(plain.snapshot(), observed.snapshot());
     String report = coverage.canonicalReport();
     assertTrue(report.contains("\"direction\":\"forward\""));
+    assertTrue(report.contains("\"branch\":\"taken\""));
     assertTrue(report.contains("\"direction\":\"inverse\""));
     assertTrue(report.contains("\"direction\":\"rewind_forward\""));
     assertTrue(report.contains("\"direction\":\"rewind_inverse\""));
@@ -46,17 +48,24 @@ class SemanticCoverageTest {
     }
     assertEquals(report, repeated.canonicalReport());
     assertEquals(coverage.identity(), repeated.identity());
+
+    SemanticCoverage fallthrough = new SemanticCoverage();
+    new VirtualMachine(reversibleProgram(1), fallthrough).run();
+    assertTrue(fallthrough.canonicalReport().contains("\"branch\":\"fallthrough\""));
   }
 
-  private static Program reversibleProgram() {
+  private static Program reversibleProgram(long condition) {
     FunctionBody main = new FunctionBody(
         0,
         "main",
         false,
         0,
-        List.of(),
+        List.of(ValueType.BOOLEAN),
         null,
         List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, condition),
+            Instruction.of(Opcode.JUMP_IF_ZERO, 0, 3),
+            Instruction.of(Opcode.NOP),
             Instruction.of(Opcode.UNCALL, 1),
             Instruction.of(Opcode.EXPECT_EQ, 0, -1),
             Instruction.of(Opcode.HALT)),

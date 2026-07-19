@@ -285,7 +285,7 @@ Quantum targets own execution evidence, not coverage interpretation. The proof k
 
 ## Progress
 
-- [x] The stage-0 VM emits immutable successful-transition observations without executable instrumentation. Forward, language-inverse, rewind-forward, and rewind-inverse dimensions remain distinct; the reducer emits sorted checked counts and a domain-separated canonical report identity, while collection-on/off tests require identical terminal and rewound machine snapshots. No denominator means no percentage, however lonely the dashboard looks.
+- [x] The stage-0 VM emits immutable successful-transition observations without executable instrumentation. Forward, language-inverse, rewind-forward, and rewind-inverse dimensions remain distinct, and successful `JUMP_IF_ZERO` observations record taken versus fallthrough outcome; the reducer emits sorted checked counts and a domain-separated canonical report identity, while collection-on/off tests require identical terminal and rewound machine snapshots. No denominator means no percentage, however lonely the dashboard looks.
 - [ ] Coverage point, map, observation, policy, and report contracts are accepted.
 - [ ] Classical source/bytecode points collect without program instrumentation.
 - [ ] WIP-0018 attempts merge deterministically across serial and sharded runs.

@@ -118,7 +118,7 @@ public final class VirtualMachine {
     } else {
       history.push(record);
     }
-    observer.observe(TransitionObserver.execution(sequence, frame, instruction.opcode()));
+    observer.observe(TransitionObserver.execution(sequence, frame, instruction));
   }
 
   public void rewindOne() {

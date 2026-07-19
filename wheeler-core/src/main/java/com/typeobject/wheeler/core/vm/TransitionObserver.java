@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.core.vm;
 
+import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 
 /** Receives immutable observations after successful execution or rewind transitions. */
@@ -12,13 +13,19 @@ public interface TransitionObserver {
   void observe(Observation observation);
 
   /** Creates an observation for one successful execution transition. */
-  static Observation execution(long sequence, Frame frame, Opcode opcode) {
+  static Observation execution(long sequence, Frame frame, Instruction instruction) {
+    int branchOutcome = -1;
+    if (instruction.opcode() == Opcode.JUMP_IF_ZERO) {
+      int condition = Math.toIntExact(instruction.operands().getFirst());
+      branchOutcome = frame.local(condition) == 0 ? 1 : 0;
+    }
     return new Observation(
         sequence,
         frame.inverse() ? Direction.INVERSE : Direction.FORWARD,
         frame.functionId(),
         frame.programCounter(),
-        opcode);
+        instruction.opcode(),
+        branchOutcome);
   }
 
   /** Creates a distinct observation for rewinding one retained transition. */
@@ -29,7 +36,8 @@ public interface TransitionObserver {
         frame.inverse() ? Direction.REWIND_INVERSE : Direction.REWIND_FORWARD,
         frame.functionId(),
         frame.programCounter(),
-        record.instruction().opcode());
+        record.instruction().opcode(),
+        -1);
   }
 
   /** Distinguishes forward/inverse execution from rewinding either kind of transition. */
@@ -46,9 +54,11 @@ public interface TransitionObserver {
       Direction direction,
       int functionId,
       int instructionIndex,
-      Opcode opcode) {
+      Opcode opcode,
+      int branchOutcome) {
     public Observation {
-      if (sequence < 0 || functionId < 0 || instructionIndex < 0 || opcode == null) {
+      if (sequence < 0 || functionId < 0 || instructionIndex < 0 || opcode == null
+          || branchOutcome < -1 || branchOutcome > 1) {
         throw new IllegalArgumentException("Invalid transition observation");
       }
     }
