@@ -13,7 +13,7 @@
 
 ## Summary
 
-Wheeler will provide one bounded coverage system over canonical compiler observation maps and VM/runtime events. It reports classical declarations, instructions, decisions, conditions, match arms, calls, traps, reversible forward/inverse pairs, rewind, workflow/replay states, quantum circuit structure and sampled outcomes, and proof-kernel obligations without pretending those dimensions mean the same thing.
+Wheeler will provide one bounded coverage system over canonical reversible-IR observation maps and VM/runtime events. It reports classical declarations, instructions, decisions, conditions, match arms, calls, traps, reversible forward/inverse pairs, rewind, coherent permutations, unitary/adjoint regions, measurement, workflow/replay states, quantum structure and sampled outcomes, and proof-kernel obligations without pretending those dimensions mean the same thing.
 
 Coverage observation is caller-owned and outside program state. It cannot add hidden counters, alter bytecode control flow, consume Wheeler history, measure a quantum state, resubmit a job, or bless an unchecked proof. Serial, parallel, sharded, retried, and replayed runs reduce to canonical reports with explicit attempt and evidence identities.
 

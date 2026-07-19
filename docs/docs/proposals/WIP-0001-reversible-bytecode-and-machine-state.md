@@ -15,7 +15,7 @@
 
 Wheeler defines a versioned Wheeler Bytecode Container (`.wbc`) and a deterministic, single-threaded reversible abstract machine as its first executable contract. Every successful instruction step produces a bounded undo record under a declared reversibility class. Reversing that step consumes the record and restores the exact prior machine state. Intrinsically bijective instructions need no value history; checked instructions rely on verified preconditions; logged instructions retain only information they destroy; barrier instructions delimit how far execution may be rewound.
 
-The bytecode is a typed slot-and-region machine rather than JVM bytecode or an untyped host-address machine. Its artifact container reserves versioned sections for quantum regions, target requirements, proofs, and debug data, but WIP-0001 standardizes and tests the classical reversible core before those sections become executable.
+The bytecode is Wheeler's closed reversible typed IR: a slot-and-region machine rather than JVM bytecode or an untyped host-address machine. “Reversible” records exact intrinsic, checked, logged, or barrier semantics; it does not claim every forward operation is a bijection. Its artifact container reserves versioned sections for quantum regions, generic library bodies, target requirements, proofs, and debug data, but WIP-0001 standardizes and tests the classical reversible core before those sections become executable.
 
 ## Motivation
 
@@ -158,6 +158,7 @@ The first format reserves these section types:
 | 9 | Target requirements | Reserved for WIP-0003 |
 | 10 | Proof certificates | Optional; initial generated-inverse rule from WIP-0011 |
 | 11 | Source and debug maps | Optional and non-semantic |
+| 12 | Generic typed library bodies | Reserved for WIP-0029; non-executable |
 
 The manifest declares artifact identity inputs, minimum runtime version, entry points, required section features, and global resource ceilings. A function descriptor declares its stable function ID, type signature, effect set, computation domain, frame-slot schema, forward body range, inverse body range when present, and declared bounds.
 
@@ -342,6 +343,8 @@ Rejected. Quantum regions have different ownership, linearity, execution, and ca
 ## References
 
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)
+- [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
+- [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
 - [Proposal process](README.md)
 - [Bytecode reference](../reference/bytecode.md)
 - [Virtual-machine reference](../reference/virtual-machine.md)

@@ -17,7 +17,7 @@ Wheeler may eventually explore every execution admitted by a finite distributed-
 
 The schedule space is generated from the protocol, initial state, event grammar, and fault budget. Production traffic and logs are optional debugging inputs, not semantic inputs or proof evidence.
 
-This WIP reserves no current syntax. It defines the model and trust boundary required before protocol-artifact, logged-transition, coherent-interpreter, or schedule-proof syntax can be accepted.
+This WIP reserves no current syntax. It defines the model and trust boundary required before protocol-artifact, logged-transition, coherent-interpreter, or schedule-proof syntax can be accepted. Modeled transitions must lower to Wheeler's reversible IR with explicit inverse witnesses or logged destruction; external delivery and failure observations remain workflow events rather than magically reversible network packets.
 
 ## Motivation
 

@@ -17,7 +17,7 @@ Wheeler dependency resolution will operate on exact package instances connected 
 
 The resolver consumes explicit runnable or library roots, repository snapshots, build and target profiles, feature selections, and an optional existing lock. It produces one deterministic realizable graph or one deterministic incompatibility explanation. Total work is bounded. A still-valid locked instance remains selected unless an explicit update forces movement.
 
-A workspace owns one root set and one graph. Multiple ordinary package versions may coexist under distinct aliases and nominal identities. Packages that genuinely cannot coexist declare a singleton or native link-group constraint instead of making global lockstep everybody's hobby.
+A workspace owns one root set and one graph. Multiple ordinary package versions may coexist under distinct aliases and nominal identities. Graph selection fixes exact source, generic/class evidence, callable, and reversible-IR identities before emission; resolution never rewrites an inverse, adjoint, effect, or quantum region to make a dependency fit. Packages that genuinely cannot coexist declare a singleton or native link-group constraint instead of making global lockstep everybody's hobby.
 
 ## Motivation
 
@@ -139,7 +139,7 @@ An exported nominal type identity includes:
 
 Equal spelling and layout do not merge nominal types from different instances.
 
-WIP-0028 type-class adapter instances obey the same boundary. Class-package and principal-type-package instances are intrinsic to those exact instances; an adapter instance activates only through a direct declared dependency and explicit source selection. It never leaks transitively. Selected instance evidence records exact package-instance identity in public and executable artifacts.
+WIP-0030 type-class adapter instances obey the same boundary. Class-package and principal-type-package instances are intrinsic to those exact package instances; an adapter activates only through a direct declared dependency and explicit source selection. It never leaks transitively. Selected evidence records exact package-instance identity in WIP-0029 generic bodies and closed reversible IR artifacts.
 
 ### Coexistence and singleton groups
 
@@ -271,6 +271,9 @@ One version per name forces ecosystem lockstep; actual singleton constraints are
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0023](WIP-0023-recipe-repositories-and-reproducible-builds.md)
-- [WIP-0028](WIP-0028-constrained-generics-coherent-type-classes-and-region-ownership.md)
+- [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)
+- [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
+- [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
+- [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
 - [Conan lockfiles](https://docs.conan.io/2/tutorial/versioning/lockfiles.html)
 - [Conan build and host contexts](https://docs.conan.io/2/tutorial/consuming_packages/cross_building_with_conan.html)

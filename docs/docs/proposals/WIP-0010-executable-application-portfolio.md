@@ -15,7 +15,7 @@
 
 Wheeler's application portfolio is an executable conformance surface, not a syntax gallery. It shall demonstrate reversible systems programming, coherent classical/quantum reuse, current hardware workflows, durable hybrid computation, self-hosting, package management, native execution, and checkable claims.
 
-Each portfolio item has a named semantic purpose and an implementation gate. A `.w` file enters the repository only when the compiler, bytecode, verifier, runtime or target planner, Tree-sitter grammar, tests, and documentation support every construct it uses. Designs that need future syntax remain in this WIP until that vertical slice exists.
+Each portfolio item has a named semantic purpose and an implementation gate. A `.w` file enters the repository only when the compiler, reversible typed IR, verifier, runtime or target planner, Tree-sitter grammar, tests, and documentation support every construct it uses. Fixtures identify whether each transition is inverse, logged rewind, barrier, coherent permutation, unitary/adjoint, measurement, replay, or retry; passing one category never stands in for another. Designs that need future syntax remain in this WIP until that vertical slice exists.
 
 The portfolio is intentionally broader than textbook quantum algorithms. Wheeler must prove useful for compilers, codecs, package resolution, transactional state, simulation, optimization, error correction, target planning, and long-running recovery. Quantum examples must state whether they require static circuits, batches, expectations, dynamic control, logical qubits, sessions, networking, or proof support.
 

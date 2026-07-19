@@ -17,7 +17,7 @@ Wheeler shall have a standard library written in Wheeler. It supplies the value,
 
 The library is layered. `wheeler.core` is available without heap allocation or host effects. `wheeler.alloc` adds owned bounded storage. `wheeler.std` adds capability-scoped host services and higher-level packages. Quantum modules expose affine logical `Qubit` and `Qreg` values, disjoint borrowed views, circuits, parameters, observables, results, and target requirements without exposing provider objects or physical qubit pointers.
 
-Every public operation declares type, ownership, effects, failure, allocation, bounds, and reversibility. A method is `rev` only when its inverse is valid under stated contracts. A method is coherently liftable only when it denotes an exact finite permutation and uses no hidden allocation, history, measurement, or host effect. Logged containers, transactional APIs, and replay records do not pretend to be intrinsically reversible.
+Every public operation declares type, ownership, effects, failure, allocation, bounds, and reversibility and lowers through Wheeler's common reversible typed IR. A method is `rev` only when its inverse is valid under stated contracts. A method is coherently liftable only when it denotes an exact finite permutation and uses no hidden allocation, history, measurement, or host effect. Unitary operations retain semantic regions and adjoints. Logged containers, transactional APIs, compensation, and replay records do not pretend to be intrinsically reversible.
 
 The standard library is distributed as locked Wheeler packages under WIP-0009, compiled by the self-hosted compiler, documented by `wheeler doc`, and included in the native recovery graph. Java, JVM collections, provider SDK types, and host serialization are not part of its contract.
 
@@ -132,17 +132,18 @@ Types participate in explicit capabilities such as:
 
 - `Copy`: duplication preserves semantics and ownership;
 - `Move`: ownership transfers and the source becomes unavailable;
-- `Drop`: destruction has a declared effect and cannot fail invisibly;
+- `Drop`: compiler-admitted bounded memory-only destruction; external disposal is a separate explicit effect;
 - `Borrow`: a scoped shared view;
 - `BorrowMut`: a scoped exclusive view;
 - `Affine`: use at most once unless reborrowed under its contract;
+- `MustConsume`: successful paths explicitly transfer or complete the resource;
 - `Clean`: value has the distinguished state required for safe uncomputation or release;
-- `Reversible`: operations expose checked inverses under stated contracts;
-- `Coherent`: finite encoding and operations may lower to exact quantum permutations;
+- `Reversible`: callable operations expose checked inverses under stated contracts;
+- `Coherent`: finite encoding and callable operations may lower to exact quantum permutations;
 - `CanonicalEncode` and `CanonicalDecode`: versioned bounded representation;
 - `Eq`, `Ord`, and `Hash`: deterministic value relations with compatible laws.
 
-WIP-0028 owns the exact surface: coherent compile-time type classes for ordinary protocols, sealed compiler/kernel capabilities for safety properties, structural derivation, affine owners, second-class shared/exclusive loans, and bounded regions. `Drop` cannot become a hidden user finalizer; external resources close, commit, abort, release, or return explicitly. The semantic distinctions above remain mandatory, but duplicate trait/interface dialects do not.
+WIP-0028 owns affine owners, structural ownership derivation, must-consume values, second-class shared/exclusive loans, deterministic memory-only drop, and bounded regions. WIP-0029 owns generic values and collections. WIP-0030 owns coherent compile-time classes for ordinary protocols plus certified evidence admission. WIP-0031 owns callable kinds and effect rows. External resources close, commit, abort, release, or return explicitly; `Drop` never becomes a user finalizer. The distinctions remain mandatory, but duplicate trait/interface dialects do not.
 
 ## Collections
 
@@ -536,4 +537,7 @@ Rejected. Provider SDKs are adapter implementation details. Portable library val
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
 - [WIP-0013](WIP-0013-typed-frames-control-flow-and-storage.md)
 - [WIP-0025](WIP-0025-native-ffi-and-system-integration.md)
-- [WIP-0028](WIP-0028-constrained-generics-coherent-type-classes-and-region-ownership.md)
+- [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)
+- [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
+- [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
+- [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)

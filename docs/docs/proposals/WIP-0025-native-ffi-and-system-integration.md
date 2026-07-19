@@ -15,7 +15,7 @@
 
 Wheeler will expose native calls through canonical ABI descriptors and package-visible providers. The first profile is a deliberately small C ABI subset. A provider is either an exact bundled package artifact or a system capability granted by deployment policy and mapped by WIP-0024. Symbols are never found by searching the host.
 
-Foreign calls are typed effectful operations and are forbidden in `rev`, `coherent rev`, `unitary`, proof evaluation, and reverse blocks. Every foreign call is initially an irreversible boundary. Raw pointers are not Wheeler values: memory crosses as exact scalars, immutable views, exclusive mutable borrows, opaque affine handles, or explicitly owned foreign buffers.
+Foreign calls are typed WIP-0031 effectful operations and are forbidden in `rev`, `coherent rev`, `unitary`, proof evaluation, and reverse blocks. Every foreign call is initially an explicit barrier edge in Wheeler's reversible typed IR: rewind, inverse, compensation, and foreign cleanup do not impersonate one another. Raw pointers are not Wheeler values; memory crosses as exact scalars, immutable views, exclusive mutable borrows, opaque affine handles, or explicitly owned foreign buffers.
 
 Calling convention, target ABI, symbols, layouts, ownership, errors, effects, blocking, threading, and callbacks are package identity. Generic `dlopen`, `dlsym`, C++ ABI binding, exceptions, varargs, callbacks, and ambient search are outside the first profile.
 
@@ -189,4 +189,5 @@ Raw loading/function pointers, libffi as language contract, ambient headers, C++
 - [WIP-0023](WIP-0023-recipe-repositories-and-reproducible-builds.md)
 - [WIP-0024](WIP-0024-system-package-exports.md)
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
-- [WIP-0028](WIP-0028-constrained-generics-coherent-type-classes-and-region-ownership.md)
+- [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)
+- [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)

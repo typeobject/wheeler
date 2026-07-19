@@ -15,7 +15,7 @@
 
 Proofs are a Wheeler language feature. Contracts attach to ordinary, reversible, coherent, unitary, and hybrid declarations; theorem declarations inhabit the same module and type system as executable code; proof blocks use structured, source-located syntax checked by a small deterministic kernel. Tree-sitter, package metadata, bytecode, diagnostics, documentation, and editor tooling expose the same proof structure.
 
-Proof text is not a comment, free-form `because` string, provider assertion, or host-language annotation. A successful theorem produces a bounded canonical certificate tied to exact declarations, semantic region identities, type/effect assumptions, and compiler profile. Consumers may verify that certificate without rerunning a solver or trusting the compiler that produced it.
+Proof text is not a comment, free-form `because` string, provider assertion, or host-language annotation. Propositions refer to Wheeler's reversible typed IR relations—forward transition, exact inverse, logged rewind boundary, coherent permutation, unitary adjoint, measurement/workflow transition—not an optimizing host IR or provider circuit. A successful theorem produces a bounded canonical certificate tied to exact declarations, semantic region identities, type/effect assumptions, and compiler profile. Consumers may verify that certificate without rerunning a solver or trusting the compiler that produced it.
 
 Wheeler distinguishes mathematical claims from empirical evidence. A unitary, inverse, ownership, totality, or resource theorem is checked against formal semantics. A sampled hardware statement is an `experiment` with target, calibration, estimator, shots, uncertainty, and confidence provenance; it cannot satisfy a theorem requiring universal or exact evidence.
 
@@ -98,7 +98,7 @@ theorem qftRoundTrip(qreg_shape shape)
 
 The theorem body cannot perform ordinary I/O, target submission, measurement, mutable allocation outside proof arenas, clock access, randomness, or undeclared effects. It elaborates to a proof term checked by the kernel.
 
-WIP-0028 generic theorems quantify over kinded parameters and explicit class-law evidence. Associated-type reduction names the exact coherent instance. Safety-critical classes such as coherent basis, permutation, and unitary evidence require compiler- or kernel-admitted certificates; an ordinary instance declaration cannot notarize itself.
+WIP-0028 exposes ownership, lifetime, and frame propositions without allowing proofs to bypass verifier safety. WIP-0029 generic theorems quantify over kinded parameters; WIP-0030 class laws and associated reductions name exact coherent evidence; WIP-0031 certificates bind effect rows, inverse/adjoint characteristics, and specialization-commutation claims. Safety-critical classes such as coherent basis, permutation, and unitary evidence require compiler- or kernel-admitted certificates; an ordinary instance declaration cannot notarize itself.
 
 ### Proof blocks
 
@@ -404,4 +404,7 @@ Rejected. Simulation can establish exact finite cases under its model or provide
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0010](WIP-0010-executable-application-portfolio.md)
 - [WIP-0012](WIP-0012-wheeler-standard-library.md)
-- [WIP-0028](WIP-0028-constrained-generics-coherent-type-classes-and-region-ownership.md)
+- [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)
+- [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
+- [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
+- [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)

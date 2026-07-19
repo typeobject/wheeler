@@ -15,7 +15,7 @@
 
 Wheeler defines a formatting-independent, unambiguous concrete syntax with stable source locations and a mirrored Tree-sitter grammar. The compiler lexer records line, column, and offset for every token. Editor tooling receives named syntax nodes, highlights, folds, comments, and `.w` file identity without depending on compiler implementation classes.
 
-The language is also organized as a teaching progression: ordinary state and assertions, reversible methods and reverse blocks, exact coherent permutations, unitary circuits and adjoints, measurement, and finally hybrid target workflows. Examples introduce one semantic boundary at a time and never explain measurement as ordinary reversible assignment.
+The language is also organized as a teaching progression matching Wheeler's reversible typed IR: ordinary state and explicit barriers, reversible methods and reverse blocks, exact coherent permutations, unitary circuits and adjoints, measurement, and finally hybrid target workflows. Concrete syntax gives each boundary a stable node; it does not infer semantics or merge them for highlighting convenience. Examples introduce one boundary at a time and never explain measurement as ordinary reversible assignment.
 
 ## Motivation
 

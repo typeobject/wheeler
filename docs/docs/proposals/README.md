@@ -52,7 +52,7 @@ Only maintainers change a WIP to **Accepted**, **Implemented**, **Superseded**, 
 9. Update current reference documentation once behavior is implemented.
 10. Mark the proposal **Implemented** only after tests, documentation, migration, and required deletion are complete.
 
-WIP numbers and filenames never change. Do not reuse the number of a withdrawn proposal. If a later decision replaces an earlier one, retain both files and connect them through the `Supersedes` and `Superseded by` fields.
+After a proposal leaves **Draft**, its number and filename never change. A Draft may be atomically renamed or split before review when its scope is plainly wrong; update every link in the same patch, reuse no unrelated number, and leave no redirect document pretending two authorities exist. Git already keeps the archaeology. Do not reuse the number of a withdrawn proposal. If a later decision replaces a reviewed proposal, retain both files and connect them through the `Supersedes` and `Superseded by` fields.
 
 `Depends on` lists hard implementation prerequisites, not every related proposal. Put non-blocking relationships in References. Status records decision maturity, not implementation priority.
 
@@ -72,6 +72,21 @@ Wheeler proposals should:
 - name obsolete code, formats, and compatibility paths that will be removed.
 
 Use “Not applicable” with a reason for unaffected template sections. Split work that can be accepted, implemented, or rolled back independently. Exact API reference belongs in the manual after implementation; task-level planning belongs in issues.
+
+## Cross-proposal IR invariant
+
+Every WIP preserves one Wheeler intermediate-language model. Canonical `.wbc` 1.0 is the sole semantic artifact and contains the closed typed IR needed by its selected target: classical register/region bodies, reversible relations and inverse bodies, ordered hybrid workflows, backend-neutral quantum regions, effects, ownership, proofs, and bounds. WIP-0029 may add non-executable generic typed bodies as a versioned library section inside `.wbc`; it does not create a source-template or host-object authority.
+
+“Reversible IR” does not mean pretending every operation is bijective. Each operation declares one honest relation:
+
+- intrinsic or checked inverse for information-preserving classical work;
+- bounded logged history for destructive work that supports VM rewind but not intrinsic inverse;
+- an explicit barrier for irreversible host observation;
+- an exact finite permutation for coherent classical lifting;
+- an adjoint-bearing semantic region for unitary quantum work;
+- an explicit measurement, reset, target, or workflow transition where information crosses domains.
+
+Source syntax, generic specialization, class evidence, tests, proofs, packages, native lowering, and documentation must retain those distinctions. No WIP may turn rewind into inverse, replay into physical reversal, compensation into uncomputation, a provider circuit into semantic IR, or an unchecked annotation into proof. Host ASTs, JVM bytecode, LLVM IR, native objects, and provider payloads are derived implementation material. They do not outrank verified Wheeler IR, even when they arrive wearing a very serious file extension.
 
 ## Proposals
 
@@ -103,4 +118,7 @@ Use “Not applicable” with a reason for unaffected template sections. Split w
 | [WIP-0024](WIP-0024-system-package-exports.md) | Draft | Canonical install images and system-package export | Debian, RPM, distribution tooling |
 | [WIP-0025](WIP-0025-native-ffi-and-system-integration.md) | Draft | Native ABI descriptors, FFI, and system capabilities | Language, runtime, native ABI, packages |
 | [WIP-0026](WIP-0026-self-contained-native-executables.md) | Draft | Self-contained platform-native Wheeler executables | Native images, ELF, Mach-O, PE, embedded WBC |
-| [WIP-0028](WIP-0028-constrained-generics-coherent-type-classes-and-region-ownership.md) | Draft | Constrained generics, coherent type classes, and region ownership | Generics, classes, ownership, borrowing, memory, quantum typing |
+| [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md) | Draft | Deterministic ownership, borrowing, regions, and no implicit tracing GC | Ownership, borrowing, memory, regions, destruction |
+| [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md) | Draft | Parametric polymorphism, kinds, const generics, and bounded specialization | Types, generics, kinds, specialization |
+| [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md) | Draft | Coherent type classes, associated types, instances, and laws | Classes, evidence, laws, packages |
+| [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md) | Draft | Effect-, reversible-, coherent-, and unitary-polymorphic callables | Effects, callables, reversibility, quantum operations |

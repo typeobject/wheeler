@@ -17,7 +17,7 @@ Wheeler will produce one loader-recognized platform-native executable for an app
 
 The capsule carries exact WBC artifacts, root entry, package/lock receipts, runtime profile and limits, immutable resources, selected proof material, provider descriptors, bundled native data, provenance, and identities. The first image embeds a Wheeler VM/runtime, verifies capsule and every WBC, and runs one fixed entry. It needs no adjacent `.wbc`, Wheeler install, vendor tree, package cache, or network.
 
-A later AOT mode still embeds the canonical WBC closure. AOT is an execution mode over the same application identity, not an opportunity to misplace the semantics.
+A later AOT mode still embeds the canonical WBC closure. AOT is an execution mode over the same reversible typed IR identity—classical inverse/log/barrier relations, workflows, ownership/effects, and quantum regions/adjoints—not an opportunity to misplace the semantics in a native optimizer.
 
 Self-contained excludes the kernel and declared platform baseline. A sealed image bundles or statically links every nonbaseline dependency; a system-baseline image depends only on explicit WIP-0025 capabilities mapped by WIP-0024. Unsigned native bytes are reproducible WIP-0023 output with a PREV. Signing/notarization happens afterward under separate identity.
 

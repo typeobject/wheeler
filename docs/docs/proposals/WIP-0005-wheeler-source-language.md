@@ -15,7 +15,7 @@
 
 Wheeler source is a deliberately familiar class-based language with explicit reversible and quantum semantics. Classes, fields, methods, calls, assignments, assertions, and block structure use Java-like ergonomics without claiming Java source or binary compatibility. Wheeler adds computation-domain class modifiers, `rev` and `coherent rev` methods, `unitary` methods, affine `qreg` fields, `reverse`, preparation, measurement, and target-aware execution.
 
-The implementation grows as complete executable profiles rather than accepting broad Java syntax into placeholder AST nodes. Unsupported Java or quantum constructs produce source diagnostics. The compiler lowers the accepted profile into WIP-0001 classical bodies and WIP-0002 quantum regions, and deletes each superseded parser path instead of maintaining dialects.
+The implementation grows as complete executable profiles rather than accepting broad Java syntax into placeholder AST nodes. Unsupported Java or quantum constructs produce source diagnostics. Every accepted declaration lowers into one Wheeler reversible typed IR: WIP-0001 classical bodies retain inverse/log/barrier semantics, WIP-0002 quantum regions retain affine resources and adjoints, and measurement or host work remains an explicit effect edge. The compiler deletes each superseded parser path instead of maintaining dialects; a Java-shaped surface never means Java-shaped semantics underneath.
 
 ## Motivation
 
@@ -98,7 +98,7 @@ A `coherent rev` method is callable normally from classical code and may be refe
 
 A `state long` field is classical mutable state in the first bytecode format. A `qreg` field is an affine logical quantum resource. Ordinary Java-like local variables, parameters, object fields, and richer exact types are added only with bytecode and ownership support.
 
-A `rev` method has a compiler-validated inverse body. A `coherent rev` method additionally satisfies WIP-0002 coherent eligibility. A `unitary` method lowers to quantum region IR and receives a generated adjoint.
+A `rev` method has a compiler-validated inverse body. A `coherent rev` method additionally satisfies WIP-0002 coherent eligibility. A `unitary` method lowers to quantum region IR and receives a generated adjoint. WIP-0031 carries those distinctions into callable values and effect-polymorphic APIs; it does not merge them into a universal function type.
 
 `reverse method();` invokes one method inverse. A `reverse { ... }` block inverses supported calls in reverse lexical order. It is language-level inverse execution, not VM history rewind.
 
@@ -179,7 +179,7 @@ The parser bounds source bytes, lines, declarations, methods, statements, regist
 - [x] Coherent method references execute on classical and simulated quantum data.
 - [x] Counter, QFT, and coherent-oracle examples use only the Wheeler source profile.
 - [x] Temporary source syntax and documentation are deleted.
-- [ ] Deterministic classical modules enforce exact declarations, sorted imports, public visibility, dependency-first linking, closed DAG inputs, manifest-bound source sets, and locked direct-package visibility; public immutable records/closed variants link and importers exhaustively match variants. WIP-0028 owns constrained generic collections and region loans. Exported state/proofs/circuits, package aliases/re-export, and complete qualified nominal APIs remain.
+- [ ] Deterministic classical modules enforce exact declarations, sorted imports, public visibility, dependency-first linking, closed DAG inputs, manifest-bound source sets, and locked direct-package visibility; public immutable records/closed variants link and importers exhaustively match variants. WIP-0028 owns cross-function ownership and region loans, WIP-0029 owns constrained generic values, WIP-0030 owns coherent class evidence, and WIP-0031 owns typed callable/effect polymorphism. Exported state/proofs/circuits, package aliases/re-export, and complete qualified nominal APIs remain.
 
 ## Testing and acceptance
 
@@ -220,5 +220,8 @@ Rejected. Reversibility, affine quantum resources, reverse blocks, and measureme
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
 - [WIP-0012](WIP-0012-wheeler-standard-library.md)
 - [WIP-0017](WIP-0017-compile-time-constants-and-finite-enums.md)
-- [WIP-0028](WIP-0028-constrained-generics-coherent-type-classes-and-region-ownership.md)
+- [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)
+- [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
+- [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
+- [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
 - [Language profile](../reference/language-profile.md)

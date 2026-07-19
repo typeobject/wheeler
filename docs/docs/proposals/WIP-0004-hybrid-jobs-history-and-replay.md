@@ -13,7 +13,7 @@
 
 ## Summary
 
-Wheeler executes hybrid programs as deterministic classical continuations separated by explicit quantum submission and observation events. A `HybridRun` owns classical reversible state, a bounded ordered event log, durable quantum job identities, target provenance, and commit horizons. Local simulators and remote hardware use the same asynchronous lifecycle even when local work completes immediately.
+Wheeler executes hybrid programs as a typed workflow graph over Wheeler's reversible IR: deterministic classical continuations are separated by explicit preparation, quantum submission, observation, reset, and host-effect edges. A `HybridRun` owns classical reversible state, a bounded ordered event log, durable quantum job identities, target provenance, and commit horizons. Local simulators and remote hardware use the same asynchronous lifecycle even when local work completes immediately.
 
 The runtime distinguishes undo from replay and retry. Classical WIP-0001 transitions can be rewound to the latest committed barrier. Recorded measurement and provider results can be replayed to reproduce later classical decisions without rerunning hardware. Retrying creates a new physical preparation and submission lineage. A transaction that has crossed measurement or submission can restore classical state and discard or compensate outputs, but it cannot claim to recreate an unknown prior quantum state.
 

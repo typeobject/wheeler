@@ -13,7 +13,7 @@
 
 ## Summary
 
-Wheeler may eventually support bounded certified program synthesis: search a finite, canonical program grammar for an implementation of a finite mathematical specification, check the implementation exactly, prove minimality within the selected grammar and resource metric, and publish proof-carrying source and bytecode.
+Wheeler may eventually support bounded certified program synthesis: search a finite, canonical grammar of Wheeler reversible IR operations for an implementation of a finite mathematical specification, check the implementation exactly, prove minimality within the selected grammar and resource metric, and publish proof-carrying source and canonical `.wbc`. Candidate syntax, search encodings, SAT terms, and provider circuits are derivations; only independently verified closed IR and kernel evidence can be promoted.
 
 `Foundry.w` is the driving application. Its first target is the smallest reversible comparator network, within an explicit comparator bound, that sorts eight 4-bit integers while retaining and cleaning an exact inverse witness.
 

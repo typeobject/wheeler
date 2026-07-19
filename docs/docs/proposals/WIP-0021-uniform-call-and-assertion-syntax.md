@@ -13,7 +13,7 @@
 
 ## Summary
 
-Wheeler should use one call-shaped spelling for operations that consume arguments. Assertions therefore use `assert(condition);`. The language should not duplicate that operation as `assertTrue`, `assertEquals`, `expectEqual`, matcher chains, or a bare `assert condition;` statement.
+Wheeler should use one call-shaped spelling for operations that consume arguments. Assertions therefore use `assert(condition);`. A uniform source shape does not imply a uniform semantic edge: ordinary, inverse, coherent, unitary, measurement, and effectful calls retain distinct reversible-IR descriptors and verifier rules. The language should not duplicate assertion as `assertTrue`, `assertEquals`, `expectEqual`, matcher chains, or a bare `assert condition;` statement.
 
 Test doubles should be explicit typed values or fixtures passed through ordinary ownership and capability boundaries. Wheeler should not grow Mockito-style interception, `when(...).thenReturn(...)`, ambient replacement registries, or a second meaning of `verify`. Familiar syntax is useful; familiar accidental complexity is still accidental complexity.
 

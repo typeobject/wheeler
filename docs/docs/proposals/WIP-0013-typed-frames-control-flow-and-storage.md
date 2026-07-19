@@ -13,7 +13,7 @@
 
 ## Summary
 
-Wheeler gains typed parameters, return values, local slots, expressions, bounded control flow, records, tagged variants, arrays, borrowed slices, and region-owned storage through a verified register-frame machine. This is the execution substrate for the self-hosted compiler and standard library. WIP-0028 generalizes these concrete operations into affine generic owners, structural capabilities, non-lexical shared/exclusive loans, and public region relations; it does not replace this bytecode and verifier substrate.
+Wheeler gains typed parameters, return values, local slots, expressions, bounded control flow, records, tagged variants, arrays, borrowed slices, and region-owned storage through a verified register-frame machine. This machine is the concrete classical portion of Wheeler's reversible typed IR and the execution substrate for the self-hosted compiler and standard library. WIP-0028 generalizes its concrete operations into affine owners, structural capabilities, non-lexical shared/exclusive loans, and public region relations; WIP-0029 applies them through generic types. Neither replaces this bytecode and verifier substrate.
 
 Functions declare parameter, result, local-slot, effect, and reversibility metadata. Bytecode uses typed frame-local registers and explicit control-flow targets. The verifier constructs a control-flow graph, checks register types and definite assignment, validates calls and returns, proves stack and storage bounds, and rejects irreducible or unbounded forms outside an explicitly permitted profile.
 
@@ -195,7 +195,7 @@ The initial compiler uses phase regions:
 
 A phase may move selected immutable values into a longer-lived region. Reclaiming a region is an ordinary effect. Logged or transactional region APIs state retained history explicitly.
 
-A tracing collector is not required for the first bootstrap. If added, collection timing cannot be source-observable or alter canonical output, and finalizers are not implicit external effects.
+A tracing collector is absent from the bootstrap and ordinary source-value model. Any future explicit traced region requires a separate WIP under WIP-0028; collection timing cannot alter source semantics, diagnostics, limits, canonical output, finalization, or FFI stability, and user finalizers remain excluded.
 
 ## Exceptions and failure
 
@@ -301,4 +301,6 @@ Rejected as the default. Hidden history changes effect and space semantics. Logg
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
 - [WIP-0012](WIP-0012-wheeler-standard-library.md)
 - [WIP-0017](WIP-0017-compile-time-constants-and-finite-enums.md)
-- [WIP-0028](WIP-0028-constrained-generics-coherent-type-classes-and-region-ownership.md)
+- [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)
+- [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
+- [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)

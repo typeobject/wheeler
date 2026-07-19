@@ -13,7 +13,7 @@
 
 ## Summary
 
-Wheeler supports immutable compile-time constants and finite enum types. Constants are typed names evaluated by the compiler. They allocate no globals, execute no initializer, and depend on no module load order. WIP-0028 reuses this exact bounded evaluator for const-generic lengths, widths, moduli, shapes, resource limits, and finite-basis cardinalities; it does not add arbitrary compile-time execution.
+Wheeler supports immutable compile-time constants and finite enum types. Constants are typed names evaluated by the compiler. They allocate no globals, execute no initializer, and depend on no module load order. WIP-0029 reuses this exact bounded evaluator for const-generic lengths, widths, moduli, shapes, resource limits, and finite-basis cardinalities; it does not add arbitrary compile-time execution.
 
 An enum is the nullary case of Wheeler's existing closed variant model, not a second object hierarchy. Enum members have semantic names but no implicit ordinal, integer conversion, singleton identity, or hidden wire value. Protocol encodings remain explicit ordinary Wheeler functions built from named constants, exhaustive enum matches, and checked decode results.
 
@@ -428,6 +428,8 @@ Deferred. Non-power-of-two domains leave invalid computational-basis states and 
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
 - [WIP-0013](WIP-0013-typed-frames-control-flow-and-storage.md)
 - [WIP-0016](WIP-0016-nonconfigurable-source-formatter.md)
-- [WIP-0028](WIP-0028-constrained-generics-coherent-type-classes-and-region-ownership.md)
+- [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
+- [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
+- [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
 - [Bytecode reference](../reference/bytecode.md)
 - [Language profile](../reference/language-profile.md)

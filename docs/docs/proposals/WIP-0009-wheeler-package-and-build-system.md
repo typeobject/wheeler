@@ -15,7 +15,7 @@
 
 Wheeler shall have a package manager and build system written in Wheeler and designed for Wheeler. The `wheeler` command owns workspaces, dependency resolution, compilation, testing, documentation, native lowering, content-addressed packaging, and registry operations. It ships in the native recovery release and replaces Gradle after WIP-0008 cutover.
 
-The system borrows the useful shape of modern language package tools—a single command, declarative manifests, exact lockfiles, reproducible builds, workspaces, package registries, and hermetic tests—but it is not a Cargo front end. Wheeler packages carry language-profile, reversibility, quantum-region, proof, target-capability, effect, and native-ABI metadata that generic Java or Rust package systems cannot enforce.
+The system borrows the useful shape of modern language package tools—a single command, declarative manifests, exact lockfiles, reproducible builds, workspaces, package registries, and hermetic tests—but it is not a Cargo front end. Wheeler packages carry the exact reversible typed IR profile: ownership, inverse/log/barrier classes, coherent permutations, quantum regions and adjoints, proofs, effects, target capabilities, bounds, and native ABI metadata. A package tool cannot erase those distinctions while repacking `.wbc` and still call the result Wheeler.
 
 A source manifest is declarative data, not an unrestricted build program. Build extensions are versioned Wheeler tool packages executed with explicit capabilities, bounded inputs, declared outputs, and no ambient filesystem or network access. Resolution and artifact construction are deterministic. Credentials, provider sessions, host paths, and mutable target calibration never enter package or lock identities.
 
@@ -255,7 +255,7 @@ The implemented stage-0 archive and locked-build core remains the foundation: de
 4. [WIP-0025](WIP-0025-native-ffi-and-system-integration.md) defines exact native ABI descriptors, affine foreign ownership, irreversible effects, package-visible providers, and explicit system capabilities without ambient loading.
 5. [WIP-0026](WIP-0026-self-contained-native-executables.md) defines one loader-native ELF, Mach-O, or PE file containing a verified read-only Wheeler capsule and embedded runtime.
 
-[WIP-0028](WIP-0028-constrained-generics-coherent-type-classes-and-region-ownership.md) adds generic API and instance-evidence identity on top of this graph: ordinary class instances come from the exact class/principal-type packages, adapter instances require direct dependency and explicit activation, and no transitive package may alter class selection. Generic body, constraints, defaults, associated types, laws, and selected evidence become package API and closed-artifact identity.
+[WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md) makes public ownership, region relations, and disposal obligations package API. [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md) binds generic body and closed-instantiation identities. [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md) binds class declarations, defaults, associated members, laws, and selected evidence: ordinary instances come from exact class/principal-type packages, adapters require direct dependency plus explicit activation, and no transitive package changes selection. [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md) binds callable kind, effect row, inverse/adjoint/control evidence, and resource bounds. Together they extend the graph without inventing a parallel artifact or a fourth target kind.
 
 The series preserves these rules:
 
@@ -404,4 +404,7 @@ Rejected. Credentials, queue selection, calibration, budgets, and hardware avail
 - [WIP-0024](WIP-0024-system-package-exports.md)
 - [WIP-0025](WIP-0025-native-ffi-and-system-integration.md)
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
-- [WIP-0028](WIP-0028-constrained-generics-coherent-type-classes-and-region-ownership.md)
+- [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)
+- [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
+- [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
+- [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)

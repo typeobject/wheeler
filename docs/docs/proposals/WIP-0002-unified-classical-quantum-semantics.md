@@ -15,7 +15,9 @@
 
 Wheeler uses one typed effect and region model across classical reversible execution, coherent quantum execution, measurement, and host effects. A verified classical `rev` function that satisfies the coherent subset can run as ordinary WIP-0001 bytecode on a CPU or be lifted automatically to a unitary operation when called with coherent operands. Quantum regions lower to backend-neutral region IR inside the same `.wbc` artifact; they are not foreign-language strings or opaque provider circuits.
 
-Transitions are seamless in source but explicit in semantics. Known classical data may parameterize or prepare quantum state. Measurement consumes coherent state and produces classical observations. Quantum data is affine, cannot be cloned or inspected, and must be uncomputed, measured, reset, or returned according to its resource contract. Measurement and remote submission are not described as physically reversible; Wheeler records observations and can replay or restart a workflow according to WIP-0004.
+Transitions are seamless in source but explicit in Wheeler's reversible typed IR. Classical bodies retain WIP-0001 inverse/log/barrier classes; coherent bodies are exact finite permutations; unitary bodies are backend-neutral quantum regions with adjoints; measurement, reset, target submission, replay, and retry remain distinct typed edges. Provider payloads are derived output, never the semantic IR.
+
+Known classical data may parameterize or prepare quantum state. Measurement consumes coherent state and produces classical observations. Quantum data is affine, cannot be cloned or inspected, and must be uncomputed, measured, reset, or returned according to its resource contract. Measurement and remote submission are not described as physically reversible; Wheeler records observations and can replay or restart a workflow according to WIP-0004.
 
 ## Motivation
 
@@ -85,22 +87,23 @@ A lifted reversible computation borrows ancillas initialized to zero, computes a
 - A **classical parameter** is immutable classical data used to construct gates or choose compile-time region structure without becoming quantum state.
 - A **measurement result** is a classical observation with basis, shot, region, and target provenance.
 
-### Effects
+### Callable characteristics and effects
 
-Computation domains and effects are separate. Wheeler tracks at least these effects:
+Computation domains, callable characteristics, and effects are separate. WIP-0031 names ordinary, reversible, coherent, and unitary callable kinds and canonical effect rows. This WIP owns the quantum meaning of the relevant characteristics and boundaries:
 
-| Effect | Meaning |
+| Form | Meaning |
 | --- | --- |
-| `pure` | No mutation, resource transition, measurement, submission, or host observation. |
-| `rev` | Classical state transition with a verified inverse or bounded WIP-0001 undo contract. |
+| `pure` | Empty ordinary effect row under the explicit trap contract. |
+| `rev` | Checked classical inverse relation; bounded WIP-0001 history is recorded separately and does not by itself confer this characteristic. |
+| `coherent rev` | Exact finite reversible permutation eligible for quantum lifting. |
 | `unitary` | Coherent state transition with a validated adjoint and no observation. |
-| `prepare` | Initialize a quantum resource from a declared known state or encoding. |
-| `measure` | Consume or transform coherent state and create a classical observation. |
-| `reset` | Discard prior coherent state through a target operation and establish a known state. |
-| `submit` | Materialize a quantum region on a simulator or target. |
-| `io` | External classical effect governed by WIP-0001 effect policy. |
+| `prepare` effect | Initialize a quantum resource from a declared known state or encoding. |
+| `measure` effect | Consume or transform coherent state and create a classical observation. |
+| `reset` effect | Discard prior coherent state through a target operation and establish a known state. |
+| `target` effect | Materialize or operate a semantic region on a simulator or target. |
+| host effects | File, network, process, clock, random, FFI, and related WIP-0031 labels governed by capabilities and WIP-0001 policy. |
 
-`classical`, `quantum`, and `hybrid` describe allowed data and lowering regions. They do not by themselves imply purity or reversibility. A quantum function that measures has a `measure` effect and is not `pure`. A closed gate circuit normally has `unitary`. A hybrid function may sequence several effect domains.
+`classical`, `quantum`, and `hybrid` describe allowed data and lowering regions. They imply neither purity nor reversibility. A quantum function that measures carries `measure` and is not `pure`. A closed gate operation normally has the `unitary` characteristic. A hybrid function may sequence several explicit effects without turning any of them into an inverse.
 
 ### Transition boundaries
 
@@ -142,7 +145,7 @@ Targets own physical or simulated quantum state. Wheeler code never receives raw
 
 ### Coherent lifting
 
-A `rev` callable receives an inferred `coherent` capability when the compiler proves all of the following:
+A `rev` callable receives the WIP-0031 `CoherentFunction` characteristic when the compiler proves all of the following:
 
 - inputs, outputs, and mutable state have finite exact encodings;
 - every reachable operation is intrinsic or checked reversible and has a unitary lowering;
@@ -328,7 +331,10 @@ Rejected by no-cloning. It copies known basis information in a restricted case a
 - [WIP-0003](WIP-0003-quantum-target-and-qiskit-backend.md)
 - [WIP-0004](WIP-0004-hybrid-jobs-history-and-replay.md)
 - [WIP-0010](WIP-0010-executable-application-portfolio.md)
-- [WIP-0028](WIP-0028-constrained-generics-coherent-type-classes-and-region-ownership.md)
+- [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)
+- [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
+- [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
+- [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
 - [`Counter.w`](../../../wheeler-examples/src/main/wheeler/Counter.w)
 - [`QFT.w`](../../../wheeler-examples/src/main/wheeler/QFT.w)
 - [`QuantumOptimizer.w`](../../../wheeler-examples/src/main/wheeler/QuantumOptimizer.w)

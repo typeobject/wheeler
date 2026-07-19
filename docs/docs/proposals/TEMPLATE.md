@@ -45,7 +45,7 @@ State what the language, compiler, bytecode verifier, VM, runtime, tools, and ho
 
 ## Design
 
-Describe the chosen contract and its major data structures or operations. Cover deterministic behavior, validation, diagnostics, lifecycle, and extension points. Introduce concrete APIs and encodings only after the semantic contract is clear.
+Describe the chosen contract and its major data structures or operations. State how it preserves Wheeler's common reversible typed IR: intrinsic/checked inverse, logged rewind, irreversible barrier, coherent permutation, unitary adjoint, or an explicit nonunitary workflow edge. Cover deterministic behavior, validation, diagnostics, lifecycle, and extension points. Introduce concrete APIs and encodings only after the semantic contract is clear.
 
 ## Reversibility and history
 

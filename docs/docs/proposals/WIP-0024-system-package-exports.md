@@ -13,7 +13,7 @@
 
 ## Summary
 
-Wheeler will convert exact verified build outputs into a canonical format-neutral install image, then convert that image into target system packages such as `.deb` and `.rpm`. System packages are derived deployment artifacts. They do not redefine source identity, dependency resolution, proof meaning, `.wbc` identity, or package PREV.
+Wheeler will convert exact verified build outputs into a canonical format-neutral install image, then convert that image into target system packages such as `.deb` and `.rpm`. System packages are derived deployment artifacts. They do not redefine source identity, dependency resolution, proof meaning, `.wbc` identity, reversible-IR ownership/effect/inverse/adjoint semantics, or package PREV.
 
 The pipeline constructs an install image, applies one pinned distribution profile and dependency-mapping snapshot, invokes one exact sealed adapter, emits reproducible unsigned package bytes, and performs signing/publication as separate release effects. Arbitrary maintainer scripts are excluded from the first profile; lifecycle behavior uses a small typed model.
 

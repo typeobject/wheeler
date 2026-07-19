@@ -1,6 +1,6 @@
 # Wheeler bytecode format
 
-Wheeler executables use the `.wbc` Wheeler Bytecode Container. They are not JVM `.class` files.
+Wheeler executables use the `.wbc` Wheeler Bytecode Container. It is the closed reversible typed IR and sole semantic artifact: classical instructions retain inverse/log/barrier rules, workflow records retain irreversible boundaries, and quantum regions retain semantic operations and adjoints. Native code, OpenQASM, and provider payloads are derived. `.wbc` is not a JVM `.class` file.
 
 ## Header
 

@@ -34,6 +34,8 @@ The basic idea is:
 - make measurement, external effects, retries, and replay explicit;
 - attach machine-checkable claims to the same code as the proof profile lands.
 
+All of those forms lower to one reversible typed Wheeler IR. “Reversible” is an accounting discipline, not a claim that printing a diagnostic is bijective: ordinary destructive transitions declare bounded rewind data, host observations declare barriers, coherent calls declare exact finite permutations, and unitary regions declare adjoints. Measurement and workflow edges stay visible. Native code and provider circuits are derived from that IR rather than quietly replacing it.
+
 Wheeler asks not only **“What does this program do?”** but also **“What information did it consume, what can be undone, and what evidence do we have that any of this is correct?”**
 
 That is the project in one paragraph. The rest explains why it is interesting rather than merely exhausting.

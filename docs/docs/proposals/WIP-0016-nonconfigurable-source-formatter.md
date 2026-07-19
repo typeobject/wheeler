@@ -17,7 +17,7 @@ Wheeler will ship one deterministic formatter for `.w` source and one documentat
 
 `//!` documents the containing source file or module. `///` documents the declaration that immediately follows it. `//` and `/* ... */` remain ordinary implementation comments. Documentation text is source-readable, line-oriented, and minimally structured: a required summary paragraph followed, when useful, by a small set of Wheeler-specific semantic facets such as effects, inverse behavior, coherent action, adjoint behavior, traps, and bounds.
 
-The formatter preserves syntax, declaration order, literal bytes, comment payloads, and comment attachment. It applies fixed whitespace and local line-breaking rules, never reflows documentation prose, and either publishes a complete formatted file atomically or leaves the original untouched.
+The formatter preserves syntax, declaration order, literal bytes, comment payloads, and comment attachment. It cannot alter ownership, effects, inverse/adjoint characteristics, or any other reversible-IR meaning. It applies fixed whitespace and local line-breaking rules, never reflows documentation prose, and either publishes a complete formatted file atomically or leaves the original untouched.
 
 Formatting and documentation validation are separate operations over the same lossless concrete syntax. A valid but undocumented buffer can always be formatted. Documentation checks report missing or malformed documentation without changing source. Neither operation reads a style file, environment variable, editor preference, terminal width, locale, or other ambient host state.
 

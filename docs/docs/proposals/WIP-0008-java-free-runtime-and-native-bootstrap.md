@@ -15,7 +15,7 @@
 
 Wheeler's production toolchain and runtime shall have no Java dependency. The current Java compiler, VM, runtime, and Gradle build are quarantined below top-level `bootstrap/` as stage-0 infrastructure. They exist to establish semantics and seed the self-hosted implementation; they are deleted after a conforming Wheeler-written toolchain can rebuild and test itself from a pinned native recovery release. WIP-0009 supplies the Wheeler-native package and build system that replaces Gradle.
 
-Canonical `.wbc` remains the portable executable and semantic boundary. A native backend lowers verified `.wbc` to host code for distribution and bootstrapping. The Wheeler compiler, verifier, VM or execution runtime, disassembler, OpenQASM emitter, and build driver become Wheeler programs. A narrow platform ABI supplies memory, process arguments, bounded file operations, and other explicitly granted host effects. It does not expose JVM objects or reproduce the Java class library.
+Canonical `.wbc` remains the portable executable and semantic boundary: its classical inverse/log/barrier bodies and semantic quantum regions are Wheeler's reversible typed IR. A native backend lowers verified `.wbc` to derived host IR and machine code for distribution and bootstrapping; backend IR cannot redefine ownership, effects, traps, inverse relations, or adjoints. The Wheeler compiler, verifier, VM or execution runtime, disassembler, OpenQASM emitter, and build driver become Wheeler programs. A narrow platform ABI supplies memory, process arguments, bounded file operations, and other explicitly granted host effects. It does not expose JVM objects or reproduce the Java class library.
 
 No self-hosted language builds from literal nothing. A cold build starts from a reviewed prior Wheeler native release and its content-addressed `.wbc` seed, just as WIP-0007 starts from a prior compiler stage. Fixed-point reproduction is paired with diverse double compilation and complete provenance; otherwise a malicious ancestor can reproduce itself perfectly and call that success. The trust chain is explicit, reproducible, replaceable, and independently challengeable; Java is not in it after cutover.
 
@@ -218,7 +218,7 @@ Rejected. The current implementation is the executable migration oracle. It is t
 
 ## Open questions
 
-- Which native IR and backend form the first supported AOT path? — **Owner:** compiler and platform maintainers — **Decide by:** before native code enters ordinary CI
+- Which derived native backend IR and code generator form the first supported AOT path? — **Owner:** compiler and platform maintainers — **Decide by:** before native code enters ordinary CI
 - What is the smallest C-compatible ABI shim that supports tier-1 systems without owning language semantics? — **Owner:** runtime maintainers — **Decide by:** before Wheeler allocator implementation
 - Which object formats can provide byte-reproducible native releases, and where must the manifest compare normalized identities instead? — **Owner:** release maintainers — **Decide by:** before the first recovery release
 
@@ -233,3 +233,5 @@ Rejected. The current implementation is the executable migration oracle. It is t
 - [WIP-0023](WIP-0023-recipe-repositories-and-reproducible-builds.md)
 - [WIP-0025](WIP-0025-native-ffi-and-system-integration.md)
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
+- [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)
+- [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)

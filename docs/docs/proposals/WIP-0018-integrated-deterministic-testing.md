@@ -15,7 +15,7 @@
 
 Wheeler will provide one integrated test framework with JUnit 5's useful shape—declarative cases, lifecycle fixtures, parameterized tests, tags, assertions, discovery, and tool reports—without importing Java reflection, exception, thread, or class-loader semantics.
 
-Tests are Wheeler declarations compiled into canonical `.wbc`, selected by exact package targets, and executed in fresh bounded VM instances. Discovery, case identity, parameter order, scheduling, shrinking, diagnostics, and report reduction are deterministic. Reversible, quantum, hybrid, workflow, proof, and malformed-artifact tests receive distinct assertion contracts; “the test passed after rewind” is not accepted as evidence that an inverse exists.
+Tests are Wheeler declarations compiled into canonical `.wbc`, selected by exact package targets, and executed in fresh bounded VM instances. They observe the same reversible typed IR as production code without injecting semantic counters or rewriting it into a test dialect. Discovery, case identity, parameter order, scheduling, shrinking, diagnostics, and report reduction are deterministic. Reversible, coherent, unitary, measurement, hybrid, workflow, proof, and malformed-artifact tests receive distinct assertion contracts; “the test passed after rewind” is not accepted as evidence that an inverse exists.
 
 This WIP reserves a testing model, not a licence to rename JUnit classes and declare victory. Java/JUnit remains a stage-0 conformance harness until Wheeler can run the same semantic suites itself.
 

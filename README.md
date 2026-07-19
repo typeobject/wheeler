@@ -2,7 +2,7 @@
 
 Wheeler is a programming language for [reversible computing](https://en.wikipedia.org/wiki/Reversible_computing) and [quantum computing](https://en.wikipedia.org/wiki/Quantum_computing). A verified reversible function can run as ordinary classical code or be lifted coherently for quantum execution, so the same implementation serves both domains.
 
-The language keeps inverse execution, VM rewind, quantum adjoints, measurement, replay, and retry distinct. It uses familiar class and method syntax while making irreversible effects and affine quantum resources explicit.
+The language keeps inverse execution, VM rewind, coherent permutations, quantum adjoints, measurement, replay, compensation, and retry distinct. Familiar class and method syntax lowers to one verified reversible typed IR: ordinary destructive work declares bounded history or a barrier, `rev` work declares an exact inverse, coherent work declares a finite permutation, and unitary work declares an adjoint-bearing quantum region. Irreversible effects and affine quantum resources stay explicit.
 
 ## Example
 

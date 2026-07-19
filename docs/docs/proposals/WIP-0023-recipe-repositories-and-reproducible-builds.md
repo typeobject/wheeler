@@ -15,7 +15,7 @@
 
 Wheeler repositories are immutable trust domains with signed content-addressed snapshots. A deployment may expose a Git-reviewed recipe index, source store, binary store, attestations, and advisories through one service or several, but mirrors preserve repository and snapshot identity.
 
-The model adopts Conan's useful distinction among semantic version, recipe revision (`RREV`), configuration-derived variant, and package revision (`PREV`) without importing unrestricted Python recipes or mutable package-ID functions. Recipes are canonical declarative data. Exact sources, patches, dependencies, tools, exports, tests, and compatibility metadata enter RREV. A complete `build_input_id` records every declared cause of output. PREV hashes exact unsigned package bytes. One build-input identity has at most one accepted PREV; a differing rebuild is quarantined rather than promoted as a newer flavor of nondeterminism.
+The model adopts Conan's useful distinction among semantic version, recipe revision (`RREV`), configuration-derived variant, and package revision (`PREV`) without importing unrestricted Python recipes or mutable package-ID functions. Recipes are canonical declarative data. Exact sources, patches, dependencies, tools, exports, tests, and compatibility metadata enter RREV. A complete `build_input_id` records every declared cause of output, including the Wheeler reversible-IR/compiler profile. PREV hashes exact unsigned package bytes. One build-input identity has at most one accepted PREV; a differing rebuild is quarantined rather than promoted as a newer flavor of nondeterminism. Reproducibility never blesses malformed inverse, effect, ownership, proof, or quantum metadata; every rebuilt `.wbc` is independently verified.
 
 ## Motivation
 
