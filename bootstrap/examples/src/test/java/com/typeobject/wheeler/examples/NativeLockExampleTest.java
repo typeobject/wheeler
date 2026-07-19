@@ -34,13 +34,15 @@ class NativeLockExampleTest {
     String c = "c".repeat(64);
     String d = "d".repeat(64);
     String e = "e".repeat(64);
+    String f = "f".repeat(64);
     String canonical =
-        "schema: 2\n"
+        "schema: 3\n"
             + "root: \"" + a + "\"\n"
             + "packages:\n"
             + "  - name: \"demo.app\"\n"
             + "    version: \"1.0.0\"\n"
             + "    repository: \"" + a + "\"\n"
+            + "    snapshot: \"" + f + "\"\n"
             + "    archive: \"" + b + "\"\n"
             + "    manifest: \"" + c + "\"\n"
             + "    dependencies:\n"
@@ -48,6 +50,7 @@ class NativeLockExampleTest {
             + "  - name: \"demo.base\"\n"
             + "    version: \"2.1.0\"\n"
             + "    repository: \"" + a + "\"\n"
+            + "    snapshot: \"" + f + "\"\n"
             + "    archive: \"" + d + "\"\n"
             + "    manifest: \"" + e + "\"\n"
             + "    dependencies: []\n";
@@ -71,23 +74,23 @@ class NativeLockExampleTest {
     }
     assertEquals(initial, machine.snapshot());
 
-    String eightPackages = lockWithPackages(8, a, b, c);
-    VirtualMachine larger = vm(program, eightPackages);
+    String sixPackages = lockWithPackages(6, a, f, b, c);
+    VirtualMachine larger = vm(program, sixPackages);
     larger.run();
-    assertEquals(8, larger.global("packageCount"));
+    assertEquals(6, larger.global("packageCount"));
     assertEquals(8, larger.global("lastNameLength"));
     assertEquals(0, larger.global("edgeCount"));
-    assertEquals(eightPackages, new String(larger.hostOutput(), StandardCharsets.UTF_8));
+    assertEquals(sixPackages, new String(larger.hostOutput(), StandardCharsets.UTF_8));
     new PackageLockParser().parse(larger.hostOutput());
-    assertTraps(program, lockWithPackages(9, a, b, c));
+    assertTraps(program, lockWithPackages(7, a, f, b, c));
 
-    String empty = "schema: 2\nroot: \"" + a + "\"\npackages: []\n";
+    String empty = "schema: 3\nroot: \"" + a + "\"\npackages: []\n";
     VirtualMachine emptyMachine = vm(program, empty);
     emptyMachine.run();
     assertEquals(0, emptyMachine.global("packageCount"));
     new PackageLockParser().parse(emptyMachine.hostOutput());
 
-    assertTraps(program, canonical.replace("schema: 2", "schema: 1"));
+    assertTraps(program, canonical.replace("schema: 3", "schema: 2"));
     assertTraps(program, canonical.replace(a, "A" + a.substring(1)));
     assertTraps(
         program,
@@ -103,14 +106,15 @@ class NativeLockExampleTest {
   }
 
   private static String lockWithPackages(
-      int count, String repository, String archive, String manifest) {
+      int count, String repository, String snapshot, String archive, String manifest) {
     StringBuilder source = new StringBuilder()
-        .append("schema: 2\nroot: \"").append(repository).append("\"\npackages:\n");
+        .append("schema: 3\nroot: \"").append(repository).append("\"\npackages:\n");
     for (int index = 0; index < count; index++) {
       String suffix = index < 10 ? "0" + index : Integer.toString(index);
       source.append("  - name: \"demo.p").append(suffix).append("\"\n")
           .append("    version: \"1.0.0\"\n")
           .append("    repository: \"").append(repository).append("\"\n")
+          .append("    snapshot: \"").append(snapshot).append("\"\n")
           .append("    archive: \"").append(archive).append("\"\n")
           .append("    manifest: \"").append(manifest).append("\"\n")
           .append("    dependencies: []\n");

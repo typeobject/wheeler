@@ -21,19 +21,20 @@ classical class NativeLock {
   ///
   /// - Effects: Mutates declared state and caller-owned byte output.
   entry void main(borrow utf8 source, borrow mut bytes canonical) {
-    region arena = new region(14336, 14);
+    region arena = new region(14336, 15);
     words kinds = allocate(arena, 512);
     words starts = allocate(arena, 512);
     words lengths = allocate(arena, 512);
-    words packageNameStarts = allocate(arena, 8);
-    words packageNameLengths = allocate(arena, 8);
-    words versionStarts = allocate(arena, 8);
-    words versionLengths = allocate(arena, 8);
-    words repositoryStarts = allocate(arena, 8);
-    words archiveStarts = allocate(arena, 8);
-    words manifestStarts = allocate(arena, 8);
-    words dependencyOffsets = allocate(arena, 8);
-    words dependencyCounts = allocate(arena, 8);
+    words packageNameStarts = allocate(arena, 6);
+    words packageNameLengths = allocate(arena, 6);
+    words versionStarts = allocate(arena, 6);
+    words versionLengths = allocate(arena, 6);
+    words repositoryStarts = allocate(arena, 6);
+    words snapshotStarts = allocate(arena, 6);
+    words archiveStarts = allocate(arena, 6);
+    words manifestStarts = allocate(arena, 6);
+    words dependencyOffsets = allocate(arena, 6);
+    words dependencyCounts = allocate(arena, 6);
     words edgeTargetStarts = allocate(arena, 16);
     words edgeTargetLengths = allocate(arena, 16);
     long count = 0;
@@ -58,6 +59,7 @@ classical class NativeLock {
       versionStarts,
       versionLengths,
       repositoryStarts,
+      snapshotStarts,
       archiveStarts,
       manifestStarts,
       dependencyOffsets,
@@ -96,6 +98,7 @@ classical class NativeLock {
     drop(dependencyOffsets);
     drop(manifestStarts);
     drop(archiveStarts);
+    drop(snapshotStarts);
     drop(repositoryStarts);
     drop(versionLengths);
     drop(versionStarts);

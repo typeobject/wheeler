@@ -14,6 +14,7 @@ import com.typeobject.wheeler.packageformat.RepositoryPolicy;
 import com.typeobject.wheeler.packageformat.RepositoryPolicy.Repository;
 import com.typeobject.wheeler.packageformat.RepositoryPolicy.Transport;
 import com.typeobject.wheeler.packageformat.RepositoryPolicyParser;
+import com.typeobject.wheeler.packageformat.RepositorySnapshot;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -98,6 +99,14 @@ class RepositoryCommandTest {
     byte[] privateBytes = archive((byte) 2);
 
     RepositoryAccess.publication(paths, "local").publish(localBytes);
+    Path localSnapshot;
+    try (var snapshots = Files.list(paths.dataRepository().resolve("snapshots"))) {
+      localSnapshot = snapshots.findFirst().orElseThrow();
+    }
+    RepositorySnapshot localView = RepositorySnapshot.parse(Files.readAllBytes(localSnapshot));
+    assertEquals(localView.identity() + RepositorySnapshot.SUFFIX,
+        localSnapshot.getFileName().toString());
+    assertEquals(1, localView.releases().size());
     assertArrayEquals(
         localBytes, RepositoryAccess.fetch(paths, null, "demo.library", "1.0.0"));
     String localIdentity = new PackageArchive().identity(localBytes);
@@ -129,10 +138,13 @@ class RepositoryCommandTest {
             PackageManifest.TargetKind.DEPLOYABLE, "main", "src/Main.w")),
         List.of(new Dependency(DependencyKind.NORMAL, "demo.library", "^1.0.0")),
         List.of());
+    var resolved = RepositoryAccess.resolver(paths, List.of()).resolve(root, false);
     assertEquals(
         new PackageArchive().identity(privateBytes),
-        RepositoryAccess.resolver(paths, List.of()).resolve(root, false)
-            .entries().getFirst().archiveIdentity());
+        resolved.entries().getFirst().archiveIdentity());
+    assertEquals(
+        PackageRegistry.open(privateRoot).snapshot().identity(),
+        resolved.entries().getFirst().snapshotIdentity());
 
     Path junk = paths.artifactCache().resolve("packages/junk");
     Files.write(junk, new byte[] {9});

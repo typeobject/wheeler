@@ -5,6 +5,7 @@ import com.typeobject.wheeler.packageformat.PackageArchive.DecodedPackage;
 import com.typeobject.wheeler.packageformat.PackageFormatException;
 import com.typeobject.wheeler.packageformat.PackageRelease;
 import com.typeobject.wheeler.packageformat.RepositoryRelease;
+import com.typeobject.wheeler.packageformat.RepositorySnapshot;
 import com.typeobject.wheeler.packageformat.SemanticVersion;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -64,6 +65,7 @@ final class PackageRegistry {
       PackageProject.writeAtomically(mapping, releaseBytes);
     }
     verifyRelease(mapping, decoded.manifest().name(), decoded.manifest().version());
+    snapshot();
     return decoded;
   }
 
@@ -118,6 +120,19 @@ final class PackageRegistry {
       throw new PackageFormatException("Registry release content does not match its mapping");
     }
     return bytes;
+  }
+
+  SnapshotView snapshot() throws IOException {
+    List<PackageRelease> releases = releases();
+    RepositorySnapshot snapshot = RepositorySnapshot.fromPackageReleases(releases);
+    Path snapshots = physicalDirectory("snapshots");
+    Path object = snapshots.resolve(snapshot.identity() + RepositorySnapshot.SUFFIX);
+    writeImmutable(object, snapshot.canonicalBytes(), "snapshot");
+    RepositorySnapshot decoded = RepositorySnapshot.parse(Files.readAllBytes(object));
+    if (!decoded.equals(snapshot)) {
+      throw new PackageFormatException("Stored repository snapshot changed identity");
+    }
+    return new SnapshotView(snapshot.identity(), releases);
   }
 
   List<PackageRelease> releases() throws IOException {
@@ -222,6 +237,12 @@ final class PackageRegistry {
   private static void requirePhysicalFile(Path path, String description) throws IOException {
     if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS) || Files.isSymbolicLink(path)) {
       throw new IOException("Missing physical " + description + ": " + path);
+    }
+  }
+
+  record SnapshotView(String identity, List<PackageRelease> releases) {
+    SnapshotView {
+      releases = List.copyOf(releases);
     }
   }
 

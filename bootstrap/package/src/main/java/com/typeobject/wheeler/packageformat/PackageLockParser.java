@@ -16,7 +16,7 @@ public final class PackageLockParser {
   private static final int MAX_BYTES = 4 * 1024 * 1024;
   private static final Set<String> ROOT_FIELDS = Set.of("schema", "root", "packages");
   private static final Set<String> PACKAGE_FIELDS = Set.of(
-      "name", "version", "repository", "archive", "manifest", "dependencies");
+      "name", "version", "repository", "snapshot", "archive", "manifest", "dependencies");
 
   public PackageLock parse(byte[] utf8) {
     if (utf8.length > MAX_BYTES) {
@@ -55,13 +55,18 @@ public final class PackageLockParser {
           requiredString(entry, "name"),
           requiredString(entry, "version"),
           requiredString(entry, "repository"),
+          requiredString(entry, "snapshot"),
           requiredString(entry, "archive"),
           requiredString(entry, "manifest"),
           stringList(CanonicalYaml.sequence(
               CanonicalYaml.required(entry, "dependencies", "locked package"),
               "locked package dependencies"))));
     }
-    return new PackageLock(schema, rootIdentity, entries);
+    PackageLock lock = new PackageLock(schema, rootIdentity, entries);
+    if (!lock.canonicalText().equals(source)) {
+      throw new PackageFormatException("Package lock is not canonical");
+    }
+    return lock;
   }
 
   private static String requiredString(Mapping mapping, String key) {

@@ -99,7 +99,7 @@ classical class Lock {
     long count,
     long cursor
   ) {
-    if (cursor + 17 < count) {
+    if (cursor + 20 < count) {
       if (dashAt(source, kinds, starts, cursor)) {
         if (key(source, kinds, starts, lengths, count, cursor + 1, 3373707)) {
           if (quoted(kinds, lengths, cursor + 3)) {
@@ -139,7 +139,7 @@ classical class Lock {
                             lengths,
                             count,
                             cursor + 10,
-                            89446211778
+                            3264460019140
                           )
                         ) {
                           if (hexDigest(source, kinds, starts, lengths, cursor + 12)) {
@@ -151,21 +151,37 @@ classical class Lock {
                                 lengths,
                                 count,
                                 cursor + 13,
-                                3088212110895
+                                89446211778
                               )
                             ) {
                               if (
                                 hexDigest(source, kinds, starts, lengths, cursor + 15)
                               ) {
-                                return key(
-                                  source,
-                                  kinds,
-                                  starts,
-                                  lengths,
-                                  count,
-                                  cursor + 16,
-                                  2626680644436426025
-                                );
+                                if (
+                                  key(
+                                    source,
+                                    kinds,
+                                    starts,
+                                    lengths,
+                                    count,
+                                    cursor + 16,
+                                    3088212110895
+                                  )
+                                ) {
+                                  if (
+                                    hexDigest(source, kinds, starts, lengths, cursor + 18)
+                                  ) {
+                                    return key(
+                                      source,
+                                      kinds,
+                                      starts,
+                                      lengths,
+                                      count,
+                                      cursor + 19,
+                                      2626680644436426025
+                                    );
+                                  }
+                                }
                               }
                             }
                           }
@@ -215,6 +231,7 @@ classical class Lock {
     borrow mut words versionStarts,
     borrow mut words versionLengths,
     borrow mut words repositoryStarts,
+    borrow mut words snapshotStarts,
     borrow mut words archiveStarts,
     borrow mut words manifestStarts,
     borrow mut words dependencyOffsets,
@@ -226,10 +243,12 @@ classical class Lock {
         if (packageCount < bufferLength(versionStarts)) {
           if (packageCount < bufferLength(versionLengths)) {
             if (packageCount < bufferLength(repositoryStarts)) {
-              if (packageCount < bufferLength(archiveStarts)) {
-                if (packageCount < bufferLength(manifestStarts)) {
-                  if (packageCount < bufferLength(dependencyOffsets)) {
-                    return packageCount < bufferLength(dependencyCounts);
+              if (packageCount < bufferLength(snapshotStarts)) {
+                if (packageCount < bufferLength(archiveStarts)) {
+                  if (packageCount < bufferLength(manifestStarts)) {
+                    if (packageCount < bufferLength(dependencyOffsets)) {
+                      return packageCount < bufferLength(dependencyCounts);
+                    }
                   }
                 }
               }
@@ -304,6 +323,7 @@ classical class Lock {
     borrow mut words versionStarts,
     borrow mut words versionLengths,
     borrow mut words repositoryStarts,
+    borrow mut words snapshotStarts,
     borrow mut words archiveStarts,
     borrow mut words manifestStarts,
     borrow mut words dependencyOffsets,
@@ -319,8 +339,8 @@ classical class Lock {
       return new LockResult.Error(0);
     }
 
-    boolean schemaTwo = tokenHash(source, starts, lengths, 2) == 50;
-    if (schemaTwo == false) {
+    boolean schemaThree = tokenHash(source, starts, lengths, 2) == 51;
+    if (schemaThree == false) {
       return new LockResult.Error(starts[2]);
     }
 
@@ -365,6 +385,7 @@ classical class Lock {
           versionStarts,
           versionLengths,
           repositoryStarts,
+          snapshotStarts,
           archiveStarts,
           manifestStarts,
           dependencyOffsets,
@@ -388,11 +409,12 @@ classical class Lock {
       set(versionStarts, packageCount, starts[cursor + 6] + 1);
       set(versionLengths, packageCount, lengths[cursor + 6] - 2);
       set(repositoryStarts, packageCount, starts[cursor + 9] + 1);
-      set(archiveStarts, packageCount, starts[cursor + 12] + 1);
-      set(manifestStarts, packageCount, starts[cursor + 15] + 1);
+      set(snapshotStarts, packageCount, starts[cursor + 12] + 1);
+      set(archiveStarts, packageCount, starts[cursor + 15] + 1);
+      set(manifestStarts, packageCount, starts[cursor + 18] + 1);
       set(dependencyOffsets, packageCount, edgeCount);
 
-      long dependencyCursor = cursor + 18;
+      long dependencyCursor = cursor + 21;
       long dependencyCount = 0;
       long previousDependencyToken = -1;
       if (punctuation(source, kinds, starts, count, dependencyCursor, 91)) {

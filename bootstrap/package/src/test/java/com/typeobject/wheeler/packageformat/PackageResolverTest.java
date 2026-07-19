@@ -2,6 +2,7 @@ package com.typeobject.wheeler.packageformat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -126,9 +127,11 @@ class PackageResolverTest {
     PackageResolver expanded = new PackageResolver(List.of(high, low));
 
     assertEquals("1.1.0", expanded.resolve(root, false).entries().getFirst().version());
-    assertEquals(
-        "1.0.0",
-        expanded.resolve(root, false, preferred).entries().getFirst().version());
+    PackageLock retained = expanded.resolve(root, false, preferred);
+    assertEquals("1.0.0", retained.entries().getFirst().version());
+    assertNotEquals(
+        preferred.entries().getFirst().snapshotIdentity(),
+        retained.entries().getFirst().snapshotIdentity());
     assertEquals(
         "1.1.0",
         expanded.resolve(root, false, preferred, Set.of("lib.a"))
@@ -170,7 +173,7 @@ class PackageResolverTest {
     PackageManifest root = manifest("root.app", "1.0.0", List.of(
         dependency("lib.a", "=0.0.0", DependencyKind.NORMAL)));
     List<PackageRelease> largeCatalog = new ArrayList<>();
-    for (int minor = 0; minor <= 10_000; minor++) {
+    for (int minor = 0; minor < 10_000; minor++) {
       largeCatalog.add(release(manifest("lib.a", "0." + minor + ".0", List.of()), 'a'));
     }
 
@@ -219,11 +222,11 @@ class PackageResolverTest {
         "0".repeat(64),
         List.of(
             new PackageLock.Entry(
-                "lib.a", "1.0.0", "a".repeat(64), "1".repeat(64), "2".repeat(64),
-                List.of("lib.b")),
+                "lib.a", "1.0.0", "a".repeat(64), "b".repeat(64),
+                "1".repeat(64), "2".repeat(64), List.of("lib.b")),
             new PackageLock.Entry(
-                "lib.b", "1.0.0", "a".repeat(64), "3".repeat(64), "4".repeat(64),
-                List.of())));
+                "lib.b", "1.0.0", "a".repeat(64), "b".repeat(64),
+                "3".repeat(64), "4".repeat(64), List.of())));
     PackageLockParser parser = new PackageLockParser();
 
     assertThrows(PackageFormatException.class, () -> parser.parse(new byte[] {(byte) 0xc3}));

@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.tools;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -127,7 +128,11 @@ class PackageResolutionCommandTest {
         },
         output,
         sink));
-    assertEquals(preferredLock, Files.readString(lockPath));
+    PackageLock retained = new PackageLockParser().parse(Files.readAllBytes(lockPath));
+    assertEquals("1.0.0", retained.entries().getFirst().version());
+    assertNotEquals(
+        lock.entries().getFirst().snapshotIdentity(),
+        retained.entries().getFirst().snapshotIdentity());
     assertEquals(0, Wheeler.execute(
         new String[] {
             "resolve", application.toString(), "--catalog", catalog.toString(),

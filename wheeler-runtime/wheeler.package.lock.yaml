@@ -1,9 +1,10 @@
-schema: 2
+schema: 3
 root: "42cb579e63bea46fd92ce5da3789f9b491b35537a43d50d07fca8139657c3ad5"
 packages:
   - name: "wheeler.compiler"
     version: "0.1.0"
     repository: "ee9855ff0d7866533c49b81a7eeb7d1a2cac9d7efbd300c583d29e699516efb0"
+    snapshot: "71bb82f4102a6b0bc631fbfb95636db77dc6c0bb98ceb233cd8c36f35bd6973a"
     archive: "0dc55e8b2f29686202dd34d8c4fe48844518127d68fc4dde335f4022dc1e6b96"
     manifest: "d7d6fb54d4a202cba069d191c7efe75d4d467d2b7a06d06a7cb7d56fc28e2cf9"
     dependencies:
@@ -11,6 +12,7 @@ packages:
   - name: "wheeler.core"
     version: "0.1.0"
     repository: "ee9855ff0d7866533c49b81a7eeb7d1a2cac9d7efbd300c583d29e699516efb0"
+    snapshot: "71bb82f4102a6b0bc631fbfb95636db77dc6c0bb98ceb233cd8c36f35bd6973a"
     archive: "b194fab1a54d8b113736952a8b37bf7b8db8cff492b91791e78522e01750e2c0"
     manifest: "262c8c86b121fb4fd5ba1c1c0297ba1cd2abdb3ac7f01e2b0e914f6daff42f0c"
     dependencies: []

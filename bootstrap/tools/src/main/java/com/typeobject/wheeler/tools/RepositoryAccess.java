@@ -5,6 +5,7 @@ import com.typeobject.wheeler.packageformat.PackageRelease;
 import com.typeobject.wheeler.packageformat.PackageResolver;
 import com.typeobject.wheeler.packageformat.RepositoryPolicy;
 import com.typeobject.wheeler.packageformat.RepositoryRelease;
+import com.typeobject.wheeler.packageformat.RepositorySnapshot;
 import com.typeobject.wheeler.packageformat.RepositoryPolicy.Repository;
 import com.typeobject.wheeler.packageformat.RepositoryPolicy.Transport;
 import java.io.IOException;
@@ -50,12 +51,17 @@ final class RepositoryAccess {
       }
       requireEnabledFile(repository);
       Path root = Path.of(repository.location());
-      List<PackageRelease> releases = Files.exists(root, LinkOption.NOFOLLOW_LINKS)
-          ? PackageRegistry.open(root).releases().stream()
-              .filter(release -> repository.authoritativeFor(release.manifest().name()))
-              .toList()
-          : List.of();
-      catalogs.add(new PackageResolver.RepositoryCatalog(repository.identity(), releases));
+      if (Files.exists(root, LinkOption.NOFOLLOW_LINKS)) {
+        PackageRegistry.SnapshotView snapshot = PackageRegistry.open(root).snapshot();
+        List<PackageRelease> releases = snapshot.releases().stream()
+            .filter(release -> repository.authoritativeFor(release.manifest().name()))
+            .toList();
+        catalogs.add(new PackageResolver.RepositoryCatalog(
+            repository.identity(), snapshot.identity(), releases));
+      } else {
+        catalogs.add(new PackageResolver.RepositoryCatalog(
+            repository.identity(), RepositorySnapshot.EMPTY_IDENTITY, List.of()));
+      }
     }
     if (catalogs.isEmpty()) {
       throw new PackageFormatException("No enabled repositories are selected");

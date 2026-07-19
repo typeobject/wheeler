@@ -209,9 +209,9 @@ Reject noncanonical snapshots, invalid delegations, conflicting mappings, source
 - [ ] Fetch separated from build.
 - [x] XDG path resolution, canonical ordered file-repository policy, immutable local publication, canonical release mappings, and exact first-authoritative fetch are implemented in stage 0.
 - [x] Unlocked stage-0 resolution honors namespace authority and first-admissible configured repository order without candidate mixing.
-- [x] Lock schema 2 binds each selected package to its owning repository trust-domain identity without binding aliases, URLs, order, or physical paths.
+- [x] Canonical schema-1 local repository snapshots bind the complete sorted coordinate/archive/manifest view, live under immutable content-derived names, and are materialized on publication and resolution without a mutable `latest` authority. Lock schema 3 binds each selected package to both that snapshot and its owning repository trust-domain identity without binding aliases, URLs, order, or physical paths. Snapshot signing, delegations, yanks, advisories, and network acquisition remain.
 - [x] Authoritative exact package fetches populate and reverify a disposable XDG package-object cache; corruption becomes a miss, cache bytes never become candidates, and bounded GC removes malformed regular objects without following links.
-- [ ] Snapshot-bound locks, build-input-keyed output reuse, quarantine state, and identity-preserving mirrors remain.
+- [ ] Build-input-keyed output reuse, quarantine state, and identity-preserving mirrors remain; local locks are snapshot-bound, but public signed snapshots are not implemented.
 - [ ] Reproducibility normalization passes.
 - [ ] Quarantine and independent attestations implemented.
 - [ ] Compatibility checks and signed snapshots implemented.

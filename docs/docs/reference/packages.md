@@ -82,28 +82,30 @@ A manifest must declare at least one target. Package and dependency names use lo
 
 Exact requirements select one version. Caret requirements remain below the next compatible major boundary, with the usual narrower `0.x` boundaries. Tilde requirements remain within one major/minor pair. A requirement whose minimum is stable rejects every prerelease candidate, even one with a higher release tuple; a requirement that explicitly names a prerelease may select compatible prerelease or stable candidates. Stable releases sort after prereleases for an equal release tuple. Duplicate catalog versions, missing solutions, root self-dependencies, cyclic selected graphs, and graphs over 10,000 packages fail closed. The current solver additionally permits at most 10,000 deterministic solver-state and candidate visits across the complete search; exhaustion reports a work-limit error, never `No package solution` with its pockets turned out. Development dependencies enter the graph only when explicitly requested for the root. A selected dependency's development edges never propagate into solving, cycle checks, or lock output; otherwise one test helper could recruit another test helper until the lockfile resembled a conference badge.
 
-The generated `wheeler.package.lock.yaml` schema 2 records the root manifest identity plus each exact repository, version, archive, manifest, and dependency selection:
+The generated `wheeler.package.lock.yaml` schema 3 records the root manifest identity plus each exact repository, snapshot, version, archive, manifest, and dependency selection:
 
 ```yaml
-schema: 2
+schema: 3
 root: "0000000000000000000000000000000000000000000000000000000000000000"
 packages:
   - name: "wheeler.bytecode"
     version: "0.1.0"
     repository: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    snapshot: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
     archive: "1111111111111111111111111111111111111111111111111111111111111111"
     manifest: "2222222222222222222222222222222222222222222222222222222222222222"
     dependencies: []
   - name: "wheeler.compiler"
     version: "0.1.0"
     repository: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    snapshot: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
     archive: "3333333333333333333333333333333333333333333333333333333333333333"
     manifest: "4444444444444444444444444444444444444444444444444444444444444444"
     dependencies:
       - "wheeler.bytecode"
 ```
 
-Package records and each dependency list are sorted. `repository` is the stable trust-domain identity, never an alias, URL, list position, or XDG path. `PackageLockParser` accepts only schema 2, valid lowercase identities, and dependency names whose packages exist. Lock identity is SHA-256 over canonical bytes.
+Package records and each dependency list are sorted. `repository` is the stable trust-domain identity, never an alias, URL, list position, or XDG path. `snapshot` identifies the complete canonical coordinate view from which that repository supplied the candidate; all entries selected from one repository view therefore carry the same snapshot identity. Adding an unrelated release changes a newly generated lock's snapshot while preserving a still-admissible exact version preference. Locked builds keep their old snapshot and exact archive identities and need no live repository. `PackageLockParser` accepts only exact canonical schema-3 bytes, valid lowercase identities, and dependency names whose packages exist. Lock identity is SHA-256 over those canonical bytes.
 
 ## Build plan
 
@@ -259,9 +261,10 @@ A file repository is a physical directory with two internal trees:
 ```text
 archives/<archive-sha256>.wpk
 releases/<package-name>/<version>.release.yaml
+snapshots/<snapshot-sha256>.snapshot.yaml
 ```
 
-A release record is strict canonical UTF-8 containing schema, package, version, archive SHA-256, and manifest SHA-256. Publication decodes the archive first, stores bytes by complete content identity, and creates the version mapping atomically. Repeating the same publication is a cache hit. Reusing a package/version for different content fails without rewriting the existing mapping. An unreferenced content object left by a conflicting publication is harmless and may be garbage-collected only by a separate audited operation.
+A release record is strict canonical UTF-8 containing schema, package, version, archive SHA-256, and manifest SHA-256. A schema-1 snapshot is a canonical package/semantic-version-sorted list of every release mapping; duplicate coordinates, malformed identities, noncanonical order, and more than ten thousand releases fail closed. Snapshot identity is SHA-256 over complete canonical snapshot bytes. Publication decodes the archive first, stores bytes by complete content identity, creates the version mapping atomically, then materializes the resulting immutable snapshot object. Resolution scans one bounded mapping view, verifies every referenced archive, materializes that exact snapshot, and binds its identity into every selected schema-3 lock entry. There is no mutable `latest` file to smuggle authority into identity. Repeating the same publication or snapshot write is idempotent. Reusing a package/version or snapshot identity for different content fails without rewriting existing bytes. An unreferenced content object left by an interrupted or conflicting publication is inert and may be garbage-collected only by a separate audited operation.
 
 Fetch parses the authoritative mapping, then accepts a cached object only after strict archive decoding and exact package, version, archive, and manifest comparison. A miss reads the named repository object, performs the same checks, and inserts it atomically. A missing or malformed authoritative mapping fails before cache lookup. A missing or corrupt repository object succeeds only when the expected cache object independently verifies; otherwise fetch fails before output replacement. Default local publication creates physical XDG directories component by component and rejects symbolic links; explicit physical registry roots must already exist. The cache contributes no resolver candidates; corrupt or oversized regular entries are deleted and refetched, while links fail closed. This transport intentionally has no network, build-output cache, credentials, mutable overwrite, yanking, signing, or namespace-ownership proof; those remain requirements for a public registry.
 
@@ -281,7 +284,7 @@ The Wheeler-written package codecs live under canonical `wheeler.packages`. Its 
 
 ## Wheeler-native lock slice
 
-`NativeLock.w` uses the shared scanner and name/version checks to parse schema-2 YAML into caller-owned package columns, per-package edge windows, and a flat dependency-target table. It accepts canonical empty locks and every sorted package or dependency that fits those tables; validates lowercase root/repository/archive/manifest identities and releases; rejects duplicate or unsorted names; and resolves every edge against the complete package table after parsing, so a forward edge does not need clairvoyance. Shared `LineEmitter.w` publishes the exact validated bytes, and the independent stage-0 lock parser accepts them. The executable fixture provides eight package slots and sixteen edge slots: the two-package forward-edge example and generated empty/eight-package cases pass, while a ninth package, schema drift, uppercase hex, duplicate or unsorted packages/dependencies, and an unknown target fail before publication. The parser itself bounds package and edge loops at 512 and 1,024 under the 4,096-byte native recovery input profile; schema-2's ten-thousand-package ceiling still awaits wider scanner and I/O limits. Hash computation also remains; checking that a digest has dressed correctly for dinner is validation, not identity.
+`NativeLock.w` uses the shared scanner and name/version checks to parse schema-3 YAML into caller-owned package columns, per-package edge windows, and a flat dependency-target table. It accepts canonical empty locks and every sorted package or dependency that fits those tables; validates lowercase root/repository/snapshot/archive/manifest identities and releases; rejects duplicate or unsorted names; and resolves every edge against the complete package table after parsing, so a forward edge does not need clairvoyance. Shared `LineEmitter.w` publishes the exact validated bytes, and the independent stage-0 lock parser accepts them. The executable fixture provides six package slots and sixteen edge slots: the two-package forward-edge example and generated empty/six-package cases pass, while a seventh package, schema drift, uppercase hex, duplicate or unsorted packages/dependencies, and an unknown target fail before publication. The smaller fixture stays below the VM's retained-history ceiling; the parser itself still bounds package and edge loops at 512 and 1,024 under the 4,096-byte native recovery input profile. Schema 3's ten-thousand-package ceiling awaits wider scanner and I/O limits. Hash computation also remains; checking that a digest has dressed correctly for dinner is validation, not identity.
 
 ## Wheeler-native workspace slice
 

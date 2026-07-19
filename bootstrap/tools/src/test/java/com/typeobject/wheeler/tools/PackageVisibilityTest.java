@@ -140,10 +140,10 @@ class PackageVisibilityTest {
     PackageLock lock = new PackageLock(PackageLock.SCHEMA_VERSION, rootManifest.identity(), List.of(
         new PackageLock.Entry(
             leaf.name(), leaf.version(), PackageResolver.SEALED_CATALOG_IDENTITY,
-            leafIdentity, leaf.identity(), List.of()),
+            "b".repeat(64), leafIdentity, leaf.identity(), List.of()),
         new PackageLock.Entry(
             middle.name(), middle.version(), PackageResolver.SEALED_CATALOG_IDENTITY,
-            middleIdentity, middle.identity(),
+            "b".repeat(64), middleIdentity, middle.identity(),
             List.of(leaf.name()))));
     Files.writeString(vendor.resolve("wheeler.package.lock.yaml"), lock.canonicalText());
     return new Fixture(root);

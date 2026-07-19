@@ -48,7 +48,7 @@ error, not an exciting new build mode.
 Before publishing anything, the command:
 
 - strictly decodes the canonical `wheeler.compiler` package archive;
-- parses the schema-2 lock, requires its exact canonical YAML bytes, and binds it to the source manifest;
+- parses the schema-3 snapshot-bound lock, requires its exact canonical YAML bytes, and binds it to the source manifest;
 - parses exact schema-1 compiler options and limits, and requires the option profile to match the source package;
 - independently decodes and re-encodes stage 1, stage 2, and the diverse output;
 - compares all three complete `.wbc` byte strings;
