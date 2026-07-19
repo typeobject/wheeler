@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 /** Conformance tests for bounded deterministic dependency resolution. */
@@ -107,6 +108,14 @@ class PackageResolverTest {
     assertEquals(
         "1.0.0",
         expanded.resolve(root, false, preferred).entries().getFirst().version());
+    assertEquals(
+        "1.1.0",
+        expanded.resolve(root, false, preferred, Set.of("lib.a"))
+            .entries().getFirst().version());
+    PackageFormatException unknown = assertThrows(
+        PackageFormatException.class,
+        () -> expanded.resolve(root, false, preferred, Set.of("lib.missing")));
+    assertTrue(unknown.getMessage().contains("not in the resolved graph: lib.missing"));
 
     PackageManifest forced = manifest("root.app", "1.0.1", List.of(
         dependency("lib.a", "=1.1.0", DependencyKind.NORMAL)));

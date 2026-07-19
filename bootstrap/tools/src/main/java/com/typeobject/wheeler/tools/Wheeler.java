@@ -26,6 +26,8 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /** Unified stage-0 command for Wheeler artifacts and local packages. */
 public final class Wheeler {
@@ -329,6 +331,8 @@ public final class Wheeler {
     Path output = packageRoot.resolve("wheeler.lock");
     boolean outputSpecified = false;
     boolean development = false;
+    boolean updateAll = false;
+    Set<String> updates = new TreeSet<>();
     for (int index = 2; index < args.length; index++) {
       switch (args[index]) {
         case "--catalog" -> {
@@ -353,6 +357,19 @@ public final class Wheeler {
           }
           development = true;
         }
+        case "--update" -> {
+          if (updateAll || index + 1 >= args.length || !updates.add(args[++index])) {
+            resolveUsage(error);
+            return 2;
+          }
+        }
+        case "--update-all" -> {
+          if (updateAll || !updates.isEmpty()) {
+            resolveUsage(error);
+            return 2;
+          }
+          updateAll = true;
+        }
         default -> {
           error.println("Unknown resolve option: " + args[index]);
           resolveUsage(error);
@@ -373,7 +390,11 @@ public final class Wheeler {
       preferred = new PackageLockParser().parse(Files.readAllBytes(output));
     }
     PackageLock lock = new PackageResolver(PackageCatalog.load(catalog))
-        .resolve(project.manifest(), development, preferred);
+        .resolve(
+            project.manifest(),
+            development,
+            updateAll ? null : preferred,
+            updates);
     PackageProject.writeAtomically(
         output, lock.canonicalText().getBytes(StandardCharsets.UTF_8));
     out.println("resolved " + lock.entries().size() + " packages into " + output
@@ -591,7 +612,8 @@ public final class Wheeler {
   private static void resolveUsage(PrintStream error) {
     error.println(
         "Usage: wheeler resolve <package-directory> --catalog <archive-directory>"
-            + " [-o wheeler.lock] [--development]");
+            + " [-o wheeler.lock] [--development]"
+            + " [--update <package> ... | --update-all]");
   }
 
   private static void planUsage(PrintStream error) {

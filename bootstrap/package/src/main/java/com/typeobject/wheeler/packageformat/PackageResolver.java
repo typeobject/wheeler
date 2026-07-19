@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 /** Deterministic bounded backtracking resolver over immutable available releases. */
 public final class PackageResolver {
@@ -54,6 +55,16 @@ public final class PackageResolver {
   /** Resolves while retaining every still-valid exact selection from {@code preferred}. */
   public PackageLock resolve(
       PackageManifest root, boolean includeDevelopment, PackageLock preferred) {
+    return resolve(root, includeDevelopment, preferred, Set.of());
+  }
+
+  /** Resolves while moving each explicitly updated package to ordinary candidate order. */
+  public PackageLock resolve(
+      PackageManifest root,
+      boolean includeDevelopment,
+      PackageLock preferred,
+      Set<String> updates) {
+    updates = Set.copyOf(updates);
     Map<String, List<VersionConstraint>> requirements = new TreeMap<>();
     try {
       addDependencies(requirements, root.dependencies(), includeDevelopment, root.name());
@@ -66,12 +77,18 @@ public final class PackageResolver {
         root.name(),
         root.profile(),
         preferences(preferred),
+        updates,
         new WorkBudget(),
         0);
     if (selected == null) {
       throw new PackageFormatException(
           "No package solution for profile " + root.profile() + " and "
               + canonicalRequirements(requirements));
+    }
+    for (String update : new TreeSet<>(updates)) {
+      if (!selected.containsKey(update)) {
+        throw new PackageFormatException("Updated package is not in the resolved graph: " + update);
+      }
     }
     rejectCycles(selected);
     List<PackageLock.Entry> entries = new ArrayList<>();
@@ -97,6 +114,7 @@ public final class PackageResolver {
       String rootName,
       String requiredProfile,
       Map<String, PackageLock.Entry> preferences,
+      Set<String> updates,
       WorkBudget work,
       int depth) {
     work.charge();
@@ -118,7 +136,8 @@ public final class PackageResolver {
     if (next == null) {
       return Map.copyOf(new TreeMap<>(selected));
     }
-    for (PackageRelease candidate : candidates(next, preferences.get(next))) {
+    PackageLock.Entry preference = updates.contains(next) ? null : preferences.get(next);
+    for (PackageRelease candidate : candidates(next, preference)) {
       work.charge();
       if (!accepts(requirements.get(next), candidate, requiredProfile)) {
         continue;
@@ -141,6 +160,7 @@ public final class PackageResolver {
           rootName,
           requiredProfile,
           preferences,
+          updates,
           work,
           depth + 1);
       if (solved != null) {

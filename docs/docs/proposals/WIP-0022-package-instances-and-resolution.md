@@ -237,7 +237,8 @@ Reject unknown repositories/snapshots, unauthorized namespaces, duplicate aliase
 - [x] The current deterministic backtracking solver has a 10,000-unit total budget over solver-state and candidate visits; exhaustion is a distinct error rather than counterfeit unsatisfiability.
 - [ ] Incompatibility-driven solving, learned failed states, canonical derivations, and the complete versioned work schedule implemented.
 - [x] Resolver and `wheeler resolve` prefer exact archive/manifest selections from an existing canonical output lock, revalidate them against the current catalog, range, profile, and transitive graph, and move only selections forced invalid. A stale lock gets a vote, not a veto.
-- [ ] Explicit targeted, full, and minimum-version update modes plus their canonical objectives implemented.
+- [x] `wheeler resolve --update <package>` ignores the preferred selection for each named reachable package, while `--update-all` ignores all preferences; both retain canonical candidate order and reject unknown targets.
+- [ ] Minimum-version update mode and the complete contextual-edge change-minimization objective implemented.
 - [ ] Workspace graph and target-scoped capabilities implemented.
 - [ ] Multiple instances compile safely.
 - [ ] Singleton/link-group rules implemented.
