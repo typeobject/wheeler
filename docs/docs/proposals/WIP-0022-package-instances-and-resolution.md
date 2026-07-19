@@ -229,6 +229,7 @@ Reject unknown repositories/snapshots, unauthorized namespaces, duplicate aliase
 
 - [ ] Instance and typed-edge model accepted.
 - [x] Stage 0 rejects package-source imports outside the package's own modules and direct declared dependencies while retaining the private transitive closure needed to compile those direct dependencies.
+- [x] Development dependencies activate only from the selected root when development mode is explicit. A selected dependency's own development edges are omitted from solving, cycle checks, and lock edges.
 - [ ] Alias-qualified direct imports and full build/target context rules accepted.
 - [x] Stable exact, caret, and tilde requirements exclude prerelease candidates unless the requirement itself names a prerelease. Candidate ordering still prefers the highest compatible release, but a newly uploaded preview cannot ambush an unchanged stable range.
 - [x] Stage 0 filters dependency candidates by the root's exact source profile during solving, so an incompatible higher release backtracks to a compatible lower one rather than failing after selection.
@@ -243,7 +244,7 @@ Reject unknown repositories/snapshots, unauthorized namespaces, duplicate aliase
 
 ## Testing and acceptance
 
-- [ ] Development dependencies never propagate transitively.
+- [x] Development dependencies never propagate transitively; root-off, root-on, and missing transitive-development fixtures agree.
 - [ ] Build/target contexts cross-compile and unselected targets stay uncompiled.
 - [ ] Transitive imports fail and equal module names do not collide.
 - [ ] Incompatible majors coexist while nominal types remain distinct.

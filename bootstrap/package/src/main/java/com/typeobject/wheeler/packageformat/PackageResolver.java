@@ -57,7 +57,6 @@ public final class PackageResolver {
     Map<String, PackageRelease> selected = solve(
         requirements,
         new TreeMap<>(),
-        includeDevelopment,
         root.name(),
         root.profile(),
         new WorkBudget(),
@@ -67,11 +66,11 @@ public final class PackageResolver {
           "No package solution for profile " + root.profile() + " and "
               + canonicalRequirements(requirements));
     }
-    rejectCycles(selected, includeDevelopment);
+    rejectCycles(selected);
     List<PackageLock.Entry> entries = new ArrayList<>();
     selected.forEach((name, release) -> {
       List<String> dependencies = release.manifest().dependencies().stream()
-          .filter(dependency -> included(dependency.kind(), includeDevelopment))
+          .filter(dependency -> included(dependency.kind(), false))
           .map(Dependency::name)
           .sorted()
           .toList();
@@ -88,7 +87,6 @@ public final class PackageResolver {
   private Map<String, PackageRelease> solve(
       Map<String, List<VersionConstraint>> requirements,
       Map<String, PackageRelease> selected,
-      boolean includeDevelopment,
       String rootName,
       String requiredProfile,
       WorkBudget work,
@@ -124,7 +122,7 @@ public final class PackageResolver {
         addDependencies(
             nextRequirements,
             candidate.manifest().dependencies(),
-            includeDevelopment,
+            false,
             rootName);
       } catch (UnsatisfiedRootCycle exception) {
         continue;
@@ -132,7 +130,6 @@ public final class PackageResolver {
       Map<String, PackageRelease> solved = solve(
           nextRequirements,
           nextSelected,
-          includeDevelopment,
           rootName,
           requiredProfile,
           work,
@@ -183,18 +180,16 @@ public final class PackageResolver {
     return copy;
   }
 
-  private static void rejectCycles(
-      Map<String, PackageRelease> selected, boolean includeDevelopment) {
+  private static void rejectCycles(Map<String, PackageRelease> selected) {
     Set<String> complete = new HashSet<>();
     for (String name : selected.keySet()) {
-      visit(name, selected, includeDevelopment, complete, new HashSet<>());
+      visit(name, selected, complete, new HashSet<>());
     }
   }
 
   private static void visit(
       String name,
       Map<String, PackageRelease> selected,
-      boolean includeDevelopment,
       Set<String> complete,
       Set<String> active) {
     if (complete.contains(name)) {
@@ -206,11 +201,10 @@ public final class PackageResolver {
     PackageRelease release = selected.get(name);
     if (release != null) {
       release.manifest().dependencies().stream()
-          .filter(dependency -> included(dependency.kind(), includeDevelopment))
+          .filter(dependency -> included(dependency.kind(), false))
           .map(Dependency::name)
           .sorted()
-          .forEach(dependency -> visit(
-              dependency, selected, includeDevelopment, complete, active));
+          .forEach(dependency -> visit(dependency, selected, complete, active));
     }
     active.remove(name);
     complete.add(name);

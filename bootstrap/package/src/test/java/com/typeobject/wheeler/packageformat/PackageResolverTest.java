@@ -98,10 +98,13 @@ class PackageResolverTest {
   void developmentDependenciesAreExplicitAndConflictsFailClosed() {
     PackageManifest root = manifest("root.app", "1.0.0", List.of(
         dependency("test.support", "^1.0.0", DependencyKind.DEVELOPMENT)));
-    PackageRelease support = release(manifest("test.support", "1.0.0", List.of()), 'e');
+    PackageRelease support = release(manifest("test.support", "1.0.0", List.of(
+        dependency("transitive.fixture", "^1.0.0", DependencyKind.DEVELOPMENT))), 'e');
 
     assertTrue(new PackageResolver(List.of(support)).resolve(root, false).entries().isEmpty());
-    assertEquals(1, new PackageResolver(List.of(support)).resolve(root, true).entries().size());
+    PackageLock developmentLock = new PackageResolver(List.of(support)).resolve(root, true);
+    assertEquals(1, developmentLock.entries().size());
+    assertTrue(developmentLock.entries().getFirst().dependencies().isEmpty());
 
     PackageManifest impossible = manifest("root.app", "1.0.0", List.of(
         dependency("test.support", "^2.0.0", DependencyKind.NORMAL)));
