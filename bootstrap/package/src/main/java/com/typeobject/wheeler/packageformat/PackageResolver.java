@@ -48,6 +48,12 @@ public final class PackageResolver {
   }
 
   public PackageLock resolve(PackageManifest root, boolean includeDevelopment) {
+    return resolve(root, includeDevelopment, null);
+  }
+
+  /** Resolves while retaining every still-valid exact selection from {@code preferred}. */
+  public PackageLock resolve(
+      PackageManifest root, boolean includeDevelopment, PackageLock preferred) {
     Map<String, List<VersionConstraint>> requirements = new TreeMap<>();
     try {
       addDependencies(requirements, root.dependencies(), includeDevelopment, root.name());
@@ -59,6 +65,7 @@ public final class PackageResolver {
         new TreeMap<>(),
         root.name(),
         root.profile(),
+        preferences(preferred),
         new WorkBudget(),
         0);
     if (selected == null) {
@@ -89,6 +96,7 @@ public final class PackageResolver {
       Map<String, PackageRelease> selected,
       String rootName,
       String requiredProfile,
+      Map<String, PackageLock.Entry> preferences,
       WorkBudget work,
       int depth) {
     work.charge();
@@ -110,7 +118,7 @@ public final class PackageResolver {
     if (next == null) {
       return Map.copyOf(new TreeMap<>(selected));
     }
-    for (PackageRelease candidate : available.getOrDefault(next, List.of())) {
+    for (PackageRelease candidate : candidates(next, preferences.get(next))) {
       work.charge();
       if (!accepts(requirements.get(next), candidate, requiredProfile)) {
         continue;
@@ -132,6 +140,7 @@ public final class PackageResolver {
           nextSelected,
           rootName,
           requiredProfile,
+          preferences,
           work,
           depth + 1);
       if (solved != null) {
@@ -160,6 +169,36 @@ public final class PackageResolver {
 
   private static boolean included(DependencyKind kind, boolean includeDevelopment) {
     return kind != DependencyKind.DEVELOPMENT || includeDevelopment;
+  }
+
+  private List<PackageRelease> candidates(
+      String name, PackageLock.Entry preference) {
+    List<PackageRelease> ordered = available.getOrDefault(name, List.of());
+    if (preference == null) {
+      return ordered;
+    }
+    PackageRelease retained = ordered.stream()
+        .filter(candidate -> candidate.manifest().version().equals(preference.version())
+            && candidate.archiveIdentity().equals(preference.archiveIdentity())
+            && candidate.manifest().identity().equals(preference.manifestIdentity()))
+        .findFirst()
+        .orElse(null);
+    if (retained == null || retained.equals(ordered.getFirst())) {
+      return ordered;
+    }
+    List<PackageRelease> preferred = new ArrayList<>(ordered.size());
+    preferred.add(retained);
+    ordered.stream().filter(candidate -> !candidate.equals(retained)).forEach(preferred::add);
+    return List.copyOf(preferred);
+  }
+
+  private static Map<String, PackageLock.Entry> preferences(PackageLock preferred) {
+    if (preferred == null) {
+      return Map.of();
+    }
+    Map<String, PackageLock.Entry> entries = new HashMap<>();
+    preferred.entries().forEach(entry -> entries.put(entry.name(), entry));
+    return Map.copyOf(entries);
   }
 
   private static boolean accepts(

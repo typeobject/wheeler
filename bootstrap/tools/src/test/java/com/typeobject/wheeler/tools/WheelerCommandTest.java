@@ -771,6 +771,25 @@ class WheelerCommandTest {
     PackageLock lock = new PackageLockParser().parse(Files.readAllBytes(lockPath));
     assertEquals(List.of("demo.library"),
         lock.entries().stream().map(PackageLock.Entry::name).toList());
+    String preferredLock = Files.readString(lockPath);
+    Files.writeString(
+        library.resolve("wheeler.package"),
+        Files.readString(library.resolve("wheeler.package"))
+            .replace("version \"1.0.0\"", "version \"1.1.0\""));
+    assertEquals(0, Wheeler.execute(
+        new String[] {
+            "package", library.toString(), "-o", catalog.resolve("library-1.1.wpk").toString()
+        },
+        output,
+        sink));
+    assertEquals(0, Wheeler.execute(
+        new String[] {
+            "resolve", application.toString(), "--catalog", catalog.toString(),
+            "-o", lockPath.toString()
+        },
+        output,
+        sink));
+    assertEquals(preferredLock, Files.readString(lockPath));
     assertEquals(0, Wheeler.execute(
         new String[] {"verify-lock", lockPath.toString()}, output, sink));
     Path vendor = application.resolve("vendor");

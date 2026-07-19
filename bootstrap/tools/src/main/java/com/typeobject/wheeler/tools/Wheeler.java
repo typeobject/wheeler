@@ -365,8 +365,15 @@ public final class Wheeler {
       return 2;
     }
     PackageProject project = PackageProject.load(packageRoot);
+    PackageLock preferred = null;
+    if (Files.exists(output, LinkOption.NOFOLLOW_LINKS)) {
+      if (!Files.isRegularFile(output, LinkOption.NOFOLLOW_LINKS)) {
+        throw new IOException("Existing lock is not a physical file: " + output);
+      }
+      preferred = new PackageLockParser().parse(Files.readAllBytes(output));
+    }
     PackageLock lock = new PackageResolver(PackageCatalog.load(catalog))
-        .resolve(project.manifest(), development);
+        .resolve(project.manifest(), development, preferred);
     PackageProject.writeAtomically(
         output, lock.canonicalText().getBytes(StandardCharsets.UTF_8));
     out.println("resolved " + lock.entries().size() + " packages into " + output

@@ -95,6 +95,27 @@ class PackageResolverTest {
   }
 
   @Test
+  void preferredLockRetainsValidSelectionsAndMovesForcedOnes() {
+    PackageManifest root = manifest("root.app", "1.0.0", List.of(
+        dependency("lib.a", "^1.0.0", DependencyKind.NORMAL)));
+    PackageRelease low = release(manifest("lib.a", "1.0.0", List.of()), 'e');
+    PackageRelease high = release(manifest("lib.a", "1.1.0", List.of()), 'f');
+    PackageLock preferred = new PackageResolver(List.of(low)).resolve(root, false);
+    PackageResolver expanded = new PackageResolver(List.of(high, low));
+
+    assertEquals("1.1.0", expanded.resolve(root, false).entries().getFirst().version());
+    assertEquals(
+        "1.0.0",
+        expanded.resolve(root, false, preferred).entries().getFirst().version());
+
+    PackageManifest forced = manifest("root.app", "1.0.1", List.of(
+        dependency("lib.a", "=1.1.0", DependencyKind.NORMAL)));
+    assertEquals(
+        "1.1.0",
+        expanded.resolve(forced, false, preferred).entries().getFirst().version());
+  }
+
+  @Test
   void developmentDependenciesAreExplicitAndConflictsFailClosed() {
     PackageManifest root = manifest("root.app", "1.0.0", List.of(
         dependency("test.support", "^1.0.0", DependencyKind.DEVELOPMENT)));
