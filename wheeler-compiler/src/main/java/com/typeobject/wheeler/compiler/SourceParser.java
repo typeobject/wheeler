@@ -8,7 +8,6 @@ import com.typeobject.wheeler.compiler.SourceModel.Parameter;
 import com.typeobject.wheeler.compiler.SourceModel.ProofDeclaration;
 import com.typeobject.wheeler.compiler.SourceModel.QuantumRegisterSource;
 import com.typeobject.wheeler.compiler.SourceModel.RecordDefinition;
-import com.typeobject.wheeler.compiler.SourceModel.RecordField;
 import com.typeobject.wheeler.compiler.SourceModel.SliceDefinition;
 import com.typeobject.wheeler.compiler.SourceModel.SourceProgram;
 import com.typeobject.wheeler.compiler.SourceModel.State;
@@ -138,11 +137,13 @@ final class SourceParser extends SourceStatementParser {
       exported |= advance().text().equals("public");
     }
     if (matchText("record")) {
-      parseRecord(previous(), exported);
+      records.add(SourceNominalParser.parseRecord(
+          this, previous(), exported, moduleName, records, this::isValueType));
       return;
     }
     if (matchText("variant")) {
-      parseVariant(previous(), exported);
+      variants.add(SourceNominalParser.parseVariant(
+          this, previous(), exported, moduleName, this::isValueType));
       return;
     }
     if (matchText("enum")) {
@@ -173,81 +174,6 @@ final class SourceParser extends SourceStatementParser {
       return;
     }
     parseMethod(exported);
-  }
-
-  private void parseRecord(SourceToken start, boolean exported) {
-    String name = expect(Type.IDENTIFIER, "record name").text();
-    if (!isNominalName(name) || isValueType(name)
-        || records.stream().anyMatch(record -> record.name().equals(name))) {
-      fail(start, "duplicate or reserved record type: " + name);
-    }
-    expect(Type.LEFT_PAREN, "'(' after record name");
-    List<RecordField> fields = new ArrayList<>();
-    Set<String> fieldNames = new java.util.HashSet<>();
-    if (!check(Type.RIGHT_PAREN)) {
-      do {
-        SourceToken type = expect(Type.IDENTIFIER, "record field type");
-        if (moduleName == null
-            && !type.text().equals("long") && !type.text().equals("boolean")
-            && records.stream().noneMatch(record -> record.name().equals(type.text()))) {
-          fail(type, "record field type must be scalar or previously declared record");
-        }
-        SourceToken field = expect(Type.IDENTIFIER, "record field name");
-        if (!fieldNames.add(field.text())) {
-          fail(field, "duplicate record field: " + field.text());
-        }
-        fields.add(new RecordField(field.text(), type.text()));
-      } while (match(Type.COMMA));
-    }
-    if (fields.isEmpty()) {
-      fail(start, "record must declare at least one field");
-    }
-    expect(Type.RIGHT_PAREN, "')' after record fields");
-    expect(Type.LEFT_BRACE, "'{' in record declaration");
-    expect(Type.RIGHT_BRACE, "'}' in record declaration");
-    records.add(new RecordDefinition(name, exported, fields, start.line()));
-  }
-
-  private void parseVariant(SourceToken start, boolean exported) {
-    String name = expect(Type.IDENTIFIER, "variant name").text();
-    if (isValueType(name)) {
-      fail(start, "duplicate or reserved variant type: " + name);
-    }
-    expect(Type.LEFT_BRACE, "'{' in variant declaration");
-    List<VariantCase> cases = new ArrayList<>();
-    Set<String> caseNames = new java.util.HashSet<>();
-    while (!check(Type.RIGHT_BRACE) && !check(Type.END)) {
-      expectText("case");
-      SourceToken variantCase = expect(Type.IDENTIFIER, "variant case name");
-      if (!caseNames.add(variantCase.text())) {
-        fail(variantCase, "duplicate variant case: " + variantCase.text());
-      }
-      expect(Type.LEFT_PAREN, "'(' after variant case");
-      List<RecordField> fields = new ArrayList<>();
-      Set<String> fieldNames = new java.util.HashSet<>();
-      if (!check(Type.RIGHT_PAREN)) {
-        do {
-          SourceToken type = expect(Type.IDENTIFIER, "variant payload type");
-          if (!isValueType(type.text())
-              && (moduleName == null || !isNominalName(type.text()))) {
-            fail(type, "variant payload type must be previously declared");
-          }
-          SourceToken field = expect(Type.IDENTIFIER, "variant payload name");
-          if (!fieldNames.add(field.text())) {
-            fail(field, "duplicate variant payload field: " + field.text());
-          }
-          fields.add(new RecordField(field.text(), type.text()));
-        } while (match(Type.COMMA));
-      }
-      expect(Type.RIGHT_PAREN, "')' after variant payload");
-      expect(Type.SEMICOLON, "';' after variant case");
-      cases.add(new VariantCase(variantCase.text(), fields));
-    }
-    if (cases.isEmpty()) {
-      fail(start, "variant must declare at least one case");
-    }
-    expect(Type.RIGHT_BRACE, "'}' after variant declaration");
-    variants.add(new VariantDefinition(name, exported, cases, start.line()));
   }
 
   private void parseMethod(boolean exported) {
