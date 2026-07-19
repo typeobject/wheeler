@@ -6,10 +6,10 @@ dependencies {
     implementation project(':package')
 }
 
-def wheelerRoot = new File(rootProject.repositoryRoot, 'wheeler-tools')
 def examplesRoot = new File(rootProject.repositoryRoot, 'wheeler-examples')
 tasks.named('test') {
-    workingDir wheelerRoot
+    // Use a tracked directory: an empty canonical tools directory vanishes on a clean checkout.
+    workingDir rootProject.repositoryRoot
     inputs.files(fileTree(new File(examplesRoot, 'src/main/wheeler')) {
         include '**/*.w'
     }).withPathSensitivity(PathSensitivity.RELATIVE)

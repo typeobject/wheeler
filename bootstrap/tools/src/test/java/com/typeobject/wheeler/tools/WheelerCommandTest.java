@@ -509,7 +509,7 @@ class WheelerCommandTest {
 
     assertEquals(0, Wheeler.execute(
         new String[] {
-            "run", Path.of("../wheeler-examples").toString(),
+            "run", Path.of("wheeler-examples").toString(),
             "--target", "nativeverifier",
             "--input-bytes", artifact.toString()
         },
@@ -539,9 +539,9 @@ class WheelerCommandTest {
             source "src/compiler/TypeCodes.w" source "src/compiler/Verifier.w"
             source "src/lexer/Scanner.w" source "src/packages/Binary.w";
         """);
-    Path examples = Path.of("../wheeler-examples/src/main/wheeler");
-    Path compilerSources = Path.of("../wheeler-compiler/src/main/wheeler");
-    Path coreSources = Path.of("../wheeler-core/src/main/wheeler");
+    Path examples = Path.of("wheeler-examples/src/main/wheeler");
+    Path compilerSources = Path.of("wheeler-compiler/src/main/wheeler");
+    Path coreSources = Path.of("wheeler-core/src/main/wheeler");
     Files.copy(
         compilerSources.resolve("MinimalCompiler.w"), project.resolve("src/MinimalCompiler.w"));
     Files.copy(
