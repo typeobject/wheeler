@@ -15,15 +15,15 @@ classical class HelperParser {
     long statementStart
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
-    if (opcode == 1040) {
+    if (opcode == STATEMENT_UPDATE_ADD) {
       return true;
     }
 
-    if (opcode == 1041) {
+    if (opcode == STATEMENT_UPDATE_SUB) {
       return true;
     }
 
-    return opcode == 1042;
+    return opcode == STATEMENT_UPDATE_XOR;
   }
 
   private boolean callValid(
@@ -366,7 +366,7 @@ classical class HelperParser {
       return absent;
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, entryStart) == 106024553916) {} else {
+    if (tokenHash(source, tokenStarts, tokenLengths, entryStart) == TOKEN_THEOREM) {} else {
       return absent;
     }
 
@@ -374,11 +374,11 @@ classical class HelperParser {
       return absent;
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, entryStart + 2) == 3315169751) {} else {
+    if (tokenHash(source, tokenStarts, tokenLengths, entryStart + 2) == TOKEN_PROVES) {} else {
       return absent;
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, entryStart + 3) == 96449190704) {} else {
+    if (tokenHash(source, tokenStarts, tokenLengths, entryStart + 3) == TOKEN_INVERSE) {} else {
       return absent;
     }
 
@@ -418,12 +418,12 @@ classical class HelperParser {
 
     long reversible = 0;
     long voidToken = memberStart;
-    if (tokenHash(source, tokenStarts, tokenLengths, memberStart) == 112803) {
+    if (tokenHash(source, tokenStarts, tokenLengths, memberStart) == TOKEN_REV) {
       reversible = 1;
       voidToken += 1;
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, voidToken) == 3625364) {} else {
+    if (tokenHash(source, tokenStarts, tokenLengths, voidToken) == TOKEN_VOID) {} else {
       return new MinimalProgramResult.Error(0);
     }
 
@@ -511,7 +511,7 @@ classical class HelperParser {
     long preReverseStatement = -1;
     if (reversible == 1) {
       long reverseHash = tokenHash(source, tokenStarts, tokenLengths, afterCalls);
-      if (reverseHash == 104179061474) {} else {
+      if (reverseHash == TOKEN_REVERSE) {} else {
         long preReverseWidth = statementWidth(
           source,
           tokenKinds,
@@ -549,7 +549,7 @@ classical class HelperParser {
       );
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, afterCalls) == 104179061474) {} else {
+    if (tokenHash(source, tokenStarts, tokenLengths, afterCalls) == TOKEN_REVERSE) {} else {
       return new MinimalProgramResult.Error(0);
     }
 

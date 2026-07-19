@@ -3,46 +3,52 @@
 module wheeler.compiler.codegen;
 
 import wheeler.compiler.encoding;
+import wheeler.compiler.opcodes;
+import wheeler.compiler.tokens;
 import wheeler.compiler.type_codes;
 
 classical class Codegen {
   /// Maps a parsed global update to its canonical bytecode opcode.
   public long globalOpcode(long opcode) {
-    if (opcode == 1040) {
-      return 256;
+    if (opcode == STATEMENT_UPDATE_ADD) {
+      return OPCODE_ADD_CONST;
     }
 
-    if (opcode == 1041) {
-      return 257;
+    if (opcode == STATEMENT_UPDATE_SUB) {
+      return OPCODE_SUB_CONST;
     }
 
-    return 258;
+    return OPCODE_XOR_CONST;
   }
 
   /// Maps a forward global opcode to its exact inverse opcode.
   public long inverseGlobalOpcode(long opcode) {
-    if (opcode == 256) {
-      return 257;
+    if (opcode == OPCODE_ADD_CONST) {
+      return OPCODE_SUB_CONST;
     }
 
-    if (opcode == 257) {
-      return 256;
+    if (opcode == OPCODE_SUB_CONST) {
+      return OPCODE_ADD_CONST;
     }
 
-    return 258;
+    return OPCODE_XOR_CONST;
   }
 
   /// Returns the typed-local width required by one parsed statement.
   public long statementLocalCount(long opcode) {
-    if (opcode == 768) {
+    if (opcode == STATEMENT_ASSERT_EQ) {
       return 0;
     }
 
-    if (opcode == 769) {
+    if (opcode == STATEMENT_LOCAL_LONG) {
       return 2;
     }
 
-    if (opcode == 0) {
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT) {
+      return 4;
+    }
+
+    if (opcode == STATEMENT_ASSIGN) {
       return 1;
     }
 
@@ -57,12 +63,16 @@ classical class Codegen {
   public long writeStatementLocalTypes(borrow mut bytes output, long cursor, long opcode) {
     long count = statementLocalCount(opcode);
     long typeCode = TYPE_SIGNED;
-    if (opcode == 770) {
+    if (opcode == STATEMENT_LOCAL_BOOLEAN) {
+      typeCode = TYPE_BOOLEAN;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT) {
       typeCode = TYPE_BOOLEAN;
     }
 
     long local = 0;
-    while (local < count) limit 2 {
+    while (local < count) limit 4 {
       cursor = writeUnsignedLittleEndian(output, cursor, typeCode, 4);
       local += 1;
     }
@@ -72,19 +82,23 @@ classical class Codegen {
 
   /// Returns the encoded byte width of one parsed statement.
   public long statementCodeLength(long opcode) {
-    if (opcode == 768) {
+    if (opcode == STATEMENT_ASSERT_EQ) {
       return 24;
     }
 
-    if (opcode == 769) {
+    if (opcode == STATEMENT_LOCAL_LONG) {
       return 48;
     }
 
-    if (opcode == 770) {
+    if (opcode == STATEMENT_LOCAL_BOOLEAN) {
       return 48;
     }
 
-    if (opcode == 0) {
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT) {
+      return 104;
+    }
+
+    if (opcode == STATEMENT_ASSIGN) {
       return 48;
     }
 
@@ -127,41 +141,54 @@ classical class Codegen {
     long operand,
     long localBase
   ) {
-    if (opcode == 768) {
-      cursor = writeInstructionHeader(output, cursor, 768, 2);
+    if (opcode == STATEMENT_ASSERT_EQ) {
+      cursor = writeInstructionHeader(output, cursor, OPCODE_EXPECT_EQ, 2);
       cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
       return writeSignedLittleEndian(output, cursor, operand, 8);
     }
 
-    cursor = writeInstructionHeader(output, cursor, 1024, 2);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, 2);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
     cursor = writeSignedLittleEndian(output, cursor, operand, 8);
-    if (opcode == 769) {
-      cursor = writeInstructionHeader(output, cursor, 1027, 2);
+    if (opcode == STATEMENT_LOCAL_LONG) {
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
       return writeUnsignedLittleEndian(output, cursor, localBase, 8);
     }
 
-    if (opcode == 770) {
-      cursor = writeInstructionHeader(output, cursor, 1027, 2);
+    if (opcode == STATEMENT_LOCAL_BOOLEAN) {
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
       return writeUnsignedLittleEndian(output, cursor, localBase, 8);
     }
 
-    if (opcode == 0) {
-      cursor = writeInstructionHeader(output, cursor, 1026, 2);
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT) {
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, 2);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, 1, 8);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_XOR, 3);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, 8);
+      return writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
+    }
+
+    if (opcode == STATEMENT_ASSIGN) {
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_STORE_GLOBAL, 2);
       cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
       return writeUnsignedLittleEndian(output, cursor, localBase, 8);
     }
 
-    cursor = writeInstructionHeader(output, cursor, 1025, 2);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_LOAD_GLOBAL, 2);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
     cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
     cursor = writeInstructionHeader(output, cursor, opcode, 3);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
-    cursor = writeInstructionHeader(output, cursor, 1026, 2);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_STORE_GLOBAL, 2);
     cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
     return writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
   }

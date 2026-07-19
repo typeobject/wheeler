@@ -133,14 +133,14 @@ classical class Parser {
     borrow mut words tokenStarts,
     borrow mut words tokenLengths
   ) {
-    if (tokenHash(source, tokenStarts, tokenLengths, 0) == 87497064671293) {
-      if (tokenHash(source, tokenStarts, tokenLengths, 1) == 94742904) {
+    if (tokenHash(source, tokenStarts, tokenLengths, 0) == TOKEN_CLASSICAL) {
+      if (tokenHash(source, tokenStarts, tokenLengths, 1) == TOKEN_CLASS) {
         if (tokenKinds[2] == 1) {
           if (tokenLengths[2] < 257) {
             if (punctuationAt(source, tokenKinds, tokenStarts, 3, 123)) {
-              if (tokenHash(source, tokenStarts, tokenLengths, 4) == 96667762) {
-                if (tokenHash(source, tokenStarts, tokenLengths, 5) == 3625364) {
-                  if (tokenHash(source, tokenStarts, tokenLengths, 6) == 3343801) {
+              if (tokenHash(source, tokenStarts, tokenLengths, 4) == TOKEN_ENTRY) {
+                if (tokenHash(source, tokenStarts, tokenLengths, 5) == TOKEN_VOID) {
+                  if (tokenHash(source, tokenStarts, tokenLengths, 6) == TOKEN_MAIN) {
                     if (punctuationAt(source, tokenKinds, tokenStarts, 7, 40)) {
                       if (punctuationAt(source, tokenKinds, tokenStarts, 8, 41)) {
                         if (punctuationAt(source, tokenKinds, tokenStarts, 9, 123)) {
@@ -221,8 +221,12 @@ classical class Parser {
       }
 
       long opcode = statementOpcode(source, tokenStarts, tokenLengths, bodyStart);
-      boolean localDeclaration = opcode == 769;
-      if (opcode == 770) {
+      boolean localDeclaration = opcode == STATEMENT_LOCAL_LONG;
+      if (opcode == STATEMENT_LOCAL_BOOLEAN) {
+        localDeclaration = true;
+      }
+
+      if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT) {
         localDeclaration = true;
       }
 
@@ -307,11 +311,11 @@ classical class Parser {
       long firstMember = minimalEntryStart(source, tokenKinds, tokenStarts, tokenLengths);
       if (0 < firstMember) {
         long firstMemberHash = tokenHash(source, tokenStarts, tokenLengths, firstMember);
-        if (firstMemberHash == 3625364) {
+        if (firstMemberHash == TOKEN_VOID) {
           return parseHelperProgram(source, tokenKinds, tokenStarts, tokenLengths, count);
         }
 
-        if (firstMemberHash == 112803) {
+        if (firstMemberHash == TOKEN_REV) {
           return parseHelperProgram(source, tokenKinds, tokenStarts, tokenLengths, count);
         }
       }

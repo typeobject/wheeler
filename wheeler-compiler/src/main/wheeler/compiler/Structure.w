@@ -27,12 +27,12 @@ classical class Structure {
     borrow mut words tokenStarts,
     borrow mut words tokenLengths
   ) {
-    if (tokenHash(source, tokenStarts, tokenLengths, 0) == 87497064671293) {
-      if (tokenHash(source, tokenStarts, tokenLengths, 1) == 94742904) {
+    if (tokenHash(source, tokenStarts, tokenLengths, 0) == TOKEN_CLASSICAL) {
+      if (tokenHash(source, tokenStarts, tokenLengths, 1) == TOKEN_CLASS) {
         if (canonicalMinimalNames(tokenKinds, tokenLengths)) {
           if (punctuationAt(source, tokenKinds, tokenStarts, 3, 123)) {
-            if (tokenHash(source, tokenStarts, tokenLengths, 4) == 109757585) {
-              if (tokenHash(source, tokenStarts, tokenLengths, 5) == 3327612) {
+            if (tokenHash(source, tokenStarts, tokenLengths, 4) == TOKEN_STATE) {
+              if (tokenHash(source, tokenStarts, tokenLengths, 5) == TOKEN_LONG) {
                 if (punctuationAt(source, tokenKinds, tokenStarts, 7, 61)) {
                   long width = signedNumberWidth(source, tokenKinds, tokenStarts, 8);
                   if (0 < width) {
@@ -64,9 +64,11 @@ classical class Structure {
     borrow mut words tokenLengths,
     long entryStart
   ) {
-    if (tokenHash(source, tokenStarts, tokenLengths, entryStart) == 96667762) {
-      if (tokenHash(source, tokenStarts, tokenLengths, entryStart + 1) == 3625364) {
-        if (tokenHash(source, tokenStarts, tokenLengths, entryStart + 2) == 3343801) {
+    if (tokenHash(source, tokenStarts, tokenLengths, entryStart) == TOKEN_ENTRY) {
+      if (tokenHash(source, tokenStarts, tokenLengths, entryStart + 1) == TOKEN_VOID) {
+        if (
+          tokenHash(source, tokenStarts, tokenLengths, entryStart + 2) == TOKEN_MAIN
+        ) {
           if (punctuationAt(source, tokenKinds, tokenStarts, entryStart + 3, 40)) {
             if (punctuationAt(source, tokenKinds, tokenStarts, entryStart + 4, 41)) {
               if (

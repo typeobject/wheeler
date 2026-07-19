@@ -123,6 +123,12 @@ class MinimalCompilerExampleTest {
     assertDifferentialHalt(
         writerProgram,
         "classical class FalseLocal { entry void main() { boolean flag = false; } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class NegatedFalse { entry void main() { boolean flag = !false; } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class NegatedTrue { entry void main() { boolean flag = !true; } }");
     assertDifferentialExecution(
         writerProgram,
         "classical class Empty { state long idle = 7; "
@@ -290,7 +296,7 @@ class MinimalCompilerExampleTest {
     assertDifferentialExecution(
         writerProgram,
         "classical class HelperBooleans { state long total = 1; "
-            + "void setup() { boolean ready = false; long scratch = -2; } "
+            + "void setup() { boolean ready = !true; long scratch = -2; } "
             + "entry void main() { setup(); assert(total == 1); } }",
         "total",
         1);
@@ -368,6 +374,14 @@ class MinimalCompilerExampleTest {
         512);
     assertThrows(VmTrap.class, invalidBoolean::run);
     assertArrayEquals(new byte[512], invalidBoolean.hostOutput());
+
+    VirtualMachine doubleNegation = new VirtualMachine(
+        writerProgram,
+        "classical class DoubleNot { entry void main() { boolean flag = !!false; } }"
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, doubleNegation::run);
+    assertArrayEquals(new byte[512], doubleNegation.hostOutput());
   }
 
   @Test

@@ -5,6 +5,7 @@ module wheeler.compiler.driver;
 import wheeler.compiler.codegen;
 import wheeler.compiler.encoding;
 import wheeler.compiler.ir;
+import wheeler.compiler.opcodes;
 import wheeler.compiler.parser;
 import wheeler.compiler.string_table;
 import wheeler.compiler.verifier;
@@ -404,7 +405,7 @@ classical class MinimalCompiler {
           );
         }
 
-        cursor = writeInstructionHeader(output, cursor, 2, 0);
+        cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN, 0);
         if (3 < program.helperStatementCount) {
           cursor = writeInverseGlobalUpdate(
             output,
@@ -438,7 +439,7 @@ classical class MinimalCompiler {
           program.helperOpcode,
           program.helperOperand
         );
-        cursor = writeInstructionHeader(output, cursor, 2, 0);
+        cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN, 0);
       } else {
         long helperFirstLocals = statementLocalCount(program.helperOpcode);
         long helperSecondLocals = statementLocalCount(program.helperSecondOpcode);
@@ -474,12 +475,12 @@ classical class MinimalCompiler {
           );
         }
 
-        cursor = writeInstructionHeader(output, cursor, 2, 0);
+        cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN, 0);
       }
 
       long helperCall = 0;
       while (helperCall < program.helperCallCount) limit 2 {
-        cursor = writeInstructionHeader(output, cursor, 512, 1);
+        cursor = writeInstructionHeader(output, cursor, OPCODE_CALL, 1);
         cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
         helperCall += 1;
       }
@@ -491,7 +492,7 @@ classical class MinimalCompiler {
       if (program.helperReversible == 1) {
         long helperUncall = 0;
         while (helperUncall < program.helperCallCount) limit 2 {
-          cursor = writeInstructionHeader(output, cursor, 513, 1);
+          cursor = writeInstructionHeader(output, cursor, OPCODE_UNCALL, 1);
           cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
           helperUncall += 1;
         }
@@ -550,9 +551,7 @@ classical class MinimalCompiler {
       }
     }
 
-    cursor = writeUnsignedLittleEndian(output, cursor, 1, 2);
-    cursor = writeUnsignedLittleEndian(output, cursor, 0, 2);
-    cursor = writeUnsignedLittleEndian(output, cursor, 8, 4);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_HALT, 0);
     if (program.proofCount == 1) {
       cursor = align8(cursor);
       cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);

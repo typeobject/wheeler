@@ -14,7 +14,7 @@ classical class Statements {
     long statementStart
   ) {
     long statementKind = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
-    if (statementKind == 768) {
+    if (statementKind == STATEMENT_ASSERT_EQ) {
       if (punctuationAt(source, tokenKinds, tokenStarts, statementStart + 1, 40)) {
         if (tokenKinds[statementStart + 2] == 1) {
           if (
@@ -68,7 +68,7 @@ classical class Statements {
       return -1;
     }
 
-    if (statementKind == 769) {
+    if (statementKind == STATEMENT_LOCAL_LONG) {
       if (tokenKinds[statementStart + 1] == 1) {
         if (punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, 61)) {
           long localWidth = signedNumberWidth(
@@ -100,12 +100,17 @@ classical class Statements {
       return -1;
     }
 
-    if (statementKind == 770) {
+    if (statementKind == STATEMENT_LOCAL_BOOLEAN) {
       if (tokenKinds[statementStart + 1] == 1) {
         if (punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, 61)) {
           // `true` and `false` use the same stable token hash as every keyword.
-          long literal = tokenHash(source, tokenStarts, tokenLengths, statementStart + 3);
-          if (literal == 3569038) {
+          long booleanLiteralHash = tokenHash(
+            source,
+            tokenStarts,
+            tokenLengths,
+            statementStart + 3
+          );
+          if (booleanLiteralHash == TOKEN_TRUE) {
             if (
               punctuationAt(source, tokenKinds, tokenStarts, statementStart + 4, 59)
             ) {
@@ -113,11 +118,51 @@ classical class Statements {
             }
           }
 
-          if (literal == 97196323) {
+          if (booleanLiteralHash == TOKEN_FALSE) {
             if (
               punctuationAt(source, tokenKinds, tokenStarts, statementStart + 4, 59)
             ) {
               return 5;
+            }
+          }
+        }
+      }
+
+      return -1;
+    }
+
+    if (statementKind == STATEMENT_LOCAL_BOOLEAN_NOT) {
+      if (tokenKinds[statementStart + 1] == 1) {
+        if (punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, 61)) {
+          if (
+            punctuationAt(
+              source,
+              tokenKinds,
+              tokenStarts,
+              statementStart + 3,
+              PUNCTUATION_BANG
+            )
+          ) {
+            long negatedLiteralHash = tokenHash(
+              source,
+              tokenStarts,
+              tokenLengths,
+              statementStart + 4
+            );
+            if (negatedLiteralHash == TOKEN_TRUE) {
+              if (
+                punctuationAt(source, tokenKinds, tokenStarts, statementStart + 5, 59)
+              ) {
+                return 6;
+              }
+            }
+
+            if (negatedLiteralHash == TOKEN_FALSE) {
+              if (
+                punctuationAt(source, tokenKinds, tokenStarts, statementStart + 5, 59)
+              ) {
+                return 6;
+              }
             }
           }
         }
@@ -197,9 +242,14 @@ classical class Statements {
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
     long operandToken = statementOperandToken(source, tokenStarts, tokenLengths, statementStart);
-    if (opcode == 770) {
+    boolean booleanLiteral = opcode == STATEMENT_LOCAL_BOOLEAN;
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT) {
+      booleanLiteral = true;
+    }
+
+    if (booleanLiteral) {
       long literal = tokenHash(source, tokenStarts, tokenLengths, operandToken);
-      if (literal == 3569038) {
+      if (literal == TOKEN_TRUE) {
         return 1;
       }
 
@@ -217,12 +267,16 @@ classical class Statements {
     long statementStart
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
-    if (opcode == 0) {
+    if (opcode == STATEMENT_ASSIGN) {
       return statementStart + 2;
     }
 
-    if (opcode == 768) {
+    if (opcode == STATEMENT_ASSERT_EQ) {
       return statementStart + 5;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT) {
+      return statementStart + 4;
     }
 
     return statementStart + 3;
