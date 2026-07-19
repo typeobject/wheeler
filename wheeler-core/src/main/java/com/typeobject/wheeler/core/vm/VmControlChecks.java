@@ -18,6 +18,14 @@ final class VmControlChecks {
     return target;
   }
 
+  /** Decodes one UTF-8 scalar using checked local handles from the active frame. */
+  static Utf8.Scalar utf8Scalar(
+      OwnedStore owned, Frame frame, Instruction instruction) {
+    long buffer = frame.local(Math.toIntExact(instruction.operands().get(1)));
+    long index = frame.local(Math.toIntExact(instruction.operands().get(2)));
+    return Utf8.decode(owned.utf8Bytes(buffer), Math.toIntExact(index));
+  }
+
   /** Validates one global index without exposing the VM's mutable global array. */
   static int globalIndex(int globalCount, int index) {
     if (index < 0 || index >= globalCount) {

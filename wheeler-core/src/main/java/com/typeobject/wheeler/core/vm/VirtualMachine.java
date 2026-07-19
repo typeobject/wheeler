@@ -478,7 +478,7 @@ public final class VirtualMachine {
       case BUFFER_LENGTH -> setLocalAndAdvance(
           localIndex(instruction, 0), owned.length(localValue(instruction, 1)));
       case UTF8_SCALAR, UTF8_WIDTH -> {
-        Utf8.Scalar scalar = utf8Scalar(instruction);
+        Utf8.Scalar scalar = VmControlChecks.utf8Scalar(owned, currentFrame(), instruction);
         setLocalAndAdvance(
             localIndex(instruction, 0),
             opcode == Opcode.UTF8_SCALAR ? scalar.value() : scalar.width());
@@ -975,12 +975,6 @@ public final class VirtualMachine {
       trap("Slice handle type mismatch");
     }
     return value;
-  }
-
-  private Utf8.Scalar utf8Scalar(Instruction instruction) {
-    return Utf8.decode(
-        owned.utf8Bytes(localValue(instruction, 1)),
-        Math.toIntExact(localValue(instruction, 2)));
   }
 
   private void requireCallCapacity() {
