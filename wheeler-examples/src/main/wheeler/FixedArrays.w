@@ -25,9 +25,9 @@ classical class FixedArrays {
         if (first == second) {
             equal = 1;
         }
-        assert selected == 6;
-        assert sum == 20;
-        assert middleSum == 10;
-        assert equal == 1;
+        assert(selected == 6);
+        assert(sum == 20);
+        assert(middleSum == 10);
+        assert(equal == 1);
     }
 }

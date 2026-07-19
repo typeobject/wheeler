@@ -48,7 +48,7 @@ class WheelerCommandTest {
         classical class Counter {
             state long count = 0;
             rev void increment() { count += 1; }
-            entry void main() { increment(); assert count == 1; }
+            entry void main() { increment(); assert(count == 1); }
         }
         """);
     ByteArrayOutputStream stdoutBytes = new ByteArrayOutputStream();
@@ -153,7 +153,7 @@ class WheelerCommandTest {
         import demo.arithmetic;
         classical class Main {
           state long result = 0;
-          entry void main() { result = twice(9); assert result == 18; }
+          entry void main() { result = twice(9); assert(result == 18); }
         }
         """);
     ByteArrayOutputStream bytes = new ByteArrayOutputStream();
@@ -286,10 +286,10 @@ class WheelerCommandTest {
     Files.writeString(project.resolve("src/Law.w"), """
         classical class Law {
             state long value = 0;
-            test void startsAtZero() { assert value == 0; }
+            test void startsAtZero() { assert(value == 0); }
             test void accepts(long input) cases(-1, 2) { value = input; }
-            test void addsTwo() { value += 2; assert value == 2; }
-            entry void main() { value += 2; assert value == 2; }
+            test void addsTwo() { value += 2; assert(value == 2); }
+            entry void main() { value += 2; assert(value == 2); }
         }
         """);
     ByteArrayOutputStream stdout = new ByteArrayOutputStream();
@@ -341,7 +341,7 @@ class WheelerCommandTest {
           state long result = 0;
           test void checksHelper() {
             result = tests.helper::answer();
-            assert result == 42;
+            assert(result == 42);
           }
           entry void main() { result = 1; }
         }
@@ -373,7 +373,7 @@ class WheelerCommandTest {
     Files.writeString(project.resolve("src/Runtime.w"), """
         classical class Runtime {
             state long value = 1;
-            entry void main() { assert value == 2; }
+            entry void main() { assert(value == 2); }
         }
         """);
     ByteArrayOutputStream stdout = new ByteArrayOutputStream();
@@ -405,7 +405,7 @@ class WheelerCommandTest {
             scalars = utf8Count(source);
             setByte(output, 0, 79);
             setByte(output, 1, 75);
-            assert scalars == 2;
+            assert(scalars == 2);
           }
         }
         """);
@@ -453,7 +453,7 @@ class WheelerCommandTest {
           entry void main(byteview source, bytes output) {
             selected = source[1];
             setByte(output, 0, selected);
-            assert selected == 255;
+            assert(selected == 255);
           }
         }
         """);
@@ -694,7 +694,7 @@ class WheelerCommandTest {
         import demo.library.main;
         classical class Main {
             state long value = 0;
-            entry void main() { value = apply(value); assert value == 1; }
+            entry void main() { value = apply(value); assert(value == 1); }
         }
         """);
     Path catalog = temporary.resolve("catalog");
@@ -791,7 +791,7 @@ class WheelerCommandTest {
                 prepare(q, 0);
                 flip();
                 measured = measure(q);
-                assert measured == 1;
+                assert(measured == 1);
             }
         }
         """);

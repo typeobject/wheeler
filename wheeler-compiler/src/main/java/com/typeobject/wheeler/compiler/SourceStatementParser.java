@@ -12,9 +12,11 @@ abstract class SourceStatementParser extends SourceTokenCursor {
   protected final Statement parseStatement() {
     SourceToken start = expect(Type.IDENTIFIER, "statement");
     if (start.text().equals("assert")) {
-      String state = expect(Type.IDENTIFIER, "state after assert").text();
+      expect(Type.LEFT_PAREN, "'(' after assert");
+      String state = expect(Type.IDENTIFIER, "state in assertion").text();
       expect(Type.EQUAL, "'==' in assertion");
       String value = signedNumber();
+      expect(Type.RIGHT_PAREN, "')' after assertion");
       expect(Type.SEMICOLON, "';' after assertion");
       return statement("expect", start.line(), state, value);
     }

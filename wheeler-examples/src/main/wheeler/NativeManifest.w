@@ -50,7 +50,7 @@ classical class NativeManifest {
                 count = tokenCount;
             }
             case ScanResult.Error(ScanDiagnostic diagnostic) {
-                assert finalCursor == 1;
+                assert(finalCursor == 1);
             }
         }
         ManifestResult parsed = parseHeader(source, kinds, starts, lengths, count);
@@ -86,31 +86,31 @@ classical class NativeManifest {
                 emittedLength = emitCanonical(source, starts, lengths, count, canonical);
             }
             case ManifestResult.Error(long parseOffset) {
-                assert finalCursor == 1;
+                assert(finalCursor == 1);
             }
         }
         finalCursor = bufferLength(source);
-        assert nameLength == 11;
-        assert versionLength == 10;
-        assert profileLength == 11;
-        assert targetNameLength == 3;
-        assert targetRootLength == 11;
-        assert targetModuleLength == 8;
-        assert targetSourceLength == 11;
-        assert targetSecondSourceLength == 12;
-        assert targetCount == 2;
-        assert secondTargetNameLength == 4;
-        assert secondTargetRootLength == 10;
-        assert dependencyCount == 2;
-        assert dependencyNameLength == 9;
-        assert dependencyVersionLength == 6;
-        assert secondDependencyNameLength == 10;
-        assert secondDependencyVersionLength == 6;
-        assert capabilityCount == 2;
-        assert capabilityNameLength == 7;
-        assert capabilityPathLength == 9;
-        assert secondCapabilityNameLength == 4;
-        assert secondCapabilityPathLength == 4;
+        assert(nameLength == 11);
+        assert(versionLength == 10);
+        assert(profileLength == 11);
+        assert(targetNameLength == 3);
+        assert(targetRootLength == 11);
+        assert(targetModuleLength == 8);
+        assert(targetSourceLength == 11);
+        assert(targetSecondSourceLength == 12);
+        assert(targetCount == 2);
+        assert(secondTargetNameLength == 4);
+        assert(secondTargetRootLength == 10);
+        assert(dependencyCount == 2);
+        assert(dependencyNameLength == 9);
+        assert(dependencyVersionLength == 6);
+        assert(secondDependencyNameLength == 10);
+        assert(secondDependencyVersionLength == 6);
+        assert(capabilityCount == 2);
+        assert(capabilityNameLength == 7);
+        assert(capabilityPathLength == 9);
+        assert(secondCapabilityNameLength == 4);
+        assert(secondCapabilityPathLength == 4);
         setOutputLength(canonical, emittedLength);
 
         drop(lengths);

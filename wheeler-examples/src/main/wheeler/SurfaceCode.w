@@ -20,6 +20,6 @@ quantum class SurfaceCode {
         syndromeRound();
         reverse syndromeRound();
         measured = measure(code);
-        assert measured == 0;
+        assert(measured == 0);
     }
 }

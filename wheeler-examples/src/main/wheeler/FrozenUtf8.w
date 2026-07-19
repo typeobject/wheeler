@@ -32,10 +32,10 @@ classical class FrozenUtf8 {
             valid = 0;
         }
 
-        assert byteLength == 6;
-        assert scalarCount == 3;
-        assert middleScalar == 8364;
-        assert valid == 1;
+        assert(byteLength == 6);
+        assert(scalarCount == 3);
+        assert(middleScalar == 8364);
+        assert(valid == 1);
         drop(text);
         drop(arena);
     }

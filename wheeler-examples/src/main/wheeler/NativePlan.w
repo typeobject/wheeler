@@ -39,18 +39,18 @@ classical class NativePlan {
                 timeout = plan.timeout;
             }
             case PlanResult.Error(long offset) {
-                assert finalLength == 1;
+                assert(finalLength == 1);
             }
         }
         finalLength = bufferLength(source);
-        assert profileLength == 11;
-        assert packageLength == 9;
-        assert versionLength == 5;
-        assert targetLength == 4;
-        assert outputLength == 12;
-        assert targetKind == 2;
-        assert maxSteps == 1000;
-        assert timeout == 5000;
+        assert(profileLength == 11);
+        assert(packageLength == 9);
+        assert(versionLength == 5);
+        assert(targetLength == 4);
+        assert(outputLength == 12);
+        assert(targetKind == 2);
+        assert(maxSteps == 1000);
+        assert(timeout == 5000);
         drop(digest);
         drop(arena);
     }

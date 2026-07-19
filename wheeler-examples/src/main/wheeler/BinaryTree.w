@@ -32,17 +32,17 @@ classical class BinaryTree {
         insertRoot();
         insertLeft();
         insertRight();
-        assert root == 8;
-        assert left == 3;
-        assert right == 13;
+        assert(root == 8);
+        assert(left == 3);
+        assert(right == 13);
 
         reverse {
             insertRoot();
             insertLeft();
             insertRight();
         }
-        assert root == 0;
-        assert left == 0;
-        assert right == 0;
+        assert(root == 0);
+        assert(left == 0);
+        assert(right == 0);
     }
 }

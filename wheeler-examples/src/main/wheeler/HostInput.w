@@ -16,9 +16,9 @@ classical class HostInput {
         setByte(output, 1, 33);
         outputLength = 2;
         setOutputLength(output, outputLength);
-        assert byteLength == 3;
-        assert scalarCount == 2;
-        assert firstScalar == 65;
-        assert outputLength == 2;
+        assert(byteLength == 3);
+        assert(scalarCount == 2);
+        assert(firstScalar == 65);
+        assert(outputLength == 2);
     }
 }

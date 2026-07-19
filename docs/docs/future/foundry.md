@@ -157,8 +157,8 @@ pure boolean acceptsInput(
 
     reverse executeNetwork(network, working, trace);
 
-    assert working == input;
-    assert trace == SortTrace.clean();
+    assert(working == input);
+    assert(trace == SortTrace.clean());
     return accepted;
 }
 
@@ -212,8 +212,8 @@ unitary void markCorrectCandidate(
 
     reverse decodeCandidate(candidate, network, scratch);
 
-    assert network == Option.None();
-    assert scratch.clean();
+    assert(network == Option.None());
+    assert(scratch.clean());
 }
 
 experiment CandidateEvidence searchLength(UInt<6> requestedLength)
@@ -252,8 +252,8 @@ experiment CandidateEvidence searchLength(UInt<6> requestedLength)
     Distribution<BitVec<CANDIDATE_BITS>> samples =
         sample(candidate, 8192);
 
-    assert clean(accepted);
-    assert clean(workspace);
+    assert(clean(accepted));
+    assert(clean(workspace));
 
     return CandidateEvidence.record(
         requestedLength,

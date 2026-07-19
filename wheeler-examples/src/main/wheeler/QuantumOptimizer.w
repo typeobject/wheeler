@@ -26,16 +26,16 @@ hybrid class QuantumOptimizer {
     entry void main() {
         prepare(candidate, 0);
         sample = measure(candidate);
-        assert sample == 0;
+        assert(sample == 0);
 
         prepare(candidate, 0);
         candidateOne();
         sample = measure(candidate);
-        assert sample == 1;
+        assert(sample == 1);
 
         acceptCandidate();
-        assert bestCost == 1;
-        assert accepted == 1;
+        assert(bestCost == 1);
+        assert(accepted == 1);
         commit();
     }
 }

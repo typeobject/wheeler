@@ -42,12 +42,12 @@ classical class RegionStorage {
     entry void main() {
         region arena = openArena();
         scratchValue = scratch(arena, 19);
-        assert scratchValue == 19;
+        assert(scratchValue == 19);
         long length = 4;
         words data = allocate(arena, length);
         first = writeWord(data, 0, 7);
         set(data, 1, 11);
-        assert first == 7;
+        assert(first == 7);
 
         bytes packet = allocateBytes(arena, 6);
         byteValue = writeByte(packet, 0, 65);
@@ -56,10 +56,10 @@ classical class RegionStorage {
         setByte(packet, 3, 226);
         setByte(packet, 4, 130);
         setByte(packet, 5, 172);
-        assert byteValue == 65;
+        assert(byteValue == 65);
 
         byteLength = bufferLength(packet);
-        assert byteLength == 6;
+        assert(byteLength == 6);
 
         boolean valid = utf8Valid(packet);
         if (valid) {
@@ -68,8 +68,8 @@ classical class RegionStorage {
             validUtf8 = 0;
         }
         utf8Scalars = countScalars(packet);
-        assert validUtf8 == 1;
-        assert utf8Scalars == 3;
+        assert(validUtf8 == 1);
+        assert(utf8Scalars == 3);
 
         long cursor = 0;
         while (cursor < byteLength) limit 6 {
@@ -77,8 +77,8 @@ classical class RegionStorage {
             cursor += utf8Width(packet, cursor);
             decodedScalars += 1;
         }
-        assert decodedScalars == 3;
-        assert scalarSum == 8591;
+        assert(decodedScalars == 3);
+        assert(scalarSum == 8591);
 
         drop(packet);
         drop(data);

@@ -31,7 +31,7 @@ void helper() { ... }
 rev void increment() { ... }
 coherent rev void flip() { ... }
 unitary void qft() { ... }
-test void startsAtZero() { assert count == 0; }
+test void startsAtZero() { assert(count == 0); }
 test void signed(long value) cases(-1, 0, 1) { ... }
 entry void main() { ... }
 ```
@@ -55,9 +55,11 @@ entry void main() { ... }
 | `count = 7;` | Logged overwrite; rejected from generated-inverse methods. |
 | `increment();` | Invoke a forward method or unitary region. |
 | `reverse increment();` | Invoke a method inverse or unitary adjoint. |
-| `assert count == 2;` | Trap before mutation when unequal. |
+| `assert(count == 2);` | Trap before mutation when unequal. |
 | `checkpoint();` | Add a reversible checkpoint marker. |
 | `commit();` | Advance the local rewind horizon. |
+
+`assert(condition);` is the sole direct assertion spelling. The current executable slice accepts a signed global compared with a signed integer literal and traps before mutation when the comparison is false. It does not define `assertTrue`, `assertFalse`, `assertEquals`, `expectEqual`, matcher objects, or bare `assert condition;` aliases. Broader Boolean expression assertions and typed reversible, quantum, workflow, and proof evidence follow WIP-0021 and WIP-0018; this reference does not claim them early merely to make the table look busy.
 
 A reverse block invokes supported calls in reverse lexical order:
 

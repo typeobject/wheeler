@@ -20,10 +20,10 @@ classical class HostBinaryInput {
         setByte(output, 1, lastByte);
         outputLength = 2;
         setOutputLength(output, outputLength);
-        assert byteLength == 4;
-        assert firstByte == 0;
-        assert middleByte == 255;
-        assert lastByte == 128;
-        assert checksum == 510;
+        assert(byteLength == 4);
+        assert(firstByte == 0);
+        assert(middleByte == 255);
+        assert(lastByte == 128);
+        assert(checksum == 510);
     }
 }

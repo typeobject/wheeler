@@ -16,6 +16,6 @@ classical class NativeSha256 {
         digestLength = 32;
         setOutputLength(digest, digestLength);
         drop(arena);
-        assert digestLength == 32;
+        assert(digestLength == 32);
     }
 }

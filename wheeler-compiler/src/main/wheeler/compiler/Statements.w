@@ -13,9 +13,11 @@ classical class Statements {
     ) {
         long statementKind = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
         if (statementKind == 768) {
-            if (tokenKinds[statementStart + 1] == 1) {
-                if (sameTokenText(source, tokenStarts, tokenLengths, 6, statementStart + 1)) {
-                    if (punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, 61)) {
+            if (punctuationAt(source, tokenKinds, tokenStarts, statementStart + 1, 40)) {
+                if (tokenKinds[statementStart + 2] == 1) {
+                    if (
+                        sameTokenText(source, tokenStarts, tokenLengths, 6, statementStart + 2)
+                    ) {
                         if (
                             punctuationAt(
                                 source,
@@ -25,31 +27,51 @@ classical class Statements {
                                 61
                             )
                         ) {
-                            long assertWidth = signedNumberWidth(
-                                source,
-                                tokenKinds,
-                                tokenStarts,
-                                statementStart + 4
-                            );
-                            if (0 < assertWidth) {
-                                if (
-                                    signedNumberValid(
-                                        source,
-                                        tokenStarts,
-                                        tokenLengths,
-                                        statementStart + 4
-                                    )
-                                ) {
+                            if (
+                                punctuationAt(
+                                    source,
+                                    tokenKinds,
+                                    tokenStarts,
+                                    statementStart + 4,
+                                    61
+                                )
+                            ) {
+                                long assertWidth = signedNumberWidth(
+                                    source,
+                                    tokenKinds,
+                                    tokenStarts,
+                                    statementStart + 5
+                                );
+                                if (0 < assertWidth) {
                                     if (
-                                        punctuationAt(
+                                        signedNumberValid(
                                             source,
-                                            tokenKinds,
                                             tokenStarts,
-                                            statementStart + 4 + assertWidth,
-                                            59
+                                            tokenLengths,
+                                            statementStart + 5
                                         )
                                     ) {
-                                        return 5 + assertWidth;
+                                        if (
+                                            punctuationAt(
+                                                source,
+                                                tokenKinds,
+                                                tokenStarts,
+                                                statementStart + 5 + assertWidth,
+                                                41
+                                            )
+                                        ) {
+                                            if (
+                                                punctuationAt(
+                                                    source,
+                                                    tokenKinds,
+                                                    tokenStarts,
+                                                    statementStart + 6 + assertWidth,
+                                                    59
+                                                )
+                                            ) {
+                                                return 7 + assertWidth;
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -176,7 +198,7 @@ classical class Statements {
             return statementStart + 2;
         }
         if (opcode == 768) {
-            return statementStart + 4;
+            return statementStart + 5;
         }
         return statementStart + 3;
     }

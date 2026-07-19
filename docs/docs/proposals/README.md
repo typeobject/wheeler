@@ -97,4 +97,4 @@ Use “Not applicable” with a reason for unaffected template sections. Split w
 | [WIP-0018](WIP-0018-integrated-deterministic-testing.md) | Draft | Integrated deterministic testing | Test declarations, runners, fixtures, replay, quantum and proof assertions |
 | [WIP-0019](WIP-0019-integrated-documentation-publication.md) | Draft | Integrated documentation publication | Wheeler API docs, Markdown, Javadoc, Docusaurus, links and search |
 | [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md) | Draft | Semantic coverage and evidence accounting | Classical, reversible, quantum, workflow and proof coverage |
-| [WIP-0021](WIP-0021-uniform-call-and-assertion-syntax.md) | Draft | Uniform call and assertion syntax | Source syntax, assertions, reversible and quantum evidence, typed test doubles |
+| [WIP-0021](WIP-0021-uniform-call-and-assertion-syntax.md) | Implementing | Uniform call and assertion syntax | Source syntax, assertions, reversible and quantum evidence, typed test doubles |

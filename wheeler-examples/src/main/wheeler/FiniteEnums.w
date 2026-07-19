@@ -22,6 +22,6 @@ classical class FiniteEnums {
                 selected = RIGHT_VALUE;
             }
         }
-        assert selected == 7;
+        assert(selected == 7);
     }
 }

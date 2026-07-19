@@ -66,7 +66,7 @@ class NativeVmExampleTest {
     WheelerCompiler compiler = new WheelerCompiler();
     byte[] update = compiler.compileToBytecode(
         "classical class NativeSubject { state long value = 7; "
-            + "entry void main() { value += 5; assert value == 12; } }");
+            + "entry void main() { value += 5; assert(value == 12); } }");
     VirtualMachine machine = VirtualMachine.withBinaryInput(interpreter, update);
     var initial = machine.snapshot();
 
@@ -82,7 +82,7 @@ class NativeVmExampleTest {
         interpreter,
         "classical class Conditional { state long value = 0; "
             + "entry void main() { long x = 3; if (x < 4) { value += 7; } "
-            + "else { value += 1; } assert value == 7; } }",
+            + "else { value += 1; } assert(value == 7); } }",
         "value",
         7);
     byte[] damagedBranch = withBadJumpTarget(compiler.compileToBytecode(
@@ -95,14 +95,14 @@ class NativeVmExampleTest {
         interpreter,
         "classical class Equality { state long value = 0; "
             + "entry void main() { long x = 3; if (x == 3) { value += 4; } "
-            + "assert value == 4; } }",
+            + "assert(value == 4); } }",
         "value",
         4);
     assertInterpretedGlobal(
         interpreter,
         "classical class ValueCall { state long value = 0; "
             + "long add(long left, long right) { return left + right; } "
-            + "entry void main() { value = add(4, 5); assert value == 9; } }",
+            + "entry void main() { value = add(4, 5); assert(value == 9); } }",
         "value",
         9);
     byte[] damagedCall = withBadCallTarget(compiler.compileToBytecode(
@@ -116,7 +116,7 @@ class NativeVmExampleTest {
         interpreter,
         "classical class VoidCall { state long value = 1; "
             + "void increase(long amount) { value += amount; } "
-            + "entry void main() { increase(6); assert value == 7; } }",
+            + "entry void main() { increase(6); assert(value == 7); } }",
         "value",
         7);
     assertInterpretedGlobal(
@@ -127,7 +127,7 @@ class NativeVmExampleTest {
             + "boolean same(long left, long right) { return left == right; } "
             + "entry void main() { long sum = add(2, 3); "
             + "long doubled = twice(sum); boolean valid = same(doubled, 10); "
-            + "if (valid) { value = doubled; } assert value == 10; } }",
+            + "if (valid) { value = doubled; } assert(value == 10); } }",
         "value",
         10);
     String functionValues = Files.readString(root.resolve("FunctionValues.w"));
@@ -150,7 +150,7 @@ class NativeVmExampleTest {
         + "long[4] first = new long[4](2, 4, 6, 8); "
         + "long[] middle = slice(first, 1, 2); "
         + "selected = first[2]; sliceSelected = middle[1]; "
-        + "assert selected == 6; assert sliceSelected == 6; } }";
+        + "assert(selected == 6); assert(sliceSelected == 6); } }";
     assertInterpretedTwoGlobals(
         interpreter, arrays, "selected", 6, "sliceSelected", 6);
     byte[] forgedArray = withBadArrayIndex(
@@ -179,8 +179,8 @@ class NativeVmExampleTest {
         + "bytes packet = allocateBytes(arena, packetLength); "
         + "setByte(packet, 1, 194); byteValue = readByte(packet, 1); "
         + "long measuredLength = bufferLength(packet); "
-        + "first = measuredLength; assert first == 3; first = 7; "
-        + "assert first == 7; assert byteValue == 194; "
+        + "first = measuredLength; assert(first == 3); first = 7; "
+        + "assert(first == 7); assert(byteValue == 194); "
         + "drop(packet); drop(data); drop(arena); } }";
     assertInterpretedTwoGlobals(
         interpreter, storage, "first", 7, "byteValue", 194);
@@ -202,11 +202,11 @@ class NativeVmExampleTest {
         + "setByte(packet, 2, 162); boolean accepted = utf8Valid(packet); "
         + "if (accepted) { valid = 1; } else { valid = 0; } "
         + "long decoded = utf8Scalar(packet, 1); scalars = decoded; "
-        + "assert scalars == 162; long width = utf8Width(packet, 1); "
-        + "valid = width; assert valid == 2; "
+        + "assert(scalars == 162); long width = utf8Width(packet, 1); "
+        + "valid = width; assert(valid == 2); "
         + "if (accepted) { valid = 1; } else { valid = 0; } "
         + "long count = utf8Count(packet); scalars = count; "
-        + "assert valid == 1; assert scalars == 2; "
+        + "assert(valid == 1); assert(scalars == 2); "
         + "drop(packet); drop(arena); } }";
     assertInterpretedTwoGlobals(
         interpreter, utf8, "valid", 1, "scalars", 2);
@@ -218,7 +218,7 @@ class NativeVmExampleTest {
             + "setByte(packet, 0, 192); setByte(packet, 1, 128); "
             + "boolean accepted = utf8Valid(packet); "
             + "if (accepted) { valid = 1; } else { valid = 0; } "
-            + "assert valid == 0; drop(packet); drop(arena); } }",
+            + "assert(valid == 0); drop(packet); drop(arena); } }",
         "valid",
         0);
     Program frozenUtf8 = compiler.compileModuleFiles(
@@ -255,7 +255,7 @@ class NativeVmExampleTest {
         + "selected = mapGet(values, 7); "
         + "boolean found = mapHas(values, 7); "
         + "if (found) { present = 1; } else { present = 0; } "
-        + "assert selected == 19; assert present == 1; "
+        + "assert(selected == 19); assert(present == 1); "
         + "drop(values); drop(arena); } }";
     assertInterpretedTwoGlobals(
         interpreter, map, "selected", 19, "present", 1);
@@ -269,7 +269,7 @@ class NativeVmExampleTest {
             + "longmap values = allocateMap(arena, 1); put(values, 7, 17); "
             + "selected = lookup(values, 7); boolean found = mapHas(values, 7); "
             + "if (found) { present = 1; } else { present = 0; } "
-            + "assert selected == 17; assert present == 1; "
+            + "assert(selected == 17); assert(present == 1); "
             + "drop(values); drop(arena); } }",
         "selected",
         17,
@@ -315,7 +315,7 @@ class NativeVmExampleTest {
         "classical class Loop { state long value = 0; "
             + "entry void main() { long index = 0; "
             + "while (index < 3) limit 3 { value += 2; index += 1; } "
-            + "assert value == 6; } }",
+            + "assert(value == 6); } }",
         "value",
         6);
     while (machine.historySize() > 0) {
@@ -402,7 +402,7 @@ class NativeVmExampleTest {
     StringBuilder source = new StringBuilder(
         "classical class WideCode { state long result = 0; entry void main() { ");
     for (int statement = 0; statement < 80; statement++) {
-      source.append("assert result == 0; ");
+      source.append("assert(result == 0); ");
     }
     return source.append("} }").toString();
   }
@@ -413,7 +413,7 @@ class NativeVmExampleTest {
     for (int local = 0; local < 17; local++) {
       source.append("long value").append(local).append(" = ").append(local).append("; ");
     }
-    return source.append("result = value16; assert result == 16; } }").toString();
+    return source.append("result = value16; assert(result == 16); } }").toString();
   }
 
   private static void assertAllInterpretedGlobals(

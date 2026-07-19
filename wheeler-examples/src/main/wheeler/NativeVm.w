@@ -80,7 +80,7 @@ classical class NativeVm {
                 interpretedSteps = execution.steps;
             }
             case ExecutionResult.Error(long offset) {
-                assert artifactLength == 1;
+                assert(artifactLength == 1);
             }
         }
         artifactLength = bufferLength(artifact);

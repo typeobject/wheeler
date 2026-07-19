@@ -16,6 +16,6 @@ classical class RecursiveValue {
     entry void main() {
         long measuredDepth = depth(6);
         result = measuredDepth;
-        assert result == 6;
+        assert(result == 6);
     }
 }

@@ -77,17 +77,17 @@ classical class Utf8Lexer {
         }
         outputLength = emitNumber(source, tokenStarts, tokenLengths, output);
         finalCursor = sourceLength;
-        assert tokenCount == 6;
-        assert numberStart == 8;
-        assert commentStart == 12;
-        assert numericValue == 123;
-        assert parseError == 0;
-        assert lexicalCode == 0;
-        assert lexicalError == 0;
-        assert lexicalLine == 0;
-        assert lexicalColumn == 0;
-        assert outputLength == 3;
-        assert finalCursor == 17;
+        assert(tokenCount == 6);
+        assert(numberStart == 8);
+        assert(commentStart == 12);
+        assert(numericValue == 123);
+        assert(parseError == 0);
+        assert(lexicalCode == 0);
+        assert(lexicalError == 0);
+        assert(lexicalLine == 0);
+        assert(lexicalColumn == 0);
+        assert(outputLength == 3);
+        assert(finalCursor == 17);
 
         drop(tokenLengths);
         drop(tokenStarts);

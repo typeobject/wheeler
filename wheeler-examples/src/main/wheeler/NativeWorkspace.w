@@ -31,7 +31,7 @@ classical class NativeWorkspace {
                 count = tokenCount;
             }
             case ScanResult.Error(ScanDiagnostic diagnostic) {
-                assert finalCursor == 1;
+                assert(finalCursor == 1);
             }
         }
         WorkspaceResult parsed = parseWorkspace(source, kinds, starts, lengths, count);
@@ -48,18 +48,18 @@ classical class NativeWorkspace {
                 emittedLength = emitCanonicalLines(source, starts, lengths, count, canonical);
             }
             case WorkspaceResult.Error(long parseOffset) {
-                assert finalCursor == 1;
+                assert(finalCursor == 1);
             }
         }
         finalCursor = bufferLength(source);
-        assert nameStart == 11;
-        assert nameLength == 14;
-        assert profileLength == 11;
-        assert memberCount == 2;
-        assert firstMemberNameLength == 3;
-        assert firstMemberPathLength == 12;
-        assert secondMemberNameLength == 4;
-        assert secondMemberPathLength == 13;
+        assert(nameStart == 11);
+        assert(nameLength == 14);
+        assert(profileLength == 11);
+        assert(memberCount == 2);
+        assert(firstMemberNameLength == 3);
+        assert(firstMemberPathLength == 12);
+        assert(secondMemberNameLength == 4);
+        assert(secondMemberPathLength == 13);
         setOutputLength(canonical, emittedLength);
         drop(lengths);
         drop(starts);

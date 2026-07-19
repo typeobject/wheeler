@@ -12,6 +12,6 @@ classical class NativeVerifier {
     entry void main(byteview artifact) {
         artifactLength = bufferLength(artifact);
         verification = verifyArtifact(artifact, artifactLength);
-        assert verification == 1;
+        assert(verification == 1);
     }
 }

@@ -30,11 +30,11 @@ quantum class QuantumCompiler {
         prepare(program, 0);
         sourceCircuit();
         sourceResult = measure(program);
-        assert sourceResult == 1;
+        assert(sourceResult == 1);
 
         prepare(program, 0);
         normalizedCircuit();
         normalizedResult = measure(program);
-        assert normalizedResult == 1;
+        assert(normalizedResult == 1);
     }
 }

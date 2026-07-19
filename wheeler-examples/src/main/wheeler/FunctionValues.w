@@ -36,6 +36,6 @@ classical class FunctionValues {
         } else {
             result = 0;
         }
-        assert result == 10;
+        assert(result == 10);
     }
 }

@@ -53,14 +53,14 @@ classical class Counter {
     entry void main() {
         increment();
         increment();
-        assert count == 2;
+        assert(count == 2);
 
         reverse {
             increment();
             increment();
         }
 
-        assert count == 0;
+        assert(count == 0);
     }
 }
 ```
@@ -117,14 +117,14 @@ hybrid class CoherentOracle {
 
     entry void main() {
         flip();
-        assert bit == 1;
+        assert(bit == 1);
         reverse flip();
-        assert bit == 0;
+        assert(bit == 0);
 
         prepare(q, 0);
         oracle();
         measured = measure(q);
-        assert measured == 1;
+        assert(measured == 1);
     }
 }
 ```
@@ -161,7 +161,7 @@ quantum class QFT {
         qft();
         reverse qft();
         measured = measure(q);
-        assert measured == 5;
+        assert(measured == 5);
     }
 }
 ```

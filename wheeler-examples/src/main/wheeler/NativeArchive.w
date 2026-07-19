@@ -34,7 +34,7 @@ classical class NativeArchive {
                 targetCount = archive.targetCount;
             }
             case ArchiveResult.Error(long offset) {
-                assert finalLength == 1;
+                assert(finalLength == 1);
             }
         }
         finalLength = bufferLength(source);

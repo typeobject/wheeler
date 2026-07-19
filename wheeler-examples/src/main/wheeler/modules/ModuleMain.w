@@ -41,12 +41,12 @@ classical class ModuleMain {
                 decoded = value;
             }
         }
-        assert result == 18;
-        assert decoded == 9;
-        assert arrayValue == 5;
-        assert sliceValue == 15;
-        assert nominalArrayValue == 8;
-        assert nominalSliceValue == 26;
-        assert qualifiedVariant == 1;
+        assert(result == 18);
+        assert(decoded == 9);
+        assert(arrayValue == 5);
+        assert(sliceValue == 15);
+        assert(nominalArrayValue == 8);
+        assert(nominalSliceValue == 26);
+        assert(qualifiedVariant == 1);
     }
 }

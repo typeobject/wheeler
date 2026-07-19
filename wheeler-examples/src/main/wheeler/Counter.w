@@ -18,13 +18,13 @@ classical class Counter {
     entry void main() {
         increment();
         increment();
-        assert count == 2;
+        assert(count == 2);
 
         // A reverse block invokes method inverses in reverse lexical order.
         reverse {
             increment();
             increment();
         }
-        assert count == 0;
+        assert(count == 0);
     }
 }

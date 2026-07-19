@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Draft |
+| Status | Implementing |
 | Owners | Wheeler language, compiler, testing, formatter, and documentation maintainers |
 | Created | 2026-07-18 |
 | Updated | 2026-07-18 |
@@ -21,7 +21,7 @@ This proposal defines the syntax rubric and migration gate before changing the c
 
 ## Motivation
 
-The current bootstrap profile spells an equality check as:
+Before this migration, the bootstrap profile spelled an equality check as:
 
 ```java
 assert value == 2;
@@ -239,11 +239,11 @@ Near-miss syntax is rejected deterministically:
 ## Progress
 
 - [x] The syntax inconsistency and repository-wide migration surface are documented before implementation.
-- [ ] Parser, native parser, Tree-sitter, and formatter agree on one assertion grammar.
-- [ ] Direct Boolean expressions type-check and evaluate exactly once.
-- [ ] Old, duplicate, and near-miss assertion forms fail with focused diagnostics.
-- [ ] Stage-0 and Wheeler-native compilers emit byte-identical artifacts for assertion fixtures.
-- [ ] Canonical packages, archives, locks, examples, tests, and documentation use the accepted spelling.
+- [x] Stage-0 parser, Wheeler-native parser, Tree-sitter, and formatter agree on the call-shaped equality-assertion slice.
+- [ ] General Boolean expressions type-check and evaluate exactly once; the implemented slice remains signed global equality with a signed literal.
+- [ ] Old, duplicate, and near-miss assertion forms all fail with focused diagnostics; bare syntax and duplicate `assertEquals` already fail.
+- [x] Stage-0 and Wheeler-native compilers emit byte-identical artifacts for assertion fixtures and both reject bare syntax.
+- [x] Canonical Wheeler packages, rebuilt compiler archives and locks, examples, embedded source fixtures, current manuals, and future sketches use the accepted spelling; a root build gate rejects bare and duplicate assertion APIs in authored `.w` files.
 - [ ] Test fixtures expose explicit typed doubles and bounded event logs without interception APIs.
 - [ ] Assertion and test-double vocabulary audits contain no undocumented competing authority.
 
@@ -254,9 +254,9 @@ Near-miss syntax is rejected deterministically:
 - [ ] An assertion expression is evaluated once, including when it calls a stateful or trapping operation.
 - [ ] A false assertion traps before mutation and creates no successful transition-history record.
 - [ ] Forward execution, inverse invocation, and rewind retain distinct assertion evidence.
-- [ ] Formatter output is deterministic, comment-preserving, minimal-diff, and idempotent.
-- [ ] Tree-sitter parses every checked-in Wheeler file and its assertion malformed corpus.
-- [ ] Stage-0 and native compiler outputs match for accepted assertion fixtures.
+- [x] Formatter output is deterministic, comment-preserving, minimal-diff, and idempotent for the implemented equality slice.
+- [x] Tree-sitter parses every checked-in Wheeler file and the migrated assertion corpus.
+- [x] Stage-0 and native compiler outputs match for accepted equality assertion fixtures and reject the bare form.
 - [ ] A typed failing double and a bounded event-recording double run through package discovery without ambient state.
 - [ ] Inverse, rewind, uncomputation, exact quantum, sampled quantum, workflow, proof, and malformed-artifact evidence remain nominally distinct through assertion reduction.
 - [ ] Sampled `Inconclusive` evidence cannot satisfy a Boolean assertion without an explicit, reviewable comparison.

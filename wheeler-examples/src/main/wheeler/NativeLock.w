@@ -29,7 +29,7 @@ classical class NativeLock {
                 count = tokenCount;
             }
             case ScanResult.Error(ScanDiagnostic diagnostic) {
-                assert finalCursor == 1;
+                assert(finalCursor == 1);
             }
         }
         LockResult parsed = parse(source, kinds, starts, lengths, count);
@@ -44,16 +44,16 @@ classical class NativeLock {
                 emittedLength = emitCanonicalLines(source, starts, lengths, count, canonical);
             }
             case LockResult.Error(long parseOffset) {
-                assert finalCursor == 1;
+                assert(finalCursor == 1);
             }
         }
         finalCursor = bufferLength(source);
-        assert rootStart == 13;
-        assert packageCount == 2;
-        assert firstNameLength == 8;
-        assert firstVersionLength == 5;
-        assert secondNameLength == 9;
-        assert edgeCount == 1;
+        assert(rootStart == 13);
+        assert(packageCount == 2);
+        assert(firstNameLength == 8);
+        assert(firstVersionLength == 5);
+        assert(secondNameLength == 9);
+        assert(edgeCount == 1);
         setOutputLength(canonical, emittedLength);
         drop(lengths);
         drop(starts);

@@ -24,13 +24,13 @@ hybrid class QuantumNeuralNetwork {
     /// - Effects: Mutates declared state and submits one bounded task to the explicit quantum target.
     entry void main() {
         flipActivation();
-        assert activation == 0;
+        assert(activation == 0);
         reverse flipActivation();
-        assert activation == 1;
+        assert(activation == 1);
 
         prepare(layer, 1);
         forwardLayer();
         measured = measure(layer);
-        assert measured == 0;
+        assert(measured == 0);
     }
 }

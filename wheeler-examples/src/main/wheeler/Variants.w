@@ -32,7 +32,7 @@ classical class Variants {
                 selected = value;
             }
         }
-        assert selected == 9;
-        assert equal == 1;
+        assert(selected == 9);
+        assert(equal == 1);
     }
 }

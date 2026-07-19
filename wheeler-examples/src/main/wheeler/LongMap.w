@@ -31,10 +31,10 @@ classical class LongMap {
             missing = 1;
         }
 
-        assert selected == 17;
-        assert zeroKey == 5;
-        assert present == 1;
-        assert missing == 1;
+        assert(selected == 17);
+        assert(zeroKey == 5);
+        assert(present == 1);
+        assert(missing == 1);
         drop(values);
         drop(arena);
     }

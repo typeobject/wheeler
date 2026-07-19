@@ -170,7 +170,7 @@ class MinimalCompilerExampleTest {
         writerProgram,
         "classical class CheckedCalls { state long value = 1; "
             + "void bump() { value += 2; } "
-            + "entry void main() { bump(); assert value == 3; } }",
+            + "entry void main() { bump(); assert(value == 3); } }",
         "value",
         3);
     assertDifferentialExecution(
@@ -184,15 +184,15 @@ class MinimalCompilerExampleTest {
         writerProgram,
         "classical class HelperBody { state long value = 1; "
             + "void mix() { value += 2; value ^= 7; value -= 1; "
-            + "assert value == 3; } "
-            + "entry void main() { mix(); assert value == 3; } }",
+            + "assert(value == 3); } "
+            + "entry void main() { mix(); assert(value == 3); } }",
         "value",
         3);
     assertDifferentialExecution(
         writerProgram,
         "classical class DoubleCalls { state long value = 1; "
             + "void bump() { value += 2; } "
-            + "entry void main() { bump(); bump(); assert value == 5; } }",
+            + "entry void main() { bump(); bump(); assert(value == 5); } }",
         "value",
         5);
     assertDifferentialExecution(
@@ -207,7 +207,7 @@ class MinimalCompilerExampleTest {
         "classical class DoubleReverse { state long value = 1; "
             + "rev void bump() { value += 2; } "
             + "entry void main() { bump(); bump(); "
-            + "reverse { bump(); bump(); } assert value == 1; } }",
+            + "reverse { bump(); bump(); } assert(value == 1); } }",
         "value",
         1);
     assertDifferentialExecution(
@@ -215,7 +215,7 @@ class MinimalCompilerExampleTest {
         "classical class CheckedReverse { state long value = 1; "
             + "rev void bump() { value += 2; } "
             + "entry void main() { bump(); reverse { bump(); } "
-            + "assert value == 1; } }",
+            + "assert(value == 1); } }",
         "value",
         1);
     assertDifferentialExecution(
@@ -223,7 +223,7 @@ class MinimalCompilerExampleTest {
         "classical class SubtractiveReverse { state long value = 5; "
             + "rev void lower() { value -= 2; } "
             + "entry void main() { lower(); reverse { lower(); } "
-            + "assert value == 5; } }",
+            + "assert(value == 5); } }",
         "value",
         5);
     assertDifferentialExecution(
@@ -231,7 +231,7 @@ class MinimalCompilerExampleTest {
         "classical class XorReverse { state long value = 5; "
             + "rev void flip() { value ^= 6; } "
             + "entry void main() { flip(); reverse { flip(); } "
-            + "assert value == 5; } }",
+            + "assert(value == 5); } }",
         "value",
         5);
     assertDifferentialExecution(
@@ -240,7 +240,7 @@ class MinimalCompilerExampleTest {
             + "rev void mix() { value += 2; value ^= 7; value -= 1; } "
             + "theorem mixInverse proves inverse(mix); "
             + "entry void main() { mix(); reverse { mix(); } "
-            + "assert value == 5; } }",
+            + "assert(value == 5); } }",
         "value",
         5);
     assertDifferentialExecution(
@@ -249,7 +249,7 @@ class MinimalCompilerExampleTest {
             + "rev void bump() { value += 2; } "
             + "theorem bumpInverse proves inverse(bump); "
             + "entry void main() { bump(); reverse { bump(); } "
-            + "assert value == 1; } }",
+            + "assert(value == 1); } }",
         "value",
         1);
     assertDifferentialExecution(
@@ -257,8 +257,8 @@ class MinimalCompilerExampleTest {
         "classical class DoubleChecked { state long count = 0; "
             + "rev void increment() { count += 1; } "
             + "entry void main() { increment(); increment(); "
-            + "assert count == 2; reverse { increment(); increment(); } "
-            + "assert count == 0; } }",
+            + "assert(count == 2); reverse { increment(); increment(); } "
+            + "assert(count == 0); } }",
         "count",
         0);
     String counterSource = Files.readString(
@@ -277,7 +277,7 @@ class MinimalCompilerExampleTest {
     assertDifferentialExecution(
         writerProgram,
         "classical class Asserted { state long value = 1; "
-            + "entry void main() { value += 2; assert value == 3; } }",
+            + "entry void main() { value += 2; assert(value == 3); } }",
         "value",
         3);
     assertDifferentialExecution(
@@ -290,7 +290,7 @@ class MinimalCompilerExampleTest {
         writerProgram,
         "classical class Four { state long value = 1; "
             + "entry void main() { value += 2; value ^= 7; "
-            + "value -= 1; assert value == 3; } }",
+            + "value -= 1; assert(value == 3); } }",
         "value",
         3);
 
@@ -331,6 +331,15 @@ class MinimalCompilerExampleTest {
         512);
     assertThrows(VmTrap.class, invalid::run);
     assertArrayEquals(new byte[512], invalid.hostOutput());
+
+    VirtualMachine bareAssertion = new VirtualMachine(
+        writerProgram,
+        ("classical class Bare { state long value = 1; "
+            + "entry void main() { assert value == 1; } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, bareAssertion::run);
+    assertArrayEquals(new byte[512], bareAssertion.hostOutput());
   }
 
   @Test

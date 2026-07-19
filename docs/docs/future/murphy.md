@@ -242,12 +242,12 @@ logged rev void applyEvent(
     match (event) {
         case TimelineEvent.Deliver(MessageId id) {
             Envelope envelope = cluster.network.pending.remove(id);
-            assert cluster.nodes[envelope.recipient].running;
-            assert NetworkModel.canDeliver(
+            assert(cluster.nodes[envelope.recipient].running);
+            assert(NetworkModel.canDeliver(
                 cluster.network,
                 envelope.sender,
                 envelope.recipient
-            );
+            ));
 
             Replica previous = cluster.nodes[envelope.recipient];
             long previousCursor = cluster.nextMessageId;
@@ -292,7 +292,7 @@ logged rev void applyEvent(
         }
 
         case TimelineEvent.Crash(NodeId node) {
-            assert cluster.nodes[node].running;
+            assert(cluster.nodes[node].running);
             VolatileReplicaState lost =
                 move cluster.nodes[node].volatileState;
             cluster.nodes[node].volatileState =
@@ -302,7 +302,7 @@ logged rev void applyEvent(
         }
 
         case TimelineEvent.Restart(NodeId node) {
-            assert !cluster.nodes[node].running;
+            assert(!cluster.nodes[node].running);
             VolatileReplicaState prior =
                 move cluster.nodes[node].volatileState;
             cluster.nodes[node].volatileState =
@@ -315,7 +315,7 @@ logged rev void applyEvent(
         }
 
         case TimelineEvent.Partition(NodeSet a, NodeSet b) {
-            assert disjoint(a, b);
+            assert(disjoint(a, b));
             NetworkState previous = cluster.network;
             cluster.network = NetworkModel.partition(previous, a, b);
             witness = new EventWitness.PartitionChanged(previous);
@@ -328,8 +328,8 @@ logged rev void applyEvent(
         }
 
         case TimelineEvent.FireTimer(NodeId node, TimerId timer) {
-            assert cluster.nodes[node].running;
-            assert cluster.nodes[node].volatileState.timers[timer].armed;
+            assert(cluster.nodes[node].running);
+            assert(cluster.nodes[node].volatileState.timers[timer].armed);
             witness = ProtocolMachine.fireTimerWithWitness(
                 protocol,
                 node,
@@ -339,7 +339,7 @@ logged rev void applyEvent(
         }
 
         case TimelineEvent.AdvanceTime(long ticks) {
-            assert ticks > 0;
+            assert(ticks > 0);
             long previous = cluster.logicalTime;
             cluster.logicalTime += ticks;
             witness = new EventWitness.TimeAdvanced(previous);
@@ -486,8 +486,8 @@ coherent rev void classifySchedule(
             enabled
         );
 
-        assert cluster == initial;
-        assert witness == TimelineWitness.clean();
+        assert(cluster == initial);
+        assert(witness == TimelineWitness.clean());
     }
 
     reverse ScheduleDecoder.decodeCanonical(
@@ -497,8 +497,8 @@ coherent rev void classifySchedule(
         workspace.decodeScratch
     );
 
-    assert timeline == Option.None();
-    assert workspace.clean();
+    assert(timeline == Option.None());
+    assert(workspace.clean());
 }
 
 unitary void markFailingSchedule(
@@ -527,8 +527,8 @@ unitary void markFailingSchedule(
         marker,
         workspace
     );
-    assert clean(marker);
-    assert clean(workspace);
+    assert(clean(marker));
+    assert(clean(workspace));
 }
 
 experiment FailureSearchEvidence searchLength(
@@ -628,8 +628,8 @@ hybrid class Murphy {
             output.publish;
         }
     {
-        assert protocol.schema.nodeCount == NODE_COUNT;
-        assert evaluateSafety(initial).passed();
+        assert(protocol.schema.nodeCount == NODE_COUNT);
+        assert(evaluateSafety(initial).passed());
 
         FailureSearchEvidence lastEvidence =
             FailureSearchEvidence.empty();
@@ -669,7 +669,7 @@ hybrid class Murphy {
                     timeline,
                     TraceMode.Normalized
                 );
-                assert !replay.safety.passed();
+                assert(!replay.safety.passed());
 
                 Proof<IsCounterexample(
                     protocol,

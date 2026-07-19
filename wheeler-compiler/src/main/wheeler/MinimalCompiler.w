@@ -50,7 +50,7 @@ classical class MinimalCompiler {
         ScanResult scanned = scan(source, tokenKinds, tokenStarts, tokenLengths);
         match (scanned) {
             case ScanResult.Error(ScanDiagnostic diagnostic) {
-                assert finalCursor == 1;
+                assert(finalCursor == 1);
                 SourceRange scanName = new SourceRange(diagnostic.offset, 0);
                 SourceRange scanGlobal = new SourceRange(diagnostic.offset, 0);
                 return new MinimalProgram(
@@ -101,7 +101,7 @@ classical class MinimalCompiler {
                 );
                 match (parsed) {
                     case MinimalProgramResult.Error(long parseOffset) {
-                        assert finalCursor == 1;
+                        assert(finalCursor == 1);
                         SourceRange parseName = new SourceRange(parseOffset, 0);
                         SourceRange parseGlobal = new SourceRange(parseOffset, 0);
                         return new MinimalProgram(
@@ -160,7 +160,7 @@ classical class MinimalCompiler {
         );
         StringTablePlan strings = planStringTable(source, program);
         if (strings.valid == 0) {
-            assert finalCursor == 1;
+            assert(finalCursor == 1);
         }
         long nameIndex = strings.nameIndex;
         long globalIndex = strings.globalIndex;
@@ -521,7 +521,7 @@ classical class MinimalCompiler {
         }
         finalCursor = cursor;
         verification = verifyArtifact(output, finalCursor);
-        assert verification == 1;
+        assert(verification == 1);
         setOutputLength(output, finalCursor);
 
         drop(tokenLengths);

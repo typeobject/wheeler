@@ -43,7 +43,7 @@ class NativeVerifierExampleTest {
         "examples.compiler.native_verifier");
     byte[] artifact = new WheelerCompiler().compileToBytecode(
         "classical class NativeSubject { state long value = 4; "
-            + "entry void main() { value += 3; assert value == 7; } }");
+            + "entry void main() { value += 3; assert(value == 7); } }");
     VirtualMachine machine = VirtualMachine.withBinaryInput(verifier, artifact);
     var initial = machine.snapshot();
 

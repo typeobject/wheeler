@@ -279,7 +279,9 @@ module.exports = grammar({
       ';',
     ),
 
-    assert_statement: $ => seq('assert', $.identifier, '==', $.integer_literal, ';'),
+    assert_statement: $ => seq(
+      'assert', '(', $.identifier, '==', optional('-'), $.integer_literal, ')', ';',
+    ),
     call_statement: $ => seq($.call_expression, ';'),
     coherent_apply_statement: $ => seq(
       field('register', $.identifier),

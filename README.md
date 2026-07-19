@@ -17,13 +17,13 @@ classical class Counter {
     entry void main() {
         increment();
         increment();
-        assert count == 2;
+        assert(count == 2);
 
         reverse {
             increment();
             increment();
         }
-        assert count == 0;
+        assert(count == 0);
     }
 }
 ```

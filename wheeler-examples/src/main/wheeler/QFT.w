@@ -28,6 +28,6 @@ quantum class QFT {
         qft();
         reverse qft();
         measured = measure(q);
-        assert measured == 5;
+        assert(measured == 5);
     }
 }

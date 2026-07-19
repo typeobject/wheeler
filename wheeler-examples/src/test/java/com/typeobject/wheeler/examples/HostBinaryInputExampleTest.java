@@ -56,7 +56,7 @@ class HostBinaryInputExampleTest {
           state long length = 1;
           entry void main(byteview source) {
             length = bufferLength(source);
-            assert length == 0;
+            assert(length == 0);
           }
         }
         """);

@@ -21,6 +21,6 @@ quantum class QFTProof {
         qft();
         reverse qft();
         measured = measure(register);
-        assert measured == 2;
+        assert(measured == 2);
     }
 }

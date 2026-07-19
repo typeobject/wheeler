@@ -25,7 +25,7 @@ classical class Records {
         if (first == second) {
             equal = 1;
         }
-        assert width == 5;
-        assert equal == 1;
+        assert(width == 5);
+        assert(equal == 1);
     }
 }

@@ -31,12 +31,12 @@ class WheelerCompilerTest {
         entry void main() {
           increment();
           increment();
-          assert count == 2;
+          assert(count == 2);
           reverse {
             increment();
             increment();
           }
-          assert count == 0;
+          assert(count == 0);
         }
       }
       """;
@@ -44,13 +44,27 @@ class WheelerCompilerTest {
   @Test
   void compactFormattingHasTheSameSemantics() {
     String compact = "classical class Tiny{state long x=0;rev void flip(){x^=1;}"
-        + "entry void main(){flip();reverse flip();assert x==0;}}";
+        + "entry void main(){flip();reverse flip();assert(x==0);}}";
 
     Program program = new WheelerCompiler().compile(compact);
     VirtualMachine machine = new VirtualMachine(program);
     machine.run();
 
     assertEquals(0, machine.global("x"));
+  }
+
+  @Test
+  void requiresOneCallShapedAssertionForm() {
+    WheelerCompiler compiler = new WheelerCompiler();
+    CompilerException bare = assertThrows(CompilerException.class, () -> compiler.compile(
+        "classical class Bad { state long value = 1; "
+            + "entry void main() { assert value == 1; } }"));
+    CompilerException duplicate = assertThrows(CompilerException.class, () -> compiler.compile(
+        "classical class Bad { state long value = 1; "
+            + "entry void main() { assertEquals(value, 1); } }"));
+
+    assertTrue(bare.getMessage().contains("expected '(' after assert"));
+    assertTrue(duplicate.getMessage().contains("void call signature mismatch: assertEquals"));
   }
 
   @Test
@@ -71,8 +85,8 @@ class WheelerCompilerTest {
     String source = """
         classical class Laws {
           state long value = 0;
-          test void beta() { assert value == 1; }
-          test void alpha() { assert value == 0; }
+          test void beta() { assert(value == 1); }
+          test void alpha() { assert(value == 0); }
           test void flag(boolean input) cases(false, true) {
             if (input) { value = 1; } else { value = 0; }
           }
@@ -123,7 +137,7 @@ class WheelerCompilerTest {
           state long result = 0;
           test void imported() {
             result = laws.math::two();
-            assert result == 2;
+            assert(result == 2);
           }
           entry void main() { result = 1; }
         }
@@ -171,7 +185,7 @@ class WheelerCompilerTest {
           state long result = 0;
           entry void main() {
             result = bootstrap.arithmetic::twice(9);
-            assert result == 18;
+            assert(result == 18);
           }
         }
         """;
@@ -218,7 +232,7 @@ class WheelerCompilerTest {
             side.left::Value left = side.left::make();
             side.right::Value right = side.right::make();
             result = left.data + right.data;
-            assert result == 18;
+            assert(result == 18);
           }
         }
         """;
@@ -254,7 +268,7 @@ class WheelerCompilerTest {
         import demo.math;
         classical class Main {
           state long result = 0;
-          entry void main() { result = twice(4); assert result == 8; }
+          entry void main() { result = twice(4); assert(result == 8); }
         }
         """;
     String unused = """
@@ -374,8 +388,8 @@ class WheelerCompilerTest {
           entry void main(utf8 source) {
             byteCount = bufferLength(source);
             scalars = utf8Count(source);
-            assert byteCount == 3;
-            assert scalars == 2;
+            assert(byteCount == 3);
+            assert(scalars == 2);
           }
         }
         """);
@@ -440,9 +454,9 @@ class WheelerCompilerTest {
             result = 2 + 3 * 4;
             quotient = 20 / 3;
             remainder = 20 % 3;
-            assert result == 14;
-            assert quotient == 6;
-            assert remainder == 2;
+            assert(result == 14);
+            assert(quotient == 6);
+            assert(remainder == 2);
           }
         }
         """);
@@ -492,8 +506,8 @@ class WheelerCompilerTest {
             }
             boolean complete = sum == 10;
             if (complete) { branch = 1; } else { branch = 2; }
-            assert sum == 10;
-            assert branch == 1;
+            assert(sum == 10);
+            assert(branch == 1);
           }
         }
         """;
@@ -518,7 +532,7 @@ class WheelerCompilerTest {
           entry void main() {
             boolean equal = same(true, true);
             if (equal) { result = 1; } else { result = 2; }
-            assert result == 1;
+            assert(result == 1);
           }
         }
         """);
@@ -557,8 +571,8 @@ class WheelerCompilerTest {
               if (i == 5) { break; }
             }
             stopped = choose(i == 5);
-            assert sum == 12;
-            assert stopped == 7;
+            assert(sum == 12);
+            assert(stopped == 7);
           }
         }
         """);
@@ -581,7 +595,7 @@ class WheelerCompilerTest {
               sum += i;
               if (i == 4) { break; }
             }
-            assert sum == 9;
+            assert(sum == 9);
           }
         }
         """);
@@ -609,7 +623,7 @@ class WheelerCompilerTest {
               }
               count += 10;
             }
-            assert count == 22;
+            assert(count == 22);
           }
         }
         """);
@@ -627,7 +641,7 @@ class WheelerCompilerTest {
           state long count = 0;
           entry void main() {
             while (false) limit 0 { count += 1; }
-            assert count == 0;
+            assert(count == 0);
           }
         }
         """);
@@ -740,7 +754,7 @@ class WheelerCompilerTest {
           state long result = CALL;
           entry void main() {
             if (ENABLED) { result = CALL; }
-            assert result == 513;
+            assert(result == 513);
           }
         }
         """);
@@ -785,7 +799,7 @@ class WheelerCompilerTest {
           entry void main() {
             long direct = FRAME_LIMIT;
             result = direct + values::FRAME_LIMIT;
-            assert result == 32;
+            assert(result == 32);
           }
         }
         """;
@@ -837,7 +851,7 @@ class WheelerCompilerTest {
               case Direction.Left() { selected = 1; }
               case Direction.Right() { selected = 2; }
             }
-            assert selected == 2;
+            assert(selected == 2);
           }
         }
         """;

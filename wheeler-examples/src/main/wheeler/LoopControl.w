@@ -26,7 +26,7 @@ classical class LoopControl {
             }
         }
         selected = choose(i == 5);
-        assert sum == 12;
-        assert selected == 7;
+        assert(sum == 12);
+        assert(selected == 7);
     }
 }

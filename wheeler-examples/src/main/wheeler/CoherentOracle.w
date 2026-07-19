@@ -24,13 +24,13 @@ hybrid class CoherentOracle {
     /// - Effects: Mutates declared state and submits one bounded task to the explicit quantum target.
     entry void main() {
         flip();
-        assert bit == 1;
+        assert(bit == 1);
         reverse flip();
-        assert bit == 0;
+        assert(bit == 0);
 
         prepare(q, 0);
         oracle();
         measured = measure(q);
-        assert measured == 1;
+        assert(measured == 1);
     }
 }

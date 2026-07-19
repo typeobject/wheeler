@@ -19,6 +19,33 @@ tasks.register('treeSitterTest', Exec) {
     commandLine 'npm', 'test'
 }
 
+tasks.register('sourceSyntaxTest') {
+    group = 'verification'
+    description = 'Rejects competing assertion spellings in authored Wheeler source.'
+    doLast {
+        def failures = []
+        fileTree(rootDir) {
+            include '**/*.w'
+            exclude '**/build/**', '**/node_modules/**'
+        }.files.sort().each { file ->
+            def text = file.getText('UTF-8')
+            if ((text =~ /(?m)\bassert\s+(?!\()/).find()) {
+                failures.add("${rootDir.toPath().relativize(file.toPath())}: bare assert")
+            }
+            if ((text =~ /\b(?:assertTrue|assertFalse|assertEquals|expectEqual)\s*\(/).find()) {
+                failures.add("${rootDir.toPath().relativize(file.toPath())}: duplicate assertion API")
+            }
+            if ((text =~ /\b(?:mock|when)\s*\(/).find()) {
+                failures.add("${rootDir.toPath().relativize(file.toPath())}: ambient mock API")
+            }
+        }
+        if (!failures.isEmpty()) {
+            throw new GradleException('Wheeler assertion syntax has one authority:\n'
+                    + failures.join('\n'))
+        }
+    }
+}
+
 tasks.register('sourceHeaderTest') {
     group = 'verification'
     description = 'Requires an owned header comment on every authored code file.'
@@ -104,4 +131,5 @@ subprojects {
 
     check.dependsOn jacocoTestReport
     check.dependsOn rootProject.tasks.named('sourceHeaderTest')
+    check.dependsOn rootProject.tasks.named('sourceSyntaxTest')
 }

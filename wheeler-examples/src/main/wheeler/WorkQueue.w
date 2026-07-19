@@ -91,11 +91,11 @@ classical class WorkQueue {
         finalTail = cursor.tail;
         drop(values);
         drop(arena);
-        assert first == 4;
-        assert second == 9;
-        assert finalHead == 2;
-        assert finalTail == 4;
-        assert emptyObserved == 1;
-        assert fullObserved == 1;
+        assert(first == 4);
+        assert(second == 9);
+        assert(finalHead == 2);
+        assert(finalTail == 4);
+        assert(emptyObserved == 1);
+        assert(fullObserved == 1);
     }
 }

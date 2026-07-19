@@ -18,7 +18,7 @@ classical class BootstrapControl {
             branch = 2;
         }
 
-        assert sum == 10;
-        assert branch == 1;
+        assert(sum == 10);
+        assert(branch == 1);
     }
 }
