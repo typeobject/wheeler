@@ -3,6 +3,7 @@ package com.typeobject.wheeler.tools;
 import com.typeobject.wheeler.packageformat.PackageArchive;
 import com.typeobject.wheeler.packageformat.PackageArchive.DecodedPackage;
 import com.typeobject.wheeler.packageformat.PackageFormatException;
+import com.typeobject.wheeler.packageformat.RepositoryRelease;
 import com.typeobject.wheeler.packageformat.SemanticVersion;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -10,15 +11,9 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /** Immutable content-addressed local registry transport with idempotent publication. */
 final class PackageRegistry {
-  private static final Pattern RELEASE = Pattern.compile(
-      "release 1 package \"([^\"]+)\" version \"([^\"]+)\""
-          + " archive \"([0-9a-f]{64})\" manifest \"([0-9a-f]{64})\";\\n");
-
   private final Path root;
   private final PackageArchive codec = new PackageArchive();
 
@@ -34,6 +29,13 @@ final class PackageRegistry {
     return new PackageRegistry(root);
   }
 
+  static PackageRegistry openOrCreate(Path requestedRoot) throws IOException {
+    if (!Files.exists(requestedRoot, LinkOption.NOFOLLOW_LINKS)) {
+      RepositoryPolicyStore.createPhysicalDirectories(requestedRoot.toAbsolutePath().normalize());
+    }
+    return open(requestedRoot);
+  }
+
   DecodedPackage publish(byte[] bytes) throws IOException {
     DecodedPackage decoded = codec.decode(bytes);
     Path archives = physicalDirectory("archives");
@@ -42,27 +44,56 @@ final class PackageRegistry {
     Path archive = archives.resolve(decoded.identity() + ".wpk");
     writeImmutable(archive, bytes, "archive");
 
-    byte[] release = canonicalRelease(decoded).getBytes(StandardCharsets.UTF_8);
-    Path mapping = packageDirectory.resolve(decoded.manifest().version() + ".release");
+    RepositoryRelease release = release(decoded);
+    byte[] releaseBytes = release.canonicalText().getBytes(StandardCharsets.UTF_8);
+    Path mapping = packageDirectory.resolve(decoded.manifest().version() + RepositoryRelease.SUFFIX);
     if (Files.exists(mapping, LinkOption.NOFOLLOW_LINKS)) {
       requirePhysicalFile(mapping, "release mapping");
-      if (!Arrays.equals(Files.readAllBytes(mapping), release)) {
+      if (!Arrays.equals(Files.readAllBytes(mapping), releaseBytes)) {
         throw new PackageFormatException(
             "Registry version already identifies different content: "
                 + decoded.manifest().name() + " " + decoded.manifest().version());
       }
     } else {
-      PackageProject.writeAtomically(mapping, release);
+      PackageProject.writeAtomically(mapping, releaseBytes);
     }
     verifyRelease(mapping, decoded.manifest().name(), decoded.manifest().version());
     return decoded;
   }
 
   byte[] fetch(String name, String version) throws IOException {
+    byte[] bytes = fetchIfPresent(name, version);
+    if (bytes == null) {
+      throw new IOException("Registry has no release " + name + " " + version);
+    }
+    return bytes;
+  }
+
+  byte[] fetchIfPresent(String name, String version) throws IOException {
     requirePackageName(name);
     SemanticVersion.parse(version);
-    Path mapping = descend("releases", name, version + ".release");
-    Release release = verifyRelease(mapping, name, version);
+    Path releaseRoot = root.resolve("releases");
+    if (!Files.exists(releaseRoot, LinkOption.NOFOLLOW_LINKS)) {
+      return null;
+    }
+    if (!Files.isDirectory(releaseRoot, LinkOption.NOFOLLOW_LINKS)
+        || Files.isSymbolicLink(releaseRoot)) {
+      throw new IOException("Registry releases path is not a physical directory");
+    }
+    Path packageRoot = releaseRoot.resolve(name);
+    if (!Files.exists(packageRoot, LinkOption.NOFOLLOW_LINKS)) {
+      return null;
+    }
+    if (!Files.isDirectory(packageRoot, LinkOption.NOFOLLOW_LINKS)
+        || Files.isSymbolicLink(packageRoot)) {
+      throw new IOException("Registry package path is not a physical directory: " + packageRoot);
+    }
+    Path mapping = packageRoot.resolve(version + RepositoryRelease.SUFFIX);
+    if (!Files.exists(mapping, LinkOption.NOFOLLOW_LINKS)) {
+      return null;
+    }
+    requirePhysicalFile(mapping, "release mapping");
+    RepositoryRelease release = verifyRelease(mapping, name, version);
     Path archive = descend("archives", release.archiveIdentity() + ".wpk");
     byte[] bytes = Files.readAllBytes(archive);
     DecodedPackage decoded = codec.decode(bytes);
@@ -75,21 +106,12 @@ final class PackageRegistry {
     return bytes;
   }
 
-  private Release verifyRelease(Path mapping, String name, String version) throws IOException {
+  private RepositoryRelease verifyRelease(Path mapping, String name, String version)
+      throws IOException {
     requirePhysicalFile(mapping, "release mapping");
-    String text = new String(Files.readAllBytes(mapping), StandardCharsets.UTF_8);
-    Matcher matcher = RELEASE.matcher(text);
-    if (!matcher.matches()
-        || !matcher.group(1).equals(name)
-        || !matcher.group(2).equals(version)) {
-      throw new PackageFormatException("Malformed or mismatched registry release mapping");
-    }
-    requirePackageName(name);
-    SemanticVersion.parse(version);
-    Release result = new Release(matcher.group(3), matcher.group(4));
-    String canonical = canonicalRelease(name, version, result);
-    if (!canonical.equals(text)) {
-      throw new PackageFormatException("Registry release mapping is not canonical");
+    RepositoryRelease result = RepositoryRelease.parse(Files.readAllBytes(mapping));
+    if (!result.name().equals(name) || !result.version().equals(version)) {
+      throw new PackageFormatException("Mismatched repository release mapping");
     }
     return result;
   }
@@ -143,17 +165,13 @@ final class PackageRegistry {
     }
   }
 
-  private static String canonicalRelease(DecodedPackage decoded) {
-    return canonicalRelease(
+  private static RepositoryRelease release(DecodedPackage decoded) {
+    return new RepositoryRelease(
+        RepositoryRelease.SCHEMA_VERSION,
         decoded.manifest().name(),
         decoded.manifest().version(),
-        new Release(decoded.identity(), decoded.manifest().identity()));
-  }
-
-  private static String canonicalRelease(String name, String version, Release release) {
-    return "release 1 package \"" + name + "\" version \"" + version
-        + "\" archive \"" + release.archiveIdentity() + "\" manifest \""
-        + release.manifestIdentity() + "\";\n";
+        decoded.identity(),
+        decoded.manifest().identity());
   }
 
   private static void requirePackageName(String name) {
@@ -162,5 +180,4 @@ final class PackageRegistry {
     }
   }
 
-  private record Release(String archiveIdentity, String manifestIdentity) {}
 }
