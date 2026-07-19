@@ -54,10 +54,16 @@ public final class PackageResolver {
       throw new PackageFormatException("Root package depends on itself");
     }
     Map<String, PackageRelease> selected = solve(
-        requirements, new TreeMap<>(), includeDevelopment, root.name(), 0);
+        requirements,
+        new TreeMap<>(),
+        includeDevelopment,
+        root.name(),
+        root.profile(),
+        0);
     if (selected == null) {
       throw new PackageFormatException(
-          "No package solution for " + canonicalRequirements(requirements));
+          "No package solution for profile " + root.profile() + " and "
+              + canonicalRequirements(requirements));
     }
     rejectCycles(selected, includeDevelopment);
     List<PackageLock.Entry> entries = new ArrayList<>();
@@ -82,12 +88,16 @@ public final class PackageResolver {
       Map<String, PackageRelease> selected,
       boolean includeDevelopment,
       String rootName,
+      String requiredProfile,
       int depth) {
     if (depth > MAX_PACKAGES || requirements.size() > MAX_PACKAGES) {
       throw new PackageFormatException("Dependency graph exceeds package limit");
     }
     for (Map.Entry<String, PackageRelease> entry : selected.entrySet()) {
-      if (!accepts(requirements.getOrDefault(entry.getKey(), List.of()), entry.getValue())) {
+      if (!accepts(
+          requirements.getOrDefault(entry.getKey(), List.of()),
+          entry.getValue(),
+          requiredProfile)) {
         return null;
       }
     }
@@ -99,7 +109,7 @@ public final class PackageResolver {
       return Map.copyOf(new TreeMap<>(selected));
     }
     for (PackageRelease candidate : available.getOrDefault(next, List.of())) {
-      if (!accepts(requirements.get(next), candidate)) {
+      if (!accepts(requirements.get(next), candidate, requiredProfile)) {
         continue;
       }
       Map<String, PackageRelease> nextSelected = new TreeMap<>(selected);
@@ -115,7 +125,12 @@ public final class PackageResolver {
         continue;
       }
       Map<String, PackageRelease> solved = solve(
-          nextRequirements, nextSelected, includeDevelopment, rootName, depth + 1);
+          nextRequirements,
+          nextSelected,
+          includeDevelopment,
+          rootName,
+          requiredProfile,
+          depth + 1);
       if (solved != null) {
         return solved;
       }
@@ -145,7 +160,12 @@ public final class PackageResolver {
   }
 
   private static boolean accepts(
-      List<VersionConstraint> requirements, PackageRelease candidate) {
+      List<VersionConstraint> requirements,
+      PackageRelease candidate,
+      String requiredProfile) {
+    if (!candidate.manifest().profile().equals(requiredProfile)) {
+      return false;
+    }
     SemanticVersion version = candidate.semanticVersion();
     return requirements.stream().allMatch(requirement -> requirement.accepts(version));
   }

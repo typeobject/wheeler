@@ -77,6 +77,24 @@ class PackageResolverTest {
   }
 
   @Test
+  void resolverBacktracksAcrossIncompatibleSourceProfiles() {
+    PackageManifest root = manifest("root.app", "1.0.0", List.of(
+        dependency("lib.a", "^1.0.0", DependencyKind.NORMAL)));
+    PackageRelease incompatible = release(manifestWithProfile(
+        "lib.a", "1.1.0", "future-2", List.of()), 'c');
+    PackageRelease compatible = release(manifest("lib.a", "1.0.0", List.of()), 'd');
+
+    PackageLock lock = new PackageResolver(List.of(incompatible, compatible))
+        .resolve(root, false);
+
+    assertEquals("1.0.0", lock.entries().getFirst().version());
+    PackageFormatException failure = assertThrows(
+        PackageFormatException.class,
+        () -> new PackageResolver(List.of(incompatible)).resolve(root, false));
+    assertTrue(failure.getMessage().contains("profile bootstrap-1"));
+  }
+
+  @Test
   void developmentDependenciesAreExplicitAndConflictsFailClosed() {
     PackageManifest root = manifest("root.app", "1.0.0", List.of(
         dependency("test.support", "^1.0.0", DependencyKind.DEVELOPMENT)));
@@ -142,10 +160,15 @@ class PackageResolverTest {
 
   private static PackageManifest manifest(
       String name, String version, List<Dependency> dependencies) {
+    return manifestWithProfile(name, version, "bootstrap-1", dependencies);
+  }
+
+  private static PackageManifest manifestWithProfile(
+      String name, String version, String profile, List<Dependency> dependencies) {
     return new PackageManifest(
         name,
         version,
-        "bootstrap-1",
+        profile,
         List.of(new Target(TargetKind.LIBRARY, "main", "src/main.w")),
         dependencies,
         List.of());
