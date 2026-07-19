@@ -1,7 +1,6 @@
 # Gradle
 .gradle/
 build/
-!bootstrap/gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
@@ -27,6 +26,7 @@ bin/
 # Java
 *.class
 *.jar
+!bootstrap/gradle/wrapper/gradle-wrapper.jar
 *.war
 *.ear
 hs_err_pid*
