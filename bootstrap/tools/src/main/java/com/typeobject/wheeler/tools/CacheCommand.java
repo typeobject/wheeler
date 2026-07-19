@@ -19,8 +19,11 @@ final class CacheCommand {
     for (String diagnostic : paths.diagnostics()) {
       error.println("wheeler: " + diagnostic);
     }
-    ArtifactCache.GcResult result = new ArtifactCache(paths.artifactCache()).gc();
-    out.println("cache gc retained " + result.retained() + " removed " + result.removed());
+    ArtifactCache.GcResult packages = new ArtifactCache(paths.artifactCache()).gc();
+    BuildOutputCache.GcResult builds = new BuildOutputCache(
+        paths.artifactCache(), paths.state()).gc();
+    out.println("cache gc retained " + (packages.retained() + builds.retained())
+        + " removed " + (packages.removed() + builds.removed()));
     return 0;
   }
 }

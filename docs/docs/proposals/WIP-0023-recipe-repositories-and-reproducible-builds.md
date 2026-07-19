@@ -205,13 +205,14 @@ Reject noncanonical snapshots, invalid delegations, conflicting mappings, source
 ## Progress
 
 - [ ] Repository, snapshot, and recipe schemas accepted.
-- [ ] RREV/variant/build-input/PREV implemented.
+- [ ] Recipe RREV and variant identities remain. Stage-0 source-package plans implement a narrower `wheeler-build-input-1` over workspace/compiler/profile/node closure and PREV over exact canonical `.wbc` bytes.
 - [ ] Fetch separated from build.
 - [x] XDG path resolution, canonical ordered file-repository policy, immutable local publication, canonical release mappings, and exact first-authoritative fetch are implemented in stage 0.
 - [x] Unlocked stage-0 resolution honors namespace authority and first-admissible configured repository order without candidate mixing.
 - [x] Canonical schema-1 local repository snapshots bind the complete sorted coordinate/archive/manifest view, live under immutable content-derived names, and are materialized on publication and resolution without a mutable `latest` authority. Lock schema 3 binds each selected package to both that snapshot and its owning repository trust-domain identity without binding aliases, URLs, order, or physical paths. Snapshot signing, delegations, yanks, advisories, and network acquisition remain.
 - [x] Authoritative exact package fetches populate and reverify a disposable XDG package-object cache; corruption becomes a miss, cache bytes never become candidates, and bounded GC removes malformed regular objects without following links.
-- [ ] Build-input-keyed output reuse, quarantine state, and identity-preserving mirrors remain; local locks are snapshot-bound, but public signed snapshots are not implemented.
+- [x] Stage-0 source-package build outputs are keyed by the complete current plan input identity, reverified on every hit, and admitted at one PREV per input. Divergent verified output enters deterministic XDG quarantine and cannot replace the accepted mapping; bounded GC removes malformed and unreachable disposable cache objects.
+- [ ] Recipe-complete build-input axes and identity-preserving mirrors remain; local locks are snapshot-bound, but public signed snapshots are not implemented.
 - [ ] Reproducibility normalization passes.
 - [ ] Quarantine and independent attestations implemented.
 - [ ] Compatibility checks and signed snapshots implemented.

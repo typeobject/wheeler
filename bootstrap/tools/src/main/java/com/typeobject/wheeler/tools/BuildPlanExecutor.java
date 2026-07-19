@@ -23,6 +23,19 @@ final class BuildPlanExecutor {
 
   static void execute(WorkspaceProject workspace, BuildPlan plan, Path requestedOutput)
       throws IOException {
+    XdgPaths paths = XdgPaths.system();
+    execute(
+        workspace,
+        plan,
+        requestedOutput,
+        new BuildOutputCache(paths.artifactCache(), paths.state()));
+  }
+
+  static void execute(
+      WorkspaceProject workspace,
+      BuildPlan plan,
+      Path requestedOutput,
+      BuildOutputCache cache) throws IOException {
     requireCompleteGrants(plan);
     if (!plan.compilerIdentity().equals(Stage0CompilerIdentity.current())) {
       throw new PackageFormatException(
@@ -57,8 +70,14 @@ final class BuildPlanExecutor {
 
     Instant started = Instant.now();
     try {
-      workspace.build(staging);
+      boolean reused = materializeCached(staging, plan, cache);
+      if (!reused) {
+        workspace.build(staging);
+      }
       verifyOutputs(staging, plan, started);
+      if (!reused) {
+        cacheOutputs(staging, plan, cache);
+      }
       try {
         Files.move(staging, output, StandardCopyOption.ATOMIC_MOVE);
       } catch (AtomicMoveNotSupportedException exception) {
@@ -68,6 +87,33 @@ final class BuildPlanExecutor {
       if (Files.exists(staging, LinkOption.NOFOLLOW_LINKS)) {
         PackageProject.cleanOutput(staging);
       }
+    }
+  }
+
+  private static boolean materializeCached(
+      Path staging, BuildPlan plan, BuildOutputCache cache) throws IOException {
+    Map<String, byte[]> outputs = new HashMap<>();
+    for (BuildPlan.Node node : plan.nodes()) {
+      byte[] bytes = cache.load(plan.buildInputIdentity(node));
+      if (bytes == null) {
+        return false;
+      }
+      outputs.put(node.outputPath(), bytes);
+    }
+    for (Map.Entry<String, byte[]> output : outputs.entrySet()) {
+      Path destination = staging.resolve(output.getKey());
+      Files.createDirectories(destination.getParent());
+      Files.write(destination, output.getValue());
+    }
+    return true;
+  }
+
+  private static void cacheOutputs(
+      Path root, BuildPlan plan, BuildOutputCache cache) throws IOException {
+    for (BuildPlan.Node node : plan.nodes()) {
+      cache.store(
+          plan.buildInputIdentity(node),
+          Files.readAllBytes(root.resolve(node.outputPath())));
     }
   }
 

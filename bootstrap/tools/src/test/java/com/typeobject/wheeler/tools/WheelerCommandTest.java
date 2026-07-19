@@ -305,6 +305,18 @@ class WheelerCommandTest {
     assertArrayEquals(
         Files.readAllBytes(output.resolve("second/main.wbc")),
         Files.readAllBytes(plannedOutput.resolve("second/main.wbc")));
+    Path cachedOutput = temporary.resolve("cached-artifacts");
+    assertEquals(0, Wheeler.execute(
+        new String[] {
+            "execute-plan", temporary.toString(), grantedPlan.toString(),
+            "-o", cachedOutput.toString()
+        }, new PrintStream(stdout), sink));
+    assertArrayEquals(
+        Files.readAllBytes(plannedOutput.resolve("first/main.wbc")),
+        Files.readAllBytes(cachedOutput.resolve("first/main.wbc")));
+    assertArrayEquals(
+        Files.readAllBytes(plannedOutput.resolve("second/main.wbc")),
+        Files.readAllBytes(cachedOutput.resolve("second/main.wbc")));
     assertThrows(IOException.class, () -> Wheeler.execute(
         new String[] {
             "execute-plan", temporary.toString(), grantedPlan.toString(),

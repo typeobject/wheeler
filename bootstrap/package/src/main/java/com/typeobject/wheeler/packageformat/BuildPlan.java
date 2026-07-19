@@ -51,6 +51,20 @@ public record BuildPlan(
     nodes = List.copyOf(ordered);
   }
 
+  /** Returns the complete cache/quarantine key for one node in this exact plan. */
+  public String buildInputIdentity(Node node) {
+    if (!nodes.contains(node)) {
+      throw new PackageFormatException("Build node does not belong to this plan");
+    }
+    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    field(bytes, "wheeler-build-input-1");
+    field(bytes, workspaceIdentity);
+    field(bytes, compilerIdentity);
+    field(bytes, profile);
+    field(bytes, node.identity());
+    return sha256(bytes.toByteArray());
+  }
+
   public record Node(
       String identity,
       String packageName,
@@ -226,9 +240,12 @@ public record BuildPlan(
       field(bytes, capability.name());
       field(bytes, capability.pattern());
     }
+    return sha256(bytes.toByteArray());
+  }
+
+  private static String sha256(byte[] bytes) {
     try {
-      return HexFormat.of().formatHex(
-          MessageDigest.getInstance("SHA-256").digest(bytes.toByteArray()));
+      return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
     } catch (NoSuchAlgorithmException exception) {
       throw new IllegalStateException("SHA-256 is unavailable", exception);
     }
