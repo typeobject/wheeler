@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.compiler;
 
+import com.typeobject.wheeler.compiler.SourceModel.ParameterMode;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.ValueType;
 import java.util.Set;
@@ -8,9 +9,15 @@ import java.util.Set;
 final class SourceCallArgumentLowerer {
   private SourceCallArgumentLowerer() {}
 
-  static ValueType parameterType(ValueType sourceType) {
-    if (sourceType.equals(ValueType.UTF8)) {
+  static ValueType parameterType(ValueType sourceType, ParameterMode mode) {
+    if (mode == ParameterMode.VALUE) {
+      return sourceType;
+    }
+    if (mode == ParameterMode.BORROW && sourceType.equals(ValueType.UTF8)) {
       return ValueType.UTF8_BORROW;
+    }
+    if (mode == ParameterMode.BORROW) {
+      return ValueType.BYTE_VIEW;
     }
     if (sourceType.equals(ValueType.LONG_MAP)) {
       return ValueType.LONG_MAP_BORROW;
@@ -21,10 +28,7 @@ final class SourceCallArgumentLowerer {
     if (sourceType.equals(ValueType.BYTES)) {
       return ValueType.BYTES_BORROW;
     }
-    if (sourceType.equals(ValueType.REGION)) {
-      return ValueType.REGION_BORROW;
-    }
-    return sourceType;
+    return ValueType.REGION_BORROW;
   }
 
   static Opcode copyOpcode(
@@ -89,6 +93,7 @@ final class SourceCallArgumentLowerer {
           "expected %s expression, got %s"
               .formatted(parameterType.displayName(), sourceType.displayName()));
     }
-    return Opcode.LOCAL_MOVE;
+    return ClassicalLowerer.owned(parameterType)
+        ? Opcode.OWNED_MOVE : Opcode.LOCAL_MOVE;
   }
 }

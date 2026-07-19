@@ -21,21 +21,24 @@ class SourceFormatterTest {
         + "///Runs the entry.\n"
         + "///\n"
         + "///- Effects: Mutates `value`.\n"
-        + "entry void main(){long value=-2;if(value<0){value+=1;}else{value=0;}}}";
+        + "entry void main(){long value=-2;if(value<0){value+=1;}else{value=0;}"
+        + "long done=value;}}";
     String expected = """
         //! Summary
         classical class Demo {
-            /// Runs the entry.
-            ///
-            /// - Effects: Mutates `value`.
-            entry void main() {
-                long value = -2;
-                if (value < 0) {
-                    value += 1;
-                } else {
-                    value = 0;
-                }
+          /// Runs the entry.
+          ///
+          /// - Effects: Mutates `value`.
+          entry void main() {
+            long value = -2;
+            if (value < 0) {
+              value += 1;
+            } else {
+              value = 0;
             }
+
+            long done = value;
+          }
         }
         """;
 
@@ -50,6 +53,70 @@ class SourceFormatterTest {
   }
 
   @Test
+  void separatesModuleImportsAndCompoundStatements() {
+    String source = "module demo;import values;import words;classical class Demo { "
+        + "entry void main() { if (true) { assert(true); } assert(true); } }";
+
+    String formatted = SourceFormatter.format(source);
+
+    assertTrue(formatted.startsWith("""
+        module demo;
+
+        import values;
+        import words;
+
+        classical class Demo {
+        """));
+    assertTrue(formatted.contains("""
+            if (true) {
+              assert(true);
+            }
+
+            assert(true);
+        """));
+    assertEquals(formatted, SourceFormatter.format(formatted));
+  }
+
+  @Test
+  void separatesLoopsMatchesMethodsAndAttachedComments() {
+    String source = "classical class Spacing { void helper() { "
+        + "while (false) limit 1 { assert(true); } // explain the following check\n"
+        + "assert(true); } entry void main() { match (choice) { "
+        + "case Choice.Left() { assert(true); } "
+        + "case Choice.Right() { assert(true); } } assert(true); } }";
+
+    String formatted = SourceFormatter.format(source);
+
+    assertTrue(formatted.contains("""
+            while (false) limit 1 {
+              assert(true);
+            }
+
+            // explain the following check
+            assert(true);
+        """));
+    assertTrue(formatted.contains("""
+              case Choice.Left() {
+                assert(true);
+              }
+              case Choice.Right() {
+        """));
+    assertTrue(formatted.contains("""
+              }
+            }
+
+            assert(true);
+        """));
+    assertTrue(formatted.contains("""
+            assert(true);
+          }
+
+          entry void main() {
+        """));
+    assertEquals(formatted, SourceFormatter.format(formatted));
+  }
+
+  @Test
   void breaksOnlyTheSmallestCommaGroupThatExceedsOneHundredScalars() {
     String compact = "classical class Wide { public long combine(long firstValue, "
         + "long secondValue, long thirdValue, long fourthValue, long fifthValue) { "
@@ -58,13 +125,13 @@ class SourceFormatterTest {
     String formatted = SourceFormatter.format(compact);
 
     assertTrue(formatted.contains("""
-            public long combine(
-                long firstValue,
-                long secondValue,
-                long thirdValue,
-                long fourthValue,
-                long fifthValue
-            ) {
+          public long combine(
+            long firstValue,
+            long secondValue,
+            long thirdValue,
+            long fourthValue,
+            long fifthValue
+          ) {
         """));
     assertTrue(formatted.contains(
         "return sum(firstValue, secondValue, thirdValue, fourthValue, fifthValue);"));
@@ -83,8 +150,8 @@ class SourceFormatterTest {
     String formatted = SourceFormatter.format(source);
 
     assertTrue(formatted.contains("""
-                boolean equal = firstAggregateValueWithLongCanonicalName
-                    == secondAggregateValueWithLongCanonicalName;
+            boolean equal = firstAggregateValueWithLongCanonicalName
+              == secondAggregateValueWithLongCanonicalName;
         """));
     assertEquals(formatted, SourceFormatter.format(formatted));
   }
@@ -99,7 +166,7 @@ class SourceFormatterTest {
 
     String formatted = SourceFormatter.format(source);
 
-    assertTrue(formatted.contains("\n            -1\n"));
+    assertTrue(formatted.contains("\n      -1\n"));
     assertTrue(formatted.contains("return -2;"));
     assertTrue(formatted.contains("assert(!!false);"));
     assertFalse(formatted.contains("! !"));

@@ -90,10 +90,10 @@ An enum declares one or more payload-free cases:
 
 ```java
 public enum Opcode {
-    case Halt;
-    case Return;
-    case Call;
-    case Uncall;
+  case Halt;
+  case Return;
+  case Call;
+  case Uncall;
 }
 ```
 
@@ -101,10 +101,10 @@ This elaborates exactly to the existing sum-type shape:
 
 ```java
 public variant Opcode {
-    case Halt();
-    case Return();
-    case Call();
-    case Uncall();
+  case Halt();
+  case Return();
+  case Call();
+  case Uncall();
 }
 ```
 
@@ -116,10 +116,10 @@ Cases use ordinary nominal values:
 Opcode operation = new Opcode.Call();
 
 match (operation) {
-    case Opcode.Halt() { }
-    case Opcode.Return() { }
-    case Opcode.Call() { }
-    case Opcode.Uncall() { }
+  case Opcode.Halt() { }
+  case Opcode.Return() { }
+  case Opcode.Call() { }
+  case Opcode.Uncall() { }
 }
 ```
 
@@ -134,20 +134,22 @@ public const long OPCODE_HALT = 0x0001;
 public const long OPCODE_RETURN = 0x0002;
 
 public long encodeOpcode(Opcode opcode) {
-    match (opcode) {
-        case Opcode.Halt() { return OPCODE_HALT; }
-        case Opcode.Return() { return OPCODE_RETURN; }
-    }
+  match (opcode) {
+    case Opcode.Halt() { return OPCODE_HALT; }
+    case Opcode.Return() { return OPCODE_RETURN; }
+  }
 }
 
 public OpcodeDecode decodeOpcode(long raw) {
-    if (raw == OPCODE_HALT) {
-        return new OpcodeDecode.Value(new Opcode.Halt());
-    }
-    if (raw == OPCODE_RETURN) {
-        return new OpcodeDecode.Value(new Opcode.Return());
-    }
-    return new OpcodeDecode.Unknown(raw);
+  if (raw == OPCODE_HALT) {
+    return new OpcodeDecode.Value(new Opcode.Halt());
+  }
+
+  if (raw == OPCODE_RETURN) {
+    return new OpcodeDecode.Value(new Opcode.Return());
+  }
+
+  return new OpcodeDecode.Unknown(raw);
 }
 ```
 
@@ -162,7 +164,7 @@ Within the declaring module, constants and enums use local names. Direct imports
 ```java
 long call = examples.bytecode.opcodes::OPCODE_CALL;
 examples.bytecode.opcodes::Opcode opcode =
-    new examples.bytecode.opcodes::Opcode.Call();
+  new examples.bytecode.opcodes::Opcode.Call();
 ```
 
 Private names do not enter imports. Transitive imports do not re-export names absent an explicit future re-export rule.
@@ -221,12 +223,12 @@ For example, swapping two states and leaving all others fixed is reversible:
 
 ```java
 rev Opcode swapCallDirection(Opcode opcode) {
-    match (opcode) {
-        case Opcode.Call() { return new Opcode.Uncall(); }
-        case Opcode.Uncall() { return new Opcode.Call(); }
-        case Opcode.Halt() { return new Opcode.Halt(); }
-        case Opcode.Return() { return new Opcode.Return(); }
-    }
+  match (opcode) {
+    case Opcode.Call() { return new Opcode.Uncall(); }
+    case Opcode.Uncall() { return new Opcode.Call(); }
+    case Opcode.Halt() { return new Opcode.Halt(); }
+    case Opcode.Return() { return new Opcode.Return(); }
+  }
 }
 ```
 

@@ -5,6 +5,7 @@ import com.typeobject.wheeler.compiler.SourceModel.Circuit;
 import com.typeobject.wheeler.compiler.SourceModel.ConstantDefinition;
 import com.typeobject.wheeler.compiler.SourceModel.Function;
 import com.typeobject.wheeler.compiler.SourceModel.Parameter;
+import com.typeobject.wheeler.compiler.SourceModel.ParameterMode;
 import com.typeobject.wheeler.compiler.SourceModel.ProofDeclaration;
 import com.typeobject.wheeler.compiler.SourceModel.QuantumRegisterSource;
 import com.typeobject.wheeler.compiler.SourceModel.RecordDefinition;
@@ -208,9 +209,12 @@ final class SourceParser extends SourceStatementParser {
     List<Parameter> parameters = new ArrayList<>();
     if (!check(Type.RIGHT_PAREN)) {
       do {
+        SourceToken parameterStart = peek();
+        ParameterMode mode = SourceParameterParser.parseMode(this);
         String type = parseValueType("parameter type");
+        SourceParameterParser.validate(type, mode, parameterStart);
         parameters.add(new Parameter(
-            expect(Type.IDENTIFIER, "parameter name").text(), type));
+            expect(Type.IDENTIFIER, "parameter name").text(), type, mode));
       } while (match(Type.COMMA));
     }
     expect(Type.RIGHT_PAREN, "')' after parameters");
@@ -226,17 +230,12 @@ final class SourceParser extends SourceStatementParser {
     if (semanticModifiers > 1) {
       fail(start, "rev, unitary, entry, and test are mutually exclusive method kinds");
     }
-    boolean validEntryParameters = parameters.isEmpty()
-        || (parameters.size() == 1
-            && (parameters.getFirst().type().equals("utf8")
-                || parameters.getFirst().type().equals("byteview")
-                || parameters.getFirst().type().equals("bytes")))
-        || (parameters.size() == 2
-            && (parameters.get(0).type().equals("utf8")
-                || parameters.get(0).type().equals("byteview"))
-            && parameters.get(1).type().equals("bytes"));
+    boolean validEntryParameters = SourceParameterParser.validEntry(parameters);
     if (entry && (!name.equals("main") || returnsValue || !validEntryParameters)) {
-      fail(start, "entry parameters must be optional utf8/byteview input then optional bytes output");
+      fail(
+          start,
+          "entry parameters must be optional 'borrow utf8'/'borrow byteview' input then "
+              + "optional 'borrow mut bytes' output");
     }
     SourceTestCaseParser.validateShape(
         test, domain, returnsValue, parameters, testCases, start);
@@ -565,7 +564,9 @@ final class SourceParser extends SourceStatementParser {
           String bindingType = SourceValueTypeParser.parseNominalReference(
               this, "payload binding type");
           bindings.add(new Parameter(
-              expect(Type.IDENTIFIER, "payload binding name").text(), bindingType));
+              expect(Type.IDENTIFIER, "payload binding name").text(),
+              bindingType,
+              ParameterMode.VALUE));
         } while (match(Type.COMMA));
       }
       expect(Type.RIGHT_PAREN, "')' after payload bindings");

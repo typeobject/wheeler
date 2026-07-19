@@ -54,7 +54,7 @@ final class BorrowWindowVerifier {
       if (opcode == Opcode.CALL_VALUE || opcode == Opcode.CALL_VOID) {
         return next;
       }
-      if (opcode != Opcode.LOCAL_MOVE && !isBorrow(opcode)) {
+      if (opcode != Opcode.LOCAL_MOVE && opcode != Opcode.OWNED_MOVE && !isBorrow(opcode)) {
         return -1;
       }
     }

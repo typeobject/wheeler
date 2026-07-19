@@ -15,8 +15,9 @@ public final class SourceFormatter {
   private static final Set<String> OPERATORS = Set.of(
       "=", "==", "+=", "-=", "^=", "+", "-", "*", "/", "%", "!", "&", "^", "<");
   private static final Set<String> CONTROL_HEADERS = Set.of(
-      "if", "while", "for", "match", "switch", "catch");
+      "if", "while", "for", "match", "switch", "catch", "reverse");
   private static final int LINE_TARGET = 100;
+  private static final String INDENT = "  ";
 
   private SourceFormatter() {}
 
@@ -36,12 +37,14 @@ public final class SourceFormatter {
     private final String[] followingTokens;
     private final int[] delimiterMates;
     private final ArrayDeque<Boolean> verticalParentheses = new ArrayDeque<>();
+    private final ArrayDeque<Boolean> controlBraces = new ArrayDeque<>();
     private final StringBuilder result = new StringBuilder();
     private int indent;
     private int parenthesisDepth;
     private boolean lineStart = true;
     private boolean pendingBlank;
     private String previousToken;
+    private String statementHead;
 
     private Printer(SourceConcreteSyntax.Document document) {
       elements = document.elements();
@@ -113,10 +116,13 @@ public final class SourceFormatter {
         blankLine();
       }
       pendingBlank = false;
+      if (statementHead == null && lineStart && isStatementWord(text)) {
+        statementHead = text;
+      }
       switch (text) {
         case "{" -> openBrace(index);
         case "}" -> closeBrace(index);
-        case ";" -> semicolon();
+        case ";" -> semicolon(index);
         case "," -> comma();
         case "(" -> openParenthesis(index);
         case ")" -> closeParenthesis();
@@ -135,6 +141,10 @@ public final class SourceFormatter {
     }
 
     private void openBrace(int index) {
+      boolean control = statementHead != null && CONTROL_HEADERS.contains(statementHead)
+          || "else".equals(previousToken);
+      controlBraces.push(control);
+      statementHead = null;
       if (!lineStart) {
         space();
       } else {
@@ -148,6 +158,7 @@ public final class SourceFormatter {
     }
 
     private void closeBrace(int index) {
+      boolean control = controlBraces.pop();
       indent--;
       if (indent < 0) {
         throw new IllegalStateException("Negative source indentation");
@@ -166,14 +177,25 @@ public final class SourceFormatter {
         result.append(' ');
       } else if (!next.equals(";") && !next.equals(",") && !next.equals(")")) {
         newline();
+        // Member and top-level declarations breathe too; case arms remain compact.
+        if ((control || indent <= 1) && !next.equals("}") && !next.equals("case")) {
+          blankLine();
+        }
       }
+      statementHead = null;
     }
 
-    private void semicolon() {
+    private void semicolon(int index) {
       trimSpaces();
       result.append(';');
       if (parenthesisDepth == 0 || currentParenthesisVertical()) {
         newline();
+        String next = nextToken(index);
+        if ("module".equals(statementHead)
+            || "import".equals(statementHead) && !next.equals("import")) {
+          blankLine();
+        }
+        statementHead = null;
       } else {
         result.append(' ');
       }
@@ -193,7 +215,10 @@ public final class SourceFormatter {
       if (CONTROL_HEADERS.contains(previousToken)) {
         space();
       }
-      boolean vertical = column() + flatGroupWidth(index) > LINE_TARGET;
+      // Keep room for the call separator and an empty control arm followed by `else`.
+      int suffixHeadroom = previousToken != null && CONTROL_HEADERS.contains(previousToken)
+          ? 10 : 1;
+      boolean vertical = column() + flatGroupWidth(index) + suffixHeadroom > LINE_TARGET;
       appendRaw("(");
       parenthesisDepth++;
       verticalParentheses.push(vertical);
@@ -274,7 +299,7 @@ public final class SourceFormatter {
       if (!lineStart) {
         return;
       }
-      result.append("    ".repeat(indent));
+      result.append(INDENT.repeat(indent));
       lineStart = false;
     }
 
@@ -306,6 +331,14 @@ public final class SourceFormatter {
         result.append('\n');
       }
       lineStart = true;
+    }
+
+    private static boolean isStatementWord(String text) {
+      return !text.equals("{") && !text.equals("}")
+          && !text.equals(";") && !text.equals(",")
+          && !text.equals("(") && !text.equals(")")
+          && !text.equals("[") && !text.equals("]")
+          && !OPERATORS.contains(text);
     }
 
     private boolean currentParenthesisVertical() {
@@ -413,7 +446,7 @@ public final class SourceFormatter {
     while (indentation < line.length() && line.charAt(indentation) == ' ') {
       indentation++;
     }
-    String continuation = " ".repeat(indentation + 4);
+    String continuation = " ".repeat(indentation + INDENT.length());
     String remaining = line;
     boolean wrapped = false;
     while (scalarWidth(remaining) > LINE_TARGET) {

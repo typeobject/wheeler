@@ -59,7 +59,7 @@ class NativeVerifierExampleTest {
 
     byte[] binaryInputArtifact = compiler.compileToBytecode(
         "classical class BinarySubject { state long length = 0; "
-            + "entry void main(byteview source) { length = bufferLength(source); } }");
+            + "entry void main(borrow byteview source) { length = bufferLength(source); } }");
     VirtualMachine binaryInputVerification = VirtualMachine.withBinaryInput(
         verifier, binaryInputArtifact);
     binaryInputVerification.run();

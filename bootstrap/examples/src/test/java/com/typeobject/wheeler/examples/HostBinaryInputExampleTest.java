@@ -54,7 +54,7 @@ class HostBinaryInputExampleTest {
     var emptyProgram = compiler.compile("""
         classical class EmptyBinary {
           state long length = 1;
-          entry void main(byteview source) {
+          entry void main(borrow byteview source) {
             length = bufferLength(source);
             assert(length == 0);
           }
@@ -69,14 +69,14 @@ class HostBinaryInputExampleTest {
         CompilerException.class,
         () -> compiler.compile("""
             classical class BadBinaryWrite {
-              entry void main(byteview input) { setByte(input, 0, 1); }
+              entry void main(borrow byteview input) { setByte(input, 0, 1); }
             }
             """));
     assertThrows(
         CompilerException.class,
         () -> compiler.compile("""
             classical class BadBinaryEscape {
-              byteview expose(byteview input) { return input; }
+              byteview expose(borrow byteview input) { return input; }
               entry void main() {}
             }
             """));

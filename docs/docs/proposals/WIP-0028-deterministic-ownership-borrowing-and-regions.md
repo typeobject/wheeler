@@ -51,15 +51,15 @@ tokens.push(token);
 consumeTokens(tokens);              // moves tokens
 
 long countKinds(borrow Slice<Token> tokens) {
-    ...
+  ...
 }
 
 void normalize(borrow mut Vec<Token> tokens) {
-    ...
+  ...
 }
 
 borrow Token first(borrow Slice<Token> tokens)
-    returns borrow from tokens;
+  returns borrow from tokens;
 ```
 
 Using `tokens` after the move fails. Shared loans may coexist. An exclusive loan suspends overlapping owner and loan access. The returned token cannot outlive the slice origin.
@@ -263,7 +263,8 @@ Exhaustion is a deterministic diagnostic, never permission to compile unsafely. 
 - [x] VM snapshots and rewind preserve current owner/drop state.
 - [ ] Canonical value modes and public metadata are accepted.
 - [x] Primitive `region`, `words`, `bytes`, `utf8`, and `longmap` owners return across calls through canonical typed result metadata. The callee consumes the returned local, every other callee owner must be dead, and storage factories allocate through a nonescaping caller-region borrow; the stage-0 VM and Wheeler-written verifier/interpreter agree and rewind the transfer exactly. `OwnedReturns.w` exercises all five owner kinds. The caller gets one owner, not two handles and a motivational poster.
-- [ ] Owning parameters and public borrowed results with explicit origins execute.
+- [x] Unqualified primitive owner parameters transfer `region`, `words`, `bytes`, `utf8`, or `longmap` ownership into the callee. Definite-ownership flow rejects caller use after the call and requires the callee to drop, forward, or return the owner; bytecode verification, stage-0 execution, Wheeler-native interpretation, and exact rewind agree.
+- [ ] Public borrowed results with explicit origins execute.
 - [ ] Local last-use inference is deterministic.
 - [ ] Unique dynamic allocation executes.
 - [ ] Generic arenas and typed IDs support compiler-scale graphs.

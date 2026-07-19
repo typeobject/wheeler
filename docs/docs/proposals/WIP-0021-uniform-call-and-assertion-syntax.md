@@ -161,7 +161,7 @@ Expected traps likewise become values in runner-owned attempt evidence rather th
 
 ```java
 Attempt evidence = runner.observe {
-    boundedOperation();
+  boundedOperation();
 };
 assert(evidence.outcome == Outcome.Trap(TrapCode.Bounds));
 assert(evidence.successfulTransitions == 0);

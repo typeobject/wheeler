@@ -56,11 +56,12 @@ Functions use familiar typed declarations:
 
 ```java
 long tokenLength(Token token, long remaining) {
-    long width = token.end - token.start;
-    if (width > remaining) {
-        return remaining;
-    }
-    return width;
+  long width = token.end - token.start;
+  if (width > remaining) {
+    return remaining;
+  }
+
+  return width;
 }
 ```
 
@@ -86,7 +87,7 @@ A loop carries a semantic bound:
 
 ```java
 while (cursor.hasNext()) limit input.length + 1 {
-    consume(cursor.next());
+  consume(cursor.next());
 }
 ```
 
@@ -245,10 +246,10 @@ A feature that cannot express or simplify one of these modules needs separate ju
 - [x] Local constants, state load/store, move, checked add/subtract/multiply/divide/remainder, comparison, branches, loop checks, value/void argument calls, and value returns execute and rewind.
 - [x] Typed signed/Boolean parameters, returns, local bindings, expressions, static calls, `if`/`else`, and bounded `while` compile end to end.
 - [x] Immutable nominal records, closed tagged variants, fixed immutable arrays, and nonescaping immutable slices execute with canonical descriptors, typed construction/calls, structural equality, exhaustive selection, checked ranges/indexing, snapshots, and rewind.
-- [ ] Bounded regions now enforce byte/object ceilings, affine moves, leak-free exits, mutable signed-word/byte buffers, immutable validated UTF-8 owners with read-only parameter borrows, exclusive region scratch-allocation borrows, and word/byte/map mutable borrows. Primitive region, word, byte, UTF-8, and map owners may return across frames; caller-region factories, explicit drop order, snapshots, and rewind are differential-tested. Owning parameters, returned loans, split/join borrowing, typed collections, recoverable allocation, capabilities, and compiler-scale arenas remain.
+- [ ] Bounded regions now enforce byte/object ceilings, affine moves, leak-free exits, mutable signed-word/byte buffers, immutable validated UTF-8 owners with read-only parameter borrows, exclusive region scratch-allocation borrows, and word/byte/map mutable borrows. Primitive region, word, byte, UTF-8, and map owners may transfer into callees or return across frames; owner relays, caller-region factories, explicit drop order, use-after-call rejection, snapshots, and rewind are differential-tested. Returned loans, split/join borrowing, typed collections, recoverable allocation, capabilities, and compiler-scale arenas remain.
 - [ ] Reversible protected control forms generate checked inverses.
 - [ ] A bounded manifest-linked Wheeler scanner/parser module graph now consumes explicit host UTF-8 source input and emits identifier/number/punctuation/raw-ASCII-literal/line-or-block-comment token metadata with checked signed-decimal overflow into owned buffers and validates one typed local-declaration production through simultaneous exclusive buffer borrows and an exported exhaustive value/error result, then emits the parsed token through an exclusive external output borrow with a checked rewindable publish length. A separate writer fixture expands bounded raw ASCII literals into checked output writes for its canonical string table. Complete source literals, diagnostics, parser, codec, verifier, and package graph fixtures remain.
-- [ ] The Wheeler-written verifier/interpreter now differentially checks bounded owned-region/word/byte-buffer allocation, mutation, length, reads, byte ranges, strict UTF-8 validation/count/scalar/width behavior, validated freezing, nested read-only UTF-8 borrows including borrowed buffer length, nested mutable region/word/byte/map borrows, primitive ownership-carrying results, deterministic fixed-capacity signed-map insert/update/lookup/membership, drop order, malformed index locals, and exact outer rewind. Owning parameters, returned loans, and general native trace parity remain.
+- [ ] The Wheeler-written verifier/interpreter now differentially checks bounded owned-region/word/byte-buffer allocation, mutation, length, reads, byte ranges, strict UTF-8 validation/count/scalar/width behavior, validated freezing, nested read-only UTF-8 borrows including borrowed buffer length, nested mutable region/word/byte/map borrows, primitive ownership-carrying parameters and results, deterministic fixed-capacity signed-map insert/update/lookup/membership, drop order, malformed index locals, and exact outer rewind. Returned loans and general native trace parity remain.
 
 ## Testing and acceptance
 

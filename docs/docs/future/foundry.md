@@ -58,342 +58,342 @@ const long MAX_COMPARATORS = 32;
 const long CANDIDATE_BITS = 320;
 
 record Comparator(Index<8> left, Index<8> right)
-    invariant left < right
+  invariant left < right
 {}
 
 record Network(
-    UInt<6> length,
-    Array<Comparator, MAX_COMPARATORS> steps
+  UInt<6> length,
+  Array<Comparator, MAX_COMPARATORS> steps
 )
-    invariant length <= MAX_COMPARATORS
-    invariant canonicalUnusedSlots(steps, length)
+  invariant length <= MAX_COMPARATORS
+  invariant canonicalUnusedSlots(steps, length)
 {}
 
 record SortTrace(BitVec<MAX_COMPARATORS> swapped) {
-    static SortTrace clean() {
-        return new SortTrace(0);
-    }
+  static SortTrace clean() {
+    return new SortTrace(0);
+  }
 }
 
 
 /*
- * Forward records the comparison before swapping. Reverse first uses that
- * bit to restore the pair, then recomputes the original predicate and clears
- * the bit. The inverse must not guess which equal-looking output was input.
- */
+* Forward records the comparison before swapping. Reverse first uses that
+* bit to restore the pair, then recomputes the original predicate and clears
+* the bit. The inverse must not guess which equal-looking output was input.
+*/
 coherent rev void compareExchange(
-    borrow Comparator comparator,
-    inout SortInput values,
-    inout Bit traceBit
+  borrow Comparator comparator,
+  inout SortInput values,
+  inout Bit traceBit
 )
-    requires traceBit == 0
-    ensures traceBit ==
-        old(values[comparator.left] > values[comparator.right])
-    resources {
-        ancillas <= 12;
-        t_gates <= 240;
-    }
+  requires traceBit == 0
+  ensures traceBit ==
+    old(values[comparator.left] > values[comparator.right])
+  resources {
+    ancillas <= 12;
+    t_gates <= 240;
+  }
 {
-    boolean shouldSwap =
-        values[comparator.left] > values[comparator.right];
+  boolean shouldSwap =
+    values[comparator.left] > values[comparator.right];
 
-    traceBit ^= shouldSwap;
+  traceBit ^= shouldSwap;
 
-    controlled (traceBit) {
-        Swap(values[comparator.left], values[comparator.right]);
-    }
+  controlled (traceBit) {
+    Swap(values[comparator.left], values[comparator.right]);
+  }
 }
 
 coherent rev void executeNetwork(
-    borrow Network network,
-    inout SortInput values,
-    inout SortTrace trace
+  borrow Network network,
+  inout SortInput values,
+  inout SortTrace trace
 )
-    requires trace == SortTrace.clean()
+  requires trace == SortTrace.clean()
 {
-    for (long i = 0; i < network.length; i += 1)
-        limit MAX_COMPARATORS
-    {
-        compareExchange(
-            network.steps[i],
-            values,
-            trace.swapped[i]
-        );
-    }
+  for (long i = 0; i < network.length; i += 1)
+    limit MAX_COMPARATORS
+  {
+    compareExchange(
+      network.steps[i],
+      values,
+      trace.swapped[i]
+    );
+  }
 }
 
 specification ReversibleSort8 {
-    input SortInput original;
-    output SortInput sortedValues;
-    output SortTrace inverseWitness;
+  input SortInput original;
+  output SortInput sortedValues;
+  output SortTrace inverseWitness;
 
-    ensures nondecreasing(sortedValues);
-    ensures multiset(sortedValues) == multiset(original);
-    ensures reverse discoveredSort8(
-        sortedValues,
-        inverseWitness
-    ) == (original, SortTrace.clean());
+  ensures nondecreasing(sortedValues);
+  ensures multiset(sortedValues) == multiset(original);
+  ensures reverse discoveredSort8(
+    sortedValues,
+    inverseWitness
+  ) == (original, SortTrace.clean());
 
-    resources {
-        comparator_count minimize;
-        temporary_bits <= MAX_COMPARATORS;
-        hidden_history == 0_bytes;
-    }
+  resources {
+    comparator_count minimize;
+    temporary_bits <= MAX_COMPARATORS;
+    hidden_history == 0_bytes;
+  }
 }
 
 pure boolean acceptsInput(
-    borrow Network network,
-    borrow SortInput input
+  borrow Network network,
+  borrow SortInput input
 )
 {
-    SortInput working = input;
-    SortTrace trace = SortTrace.clean();
+  SortInput working = input;
+  SortTrace trace = SortTrace.clean();
 
-    executeNetwork(network, working, trace);
+  executeNetwork(network, working, trace);
 
-    boolean accepted =
-        nondecreasing(working)
-        && multiset(working) == multiset(input);
+  boolean accepted =
+    nondecreasing(working)
+    && multiset(working) == multiset(input);
 
-    reverse executeNetwork(network, working, trace);
+  reverse executeNetwork(network, working, trace);
 
-    assert(working == input);
-    assert(trace == SortTrace.clean());
-    return accepted;
+  assert(working == input);
+  assert(trace == SortTrace.clean());
+  return accepted;
 }
 
 proposition CorrectNetwork(Network network) =
-    forall finite (SortInput input) {
-        acceptsInput(network, input)
-    };
+  forall finite (SortInput input) {
+    acceptsInput(network, input)
+  };
 
 proposition SmallerCorrectNetworkExists(Network network) =
-    exists finite (Network other) {
-        other.length < network.length
-        && CorrectNetwork(other)
-    };
+  exists finite (Network other) {
+    other.length < network.length
+    && CorrectNetwork(other)
+  };
 
 
 /* Decode one coherent candidate and uncompute all decoding workspace. */
 coherent rev void decodeCandidate(
-    borrow BitVec<CANDIDATE_BITS> encoding,
-    inout Option<Network> network,
-    inout DecodeScratch scratch
+  borrow BitVec<CANDIDATE_BITS> encoding,
+  inout Option<Network> network,
+  inout DecodeScratch scratch
 )
-    requires network == Option.None()
-    requires scratch.clean()
+  requires network == Option.None()
+  requires scratch.clean()
 {
-    CandidateCodec.decodeCanonical(encoding, network, scratch);
+  CandidateCodec.decodeCanonical(encoding, network, scratch);
 }
 
 unitary void markCorrectCandidate(
-    UInt<6> requestedLength,
-    QView<CANDIDATE_BITS> candidate,
-    QView<1> accepted,
-    QView<MODEL_CHECK_SCRATCH> workspace
+  UInt<6> requestedLength,
+  QView<CANDIDATE_BITS> candidate,
+  QView<1> accepted,
+  QView<MODEL_CHECK_SCRATCH> workspace
 )
 {
-    Option<Network> network = Option.None();
-    DecodeScratch scratch = DecodeScratch.clean();
+  Option<Network> network = Option.None();
+  DecodeScratch scratch = DecodeScratch.clean();
 
-    coherent decodeCandidate(candidate, network, scratch);
+  coherent decodeCandidate(candidate, network, scratch);
 
-    controlled (
-        network.isSome()
-        && network.value().length == requestedLength
-    ) {
-        QuantumModelCheck.forallFinite<SortInput>(
-            workspace,
-            lambda coherent (SortInput input) {
-                return acceptsInput(network.value(), input);
-            }
-        ).xorInto(accepted);
-    }
+  controlled (
+    network.isSome()
+    && network.value().length == requestedLength
+  ) {
+    QuantumModelCheck.forallFinite<SortInput>(
+      workspace,
+      lambda coherent (SortInput input) {
+        return acceptsInput(network.value(), input);
+      }
+    ).xorInto(accepted);
+  }
 
-    reverse decodeCandidate(candidate, network, scratch);
+  reverse decodeCandidate(candidate, network, scratch);
 
-    assert(network == Option.None());
-    assert(scratch.clean());
+  assert(network == Option.None());
+  assert(scratch.clean());
 }
 
 experiment CandidateEvidence searchLength(UInt<6> requestedLength)
-    requires target supports {
-        FAULT_TOLERANT_LOGICAL_QUBITS;
-        COHERENT_CLASSICAL_INTERPRETER;
-        EXACT_FINITE_MODEL_CHECKING;
-        AMPLITUDE_AMPLIFICATION;
-        CHECKPOINTED_JOB_RECOVERY;
-    }
-    estimates satisfyingCandidate
-    confidence 0.999999999
-    shots 8192
+  requires target supports {
+    FAULT_TOLERANT_LOGICAL_QUBITS;
+    COHERENT_CLASSICAL_INTERPRETER;
+    EXACT_FINITE_MODEL_CHECKING;
+    AMPLITUDE_AMPLIFICATION;
+    CHECKPOINTED_JOB_RECOVERY;
+  }
+  estimates satisfyingCandidate
+  confidence 0.999999999
+  shots 8192
 {
-    qreg<CANDIDATE_BITS> candidate;
-    qreg<1> accepted;
-    qreg<MODEL_CHECK_SCRATCH> workspace;
+  qreg<CANDIDATE_BITS> candidate;
+  qreg<1> accepted;
+  qreg<MODEL_CHECK_SCRATCH> workspace;
 
-    prepare(candidate, 0);
-    prepare(accepted, 0);
-    prepare(workspace, 0);
-    UniformSuperposition(candidate);
+  prepare(candidate, 0);
+  prepare(accepted, 0);
+  prepare(workspace, 0);
+  UniformSuperposition(candidate);
 
-    QuantumSearch.amplify(
-        candidate,
-        accepted,
-        workspace,
-        oracle = markCorrectCandidate(
-            requestedLength,
-            candidate,
-            accepted,
-            workspace
-        )
-    );
+  QuantumSearch.amplify(
+    candidate,
+    accepted,
+    workspace,
+    oracle = markCorrectCandidate(
+      requestedLength,
+      candidate,
+      accepted,
+      workspace
+    )
+  );
 
-    Distribution<BitVec<CANDIDATE_BITS>> samples =
-        sample(candidate, 8192);
+  Distribution<BitVec<CANDIDATE_BITS>> samples =
+    sample(candidate, 8192);
 
-    assert(clean(accepted));
-    assert(clean(workspace));
+  assert(clean(accepted));
+  assert(clean(workspace));
 
-    return CandidateEvidence.record(
-        requestedLength,
-        samples,
-        semanticRegionIdentity(),
-        targetDescriptorIdentity(),
-        jobLineage(),
-        confidenceReport()
-    );
+  return CandidateEvidence.record(
+    requestedLength,
+    samples,
+    semanticRegionIdentity(),
+    targetDescriptorIdentity(),
+    jobLineage(),
+    confidenceReport()
+  );
 }
 
 capability interface SynthesisTarget {
-    async CandidateEvidence run(
-        Experiment<CandidateEvidence> experiment
-    );
+  async CandidateEvidence run(
+    Experiment<CandidateEvidence> experiment
+  );
 }
 
 capability interface ProofSearch {
-    async Certificate propose(
-        Proposition proposition,
-        ProofBudget budget
-    );
+  async Certificate propose(
+    Proposition proposition,
+    ProofBudget budget
+  );
 }
 
 capability interface ArtifactOutput {
-    async void publishPackage(PackageArchive package);
+  async void publishPackage(PackageArchive package);
 }
 
 hybrid class AlgorithmFoundry {
-    durable state UInt<6> currentLength = 0;
-    durable state Array<SearchRecord, MAX_COMPARATORS + 1>
-        searchHistory;
+  durable state UInt<6> currentLength = 0;
+  durable state Array<SearchRecord, MAX_COMPARATORS + 1>
+    searchHistory;
 
-    entry async void main(
-        SynthesisTarget target,
-        ProofSearch proofSearch,
-        ProofKernel kernel,
-        ArtifactOutput output
-    )
-        effects {
-            target.run;
-            proofSearch.propose;
-            output.publishPackage;
-        }
-    {
-        Option<Network> discovered = Option.None();
-        Option<CandidateEvidence> winningEvidence = Option.None();
-        MinimalityPrefix noShorter = MinimalityPrefix.baseCase();
-
-        for (UInt<6> length = 0;
-             length <= MAX_COMPARATORS;
-             length += 1)
-            limit MAX_COMPARATORS + 1
-        {
-            currentLength = length;
-            checkpoint("starting-candidate-length");
-
-            CandidateEvidence evidence =
-                record "candidate-search"
-                await target.run(searchLength(length));
-
-            Option<Network> proposed =
-                CandidateSelector.bestCanonical(evidence.samples);
-
-            if (proposed.isSome()
-                && ClassicalModelCheck.forallFinite<SortInput>(
-                    lambda (SortInput input) {
-                        return acceptsInput(proposed.value(), input);
-                    }
-                ).passed())
-            {
-                discovered = proposed;
-                winningEvidence = new Option.Some(evidence);
-                checkpoint("correct-candidate-found");
-                break;
-            }
-
-            Proposition absentAtLength =
-                forall finite (Network network)
-                    where network.length == length
-                {
-                    Not<CorrectNetwork(network)>
-                };
-
-            Certificate proposal = await proofSearch.propose(
-                absentAtLength,
-                ProofBudget.largeButFinite()
-            );
-
-            noShorter = noShorter.extend(
-                length,
-                kernel.verify(absentAtLength, proposal)
-                    else trap PROOF_SEARCH_FAILED
-            );
-
-            commit("length-proven-impossible");
-        }
-
-        Network winner = discovered.value()
-            else trap NO_NETWORK_WITHIN_BOUND;
-
-        Proof<CorrectNetwork(winner)> correct = kernel.verify(
-            CorrectNetwork(winner),
-            await proofSearch.propose(
-                CorrectNetwork(winner),
-                ProofBudget.largeButFinite()
-            )
-        ) else trap WINNER_NOT_PROVABLE;
-
-        Proof<Not<SmallerCorrectNetworkExists(winner)>> minimal =
-            noShorter.closeAt(winner.length);
-
-        SourceFile source = SourceGenerator.emitSortingNetwork(
-            packageName = "generated.optimal_sort8",
-            declarationName = "discoveredSort8",
-            network = winner
-        );
-
-        PackageArchive package = PackageBuilder.create(
-            manifest = PackageManifest.generated(
-                "generated.optimal_sort8",
-                "1.0.0"
-            ),
-            sources = [source],
-            certificates = [
-                kernel.encode(correct),
-                kernel.encode(minimal)
-            ],
-            provenance = SynthesisProvenance.record(
-                specification = ReversibleSort8.identity(),
-                candidateGrammar = ComparatorNetworkGrammar.identity(),
-                searchHistory = searchHistory,
-                targetEvidence = winningEvidence.value().identity(),
-                compiler = currentCompilerIdentity()
-            )
-        );
-
-        await output.publishPackage(package);
-        commit("generated-algorithm-published");
+  entry async void main(
+    SynthesisTarget target,
+    ProofSearch proofSearch,
+    ProofKernel kernel,
+    ArtifactOutput output
+  )
+    effects {
+      target.run;
+      proofSearch.propose;
+      output.publishPackage;
     }
+  {
+    Option<Network> discovered = Option.None();
+    Option<CandidateEvidence> winningEvidence = Option.None();
+    MinimalityPrefix noShorter = MinimalityPrefix.baseCase();
+
+    for (UInt<6> length = 0;
+      length <= MAX_COMPARATORS;
+      length += 1)
+      limit MAX_COMPARATORS + 1
+    {
+      currentLength = length;
+      checkpoint("starting-candidate-length");
+
+      CandidateEvidence evidence =
+        record "candidate-search"
+        await target.run(searchLength(length));
+
+      Option<Network> proposed =
+        CandidateSelector.bestCanonical(evidence.samples);
+
+      if (proposed.isSome()
+        && ClassicalModelCheck.forallFinite<SortInput>(
+          lambda (SortInput input) {
+            return acceptsInput(proposed.value(), input);
+          }
+        ).passed())
+      {
+        discovered = proposed;
+        winningEvidence = new Option.Some(evidence);
+        checkpoint("correct-candidate-found");
+        break;
+      }
+
+      Proposition absentAtLength =
+        forall finite (Network network)
+          where network.length == length
+        {
+          Not<CorrectNetwork(network)>
+        };
+
+      Certificate proposal = await proofSearch.propose(
+        absentAtLength,
+        ProofBudget.largeButFinite()
+      );
+
+      noShorter = noShorter.extend(
+        length,
+        kernel.verify(absentAtLength, proposal)
+          else trap PROOF_SEARCH_FAILED
+      );
+
+      commit("length-proven-impossible");
+    }
+
+    Network winner = discovered.value()
+      else trap NO_NETWORK_WITHIN_BOUND;
+
+    Proof<CorrectNetwork(winner)> correct = kernel.verify(
+      CorrectNetwork(winner),
+      await proofSearch.propose(
+        CorrectNetwork(winner),
+        ProofBudget.largeButFinite()
+      )
+    ) else trap WINNER_NOT_PROVABLE;
+
+    Proof<Not<SmallerCorrectNetworkExists(winner)>> minimal =
+      noShorter.closeAt(winner.length);
+
+    SourceFile source = SourceGenerator.emitSortingNetwork(
+      packageName = "generated.optimal_sort8",
+      declarationName = "discoveredSort8",
+      network = winner
+    );
+
+    PackageArchive package = PackageBuilder.create(
+      manifest = PackageManifest.generated(
+        "generated.optimal_sort8",
+        "1.0.0"
+      ),
+      sources = [source],
+      certificates = [
+        kernel.encode(correct),
+        kernel.encode(minimal)
+      ],
+      provenance = SynthesisProvenance.record(
+        specification = ReversibleSort8.identity(),
+        candidateGrammar = ComparatorNetworkGrammar.identity(),
+        searchHistory = searchHistory,
+        targetEvidence = winningEvidence.value().identity(),
+        compiler = currentCompilerIdentity()
+      )
+    );
+
+    await output.publishPackage(package);
+    commit("generated-algorithm-published");
+  }
 }
 ```
 
@@ -433,22 +433,22 @@ A generated function might look like this:
 package generated.optimal_sort8;
 
 public rev void discoveredSort8(
-    inout Array<BitInt<4>, 8> values,
-    inout SortTrace trace
+  inout Array<BitInt<4>, 8> values,
+  inout SortTrace trace
 )
-    requires trace == SortTrace.clean()
-    ensures nondecreasing(values)
-    ensures inverse(discoveredSort8) restores old(values, trace)
-    certified by {
-        "correctness.wcert";
-        "minimality.wcert";
-    }
+  requires trace == SortTrace.clean()
+  ensures nondecreasing(values)
+  ensures inverse(discoveredSort8) restores old(values, trace)
+  certified by {
+    "correctness.wcert";
+    "minimality.wcert";
+  }
 {
-    compareExchange(new Comparator(0, 1), values, trace.swapped[0]);
-    compareExchange(new Comparator(2, 3), values, trace.swapped[1]);
-    compareExchange(new Comparator(4, 5), values, trace.swapped[2]);
+  compareExchange(new Comparator(0, 1), values, trace.swapped[0]);
+  compareExchange(new Comparator(2, 3), values, trace.swapped[1]);
+  compareExchange(new Comparator(4, 5), values, trace.swapped[2]);
 
-    // The remaining certified network has not been discovered here.
+  // The remaining certified network has not been discovered here.
 }
 ```
 

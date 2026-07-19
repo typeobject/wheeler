@@ -79,671 +79,671 @@ type NodeSet = BitSet<NODE_COUNT>;
 type ScheduleEncoding = BitVec<SCHEDULE_BITS>;
 
 variant TransferStatus {
-    case Unknown();
-    case Prepared(AccountId from, AccountId to, Money amount);
-    case Applied();
-    case Rejected();
+  case Unknown();
+  case Prepared(AccountId from, AccountId to, Money amount);
+  case Applied();
+  case Rejected();
 }
 
 record Account(Money balance) {}
 
 record StableReplicaState(
-    Array<Account, ACCOUNT_COUNT> accounts,
-    BoundedMap<TransferId, TransferStatus, 256> transfers,
-    BoundedMap<TransferId, UInt<2>, 256> visibleEffectCount,
-    long persistedEpoch
+  Array<Account, ACCOUNT_COUNT> accounts,
+  BoundedMap<TransferId, TransferStatus, 256> transfers,
+  BoundedMap<TransferId, UInt<2>, 256> visibleEffectCount,
+  long persistedEpoch
 ) {}
 
 record VolatileReplicaState(
-    BoundedMap<TransferId, PendingTransfer, 256> pending,
-    BoundedQueue<MessageId, MAX_MESSAGES> inbox,
-    BoundedMap<TimerId, TimerState, MAX_TIMERS> timers
+  BoundedMap<TransferId, PendingTransfer, 256> pending,
+  BoundedQueue<MessageId, MAX_MESSAGES> inbox,
+  BoundedMap<TimerId, TimerState, MAX_TIMERS> timers
 ) {}
 
 record Replica(
-    boolean running,
-    StableReplicaState stable,
-    VolatileReplicaState volatileState
+  boolean running,
+  StableReplicaState stable,
+  VolatileReplicaState volatileState
 ) {}
 
 variant LedgerMessage {
-    case BeginTransfer(
-        TransferId transfer,
-        AccountId from,
-        AccountId to,
-        Money amount
-    );
-    case Prepare(
-        TransferId transfer,
-        AccountId from,
-        AccountId to,
-        Money amount
-    );
-    case Prepared(TransferId transfer, NodeId participant);
-    case Commit(TransferId transfer);
-    case Abort(TransferId transfer);
-    case Acknowledge(TransferId transfer);
+  case BeginTransfer(
+    TransferId transfer,
+    AccountId from,
+    AccountId to,
+    Money amount
+  );
+  case Prepare(
+    TransferId transfer,
+    AccountId from,
+    AccountId to,
+    Money amount
+  );
+  case Prepared(TransferId transfer, NodeId participant);
+  case Commit(TransferId transfer);
+  case Abort(TransferId transfer);
+  case Acknowledge(TransferId transfer);
 }
 
 record Envelope(
-    MessageId id,
-    NodeId sender,
-    NodeId recipient,
-    LedgerMessage payload
+  MessageId id,
+  NodeId sender,
+  NodeId recipient,
+  LedgerMessage payload
 ) {}
 
 record NetworkState(
-    BoundedMap<MessageId, Envelope, MAX_MESSAGES> pending,
-    NodeSet partitionA,
-    NodeSet partitionB,
-    boolean partitioned
+  BoundedMap<MessageId, Envelope, MAX_MESSAGES> pending,
+  NodeSet partitionA,
+  NodeSet partitionB,
+  boolean partitioned
 ) {}
 
 record TimerState(boolean armed, long logicalDeadline) {}
 record PendingTransfer(AccountId from, AccountId to, Money amount) {}
 
 record ClusterState(
-    Array<Replica, NODE_COUNT> nodes,
-    NetworkState network,
-    long logicalTime,
-    long nextMessageId
+  Array<Replica, NODE_COUNT> nodes,
+  NetworkState network,
+  long logicalTime,
+  long nextMessageId
 ) {}
 
 variant TimelineEvent {
-    case Deliver(MessageId message);
-    case Drop(MessageId message);
-    case Duplicate(MessageId message);
-    case Crash(NodeId node);
-    case Restart(NodeId node);
-    case Partition(NodeSet sideA, NodeSet sideB);
-    case HealPartition();
-    case FireTimer(NodeId node, TimerId timer);
-    case AdvanceTime(long ticks);
+  case Deliver(MessageId message);
+  case Drop(MessageId message);
+  case Duplicate(MessageId message);
+  case Crash(NodeId node);
+  case Restart(NodeId node);
+  case Partition(NodeSet sideA, NodeSet sideB);
+  case HealPartition();
+  case FireTimer(NodeId node, TimerId timer);
+  case AdvanceTime(long ticks);
 }
 
 record FaultBudget(
-    long maximumCrashes,
-    long maximumRestarts,
-    long maximumDrops,
-    long maximumDuplicates,
-    long maximumPartitions,
-    long maximumTimerFirings
+  long maximumCrashes,
+  long maximumRestarts,
+  long maximumDrops,
+  long maximumDuplicates,
+  long maximumPartitions,
+  long maximumTimerFirings
 ) {}
 
 record Timeline(
-    UInt<7> length,
-    Array<TimelineEvent, MAX_EVENTS> events,
-    FaultBudget usedFaults
+  UInt<7> length,
+  Array<TimelineEvent, MAX_EVENTS> events,
+  FaultBudget usedFaults
 )
-    invariant length <= MAX_EVENTS
-    invariant canonicalUnusedEvents(events, length)
-    invariant usedFaults == countFaults(events, length)
+  invariant length <= MAX_EVENTS
+  invariant canonicalUnusedEvents(events, length)
+  invariant usedFaults == countFaults(events, length)
 {}
 
 record ProtocolArtifact(
-    Hash256 artifactIdentity,
-    Hash256 compilerIdentity,
-    ProtocolSchema schema,
-    VerifiedBytecode implementation
+  Hash256 artifactIdentity,
+  Hash256 compilerIdentity,
+  ProtocolSchema schema,
+  VerifiedBytecode implementation
 ) {}
 
 /*
- * Modeled loss is explicit. A crash moves volatile state into its witness.
- * A drop moves an envelope into its witness. Delivery records the previous
- * recipient, emitted envelopes, and prior message-ID cursor. This is logged
- * reversibility of the finite model, not reversal of a physical crash.
- */
+* Modeled loss is explicit. A crash moves volatile state into its witness.
+* A drop moves an envelope into its witness. Delivery records the previous
+* recipient, emitted envelopes, and prior message-ID cursor. This is logged
+* reversibility of the finite model, not reversal of a physical crash.
+*/
 variant EventWitness {
-    case Clean();
-    case Delivered(
-        Envelope envelope,
-        Replica previousRecipient,
-        Array<Envelope, 8> emitted,
-        long previousNextMessageId
-    );
-    case Dropped(Envelope envelope);
-    case Duplicated(Envelope duplicate, long previousNextMessageId);
-    case Crashed(NodeId node, VolatileReplicaState lostState);
-    case Restarted(NodeId node, VolatileReplicaState previousState);
-    case PartitionChanged(NetworkState previousNetwork);
-    case TimerFired(
-        NodeId node,
-        TimerId timer,
-        TimerState previousTimer,
-        Replica previousNode,
-        Array<Envelope, 8> emitted,
-        long previousNextMessageId
-    );
-    case TimeAdvanced(long previousTime);
+  case Clean();
+  case Delivered(
+    Envelope envelope,
+    Replica previousRecipient,
+    Array<Envelope, 8> emitted,
+    long previousNextMessageId
+  );
+  case Dropped(Envelope envelope);
+  case Duplicated(Envelope duplicate, long previousNextMessageId);
+  case Crashed(NodeId node, VolatileReplicaState lostState);
+  case Restarted(NodeId node, VolatileReplicaState previousState);
+  case PartitionChanged(NetworkState previousNetwork);
+  case TimerFired(
+    NodeId node,
+    TimerId timer,
+    TimerState previousTimer,
+    Replica previousNode,
+    Array<Envelope, 8> emitted,
+    long previousNextMessageId
+  );
+  case TimeAdvanced(long previousTime);
 }
 
 record TimelineWitness(Array<EventWitness, MAX_EVENTS> events) {
-    static TimelineWitness clean() {
-        return new TimelineWitness(
-            Array.fill(MAX_EVENTS, new EventWitness.Clean())
-        );
-    }
+  static TimelineWitness clean() {
+    return new TimelineWitness(
+      Array.fill(MAX_EVENTS, new EventWitness.Clean())
+    );
+  }
 }
 
 logged rev void applyEvent(
-    borrow ProtocolArtifact protocol,
-    borrow TimelineEvent event,
-    inout ClusterState cluster,
-    inout EventWitness witness
+  borrow ProtocolArtifact protocol,
+  borrow TimelineEvent event,
+  inout ClusterState cluster,
+  inout EventWitness witness
 )
-    requires witness == EventWitness.Clean()
-    ensures inverse(applyEvent)(
-        protocol,
-        event,
-        cluster,
-        witness
-    ) restores old(cluster, witness)
+  requires witness == EventWitness.Clean()
+  ensures inverse(applyEvent)(
+    protocol,
+    event,
+    cluster,
+    witness
+  ) restores old(cluster, witness)
 {
-    match (event) {
-        case TimelineEvent.Deliver(MessageId id) {
-            Envelope envelope = cluster.network.pending.remove(id);
-            assert(cluster.nodes[envelope.recipient].running);
-            assert(NetworkModel.canDeliver(
-                cluster.network,
-                envelope.sender,
-                envelope.recipient
-            ));
+  match (event) {
+    case TimelineEvent.Deliver(MessageId id) {
+      Envelope envelope = cluster.network.pending.remove(id);
+      assert(cluster.nodes[envelope.recipient].running);
+      assert(NetworkModel.canDeliver(
+        cluster.network,
+        envelope.sender,
+        envelope.recipient
+      ));
 
-            Replica previous = cluster.nodes[envelope.recipient];
-            long previousCursor = cluster.nextMessageId;
-            Array<Envelope, 8> emitted =
-                ProtocolMachine.dispatchBounded(
-                    protocol,
-                    envelope,
-                    cluster.nodes[envelope.recipient],
-                    cluster.logicalTime
-                );
-            NetworkModel.enqueueAll(
-                emitted,
-                cluster.network,
-                cluster.nextMessageId
-            );
-            witness = new EventWitness.Delivered(
-                envelope,
-                previous,
-                emitted,
-                previousCursor
-            );
-        }
-
-        case TimelineEvent.Drop(MessageId id) {
-            witness = new EventWitness.Dropped(
-                cluster.network.pending.remove(id)
-            );
-        }
-
-        case TimelineEvent.Duplicate(MessageId id) {
-            Envelope original = cluster.network.pending[id];
-            long previousCursor = cluster.nextMessageId;
-            Envelope duplicate = NetworkModel.duplicateWithNextId(
-                original,
-                cluster.nextMessageId
-            );
-            cluster.network.pending.insert(duplicate.id, duplicate);
-            witness = new EventWitness.Duplicated(
-                duplicate,
-                previousCursor
-            );
-        }
-
-        case TimelineEvent.Crash(NodeId node) {
-            assert(cluster.nodes[node].running);
-            VolatileReplicaState lost =
-                move cluster.nodes[node].volatileState;
-            cluster.nodes[node].volatileState =
-                VolatileReplicaState.empty();
-            cluster.nodes[node].running = false;
-            witness = new EventWitness.Crashed(node, lost);
-        }
-
-        case TimelineEvent.Restart(NodeId node) {
-            assert(!cluster.nodes[node].running);
-            VolatileReplicaState prior =
-                move cluster.nodes[node].volatileState;
-            cluster.nodes[node].volatileState =
-                ProtocolMachine.recoverVolatileState(
-                    protocol,
-                    cluster.nodes[node].stable
-                );
-            cluster.nodes[node].running = true;
-            witness = new EventWitness.Restarted(node, prior);
-        }
-
-        case TimelineEvent.Partition(NodeSet a, NodeSet b) {
-            assert(disjoint(a, b));
-            NetworkState previous = cluster.network;
-            cluster.network = NetworkModel.partition(previous, a, b);
-            witness = new EventWitness.PartitionChanged(previous);
-        }
-
-        case TimelineEvent.HealPartition() {
-            NetworkState previous = cluster.network;
-            cluster.network = NetworkModel.heal(previous);
-            witness = new EventWitness.PartitionChanged(previous);
-        }
-
-        case TimelineEvent.FireTimer(NodeId node, TimerId timer) {
-            assert(cluster.nodes[node].running);
-            assert(cluster.nodes[node].volatileState.timers[timer].armed);
-            witness = ProtocolMachine.fireTimerWithWitness(
-                protocol,
-                node,
-                timer,
-                cluster
-            );
-        }
-
-        case TimelineEvent.AdvanceTime(long ticks) {
-            assert(ticks > 0);
-            long previous = cluster.logicalTime;
-            cluster.logicalTime += ticks;
-            witness = new EventWitness.TimeAdvanced(previous);
-        }
+      Replica previous = cluster.nodes[envelope.recipient];
+      long previousCursor = cluster.nextMessageId;
+      Array<Envelope, 8> emitted =
+        ProtocolMachine.dispatchBounded(
+          protocol,
+          envelope,
+          cluster.nodes[envelope.recipient],
+          cluster.logicalTime
+        );
+      NetworkModel.enqueueAll(
+        emitted,
+        cluster.network,
+        cluster.nextMessageId
+      );
+      witness = new EventWitness.Delivered(
+        envelope,
+        previous,
+        emitted,
+        previousCursor
+      );
     }
+
+    case TimelineEvent.Drop(MessageId id) {
+      witness = new EventWitness.Dropped(
+        cluster.network.pending.remove(id)
+      );
+    }
+
+    case TimelineEvent.Duplicate(MessageId id) {
+      Envelope original = cluster.network.pending[id];
+      long previousCursor = cluster.nextMessageId;
+      Envelope duplicate = NetworkModel.duplicateWithNextId(
+        original,
+        cluster.nextMessageId
+      );
+      cluster.network.pending.insert(duplicate.id, duplicate);
+      witness = new EventWitness.Duplicated(
+        duplicate,
+        previousCursor
+      );
+    }
+
+    case TimelineEvent.Crash(NodeId node) {
+      assert(cluster.nodes[node].running);
+      VolatileReplicaState lost =
+        move cluster.nodes[node].volatileState;
+      cluster.nodes[node].volatileState =
+        VolatileReplicaState.empty();
+      cluster.nodes[node].running = false;
+      witness = new EventWitness.Crashed(node, lost);
+    }
+
+    case TimelineEvent.Restart(NodeId node) {
+      assert(!cluster.nodes[node].running);
+      VolatileReplicaState prior =
+        move cluster.nodes[node].volatileState;
+      cluster.nodes[node].volatileState =
+        ProtocolMachine.recoverVolatileState(
+          protocol,
+          cluster.nodes[node].stable
+        );
+      cluster.nodes[node].running = true;
+      witness = new EventWitness.Restarted(node, prior);
+    }
+
+    case TimelineEvent.Partition(NodeSet a, NodeSet b) {
+      assert(disjoint(a, b));
+      NetworkState previous = cluster.network;
+      cluster.network = NetworkModel.partition(previous, a, b);
+      witness = new EventWitness.PartitionChanged(previous);
+    }
+
+    case TimelineEvent.HealPartition() {
+      NetworkState previous = cluster.network;
+      cluster.network = NetworkModel.heal(previous);
+      witness = new EventWitness.PartitionChanged(previous);
+    }
+
+    case TimelineEvent.FireTimer(NodeId node, TimerId timer) {
+      assert(cluster.nodes[node].running);
+      assert(cluster.nodes[node].volatileState.timers[timer].armed);
+      witness = ProtocolMachine.fireTimerWithWitness(
+        protocol,
+        node,
+        timer,
+        cluster
+      );
+    }
+
+    case TimelineEvent.AdvanceTime(long ticks) {
+      assert(ticks > 0);
+      long previous = cluster.logicalTime;
+      cluster.logicalTime += ticks;
+      witness = new EventWitness.TimeAdvanced(previous);
+    }
+  }
 }
 
 logged rev void runTimeline(
-    borrow ProtocolArtifact protocol,
-    borrow Timeline timeline,
-    inout ClusterState cluster,
-    inout TimelineWitness witness
+  borrow ProtocolArtifact protocol,
+  borrow Timeline timeline,
+  inout ClusterState cluster,
+  inout TimelineWitness witness
 )
-    requires witness == TimelineWitness.clean()
+  requires witness == TimelineWitness.clean()
 {
-    for (long index = 0; index < timeline.length; index += 1)
-        limit MAX_EVENTS
-    {
-        applyEvent(
-            protocol,
-            timeline.events[index],
-            cluster,
-            witness.events[index]
-        );
-    }
+  for (long index = 0; index < timeline.length; index += 1)
+    limit MAX_EVENTS
+  {
+    applyEvent(
+      protocol,
+      timeline.events[index],
+      cluster,
+      witness.events[index]
+    );
+  }
 }
 
 record SafetyResult(
-    boolean moneyConservedAtEveryReplica,
-    boolean effectsAppliedAtMostOnce,
-    boolean balancesNonnegative,
-    Option<TransferId> duplicateTransfer
+  boolean moneyConservedAtEveryReplica,
+  boolean effectsAppliedAtMostOnce,
+  boolean balancesNonnegative,
+  Option<TransferId> duplicateTransfer
 ) {
-    boolean passed() {
-        return moneyConservedAtEveryReplica
-            && effectsAppliedAtMostOnce
-            && balancesNonnegative;
-    }
+  boolean passed() {
+    return moneyConservedAtEveryReplica
+      && effectsAppliedAtMostOnce
+      && balancesNonnegative;
+  }
 }
 
 pure SafetyResult evaluateSafety(borrow ClusterState cluster) {
-    return new SafetyResult(
-        LedgerInspection.everyReplicaTotalEquals(
-            cluster.nodes,
-            INITIAL_TOTAL_MONEY
-        ),
-        LedgerInspection.everyVisibleEffectCountAtMostOne(
-            cluster.nodes
-        ),
-        LedgerInspection.allBalancesNonnegative(cluster.nodes),
-        LedgerInspection.findMultiplyAppliedTransfer(cluster.nodes)
-    );
+  return new SafetyResult(
+    LedgerInspection.everyReplicaTotalEquals(
+      cluster.nodes,
+      INITIAL_TOTAL_MONEY
+    ),
+    LedgerInspection.everyVisibleEffectCountAtMostOne(
+      cluster.nodes
+    ),
+    LedgerInspection.allBalancesNonnegative(cluster.nodes),
+    LedgerInspection.findMultiplyAppliedTransfer(cluster.nodes)
+  );
 }
 
 proposition IsCounterexample(
-    ProtocolArtifact protocol,
-    ClusterState initial,
-    FaultBudget budget,
-    Timeline timeline
+  ProtocolArtifact protocol,
+  ClusterState initial,
+  FaultBudget budget,
+  Timeline timeline
 ) =
-    canonical(timeline)
-    && timeline.usedFaults <= budget
-    && enabledThroughout(protocol, initial, timeline)
-    && !evaluateSafety(
-        execute(protocol, initial, timeline)
-    ).passed();
+  canonical(timeline)
+  && timeline.usedFaults <= budget
+  && enabledThroughout(protocol, initial, timeline)
+  && !evaluateSafety(
+    execute(protocol, initial, timeline)
+  ).passed();
 
 proposition NoCounterexampleShorterThan(
-    ProtocolArtifact protocol,
-    ClusterState initial,
-    FaultBudget budget,
-    UInt<7> length
+  ProtocolArtifact protocol,
+  ClusterState initial,
+  FaultBudget budget,
+  UInt<7> length
 ) =
-    forall finite (Timeline timeline)
-        where timeline.length < length
-        && timeline.usedFaults <= budget
-    {
-        Not<IsCounterexample(protocol, initial, budget, timeline)>
-    };
+  forall finite (Timeline timeline)
+    where timeline.length < length
+    && timeline.usedFaults <= budget
+  {
+    Not<IsCounterexample(protocol, initial, budget, timeline)>
+  };
 
 proposition NoCounterexampleWithinBounds(
-    ProtocolArtifact protocol,
-    ClusterState initial,
-    FaultBudget budget
+  ProtocolArtifact protocol,
+  ClusterState initial,
+  FaultBudget budget
 ) =
-    forall finite (Timeline timeline)
-        where timeline.length <= MAX_EVENTS
-        && timeline.usedFaults <= budget
-    {
-        Not<IsCounterexample(protocol, initial, budget, timeline)>
-    };
+  forall finite (Timeline timeline)
+    where timeline.length <= MAX_EVENTS
+    && timeline.usedFaults <= budget
+  {
+    Not<IsCounterexample(protocol, initial, budget, timeline)>
+  };
 
 /*
- * Decode, execute, inspect, and reverse one schedule. The coherent oracle
- * leaves only the phase mark; cluster state, event witnesses, enabledness
- * trace, decoder scratch, and predicate workspace return clean.
- */
+* Decode, execute, inspect, and reverse one schedule. The coherent oracle
+* leaves only the phase mark; cluster state, event witnesses, enabledness
+* trace, decoder scratch, and predicate workspace return clean.
+*/
 coherent rev void classifySchedule(
-    borrow ProtocolArtifact protocol,
-    borrow ClusterState initial,
-    borrow FaultBudget budget,
-    borrow ScheduleEncoding encoding,
-    inout Bit violates,
-    inout SearchWorkspace workspace
+  borrow ProtocolArtifact protocol,
+  borrow ClusterState initial,
+  borrow FaultBudget budget,
+  borrow ScheduleEncoding encoding,
+  inout Bit violates,
+  inout SearchWorkspace workspace
 )
-    requires violates == 0
-    requires workspace.clean()
+  requires violates == 0
+  requires workspace.clean()
 {
-    Option<Timeline> timeline = Option.None();
-    ScheduleDecoder.decodeCanonical(
-        encoding,
-        budget,
-        timeline,
-        workspace.decodeScratch
+  Option<Timeline> timeline = Option.None();
+  ScheduleDecoder.decodeCanonical(
+    encoding,
+    budget,
+    timeline,
+    workspace.decodeScratch
+  );
+
+  controlled (timeline.isSome()) {
+    ClusterState cluster = initial;
+    TimelineWitness witness = TimelineWitness.clean();
+    EnabledTrace enabled = EnabledTrace.clean();
+
+    SchedulerModel.recordEnabledness(
+      protocol,
+      timeline.value(),
+      cluster,
+      enabled
     );
 
-    controlled (timeline.isSome()) {
-        ClusterState cluster = initial;
-        TimelineWitness witness = TimelineWitness.clean();
-        EnabledTrace enabled = EnabledTrace.clean();
-
-        SchedulerModel.recordEnabledness(
-            protocol,
-            timeline.value(),
-            cluster,
-            enabled
-        );
-
-        controlled (enabled.allEventsEnabled()) {
-            runTimeline(protocol, timeline.value(), cluster, witness);
-            violates ^= !evaluateSafety(cluster).passed();
-            reverse runTimeline(
-                protocol,
-                timeline.value(),
-                cluster,
-                witness
-            );
-        }
-
-        reverse SchedulerModel.recordEnabledness(
-            protocol,
-            timeline.value(),
-            cluster,
-            enabled
-        );
-
-        assert(cluster == initial);
-        assert(witness == TimelineWitness.clean());
+    controlled (enabled.allEventsEnabled()) {
+      runTimeline(protocol, timeline.value(), cluster, witness);
+      violates ^= !evaluateSafety(cluster).passed();
+      reverse runTimeline(
+        protocol,
+        timeline.value(),
+        cluster,
+        witness
+      );
     }
 
-    reverse ScheduleDecoder.decodeCanonical(
-        encoding,
-        budget,
-        timeline,
-        workspace.decodeScratch
+    reverse SchedulerModel.recordEnabledness(
+      protocol,
+      timeline.value(),
+      cluster,
+      enabled
     );
 
-    assert(timeline == Option.None());
-    assert(workspace.clean());
+    assert(cluster == initial);
+    assert(witness == TimelineWitness.clean());
+  }
+
+  reverse ScheduleDecoder.decodeCanonical(
+    encoding,
+    budget,
+    timeline,
+    workspace.decodeScratch
+  );
+
+  assert(timeline == Option.None());
+  assert(workspace.clean());
 }
 
 unitary void markFailingSchedule(
-    borrow ProtocolArtifact protocol,
-    borrow ClusterState initial,
-    borrow FaultBudget budget,
-    QView<SCHEDULE_BITS> candidate,
-    QView<1> marker,
-    QView<SEARCH_WORKSPACE_BITS> workspace
+  borrow ProtocolArtifact protocol,
+  borrow ClusterState initial,
+  borrow FaultBudget budget,
+  QView<SCHEDULE_BITS> candidate,
+  QView<1> marker,
+  QView<SEARCH_WORKSPACE_BITS> workspace
 )
 {
-    coherent classifySchedule(
-        protocol,
-        initial,
-        budget,
-        candidate,
-        marker,
-        workspace
-    );
-    PhaseMark(marker[0]);
-    reverse classifySchedule(
-        protocol,
-        initial,
-        budget,
-        candidate,
-        marker,
-        workspace
-    );
-    assert(clean(marker));
-    assert(clean(workspace));
+  coherent classifySchedule(
+    protocol,
+    initial,
+    budget,
+    candidate,
+    marker,
+    workspace
+  );
+  PhaseMark(marker[0]);
+  reverse classifySchedule(
+    protocol,
+    initial,
+    budget,
+    candidate,
+    marker,
+    workspace
+  );
+  assert(clean(marker));
+  assert(clean(workspace));
 }
 
 experiment FailureSearchEvidence searchLength(
-    ProtocolArtifact protocol,
-    ClusterState initial,
-    FaultBudget budget,
-    UInt<7> requestedLength
+  ProtocolArtifact protocol,
+  ClusterState initial,
+  FaultBudget budget,
+  UInt<7> requestedLength
 )
-    requires target supports {
-        FAULT_TOLERANT_LOGICAL_QUBITS;
-        COHERENT_BYTECODE_INTERPRETER;
-        AMPLITUDE_AMPLIFICATION;
-        CHECKPOINTED_JOB_RECOVERY;
-    }
-    estimates failingSchedule
-    confidence 0.999999999
-    shots 16_384
+  requires target supports {
+    FAULT_TOLERANT_LOGICAL_QUBITS;
+    COHERENT_BYTECODE_INTERPRETER;
+    AMPLITUDE_AMPLIFICATION;
+    CHECKPOINTED_JOB_RECOVERY;
+  }
+  estimates failingSchedule
+  confidence 0.999999999
+  shots 16_384
 {
-    return QuantumSearch.sampleCanonicalSchedules(
-        requestedLength,
-        oracle = markFailingSchedule(
-            protocol,
-            initial,
-            budget
-        ),
-        shots = 16_384
-    );
+  return QuantumSearch.sampleCanonicalSchedules(
+    requestedLength,
+    oracle = markFailingSchedule(
+      protocol,
+      initial,
+      budget
+    ),
+    shots = 16_384
+  );
 }
 
 record Counterexample(
-    ProtocolArtifact protocol,
-    ClusterState initial,
-    FaultBudget budget,
-    Timeline timeline,
-    NormalizedTrace trace,
-    SafetyResult finalSafety,
-    Proof<IsCounterexample(
-        protocol,
-        initial,
-        budget,
-        timeline
-    )> failureProof,
-    Proof<NoCounterexampleShorterThan(
-        protocol,
-        initial,
-        budget,
-        timeline.length
-    )> minimalityProof
+  ProtocolArtifact protocol,
+  ClusterState initial,
+  FaultBudget budget,
+  Timeline timeline,
+  NormalizedTrace trace,
+  SafetyResult finalSafety,
+  Proof<IsCounterexample(
+    protocol,
+    initial,
+    budget,
+    timeline
+  )> failureProof,
+  Proof<NoCounterexampleShorterThan(
+    protocol,
+    initial,
+    budget,
+    timeline.length
+  )> minimalityProof
 ) {}
 
 variant InvestigationResult {
-    case CounterexampleFound(Counterexample counterexample);
-    case BoundedSafe(
-        Proof<NoCounterexampleWithinBounds(
-            ProtocolArtifact,
-            ClusterState,
-            FaultBudget
-        )> proof
-    );
-    case Inconclusive(FailureSearchEvidence evidence, String explanation);
+  case CounterexampleFound(Counterexample counterexample);
+  case BoundedSafe(
+    Proof<NoCounterexampleWithinBounds(
+      ProtocolArtifact,
+      ClusterState,
+      FaultBudget
+    )> proof
+  );
+  case Inconclusive(FailureSearchEvidence evidence, String explanation);
 }
 
 capability interface FailureSearchTarget {
-    async FailureSearchEvidence run(
-        Experiment<FailureSearchEvidence> experiment
-    );
+  async FailureSearchEvidence run(
+    Experiment<FailureSearchEvidence> experiment
+  );
 }
 
 capability interface CertificateSearch {
-    async Certificate propose(
-        Proposition proposition,
-        ProofBudget budget
-    );
+  async Certificate propose(
+    Proposition proposition,
+    ProofBudget budget
+  );
 }
 
 capability interface ReportOutput {
-    async void publish(MurphyReport report);
+  async void publish(MurphyReport report);
 }
 
 hybrid class Murphy {
-    durable state UInt<7> currentLength = 0;
-    durable state InvestigationJournal journal =
-        InvestigationJournal.empty();
+  durable state UInt<7> currentLength = 0;
+  durable state InvestigationJournal journal =
+    InvestigationJournal.empty();
 
-    entry async InvestigationResult main(
-        ProtocolArtifact protocol,
-        ClusterState initial,
-        FaultBudget budget,
-        FailureSearchTarget target,
-        CertificateSearch certificateSearch,
-        ProofKernel kernel,
-        ReportOutput output
-    )
-        effects {
-            target.run;
-            certificateSearch.propose;
-            output.publish;
-        }
+  entry async InvestigationResult main(
+    ProtocolArtifact protocol,
+    ClusterState initial,
+    FaultBudget budget,
+    FailureSearchTarget target,
+    CertificateSearch certificateSearch,
+    ProofKernel kernel,
+    ReportOutput output
+  )
+    effects {
+      target.run;
+      certificateSearch.propose;
+      output.publish;
+    }
+  {
+    assert(protocol.schema.nodeCount == NODE_COUNT);
+    assert(evaluateSafety(initial).passed());
+
+    FailureSearchEvidence lastEvidence =
+      FailureSearchEvidence.empty();
+    MinimalSchedulePrefix noShorter =
+      MinimalSchedulePrefix.baseCase();
+
+    for (UInt<7> length = 0; length <= MAX_EVENTS; length += 1)
+      limit MAX_EVENTS + 1
     {
-        assert(protocol.schema.nodeCount == NODE_COUNT);
-        assert(evaluateSafety(initial).passed());
+      currentLength = length;
+      checkpoint("search-length-started");
 
-        FailureSearchEvidence lastEvidence =
-            FailureSearchEvidence.empty();
-        MinimalSchedulePrefix noShorter =
-            MinimalSchedulePrefix.baseCase();
+      lastEvidence = record "failure-search"
+        await target.run(
+          searchLength(protocol, initial, budget, length)
+        );
 
-        for (UInt<7> length = 0; length <= MAX_EVENTS; length += 1)
-            limit MAX_EVENTS + 1
-        {
-            currentLength = length;
-            checkpoint("search-length-started");
+      Option<Timeline> candidate =
+        CandidateSelector.firstConfirmed(
+          lastEvidence.samples,
+          lambda (ScheduleEncoding encoding) {
+            return ClassicalReplay.decodeAndCheck(
+              protocol,
+              initial,
+              budget,
+              length,
+              encoding
+            );
+          }
+        );
 
-            lastEvidence = record "failure-search"
-                await target.run(
-                    searchLength(protocol, initial, budget, length)
-                );
+      if (candidate.isSome()) {
+        Timeline timeline = candidate.value();
+        ReplayResult replay = ClassicalReplay.execute(
+          protocol,
+          initial,
+          timeline,
+          TraceMode.Normalized
+        );
+        assert(!replay.safety.passed());
 
-            Option<Timeline> candidate =
-                CandidateSelector.firstConfirmed(
-                    lastEvidence.samples,
-                    lambda (ScheduleEncoding encoding) {
-                        return ClassicalReplay.decodeAndCheck(
-                            protocol,
-                            initial,
-                            budget,
-                            length,
-                            encoding
-                        );
-                    }
-                );
+        Proof<IsCounterexample(
+          protocol,
+          initial,
+          budget,
+          timeline
+        )> failure = kernel.verify(
+          IsCounterexample(protocol, initial, budget, timeline),
+          await certificateSearch.propose(
+            IsCounterexample(protocol, initial, budget, timeline),
+            ProofBudget.largeButFinite()
+          )
+        ) else trap COUNTEREXAMPLE_PROOF_REJECTED;
 
-            if (candidate.isSome()) {
-                Timeline timeline = candidate.value();
-                ReplayResult replay = ClassicalReplay.execute(
-                    protocol,
-                    initial,
-                    timeline,
-                    TraceMode.Normalized
-                );
-                assert(!replay.safety.passed());
-
-                Proof<IsCounterexample(
-                    protocol,
-                    initial,
-                    budget,
-                    timeline
-                )> failure = kernel.verify(
-                    IsCounterexample(protocol, initial, budget, timeline),
-                    await certificateSearch.propose(
-                        IsCounterexample(protocol, initial, budget, timeline),
-                        ProofBudget.largeButFinite()
-                    )
-                ) else trap COUNTEREXAMPLE_PROOF_REJECTED;
-
-                Counterexample counterexample = new Counterexample(
-                    protocol,
-                    initial,
-                    budget,
-                    timeline,
-                    replay.normalizedTrace,
-                    replay.safety,
-                    failure,
-                    noShorter.closeAt(length)
-                );
-
-                await output.publish(
-                    ReportBuilder.counterexample(counterexample)
-                );
-                commit("minimal-counterexample-published");
-                return new InvestigationResult.CounterexampleFound(
-                    counterexample
-                );
-            }
-
-            /* Sampling found nothing. Only a checked absence proof advances. */
-            Proposition absentAtLength =
-                NoCounterexampleAtLength(
-                    protocol,
-                    initial,
-                    budget,
-                    length
-                );
-            Option<Proof<typeof(absentAtLength)>> absent =
-                kernel.tryVerify(
-                    absentAtLength,
-                    await certificateSearch.propose(
-                        absentAtLength,
-                        ProofBudget.largeButFinite()
-                    )
-                );
-
-            if (absent.isNone()) {
-                return new InvestigationResult.Inconclusive(
-                    lastEvidence,
-                    "no candidate and no accepted absence certificate"
-                );
-            }
-
-            noShorter = noShorter.extend(length, absent.value());
-            commit("length-proven-safe");
-        }
-
-        Proof<NoCounterexampleWithinBounds(
-            protocol,
-            initial,
-            budget
-        )> safe = noShorter.closeBound(MAX_EVENTS);
+        Counterexample counterexample = new Counterexample(
+          protocol,
+          initial,
+          budget,
+          timeline,
+          replay.normalizedTrace,
+          replay.safety,
+          failure,
+          noShorter.closeAt(length)
+        );
 
         await output.publish(
-            ReportBuilder.boundedSafety(protocol, initial, budget, safe)
+          ReportBuilder.counterexample(counterexample)
         );
-        commit("bounded-safety-proof-published");
-        return new InvestigationResult.BoundedSafe(safe);
+        commit("minimal-counterexample-published");
+        return new InvestigationResult.CounterexampleFound(
+          counterexample
+        );
+      }
+
+      /* Sampling found nothing. Only a checked absence proof advances. */
+      Proposition absentAtLength =
+        NoCounterexampleAtLength(
+          protocol,
+          initial,
+          budget,
+          length
+        );
+      Option<Proof<typeof(absentAtLength)>> absent =
+        kernel.tryVerify(
+          absentAtLength,
+          await certificateSearch.propose(
+            absentAtLength,
+            ProofBudget.largeButFinite()
+          )
+        );
+
+      if (absent.isNone()) {
+        return new InvestigationResult.Inconclusive(
+          lastEvidence,
+          "no candidate and no accepted absence certificate"
+        );
+      }
+
+      noShorter = noShorter.extend(length, absent.value());
+      commit("length-proven-safe");
     }
+
+    Proof<NoCounterexampleWithinBounds(
+      protocol,
+      initial,
+      budget
+    )> safe = noShorter.closeBound(MAX_EVENTS);
+
+    await output.publish(
+      ReportBuilder.boundedSafety(protocol, initial, budget, safe)
+    );
+    commit("bounded-safety-proof-published");
+    return new InvestigationResult.BoundedSafe(safe);
+  }
 }
 ```
 

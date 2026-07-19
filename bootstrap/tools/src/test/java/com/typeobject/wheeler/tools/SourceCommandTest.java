@@ -117,9 +117,9 @@ class SourceCommandTest {
         new String[] {"format", directory.toString()}, output, error));
     assertEquals("""
         classical class A {
-            entry void main() {
-                long value = 1;
-            }
+          entry void main() {
+            long value = 1;
+          }
         }
         """, Files.readString(first));
     if (permissions != null) {

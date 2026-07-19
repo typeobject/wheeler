@@ -290,8 +290,17 @@ class BytecodeVerifierTest {
             Instruction.of(Opcode.WORDS_ALLOC, 2, 0, 1),
             Instruction.of(Opcode.RETURN_VALUE, 2)),
         List.of());
-    FunctionBody main = new FunctionBody(
+    FunctionBody relay = new FunctionBody(
         1,
+        "relay",
+        false,
+        1,
+        List.of(ValueType.WORDS),
+        ValueType.WORDS,
+        List.of(Instruction.of(Opcode.RETURN_VALUE, 0)),
+        List.of());
+    FunctionBody main = new FunctionBody(
+        2,
         "main",
         false,
         0,
@@ -300,6 +309,8 @@ class BytecodeVerifierTest {
             ValueType.SIGNED,
             ValueType.REGION_BORROW,
             ValueType.SIGNED,
+            ValueType.WORDS,
+            ValueType.WORDS,
             ValueType.WORDS),
         null,
         List.of(
@@ -308,13 +319,15 @@ class BytecodeVerifierTest {
             Instruction.of(Opcode.REGION_BORROW, 2, 0),
             Instruction.of(Opcode.LOCAL_MOVE, 3, 1),
             Instruction.of(Opcode.CALL_VALUE, 0, 2, 2, 4),
-            Instruction.of(Opcode.BUFFER_DROP, 4),
+            Instruction.of(Opcode.OWNED_MOVE, 5, 4),
+            Instruction.of(Opcode.CALL_VALUE, 1, 5, 1, 6),
+            Instruction.of(Opcode.BUFFER_DROP, 6),
             Instruction.of(Opcode.REGION_DROP, 0),
             Instruction.of(Opcode.HALT)),
         List.of());
     Program valid = Program.classical(
-        "OwnedResult", 1, List.of(), List.of(), List.of(), List.of(), List.of(),
-        List.of(make, main), List.of());
+        "OwnedResult", 2, List.of(), List.of(), List.of(), List.of(), List.of(),
+        List.of(make, relay, main), List.of());
 
     BytecodeVerifier.verify(valid);
     byte[] encoded = new BytecodeWriter().write(valid);
@@ -332,8 +345,8 @@ class BytecodeVerifierTest {
         List.of(Instruction.of(Opcode.RETURN_VALUE, 0)),
         List.of());
     Program invalid = Program.classical(
-        "BorrowedResult", 1, List.of(), List.of(), List.of(), List.of(), List.of(),
-        List.of(borrowed, main), List.of());
+        "BorrowedResult", 2, List.of(), List.of(), List.of(), List.of(), List.of(),
+        List.of(borrowed, relay, main), List.of());
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(invalid));
   }
 

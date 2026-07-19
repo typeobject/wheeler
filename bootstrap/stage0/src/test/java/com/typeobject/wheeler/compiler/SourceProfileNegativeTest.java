@@ -382,10 +382,10 @@ class SourceProfileNegativeTest {
         CompilerException.class,
         () -> new WheelerCompiler().compile("""
             classical class HiddenOutput {
-              void resize(bytes output, long length) {
+              void resize(borrow mut bytes output, long length) {
                 setOutputLength(output, length);
               }
-              entry void main(bytes output) { resize(output, 1); }
+              entry void main(borrow mut bytes output) { resize(output, 1); }
             }
             """));
 
@@ -432,7 +432,7 @@ class SourceProfileNegativeTest {
         """;
     String leakedScratch = """
         classical class LeakedScratch {
-          long scratch(region arena) {
+          long scratch(borrow mut region arena) {
             words temporary = allocate(arena, 1);
             return 0;
           }
@@ -441,7 +441,7 @@ class SourceProfileNegativeTest {
         """;
     String aliasedMapBorrow = """
         classical class AliasedMapBorrow {
-          long read(longmap left, longmap right) { return mapGet(left, 0); }
+          long read(borrow mut longmap left, borrow mut longmap right) { return mapGet(left, 0); }
           entry void main() {
             region arena = new region(24, 1);
             longmap values = allocateMap(arena, 1);
@@ -453,14 +453,26 @@ class SourceProfileNegativeTest {
         """;
     String droppedBorrow = """
         classical class DroppedBorrow {
-          long read(utf8 text) { drop(text); return 0; }
+          long read(borrow utf8 text) { drop(text); return 0; }
           entry void main() { }
         }
         """;
     String returnedBorrow = """
         classical class ReturnedBorrow {
-          region steal(region arena) { return arena; }
+          region steal(borrow mut region arena) { return arena; }
           entry void main() { }
+        }
+        """;
+    String usedAfterOwnedCall = """
+        classical class UsedAfterOwnedCall {
+          void consume(words data) { drop(data); }
+          entry void main() {
+            region arena = new region(8, 1);
+            words data = allocate(arena, 1);
+            consume(data);
+            drop(data);
+            drop(arena);
+          }
         }
         """;
     String immutableUtf8 = """
@@ -500,21 +512,47 @@ class SourceProfileNegativeTest {
         CompilerException.class, () -> new WheelerCompiler().compile(droppedBorrow));
     CompilerException returned = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(returnedBorrow));
+    CompilerException called = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(usedAfterOwnedCall));
     CompilerException immutable = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(immutableUtf8));
     CompilerException aggregate = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(nested));
 
     assertTrue(leaked.getMessage().contains("exits with live owned local"));
-    assertTrue(moved.getMessage().contains("reads uninitialized local"));
+    assertTrue(moved.getMessage().contains("reads unavailable owned local"));
     assertTrue(result.getMessage().contains("exits with live owned local"));
     assertTrue(kind.getMessage().contains("buffer operation kind mismatch"));
     assertTrue(scratch.getMessage().contains("exits with live owned local"));
     assertTrue(aliased.getMessage().contains("cannot alias multiple mutable parameters"));
     assertTrue(borrowed.getMessage().contains("drop requires an owned value"));
     assertTrue(returned.getMessage().contains("expected region expression"));
+    assertTrue(called.getMessage().contains("after move, drop, return, or call transfer"));
     assertTrue(immutable.getMessage().contains("buffer operation kind mismatch"));
     assertTrue(aggregate.getMessage().contains("cannot be array or slice elements"));
+  }
+
+  @Test
+  void rejectsUnsupportedOrImplicitLoanModes() {
+    CompilerException implicitView = assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compile(
+            "classical class BadView { long read(byteview data) { return data[0]; } "
+                + "entry void main() {} }"));
+    CompilerException scalarLoan = assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compile(
+            "classical class BadScalar { long read(borrow long value) { return value; } "
+                + "entry void main() {} }"));
+    CompilerException mutableText = assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compile(
+            "classical class BadText { long read(borrow mut utf8 text) { return 0; } "
+                + "entry void main() {} }"));
+
+    assertTrue(implicitView.getMessage().contains("byteview parameters require 'borrow'"));
+    assertTrue(scalarLoan.getMessage().contains("unsupported borrow parameter type long"));
+    assertTrue(mutableText.getMessage().contains("unsupported borrow mut parameter type utf8"));
   }
 
   @Test

@@ -110,11 +110,11 @@ The accepted first declaration is explicit rather than annotation-reflective:
 
 ```java
 test void addition() {
-    assert(add(2, 3) == 5);
+  assert(add(2, 3) == 5);
 }
 
 test void signedIdentity(long value) cases(-1, 0, 1) {
-    assert(value == value);
+  assert(value == value);
 }
 ```
 

@@ -59,10 +59,10 @@ OpenQASM is a derived target format. Wheeler region IR remains authoritative bec
 
 ```java
 OpenQasmTarget target = new OpenQasmTarget(
-    "provider-name",
-    127,
-    10_000,
-    (qasm, shots, seed) -> provider.submit(qasm, shots));
+  "provider-name",
+  127,
+  10_000,
+  (qasm, shots, seed) -> provider.submit(qasm, shots));
 ```
 
 The executor may call a provider REST API, appliance SDK, local engine, or queue service. Wheeler passes canonical QASM and validates that the executor returns exactly one in-range full-register outcome per shot. Execution remains asynchronous through `QuantumJob`.

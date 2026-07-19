@@ -55,17 +55,17 @@ Monomorphization is the initial executable strategy because the VM, verifier, in
 
 ```wheeler
 public variant Option<T> {
-    case None();
-    case Some(T value);
+  case None();
+  case Some(T value);
 }
 
 public variant Result<T, E> {
-    case Value(T value);
-    case Error(E error);
+  case Value(T value);
+  case Error(E error);
 }
 
 public T identity<T>(T value) {
-    return value;
+  return value;
 }
 ```
 
@@ -75,7 +75,7 @@ Ownership derives from payloads. `identity` moves a move-only value through; cal
 
 ```wheeler
 public record Matrix<T, const long ROWS, const long COLS>(
-    Array<T, ROWS * COLS> elements
+  Array<T, ROWS * COLS> elements
 )
 where ROWS > 0
 where COLS > 0
@@ -89,17 +89,17 @@ Dimensions use WIP-0017's checked constant model and are known before layout or 
 
 ```wheeler
 public boolean contains<T>(
-    borrow Slice<T> values,
-    borrow T needle
+  borrow Slice<T> values,
+  borrow T needle
 ) where T: Eq {
-    ...
+  ...
 }
 
 public Vec<T, R> collect<T, region R>(
-    borrow Iterator<T> source,
-    borrow mut Allocator<R> allocator
+  borrow Iterator<T> source,
+  borrow mut Allocator<R> allocator
 ) {
-    ...
+  ...
 }
 ```
 
@@ -109,13 +109,13 @@ WIP-0030 resolves `Eq<T>`. WIP-0028 owns move/loan/origin behavior. The result r
 
 ```wheeler
 public unitary void reverseBits<const long N>(
-    borrow mut Qreg<N> q
+  borrow mut Qreg<N> q
 ) {
-    ...
+  ...
 }
 
 public typeclass Functor<F<Type -> Type>> {
-    F<B> map<A, B>(F<A> values, Function<A, B> transform);
+  F<B> map<A, B>(F<A> values, Function<A, B> transform);
 }
 ```
 

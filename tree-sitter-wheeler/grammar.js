@@ -176,7 +176,7 @@ module.exports = grammar({
     ),
     value_type: $ => seq(
       choice(
-        'long', 'boolean', 'region', 'words', 'bytes', 'longmap', 'utf8',
+        'long', 'boolean', 'region', 'words', 'bytes', 'byteview', 'longmap', 'utf8',
         alias($.identifier, $.type_identifier),
         $.qualified_type,
       ),
@@ -184,9 +184,11 @@ module.exports = grammar({
     ),
     array_extent: $ => seq('[', optional(field('length', $.integer_literal)), ']'),
     parameter: $ => seq(
+      optional(field('ownership', $.parameter_ownership)),
       field('type', $.value_type),
       field('name', $.identifier),
     ),
+    parameter_ownership: _ => choice('borrow', seq('borrow', 'mut')),
     block: $ => seq('{', repeat($.statement), '}'),
 
     statement: $ => choice(

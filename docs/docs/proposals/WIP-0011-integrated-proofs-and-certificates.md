@@ -68,12 +68,12 @@ A declaration may state preconditions, postconditions, frame conditions, effects
 
 ```java
 rev long increment(long value)
-    requires value < Long.MAX_VALUE
-    ensures result == old(value) + 1
-    ensures inverse(result) == old(value)
-    modifies nothing
+  requires value < Long.MAX_VALUE
+  ensures result == old(value) + 1
+  ensures inverse(result) == old(value)
+  modifies nothing
 {
-    return value + 1;
+  return value + 1;
 }
 ```
 
@@ -87,12 +87,12 @@ A theorem is a declaration with typed parameters, proposition result, visibility
 
 ```java
 theorem qftRoundTrip(qreg_shape shape)
-    requires shape.qubits > 0
-    shows adjoint(qft(shape)) >> qft(shape) == identity(shape)
+  requires shape.qubits > 0
+  shows adjoint(qft(shape)) >> qft(shape) == identity(shape)
 {
-    proof {
-        ...
-    }
+  proof {
+    ...
+  }
 }
 ```
 
@@ -198,12 +198,12 @@ Empirical evidence uses an integrated but distinct declaration:
 
 ```java
 experiment bellCorrelation(Target target)
-    requires target supports STATIC_CIRCUIT
-    estimates correlation(q[0], q[1])
-    confidence 0.99
-    shots 4096
+  requires target supports STATIC_CIRCUIT
+  estimates correlation(q[0], q[1])
+  confidence 0.99
+  shots 4096
 {
-    ...
+  ...
 }
 ```
 

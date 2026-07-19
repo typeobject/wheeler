@@ -414,7 +414,7 @@ class WheelerCompilerTest {
         classical class InputCount {
           state long byteCount = 0;
           state long scalars = 0;
-          entry void main(utf8 source) {
+          entry void main(borrow utf8 source) {
             byteCount = bufferLength(source);
             scalars = utf8Count(source);
             assert(byteCount == 3);
@@ -444,7 +444,7 @@ class WheelerCompilerTest {
   void entrySelectsABoundedRewindableHostOutputPrefix() {
     Program program = new WheelerCompiler().compile("""
         classical class Prefix {
-          entry void main(bytes output) {
+          entry void main(borrow mut bytes output) {
             setByte(output, 0, 65);
             setByte(output, 1, 66);
             setOutputLength(output, 2);
@@ -464,7 +464,7 @@ class WheelerCompilerTest {
 
     Program oversized = new WheelerCompiler().compile("""
         classical class Oversized {
-          entry void main(bytes output) { setOutputLength(output, 3); }
+          entry void main(borrow mut bytes output) { setOutputLength(output, 3); }
         }
         """);
     VirtualMachine invalid = new VirtualMachine(oversized, null, 2);

@@ -46,24 +46,24 @@ Here is an executable reversible counter:
 
 ```java
 classical class Counter {
-    state long count = 0;
+  state long count = 0;
 
-    rev void increment() {
-        count += 1;
+  rev void increment() {
+    count += 1;
+  }
+
+  entry void main() {
+    increment();
+    increment();
+    assert(count == 2);
+
+    reverse {
+      increment();
+      increment();
     }
 
-    entry void main() {
-        increment();
-        increment();
-        assert(count == 2);
-
-        reverse {
-            increment();
-            increment();
-        }
-
-        assert(count == 0);
-    }
+    assert(count == 0);
+  }
 }
 ```
 
@@ -105,29 +105,29 @@ Wheeler’s `coherent rev` model reduces that duplication:
 
 ```java
 hybrid class CoherentOracle {
-    state long bit = 0;
-    state long measured = 0;
-    qreg q = new qreg(1);
+  state long bit = 0;
+  state long measured = 0;
+  qreg q = new qreg(1);
 
-    coherent rev void flip() {
-        bit ^= 1;
-    }
+  coherent rev void flip() {
+    bit ^= 1;
+  }
 
-    unitary void oracle() {
-        q.apply(flip);
-    }
+  unitary void oracle() {
+    q.apply(flip);
+  }
 
-    entry void main() {
-        flip();
-        assert(bit == 1);
-        reverse flip();
-        assert(bit == 0);
+  entry void main() {
+    flip();
+    assert(bit == 1);
+    reverse flip();
+    assert(bit == 0);
 
-        prepare(q, 0);
-        oracle();
-        measured = measure(q);
-        assert(measured == 1);
-    }
+    prepare(q, 0);
+    oracle();
+    measured = measure(q);
+    assert(measured == 1);
+  }
 }
 ```
 
@@ -145,26 +145,26 @@ A Wheeler `unitary` method receives a generated adjoint. The checked-in QFT writ
 
 ```java
 quantum class QFT {
-    state long measured = 0;
-    qreg q = new qreg(3);
+  state long measured = 0;
+  qreg q = new qreg(3);
 
-    unitary void qft() {
-        H(q[0]);
-        CPhase(q[1], q[0], 1.5707963267948966);
-        CPhase(q[2], q[0], 0.7853981633974483);
-        H(q[1]);
-        CPhase(q[2], q[1], 1.5707963267948966);
-        H(q[2]);
-        Swap(q[0], q[2]);
-    }
+  unitary void qft() {
+    H(q[0]);
+    CPhase(q[1], q[0], 1.5707963267948966);
+    CPhase(q[2], q[0], 0.7853981633974483);
+    H(q[1]);
+    CPhase(q[2], q[1], 1.5707963267948966);
+    H(q[2]);
+    Swap(q[0], q[2]);
+  }
 
-    entry void main() {
-        prepare(q, 5);
-        qft();
-        reverse qft();
-        measured = measure(q);
-        assert(measured == 5);
-    }
+  entry void main() {
+    prepare(q, 5);
+    qft();
+    reverse qft();
+    measured = measure(q);
+    assert(measured == 5);
+  }
 }
 ```
 

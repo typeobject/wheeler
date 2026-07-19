@@ -27,7 +27,7 @@ final class ArgumentCallBinder {
     FunctionBody target = program.function(functionId);
     Frame caller = current.advance();
     for (int index = 0; index < argumentCount; index++) {
-      if (borrowed(target.localType(index))) {
+      if (transferred(target.localType(index))) {
         caller = caller.withLocal(argumentBase + index, 0);
       }
     }
@@ -36,12 +36,20 @@ final class ArgumentCallBinder {
         Frame.create(functionId, false, target.localCount(), destination, arguments));
   }
 
-  private static boolean borrowed(ValueType type) {
-    return type.equals(ValueType.UTF8_BORROW)
+  private static boolean transferred(ValueType type) {
+    return owned(type) || type.equals(ValueType.UTF8_BORROW)
         || type.equals(ValueType.LONG_MAP_BORROW)
         || type.equals(ValueType.WORDS_BORROW)
         || type.equals(ValueType.BYTES_BORROW)
         || type.equals(ValueType.REGION_BORROW)
         || type.equals(ValueType.BYTE_VIEW);
+  }
+
+  private static boolean owned(ValueType type) {
+    return type.equals(ValueType.REGION)
+        || type.equals(ValueType.WORDS)
+        || type.equals(ValueType.BYTES)
+        || type.equals(ValueType.LONG_MAP)
+        || type.equals(ValueType.UTF8);
   }
 }

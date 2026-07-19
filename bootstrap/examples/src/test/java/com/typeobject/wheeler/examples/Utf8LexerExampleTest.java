@@ -20,7 +20,7 @@ class Utf8LexerExampleTest {
         import wheeler.lexer.scanner;
         classical class ScannerTest {
           state long parsed = 0;
-          entry void main(utf8 source) {
+          entry void main(borrow utf8 source) {
             parsed = parseNumber(source, 0, bufferLength(source));
           }
         }
@@ -49,7 +49,7 @@ class Utf8LexerExampleTest {
         import wheeler.lexer.scanner;
         classical class BlockTest {
           state long commentEnd = 0;
-          entry void main(utf8 source) {
+          entry void main(borrow utf8 source) {
             commentEnd = blockCommentEnd(source, 0, bufferLength(source));
           }
         }
@@ -77,7 +77,7 @@ class Utf8LexerExampleTest {
         import wheeler.lexer.scanner;
         classical class LiteralTest {
           state long literalEnd = 0;
-          entry void main(utf8 source) {
+          entry void main(borrow utf8 source) {
             literalEnd = asciiLiteralEnd(source, 0, bufferLength(source));
           }
         }
@@ -112,7 +112,7 @@ class Utf8LexerExampleTest {
           state long offset = 0;
           state long line = 0;
           state long column = 0;
-          entry void main(utf8 source) {
+          entry void main(borrow utf8 source) {
             region arena = new region(96, 3);
             words kinds = allocate(arena, 4);
             words starts = allocate(arena, 4);

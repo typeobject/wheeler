@@ -172,9 +172,9 @@ class NativeVmExampleTest {
         () -> VirtualMachine.withBinaryInput(interpreter, forgedSlice).run());
     String storage = "classical class NativeStorage { "
         + "state long first = 0; state long byteValue = 0; "
-        + "long readWord(words data, long index) { return data[index]; } "
-        + "long readByte(bytes data, long index) { return data[index]; } "
-        + "long scratch(region arena, long value) { "
+        + "long readWord(borrow mut words data, long index) { return data[index]; } "
+        + "long readByte(borrow mut bytes data, long index) { return data[index]; } "
+        + "long scratch(borrow mut region arena, long value) { "
         + "long one = 1; words temporary = allocate(arena, one); "
         + "set(temporary, 0, value); long result = temporary[0]; "
         + "drop(temporary); return result; } "
@@ -278,7 +278,7 @@ class NativeVmExampleTest {
         interpreter,
         "classical class BorrowedNativeMap { "
             + "state long selected = 0; state long present = 0; "
-            + "long lookup(longmap values, long key) { "
+            + "long lookup(borrow mut longmap values, long key) { "
             + "return mapGet(values, key); } "
             + "entry void main() { region arena = new region(24, 1); "
             + "longmap values = allocateMap(arena, 1); put(values, 7, 17); "

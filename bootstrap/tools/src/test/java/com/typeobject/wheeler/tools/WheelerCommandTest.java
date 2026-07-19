@@ -416,7 +416,7 @@ class WheelerCommandTest {
     Files.writeString(project.resolve("src/Main.w"), """
         classical class Main {
           state long scalars = 0;
-          entry void main(utf8 source, bytes output) {
+          entry void main(borrow utf8 source, borrow mut bytes output) {
             scalars = utf8Count(source);
             setByte(output, 0, 79);
             setByte(output, 1, 75);
@@ -465,7 +465,7 @@ class WheelerCommandTest {
     Files.writeString(project.resolve("src/Main.w"), """
         classical class Main {
           state long selected = 0;
-          entry void main(byteview source, bytes output) {
+          entry void main(borrow byteview source, borrow mut bytes output) {
             selected = source[1];
             setByte(output, 0, selected);
             assert(selected == 255);

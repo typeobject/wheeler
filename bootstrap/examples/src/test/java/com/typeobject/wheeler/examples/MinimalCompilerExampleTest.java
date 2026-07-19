@@ -350,7 +350,7 @@ class MinimalCompilerExampleTest {
         classical class VerifierTest {
           state long result = 0;
 
-          private long nybble(utf8 source, long offset) {
+          private long nybble(borrow utf8 source, long offset) {
             long scalar = utf8Scalar(source, offset);
             if (47 < scalar) {
               if (scalar < 58) {
@@ -365,7 +365,7 @@ class MinimalCompilerExampleTest {
             return 0;
           }
 
-          entry void main(utf8 source) {
+          entry void main(borrow utf8 source) {
             long sourceLength = bufferLength(source);
             region arena = new region(2048, 1);
             bytes artifact = allocateBytes(arena, 2048);

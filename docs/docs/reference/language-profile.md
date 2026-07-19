@@ -10,7 +10,7 @@ A file contains one computation-domain class:
 
 ```java
 classical class Counter {
-    state long count = 0;
+  state long count = 0;
 }
 ```
 
@@ -65,8 +65,8 @@ A reverse block invokes supported calls in reverse lexical order:
 
 ```java
 reverse {
-    first();
-    second();
+  first();
+  second();
 }
 ```
 
@@ -79,14 +79,15 @@ Ordinary classical methods support signed `long` and `boolean` locals, expressio
 ```java
 long i = 0;
 while (i < 5) limit 5 {
-    sum += i;
-    i += 1;
+  sum += i;
+  i += 1;
 }
+
 boolean complete = sum == 10;
 if (complete) {
-    branch = 1;
+  branch = 1;
 } else {
-    branch = 2;
+  branch = 2;
 }
 ```
 
@@ -94,13 +95,13 @@ A familiar counted loop carries the same mandatory semantic bound:
 
 ```java
 for (long i = 0; i < 5; i += 1) limit 5 {
-    sum += i;
+  sum += i;
 }
 ```
 
 Its initializer executes once, then the limit is evaluated once. Wheeler checks the limit before every body iteration and traps before executing an iteration beyond the bound. In a `while`, `continue;` transfers to condition reevaluation; in a `for`, it executes the update before reevaluating the condition and therefore cannot evade the next bound check. `break;` exits the innermost bounded loop. Both are rejected outside a loop. Nested loops carry distinct targets and counters. The whole-program step limit remains a separate defense.
 
-Calls evaluate arguments left to right and move them through a verified contiguous typed call window. A value call places one exact declared result in a caller register. A `void` call may carry the same parameter and borrow types without manufacturing or discarding a result register. A value-returning method may return early from a conditional, but every reachable path must end in `return expression;` of the declared type. Static recursion is permitted under the VM's hard 1,024-frame ceiling and the program step ceiling.
+Calls evaluate arguments left to right and move them through a verified contiguous typed call window. A plain affine-owner parameter consumes its argument; `borrow T` creates a shared nonescaping loan and `borrow mut T` creates an exclusive nonescaping loan. Use after an owning call is rejected by definite-ownership flow. A value call places one exact declared result in a caller register. A `void` call may carry the same value, owner, and loan types without manufacturing or discarding a result register. A value-returning method may return early from a conditional, but every reachable path must end in `return expression;` of the declared type. Static recursion is permitted under the VM's hard 1,024-frame ceiling and the program step ceiling.
 
 Local control compiles to verified typed frame registers and explicit control-flow targets. The function descriptor stores one canonical type code per register. The verifier rejects unknown type codes, invalid targets, out-of-range locals, reads not definitely assigned on every incoming path, operand or call type mismatches, non-Boolean conditions, invalid Boolean constants, and a function that falls through its body.
 
@@ -122,14 +123,14 @@ A finite enum is canonical sugar for a payload-free tagged variant:
 
 ```java
 public enum Direction {
-    case Left;
-    case Right;
+  case Left;
+  case Right;
 }
 
 Direction direction = new Direction.Right();
 match (direction) {
-    case Direction.Left() { selected = 1; }
-    case Direction.Right() { selected = 2; }
+  case Direction.Left() { selected = 1; }
+  case Direction.Right() { selected = 2; }
 }
 ```
 
@@ -157,14 +158,14 @@ A variant declares a closed ordered case set. Cases carry zero or more typed pay
 
 ```java
 variant Option {
-    case None();
-    case Some(long value);
+  case None();
+  case Some(long value);
 }
 
 Option option = new Option.Some(9);
 match (option) {
-    case Option.None() { result = 0; }
-    case Option.Some(long value) { result = value; }
+  case Option.None() { result = 0; }
+  case Option.Some(long value) { result = value; }
 }
 ```
 
@@ -221,23 +222,23 @@ A region declares hard byte and live-object ceilings; the VM also caps total liv
 
 `freezeUtf8(raw)` validates and consumes a `bytes` owner, yielding an affine immutable `utf8` owner over the same charged allocation. Validation failure leaves the source live and unchanged. A frozen value permits byte length, scalar count, scalar-boundary decode, validation, and drop, but no byte mutation or arbitrary string indexing. This primitive is the bootstrap representation below the future library `String`; it does not provide normalization, concatenation, comparison, grapheme segmentation, or canonical text serialization.
 
-An `utf8` function parameter is an immutable synchronous borrow rather than an ownership transfer:
+An explicit `borrow utf8` function parameter is an immutable synchronous loan rather than an ownership transfer:
 
 ```java
-long scalarAt(utf8 text, long index) {
-    return utf8Scalar(text, index);
+long scalarAt(borrow utf8 text, long index) {
+  return utf8Scalar(text, index);
 }
 ```
 
-The caller retains and must eventually drop the owner. The callee may inspect the value and pass the borrow to another call, but cannot move, drop, return, aggregate, or mutate it. Bytecode gives borrowed parameters a distinct verified register type; call lowering creates only transient borrow windows. Mutable `bytes`, `words`, maps, regions, and owned `utf8` values still cannot transfer ownership into a callee through parameters; owners may return under the rules below. Runtime owner/kind checks defend malformed artifacts, while verifier rules prevent a valid artifact from turning a borrow into an owner.
+The caller retains and must eventually drop the owner. The callee may inspect the value and reborrow it for another call, but cannot move, drop, return, aggregate, or mutate it. Bytecode gives borrowed parameters a distinct verified register type; call lowering creates only transient loan windows. A plain `utf8` parameter instead transfers ownership and must be consumed or returned by the callee. The same plain-parameter rule applies to every primitive owner. Runtime owner/kind checks defend malformed artifacts, while verifier rules prevent a valid artifact from turning a loan into an owner.
 
-`byteview` is the immutable binary counterpart at an entry or ordinary parameter. It exposes only checked octet indexing and `bufferLength`; it performs no UTF-8 validation, permits every byte sequence including empty input, and cannot be written, dropped, returned, or embedded in an aggregate. Passing a mutable byte owner or borrow to a `byteview` parameter creates an immutable transient call window without granting a second writer. An entry declares either `utf8` or `byteview` input, never both, followed by an optional mutable `bytes` output. The embedding API selects the input kind explicitly. Guessing from content would make `0xc0 0x80` a protocol decision, which is not a job for wishful Unicode.
+`borrow byteview` is the immutable binary counterpart at an entry or ordinary parameter. It exposes only checked octet indexing and `bufferLength`; it performs no UTF-8 validation, permits every byte sequence including empty input, and cannot be written, dropped, returned, or embedded in an aggregate. Passing a mutable byte owner or loan to that parameter creates an immutable transient call window without granting a second writer. An entry declares either `borrow utf8` or `borrow byteview` input, never both, followed by an optional `borrow mut bytes` output. The embedding API selects the input kind explicitly. Guessing from content would make `0xc0 0x80` a protocol decision, which is not a job for wishful Unicode.
 
 `crypto/Sha256.w` implements bounded SHA-256 in Wheeler over `byteview`, a caller-owned 32-byte output borrow, and a 1,088-byte/three-object scratch region. Its unsigned 32-bit state stays in nonnegative `long` values, reduces additions modulo 2³², and uses checked signed `&` plus `rotateRight32(value, amount)` over those normalized words; no provider or host digest API enters artifact semantics. The current loop bound admits at most 4,096 padded blocks, while ordinary program step/history limits may impose a lower operational ceiling. It is a deterministic identity primitive, not a claim of side-channel resistance.
 
-A `region` function parameter is a synchronous exclusive allocation borrow. The callee may allocate owned buffers/maps under the caller's unchanged byte/object ceilings, use or reborrow them, and must drop every allocation before returning. It cannot drop or return the borrowed region. This gives compiler helpers bounded scratch arenas without transferring or duplicating ownership.
+A `borrow mut region` parameter is a synchronous exclusive allocation loan. The callee may allocate owned buffers/maps under the caller's unchanged byte/object ceilings, use or reborrow them, and must drop every allocation before returning. It cannot drop or return the borrowed region. This gives compiler helpers bounded scratch arenas without transferring or duplicating ownership.
 
-`words` and `bytes` function parameters are synchronous exclusive mutable borrows. They support checked reads, writes, length, and—on byte borrows—strict UTF-8 inspection. Borrows may be nested through calls. One owner cannot fill two mutable parameter slots of the same call, and a borrow cannot be moved, dropped, returned, frozen into an owner, or embedded in a value.
+`borrow mut words` and `borrow mut bytes` parameters are synchronous exclusive mutable loans. They support checked reads, writes, length, and—on byte loans—strict UTF-8 inspection. Loans may be nested through calls. One owner cannot fill two mutable parameter slots of the same call, and a loan cannot be moved, dropped, returned, frozen into an owner, or embedded in a value. `borrow bytes` is the shared read-only form and lowers to the same immutable binary view as `borrow byteview`.
 
 A region can also own one fixed-capacity signed map:
 
@@ -250,13 +251,13 @@ long value = mapGet(symbols, 7);
 
 `longmap` accepts every signed key, including zero. `put` inserts or updates in deterministic lowest-free-slot order. Capacity is charged at 24 bytes per entry when allocated. `mapHas` is total; `mapGet` traps before destination mutation when the key is absent. The first slice has no deletion or iteration, so insertion history remains internal VM state and no map encoding is yet exposed as a canonical value.
 
-A `longmap` function parameter is a synchronous exclusive mutable borrow. The callee may update, query, and reborrow the map in nested calls. The caller retains ownership but cannot execute while the callee frame is active. One call cannot pass the same map to two mutable parameters; compiler and bytecode-verifier checks reject that alias before execution. A map borrow cannot be moved, dropped, returned, or stored in an aggregate.
+A `borrow mut longmap` parameter is a synchronous exclusive mutable loan. The callee may update, query, and reborrow the map in nested calls. The caller retains ownership but cannot execute while the callee frame is active. One call cannot pass the same map to two mutable parameters; compiler and bytecode-verifier checks reject that alias before execution. A map loan cannot be moved, dropped, returned, or stored in an aggregate.
 
 An ordinary function may return one `region`, `words`, `bytes`, `utf8`, or `longmap` owner. `return` consumes that local and requires every other callee owner dead. A returned region is therefore empty. Other returned storage remains charged to a live caller-owned region supplied through a nonescaping region borrow; returning a buffer while leaking a callee-owned region fails ownership flow. Borrowed, slice, and `byteview` results remain rejected because a naked handle is not a lifetime proof.
 
-`region`, `words`, `bytes`, `utf8`, and `longmap` locals are affine owners. Binding or returning one moves the handle and invalidates the source; ordinary copy and equality are rejected. Owners may be function results but cannot yet be owning parameters, aggregate elements, arrays, or slices. Every owned storage spelling in parameter position denotes its checked nonescaping borrow contract; no parameter receives ownership. Definite-ownership dataflow rejects use after move/drop, live-owner overwrite, control-flow joins with different ownership states, and any function exit with a live owned local. Runtime dropped-state and owner checks remain defense in depth. Snapshots expose canonical region/buffer state, and rewind restores allocation, frame-spanning result ownership, mutation, borrow-call windows, move, and drop exactly.
+`region`, `words`, `bytes`, `utf8`, and `longmap` locals are affine owners. Binding, passing to an unqualified owner parameter, or returning one moves the handle and invalidates the source; ordinary copy and equality are rejected. An explicit `borrow` or `borrow mut` parameter receives only its checked nonescaping loan. Owners may be function parameters and results but cannot yet be aggregate elements, arrays, or slices. Definite-ownership dataflow rejects use after move/drop/call, live-owner overwrite, control-flow joins with different ownership states, and any function exit with a live owned local. An owning callee must drop, move onward, or return its parameter. Runtime dropped-state and owner checks remain defense in depth. Snapshots expose canonical region/buffer state, and rewind restores allocation, frame-spanning parameter/result ownership, mutation, loan-call windows, move, and drop exactly.
 
-This slice is enough to build bounded storage in factory functions, return its unique owner, and continue using and dropping it in the caller. It also exercises region scratch borrowing, exclusive word/byte mutation, strict UTF-8 freezing/scalar decoding, and signed symbol maps; it is not yet a compiler arena. Library strings and normalization remain WIP-0012 work. WIP-0028 still owns explicit owning parameters, public borrow origins, non-lexical loans, split/join, recoverable allocation, and commit-aware reclamation over the WIP-0013 machine substrate; WIP-0029 adds generic maps, sets, and queues; WIP-0030 supplies their coherent static protocol evidence.
+This slice is enough to build bounded storage in factory functions, relay its unique owner through further calls, return it, and continue using and dropping it in the final caller. It also exercises region scratch loans, exclusive word/byte mutation, strict UTF-8 freezing/scalar decoding, and signed symbol maps; it is not yet a compiler arena. Library strings and normalization remain WIP-0012 work. WIP-0028 still owns public borrow origins, non-lexical loans, split/join, recoverable allocation, and commit-aware reclamation over the WIP-0013 machine substrate; WIP-0029 adds generic maps, sets, and queues; WIP-0030 supplies their coherent static protocol evidence.
 
 ## Generated inverse and adjoint theorems
 
@@ -279,8 +280,8 @@ Unitary methods use Java-shaped gate calls over indexed registers:
 
 ```java
 unitary void bell() {
-    H(q[0]);
-    CNOT(q[0], q[1]);
+  H(q[0]);
+  CNOT(q[0], q[1]);
 }
 ```
 
@@ -302,11 +303,11 @@ The first coherent subset supports finite XOR permutations. The same checked met
 
 ```java
 coherent rev void flip() {
-    bit ^= 1;
+  bit ^= 1;
 }
 
 unitary void oracle() {
-    q.apply(flip);
+  q.apply(flip);
 }
 ```
 
@@ -329,7 +330,7 @@ The stage-0 compiler has an exact multi-source entry point for the first self-ho
 ```java
 module bootstrap.arithmetic;
 classical class Arithmetic {
-    public long twice(long value) { return value + value; }
+  public long twice(long value) { return value + value; }
 }
 ```
 
@@ -339,8 +340,8 @@ A root names imports before its class declaration:
 module bootstrap.main;
 import bootstrap.arithmetic;
 classical class Main {
-    state long result = 0;
-    entry void main() { result = twice(9); }
+  state long result = 0;
+  entry void main() { result = twice(9); }
 }
 ```
 
@@ -355,10 +356,10 @@ Single-source `compile` rejects module declarations. A modular `wheeler.package`
 A classical entry may request immutable input and mutable output borrows:
 
 ```java
-entry void main(utf8 source, bytes output) {
-    scalarCount = utf8Count(source);
-    setByte(output, 0, 79);
-    setByte(output, 1, 75);
+entry void main(borrow utf8 source, borrow mut bytes output) {
+  scalarCount = utf8Count(source);
+  setByte(output, 0, 79);
+  setByte(output, 1, 75);
 }
 ```
 
@@ -376,7 +377,7 @@ The compiler lexer records line, column, and stage-0 UTF-16 source-character off
 
 ## Bootstrap direction
 
-The current compiler and VM use Java only as stage-0 infrastructure. The production compiler will be Wheeler source and must compile itself to a byte-identical second-stage `.wbc` artifact. Signed/Boolean values, immutable records/variants/arrays/slices, typed calls/control, deterministic classical source-module linking, bounded regions, returned word/byte/UTF-8/map owners, and nonescaping storage borrows form the current bootstrap substrate. Library strings, generic deterministic collections, owning parameters, public returned loans, qualified/re-exported and cross-package modules, and streaming or multiple file effects remain complete vertical slices.
+The current compiler and VM use Java only as stage-0 infrastructure. The production compiler will be Wheeler source and must compile itself to a byte-identical second-stage `.wbc` artifact. Signed/Boolean values, immutable records/variants/arrays/slices, typed calls/control, deterministic classical source-module linking, bounded regions, transferred and returned primitive storage owners, and explicit nonescaping storage loans form the current bootstrap substrate. Library strings, generic deterministic collections, public returned loans, qualified/re-exported and cross-package modules, and streaming or multiple file effects remain complete vertical slices.
 
 After native runtime conformance, the Java compiler, VM, tools, Gradle build, and JVM deployment path will be deleted. A cold build will use a content-addressed prior native Wheeler release and `.wbc` recovery seed. Java APIs and object semantics are therefore not prospective Wheeler contracts.
 
@@ -394,7 +395,7 @@ The Wheeler-written standard library will provide allocation-free core values, o
 
 ## Generic and ownership direction
 
-The current profile has concrete nominal aggregates, fixed arrays/slices, returned primitive storage owners, and a deliberately narrow set of region and storage borrow rules. It has no generic declaration, type class, associated type, const-generic parameter, owning parameter, returned loan, closure, effect variable, or runtime class dispatch. [WIP-0028](../proposals/WIP-0028-deterministic-ownership-borrowing-and-regions.md) specifies affine ownership, inferred local loans, public origins, deterministic destruction, and no required collector. [WIP-0029](../proposals/WIP-0029-parametric-polymorphism-and-bounded-specialization.md) specifies definition-site generics, kinds, bounded values, and deterministic specialization. [WIP-0030](../proposals/WIP-0030-coherent-type-classes-and-associated-types.md) specifies coherent static classes and certified semantic evidence. [WIP-0031](../proposals/WIP-0031-reversible-quantum-and-effect-polymorphism.md) specifies closure ownership, effect rows, and distinct reversible/coherent/unitary callable kinds. All lower to the same reversible typed `.wbc` IR; none is implemented merely because this paragraph has acquired angle brackets.
+The current profile has concrete nominal aggregates, fixed arrays/slices, transferred and returned primitive storage owners, and a deliberately narrow set of explicit region and storage loan rules. It has no generic declaration, type class, associated type, const-generic parameter, returned loan, closure, effect variable, or runtime class dispatch. [WIP-0028](../proposals/WIP-0028-deterministic-ownership-borrowing-and-regions.md) specifies affine ownership, inferred local loans, public origins, deterministic destruction, and no required collector. [WIP-0029](../proposals/WIP-0029-parametric-polymorphism-and-bounded-specialization.md) specifies definition-site generics, kinds, bounded values, and deterministic specialization. [WIP-0030](../proposals/WIP-0030-coherent-type-classes-and-associated-types.md) specifies coherent static classes and certified semantic evidence. [WIP-0031](../proposals/WIP-0031-reversible-quantum-and-effect-polymorphism.md) specifies closure ownership, effect rows, and distinct reversible/coherent/unitary callable kinds. All lower to the same reversible typed `.wbc` IR; none is implemented merely because this paragraph has acquired angle brackets.
 
 ## Teaching path
 

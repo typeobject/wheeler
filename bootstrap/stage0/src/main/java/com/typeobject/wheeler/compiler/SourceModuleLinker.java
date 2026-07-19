@@ -422,7 +422,9 @@ final class SourceModuleLinker {
         function.coherent(),
         function.parameters().stream()
             .map(parameter -> new Parameter(
-                parameter.name(), resolveType(types, parameter.type(), function.line())))
+                parameter.name(),
+                resolveType(types, parameter.type(), function.line()),
+                parameter.mode()))
             .toList(),
         function.testCases(),
         resolveType(types, function.returnType(), function.line()),

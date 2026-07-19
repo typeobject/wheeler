@@ -29,22 +29,23 @@ At the same time, copying all of Java's grammar before semantics exist recreates
 
 ```java
 classical class Counter {
-    state long count = 0;
+  state long count = 0;
 
-    rev void increment() {
-        count += 1;
+  rev void increment() {
+    count += 1;
+  }
+
+  entry void main() {
+    increment();
+    increment();
+    assert(count == 2);
+    reverse {
+      increment();
+      increment();
     }
 
-    entry void main() {
-        increment();
-        increment();
-        assert(count == 2);
-        reverse {
-            increment();
-            increment();
-        }
-        assert(count == 0);
-    }
+    assert(count == 0);
+  }
 }
 ```
 
@@ -52,19 +53,19 @@ classical class Counter {
 
 ```java
 quantum class Bell {
-    state long measured = 0;
-    qreg q = new qreg(2);
+  state long measured = 0;
+  qreg q = new qreg(2);
 
-    unitary void prepareBell() {
-        H(q[0]);
-        CNOT(q[0], q[1]);
-    }
+  unitary void prepareBell() {
+    H(q[0]);
+    CNOT(q[0], q[1]);
+  }
 
-    entry void main() {
-        prepare(q, 0);
-        prepareBell();
-        measured = measure(q);
-    }
+  entry void main() {
+    prepare(q, 0);
+    prepareBell();
+    measured = measure(q);
+  }
 }
 ```
 

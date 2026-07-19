@@ -58,11 +58,11 @@ Q# usefully places adjoint and controlled characteristics in operation types. Wh
 
 ```wheeler
 public Vec<B> map<A, B, effect E>(
-    Vec<A> values,
-    Function<A, B, E> transform,
-    borrow mut Allocator allocator
+  Vec<A> values,
+  Function<A, B, E> transform,
+  borrow mut Allocator allocator
 ) effects E + allocate {
-    ...
+  ...
 }
 ```
 
@@ -72,14 +72,14 @@ The caller sees both `transform` effects and allocation. The callable type does 
 
 ```wheeler
 public ReversibleFunction<A, C> compose<A, B, C>(
-    ReversibleFunction<A, B> first,
-    ReversibleFunction<B, C> second
+  ReversibleFunction<A, B> first,
+  ReversibleFunction<B, C> second
 ) {
-    ...
+  ...
 }
 
 public rev void swap<T>(borrow mut T left, borrow mut T right) {
-    ...
+  ...
 }
 ```
 
@@ -89,18 +89,18 @@ The composed inverse invokes `second.inverse` and then `first.inverse`. Generic 
 
 ```wheeler
 public coherent rev void repeatPermutation<T, F, const long N>(
-    borrow mut T value,
-    F operation
+  borrow mut T value,
+  F operation
 ) where F: CoherentAction<T>
-  where N >= 0 {
-    ...
+ where N >= 0 {
+  ...
 }
 
 public unitary void applyEach<Target, Op, const long N>(
-    borrow mut Qreg<N> register,
-    Op operation
+  borrow mut Qreg<N> register,
+  Op operation
 ) where Op: UnitaryElementOperation<Target> {
-    ...
+  ...
 }
 
 UnitaryOperation<Shape> inverse = adjoint(operation);
@@ -206,10 +206,10 @@ Calling operations forms canonical set union in source evaluation order. For exa
 
 ```wheeler
 public B apply<A, B, effect E>(
-    A value,
-    Function<A, B, E> operation
+  A value,
+  Function<A, B, E> operation
 ) effects E {
-    return operation(value);
+  return operation(value);
 }
 ```
 

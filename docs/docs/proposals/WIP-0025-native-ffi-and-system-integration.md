@@ -93,7 +93,7 @@ Conceptually:
 
 ```text
 native interface Zlib from capability "native:zlib/1" {
-    foreign int32 compress(byteview source, bytes destination)
+    foreign int32 compress(borrow byteview source, borrow mut bytes destination)
         writes destination
         status zero;
 }

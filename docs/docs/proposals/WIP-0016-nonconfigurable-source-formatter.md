@@ -191,7 +191,7 @@ The first style version uses these rules:
 - LF line endings;
 - no trailing whitespace;
 - exactly one final newline;
-- four ASCII spaces per indentation level;
+- two ASCII spaces per indentation level;
 - no tab indentation;
 - opening braces on the declaration or control-header line;
 - an empty block formatted as `{}` when it contains no comment;
@@ -205,7 +205,9 @@ The first style version uses these rules:
 - one blank line between file documentation, a module declaration, the import group, and the first top-level declaration when those groups exist;
 - one blank line between named top-level or member declarations;
 - no blank line between a `///` block and its declaration;
-- at most one author-supplied blank line between statement groups;
+- one blank line after a complete `if`/`else`, loop, `match`, or `reverse` block when another statement follows in the same block;
+- no such separator before the containing `}`, an `else`, or the next `case`;
+- at most one additional author-supplied blank line between ordinary statement groups;
 - no column alignment across sibling declarations or assignments;
 - a soft code-line target of 100 Unicode scalar values, excluding indivisible literal and comment tokens.
 
@@ -234,12 +236,12 @@ For example:
 
 ```java
 long emitNumber(
-    utf8 source,
-    words tokenStarts,
-    words tokenLengths,
-    bytes output
+  borrow utf8 source,
+  borrow mut words tokenStarts,
+  borrow mut words tokenLengths,
+  borrow mut bytes output
 ) {
-    ...
+  ...
 }
 ```
 
@@ -299,8 +301,8 @@ Example:
 ///
 /// - Traps: If `offset` is out of range or the bytes are malformed.
 /// - Bounds: Reads at most four bytes and allocates nothing.
-long scalarAt(utf8 text, long offset) {
-    return utf8Scalar(text, offset);
+long scalarAt(borrow utf8 text, long offset) {
+  return utf8Scalar(text, offset);
 }
 ```
 
@@ -389,7 +391,7 @@ Example:
 /// - Inverse: Decrements `count` by one.
 /// - Traps: Before mutation when `count` is `Long.MAX_VALUE`.
 rev void increment() {
-    count += 1;
+  count += 1;
 }
 ```
 
@@ -450,8 +452,8 @@ An ordinary function:
 /// Returns the number of Unicode scalars in `text`.
 ///
 /// - Traps: If `text` is not strict UTF-8.
-long scalarCount(utf8 text) {
-    return utf8Count(text);
+long scalarCount(borrow utf8 text) {
+  return utf8Count(text);
 }
 ```
 
@@ -464,7 +466,7 @@ A reversible method:
 /// - Inverse: Subtracts one from `count`.
 /// - Traps: Before mutation when addition would overflow.
 rev void increment() {
-    count += 1;
+  count += 1;
 }
 ```
 
@@ -477,7 +479,7 @@ A coherently liftable method:
 /// - Inverse: Applies the same XOR operation.
 /// - Coherent: Acts as the exact basis permutation `0 ↔ 1`.
 coherent rev void flip() {
-    bit ^= 1;
+  bit ^= 1;
 }
 ```
 
@@ -490,7 +492,7 @@ A unitary method:
 /// - Adjoint: Applies the inverse transform in reverse gate order.
 /// - Bounds: Uses a statically bounded number of semantic gates.
 unitary void qft() {
-    ...
+  ...
 }
 ```
 
@@ -501,8 +503,8 @@ An entry point:
 ///
 /// - Effects: Mutates result state and the caller-provided output borrow.
 /// - Traps: On malformed input, invalid token ranges, or insufficient output capacity.
-entry void main(utf8 source, bytes output) {
-    ...
+entry void main(borrow utf8 source, borrow mut bytes output) {
+  ...
 }
 ```
 
@@ -521,7 +523,7 @@ A poor declaration comment:
 /// - Inputs: None.
 /// - Returns: void.
 rev void increment() {
-    count += 1;
+  count += 1;
 }
 ```
 
@@ -711,7 +713,7 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 - [x] The authoritative compiler lexer exposes an ordered lossless stream of exact token, whitespace, line-comment, and block-comment ranges with one-based locations; reconstruction is byte-for-byte, including CRLF and comment payloads, and malformed comments fail through the compiler diagnostic boundary.
 - [x] Retained comments receive deterministic lexical `leading`, `trailing`, `inner`, or `detached` placement against exact token ranges; consecutive comment blocks and blank trivia are classified without quadratic rescanning.
 - [x] A bounded structural parser now owns compilation-unit, header, type, member-declaration, and block ranges, delimiter recovery states, and comment targets. Lossless reconstruction remains exact; the branches may stand down.
-- [x] The stage-0 in-memory formatter implements deterministic LF/final-newline, four-space indentation, brace, delimiter, operator, comment-marker, blank-line, and basic horizontal-list whitespace; compact golden input preserves semantic `.wbc`, and every checked example preserves token spelling, comment payload/kind, lexical attachment, and idempotence.
+- [x] The stage-0 in-memory formatter implements deterministic LF/final-newline, two-space indentation, brace, delimiter, operator, comment-marker, blank-line, and basic horizontal-list whitespace. It requires a blank line after the module declaration, after the import group, between named declarations, and after a completed compound statement when another statement follows. Compact golden input preserves semantic `.wbc`, and every checked example preserves token spelling, comment payload/kind, lexical attachment, and idempotence.
 - [x] Parenthesized parameter/argument/record groups choose horizontal form only when the complete normalized group fits 100 Unicode scalars; otherwise one item occupies each indented line and the closing delimiter owns its line.
 - [x] Overlong binary expressions break before the last fitting operator, use one stable continuation indent, preserve string/comment payloads, and remain idempotent across the complete source corpus.
 - [ ] Bounded-loop-header, array-initializer, deeply indented indivisible-item, and remaining syntax-owned break tables plus the minimal-diff generated corpus are accepted; the command is authoritative for its documented stage-0 subset rather than quietly claiming the rest.

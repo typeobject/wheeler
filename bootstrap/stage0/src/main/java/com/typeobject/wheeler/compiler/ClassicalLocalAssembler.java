@@ -70,7 +70,7 @@ final class ClassicalLocalAssembler implements SourceStorageLowerer.Context {
       declareUser(
           parameter.name(),
           owner.line(),
-          SourceCallArgumentLowerer.parameterType(type));
+          SourceCallArgumentLowerer.parameterType(type, parameter.mode()));
     }
   }
 

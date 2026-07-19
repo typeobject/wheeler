@@ -598,6 +598,15 @@ class VirtualMachineTest {
             Instruction.of(Opcode.WORDS_ALLOC, 2, 0, 1),
             Instruction.of(Opcode.RETURN_VALUE, 2)),
         List.of());
+    FunctionBody relay = new FunctionBody(
+        2,
+        "relay",
+        false,
+        1,
+        List.of(ValueType.WORDS),
+        ValueType.WORDS,
+        List.of(Instruction.of(Opcode.RETURN_VALUE, 0)),
+        List.of());
     FunctionBody main = new FunctionBody(
         0,
         "main",
@@ -609,6 +618,8 @@ class VirtualMachineTest {
             ValueType.REGION_BORROW,
             ValueType.SIGNED,
             ValueType.WORDS,
+            ValueType.WORDS,
+            ValueType.WORDS,
             ValueType.SIGNED,
             ValueType.SIGNED),
         null,
@@ -618,17 +629,19 @@ class VirtualMachineTest {
             Instruction.of(Opcode.REGION_BORROW, 2, 0),
             Instruction.of(Opcode.LOCAL_MOVE, 3, 1),
             Instruction.of(Opcode.CALL_VALUE, 1, 2, 2, 4),
-            Instruction.of(Opcode.LOCAL_CONST, 5, 0),
-            Instruction.of(Opcode.LOCAL_CONST, 6, 29),
-            Instruction.of(Opcode.WORDS_SET, 4, 5, 6),
-            Instruction.of(Opcode.WORDS_GET, 6, 4, 5),
-            Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 6),
-            Instruction.of(Opcode.BUFFER_DROP, 4),
+            Instruction.of(Opcode.OWNED_MOVE, 5, 4),
+            Instruction.of(Opcode.CALL_VALUE, 2, 5, 1, 6),
+            Instruction.of(Opcode.LOCAL_CONST, 7, 0),
+            Instruction.of(Opcode.LOCAL_CONST, 8, 29),
+            Instruction.of(Opcode.WORDS_SET, 6, 7, 8),
+            Instruction.of(Opcode.WORDS_GET, 8, 6, 7),
+            Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 8),
+            Instruction.of(Opcode.BUFFER_DROP, 6),
             Instruction.of(Opcode.REGION_DROP, 0),
             Instruction.of(Opcode.HALT)),
         List.of());
     Program program = new Program(
-        "OwnedResult", 0, List.of(new Global("result", 0)), List.of(main, make));
+        "OwnedResult", 0, List.of(new Global("result", 0)), List.of(main, make, relay));
     VirtualMachine machine = new VirtualMachine(program);
     MachineSnapshot initial = machine.snapshot();
 

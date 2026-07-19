@@ -11,7 +11,13 @@ final class SourceModel {
 
   record QuantumRegisterSource(String name, int qubits, int line) {}
 
-  record Parameter(String name, String type) {}
+  enum ParameterMode {
+    VALUE,
+    BORROW,
+    BORROW_MUT
+  }
+
+  record Parameter(String name, String type, ParameterMode mode) {}
 
   record RecordField(String name, String type) {}
 

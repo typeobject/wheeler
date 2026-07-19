@@ -72,13 +72,9 @@ final class ClassicalLowerer {
           .map(parameter -> {
             ValueType type = SourceTypeLowerer.resolve(
                 parameter.type(), function.line(), typeReferences);
-            return SourceCallArgumentLowerer.parameterType(type);
+            return SourceCallArgumentLowerer.parameterType(type, parameter.mode());
           })
           .toList();
-      if (parameterTypes.stream().anyMatch(ClassicalLowerer::owned)) {
-        throw new CompilerException(
-            function.line(), "mutable owned values are currently local to one function");
-      }
       signatures.put(
           function.name(),
           new FunctionSignature(

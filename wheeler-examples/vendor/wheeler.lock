@@ -1,8 +1,8 @@
 lock 1 root "7d17c3d3c137b029b478ec88cad05e5d8c66c946cbec0c6ca625084b9202021e";
-package "wheeler.compiler" version "0.1.0" archive "50b15ea845a4fca8bb2655de94ba1cf9ceb9a94a8161b89989ba9557edfc84f1" manifest "2dccd13ff0d09535dfe950745d73cb5d9ab67cd59002fd89c59ae36cb179e5c2";
-package "wheeler.core" version "0.1.0" archive "d115f8176fb6074d68b0d7a795f3960463dfef087e75880e285210c76488abfd" manifest "3cd001a0daca908f5c351f9bddaf22416e3a1519d86dd4f3892088ffa17c4fc6";
-package "wheeler.packages" version "0.1.0" archive "1d757d2e8973305e3a1475a840d2f2a1d64cf8914c3d3d70ea6e7f4341b27922" manifest "1dd311d7d7818693866e59727ad58a009866014d52936519c106032f7540fdb9";
-package "wheeler.runtime" version "0.1.0" archive "3f4052e79b347f4691c59fedf3bfe12b1c027af947759aee8e809fb820feec70" manifest "d39e5eba01e3d70d97a33c58f96d12ca169f7a52168f97aaf9b0d9a9047c494e";
+package "wheeler.compiler" version "0.1.0" archive "a031d392c0bea84ad4244c73e94976ff8f52fbfcdaae6325a3cbf1a4154525bb" manifest "2dccd13ff0d09535dfe950745d73cb5d9ab67cd59002fd89c59ae36cb179e5c2";
+package "wheeler.core" version "0.1.0" archive "6d75ca23e80138efd3c8bb071401c552b292cef2c024bf4bba6c80a5818757c3" manifest "3cd001a0daca908f5c351f9bddaf22416e3a1519d86dd4f3892088ffa17c4fc6";
+package "wheeler.packages" version "0.1.0" archive "8b30f541a0d9d2b040b9d75b644fb950cbd719d1a835a5f5bb6baf26a5861653" manifest "1dd311d7d7818693866e59727ad58a009866014d52936519c106032f7540fdb9";
+package "wheeler.runtime" version "0.1.0" archive "17c84387ce314f16b6eea1d52b15c48abfc0fdfef42579a35b580f6c4ff5ba8f" manifest "d39e5eba01e3d70d97a33c58f96d12ca169f7a52168f97aaf9b0d9a9047c494e";
 edge "wheeler.compiler" "wheeler.core";
 edge "wheeler.packages" "wheeler.compiler";
 edge "wheeler.packages" "wheeler.core";

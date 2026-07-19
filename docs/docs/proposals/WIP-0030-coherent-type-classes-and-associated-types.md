@@ -55,24 +55,24 @@ This series uses `typeclass` rather than `class`: Wheeler already has Java-shape
 
 ```wheeler
 public typeclass Eq<T> effects none {
-    boolean equal(borrow T left, borrow T right);
+  boolean equal(borrow T left, borrow T right);
 
-    law reflexive(T value)
-        shows equal(borrow value, borrow value);
+  law reflexive(T value)
+    shows equal(borrow value, borrow value);
 
-    law symmetric(T left, T right)
-        shows equal(borrow left, borrow right)
-            == equal(borrow right, borrow left);
+  law symmetric(T left, T right)
+    shows equal(borrow left, borrow right)
+      == equal(borrow right, borrow left);
 }
 
 public instance Eq<Span> {
-    boolean equal(borrow Span left, borrow Span right) {
-        return left.start == right.start
-            && left.end == right.end;
-    }
+  boolean equal(borrow Span left, borrow Span right) {
+    return left.start == right.start
+      && left.end == right.end;
+  }
 
-    proof reflexive = spanEqualityReflexive;
-    proof symmetric = spanEqualitySymmetric;
+  proof reflexive = spanEqualityReflexive;
+  proof symmetric = spanEqualitySymmetric;
 }
 ```
 
@@ -82,10 +82,10 @@ Exact proof syntax remains WIP-0011 work. Method effects and WIP-0028 passing mo
 
 ```wheeler
 public boolean contains<T>(
-    borrow Slice<T> values,
-    borrow T needle
+  borrow Slice<T> values,
+  borrow T needle
 ) where T: Eq {
-    ...
+  ...
 }
 
 Order<Version> canonical = VersionOrder.canonical();
@@ -99,17 +99,17 @@ One global `Ord<Version>` remains canonical. A second ordering is an explicit or
 
 ```wheeler
 public typeclass Iterator<I> {
-    associated type Item;
-    Option<Item> next(borrow mut I iterator);
+  associated type Item;
+  Option<Item> next(borrow mut I iterator);
 }
 
 public certified typeclass CoherentEncoding<T> {
-    associated const long width;
-    BitInt<width> encode(T value);
-    T decode(BitInt<width> bits);
+  associated const long width;
+  BitInt<width> encode(T value);
+  T decode(BitInt<width> bits);
 
-    theorem roundTrip(...);
-    theorem completeOrValidSubspace(...);
+  theorem roundTrip(...);
+  theorem completeOrValidSubspace(...);
 }
 ```
 
@@ -119,10 +119,10 @@ An instance fixes `Item` or `width`. Associated reduction is canonical and compi
 
 ```wheeler
 public typeclass Functor<F<Type -> Type>> {
-    F<B> map<A, B, effect E>(
-        F<A> values,
-        Function<A, B, E> transform
-    ) effects E;
+  F<B> map<A, B, effect E>(
+    F<A> values,
+    Function<A, B, E> transform
+  ) effects E;
 }
 ```
 
@@ -192,7 +192,7 @@ A superclass declaration such as:
 
 ```wheeler
 typeclass Ord<T> extends Eq<T> {
-    Ordering compare(borrow T left, borrow T right);
+  Ordering compare(borrow T left, borrow T right);
 }
 ```
 

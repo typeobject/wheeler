@@ -160,11 +160,6 @@ public final class BytecodeVerifier {
         fail("Duplicate function name: " + function.name());
       }
       function.localTypes().forEach(type -> verifyTypeReference(program, type, function.name()));
-      for (int parameter = 0; parameter < function.parameterCount(); parameter++) {
-        if (owned(function.localType(parameter))) {
-          fail("Owned values cannot be function parameters: " + function.name());
-        }
-      }
       if (function.resultType() != null) {
         verifyTypeReference(program, function.resultType(), function.name());
         if (function.resultType().kind() == ValueType.Kind.SLICE
@@ -605,7 +600,8 @@ public final class BytecodeVerifier {
         int base = Math.toIntExact(instruction.operands().get(1));
         int count = Math.toIntExact(instruction.operands().get(2));
         for (int local = base; local < base + count; local++) {
-          if (owner.localType(local).equals(ValueType.UTF8_BORROW)
+          if (owned(owner.localType(local))
+              || owner.localType(local).equals(ValueType.UTF8_BORROW)
               || owner.localType(local).equals(ValueType.LONG_MAP_BORROW)
               || owner.localType(local).equals(ValueType.WORDS_BORROW)
               || owner.localType(local).equals(ValueType.BYTES_BORROW)
@@ -671,9 +667,7 @@ public final class BytecodeVerifier {
       int base = Math.toIntExact(instruction.operands().get(baseOperand));
       int count = Math.toIntExact(instruction.operands().get(countOperand));
       for (int local = base; local < base + count; local++) {
-        if (!assigned.get(local)) {
-          fail(location(owner, pc) + " reads uninitialized local " + local);
-        }
+        requireAssignedLocal(owner, pc, assigned, local);
       }
       return;
     }
@@ -702,10 +696,20 @@ public final class BytecodeVerifier {
     };
     for (int operandIndex : reads) {
       int local = Math.toIntExact(instruction.operands().get(operandIndex));
-      if (!assigned.get(local)) {
-        fail(location(owner, pc) + " reads uninitialized local " + local);
-      }
+      requireAssignedLocal(owner, pc, assigned, local);
     }
+  }
+
+  private static void requireAssignedLocal(
+      FunctionBody owner, int pc, BitSet assigned, int local) {
+    if (assigned.get(local)) {
+      return;
+    }
+    if (owned(owner.localType(local))) {
+      fail(location(owner, pc) + " reads unavailable owned local " + local
+          + " after move, drop, return, or call transfer");
+    }
+    fail(location(owner, pc) + " reads uninitialized local " + local);
   }
 
   private static int writtenLocal(Instruction instruction) {
