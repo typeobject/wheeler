@@ -605,10 +605,29 @@ classical class InstructionVerifier {
       if (first < localCount) {
         if (left < localCount) {
           if (right < localCount) {
-            if (localHasType(artifact, activeTypes, first, TYPE_SIGNED)) {
-              if (localHasType(artifact, activeTypes, left, TYPE_SIGNED)) {
-                if (localHasType(artifact, activeTypes, right, TYPE_SIGNED)) {
-                  return 1;
+            long mathDestinationType = localType(artifact, activeTypes, first);
+            if (opcode == OPCODE_LOCAL_XOR) {
+              if (mathDestinationType == TYPE_SIGNED) {
+                if (localHasType(artifact, activeTypes, left, TYPE_SIGNED)) {
+                  if (localHasType(artifact, activeTypes, right, TYPE_SIGNED)) {
+                    return 1;
+                  }
+                }
+              }
+
+              if (mathDestinationType == TYPE_BOOLEAN) {
+                if (localHasType(artifact, activeTypes, left, TYPE_BOOLEAN)) {
+                  if (localHasType(artifact, activeTypes, right, TYPE_BOOLEAN)) {
+                    return 1;
+                  }
+                }
+              }
+            } else {
+              if (mathDestinationType == TYPE_SIGNED) {
+                if (localHasType(artifact, activeTypes, left, TYPE_SIGNED)) {
+                  if (localHasType(artifact, activeTypes, right, TYPE_SIGNED)) {
+                    return 1;
+                  }
                 }
               }
             }

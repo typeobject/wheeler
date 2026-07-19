@@ -65,6 +65,15 @@ class NativeVerifierExampleTest {
     binaryInputVerification.run();
     assertEquals(1, binaryInputVerification.global("verification"));
 
+    byte[] logicalNegationArtifact = compiler.compileToBytecode(
+        "classical class NegationSubject { state long selected = 0; "
+            + "entry void main() { boolean enabled = !false; "
+            + "if (enabled) { selected = 1; } } }");
+    VirtualMachine logicalNegationVerification = VirtualMachine.withBinaryInput(
+        verifier, logicalNegationArtifact);
+    logicalNegationVerification.run();
+    assertEquals(1, logicalNegationVerification.global("verification"));
+
     byte[] malformed = artifact.clone();
     malformed[0] = 0;
     VirtualMachine rejected = VirtualMachine.withBinaryInput(verifier, malformed);

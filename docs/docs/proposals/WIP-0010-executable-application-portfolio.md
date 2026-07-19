@@ -63,7 +63,7 @@ The repository currently executes these bounded fixtures:
 - `Counter.w`: generated inverse and reverse-block order;
 - `BinaryTree.w`: fixed-capacity reversible state layout;
 - `BootstrapControl.w`: signed locals, expressions, branch joins, and a source-bounded loop;
-- `FunctionValues.w`: signed parameters, returns, static value calls, and callee control flow;
+- `FunctionValues.w`: signed/Boolean parameters, logical negation, returns, static value calls, and callee control flow;
 - `RecursiveValue.w`: recursive value calls under hard frame and step ceilings;
 - `RegionStorage.w`: affine bounded word/byte storage and UTF-8 scalar decoding;
 - `FrozenUtf8.w`: checked consumption of mutable bytes into immutable UTF-8;

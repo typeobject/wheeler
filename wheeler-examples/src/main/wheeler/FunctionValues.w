@@ -31,7 +31,7 @@ classical class FunctionValues {
   entry void main() {
     long base = add(2, 3);
     long total = triangular(base);
-    boolean valid = same(total == 10, true);
+    boolean valid = same(total == 10, !false);
     if (valid) {
       result = total;
     } else {

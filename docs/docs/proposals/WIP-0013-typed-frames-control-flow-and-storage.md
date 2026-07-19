@@ -255,7 +255,7 @@ A feature that cannot express or simplify one of these modules needs separate ju
 
 - [ ] Bytecode rejects unknown register types, type-mismatched operands and calls, invalid Boolean constants and conditions, uninitialized reads, target escapes, bad joins, bad returns, and malformed loop descriptors; scalar types, local bounds, definite assignment, branch targets, and fallthrough are covered.
 - [x] VM tests cover the initial signed-local instruction set forward and rewind, including loop and arithmetic traps before mutation.
-- [ ] Calls cover exact signed/Boolean argument transfer, scalar and primitive owner results, recursive execution, 1,024-frame exhaustion, and rewind; owning arguments, returned borrows, aggregate move/borrow, inverse signatures, and nested trap behavior remain.
+- [ ] Calls cover exact signed/Boolean argument transfer, primitive owner parameters/results, recursive execution, 1,024-frame exhaustion, and rewind; returned loans, aggregate move/loan, inverse signatures, and nested trap behavior remain.
 - [ ] Branch tests cover both paths, join assignment, early typed return, and source diagnostics; unreachable-block diagnostics remain.
 - [x] `while` and counted `for` tests cover zero and exact bounds, exceeded bounds, update-on-continue, innermost `break`, nested loops, and the independent global step defense.
 - [ ] Reversible methods reject unprotected branch/loop forms and accept only forms with checked inverse laws.
