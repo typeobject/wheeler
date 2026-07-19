@@ -188,7 +188,7 @@ class PackageResolverTest {
         false);
     assertThrows(
         PackageFormatException.class,
-        () -> new PackageLockParser().parse(lock.canonicalText().replace("package", " package")));
+        () -> new PackageLockParser().parse(lock.canonicalText().replace("packages:", " packages:")));
   }
 
   @Test
@@ -206,7 +206,8 @@ class PackageResolverTest {
     assertThrows(PackageFormatException.class, () -> parser.parse(new byte[] {(byte) 0xc3}));
     assertThrows(
         PackageFormatException.class,
-        () -> parser.parse(lock.canonicalText().replace("\"lib.b\";", "\"lib.missing\";")));
+        () -> parser.parse(lock.canonicalText().replace(
+            "      - \"lib.b\"\n", "      - \"lib.missing\"\n")));
     assertThrows(
         PackageFormatException.class,
         () -> parser.parse("lock".getBytes(StandardCharsets.UTF_8)));

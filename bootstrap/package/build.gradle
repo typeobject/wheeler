@@ -5,7 +5,7 @@ tasks.named('test') {
     workingDir wheelerRoot
     inputs.files(
         fileTree(new File(wheelerRoot, 'src/main/wheeler')) { include '**/*.w' },
-        new File(wheelerRoot, 'wheeler.package'),
-        new File(wheelerRoot, 'wheeler.package.lock'))
+        new File(wheelerRoot, 'wheeler.package.yaml'),
+        new File(wheelerRoot, 'wheeler.package.lock.yaml'))
         .withPathSensitivity(PathSensitivity.RELATIVE)
 }

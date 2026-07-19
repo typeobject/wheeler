@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 class ExamplePackageTest {
   @Test
   void checkedInManifestIsCanonicalAndCoversEveryExample() throws Exception {
-    Path manifestPath = Path.of("wheeler.package");
+    Path manifestPath = Path.of("wheeler.package.yaml");
     PackageManifest manifest = new PackageManifestParser().parse(Files.readAllBytes(manifestPath));
     assertEquals(Files.readString(manifestPath), manifest.canonicalText());
 

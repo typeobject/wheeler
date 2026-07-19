@@ -1,0 +1,203 @@
+schema: 1
+package:
+  name: "wheeler.examples"
+  version: "0.1.0"
+  profile: "bootstrap-1"
+targets:
+  - kind: "deployable"
+    name: "binarytree"
+    root: "src/main/wheeler/classical/data/BinaryTree.w"
+    test: false
+  - kind: "deployable"
+    name: "bootstrapcontrol"
+    root: "src/main/wheeler/classical/control/BootstrapControl.w"
+    test: false
+  - kind: "deployable"
+    name: "coherentoracle"
+    root: "src/main/wheeler/quantum/CoherentOracle.w"
+    test: false
+  - kind: "deployable"
+    name: "counter"
+    root: "src/main/wheeler/classical/control/Counter.w"
+    test: false
+  - kind: "deployable"
+    name: "finiteenums"
+    root: "src/main/wheeler/classical/data/FiniteEnums.w"
+    test: false
+  - kind: "deployable"
+    name: "fixedarrays"
+    root: "src/main/wheeler/classical/data/FixedArrays.w"
+    module: "examples.collections.fixed_arrays_main"
+    sources:
+      - "src/main/wheeler/classical/data/FixedArrays.w"
+    test: false
+  - kind: "deployable"
+    name: "frozenutf8"
+    root: "src/main/wheeler/text/FrozenUtf8.w"
+    module: "examples.text.frozen_utf8_main"
+    sources:
+      - "src/main/wheeler/text/FrozenUtf8.w"
+    test: false
+  - kind: "deployable"
+    name: "functionvalues"
+    root: "src/main/wheeler/classical/control/FunctionValues.w"
+    test: false
+  - kind: "deployable"
+    name: "hostbinaryinput"
+    root: "src/main/wheeler/host/HostBinaryInput.w"
+    test: false
+  - kind: "deployable"
+    name: "hostinput"
+    root: "src/main/wheeler/host/HostInput.w"
+    test: false
+  - kind: "deployable"
+    name: "longmap"
+    root: "src/main/wheeler/classical/data/LongMap.w"
+    module: "examples.collections.long_map_main"
+    sources:
+      - "src/main/wheeler/classical/data/LongMap.w"
+    test: false
+  - kind: "deployable"
+    name: "loopcontrol"
+    root: "src/main/wheeler/classical/control/LoopControl.w"
+    test: false
+  - kind: "deployable"
+    name: "moduleexample"
+    root: "src/main/wheeler/modules/ModuleMain.w"
+    module: "examples.main"
+    sources:
+      - "src/main/wheeler/modules"
+    test: false
+  - kind: "deployable"
+    name: "nativearchive"
+    root: "src/main/wheeler/native/NativeArchive.w"
+    module: "examples.packages.archive_main"
+    sources:
+      - "src/main/wheeler/native/NativeArchive.w"
+    test: false
+  - kind: "deployable"
+    name: "nativelock"
+    root: "src/main/wheeler/native/NativeLock.w"
+    module: "examples.packages.lock_main"
+    sources:
+      - "src/main/wheeler/native/NativeLock.w"
+    test: false
+  - kind: "deployable"
+    name: "nativemanifest"
+    root: "src/main/wheeler/native/NativeManifest.w"
+    module: "examples.packages.main"
+    sources:
+      - "src/main/wheeler/native/NativeManifest.w"
+    test: false
+  - kind: "deployable"
+    name: "nativeplan"
+    root: "src/main/wheeler/native/NativePlan.w"
+    module: "examples.packages.plan_main"
+    sources:
+      - "src/main/wheeler/native/NativePlan.w"
+    test: false
+  - kind: "deployable"
+    name: "nativesha256"
+    root: "src/main/wheeler/native/NativeSha256.w"
+    module: "examples.crypto.sha256_main"
+    sources:
+      - "src/main/wheeler/native/NativeSha256.w"
+    test: false
+  - kind: "deployable"
+    name: "nativeverifier"
+    root: "src/main/wheeler/native/NativeVerifier.w"
+    module: "examples.compiler.native_verifier"
+    sources:
+      - "src/main/wheeler/native/NativeVerifier.w"
+    test: false
+  - kind: "deployable"
+    name: "nativevm"
+    root: "src/main/wheeler/native/NativeVm.w"
+    module: "examples.runtime.native_vm"
+    sources:
+      - "src/main/wheeler/native/NativeVm.w"
+    test: false
+  - kind: "deployable"
+    name: "nativeworkspace"
+    root: "src/main/wheeler/native/NativeWorkspace.w"
+    module: "examples.packages.workspace_main"
+    sources:
+      - "src/main/wheeler/native/NativeWorkspace.w"
+    test: false
+  - kind: "deployable"
+    name: "ownedreturns"
+    root: "src/main/wheeler/classical/ownership/OwnedReturns.w"
+    test: false
+  - kind: "deployable"
+    name: "qft"
+    root: "src/main/wheeler/quantum/QFT.w"
+    test: false
+  - kind: "deployable"
+    name: "qftproof"
+    root: "src/main/wheeler/quantum/QFTProof.w"
+    test: true
+  - kind: "deployable"
+    name: "quantumcompiler"
+    root: "src/main/wheeler/quantum/QuantumCompiler.w"
+    test: false
+  - kind: "deployable"
+    name: "quantumneuralnetwork"
+    root: "src/main/wheeler/quantum/QuantumNeuralNetwork.w"
+    test: false
+  - kind: "deployable"
+    name: "quantumoptimizer"
+    root: "src/main/wheeler/quantum/QuantumOptimizer.w"
+    test: false
+  - kind: "deployable"
+    name: "records"
+    root: "src/main/wheeler/classical/data/Records.w"
+    test: false
+  - kind: "deployable"
+    name: "recursivevalue"
+    root: "src/main/wheeler/classical/control/RecursiveValue.w"
+    test: false
+  - kind: "deployable"
+    name: "regionstorage"
+    root: "src/main/wheeler/classical/ownership/RegionStorage.w"
+    test: false
+  - kind: "deployable"
+    name: "surfacecode"
+    root: "src/main/wheeler/quantum/SurfaceCode.w"
+    test: false
+  - kind: "deployable"
+    name: "utf8lexer"
+    root: "src/main/wheeler/text/Utf8Lexer.w"
+    module: "examples.lexer.main"
+    sources:
+      - "src/main/wheeler/lexer/Parser.w"
+      - "src/main/wheeler/text/Utf8Lexer.w"
+    test: false
+  - kind: "deployable"
+    name: "variants"
+    root: "src/main/wheeler/classical/data/Variants.w"
+    test: false
+  - kind: "deployable"
+    name: "workqueue"
+    root: "src/main/wheeler/classical/data/WorkQueue.w"
+    module: "examples.queue.main"
+    sources:
+      - "src/main/wheeler/classical/data/WorkQueue.w"
+    test: false
+dependencies:
+  - kind: "normal"
+    name: "wheeler.compiler"
+    version: "=0.1.0"
+  - kind: "normal"
+    name: "wheeler.core"
+    version: "=0.1.0"
+  - kind: "normal"
+    name: "wheeler.packages"
+    version: "=0.1.0"
+  - kind: "normal"
+    name: "wheeler.runtime"
+    version: "=0.1.0"
+capabilities:
+  - name: "build.read"
+    path: "src/main/wheeler/**"
+  - name: "build.write"
+    path: "build/**"

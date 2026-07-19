@@ -37,9 +37,25 @@ class NativeArchiveExampleTest {
             Map.entry("Semver.w", PackageSources.read("packages/resolution/Semver.w")),
             Map.entry("Sha256.w", CoreSources.read("crypto/Sha256.w"))),
         "examples.packages.archive_main");
-    String manifestText =
-        "package \"demo.archive\" version \"1.0.0\" profile \"bootstrap-1\";\n"
-            + "target deployable \"main\" root \"src/Main.w\";\n";
+    String manifestText = """
+        schema: 1
+        package:
+          name: "demo.archive"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "deployable"
+            name: "main"
+            root: "src/Main.w"
+            test: false
+        dependencies:
+          - kind: "normal"
+            name: "demo.base"
+            version: "=1.0.0"
+        capabilities:
+          - name: "build.read"
+            path: "src/**"
+        """;
     var manifest = new PackageManifestParser().parse(manifestText);
     byte[] encoded = new PackageArchive().encode(
         manifest, Map.of("src/Main.w", new byte[] {1, 2, 3, (byte) 255}));
@@ -63,10 +79,29 @@ class NativeArchiveExampleTest {
     assertEquals(initial, machine.snapshot());
     new PackageArchive().decode(encoded);
 
-    String modularManifestText =
-        "package \"a\" version \"1.0.0\" profile \"b\";\n"
-            + "target deployable \"m\" root \"a\" module \"a.b\" "
-            + "source \"a\" source \"b\";\n";
+    String modularManifestText = """
+        schema: 1
+        package:
+          name: "a"
+          version: "1.0.0"
+          profile: "b"
+        targets:
+          - kind: "deployable"
+            name: "m"
+            root: "a"
+            module: "a.b"
+            sources:
+              - "a"
+              - "b"
+            test: false
+        dependencies:
+          - kind: "normal"
+            name: "b"
+            version: "=1.0.0"
+        capabilities:
+          - name: "read"
+            path: "a"
+        """;
     byte[] modular = new PackageArchive().encode(
         new PackageManifestParser().parse(modularManifestText),
         Map.of("a", new byte[] {5}, "b", new byte[] {6}));
@@ -100,7 +135,7 @@ class NativeArchiveExampleTest {
     resignOuter(wrongSource);
     assertRejected(inspector, wrongSource);
     byte[] noncanonicalManifest = encoded.clone();
-    noncanonicalManifest[16 + 7] = '\n';
+    noncanonicalManifest[16] = 'x';
     resignOuter(noncanonicalManifest);
     assertRejected(inspector, noncanonicalManifest);
   }

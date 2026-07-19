@@ -1,6 +1,6 @@
 # Wheeler compiler
 
-This directory is the canonical Wheeler-written compiler package. Its sources under `src/main/wheeler` define the compiler, scanner, verifier, codecs, and driver slices promoted out of examples. `wheeler.package`, the exact lock, and committed vendor archive set are the package boundary.
+This directory is the canonical Wheeler-written compiler package. Its sources under `src/main/wheeler` define the compiler, scanner, verifier, codecs, and driver slices promoted out of examples. `wheeler.package.yaml`, the exact lock, and canonical workspace sources are the package boundary. Workspace builds reconstruct dependency archives in memory; generated `vendor/` closures are for exported offline bundles, not source control.
 
 Java stage-0 code does not live here. The temporary seed is isolated in [`../bootstrap/stage0`](../bootstrap/stage0), which compiles this package into a stage-1 `.wbc` compiler. Stage 1 must compile these same sources into a byte-identical stage 2, and the resulting seed update must also satisfy the diverse-bootstrap and provenance rules in WIP-0007. Fixed points catch drift; they do not exorcise a malicious ancestor by repetition.
 

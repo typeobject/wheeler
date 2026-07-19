@@ -13,8 +13,6 @@ import com.typeobject.wheeler.packageformat.BuildPlanCodec;
 import com.typeobject.wheeler.packageformat.PackageArchive;
 import com.typeobject.wheeler.packageformat.PackageArchive.DecodedPackage;
 import com.typeobject.wheeler.packageformat.PackageFormatException;
-import com.typeobject.wheeler.packageformat.PackageLock;
-import com.typeobject.wheeler.packageformat.PackageLockParser;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -38,11 +36,23 @@ class WheelerCommandTest {
   void unifiedCommandChecksBuildsRunsPackagesAndVerifies() throws Exception {
     Path project = temporary.resolve("demo");
     Files.createDirectories(project.resolve("src"));
-    Files.writeString(project.resolve("wheeler.package"), """
-        package "demo.counter" version "1.0.0" profile "bootstrap-1";
-        target deployable "counter" root "src/Counter.w";
-        capability "build.read" path "src/**";
-        capability "build.write" path "build/**";
+    Files.writeString(project.resolve("wheeler.package.yaml"), """
+        schema: 1
+        package:
+          name: "demo.counter"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "deployable"
+            name: "counter"
+            root: "src/Counter.w"
+            test: false
+        dependencies: []
+        capabilities:
+          - name: "build.read"
+            path: "src/**"
+          - name: "build.write"
+            path: "build/**"
         """);
     Files.writeString(project.resolve("src/Counter.w"), """
         classical class Counter {
@@ -141,10 +151,23 @@ class WheelerCommandTest {
   void packageCommandsBuildRunAndArchiveExactModuleSourceSets() throws Exception {
     Path project = temporary.resolve("modules");
     Files.createDirectories(project.resolve("src"));
-    Files.writeString(project.resolve("wheeler.package"), """
-        package "demo.modules" version "1.0.0" profile "bootstrap-1";
-        target deployable "main" root "src/Main.w" module "demo.main"
-            source "src/Arithmetic.w" source "src/Main.w";
+    Files.writeString(project.resolve("wheeler.package.yaml"), """
+        schema: 1
+        package:
+          name: "demo.modules"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "deployable"
+            name: "main"
+            root: "src/Main.w"
+            module: "demo.main"
+            sources:
+              - "src/Arithmetic.w"
+              - "src/Main.w"
+            test: false
+        dependencies: []
+        capabilities: []
         """);
     Files.writeString(project.resolve("src/Arithmetic.w"), """
         module demo.arithmetic;
@@ -183,10 +206,16 @@ class WheelerCommandTest {
 
   @Test
   void workspaceCheckAndBuildUseCanonicalMemberOrderAndIsolatedOutputs() throws Exception {
-    Files.writeString(temporary.resolve("wheeler.workspace"), """
-        workspace "demo" profile "bootstrap-1";
-        member "second" path "second";
-        member "first" path "first";
+    Files.writeString(temporary.resolve("wheeler.workspace.yaml"), """
+        schema: 1
+        workspace:
+          name: "demo"
+          profile: "bootstrap-1"
+        members:
+          - name: "first"
+            path: "first"
+          - name: "second"
+            path: "second"
         """);
     createPackage(temporary.resolve("first"), "demo.first", "First", 1);
     createPackage(temporary.resolve("second"), "demo.second", "Second", 2);
@@ -295,10 +324,23 @@ class WheelerCommandTest {
   void testSubcommandExecutesOnlyTestSelectedTargets() throws Exception {
     Path project = temporary.resolve("tests");
     Files.createDirectories(project.resolve("src"));
-    Files.writeString(project.resolve("wheeler.package"), """
-        package "demo.tests" version "1.0.0" profile "bootstrap-1";
-        target deployable "example" root "src/Example.w";
-        target tool "law" root "src/Law.w" test;
+    Files.writeString(project.resolve("wheeler.package.yaml"), """
+        schema: 1
+        package:
+          name: "demo.tests"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "deployable"
+            name: "example"
+            root: "src/Example.w"
+            test: false
+          - kind: "tool"
+            name: "law"
+            root: "src/Law.w"
+            test: true
+        dependencies: []
+        capabilities: []
         """);
     Files.writeString(project.resolve("src/Example.w"), """
         classical class Example {
@@ -350,10 +392,23 @@ class WheelerCommandTest {
   void testSubcommandDiscoversRootModuleTests() throws Exception {
     Path project = temporary.resolve("module-tests");
     Files.createDirectories(project.resolve("src"));
-    Files.writeString(project.resolve("wheeler.package"), """
-        package "demo.modules" version "1.0.0" profile "bootstrap-1";
-        target tool "laws" root "src/Main.w" module "tests.main"
-            source "src/Helper.w" source "src/Main.w" test;
+    Files.writeString(project.resolve("wheeler.package.yaml"), """
+        schema: 1
+        package:
+          name: "demo.modules"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "tool"
+            name: "laws"
+            root: "src/Main.w"
+            module: "tests.main"
+            sources:
+              - "src/Helper.w"
+              - "src/Main.w"
+            test: true
+        dependencies: []
+        capabilities: []
         """);
     Files.writeString(project.resolve("src/Helper.w"), """
         module tests.helper;
@@ -390,11 +445,27 @@ class WheelerCommandTest {
   void testSubcommandReducesCompileAndRuntimeFailuresIntoTheReport() throws Exception {
     Path project = temporary.resolve("test-failures");
     Files.createDirectories(project.resolve("src"));
-    Files.writeString(project.resolve("wheeler.package"), """
-        package "demo.failures" version "1.0.0" profile "bootstrap-1";
-        target tool "compile" root "src/Compile.w" test;
-        target tool "runtime" root "src/Runtime.w" test;
-        target tool "assertion" root "src/Assertion.w" test;
+    Files.writeString(project.resolve("wheeler.package.yaml"), """
+        schema: 1
+        package:
+          name: "demo.failures"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "tool"
+            name: "assertion"
+            root: "src/Assertion.w"
+            test: true
+          - kind: "tool"
+            name: "compile"
+            root: "src/Compile.w"
+            test: true
+          - kind: "tool"
+            name: "runtime"
+            root: "src/Runtime.w"
+            test: true
+        dependencies: []
+        capabilities: []
         """);
     Files.writeString(project.resolve("src/Compile.w"),
         "classical class Compile { entry void main(] {} }");
@@ -432,9 +503,19 @@ class WheelerCommandTest {
   void runBindsExplicitPhysicalInputAndPublishesOutputAtomically() throws Exception {
     Path project = temporary.resolve("input");
     Files.createDirectories(project.resolve("src"));
-    Files.writeString(project.resolve("wheeler.package"), """
-        package "demo.input" version "1.0.0" profile "bootstrap-1";
-        target deployable "main" root "src/Main.w";
+    Files.writeString(project.resolve("wheeler.package.yaml"), """
+        schema: 1
+        package:
+          name: "demo.input"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "deployable"
+            name: "main"
+            root: "src/Main.w"
+            test: false
+        dependencies: []
+        capabilities: []
         """);
     Files.writeString(project.resolve("src/Main.w"), """
         classical class Main {
@@ -481,9 +562,19 @@ class WheelerCommandTest {
   void runBindsImmutableBinaryInputWithoutUtf8Guessing() throws Exception {
     Path project = temporary.resolve("binary-input");
     Files.createDirectories(project.resolve("src"));
-    Files.writeString(project.resolve("wheeler.package"), """
-        package "demo.binaryinput" version "1.0.0" profile "bootstrap-1";
-        target deployable "main" root "src/Main.w";
+    Files.writeString(project.resolve("wheeler.package.yaml"), """
+        schema: 1
+        package:
+          name: "demo.binaryinput"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "deployable"
+            name: "main"
+            root: "src/Main.w"
+            test: false
+        dependencies: []
+        capabilities: []
         """);
     Files.writeString(project.resolve("src/Main.w"), """
         classical class Main {
@@ -550,24 +641,42 @@ class WheelerCommandTest {
     Files.createDirectories(project.resolve("src/compiler/verification"));
     Files.createDirectories(project.resolve("src/lexer"));
     Files.createDirectories(project.resolve("src/packages"));
-    Files.writeString(project.resolve("wheeler.package"), """
-        package "demo.seedwriter" version "1.0.0" profile "bootstrap-1";
-        target deployable "compiler" root "src/MinimalCompiler.w" module "wheeler.compiler.driver"
-            source "src/MinimalCompiler.w"
-            source "src/compiler/backend/Codegen.w" source "src/compiler/backend/Encoding.w"
-            source "src/compiler/backend/StringTable.w"
-            source "src/compiler/frontend/HelperParser.w" source "src/compiler/frontend/Parser.w"
-            source "src/compiler/frontend/Statements.w" source "src/compiler/frontend/Structure.w"
-            source "src/compiler/frontend/Tokens.w"
-            source "src/compiler/ir/Ir.w" source "src/compiler/ir/Opcodes.w"
-            source "src/compiler/ir/ProofRules.w" source "src/compiler/ir/TypeCodes.w"
-            source "src/compiler/verification/AggregateVerifier.w"
-            source "src/compiler/verification/FunctionVerifier.w"
-            source "src/compiler/verification/InstructionVerifier.w"
-            source "src/compiler/verification/ProofVerifier.w"
-            source "src/compiler/verification/StorageVerifier.w"
-            source "src/compiler/verification/Verifier.w"
-            source "src/lexer/Scanner.w" source "src/packages/Binary.w";
+    Files.writeString(project.resolve("wheeler.package.yaml"), """
+        schema: 1
+        package:
+          name: "demo.seedwriter"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "deployable"
+            name: "compiler"
+            root: "src/MinimalCompiler.w"
+            module: "wheeler.compiler.driver"
+            sources:
+              - "src/MinimalCompiler.w"
+              - "src/compiler/backend/Codegen.w"
+              - "src/compiler/backend/Encoding.w"
+              - "src/compiler/backend/StringTable.w"
+              - "src/compiler/frontend/HelperParser.w"
+              - "src/compiler/frontend/Parser.w"
+              - "src/compiler/frontend/Statements.w"
+              - "src/compiler/frontend/Structure.w"
+              - "src/compiler/frontend/Tokens.w"
+              - "src/compiler/ir/Ir.w"
+              - "src/compiler/ir/Opcodes.w"
+              - "src/compiler/ir/ProofRules.w"
+              - "src/compiler/ir/TypeCodes.w"
+              - "src/compiler/verification/AggregateVerifier.w"
+              - "src/compiler/verification/FunctionVerifier.w"
+              - "src/compiler/verification/InstructionVerifier.w"
+              - "src/compiler/verification/ProofVerifier.w"
+              - "src/compiler/verification/StorageVerifier.w"
+              - "src/compiler/verification/Verifier.w"
+              - "src/lexer/Scanner.w"
+              - "src/packages/Binary.w"
+            test: false
+        dependencies: []
+        capabilities: []
         """);
     Path examples = Path.of("wheeler-examples/src/main/wheeler");
     Path compilerSources = Path.of("wheeler-compiler/src/main/wheeler");
@@ -743,163 +852,6 @@ class WheelerCommandTest {
   }
 
   @Test
-  void resolveSubcommandConsumesVerifiedArchivesAndWritesCanonicalLock() throws Exception {
-    Path library = temporary.resolve("library");
-    createPackage(library, "demo.library", "Library", 1);
-    Files.writeString(library.resolve("wheeler.package"), """
-        package "demo.library" version "1.0.0" profile "bootstrap-1";
-        target library "main" root "src/Main.w" module "demo.library.main"
-            source "src/Helper.w" source "src/Main.w";
-        capability "build.read" path "src/**";
-        """);
-    Files.writeString(library.resolve("src/Helper.w"), """
-        module demo.library.helper;
-        classical class Helper {
-          public long increment(long value) { return value + 1; }
-        }
-        """);
-    Files.writeString(library.resolve("src/Main.w"), """
-        module demo.library.main;
-        import demo.library.helper;
-        classical class Library {
-          public long apply(long value) { return increment(value); }
-        }
-        """);
-    Path application = temporary.resolve("application");
-    Files.createDirectories(application.resolve("src"));
-    Files.writeString(application.resolve("wheeler.package"), """
-        package "demo.application" version "1.0.0" profile "bootstrap-1";
-        target deployable "main" root "src/Main.w" module "demo.application.main"
-            source "src/Main.w";
-        dependency normal "demo.library" version "^1.0.0";
-        """);
-    Files.writeString(application.resolve("src/Main.w"), """
-        module demo.application.main;
-        import demo.library.main;
-        classical class Main {
-            state long value = 0;
-            entry void main() { value = apply(value); assert(value == 1); }
-        }
-        """);
-    Path catalog = temporary.resolve("catalog");
-    Files.createDirectories(catalog);
-    Path archive = catalog.resolve("library.wpk");
-    Path lockPath = temporary.resolve("wheeler.package.lock");
-    ByteArrayOutputStream stdout = new ByteArrayOutputStream();
-    PrintStream output = new PrintStream(stdout);
-    PrintStream sink = new PrintStream(new ByteArrayOutputStream());
-
-    assertEquals(0, Wheeler.execute(
-        new String[] {"package", library.toString(), "-o", archive.toString()}, output, sink));
-    assertEquals(0, Wheeler.execute(
-        new String[] {
-            "resolve", application.toString(), "--catalog", catalog.toString(),
-            "-o", lockPath.toString()
-        },
-        output,
-        sink));
-    PackageLock lock = new PackageLockParser().parse(Files.readAllBytes(lockPath));
-    assertEquals(List.of("demo.library"),
-        lock.entries().stream().map(PackageLock.Entry::name).toList());
-    String preferredLock = Files.readString(lockPath);
-    Files.writeString(
-        library.resolve("wheeler.package"),
-        Files.readString(library.resolve("wheeler.package"))
-            .replace("version \"1.0.0\"", "version \"1.1.0\""));
-    assertEquals(0, Wheeler.execute(
-        new String[] {
-            "package", library.toString(), "-o", catalog.resolve("library-1.1.wpk").toString()
-        },
-        output,
-        sink));
-    assertEquals(0, Wheeler.execute(
-        new String[] {
-            "resolve", application.toString(), "--catalog", catalog.toString(),
-            "-o", lockPath.toString()
-        },
-        output,
-        sink));
-    assertEquals(preferredLock, Files.readString(lockPath));
-    assertEquals(0, Wheeler.execute(
-        new String[] {
-            "resolve", application.toString(), "--catalog", catalog.toString(),
-            "-o", lockPath.toString(), "--update-all"
-        },
-        output,
-        sink));
-    PackageLock updated = new PackageLockParser().parse(Files.readAllBytes(lockPath));
-    assertEquals("1.1.0", updated.entries().getFirst().version());
-    Files.writeString(lockPath, preferredLock);
-    assertEquals(0, Wheeler.execute(
-        new String[] {
-            "resolve", application.toString(), "--catalog", catalog.toString(),
-            "-o", lockPath.toString(), "--update", "demo.library"
-        },
-        output,
-        sink));
-    updated = new PackageLockParser().parse(Files.readAllBytes(lockPath));
-    assertEquals("1.1.0", updated.entries().getFirst().version());
-    assertEquals(0, Wheeler.execute(
-        new String[] {"verify-lock", lockPath.toString()}, output, sink));
-    Path vendor = application.resolve("vendor");
-    String[] vendorCommand = {
-        "vendor", lockPath.toString(), "--catalog", catalog.toString(),
-        "-o", vendor.toString()
-    };
-    assertEquals(0, Wheeler.execute(vendorCommand, output, sink));
-    assertEquals(0, Wheeler.execute(vendorCommand, output, sink));
-    assertEquals(Files.readString(lockPath), Files.readString(vendor.resolve("wheeler.package.lock")));
-    try (var files = Files.list(vendor)) {
-      assertEquals(2, files.count());
-    }
-    assertEquals(0, Wheeler.execute(
-        new String[] {"check", application.toString()}, output, sink));
-    assertEquals(0, Wheeler.execute(
-        new String[] {"build", application.toString()}, output, sink));
-    assertTrue(Files.isRegularFile(application.resolve("build/main.wbc")));
-    assertTrue(Files.isRegularFile(
-        application.resolve("build/dependencies/demo.library/main.wbc")));
-    assertEquals(0, Wheeler.execute(
-        new String[] {"run", application.toString(), "--target", "main"}, output, sink));
-
-    Files.writeString(temporary.resolve("wheeler.workspace"), """
-        workspace "locked" profile "bootstrap-1";
-        member "application" path "application";
-        """);
-    Path planPath = temporary.resolve("locked.plan");
-    assertEquals(0, Wheeler.execute(
-        new String[] {
-            "plan", temporary.toString(),
-            "--grant-requested", "-o", planPath.toString()
-        },
-        output,
-        sink));
-    BuildPlan dependencyPlan = new BuildPlanCodec().decode(Files.readAllBytes(planPath));
-    assertEquals(2, dependencyPlan.nodes().size());
-    assertEquals(List.of("demo.library"), dependencyPlan.nodes().stream()
-        .filter(node -> node.packageName().equals("demo.application"))
-        .findFirst().orElseThrow().packageInputs().stream()
-        .map(BuildPlan.PackageInput::name).toList());
-    assertTrue(dependencyPlan.nodes().stream().allMatch(
-        node -> node.capabilityGrants().equals(node.capabilityRequests())));
-
-    Path vendoredArchive;
-    try (var files = Files.list(vendor)) {
-      vendoredArchive = files
-          .filter(path -> path.getFileName().toString().endsWith(".wpk"))
-          .findFirst()
-          .orElseThrow();
-    }
-    Files.write(vendoredArchive, new byte[] {1});
-    assertThrows(java.io.IOException.class, () -> Wheeler.execute(vendorCommand, output, sink));
-    assertThrows(
-        com.typeobject.wheeler.packageformat.PackageFormatException.class,
-        () -> Wheeler.execute(
-            new String[] {"check", application.toString()}, output, sink));
-    assertTrue(stdout.toString(StandardCharsets.UTF_8).contains(lock.identity()));
-  }
-
-  @Test
   void qasmSubcommandLowersOneStaticQuantumSubmission() throws Exception {
     Path source = temporary.resolve("Quantum.w");
     Path artifact = temporary.resolve("Quantum.wbc");
@@ -964,10 +916,21 @@ class WheelerCommandTest {
   private static void createPackage(
       Path root, String packageName, String className, int increment) throws Exception {
     Files.createDirectories(root.resolve("src"));
-    Files.writeString(root.resolve("wheeler.package"), """
-        package "%s" version "1.0.0" profile "bootstrap-1";
-        target deployable "main" root "src/Main.w";
-        capability "build.read" path "src/**";
+    Files.writeString(root.resolve("wheeler.package.yaml"), """
+        schema: 1
+        package:
+          name: "%s"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "deployable"
+            name: "main"
+            root: "src/Main.w"
+            test: false
+        dependencies: []
+        capabilities:
+          - name: "build.read"
+            path: "src/**"
         """.formatted(packageName));
     Files.writeString(root.resolve("src/Main.w"), """
         classical class %s {

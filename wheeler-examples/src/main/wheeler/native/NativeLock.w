@@ -20,10 +20,10 @@ classical class NativeLock {
   ///
   /// - Effects: Mutates declared state and caller-owned byte output.
   entry void main(borrow utf8 source, borrow mut bytes canonical) {
-    region arena = new region(768, 3);
-    words kinds = allocate(arena, 32);
-    words starts = allocate(arena, 32);
-    words lengths = allocate(arena, 32);
+    region arena = new region(1536, 3);
+    words kinds = allocate(arena, 64);
+    words starts = allocate(arena, 64);
+    words lengths = allocate(arena, 64);
     long count = 0;
     ScanResult scanned = scan(source, kinds, starts, lengths);
     match (scanned) {
@@ -52,7 +52,7 @@ classical class NativeLock {
     }
 
     finalCursor = bufferLength(source);
-    assert(rootStart == 13);
+    assert(rootStart == 17);
     assert(packageCount == 2);
     assert(firstNameLength == 8);
     assert(firstVersionLength == 5);

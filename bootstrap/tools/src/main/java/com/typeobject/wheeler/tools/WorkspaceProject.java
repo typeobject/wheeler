@@ -17,7 +17,7 @@ import java.util.TreeMap;
 
 /** Capability-minimal host adapter for one local Wheeler workspace. */
 final class WorkspaceProject {
-  static final String MANIFEST_NAME = "wheeler.workspace";
+  static final String MANIFEST_NAME = "wheeler.workspace.yaml";
   static final String PLAN_FILE_NAME = "wheeler.workspace.plan";
 
   private final Path root;

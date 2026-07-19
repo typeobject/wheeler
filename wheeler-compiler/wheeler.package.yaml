@@ -1,0 +1,33 @@
+schema: 1
+package:
+  name: "wheeler.compiler"
+  version: "0.1.0"
+  profile: "bootstrap-1"
+targets:
+  - kind: "tool"
+    name: "compiler"
+    root: "src/main/wheeler/MinimalCompiler.w"
+    module: "wheeler.compiler.driver"
+    sources:
+      - "src/main/wheeler/MinimalCompiler.w"
+      - "src/main/wheeler/compiler"
+      - "src/main/wheeler/lexer"
+    test: false
+  - kind: "library"
+    name: "library"
+    root: "src/main/wheeler/CompilerLibrary.w"
+    module: "wheeler.compiler.library"
+    sources:
+      - "src/main/wheeler/CompilerLibrary.w"
+      - "src/main/wheeler/compiler"
+      - "src/main/wheeler/lexer"
+    test: false
+dependencies:
+  - kind: "normal"
+    name: "wheeler.core"
+    version: "=0.1.0"
+capabilities:
+  - name: "build.read"
+    path: "src/main/wheeler/**"
+  - name: "build.write"
+    path: "build/**"

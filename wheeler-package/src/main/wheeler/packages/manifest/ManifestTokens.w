@@ -101,6 +101,24 @@ classical class ManifestTokens {
     return 0;
   }
 
+  /// Computes the stable hash inside one quoted token.
+  public long quotedHash(
+    borrow utf8 source,
+    borrow mut words starts,
+    borrow mut words lengths,
+    long token
+  ) {
+    long cursor = starts[token] + 1;
+    long end = starts[token] + lengths[token] - 1;
+    long hash = 0;
+    while (cursor < end) limit 32 {
+      hash = hash * 31 + utf8Scalar(source, cursor);
+      cursor += utf8Width(source, cursor);
+    }
+
+    return hash;
+  }
+
   /// Checks whether one token is a quoted ASCII value.
   public boolean quoted(borrow mut words kinds, borrow mut words lengths, long token) {
     if (kinds[token] == 6) {
@@ -110,17 +128,32 @@ classical class ManifestTokens {
     return false;
   }
 
-  /// Checks whether one token is the declaration terminator.
-  public boolean semicolonAt(
+  /// Checks whether one token is a YAML mapping colon.
+  public boolean colonAt(
     borrow utf8 source,
     borrow mut words kinds,
     borrow mut words starts,
     long token
   ) {
     if (kinds[token] == 3) {
-      return utf8Scalar(source, starts[token]) == 59;
+      return utf8Scalar(source, starts[token]) == 58;
     }
 
     return false;
   }
+
+  /// Checks whether one token is a YAML sequence dash.
+  public boolean dashAt(
+    borrow utf8 source,
+    borrow mut words kinds,
+    borrow mut words starts,
+    long token
+  ) {
+    if (kinds[token] == 3) {
+      return utf8Scalar(source, starts[token]) == 45;
+    }
+
+    return false;
+  }
+
 }

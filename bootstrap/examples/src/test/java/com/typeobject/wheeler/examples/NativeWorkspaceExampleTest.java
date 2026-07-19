@@ -14,7 +14,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-/** Conformance tests for Wheeler-native workspace-manifest parsing and emission. */
+/** Differential tests for Wheeler-native canonical-YAML workspace manifests. */
 class NativeWorkspaceExampleTest {
   @Test
   void wheelerParsesAndCanonicalizesABoundedWorkspace() throws Exception {
@@ -29,17 +29,23 @@ class NativeWorkspaceExampleTest {
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
             "Workspace.w", PackageSources.read("packages/workspace/Workspace.w")),
         "examples.packages.workspace_main");
-    String canonical =
-        "workspace \"demo-workspace\" profile \"bootstrap-1\";\n"
-            + "member \"app\" path \"packages/app\";\n"
-            + "member \"base\" path \"packages/base\";\n";
-    String input = canonical.replace("\n", "\n   ");
-    VirtualMachine machine = vm(program, input);
+    String canonical = """
+        schema: 1
+        workspace:
+          name: "demo-workspace"
+          profile: "bootstrap-1"
+        members:
+          - name: "app"
+            path: "packages/app"
+          - name: "base"
+            path: "packages/base"
+        """;
+    VirtualMachine machine = vm(program, canonical);
     var initial = machine.snapshot();
 
     machine.run();
 
-    assertEquals(11, machine.global("nameStart"));
+    assertEquals(30, machine.global("nameStart"));
     assertEquals(14, machine.global("nameLength"));
     assertEquals(11, machine.global("profileLength"));
     assertEquals(2, machine.global("memberCount"));
@@ -48,7 +54,7 @@ class NativeWorkspaceExampleTest {
     assertEquals(4, machine.global("secondMemberNameLength"));
     assertEquals(13, machine.global("secondMemberPathLength"));
     assertEquals(canonical.length(), machine.global("emittedLength"));
-    assertEquals(input.length(), machine.global("finalCursor"));
+    assertEquals(canonical.length(), machine.global("finalCursor"));
     assertEquals(canonical, new String(machine.hostOutput(), StandardCharsets.UTF_8));
     new WorkspaceManifestParser().parse(machine.hostOutput());
     while (machine.historySize() > 0) {
@@ -56,15 +62,17 @@ class NativeWorkspaceExampleTest {
     }
     assertEquals(initial, machine.snapshot());
 
+    assertTraps(program, canonical.replace("schema: 1", "schema: 2"));
+    assertTraps(program, canonical.replace("members:", "plugins:"));
     assertTraps(program, canonical.replace("demo-workspace", "Demo"));
-    assertTraps(program, canonical.replace("\"base\" path", "\"app\" path"));
+    assertTraps(program, canonical.replace("name: \"base\"", "name: \"app\""));
     assertTraps(
         program,
         canonical.replace(
-            "member \"app\" path \"packages/app\";\n"
-                + "member \"base\" path \"packages/base\";",
-            "member \"base\" path \"packages/base\";\n"
-                + "member \"app\" path \"packages/app\";"));
+            "  - name: \"app\"\n    path: \"packages/app\"\n"
+                + "  - name: \"base\"\n    path: \"packages/base\"",
+            "  - name: \"base\"\n    path: \"packages/base\"\n"
+                + "  - name: \"app\"\n    path: \"packages/app\""));
     assertTraps(program, canonical.replace("packages/base", "packages/app"));
     assertTraps(program, canonical.replace("packages/base", "packages/app/nested"));
     assertTraps(program, canonical.replace("packages/base", "packages/../base"));

@@ -34,7 +34,7 @@ import java.util.stream.Stream;
 /** Capability-minimal host adapter for one local Wheeler package directory. */
 final class PackageProject {
   static final String BUILD_DIRECTORY_NAME = "build";
-  static final String MANIFEST_NAME = "wheeler.package";
+  static final String MANIFEST_NAME = "wheeler.package.yaml";
   private static final int MAX_EXPANDED_SOURCES = 1_024;
 
   private final Path root;

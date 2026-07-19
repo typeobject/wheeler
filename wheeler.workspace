@@ -1,6 +1,0 @@
-workspace "wheeler" profile "bootstrap-1";
-member "wheeler-compiler" path "wheeler-compiler";
-member "wheeler-core" path "wheeler-core";
-member "wheeler-examples" path "wheeler-examples";
-member "wheeler-package" path "wheeler-package";
-member "wheeler-runtime" path "wheeler-runtime";

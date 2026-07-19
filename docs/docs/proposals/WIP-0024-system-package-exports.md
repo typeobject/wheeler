@@ -19,7 +19,7 @@ The pipeline constructs an install image, applies one pinned distribution profil
 
 ## Motivation
 
-Operating systems own filesystem layout, ownership/conflicts, distro dependency namespaces, configuration preservation, services/users/state directories, lifecycle behavior, architecture/version fields, signatures, and repository policy. Putting those in `wheeler.package` mixes upstream semantics with downstream policy. Emitting them from ad hoc scripts reintroduces ambient tools, host queries, timestamps, and opaque scriptlets.
+Operating systems own filesystem layout, ownership/conflicts, distro dependency namespaces, configuration preservation, services/users/state directories, lifecycle behavior, architecture/version fields, signatures, and repository policy. Putting those in `wheeler.package.yaml` mixes upstream semantics with downstream policy. Emitting them from ad hoc scripts reintroduces ambient tools, host queries, timestamps, and opaque scriptlets.
 
 One canonical intermediate keeps adapters mechanical, reproducible, and reviewable. A downstream packaging revision can change without pretending the Wheeler source or PREV changed.
 

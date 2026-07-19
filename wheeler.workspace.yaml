@@ -1,0 +1,15 @@
+schema: 1
+workspace:
+  name: "wheeler"
+  profile: "bootstrap-1"
+members:
+  - name: "wheeler-compiler"
+    path: "wheeler-compiler"
+  - name: "wheeler-core"
+    path: "wheeler-core"
+  - name: "wheeler-examples"
+    path: "wheeler-examples"
+  - name: "wheeler-package"
+    path: "wheeler-package"
+  - name: "wheeler-runtime"
+    path: "wheeler-runtime"

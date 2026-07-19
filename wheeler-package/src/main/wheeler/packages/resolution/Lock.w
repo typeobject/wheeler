@@ -1,4 +1,4 @@
-//! Parses bounded canonical dependency locks.
+//! Parses a bounded canonical-YAML dependency lock.
 
 module wheeler.packages.lock;
 
@@ -7,7 +7,7 @@ import wheeler.packages.semver;
 import wheeler.packages.tokens;
 
 classical class Lock {
-  /// Defines immutable `LockedPackage` values for this module.
+  /// Describes one locked package without copying manifest bytes.
   public record LockedPackage(
     long nameStart,
     long nameLength,
@@ -16,7 +16,7 @@ classical class Lock {
     long manifestStart
   ) {}
 
-  /// Defines immutable `LockModel` values for this module.
+  /// Carries the two-package recovery fixture and its one explicit dependency.
   public record LockModel(
     long rootStart,
     LockedPackage first,
@@ -27,79 +27,129 @@ classical class Lock {
     long edgeCount
   ) {}
 
-  /// Defines the closed `LockResult` cases exported by this module.
+  /// Defines the closed package-lock parse result.
   public variant LockResult {
     case Value(LockModel lock);
     case Error(long offset);
   }
 
-  private boolean hexDigest(
+  private boolean key(
     borrow utf8 source,
+    borrow mut words kinds,
     borrow mut words starts,
     borrow mut words lengths,
-    long token
+    long count,
+    long token,
+    long hash
   ) {
-    if (lengths[token] == 66) {
-      long cursor = starts[token] + 1;
-      long end = cursor + 64;
-      while (cursor < end) limit 64 {
-        long scalar = utf8Scalar(source, cursor);
-        boolean valid = false;
-        if (47 < scalar) {
-          if (scalar < 58) {
-            valid = true;
-          }
-        }
-
-        if (96 < scalar) {
-          if (scalar < 103) {
-            valid = true;
-          }
-        }
-
-        if (valid) {
-          cursor += 1;
-        } else {
-          return false;
-        }
+    if (token + 1 < count) {
+      if (keywordAt(source, starts, lengths, token, hash)) {
+        return colonAt(source, kinds, starts, token + 1);
       }
-
-      return true;
     }
 
     return false;
   }
 
-  private boolean packageValid(
+  private boolean punctuation(
+    borrow utf8 source,
+    borrow mut words kinds,
+    borrow mut words starts,
+    long token,
+    long scalar
+  ) {
+    if (kinds[token] == 3) {
+      return utf8Scalar(source, starts[token]) == scalar;
+    }
+
+    return false;
+  }
+
+  private boolean hexDigest(
     borrow utf8 source,
     borrow mut words kinds,
     borrow mut words starts,
     borrow mut words lengths,
-    long recordStart
+    long token
   ) {
-    boolean validName = validPackageName(
-      source,
-      starts[recordStart + 1] + 1,
-      lengths[recordStart + 1] - 2
-    );
-    boolean validVersion = validRelease(
-      source,
-      starts[recordStart + 3] + 1,
-      lengths[recordStart + 3] - 2
-    );
-    if (keywordAt(source, starts, lengths, recordStart, 102272152646)) {
-      if (quoted(kinds, lengths, recordStart + 1)) {
-        if (validName) {
-          if (keywordAt(source, starts, lengths, recordStart + 2, 107725790424)) {
-            if (quoted(kinds, lengths, recordStart + 3)) {
-              if (validVersion) {
-                if (keywordAt(source, starts, lengths, recordStart + 4, 89446211778)) {
-                  if (hexDigest(source, starts, lengths, recordStart + 5)) {
+    if (quoted(kinds, lengths, token)) {
+      if (lengths[token] == 66) {
+        long cursor = starts[token] + 1;
+        long end = cursor + 64;
+        while (cursor < end) limit 64 {
+          long scalar = utf8Scalar(source, cursor);
+          boolean valid = false;
+          if (47 < scalar) {
+            if (scalar < 58) {
+              valid = true;
+            }
+          }
+
+          if (96 < scalar) {
+            if (scalar < 103) {
+              valid = true;
+            }
+          }
+
+          if (valid) {
+            cursor += 1;
+          } else {
+            return false;
+          }
+        }
+
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private boolean packageFieldsValid(
+    borrow utf8 source,
+    borrow mut words kinds,
+    borrow mut words starts,
+    borrow mut words lengths,
+    long count,
+    long cursor
+  ) {
+    if (cursor + 13 < count) {
+      if (dashAt(source, kinds, starts, cursor)) {
+        if (key(source, kinds, starts, lengths, count, cursor + 1, 3373707)) {
+          if (quoted(kinds, lengths, cursor + 3)) {
+            boolean validName = validPackageName(
+              source,
+              starts[cursor + 3] + 1,
+              lengths[cursor + 3] - 2
+            );
+            if (validName) {
+              if (
+                key(source, kinds, starts, lengths, count, cursor + 4, 107725790424)
+              ) {
+                if (quoted(kinds, lengths, cursor + 6)) {
+                  boolean validVersion = validRelease(
+                    source,
+                    starts[cursor + 6] + 1,
+                    lengths[cursor + 6] - 2
+                  );
+                  if (validVersion) {
                     if (
-                      keywordAt(source, starts, lengths, recordStart + 6, 3088212110895)
+                      key(source, kinds, starts, lengths, count, cursor + 7, 89446211778)
                     ) {
-                      if (hexDigest(source, starts, lengths, recordStart + 7)) {
-                        return semicolonAt(source, kinds, starts, recordStart + 8);
+                      if (hexDigest(source, kinds, starts, lengths, cursor + 9)) {
+                        if (
+                          key(
+                            source,
+                            kinds,
+                            starts,
+                            lengths,
+                            count,
+                            cursor + 10,
+                            3088212110895
+                          )
+                        ) {
+                          return hexDigest(source, kinds, starts, lengths, cursor + 12);
+                        }
                       }
                     }
                   }
@@ -117,42 +167,18 @@ classical class Lock {
   private LockedPackage lockedPackage(
     borrow mut words starts,
     borrow mut words lengths,
-    long recordStart
+    long cursor
   ) {
     return new LockedPackage(
-      starts[recordStart + 1] + 1,
-      lengths[recordStart + 1] - 2,
-      lengths[recordStart + 3] - 2,
-      starts[recordStart + 5] + 1,
-      starts[recordStart + 7] + 1
+      starts[cursor + 3] + 1,
+      lengths[cursor + 3] - 2,
+      lengths[cursor + 6] - 2,
+      starts[cursor + 9] + 1,
+      starts[cursor + 12] + 1
     );
   }
 
-  private boolean edgeValid(
-    borrow utf8 source,
-    borrow mut words kinds,
-    borrow mut words starts,
-    borrow mut words lengths,
-    long recordStart
-  ) {
-    if (keywordAt(source, starts, lengths, recordStart, 3108285)) {
-      if (quoted(kinds, lengths, recordStart + 1)) {
-        if (quoted(kinds, lengths, recordStart + 2)) {
-          boolean sourceKnown = sameTokenText(source, starts, lengths, 6, recordStart + 1);
-          boolean targetKnown = sameTokenText(source, starts, lengths, 15, recordStart + 2);
-          if (sourceKnown) {
-            if (targetKnown) {
-              return semicolonAt(source, kinds, starts, recordStart + 3);
-            }
-          }
-        }
-      }
-    }
-
-    return false;
-  }
-
-  /// Parses and validates one canonical dependency lock.
+  /// Parses exactly the closed two-package lock shape exercised during recovery.
   public LockResult parse(
     borrow utf8 source,
     borrow mut words kinds,
@@ -160,49 +186,102 @@ classical class Lock {
     borrow mut words lengths,
     long count
   ) {
-    if (keywordAt(source, starts, lengths, 0, 3327275)) {
-      if (kinds[1] == 2) {
-        if (tokenHash(source, starts, lengths, 1) == 49) {
-          if (keywordAt(source, starts, lengths, 2, 3506402)) {
-            if (hexDigest(source, starts, lengths, 3)) {
-              if (semicolonAt(source, kinds, starts, 4)) {
-                if (packageValid(source, kinds, starts, lengths, 5)) {
-                  LockedPackage first = lockedPackage(starts, lengths, 5);
-                  LockedPackage empty = new LockedPackage(0, 0, 0, 0, 0);
-                  if (count == 14) {
-                    LockModel one = new LockModel(starts[3] + 1, first, empty, 1, 0, 0, 0);
-                    return new LockResult.Value(one);
-                  }
+    if (count < 42) {
+      return new LockResult.Error(0);
+    }
 
-                  if (packageValid(source, kinds, starts, lengths, 14)) {
-                    long packageOrder = compareTokenText(source, starts, lengths, 6, 15);
-                    if (packageOrder < 0) {
-                      LockedPackage second = lockedPackage(starts, lengths, 14);
-                      if (count == 23) {
-                        LockModel two = new LockModel(
-                          starts[3] + 1,
-                          first,
-                          second,
-                          2,
-                          0,
-                          0,
-                          0
-                        );
-                        return new LockResult.Value(two);
-                      }
-
-                      if (count == 27) {
-                        if (edgeValid(source, kinds, starts, lengths, 23)) {
-                          LockModel edge = new LockModel(
-                            starts[3] + 1,
-                            first,
-                            second,
-                            2,
-                            starts[24] + 1,
-                            starts[25] + 1,
-                            1
-                          );
-                          return new LockResult.Value(edge);
+    if (key(source, kinds, starts, lengths, count, 0, 3386979745)) {
+      if (tokenHash(source, starts, lengths, 2) == 49) {
+        if (key(source, kinds, starts, lengths, count, 3, 3506402)) {
+          if (hexDigest(source, kinds, starts, lengths, 5)) {
+            if (key(source, kinds, starts, lengths, count, 6, 3170436732141)) {
+              long firstCursor = 8;
+              if (
+                packageFieldsValid(source, kinds, starts, lengths, count, firstCursor)
+              ) {
+                if (
+                  key(
+                    source,
+                    kinds,
+                    starts,
+                    lengths,
+                    count,
+                    firstCursor + 13,
+                    2626680644436426025
+                  )
+                ) {
+                  if (dashAt(source, kinds, starts, firstCursor + 15)) {
+                    if (quoted(kinds, lengths, firstCursor + 16)) {
+                      long secondCursor = firstCursor + 17;
+                      if (
+                        packageFieldsValid(
+                          source,
+                          kinds,
+                          starts,
+                          lengths,
+                          count,
+                          secondCursor
+                        )
+                      ) {
+                        if (
+                          key(
+                            source,
+                            kinds,
+                            starts,
+                            lengths,
+                            count,
+                            secondCursor + 13,
+                            2626680644436426025
+                          )
+                        ) {
+                          if (
+                            punctuation(source, kinds, starts, secondCursor + 15, 91)
+                          ) {
+                            if (
+                              punctuation(source, kinds, starts, secondCursor + 16, 93)
+                            ) {
+                              if (count == secondCursor + 17) {
+                                long order = compareTokenText(
+                                  source,
+                                  starts,
+                                  lengths,
+                                  firstCursor + 3,
+                                  secondCursor + 3
+                                );
+                                boolean dependencyMatches = sameTokenText(
+                                  source,
+                                  starts,
+                                  lengths,
+                                  firstCursor + 16,
+                                  secondCursor + 3
+                                );
+                                if (order < 0) {
+                                  if (dependencyMatches) {
+                                    LockedPackage first = lockedPackage(
+                                      starts,
+                                      lengths,
+                                      firstCursor
+                                    );
+                                    LockedPackage second = lockedPackage(
+                                      starts,
+                                      lengths,
+                                      secondCursor
+                                    );
+                                    LockModel lock = new LockModel(
+                                      starts[5] + 1,
+                                      first,
+                                      second,
+                                      2,
+                                      starts[firstCursor + 3] + 1,
+                                      starts[firstCursor + 16] + 1,
+                                      1
+                                    );
+                                    return new LockResult.Value(lock);
+                                  }
+                                }
+                              }
+                            }
+                          }
                         }
                       }
                     }

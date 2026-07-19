@@ -22,10 +22,10 @@ classical class NativeWorkspace {
   ///
   /// - Effects: Mutates declared state and caller-owned byte output.
   entry void main(borrow utf8 source, borrow mut bytes canonical) {
-    region arena = new region(576, 3);
-    words kinds = allocate(arena, 24);
-    words starts = allocate(arena, 24);
-    words lengths = allocate(arena, 24);
+    region arena = new region(768, 3);
+    words kinds = allocate(arena, 32);
+    words starts = allocate(arena, 32);
+    words lengths = allocate(arena, 32);
     long count = 0;
     ScanResult scanned = scan(source, kinds, starts, lengths);
     match (scanned) {
@@ -56,7 +56,7 @@ classical class NativeWorkspace {
     }
 
     finalCursor = bufferLength(source);
-    assert(nameStart == 11);
+    assert(nameStart == 30);
     assert(nameLength == 14);
     assert(profileLength == 11);
     assert(memberCount == 2);

@@ -12,7 +12,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-/** Immutable canonical model of one {@code wheeler.package} manifest. */
+/** Immutable canonical model of one {@code wheeler.package.yaml} manifest. */
 public record PackageManifest(
     String name,
     String version,
@@ -55,32 +55,42 @@ public record PackageManifest(
 
   public String canonicalText() {
     StringBuilder text = new StringBuilder();
-    text.append("package ").append(quoted(name))
-        .append(" version ").append(quoted(version))
-        .append(" profile ").append(quoted(profile)).append(";\n");
+    text.append("schema: 1\npackage:\n")
+        .append("  name: ").append(quoted(name)).append('\n')
+        .append("  version: ").append(quoted(version)).append('\n')
+        .append("  profile: ").append(quoted(profile)).append('\n')
+        .append("targets:\n");
     for (Target target : targets) {
-      text.append("target ").append(target.kind().keyword()).append(' ')
-          .append(quoted(target.name())).append(" root ")
-          .append(quoted(target.root()));
+      text.append("  - kind: ").append(quoted(target.kind().keyword())).append('\n')
+          .append("    name: ").append(quoted(target.name())).append('\n')
+          .append("    root: ").append(quoted(target.root())).append('\n');
       if (target.module() != null) {
-        text.append(" module ").append(quoted(target.module()));
+        text.append("    module: ").append(quoted(target.module())).append('\n')
+            .append("    sources:\n");
         for (String source : target.sources()) {
-          text.append(" source ").append(quoted(source));
+          text.append("      - ").append(quoted(source)).append('\n');
         }
       }
-      if (target.test()) {
-        text.append(" test");
+      text.append("    test: ").append(target.test()).append('\n');
+    }
+    if (dependencies.isEmpty()) {
+      text.append("dependencies: []\n");
+    } else {
+      text.append("dependencies:\n");
+      for (Dependency dependency : dependencies) {
+        text.append("  - kind: ").append(quoted(dependency.kind().keyword())).append('\n')
+            .append("    name: ").append(quoted(dependency.name())).append('\n')
+            .append("    version: ").append(quoted(dependency.constraint())).append('\n');
       }
-      text.append(";\n");
     }
-    for (Dependency dependency : dependencies) {
-      text.append("dependency ").append(dependency.kind().keyword()).append(' ')
-          .append(quoted(dependency.name())).append(" version ")
-          .append(quoted(dependency.constraint())).append(";\n");
-    }
-    for (Capability capability : capabilities) {
-      text.append("capability ").append(quoted(capability.name()))
-          .append(" path ").append(quoted(capability.pattern())).append(";\n");
+    if (capabilities.isEmpty()) {
+      text.append("capabilities: []\n");
+    } else {
+      text.append("capabilities:\n");
+      for (Capability capability : capabilities) {
+        text.append("  - name: ").append(quoted(capability.name())).append('\n')
+            .append("    path: ").append(quoted(capability.pattern())).append('\n');
+      }
     }
     return text.toString();
   }
@@ -262,7 +272,7 @@ public record PackageManifest(
   }
 
   private static String quoted(String value) {
-    return '"' + value.replace("\\", "\\\\").replace("\"", "\\\"") + '"';
+    return CanonicalYaml.quote(value);
   }
 
   private static <T extends Enum<T>> T enumKeyword(T[] values, String text, String description) {

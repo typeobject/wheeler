@@ -1,4 +1,0 @@
-lock 1 root "86e2acb887994b4f3719c57821414b03b245d90014cdf95b96c2812de67542c4";
-package "wheeler.compiler" version "0.1.0" archive "9757e8177f062e88d752df0aad886ef161d134a0fa74289bc31014fb08803ec3" manifest "eff8b78102384f99c8e04f99172db3c6e041567b64ed2336ae5ff7a34a677769";
-package "wheeler.core" version "0.1.0" archive "2af4fff30d014ae9fd62d4a0ebcb48564e5b260a93145fda252a680a823fe06c" manifest "0ed7ccbda89b05d253b801250365e14e94d9f88d0019409352f3f4640402d93e";
-edge "wheeler.compiler" "wheeler.core";

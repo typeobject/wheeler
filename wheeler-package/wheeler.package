@@ -1,6 +1,0 @@
-package "wheeler.packages" version "0.1.0" profile "bootstrap-1";
-target library "library" root "src/main/wheeler/PackageLibrary.w" module "wheeler.packages.library" source "src/main/wheeler";
-dependency normal "wheeler.compiler" version "=0.1.0";
-dependency normal "wheeler.core" version "=0.1.0";
-capability "build.read" path "src/main/wheeler/**";
-capability "build.write" path "build/**";

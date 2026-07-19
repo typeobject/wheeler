@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-/** Immutable canonical model of one {@code wheeler.workspace} manifest. */
+/** Immutable canonical model of one {@code wheeler.workspace.yaml} manifest. */
 public record WorkspaceManifest(String name, String profile, List<Member> members) {
   private static final int MAX_MEMBERS = 10_000;
 
@@ -46,11 +46,13 @@ public record WorkspaceManifest(String name, String profile, List<Member> member
 
   public String canonicalText() {
     StringBuilder text = new StringBuilder();
-    text.append("workspace \"").append(name).append("\" profile \"")
-        .append(profile).append("\";\n");
+    text.append("schema: 1\nworkspace:\n")
+        .append("  name: ").append(CanonicalYaml.quote(name)).append('\n')
+        .append("  profile: ").append(CanonicalYaml.quote(profile)).append('\n')
+        .append("members:\n");
     for (Member member : members) {
-      text.append("member \"").append(member.name()).append("\" path \"")
-          .append(member.path()).append("\";\n");
+      text.append("  - name: ").append(CanonicalYaml.quote(member.name())).append('\n')
+          .append("    path: ").append(CanonicalYaml.quote(member.path())).append('\n');
     }
     return text.toString();
   }

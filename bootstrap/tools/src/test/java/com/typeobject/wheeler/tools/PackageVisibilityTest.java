@@ -47,15 +47,41 @@ class PackageVisibilityTest {
 
   private Fixture createFixture() throws Exception {
     PackageManifest leaf = manifest("""
-        package "demo.leaf" version "1.0.0" profile "bootstrap-1";
-        target library "main" root "src/Leaf.w" module "demo.leaf.api"
-            source "src/Leaf.w";
+        schema: 1
+        package:
+          name: "demo.leaf"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "library"
+            name: "main"
+            root: "src/Leaf.w"
+            module: "demo.leaf.api"
+            sources:
+              - "src/Leaf.w"
+            test: false
+        dependencies: []
+        capabilities: []
         """);
     PackageManifest middle = manifest("""
-        package "demo.middle" version "1.0.0" profile "bootstrap-1";
-        target library "main" root "src/Middle.w" module "demo.middle.api"
-            source "src/Middle.w";
-        dependency normal "demo.leaf" version "=1.0.0";
+        schema: 1
+        package:
+          name: "demo.middle"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "library"
+            name: "main"
+            root: "src/Middle.w"
+            module: "demo.middle.api"
+            sources:
+              - "src/Middle.w"
+            test: false
+        dependencies:
+          - kind: "normal"
+            name: "demo.leaf"
+            version: "=1.0.0"
+        capabilities: []
         """);
     byte[] leafArchive = archive(leaf, "src/Leaf.w", """
         module demo.leaf.api;
@@ -76,12 +102,26 @@ class PackageVisibilityTest {
     Files.createDirectories(root.resolve("src"));
     Files.createDirectories(vendor);
     PackageManifest rootManifest = manifest("""
-        package "demo.root" version "1.0.0" profile "bootstrap-1";
-        target deployable "main" root "src/Main.w" module "demo.root.main"
-            source "src/Main.w";
-        dependency normal "demo.middle" version "=1.0.0";
+        schema: 1
+        package:
+          name: "demo.root"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "deployable"
+            name: "main"
+            root: "src/Main.w"
+            module: "demo.root.main"
+            sources:
+              - "src/Main.w"
+            test: false
+        dependencies:
+          - kind: "normal"
+            name: "demo.middle"
+            version: "=1.0.0"
+        capabilities: []
         """);
-    Files.writeString(root.resolve("wheeler.package"), rootManifest.canonicalText());
+    Files.writeString(root.resolve("wheeler.package.yaml"), rootManifest.canonicalText());
     Files.writeString(root.resolve("src/Main.w"), """
         module demo.root.main;
         import demo.leaf.api;
@@ -102,7 +142,7 @@ class PackageVisibilityTest {
         new PackageLock.Entry(
             middle.name(), middle.version(), middleIdentity, middle.identity(),
             List.of(leaf.name()))));
-    Files.writeString(vendor.resolve("wheeler.package.lock"), lock.canonicalText());
+    Files.writeString(vendor.resolve("wheeler.package.lock.yaml"), lock.canonicalText());
     return new Fixture(root);
   }
 

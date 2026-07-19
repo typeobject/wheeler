@@ -114,7 +114,7 @@ A resolved dependency additionally fixes its archive content hash and registry o
 
 ## Manifest language
 
-Package metadata uses a closed, canonical YAML 1.2 profile. The sectioned shape borrows the useful part of `pyproject.toml`: one obvious project header followed by targets, dependencies, features, and tool authority. It does not borrow executable build hooks, arbitrary extension tables, or the theory that every typo deserves to become somebody's plugin namespace.
+Package metadata uses a closed, canonical YAML 1.2 profile. The sectioned shape borrows the useful part of `pyproject.toml`: one obvious project header followed by targets, dependencies, and capability authority. Schema 1 deliberately leaves feature selection out until the resolver can bind it into identities end to end. It does not borrow executable build hooks, arbitrary extension tables, or the theory that every typo deserves to become somebody's plugin namespace.
 
 ```yaml
 schema: 1
@@ -140,10 +140,6 @@ dependencies:
   - kind: "build"
     name: "wheeler.bytecode"
     version: "^0.1.0"
-features:
-  default: []
-  diagnostics:
-    - "wheeler.bytecode/diagnostics"
 capabilities:
   - name: "build.read"
     path: "src/**"
@@ -151,7 +147,7 @@ capabilities:
     path: "build/**"
 ```
 
-The target kind set is closed: `deployable`, `library`, and `tool`. `test` is a selector attached to a runnable target, not a kind in a fake moustache. Features are additive named lists: they may enable optional dependency features or declared target facets, but cannot remove checks, grant capabilities, select credentials, or execute code. Unknown keys fail closed unless a later schema explicitly owns them.
+The target kind set is closed: `deployable`, `library`, and `tool`. `test` is a selector attached to a runnable target, not a kind in a fake moustache. A later schema may add additive named feature lists, but schema 1 rejects a `features` key rather than pretending an ignored switch is reproducible. Features may eventually enable optional dependency features or declared target facets; they cannot remove checks, grant capabilities, select credentials, or execute code. Unknown keys fail closed unless a later schema explicitly owns them.
 
 This is not "whatever libyaml accepts." The accepted profile has one document, UTF-8, LF, two-space indentation, plain mapping keys, block mappings/sequences, quoted strings, canonical decimal integers, booleans, and full-line comments. It rejects duplicate keys, tabs, implicit scalar typing, nulls, floats, timestamps, anchors, aliases, merge keys, tags, directives, flow collections, block scalars, multi-document streams, and unknown fields. Canonical emission fixes key order, list order where semantic order is absent, escaping, normalization, and one final newline. Ordinary YAML 1.2 readers can inspect it; Wheeler's bounded parser does not import YAML's entire attic.
 
@@ -402,7 +398,7 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 
 ## Progress
 
-- [ ] Replace extensionless package/workspace/lock metadata and both stage-0/native record parsers atomically with the closed `wheeler.package.yaml`, `wheeler.workspace.yaml`, and `wheeler.package.lock.yaml` profile; delete the retired grammar rather than retaining format sniffing.
+- [x] Replaced extensionless package/workspace/lock metadata and both stage-0/native record parsers atomically with the closed `wheeler.package.yaml`, `wheeler.workspace.yaml`, and `wheeler.package.lock.yaml` profile; the retired grammar and format sniffing are gone.
 - [x] Canonical `.wbc` provides a portable artifact identity for package outputs.
 - [x] WIP-0007 and WIP-0008 define compiler and native recovery requirements.
 - [ ] Workspace, package, lockfile, and archive schemas have strict stage-0 codecs; build plans cover compiler, source, package-input, output, capability-request, execution-limit, and explicit grant identities; sealed stage-0 execution derives and checks the executing compiler/core class identity, rederives plans, and publishes exact verified outputs atomically, while isolated native memory/work enforcement remains.
@@ -428,7 +424,8 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 
 ## Testing and acceptance
 
-- [ ] Manifest, workspace, lock, and repository-policy parsers accept only the closed YAML profile and reject malformed UTF-8, duplicate/unknown keys, implicit types, aliases/tags/merges, bad indentation, traversal, excessive nesting, and oversized values; stage 0 and Wheeler canonical emission agree byte-for-byte.
+- [x] Manifest, workspace, and lock parsers accept only the closed YAML profile and reject malformed UTF-8, duplicate/unknown keys, implicit types, aliases/tags/merges, bad indentation, traversal, excessive nesting, and oversized values; stage 0 and Wheeler recovery fixtures agree on canonical bytes.
+- [ ] Ordered repository-policy parsing must use the same YAML profile when the XDG repository implementation lands.
 - [ ] Resolution is identical under catalog and manifest insertion order with bounded backtracking; configured repository order is honored exactly, the first authoritative admissible repository wins without cross-repository version mixing, and filesystem, transport, and task-completion order otherwise remain irrelevant.
 - [x] Locked and offline stage-0 builds consume either exact in-memory workspace-member archives or a package-local generated vendor tree and never perform resolution, network access, or ambient cache lookup.
 - [ ] Build-plan codecs are order-independent and reject corruption and forged node identities; direct and sealed-plan clean builds produce byte-identical `.wbc` and a forged executing-compiler identity is rejected, while complete lockfile, package archive, plan, and provenance reproduction remains.

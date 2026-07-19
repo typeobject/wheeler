@@ -41,10 +41,10 @@ classical class NativeManifest {
   ///
   /// - Effects: Mutates declared state and caller-owned byte output.
   entry void main(borrow utf8 source, borrow mut bytes canonical) {
-    region arena = new region(1536, 3);
-    words kinds = allocate(arena, 64);
-    words starts = allocate(arena, 64);
-    words lengths = allocate(arena, 64);
+    region arena = new region(3072, 3);
+    words kinds = allocate(arena, 128);
+    words starts = allocate(arena, 128);
+    words lengths = allocate(arena, 128);
     long count = 0;
     ScanResult scanned = scan(source, kinds, starts, lengths);
     match (scanned) {
@@ -98,9 +98,9 @@ classical class NativeManifest {
     assert(versionLength == 10);
     assert(profileLength == 11);
     assert(targetNameLength == 3);
-    assert(targetRootLength == 11);
+    assert(targetRootLength == 9);
     assert(targetModuleLength == 8);
-    assert(targetSourceLength == 11);
+    assert(targetSourceLength == 9);
     assert(targetSecondSourceLength == 12);
     assert(targetCount == 2);
     assert(secondTargetNameLength == 4);

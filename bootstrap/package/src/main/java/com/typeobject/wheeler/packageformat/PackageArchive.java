@@ -137,7 +137,7 @@ public final class PackageArchive {
     TreeMap<String, byte[]> result = new TreeMap<>();
     source.forEach((path, data) -> {
       String normalized = PackageManifest.logicalPath(path);
-      if (normalized.equals("wheeler.package") || result.put(normalized, data.clone()) != null) {
+      if (normalized.equals("wheeler.package.yaml") || result.put(normalized, data.clone()) != null) {
         throw new PackageFormatException("Reserved or duplicate package entry " + normalized);
       }
     });

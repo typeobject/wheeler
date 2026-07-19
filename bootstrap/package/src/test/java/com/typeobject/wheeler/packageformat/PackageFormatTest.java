@@ -12,26 +12,54 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-/** Conformance tests for canonical manifests, source sets, and package archives. */
+/** Conformance tests for canonical YAML manifests, source sets, and package archives. */
 class PackageFormatTest {
   private static final String MANIFEST = """
-      package "wheeler.compiler" version "0.1.0" profile "bootstrap-1";
-      capability "build.write" path "build/**";
-      target tool "compiler" root "src/compiler.w";
-      dependency build "wheeler.bytecode" version "^0.1.0";
-      capability "build.read" path "src/**";
+      schema: 1
+      package:
+        name: "wheeler.compiler"
+        version: "0.1.0"
+        profile: "bootstrap-1"
+      targets:
+        - kind: "tool"
+          name: "compiler"
+          root: "src/compiler.w"
+          test: false
+      dependencies:
+        - kind: "build"
+          name: "wheeler.bytecode"
+          version: "^0.1.0"
+      capabilities:
+        - name: "build.write"
+          path: "build/**"
+        - name: "build.read"
+          path: "src/**"
       """;
 
   @Test
-  void manifestCanonicalizationIgnoresDeclarationOrder() {
+  void manifestCanonicalizationIgnoresMappingAndDeclarationOrder() {
     PackageManifestParser parser = new PackageManifestParser();
     PackageManifest first = parser.parse(MANIFEST);
     PackageManifest second = parser.parse("""
-        package "wheeler.compiler" version "0.1.0" profile "bootstrap-1";
-        capability "build.read" path "src/**";
-        dependency build "wheeler.bytecode" version "^0.1.0";
-        target tool "compiler" root "src/compiler.w";
-        capability "build.write" path "build/**";
+        capabilities:
+          - path: "src/**"
+            name: "build.read"
+          - path: "build/**"
+            name: "build.write"
+        dependencies:
+          - version: "^0.1.0"
+            name: "wheeler.bytecode"
+            kind: "build"
+        targets:
+          - test: false
+            root: "src/compiler.w"
+            name: "compiler"
+            kind: "tool"
+        package:
+          profile: "bootstrap-1"
+          version: "0.1.0"
+          name: "wheeler.compiler"
+        schema: 1
         """);
 
     assertEquals(first, second);
@@ -46,46 +74,68 @@ class PackageFormatTest {
     assertEquals(first, parser.parse(first.canonicalText()));
     assertTrue(first.canonicalText().indexOf("build.read")
         < first.canonicalText().indexOf("build.write"));
-    PackageManifest testTarget = parser.parse(MANIFEST.replace(
-        "target tool \"compiler\" root \"src/compiler.w\";",
-        "target tool \"compiler\" root \"src/compiler.w\" test;"));
+    PackageManifest testTarget = parser.parse(MANIFEST.replace("test: false", "test: true"));
     assertTrue(testTarget.targets().getFirst().test());
     assertTrue(parser.parse(testTarget.canonicalText().replace(
-        "target tool", "target deployable")).targets().getFirst().test());
+        "kind: \"tool\"", "kind: \"deployable\"")).targets().getFirst().test());
     assertEquals(testTarget, parser.parse(testTarget.canonicalText()));
   }
 
   @Test
-  void malformedManifestFailsClosedWithLocation() {
+  void malformedManifestFailsClosed() {
     PackageManifestParser parser = new PackageManifestParser();
     PackageFormatException unknown = assertThrows(
         PackageFormatException.class,
-        () -> parser.parse(MANIFEST.replace("target tool", "plugin tool")));
+        () -> parser.parse(MANIFEST.replace("kind: \"tool\"", "plugin: \"tool\"")));
     PackageFormatException duplicate = assertThrows(
         PackageFormatException.class,
-        () -> parser.parse(MANIFEST +
-            "dependency normal \"wheeler.bytecode\" version \"=0.1.0\";\n"));
+        () -> parser.parse(MANIFEST.replace(
+            "    version: \"^0.1.0\"",
+            "    version: \"^0.1.0\"\n"
+                + "  - kind: \"normal\"\n"
+                + "    name: \"wheeler.bytecode\"\n"
+                + "    version: \"=0.1.0\"")));
     byte[] malformedUtf8 = {(byte) 0xc3, (byte) 0x28};
 
-    assertTrue(unknown.getMessage().contains("line 3"));
+    assertTrue(unknown.getMessage().contains("plugin"));
     assertTrue(duplicate.getMessage().contains("Duplicate dependency"));
     assertThrows(PackageFormatException.class, () -> parser.parse(malformedUtf8));
     PackageFormatException targetName = assertThrows(
         PackageFormatException.class,
-        () -> parser.parse(MANIFEST.replace("\"compiler\"", "\"../compiler\"")));
+        () -> parser.parse(MANIFEST.replace("name: \"compiler\"", "name: \"../compiler\"")));
     assertTrue(targetName.getMessage().contains("Invalid target name"));
     assertThrows(
         PackageFormatException.class,
+        () -> parser.parse(MANIFEST
+            .replace("kind: \"tool\"", "kind: \"library\"")
+            .replace("test: false", "test: true")));
+    assertThrows(
+        PackageFormatException.class,
+        () -> parser.parse(MANIFEST.replace("kind: \"tool\"", "kind: \"example\"")));
+    assertThrows(
+        PackageFormatException.class,
         () -> parser.parse(MANIFEST.replace(
-            "target tool", "target library").replace("root \"src/compiler.w\";",
-            "root \"src/compiler.w\" test;")));
-    assertThrows(
-        PackageFormatException.class,
-        () -> parser.parse(MANIFEST.replace("target tool", "target example")));
-    assertThrows(
-        PackageFormatException.class,
-        () -> parser.parse(MANIFEST.replace("root \"src/compiler.w\";",
-            "root \"src/compiler.w\" test test;")));
+            "test: false", "test: false\n    test: false")));
+  }
+
+  @Test
+  void yamlProfileRejectsTheFeaturesGeneralYamlMadeFamous() {
+    PackageManifestParser parser = new PackageManifestParser();
+    PackageManifest canonical = parser.parse(MANIFEST);
+
+    assertEquals(canonical, parser.parse("# Review comments do not alter identity.\n" + MANIFEST));
+    assertThrows(PackageFormatException.class,
+        () -> parser.parse(MANIFEST.replace("schema: 1", "schema:\t1")));
+    assertThrows(PackageFormatException.class,
+        () -> parser.parse(MANIFEST.replace("name: \"wheeler.compiler\"", "name: compiler")));
+    assertThrows(PackageFormatException.class,
+        () -> parser.parse(MANIFEST.replace("name: \"wheeler.compiler\"", "name: *compiler")));
+    assertThrows(PackageFormatException.class,
+        () -> parser.parse(MANIFEST.replace("schema: 1", "schema: 01")));
+    assertThrows(PackageFormatException.class,
+        () -> parser.parse(MANIFEST.replace("capabilities:", "features: []\ncapabilities:")));
+    assertThrows(PackageFormatException.class,
+        () -> parser.parse(MANIFEST.replace("\n", "\r\n")));
   }
 
   @Test
@@ -118,12 +168,25 @@ class PackageFormatTest {
   }
 
   @Test
-  void moduleTargetCanonicalizesAndRequiresItsExactSourceSet() {
+  void moduleTargetCanonicalizesAndRequiresItsSourceSelectors() {
     PackageManifestParser parser = new PackageManifestParser();
     PackageManifest manifest = parser.parse("""
-        package "wheeler.modules" version "0.1.0" profile "bootstrap-1";
-        target tool "compiler" root "src/Main.w" module "compiler.main"
-            source "src/Main.w" source "src/Lexer.w";
+        schema: 1
+        package:
+          name: "wheeler.modules"
+          version: "0.1.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "tool"
+            name: "compiler"
+            root: "src/Main.w"
+            module: "compiler.main"
+            sources:
+              - "src/Lexer.w"
+              - "src/Main.w"
+            test: false
+        dependencies: []
+        capabilities: []
         """);
 
     assertEquals(List.of("src/Lexer.w", "src/Main.w"),

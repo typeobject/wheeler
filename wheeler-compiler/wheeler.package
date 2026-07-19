@@ -1,6 +1,0 @@
-package "wheeler.compiler" version "0.1.0" profile "bootstrap-1";
-target tool "compiler" root "src/main/wheeler/MinimalCompiler.w" module "wheeler.compiler.driver" source "src/main/wheeler/MinimalCompiler.w" source "src/main/wheeler/compiler" source "src/main/wheeler/lexer";
-target library "library" root "src/main/wheeler/CompilerLibrary.w" module "wheeler.compiler.library" source "src/main/wheeler/CompilerLibrary.w" source "src/main/wheeler/compiler" source "src/main/wheeler/lexer";
-dependency normal "wheeler.core" version "=0.1.0";
-capability "build.read" path "src/main/wheeler/**";
-capability "build.write" path "build/**";

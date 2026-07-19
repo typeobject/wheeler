@@ -11,9 +11,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-/** Canonical exact dependency graph for {@code wheeler.package.lock}. */
+/** Canonical exact dependency graph for {@code wheeler.package.lock.yaml}. */
 public record PackageLock(int schemaVersion, String rootManifestIdentity, List<Entry> entries) {
-  public static final String FILE_NAME = "wheeler.package.lock";
+  public static final String FILE_NAME = "wheeler.package.lock.yaml";
   public static final int SCHEMA_VERSION = 1;
 
   public PackageLock {
@@ -28,23 +28,37 @@ public record PackageLock(int schemaVersion, String rootManifestIdentity, List<E
         throw new PackageFormatException("Duplicate locked package " + entry.name());
       }
     }
+    for (Entry entry : ordered) {
+      for (String dependency : entry.dependencies()) {
+        if (!names.contains(dependency)) {
+          throw new PackageFormatException(
+              "Unknown locked dependency " + entry.name() + " -> " + dependency);
+        }
+      }
+    }
     entries = List.copyOf(ordered);
   }
 
   public String canonicalText() {
     StringBuilder text = new StringBuilder();
-    text.append("lock ").append(schemaVersion)
-        .append(" root \"").append(rootManifestIdentity).append("\";\n");
-    for (Entry entry : entries) {
-      text.append("package \"").append(entry.name())
-          .append("\" version \"").append(entry.version())
-          .append("\" archive \"").append(entry.archiveIdentity())
-          .append("\" manifest \"").append(entry.manifestIdentity()).append("\";\n");
+    text.append("schema: ").append(schemaVersion).append('\n')
+        .append("root: ").append(CanonicalYaml.quote(rootManifestIdentity)).append('\n');
+    if (entries.isEmpty()) {
+      return text.append("packages: []\n").toString();
     }
+    text.append("packages:\n");
     for (Entry entry : entries) {
-      for (String dependency : entry.dependencies()) {
-        text.append("edge \"").append(entry.name()).append("\" \"")
-            .append(dependency).append("\";\n");
+      text.append("  - name: ").append(CanonicalYaml.quote(entry.name())).append('\n')
+          .append("    version: ").append(CanonicalYaml.quote(entry.version())).append('\n')
+          .append("    archive: ").append(CanonicalYaml.quote(entry.archiveIdentity())).append('\n')
+          .append("    manifest: ").append(CanonicalYaml.quote(entry.manifestIdentity())).append('\n');
+      if (entry.dependencies().isEmpty()) {
+        text.append("    dependencies: []\n");
+      } else {
+        text.append("    dependencies:\n");
+        for (String dependency : entry.dependencies()) {
+          text.append("      - ").append(CanonicalYaml.quote(dependency)).append('\n');
+        }
       }
     }
     return text.toString();

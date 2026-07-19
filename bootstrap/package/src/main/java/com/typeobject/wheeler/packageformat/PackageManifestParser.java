@@ -1,5 +1,8 @@
 package com.typeobject.wheeler.packageformat;
 
+import com.typeobject.wheeler.packageformat.CanonicalYaml.Mapping;
+import com.typeobject.wheeler.packageformat.CanonicalYaml.Sequence;
+import com.typeobject.wheeler.packageformat.CanonicalYaml.Value;
 import com.typeobject.wheeler.packageformat.PackageManifest.Capability;
 import com.typeobject.wheeler.packageformat.PackageManifest.Dependency;
 import com.typeobject.wheeler.packageformat.PackageManifest.DependencyKind;
@@ -11,10 +14,18 @@ import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
-/** Strict source-located parser for {@code wheeler.package}. */
+/** Strict schema decoder for one {@code wheeler.package.yaml} document. */
 public final class PackageManifestParser {
   private static final int MAX_BYTES = 1024 * 1024;
+  private static final Set<String> ROOT_FIELDS = Set.of(
+      "schema", "package", "targets", "dependencies", "capabilities");
+  private static final Set<String> PACKAGE_FIELDS = Set.of("name", "version", "profile");
+  private static final Set<String> TARGET_FIELDS = Set.of(
+      "kind", "name", "root", "module", "sources", "test");
+  private static final Set<String> DEPENDENCY_FIELDS = Set.of("kind", "name", "version");
+  private static final Set<String> CAPABILITY_FIELDS = Set.of("name", "path");
 
   public PackageManifest parse(byte[] utf8) {
     if (utf8.length > MAX_BYTES) {
@@ -26,7 +37,7 @@ public final class PackageManifestParser {
           .onUnmappableCharacter(CodingErrorAction.REPORT)
           .decode(ByteBuffer.wrap(utf8))
           .toString();
-      return new Parser(new Lexer(source).lex()).parse();
+      return parseDecoded(source);
     } catch (CharacterCodingException exception) {
       throw new PackageFormatException("Manifest is not strict UTF-8", exception);
     }
@@ -36,224 +47,81 @@ public final class PackageManifestParser {
     return parse(source.getBytes(StandardCharsets.UTF_8));
   }
 
-  private static final class Parser {
-    private final List<Token> tokens;
-    private int current;
+  private static PackageManifest parseDecoded(String source) {
+    Mapping root = CanonicalYaml.mapping(CanonicalYaml.parse(source, "package manifest"), "manifest");
+    CanonicalYaml.fields(root, ROOT_FIELDS, "manifest");
+    int schema = CanonicalYaml.integer(
+        CanonicalYaml.required(root, "schema", "manifest"), "manifest.schema");
+    if (schema != 1) {
+      throw new PackageFormatException("Unsupported package manifest schema " + schema);
+    }
+    Mapping header = CanonicalYaml.mapping(
+        CanonicalYaml.required(root, "package", "manifest"), "manifest.package");
+    CanonicalYaml.fields(header, PACKAGE_FIELDS, "manifest.package");
+    String name = requiredString(header, "name", "manifest.package");
+    String version = requiredString(header, "version", "manifest.package");
+    String profile = requiredString(header, "profile", "manifest.package");
 
-    private Parser(List<Token> tokens) {
-      this.tokens = tokens;
+    List<Target> targets = new ArrayList<>();
+    Sequence targetValues = requiredSequence(root, "targets", "manifest");
+    for (Value value : targetValues.values()) {
+      Mapping target = CanonicalYaml.mapping(value, "manifest target");
+      CanonicalYaml.fields(target, TARGET_FIELDS, "manifest target");
+      String module = optionalString(target, "module", "manifest target");
+      List<String> sources = module == null
+          ? List.of()
+          : stringList(requiredSequence(target, "sources", "manifest target"), "target source");
+      targets.add(new Target(
+          TargetKind.parse(requiredString(target, "kind", "manifest target")),
+          requiredString(target, "name", "manifest target"),
+          requiredString(target, "root", "manifest target"),
+          module,
+          sources,
+          CanonicalYaml.bool(
+              CanonicalYaml.required(target, "test", "manifest target"), "target.test")));
     }
 
-    private PackageManifest parse() {
-      expectWord("package");
-      String name = expect(Type.STRING, "package name").text();
-      expectWord("version");
-      String version = expect(Type.STRING, "package version").text();
-      expectWord("profile");
-      String profile = expect(Type.STRING, "language profile").text();
-      expect(Type.SEMICOLON, "';' after package declaration");
-
-      List<Target> targets = new ArrayList<>();
-      List<Dependency> dependencies = new ArrayList<>();
-      List<Capability> capabilities = new ArrayList<>();
-      while (!check(Type.END)) {
-        Token declaration = expect(Type.WORD, "manifest declaration");
-        switch (declaration.text()) {
-          case "target" -> targets.add(parseTarget());
-          case "dependency" -> dependencies.add(parseDependency());
-          case "capability" -> capabilities.add(parseCapability());
-          default -> fail(declaration, "unknown manifest declaration " + declaration.text());
-        }
-      }
-      return new PackageManifest(name, version, profile, targets, dependencies, capabilities);
+    List<Dependency> dependencies = new ArrayList<>();
+    for (Value value : requiredSequence(root, "dependencies", "manifest").values()) {
+      Mapping dependency = CanonicalYaml.mapping(value, "manifest dependency");
+      CanonicalYaml.fields(dependency, DEPENDENCY_FIELDS, "manifest dependency");
+      dependencies.add(new Dependency(
+          DependencyKind.parse(requiredString(dependency, "kind", "manifest dependency")),
+          requiredString(dependency, "name", "manifest dependency"),
+          requiredString(dependency, "version", "manifest dependency")));
     }
 
-    private Target parseTarget() {
-      TargetKind kind = TargetKind.parse(expect(Type.WORD, "target kind").text());
-      String name = expect(Type.STRING, "target name").text();
-      expectWord("root");
-      String root = expect(Type.STRING, "target root").text();
-      String module = null;
-      List<String> sources = new ArrayList<>();
-      boolean test = false;
-      while (!check(Type.SEMICOLON)) {
-        Token field = expect(Type.WORD, "target field");
-        switch (field.text()) {
-          case "module" -> {
-            if (module != null) {
-              fail(field, "duplicate target module");
-            }
-            module = expect(Type.STRING, "target root module").text();
-          }
-          case "source" -> {
-            if (module == null) {
-              fail(field, "target source requires a root module");
-            }
-            sources.add(expect(Type.STRING, "target source").text());
-          }
-          case "test" -> {
-            if (test) {
-              fail(field, "duplicate target test selector");
-            }
-            test = true;
-          }
-          default -> fail(field, "unknown target field " + field.text());
-        }
-      }
-      expect(Type.SEMICOLON, "';' after target");
-      return new Target(kind, name, root, module, sources, test);
+    List<Capability> capabilities = new ArrayList<>();
+    for (Value value : requiredSequence(root, "capabilities", "manifest").values()) {
+      Mapping capability = CanonicalYaml.mapping(value, "manifest capability");
+      CanonicalYaml.fields(capability, CAPABILITY_FIELDS, "manifest capability");
+      capabilities.add(new Capability(
+          requiredString(capability, "name", "manifest capability"),
+          requiredString(capability, "path", "manifest capability")));
     }
-
-    private Dependency parseDependency() {
-      DependencyKind kind = DependencyKind.parse(
-          expect(Type.WORD, "dependency kind").text());
-      String name = expect(Type.STRING, "dependency name").text();
-      expectWord("version");
-      String constraint = expect(Type.STRING, "dependency version").text();
-      expect(Type.SEMICOLON, "';' after dependency");
-      return new Dependency(kind, name, constraint);
-    }
-
-    private Capability parseCapability() {
-      String name = expect(Type.STRING, "capability name").text();
-      expectWord("path");
-      String path = expect(Type.STRING, "capability path").text();
-      expect(Type.SEMICOLON, "';' after capability");
-      return new Capability(name, path);
-    }
-
-    private void expectWord(String value) {
-      Token token = expect(Type.WORD, "'" + value + "'");
-      if (!token.text().equals(value)) {
-        fail(token, "expected '" + value + "'");
-      }
-    }
-
-    private Token expect(Type type, String description) {
-      Token token = tokens.get(current);
-      if (token.type() != type) {
-        fail(token, "expected " + description);
-      }
-      current++;
-      return token;
-    }
-
-    private boolean check(Type type) {
-      return tokens.get(current).type() == type;
-    }
+    return new PackageManifest(name, version, profile, targets, dependencies, capabilities);
   }
 
-  private static final class Lexer {
-    private final String source;
-    private final List<Token> tokens = new ArrayList<>();
-    private int offset;
-    private int line = 1;
-    private int column = 1;
-
-    private Lexer(String source) {
-      this.source = source;
-    }
-
-    private List<Token> lex() {
-      while (offset < source.length()) {
-        char value = peek();
-        if (Character.isWhitespace(value)) {
-          advance();
-        } else if (value == '/' && peek(1) == '/') {
-          while (offset < source.length() && peek() != '\n') {
-            advance();
-          }
-        } else if (value == '"') {
-          string();
-        } else if (value == ';') {
-          tokens.add(new Token(Type.SEMICOLON, ";", line, column));
-          advance();
-        } else if (Character.isLetter(value)) {
-          word();
-        } else {
-          throw new PackageFormatException(
-              "Manifest line " + line + ", column " + column + ": unexpected '" + value + "'");
-        }
-      }
-      tokens.add(new Token(Type.END, "", line, column));
-      return List.copyOf(tokens);
-    }
-
-    private void word() {
-      int start = offset;
-      int startLine = line;
-      int startColumn = column;
-      advance();
-      while (offset < source.length()
-          && (Character.isLetterOrDigit(peek()) || peek() == '_' || peek() == '-')) {
-        advance();
-      }
-      tokens.add(new Token(
-          Type.WORD, source.substring(start, offset), startLine, startColumn));
-    }
-
-    private void string() {
-      int startLine = line;
-      int startColumn = column;
-      advance();
-      StringBuilder value = new StringBuilder();
-      while (offset < source.length() && peek() != '"') {
-        char next = advance();
-        if (next == '\n' || next == '\r') {
-          throw new PackageFormatException(
-              "Manifest line " + startLine + ": string crosses a line boundary");
-        }
-        if (next == '\\') {
-          if (offset >= source.length()) {
-            throw new PackageFormatException("Manifest has an unfinished string escape");
-          }
-          char escaped = advance();
-          if (escaped != '\\' && escaped != '"') {
-            throw new PackageFormatException(
-                "Manifest line " + line + ": unsupported string escape");
-          }
-          next = escaped;
-        }
-        value.append(next);
-      }
-      if (offset >= source.length()) {
-        throw new PackageFormatException("Manifest line " + startLine + ": unclosed string");
-      }
-      advance();
-      tokens.add(new Token(Type.STRING, value.toString(), startLine, startColumn));
-    }
-
-    private char advance() {
-      char value = source.charAt(offset++);
-      if (value == '\n') {
-        line++;
-        column = 1;
-      } else {
-        column++;
-      }
-      return value;
-    }
-
-    private char peek() {
-      return peek(0);
-    }
-
-    private char peek(int ahead) {
-      return offset + ahead < source.length() ? source.charAt(offset + ahead) : '\0';
-    }
+  private static String requiredString(Mapping mapping, String key, String description) {
+    return CanonicalYaml.string(
+        CanonicalYaml.required(mapping, key, description), description + "." + key);
   }
 
-  private enum Type {
-    WORD,
-    STRING,
-    SEMICOLON,
-    END
+  private static String optionalString(Mapping mapping, String key, String description) {
+    Value value = mapping.values().get(key);
+    return value == null ? null : CanonicalYaml.string(value, description + "." + key);
   }
 
-  private record Token(Type type, String text, int line, int column) {}
+  private static Sequence requiredSequence(Mapping mapping, String key, String description) {
+    return CanonicalYaml.sequence(
+        CanonicalYaml.required(mapping, key, description), description + "." + key);
+  }
 
-  private static void fail(Token token, String message) {
-    throw new PackageFormatException(
-        "Manifest line " + token.line() + ", column " + token.column() + ": " + message);
+  private static List<String> stringList(Sequence sequence, String description) {
+    List<String> result = new ArrayList<>();
+    for (Value value : sequence.values()) {
+      result.add(CanonicalYaml.string(value, description));
+    }
+    return List.copyOf(result);
   }
 }

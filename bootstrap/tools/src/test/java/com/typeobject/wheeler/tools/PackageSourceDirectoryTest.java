@@ -20,9 +20,22 @@ class PackageSourceDirectoryTest {
   void directorySelectorFindsOnlyPhysicalWheelerSourcesInLogicalOrder() throws Exception {
     Path project = temporary.resolve("demo");
     Files.createDirectories(project.resolve("src/support"));
-    Files.writeString(project.resolve("wheeler.package"), """
-        package "demo.directory" version "1.0.0" profile "bootstrap-1";
-        target library "library" root "src/Library.w" module "demo.library" source "src";
+    Files.writeString(project.resolve("wheeler.package.yaml"), """
+        schema: 1
+        package:
+          name: "demo.directory"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "library"
+            name: "library"
+            root: "src/Library.w"
+            module: "demo.library"
+            sources:
+              - "src"
+            test: false
+        dependencies: []
+        capabilities: []
         """);
     Files.writeString(project.resolve("src/Library.w"), """
         module demo.library;
@@ -52,9 +65,22 @@ class PackageSourceDirectoryTest {
   void directorySelectorRejectsSymlinksBeforeReadingTheirTargets() throws Exception {
     Path project = temporary.resolve("linked");
     Files.createDirectories(project.resolve("src"));
-    Files.writeString(project.resolve("wheeler.package"), """
-        package "demo.linked" version "1.0.0" profile "bootstrap-1";
-        target library "library" root "src/Library.w" module "demo.library" source "src";
+    Files.writeString(project.resolve("wheeler.package.yaml"), """
+        schema: 1
+        package:
+          name: "demo.linked"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "library"
+            name: "library"
+            root: "src/Library.w"
+            module: "demo.library"
+            sources:
+              - "src"
+            test: false
+        dependencies: []
+        capabilities: []
         """);
     Files.writeString(project.resolve("src/Library.w"), """
         module demo.library;

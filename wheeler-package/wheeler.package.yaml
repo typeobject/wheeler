@@ -1,0 +1,25 @@
+schema: 1
+package:
+  name: "wheeler.packages"
+  version: "0.1.0"
+  profile: "bootstrap-1"
+targets:
+  - kind: "library"
+    name: "library"
+    root: "src/main/wheeler/PackageLibrary.w"
+    module: "wheeler.packages.library"
+    sources:
+      - "src/main/wheeler"
+    test: false
+dependencies:
+  - kind: "normal"
+    name: "wheeler.compiler"
+    version: "=0.1.0"
+  - kind: "normal"
+    name: "wheeler.core"
+    version: "=0.1.0"
+capabilities:
+  - name: "build.read"
+    path: "src/main/wheeler/**"
+  - name: "build.write"
+    path: "build/**"

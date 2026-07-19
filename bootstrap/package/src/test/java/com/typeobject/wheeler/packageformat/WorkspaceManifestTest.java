@@ -14,10 +14,16 @@ class WorkspaceManifestTest {
   void parserCanonicalizesMemberOrderAndComments() {
     WorkspaceManifestParser parser = new WorkspaceManifestParser();
     WorkspaceManifest manifest = parser.parse("""
-        workspace "wheeler.bootstrap" profile "bootstrap-1";
-        // Source order does not establish build order.
-        member "runtime" path "wheeler-runtime";
-        member "examples" path "wheeler-examples";
+        schema: 1
+        workspace:
+          name: "wheeler.bootstrap"
+          profile: "bootstrap-1"
+        # Source order does not establish build order.
+        members:
+          - name: "runtime"
+            path: "wheeler-runtime"
+          - name: "examples"
+            path: "wheeler-examples"
         """);
 
     assertEquals(List.of("examples", "runtime"),
@@ -40,10 +46,16 @@ class WorkspaceManifestTest {
     PackageFormatException failure = assertThrows(
         PackageFormatException.class,
         () -> new WorkspaceManifestParser().parse("""
-            workspace "root" profile "bootstrap-1";
-            plugin "bad" path "pkg";
+            schema: 1
+            workspace:
+              name: "root"
+              profile: "bootstrap-1"
+            plugins:
+              - name: "bad"
+                path: "pkg"
+            members: []
             """));
-    assertTrue(failure.getMessage().contains("workspace:2:1"));
+    assertTrue(failure.getMessage().contains("plugins"));
     assertThrows(
         PackageFormatException.class,
         () -> new WorkspaceManifestParser().parse(new byte[] {(byte) 0xc3}));

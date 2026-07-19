@@ -18,7 +18,7 @@ tasks.named('test') {
         fileTree(new File(repository, 'wheeler-core/src/main/wheeler')) { include '**/*.w' },
         fileTree(new File(repository, 'wheeler-package/src/main/wheeler')) { include '**/*.w' },
         fileTree(new File(repository, 'wheeler-runtime/src/main/wheeler')) { include '**/*.w' },
-        new File(wheelerRoot, 'wheeler.package'),
-        new File(wheelerRoot, 'wheeler.package.lock'))
+        new File(wheelerRoot, 'wheeler.package.yaml'),
+        new File(wheelerRoot, 'wheeler.package.lock.yaml'))
         .withPathSensitivity(PathSensitivity.RELATIVE)
 }
