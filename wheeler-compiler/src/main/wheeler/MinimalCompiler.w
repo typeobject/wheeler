@@ -92,6 +92,8 @@ classical class MinimalCompiler {
           -1,
           0,
           -1,
+          0,
+          -1,
           0
         );
       }
@@ -134,6 +136,8 @@ classical class MinimalCompiler {
               0,
               0,
               0,
+              0,
+              -1,
               0,
               -1,
               0,
@@ -231,6 +235,11 @@ classical class MinimalCompiler {
     if (3 < program.helperStatementCount) {
       helperLocalCount += statementLocalCount(program.helperFourthOpcode);
       helperForwardLength += statementCodeLength(program.helperFourthOpcode);
+    }
+
+    if (4 < program.helperStatementCount) {
+      helperLocalCount += statementLocalCount(program.helperFifthOpcode);
+      helperForwardLength += statementCodeLength(program.helperFifthOpcode);
     }
 
     long helperInverseLength = 0;
@@ -344,6 +353,10 @@ classical class MinimalCompiler {
         if (3 < program.helperStatementCount) {
           cursor = writeStatementLocalTypes(output, cursor, program.helperFourthOpcode);
         }
+
+        if (4 < program.helperStatementCount) {
+          cursor = writeStatementLocalTypes(output, cursor, program.helperFifthOpcode);
+        }
       }
 
       if (0 < program.statementCount) {
@@ -420,7 +433,25 @@ classical class MinimalCompiler {
           );
         }
 
+        if (4 < program.helperStatementCount) {
+          cursor = writeGlobalUpdate(
+            output,
+            cursor,
+            program.helperFifthOpcode,
+            program.helperFifthOperand
+          );
+        }
+
         cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN, 0);
+        if (4 < program.helperStatementCount) {
+          cursor = writeInverseGlobalUpdate(
+            output,
+            cursor,
+            program.helperFifthOpcode,
+            program.helperFifthOperand
+          );
+        }
+
         if (3 < program.helperStatementCount) {
           cursor = writeInverseGlobalUpdate(
             output,
@@ -459,6 +490,7 @@ classical class MinimalCompiler {
         long helperFirstLocals = statementLocalCount(program.helperOpcode);
         long helperSecondLocals = statementLocalCount(program.helperSecondOpcode);
         long helperThirdLocals = statementLocalCount(program.helperThirdOpcode);
+        long helperFourthLocals = statementLocalCount(program.helperFourthOpcode);
         cursor = writeStatement(output, cursor, program.helperOpcode, program.helperOperand, 0);
         if (1 < program.helperStatementCount) {
           cursor = writeStatement(
@@ -487,6 +519,16 @@ classical class MinimalCompiler {
             program.helperFourthOpcode,
             program.helperFourthOperand,
             helperFirstLocals + helperSecondLocals + helperThirdLocals
+          );
+        }
+
+        if (4 < program.helperStatementCount) {
+          cursor = writeStatement(
+            output,
+            cursor,
+            program.helperFifthOpcode,
+            program.helperFifthOperand,
+            helperFirstLocals + helperSecondLocals + helperThirdLocals + helperFourthLocals
           );
         }
 

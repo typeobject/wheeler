@@ -75,7 +75,8 @@ classical class HelperParser {
     long preReverseStatement,
     long helperSecondStatement,
     long helperThirdStatement,
-    long helperFourthStatement
+    long helperFourthStatement,
+    long helperFifthStatement
   ) {
     SourceRange name = new SourceRange(tokenStarts[2], tokenLengths[2]);
     SourceRange global = new SourceRange(tokenStarts[6], tokenLengths[6]);
@@ -103,6 +104,8 @@ classical class HelperParser {
     long helperThirdOperand = 0;
     long helperFourthOpcode = -1;
     long helperFourthOperand = 0;
+    long helperFifthOpcode = -1;
+    long helperFifthOperand = 0;
     if (-1 < helperSecondStatement) {
       helperStatementCount = 2;
       helperSecondOpcode = statementOpcode(
@@ -160,6 +163,26 @@ classical class HelperParser {
         helperSecondStatement,
         helperThirdStatement,
         -1
+      );
+    }
+
+    if (-1 < helperFifthStatement) {
+      helperStatementCount = 5;
+      helperFifthOpcode = statementOpcode(
+        source,
+        tokenStarts,
+        tokenLengths,
+        helperFifthStatement
+      );
+      helperFifthOperand = sequenceStatementOperand(
+        source,
+        tokenStarts,
+        tokenLengths,
+        helperFifthStatement,
+        helperBody,
+        helperSecondStatement,
+        helperThirdStatement,
+        helperFourthStatement
       );
     }
 
@@ -231,6 +254,10 @@ classical class HelperParser {
       return new MinimalProgramResult.Error(0);
     }
 
+    if (sequenceOperandValid(helperFifthOpcode, helperFifthOperand) == false) {
+      return new MinimalProgramResult.Error(0);
+    }
+
     if (sequenceOperandValid(entryOpcode, entryOperand) == false) {
       return new MinimalProgramResult.Error(0);
     }
@@ -270,7 +297,9 @@ classical class HelperParser {
       helperThirdOpcode,
       helperThirdOperand,
       helperFourthOpcode,
-      helperFourthOperand
+      helperFourthOperand,
+      helperFifthOpcode,
+      helperFifthOperand
     );
     return new MinimalProgramResult.Value(program);
   }
@@ -291,7 +320,8 @@ classical class HelperParser {
     long preReverseStatement,
     long helperSecondStatement,
     long helperThirdStatement,
-    long helperFourthStatement
+    long helperFourthStatement,
+    long helperFifthStatement
   ) {
     long entryStatement = -1;
     long entryClose = closeStart;
@@ -336,7 +366,8 @@ classical class HelperParser {
             preReverseStatement,
             helperSecondStatement,
             helperThirdStatement,
-            helperFourthStatement
+            helperFourthStatement,
+            helperFifthStatement
           );
         }
       }
@@ -350,6 +381,7 @@ classical class HelperParser {
     long second,
     long third,
     long fourth,
+    long fifth,
     boolean valid
   ) {}
 
@@ -364,43 +396,54 @@ classical class HelperParser {
   ) {
     long firstWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, body);
     if (firstWidth < 1) {
-      return new HelperStatements(-1, -1, -1, -1, false);
+      return new HelperStatements(-1, -1, -1, -1, -1, false);
     }
 
     long end = body + firstWidth;
     if (punctuationAt(source, tokenKinds, tokenStarts, end, PUNCTUATION_CLOSE_BRACE)) {
-      return new HelperStatements(end, -1, -1, -1, true);
+      return new HelperStatements(end, -1, -1, -1, -1, true);
     }
 
     long second = end;
     long secondWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, second);
     if (secondWidth < 1) {
-      return new HelperStatements(-1, second, -1, -1, false);
+      return new HelperStatements(-1, second, -1, -1, -1, false);
     }
 
     end += secondWidth;
     if (punctuationAt(source, tokenKinds, tokenStarts, end, PUNCTUATION_CLOSE_BRACE)) {
-      return new HelperStatements(end, second, -1, -1, true);
+      return new HelperStatements(end, second, -1, -1, -1, true);
     }
 
     long third = end;
     long thirdWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, third);
     if (thirdWidth < 1) {
-      return new HelperStatements(-1, second, third, -1, false);
+      return new HelperStatements(-1, second, third, -1, -1, false);
     }
 
     end += thirdWidth;
     if (punctuationAt(source, tokenKinds, tokenStarts, end, PUNCTUATION_CLOSE_BRACE)) {
-      return new HelperStatements(end, second, third, -1, true);
+      return new HelperStatements(end, second, third, -1, -1, true);
     }
 
     long fourth = end;
     long fourthWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, fourth);
     if (fourthWidth < 1) {
-      return new HelperStatements(-1, second, third, fourth, false);
+      return new HelperStatements(-1, second, third, fourth, -1, false);
     }
 
-    return new HelperStatements(end + fourthWidth, second, third, fourth, true);
+    end += fourthWidth;
+    if (punctuationAt(source, tokenKinds, tokenStarts, end, PUNCTUATION_CLOSE_BRACE)) {
+      return new HelperStatements(end, second, third, fourth, -1, true);
+    }
+
+    long fifth = end;
+    long fifthWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, fifth);
+    if (fifthWidth < 1) {
+      return new HelperStatements(-1, second, third, fourth, fifth, false);
+    }
+
+    return new HelperStatements(end + fifthWidth, second, third, fourth, fifth, true);
   }
 
   private boolean helperStatementsValid(
@@ -442,6 +485,14 @@ classical class HelperParser {
     if (-1 < statements.fourth) {
       if (
         reversibleBodyValid(source, tokenStarts, tokenLengths, statements.fourth) == false
+      ) {
+        return false;
+      }
+    }
+
+    if (-1 < statements.fifth) {
+      if (
+        reversibleBodyValid(source, tokenStarts, tokenLengths, statements.fifth) == false
       ) {
         return false;
       }
@@ -661,7 +712,8 @@ classical class HelperParser {
         -1,
         statements.second,
         statements.third,
-        statements.fourth
+        statements.fourth,
+        statements.fifth
       );
     }
 
@@ -716,7 +768,8 @@ classical class HelperParser {
       preReverseStatement,
       statements.second,
       statements.third,
-      statements.fourth
+      statements.fourth,
+      statements.fifth
     );
   }
 }

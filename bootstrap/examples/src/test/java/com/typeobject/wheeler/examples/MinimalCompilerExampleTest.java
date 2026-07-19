@@ -232,6 +232,22 @@ class MinimalCompilerExampleTest {
         3);
     assertDifferentialExecution(
         writerProgram,
+        "classical class FifthHelper { state long value = 1; "
+            + "void mix() { value += 2; value ^= 7; value -= 1; value += 4; "
+            + "assert(value == 7); } "
+            + "entry void main() { mix(); assert(value == 7); } }",
+        "value",
+        7);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class FifthHelperLocal { state long total = 1; "
+            + "void setup() { boolean first = false; boolean second = false; "
+            + "boolean third = false; boolean fourth = true; assert(fourth); } "
+            + "entry void main() { setup(); assert(total == 1); } }",
+        "total",
+        1);
+    assertDifferentialExecution(
+        writerProgram,
         "classical class DoubleCalls { state long value = 1; "
             + "void bump() { value += 2; } "
             + "entry void main() { bump(); bump(); assert(value == 5); } }",
@@ -431,6 +447,17 @@ class MinimalCompilerExampleTest {
         512);
     assertThrows(VmTrap.class, doubleNegation::run);
     assertArrayEquals(new byte[512], doubleNegation.hostOutput());
+
+    VirtualMachine sixthHelperStatement = new VirtualMachine(
+        writerProgram,
+        ("classical class SixHelperStatements { state long value = 0; "
+            + "void setup() { value += 1; value += 1; value += 1; "
+            + "value += 1; value += 1; value += 1; } "
+            + "entry void main() { setup(); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        1024);
+    assertThrows(VmTrap.class, sixthHelperStatement::run);
+    assertArrayEquals(new byte[1024], sixthHelperStatement.hostOutput());
 
     VirtualMachine sixthStatement = new VirtualMachine(
         writerProgram,

@@ -155,6 +155,8 @@ classical class Parser {
       -1,
       0,
       -1,
+      0,
+      -1,
       0
     );
     return new MinimalProgramResult.Value(program);
@@ -194,6 +196,8 @@ classical class Parser {
       0,
       0,
       0,
+      0,
+      -1,
       0,
       -1,
       0,
@@ -401,6 +405,8 @@ classical class Parser {
       0,
       0,
       0,
+      0,
+      -1,
       0,
       -1,
       0,

@@ -38,7 +38,9 @@ classical class CompilerIr {
     long helperThirdOpcode,
     long helperThirdOperand,
     long helperFourthOpcode,
-    long helperFourthOperand
+    long helperFourthOperand,
+    long helperFifthOpcode,
+    long helperFifthOperand
   ) {}
 
   /// Defines the closed `MinimalProgramResult` cases exported by this module.
