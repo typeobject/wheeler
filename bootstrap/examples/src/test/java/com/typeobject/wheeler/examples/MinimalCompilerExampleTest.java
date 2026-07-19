@@ -141,6 +141,11 @@ class MinimalCompilerExampleTest {
     assertDifferentialTrap(
         writerProgram,
         "classical class AssertNotTrue { entry void main() { assert(!true); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class LocalSeries { entry void main() { "
+            + "long amount = -2; boolean first = true; assert(!false); "
+            + "boolean second = !true; } }");
     assertDifferentialExecution(
         writerProgram,
         "classical class Empty { state long idle = 7; "
@@ -394,6 +399,16 @@ class MinimalCompilerExampleTest {
         512);
     assertThrows(VmTrap.class, doubleNegation::run);
     assertArrayEquals(new byte[512], doubleNegation.hostOutput());
+
+    VirtualMachine fifthStatement = new VirtualMachine(
+        writerProgram,
+        ("classical class FiveLocals { entry void main() { "
+            + "boolean a = true; boolean b = false; boolean c = true; "
+            + "boolean d = false; boolean e = true; } }")
+            .getBytes(StandardCharsets.UTF_8),
+        1024);
+    assertThrows(VmTrap.class, fifthStatement::run);
+    assertArrayEquals(new byte[1024], fifthStatement.hostOutput());
   }
 
   @Test
