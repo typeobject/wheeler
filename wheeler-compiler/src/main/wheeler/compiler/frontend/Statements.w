@@ -5,6 +5,89 @@ module wheeler.compiler.statements;
 import wheeler.compiler.tokens;
 
 classical class Statements {
+  private boolean booleanDeclaration(long opcode) {
+    if (opcode == STATEMENT_LOCAL_BOOLEAN) {
+      return true;
+    }
+
+    return opcode == STATEMENT_LOCAL_BOOLEAN_NOT;
+  }
+
+  /// Checks whether a resolved statement operand names a valid prior local.
+  public boolean sequenceOperandValid(long opcode, long operand) {
+    if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {
+      return -1 < operand;
+    }
+
+    return true;
+  }
+
+  /// Resolves one statement operand against up to three prior local declarations.
+  public long sequenceStatementOperand(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart,
+    long firstPrevious,
+    long secondPrevious,
+    long thirdPrevious
+  ) {
+    long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {} else {
+      return statementOperand(source, tokenStarts, tokenLengths, statementStart);
+    }
+
+    long assertedName = statementStart + 2;
+    long localBase = 0;
+    long matchedLocal = -1;
+    long matchCount = 0;
+    if (0 < firstPrevious) {
+      long firstOpcode = statementOpcode(source, tokenStarts, tokenLengths, firstPrevious);
+      if (booleanDeclaration(firstOpcode)) {
+        if (
+          sameTokenText(source, tokenStarts, tokenLengths, firstPrevious + 1, assertedName)
+        ) {
+          matchedLocal = statementResultLocal(firstOpcode, localBase);
+          matchCount += 1;
+        }
+      }
+
+      localBase += statementLocalCount(firstOpcode);
+    }
+
+    if (0 < secondPrevious) {
+      long secondOpcode = statementOpcode(source, tokenStarts, tokenLengths, secondPrevious);
+      if (booleanDeclaration(secondOpcode)) {
+        if (
+          sameTokenText(source, tokenStarts, tokenLengths, secondPrevious + 1, assertedName)
+        ) {
+          matchedLocal = statementResultLocal(secondOpcode, localBase);
+          matchCount += 1;
+        }
+      }
+
+      localBase += statementLocalCount(secondOpcode);
+    }
+
+    if (0 < thirdPrevious) {
+      long thirdOpcode = statementOpcode(source, tokenStarts, tokenLengths, thirdPrevious);
+      if (booleanDeclaration(thirdOpcode)) {
+        if (
+          sameTokenText(source, tokenStarts, tokenLengths, thirdPrevious + 1, assertedName)
+        ) {
+          matchedLocal = statementResultLocal(thirdOpcode, localBase);
+          matchCount += 1;
+        }
+      }
+    }
+
+    if (matchCount == 1) {
+      return matchedLocal;
+    }
+
+    return -1;
+  }
+
   /// Returns the typed-local width required by one parsed statement.
   public long statementLocalCount(long opcode) {
     if (opcode == STATEMENT_ASSERT_EQ) {
@@ -77,16 +160,36 @@ classical class Statements {
   ) {
     long statementKind = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
     if (statementKind == STATEMENT_ASSERT_EQ) {
-      if (punctuationAt(source, tokenKinds, tokenStarts, statementStart + 1, 40)) {
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 1,
+          PUNCTUATION_OPEN_PAREN
+        )
+      ) {
         if (tokenKinds[statementStart + 2] == 1) {
           if (
             sameTokenText(source, tokenStarts, tokenLengths, 6, statementStart + 2)
           ) {
             if (
-              punctuationAt(source, tokenKinds, tokenStarts, statementStart + 3, 61)
+              punctuationAt(
+                source,
+                tokenKinds,
+                tokenStarts,
+                statementStart + 3,
+                PUNCTUATION_ASSIGN
+              )
             ) {
               if (
-                punctuationAt(source, tokenKinds, tokenStarts, statementStart + 4, 61)
+                punctuationAt(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  statementStart + 4,
+                  PUNCTUATION_ASSIGN
+                )
               ) {
                 long assertWidth = signedNumberWidth(
                   source,
@@ -104,7 +207,7 @@ classical class Statements {
                         tokenKinds,
                         tokenStarts,
                         statementStart + 5 + assertWidth,
-                        41
+                        PUNCTUATION_CLOSE_PAREN
                       )
                     ) {
                       if (
@@ -113,7 +216,7 @@ classical class Statements {
                           tokenKinds,
                           tokenStarts,
                           statementStart + 6 + assertWidth,
-                          59
+                          PUNCTUATION_SEMICOLON
                         )
                       ) {
                         return 7 + assertWidth;
@@ -272,7 +375,15 @@ classical class Statements {
 
     if (statementKind == STATEMENT_LOCAL_LONG) {
       if (tokenKinds[statementStart + 1] == 1) {
-        if (punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, 61)) {
+        if (
+          punctuationAt(
+            source,
+            tokenKinds,
+            tokenStarts,
+            statementStart + 2,
+            PUNCTUATION_ASSIGN
+          )
+        ) {
           long localWidth = signedNumberWidth(
             source,
             tokenKinds,
@@ -289,7 +400,7 @@ classical class Statements {
                   tokenKinds,
                   tokenStarts,
                   statementStart + 3 + localWidth,
-                  59
+                  PUNCTUATION_SEMICOLON
                 )
               ) {
                 return 4 + localWidth;
@@ -304,7 +415,15 @@ classical class Statements {
 
     if (statementKind == STATEMENT_LOCAL_BOOLEAN) {
       if (tokenKinds[statementStart + 1] == 1) {
-        if (punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, 61)) {
+        if (
+          punctuationAt(
+            source,
+            tokenKinds,
+            tokenStarts,
+            statementStart + 2,
+            PUNCTUATION_ASSIGN
+          )
+        ) {
           // `true` and `false` use the same stable token hash as every keyword.
           long booleanLiteralHash = tokenHash(
             source,
@@ -314,7 +433,13 @@ classical class Statements {
           );
           if (booleanLiteralHash == TOKEN_TRUE) {
             if (
-              punctuationAt(source, tokenKinds, tokenStarts, statementStart + 4, 59)
+              punctuationAt(
+                source,
+                tokenKinds,
+                tokenStarts,
+                statementStart + 4,
+                PUNCTUATION_SEMICOLON
+              )
             ) {
               return 5;
             }
@@ -322,7 +447,13 @@ classical class Statements {
 
           if (booleanLiteralHash == TOKEN_FALSE) {
             if (
-              punctuationAt(source, tokenKinds, tokenStarts, statementStart + 4, 59)
+              punctuationAt(
+                source,
+                tokenKinds,
+                tokenStarts,
+                statementStart + 4,
+                PUNCTUATION_SEMICOLON
+              )
             ) {
               return 5;
             }
@@ -335,7 +466,15 @@ classical class Statements {
 
     if (statementKind == STATEMENT_LOCAL_BOOLEAN_NOT) {
       if (tokenKinds[statementStart + 1] == 1) {
-        if (punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, 61)) {
+        if (
+          punctuationAt(
+            source,
+            tokenKinds,
+            tokenStarts,
+            statementStart + 2,
+            PUNCTUATION_ASSIGN
+          )
+        ) {
           if (
             punctuationAt(
               source,
@@ -353,7 +492,13 @@ classical class Statements {
             );
             if (negatedLiteralHash == TOKEN_TRUE) {
               if (
-                punctuationAt(source, tokenKinds, tokenStarts, statementStart + 5, 59)
+                punctuationAt(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  statementStart + 5,
+                  PUNCTUATION_SEMICOLON
+                )
               ) {
                 return 6;
               }
@@ -361,7 +506,13 @@ classical class Statements {
 
             if (negatedLiteralHash == TOKEN_FALSE) {
               if (
-                punctuationAt(source, tokenKinds, tokenStarts, statementStart + 5, 59)
+                punctuationAt(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  statementStart + 5,
+                  PUNCTUATION_SEMICOLON
+                )
               ) {
                 return 6;
               }
@@ -393,7 +544,7 @@ classical class Statements {
                   tokenKinds,
                   tokenStarts,
                   statementStart + 2 + operandWidth,
-                  59
+                  PUNCTUATION_SEMICOLON
                 )
               ) {
                 return 3 + operandWidth;
@@ -403,7 +554,15 @@ classical class Statements {
         }
 
         if (0 < opcode) {
-          if (punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, 61)) {
+          if (
+            punctuationAt(
+              source,
+              tokenKinds,
+              tokenStarts,
+              statementStart + 2,
+              PUNCTUATION_ASSIGN
+            )
+          ) {
             long updateOperandWidth = signedNumberWidth(
               source,
               tokenKinds,
@@ -420,7 +579,7 @@ classical class Statements {
                     tokenKinds,
                     tokenStarts,
                     statementStart + 3 + updateOperandWidth,
-                    59
+                    PUNCTUATION_SEMICOLON
                   )
                 ) {
                   return 4 + updateOperandWidth;

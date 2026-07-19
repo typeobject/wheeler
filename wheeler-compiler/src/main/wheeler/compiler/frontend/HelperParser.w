@@ -35,9 +35,25 @@ classical class HelperParser {
     long callStart
   ) {
     if (sameTokenText(source, tokenStarts, tokenLengths, nameToken, callStart)) {
-      if (punctuationAt(source, tokenKinds, tokenStarts, callStart + 1, 40)) {
-        if (punctuationAt(source, tokenKinds, tokenStarts, callStart + 2, 41)) {
-          return punctuationAt(source, tokenKinds, tokenStarts, callStart + 3, 59);
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, callStart + 1, PUNCTUATION_OPEN_PAREN)
+      ) {
+        if (
+          punctuationAt(
+            source,
+            tokenKinds,
+            tokenStarts,
+            callStart + 2,
+            PUNCTUATION_CLOSE_PAREN
+          )
+        ) {
+          return punctuationAt(
+            source,
+            tokenKinds,
+            tokenStarts,
+            callStart + 3,
+            PUNCTUATION_SEMICOLON
+          );
         }
       }
     }
@@ -69,6 +85,16 @@ classical class HelperParser {
       proof = new SourceRange(tokenStarts[proofToken], tokenLengths[proofToken]);
     }
 
+    long helperOpcode = statementOpcode(source, tokenStarts, tokenLengths, helperBody);
+    long helperOperand = sequenceStatementOperand(
+      source,
+      tokenStarts,
+      tokenLengths,
+      helperBody,
+      -1,
+      -1,
+      -1
+    );
     long helperStatementCount = 1;
     long helperSecondOpcode = -1;
     long helperSecondOperand = 0;
@@ -84,11 +110,14 @@ classical class HelperParser {
         tokenLengths,
         helperSecondStatement
       );
-      helperSecondOperand = statementOperand(
+      helperSecondOperand = sequenceStatementOperand(
         source,
         tokenStarts,
         tokenLengths,
-        helperSecondStatement
+        helperSecondStatement,
+        helperBody,
+        -1,
+        -1
       );
     }
 
@@ -100,11 +129,14 @@ classical class HelperParser {
         tokenLengths,
         helperThirdStatement
       );
-      helperThirdOperand = statementOperand(
+      helperThirdOperand = sequenceStatementOperand(
         source,
         tokenStarts,
         tokenLengths,
-        helperThirdStatement
+        helperThirdStatement,
+        helperBody,
+        helperSecondStatement,
+        -1
       );
     }
 
@@ -116,11 +148,14 @@ classical class HelperParser {
         tokenLengths,
         helperFourthStatement
       );
-      helperFourthOperand = statementOperand(
+      helperFourthOperand = sequenceStatementOperand(
         source,
         tokenStarts,
         tokenLengths,
-        helperFourthStatement
+        helperFourthStatement,
+        helperBody,
+        helperSecondStatement,
+        helperThirdStatement
       );
     }
 
@@ -134,19 +169,67 @@ classical class HelperParser {
       entryCount = 1;
       preReverseCount = 1;
       entryOpcode = statementOpcode(source, tokenStarts, tokenLengths, preReverseStatement);
-      entryOperand = statementOperand(source, tokenStarts, tokenLengths, preReverseStatement);
+      entryOperand = sequenceStatementOperand(
+        source,
+        tokenStarts,
+        tokenLengths,
+        preReverseStatement,
+        -1,
+        -1,
+        -1
+      );
     }
 
     if (-1 < entryStatement) {
       if (entryCount == 0) {
         entryCount = 1;
         entryOpcode = statementOpcode(source, tokenStarts, tokenLengths, entryStatement);
-        entryOperand = statementOperand(source, tokenStarts, tokenLengths, entryStatement);
+        entryOperand = sequenceStatementOperand(
+          source,
+          tokenStarts,
+          tokenLengths,
+          entryStatement,
+          -1,
+          -1,
+          -1
+        );
       } else {
         entryCount = 2;
         secondEntryOpcode = statementOpcode(source, tokenStarts, tokenLengths, entryStatement);
-        secondEntryOperand = statementOperand(source, tokenStarts, tokenLengths, entryStatement);
+        secondEntryOperand = sequenceStatementOperand(
+          source,
+          tokenStarts,
+          tokenLengths,
+          entryStatement,
+          preReverseStatement,
+          -1,
+          -1
+        );
       }
+    }
+
+    if (sequenceOperandValid(helperOpcode, helperOperand) == false) {
+      return new MinimalProgramResult.Error(0);
+    }
+
+    if (sequenceOperandValid(helperSecondOpcode, helperSecondOperand) == false) {
+      return new MinimalProgramResult.Error(0);
+    }
+
+    if (sequenceOperandValid(helperThirdOpcode, helperThirdOperand) == false) {
+      return new MinimalProgramResult.Error(0);
+    }
+
+    if (sequenceOperandValid(helperFourthOpcode, helperFourthOperand) == false) {
+      return new MinimalProgramResult.Error(0);
+    }
+
+    if (sequenceOperandValid(entryOpcode, entryOperand) == false) {
+      return new MinimalProgramResult.Error(0);
+    }
+
+    if (sequenceOperandValid(secondEntryOpcode, secondEntryOperand) == false) {
+      return new MinimalProgramResult.Error(0);
     }
 
     MinimalProgram program = new MinimalProgram(
@@ -165,8 +248,8 @@ classical class HelperParser {
       0,
       helper,
       1,
-      statementOpcode(source, tokenStarts, tokenLengths, helperBody),
-      statementOperand(source, tokenStarts, tokenLengths, helperBody),
+      helperOpcode,
+      helperOperand,
       reversible,
       proof,
       proofCount,
@@ -203,7 +286,9 @@ classical class HelperParser {
   ) {
     long entryStatement = -1;
     long entryClose = closeStart;
-    if (punctuationAt(source, tokenKinds, tokenStarts, entryClose, 125)) {
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, entryClose, PUNCTUATION_CLOSE_BRACE)
+    ) {
       entryClose = closeStart;
     } else {
       long entryWidth = statementWidth(
@@ -221,8 +306,12 @@ classical class HelperParser {
       entryClose += entryWidth;
     }
 
-    if (punctuationAt(source, tokenKinds, tokenStarts, entryClose, 125)) {
-      if (punctuationAt(source, tokenKinds, tokenStarts, entryClose + 1, 125)) {
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, entryClose, PUNCTUATION_CLOSE_BRACE)
+    ) {
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, entryClose + 1, PUNCTUATION_CLOSE_BRACE)
+      ) {
         if (count == entryClose + 2) {
           return helperProgram(
             source,
@@ -270,7 +359,7 @@ classical class HelperParser {
     }
 
     long end = body + firstWidth;
-    if (punctuationAt(source, tokenKinds, tokenStarts, end, 125)) {
+    if (punctuationAt(source, tokenKinds, tokenStarts, end, PUNCTUATION_CLOSE_BRACE)) {
       return new HelperStatements(end, -1, -1, -1, true);
     }
 
@@ -281,7 +370,7 @@ classical class HelperParser {
     }
 
     end += secondWidth;
-    if (punctuationAt(source, tokenKinds, tokenStarts, end, 125)) {
+    if (punctuationAt(source, tokenKinds, tokenStarts, end, PUNCTUATION_CLOSE_BRACE)) {
       return new HelperStatements(end, second, -1, -1, true);
     }
 
@@ -292,7 +381,7 @@ classical class HelperParser {
     }
 
     end += thirdWidth;
-    if (punctuationAt(source, tokenKinds, tokenStarts, end, 125)) {
+    if (punctuationAt(source, tokenKinds, tokenStarts, end, PUNCTUATION_CLOSE_BRACE)) {
       return new HelperStatements(end, second, third, -1, true);
     }
 
@@ -382,7 +471,10 @@ classical class HelperParser {
       return absent;
     }
 
-    if (punctuationAt(source, tokenKinds, tokenStarts, entryStart + 4, 40) == false) {
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, entryStart + 4, PUNCTUATION_OPEN_PAREN)
+        == false
+    ) {
       return absent;
     }
 
@@ -392,11 +484,16 @@ classical class HelperParser {
       return absent;
     }
 
-    if (punctuationAt(source, tokenKinds, tokenStarts, entryStart + 6, 41) == false) {
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, entryStart + 6, PUNCTUATION_CLOSE_PAREN)
+        == false
+    ) {
       return absent;
     }
 
-    if (punctuationAt(source, tokenKinds, tokenStarts, entryStart + 7, 59) == false) {
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, entryStart + 7, PUNCTUATION_SEMICOLON) == false
+    ) {
       return absent;
     }
 
@@ -436,15 +533,22 @@ classical class HelperParser {
       return new MinimalProgramResult.Error(0);
     }
 
-    if (punctuationAt(source, tokenKinds, tokenStarts, nameToken + 1, 40) == false) {
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, nameToken + 1, PUNCTUATION_OPEN_PAREN) == false
+    ) {
       return new MinimalProgramResult.Error(0);
     }
 
-    if (punctuationAt(source, tokenKinds, tokenStarts, nameToken + 2, 41) == false) {
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, nameToken + 2, PUNCTUATION_CLOSE_PAREN)
+        == false
+    ) {
       return new MinimalProgramResult.Error(0);
     }
 
-    if (punctuationAt(source, tokenKinds, tokenStarts, nameToken + 3, 123) == false) {
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, nameToken + 3, PUNCTUATION_OPEN_BRACE) == false
+    ) {
       return new MinimalProgramResult.Error(0);
     }
 
@@ -469,7 +573,10 @@ classical class HelperParser {
       return new MinimalProgramResult.Error(0);
     }
 
-    if (punctuationAt(source, tokenKinds, tokenStarts, statements.end, 125) == false) {
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, statements.end, PUNCTUATION_CLOSE_BRACE)
+        == false
+    ) {
       return new MinimalProgramResult.Error(0);
     }
 
@@ -553,7 +660,10 @@ classical class HelperParser {
       return new MinimalProgramResult.Error(0);
     }
 
-    if (punctuationAt(source, tokenKinds, tokenStarts, afterCalls + 1, 123) == false) {
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, afterCalls + 1, PUNCTUATION_OPEN_BRACE)
+        == false
+    ) {
       return new MinimalProgramResult.Error(0);
     }
 
@@ -575,7 +685,9 @@ classical class HelperParser {
       reverseEnd += 4;
     }
 
-    if (punctuationAt(source, tokenKinds, tokenStarts, reverseEnd, 125) == false) {
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, reverseEnd, PUNCTUATION_CLOSE_BRACE) == false
+    ) {
       return new MinimalProgramResult.Error(0);
     }
 

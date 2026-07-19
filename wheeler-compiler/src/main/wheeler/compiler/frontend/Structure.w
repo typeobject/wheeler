@@ -30,16 +30,26 @@ classical class Structure {
     if (tokenHash(source, tokenStarts, tokenLengths, 0) == TOKEN_CLASSICAL) {
       if (tokenHash(source, tokenStarts, tokenLengths, 1) == TOKEN_CLASS) {
         if (canonicalMinimalNames(tokenKinds, tokenLengths)) {
-          if (punctuationAt(source, tokenKinds, tokenStarts, 3, 123)) {
+          if (
+            punctuationAt(source, tokenKinds, tokenStarts, 3, PUNCTUATION_OPEN_BRACE)
+          ) {
             if (tokenHash(source, tokenStarts, tokenLengths, 4) == TOKEN_STATE) {
               if (tokenHash(source, tokenStarts, tokenLengths, 5) == TOKEN_LONG) {
-                if (punctuationAt(source, tokenKinds, tokenStarts, 7, 61)) {
+                if (
+                  punctuationAt(source, tokenKinds, tokenStarts, 7, PUNCTUATION_ASSIGN)
+                ) {
                   long width = signedNumberWidth(source, tokenKinds, tokenStarts, 8);
                   if (0 < width) {
                     if (signedNumberValid(source, tokenStarts, tokenLengths, 8)) {
                       long semicolon = 8 + width;
                       if (
-                        punctuationAt(source, tokenKinds, tokenStarts, semicolon, 59)
+                        punctuationAt(
+                          source,
+                          tokenKinds,
+                          tokenStarts,
+                          semicolon,
+                          PUNCTUATION_SEMICOLON
+                        )
                       ) {
                         return semicolon + 1;
                       }
@@ -69,10 +79,32 @@ classical class Structure {
         if (
           tokenHash(source, tokenStarts, tokenLengths, entryStart + 2) == TOKEN_MAIN
         ) {
-          if (punctuationAt(source, tokenKinds, tokenStarts, entryStart + 3, 40)) {
-            if (punctuationAt(source, tokenKinds, tokenStarts, entryStart + 4, 41)) {
+          if (
+            punctuationAt(
+              source,
+              tokenKinds,
+              tokenStarts,
+              entryStart + 3,
+              PUNCTUATION_OPEN_PAREN
+            )
+          ) {
+            if (
+              punctuationAt(
+                source,
+                tokenKinds,
+                tokenStarts,
+                entryStart + 4,
+                PUNCTUATION_CLOSE_PAREN
+              )
+            ) {
               if (
-                punctuationAt(source, tokenKinds, tokenStarts, entryStart + 5, 123)
+                punctuationAt(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  entryStart + 5,
+                  PUNCTUATION_OPEN_BRACE
+                )
               ) {
                 return entryStart + 6;
               }

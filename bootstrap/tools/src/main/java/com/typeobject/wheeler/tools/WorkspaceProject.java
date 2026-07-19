@@ -1,6 +1,8 @@
 package com.typeobject.wheeler.tools;
 
 import com.typeobject.wheeler.packageformat.BuildPlan;
+import com.typeobject.wheeler.packageformat.PackageArchive;
+import com.typeobject.wheeler.packageformat.PackageArchive.DecodedPackage;
 import com.typeobject.wheeler.packageformat.PackageFormatException;
 import com.typeobject.wheeler.packageformat.WorkspaceManifest;
 import com.typeobject.wheeler.packageformat.WorkspaceManifestParser;
@@ -10,6 +12,8 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /** Capability-minimal host adapter for one local Wheeler workspace. */
 final class WorkspaceProject {
@@ -30,6 +34,18 @@ final class WorkspaceProject {
   static boolean exists(Path requestedRoot) {
     return Files.isRegularFile(
         requestedRoot.resolve(MANIFEST_NAME), LinkOption.NOFOLLOW_LINKS);
+  }
+
+  static Map<String, DecodedPackage> adjacentPackageArchives(Path packageRoot)
+      throws IOException {
+    Path repositoryRoot = packageRoot.getParent();
+    if (repositoryRoot == null || !exists(repositoryRoot)) {
+      return Map.of();
+    }
+    WorkspaceProject workspace = load(repositoryRoot);
+    boolean member = workspace.members.stream()
+        .anyMatch(candidate -> candidate.project().root().equals(packageRoot));
+    return member ? workspace.packageArchives() : Map.of();
   }
 
   static WorkspaceProject load(Path requestedRoot) throws IOException {
@@ -117,6 +133,19 @@ final class WorkspaceProject {
 
   Path defaultPlanPath() {
     return defaultBuildDirectory().resolve(PLAN_FILE_NAME);
+  }
+
+  private Map<String, DecodedPackage> packageArchives() throws IOException {
+    Map<String, DecodedPackage> packages = new TreeMap<>();
+    PackageArchive codec = new PackageArchive();
+    for (MemberProject member : members) {
+      DecodedPackage decoded = codec.decode(member.project().archive());
+      if (packages.putIfAbsent(decoded.manifest().name(), decoded) != null) {
+        throw new PackageFormatException(
+            "Duplicate workspace package " + decoded.manifest().name());
+      }
+    }
+    return Map.copyOf(packages);
   }
 
   private static Path physicalMember(Path root, String logicalPath) throws IOException {

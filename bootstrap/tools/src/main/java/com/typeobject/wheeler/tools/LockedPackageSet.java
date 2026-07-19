@@ -83,20 +83,41 @@ final class LockedPackageSet {
       requirePhysicalFile(archivePath, "locked package");
       byte[] bytes = Files.readAllBytes(archivePath);
       DecodedPackage decoded = codec.decode(bytes);
-      if (!decoded.identity().equals(entry.archiveIdentity())
-          || !decoded.manifest().identity().equals(entry.manifestIdentity())
-          || !decoded.manifest().name().equals(entry.name())
-          || !decoded.manifest().version().equals(entry.version())) {
-        throw new PackageFormatException("Locked package identity mismatch for " + entry.name());
-      }
-      if (!decoded.manifest().profile().equals(root.profile())) {
-        throw new PackageFormatException(
-            "Dependency profile mismatch for " + entry.name());
-      }
+      requireLockedPackage(root, entry, decoded);
       packages.put(entry.name(), decoded);
     }
     verifyExactFiles(vendor, expectedFiles);
+    return create(root, lock, packages);
+  }
 
+  static LockedPackageSet loadWorkspaceMembers(
+      Path packageRoot,
+      PackageManifest root,
+      Map<String, DecodedPackage> workspacePackages) throws IOException {
+    Path lockPath = packageRoot.resolve(PackageLock.FILE_NAME);
+    requirePhysicalFile(lockPath, "package lock");
+    PackageLock lock = new PackageLockParser().parse(Files.readAllBytes(lockPath));
+    if (!lock.rootManifestIdentity().equals(root.identity())) {
+      throw new PackageFormatException("Lock root does not match " + root.name());
+    }
+
+    Map<String, DecodedPackage> packages = new LinkedHashMap<>();
+    for (PackageLock.Entry entry : lock.entries()) {
+      DecodedPackage decoded = workspacePackages.get(entry.name());
+      if (decoded == null) {
+        throw new PackageFormatException(
+            "Locked dependency is not a workspace member: " + entry.name());
+      }
+      requireLockedPackage(root, entry, decoded);
+      packages.put(entry.name(), decoded);
+    }
+    return create(root, lock, packages);
+  }
+
+  private static LockedPackageSet create(
+      PackageManifest root,
+      PackageLock lock,
+      Map<String, DecodedPackage> packages) {
     boolean normal = graphMatches(root, lock, packages, false);
     boolean development = graphMatches(root, lock, packages, true);
     if (!normal && !development) {
@@ -109,6 +130,21 @@ final class LockedPackageSet {
         topologicalOrder(root, lock, includeDevelopment),
         root.dependencies(),
         includeDevelopment);
+  }
+
+  private static void requireLockedPackage(
+      PackageManifest root,
+      PackageLock.Entry entry,
+      DecodedPackage decoded) {
+    if (!decoded.identity().equals(entry.archiveIdentity())
+        || !decoded.manifest().identity().equals(entry.manifestIdentity())
+        || !decoded.manifest().name().equals(entry.name())
+        || !decoded.manifest().version().equals(entry.version())) {
+      throw new PackageFormatException("Locked package identity mismatch for " + entry.name());
+    }
+    if (!decoded.manifest().profile().equals(root.profile())) {
+      throw new PackageFormatException("Dependency profile mismatch for " + entry.name());
+    }
   }
 
   void check() {

@@ -36,7 +36,7 @@ Physical directories group one concern and contain at most ten `.w` files; `sour
 
 Add a directory when a new concern appears instead of growing a miscellaneous drawer. A source tree should be navigable with `find`, not an expedition permit.
 
-Generated Wheeler artifacts belong under `<repository>/build/<workspace-member>/` (or a standalone package's `build/`). Package-local `vendor/` trees are committed dependency inputs, not outputs: they carry the exact offline archive closure and `wheeler.package.lock`, and `clean` must not eat the ladder used for bootstrap.
+Generated Wheeler artifacts belong under `<repository>/build/<workspace-member>/` (or a standalone package's `build/`) and that root is ignored. Package-local `vendor/` trees are generated offline inputs and are ignored too; do not commit a small archive warehouse once the exact lock and workspace sources can reproduce it. `clean` removes `build/`, not source, locks, or an explicitly materialized vendor closure.
 
 ## Review standard
 

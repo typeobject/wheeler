@@ -115,9 +115,15 @@ public final class PackageArchive {
   private static void requireTargetSources(
       PackageManifest manifest, Map<String, byte[]> entries) {
     for (PackageManifest.Target target : manifest.targets()) {
-      for (String source : target.sources()) {
-        if (!entries.containsKey(source)) {
-          throw new PackageFormatException("Package is missing target source " + source);
+      if (!entries.containsKey(target.root())) {
+        throw new PackageFormatException("Package is missing target root " + target.root());
+      }
+      for (String selector : target.sources()) {
+        boolean selected = entries.containsKey(selector)
+            || entries.keySet().stream().anyMatch(
+                path -> path.startsWith(selector + "/") && path.endsWith(".w"));
+        if (!selected) {
+          throw new PackageFormatException("Package is missing source selector " + selector);
         }
       }
     }

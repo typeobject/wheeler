@@ -14,6 +14,7 @@ import com.typeobject.wheeler.runtime.WheelerRuntime;
 import com.typeobject.wheeler.runtime.quantum.StateVectorTarget;
 import com.typeobject.wheeler.packageformat.PackageArchive;
 import com.typeobject.wheeler.packageformat.PackageFormatException;
+import com.typeobject.wheeler.packageformat.PackageLock;
 import com.typeobject.wheeler.packageformat.PackageManifest;
 import com.typeobject.wheeler.packageformat.PackageManifestParser;
 import java.io.IOException;
@@ -34,6 +35,7 @@ import java.util.stream.Stream;
 final class PackageProject {
   static final String BUILD_DIRECTORY_NAME = "build";
   static final String MANIFEST_NAME = "wheeler.package";
+  private static final int MAX_EXPANDED_SOURCES = 1_024;
 
   private final Path root;
   private final PackageManifest manifest;
@@ -59,6 +61,10 @@ final class PackageProject {
 
   PackageManifest manifest() {
     return manifest;
+  }
+
+  Path root() {
+    return root;
   }
 
   void check() throws IOException {
@@ -218,9 +224,7 @@ final class PackageProject {
   byte[] archive() throws IOException {
     Map<String, byte[]> entries = new TreeMap<>();
     for (PackageManifest.Target target : manifest.targets()) {
-      for (String source : target.sources()) {
-        entries.put(source, readSource(source));
-      }
+      entries.putAll(targetEntries(target, false));
     }
     return new PackageArchive().encode(manifest, entries);
   }
@@ -247,7 +251,17 @@ final class PackageProject {
   }
 
   private LockedPackageSet dependencies() throws IOException {
-    return manifest.dependencies().isEmpty() ? null : LockedPackageSet.load(root, manifest);
+    if (manifest.dependencies().isEmpty()) {
+      return null;
+    }
+    Map<String, PackageArchive.DecodedPackage> workspacePackages =
+        WorkspaceProject.adjacentPackageArchives(root);
+    if (!workspacePackages.isEmpty()
+        && Files.isRegularFile(
+            root.resolve(PackageLock.FILE_NAME), LinkOption.NOFOLLOW_LINKS)) {
+      return LockedPackageSet.loadWorkspaceMembers(root, manifest, workspacePackages);
+    }
+    return LockedPackageSet.load(root, manifest);
   }
 
   private List<CompiledCase> compileTestCases(
@@ -314,16 +328,59 @@ final class PackageProject {
   private Map<String, byte[]> targetEntries(
       PackageManifest.Target target, boolean enforcePlanLimit) throws IOException {
     Map<String, byte[]> entries = new TreeMap<>();
-    for (String logicalPath : target.sources()) {
-      byte[] source = readSource(logicalPath);
-      if (enforcePlanLimit
-          && source.length > BuildPlan.ExecutionLimits.DEFAULT.maxInputBytes()) {
-        throw new PackageFormatException(
-            "Target source exceeds the build input limit: " + logicalPath);
+    for (String selector : target.sources()) {
+      Path selected = sourceSelection(selector);
+      if (Files.isRegularFile(selected, LinkOption.NOFOLLOW_LINKS)) {
+        addSource(entries, selector, selected, enforcePlanLimit);
+      } else {
+        int before = entries.size();
+        try (Stream<Path> paths = Files.walk(selected)) {
+          for (Path path : paths.toList()) {
+            if (Files.isSymbolicLink(path)) {
+              throw new IOException("Source directory contains a symbolic link: " + selector);
+            }
+            if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
+              continue;
+            }
+            if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)) {
+              throw new IOException("Source directory contains a special file: " + selector);
+            }
+            if (!path.getFileName().toString().endsWith(".w")) {
+              continue;
+            }
+            String separator = path.getFileSystem().getSeparator();
+            String logicalPath = root.relativize(path).toString().replace(separator, "/");
+            addSource(entries, logicalPath, path, enforcePlanLimit);
+          }
+        }
+        if (entries.size() == before) {
+          throw new PackageFormatException(
+              "Source directory contains no Wheeler files: " + selector);
+        }
       }
-      entries.put(logicalPath, source);
+      if (entries.size() > MAX_EXPANDED_SOURCES) {
+        throw new PackageFormatException(
+            "Target source expansion exceeds " + MAX_EXPANDED_SOURCES + " files");
+      }
+    }
+    if (!entries.containsKey(target.root())) {
+      throw new PackageFormatException("Target source selectors omit root " + target.root());
     }
     return Map.copyOf(entries);
+  }
+
+  private void addSource(
+      Map<String, byte[]> entries,
+      String logicalPath,
+      Path path,
+      boolean enforcePlanLimit) throws IOException {
+    byte[] source = Files.readAllBytes(path);
+    if (enforcePlanLimit
+        && source.length > BuildPlan.ExecutionLimits.DEFAULT.maxInputBytes()) {
+      throw new PackageFormatException(
+          "Target source exceeds the build input limit: " + logicalPath);
+    }
+    entries.put(logicalPath, source);
   }
 
   private byte[] readSource(String logicalPath) throws IOException {
@@ -331,6 +388,14 @@ final class PackageProject {
   }
 
   private Path source(String logicalPath) throws IOException {
+    Path source = sourceSelection(logicalPath);
+    if (!Files.isRegularFile(source, LinkOption.NOFOLLOW_LINKS)) {
+      throw new IOException("Target root is not a physical package file: " + logicalPath);
+    }
+    return source;
+  }
+
+  private Path sourceSelection(String logicalPath) throws IOException {
     Path current = root;
     for (String component : logicalPath.split("/")) {
       current = current.resolve(component);
@@ -340,9 +405,10 @@ final class PackageProject {
     }
     Path source = current.toRealPath(LinkOption.NOFOLLOW_LINKS);
     if (!source.startsWith(root)
-        || !Files.isRegularFile(source, LinkOption.NOFOLLOW_LINKS)
-        || Files.isSymbolicLink(source)) {
-      throw new IOException("Target source is not a physical package file: " + logicalPath);
+        || Files.isSymbolicLink(source)
+        || (!Files.isRegularFile(source, LinkOption.NOFOLLOW_LINKS)
+            && !Files.isDirectory(source, LinkOption.NOFOLLOW_LINKS))) {
+      throw new IOException("Target source is not a physical package input: " + logicalPath);
     }
     return source;
   }

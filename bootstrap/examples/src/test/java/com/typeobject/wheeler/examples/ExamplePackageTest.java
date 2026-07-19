@@ -7,6 +7,7 @@ import com.typeobject.wheeler.packageformat.PackageManifest;
 import com.typeobject.wheeler.packageformat.PackageManifestParser;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Stream;
@@ -21,16 +22,21 @@ class ExamplePackageTest {
     assertEquals(Files.readString(manifestPath), manifest.canonicalText());
 
     Map<String, byte[]> entries = new TreeMap<>();
-    for (PackageManifest.Target target : manifest.targets()) {
-      for (String source : target.sources()) {
-        entries.put(source, Files.readAllBytes(Path.of(source)));
+    try (Stream<Path> sourceFiles = Files.walk(Path.of("src/main/wheeler"))) {
+      for (Path source : sourceFiles
+          .filter(path -> path.getFileName().toString().endsWith(".w"))
+          .toList()) {
+        entries.put(source.toString(), Files.readAllBytes(source));
       }
     }
-    try (Stream<Path> sourceFiles = Files.walk(Path.of("src/main/wheeler"))) {
-      assertEquals(
-          sourceFiles.filter(path -> path.getFileName().toString().endsWith(".w")).count(),
-          entries.size());
-    }
+    assertEquals(
+        List.of(),
+        entries.keySet().stream()
+            .filter(path -> manifest.targets().stream()
+                .flatMap(target -> target.sources().stream())
+                .noneMatch(selector -> path.equals(selector)
+                    || path.startsWith(selector + "/")))
+            .toList());
 
     PackageArchive.DecodedPackage decoded = new PackageArchive().decode(
         new PackageArchive().encode(manifest, entries));

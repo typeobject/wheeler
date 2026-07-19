@@ -1,5 +1,5 @@
 package "wheeler.runtime" version "0.1.0" profile "bootstrap-1";
-target library "library" root "src/main/wheeler/RuntimeLibrary.w" module "wheeler.runtime.library" source "src/main/wheeler/RuntimeLibrary.w" source "src/main/wheeler/runtime/AggregateInterpreter.w" source "src/main/wheeler/runtime/Interpreter.w" source "src/main/wheeler/runtime/MapInterpreter.w" source "src/main/wheeler/runtime/StorageInterpreter.w" source "src/main/wheeler/runtime/Utf8Interpreter.w";
+target library "library" root "src/main/wheeler/RuntimeLibrary.w" module "wheeler.runtime.library" source "src/main/wheeler";
 dependency normal "wheeler.compiler" version "=0.1.0";
 dependency normal "wheeler.core" version "=0.1.0";
 capability "build.read" path "src/main/wheeler/**";

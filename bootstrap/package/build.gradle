@@ -6,7 +6,6 @@ tasks.named('test') {
     inputs.files(
         fileTree(new File(wheelerRoot, 'src/main/wheeler')) { include '**/*.w' },
         new File(wheelerRoot, 'wheeler.package'),
-        new File(wheelerRoot, 'wheeler.package.lock'),
-        fileTree(new File(wheelerRoot, 'vendor')) { include '*.wpk', 'wheeler.package.lock' })
+        new File(wheelerRoot, 'wheeler.package.lock'))
         .withPathSensitivity(PathSensitivity.RELATIVE)
 }

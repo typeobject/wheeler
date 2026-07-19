@@ -1,5 +1,5 @@
 package "wheeler.packages" version "0.1.0" profile "bootstrap-1";
-target library "library" root "src/main/wheeler/PackageLibrary.w" module "wheeler.packages.library" source "src/main/wheeler/PackageLibrary.w" source "src/main/wheeler/packages/archive/Archive.w" source "src/main/wheeler/packages/manifest/LineEmitter.w" source "src/main/wheeler/packages/manifest/Manifest.w" source "src/main/wheeler/packages/manifest/ManifestEmitter.w" source "src/main/wheeler/packages/manifest/ManifestTokens.w" source "src/main/wheeler/packages/resolution/Lock.w" source "src/main/wheeler/packages/resolution/Plan.w" source "src/main/wheeler/packages/resolution/PlanIdentity.w" source "src/main/wheeler/packages/resolution/Semver.w" source "src/main/wheeler/packages/workspace/Names.w" source "src/main/wheeler/packages/workspace/Paths.w" source "src/main/wheeler/packages/workspace/Workspace.w";
+target library "library" root "src/main/wheeler/PackageLibrary.w" module "wheeler.packages.library" source "src/main/wheeler";
 dependency normal "wheeler.compiler" version "=0.1.0";
 dependency normal "wheeler.core" version "=0.1.0";
 capability "build.read" path "src/main/wheeler/**";

@@ -140,9 +140,15 @@ public record PackageManifest(
             Comparator.naturalOrder(),
             value -> value,
             "target source").stream().map(PackageManifest::logicalPath).toList();
-        if (sources.isEmpty() || sources.size() > 1_024 || !sources.contains(root)) {
+        boolean rootCovered = false;
+        for (String source : sources) {
+          if (root.equals(source) || root.startsWith(source + "/")) {
+            rootCovered = true;
+          }
+        }
+        if (sources.isEmpty() || sources.size() > 1_024 || !rootCovered) {
           throw new PackageFormatException(
-              "Module target sources must include its root and fit the 1,024-source limit");
+              "Module source selectors must cover the root and fit the 1,024-selector limit");
         }
       }
     }

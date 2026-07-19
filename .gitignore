@@ -32,6 +32,7 @@ hs_err_pid*
 
 # Project specific
 *.wheel
+vendor/
 
 # Logs
 logs/

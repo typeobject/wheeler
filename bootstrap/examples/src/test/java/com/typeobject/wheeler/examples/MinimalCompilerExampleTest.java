@@ -327,6 +327,18 @@ class MinimalCompilerExampleTest {
         1);
     assertDifferentialExecution(
         writerProgram,
+        "classical class HelperTruth { state long total = 1; "
+            + "void setup() { boolean ready = !false; assert(ready); total += 4; } "
+            + "entry void main() { setup(); assert(total == 5); } }",
+        "total",
+        5);
+    assertDifferentialTrap(
+        writerProgram,
+        "classical class HelperFalse { state long total = 1; "
+            + "void setup() { boolean ready = false; assert(ready); } "
+            + "entry void main() { setup(); } }");
+    assertDifferentialExecution(
+        writerProgram,
         "classical class Asserted { state long value = 1; "
             + "entry void main() { value += 2; assert(value == 3); } }",
         "value",
@@ -425,6 +437,15 @@ class MinimalCompilerExampleTest {
         512);
     assertThrows(VmTrap.class, unresolvedLocal::run);
     assertArrayEquals(new byte[512], unresolvedLocal.hostOutput());
+
+    VirtualMachine unresolvedHelperLocal = new VirtualMachine(
+        writerProgram,
+        ("classical class UnknownHelperLocal { state long total = 0; "
+            + "void setup() { assert(missing); } entry void main() { setup(); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, unresolvedHelperLocal::run);
+    assertArrayEquals(new byte[512], unresolvedHelperLocal.hostOutput());
   }
 
   @Test

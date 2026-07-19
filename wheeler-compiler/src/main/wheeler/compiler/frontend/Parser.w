@@ -10,87 +10,6 @@ import wheeler.compiler.tokens;
 
 classical class Parser {
 
-  private boolean booleanDeclaration(long opcode) {
-    if (opcode == STATEMENT_LOCAL_BOOLEAN) {
-      return true;
-    }
-
-    return opcode == STATEMENT_LOCAL_BOOLEAN_NOT;
-  }
-
-  private boolean sequenceOperandValid(long opcode, long operand) {
-    if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {
-      return -1 < operand;
-    }
-
-    return true;
-  }
-
-  private long sequenceStatementOperand(
-    borrow utf8 source,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    long statementStart,
-    long firstPrevious,
-    long secondPrevious,
-    long thirdPrevious
-  ) {
-    long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
-    if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {} else {
-      return statementOperand(source, tokenStarts, tokenLengths, statementStart);
-    }
-
-    long assertedName = statementStart + 2;
-    long localBase = 0;
-    long matchedLocal = -1;
-    long matchCount = 0;
-    if (0 < firstPrevious) {
-      long firstOpcode = statementOpcode(source, tokenStarts, tokenLengths, firstPrevious);
-      if (booleanDeclaration(firstOpcode)) {
-        if (
-          sameTokenText(source, tokenStarts, tokenLengths, firstPrevious + 1, assertedName)
-        ) {
-          matchedLocal = statementResultLocal(firstOpcode, localBase);
-          matchCount += 1;
-        }
-      }
-
-      localBase += statementLocalCount(firstOpcode);
-    }
-
-    if (0 < secondPrevious) {
-      long secondOpcode = statementOpcode(source, tokenStarts, tokenLengths, secondPrevious);
-      if (booleanDeclaration(secondOpcode)) {
-        if (
-          sameTokenText(source, tokenStarts, tokenLengths, secondPrevious + 1, assertedName)
-        ) {
-          matchedLocal = statementResultLocal(secondOpcode, localBase);
-          matchCount += 1;
-        }
-      }
-
-      localBase += statementLocalCount(secondOpcode);
-    }
-
-    if (0 < thirdPrevious) {
-      long thirdOpcode = statementOpcode(source, tokenStarts, tokenLengths, thirdPrevious);
-      if (booleanDeclaration(thirdOpcode)) {
-        if (
-          sameTokenText(source, tokenStarts, tokenLengths, thirdPrevious + 1, assertedName)
-        ) {
-          matchedLocal = statementResultLocal(thirdOpcode, localBase);
-          matchCount += 1;
-        }
-      }
-    }
-
-    if (matchCount == 1) {
-      return matchedLocal;
-    }
-
-    return -1;
-  }
-
   private MinimalProgramResult minimalProgramValue(
     borrow utf8 source,
     borrow mut words tokenStarts,
@@ -266,13 +185,33 @@ classical class Parser {
       if (tokenHash(source, tokenStarts, tokenLengths, 1) == TOKEN_CLASS) {
         if (tokenKinds[2] == 1) {
           if (tokenLengths[2] < 257) {
-            if (punctuationAt(source, tokenKinds, tokenStarts, 3, 123)) {
+            if (
+              punctuationAt(source, tokenKinds, tokenStarts, 3, PUNCTUATION_OPEN_BRACE)
+            ) {
               if (tokenHash(source, tokenStarts, tokenLengths, 4) == TOKEN_ENTRY) {
                 if (tokenHash(source, tokenStarts, tokenLengths, 5) == TOKEN_VOID) {
                   if (tokenHash(source, tokenStarts, tokenLengths, 6) == TOKEN_MAIN) {
-                    if (punctuationAt(source, tokenKinds, tokenStarts, 7, 40)) {
-                      if (punctuationAt(source, tokenKinds, tokenStarts, 8, 41)) {
-                        if (punctuationAt(source, tokenKinds, tokenStarts, 9, 123)) {
+                    if (
+                      punctuationAt(source, tokenKinds, tokenStarts, 7, PUNCTUATION_OPEN_PAREN)
+                    ) {
+                      if (
+                        punctuationAt(
+                          source,
+                          tokenKinds,
+                          tokenStarts,
+                          8,
+                          PUNCTUATION_CLOSE_PAREN
+                        )
+                      ) {
+                        if (
+                          punctuationAt(
+                            source,
+                            tokenKinds,
+                            tokenStarts,
+                            9,
+                            PUNCTUATION_OPEN_BRACE
+                          )
+                        ) {
                           return 10;
                         }
                       }
@@ -516,8 +455,18 @@ classical class Parser {
     long statementEnd,
     long count
   ) {
-    if (punctuationAt(source, tokenKinds, tokenStarts, statementEnd, 125)) {
-      if (punctuationAt(source, tokenKinds, tokenStarts, statementEnd + 1, 125)) {
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, statementEnd, PUNCTUATION_CLOSE_BRACE)
+    ) {
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementEnd + 1,
+          PUNCTUATION_CLOSE_BRACE
+        )
+      ) {
         return count == statementEnd + 2;
       }
     }
