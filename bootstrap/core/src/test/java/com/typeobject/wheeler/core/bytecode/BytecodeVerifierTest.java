@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.core.bytecode;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -274,6 +275,66 @@ class BytecodeVerifierTest {
         ValueType.BYTES_BORROW, ValueType.fromCode(ValueType.BYTES_BORROW.code()));
     assertEquals(
         ValueType.REGION_BORROW, ValueType.fromCode(ValueType.REGION_BORROW.code()));
+  }
+
+  @Test
+  void acceptsOwnedResultsAndRejectsBorrowedResults() {
+    FunctionBody make = new FunctionBody(
+        0,
+        "make",
+        false,
+        2,
+        List.of(ValueType.REGION_BORROW, ValueType.SIGNED, ValueType.WORDS),
+        ValueType.WORDS,
+        List.of(
+            Instruction.of(Opcode.WORDS_ALLOC, 2, 0, 1),
+            Instruction.of(Opcode.RETURN_VALUE, 2)),
+        List.of());
+    FunctionBody main = new FunctionBody(
+        1,
+        "main",
+        false,
+        0,
+        List.of(
+            ValueType.REGION,
+            ValueType.SIGNED,
+            ValueType.REGION_BORROW,
+            ValueType.SIGNED,
+            ValueType.WORDS),
+        null,
+        List.of(
+            Instruction.of(Opcode.REGION_NEW, 0, 8, 1),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 1),
+            Instruction.of(Opcode.REGION_BORROW, 2, 0),
+            Instruction.of(Opcode.LOCAL_MOVE, 3, 1),
+            Instruction.of(Opcode.CALL_VALUE, 0, 2, 2, 4),
+            Instruction.of(Opcode.BUFFER_DROP, 4),
+            Instruction.of(Opcode.REGION_DROP, 0),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    Program valid = Program.classical(
+        "OwnedResult", 1, List.of(), List.of(), List.of(), List.of(), List.of(),
+        List.of(make, main), List.of());
+
+    BytecodeVerifier.verify(valid);
+    byte[] encoded = new BytecodeWriter().write(valid);
+    Program decoded = new BytecodeReader().read(encoded);
+    assertEquals(ValueType.WORDS, decoded.function(0).resultType());
+    assertArrayEquals(encoded, new BytecodeWriter().write(decoded));
+
+    FunctionBody borrowed = new FunctionBody(
+        0,
+        "borrowed",
+        false,
+        1,
+        List.of(ValueType.REGION_BORROW),
+        ValueType.REGION_BORROW,
+        List.of(Instruction.of(Opcode.RETURN_VALUE, 0)),
+        List.of());
+    Program invalid = Program.classical(
+        "BorrowedResult", 1, List.of(), List.of(), List.of(), List.of(), List.of(),
+        List.of(borrowed, main), List.of());
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(invalid));
   }
 
   @Test

@@ -25,6 +25,8 @@ classical class TypeCodes {
     public const long TYPE_BYTES_BORROW = 11;
     /// Names the compile-time `TYPE_REGION_BORROW` value owned by this module.
     public const long TYPE_REGION_BORROW = 12;
+    /// Names the compile-time `TYPE_BYTE_VIEW` value owned by this module.
+    public const long TYPE_BYTE_VIEW = 13;
     /// Names the compile-time `TYPE_DESCRIPTOR_MASK` value owned by this module.
     public const long TYPE_DESCRIPTOR_MASK = 0x0fffffff;
     /// Names the compile-time `TYPE_KIND_MASK` value owned by this module.

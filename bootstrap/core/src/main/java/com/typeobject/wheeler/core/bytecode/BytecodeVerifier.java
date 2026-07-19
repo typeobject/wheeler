@@ -168,9 +168,8 @@ public final class BytecodeVerifier {
       if (function.resultType() != null) {
         verifyTypeReference(program, function.resultType(), function.name());
         if (function.resultType().kind() == ValueType.Kind.SLICE
-            || (nonescaping(function.resultType())
-                && !function.resultType().equals(ValueType.REGION))) {
-          fail("Borrowed or storage result escapes function " + function.name());
+            || borrowed(function.resultType())) {
+          fail("Borrowed result escapes function " + function.name());
         }
       }
       verifyBody(program, function, function.forward(), false);
@@ -202,7 +201,11 @@ public final class BytecodeVerifier {
   }
 
   private static boolean nonescaping(ValueType type) {
-    return owned(type) || type.equals(ValueType.UTF8_BORROW)
+    return owned(type) || borrowed(type);
+  }
+
+  private static boolean borrowed(ValueType type) {
+    return type.equals(ValueType.UTF8_BORROW)
         || type.equals(ValueType.LONG_MAP_BORROW)
         || type.equals(ValueType.WORDS_BORROW)
         || type.equals(ValueType.BYTES_BORROW)

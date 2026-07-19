@@ -10,6 +10,7 @@ import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.bytecode.ValueType;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import java.nio.ByteBuffer;
@@ -190,6 +191,14 @@ class NativeVmExampleTest {
         + "drop(packet); drop(data); drop(arena); } }";
     assertInterpretedTwoGlobals(
         interpreter, storage, "first", 7, "byteValue", 194);
+    String ownedReturns = Files.readString(root.resolve("OwnedReturns.w"));
+    assertInterpretedTwoGlobals(
+        interpreter, ownedReturns, "wordValue", 17, "byteValue", 65);
+    byte[] forgedOwnedParameter = withOwnedParameter(
+        compiler.compileToBytecode(ownedReturns));
+    assertThrows(
+        VmTrap.class,
+        () -> VirtualMachine.withBinaryInput(interpreter, forgedOwnedParameter).run());
     byte[] forgedStorage = withBadWordsIndex(
         compiler.compileToBytecode(storage));
     assertThrows(
@@ -479,6 +488,29 @@ class NativeVmExampleTest {
       cursor += bytes.getInt(cursor + 4);
     }
     throw new AssertionError("call fixture has no argument call");
+  }
+
+  private static byte[] withOwnedParameter(byte[] artifact) {
+    byte[] forged = artifact.clone();
+    ByteBuffer bytes = ByteBuffer.wrap(forged).order(ByteOrder.LITTLE_ENDIAN);
+    int functionsDirectory = 40 + 4 * 32;
+    int functionsOffset = Math.toIntExact(bytes.getLong(functionsDirectory + 8));
+    int functionCount = bytes.getInt(functionsOffset);
+    int typeTable = functionsOffset + 4 + functionCount * 40;
+    for (int function = 0; function < functionCount; function++) {
+      int descriptor = functionsOffset + 4 + function * 40;
+      int flags = bytes.getInt(descriptor + 8);
+      int parameters = bytes.getInt(descriptor + 28);
+      int typeOffset = bytes.getInt(descriptor + 36) + ((flags & 4) == 0 ? 0 : 1);
+      for (int parameter = 0; parameter < parameters; parameter++) {
+        int location = typeTable + (typeOffset + parameter) * 4;
+        if (bytes.getInt(location) == ValueType.REGION_BORROW.code()) {
+          bytes.putInt(location, ValueType.REGION.code());
+          return forged;
+        }
+      }
+    }
+    throw new AssertionError("owned-result fixture has no region borrow parameter");
   }
 
   private static byte[] withBadMapKey(byte[] artifact) {

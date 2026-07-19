@@ -33,7 +33,7 @@ Quantum resources use the same ownership framework in a stricter must-consume af
 
 ## Motivation
 
-The implemented machine already has function-local affine regions, move/drop state, exclusive mutable buffer and map borrows, immutable UTF-8 borrows, disjoint slices, affine quantum resources, exact ownership rewind, and hard byte/object ceilings.
+The implemented machine already has bounded affine regions, move/drop state, exclusive mutable buffer and map borrows, immutable UTF-8 borrows, primitive owner-returning calls, disjoint slices, affine quantum resources, exact ownership rewind, and hard byte/object ceilings.
 
 The next profile needs compiler-scale arenas, owners crossing calls, borrowed results, package/runtime resource types, and the generic collections specified by WIP-0029. Starting with a general object heap would make reachability an implicit lifetime rule, couple VM/native behavior to collector policy, complicate rewind and FFI pinning, invite finalizers, and make compiler bounds depend on heap weather.
 
@@ -262,7 +262,8 @@ Exhaustion is a deterministic diagnostic, never permission to compile unsafely. 
 - [x] Nonescaping shared and exclusive parameter borrows execute for bootstrap storage.
 - [x] VM snapshots and rewind preserve current owner/drop state.
 - [ ] Canonical value modes and public metadata are accepted.
-- [ ] Cross-function owned returns and borrowed results execute.
+- [x] Primitive `region`, `words`, `bytes`, `utf8`, and `longmap` owners return across calls through canonical typed result metadata. The callee consumes the returned local, every other callee owner must be dead, and storage factories allocate through a nonescaping caller-region borrow; the stage-0 VM and Wheeler-written verifier/interpreter agree and rewind the transfer exactly. `OwnedReturns.w` exercises all five owner kinds. The caller gets one owner, not two handles and a motivational poster.
+- [ ] Owning parameters and public borrowed results with explicit origins execute.
 - [ ] Local last-use inference is deterministic.
 - [ ] Unique dynamic allocation executes.
 - [ ] Generic arenas and typed IDs support compiler-scale graphs.

@@ -94,6 +94,8 @@ class ClassicalExamplesTest {
         Arguments.of("LoopControl.w", Map.of("sum", 12L, "selected", 7L)),
         Arguments.of("LongMap.w", Map.of(
             "selected", 17L, "zeroKey", 5L, "present", 1L, "missing", 1L)),
+        Arguments.of("OwnedReturns.w", Map.of(
+            "wordValue", 17L, "byteValue", 65L, "scalarCount", 2L, "mapValue", 23L)),
         Arguments.of("Records.w", Map.of("width", 5L, "equal", 1L)),
         Arguments.of("RecursiveValue.w", Map.of("result", 6L)),
         Arguments.of("RegionStorage.w", Map.of("first", 7L, "byteValue", 65L, "utf8Scalars", 3L, "validUtf8", 1L, "byteLength", 6L,

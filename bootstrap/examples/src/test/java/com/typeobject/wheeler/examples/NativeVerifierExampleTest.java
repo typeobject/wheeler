@@ -41,7 +41,8 @@ class NativeVerifierExampleTest {
             Map.entry("TypeCodes.w", CompilerSources.read("compiler/TypeCodes.w")),
             Map.entry("Verifier.w", CompilerSources.read("compiler/Verifier.w"))),
         "examples.compiler.native_verifier");
-    byte[] artifact = new WheelerCompiler().compileToBytecode(
+    WheelerCompiler compiler = new WheelerCompiler();
+    byte[] artifact = compiler.compileToBytecode(
         "classical class NativeSubject { state long value = 4; "
             + "entry void main() { value += 3; assert(value == 7); } }");
     VirtualMachine machine = VirtualMachine.withBinaryInput(verifier, artifact);
@@ -55,6 +56,14 @@ class NativeVerifierExampleTest {
       machine.rewindOne();
     }
     assertEquals(initial, machine.snapshot());
+
+    byte[] binaryInputArtifact = compiler.compileToBytecode(
+        "classical class BinarySubject { state long length = 0; "
+            + "entry void main(byteview source) { length = bufferLength(source); } }");
+    VirtualMachine binaryInputVerification = VirtualMachine.withBinaryInput(
+        verifier, binaryInputArtifact);
+    binaryInputVerification.run();
+    assertEquals(1, binaryInputVerification.global("verification"));
 
     byte[] malformed = artifact.clone();
     malformed[0] = 0;

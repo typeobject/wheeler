@@ -457,6 +457,12 @@ class SourceProfileNegativeTest {
           entry void main() { }
         }
         """;
+    String returnedBorrow = """
+        classical class ReturnedBorrow {
+          region steal(region arena) { return arena; }
+          entry void main() { }
+        }
+        """;
     String immutableUtf8 = """
         classical class ImmutableUtf8 {
           entry void main() {
@@ -492,6 +498,8 @@ class SourceProfileNegativeTest {
         CompilerException.class, () -> new WheelerCompiler().compile(aliasedMapBorrow));
     CompilerException borrowed = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(droppedBorrow));
+    CompilerException returned = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(returnedBorrow));
     CompilerException immutable = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(immutableUtf8));
     CompilerException aggregate = assertThrows(
@@ -499,11 +507,12 @@ class SourceProfileNegativeTest {
 
     assertTrue(leaked.getMessage().contains("exits with live owned local"));
     assertTrue(moved.getMessage().contains("reads uninitialized local"));
-    assertTrue(result.getMessage().contains("cannot escape as results"));
+    assertTrue(result.getMessage().contains("exits with live owned local"));
     assertTrue(kind.getMessage().contains("buffer operation kind mismatch"));
     assertTrue(scratch.getMessage().contains("exits with live owned local"));
     assertTrue(aliased.getMessage().contains("cannot alias multiple mutable parameters"));
     assertTrue(borrowed.getMessage().contains("drop requires an owned value"));
+    assertTrue(returned.getMessage().contains("expected region expression"));
     assertTrue(immutable.getMessage().contains("buffer operation kind mismatch"));
     assertTrue(aggregate.getMessage().contains("cannot be array or slice elements"));
   }

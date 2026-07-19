@@ -64,10 +64,9 @@ final class ClassicalLowerer {
           ? SourceTypeLowerer.resolve(function.returnType(), function.line(), typeReferences)
           : null;
       if (resultType != null && (resultType.kind() == ValueType.Kind.SLICE
-          || resultType.equals(ValueType.BYTE_VIEW)
-          || (owned(resultType) && !resultType.equals(ValueType.REGION)))) {
+          || borrowed(resultType))) {
         throw new CompilerException(
-            function.line(), "borrowed values and storage buffers cannot escape as results");
+            function.line(), "borrowed values cannot escape as results");
       }
       List<ValueType> parameterTypes = function.parameters().stream()
           .map(parameter -> {
@@ -175,6 +174,15 @@ final class ClassicalLowerer {
         || type.kind() == ValueType.Kind.BYTES
         || type.kind() == ValueType.Kind.LONG_MAP
         || type.kind() == ValueType.Kind.UTF8;
+  }
+
+  private static boolean borrowed(ValueType type) {
+    return type.equals(ValueType.UTF8_BORROW)
+        || type.equals(ValueType.LONG_MAP_BORROW)
+        || type.equals(ValueType.WORDS_BORROW)
+        || type.equals(ValueType.BYTES_BORROW)
+        || type.equals(ValueType.REGION_BORROW)
+        || type.equals(ValueType.BYTE_VIEW);
   }
 
   private static List<Global> lowerGlobals(SourceProgram source) {

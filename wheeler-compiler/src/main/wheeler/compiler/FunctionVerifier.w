@@ -12,6 +12,41 @@ classical class FunctionVerifier {
         return right < left;
     }
 
+    private boolean ownedType(long typeCode) {
+        if (typeCode == TYPE_REGION) {
+            return true;
+        }
+        if (typeCode == TYPE_WORDS) {
+            return true;
+        }
+        if (typeCode == TYPE_BYTES) {
+            return true;
+        }
+        if (typeCode == TYPE_LONG_MAP) {
+            return true;
+        }
+        return typeCode == TYPE_UTF8;
+    }
+
+    private boolean borrowedType(long typeCode) {
+        if (typeCode == TYPE_UTF8_BORROW) {
+            return true;
+        }
+        if (typeCode == TYPE_LONG_MAP_BORROW) {
+            return true;
+        }
+        if (typeCode == TYPE_WORDS_BORROW) {
+            return true;
+        }
+        if (typeCode == TYPE_BYTES_BORROW) {
+            return true;
+        }
+        if (typeCode == TYPE_REGION_BORROW) {
+            return true;
+        }
+        return typeCode == TYPE_BYTE_VIEW;
+    }
+
     private boolean validValueType(
         long typeCode,
         long recordCount,
@@ -53,6 +88,9 @@ classical class FunctionVerifier {
             return true;
         }
         if (typeCode == TYPE_REGION_BORROW) {
+            return true;
+        }
+        if (typeCode == TYPE_BYTE_VIEW) {
             return true;
         }
         if (isRecordType(typeCode)) {
@@ -206,8 +244,22 @@ classical class FunctionVerifier {
                 ) {} else {
                     return 0;
                 }
+                if (borrowedType(resultType)) {
+                    return 0;
+                }
+                if (isSliceType(resultType)) {
+                    return 0;
+                }
             }
             long activeTypes = typeTable + (typeOffset + resultCount) * 4;
+            long parameter = 0;
+            while (parameter < parameterCount) limit INTERPRETER_LOCAL_WIDTH {
+                long parameterType = readUnsigned(artifact, activeTypes + parameter * 4, 4);
+                if (ownedType(parameterType)) {
+                    return 0;
+                }
+                parameter += 1;
+            }
             if (
                 verifyTypeWindow(
                     artifact,

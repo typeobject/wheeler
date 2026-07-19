@@ -172,12 +172,14 @@ classical class StorageVerifier {
                 if (getBuffer < localCount) {
                     if (getIndex < localCount) {
                         if (localHasType(artifact, activeTypes, first, TYPE_SIGNED)) {
-                            if (
-                                ownerOrBorrow(
-                                    localType(artifact, activeTypes, getBuffer),
-                                    getExpectedType
-                                )
-                            ) {
+                            long getBufferType = localType(artifact, activeTypes, getBuffer);
+                            boolean readable = ownerOrBorrow(getBufferType, getExpectedType);
+                            if (opcode == OPCODE_BYTES_GET) {
+                                if (getBufferType == TYPE_BYTE_VIEW) {
+                                    readable = true;
+                                }
+                            }
+                            if (readable) {
                                 if (localHasType(artifact, activeTypes, getIndex, TYPE_SIGNED)) {
                                     return 1;
                                 }
@@ -255,6 +257,9 @@ classical class StorageVerifier {
                             return 1;
                         }
                         if (lengthType == TYPE_UTF8_BORROW) {
+                            return 1;
+                        }
+                        if (lengthType == TYPE_BYTE_VIEW) {
                             return 1;
                         }
                     }
@@ -464,6 +469,14 @@ classical class StorageVerifier {
                     }
                     if (bufferBorrowDestinationType == TYPE_BYTES_BORROW) {
                         if (ownerOrBorrow(bufferBorrowSourceType, TYPE_BYTES)) {
+                            return 1;
+                        }
+                    }
+                    if (bufferBorrowDestinationType == TYPE_BYTE_VIEW) {
+                        if (ownerOrBorrow(bufferBorrowSourceType, TYPE_BYTES)) {
+                            return 1;
+                        }
+                        if (bufferBorrowSourceType == TYPE_BYTE_VIEW) {
                             return 1;
                         }
                     }

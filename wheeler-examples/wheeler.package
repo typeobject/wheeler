@@ -20,6 +20,7 @@ target deployable "nativesha256" root "src/main/wheeler/NativeSha256.w" module "
 target deployable "nativeverifier" root "src/main/wheeler/NativeVerifier.w" module "examples.compiler.native_verifier" source "src/main/wheeler/NativeVerifier.w";
 target deployable "nativevm" root "src/main/wheeler/NativeVm.w" module "examples.runtime.native_vm" source "src/main/wheeler/NativeVm.w";
 target deployable "nativeworkspace" root "src/main/wheeler/NativeWorkspace.w" module "examples.packages.workspace_main" source "src/main/wheeler/NativeWorkspace.w";
+target deployable "ownedreturns" root "src/main/wheeler/OwnedReturns.w";
 target deployable "qft" root "src/main/wheeler/QFT.w";
 target deployable "qftproof" root "src/main/wheeler/QFTProof.w" test;
 target deployable "quantumcompiler" root "src/main/wheeler/QuantumCompiler.w";
