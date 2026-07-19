@@ -2,6 +2,7 @@ package com.typeobject.wheeler.tools;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -11,6 +12,7 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -42,6 +44,14 @@ class DocumentationSiteCommandTest {
     assertTrue(Files.isRegularFile(first.resolve("index.html")));
     assertTrue(Files.isRegularFile(first.resolve("proposals/index.html")));
     assertTrue(Files.isRegularFile(first.resolve("reference/bytecode.html")));
+    assertTrue(Files.isRegularFile(first.resolve("sitemap.xml")));
+    assertTrue(publication.contains("\"path\":\"sitemap.xml\""));
+    String sitemap = Files.readString(first.resolve("sitemap.xml"));
+    assertTrue(sitemap.startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
+    assertTrue(sitemap.contains("Wheeler content-set-sha256:"));
+    assertTrue(sitemap.contains("<loc>https://wheeler.typeobject.com/</loc>"));
+    assertTrue(sitemap.contains("<loc>https://wheeler.typeobject.com/proposals/"
+        + "WIP-0031-reversible-quantum-and-effect-polymorphism.html</loc>"));
     String index = Files.readString(first.resolve("index.html"));
     assertTrue(index.startsWith("<!doctype html>"));
     assertTrue(index.contains("Content-Security-Policy"));
@@ -69,5 +79,25 @@ class DocumentationSiteCommandTest {
         new String[] {"site", "-o", first.toString()},
         new PrintStream(new ByteArrayOutputStream()),
         new PrintStream(new ByteArrayOutputStream())));
+  }
+
+  @Test
+  void sitemapIdentityChangesWithPageContentAndRoutes() throws Exception {
+    Map<String, byte[]> first = Map.of(
+        "index.html", "first".getBytes(StandardCharsets.UTF_8),
+        "reference/index.html", "reference".getBytes(StandardCharsets.UTF_8),
+        "style.css", "ignored".getBytes(StandardCharsets.UTF_8));
+    Map<String, byte[]> changedContent = Map.of(
+        "index.html", "second".getBytes(StandardCharsets.UTF_8),
+        "reference/index.html", "reference".getBytes(StandardCharsets.UTF_8));
+    Map<String, byte[]> changedRoutes = Map.of(
+        "index.html", "first".getBytes(StandardCharsets.UTF_8),
+        "guide.html", "guide".getBytes(StandardCharsets.UTF_8));
+
+    String sitemap = DocumentationSiteCommand.sitemap(first);
+    assertNotEquals(sitemap, DocumentationSiteCommand.sitemap(changedContent));
+    assertNotEquals(sitemap, DocumentationSiteCommand.sitemap(changedRoutes));
+    assertTrue(sitemap.contains("<loc>https://wheeler.typeobject.com/reference/</loc>"));
+    assertFalse(sitemap.contains("style.css"));
   }
 }

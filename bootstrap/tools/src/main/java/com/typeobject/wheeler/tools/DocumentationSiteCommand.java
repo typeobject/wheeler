@@ -23,6 +23,7 @@ import java.util.Map;
 /** Zero-configuration Wheeler documentation bundle and static-site publication command. */
 final class DocumentationSiteCommand {
   private static final String SITE_PROFILE = "wheeler.doc-site/1";
+  private static final String SITE_ORIGIN = "https://wheeler.typeobject.com/";
   private static final List<String> WHEELER_ROOTS = List.of(
       "wheeler-compiler/src/main/wheeler",
       "wheeler-core/src/main/wheeler",
@@ -30,6 +31,8 @@ final class DocumentationSiteCommand {
       "wheeler-package/src/main/wheeler",
       "wheeler-runtime/src/main/wheeler");
   private static final long MAX_SITE_BYTES = 64L * 1024 * 1024;
+  private static final int MAX_SITEMAP_URLS = 50_000;
+  private static final long MAX_SITEMAP_BYTES = 50L * 1024 * 1024;
 
   private DocumentationSiteCommand() {}
 
@@ -104,7 +107,10 @@ final class DocumentationSiteCommand {
     files.put("index.html", index);
     files.put("style.css", style);
     files.put(".nojekyll", new byte[0]);
-    bytes = Math.addExact(bytes, Math.addExact(index.length, style.length));
+    byte[] sitemap = sitemap(files).getBytes(StandardCharsets.UTF_8);
+    files.put("sitemap.xml", sitemap);
+    bytes = Math.addExact(bytes, Math.addExact(
+        index.length, Math.addExact(style.length, sitemap.length)));
     if (bytes > MAX_SITE_BYTES) {
       throw new IOException("Documentation site exceeds the 64 MiB output limit");
     }
@@ -114,6 +120,46 @@ final class DocumentationSiteCommand {
     String identity = DocumentationBundleReader.sha256(
         publication.getBytes(StandardCharsets.UTF_8));
     return new Site(Map.copyOf(files), identity);
+  }
+
+  static String sitemap(Map<String, byte[]> files) throws IOException {
+    List<Map.Entry<String, byte[]>> pages = files.entrySet().stream()
+        .filter(entry -> entry.getKey().endsWith(".html"))
+        .sorted(Map.Entry.comparingByKey())
+        .toList();
+    if (pages.size() > MAX_SITEMAP_URLS) {
+      throw new IOException("Documentation sitemap exceeds 50,000 URLs");
+    }
+    StringBuilder contentSet = new StringBuilder("wheeler-sitemap-content/1\0");
+    for (Map.Entry<String, byte[]> page : pages) {
+      contentSet.append(page.getKey()).append('\0')
+          .append(DocumentationBundleReader.sha256(page.getValue())).append('\n');
+    }
+    String identity = DocumentationBundleReader.sha256(
+        contentSet.toString().getBytes(StandardCharsets.UTF_8));
+    StringBuilder xml = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
+        .append("<!-- Wheeler content-set-sha256: ").append(identity).append(" -->\n")
+        .append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
+    for (Map.Entry<String, byte[]> page : pages) {
+      xml.append("  <url><loc>")
+          .append(DocumentationMarkdown.escape(publicUrl(page.getKey())))
+          .append("</loc></url>\n");
+    }
+    String result = xml.append("</urlset>\n").toString();
+    if (result.getBytes(StandardCharsets.UTF_8).length > MAX_SITEMAP_BYTES) {
+      throw new IOException("Documentation sitemap exceeds 50 MiB");
+    }
+    return result;
+  }
+
+  private static String publicUrl(String output) {
+    if (output.equals("index.html")) {
+      return SITE_ORIGIN;
+    }
+    if (output.endsWith("/index.html")) {
+      return SITE_ORIGIN + output.substring(0, output.length() - "index.html".length());
+    }
+    return SITE_ORIGIN + output;
   }
 
   private static String publicationManifest(
