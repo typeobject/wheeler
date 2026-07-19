@@ -173,6 +173,7 @@ final class SourceDeclarationDocumentation {
       boolean coherent = node.modifiers().contains("coherent");
       boolean unitary = node.modifiers().contains("unitary");
       boolean semantic = entry || reversible || coherent || unitary
+          || node.modifiers().contains("test")
           || node.kind() == NodeKind.THEOREM_DECLARATION
           || node.kind() == NodeKind.EXPERIMENT_DECLARATION;
       result.add(new Declaration(

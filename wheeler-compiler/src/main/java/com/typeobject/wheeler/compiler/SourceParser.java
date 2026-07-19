@@ -255,9 +255,10 @@ final class SourceParser extends SourceStatementParser {
     boolean reversible = false;
     boolean unitary = false;
     boolean entry = false;
+    boolean test = false;
     SourceToken start = peek();
 
-    while (checkTextIn(Set.of("static", "coherent", "rev", "unitary", "entry"))) {
+    while (checkTextIn(Set.of("static", "coherent", "rev", "unitary", "entry", "test"))) {
       String modifier = advance().text();
       switch (modifier) {
         case "static" -> { /* Accepted for Java familiarity; entry remains statically owned. */ }
@@ -265,6 +266,7 @@ final class SourceParser extends SourceStatementParser {
         case "rev" -> reversible = true;
         case "unitary" -> unitary = true;
         case "entry" -> entry = true;
+        case "test" -> test = true;
         default -> fail(previous(), "unsupported method modifier: " + modifier);
       }
     }
@@ -291,9 +293,10 @@ final class SourceParser extends SourceStatementParser {
     if (coherent && !reversible) {
       fail(start, "coherent methods must also be rev");
     }
-    int semanticModifiers = (reversible ? 1 : 0) + (unitary ? 1 : 0) + (entry ? 1 : 0);
+    int semanticModifiers = (reversible ? 1 : 0) + (unitary ? 1 : 0)
+        + (entry ? 1 : 0) + (test ? 1 : 0);
     if (semanticModifiers > 1) {
-      fail(start, "rev, unitary, and entry are mutually exclusive method kinds");
+      fail(start, "rev, unitary, entry, and test are mutually exclusive method kinds");
     }
     boolean validEntryParameters = parameters.isEmpty()
         || (parameters.size() == 1
@@ -307,6 +310,9 @@ final class SourceParser extends SourceStatementParser {
     if (entry && (!name.equals("main") || returnsValue || !validEntryParameters)) {
       fail(start, "entry parameters must be optional utf8/byteview input then optional bytes output");
     }
+    if (test && (!domain.equals("classical") || returnsValue || !parameters.isEmpty())) {
+      fail(start, "test methods must be parameterless classical void methods");
+    }
     if ((reversible || coherent || unitary) && (returnsValue || !parameters.isEmpty())) {
       fail(start, "parameters and return values are currently ordinary classical only");
     }
@@ -315,7 +321,7 @@ final class SourceParser extends SourceStatementParser {
       circuits.add(parseCircuit(name, start.line()));
     } else {
       functions.add(parseFunction(
-          name, exported, entry, reversible, coherent, parameters, returnType, start.line()));
+          name, exported, entry, test, reversible, coherent, parameters, returnType, start.line()));
     }
   }
 
@@ -323,6 +329,7 @@ final class SourceParser extends SourceStatementParser {
       String name,
       boolean exported,
       boolean entry,
+      boolean test,
       boolean reversible,
       boolean coherent,
       List<Parameter> parameters,
@@ -400,7 +407,7 @@ final class SourceParser extends SourceStatementParser {
       body.add(statement("halt", line));
     }
     return new Function(
-        name, exported, entry, reversible, coherent, parameters, returnType, body, line);
+        name, exported, entry, test, reversible, coherent, parameters, returnType, body, line);
   }
 
   private void parseReturn(List<Statement> body, SourceToken start) {

@@ -417,6 +417,7 @@ final class SourceModuleLinker {
         linkedName(moduleName, function.name()),
         function.exported(),
         function.entry(),
+        function.test(),
         function.reversible(),
         function.coherent(),
         function.parameters().stream()

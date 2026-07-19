@@ -106,7 +106,7 @@ A **test run** is the canonical map from selected case identity to one accepted 
 
 ## Source declarations and discovery
 
-The proposed source family is explicit rather than annotation-reflective:
+The accepted first declaration is explicit rather than annotation-reflective:
 
 ```java
 test void addition() {
@@ -119,7 +119,7 @@ parameterized test void roundTrip(long value)
 }
 ```
 
-Exact grammar is accepted with WIP-0005 review. The semantic requirements do not depend on whether the final introducer is `test`, an attribute, or a manifest-bound descriptor declaration.
+The first accepted form is parameterless classical `test void name()`. It compiles only when selected as a case, is omitted from ordinary artifacts, and cannot borrow entry effects. Parameter and descriptor grammar remains subject to WIP-0005 review.
 
 Discovery reads only the exact source set of a test-selected runnable package target. It does not scan classpaths, process resources, current directories, or loaded modules. Descriptors are sorted by canonical qualified declaration identity. Parameter cases are sorted by canonical encoded value unless the source declares an already canonical finite sequence.
 
@@ -267,9 +267,10 @@ JUnit adapters consume semantic reports during migration. They do not discover W
 
 ## Progress
 
-- [x] The stage-0 package runner discovers only exact `target tool ... test` source sets, derives domain-separated case/source/artifact/execution/report identities, executes each target with a fresh runtime and state-vector target, reduces compile failures and VM traps to `WTEST001..002`, sorts cases canonically, and emits a rerun-stable terminal report. Classical cases additionally collect a noninstrumenting typed transition-coverage report and bind its printed identity into the test report; quantum cases leave that dimension absent rather than forging a flattering zero. This is the executable seed, not the proposed declaration model in a false moustache.
-- [ ] Test declaration and descriptor semantics are accepted.
-- [ ] One Wheeler case compiles, is discovered through an exact package target, runs in a fresh VM, and emits a canonical result.
+- [x] The stage-0 package runner discovers only exact runnable `test` target source sets, derives domain-separated case/source/artifact/execution/report identities, executes each case with a fresh runtime, reduces compile failures and VM traps to `WTEST001..002`, sorts cases canonically, and emits a rerun-stable terminal report. Classical cases additionally collect a noninstrumenting typed transition-coverage report and bind its printed identity into the test report; quantum cases leave that dimension absent rather than forging a flattering zero.
+- [x] Parameterless classical `test void name()` declarations parse in the compiler and Tree-sitter grammar. For a nonmodular selected target, the compiler discovers names lexically, emits one verified artifact whose sole test entry is the selected declaration, omits all test bodies from ordinary artifacts, and preserves normal `run` behavior.
+- [ ] Full test descriptor semantics, including modular qualification, parameters, fixtures, tags, and limits, are accepted.
+- [x] Two Wheeler cases compile from one exact package target, run in separate fresh VMs, carry distinct identities and coverage reports, and reduce into one rerun-stable report.
 - [ ] Parameter rows, lifecycle fixtures, tags, and deterministic sharding execute.
 - [ ] Inverse, rewind, quantum, workflow, package, and proof assertions execute with distinct semantics.
 - [ ] A Wheeler-written runner reproduces the stage-0 semantic report.
@@ -315,7 +316,7 @@ Rejected. Assertions, event recording, target submission, fixture I/O, and repor
 
 ## Open questions
 
-- Should the accepted source spelling use `test`, attributes, or manifest-generated descriptors? — **Owner:** language and tooling maintainers — **Decide by:** before parser implementation
+- Which explicit grammar should extend accepted `test void name()` declarations with parameter rows, tags, fixtures, and per-case limits? — **Owner:** language and tooling maintainers — **Decide by:** before descriptor implementation
 - Which canonical report encoding is smallest while remaining independently inspectable during bootstrap? — **Owner:** runtime and package maintainers — **Decide by:** before report persistence
 - Which exact simulator tolerance profiles are portable enough for semantic assertions? — **Owner:** quantum and numerical maintainers — **Decide by:** before quantum assertion acceptance
 - Which fixture capabilities belong in the first self-host compiler suite? — **Owner:** compiler and package maintainers — **Decide by:** before bootstrap runner promotion

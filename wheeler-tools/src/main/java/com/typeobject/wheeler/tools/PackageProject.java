@@ -106,33 +106,40 @@ final class PackageProject {
         continue;
       }
       String sourceIdentity = sha256(readPlanInput(target));
-      String caseIdentity = TestReport.caseIdentity(
-          manifest.identity(), target.name(), sourceIdentity);
-      Program program;
+      List<CompiledCase> compiled;
       try {
-        program = compileTarget(compiler, target, linkedModules);
+        compiled = compileTestCases(compiler, target, linkedModules);
       } catch (CompilerException exception) {
+        String caseIdentity = TestReport.caseIdentity(
+            manifest.identity(), target.name(), sourceIdentity);
         cases.add(TestReport.fail(
             manifest.name(), manifest.version(), target.name(), caseIdentity,
             sourceIdentity, "", "WTEST001", exception.getMessage()));
         continue;
       }
-      String artifactIdentity = sha256(writer.write(program));
-      try {
-        WheelerRuntime runtime = new WheelerRuntime();
-        SemanticCoverage coverage = new SemanticCoverage();
-        ExecutionResult execution = program.kind() == ProgramKind.CLASSICAL
-            ? runtime.executeObserved(program, coverage)
-            : runtime.execute(program, new StateVectorTarget());
-        String coverageIdentity = program.kind() == ProgramKind.CLASSICAL
-            ? coverage.identity() : "";
-        cases.add(TestReport.pass(
-            manifest.name(), manifest.version(), target.name(), caseIdentity,
-            sourceIdentity, artifactIdentity, execution, coverageIdentity));
-      } catch (VmTrap exception) {
-        cases.add(TestReport.fail(
-            manifest.name(), manifest.version(), target.name(), caseIdentity,
-            sourceIdentity, artifactIdentity, "WTEST002", exception.getMessage()));
+      for (CompiledCase compiledCase : compiled) {
+        String caseName = compiledCase.name().isEmpty()
+            ? target.name() : target.name() + "::" + compiledCase.name();
+        String caseIdentity = TestReport.caseIdentity(
+            manifest.identity(), caseName, sourceIdentity);
+        Program program = compiledCase.program();
+        String artifactIdentity = sha256(writer.write(program));
+        try {
+          WheelerRuntime runtime = new WheelerRuntime();
+          SemanticCoverage coverage = new SemanticCoverage();
+          ExecutionResult execution = program.kind() == ProgramKind.CLASSICAL
+              ? runtime.executeObserved(program, coverage)
+              : runtime.execute(program, new StateVectorTarget());
+          String coverageIdentity = program.kind() == ProgramKind.CLASSICAL
+              ? coverage.identity() : "";
+          cases.add(TestReport.pass(
+              manifest.name(), manifest.version(), caseName, caseIdentity,
+              sourceIdentity, artifactIdentity, execution, coverageIdentity));
+        } catch (VmTrap exception) {
+          cases.add(TestReport.fail(
+              manifest.name(), manifest.version(), caseName, caseIdentity,
+              sourceIdentity, artifactIdentity, "WTEST002", exception.getMessage()));
+        }
       }
     }
     return new TestReport(cases);
@@ -218,6 +225,21 @@ final class PackageProject {
     return manifest.dependencies().isEmpty() ? null : LockedPackageSet.load(root, manifest);
   }
 
+  private List<CompiledCase> compileTestCases(
+      WheelerCompiler compiler,
+      PackageManifest.Target target,
+      Map<String, String> linkedModules) throws IOException {
+    if (!target.modular()) {
+      List<WheelerCompiler.TestCase> declarations = compiler.compileTests(source(target.root()));
+      if (!declarations.isEmpty()) {
+        return declarations.stream()
+            .map(test -> new CompiledCase(test.name(), test.program()))
+            .toList();
+      }
+    }
+    return List.of(new CompiledCase("", compileTarget(compiler, target, linkedModules)));
+  }
+
   private Program compileTarget(
       WheelerCompiler compiler,
       PackageManifest.Target target,
@@ -234,6 +256,14 @@ final class PackageProject {
     return target.kind() == TargetKind.LIBRARY
         ? compiler.compilePackageLibraryModuleFiles(sources, linkedModules, target.module())
         : compiler.compilePackageModuleFiles(sources, linkedModules, target.module());
+  }
+
+  private record CompiledCase(String name, Program program) {
+    private CompiledCase {
+      if (name == null || program == null) {
+        throw new IllegalArgumentException("Compiled test case is incomplete");
+      }
+    }
   }
 
   private byte[] readPlanInput(PackageManifest.Target target) throws IOException {

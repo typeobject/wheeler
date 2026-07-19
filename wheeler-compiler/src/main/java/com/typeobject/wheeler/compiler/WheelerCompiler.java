@@ -18,12 +18,35 @@ import java.util.TreeMap;
 
 /** Compiler for Wheeler's executable source profile. */
 public final class WheelerCompiler {
+  /** One source-declared test and the verified artifact that enters only that test. */
+  public record TestCase(String name, Program program) {
+    public TestCase {
+      if (name == null || name.isBlank() || program == null) {
+        throw new IllegalArgumentException("Test case requires a name and program");
+      }
+    }
+  }
+
   public Program compile(String source) {
     SourceProgram parsed = new SourceParser().parse(source);
     if (parsed.moduleName() != null || !parsed.imports().isEmpty()) {
       throw new CompilerException(1, "module source requires compileModules");
     }
     return compileParsed(parsed);
+  }
+
+  /** Discovers and independently compiles parameterless classical test declarations. */
+  public List<TestCase> compileTests(String source) {
+    SourceProgram parsed = new SourceParser().parse(source, false);
+    if (parsed.moduleName() != null || !parsed.imports().isEmpty()) {
+      throw new CompilerException(1, "module tests require compilePackageTests");
+    }
+    return parsed.functions().stream()
+        .filter(SourceModel.Function::test)
+        .sorted(java.util.Comparator.comparing(SourceModel.Function::name))
+        .map(function -> new TestCase(
+            function.name(), compileParsed(withTestEntry(parsed, function))))
+        .toList();
   }
 
   public Program compileModules(Map<String, String> sources, String rootModule) {
@@ -78,6 +101,7 @@ public final class WheelerCompiler {
         "$library",
         false,
         true,
+        false,
         false,
         false,
         List.of(),
@@ -212,7 +236,47 @@ public final class WheelerCompiler {
     return compileParsed(new SourceModuleLinker().link(parsed, rootModule));
   }
 
+  private static SourceProgram withTestEntry(
+      SourceProgram source, SourceModel.Function selected) {
+    List<SourceModel.Function> functions = source.functions().stream()
+        .map(function -> new SourceModel.Function(
+            function.name(),
+            function.exported(),
+            function == selected,
+            function.test(),
+            function.reversible(),
+            function.coherent(),
+            function.parameters(),
+            function.returnType(),
+            function == selected
+                ? withHalt(function.statements(), function.line())
+                : withoutEntryHalt(function),
+            function.line()))
+        .toList();
+    return new SourceProgram(
+        source.moduleName(), source.imports(), source.name(), source.kind(),
+        source.states(), source.constants(), source.records(), source.variants(),
+        source.arrays(), source.slices(), source.proofs(), functions,
+        source.quantumRegisters(), source.circuits());
+  }
+
+  private static List<SourceModel.Statement> withoutEntryHalt(
+      SourceModel.Function function) {
+    if (!function.entry()) {
+      return function.statements();
+    }
+    return function.statements().subList(0, function.statements().size() - 1);
+  }
+
+  private static List<SourceModel.Statement> withHalt(
+      List<SourceModel.Statement> statements, int line) {
+    List<SourceModel.Statement> result = new java.util.ArrayList<>(statements);
+    result.add(new SourceModel.Statement("halt", List.of(), line));
+    return List.copyOf(result);
+  }
+
   private Program compileParsed(SourceProgram parsed) {
+    parsed = withoutInactiveTests(parsed);
     boolean classical = parsed.kind().equals("classical");
     if (classical && (!parsed.quantumRegisters().isEmpty() || !parsed.circuits().isEmpty())) {
       throw new CompilerException(1, "classical programs cannot declare qregs or circuits");
@@ -248,11 +312,34 @@ public final class WheelerCompiler {
     return program;
   }
 
+  private static SourceProgram withoutInactiveTests(SourceProgram source) {
+    List<SourceModel.Function> functions = source.functions().stream()
+        .filter(function -> !function.test() || function.entry())
+        .toList();
+    if (functions.size() == source.functions().size()) {
+      return source;
+    }
+    return new SourceProgram(
+        source.moduleName(), source.imports(), source.name(), source.kind(),
+        source.states(), source.constants(), source.records(), source.variants(),
+        source.arrays(), source.slices(), source.proofs(), functions,
+        source.quantumRegisters(), source.circuits());
+  }
+
   public Program compile(Path source) throws IOException {
+    checkSourceSize(source);
+    return compile(Files.readString(source));
+  }
+
+  public List<TestCase> compileTests(Path source) throws IOException {
+    checkSourceSize(source);
+    return compileTests(Files.readString(source));
+  }
+
+  private static void checkSourceSize(Path source) throws IOException {
     if (Files.size(source) > SourceLexer.MAX_SOURCE_BYTES) {
       throw new CompilerException(1, "source exceeds the 64 MiB input limit");
     }
-    return compile(Files.readString(source));
   }
 
   public byte[] compileToBytecode(String source) {

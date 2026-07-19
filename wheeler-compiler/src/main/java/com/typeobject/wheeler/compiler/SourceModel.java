@@ -57,6 +57,7 @@ final class SourceModel {
       String name,
       boolean exported,
       boolean entry,
+      boolean test,
       boolean reversible,
       boolean coherent,
       List<Parameter> parameters,

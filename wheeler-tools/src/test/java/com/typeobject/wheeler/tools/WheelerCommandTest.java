@@ -286,6 +286,8 @@ class WheelerCommandTest {
     Files.writeString(project.resolve("src/Law.w"), """
         classical class Law {
             state long value = 0;
+            test void startsAtZero() { assert value == 0; }
+            test void addsTwo() { value += 2; assert value == 2; }
             entry void main() { value += 2; assert value == 2; }
         }
         """);
@@ -296,9 +298,10 @@ class WheelerCommandTest {
         new PrintStream(stdout),
         new PrintStream(new ByteArrayOutputStream())));
     String firstReport = stdout.toString(StandardCharsets.UTF_8);
-    assertTrue(firstReport.contains("PASS demo.tests::law"));
+    assertTrue(firstReport.contains("PASS demo.tests::law::addsTwo"));
+    assertTrue(firstReport.contains("PASS demo.tests::law::startsAtZero"));
     assertTrue(firstReport.contains(" coverage "));
-    assertTrue(firstReport.contains("tested demo.tests (1 targets, 1 passed, 0 failed, report "));
+    assertTrue(firstReport.contains("tested demo.tests (2 cases, 2 passed, 0 failed, report "));
     stdout.reset();
     assertEquals(0, Wheeler.execute(
         new String[] {"test", project.toString()},
@@ -341,7 +344,7 @@ class WheelerCommandTest {
     assertTrue(report.contains("WTEST001"));
     assertTrue(report.contains("FAIL demo.failures::runtime"));
     assertTrue(report.contains("WTEST002"));
-    assertTrue(report.contains("2 targets, 0 passed, 2 failed, report "));
+    assertTrue(report.contains("2 cases, 0 passed, 2 failed, report "));
   }
 
   @Test

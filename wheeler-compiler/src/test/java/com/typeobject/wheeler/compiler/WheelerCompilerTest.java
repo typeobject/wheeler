@@ -67,6 +67,43 @@ class WheelerCompilerTest {
   }
 
   @Test
+  void discoversAndCompilesIndependentSourceTests() {
+    String source = """
+        classical class Laws {
+          state long value = 0;
+          test void beta() { assert value == 1; }
+          test void alpha() { assert value == 0; }
+          entry void main() { value += 2; }
+        }
+        """;
+
+    WheelerCompiler compiler = new WheelerCompiler();
+    List<WheelerCompiler.TestCase> tests = compiler.compileTests(source);
+
+    assertEquals(List.of("alpha", "beta"), tests.stream().map(
+        WheelerCompiler.TestCase::name).toList());
+    new VirtualMachine(tests.getFirst().program()).run();
+    assertThrows(VmTrap.class, () -> new VirtualMachine(tests.get(1).program()).run());
+    Program production = compiler.compile(source);
+    assertEquals(1, production.functions().size());
+    VirtualMachine ordinary = new VirtualMachine(production);
+    ordinary.run();
+    assertEquals(2, ordinary.global("value"));
+  }
+
+  @Test
+  void rejectsUnsupportedTestShapes() {
+    WheelerCompiler compiler = new WheelerCompiler();
+
+    assertThrows(CompilerException.class, () -> compiler.compileTests(
+        "classical class Bad { test void row(long value) {} }"));
+    assertThrows(CompilerException.class, () -> compiler.compileTests(
+        "quantum class Bad { test void measured() {} }"));
+    assertThrows(CompilerException.class, () -> compiler.compile(
+        "classical class Bad { test rev void confused() {} entry void main() {} }"));
+  }
+
+  @Test
   void linksSortedPublicClassicalModulesDeterministically() {
     String arithmetic = """
         module bootstrap.arithmetic;

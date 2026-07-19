@@ -263,7 +263,7 @@ public final class Wheeler {
           + (result.diagnosticCode().isEmpty() ? ""
               : " " + result.diagnosticCode() + " " + result.diagnosticMessage()));
     }
-    out.println("tested " + name + " (" + report.selected() + " targets, "
+    out.println("tested " + name + " (" + report.selected() + " cases, "
         + report.passed() + " passed, " + report.failed() + " failed, report "
         + report.identity() + ")");
     return report.successful() ? 0 : 1;
