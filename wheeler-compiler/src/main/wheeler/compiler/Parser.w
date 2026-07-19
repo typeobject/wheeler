@@ -221,16 +221,24 @@ classical class Parser {
       }
 
       long opcode = statementOpcode(source, tokenStarts, tokenLengths, bodyStart);
-      boolean localDeclaration = opcode == STATEMENT_LOCAL_LONG;
+      boolean supportedStatement = opcode == STATEMENT_LOCAL_LONG;
       if (opcode == STATEMENT_LOCAL_BOOLEAN) {
-        localDeclaration = true;
+        supportedStatement = true;
       }
 
       if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT) {
-        localDeclaration = true;
+        supportedStatement = true;
       }
 
-      if (localDeclaration == false) {
+      if (opcode == STATEMENT_ASSERT_BOOLEAN) {
+        supportedStatement = true;
+      }
+
+      if (opcode == STATEMENT_ASSERT_BOOLEAN_NOT) {
+        supportedStatement = true;
+      }
+
+      if (supportedStatement == false) {
         return new MinimalProgramResult.Error(0);
       }
 

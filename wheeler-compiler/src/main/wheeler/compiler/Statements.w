@@ -68,6 +68,108 @@ classical class Statements {
       return -1;
     }
 
+    if (statementKind == STATEMENT_ASSERT_BOOLEAN) {
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 1,
+          PUNCTUATION_OPEN_PAREN
+        )
+      ) {
+        long assertBooleanHash = tokenHash(
+          source,
+          tokenStarts,
+          tokenLengths,
+          statementStart + 2
+        );
+        boolean acceptedBoolean = assertBooleanHash == TOKEN_TRUE;
+        if (assertBooleanHash == TOKEN_FALSE) {
+          acceptedBoolean = true;
+        }
+
+        if (acceptedBoolean) {
+          if (
+            punctuationAt(
+              source,
+              tokenKinds,
+              tokenStarts,
+              statementStart + 3,
+              PUNCTUATION_CLOSE_PAREN
+            )
+          ) {
+            if (
+              punctuationAt(
+                source,
+                tokenKinds,
+                tokenStarts,
+                statementStart + 4,
+                PUNCTUATION_SEMICOLON
+              )
+            ) {
+              return 5;
+            }
+          }
+        }
+      }
+
+      return -1;
+    }
+
+    if (statementKind == STATEMENT_ASSERT_BOOLEAN_NOT) {
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 1,
+          PUNCTUATION_OPEN_PAREN
+        )
+      ) {
+        if (
+          punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, PUNCTUATION_BANG)
+        ) {
+          long assertNegatedHash = tokenHash(
+            source,
+            tokenStarts,
+            tokenLengths,
+            statementStart + 3
+          );
+          boolean acceptedNegated = assertNegatedHash == TOKEN_TRUE;
+          if (assertNegatedHash == TOKEN_FALSE) {
+            acceptedNegated = true;
+          }
+
+          if (acceptedNegated) {
+            if (
+              punctuationAt(
+                source,
+                tokenKinds,
+                tokenStarts,
+                statementStart + 4,
+                PUNCTUATION_CLOSE_PAREN
+              )
+            ) {
+              if (
+                punctuationAt(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  statementStart + 5,
+                  PUNCTUATION_SEMICOLON
+                )
+              ) {
+                return 6;
+              }
+            }
+          }
+        }
+      }
+
+      return -1;
+    }
+
     if (statementKind == STATEMENT_LOCAL_LONG) {
       if (tokenKinds[statementStart + 1] == 1) {
         if (punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, 61)) {
@@ -247,6 +349,14 @@ classical class Statements {
       booleanLiteral = true;
     }
 
+    if (opcode == STATEMENT_ASSERT_BOOLEAN) {
+      booleanLiteral = true;
+    }
+
+    if (opcode == STATEMENT_ASSERT_BOOLEAN_NOT) {
+      booleanLiteral = true;
+    }
+
     if (booleanLiteral) {
       long literal = tokenHash(source, tokenStarts, tokenLengths, operandToken);
       if (literal == TOKEN_TRUE) {
@@ -277,6 +387,14 @@ classical class Statements {
 
     if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT) {
       return statementStart + 4;
+    }
+
+    if (opcode == STATEMENT_ASSERT_BOOLEAN) {
+      return statementStart + 2;
+    }
+
+    if (opcode == STATEMENT_ASSERT_BOOLEAN_NOT) {
+      return statementStart + 3;
     }
 
     return statementStart + 3;

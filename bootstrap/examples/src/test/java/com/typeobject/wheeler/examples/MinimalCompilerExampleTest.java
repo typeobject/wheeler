@@ -129,6 +129,18 @@ class MinimalCompilerExampleTest {
     assertDifferentialHalt(
         writerProgram,
         "classical class NegatedTrue { entry void main() { boolean flag = !true; } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class AssertTrue { entry void main() { assert(true); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class AssertNotFalse { entry void main() { assert(!false); } }");
+    assertDifferentialTrap(
+        writerProgram,
+        "classical class AssertFalse { entry void main() { assert(false); } }");
+    assertDifferentialTrap(
+        writerProgram,
+        "classical class AssertNotTrue { entry void main() { assert(!true); } }");
     assertDifferentialExecution(
         writerProgram,
         "classical class Empty { state long idle = 7; "
@@ -559,6 +571,20 @@ class MinimalCompilerExampleTest {
         new BytecodeReader().read(writer.hostOutput()));
     artifact.run();
     assertEquals(MachineStatus.HALTED, artifact.status());
+  }
+
+  private void assertDifferentialTrap(
+      Program writerProgram,
+      String source) {
+    VirtualMachine writer = new VirtualMachine(
+        writerProgram, source.getBytes(StandardCharsets.UTF_8), 1024);
+    writer.run();
+    assertArrayEquals(
+        new WheelerCompiler().compileToBytecode(source),
+        writer.hostOutput());
+    VirtualMachine artifact = new VirtualMachine(
+        new BytecodeReader().read(writer.hostOutput()));
+    assertThrows(VmTrap.class, artifact::run);
   }
 
   private void assertDifferentialExecution(
