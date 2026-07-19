@@ -319,16 +319,27 @@ classical class MinimalCompiler {
         entryLocalCount,
         helperLocalCount
       );
-      long helperType = 0;
-      while (helperType < helperLocalCount) limit 8 {
-        cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
-        helperType += 1;
+      if (program.helperReversible == 0) {
+        cursor = writeStatementLocalTypes(output, cursor, program.helperOpcode);
+        if (1 < program.helperStatementCount) {
+          cursor = writeStatementLocalTypes(output, cursor, program.helperSecondOpcode);
+        }
+
+        if (2 < program.helperStatementCount) {
+          cursor = writeStatementLocalTypes(output, cursor, program.helperThirdOpcode);
+        }
+
+        if (3 < program.helperStatementCount) {
+          cursor = writeStatementLocalTypes(output, cursor, program.helperFourthOpcode);
+        }
       }
 
-      long entryType = 0;
-      while (entryType < entryLocalCount) limit 8 {
-        cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
-        entryType += 1;
+      if (0 < program.statementCount) {
+        cursor = writeStatementLocalTypes(output, cursor, program.opcode);
+      }
+
+      if (1 < program.statementCount) {
+        cursor = writeStatementLocalTypes(output, cursor, program.secondOpcode);
       }
     } else {
       cursor = writeFunctionDescriptor(
@@ -344,10 +355,20 @@ classical class MinimalCompiler {
         localCount,
         0
       );
-      long localType = 0;
-      while (localType < localCount) limit 8 {
-        cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
-        localType += 1;
+      if (0 < program.statementCount) {
+        cursor = writeStatementLocalTypes(output, cursor, program.opcode);
+      }
+
+      if (1 < program.statementCount) {
+        cursor = writeStatementLocalTypes(output, cursor, program.secondOpcode);
+      }
+
+      if (2 < program.statementCount) {
+        cursor = writeStatementLocalTypes(output, cursor, program.thirdOpcode);
+      }
+
+      if (3 < program.statementCount) {
+        cursor = writeStatementLocalTypes(output, cursor, program.fourthOpcode);
       }
     }
 

@@ -61,7 +61,6 @@ classical class HelperParser {
     long helperThirdStatement,
     long helperFourthStatement
   ) {
-    long operandToken = statementOperandToken(source, tokenStarts, tokenLengths, helperBody);
     SourceRange name = new SourceRange(tokenStarts[2], tokenLengths[2]);
     SourceRange global = new SourceRange(tokenStarts[6], tokenLengths[6]);
     SourceRange helper = new SourceRange(tokenStarts[nameToken], tokenLengths[nameToken]);
@@ -85,17 +84,11 @@ classical class HelperParser {
         tokenLengths,
         helperSecondStatement
       );
-      long helperSecondOperandToken = statementOperandToken(
+      helperSecondOperand = statementOperand(
         source,
         tokenStarts,
         tokenLengths,
         helperSecondStatement
-      );
-      helperSecondOperand = parsedSignedNumber(
-        source,
-        tokenStarts,
-        tokenLengths,
-        helperSecondOperandToken
       );
     }
 
@@ -107,17 +100,11 @@ classical class HelperParser {
         tokenLengths,
         helperThirdStatement
       );
-      long helperThirdOperandToken = statementOperandToken(
+      helperThirdOperand = statementOperand(
         source,
         tokenStarts,
         tokenLengths,
         helperThirdStatement
-      );
-      helperThirdOperand = parsedSignedNumber(
-        source,
-        tokenStarts,
-        tokenLengths,
-        helperThirdOperandToken
       );
     }
 
@@ -129,17 +116,11 @@ classical class HelperParser {
         tokenLengths,
         helperFourthStatement
       );
-      long helperFourthOperandToken = statementOperandToken(
+      helperFourthOperand = statementOperand(
         source,
         tokenStarts,
         tokenLengths,
         helperFourthStatement
-      );
-      helperFourthOperand = parsedSignedNumber(
-        source,
-        tokenStarts,
-        tokenLengths,
-        helperFourthOperandToken
       );
     }
 
@@ -153,35 +134,18 @@ classical class HelperParser {
       entryCount = 1;
       preReverseCount = 1;
       entryOpcode = statementOpcode(source, tokenStarts, tokenLengths, preReverseStatement);
-      long preOperandToken = statementOperandToken(
-        source,
-        tokenStarts,
-        tokenLengths,
-        preReverseStatement
-      );
-      entryOperand = parsedSignedNumber(source, tokenStarts, tokenLengths, preOperandToken);
+      entryOperand = statementOperand(source, tokenStarts, tokenLengths, preReverseStatement);
     }
 
     if (-1 < entryStatement) {
-      long entryOperandToken = statementOperandToken(
-        source,
-        tokenStarts,
-        tokenLengths,
-        entryStatement
-      );
       if (entryCount == 0) {
         entryCount = 1;
         entryOpcode = statementOpcode(source, tokenStarts, tokenLengths, entryStatement);
-        entryOperand = parsedSignedNumber(source, tokenStarts, tokenLengths, entryOperandToken);
+        entryOperand = statementOperand(source, tokenStarts, tokenLengths, entryStatement);
       } else {
         entryCount = 2;
         secondEntryOpcode = statementOpcode(source, tokenStarts, tokenLengths, entryStatement);
-        secondEntryOperand = parsedSignedNumber(
-          source,
-          tokenStarts,
-          tokenLengths,
-          entryOperandToken
-        );
+        secondEntryOperand = statementOperand(source, tokenStarts, tokenLengths, entryStatement);
       }
     }
 
@@ -202,7 +166,7 @@ classical class HelperParser {
       helper,
       1,
       statementOpcode(source, tokenStarts, tokenLengths, helperBody),
-      parsedSignedNumber(source, tokenStarts, tokenLengths, operandToken),
+      statementOperand(source, tokenStarts, tokenLengths, helperBody),
       reversible,
       proof,
       proofCount,

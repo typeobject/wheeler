@@ -100,6 +100,32 @@ classical class Statements {
       return -1;
     }
 
+    if (statementKind == 770) {
+      if (tokenKinds[statementStart + 1] == 1) {
+        if (punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, 61)) {
+          // `true` and `false` use the same stable token hash as every keyword.
+          long literal = tokenHash(source, tokenStarts, tokenLengths, statementStart + 3);
+          if (literal == 3569038) {
+            if (
+              punctuationAt(source, tokenKinds, tokenStarts, statementStart + 4, 59)
+            ) {
+              return 5;
+            }
+          }
+
+          if (literal == 97196323) {
+            if (
+              punctuationAt(source, tokenKinds, tokenStarts, statementStart + 4, 59)
+            ) {
+              return 5;
+            }
+          }
+        }
+      }
+
+      return -1;
+    }
+
     if (tokenKinds[statementStart] == 1) {
       if (sameTokenText(source, tokenStarts, tokenLengths, 6, statementStart)) {
         long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
@@ -160,6 +186,27 @@ classical class Statements {
     }
 
     return -1;
+  }
+
+  /// Decodes the canonical operand carried by one validated statement.
+  public long statementOperand(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart
+  ) {
+    long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    long operandToken = statementOperandToken(source, tokenStarts, tokenLengths, statementStart);
+    if (opcode == 770) {
+      long literal = tokenHash(source, tokenStarts, tokenLengths, operandToken);
+      if (literal == 3569038) {
+        return 1;
+      }
+
+      return 0;
+    }
+
+    return parsedSignedNumber(source, tokenStarts, tokenLengths, operandToken);
   }
 
   /// Returns the operand-token offset for one bounded statement.

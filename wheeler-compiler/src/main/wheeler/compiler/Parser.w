@@ -21,8 +21,7 @@ classical class Parser {
   ) {
     long initial = parsedSignedNumber(source, tokenStarts, tokenLengths, 8);
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, firstStart);
-    long operandToken = statementOperandToken(source, tokenStarts, tokenLengths, firstStart);
-    long operand = parsedSignedNumber(source, tokenStarts, tokenLengths, operandToken);
+    long operand = statementOperand(source, tokenStarts, tokenLengths, firstStart);
     long statementCount = 1;
     long secondOpcode = -1;
     long secondOperand = 0;
@@ -33,37 +32,19 @@ classical class Parser {
     if (0 < secondStart) {
       statementCount = 2;
       secondOpcode = statementOpcode(source, tokenStarts, tokenLengths, secondStart);
-      long secondOperandToken = statementOperandToken(
-        source,
-        tokenStarts,
-        tokenLengths,
-        secondStart
-      );
-      secondOperand = parsedSignedNumber(source, tokenStarts, tokenLengths, secondOperandToken);
+      secondOperand = statementOperand(source, tokenStarts, tokenLengths, secondStart);
     }
 
     if (0 < thirdStart) {
       statementCount = 3;
       thirdOpcode = statementOpcode(source, tokenStarts, tokenLengths, thirdStart);
-      long thirdOperandToken = statementOperandToken(
-        source,
-        tokenStarts,
-        tokenLengths,
-        thirdStart
-      );
-      thirdOperand = parsedSignedNumber(source, tokenStarts, tokenLengths, thirdOperandToken);
+      thirdOperand = statementOperand(source, tokenStarts, tokenLengths, thirdStart);
     }
 
     if (0 < fourthStart) {
       statementCount = 4;
       fourthOpcode = statementOpcode(source, tokenStarts, tokenLengths, fourthStart);
-      long fourthOperandToken = statementOperandToken(
-        source,
-        tokenStarts,
-        tokenLengths,
-        fourthStart
-      );
-      fourthOperand = parsedSignedNumber(source, tokenStarts, tokenLengths, fourthOperandToken);
+      fourthOperand = statementOperand(source, tokenStarts, tokenLengths, fourthStart);
     }
 
     SourceRange name = new SourceRange(tokenStarts[2], tokenLengths[2]);
@@ -183,15 +164,11 @@ classical class Parser {
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
     long statementCount,
+    long opcode,
     long operand
   ) {
     SourceRange name = new SourceRange(tokenStarts[2], tokenLengths[2]);
     SourceRange global = new SourceRange(0, 0);
-    long opcode = -1;
-    if (statementCount == 1) {
-      opcode = 769;
-    }
-
     MinimalProgram program = new MinimalProgram(
       name,
       global,
@@ -238,39 +215,29 @@ classical class Parser {
       if (punctuationAt(source, tokenKinds, tokenStarts, bodyStart, 125)) {
         if (punctuationAt(source, tokenKinds, tokenStarts, bodyStart + 1, 125)) {
           if (count == bodyStart + 2) {
-            return minimalNoGlobalValue(tokenStarts, tokenLengths, 0, 0);
+            return minimalNoGlobalValue(tokenStarts, tokenLengths, 0, -1, 0);
           }
         }
       }
 
-      if (tokenHash(source, tokenStarts, tokenLengths, bodyStart) == 3327612) {
-        if (tokenKinds[bodyStart + 1] == 1) {
-          if (punctuationAt(source, tokenKinds, tokenStarts, bodyStart + 2, 61)) {
-            long valueToken = bodyStart + 3;
-            long valueWidth = signedNumberWidth(source, tokenKinds, tokenStarts, valueToken);
-            if (0 < valueWidth) {
-              if (signedNumberValid(source, tokenStarts, tokenLengths, valueToken)) {
-                long semicolon = valueToken + valueWidth;
-                if (punctuationAt(source, tokenKinds, tokenStarts, semicolon, 59)) {
-                  if (
-                    punctuationAt(source, tokenKinds, tokenStarts, semicolon + 1, 125)
-                  ) {
-                    if (
-                      punctuationAt(source, tokenKinds, tokenStarts, semicolon + 2, 125)
-                    ) {
-                      if (count == semicolon + 3) {
-                        long operand = parsedSignedNumber(
-                          source,
-                          tokenStarts,
-                          tokenLengths,
-                          valueToken
-                        );
-                        return minimalNoGlobalValue(tokenStarts, tokenLengths, 1, operand);
-                      }
-                    }
-                  }
-                }
-              }
+      long opcode = statementOpcode(source, tokenStarts, tokenLengths, bodyStart);
+      boolean localDeclaration = opcode == 769;
+      if (opcode == 770) {
+        localDeclaration = true;
+      }
+
+      if (localDeclaration == false) {
+        return new MinimalProgramResult.Error(0);
+      }
+
+      long width = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, bodyStart);
+      if (0 < width) {
+        long statementEnd = bodyStart + width;
+        if (punctuationAt(source, tokenKinds, tokenStarts, statementEnd, 125)) {
+          if (punctuationAt(source, tokenKinds, tokenStarts, statementEnd + 1, 125)) {
+            if (count == statementEnd + 2) {
+              long operand = statementOperand(source, tokenStarts, tokenLengths, bodyStart);
+              return minimalNoGlobalValue(tokenStarts, tokenLengths, 1, opcode, operand);
             }
           }
         }

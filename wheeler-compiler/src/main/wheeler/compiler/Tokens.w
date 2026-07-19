@@ -104,6 +104,10 @@ classical class Tokens {
       return 769;
     }
 
+    if (keyword == 90259024936) {
+      return 770;
+    }
+
     long operator = utf8Scalar(source, tokenStarts[statementStart + 1]);
     if (operator == 61) {
       return 0;

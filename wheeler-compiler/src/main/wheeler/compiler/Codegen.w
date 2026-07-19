@@ -3,6 +3,7 @@
 module wheeler.compiler.codegen;
 
 import wheeler.compiler.encoding;
+import wheeler.compiler.type_codes;
 
 classical class Codegen {
   /// Maps a parsed global update to its canonical bytecode opcode.
@@ -52,6 +53,23 @@ classical class Codegen {
     return 0;
   }
 
+  /// Writes canonical local type codes for one parsed statement.
+  public long writeStatementLocalTypes(borrow mut bytes output, long cursor, long opcode) {
+    long count = statementLocalCount(opcode);
+    long typeCode = TYPE_SIGNED;
+    if (opcode == 770) {
+      typeCode = TYPE_BOOLEAN;
+    }
+
+    long local = 0;
+    while (local < count) limit 2 {
+      cursor = writeUnsignedLittleEndian(output, cursor, typeCode, 4);
+      local += 1;
+    }
+
+    return cursor;
+  }
+
   /// Returns the encoded byte width of one parsed statement.
   public long statementCodeLength(long opcode) {
     if (opcode == 768) {
@@ -59,6 +77,10 @@ classical class Codegen {
     }
 
     if (opcode == 769) {
+      return 48;
+    }
+
+    if (opcode == 770) {
       return 48;
     }
 
@@ -115,6 +137,12 @@ classical class Codegen {
     cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
     cursor = writeSignedLittleEndian(output, cursor, operand, 8);
     if (opcode == 769) {
+      cursor = writeInstructionHeader(output, cursor, 1027, 2);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
+      return writeUnsignedLittleEndian(output, cursor, localBase, 8);
+    }
+
+    if (opcode == 770) {
       cursor = writeInstructionHeader(output, cursor, 1027, 2);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
       return writeUnsignedLittleEndian(output, cursor, localBase, 8);

@@ -117,6 +117,12 @@ class MinimalCompilerExampleTest {
     assertDifferentialHalt(
         writerProgram,
         "classical class Local { entry void main() { long x = -2; } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class TrueLocal { entry void main() { boolean flag = true; } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class FalseLocal { entry void main() { boolean flag = false; } }");
     assertDifferentialExecution(
         writerProgram,
         "classical class Empty { state long idle = 7; "
@@ -276,6 +282,20 @@ class MinimalCompilerExampleTest {
         5);
     assertDifferentialExecution(
         writerProgram,
+        "classical class WithBoolean { state long total = 1; "
+            + "entry void main() { boolean ready = true; total += 4; "
+            + "assert(total == 5); } }",
+        "total",
+        5);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class HelperBooleans { state long total = 1; "
+            + "void setup() { boolean ready = false; long scratch = -2; } "
+            + "entry void main() { setup(); assert(total == 1); } }",
+        "total",
+        1);
+    assertDifferentialExecution(
+        writerProgram,
         "classical class Asserted { state long value = 1; "
             + "entry void main() { value += 2; assert(value == 3); } }",
         "value",
@@ -340,6 +360,14 @@ class MinimalCompilerExampleTest {
         512);
     assertThrows(VmTrap.class, bareAssertion::run);
     assertArrayEquals(new byte[512], bareAssertion.hostOutput());
+
+    VirtualMachine invalidBoolean = new VirtualMachine(
+        writerProgram,
+        "classical class BadBoolean { entry void main() { boolean flag = 1; } }"
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, invalidBoolean::run);
+    assertArrayEquals(new byte[512], invalidBoolean.hostOutput());
   }
 
   @Test
