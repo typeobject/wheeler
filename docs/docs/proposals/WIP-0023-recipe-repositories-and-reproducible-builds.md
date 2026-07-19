@@ -210,7 +210,8 @@ Reject noncanonical snapshots, invalid delegations, conflicting mappings, source
 - [x] XDG path resolution, canonical ordered file-repository policy, immutable local publication, canonical release mappings, and exact first-authoritative fetch are implemented in stage 0.
 - [x] Unlocked stage-0 resolution honors namespace authority and first-admissible configured repository order without candidate mixing.
 - [x] Lock schema 2 binds each selected package to its owning repository trust-domain identity without binding aliases, URLs, order, or physical paths.
-- [ ] Snapshot-bound locks, reusable artifact cache, quarantine state, and identity-preserving mirrors remain.
+- [x] Authoritative exact package fetches populate and reverify a disposable XDG package-object cache; corruption becomes a miss and cache bytes never become candidates.
+- [ ] Snapshot-bound locks, build-input-keyed output reuse, quarantine state, and identity-preserving mirrors remain.
 - [ ] Reproducibility normalization passes.
 - [ ] Quarantine and independent attestations implemented.
 - [ ] Compatibility checks and signed snapshots implemented.
@@ -226,7 +227,7 @@ Reject noncanonical snapshots, invalid delegations, conflicting mappings, source
 - [ ] Vendored locked builds use no network.
 - [ ] Mirrors yield identical objects and never compete as repositories.
 - [ ] Ordered repository lookup stops at the first authoritative admissible trust domain; lower repositories cannot inject a newer release, while an explicit alias selects the intended domain.
-- [ ] XDG overrides and fallback paths change placement only; cache hits from every supported origin reverify complete build-input identity and bytes, and cache deletion changes no result.
+- [ ] XDG overrides and fallback paths change placement only; package-object hits reverify complete release and archive identity and cache deletion changes no package bytes, while build-input-keyed outputs from every supported origin remain.
 - [ ] Path, identity, locale, timezone, order, timestamp, and job count do not alter bytes.
 - [ ] Independent builds produce one PREV; divergence is quarantined.
 - [ ] Equal publication is idempotent and conflicts cannot overwrite.

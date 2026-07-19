@@ -100,6 +100,18 @@ class RepositoryCommandTest {
     RepositoryAccess.publication(paths, "local").publish(localBytes);
     assertArrayEquals(
         localBytes, RepositoryAccess.fetch(paths, null, "demo.library", "1.0.0"));
+    String localIdentity = new PackageArchive().identity(localBytes);
+    ArtifactCache cache = new ArtifactCache(paths.artifactCache());
+    Files.write(cache.path(localIdentity), new byte[] {0});
+    assertArrayEquals(
+        localBytes, RepositoryAccess.fetch(paths, "local", "demo.library", "1.0.0"));
+    Files.delete(paths.dataRepository().resolve("archives").resolve(localIdentity + ".wpk"));
+    assertArrayEquals(
+        localBytes, RepositoryAccess.fetch(paths, "local", "demo.library", "1.0.0"));
+    Files.delete(cache.path(localIdentity));
+    assertThrows(IOException.class,
+        () -> RepositoryAccess.fetch(paths, "local", "demo.library", "1.0.0"));
+    RepositoryAccess.publication(paths, "local").publish(localBytes);
 
     PackageRegistry.openOrCreate(privateRoot).publish(privateBytes);
     assertTrue(Files.isRegularFile(

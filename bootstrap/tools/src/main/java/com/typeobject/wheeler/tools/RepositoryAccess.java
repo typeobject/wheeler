@@ -4,6 +4,7 @@ import com.typeobject.wheeler.packageformat.PackageFormatException;
 import com.typeobject.wheeler.packageformat.PackageRelease;
 import com.typeobject.wheeler.packageformat.PackageResolver;
 import com.typeobject.wheeler.packageformat.RepositoryPolicy;
+import com.typeobject.wheeler.packageformat.RepositoryRelease;
 import com.typeobject.wheeler.packageformat.RepositoryPolicy.Repository;
 import com.typeobject.wheeler.packageformat.RepositoryPolicy.Transport;
 import java.io.IOException;
@@ -65,6 +66,7 @@ final class RepositoryAccess {
   static byte[] fetch(XdgPaths paths, String selectedAlias, String name, String version)
       throws IOException {
     RepositoryPolicy policy = RepositoryPolicyStore.load(paths);
+    ArtifactCache cache = new ArtifactCache(paths.artifactCache());
     if (selectedAlias != null) {
       Repository repository = policy.require(selectedAlias);
       requireEnabledFile(repository);
@@ -72,7 +74,7 @@ final class RepositoryAccess {
         throw new PackageFormatException(
             "Repository " + selectedAlias + " is not authoritative for " + name);
       }
-      byte[] bytes = present(repository, name, version);
+      byte[] bytes = present(repository, name, version, cache);
       if (bytes == null) {
         throw new IOException(
             "Repository " + selectedAlias + " has no release " + name + " " + version);
@@ -84,7 +86,7 @@ final class RepositoryAccess {
         continue;
       }
       requireEnabledFile(repository);
-      byte[] bytes = present(repository, name, version);
+      byte[] bytes = present(repository, name, version, cache);
       if (bytes != null) {
         return bytes;
       }
@@ -92,13 +94,27 @@ final class RepositoryAccess {
     throw new IOException("No configured repository has release " + name + " " + version);
   }
 
-  private static byte[] present(Repository repository, String name, String version)
-      throws IOException {
+  private static byte[] present(
+      Repository repository,
+      String name,
+      String version,
+      ArtifactCache cache) throws IOException {
     Path root = Path.of(repository.location());
     if (!Files.exists(root, LinkOption.NOFOLLOW_LINKS)) {
       return null;
     }
-    return PackageRegistry.open(root).fetchIfPresent(name, version);
+    PackageRegistry registry = PackageRegistry.open(root);
+    RepositoryRelease release = registry.releaseIfPresent(name, version);
+    if (release == null) {
+      return null;
+    }
+    byte[] cached = cache.load(release);
+    if (cached != null) {
+      return cached;
+    }
+    byte[] fetched = registry.fetch(release);
+    cache.store(release, fetched);
+    return fetched;
   }
 
   private static void requireEnabledFile(Repository repository) {

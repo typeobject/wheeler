@@ -76,6 +76,11 @@ final class PackageRegistry {
   }
 
   byte[] fetchIfPresent(String name, String version) throws IOException {
+    RepositoryRelease release = releaseIfPresent(name, version);
+    return release == null ? null : fetch(release);
+  }
+
+  RepositoryRelease releaseIfPresent(String name, String version) throws IOException {
     requirePackageName(name);
     SemanticVersion.parse(version);
     Path releaseRoot = root.resolve("releases");
@@ -99,14 +104,17 @@ final class PackageRegistry {
       return null;
     }
     requirePhysicalFile(mapping, "release mapping");
-    RepositoryRelease release = verifyRelease(mapping, name, version);
+    return verifyRelease(mapping, name, version);
+  }
+
+  byte[] fetch(RepositoryRelease release) throws IOException {
     Path archive = descend("archives", release.archiveIdentity() + ".wpk");
     byte[] bytes = Files.readAllBytes(archive);
     DecodedPackage decoded = codec.decode(bytes);
     if (!decoded.identity().equals(release.archiveIdentity())
         || !decoded.manifest().identity().equals(release.manifestIdentity())
-        || !decoded.manifest().name().equals(name)
-        || !decoded.manifest().version().equals(version)) {
+        || !decoded.manifest().name().equals(release.name())
+        || !decoded.manifest().version().equals(release.version())) {
       throw new PackageFormatException("Registry release content does not match its mapping");
     }
     return bytes;
