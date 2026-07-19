@@ -7,7 +7,7 @@
 | Created | 2026-07-19 |
 | Updated | 2026-07-19 |
 | Area | Native FFI, ABI, effects, memory, packages, runtime loading, system libraries |
-| Depends on | WIP-0001, WIP-0004, WIP-0005, WIP-0008, WIP-0009, WIP-0012, WIP-0013, WIP-0022, WIP-0023 |
+| Depends on | WIP-0001, WIP-0004, WIP-0005, WIP-0008, WIP-0009, WIP-0012, WIP-0013, WIP-0022, WIP-0023, WIP-0028 |
 | Supersedes | None |
 | Superseded by | None |
 
@@ -69,7 +69,7 @@ A foreign function records Wheeler name, native symbol, calling convention, para
 
 Initial scalars are exact signed/unsigned 8/16/32/64-bit integers, declared Boolean encoding, and supported IEEE 32/64-bit floats. Target aliases resolve to an exact width before artifact construction.
 
-A buffer view is a nonescaping pointer/length pair for one call. Mutable views are exclusive. A callee cannot retain a view unless ownership transfers into a declared handle.
+A buffer view is the native lowering of one WIP-0028 second-class loan for one call. Shared views preserve observation-only access; mutable views are exclusive. The callee cannot retain a view, cross suspension/callback ownership, or manufacture address identity. Retention requires ownership transfer into a declared affine handle.
 
 A foreign handle is affine opaque state with provider/type, nullability, creation/destruction, thread affinity, send/share policy, borrows, invalidation, error state, and checkpoint policy. It cannot be copied, compared by address, serialized, cloned, or rewound.
 
@@ -189,3 +189,4 @@ Raw loading/function pointers, libffi as language contract, ambient headers, C++
 - [WIP-0023](WIP-0023-recipe-repositories-and-reproducible-builds.md)
 - [WIP-0024](WIP-0024-system-package-exports.md)
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
+- [WIP-0028](WIP-0028-constrained-generics-coherent-type-classes-and-region-ownership.md)

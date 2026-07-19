@@ -142,7 +142,7 @@ Types participate in explicit capabilities such as:
 - `CanonicalEncode` and `CanonicalDecode`: versioned bounded representation;
 - `Eq`, `Ord`, and `Hash`: deterministic value relations with compatible laws.
 
-The exact surface may use traits, interfaces, contracts, or compiler-known protocols. The semantic distinctions are mandatory.
+WIP-0028 owns the exact surface: coherent compile-time type classes for ordinary protocols, sealed compiler/kernel capabilities for safety properties, structural derivation, affine owners, second-class shared/exclusive loans, and bounded regions. `Drop` cannot become a hidden user finalizer; external resources close, commit, abort, release, or return explicitly. The semantic distinctions above remain mandatory, but duplicate trait/interface dialects do not.
 
 ## Collections
 
@@ -536,3 +536,4 @@ Rejected. Provider SDKs are adapter implementation details. Portable library val
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
 - [WIP-0013](WIP-0013-typed-frames-control-flow-and-storage.md)
 - [WIP-0025](WIP-0025-native-ffi-and-system-integration.md)
+- [WIP-0028](WIP-0028-constrained-generics-coherent-type-classes-and-region-ownership.md)

@@ -179,7 +179,7 @@ The parser bounds source bytes, lines, declarations, methods, statements, regist
 - [x] Coherent method references execute on classical and simulated quantum data.
 - [x] Counter, QFT, and coherent-oracle examples use only the Wheeler source profile.
 - [x] Temporary source syntax and documentation are deleted.
-- [ ] Deterministic classical function modules now enforce exact declarations, sorted direct imports, public visibility, dependency-first linking, and closed DAG inputs; manifest-bound source sets now build locally and from locked archives; direct public immutable-record and closed-variant APIs now link, and importers exhaustively match exported variants; nested/generic collections, exported state/proofs/circuits, cross-package linking and re-export remain; full module-qualified public function calls and nominal value types execute.
+- [ ] Deterministic classical modules enforce exact declarations, sorted imports, public visibility, dependency-first linking, closed DAG inputs, manifest-bound source sets, and locked direct-package visibility; public immutable records/closed variants link and importers exhaustively match variants. WIP-0028 owns constrained generic collections and region loans. Exported state/proofs/circuits, package aliases/re-export, and complete qualified nominal APIs remain.
 
 ## Testing and acceptance
 
@@ -220,4 +220,5 @@ Rejected. Reversibility, affine quantum resources, reverse blocks, and measureme
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
 - [WIP-0012](WIP-0012-wheeler-standard-library.md)
 - [WIP-0017](WIP-0017-compile-time-constants-and-finite-enums.md)
+- [WIP-0028](WIP-0028-constrained-generics-coherent-type-classes-and-region-ownership.md)
 - [Language profile](../reference/language-profile.md)

@@ -98,6 +98,8 @@ theorem qftRoundTrip(qreg_shape shape)
 
 The theorem body cannot perform ordinary I/O, target submission, measurement, mutable allocation outside proof arenas, clock access, randomness, or undeclared effects. It elaborates to a proof term checked by the kernel.
 
+WIP-0028 generic theorems quantify over kinded parameters and explicit class-law evidence. Associated-type reduction names the exact coherent instance. Safety-critical classes such as coherent basis, permutation, and unitary evidence require compiler- or kernel-admitted certificates; an ordinary instance declaration cannot notarize itself.
+
 ### Proof blocks
 
 Proof blocks contain a small structured statement set:
@@ -402,3 +404,4 @@ Rejected. Simulation can establish exact finite cases under its model or provide
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0010](WIP-0010-executable-application-portfolio.md)
 - [WIP-0012](WIP-0012-wheeler-standard-library.md)
+- [WIP-0028](WIP-0028-constrained-generics-coherent-type-classes-and-region-ownership.md)

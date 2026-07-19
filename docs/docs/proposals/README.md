@@ -103,3 +103,4 @@ Use “Not applicable” with a reason for unaffected template sections. Split w
 | [WIP-0024](WIP-0024-system-package-exports.md) | Draft | Canonical install images and system-package export | Debian, RPM, distribution tooling |
 | [WIP-0025](WIP-0025-native-ffi-and-system-integration.md) | Draft | Native ABI descriptors, FFI, and system capabilities | Language, runtime, native ABI, packages |
 | [WIP-0026](WIP-0026-self-contained-native-executables.md) | Draft | Self-contained platform-native Wheeler executables | Native images, ELF, Mach-O, PE, embedded WBC |
+| [WIP-0028](WIP-0028-constrained-generics-coherent-type-classes-and-region-ownership.md) | Draft | Constrained generics, coherent type classes, and region ownership | Generics, classes, ownership, borrowing, memory, quantum typing |

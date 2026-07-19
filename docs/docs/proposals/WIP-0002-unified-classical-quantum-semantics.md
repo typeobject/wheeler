@@ -328,6 +328,7 @@ Rejected by no-cloning. It copies known basis information in a restricted case a
 - [WIP-0003](WIP-0003-quantum-target-and-qiskit-backend.md)
 - [WIP-0004](WIP-0004-hybrid-jobs-history-and-replay.md)
 - [WIP-0010](WIP-0010-executable-application-portfolio.md)
+- [WIP-0028](WIP-0028-constrained-generics-coherent-type-classes-and-region-ownership.md)
 - [`Counter.w`](../../../wheeler-examples/src/main/wheeler/Counter.w)
 - [`QFT.w`](../../../wheeler-examples/src/main/wheeler/QFT.w)
 - [`QuantumOptimizer.w`](../../../wheeler-examples/src/main/wheeler/QuantumOptimizer.w)

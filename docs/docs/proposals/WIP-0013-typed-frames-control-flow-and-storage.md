@@ -13,7 +13,7 @@
 
 ## Summary
 
-Wheeler gains typed parameters, return values, local slots, expressions, bounded control flow, records, tagged variants, arrays, borrowed slices, and region-owned storage through a verified register-frame machine. This is the execution substrate for the self-hosted compiler and standard library.
+Wheeler gains typed parameters, return values, local slots, expressions, bounded control flow, records, tagged variants, arrays, borrowed slices, and region-owned storage through a verified register-frame machine. This is the execution substrate for the self-hosted compiler and standard library. WIP-0028 generalizes these concrete operations into affine generic owners, structural capabilities, non-lexical shared/exclusive loans, and public region relations; it does not replace this bytecode and verifier substrate.
 
 Functions declare parameter, result, local-slot, effect, and reversibility metadata. Bytecode uses typed frame-local registers and explicit control-flow targets. The verifier constructs a control-flow graph, checks register types and definite assignment, validates calls and returns, proves stack and storage bounds, and rejects irreducible or unbounded forms outside an explicitly permitted profile.
 
@@ -301,3 +301,4 @@ Rejected as the default. Hidden history changes effect and space semantics. Logg
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
 - [WIP-0012](WIP-0012-wheeler-standard-library.md)
 - [WIP-0017](WIP-0017-compile-time-constants-and-finite-enums.md)
+- [WIP-0028](WIP-0028-constrained-generics-coherent-type-classes-and-region-ownership.md)

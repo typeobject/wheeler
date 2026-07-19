@@ -255,6 +255,8 @@ The implemented stage-0 archive and locked-build core remains the foundation: de
 4. [WIP-0025](WIP-0025-native-ffi-and-system-integration.md) defines exact native ABI descriptors, affine foreign ownership, irreversible effects, package-visible providers, and explicit system capabilities without ambient loading.
 5. [WIP-0026](WIP-0026-self-contained-native-executables.md) defines one loader-native ELF, Mach-O, or PE file containing a verified read-only Wheeler capsule and embedded runtime.
 
+[WIP-0028](WIP-0028-constrained-generics-coherent-type-classes-and-region-ownership.md) adds generic API and instance-evidence identity on top of this graph: ordinary class instances come from the exact class/principal-type packages, adapter instances require direct dependency and explicit activation, and no transitive package may alter class selection. Generic body, constraints, defaults, associated types, laws, and selected evidence become package API and closed-artifact identity.
+
 The series preserves these rules:
 
 - a package name is not an instance, and only direct declared dependencies are importable;
@@ -402,3 +404,4 @@ Rejected. Credentials, queue selection, calibration, budgets, and hardware avail
 - [WIP-0024](WIP-0024-system-package-exports.md)
 - [WIP-0025](WIP-0025-native-ffi-and-system-integration.md)
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
+- [WIP-0028](WIP-0028-constrained-generics-coherent-type-classes-and-region-ownership.md)

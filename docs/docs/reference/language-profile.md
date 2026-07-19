@@ -256,7 +256,7 @@ An ordinary function may return one `region` owner. `return` consumes that local
 
 `region`, `words`, `bytes`, `utf8`, and `longmap` locals are affine owners. Binding one moves the handle and invalidates the source; ordinary copy and equality are rejected. Owners cannot be results, aggregate elements, arrays, or slices. Every owned storage spelling in parameter position denotes its checked nonescaping borrow contract; no parameter receives ownership. Definite-ownership dataflow rejects use after move/drop, live-owner overwrite, control-flow joins with different ownership states, and any function exit with a live owned local. Runtime dropped-state and owner checks remain defense in depth. Snapshots expose canonical region/buffer state, and rewind restores allocation, mutation, borrow-call windows, owned region results, move, and drop exactly.
 
-This slice is enough to exercise bounded region scratch borrowing, owned and exclusively borrowed word/byte mutation, strict UTF-8 freezing/scalar decoding, and owned/borrowed signed symbol maps; it is not yet a compiler arena. Library strings, normalization, generic maps/sets/queues, cross-function ownership, borrowing, split/join, region capabilities, recoverable allocation results, and commit-aware reclamation remain WIP-0013/WIP-0012 work.
+This slice is enough to exercise bounded region scratch borrowing, owned and exclusively borrowed word/byte mutation, strict UTF-8 freezing/scalar decoding, and owned/borrowed signed symbol maps; it is not yet a compiler arena. Library strings and normalization remain WIP-0012 work. Generic maps/sets/queues, structural ownership classes, cross-function region relations, non-lexical shared/exclusive loans, split/join, recoverable allocation, and commit-aware reclamation are specified by WIP-0028 over the WIP-0013 machine substrate.
 
 ## Generated inverse and adjoint theorems
 
@@ -391,6 +391,10 @@ The current `QFTProof.w` is an executable inverse law, not a formal theorem. `Co
 ## Standard library direction
 
 The Wheeler-written standard library will provide allocation-free core values, owned deterministic collections, bytes and UTF-8, explicit host capabilities, reversible data structures with honest inverse contracts, affine logical qubits and registers, circuits, observables, target jobs, proof support, and test utilities. Its package layering and ownership rules are specified in [WIP-0012](../proposals/WIP-0012-wheeler-standard-library.md).
+
+## Generic and ownership direction
+
+The current profile has concrete nominal aggregates, fixed arrays/slices, and a deliberately narrow set of region and storage borrow rules. It has no generic declaration, type class, associated type, const-generic parameter, general cross-function owner, or runtime class dispatch. [WIP-0028](../proposals/WIP-0028-constrained-generics-coherent-type-classes-and-region-ownership.md) specifies the future constrained model: definition-site checked generics, coherent static classes, bounded value parameters, affine owners, inferred local loans, explicit public region relations, sealed quantum/reversible capabilities, deterministic specialization, and no required collector. This paragraph is a boundary marker, not an implementation claim with angle brackets attached.
 
 ## Teaching path
 

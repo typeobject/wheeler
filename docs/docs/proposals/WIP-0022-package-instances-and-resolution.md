@@ -139,6 +139,8 @@ An exported nominal type identity includes:
 
 Equal spelling and layout do not merge nominal types from different instances.
 
+WIP-0028 type-class adapter instances obey the same boundary. Class-package and principal-type-package instances are intrinsic to those exact instances; an adapter instance activates only through a direct declared dependency and explicit source selection. It never leaks transitively. Selected instance evidence records exact package-instance identity in public and executable artifacts.
+
 ### Coexistence and singleton groups
 
 Multiple versions may coexist when aliases, nominal identities, resources, output paths, capabilities, and native link groups remain distinct. A singleton declaration is permitted only for observably process-global state such as one runtime, symbol namespace, provider registry, or hardware session manager. It records group, scope, compatibility key, and reason.
@@ -203,7 +205,7 @@ Instance compatibility includes proof and target profiles. Certificates bind exa
 
 ## Persistence and compatibility
 
-This WIP requires a new lock schema. Schema-1 migration loads exact old manifests and archives, classifies edges conservatively, rejects ambiguous phase/visibility, creates explicit aliases, and proves realizability. The compiler/linker includes instance identity wherever nominal collision is possible.
+This WIP replaces the unreleased lock schema in one change. No compatibility reader or migration mode remains. The compiler/linker includes instance identity wherever nominal collision is possible, and canonical packages, locks, archives, examples, and fixtures move together.
 
 ## Safety and failures
 
@@ -218,10 +220,10 @@ Reject unknown repositories/snapshots, unauthorized namespaces, duplicate aliase
 5. Add profile/prerelease filtering.
 6. Replace depth-first backtracking with bounded incompatibility solving.
 7. Add lock preference and update modes.
-8. Introduce schema 2 and one workspace graph.
+8. Replace the lock schema and introduce one workspace graph.
 9. Scope capabilities.
 10. Add multiple-instance nominal/output identity and singleton groups.
-11. Migrate fixtures, then delete schema-1 graph authority.
+11. Replace every fixture, lock, and archive atomically; retain no old graph authority.
 
 ## Progress
 
@@ -263,12 +265,12 @@ One version per name forces ecosystem lockstep; actual singleton constraints are
 - Which additive feature unification rules are safe? — **Owner:** package/type maintainers — **Decide by:** before features
 - Which singleton scopes are required first? — **Owner:** runtime/native maintainers — **Decide by:** before WIP-0025 acceptance
 - Which incompatibility derivation encoding is canonical? — **Owner:** resolver maintainers — **Decide by:** before implementation
-- How long is schema-1 migration supported? — **Owner:** release maintainers — **Decide by:** before schema 2
 
 ## References
 
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0023](WIP-0023-recipe-repositories-and-reproducible-builds.md)
+- [WIP-0028](WIP-0028-constrained-generics-coherent-type-classes-and-region-ownership.md)
 - [Conan lockfiles](https://docs.conan.io/2/tutorial/versioning/lockfiles.html)
 - [Conan build and host contexts](https://docs.conan.io/2/tutorial/consuming_packages/cross_building_with_conan.html)

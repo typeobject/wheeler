@@ -177,7 +177,7 @@ wheeler qasm <program.wbc> <output.qasm>
 
 ## Future hardening boundaries
 
-The implemented schema remains name-global, source-package-only, and deliberately local. It does not yet claim package-instance coexistence, repository snapshots, recipe revisions, byte-reproducible PREVs, system-package export, native FFI providers, or self-contained platform images. Those contracts are split across WIP-0022 through WIP-0026 under the WIP-0009 umbrella. In particular, current exact locks do not acquire those semantics merely because their hashes look serious.
+The implemented schema remains name-global, source-package-only, and deliberately local. It does not yet claim package-instance coexistence, repository snapshots, recipe revisions, byte-reproducible PREVs, system-package export, native FFI providers, or self-contained platform images. Those contracts are split across WIP-0022 through WIP-0026 under the WIP-0009 umbrella. WIP-0028 additionally binds generic declarations, class instances, associated types, defaults, laws, and selected evidence to exact direct package instances; the current schema implements none of that generic metadata yet. In particular, current exact locks do not acquire those semantics merely because their hashes look serious.
 
 The accepted constraints remain in force while that work is pending: only direct manifest intent should become future source visibility, no locked build performs ambient resolution, and native/distribution work must not introduce host library or package-database discovery.
 
