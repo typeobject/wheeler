@@ -27,6 +27,10 @@ class PackageResolverTest {
     assertFalse(VersionConstraint.parse("^1.2.0").accepts(SemanticVersion.parse("2.0.0")));
     assertTrue(VersionConstraint.parse("~1.2.0").accepts(SemanticVersion.parse("1.2.9")));
     assertFalse(VersionConstraint.parse("~1.2.0").accepts(SemanticVersion.parse("1.3.0")));
+    assertFalse(VersionConstraint.parse("^1.2.0").accepts(
+        SemanticVersion.parse("1.3.0-preview.1")));
+    assertTrue(VersionConstraint.parse("^1.2.0-preview.1").accepts(
+        SemanticVersion.parse("1.3.0-preview.2")));
     assertThrows(PackageFormatException.class, () -> SemanticVersion.parse("01.2.3"));
   }
 
@@ -52,6 +56,24 @@ class PackageResolverTest {
         actual.entries().stream().map(PackageLock.Entry::version).toList());
     assertEquals(actual, new PackageLockParser().parse(actual.canonicalText()));
     assertEquals(64, actual.identity().length());
+  }
+
+  @Test
+  void stableRequirementsIgnorePrereleaseCandidatesUnlessNamed() {
+    PackageRelease preview = release(manifest("lib.a", "1.1.0-preview.1", List.of()), 'a');
+    PackageRelease stable = release(manifest("lib.a", "1.0.9", List.of()), 'b');
+    PackageResolver resolver = new PackageResolver(List.of(preview, stable));
+    PackageManifest stableRoot = manifest("root.app", "1.0.0", List.of(
+        dependency("lib.a", "^1.0.0", DependencyKind.NORMAL)));
+
+    PackageLock stableLock = resolver.resolve(stableRoot, false);
+
+    assertEquals("1.0.9", stableLock.entries().getFirst().version());
+    PackageManifest previewRoot = manifest("root.app", "1.0.0", List.of(
+        dependency("lib.a", "=1.1.0-preview.1", DependencyKind.NORMAL)));
+    assertEquals(
+        "1.1.0-preview.1",
+        resolver.resolve(previewRoot, false).entries().getFirst().version());
   }
 
   @Test

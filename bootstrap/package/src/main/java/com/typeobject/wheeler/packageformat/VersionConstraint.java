@@ -2,7 +2,7 @@ package com.typeobject.wheeler.packageformat;
 
 import java.util.Objects;
 
-/** Deterministic exact, caret, or tilde semantic-version requirement. */
+/** Deterministic exact, caret, or tilde requirement with fail-closed prerelease policy. */
 public record VersionConstraint(Kind kind, SemanticVersion minimum) {
   public VersionConstraint {
     Objects.requireNonNull(kind, "kind");
@@ -33,6 +33,10 @@ public record VersionConstraint(Kind kind, SemanticVersion minimum) {
   }
 
   public boolean accepts(SemanticVersion candidate) {
+    // A stable requirement must not start selecting previews merely because a repository grew one.
+    if (!candidate.prerelease().isEmpty() && minimum.prerelease().isEmpty()) {
+      return false;
+    }
     if (candidate.compareTo(minimum) < 0) {
       return false;
     }

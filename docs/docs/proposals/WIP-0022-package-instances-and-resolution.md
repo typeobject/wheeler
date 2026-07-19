@@ -230,7 +230,8 @@ Reject unknown repositories/snapshots, unauthorized namespaces, duplicate aliase
 - [ ] Instance and typed-edge model accepted.
 - [x] Stage 0 rejects package-source imports outside the package's own modules and direct declared dependencies while retaining the private transitive closure needed to compile those direct dependencies.
 - [ ] Alias-qualified direct imports and full build/target context rules accepted.
-- [ ] Profile/prerelease filtering implemented.
+- [x] Stable exact, caret, and tilde requirements exclude prerelease candidates unless the requirement itself names a prerelease. Candidate ordering still prefers the highest compatible release, but a newly uploaded preview cannot ambush an unchanged stable range.
+- [ ] Source, bytecode, proof, target, platform, ABI, and explicit prerelease-policy filtering implemented.
 - [ ] Bounded conflict-driven resolver implemented.
 - [ ] Lock preference and targeted updates implemented.
 - [ ] Workspace graph and target-scoped capabilities implemented.
@@ -245,7 +246,7 @@ Reject unknown repositories/snapshots, unauthorized namespaces, duplicate aliase
 - [ ] Transitive imports fail and equal module names do not collide.
 - [ ] Incompatible majors coexist while nominal types remain distinct.
 - [ ] Singleton conflicts are deterministic.
-- [ ] Incompatible high releases backtrack and stable ranges exclude prereleases.
+- [x] Incompatible high releases backtrack and stable ranges exclude prereleases; focused insertion-order and preview-candidate fixtures cover both.
 - [ ] Input order cannot alter the graph.
 - [ ] Work exhaustion differs from unsatisfiability.
 - [ ] Conflict explanations name causal edges.
