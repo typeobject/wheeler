@@ -7,11 +7,11 @@ description: Wheeler's reversible, quantum, and systems programming model, its e
 
 # What is Wheeler?
 
-Wheeler is under active development. It has an executable core and one canonical bytecode format. This page also covers planned parts of the language that are not finished yet.
+_Wheeler is under active development. This page also covers planned unfinished features._
 
 Wheeler is a programming language for reversible computing, quantum computing, and software that uses both quantum and classical code.
 
-Most languages let programs overwrite or discard information; a variable changes value; a temporary object disappears. A program prints output or calls an API, then keeps going.
+Most languages let programs overwrite or discard information. For example, when a variable changes value, a temporary object disappears. A program prints output or calls an API, then keeps going.
 
 That works well on an ordinary computer. Reversible and quantum programs need stricter rules about where information goes.
 
