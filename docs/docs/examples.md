@@ -373,7 +373,7 @@ Expected result: `measured = 0`.
 
 ## Scope boundaries
 
-No checked-in example uses the planned WIP-0032 unified I/O API. `HostInput.w`, `HostBinaryInput.w`, and the current asynchronous quantum jobs cover the smaller host boundaries that exist today. They do not implement `IoScope`, operation graphs, or durability receipts. The planned conformance fixture remains in [WIP-0010](proposals/WIP-0010-executable-application-portfolio.md) and the [future I/O page](future/io-fabric.md) until a full vertical slice can compile, parse, format, and run.
+No checked-in example uses the planned WIP-0032 unified I/O API. `HostInput.w`, `HostBinaryInput.w`, and the current asynchronous quantum jobs cover the smaller host boundaries that exist today. They do not implement `IoScope`, operation graphs, or durability receipts. The planned conformance fixture remains in [WIP-0010](proposals/WIP-0010-executable-application-portfolio.md) until a full vertical slice can compile, parse, format, and run.
 
 `BinaryTree.w` uses three fixed state slots. Generic nodes, allocation, ownership, and unbounded traversal are outside its scope. Those features belong to the self-hosting language work.
 

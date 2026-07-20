@@ -210,7 +210,7 @@ Acceptance requires:
 
 `IoFabricConformance.w` will exercise WIP-0032 positional independence, structured operation ownership, bounded backpressure, cancellation races, deterministic replay, graph dependencies, and receipt separation over deterministic and bounded threaded backends. A companion negative fixture will reject operation leaks, early buffer reuse, hidden fallback, and receipt upgrades.
 
-WIP-0032 owns every I/O type and method used by these fixtures. This portfolio WIP owns only the executable acceptance story. No `.w` file lands until the generic, ownership, effect, parser, bytecode, runtime, Tree-sitter, and package slices execute end to end; until then the [future I/O page](../future/io-fabric.md) remains clearly speculative.
+WIP-0032 owns every I/O type and method used by these fixtures. This portfolio WIP owns only the executable acceptance story. No `.w` file lands until the generic, ownership, effect, parser, bytecode, runtime, Tree-sitter, and package slices execute end to end.
 
 ## Dynamic and fault-tolerant applications
 
