@@ -572,6 +572,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] Proposal index, dependent WIPs, current references, and future documentation name WIP-0032 as the sole I/O lifecycle and method-registry owner; no competing portable method family remains in another WIP.
 - [x] The quarantined stage-0 runtime executes the bounded request, scope, operation, terminal-completion, reap, batch, selection, and terminal-dependency graph lifecycle with one deterministic semantic contract. This is executable scaffolding, not permission to fossilize the Java spelling.
 - [x] Inline and delayed deterministic delivery produce equal semantic completions; delayed cancellation-before-effect performs no provider action.
+- [x] A bounded in-memory addressable-file oracle executes positional reads and exact writes through the same request lifecycle. Buffers are inaccessible while captured, return in terminal results, and are released on cancellation-before-effect. Write completion remains gloriously unqualified by durability.
 - [ ] Unified request/scope/result model is accepted.
 - [ ] Async versus required-concurrent behavior is accepted.
 - [ ] Terminal completion, cancellation, uncertainty, and reap laws are accepted.
@@ -611,7 +612,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 ### Buffers and pressure
 
 - [ ] Reads hold exclusive destination loans and writes hold shared source loans until release.
-- [ ] Moved buffers return through terminal results.
+- [x] Stage-0 moved buffers return through terminal positional results and remain inaccessible until resource-release completion.
 - [ ] Segment overlap/range arithmetic and backend result lengths are checked.
 - [ ] Registration, pool, queue, completion, timer, and total-work limits fail closed.
 - [ ] Data-plane saturation preserves cleanup/control credit.

@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.runtime.io;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -8,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.typeobject.wheeler.runtime.io.DeterministicIo.Delivery;
 import com.typeobject.wheeler.runtime.io.IoCompletion.CancellationRelation;
 import com.typeobject.wheeler.runtime.io.IoCompletion.TerminalKind;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -159,6 +161,84 @@ final class DeterministicIoTest {
     try (IoScope scope = new DeterministicIo(Delivery.INLINE).scope(one)) {
       assertEquals(1, scope.await(second).value());
     }
+  }
+
+  @Test
+  void positionalReadsHoldAndReturnTheirDestinationOwner() {
+    MemoryAddressableFile file = new MemoryAddressableFile(
+        "memory:file-1",
+        MemoryAddressableFile.Rights.READ_ONLY,
+        "abcdef".getBytes(StandardCharsets.UTF_8));
+    OwnedIoBuffer destination = OwnedIoBuffer.allocate(4);
+    IoRequest<MemoryAddressableFile.ReadCompleted> request = file.readAt(1, destination, 0, 4);
+    assertThrows(IllegalStateException.class, destination::snapshot);
+
+    try (IoScope scope = new DeterministicIo(Delivery.DELAYED).scope(LIMITS)) {
+      IoOperation<MemoryAddressableFile.ReadCompleted> operation = scope.submit(request);
+      assertThrows(IllegalStateException.class, destination::snapshot);
+      MemoryAddressableFile.ReadCompleted completed = operation.await().value();
+      assertEquals(destination, completed.buffer());
+      assertEquals(4, completed.bytesRead());
+      assertArrayEquals("bcde".getBytes(StandardCharsets.UTF_8), destination.snapshot());
+    }
+  }
+
+  @Test
+  void positionalWritesRemainCompletionNotDurability() {
+    MemoryAddressableFile file = new MemoryAddressableFile(
+        "memory:file-2",
+        MemoryAddressableFile.Rights.READ_WRITE,
+        "abcdef".getBytes(StandardCharsets.UTF_8));
+    OwnedIoBuffer source = OwnedIoBuffer.copyOf("XY".getBytes(StandardCharsets.UTF_8));
+    IoRequest<MemoryAddressableFile.WriteCompleted> write = file.writeAt(2, source, 0, 2);
+    assertThrows(IllegalStateException.class, source::snapshot);
+
+    try (IoScope scope = new DeterministicIo(Delivery.INLINE).scope(LIMITS)) {
+      IoCompletion<MemoryAddressableFile.WriteCompleted> completion = scope.await(write);
+      assertEquals(TerminalKind.SUCCESS, completion.terminalKind());
+      assertEquals(2, completion.progress());
+      assertEquals(source, completion.value().buffer());
+      assertArrayEquals("XY".getBytes(StandardCharsets.UTF_8), source.snapshot());
+
+      OwnedIoBuffer destination = OwnedIoBuffer.allocate(6);
+      scope.await(file.readAt(0, destination, 0, 6));
+      assertArrayEquals("abXYef".getBytes(StandardCharsets.UTF_8), destination.snapshot());
+    }
+  }
+
+  @Test
+  void cancellationBeforePositionalEffectReleasesTheBufferAndPreservesBytes() {
+    MemoryAddressableFile file = new MemoryAddressableFile(
+        "memory:file-3",
+        MemoryAddressableFile.Rights.READ_WRITE,
+        "stable".getBytes(StandardCharsets.UTF_8));
+    OwnedIoBuffer source = OwnedIoBuffer.copyOf("BROKEN".getBytes(StandardCharsets.UTF_8));
+    try (IoScope scope = new DeterministicIo(Delivery.DELAYED).scope(LIMITS)) {
+      IoOperation<MemoryAddressableFile.WriteCompleted> write = scope.submit(
+          file.writeAt(0, source, 0, 6));
+      assertTrue(write.cancel());
+      write.await();
+      assertArrayEquals("BROKEN".getBytes(StandardCharsets.UTF_8), source.snapshot());
+
+      OwnedIoBuffer destination = OwnedIoBuffer.allocate(6);
+      scope.await(file.readAt(0, destination, 0, 6));
+      assertArrayEquals("stable".getBytes(StandardCharsets.UTF_8), destination.snapshot());
+    }
+  }
+
+  @Test
+  void invalidPositionalRangesFailBeforeCapturingBuffers() {
+    MemoryAddressableFile file = new MemoryAddressableFile(
+        "memory:file-4",
+        MemoryAddressableFile.Rights.READ_ONLY,
+        new byte[4]);
+    OwnedIoBuffer buffer = OwnedIoBuffer.allocate(2);
+    assertThrows(IllegalArgumentException.class, () -> file.readAt(-1, buffer, 0, 1));
+    assertThrows(IllegalArgumentException.class, () -> file.readAt(0, buffer, 1, 2));
+    buffer.put(0, (byte) 7);
+    assertEquals(7, buffer.get(0));
+    assertThrows(IllegalStateException.class, () -> file.writeAt(0, buffer, 0, 1));
+    assertEquals(7, buffer.get(0));
   }
 
   @Test

@@ -9,7 +9,7 @@ The modules here are temporary stage-0 infrastructure:
 - `runtime`, `package`, and `tools` are host-side migration adapters;
 - `examples` is the JUnit conformance harness, not an implementation package.
 
-The `runtime/io` package is the executable stage-0 oracle for WIP-0032's bounded request, operation, completion, reap, batch, selection, and dependency-graph laws. It is deliberately synthetic: no successful test there is a durability receipt, and its Java spelling goes away with the rest of stage 0.
+The `runtime/io` package is the executable stage-0 oracle for WIP-0032's bounded request, operation, completion, reap, positional-buffer, batch, selection, and dependency-graph laws. It is deliberately synthetic: no successful test there is a durability receipt, and its Java spelling goes away with the rest of stage 0.
 
 The canonical Wheeler compiler lives in [`../wheeler-compiler`](../wheeler-compiler). Stage 0 compiles that exact package into stage 1. Stage 1 compiles the same package and options into stage 2. Complete stage-1 and stage-2 artifacts must match byte for byte before the result can become a recovery-seed candidate.
 

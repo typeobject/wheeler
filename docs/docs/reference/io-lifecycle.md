@@ -11,6 +11,8 @@ The quarantined runtime now carries a deterministic executable slice under `boot
 - `IoOperation<T>` is a live must-reap handle;
 - `IoCompletion<T>` separates terminal kind, cancellation relation, known progress, resource release, and backend identity;
 - `IoGraph<T>` is an explicitly bounded terminal-dependency DAG;
+- `OwnedIoBuffer` is inaccessible while captured and returns through a terminal result;
+- `MemoryAddressableFile` is the bounded positional-semantics oracle;
 - `DeterministicIo` offers inline and delayed delivery with identical completion meaning.
 
 The implementation is stage-0 scaffolding. Its Java API is replaceable and is not a source-language compatibility promise. The lifecycle and distinctions are the contract.
@@ -42,6 +44,14 @@ Terminal kind and cancellation relation are separate closed enums. The executabl
 
 Cancellation does not reap an operation and never claims rollback. Malformed provider progress is normalized to a known failure before completion publication.
 
+## Positional memory-file oracle
+
+`MemoryAddressableFile` is not a filesystem API. It is a bounded oracle for the positional contract. `readAt` validates the destination range and position before capture, then returns the destination owner with exact bytes-read progress. `writeAt` requires a write capability, validates the complete source and file ranges before capture, and returns the source owner with exact bytes-written progress.
+
+`OwnedIoBuffer` rejects access from request construction until terminal resource release. Cancellation-before-effect releases it without touching file bytes. The memory file has no cursor, so unrelated ranges acquire no accidental seek order. It is capped at 16 MiB and performs no growth, truncation, namespace, metadata, or persistence operation.
+
+A `WriteCompleted` value proves only that the in-memory copy completed. Calling it durable would be like calling a register assignment a successful fsync: energetic, but not useful.
+
 ## Batches, selection, and graphs
 
 A batch is independent work and adds no ordering edges. Selection reaps one canonical terminal operation and returns every nonselected operation to the caller. Nothing is detached merely because it lost a race.
@@ -50,6 +60,6 @@ A graph names terminal predecessors. Independent roots are admitted together; a 
 
 ## Deliberate nonclaims
 
-This slice performs synthetic provider actions. It does not yet implement positional files, threaded delivery, clocks, replay, borrowed buffers, native completion queues, direct I/O, network protocols, persistence evidence, or durability receipts. A successful completion therefore proves no crash survival, namespace stability, peer application, quorum, or remote persistence.
+This slice performs synthetic provider actions and bounded in-memory positional operations. It does not yet implement host files, threaded delivery, clocks, replay, source-language loans, native completion queues, direct I/O, network protocols, persistence evidence, or durability receipts. A successful completion therefore proves no crash survival, namespace stability, peer application, quorum, or remote persistence.
 
 The conformance tests live at `bootstrap/runtime/src/test/java/com/typeobject/wheeler/runtime/io/DeterministicIoTest.java`. Native source types, effect lowering, positional resources, buffer loans, and the portable threaded backend remain required before WIP-0032 can leave Draft.

@@ -15,20 +15,29 @@ public final class IoRequest<T> {
   private final String identity;
   private final long work;
   private final Action<T> action;
+  private final Runnable release;
   private final AtomicBoolean consumed = new AtomicBoolean();
+  private final AtomicBoolean released = new AtomicBoolean();
 
-  private IoRequest(String identity, long work, Action<T> action) {
+  private IoRequest(String identity, long work, Action<T> action, Runnable release) {
     this.identity = validateIdentity(identity);
     if (work < 1 || work > 1_000_000_000L) {
       throw new IllegalArgumentException("request work must be between 1 and 1000000000");
     }
     this.work = work;
     this.action = Objects.requireNonNull(action, "action");
+    this.release = Objects.requireNonNull(release, "release");
   }
 
   /** Constructs a request without invoking its provider action. */
   public static <T> IoRequest<T> prepare(String identity, long work, Action<T> action) {
-    return new IoRequest<>(identity, work, action);
+    return prepare(identity, work, action, () -> {});
+  }
+
+  /** Constructs a request that releases captured resources at terminal completion. */
+  public static <T> IoRequest<T> prepare(
+      String identity, long work, Action<T> action, Runnable release) {
+    return new IoRequest<>(identity, work, action, release);
   }
 
   /** Returns the stable request identity. */
@@ -53,6 +62,13 @@ public final class IoRequest<T> {
 
   IoTaskResult<T> execute() {
     return Objects.requireNonNull(action.execute(), "provider result");
+  }
+
+  void releaseResources() {
+    if (!released.compareAndSet(false, true)) {
+      throw new IllegalStateException("request resources released more than once: " + identity);
+    }
+    release.run();
   }
 
   private static String validateIdentity(String identity) {

@@ -179,6 +179,7 @@ public final class IoScope implements AutoCloseable {
     validateOwned(operation);
     if (!operation.isTerminal()) {
       delayed.remove(operation.id());
+      operation.request().releaseResources();
       operation.complete(new IoCompletion<>(
           operation.id(),
           operation.requestIdentity(),
@@ -257,6 +258,7 @@ public final class IoScope implements AutoCloseable {
     if (result.progress() > operation.request().work()) {
       result = IoTaskResult.failure("invalid-provider-progress", 0);
     }
+    operation.request().releaseResources();
     operation.complete(toCompletion(operation, result));
     terminalCount++;
     requireCompletionCapacity();
