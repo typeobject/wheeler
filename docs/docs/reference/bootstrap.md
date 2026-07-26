@@ -7,7 +7,17 @@ A compiler can reproduce its own bugs. That alone doesn't make it trustworthy. W
 
 The bootstrap gate records successful evidence in `wheeler.bootstrap.yaml`. The repository does not contain that manifest yet because the bounded Wheeler compiler is not self-hosting. Creating the file early would not provide real evidence.
 
-## Module graph derivation
+## Profile and module derivation
+
+Publish the complete known feature contract; callers cannot subtract an inconvenient feature or add one that neither compiler implements:
+
+```text
+wheeler bootstrap-features \
+  --profile bootstrap-1 \
+  --output wheeler.bootstrap-features.yaml
+```
+
+Unknown profile names fail without output. The command reparses its canonical bytes before atomic publication.
 
 Derive the compiler target's graph from the canonical source archive rather than maintaining two opinions about its imports:
 
@@ -84,13 +94,43 @@ The accepted source profile is an exact `wheeler.bootstrap-features.yaml` vocabu
 schema: 1
 profile: "bootstrap-1"
 features:
-  - name: "bounded-control"
+  - name: "affine-borrows"
     version: 1
-  - name: "typed-frames"
+  - name: "boolean-scalars"
+    version: 1
+  - name: "bounded-loops"
+    version: 1
+  - name: "byte-output"
+    version: 1
+  - name: "byteview-input"
+    version: 1
+  - name: "checked-arithmetic"
+    version: 1
+  - name: "compile-time-constants"
+    version: 1
+  - name: "exhaustive-variants"
+    version: 1
+  - name: "fixed-scalar-array-fields"
+    version: 1
+  - name: "generated-inverse-proofs"
+    version: 1
+  - name: "module-linking"
+    version: 1
+  - name: "nominal-records"
+    version: 1
+  - name: "owned-regions"
+    version: 1
+  - name: "signed-scalars"
+    version: 1
+  - name: "static-calls"
+    version: 1
+  - name: "strict-utf8-input"
+    version: 1
+  - name: "word-buffers"
     version: 1
 ```
 
-Feature names are sorted and unique. A feature version names a semantic contract, not a marketing release. Unknown, duplicated, empty, or oversized vocabularies fail closed. Adding a feature therefore changes the profile identity even if somebody forgot to update a slide deck.
+Feature names are sorted and unique. Schema 1 accepts exactly this seventeen-feature `bootstrap-1` set, all at version 1. A feature version names a semantic contract, not a marketing release. Unknown, duplicated, missing, reordered, empty, or oversized vocabularies fail closed. Adding a feature therefore requires a new reviewed profile contract and changes its identity even if somebody forgot to update a slide deck.
 
 The exact compiler module closure uses `wheeler.bootstrap-modules.yaml`:
 

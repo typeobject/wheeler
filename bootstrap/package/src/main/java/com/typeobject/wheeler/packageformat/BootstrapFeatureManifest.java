@@ -18,6 +18,24 @@ public record BootstrapFeatureManifest(String profile, List<Feature> features) {
   private static final int MAX_FEATURES = 1_024;
   private static final Pattern NAME = Pattern.compile("[a-z][a-z0-9]*(?:-[a-z0-9]+)*");
   private static final Pattern PROFILE = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._-]{0,127}");
+  private static final List<Feature> BOOTSTRAP_1 = List.of(
+      feature("affine-borrows"),
+      feature("boolean-scalars"),
+      feature("bounded-loops"),
+      feature("byte-output"),
+      feature("byteview-input"),
+      feature("checked-arithmetic"),
+      feature("compile-time-constants"),
+      feature("exhaustive-variants"),
+      feature("fixed-scalar-array-fields"),
+      feature("generated-inverse-proofs"),
+      feature("module-linking"),
+      feature("nominal-records"),
+      feature("owned-regions"),
+      feature("signed-scalars"),
+      feature("static-calls"),
+      feature("strict-utf8-input"),
+      feature("word-buffers"));
 
   public BootstrapFeatureManifest {
     if (profile == null || !PROFILE.matcher(profile).matches()) {
@@ -35,6 +53,14 @@ public record BootstrapFeatureManifest(String profile, List<Feature> features) {
       }
     }
     features = List.copyOf(ordered);
+    if (!profile.equals("bootstrap-1") || !features.equals(BOOTSTRAP_1)) {
+      throw new PackageFormatException("Unknown or incomplete bootstrap feature profile");
+    }
+  }
+
+  /** Returns the complete accepted feature contract for {@code bootstrap-1}. */
+  public static BootstrapFeatureManifest bootstrap1() {
+    return new BootstrapFeatureManifest("bootstrap-1", BOOTSTRAP_1);
   }
 
   /** Returns the sole canonical YAML representation. */
@@ -59,6 +85,10 @@ public record BootstrapFeatureManifest(String profile, List<Feature> features) {
     } catch (NoSuchAlgorithmException exception) {
       throw new IllegalStateException("SHA-256 is unavailable", exception);
     }
+  }
+
+  private static Feature feature(String name) {
+    return new Feature(name, 1);
   }
 
   /** One required semantic contract; versions change only when that contract changes. */

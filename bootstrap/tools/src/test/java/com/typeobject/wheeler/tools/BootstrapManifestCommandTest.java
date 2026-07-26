@@ -139,10 +139,7 @@ final class BootstrapManifestCommandTest {
         PackageLock.SCHEMA_VERSION, packageManifest.identity(), List.of()).canonicalText());
     Path features = write(
         "features.yaml",
-        new BootstrapFeatureManifest(
-            "bootstrap-1",
-            List.of(new BootstrapFeatureManifest.Feature("bounded-entry", 1)))
-            .canonicalText());
+        BootstrapFeatureManifest.bootstrap1().canonicalText());
     Path modules = write(
         "modules.yaml",
         new BootstrapModuleManifest(

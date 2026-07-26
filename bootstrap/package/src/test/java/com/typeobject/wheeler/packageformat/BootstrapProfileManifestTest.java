@@ -11,13 +11,9 @@ import org.junit.jupiter.api.Test;
 final class BootstrapProfileManifestTest {
   @Test
   void featureManifestRoundTripsAndSortsConstruction() {
-    BootstrapFeatureManifest manifest = new BootstrapFeatureManifest(
-        "bootstrap-1",
-        List.of(
-            new BootstrapFeatureManifest.Feature("typed-frames", 1),
-            new BootstrapFeatureManifest.Feature("bounded-loops", 2)));
+    BootstrapFeatureManifest manifest = BootstrapFeatureManifest.bootstrap1();
 
-    assertEquals("bounded-loops", manifest.features().getFirst().name());
+    assertEquals("affine-borrows", manifest.features().getFirst().name());
     assertEquals(manifest, new BootstrapFeatureManifestParser().parse(manifest.canonicalBytes()));
     assertEquals(64, manifest.identity().length());
   }
@@ -33,9 +29,7 @@ final class BootstrapProfileManifestTest {
 
   @Test
   void featureDecoderRejectsUnknownAndNoncanonicalInput() {
-    BootstrapFeatureManifest manifest = new BootstrapFeatureManifest(
-        "bootstrap-1",
-        List.of(new BootstrapFeatureManifest.Feature("typed-frames", 1)));
+    BootstrapFeatureManifest manifest = BootstrapFeatureManifest.bootstrap1();
     byte[] unknown = manifest.canonicalText().replace(
         "profile: \"bootstrap-1\"\n", "profile: \"bootstrap-1\"\nsurprise: true\n")
         .getBytes(StandardCharsets.UTF_8);
@@ -48,6 +42,10 @@ final class BootstrapProfileManifestTest {
         () -> new BootstrapFeatureManifestParser().parse(comment));
     assertThrows(PackageFormatException.class,
         () -> new BootstrapFeatureManifest("bootstrap-1", List.of()));
+    assertThrows(PackageFormatException.class, () ->
+        new BootstrapFeatureManifest(
+            "bootstrap-1",
+            List.of(new BootstrapFeatureManifest.Feature("affine-borrows", 1))));
   }
 
   @Test
