@@ -88,7 +88,15 @@ class ClassicalExamplesTest {
         Arguments.of("classical/data/BinaryTree.w", Map.of("root", 0L, "left", 0L, "right", 0L)),
         Arguments.of("classical/control/BootstrapControl.w", Map.of("sum", 10L, "branch", 1L)),
         Arguments.of("classical/data/FiniteEnums.w", Map.of("selected", 7L)),
-        Arguments.of("classical/data/FixedArrays.w", Map.of("selected", 6L, "sum", 20L, "middleSum", 10L, "equal", 1L)),
+        Arguments.of(
+            "classical/data/FixedArrays.w",
+            Map.of(
+                "selected", 6L,
+                "sum", 20L,
+                "middleSum", 10L,
+                "equal", 1L,
+                "recordSelected", 7L,
+                "variantSelected", 13L)),
         Arguments.of("text/FrozenUtf8.w", Map.of(
             "byteLength", 6L, "scalarCount", 3L, "middleScalar", 8364L, "valid", 1L)),
         Arguments.of("classical/control/FunctionValues.w", Map.of("result", 10L)),

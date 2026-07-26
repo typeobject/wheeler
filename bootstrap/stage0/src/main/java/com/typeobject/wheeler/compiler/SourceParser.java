@@ -139,12 +139,25 @@ final class SourceParser extends SourceStatementParser {
     }
     if (matchText("record")) {
       records.add(SourceNominalParser.parseRecord(
-          this, previous(), exported, moduleName, records, this::isValueType));
+          this,
+          previous(),
+          exported,
+          moduleName,
+          records,
+          this::isValueType,
+          arrays,
+          slices));
       return;
     }
     if (matchText("variant")) {
       variants.add(SourceNominalParser.parseVariant(
-          this, previous(), exported, moduleName, this::isValueType));
+          this,
+          previous(),
+          exported,
+          moduleName,
+          this::isValueType,
+          arrays,
+          slices));
       return;
     }
     if (matchText("enum")) {
@@ -561,8 +574,13 @@ final class SourceParser extends SourceStatementParser {
       List<Parameter> bindings = new ArrayList<>();
       if (!check(Type.RIGHT_PAREN)) {
         do {
-          String bindingType = SourceValueTypeParser.parseNominalReference(
-              this, "payload binding type");
+          String bindingType = SourceValueTypeParser.parse(
+              this,
+              "payload binding type",
+              moduleName != null,
+              this::isValueType,
+              arrays,
+              slices);
           bindings.add(new Parameter(
               expect(Type.IDENTIFIER, "payload binding name").text(),
               bindingType,

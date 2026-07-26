@@ -46,6 +46,7 @@ final class SourceTypeLowerer {
   private static List<RecordType> records(SourceProgram source) {
     List<RecordType> result = new ArrayList<>();
     Map<String, ValueType> types = scalars();
+    addArrayReferences(types, source.arrays());
     Set<String> names = new HashSet<>();
     for (SourceModel.RecordDefinition record : source.records()) {
       if (!names.add(record.name())) {
@@ -67,6 +68,7 @@ final class SourceTypeLowerer {
     List<VariantType> result = new ArrayList<>();
     Map<String, ValueType> types = scalars();
     records.forEach(record -> types.put(record.name(), ValueType.record(record.id())));
+    addArrayReferences(types, source.arrays());
     for (SourceModel.VariantDefinition variant : source.variants()) {
       List<VariantType.Case> cases = variant.cases().stream()
           .map(variantCase -> new VariantType.Case(
@@ -145,6 +147,13 @@ final class SourceTypeLowerer {
       result.put(source.arrays().get(index).name(), ValueType.array(arrays.get(index).id()));
     }
     return result;
+  }
+
+  private static void addArrayReferences(
+      Map<String, ValueType> types, List<SourceModel.ArrayDefinition> arrays) {
+    for (int index = 0; index < arrays.size(); index++) {
+      types.put(arrays.get(index).name(), ValueType.array(index));
+    }
   }
 
   private static Map<String, ValueType> scalars() {

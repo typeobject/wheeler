@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.core.bytecode;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -118,6 +119,22 @@ class BytecodeVerifierTest {
         List.of(), List.of(), List.of(), List.of(main), List.of());
 
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(invalid));
+
+    RecordType arrayRecord = new RecordType(
+        0,
+        "ArrayRecord",
+        List.of(new RecordType.Field("values", ValueType.array(0))));
+    ArrayType scalarArray = new ArrayType(0, ValueType.SIGNED, 2);
+    Program validArrayRecord = Program.classical(
+        "ValidArrayRecord", 0, List.of(), List.of(arrayRecord),
+        List.of(), List.of(scalarArray), List.of(), List.of(main), List.of());
+    assertDoesNotThrow(() -> BytecodeVerifier.verify(validArrayRecord));
+
+    ArrayType recursiveArray = new ArrayType(0, ValueType.record(0), 2);
+    Program invalidArrayRecord = Program.classical(
+        "InvalidArrayRecord", 0, List.of(), List.of(arrayRecord),
+        List.of(), List.of(recursiveArray), List.of(), List.of(main), List.of());
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(invalidArrayRecord));
 
     RecordType pair = new RecordType(
         0,

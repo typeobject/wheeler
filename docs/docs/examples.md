@@ -66,9 +66,9 @@ Expected behavior:
 
 Files: [`FixedArrays.w`](../../wheeler-examples/src/main/wheeler/classical/data/FixedArrays.w) + [`collections/FixedLongs.w`](../../wheeler-core/src/main/wheeler/collections/FixedLongs.w).
 
-Covers: Fixed immutable arrays, nonescaping borrowed slices, locked core reductions, checked indexing, and structural equality.
+Covers: Fixed immutable arrays, signed/Boolean scalar arrays embedded in records and variant payloads, nonescaping borrowed slices, locked core reductions, checked indexing, and structural equality.
 
-Expected result: `selected = 6`, `sum = 20`, `middleSum = 10`, `equal = 1`.
+Expected result: `selected = 6`, `sum = 20`, `middleSum = 10`, `equal = 1`, `recordSelected = 7`, `variantSelected = 13`.
 
 ### `FrozenUtf8.w`
 
@@ -133,9 +133,9 @@ Expected result: `sum = 12`, `selected = 7`.
 
 Files: [`modules/ModuleMain.w`](../../wheeler-examples/src/main/wheeler/modules/ModuleMain.w) + [`Arithmetic.w`](../../wheeler-examples/src/main/wheeler/modules/Arithmetic.w) + [`Collections.w`](../../wheeler-examples/src/main/wheeler/modules/Collections.w) + [`Results.w`](../../wheeler-examples/src/main/wheeler/modules/Results.w).
 
-Covers: Exact source set, sorted imports, qualified calls and value types, private helper, and direct public function/record/variant/scalar-array/slice APIs.
+Covers: Exact source set, sorted imports, qualified calls and value types, private helper, and direct public function/record/variant/scalar-array/slice APIs. The exported `ArrayBox` carries a fixed scalar array across the module boundary.
 
-Expected result: `result = 18`, `decoded = 9`, `arrayValue = 5`, `sliceValue = 15`, `nominalArrayValue = 8`, `nominalSliceValue = 26`, `qualifiedVariant = 1`.
+Expected result: `result = 18`, `decoded = 9`, `arrayValue = 5`, `arrayRecordValue = 6`, `sliceValue = 15`, `nominalArrayValue = 8`, `nominalSliceValue = 26`, `qualifiedVariant = 1`.
 
 ### `NativeArchive.w`
 

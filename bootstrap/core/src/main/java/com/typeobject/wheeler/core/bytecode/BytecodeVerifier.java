@@ -89,11 +89,12 @@ public final class BytecodeVerifier {
             && field.type().descriptorId() >= record.id()) {
           fail("Record fields must reference an earlier record type: " + record.name());
         }
-        if (field.type().kind() == ValueType.Kind.VARIANT
-            || field.type().kind() == ValueType.Kind.ARRAY
+        if (field.type().kind() == ValueType.Kind.ARRAY) {
+          verifyEmbeddedScalarArray(program, field.type(), record.name());
+        } else if (field.type().kind() == ValueType.Kind.VARIANT
             || field.type().kind() == ValueType.Kind.SLICE
             || nonescaping(field.type())) {
-          fail("Record fields cannot reference later aggregate types: " + record.name());
+          fail("Record fields cannot reference this aggregate type: " + record.name());
         }
       }
     }
@@ -110,10 +111,11 @@ public final class BytecodeVerifier {
       for (VariantType.Case variantCase : variant.cases()) {
         for (RecordType.Field field : variantCase.fields()) {
           verifyTypeReference(program, field.type(), variant.name());
-          if (field.type().kind() == ValueType.Kind.ARRAY
-              || field.type().kind() == ValueType.Kind.SLICE
+          if (field.type().kind() == ValueType.Kind.ARRAY) {
+            verifyEmbeddedScalarArray(program, field.type(), variant.name());
+          } else if (field.type().kind() == ValueType.Kind.SLICE
               || nonescaping(field.type())) {
-            fail("Variant payloads cannot reference later array types: " + variant.name());
+            fail("Variant payloads cannot reference this aggregate type: " + variant.name());
           }
           if (field.type().kind() == ValueType.Kind.VARIANT
               && field.type().descriptorId() >= variant.id()) {
@@ -121,6 +123,15 @@ public final class BytecodeVerifier {
           }
         }
       }
+    }
+  }
+
+  private static void verifyEmbeddedScalarArray(
+      Program program, ValueType type, String owner) {
+    verifyTypeReference(program, type, owner);
+    ValueType element = program.arrayTypes().get(type.descriptorId()).elementType();
+    if (!element.equals(ValueType.SIGNED) && !element.equals(ValueType.BOOLEAN)) {
+      fail("Embedded arrays require scalar elements: " + owner);
     }
   }
 

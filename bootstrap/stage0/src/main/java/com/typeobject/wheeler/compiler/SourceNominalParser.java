@@ -1,7 +1,9 @@
 package com.typeobject.wheeler.compiler;
 
+import com.typeobject.wheeler.compiler.SourceModel.ArrayDefinition;
 import com.typeobject.wheeler.compiler.SourceModel.RecordDefinition;
 import com.typeobject.wheeler.compiler.SourceModel.RecordField;
+import com.typeobject.wheeler.compiler.SourceModel.SliceDefinition;
 import com.typeobject.wheeler.compiler.SourceModel.VariantCase;
 import com.typeobject.wheeler.compiler.SourceModel.VariantDefinition;
 import com.typeobject.wheeler.compiler.SourceToken.Type;
@@ -21,7 +23,9 @@ final class SourceNominalParser {
       boolean exported,
       String moduleName,
       List<RecordDefinition> records,
-      Predicate<String> valueType) {
+      Predicate<String> valueType,
+      List<ArrayDefinition> arrays,
+      List<SliceDefinition> slices) {
     String name = parser.expect(Type.IDENTIFIER, "record name").text();
     if (!nominalName(name) || valueType.test(name)
         || records.stream().anyMatch(record -> record.name().equals(name))) {
@@ -32,18 +36,20 @@ final class SourceNominalParser {
     Set<String> fieldNames = new HashSet<>();
     if (!parser.check(Type.RIGHT_PAREN)) {
       do {
-        SourceToken type = parser.expect(Type.IDENTIFIER, "record field type");
-        if (moduleName == null
-            && !type.text().equals("long") && !type.text().equals("boolean")
-            && records.stream().noneMatch(record -> record.name().equals(type.text()))) {
-          SourceParser.fail(
-              type, "record field type must be scalar or previously declared record");
-        }
+        SourceToken typeStart = parser.peek();
+        String type = SourceValueTypeParser.parse(
+            parser,
+            "record field type",
+            moduleName != null,
+            valueType,
+            arrays,
+            slices);
+        requireBoundedAggregateElement(typeStart, type, "record field");
         SourceToken field = parser.expect(Type.IDENTIFIER, "record field name");
         if (!fieldNames.add(field.text())) {
           SourceParser.fail(field, "duplicate record field: " + field.text());
         }
-        fields.add(new RecordField(field.text(), type.text()));
+        fields.add(new RecordField(field.text(), type));
       } while (parser.match(Type.COMMA));
     }
     if (fields.isEmpty()) {
@@ -60,7 +66,9 @@ final class SourceNominalParser {
       SourceToken start,
       boolean exported,
       String moduleName,
-      Predicate<String> valueType) {
+      Predicate<String> valueType,
+      List<ArrayDefinition> arrays,
+      List<SliceDefinition> slices) {
     String name = parser.expect(Type.IDENTIFIER, "variant name").text();
     if (valueType.test(name)) {
       SourceParser.fail(start, "duplicate or reserved variant type: " + name);
@@ -79,16 +87,20 @@ final class SourceNominalParser {
       Set<String> fieldNames = new HashSet<>();
       if (!parser.check(Type.RIGHT_PAREN)) {
         do {
-          SourceToken type = parser.expect(Type.IDENTIFIER, "variant payload type");
-          if (!valueType.test(type.text())
-              && (moduleName == null || !nominalName(type.text()))) {
-            SourceParser.fail(type, "variant payload type must be previously declared");
-          }
+          SourceToken typeStart = parser.peek();
+          String type = SourceValueTypeParser.parse(
+              parser,
+              "variant payload type",
+              moduleName != null,
+              valueType,
+              arrays,
+              slices);
+          requireBoundedAggregateElement(typeStart, type, "variant payload");
           SourceToken field = parser.expect(Type.IDENTIFIER, "variant payload name");
           if (!fieldNames.add(field.text())) {
             SourceParser.fail(field, "duplicate variant payload field: " + field.text());
           }
-          fields.add(new RecordField(field.text(), type.text()));
+          fields.add(new RecordField(field.text(), type));
         } while (parser.match(Type.COMMA));
       }
       parser.expect(Type.RIGHT_PAREN, "')' after variant payload");
@@ -100,6 +112,20 @@ final class SourceNominalParser {
     }
     parser.expect(Type.RIGHT_BRACE, "'}' after variant declaration");
     return new VariantDefinition(name, exported, cases, start.line());
+  }
+
+  private static void requireBoundedAggregateElement(
+      SourceToken token, String type, String description) {
+    int bracket = type.indexOf('[');
+    if (bracket >= 0) {
+      if (type.endsWith("[]")) {
+        SourceParser.fail(token, description + " cannot contain a nonescaping slice");
+      }
+      String element = type.substring(0, bracket);
+      if (!element.equals("long") && !element.equals("boolean")) {
+        SourceParser.fail(token, description + " arrays currently require scalar elements");
+      }
+    }
   }
 
   private static boolean nominalName(String name) {

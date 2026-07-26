@@ -68,33 +68,17 @@ classical class MinimalCompiler {
           0,
           0,
           0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
+          new long[5](-1, -1, -1, -1, -1),
+          new long[5](0, 0, 0, 0, 0),
           scanGlobal,
           0,
-          -1,
-          0,
+          new long[5](-1, -1, -1, -1, -1),
+          new long[5](0, 0, 0, 0, 0),
           0,
           scanGlobal,
           0,
           0,
           0,
-          0,
-          -1,
-          0,
-          -1,
-          0,
-          -1,
-          0,
-          -1,
           0
         );
       }
@@ -118,33 +102,17 @@ classical class MinimalCompiler {
               0,
               0,
               0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
+              new long[5](-1, -1, -1, -1, -1),
+              new long[5](0, 0, 0, 0, 0),
               parseGlobal,
               0,
-              -1,
-              0,
+              new long[5](-1, -1, -1, -1, -1),
+              new long[5](0, 0, 0, 0, 0),
               0,
               parseGlobal,
               0,
               0,
               0,
-              0,
-              -1,
-              0,
-              -1,
-              0,
-              -1,
-              0,
-              -1,
               0
             );
           }
@@ -154,6 +122,66 @@ classical class MinimalCompiler {
         }
       }
     }
+  }
+
+  private long writeSequenceLocalTypes(
+    borrow mut bytes output,
+    long cursor,
+    long[5] opcodes,
+    long count
+  ) {
+    long index = 0;
+    while (index < count) limit 5 {
+      cursor = writeStatementLocalTypes(output, cursor, opcodes[index]);
+      index += 1;
+    }
+
+    return cursor;
+  }
+
+  private long writeSequence(
+    borrow mut bytes output,
+    long cursor,
+    long[5] opcodes,
+    long[5] operands,
+    long count
+  ) {
+    long index = 0;
+    long localBase = 0;
+    while (index < count) limit 5 {
+      cursor = writeStatement(output, cursor, opcodes[index], operands[index], localBase);
+      localBase += statementLocalCount(opcodes[index]);
+      index += 1;
+    }
+
+    return cursor;
+  }
+
+  private long writeReversibleSequence(
+    borrow mut bytes output,
+    long cursor,
+    long[5] opcodes,
+    long[5] operands,
+    long count,
+    boolean inverse
+  ) {
+    long index = 0;
+    if (inverse) {
+      index = count;
+      while (0 < index) limit 5 {
+        index -= 1;
+        cursor = writeInverseGlobalUpdate(output, cursor, opcodes[index], operands[index]);
+      }
+
+      return cursor;
+    }
+
+    while (index < count) limit 5 {
+      cursor = writeGlobalUpdate(output, cursor, opcodes[index], operands[index]);
+      index += 1;
+    }
+
+    return cursor;
   }
 
   /// Runs the bounded `MinimalCompiler` fixture.
@@ -192,55 +220,27 @@ classical class MinimalCompiler {
     long typesOffset = align8(stringsOffset + stringsLength);
     long variantsOffset = align8(typesOffset + typesLength);
     long functionsOffset = align8(variantsOffset + 4);
-    long firstLocalCount = statementLocalCount(program.opcode);
-    long secondLocalCount = statementLocalCount(program.secondOpcode);
-    long thirdLocalCount = statementLocalCount(program.thirdOpcode);
-    long fourthLocalCount = statementLocalCount(program.fourthOpcode);
-    long localCount = firstLocalCount;
-    long codeLength = 8 + statementCodeLength(program.opcode);
-    if (1 < program.statementCount) {
-      localCount += secondLocalCount;
-      codeLength += statementCodeLength(program.secondOpcode);
-    }
-
-    if (2 < program.statementCount) {
-      localCount += thirdLocalCount;
-      codeLength += statementCodeLength(program.thirdOpcode);
-    }
-
-    if (3 < program.statementCount) {
-      localCount += fourthLocalCount;
-      codeLength += statementCodeLength(program.fourthOpcode);
-    }
-
-    if (4 < program.statementCount) {
-      localCount += statementLocalCount(program.fifthOpcode);
-      codeLength += statementCodeLength(program.fifthOpcode);
+    long localCount = 0;
+    long codeLength = 8;
+    long statementIndex = 0;
+    while (statementIndex < program.statementCount) limit 5 {
+      long statementOpcode = program.statementOpcodes[statementIndex];
+      localCount += statementLocalCount(statementOpcode);
+      codeLength += statementCodeLength(statementOpcode);
+      statementIndex += 1;
     }
 
     long entryLocalCount = localCount;
     long entryStatementLength = codeLength - 8;
     long functionsLength = 44 + localCount * 4;
-    long helperLocalCount = statementLocalCount(program.helperOpcode);
-    long helperForwardLength = statementCodeLength(program.helperOpcode) + 8;
-    if (1 < program.helperStatementCount) {
-      helperLocalCount += statementLocalCount(program.helperSecondOpcode);
-      helperForwardLength += statementCodeLength(program.helperSecondOpcode);
-    }
-
-    if (2 < program.helperStatementCount) {
-      helperLocalCount += statementLocalCount(program.helperThirdOpcode);
-      helperForwardLength += statementCodeLength(program.helperThirdOpcode);
-    }
-
-    if (3 < program.helperStatementCount) {
-      helperLocalCount += statementLocalCount(program.helperFourthOpcode);
-      helperForwardLength += statementCodeLength(program.helperFourthOpcode);
-    }
-
-    if (4 < program.helperStatementCount) {
-      helperLocalCount += statementLocalCount(program.helperFifthOpcode);
-      helperForwardLength += statementCodeLength(program.helperFifthOpcode);
+    long helperLocalCount = 0;
+    long helperForwardLength = 8;
+    long helperStatementIndex = 0;
+    while (helperStatementIndex < program.helperStatementCount) limit 5 {
+      long helperOpcode = program.helperOpcodes[helperStatementIndex];
+      helperLocalCount += statementLocalCount(helperOpcode);
+      helperForwardLength += statementCodeLength(helperOpcode);
+      helperStatementIndex += 1;
     }
 
     long helperInverseLength = 0;
@@ -342,31 +342,20 @@ classical class MinimalCompiler {
         helperLocalCount
       );
       if (program.helperReversible == 0) {
-        cursor = writeStatementLocalTypes(output, cursor, program.helperOpcode);
-        if (1 < program.helperStatementCount) {
-          cursor = writeStatementLocalTypes(output, cursor, program.helperSecondOpcode);
-        }
-
-        if (2 < program.helperStatementCount) {
-          cursor = writeStatementLocalTypes(output, cursor, program.helperThirdOpcode);
-        }
-
-        if (3 < program.helperStatementCount) {
-          cursor = writeStatementLocalTypes(output, cursor, program.helperFourthOpcode);
-        }
-
-        if (4 < program.helperStatementCount) {
-          cursor = writeStatementLocalTypes(output, cursor, program.helperFifthOpcode);
-        }
+        cursor = writeSequenceLocalTypes(
+          output,
+          cursor,
+          program.helperOpcodes,
+          program.helperStatementCount
+        );
       }
 
-      if (0 < program.statementCount) {
-        cursor = writeStatementLocalTypes(output, cursor, program.opcode);
-      }
-
-      if (1 < program.statementCount) {
-        cursor = writeStatementLocalTypes(output, cursor, program.secondOpcode);
-      }
+      cursor = writeSequenceLocalTypes(
+        output,
+        cursor,
+        program.statementOpcodes,
+        program.statementCount
+      );
     } else {
       cursor = writeFunctionDescriptor(
         output,
@@ -381,158 +370,44 @@ classical class MinimalCompiler {
         localCount,
         0
       );
-      if (0 < program.statementCount) {
-        cursor = writeStatementLocalTypes(output, cursor, program.opcode);
-      }
-
-      if (1 < program.statementCount) {
-        cursor = writeStatementLocalTypes(output, cursor, program.secondOpcode);
-      }
-
-      if (2 < program.statementCount) {
-        cursor = writeStatementLocalTypes(output, cursor, program.thirdOpcode);
-      }
-
-      if (3 < program.statementCount) {
-        cursor = writeStatementLocalTypes(output, cursor, program.fourthOpcode);
-      }
-
-      if (4 < program.statementCount) {
-        cursor = writeStatementLocalTypes(output, cursor, program.fifthOpcode);
-      }
+      cursor = writeSequenceLocalTypes(
+        output,
+        cursor,
+        program.statementOpcodes,
+        program.statementCount
+      );
     }
 
     cursor = align8(cursor);
 
     if (program.helperCount == 1) {
       if (program.helperReversible == 1) {
-        cursor = writeGlobalUpdate(output, cursor, program.helperOpcode, program.helperOperand);
-        if (1 < program.helperStatementCount) {
-          cursor = writeGlobalUpdate(
-            output,
-            cursor,
-            program.helperSecondOpcode,
-            program.helperSecondOperand
-          );
-        }
-
-        if (2 < program.helperStatementCount) {
-          cursor = writeGlobalUpdate(
-            output,
-            cursor,
-            program.helperThirdOpcode,
-            program.helperThirdOperand
-          );
-        }
-
-        if (3 < program.helperStatementCount) {
-          cursor = writeGlobalUpdate(
-            output,
-            cursor,
-            program.helperFourthOpcode,
-            program.helperFourthOperand
-          );
-        }
-
-        if (4 < program.helperStatementCount) {
-          cursor = writeGlobalUpdate(
-            output,
-            cursor,
-            program.helperFifthOpcode,
-            program.helperFifthOperand
-          );
-        }
-
-        cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN, 0);
-        if (4 < program.helperStatementCount) {
-          cursor = writeInverseGlobalUpdate(
-            output,
-            cursor,
-            program.helperFifthOpcode,
-            program.helperFifthOperand
-          );
-        }
-
-        if (3 < program.helperStatementCount) {
-          cursor = writeInverseGlobalUpdate(
-            output,
-            cursor,
-            program.helperFourthOpcode,
-            program.helperFourthOperand
-          );
-        }
-
-        if (2 < program.helperStatementCount) {
-          cursor = writeInverseGlobalUpdate(
-            output,
-            cursor,
-            program.helperThirdOpcode,
-            program.helperThirdOperand
-          );
-        }
-
-        if (1 < program.helperStatementCount) {
-          cursor = writeInverseGlobalUpdate(
-            output,
-            cursor,
-            program.helperSecondOpcode,
-            program.helperSecondOperand
-          );
-        }
-
-        cursor = writeInverseGlobalUpdate(
+        cursor = writeReversibleSequence(
           output,
           cursor,
-          program.helperOpcode,
-          program.helperOperand
+          program.helperOpcodes,
+          program.helperOperands,
+          program.helperStatementCount,
+          false
+        );
+        cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN, 0);
+        cursor = writeReversibleSequence(
+          output,
+          cursor,
+          program.helperOpcodes,
+          program.helperOperands,
+          program.helperStatementCount,
+          true
         );
         cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN, 0);
       } else {
-        long helperFirstLocals = statementLocalCount(program.helperOpcode);
-        long helperSecondLocals = statementLocalCount(program.helperSecondOpcode);
-        long helperThirdLocals = statementLocalCount(program.helperThirdOpcode);
-        long helperFourthLocals = statementLocalCount(program.helperFourthOpcode);
-        cursor = writeStatement(output, cursor, program.helperOpcode, program.helperOperand, 0);
-        if (1 < program.helperStatementCount) {
-          cursor = writeStatement(
-            output,
-            cursor,
-            program.helperSecondOpcode,
-            program.helperSecondOperand,
-            helperFirstLocals
-          );
-        }
-
-        if (2 < program.helperStatementCount) {
-          cursor = writeStatement(
-            output,
-            cursor,
-            program.helperThirdOpcode,
-            program.helperThirdOperand,
-            helperFirstLocals + helperSecondLocals
-          );
-        }
-
-        if (3 < program.helperStatementCount) {
-          cursor = writeStatement(
-            output,
-            cursor,
-            program.helperFourthOpcode,
-            program.helperFourthOperand,
-            helperFirstLocals + helperSecondLocals + helperThirdLocals
-          );
-        }
-
-        if (4 < program.helperStatementCount) {
-          cursor = writeStatement(
-            output,
-            cursor,
-            program.helperFifthOpcode,
-            program.helperFifthOperand,
-            helperFirstLocals + helperSecondLocals + helperThirdLocals + helperFourthLocals
-          );
-        }
-
+        cursor = writeSequence(
+          output,
+          cursor,
+          program.helperOpcodes,
+          program.helperOperands,
+          program.helperStatementCount
+        );
         cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN, 0);
       }
 
@@ -544,7 +419,13 @@ classical class MinimalCompiler {
       }
 
       if (program.preReverseStatementCount == 1) {
-        cursor = writeStatement(output, cursor, program.opcode, program.operand, 0);
+        cursor = writeStatement(
+          output,
+          cursor,
+          program.statementOpcodes[0],
+          program.statementOperands[0],
+          0
+        );
       }
 
       if (program.helperReversible == 1) {
@@ -558,7 +439,13 @@ classical class MinimalCompiler {
 
       if (program.preReverseStatementCount == 0) {
         if (0 < program.statementCount) {
-          cursor = writeStatement(output, cursor, program.opcode, program.operand, 0);
+          cursor = writeStatement(
+            output,
+            cursor,
+            program.statementOpcodes[0],
+            program.statementOperands[0],
+            0
+          );
         }
       }
 
@@ -567,56 +454,20 @@ classical class MinimalCompiler {
           cursor = writeStatement(
             output,
             cursor,
-            program.secondOpcode,
-            program.secondOperand,
-            firstLocalCount
+            program.statementOpcodes[1],
+            program.statementOperands[1],
+            statementLocalCount(program.statementOpcodes[0])
           );
         }
       }
     } else {
-      if (0 < program.statementCount) {
-        cursor = writeStatement(output, cursor, program.opcode, program.operand, 0);
-      }
-
-      if (1 < program.statementCount) {
-        cursor = writeStatement(
-          output,
-          cursor,
-          program.secondOpcode,
-          program.secondOperand,
-          firstLocalCount
-        );
-      }
-
-      if (2 < program.statementCount) {
-        cursor = writeStatement(
-          output,
-          cursor,
-          program.thirdOpcode,
-          program.thirdOperand,
-          firstLocalCount + secondLocalCount
-        );
-      }
-
-      if (3 < program.statementCount) {
-        cursor = writeStatement(
-          output,
-          cursor,
-          program.fourthOpcode,
-          program.fourthOperand,
-          firstLocalCount + secondLocalCount + thirdLocalCount
-        );
-      }
-
-      if (4 < program.statementCount) {
-        cursor = writeStatement(
-          output,
-          cursor,
-          program.fifthOpcode,
-          program.fifthOperand,
-          firstLocalCount + secondLocalCount + thirdLocalCount + fourthLocalCount
-        );
-      }
+      cursor = writeSequence(
+        output,
+        cursor,
+        program.statementOpcodes,
+        program.statementOperands,
+        program.statementCount
+      );
     }
 
     cursor = writeInstructionHeader(output, cursor, OPCODE_HALT, 0);

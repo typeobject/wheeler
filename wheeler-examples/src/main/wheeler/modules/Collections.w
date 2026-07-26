@@ -3,6 +3,9 @@
 module examples.collections;
 
 classical class Collections {
+  /// Carries one fixed scalar array across a module boundary.
+  public record ArrayBox(long[3] values) {}
+
   /// Returns the middle element of a three-word array.
   public long middle(long[3] values) {
     return values[1];

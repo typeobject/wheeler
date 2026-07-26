@@ -10,6 +10,7 @@ classical class ModuleMain {
   state long result = 0;
   state long decoded = 0;
   state long arrayValue = 0;
+  state long arrayRecordValue = 0;
   state long sliceValue = 0;
   state long nominalArrayValue = 0;
   state long nominalSliceValue = 0;
@@ -27,8 +28,10 @@ classical class ModuleMain {
     nominalArrayValue = examples.arithmetic::lastRight(pairs);
     nominalSliceValue = rightTotal(pairSlice, 2);
     long[3] values = new long[3](4, 5, 6);
+    examples.collections::ArrayBox box = new examples.collections::ArrayBox(values);
     long[] all = slice(values, 0, 3);
     arrayValue = examples.collections::middle(values);
+    arrayRecordValue = box.values[2];
     sliceValue = total(all, 3);
     examples.results::Outcome outcome = classify(9);
     examples.results::Outcome manual = new examples.results::Outcome.Value(9);
@@ -48,6 +51,7 @@ classical class ModuleMain {
     assert(result == 18);
     assert(decoded == 9);
     assert(arrayValue == 5);
+    assert(arrayRecordValue == 6);
     assert(sliceValue == 15);
     assert(nominalArrayValue == 8);
     assert(nominalSliceValue == 26);

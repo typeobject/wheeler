@@ -272,34 +272,30 @@ classical class HelperParser {
       1,
       parsedSignedNumber(source, tokenStarts, tokenLengths, 8),
       entryCount,
-      entryOpcode,
-      entryOperand,
-      secondEntryOpcode,
-      secondEntryOperand,
-      -1,
-      0,
-      -1,
-      0,
-      -1,
-      0,
+      new long[5](entryOpcode, secondEntryOpcode, -1, -1, -1),
+      new long[5](entryOperand, secondEntryOperand, 0, 0, 0),
       helper,
       1,
-      helperOpcode,
-      helperOperand,
+      new long[5](
+        helperOpcode,
+        helperSecondOpcode,
+        helperThirdOpcode,
+        helperFourthOpcode,
+        helperFifthOpcode
+      ),
+      new long[5](
+        helperOperand,
+        helperSecondOperand,
+        helperThirdOperand,
+        helperFourthOperand,
+        helperFifthOperand
+      ),
       reversible,
       proof,
       proofCount,
       helperCallCount,
       preReverseCount,
-      helperStatementCount,
-      helperSecondOpcode,
-      helperSecondOperand,
-      helperThirdOpcode,
-      helperThirdOperand,
-      helperFourthOpcode,
-      helperFourthOperand,
-      helperFifthOpcode,
-      helperFifthOperand
+      helperStatementCount
     );
     return new MinimalProgramResult.Value(program);
   }

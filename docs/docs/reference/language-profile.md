@@ -201,7 +201,7 @@ long width = token.span.end - token.span.start;
 
 A record name begins with an ASCII upper-case letter. This keeps nominal declarations distinct from statements during standalone module parsing.
 
-A field may use a scalar or a record declared earlier in the file. That rule makes recursive and cyclic inline records impossible.
+A field may use a scalar, a record declared earlier in the file, or an immutable fixed array of signed or Boolean scalars. Variant payload fields accept the same fixed scalar arrays. Aggregate-element arrays remain excluded, so recursive and cyclic inline layouts stay impossible. Nonescaping slices cannot enter records or variants.
 
 Construction runs from left to right and checks exact arity and field types. Fields are read-only. Records may be locals, parameters, and results. `==` compares nominal type and every immutable field value.
 
@@ -245,7 +245,7 @@ long[4] values = new long[4](2, 4, 6, 8);
 long selected = values[2];
 ```
 
-Construction requires exactly the declared number of values and checks each type from left to right. Arrays may be locals, parameters, and results.
+Construction requires exactly the declared number of values and checks each type from left to right. Arrays may be locals, parameters, results, record fields, and variant payloads. Aggregate fields currently admit only signed or Boolean array elements; this keeps descriptor graphs acyclic while allowing compiler IR to carry bounded columns directly.
 
 An index is a signed value. A negative index or one at least as large as the array length traps before mutation.
 

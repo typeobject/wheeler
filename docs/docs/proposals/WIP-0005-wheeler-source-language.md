@@ -194,7 +194,7 @@ The parser bounds source bytes, lines, declarations, methods, statements, regist
 - [x] Coherent method references execute on classical and simulated quantum data.
 - [x] Counter, QFT, and coherent-oracle examples use only the Wheeler source profile.
 - [x] Temporary source syntax and documentation are deleted.
-- [ ] Deterministic classical modules enforce exact declarations, sorted imports, public visibility, dependency-first linking, closed DAG inputs, manifest-bound source sets, and locked direct-package visibility; public immutable records/closed variants link and importers exhaustively match variants. WIP-0028 owns cross-function ownership and region loans, WIP-0029 owns constrained generic values, WIP-0030 owns coherent class evidence, and WIP-0031 owns typed callable/effect polymorphism. Exported state/proofs/circuits, package aliases/re-export, and complete qualified nominal APIs remain.
+- [ ] Deterministic classical modules enforce exact declarations, sorted imports, public visibility, dependency-first linking, closed DAG inputs, manifest-bound source sets, and locked direct-package visibility; public immutable records/closed variants link, importers exhaustively match variants, and fixed signed/Boolean array fields cross module boundaries. WIP-0028 owns cross-function ownership and region loans, WIP-0029 owns constrained generic values, WIP-0030 owns coherent class evidence, and WIP-0031 owns typed callable/effect polymorphism. Exported state/proofs/circuits, package aliases/re-export, and complete qualified nominal APIs remain.
 
 ## Testing and acceptance
 

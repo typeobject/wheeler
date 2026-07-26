@@ -280,6 +280,30 @@ class SourceProfileNegativeTest {
   }
 
   @Test
+  void rejectsNonescapingOrRecursiveAggregateArrayFields() {
+    String sliceField = """
+        classical class SliceField {
+          record Bad(long[] values) {}
+          entry void main() { }
+        }
+        """;
+    String aggregateElements = """
+        classical class AggregateElements {
+          record Value(long data) {}
+          record Bad(Value[2] values) {}
+          entry void main() { }
+        }
+        """;
+
+    CompilerException slice = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(sliceField));
+    CompilerException aggregate = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(aggregateElements));
+    assertTrue(slice.getMessage().contains("cannot contain a nonescaping slice"));
+    assertTrue(aggregate.getMessage().contains("arrays currently require scalar elements"));
+  }
+
+  @Test
   void rejectsEscapingAndInvalidSlices() {
     String escaping = """
         classical class Escape {
