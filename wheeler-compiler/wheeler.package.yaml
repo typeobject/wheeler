@@ -10,7 +10,15 @@ targets:
     module: "wheeler.compiler.driver"
     sources:
       - "src/main/wheeler/MinimalCompiler.w"
-      - "src/main/wheeler/compiler"
+      - "src/main/wheeler/compiler/backend"
+      - "src/main/wheeler/compiler/frontend"
+      - "src/main/wheeler/compiler/ir"
+      - "src/main/wheeler/compiler/verification/AggregateVerifier.w"
+      - "src/main/wheeler/compiler/verification/FunctionVerifier.w"
+      - "src/main/wheeler/compiler/verification/InstructionVerifier.w"
+      - "src/main/wheeler/compiler/verification/ProofVerifier.w"
+      - "src/main/wheeler/compiler/verification/StorageVerifier.w"
+      - "src/main/wheeler/compiler/verification/Verifier.w"
       - "src/main/wheeler/lexer"
     test: false
   - kind: "library"

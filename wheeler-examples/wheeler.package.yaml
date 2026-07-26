@@ -76,6 +76,13 @@ targets:
       - "src/main/wheeler/native/NativeArchive.w"
     test: false
   - kind: "deployable"
+    name: "nativebytecodecodec"
+    root: "src/main/wheeler/native/NativeBytecodeCodec.w"
+    module: "examples.compiler.native_bytecode_codec"
+    sources:
+      - "src/main/wheeler/native/NativeBytecodeCodec.w"
+    test: false
+  - kind: "deployable"
     name: "nativelock"
     root: "src/main/wheeler/native/NativeLock.w"
     module: "examples.packages.lock_main"

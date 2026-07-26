@@ -235,6 +235,8 @@ The `LongClass` fixture contains `state long value = 7` and a checked update. CI
 
 A binary corpus accepts canonical stage-0 artifacts and rejects forged local or global indexes, type codes, call targets, proof subjects, and proof arguments. `NativeVerifier.w` applies the same verifier to immutable binary `byteview`, so verification does not need a text envelope.
 
+`compiler/verification/Codec.w` provides Wheeler's bounded canonical identity encoder. It decodes and verifies the complete typed artifact before copying any byte into caller-owned output. Because `.wbc` 1.0 has one canonical representation, identity encoding is the only correct re-encoding of accepted bytes; there is no permissive spelling to normalize. `NativeBytecodeCodec.w` differentially reproduces a stage-0 artifact, rewinds exactly, and leaves output untouched and unpublished when verification traps. This is the recovery codec boundary, not yet a general-purpose mutable semantic editor.
+
 This verifier covers the bounded compiler profile. It is not yet the full production verifier.
 
 Differential fixtures include these exact artifacts and lowering paths:

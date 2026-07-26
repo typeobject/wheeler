@@ -182,6 +182,18 @@ Expected behavior:
 - Empty, `abc`, 55/56/64-byte padding boundaries, and 100 arbitrary binary bytes match the JDK SHA-256 oracle.
 - Output is exactly 32 bytes and the empty-input run rewinds exactly.
 
+### `NativeBytecodeCodec.w`
+
+Files: [`NativeBytecodeCodec.w`](../../wheeler-examples/src/main/wheeler/native/NativeBytecodeCodec.w) + [`compiler/verification/Codec.w`](../../wheeler-compiler/src/main/wheeler/compiler/verification/Codec.w) + the native verifier modules.
+
+Covers: Wheeler-native canonical identity re-encoding after complete typed structural verification. Canonical `.wbc` has one legal byte representation, so the encoder preserves every verified byte into caller-owned output and publishes only after verification succeeds.
+
+Expected behavior:
+
+- A stage-0 artifact re-encodes byte-for-byte and the complete run rewinds exactly.
+- Damaged magic traps before the first output write or publication.
+- Copying unverified bytes is not this codec. That trick already has a name: `cp`.
+
 ### `NativeVerifier.w`
 
 Files: [`NativeVerifier.w`](../../wheeler-examples/src/main/wheeler/native/NativeVerifier.w) + [`compiler/verification/Verifier.w`](../../wheeler-compiler/src/main/wheeler/compiler/verification/Verifier.w) + [`compiler/verification/FunctionVerifier.w`](../../wheeler-compiler/src/main/wheeler/compiler/verification/FunctionVerifier.w) + [`compiler/verification/InstructionVerifier.w`](../../wheeler-compiler/src/main/wheeler/compiler/verification/InstructionVerifier.w) + [`compiler/verification/ProofVerifier.w`](../../wheeler-compiler/src/main/wheeler/compiler/verification/ProofVerifier.w).
