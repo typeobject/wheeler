@@ -238,6 +238,14 @@ Expected behavior:
 - Every case agrees with stage 0 across all declared globals, up to eight, and rewinds exactly.
 - Forged record-field, variant-tag, array-index-local, slice-index-local, word/byte-index-local UTF-8-index-local and map-key-local operands, recursive aggregate-element arrays, a forged static-step bound, a structurally valid wrong generated inverse, and damaged artifacts and forged branch/call targets trap before interpretation.
 
+### `NativeIoLifecycle.w`
+
+Files: [`NativeIoLifecycle.w`](../../wheeler-examples/src/main/wheeler/native/NativeIoLifecycle.w) + [`runtime/io/Lifecycle.w`](../../wheeler-runtime/src/main/wheeler/runtime/io/Lifecycle.w).
+
+Covers: Wheeler-native bounded submission, exact work charging, terminal completion, cancellation-before-effect, known partial cancellation, late cancellation, uncertainty, resource release, exact reaping, scope closure, and fail-closed capacity. Caller-owned columns hold at most 64 operations; no provider handle or durability claim sneaks into the table wearing a fake moustache.
+
+Expected result: four operations charge 23 work units, every terminal completion is reaped exactly once, completion-won and uncertain-after-cancellation relations remain distinct, a fifth submission is rejected without publication, and the scope closes. Complete VM rewind restores the empty tables and globals.
+
 ### `NativeWorkspace.w`
 
 Files: [`NativeWorkspace.w`](../../wheeler-examples/src/main/wheeler/native/NativeWorkspace.w) + [`packages/workspace/Workspace.w`](../../wheeler-package/src/main/wheeler/packages/workspace/Workspace.w).

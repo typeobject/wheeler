@@ -573,6 +573,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] The quarantined stage-0 runtime executes the bounded request, scope, operation, terminal-completion, reap, batch, selection, and terminal-dependency graph lifecycle with one deterministic semantic contract. This is executable scaffolding, not permission to fossilize the Java spelling.
 - [x] Inline and delayed deterministic delivery produce equal semantic completions; delayed cancellation-before-effect performs no provider action.
 - [x] A bounded in-memory addressable-file oracle executes positional reads and exact writes through the same request lifecycle. Buffers are inaccessible while captured, return in terminal results, and are released on cancellation-before-effect. Write completion remains gloriously unqualified by durability.
+- [x] The Wheeler-native runtime enforces up to 64 caller-owned lifecycle rows: bounded submission and work charging, terminal-kind/cancellation-relation compatibility, exact progress, resource release, late-cancellation races, one reap, and all-reaped scope closure. The executable example proves complete rewind and fail-closed fifth-row publication at its declared capacity.
 - [ ] Unified request/scope/result model is accepted.
 - [ ] Async versus required-concurrent behavior is accepted.
 - [ ] Terminal completion, cancellation, uncertainty, and reap laws are accepted.
@@ -595,8 +596,8 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] Repository documentation contains one portable I/O lifecycle owner and links integration clauses back here instead of copying method contracts.
 - [x] One stage-0 request type can be awaited, submitted, batched, graphed, or selected.
 - [x] Stage-0 request construction performs no provider action.
-- [x] Every stage-0 submitted operation has one terminal completion and one reap.
-- [x] Dropping a live stage-0 operation or leaving a scope with live or unreaped work is rejected.
+- [x] Every stage-0 and Wheeler-native submitted operation has one terminal completion and one reap.
+- [x] Dropping a live stage-0 operation or closing a native lifecycle table with live or unreaped work is rejected.
 - [x] Inline and delayed deterministic completion have equal semantic results.
 - [ ] `async` may execute inline; `concurrent` fails when overlap is unavailable.
 - [ ] Common examples require no backend vocabulary or manual polling.

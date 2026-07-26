@@ -83,6 +83,13 @@ targets:
       - "src/main/wheeler/native/NativeBytecodeCodec.w"
     test: false
   - kind: "deployable"
+    name: "nativeiolifecycle"
+    root: "src/main/wheeler/native/NativeIoLifecycle.w"
+    module: "examples.native.io_lifecycle"
+    sources:
+      - "src/main/wheeler/native/NativeIoLifecycle.w"
+    test: false
+  - kind: "deployable"
     name: "nativelock"
     root: "src/main/wheeler/native/NativeLock.w"
     module: "examples.packages.lock_main"

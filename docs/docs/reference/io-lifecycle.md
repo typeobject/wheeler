@@ -44,6 +44,14 @@ Terminal kind and cancellation relation are separate closed enums. The executabl
 
 Cancellation does not reap an operation and never claims rollback. Malformed provider progress is normalized to a known failure before completion publication.
 
+## Wheeler-native lifecycle kernel
+
+`wheeler-runtime/src/main/wheeler/runtime/io/Lifecycle.w` moves the lifecycle laws out of Java prose and into executable Wheeler. The kernel uses caller-owned fixed columns for state, declared work, exact progress, terminal kind, cancellation relation, resource release, and reap state. It accepts at most 64 rows and publishes no row until every capacity and arithmetic check succeeds.
+
+The native transition table rejects second completion, completion before resource release, progress beyond declared work, mismatched terminal/cancellation pairs, second reap, and scope closure with any unreaped row. Late cancellation may strengthen only the matching relation: success becomes completion-won, known failure becomes failure-won, and independent uncertainty becomes uncertainty-after-cancellation. It does not rewrite history into cancellation-before-effect because that would be lying with extra steps.
+
+[`NativeIoLifecycle.w`](../../wheeler-examples/src/main/wheeler/native/NativeIoLifecycle.w) executes success, cancellation-before-effect, partial cancellation, uncertainty, late cancellation, capacity failure, exact reaping, closure, and complete VM rewind.
+
 ## Positional memory-file oracle
 
 `MemoryAddressableFile` is not a filesystem API. It is a bounded oracle for the positional contract. `readAt` validates the destination range and position before capture, then returns the destination owner with exact bytes-read progress. `writeAt` requires a write capability, validates the complete source and file ranges before capture, and returns the source owner with exact bytes-written progress.
