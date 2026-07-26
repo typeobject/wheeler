@@ -272,7 +272,7 @@ The launcher grants read-only source inputs and one atomic artifact destination.
 - [x] `NativeVm.w` and `runtime/Interpreter.w` execute the verified bounded compiler profile inside Wheeler.
   - They agree with stage 0 on local and global updates, signed and Boolean branches, a bounded loop, typed value and void calls, and the four-function `FunctionValues.w` graph.
   - The suite covers a 35-local frame, an 80-expectation code window, six levels of `RecursiveValue.w`, and `LoopControl.w` with early return, `break`, and `continue`.
-  - Aggregate fixtures include nested `Records.w`, payload-free `FiniteEnums.w`, payload-carrying `Variants.w`, fixed arrays, and slices.
+  - Aggregate fixtures include nested `Records.w`, payload-free `FiniteEnums.w`, payload-carrying `Variants.w`, fixed arrays, slices, and fixed signed/Boolean arrays embedded in records and variant payloads. The native verifier rejects a forged aggregate-element array before interpretation.
   - Storage fixtures cover regions, word and byte buffers, nested mutable borrows, valid and malformed UTF-8, `FrozenUtf8.w`, signed maps, and owner-returning calls.
   - The proof-bearing `Counter.w` also executes under the Wheeler verifier and interpreter.
   - Every declared global, up to eight, must match stage 0.

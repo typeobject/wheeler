@@ -16,6 +16,59 @@ classical class Verifier {
     return right < left;
   }
 
+  private boolean scalarArrayTypeValid(
+    borrow byteview artifact,
+    long arrayTable,
+    long arrayCount,
+    long typeCode
+  ) {
+    if (isArrayType(typeCode)) {} else {
+      return false;
+    }
+
+    long arrayId = arrayTypeId(typeCode);
+    if (arrayId < arrayCount) {} else {
+      return false;
+    }
+
+    long elementType = readUnsigned(artifact, arrayTable + 8 + arrayId * 12, 4);
+    if (elementType == TYPE_SIGNED) {
+      return true;
+    }
+
+    return elementType == TYPE_BOOLEAN;
+  }
+
+  private boolean recordArrayFieldsValid(
+    borrow byteview artifact,
+    long recordTable,
+    long recordCount,
+    long arrayTable,
+    long arrayCount
+  ) {
+    long cursor = recordTable;
+    long record = 0;
+    while (record < recordCount) limit INTERPRETER_AGGREGATE_COUNT {
+      long fieldCount = readUnsigned(artifact, cursor + 8, 4);
+      long field = 0;
+      while (field < fieldCount) limit INTERPRETER_LOCAL_WIDTH {
+        long fieldType = readUnsigned(artifact, cursor + 16 + field * 8, 4);
+        if (isArrayType(fieldType)) {
+          if (scalarArrayTypeValid(artifact, arrayTable, arrayCount, fieldType)) {} else {
+            return false;
+          }
+        }
+
+        field += 1;
+      }
+
+      cursor += 12 + fieldCount * 8;
+      record += 1;
+    }
+
+    return true;
+  }
+
   private long align8(long value) {
     long remainder = value % 8;
     if (remainder == 0) {
@@ -155,6 +208,7 @@ classical class Verifier {
     }
 
     typeCursor += 4;
+    long recordTable = typeCursor;
     long record = 0;
     while (record < recordCount) limit INTERPRETER_AGGREGATE_COUNT {
       if (differs(readUnsigned(artifact, typeCursor, 4), record)) {
@@ -185,7 +239,9 @@ classical class Verifier {
                 return 0;
               }
             } else {
-              return 0;
+              if (isArrayType(fieldType)) {} else {
+                return 0;
+              }
             }
           }
         }
@@ -197,6 +253,7 @@ classical class Verifier {
       record += 1;
     }
 
+    long arrayTable = typeCursor;
     long arrayCount = readUnsigned(artifact, typeCursor, 4);
     if (INTERPRETER_AGGREGATE_COUNT < arrayCount) {
       return 0;
@@ -229,6 +286,12 @@ classical class Verifier {
 
       typeCursor += 12;
       array += 1;
+    }
+
+    if (
+      recordArrayFieldsValid(artifact, recordTable, recordCount, arrayTable, arrayCount)
+    ) {} else {
+      return 0;
     }
 
     long sliceCount = readUnsigned(artifact, typeCursor, 4);
@@ -312,7 +375,11 @@ classical class Verifier {
                   return 0;
                 }
               } else {
-                return 0;
+                if (
+                  scalarArrayTypeValid(artifact, arrayTable, arrayCount, payloadType)
+                ) {} else {
+                  return 0;
+                }
               }
             }
           }

@@ -55,7 +55,7 @@ The required variant section has canonical nominal IDs and ordered, nonempty cas
 
 An array descriptor stores a canonical ID, element type, and a length from 1 through 65,535. A slice descriptor stores a canonical ID and element type. Slices cannot escape, appear as function results, or become aggregate elements.
 
-Every descriptor ID must equal its table position. Record fields may refer only to earlier record descriptors; variant payloads may refer to records or earlier variants. Both may also embed a later fixed-array descriptor when its element type is signed or Boolean. The verifier rejects slice fields, aggregate-element arrays, and recursive array layouts.
+Every descriptor ID must equal its table position. Record fields may refer only to earlier record descriptors; variant payloads may refer to records or earlier variants. Both may also embed a later fixed-array descriptor when its element type is signed or Boolean. Both the stage-0 and Wheeler-native verifiers reject slice fields, aggregate-element arrays, and recursive array layouts.
 
 This layout cannot represent recursive, cyclic, or forward inline values. Duplicate names, fields, cases, or IDs fail closed. The decoder also rejects forward references, unknown string IDs, unknown type tags, truncation, and trailing bytes.
 

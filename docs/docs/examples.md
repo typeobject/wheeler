@@ -232,11 +232,11 @@ Expected behavior:
 - The Wheeler-written compiler emits the checked-in proof-bearing `Counter.w` artifact byte-for-byte with stage 0, then the Wheeler-written interpreter executes `CALL`/`UNCALL` back to `count = 0`.
 - Control-flow tests cover signed and Boolean branches, a bounded loop, two-argument value calls, argument-bearing void calls, and the four-function `FunctionValues.w` graph.
 - Stress fixtures use a thirty-five-local frame and an eighty-expectation code window. They also cover six-level `RecursiveValue.w` recursion and the early-return, `break`, and `continue` paths in `LoopControl.w`.
-- Aggregate tests cover nested `Records.w` values, payload-free `FiniteEnums.w`, payload-carrying `Variants.w`, fixed arrays, and slices.
+- Aggregate tests cover nested `Records.w` values, payload-free `FiniteEnums.w`, payload-carrying `Variants.w`, fixed arrays, slices, and fixed scalar arrays embedded in record fields and variant payloads.
 - Storage and text tests cover owned regions, word and byte buffers, nested mutable borrows, valid and malformed UTF-8, and the full `FrozenUtf8.w` path with nested read-only borrows.
 - Ownership tests cover returned and transferred owners in `OwnedReturns.w`, plus a signed map with a nested mutable borrow.
 - Every case agrees with stage 0 across all declared globals, up to eight, and rewinds exactly.
-- Forged record-field, variant-tag, array-index-local, slice-index-local, word/byte-index-local UTF-8-index-local and map-key-local operands, a forged static-step bound, a structurally valid wrong generated inverse, and damaged artifacts and forged branch/call targets trap before interpretation.
+- Forged record-field, variant-tag, array-index-local, slice-index-local, word/byte-index-local UTF-8-index-local and map-key-local operands, recursive aggregate-element arrays, a forged static-step bound, a structurally valid wrong generated inverse, and damaged artifacts and forged branch/call targets trap before interpretation.
 
 ### `NativeWorkspace.w`
 

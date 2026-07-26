@@ -152,11 +152,17 @@ class NativeVmExampleTest {
         "selected",
         7);
     String arrays = "classical class NativeArrays { "
+        + "record Box(long[4] values) {} "
+        + "variant Choice { case Some(boolean[2] flags); } "
         + "state long selected = 0; state long sliceSelected = 0; "
         + "entry void main() { "
         + "long[4] first = new long[4](2, 4, 6, 8); "
+        + "Box box = new Box(first); "
+        + "Choice choice = new Choice.Some(new boolean[2](true, false)); "
         + "long[] middle = slice(first, 1, 2); "
-        + "selected = first[2]; sliceSelected = middle[1]; "
+        + "selected = box.values[2]; "
+        + "match (choice) { case Choice.Some(boolean[2] flags) { "
+        + "if (flags[0]) { sliceSelected = middle[1]; } } } "
         + "assert(selected == 6); assert(sliceSelected == 6); } }";
     assertInterpretedTwoGlobals(
         interpreter, arrays, "selected", 6, "sliceSelected", 6);
@@ -170,6 +176,11 @@ class NativeVmExampleTest {
     assertThrows(
         VmTrap.class,
         () -> VirtualMachine.withBinaryInput(interpreter, forgedSlice).run());
+    byte[] forgedEmbeddedArray = withAggregateArrayElement(
+        compiler.compileToBytecode(arrays));
+    assertThrows(
+        VmTrap.class,
+        () -> VirtualMachine.withBinaryInput(interpreter, forgedEmbeddedArray).run());
     String storage = "classical class NativeStorage { "
         + "state long first = 0; state long byteValue = 0; "
         + "long readWord(borrow mut words data, long index) { return data[index]; } "
@@ -596,6 +607,27 @@ class NativeVmExampleTest {
       cursor += bytes.getInt(cursor + 4);
     }
     throw new AssertionError("slice fixture has no element read");
+  }
+
+  private static byte[] withAggregateArrayElement(byte[] artifact) {
+    byte[] forged = artifact.clone();
+    ByteBuffer bytes = ByteBuffer.wrap(forged).order(ByteOrder.LITTLE_ENDIAN);
+    int typesDirectory = 40 + 2 * 32;
+    int cursor = Math.toIntExact(bytes.getLong(typesDirectory + 8));
+    int globalCount = bytes.getInt(cursor);
+    cursor += 4 + globalCount * 16;
+    int recordCount = bytes.getInt(cursor);
+    cursor += 4;
+    for (int record = 0; record < recordCount; record++) {
+      int fieldCount = bytes.getInt(cursor + 8);
+      cursor += 12 + fieldCount * 8;
+    }
+    int arrayCount = bytes.getInt(cursor);
+    if (arrayCount < 1) {
+      throw new AssertionError("array fixture has no descriptor");
+    }
+    bytes.putInt(cursor + 8, ValueType.record(0).code());
+    return forged;
   }
 
   private static byte[] withBadArrayIndex(byte[] artifact) {
