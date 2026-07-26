@@ -60,6 +60,7 @@ Expected behavior:
 - Signed and Boolean literals, unary negation, literal truth assertions, and prior-local Boolean assertions work in no-global, stateful, and ordinary-helper bodies.
 - They lower through `LOCAL_CONST`, `LOCAL_XOR`, `LOCAL_MOVE`, and `EXPECT_TRUE`. The compiler emits exact signed and Boolean local type windows from named token, punctuation, and statement identities.
 - Signed decimal initializers and operands use canonical two's-complement form. An overlong negative magnitude fails before publication, with no substitute constant.
+- The complete file length is checked against caller output capacity before the first header byte is written.
 - `codeStart = 392`, `finalCursor = 504`.
 
 ### `FixedArrays.w`
@@ -193,7 +194,7 @@ Covers: Wheeler-native canonical identity re-encoding after complete typed struc
 Expected behavior:
 
 - A stage-0 artifact re-encodes byte-for-byte and the complete run rewinds exactly.
-- Damaged magic traps before the first output write or publication.
+- Damaged magic or insufficient output capacity traps before the first output write or publication.
 - Copying unverified bytes is not this codec. That trick already has a name: `cp`.
 
 ### `NativeVerifier.w`

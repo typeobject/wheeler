@@ -95,6 +95,10 @@ class MinimalCompilerExampleTest {
     assertEquals(1, writer.global("verification"));
     assertEquals(504, emitted.length);
     assertArrayEquals(stageZero, emitted);
+    VirtualMachine undersizedOutput = new VirtualMachine(
+        writerProgram, source.getBytes(StandardCharsets.UTF_8), emitted.length - 1);
+    assertThrows(VmTrap.class, undersizedOutput::run);
+    assertArrayEquals(new byte[emitted.length - 1], undersizedOutput.hostOutput());
     for (long variant = 1; variant <= 32; variant++) {
       String decorated = decoratedMinimalSource(variant);
       VirtualMachine decoratedWriter = new VirtualMachine(

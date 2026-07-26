@@ -267,6 +267,7 @@ classical class MinimalCompiler {
       fileLength = align8(proofOffset + 28);
     }
 
+    assert(fileLength < bufferLength(output) + 1);
     codeStart = codeOffset;
 
     writeAscii(output, 0, "WHEELBC");

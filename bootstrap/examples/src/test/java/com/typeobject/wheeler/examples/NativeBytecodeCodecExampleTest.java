@@ -62,6 +62,11 @@ final class NativeBytecodeCodecExampleTest {
     }
     assertEquals(initial, machine.snapshot());
 
+    VirtualMachine undersized = VirtualMachine.withBinaryInput(
+        codec, artifact, artifact.length - 1);
+    assertThrows(VmTrap.class, undersized::run);
+    assertArrayEquals(new byte[artifact.length - 1], undersized.hostOutput());
+
     byte[] malformed = artifact.clone();
     malformed[0] = 0;
     VirtualMachine rejected = VirtualMachine.withBinaryInput(codec, malformed, artifact.length);

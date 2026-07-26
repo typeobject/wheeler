@@ -15,6 +15,7 @@ classical class BytecodeCodec {
     long length = bufferLength(artifact);
     long verification = verifyArtifact(artifact, length);
     assert(verification == 1);
+    assert(length < bufferLength(output) + 1);
     long cursor = 0;
     while (cursor < length) limit 16777216 {
       setByte(output, cursor, artifact[cursor]);
