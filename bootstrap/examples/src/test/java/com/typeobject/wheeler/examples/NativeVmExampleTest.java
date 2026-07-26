@@ -730,6 +730,8 @@ class NativeVmExampleTest {
                 CompilerSources.read("compiler/verification/ProofVerifier.w")),
             Map.entry("Scanner.w", CompilerSources.read("lexer/Scanner.w")),
             Map.entry(
+                "Sequences.w", CompilerSources.read("compiler/frontend/Sequences.w")),
+            Map.entry(
                 "Statements.w", CompilerSources.read("compiler/frontend/Statements.w")),
             Map.entry(
                 "StorageVerifier.w",

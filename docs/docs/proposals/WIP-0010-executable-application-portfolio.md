@@ -370,7 +370,7 @@ Portfolio work follows these rules:
   - `MinimalCompiler.w` parses a bounded source file and emits the full artifact through the shared encoding module.
   - Source strings are sorted canonically, and section layout is derived.
   - All 504 bytes for `LongClass` with `state long value = 7` and `value += 5` match stage 0.
-  - Empty and one- through five-statement entry bodies also match. The suite covers signed and Boolean locals, assertions, one global, assignment, checked arithmetic, XOR, static helpers, reverse blocks, and generated inverse certificates.
+  - Empty and one- through eight-statement entry bodies also match. The suite covers signed and Boolean locals, assertions, one global, assignment, checked arithmetic, XOR, static helpers, reverse blocks, and generated inverse certificates.
   - The compiler derives zero through twenty local slots and exact code sizes.
   - Tests cover signed constants, Boolean literals, unary negation, literal and prior-local assertions, exact type windows, shared token and statement identities, decoding, canonical re-encoding, and execution.
   - A Wheeler-native bounded verifier checks emitted bytes before publication. General IR payloads and full control, type, and resource verification remain.

@@ -26,7 +26,7 @@ classical class MinimalCompiler {
   ) {
     long readCursor = 0;
     long writeCursor = 0;
-    while (readCursor < count) limit 512 {
+    while (readCursor < count) limit 812 {
       long kind = tokenKinds[readCursor];
       boolean emit = true;
       if (kind == 4) {
@@ -68,12 +68,12 @@ classical class MinimalCompiler {
           0,
           0,
           0,
-          new long[5](-1, -1, -1, -1, -1),
-          new long[5](0, 0, 0, 0, 0),
+          new long[8](-1, -1, -1, -1, -1, -1, -1, -1),
+          new long[8](0, 0, 0, 0, 0, 0, 0, 0),
           scanGlobal,
           0,
-          new long[5](-1, -1, -1, -1, -1),
-          new long[5](0, 0, 0, 0, 0),
+          new long[8](-1, -1, -1, -1, -1, -1, -1, -1),
+          new long[8](0, 0, 0, 0, 0, 0, 0, 0),
           0,
           scanGlobal,
           0,
@@ -102,12 +102,12 @@ classical class MinimalCompiler {
               0,
               0,
               0,
-              new long[5](-1, -1, -1, -1, -1),
-              new long[5](0, 0, 0, 0, 0),
+              new long[8](-1, -1, -1, -1, -1, -1, -1, -1),
+              new long[8](0, 0, 0, 0, 0, 0, 0, 0),
               parseGlobal,
               0,
-              new long[5](-1, -1, -1, -1, -1),
-              new long[5](0, 0, 0, 0, 0),
+              new long[8](-1, -1, -1, -1, -1, -1, -1, -1),
+              new long[8](0, 0, 0, 0, 0, 0, 0, 0),
               0,
               parseGlobal,
               0,
@@ -127,11 +127,11 @@ classical class MinimalCompiler {
   private long writeSequenceLocalTypes(
     borrow mut bytes output,
     long cursor,
-    long[5] opcodes,
+    long[8] opcodes,
     long count
   ) {
     long index = 0;
-    while (index < count) limit 5 {
+    while (index < count) limit 8 {
       cursor = writeStatementLocalTypes(output, cursor, opcodes[index]);
       index += 1;
     }
@@ -142,13 +142,13 @@ classical class MinimalCompiler {
   private long writeSequence(
     borrow mut bytes output,
     long cursor,
-    long[5] opcodes,
-    long[5] operands,
+    long[8] opcodes,
+    long[8] operands,
     long count
   ) {
     long index = 0;
     long localBase = 0;
-    while (index < count) limit 5 {
+    while (index < count) limit 8 {
       cursor = writeStatement(output, cursor, opcodes[index], operands[index], localBase);
       localBase += statementLocalCount(opcodes[index]);
       index += 1;
@@ -160,15 +160,15 @@ classical class MinimalCompiler {
   private long writeReversibleSequence(
     borrow mut bytes output,
     long cursor,
-    long[5] opcodes,
-    long[5] operands,
+    long[8] opcodes,
+    long[8] operands,
     long count,
     boolean inverse
   ) {
     long index = 0;
     if (inverse) {
       index = count;
-      while (0 < index) limit 5 {
+      while (0 < index) limit 8 {
         index -= 1;
         cursor = writeInverseGlobalUpdate(output, cursor, opcodes[index], operands[index]);
       }
@@ -176,7 +176,7 @@ classical class MinimalCompiler {
       return cursor;
     }
 
-    while (index < count) limit 5 {
+    while (index < count) limit 8 {
       cursor = writeGlobalUpdate(output, cursor, opcodes[index], operands[index]);
       index += 1;
     }
@@ -223,7 +223,7 @@ classical class MinimalCompiler {
     long localCount = 0;
     long codeLength = 8;
     long statementIndex = 0;
-    while (statementIndex < program.statementCount) limit 5 {
+    while (statementIndex < program.statementCount) limit 8 {
       long statementOpcode = program.statementOpcodes[statementIndex];
       localCount += statementLocalCount(statementOpcode);
       codeLength += statementCodeLength(statementOpcode);
@@ -236,7 +236,7 @@ classical class MinimalCompiler {
     long helperLocalCount = 0;
     long helperForwardLength = 8;
     long helperStatementIndex = 0;
-    while (helperStatementIndex < program.helperStatementCount) limit 5 {
+    while (helperStatementIndex < program.helperStatementCount) limit 8 {
       long helperOpcode = program.helperOpcodes[helperStatementIndex];
       helperLocalCount += statementLocalCount(helperOpcode);
       helperForwardLength += statementCodeLength(helperOpcode);

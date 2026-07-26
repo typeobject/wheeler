@@ -3,29 +3,12 @@
 module wheeler.compiler.helper_parser;
 
 import wheeler.compiler.ir;
+import wheeler.compiler.sequences;
 import wheeler.compiler.statements;
 import wheeler.compiler.structure;
 import wheeler.compiler.tokens;
 
 classical class HelperParser {
-  private boolean reversibleBodyValid(
-    borrow utf8 source,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    long statementStart
-  ) {
-    long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
-    if (opcode == STATEMENT_UPDATE_ADD) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_UPDATE_SUB) {
-      return true;
-    }
-
-    return opcode == STATEMENT_UPDATE_XOR;
-  }
-
   private boolean callValid(
     borrow utf8 source,
     borrow mut words tokenKinds,
@@ -66,17 +49,14 @@ classical class HelperParser {
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
     long nameToken,
-    long helperBody,
     long reversible,
     long proofToken,
     long proofCount,
     long entryStatement,
     long helperCallCount,
     long preReverseStatement,
-    long helperSecondStatement,
-    long helperThirdStatement,
-    long helperFourthStatement,
-    long helperFifthStatement
+    long[8] helperStarts,
+    long helperStatementCount
   ) {
     SourceRange name = new SourceRange(tokenStarts[2], tokenLengths[2]);
     SourceRange global = new SourceRange(tokenStarts[6], tokenLengths[6]);
@@ -86,183 +66,52 @@ classical class HelperParser {
       proof = new SourceRange(tokenStarts[proofToken], tokenLengths[proofToken]);
     }
 
-    long helperOpcode = statementOpcode(source, tokenStarts, tokenLengths, helperBody);
-    long helperOperand = sequenceStatementOperand(
+    StatementSequence helperSequence = parseStatementSequence(
       source,
       tokenStarts,
       tokenLengths,
-      helperBody,
-      -1,
-      -1,
-      -1,
-      -1
+      helperStarts,
+      helperStatementCount
     );
-    long helperStatementCount = 1;
-    long helperSecondOpcode = -1;
-    long helperSecondOperand = 0;
-    long helperThirdOpcode = -1;
-    long helperThirdOperand = 0;
-    long helperFourthOpcode = -1;
-    long helperFourthOperand = 0;
-    long helperFifthOpcode = -1;
-    long helperFifthOperand = 0;
-    if (-1 < helperSecondStatement) {
-      helperStatementCount = 2;
-      helperSecondOpcode = statementOpcode(
-        source,
-        tokenStarts,
-        tokenLengths,
-        helperSecondStatement
-      );
-      helperSecondOperand = sequenceStatementOperand(
-        source,
-        tokenStarts,
-        tokenLengths,
-        helperSecondStatement,
-        helperBody,
-        -1,
-        -1,
-        -1
-      );
+    if (helperSequence.valid == false) {
+      return new MinimalProgramResult.Error(0);
     }
 
-    if (-1 < helperThirdStatement) {
-      helperStatementCount = 3;
-      helperThirdOpcode = statementOpcode(
-        source,
-        tokenStarts,
-        tokenLengths,
-        helperThirdStatement
-      );
-      helperThirdOperand = sequenceStatementOperand(
-        source,
-        tokenStarts,
-        tokenLengths,
-        helperThirdStatement,
-        helperBody,
-        helperSecondStatement,
-        -1,
-        -1
-      );
-    }
-
-    if (-1 < helperFourthStatement) {
-      helperStatementCount = 4;
-      helperFourthOpcode = statementOpcode(
-        source,
-        tokenStarts,
-        tokenLengths,
-        helperFourthStatement
-      );
-      helperFourthOperand = sequenceStatementOperand(
-        source,
-        tokenStarts,
-        tokenLengths,
-        helperFourthStatement,
-        helperBody,
-        helperSecondStatement,
-        helperThirdStatement,
-        -1
-      );
-    }
-
-    if (-1 < helperFifthStatement) {
-      helperStatementCount = 5;
-      helperFifthOpcode = statementOpcode(
-        source,
-        tokenStarts,
-        tokenLengths,
-        helperFifthStatement
-      );
-      helperFifthOperand = sequenceStatementOperand(
-        source,
-        tokenStarts,
-        tokenLengths,
-        helperFifthStatement,
-        helperBody,
-        helperSecondStatement,
-        helperThirdStatement,
-        helperFourthStatement
-      );
+    if (reversible == 1) {
+      if (reversibleSequenceValid(helperSequence) == false) {
+        return new MinimalProgramResult.Error(0);
+      }
     }
 
     long entryCount = 0;
-    long entryOpcode = -1;
-    long entryOperand = 0;
-    long secondEntryOpcode = -1;
-    long secondEntryOperand = 0;
+    long entryFirst = -1;
+    long entrySecond = -1;
     long preReverseCount = 0;
     if (-1 < preReverseStatement) {
       entryCount = 1;
       preReverseCount = 1;
-      entryOpcode = statementOpcode(source, tokenStarts, tokenLengths, preReverseStatement);
-      entryOperand = sequenceStatementOperand(
-        source,
-        tokenStarts,
-        tokenLengths,
-        preReverseStatement,
-        -1,
-        -1,
-        -1,
-        -1
-      );
+      entryFirst = preReverseStatement;
     }
 
     if (-1 < entryStatement) {
       if (entryCount == 0) {
         entryCount = 1;
-        entryOpcode = statementOpcode(source, tokenStarts, tokenLengths, entryStatement);
-        entryOperand = sequenceStatementOperand(
-          source,
-          tokenStarts,
-          tokenLengths,
-          entryStatement,
-          -1,
-          -1,
-          -1,
-          -1
-        );
+        entryFirst = entryStatement;
       } else {
         entryCount = 2;
-        secondEntryOpcode = statementOpcode(source, tokenStarts, tokenLengths, entryStatement);
-        secondEntryOperand = sequenceStatementOperand(
-          source,
-          tokenStarts,
-          tokenLengths,
-          entryStatement,
-          preReverseStatement,
-          -1,
-          -1,
-          -1
-        );
+        entrySecond = entryStatement;
       }
     }
 
-    if (sequenceOperandValid(helperOpcode, helperOperand) == false) {
-      return new MinimalProgramResult.Error(0);
-    }
-
-    if (sequenceOperandValid(helperSecondOpcode, helperSecondOperand) == false) {
-      return new MinimalProgramResult.Error(0);
-    }
-
-    if (sequenceOperandValid(helperThirdOpcode, helperThirdOperand) == false) {
-      return new MinimalProgramResult.Error(0);
-    }
-
-    if (sequenceOperandValid(helperFourthOpcode, helperFourthOperand) == false) {
-      return new MinimalProgramResult.Error(0);
-    }
-
-    if (sequenceOperandValid(helperFifthOpcode, helperFifthOperand) == false) {
-      return new MinimalProgramResult.Error(0);
-    }
-
-    if (sequenceOperandValid(entryOpcode, entryOperand) == false) {
-      return new MinimalProgramResult.Error(0);
-    }
-
-    if (sequenceOperandValid(secondEntryOpcode, secondEntryOperand) == false) {
+    long[8] entryStarts = new long[8](entryFirst, entrySecond, -1, -1, -1, -1, -1, -1);
+    StatementSequence entrySequence = parseStatementSequence(
+      source,
+      tokenStarts,
+      tokenLengths,
+      entryStarts,
+      entryCount
+    );
+    if (entrySequence.valid == false) {
       return new MinimalProgramResult.Error(0);
     }
 
@@ -271,31 +120,19 @@ classical class HelperParser {
       global,
       1,
       parsedSignedNumber(source, tokenStarts, tokenLengths, 8),
-      entryCount,
-      new long[5](entryOpcode, secondEntryOpcode, -1, -1, -1),
-      new long[5](entryOperand, secondEntryOperand, 0, 0, 0),
+      entrySequence.count,
+      entrySequence.opcodes,
+      entrySequence.operands,
       helper,
       1,
-      new long[5](
-        helperOpcode,
-        helperSecondOpcode,
-        helperThirdOpcode,
-        helperFourthOpcode,
-        helperFifthOpcode
-      ),
-      new long[5](
-        helperOperand,
-        helperSecondOperand,
-        helperThirdOperand,
-        helperFourthOperand,
-        helperFifthOperand
-      ),
+      helperSequence.opcodes,
+      helperSequence.operands,
       reversible,
       proof,
       proofCount,
       helperCallCount,
       preReverseCount,
-      helperStatementCount
+      helperSequence.count
     );
     return new MinimalProgramResult.Value(program);
   }
@@ -308,16 +145,13 @@ classical class HelperParser {
     long count,
     long closeStart,
     long nameToken,
-    long helperBody,
     long reversible,
     long proofToken,
     long proofCount,
     long helperCallCount,
     long preReverseStatement,
-    long helperSecondStatement,
-    long helperThirdStatement,
-    long helperFourthStatement,
-    long helperFifthStatement
+    long[8] helperStarts,
+    long helperStatementCount
   ) {
     long entryStatement = -1;
     long entryClose = closeStart;
@@ -353,17 +187,14 @@ classical class HelperParser {
             tokenStarts,
             tokenLengths,
             nameToken,
-            helperBody,
             reversible,
             proofToken,
             proofCount,
             entryStatement,
             helperCallCount,
             preReverseStatement,
-            helperSecondStatement,
-            helperThirdStatement,
-            helperFourthStatement,
-            helperFifthStatement
+            helperStarts,
+            helperStatementCount
           );
         }
       }
@@ -372,14 +203,7 @@ classical class HelperParser {
     return new MinimalProgramResult.Error(0);
   }
 
-  private record HelperStatements(
-    long end,
-    long second,
-    long third,
-    long fourth,
-    long fifth,
-    boolean valid
-  ) {}
+  private record HelperStatements(long end, long count, long[8] starts, boolean valid) {}
 
   private record ProofHeader(long entryStart, long token, long count) {}
 
@@ -390,111 +214,148 @@ classical class HelperParser {
     borrow mut words tokenLengths,
     long body
   ) {
+    long[8] absent = new long[8](-1, -1, -1, -1, -1, -1, -1, -1);
     long firstWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, body);
     if (firstWidth < 1) {
-      return new HelperStatements(-1, -1, -1, -1, -1, false);
+      return new HelperStatements(-1, 0, absent, false);
     }
 
-    long end = body + firstWidth;
-    if (punctuationAt(source, tokenKinds, tokenStarts, end, PUNCTUATION_CLOSE_BRACE)) {
-      return new HelperStatements(end, -1, -1, -1, -1, true);
+    long firstEnd = body + firstWidth;
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, firstEnd, PUNCTUATION_CLOSE_BRACE)
+    ) {
+      return new HelperStatements(
+        firstEnd,
+        1,
+        new long[8](body, -1, -1, -1, -1, -1, -1, -1),
+        true
+      );
     }
 
-    long second = end;
-    long secondWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, second);
+    long secondWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, firstEnd);
     if (secondWidth < 1) {
-      return new HelperStatements(-1, second, -1, -1, -1, false);
+      return new HelperStatements(-1, 0, absent, false);
     }
 
-    end += secondWidth;
-    if (punctuationAt(source, tokenKinds, tokenStarts, end, PUNCTUATION_CLOSE_BRACE)) {
-      return new HelperStatements(end, second, -1, -1, -1, true);
+    long secondEnd = firstEnd + secondWidth;
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, secondEnd, PUNCTUATION_CLOSE_BRACE)
+    ) {
+      return new HelperStatements(
+        secondEnd,
+        2,
+        new long[8](body, firstEnd, -1, -1, -1, -1, -1, -1),
+        true
+      );
     }
 
-    long third = end;
-    long thirdWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, third);
+    long thirdWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, secondEnd);
     if (thirdWidth < 1) {
-      return new HelperStatements(-1, second, third, -1, -1, false);
+      return new HelperStatements(-1, 0, absent, false);
     }
 
-    end += thirdWidth;
-    if (punctuationAt(source, tokenKinds, tokenStarts, end, PUNCTUATION_CLOSE_BRACE)) {
-      return new HelperStatements(end, second, third, -1, -1, true);
+    long thirdEnd = secondEnd + thirdWidth;
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, thirdEnd, PUNCTUATION_CLOSE_BRACE)
+    ) {
+      return new HelperStatements(
+        thirdEnd,
+        3,
+        new long[8](body, firstEnd, secondEnd, -1, -1, -1, -1, -1),
+        true
+      );
     }
 
-    long fourth = end;
-    long fourthWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, fourth);
+    long fourthWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, thirdEnd);
     if (fourthWidth < 1) {
-      return new HelperStatements(-1, second, third, fourth, -1, false);
+      return new HelperStatements(-1, 0, absent, false);
     }
 
-    end += fourthWidth;
-    if (punctuationAt(source, tokenKinds, tokenStarts, end, PUNCTUATION_CLOSE_BRACE)) {
-      return new HelperStatements(end, second, third, fourth, -1, true);
+    long fourthEnd = thirdEnd + fourthWidth;
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, fourthEnd, PUNCTUATION_CLOSE_BRACE)
+    ) {
+      return new HelperStatements(
+        fourthEnd,
+        4,
+        new long[8](body, firstEnd, secondEnd, thirdEnd, -1, -1, -1, -1),
+        true
+      );
     }
 
-    long fifth = end;
-    long fifthWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, fifth);
+    long fifthWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, fourthEnd);
     if (fifthWidth < 1) {
-      return new HelperStatements(-1, second, third, fourth, fifth, false);
+      return new HelperStatements(-1, 0, absent, false);
     }
 
-    return new HelperStatements(end + fifthWidth, second, third, fourth, fifth, true);
-  }
-
-  private boolean helperStatementsValid(
-    borrow utf8 source,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    long body,
-    long reversible,
-    HelperStatements statements
-  ) {
-    if (statements.valid == false) {
-      return false;
+    long fifthEnd = fourthEnd + fifthWidth;
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, fifthEnd, PUNCTUATION_CLOSE_BRACE)
+    ) {
+      return new HelperStatements(
+        fifthEnd,
+        5,
+        new long[8](body, firstEnd, secondEnd, thirdEnd, fourthEnd, -1, -1, -1),
+        true
+      );
     }
 
-    if (reversible == 0) {
-      return true;
+    long sixthWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, fifthEnd);
+    if (sixthWidth < 1) {
+      return new HelperStatements(-1, 0, absent, false);
     }
 
-    if (reversibleBodyValid(source, tokenStarts, tokenLengths, body) == false) {
-      return false;
+    long sixthEnd = fifthEnd + sixthWidth;
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, sixthEnd, PUNCTUATION_CLOSE_BRACE)
+    ) {
+      return new HelperStatements(
+        sixthEnd,
+        6,
+        new long[8](body, firstEnd, secondEnd, thirdEnd, fourthEnd, fifthEnd, -1, -1),
+        true
+      );
     }
 
-    if (-1 < statements.second) {
-      if (
-        reversibleBodyValid(source, tokenStarts, tokenLengths, statements.second) == false
-      ) {
-        return false;
-      }
+    long seventhWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, sixthEnd);
+    if (seventhWidth < 1) {
+      return new HelperStatements(-1, 0, absent, false);
     }
 
-    if (-1 < statements.third) {
-      if (
-        reversibleBodyValid(source, tokenStarts, tokenLengths, statements.third) == false
-      ) {
-        return false;
-      }
+    long seventhEnd = sixthEnd + seventhWidth;
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, seventhEnd, PUNCTUATION_CLOSE_BRACE)
+    ) {
+      return new HelperStatements(
+        seventhEnd,
+        7,
+        new long[8](body, firstEnd, secondEnd, thirdEnd, fourthEnd, fifthEnd, sixthEnd, -1),
+        true
+      );
     }
 
-    if (-1 < statements.fourth) {
-      if (
-        reversibleBodyValid(source, tokenStarts, tokenLengths, statements.fourth) == false
-      ) {
-        return false;
-      }
+    long eighthWidth = statementWidth(
+      source,
+      tokenKinds,
+      tokenStarts,
+      tokenLengths,
+      seventhEnd
+    );
+    if (eighthWidth < 1) {
+      return new HelperStatements(-1, 0, absent, false);
     }
 
-    if (-1 < statements.fifth) {
-      if (
-        reversibleBodyValid(source, tokenStarts, tokenLengths, statements.fifth) == false
-      ) {
-        return false;
-      }
-    }
-
-    return true;
+    long[8] eighthStarts = new long[8](
+      body,
+      firstEnd,
+      secondEnd,
+      thirdEnd,
+      fourthEnd,
+      fifthEnd,
+      sixthEnd,
+      seventhEnd
+    );
+    return new HelperStatements(seventhEnd + eighthWidth, 8, eighthStarts, true);
   }
 
   private ProofHeader proofHeader(
@@ -616,16 +477,7 @@ classical class HelperParser {
       tokenLengths,
       helperBody
     );
-    if (
-      helperStatementsValid(
-        source,
-        tokenStarts,
-        tokenLengths,
-        helperBody,
-        reversible,
-        statements
-      ) == false
-    ) {
+    if (statements.valid == false) {
       return new MinimalProgramResult.Error(0);
     }
 
@@ -700,16 +552,13 @@ classical class HelperParser {
         count,
         afterCalls,
         nameToken,
-        helperBody,
         reversible,
         proof.token,
         proof.count,
         helperCallCount,
         -1,
-        statements.second,
-        statements.third,
-        statements.fourth,
-        statements.fifth
+        statements.starts,
+        statements.count
       );
     }
 
@@ -756,16 +605,13 @@ classical class HelperParser {
       count,
       reverseEnd + 1,
       nameToken,
-      helperBody,
       reversible,
       proof.token,
       proof.count,
       helperCallCount,
       preReverseStatement,
-      statements.second,
-      statements.third,
-      statements.fourth,
-      statements.fifth
+      statements.starts,
+      statements.count
     );
   }
 }

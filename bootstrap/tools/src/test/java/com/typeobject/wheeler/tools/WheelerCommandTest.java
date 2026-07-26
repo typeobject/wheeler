@@ -671,6 +671,7 @@ class WheelerCommandTest {
               - "src/compiler/backend/StringTable.w"
               - "src/compiler/frontend/HelperParser.w"
               - "src/compiler/frontend/Parser.w"
+              - "src/compiler/frontend/Sequences.w"
               - "src/compiler/frontend/Statements.w"
               - "src/compiler/frontend/Structure.w"
               - "src/compiler/frontend/Tokens.w"
@@ -725,6 +726,9 @@ class WheelerCommandTest {
     Files.copy(
         compilerSources.resolve("compiler/ir/ProofRules.w"),
         project.resolve("src/compiler/ir/ProofRules.w"));
+    Files.copy(
+        compilerSources.resolve("compiler/frontend/Sequences.w"),
+        project.resolve("src/compiler/frontend/Sequences.w"));
     Files.copy(
         compilerSources.resolve("compiler/verification/ProofVerifier.w"),
         project.resolve("src/compiler/verification/ProofVerifier.w"));

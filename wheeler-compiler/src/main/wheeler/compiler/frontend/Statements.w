@@ -22,78 +22,50 @@ classical class Statements {
     return true;
   }
 
-  /// Resolves one statement operand against up to four prior local declarations.
+  /// Resolves one statement operand against a bounded prior-declaration table.
   public long sequenceStatementOperand(
     borrow utf8 source,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
     long statementStart,
-    long firstPrevious,
-    long secondPrevious,
-    long thirdPrevious,
-    long fourthPrevious
+    long[8] previousStarts,
+    long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
     if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {} else {
       return statementOperand(source, tokenStarts, tokenLengths, statementStart);
     }
 
+    if (previousCount < 0) {
+      return -1;
+    }
+
+    if (8 < previousCount) {
+      return -1;
+    }
+
     long assertedName = statementStart + 2;
     long localBase = 0;
     long matchedLocal = -1;
     long matchCount = 0;
-    if (0 < firstPrevious) {
-      long firstOpcode = statementOpcode(source, tokenStarts, tokenLengths, firstPrevious);
-      if (booleanDeclaration(firstOpcode)) {
-        if (
-          sameTokenText(source, tokenStarts, tokenLengths, firstPrevious + 1, assertedName)
-        ) {
-          matchedLocal = statementResultLocal(firstOpcode, localBase);
-          matchCount += 1;
+    long previous = 0;
+    while (previous < previousCount) limit 8 {
+      long previousStart = previousStarts[previous];
+      if (0 < previousStart) {
+        long previousOpcode = statementOpcode(source, tokenStarts, tokenLengths, previousStart);
+        if (booleanDeclaration(previousOpcode)) {
+          if (
+            sameTokenText(source, tokenStarts, tokenLengths, previousStart + 1, assertedName)
+          ) {
+            matchedLocal = statementResultLocal(previousOpcode, localBase);
+            matchCount += 1;
+          }
         }
+
+        localBase += statementLocalCount(previousOpcode);
       }
 
-      localBase += statementLocalCount(firstOpcode);
-    }
-
-    if (0 < secondPrevious) {
-      long secondOpcode = statementOpcode(source, tokenStarts, tokenLengths, secondPrevious);
-      if (booleanDeclaration(secondOpcode)) {
-        if (
-          sameTokenText(source, tokenStarts, tokenLengths, secondPrevious + 1, assertedName)
-        ) {
-          matchedLocal = statementResultLocal(secondOpcode, localBase);
-          matchCount += 1;
-        }
-      }
-
-      localBase += statementLocalCount(secondOpcode);
-    }
-
-    if (0 < thirdPrevious) {
-      long thirdOpcode = statementOpcode(source, tokenStarts, tokenLengths, thirdPrevious);
-      if (booleanDeclaration(thirdOpcode)) {
-        if (
-          sameTokenText(source, tokenStarts, tokenLengths, thirdPrevious + 1, assertedName)
-        ) {
-          matchedLocal = statementResultLocal(thirdOpcode, localBase);
-          matchCount += 1;
-        }
-      }
-
-      localBase += statementLocalCount(thirdOpcode);
-    }
-
-    if (0 < fourthPrevious) {
-      long fourthOpcode = statementOpcode(source, tokenStarts, tokenLengths, fourthPrevious);
-      if (booleanDeclaration(fourthOpcode)) {
-        if (
-          sameTokenText(source, tokenStarts, tokenLengths, fourthPrevious + 1, assertedName)
-        ) {
-          matchedLocal = statementResultLocal(fourthOpcode, localBase);
-          matchCount += 1;
-        }
-      }
+      previous += 1;
     }
 
     if (matchCount == 1) {
