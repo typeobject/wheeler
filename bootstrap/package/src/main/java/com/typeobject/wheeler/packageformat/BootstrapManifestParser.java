@@ -11,7 +11,7 @@ public final class BootstrapManifestParser {
   private static final Set<String> ROOT_FIELDS = Set.of(
       "schema", "source", "ordinary", "diverse", "acceptance");
   private static final Set<String> SOURCE_FIELDS = Set.of(
-      "archive", "manifest", "lock", "profile", "options", "limits");
+      "archive", "manifest", "lock", "profile", "features", "modules", "options", "limits");
   private static final Set<String> ORDINARY_FIELDS = Set.of(
       "toolchain", "compiler", "runtime", "verifier", "stage-1", "stage-2", "diagnostics");
   private static final Set<String> DIVERSE_FIELDS = Set.of(
@@ -44,6 +44,8 @@ public final class BootstrapManifestParser {
             string(source, "manifest"),
             string(source, "lock"),
             string(source, "profile"),
+            string(source, "features"),
+            string(source, "modules"),
             string(source, "options"),
             string(source, "limits")),
         new OrdinaryDerivation(

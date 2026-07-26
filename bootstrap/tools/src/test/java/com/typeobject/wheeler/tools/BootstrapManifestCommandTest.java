@@ -10,8 +10,10 @@ import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.packageformat.BootstrapCompilerLimits;
 import com.typeobject.wheeler.packageformat.BootstrapCompilerOptions;
+import com.typeobject.wheeler.packageformat.BootstrapFeatureManifest;
 import com.typeobject.wheeler.packageformat.BootstrapManifest;
 import com.typeobject.wheeler.packageformat.BootstrapManifestParser;
+import com.typeobject.wheeler.packageformat.BootstrapModuleManifest;
 import com.typeobject.wheeler.packageformat.BootstrapToolchain;
 import com.typeobject.wheeler.packageformat.BootstrapToolchain.Kind;
 import com.typeobject.wheeler.packageformat.PackageArchive;
@@ -25,7 +27,10 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -70,6 +75,36 @@ final class BootstrapManifestCommandTest {
   }
 
   @Test
+  void refusesModuleGraphThatDisagreesWithSourceHeaders() throws Exception {
+    Fixture fixture = fixture();
+    String modules = Files.readString(fixture.modules())
+        .replace("externals: []", "externals:\n  - \"wheeler.core\"")
+        .replace("    imports: []", "    imports:\n      - \"wheeler.core\"");
+    Files.writeString(fixture.modules(), modules);
+
+    IOException failure = assertThrows(IOException.class, () ->
+        BootstrapManifestCommand.execute(fixture.arguments(), System.out, System.err));
+
+    assertTrue(failure.getMessage().contains("module header differs"));
+    assertFalse(Files.exists(fixture.manifest()));
+  }
+
+  @Test
+  void refusesStaleModuleEvidence() throws Exception {
+    Fixture fixture = fixture();
+    String modules = Files.readString(fixture.modules());
+    Files.writeString(
+        fixture.modules(),
+        modules.replaceFirst("identity: \"[0-9a-f]{64}\"", "identity: \"" + id("ff") + "\""));
+
+    IOException failure = assertThrows(IOException.class, () ->
+        BootstrapManifestCommand.execute(fixture.arguments(), System.out, System.err));
+
+    assertTrue(failure.getMessage().contains("module source is absent or stale"));
+    assertFalse(Files.exists(fixture.manifest()));
+  }
+
+  @Test
   void refusesStaleAcceptanceEvidence() throws Exception {
     Fixture fixture = fixture();
     Files.write(fixture.acceptance().resolve("extra.wbc"), Files.readAllBytes(fixture.stage1()));
@@ -90,12 +125,28 @@ final class BootstrapManifestCommandTest {
         List.of(new Target(TargetKind.TOOL, "compiler", "MinimalCompiler.w")),
         List.of(),
         List.of());
+    byte[] compilerSource = "//! fixture\nmodule wheeler.compiler;\n\n"
+        .concat("classical class MinimalCompiler {\n")
+        .concat("  entry void main() { }\n}\n").getBytes(StandardCharsets.UTF_8);
     Files.write(sourceArchive, new PackageArchive().encode(
-        packageManifest,
-        Map.of("MinimalCompiler.w", "//! fixture\nclassical class MinimalCompiler {\n"
-            .concat("  entry void main() { }\n}\n").getBytes(StandardCharsets.UTF_8))));
+        packageManifest, Map.of("MinimalCompiler.w", compilerSource)));
     Path lock = write("source.lock", new PackageLock(
         PackageLock.SCHEMA_VERSION, packageManifest.identity(), List.of()).canonicalText());
+    Path features = write(
+        "features.yaml",
+        new BootstrapFeatureManifest(
+            "bootstrap-1",
+            List.of(new BootstrapFeatureManifest.Feature("bounded-entry", 1)))
+            .canonicalText());
+    Path modules = write(
+        "modules.yaml",
+        new BootstrapModuleManifest(
+            "bootstrap-1",
+            "wheeler.compiler",
+            List.of(),
+            List.of(new BootstrapModuleManifest.Module(
+                "wheeler.compiler", "MinimalCompiler.w", sha256(compilerSource), List.of())))
+            .canonicalText());
     Path options = write(
         "options.yaml", new BootstrapCompilerOptions("bootstrap-1", false).canonicalText());
     Path limits = write(
@@ -130,7 +181,7 @@ final class BootstrapManifestCommandTest {
     assertEquals(0, ArtifactSetManifest.execute(
         new String[] {"manifest-artifacts", acceptance.toString()}, System.out, System.err));
     return new Fixture(
-        sourceArchive, lock, options, limits,
+        sourceArchive, lock, features, modules, options, limits,
         ordinaryToolchain, ordinaryCompiler, ordinaryRuntime, ordinaryVerifier,
         stage1, stage2, diagnostics,
         diverseToolchain, diverseCompiler, diverseRuntime, diverseVerifier,
@@ -146,9 +197,19 @@ final class BootstrapManifestCommandTest {
     return octet.repeat(32);
   }
 
+  private static String sha256(byte[] bytes) {
+    try {
+      return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
+    } catch (NoSuchAlgorithmException exception) {
+      throw new IllegalStateException("SHA-256 is unavailable", exception);
+    }
+  }
+
   private record Fixture(
       Path sourceArchive,
       Path lock,
+      Path features,
+      Path modules,
       Path options,
       Path limits,
       Path ordinaryToolchain,
@@ -170,6 +231,8 @@ final class BootstrapManifestCommandTest {
       List<String> arguments = new ArrayList<>(List.of("bootstrap-manifest"));
       add(arguments, "--source-archive", sourceArchive);
       add(arguments, "--source-lock", lock);
+      add(arguments, "--feature-manifest", features);
+      add(arguments, "--module-manifest", modules);
       add(arguments, "--options-manifest", options);
       add(arguments, "--limits-manifest", limits);
       add(arguments, "--ordinary-toolchain", ordinaryToolchain);

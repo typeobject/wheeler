@@ -15,6 +15,8 @@ The stage-0 command is:
 wheeler bootstrap-manifest \
   --source-archive wheeler.compiler.wpk \
   --source-lock wheeler.package.lock.yaml \
+  --feature-manifest wheeler.bootstrap-features.yaml \
+  --module-manifest wheeler.bootstrap-modules.yaml \
   --options-manifest wheeler.compiler-options.yaml \
   --limits-manifest wheeler.compiler-limits.yaml \
   --ordinary-toolchain ordinary-toolchain.provenance \
@@ -43,8 +45,10 @@ Before it publishes anything, the command:
 - strictly decodes the canonical `wheeler.compiler` package archive;
 - parses the schema-3 snapshot-bound lock and requires its exact canonical YAML bytes;
 - binds that lock to the source manifest;
-- parses exact schema-1 compiler options and limits;
-- requires the option profile to match the source package;
+- parses exact schema-1 feature, module, option, and limit manifests;
+- requires every profile name to match the source package;
+- requires the module graph to be closed, acyclic, rooted, and free of dead modules;
+- rehashes every declared module source from the compiler archive, reparses its module header, and rejects undeclared `.w` entries;
 - independently decodes and re-encodes stage 1, stage 2, and the diverse output;
 - compares all three complete `.wbc` byte strings;
 - compares the ordinary and diverse diagnostic bytes;
@@ -59,6 +63,44 @@ The command never runs a candidate artifact. A static manifest also cannot prove
 Two copies of the same opaque compiler do not count as independent derivations, even when their filenames differ.
 
 ## Compiler input schemas
+
+The accepted source profile is an exact `wheeler.bootstrap-features.yaml` vocabulary:
+
+```yaml
+schema: 1
+profile: "bootstrap-1"
+features:
+  - name: "bounded-control"
+    version: 1
+  - name: "typed-frames"
+    version: 1
+```
+
+Feature names are sorted and unique. A feature version names a semantic contract, not a marketing release. Unknown, duplicated, empty, or oversized vocabularies fail closed. Adding a feature therefore changes the profile identity even if somebody forgot to update a slide deck.
+
+The exact compiler module closure uses `wheeler.bootstrap-modules.yaml`:
+
+```yaml
+schema: 1
+profile: "bootstrap-1"
+root: "wheeler.compiler"
+externals:
+  - "wheeler.core"
+modules:
+  - name: "wheeler.compiler"
+    source: "src/main/wheeler/MinimalCompiler.w"
+    identity: "<sha256>"
+    imports:
+      - "wheeler.compiler.backend"
+      - "wheeler.core"
+  - name: "wheeler.compiler.backend"
+    source: "src/main/wheeler/compiler/backend/Codegen.w"
+    identity: "<sha256>"
+    imports:
+      - "wheeler.core"
+```
+
+Modules, externals, and imports are sorted and unique. Every local import resolves, every external import is declared, every local module is reachable from the root, the local graph is acyclic, source paths are unique, and each source identity must match the file inside the canonical compiler archive. The bounds are 10,000 local modules, 10,000 external modules, and 100,000 direct imports. This manifest records the graph actually trusted for bootstrap; directory enumeration is not a module system.
 
 Bootstrap options use exact `wheeler.compiler-options.yaml` bytes:
 
@@ -108,15 +150,17 @@ The kind is only an audit category. Promotion still requires distinct full prove
 
 ## Canonical evidence schema
 
-Schema 1 has one strict canonical `wheeler.bootstrap.yaml` form:
+Schema 2 has one strict canonical `wheeler.bootstrap.yaml` form:
 
 ```yaml
-schema: 1
+schema: 2
 source:
   archive: "<sha256>"
   manifest: "<sha256>"
   lock: "<sha256>"
   profile: "bootstrap-1"
+  features: "<sha256>"
+  modules: "<sha256>"
   options: "<sha256>"
   limits: "<sha256>"
 ordinary:
@@ -138,9 +182,9 @@ acceptance:
   artifact-set: "<sha256>"
 ```
 
-All identities are lowercase SHA-256 values. `source.archive` identifies the canonical package archive, `source.manifest` identifies the package manifest, and `source.lock` identifies the canonical lock.
+All identities are lowercase SHA-256 values. `source.archive` identifies the canonical package archive, `source.manifest` identifies the package manifest, and `source.lock` identifies the canonical lock. `source.features` fixes the accepted semantic vocabulary; `source.modules` fixes the rooted source graph and each source byte string.
 
-Options and limits remain separate inputs. A changed resource limit must not look like the same compilation. Toolchain, compiler, runtime, and verifier identities describe both complete derivations instead of the host that ran them.
+Features, modules, options, and limits remain separate inputs. A changed resource limit must not look like the same compilation. Toolchain, compiler, runtime, and verifier identities describe both complete derivations instead of the host that ran them.
 
 The schema constructor enforces these rules:
 

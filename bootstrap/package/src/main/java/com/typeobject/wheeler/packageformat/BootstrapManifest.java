@@ -13,7 +13,7 @@ public record BootstrapManifest(
     OrdinaryDerivation ordinary,
     DiverseDerivation diverse,
     String acceptanceArtifactSet) {
-  public static final int SCHEMA_VERSION = 1;
+  public static final int SCHEMA_VERSION = 2;
   public static final String FILE_NAME = "wheeler.bootstrap.yaml";
   private static final Pattern IDENTITY = Pattern.compile("[0-9a-f]{64}");
   private static final Pattern PROFILE = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._-]{0,127}");
@@ -48,6 +48,8 @@ public record BootstrapManifest(
         + field("  manifest", source.manifest())
         + field("  lock", source.lock())
         + "  profile: " + quote(source.profile()) + "\n"
+        + field("  features", source.features())
+        + field("  modules", source.modules())
         + field("  options", source.options())
         + field("  limits", source.limits())
         + "ordinary:\n"
@@ -100,12 +102,14 @@ public record BootstrapManifest(
     return value;
   }
 
-  /** Canonical compiler source, lock, options, and limits. */
+  /** Canonical compiler source, feature/module closure, lock, options, and limits. */
   public record Source(
       String archive,
       String manifest,
       String lock,
       String profile,
+      String features,
+      String modules,
       String options,
       String limits) {
     public Source {
@@ -116,6 +120,8 @@ public record BootstrapManifest(
       if (!PROFILE.matcher(profile).matches()) {
         throw new PackageFormatException("Invalid bootstrap source profile");
       }
+      features = identity(features, "bootstrap features");
+      modules = identity(modules, "bootstrap modules");
       options = identity(options, "compiler options");
       limits = identity(limits, "compiler limits");
     }

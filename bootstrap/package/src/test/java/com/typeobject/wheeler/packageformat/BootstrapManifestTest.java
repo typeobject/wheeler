@@ -38,7 +38,7 @@ final class BootstrapManifestTest {
 
   @Test
   void rejectsClaimsWithoutByteIdenticalDerivations() {
-    Source source = new Source(A, B, C, "bootstrap-1", D, E);
+    Source source = new Source(A, B, C, "bootstrap-1", D, E, F, A);
     OrdinaryDerivation ordinary = new OrdinaryDerivation(F, G, H, I, J, J, K);
 
     assertThrows(PackageFormatException.class, () -> new BootstrapManifest(
@@ -62,12 +62,12 @@ final class BootstrapManifestTest {
     assertThrows(PackageFormatException.class, () ->
         new BootstrapManifestParser().parse(unknown.getBytes(StandardCharsets.UTF_8)));
     assertThrows(PackageFormatException.class, () ->
-        new Source("ABC", B, C, "bootstrap-1", D, E));
+        new Source("ABC", B, C, "bootstrap-1", D, E, F, A));
   }
 
   private static BootstrapManifest manifest() {
     return new BootstrapManifest(
-        new Source(A, B, C, "bootstrap-1", D, E),
+        new Source(A, B, C, "bootstrap-1", D, E, F, A),
         new OrdinaryDerivation(F, G, H, I, J, J, K),
         new DiverseDerivation(L, M, H, I, J, K),
         N);

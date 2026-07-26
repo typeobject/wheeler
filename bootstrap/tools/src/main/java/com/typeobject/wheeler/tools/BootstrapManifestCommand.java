@@ -1,16 +1,21 @@
 package com.typeobject.wheeler.tools;
 
+import com.typeobject.wheeler.compiler.SourceModuleInspection;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.packageformat.BootstrapCompilerLimits;
 import com.typeobject.wheeler.packageformat.BootstrapCompilerLimitsParser;
 import com.typeobject.wheeler.packageformat.BootstrapCompilerOptions;
 import com.typeobject.wheeler.packageformat.BootstrapCompilerOptionsParser;
+import com.typeobject.wheeler.packageformat.BootstrapFeatureManifest;
+import com.typeobject.wheeler.packageformat.BootstrapFeatureManifestParser;
 import com.typeobject.wheeler.packageformat.BootstrapManifest;
 import com.typeobject.wheeler.packageformat.BootstrapManifest.DiverseDerivation;
 import com.typeobject.wheeler.packageformat.BootstrapManifest.OrdinaryDerivation;
 import com.typeobject.wheeler.packageformat.BootstrapManifest.Source;
 import com.typeobject.wheeler.packageformat.BootstrapManifestParser;
+import com.typeobject.wheeler.packageformat.BootstrapModuleManifest;
+import com.typeobject.wheeler.packageformat.BootstrapModuleManifestParser;
 import com.typeobject.wheeler.packageformat.BootstrapToolchain;
 import com.typeobject.wheeler.packageformat.BootstrapToolchainParser;
 import com.typeobject.wheeler.packageformat.PackageArchive;
@@ -28,6 +33,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +46,8 @@ final class BootstrapManifestCommand {
   private static final List<String> FILE_OPTIONS = List.of(
       "--source-archive",
       "--source-lock",
+      "--feature-manifest",
+      "--module-manifest",
       "--options-manifest",
       "--limits-manifest",
       "--ordinary-toolchain",
@@ -96,13 +104,22 @@ final class BootstrapManifestCommand {
     if (!sourceLock.rootManifestIdentity().equals(sourcePackage.manifest().identity())) {
       throw new IOException("Bootstrap source lock does not select the compiler manifest");
     }
+    BootstrapFeatureManifest features = new BootstrapFeatureManifestParser().parse(
+        evidence.get("--feature-manifest").bytes());
+    requireCanonical(
+        evidence.get("--feature-manifest"), features.canonicalBytes(), "bootstrap features");
+    BootstrapModuleManifest modules = new BootstrapModuleManifestParser().parse(
+        evidence.get("--module-manifest").bytes());
+    requireCanonical(
+        evidence.get("--module-manifest"), modules.canonicalBytes(), "bootstrap modules");
+    verifyProfile(sourcePackage, features.profile(), "feature manifest");
+    verifyProfile(sourcePackage, modules.profile(), "module manifest");
+    verifyModuleSources(sourcePackage, modules);
     BootstrapCompilerOptions options = new BootstrapCompilerOptionsParser().parse(
         evidence.get("--options-manifest").bytes());
     requireCanonical(
         evidence.get("--options-manifest"), options.canonicalBytes(), "compiler options");
-    if (!options.profile().equals(sourcePackage.manifest().profile())) {
-      throw new IOException("Bootstrap compiler options use a different source profile");
-    }
+    verifyProfile(sourcePackage, options.profile(), "compiler options");
     BootstrapCompilerLimits limits = new BootstrapCompilerLimitsParser().parse(
         evidence.get("--limits-manifest").bytes());
     requireCanonical(
@@ -136,6 +153,8 @@ final class BootstrapManifestCommand {
             sourcePackage.manifest().identity(),
             sourceLock.identity(),
             sourcePackage.manifest().profile(),
+            features.identity(),
+            modules.identity(),
             options.identity(),
             limits.identity()),
         new OrdinaryDerivation(
@@ -200,6 +219,39 @@ final class BootstrapManifestCommand {
     return Map.copyOf(paths);
   }
 
+  private static void verifyProfile(
+      DecodedPackage sourcePackage, String profile, String description) throws IOException {
+    if (!profile.equals(sourcePackage.manifest().profile())) {
+      throw new IOException("Bootstrap " + description + " uses a different source profile");
+    }
+  }
+
+  private static void verifyModuleSources(
+      DecodedPackage sourcePackage, BootstrapModuleManifest modules) throws IOException {
+    Map<String, byte[]> entries = sourcePackage.entries();
+    Set<String> declaredSources = new HashSet<>();
+    for (BootstrapModuleManifest.Module module : modules.modules()) {
+      declaredSources.add(module.source());
+      byte[] source = entries.get(module.source());
+      if (source == null || !EvidenceFile.sha256(source).equals(module.identity())) {
+        throw new IOException("Bootstrap module source is absent or stale: " + module.source());
+      }
+      try {
+        SourceModuleInspection.Header header = SourceModuleInspection.inspect(source);
+        if (!header.name().equals(module.name()) || !header.imports().equals(module.imports())) {
+          throw new IOException("Bootstrap module header differs from manifest: " + module.source());
+        }
+      } catch (RuntimeException exception) {
+        throw new IOException("Cannot inspect bootstrap module " + module.source(), exception);
+      }
+    }
+    for (String path : entries.keySet()) {
+      if (path.endsWith(".w") && !declaredSources.contains(path)) {
+        throw new IOException("Compiler archive contains undeclared module source: " + path);
+      }
+    }
+  }
+
   private static BootstrapToolchain toolchain(
       EvidenceFile evidence, String description) throws IOException {
     BootstrapToolchain toolchain = new BootstrapToolchainParser().parse(evidence.bytes());
@@ -229,6 +281,7 @@ final class BootstrapManifestCommand {
   private static void usage(PrintStream error) {
     error.println("Usage: wheeler bootstrap-manifest"
         + " --source-archive <wheeler.compiler.wpk> --source-lock <lock>"
+        + " --feature-manifest <file> --module-manifest <file>"
         + " --options-manifest <file> --limits-manifest <file>"
         + " --ordinary-toolchain <file> --ordinary-compiler <file>"
         + " --ordinary-runtime <file> --ordinary-verifier <file>"
