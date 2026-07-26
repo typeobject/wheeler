@@ -95,6 +95,16 @@ class MinimalCompilerExampleTest {
     assertEquals(1, writer.global("verification"));
     assertEquals(504, emitted.length);
     assertArrayEquals(stageZero, emitted);
+    for (long variant = 1; variant <= 32; variant++) {
+      String decorated = decoratedMinimalSource(variant);
+      VirtualMachine decoratedWriter = new VirtualMachine(
+          writerProgram, decorated.getBytes(StandardCharsets.UTF_8), 512);
+      decoratedWriter.run();
+      assertArrayEquals(stageZero, decoratedWriter.hostOutput());
+      assertArrayEquals(
+          stageZero,
+          new WheelerCompiler().compileToBytecode(decorated));
+    }
 
     var decoded = new BytecodeReader().read(emitted);
     assertArrayEquals(emitted, new BytecodeWriter().write(decoded));
@@ -647,6 +657,22 @@ class MinimalCompilerExampleTest {
       cursor += bytes.getInt(cursor + 4);
     }
     throw new AssertionError("missing opcode " + expectedOpcode);
+  }
+
+  private static String decoratedMinimalSource(long seed) {
+    String[] tokens = {
+        "classical", "class", "LongClass", "{", "state", "long", "value", "=", "7", ";",
+        "entry", "void", "main", "(", ")", "{", "value", "+=", "5", ";", "}", "}"
+    };
+    String[] separators = {" ", "\n", " /* bootstrap-noise */ ", " // bootstrap-noise\n"};
+    StringBuilder source = new StringBuilder();
+    long state = seed;
+    for (String token : tokens) {
+      state = state * 1_103_515_245 + 12_345;
+      int separator = (int) ((state >>> 16) & 3);
+      source.append(separators[separator]).append(token);
+    }
+    return source.append('\n').toString();
   }
 
   private void assertDifferentialHalt(
