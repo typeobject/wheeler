@@ -7,9 +7,23 @@ A compiler can reproduce its own bugs. That alone doesn't make it trustworthy. W
 
 The bootstrap gate records successful evidence in `wheeler.bootstrap.yaml`. The repository does not contain that manifest yet because the bounded Wheeler compiler is not self-hosting. Creating the file early would not provide real evidence.
 
+## Module graph derivation
+
+Derive the compiler target's graph from the canonical source archive rather than maintaining two opinions about its imports:
+
+```text
+wheeler bootstrap-modules \
+  --source-archive wheeler.compiler.wpk \
+  --output wheeler.bootstrap-modules.yaml
+```
+
+The command selects the modular `tool` target named `compiler`, parses every `.w` source entry selected by that target, derives external imports, hashes each source, validates the rooted local DAG, reparses the canonical result, and publishes atomically. Sources belonging only to another target, such as the entryless compiler library facade, do not enter this graph. A missing declaration, duplicate module, unsorted import list, dangling local import, cycle, unreachable selected source, link, malformed archive, or changing input produces no output.
+
+The evidence gate derives the same graph independently and requires exact agreement. The generated file is evidence, not authority over source syntax.
+
 ## Evidence command
 
-The stage-0 command is:
+The final stage-0 gate is:
 
 ```text
 wheeler bootstrap-manifest \
@@ -45,7 +59,7 @@ Before it publishes anything, the command:
 - strictly decodes the canonical `wheeler.compiler` package archive;
 - parses the schema-3 snapshot-bound lock and requires its exact canonical YAML bytes;
 - binds that lock to the source manifest;
-- parses exact schema-1 feature, module, option, and limit manifests;
+- parses exact schema-1 feature, generated module, option, and limit manifests;
 - requires every profile name to match the source package;
 - requires the module graph to be closed, acyclic, rooted, and free of dead modules;
 - rehashes every declared module source from the compiler archive, reparses its module header, and rejects undeclared `.w` entries;

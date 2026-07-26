@@ -100,7 +100,7 @@ final class BootstrapManifestCommandTest {
     IOException failure = assertThrows(IOException.class, () ->
         BootstrapManifestCommand.execute(fixture.arguments(), System.out, System.err));
 
-    assertTrue(failure.getMessage().contains("module source is absent or stale"));
+    assertTrue(failure.getMessage().contains("module source is stale"));
     assertFalse(Files.exists(fixture.manifest()));
   }
 
@@ -122,7 +122,12 @@ final class BootstrapManifestCommandTest {
         "wheeler.compiler",
         "0.1.0",
         "bootstrap-1",
-        List.of(new Target(TargetKind.TOOL, "compiler", "MinimalCompiler.w")),
+        List.of(new Target(
+            TargetKind.TOOL,
+            "compiler",
+            "MinimalCompiler.w",
+            "wheeler.compiler",
+            List.of("MinimalCompiler.w"))),
         List.of(),
         List.of());
     byte[] compilerSource = "//! fixture\nmodule wheeler.compiler;\n\n"

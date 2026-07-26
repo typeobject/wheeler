@@ -117,6 +117,6 @@ Hosted bootstrap CI builds the full workspace with both Temurin and Zulu JDK 26.
 
 Later, `bootstrap/stage0` will compile the exact compiler package into stage 1, and stage 1 will compile it into stage 2. Byte-identical stages prove a fixed point, though they do not prove a safe ancestry.
 
-Recovery-seed promotion also needs WIP-0007's diverse compilation path, full provenance, and a comparison made before any candidate-produced code runs. `wheeler bootstrap-manifest` performs the bounded byte comparisons and writes canonical `wheeler.bootstrap.yaml` atomically. It rejects unequal stages, different diagnostics, duplicate compiler identities, and stale acceptance trees.
+Recovery-seed promotion also needs WIP-0007's diverse compilation path, full provenance, and a comparison made before any candidate-produced code runs. `wheeler bootstrap-modules` first derives the exact compiler-tool module DAG and source identities from the canonical source archive. `wheeler bootstrap-manifest` performs the bounded byte comparisons and writes canonical `wheeler.bootstrap.yaml` atomically. It rejects unequal stages, different diagnostics, duplicate compiler identities, and stale acceptance trees.
 
 The [bootstrap evidence reference](bootstrap.md) defines every bound identity and the remaining pipeline-order requirement.

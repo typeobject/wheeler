@@ -1,6 +1,5 @@
 package com.typeobject.wheeler.tools;
 
-import com.typeobject.wheeler.compiler.SourceModuleInspection;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.packageformat.BootstrapCompilerLimits;
@@ -28,16 +27,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 /** Creates bootstrap evidence only after comparing all ordinary and diverse outputs. */
@@ -83,11 +77,12 @@ final class BootstrapManifestCommand {
     }
 
     rejectOutputCollision(paths);
-    Map<String, EvidenceFile> evidence = new HashMap<>();
+    Map<String, PhysicalEvidenceFile> evidence = new HashMap<>();
     for (String option : FILE_OPTIONS) {
       boolean diagnostics = option.equals("--ordinary-diagnostics")
           || option.equals("--diverse-diagnostics");
-      evidence.put(option, EvidenceFile.read(paths.get(option), diagnostics));
+      evidence.put(option, PhysicalEvidenceFile.read(
+          paths.get(option), diagnostics, MAX_EVIDENCE_BYTES, "Bootstrap evidence"));
     }
 
     DecodedPackage sourcePackage = new PackageArchive().decode(
@@ -114,7 +109,7 @@ final class BootstrapManifestCommand {
         evidence.get("--module-manifest"), modules.canonicalBytes(), "bootstrap modules");
     verifyProfile(sourcePackage, features.profile(), "feature manifest");
     verifyProfile(sourcePackage, modules.profile(), "module manifest");
-    verifyModuleSources(sourcePackage, modules);
+    BootstrapModuleSources.verify(sourcePackage, modules);
     BootstrapCompilerOptions options = new BootstrapCompilerOptionsParser().parse(
         evidence.get("--options-manifest").bytes());
     requireCanonical(
@@ -129,9 +124,9 @@ final class BootstrapManifestCommand {
     BootstrapToolchain diverseToolchain = toolchain(
         evidence.get("--diverse-toolchain"), "diverse toolchain");
 
-    EvidenceFile stage1 = evidence.get("--stage-1");
-    EvidenceFile stage2 = evidence.get("--stage-2");
-    EvidenceFile diverseOutput = evidence.get("--diverse-output");
+    PhysicalEvidenceFile stage1 = evidence.get("--stage-1");
+    PhysicalEvidenceFile stage2 = evidence.get("--stage-2");
+    PhysicalEvidenceFile diverseOutput = evidence.get("--diverse-output");
     requireCanonicalArtifact(stage1);
     requireCanonicalArtifact(stage2);
     requireCanonicalArtifact(diverseOutput);
@@ -226,52 +221,26 @@ final class BootstrapManifestCommand {
     }
   }
 
-  private static void verifyModuleSources(
-      DecodedPackage sourcePackage, BootstrapModuleManifest modules) throws IOException {
-    Map<String, byte[]> entries = sourcePackage.entries();
-    Set<String> declaredSources = new HashSet<>();
-    for (BootstrapModuleManifest.Module module : modules.modules()) {
-      declaredSources.add(module.source());
-      byte[] source = entries.get(module.source());
-      if (source == null || !EvidenceFile.sha256(source).equals(module.identity())) {
-        throw new IOException("Bootstrap module source is absent or stale: " + module.source());
-      }
-      try {
-        SourceModuleInspection.Header header = SourceModuleInspection.inspect(source);
-        if (!header.name().equals(module.name()) || !header.imports().equals(module.imports())) {
-          throw new IOException("Bootstrap module header differs from manifest: " + module.source());
-        }
-      } catch (RuntimeException exception) {
-        throw new IOException("Cannot inspect bootstrap module " + module.source(), exception);
-      }
-    }
-    for (String path : entries.keySet()) {
-      if (path.endsWith(".w") && !declaredSources.contains(path)) {
-        throw new IOException("Compiler archive contains undeclared module source: " + path);
-      }
-    }
-  }
-
   private static BootstrapToolchain toolchain(
-      EvidenceFile evidence, String description) throws IOException {
+      PhysicalEvidenceFile evidence, String description) throws IOException {
     BootstrapToolchain toolchain = new BootstrapToolchainParser().parse(evidence.bytes());
     requireCanonical(evidence, toolchain.canonicalBytes(), description);
     return toolchain;
   }
 
-  private static void requireCanonicalArtifact(EvidenceFile artifact) throws IOException {
+  private static void requireCanonicalArtifact(PhysicalEvidenceFile artifact) throws IOException {
     byte[] canonical = new BytecodeWriter().write(new BytecodeReader().read(artifact.bytes()));
     requireCanonical(artifact, canonical, "bootstrap artifact");
   }
 
   private static void requireCanonical(
-      EvidenceFile evidence, byte[] canonical, String description) throws IOException {
+      PhysicalEvidenceFile evidence, byte[] canonical, String description) throws IOException {
     if (!Arrays.equals(evidence.bytes(), canonical)) {
       throw new IOException(description + " is not canonical: " + evidence.path());
     }
   }
 
-  private static void requireEqual(EvidenceFile left, EvidenceFile right, String message)
+  private static void requireEqual(PhysicalEvidenceFile left, PhysicalEvidenceFile right, String message)
       throws IOException {
     if (!MessageDigest.isEqual(left.bytes(), right.bytes())) {
       throw new IOException(message + ": " + left.path() + " != " + right.path());
@@ -292,48 +261,4 @@ final class BootstrapManifestCommand {
         + " --acceptance-artifacts <directory> --output <wheeler.bootstrap.yaml>");
   }
 
-  private record EvidenceFile(Path path, byte[] bytes, String identity) {
-    private EvidenceFile {
-      Objects.requireNonNull(path, "path");
-      bytes = bytes.clone();
-      Objects.requireNonNull(identity, "identity");
-    }
-
-    @Override
-    public byte[] bytes() {
-      return bytes.clone();
-    }
-
-    private static EvidenceFile read(Path requested, boolean allowEmpty) throws IOException {
-      if (!Files.isRegularFile(requested, LinkOption.NOFOLLOW_LINKS)
-          || Files.isSymbolicLink(requested)) {
-        throw new IOException("Bootstrap evidence is not a physical file: " + requested);
-      }
-      BasicFileAttributes before = Files.readAttributes(
-          requested, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
-      if (before.size() > MAX_EVIDENCE_BYTES || (!allowEmpty && before.size() == 0)) {
-        throw new IOException("Bootstrap evidence is empty or exceeds 16 MiB: " + requested);
-      }
-      byte[] bytes = Files.readAllBytes(requested);
-      BasicFileAttributes after = Files.readAttributes(
-          requested, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
-      if (!after.isRegularFile()
-          || before.size() != bytes.length
-          || after.size() != bytes.length
-          || before.fileKey() != null && after.fileKey() != null
-              && !Objects.equals(before.fileKey(), after.fileKey())
-          || !before.lastModifiedTime().equals(after.lastModifiedTime())) {
-        throw new IOException("Bootstrap evidence changed while being read: " + requested);
-      }
-      return new EvidenceFile(requested, bytes, sha256(bytes));
-    }
-
-    private static String sha256(byte[] bytes) {
-      try {
-        return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
-      } catch (NoSuchAlgorithmException exception) {
-        throw new IllegalStateException("SHA-256 is unavailable", exception);
-      }
-    }
-  }
 }
