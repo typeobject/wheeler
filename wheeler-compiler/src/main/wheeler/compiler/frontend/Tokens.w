@@ -5,6 +5,9 @@ module wheeler.compiler.tokens;
 import wheeler.lexer.scanner;
 
 classical class Tokens {
+  /// Caps compiler token metadata before comment compaction.
+  public const long MAX_COMPILER_TOKENS = 512;
+
   /// Names the stable token hash for `classical`.
   public const long TOKEN_CLASSICAL = 87497064671293;
   /// Names the stable token hash for `class`.

@@ -618,7 +618,7 @@ classical class Parser {
 
   private boolean minimalStateCountSupported(long count) {
     if (17 < count) {
-      return count < 128;
+      return count < MAX_COMPILER_TOKENS;
     }
 
     return false;
@@ -633,7 +633,7 @@ classical class Parser {
     long count
   ) {
     if (10 < count) {
-      if (count < 128) {
+      if (count < MAX_COMPILER_TOKENS) {
         MinimalProgramResult noGlobal = minimalNoGlobalProgram(
           source,
           tokenKinds,

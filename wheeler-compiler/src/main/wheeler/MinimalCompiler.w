@@ -9,6 +9,7 @@ import wheeler.compiler.opcodes;
 import wheeler.compiler.parser;
 import wheeler.compiler.statements;
 import wheeler.compiler.string_table;
+import wheeler.compiler.tokens;
 import wheeler.compiler.verifier;
 import wheeler.lexer.scanner;
 
@@ -25,7 +26,7 @@ classical class MinimalCompiler {
   ) {
     long readCursor = 0;
     long writeCursor = 0;
-    while (readCursor < count) limit 128 {
+    while (readCursor < count) limit 512 {
       long kind = tokenKinds[readCursor];
       boolean emit = true;
       if (kind == 4) {
@@ -159,10 +160,10 @@ classical class MinimalCompiler {
   ///
   /// - Effects: Mutates declared state and caller-owned byte output.
   entry void main(borrow utf8 source, borrow mut bytes output) {
-    region arena = new region(3072, 3);
-    words tokenKinds = allocate(arena, 128);
-    words tokenStarts = allocate(arena, 128);
-    words tokenLengths = allocate(arena, 128);
+    region arena = new region(12288, 3);
+    words tokenKinds = allocate(arena, MAX_COMPILER_TOKENS);
+    words tokenStarts = allocate(arena, MAX_COMPILER_TOKENS);
+    words tokenLengths = allocate(arena, MAX_COMPILER_TOKENS);
     MinimalProgram program = requireMinimalProgram(
       source,
       tokenKinds,
