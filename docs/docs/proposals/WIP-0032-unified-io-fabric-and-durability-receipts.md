@@ -570,6 +570,8 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 ## Progress
 
 - [x] Proposal index, dependent WIPs, current references, and future documentation name WIP-0032 as the sole I/O lifecycle and method-registry owner; no competing portable method family remains in another WIP.
+- [x] The quarantined stage-0 runtime executes the bounded request, scope, operation, terminal-completion, reap, batch, selection, and terminal-dependency graph lifecycle with one deterministic semantic contract. This is executable scaffolding, not permission to fossilize the Java spelling.
+- [x] Inline and delayed deterministic delivery produce equal semantic completions; delayed cancellation-before-effect performs no provider action.
 - [ ] Unified request/scope/result model is accepted.
 - [ ] Async versus required-concurrent behavior is accepted.
 - [ ] Terminal completion, cancellation, uncertainty, and reap laws are accepted.
@@ -590,17 +592,17 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 ### Lifecycle and ergonomics
 
 - [x] Repository documentation contains one portable I/O lifecycle owner and links integration clauses back here instead of copying method contracts.
-- [ ] One request type can be awaited, submitted, batched, graphed, or selected.
-- [ ] Request construction performs no external I/O.
-- [ ] Every submitted operation has one terminal completion and one reap.
-- [ ] Dropping a live operation or leaving a scope with live work is rejected.
-- [ ] Inline and delayed completion have equal semantic results.
+- [x] One stage-0 request type can be awaited, submitted, batched, graphed, or selected.
+- [x] Stage-0 request construction performs no provider action.
+- [x] Every stage-0 submitted operation has one terminal completion and one reap.
+- [x] Dropping a live stage-0 operation or leaving a scope with live or unreaped work is rejected.
+- [x] Inline and delayed deterministic completion have equal semantic results.
 - [ ] `async` may execute inline; `concurrent` fails when overlap is unavailable.
 - [ ] Common examples require no backend vocabulary or manual polling.
 
 ### Cancellation and replay
 
-- [ ] Cancellation-before-effect, partial effect, completion-won, failure, and uncertainty are distinguishable.
+- [x] Stage-0 cancellation-before-effect, partial effect, completion-won, failure, and uncertainty are distinguishable.
 - [ ] Deadline expiry requests cancellation and never proves no effect.
 - [ ] Every uncertain result carries reconciliation identity and known progress.
 - [ ] Replay performs no live I/O and validates exact request/resource/profile identity.
@@ -618,7 +620,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 ### Ordering and addressing
 
 - [ ] Independent batch operations complete in every permitted order.
-- [ ] Graph dependencies serialize only dependent branches.
+- [x] The deterministic stage-0 graph publishes a node only after every named terminal predecessor; independent roots are admitted together.
 - [ ] Submission order creates no implicit completion or persistence order.
 - [ ] Disjoint ranges run independently; unsafe overlap is rejected or explicitly named.
 - [ ] Sequential adapters own exactly one cursor and preserve consumed/examined positions.
