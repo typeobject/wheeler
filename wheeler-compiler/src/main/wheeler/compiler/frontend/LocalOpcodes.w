@@ -65,7 +65,32 @@ classical class LocalOpcodes {
       return true;
     }
 
-    return opcode == STATEMENT_IF_LOCAL_XOR_NAMED;
+    if (opcode == STATEMENT_IF_LOCAL_XOR_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_IF_NOT_LOCAL_ADD_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_IF_NOT_LOCAL_SUB_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_IF_NOT_LOCAL_XOR_NAMED;
+  }
+
+  /// Checks whether a named local condition negates its Boolean source.
+  public boolean namedLocalConditionalNegated(long opcode) {
+    if (opcode == STATEMENT_IF_NOT_LOCAL_ADD_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_IF_NOT_LOCAL_SUB_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_IF_NOT_LOCAL_XOR_NAMED;
   }
 
   /// Checks whether an opcode carries a resolved two-local equality assertion.
@@ -182,7 +207,54 @@ classical class LocalOpcodes {
       return false;
     }
 
-    return opcode < STATEMENT_IF_LOCAL_XOR_BASE + 256;
+    if (opcode < STATEMENT_IF_LOCAL_XOR_BASE + 256) {
+      return true;
+    }
+
+    if (opcode < STATEMENT_IF_NOT_LOCAL_ADD_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_IF_NOT_LOCAL_XOR_BASE + 256;
+  }
+
+  /// Checks whether a resolved local condition negates its Boolean source.
+  public boolean resolvedLocalConditionalNegated(long opcode) {
+    if (opcode < STATEMENT_IF_NOT_LOCAL_ADD_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_IF_NOT_LOCAL_XOR_BASE + 256;
+  }
+
+  /// Checks whether a resolved local condition guards subtraction.
+  public boolean resolvedLocalConditionalSubtract(long opcode) {
+    if (STATEMENT_IF_LOCAL_SUB_BASE - 1 < opcode) {
+      if (opcode < STATEMENT_IF_LOCAL_SUB_BASE + 256) {
+        return true;
+      }
+    }
+
+    if (opcode < STATEMENT_IF_NOT_LOCAL_SUB_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_IF_NOT_LOCAL_SUB_BASE + 256;
+  }
+
+  /// Checks whether a resolved local condition guards XOR.
+  public boolean resolvedLocalConditionalXor(long opcode) {
+    if (STATEMENT_IF_LOCAL_XOR_BASE - 1 < opcode) {
+      if (opcode < STATEMENT_IF_LOCAL_XOR_BASE + 256) {
+        return true;
+      }
+    }
+
+    if (opcode < STATEMENT_IF_NOT_LOCAL_XOR_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_IF_NOT_LOCAL_XOR_BASE + 256;
   }
 
   /// Returns the condition local carried by a resolved conditional opcode.
@@ -195,7 +267,19 @@ classical class LocalOpcodes {
       return opcode - STATEMENT_IF_LOCAL_SUB_BASE;
     }
 
-    return opcode - STATEMENT_IF_LOCAL_XOR_BASE;
+    if (opcode < STATEMENT_IF_NOT_LOCAL_ADD_BASE) {
+      return opcode - STATEMENT_IF_LOCAL_XOR_BASE;
+    }
+
+    if (opcode < STATEMENT_IF_NOT_LOCAL_SUB_BASE) {
+      return opcode - STATEMENT_IF_NOT_LOCAL_ADD_BASE;
+    }
+
+    if (opcode < STATEMENT_IF_NOT_LOCAL_XOR_BASE) {
+      return opcode - STATEMENT_IF_NOT_LOCAL_SUB_BASE;
+    }
+
+    return opcode - STATEMENT_IF_NOT_LOCAL_XOR_BASE;
   }
 
   /// Checks whether an opcode carries a resolved signed-local binary source.
@@ -297,6 +381,10 @@ classical class LocalOpcodes {
     }
 
     if (resolvedLocalConditional(opcode)) {
+      if (resolvedLocalConditionalNegated(opcode)) {
+        return 5;
+      }
+
       return 3;
     }
 

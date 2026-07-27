@@ -2,6 +2,7 @@
 
 module wheeler.compiler.statements;
 
+import wheeler.compiler.conditionals;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.tokens;
 
@@ -16,87 +17,14 @@ classical class Statements {
   ) {
     long statementKind = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
     if (namedLocalConditional(statementKind)) {
-      if (
-        punctuationAt(
-          source,
-          tokenKinds,
-          tokenStarts,
-          statementStart + 1,
-          PUNCTUATION_OPEN_PAREN
-        )
-      ) {
-        if (tokenKinds[statementStart + 2] == 1) {
-          if (
-            punctuationAt(
-              source,
-              tokenKinds,
-              tokenStarts,
-              statementStart + 3,
-              PUNCTUATION_CLOSE_PAREN
-            )
-          ) {
-            if (
-              punctuationAt(
-                source,
-                tokenKinds,
-                tokenStarts,
-                statementStart + 4,
-                PUNCTUATION_OPEN_BRACE
-              )
-            ) {
-              if (
-                sameTokenText(source, tokenStarts, tokenLengths, 6, statementStart + 5)
-              ) {
-                if (
-                  punctuationAt(
-                    source,
-                    tokenKinds,
-                    tokenStarts,
-                    statementStart + 7,
-                    PUNCTUATION_ASSIGN
-                  )
-                ) {
-                  long conditionalWidth = signedNumberWidth(
-                    source,
-                    tokenKinds,
-                    tokenStarts,
-                    statementStart + 8
-                  );
-                  if (0 < conditionalWidth) {
-                    if (
-                      signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 8)
-                    ) {
-                      if (
-                        punctuationAt(
-                          source,
-                          tokenKinds,
-                          tokenStarts,
-                          statementStart + 8 + conditionalWidth,
-                          PUNCTUATION_SEMICOLON
-                        )
-                      ) {
-                        if (
-                          punctuationAt(
-                            source,
-                            tokenKinds,
-                            tokenStarts,
-                            statementStart + 9 + conditionalWidth,
-                            PUNCTUATION_CLOSE_BRACE
-                          )
-                        ) {
-                          return 10 + conditionalWidth;
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      return -1;
+      return conditionalStatementWidth(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        statementKind
+      );
     }
 
     boolean signedAssertion = statementKind == STATEMENT_ASSERT_EQ;

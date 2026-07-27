@@ -10,6 +10,7 @@ classical class NativeBootstrapModulesIdentity {
   private const long MAX_EXTERNAL_MODULES = 32;
   private const long MAX_IMPORTS_PER_MODULE = 32;
   private const long MAX_IMPORTS = 128;
+  private const long MAX_MANIFEST_BYTES = 16384;
 
   state long moduleCount = 0;
   state long externalCount = 0;
@@ -254,7 +255,7 @@ classical class NativeBootstrapModulesIdentity {
   ///
   /// - Effects: Mutates fixture state and caller-owned identity output.
   entry void main(borrow byteview source, borrow mut bytes identity) {
-    requireMetadata(bufferLength(source) < 8193, source);
+    requireMetadata(bufferLength(source) < MAX_MANIFEST_BYTES + 1, source);
     requireMetadata(31 < bufferLength(identity), source);
     region arena = new region(16000, 20);
     bytes expected = allocateBytes(arena, 256);

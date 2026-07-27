@@ -263,6 +263,30 @@ class MinimalCompilerExampleTest {
             + "boolean ready = true; if (ready) { result ^= 3; } assert(result == 1); } }",
         "result",
         1);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class LocalIfNotAdd { state long result = 0; entry void main() { "
+            + "boolean ready = false; if (!ready) { result += 1; } assert(result == 1); } }",
+        "result",
+        1);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class LocalIfNotSkipped { state long result = 0; entry void main() { "
+            + "boolean ready = true; if (!ready) { result += 1; } assert(result == 0); } }",
+        "result",
+        0);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class LocalIfNotSub { state long result = 2; entry void main() { "
+            + "boolean ready = false; if (!ready) { result -= 1; } assert(result == 1); } }",
+        "result",
+        1);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class LocalIfNotXor { state long result = 2; entry void main() { "
+            + "boolean ready = false; if (!ready) { result ^= 3; } assert(result == 1); } }",
+        "result",
+        1);
     assertDifferentialHalt(
         writerProgram,
         "classical class FifthLocal { entry void main() { "
@@ -766,6 +790,15 @@ class MinimalCompilerExampleTest {
         512);
     assertThrows(VmTrap.class, unknownLocalCondition::run);
     assertArrayEquals(new byte[512], unknownLocalCondition.hostOutput());
+
+    VirtualMachine unknownNegatedLocalCondition = new VirtualMachine(
+        writerProgram,
+        ("classical class UnknownNegatedLocalCondition { state long result = 0; "
+                + "entry void main() { if (!missing) { result += 1; } } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, unknownNegatedLocalCondition::run);
+    assertArrayEquals(new byte[512], unknownNegatedLocalCondition.hostOutput());
 
     VirtualMachine booleanLessThan = new VirtualMachine(
         writerProgram,

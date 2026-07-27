@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.vm.MachineStatus;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import com.typeobject.wheeler.packageformat.BootstrapModuleManifest;
@@ -23,6 +24,31 @@ import org.junit.jupiter.api.Test;
 final class NativeBootstrapModulesIdentityExampleTest {
   private static final Path ROOT = Path.of("src/main/wheeler/native/bootstrap");
   private static final String IDENTITY = "ab".repeat(32);
+
+  @Test
+  void validatesThePhysicalBoundedCompilerClosure() throws Exception {
+    BootstrapModuleManifest manifest = CompilerSources.bootstrapModuleManifest();
+
+    assertEquals(7_782, manifest.canonicalBytes().length);
+    VirtualMachine machine = vm(program(), manifest.canonicalBytes());
+    long transitions = 0;
+    while (machine.status() != MachineStatus.HALTED && transitions < 4_000_000) {
+      machine.step();
+      transitions += 1;
+      if (10_000 <= machine.historySize()) {
+        machine.commitHistory();
+      }
+    }
+
+    assertEquals(3_811_265, transitions);
+    assertEquals(MachineStatus.HALTED, machine.status());
+    assertArrayEquals(MessageDigest.getInstance("SHA-256").digest(manifest.canonicalBytes()),
+        machine.hostOutput());
+    assertEquals(26, machine.global("moduleCount"));
+    assertEquals(1, machine.global("externalCount"));
+    assertEquals(70, machine.global("importCount"));
+    assertEquals(1, machine.global("published"));
+  }
 
   @Test
   void validatesOneRootedModuleAndItsExternalImports() throws Exception {
@@ -98,7 +124,7 @@ final class NativeBootstrapModulesIdentityExampleTest {
     assertNoIdentity(program, thirtyThreeModules.canonicalBytes());
 
     String text = imported.canonicalText();
-    assertNoIdentity(program, new byte[8_193]);
+    assertNoIdentity(program, new byte[16_385]);
     assertNoIdentity(program, text.replace(
         "  - \"wheeler.core\"\n  - \"wheeler.runtime\"",
         "  - \"wheeler.runtime\"\n  - \"wheeler.core\"")

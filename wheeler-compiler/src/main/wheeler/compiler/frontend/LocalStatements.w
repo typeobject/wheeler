@@ -266,13 +266,18 @@ classical class LocalStatements {
     }
 
     if (namedLocalConditional(opcode)) {
+      long conditionToken = statementStart + 2;
+      if (namedLocalConditionalNegated(opcode)) {
+        conditionToken += 1;
+      }
+
       long conditionalSourceLocal = resolvePriorDeclaration(
         source,
         tokenStarts,
         tokenLengths,
         previousStarts,
         previousCount,
-        statementStart + 2,
+        conditionToken,
         false
       );
       if (-1 < conditionalSourceLocal) {
@@ -283,6 +288,18 @@ classical class LocalStatements {
 
         if (opcode == STATEMENT_IF_LOCAL_XOR_NAMED) {
           conditionalBase = STATEMENT_IF_LOCAL_XOR_BASE;
+        }
+
+        if (opcode == STATEMENT_IF_NOT_LOCAL_ADD_NAMED) {
+          conditionalBase = STATEMENT_IF_NOT_LOCAL_ADD_BASE;
+        }
+
+        if (opcode == STATEMENT_IF_NOT_LOCAL_SUB_NAMED) {
+          conditionalBase = STATEMENT_IF_NOT_LOCAL_SUB_BASE;
+        }
+
+        if (opcode == STATEMENT_IF_NOT_LOCAL_XOR_NAMED) {
+          conditionalBase = STATEMENT_IF_NOT_LOCAL_XOR_BASE;
         }
 
         return conditionalBase + conditionalSourceLocal;
@@ -648,6 +665,10 @@ classical class LocalStatements {
     }
 
     if (namedLocalConditional(opcode)) {
+      if (namedLocalConditionalNegated(opcode)) {
+        return statementStart + 9;
+      }
+
       return statementStart + 8;
     }
 

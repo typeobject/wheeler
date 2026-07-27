@@ -178,6 +178,18 @@ classical class Tokens {
   public const long STATEMENT_ASSERT_LONG_LT_NAMED = 797;
   /// Starts resolved less-than assertions over prior signed locals.
   public const long STATEMENT_ASSERT_LONG_LT_BASE = 8192;
+  /// Names a negated local condition guarding global addition.
+  public const long STATEMENT_IF_NOT_LOCAL_ADD_NAMED = 798;
+  /// Names a negated local condition guarding global subtraction.
+  public const long STATEMENT_IF_NOT_LOCAL_SUB_NAMED = 799;
+  /// Names a negated local condition guarding global XOR.
+  public const long STATEMENT_IF_NOT_LOCAL_XOR_NAMED = 800;
+  /// Starts resolved negated local conditions guarding global addition.
+  public const long STATEMENT_IF_NOT_LOCAL_ADD_BASE = 8448;
+  /// Starts resolved negated local conditions guarding global subtraction.
+  public const long STATEMENT_IF_NOT_LOCAL_SUB_BASE = 8704;
+  /// Starts resolved negated local conditions guarding global XOR.
+  public const long STATEMENT_IF_NOT_LOCAL_XOR_BASE = 8960;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -347,16 +359,35 @@ classical class Tokens {
     }
 
     if (keyword == TOKEN_IF) {
-      long conditionalOperator = utf8Scalar(source, tokenStarts[statementStart + 6]);
+      boolean negatedCondition = utf8Scalar(source, tokenStarts[statementStart + 2])
+        == PUNCTUATION_BANG;
+      long operatorToken = statementStart + 6;
+      if (negatedCondition) {
+        operatorToken += 1;
+      }
+
+      long conditionalOperator = utf8Scalar(source, tokenStarts[operatorToken]);
       if (conditionalOperator == PUNCTUATION_PLUS) {
+        if (negatedCondition) {
+          return STATEMENT_IF_NOT_LOCAL_ADD_NAMED;
+        }
+
         return STATEMENT_IF_LOCAL_ADD_NAMED;
       }
 
       if (conditionalOperator == PUNCTUATION_MINUS) {
+        if (negatedCondition) {
+          return STATEMENT_IF_NOT_LOCAL_SUB_NAMED;
+        }
+
         return STATEMENT_IF_LOCAL_SUB_NAMED;
       }
 
       if (conditionalOperator == PUNCTUATION_CARET) {
+        if (negatedCondition) {
+          return STATEMENT_IF_NOT_LOCAL_XOR_NAMED;
+        }
+
         return STATEMENT_IF_LOCAL_XOR_NAMED;
       }
 
