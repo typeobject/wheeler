@@ -108,6 +108,10 @@ classical class Statements {
       signedAssertion = true;
     }
 
+    if (statementKind == STATEMENT_ASSERT_LONG_LT_NAMED) {
+      signedAssertion = true;
+    }
+
     if (signedAssertion) {
       if (
         punctuationAt(
@@ -124,6 +128,10 @@ classical class Statements {
             acceptedName = true;
           }
 
+          if (statementKind == STATEMENT_ASSERT_LONG_LT_NAMED) {
+            acceptedName = true;
+          }
+
           if (
             sameTokenText(source, tokenStarts, tokenLengths, 6, statementStart + 2)
           ) {
@@ -131,6 +139,44 @@ classical class Statements {
           }
 
           if (acceptedName) {
+            if (statementKind == STATEMENT_ASSERT_LONG_LT_NAMED) {
+              if (
+                punctuationAt(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  statementStart + 3,
+                  PUNCTUATION_LESS_THAN
+                )
+              ) {
+                if (tokenKinds[statementStart + 4] == 1) {
+                  if (
+                    punctuationAt(
+                      source,
+                      tokenKinds,
+                      tokenStarts,
+                      statementStart + 5,
+                      PUNCTUATION_CLOSE_PAREN
+                    )
+                  ) {
+                    if (
+                      punctuationAt(
+                        source,
+                        tokenKinds,
+                        tokenStarts,
+                        statementStart + 6,
+                        PUNCTUATION_SEMICOLON
+                      )
+                    ) {
+                      return 7;
+                    }
+                  }
+                }
+              }
+
+              return -1;
+            }
+
             if (
               punctuationAt(
                 source,

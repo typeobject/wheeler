@@ -37,7 +37,8 @@ classical class Codegen {
     long cursor,
     long leftLocal,
     long rightLocal,
-    long localBase
+    long localBase,
+    long comparisonOpcode
   ) {
     cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
@@ -45,7 +46,7 @@ classical class Codegen {
     cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
     cursor = writeUnsignedLittleEndian(output, cursor, rightLocal, 8);
-    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_EQ, 3);
+    cursor = writeInstructionHeader(output, cursor, comparisonOpcode, 3);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
@@ -82,6 +83,12 @@ classical class Codegen {
   /// Writes canonical local type codes for one parsed statement.
   public long writeStatementLocalTypes(borrow mut bytes output, long cursor, long opcode) {
     long count = statementLocalCount(opcode);
+    if (resolvedLocalLessThanAssertion(opcode)) {
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+    }
+
     if (resolvedLocalPairAssertion(opcode)) {
       long assertedType = TYPE_BOOLEAN;
       if (resolvedLocalPairAssertionSigned(opcode)) {
@@ -166,6 +173,10 @@ classical class Codegen {
 
   /// Returns the encoded byte width of one parsed statement.
   public long statementCodeLength(long opcode) {
+    if (resolvedLocalLessThanAssertion(opcode)) {
+      return 96;
+    }
+
     if (resolvedLocalPairAssertion(opcode)) {
       return 96;
     }
@@ -310,7 +321,19 @@ classical class Codegen {
         cursor,
         resolvedLocalPairAssertionSource(opcode),
         operand,
-        localBase
+        localBase,
+        OPCODE_LOCAL_EQ
+      );
+    }
+
+    if (resolvedLocalLessThanAssertion(opcode)) {
+      return writeLocalPairAssertion(
+        output,
+        cursor,
+        opcode - STATEMENT_ASSERT_LONG_LT_BASE,
+        operand,
+        localBase,
+        OPCODE_LOCAL_LT
       );
     }
 

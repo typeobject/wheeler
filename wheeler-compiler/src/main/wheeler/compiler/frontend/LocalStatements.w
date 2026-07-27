@@ -121,6 +121,23 @@ classical class LocalStatements {
       return -1;
     }
 
+    if (opcode == STATEMENT_ASSERT_LONG_LT_NAMED) {
+      long lessThanAssertionLeft = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 2,
+        true
+      );
+      if (-1 < lessThanAssertionLeft) {
+        return STATEMENT_ASSERT_LONG_LT_BASE + lessThanAssertionLeft;
+      }
+
+      return -1;
+    }
+
     if (opcode == STATEMENT_ASSERT_LOCAL_PAIR_NAMED) {
       long pairAssertionSignedLeft = resolvePriorDeclaration(
         source,
@@ -388,6 +405,10 @@ classical class LocalStatements {
       return -1 < operand;
     }
 
+    if (resolvedLocalLessThanAssertion(opcode)) {
+      return -1 < operand;
+    }
+
     return true;
   }
 
@@ -401,6 +422,18 @@ classical class LocalStatements {
     long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (opcode == STATEMENT_ASSERT_LONG_LT_NAMED) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 4,
+        true
+      );
+    }
+
     if (opcode == STATEMENT_ASSERT_LOCAL_PAIR_NAMED) {
       long assertionSignedLeft = resolvePriorDeclaration(
         source,

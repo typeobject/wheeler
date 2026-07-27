@@ -176,6 +176,10 @@ classical class Parser {
       supported = true;
     }
 
+    if (opcode == STATEMENT_ASSERT_LONG_LT_NAMED) {
+      supported = true;
+    }
+
     return supported;
   }
 

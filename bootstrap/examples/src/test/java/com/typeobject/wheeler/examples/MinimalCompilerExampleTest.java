@@ -228,6 +228,14 @@ class MinimalCompilerExampleTest {
             + "long first = 41; long second = 42; assert(first == second); } }");
     assertDifferentialHalt(
         writerProgram,
+        "classical class AssertLessPair { entry void main() { "
+            + "long first = 41; long second = 42; assert(first < second); } }");
+    assertDifferentialTrap(
+        writerProgram,
+        "classical class AssertNotLessPair { entry void main() { "
+            + "long first = 42; long second = 41; assert(first < second); } }");
+    assertDifferentialHalt(
+        writerProgram,
         "classical class LocalSignedLessThan { entry void main() { "
             + "long first = 40; long second = 42; "
             + "boolean less = first < second; assert(less); } }");

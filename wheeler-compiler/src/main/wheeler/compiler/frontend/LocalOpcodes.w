@@ -95,6 +95,15 @@ classical class LocalOpcodes {
     return opcode - STATEMENT_ASSERT_BOOLEAN_PAIR_BASE;
   }
 
+  /// Checks whether an opcode carries a resolved signed less-than assertion source.
+  public boolean resolvedLocalLessThanAssertion(long opcode) {
+    if (opcode < STATEMENT_ASSERT_LONG_LT_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_ASSERT_LONG_LT_BASE + 256;
+  }
+
   /// Checks whether an opcode carries one resolved signed-local identity.
   public boolean resolvedLocalLongAssertion(long opcode) {
     if (opcode < STATEMENT_ASSERT_LOCAL_LONG_BASE) {
@@ -271,6 +280,14 @@ classical class LocalOpcodes {
 
   /// Returns the typed-local width required by one parsed statement.
   public long statementLocalCount(long opcode) {
+    if (resolvedLocalLessThanAssertion(opcode)) {
+      return 3;
+    }
+
+    if (opcode == STATEMENT_ASSERT_LONG_LT_NAMED) {
+      return 3;
+    }
+
     if (resolvedLocalPairAssertion(opcode)) {
       return 3;
     }

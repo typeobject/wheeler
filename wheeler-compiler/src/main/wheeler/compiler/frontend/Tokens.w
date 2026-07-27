@@ -174,6 +174,10 @@ classical class Tokens {
   public const long STATEMENT_ASSERT_LONG_PAIR_BASE = 7680;
   /// Starts resolved equality assertions over prior Boolean locals.
   public const long STATEMENT_ASSERT_BOOLEAN_PAIR_BASE = 7936;
+  /// Names an unresolved less-than assertion over prior signed locals.
+  public const long STATEMENT_ASSERT_LONG_LT_NAMED = 797;
+  /// Starts resolved less-than assertions over prior signed locals.
+  public const long STATEMENT_ASSERT_LONG_LT_BASE = 8192;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -328,6 +332,10 @@ classical class Tokens {
         if (sameTokenText(source, tokenStarts, tokenLengths, 6, assertExpression)) {
           return STATEMENT_ASSERT_EQ;
         }
+      }
+
+      if (utf8Scalar(source, tokenStarts[statementStart + 3]) == PUNCTUATION_LESS_THAN) {
+        return STATEMENT_ASSERT_LONG_LT_NAMED;
       }
 
       long assertedRight = utf8Scalar(source, tokenStarts[statementStart + 5]);
