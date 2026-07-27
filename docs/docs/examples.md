@@ -262,6 +262,14 @@ Covers: Strict schema-1 repository snapshot layout, empty snapshots, caller-owne
 
 Expected behavior: Canonical views through eight rows publish unchanged; `1.2.0` sorts before `1.10.0`, numeric prerelease identifiers are numbers rather than decorative strings, and stable releases follow their previews. A ninth fixture row or one extra space fails before publication. The parser loop admits more rows when the caller brings a larger table and enough history; neither resource is summoned by positive thinking.
 
+### `NativeSnapshotIdentity.w`
+
+Files: [`NativeSnapshotIdentity.w`](../../wheeler-examples/src/main/wheeler/native/packages/NativeSnapshotIdentity.w) + [`packages/repository/Snapshot.w`](../../wheeler-package/src/main/wheeler/packages/repository/Snapshot.w) + [`crypto/Sha256.w`](../../wheeler-core/src/main/wheeler/crypto/Sha256.w).
+
+Covers: Strict binary-input bounds, owned byte-to-UTF-8 freezing, canonical snapshot validation, Wheeler-native SHA-256 publication, Java/Wheeler differential identities, fail-closed output, and complete VM rewind.
+
+Expected behavior: Empty and three-release snapshots produce the same 32-byte identity as stage 0. A fourth release exceeds this fixture's caller-owned table, malformed spacing is not canonical just because it hashes cleanly, and a 2,049-byte input is over budget; all three failures publish no digest.
+
 ### `NativeWorkspace.w`
 
 Files: [`NativeWorkspace.w`](../../wheeler-examples/src/main/wheeler/native/NativeWorkspace.w) + [`packages/workspace/Workspace.w`](../../wheeler-package/src/main/wheeler/packages/workspace/Workspace.w).

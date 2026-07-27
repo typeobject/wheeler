@@ -132,6 +132,13 @@ targets:
       - "src/main/wheeler/native/packages/NativeSnapshot.w"
     test: false
   - kind: "deployable"
+    name: "nativesnapshotidentity"
+    root: "src/main/wheeler/native/packages/NativeSnapshotIdentity.w"
+    module: "examples.packages.snapshot_identity"
+    sources:
+      - "src/main/wheeler/native/packages/NativeSnapshotIdentity.w"
+    test: false
+  - kind: "deployable"
     name: "nativeverifier"
     root: "src/main/wheeler/native/NativeVerifier.w"
     module: "examples.compiler.native_verifier"

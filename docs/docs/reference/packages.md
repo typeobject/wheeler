@@ -433,7 +433,9 @@ Wrong schemas or kinds, test-selected libraries, bad names or paths, unsorted se
 
 The parser checks exact key order, indentation, spaces, line endings, quotes, and final consumption instead of blessing formatter-independent YAML as canonical metadata. Empty views and tables through eight releases round-trip byte for byte and pass the independent stage-0 decoder. A ninth row exhausts only the executable fixture's caller table; the library loop remains bounded at 10,000. Noncanonical spacing fails before output. Wheeler and stage 0 agree on stable and prerelease ordering, which is more useful than agreeing that strings can be alphabetized badly.
 
-The native slice does not yet compute the complete snapshot SHA-256, verify Ed25519 envelopes, apply trusted-key policy, or expose 10,000 physical rows. Those operations remain stage-0 authority until the crypto and I/O paths join the package codec.
+`NativeSnapshotIdentity.w` accepts the same bytes as immutable binary input, copies at most 2,048 bytes into owned storage, freezes strict UTF-8, and reuses the snapshot parser before publishing Wheeler SHA-256. Its caller-owned table admits three releases; a fourth or malformed canonical form leaves all 32 output bytes untouched. Empty and populated identities match stage 0 byte for byte, and the populated run rewinds to its original input and output state.
+
+The native slice does not yet verify Ed25519 envelopes, apply trusted-key policy, or expose 10,000 physical rows. Those operations remain stage-0 authority. Validation before hashing matters: every byte string has a SHA-256, including rubbish, and a rubbish identity is still rubbish wearing a tie.
 
 ## Wheeler-native lock slice
 
