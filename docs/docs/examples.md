@@ -190,6 +190,14 @@ Expected behavior:
 - Payload/digest corruption and a re-signed invalid target kind or forged node identity trap.
 - Larger input/capability lists and additional nodes remain.
 
+### `NativePlanIdentity.w`
+
+Files: [`NativePlanIdentity.w`](../../wheeler-examples/src/main/wheeler/native/packages/NativePlanIdentity.w) + [`packages/resolution/Plan.w`](../../wheeler-package/src/main/wheeler/packages/resolution/Plan.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
+
+Covers: Payload digest, node-identity rederivation, structural plan validation, final Wheeler SHA-256, stage-0 differential identity, fail-closed output, and exact rewind.
+
+Expected behavior: One canonical tool plan matches `BuildPlanCodec.identity`. Payload-digest damage or input beyond 4,096 bytes publishes nothing. Rehashing a forged plan is not validation; it is stationery.
+
 ### `NativeSha256.w`
 
 Files: [`NativeSha256.w`](../../wheeler-examples/src/main/wheeler/native/NativeSha256.w) + [`crypto/Sha256.w`](../../wheeler-core/src/main/wheeler/crypto/Sha256.w).

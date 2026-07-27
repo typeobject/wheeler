@@ -139,6 +139,13 @@ targets:
       - "src/main/wheeler/native/NativePlan.w"
     test: false
   - kind: "deployable"
+    name: "nativeplanidentity"
+    root: "src/main/wheeler/native/packages/NativePlanIdentity.w"
+    module: "examples.packages.plan_identity"
+    sources:
+      - "src/main/wheeler/native/packages/NativePlanIdentity.w"
+    test: false
+  - kind: "deployable"
     name: "nativesha256"
     root: "src/main/wheeler/native/NativeSha256.w"
     module: "examples.crypto.sha256_main"

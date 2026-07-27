@@ -428,6 +428,7 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
   - Outer corruption, re-signed data corruption, traversal, undeclared source paths, and noncanonical manifest text fail.
   - Successful runs rewind exactly. Reserved-path checks, the wider manifest, Unicode paths, and more than two entries remain.
 - [x] `NativePlan.w`, `packages/resolution/Plan.w`, and `PlanIdentity.w` read canonical binary plans. They verify framing, schema, payload length, and a Wheeler-computed payload SHA-256.
+- [x] `NativePlanIdentity.w` computes the final plan identity only after payload and node identities reverify. The one-node result matches stage 0 with exact rewind; digest damage or oversized input publishes no identity.
   - The current slice decodes one node with at most one package input and one requested capability. An optional grant must equal that request.
   - It validates bounded ASCII names, a three-part numeric version, output path, target kind, and all five execution limits.
   - It rederives the node identity from the exact length-prefixed fields and rejects a forged identity, even when the payload digest is recomputed.

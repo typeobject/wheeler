@@ -219,6 +219,7 @@ Reject noncanonical snapshots, invalid delegations, conflicting mappings, source
 - [x] Wheeler parses strict schema-1 repository snapshots into caller-owned coordinate rows, reproduces empty and populated canonical bytes, and agrees with stage 0 on package order plus stable and prerelease semantic-version precedence. The executable fixture publishes eight rows and rejects a ninth at its declared table bound.
 - [x] Wheeler validates bounded immutable snapshot input before computing and publishing its complete SHA-256 identity. Empty and three-release identities match stage 0; malformed, fourth-release, and oversized inputs leave output untouched. Ed25519 envelope verification and trusted-key policy remain on the native path.
 - [x] Wheeler computes a final archive identity only after payload digest, entry digest, embedded canonical manifest, and exact source closure all pass. The bounded one-file result agrees with stage 0; damaged or oversized input publishes no identity.
+- [x] Wheeler computes a final build-plan identity only after the payload digest and exact node identity rederive. The bounded one-node result agrees with stage 0; damage or oversized input leaves output untouched.
 - [ ] Recipe-complete build-input axes and identity-preserving mirrors remain; local locks are snapshot-bound, but public signed snapshots are not implemented.
 - [ ] Reproducibility normalization passes.
 - [ ] Quarantine and independent attestations implemented.

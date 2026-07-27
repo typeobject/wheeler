@@ -475,6 +475,8 @@ It consumes the payload exactly and rebuilds the length-prefixed `wheeler-build-
 
 Independent stage-0 fixtures cover an empty policy and one package input with one requested and granted capability. The empty-policy run rewinds to the caller-owned input baseline. The suite rejects payload or digest damage, an invalid target kind, and a forged node identity even when the test recomputes the payload digest.
 
+`NativePlanIdentity.w` performs the full payload and node verification before hashing every plan byte. The result matches `BuildPlanCodec.identity` for one canonical tool node and rewinds exactly. A damaged payload digest or input beyond 4,096 bytes leaves output untouched.
+
 This slice does not decode multiple nodes, larger input or capability lists, prereleases, or Unicode strings. It also does not canonically re-encode the model. It is a digest-checked structural inspector, not permission to execute a plan. SHA-256 protects meaning only when the expected digest comes from a trusted source.
 
 ## Wheeler-native archive slice
