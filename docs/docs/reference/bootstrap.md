@@ -64,6 +64,8 @@ Each file argument must point to a physical, nonsymlink file no larger than 16 M
 
 The acceptance argument must point to a closed artifact tree. Its canonical `wheeler.artifact-set.json` must still match every `.wbc` file in that tree. The command checks each input before and after reading it, so a file that changes during hashing causes an error.
 
+`NativeArtifactSetIdentity.w` independently reproduces the domain-separated identity for the bounded bootstrap slice: strict canonical JSON no larger than 4,096 bytes and one through eight sorted safe ASCII `.wbc` paths. It rejects forged embedded identities and publishes only the verified 32-byte digest. It does not open the named artifacts. Physical-file closure, bytecode verification, stable reads, and the 65,535-artifact production ceiling remain the stage-0 command's job until WIP-0032 file traversal and the native verifier replace that boundary. Hashing a shopping list does not prove the groceries exist.
+
 Before it publishes anything, the command:
 
 - strictly decodes the canonical `wheeler.compiler` package archive;

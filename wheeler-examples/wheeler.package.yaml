@@ -83,6 +83,13 @@ targets:
       - "src/main/wheeler/native/packages/NativeArchiveIdentity.w"
     test: false
   - kind: "deployable"
+    name: "nativeartifactsetidentity"
+    root: "src/main/wheeler/native/bootstrap/NativeArtifactSetIdentity.w"
+    module: "examples.bootstrap.artifact_set_identity"
+    sources:
+      - "src/main/wheeler/native/bootstrap/NativeArtifactSetIdentity.w"
+    test: false
+  - kind: "deployable"
     name: "nativebytecodecodec"
     root: "src/main/wheeler/native/NativeBytecodeCodec.w"
     module: "examples.compiler.native_bytecode_codec"

@@ -139,6 +139,14 @@ Covers: Exact source set, sorted imports, qualified calls and value types, priva
 
 Expected result: `result = 18`, `decoded = 9`, `arrayValue = 5`, `arrayRecordValue = 6`, `sliceValue = 15`, `nominalArrayValue = 8`, `nominalSliceValue = 26`, `qualifiedVariant = 1`.
 
+### `NativeArtifactSetIdentity.w`
+
+Files: [`NativeArtifactSetIdentity.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/NativeArtifactSetIdentity.w) + [`crypto/Sha256.w`](../../wheeler-core/src/main/wheeler/crypto/Sha256.w).
+
+Covers: Exact bounded `wheeler.artifact-set/1` JSON, one through eight sorted safe ASCII `.wbc` paths, canonical positive byte counts, lowercase SHA-256 fields, the domain-separated binary identity contract, embedded-identity verification, fail-closed publication, and exact rewind.
+
+Expected behavior: A two-artifact manifest reproduces the stage-0 set identity. Unsorted paths, uppercase digests, forged identities, unknown profile keys, a ninth artifact, or input beyond 4,096 bytes publish nothing. This fixture validates manifest metadata; the stage-0 closed-tree command still verifies every physical `.wbc` before emitting those bytes. A manifest is evidence about files only after somebody checks the files. Film at eleven.
+
 ### `NativeArchive.w`
 
 Files: [`NativeArchive.w`](../../wheeler-examples/src/main/wheeler/native/NativeArchive.w) + [`packages/archive/Archive.w`](../../wheeler-package/src/main/wheeler/packages/archive/Archive.w).

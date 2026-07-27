@@ -292,7 +292,7 @@ wheeler qasm <program.wbc> <output.qasm>
 
 A workspace groups output under `<repository>/build/<member>/...`, such as `build/wheeler-runtime/runtime.wbc`. Running a member package directly finds the adjacent physical `wheeler.workspace.yaml` and uses the same repository-level group. A standalone package uses its own `build/` directory.
 
-`manifest-artifacts` accepts only verified `.wbc` files plus one canonical `wheeler.artifact-set.json`. The set records sorted paths, byte lengths, SHA-256 identities, and a domain-separated set identity. Any unrelated file is an error. Locked dependency outputs live under `dependencies/<package-name>/`, and each workspace member keeps its root package and dependency tree in that member's output directory.
+`manifest-artifacts` accepts only verified `.wbc` files plus one canonical `wheeler.artifact-set.json`. The set records sorted paths, byte lengths, SHA-256 identities, and a domain-separated set identity. Any unrelated file is an error. `NativeArtifactSetIdentity.w` reproduces that identity for canonical manifests up to 4,096 bytes and eight safe ASCII paths; it validates metadata, not the physical tree. Locked dependency outputs live under `dependencies/<package-name>/`, and each workspace member keeps its root package and dependency tree in that member's output directory.
 
 `clean` removes only the default physical `build` tree. It rejects files or symbolic links at any level before deletion begins.
 
