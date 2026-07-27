@@ -2,6 +2,7 @@
 
 module wheeler.compiler.sequences;
 
+import wheeler.compiler.ir;
 import wheeler.compiler.statements;
 import wheeler.compiler.tokens;
 
@@ -9,8 +10,8 @@ classical class StatementSequences {
   /// Defines immutable `StatementSequence` values for this module.
   public record StatementSequence(
     long count,
-    long[16] opcodes,
-    long[16] operands,
+    long[32] opcodes,
+    long[32] operands,
     boolean valid
   ) {}
 
@@ -59,51 +60,17 @@ classical class StatementSequences {
     borrow mut words statementStarts,
     long count
   ) {
-    long[16] absentOpcodes = new long[16](
-      -1,
-      -1,
-      -1,
-      -1,
-      -1,
-      -1,
-      -1,
-      -1,
-      -1,
-      -1,
-      -1,
-      -1,
-      -1,
-      -1,
-      -1,
-      -1
-    );
-    long[16] absentOperands = new long[16](
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    );
+    long[32] absentOpcodes = emptyStatementOpcodes();
+    long[32] absentOperands = emptyStatementOperands();
     if (count < 0) {
       return new StatementSequence(0, absentOpcodes, absentOperands, false);
     }
 
-    if (16 < count) {
+    if (32 < count) {
       return new StatementSequence(0, absentOpcodes, absentOperands, false);
     }
 
-    long[16] opcodes = new long[16](
+    long[32] opcodes = new long[32](
       sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 0),
       sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 1),
       sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 2),
@@ -119,9 +86,25 @@ classical class StatementSequences {
       sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 12),
       sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 13),
       sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 14),
-      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 15)
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 15),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 16),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 17),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 18),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 19),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 20),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 21),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 22),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 23),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 24),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 25),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 26),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 27),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 28),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 29),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 30),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 31)
     );
-    long[16] operands = new long[16](
+    long[32] operands = new long[32](
       sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 0),
       sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 1),
       sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 2),
@@ -137,11 +120,27 @@ classical class StatementSequences {
       sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 12),
       sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 13),
       sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 14),
-      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 15)
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 15),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 16),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 17),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 18),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 19),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 20),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 21),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 22),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 23),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 24),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 25),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 26),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 27),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 28),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 29),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 30),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 31)
     );
 
     long statement = 0;
-    while (statement < count) limit 16 {
+    while (statement < count) limit 32 {
       if (sequenceOperandValid(opcodes[statement], operands[statement]) == false) {
         return new StatementSequence(count, opcodes, operands, false);
       }
@@ -159,7 +158,7 @@ classical class StatementSequences {
     }
 
     long statement = 0;
-    while (statement < sequence.count) limit 16 {
+    while (statement < sequence.count) limit 32 {
       long opcode = sequence.opcodes[statement];
       boolean reversible = opcode == STATEMENT_UPDATE_ADD;
       if (opcode == STATEMENT_UPDATE_SUB) {

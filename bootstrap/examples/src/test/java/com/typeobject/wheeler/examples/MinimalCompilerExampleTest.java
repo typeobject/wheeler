@@ -478,29 +478,29 @@ class MinimalCompilerExampleTest {
         8);
     assertDifferentialExecution(
         writerProgram,
-        "classical class Sixteen { state long value = 0; entry void main() { "
-            + "value += 1; ".repeat(15)
-            + "assert(value == 15); } }",
+        "classical class ThirtyTwo { state long value = 0; entry void main() { "
+            + "value += 1; ".repeat(31)
+            + "assert(value == 31); } }",
         "value",
-        15);
+        31);
     assertDifferentialExecution(
         writerProgram,
-        "classical class SixteenHelper { state long value = 0; public void setup() { "
-            + "value += 1; ".repeat(15)
-            + "assert(value == 15); } entry void main() { setup(); } }",
+        "classical class ThirtyTwoHelper { state long value = 0; public void setup() { "
+            + "value += 1; ".repeat(31)
+            + "assert(value == 31); } entry void main() { setup(); } }",
         "value",
-        15);
+        31);
     assertDifferentialExecution(
         writerProgram,
-        "classical class SixteenReverse { state long value = 0; public rev void raise() { "
-            + "value += 1; ".repeat(16)
+        "classical class ThirtyTwoReverse { state long value = 0; public rev void raise() { "
+            + "value += 1; ".repeat(32)
             + "} entry void main() { raise(); reverse { raise(); } assert(value == 0); } }",
         "value",
         0);
     assertDifferentialHalt(
         writerProgram,
-        "classical class SixteenLocals { entry void main() { "
-            + booleanDeclarations(16)
+        "classical class ThirtyTwoLocals { entry void main() { "
+            + booleanDeclarations(32)
             + "} }");
 
     VirtualMachine duplicate = new VirtualMachine(
@@ -592,26 +592,26 @@ class MinimalCompilerExampleTest {
     assertThrows(VmTrap.class, doubleNegation::run);
     assertArrayEquals(new byte[512], doubleNegation.hostOutput());
 
-    VirtualMachine seventeenthHelperStatement = new VirtualMachine(
+    VirtualMachine thirtyThirdHelperStatement = new VirtualMachine(
         writerProgram,
-        ("classical class SeventeenHelperStatements { state long value = 0; "
+        ("classical class ThirtyThreeHelperStatements { state long value = 0; "
             + "void setup() { "
-            + "value += 1; ".repeat(17)
+            + "value += 1; ".repeat(33)
             + "} entry void main() { setup(); } }")
             .getBytes(StandardCharsets.UTF_8),
         4096);
-    assertThrows(VmTrap.class, seventeenthHelperStatement::run);
-    assertArrayEquals(new byte[4096], seventeenthHelperStatement.hostOutput());
+    assertThrows(VmTrap.class, thirtyThirdHelperStatement::run);
+    assertArrayEquals(new byte[4096], thirtyThirdHelperStatement.hostOutput());
 
-    VirtualMachine seventeenthStatement = new VirtualMachine(
+    VirtualMachine thirtyThirdStatement = new VirtualMachine(
         writerProgram,
-        ("classical class SeventeenLocals { entry void main() { "
-            + booleanDeclarations(17)
+        ("classical class ThirtyThreeLocals { entry void main() { "
+            + booleanDeclarations(33)
             + "} }")
             .getBytes(StandardCharsets.UTF_8),
         4096);
-    assertThrows(VmTrap.class, seventeenthStatement::run);
-    assertArrayEquals(new byte[4096], seventeenthStatement.hostOutput());
+    assertThrows(VmTrap.class, thirtyThirdStatement::run);
+    assertArrayEquals(new byte[4096], thirtyThirdStatement.hostOutput());
 
     VirtualMachine unresolvedLocal = new VirtualMachine(
         writerProgram,

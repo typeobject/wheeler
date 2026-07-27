@@ -49,7 +49,7 @@ classical class Statements {
     long matchedLocal = -1;
     long matchCount = 0;
     long previous = 0;
-    while (previous < previousCount) limit 16 {
+    while (previous < previousCount) limit 32 {
       long previousStart = previousStarts[previous];
       if (0 < previousStart) {
         long previousOpcode = statementOpcode(source, tokenStarts, tokenLengths, previousStart);

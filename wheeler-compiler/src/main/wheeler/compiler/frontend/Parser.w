@@ -42,8 +42,8 @@ classical class Parser {
       statements.operands,
       helper,
       0,
-      new long[16](-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
-      new long[16](0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+      emptyStatementOpcodes(),
+      emptyStatementOperands(),
       0,
       helper,
       0,
@@ -135,7 +135,7 @@ classical class Parser {
     }
 
     long statement = 0;
-    while (statement < statements.count) limit 16 {
+    while (statement < statements.count) limit 32 {
       if (
         noGlobalStatementSupported(
           source,

@@ -9,7 +9,7 @@ classical class BodyParser {
   /// Describes one body scan without lending the caller-owned start table.
   public record BodyScan(long end, long count, boolean valid) {}
 
-  /// Finds zero through sixteen statements ending at one closing brace.
+  /// Finds zero through thirty-two statements ending at one closing brace.
   public BodyScan scanBody(
     borrow utf8 source,
     borrow mut words tokenKinds,
@@ -20,7 +20,7 @@ classical class BodyParser {
   ) {
     long cursor = bodyStart;
     long count = 0;
-    while (count < 16) limit 16 {
+    while (count < 32) limit 32 {
       if (
         punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_CLOSE_BRACE)
       ) {

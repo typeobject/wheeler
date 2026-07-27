@@ -166,12 +166,12 @@ classical class CompilerDriver {
           0,
           0,
           0,
-          new long[16](-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
-          new long[16](0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+          emptyStatementOpcodes(),
+          emptyStatementOperands(),
           scanGlobal,
           0,
-          new long[16](-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
-          new long[16](0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+          emptyStatementOpcodes(),
+          emptyStatementOperands(),
           0,
           scanGlobal,
           0,
@@ -220,12 +220,12 @@ classical class CompilerDriver {
               0,
               0,
               0,
-              new long[16](-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
-              new long[16](0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+              emptyStatementOpcodes(),
+              emptyStatementOperands(),
               parseGlobal,
               0,
-              new long[16](-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
-              new long[16](0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+              emptyStatementOpcodes(),
+              emptyStatementOperands(),
               0,
               parseGlobal,
               0,
@@ -245,11 +245,11 @@ classical class CompilerDriver {
   private long writeSequenceLocalTypes(
     borrow mut bytes output,
     long cursor,
-    long[16] opcodes,
+    long[32] opcodes,
     long count
   ) {
     long index = 0;
-    while (index < count) limit 16 {
+    while (index < count) limit 32 {
       cursor = writeStatementLocalTypes(output, cursor, opcodes[index]);
       index += 1;
     }
@@ -260,13 +260,13 @@ classical class CompilerDriver {
   private long writeSequence(
     borrow mut bytes output,
     long cursor,
-    long[16] opcodes,
-    long[16] operands,
+    long[32] opcodes,
+    long[32] operands,
     long count
   ) {
     long index = 0;
     long localBase = 0;
-    while (index < count) limit 16 {
+    while (index < count) limit 32 {
       cursor = writeStatement(output, cursor, opcodes[index], operands[index], localBase);
       localBase += statementLocalCount(opcodes[index]);
       index += 1;
@@ -278,15 +278,15 @@ classical class CompilerDriver {
   private long writeReversibleSequence(
     borrow mut bytes output,
     long cursor,
-    long[16] opcodes,
-    long[16] operands,
+    long[32] opcodes,
+    long[32] operands,
     long count,
     boolean inverse
   ) {
     long index = 0;
     if (inverse) {
       index = count;
-      while (0 < index) limit 16 {
+      while (0 < index) limit 32 {
         index -= 1;
         cursor = writeInverseGlobalUpdate(output, cursor, opcodes[index], operands[index]);
       }
@@ -294,7 +294,7 @@ classical class CompilerDriver {
       return cursor;
     }
 
-    while (index < count) limit 16 {
+    while (index < count) limit 32 {
       cursor = writeGlobalUpdate(output, cursor, opcodes[index], operands[index]);
       index += 1;
     }
@@ -304,11 +304,11 @@ classical class CompilerDriver {
 
   /// Compiles one bounded bootstrap source into caller-owned artifact storage.
   public Compilation compileMinimal(borrow utf8 source, borrow mut bytes output) {
-    region arena = new region(24720, 5);
+    region arena = new region(24848, 5);
     words tokenKinds = allocate(arena, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(arena, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(arena, MAX_COMPILER_TOKENS);
-    words statementStarts = allocate(arena, 16);
+    words statementStarts = allocate(arena, 32);
     words moduleRange = allocate(arena, 2);
     MinimalProgram program = requireMinimalProgram(
       source,
@@ -344,7 +344,7 @@ classical class CompilerDriver {
     long localCount = 0;
     long codeLength = 8;
     long statementIndex = 0;
-    while (statementIndex < program.statementCount) limit 16 {
+    while (statementIndex < program.statementCount) limit 32 {
       long statementOpcode = program.statementOpcodes[statementIndex];
       localCount += statementLocalCount(statementOpcode);
       codeLength += statementCodeLength(statementOpcode);
@@ -357,7 +357,7 @@ classical class CompilerDriver {
     long helperLocalCount = 0;
     long helperForwardLength = 8;
     long helperStatementIndex = 0;
-    while (helperStatementIndex < program.helperStatementCount) limit 16 {
+    while (helperStatementIndex < program.helperStatementCount) limit 32 {
       long helperOpcode = program.helperOpcodes[helperStatementIndex];
       helperLocalCount += statementLocalCount(helperOpcode);
       helperForwardLength += statementCodeLength(helperOpcode);
