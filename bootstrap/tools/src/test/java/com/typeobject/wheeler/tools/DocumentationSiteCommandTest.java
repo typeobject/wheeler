@@ -51,7 +51,7 @@ class DocumentationSiteCommandTest {
     assertTrue(sitemap.contains("Wheeler content-set-sha256:"));
     assertTrue(sitemap.contains("<loc>https://wheeler.typeobject.com/</loc>"));
     assertTrue(sitemap.contains("<loc>https://wheeler.typeobject.com/proposals/"
-        + "WIP-0031-reversible-quantum-and-effect-polymorphism.html</loc>"));
+        + "WIP-0037-hierarchical-semantic-routine-graphs.html</loc>"));
     String index = Files.readString(first.resolve("index.html"));
     assertTrue(index.startsWith("<!doctype html>"));
     assertTrue(index.contains("Content-Security-Policy"));
@@ -69,7 +69,7 @@ class DocumentationSiteCommandTest {
         < index.indexOf(">Executable examples</a>"));
     assertFalse(index.contains("WIP-XXXX: Short decision title"));
     assertTrue(Files.isRegularFile(first.resolve(
-        "proposals/WIP-0031-reversible-quantum-and-effect-polymorphism.html")));
+        "proposals/WIP-0037-hierarchical-semantic-routine-graphs.html")));
     assertEquals(Files.readString(first.resolve("proposals/index.html")),
         Files.readString(second.resolve("proposals/index.html")));
     assertTrue(output.toString(StandardCharsets.UTF_8)

@@ -125,3 +125,8 @@ Source syntax, generic specialization, class evidence, tests, proofs, packages, 
 | [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md) | Draft | Coherent type classes, associated types, instances, and laws | Classes, evidence, laws, packages |
 | [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md) | Draft | Effect-, reversible-, coherent-, and unitary-polymorphic callables | Effects, callables, reversibility, quantum operations |
 | [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md) | Draft | Unified asynchronous I/O fabric, operation graphs, and durability receipts | I/O, storage, networking, RDMA, durability, quantum workflows |
+| [WIP-0033](WIP-0033-typed-coherent-values-and-reversible-embeddings.md) | Draft | Typed coherent values and explicit reversible embeddings | Language, types, coherent values, quantum IR, proofs |
+| [WIP-0034](WIP-0034-structured-uncomputation-and-clean-ancilla-scopes.md) | Draft | Structured uncomputation and clean ancilla scopes | Language, ownership, uncomputation, ancillas, quantum IR |
+| [WIP-0035](WIP-0035-reversible-and-coherent-control-flow.md) | Draft | Reversible and coherent control flow | Language, control flow, reversibility, coherent control, proofs |
+| [WIP-0036](WIP-0036-symbolic-resource-contracts-and-compositional-cost-evidence.md) | Draft | Symbolic resource contracts and compositional cost evidence | Language, resource bounds, proofs, quantum planning, diagnostics |
+| [WIP-0037](WIP-0037-hierarchical-semantic-routine-graphs.md) | Draft | Hierarchical semantic routine graphs and verified transformations | IR, bytecode, routines, transformations, resource analysis, tooling |
