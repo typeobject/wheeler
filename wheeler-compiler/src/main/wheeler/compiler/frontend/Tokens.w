@@ -112,6 +112,14 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_LONG_SUB_LOCALS_BASE = 3584;
   /// Starts resolved checked XOR opcodes for two prior signed locals.
   public const long STATEMENT_LOCAL_LONG_XOR_LOCALS_BASE = 3840;
+  /// Names an unresolved Boolean declaration initialized from a prior local.
+  public const long STATEMENT_LOCAL_BOOLEAN_NAMED = 783;
+  /// Starts resolved Boolean-local copy opcodes.
+  public const long STATEMENT_LOCAL_BOOLEAN_COPY_BASE = 4096;
+  /// Names an unresolved negated prior-Boolean declaration.
+  public const long STATEMENT_LOCAL_BOOLEAN_NOT_NAMED = 784;
+  /// Starts resolved negated Boolean-local declaration opcodes.
+  public const long STATEMENT_LOCAL_BOOLEAN_NOT_BASE = 4352;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -301,10 +309,28 @@ classical class Tokens {
 
     if (keyword == TOKEN_BOOLEAN) {
       if (utf8Scalar(source, tokenStarts[statementStart + 3]) == PUNCTUATION_BANG) {
-        return STATEMENT_LOCAL_BOOLEAN_NOT;
+        long negated = tokenHash(source, tokenStarts, tokenLengths, statementStart + 4);
+        if (negated == TOKEN_TRUE) {
+          return STATEMENT_LOCAL_BOOLEAN_NOT;
+        }
+
+        if (negated == TOKEN_FALSE) {
+          return STATEMENT_LOCAL_BOOLEAN_NOT;
+        }
+
+        return STATEMENT_LOCAL_BOOLEAN_NOT_NAMED;
       }
 
-      return STATEMENT_LOCAL_BOOLEAN;
+      long booleanInitializer = tokenHash(source, tokenStarts, tokenLengths, statementStart + 3);
+      if (booleanInitializer == TOKEN_TRUE) {
+        return STATEMENT_LOCAL_BOOLEAN;
+      }
+
+      if (booleanInitializer == TOKEN_FALSE) {
+        return STATEMENT_LOCAL_BOOLEAN;
+      }
+
+      return STATEMENT_LOCAL_BOOLEAN_NAMED;
     }
 
     long operator = utf8Scalar(source, tokenStarts[statementStart + 1]);

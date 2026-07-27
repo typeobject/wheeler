@@ -53,7 +53,15 @@ classical class LocalStatements {
       return true;
     }
 
-    return opcode == STATEMENT_LOCAL_BOOLEAN_NOT;
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_LOCAL_BOOLEAN_NOT_NAMED;
   }
 
   private long resolvePriorDeclaration(
@@ -119,6 +127,24 @@ classical class LocalStatements {
     }
 
     return opcode < STATEMENT_LOCAL_LONG_COPY_BASE + 256;
+  }
+
+  /// Checks whether an opcode carries one resolved Boolean-local copy source.
+  public boolean resolvedLocalBooleanCopy(long opcode) {
+    if (opcode < STATEMENT_LOCAL_BOOLEAN_COPY_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_BOOLEAN_COPY_BASE + 256;
+  }
+
+  /// Checks whether an opcode carries one resolved negated Boolean-local source.
+  public boolean resolvedLocalBooleanNot(long opcode) {
+    if (opcode < STATEMENT_LOCAL_BOOLEAN_NOT_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_BOOLEAN_NOT_BASE + 256;
   }
 
   /// Checks whether an opcode carries a resolved signed-local binary source.
@@ -261,6 +287,40 @@ classical class LocalStatements {
       return -1;
     }
 
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NAMED) {
+      long booleanSourceLocal = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3,
+        false
+      );
+      if (-1 < booleanSourceLocal) {
+        return STATEMENT_LOCAL_BOOLEAN_COPY_BASE + booleanSourceLocal;
+      }
+
+      return -1;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT_NAMED) {
+      long negatedSourceLocal = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 4,
+        false
+      );
+      if (-1 < negatedSourceLocal) {
+        return STATEMENT_LOCAL_BOOLEAN_NOT_BASE + negatedSourceLocal;
+      }
+
+      return -1;
+    }
+
     return opcode;
   }
 
@@ -295,6 +355,14 @@ classical class LocalStatements {
       return 0;
     }
 
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NAMED) {
+      return 0;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT_NAMED) {
+      return 0;
+    }
+
     if (namedLongPair(opcode)) {
       return resolvePriorDeclaration(
         source,
@@ -324,6 +392,14 @@ classical class LocalStatements {
 
   /// Returns the typed-local width required by one parsed statement.
   public long statementLocalCount(long opcode) {
+    if (resolvedLocalBooleanCopy(opcode)) {
+      return 2;
+    }
+
+    if (resolvedLocalBooleanNot(opcode)) {
+      return 4;
+    }
+
     if (resolvedLocalLongAssertion(opcode)) {
       return 3;
     }
@@ -380,7 +456,15 @@ classical class LocalStatements {
       return 2;
     }
 
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NAMED) {
+      return 2;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT) {
+      return 4;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT_NAMED) {
       return 4;
     }
 
@@ -425,7 +509,15 @@ classical class LocalStatements {
       return localBase + 1;
     }
 
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NAMED) {
+      return localBase + 1;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT) {
+      return localBase + 3;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT_NAMED) {
       return localBase + 3;
     }
 

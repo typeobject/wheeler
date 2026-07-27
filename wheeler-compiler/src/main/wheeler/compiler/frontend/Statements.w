@@ -360,7 +360,12 @@ classical class Statements {
       return -1;
     }
 
-    if (statementKind == STATEMENT_LOCAL_BOOLEAN) {
+    boolean booleanDeclaration = statementKind == STATEMENT_LOCAL_BOOLEAN;
+    if (statementKind == STATEMENT_LOCAL_BOOLEAN_NAMED) {
+      booleanDeclaration = true;
+    }
+
+    if (booleanDeclaration) {
       if (tokenKinds[statementStart + 1] == 1) {
         if (
           punctuationAt(
@@ -371,6 +376,24 @@ classical class Statements {
             PUNCTUATION_ASSIGN
           )
         ) {
+          if (statementKind == STATEMENT_LOCAL_BOOLEAN_NAMED) {
+            if (tokenKinds[statementStart + 3] == 1) {
+              if (
+                punctuationAt(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  statementStart + 4,
+                  PUNCTUATION_SEMICOLON
+                )
+              ) {
+                return 5;
+              }
+            }
+
+            return -1;
+          }
+
           // `true` and `false` use the same stable token hash as every keyword.
           long booleanLiteralHash = tokenHash(
             source,
@@ -411,7 +434,12 @@ classical class Statements {
       return -1;
     }
 
-    if (statementKind == STATEMENT_LOCAL_BOOLEAN_NOT) {
+    boolean negatedBooleanDeclaration = statementKind == STATEMENT_LOCAL_BOOLEAN_NOT;
+    if (statementKind == STATEMENT_LOCAL_BOOLEAN_NOT_NAMED) {
+      negatedBooleanDeclaration = true;
+    }
+
+    if (negatedBooleanDeclaration) {
       if (tokenKinds[statementStart + 1] == 1) {
         if (
           punctuationAt(
@@ -431,6 +459,24 @@ classical class Statements {
               PUNCTUATION_BANG
             )
           ) {
+            if (statementKind == STATEMENT_LOCAL_BOOLEAN_NOT_NAMED) {
+              if (tokenKinds[statementStart + 4] == 1) {
+                if (
+                  punctuationAt(
+                    source,
+                    tokenKinds,
+                    tokenStarts,
+                    statementStart + 5,
+                    PUNCTUATION_SEMICOLON
+                  )
+                ) {
+                  return 6;
+                }
+              }
+
+              return -1;
+            }
+
             long negatedLiteralHash = tokenHash(
               source,
               tokenStarts,

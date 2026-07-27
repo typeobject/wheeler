@@ -200,6 +200,14 @@ class MinimalCompilerExampleTest {
             + "boolean ready = !false; assert(ready); } }");
     assertDifferentialHalt(
         writerProgram,
+        "classical class LocalTruthCopy { entry void main() { "
+            + "boolean first = true; boolean second = first; assert(second); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class LocalTruthNot { entry void main() { "
+            + "boolean first = false; boolean second = !first; assert(second); } }");
+    assertDifferentialHalt(
+        writerProgram,
         "classical class FifthLocal { entry void main() { "
             + "boolean first = false; boolean second = false; boolean third = false; "
             + "boolean fourth = true; assert(fourth); } }");
@@ -661,6 +669,22 @@ class MinimalCompilerExampleTest {
         8192);
     assertThrows(VmTrap.class, sixtyFifthStatement::run);
     assertArrayEquals(new byte[8192], sixtyFifthStatement.hostOutput());
+
+    VirtualMachine unresolvedBooleanCopy = new VirtualMachine(
+        writerProgram,
+        "classical class UnknownBooleanCopy { entry void main() { boolean result = missing; } }"
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, unresolvedBooleanCopy::run);
+    assertArrayEquals(new byte[512], unresolvedBooleanCopy.hostOutput());
+
+    VirtualMachine unresolvedBooleanNot = new VirtualMachine(
+        writerProgram,
+        "classical class UnknownBooleanNot { entry void main() { boolean result = !missing; } }"
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, unresolvedBooleanNot::run);
+    assertArrayEquals(new byte[512], unresolvedBooleanNot.hostOutput());
 
     VirtualMachine unresolvedSignedCopy = new VirtualMachine(
         writerProgram,
