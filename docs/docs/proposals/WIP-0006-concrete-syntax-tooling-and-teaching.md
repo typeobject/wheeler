@@ -128,7 +128,7 @@ The compiler bounds input bytes and characters, token and line counts, token wid
 
 - [x] Compiler lexer records line, column, and offset and exposes one authoritative lossless token/trivia/comment range stream with exact reconstruction; syntax-node attachment and formatting remain WIP-0016.
 - [x] Compiler parsing is formatting-independent.
-- [x] The Wheeler-native compiler accepts one canonical dotted `module` header and emits the same qualified entry/helper identities as stage 0. Malformed headers fail before publication; imports and module proofs remain part of the wider self-hosting module work.
+- [x] The Wheeler-native compiler accepts one canonical dotted `module` header and emits the same qualified entry/helper and unqualified theorem identities as stage 0. Malformed headers fail before publication; imports and multi-file linking remain part of the wider self-hosting module work.
 - [x] Tree-sitter grammar, corpus, highlights, and folds exist.
 - [x] The Gradle/CI gate runs both compiler and Tree-sitter corpus tests.
 - [x] The implemented syntax and teaching path are published in reference documentation.

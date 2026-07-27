@@ -61,6 +61,17 @@ class MinimalCompilerExampleTest {
         new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
             Map.of("ModuleHelper.w", helperModuleSource), "examples.seed")),
         helperModuleWriter.hostOutput());
+    String proofModuleSource = "module examples.seed; classical class ModuleProof { "
+        + "state long value = 1; rev void bump() { value += 2; } "
+        + "theorem bumpInverse proves inverse(bump); "
+        + "entry void main() { bump(); reverse { bump(); } } }";
+    VirtualMachine proofModuleWriter = new VirtualMachine(
+        writerProgram, proofModuleSource.getBytes(StandardCharsets.UTF_8), 1024);
+    proofModuleWriter.run();
+    assertArrayEquals(
+        new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
+            Map.of("ModuleProof.w", proofModuleSource), "examples.seed")),
+        proofModuleWriter.hostOutput());
     VirtualMachine malformedModule = new VirtualMachine(
         writerProgram,
         ("module examples.; " + source).getBytes(StandardCharsets.UTF_8),

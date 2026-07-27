@@ -359,12 +359,12 @@ classical class StringTable {
         program.proofName.start,
         proofLength
       );
-      long proofHelperOrder = compareAsciiSlices(
+      long proofHelperOrder = 0 - compareAsciiSliceToHelper(
         source,
-        program.helperName.start,
-        helperLength,
         program.proofName.start,
-        proofLength
+        proofLength,
+        moduleName,
+        program.helperName
       );
       long proofMainOrder = compareAsciiSliceToEntry(
         source,
@@ -414,6 +414,9 @@ classical class StringTable {
 
       stringCount = 5;
       encodedLength = 28 + nameLength + globalLength + helperLength + proofLength + entryExtra;
+      if (0 < moduleName.length) {
+        encodedLength += moduleName.length + 2;
+      }
     }
 
     return new StringTablePlan(

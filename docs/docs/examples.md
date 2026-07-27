@@ -41,7 +41,7 @@ Expected behavior:
 
 - Input `classical class LongClass { state long value = 7; entry void main() { value += 5; } }` drives global and instruction IR, canonical lexical string ordering, function descriptors, and layout.
 - The 504-byte result passes Wheeler's header/directory/payload/instruction-stream verifier, including global/local/type/call operand domains, matches stage 0, and executes with `value = 12`.
-- Canonical `module examples.seed;` input emits stage-0-identical `examples.seed::main` and helper strings. A malformed dotted header fails before output; module imports and proofs remain outside this bounded path.
+- Canonical `module examples.seed;` input emits stage-0-identical qualified entry/helper strings and unqualified theorem names. A malformed dotted header fails before output; module imports and multi-file linking remain outside this bounded path.
 - `verification = 1`.
 - The differential suite covers no-global classes with zero to sixteen statements; a seventeenth statement is rejected before output.
 - Cases include signed and Boolean locals, literal or prior-local truth assertions, stateful updates, helper calls, reversible helpers, reverse blocks, and generated-inverse theorems.

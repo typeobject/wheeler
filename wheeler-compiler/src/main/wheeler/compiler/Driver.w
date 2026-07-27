@@ -319,12 +319,6 @@ classical class CompilerDriver {
       moduleRange
     );
     SourceRange moduleName = new SourceRange(moduleRange[0], moduleRange[1]);
-    if (0 < moduleName.length) {
-      if (program.proofCount == 1) {
-        assert(0 == 1);
-      }
-    }
-
     StringTablePlan strings = planStringTable(source, program, moduleName);
     if (strings.valid == 0) {
       assert(0 == 1);
