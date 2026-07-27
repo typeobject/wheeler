@@ -29,6 +29,24 @@ final class DocumentationStyleTest {
       Pattern.CASE_INSENSITIVE);
 
   @Test
+  void reportsMechanicalStyleFailuresWithoutReadingCodeExamples() {
+    List<String> diagnostics = new ArrayList<>();
+    check(
+        Path.of("Bad.md"),
+        "The tool was built by magic; let's explore it — slowly.\n"
+            + "```wheeler\nvalue; // code keeps its syntax — yes\n```\n",
+        diagnostics);
+
+    assertEquals(
+        List.of(
+            "Bad.md:1: WSTYLE001 replace the prose semicolon",
+            "Bad.md:1: WSTYLE002 replace the prose dash",
+            "Bad.md:1: WSTYLE003 remove filler language",
+            "Bad.md:1: WSTYLE004 name the actor first"),
+        diagnostics);
+  }
+
+  @Test
   void maintainedDocumentationUsesDirectProse() throws Exception {
     List<Path> files = new ArrayList<>(FILES);
     try (var paths = Files.walk(Path.of("docs/docs"))) {
