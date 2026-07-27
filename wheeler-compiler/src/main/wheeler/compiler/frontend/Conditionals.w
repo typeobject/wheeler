@@ -92,12 +92,20 @@ classical class Conditionals {
     }
 
     long operandWidth = signedNumberWidth(source, tokenKinds, tokenStarts, operandToken);
+    if (namedLocalConditionalAssignmentValue(statementKind)) {
+      if (tokenKinds[operandToken] == 1) {
+        operandWidth = 1;
+      }
+    }
+
     if (operandWidth < 1) {
       return -1;
     }
 
-    if (signedNumberValid(source, tokenStarts, tokenLengths, operandToken) == false) {
-      return -1;
+    if (namedLocalConditionalAssignmentValue(statementKind) == false) {
+      if (signedNumberValid(source, tokenStarts, tokenLengths, operandToken) == false) {
+        return -1;
+      }
     }
 
     if (

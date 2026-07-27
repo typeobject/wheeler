@@ -409,7 +409,12 @@ classical class Codegen {
       cursor = writeInstructionHeader(output, cursor, OPCODE_JUMP_IF_ZERO, 2);
       cursor = writeUnsignedLittleEndian(output, cursor, guardLocal, 8);
       cursor = writeUnsignedLittleEndian(output, cursor, endInstruction, 8);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, 2);
+      long valueOpcode = OPCODE_LOCAL_CONST;
+      if (resolvedLocalConditionalAssignmentValue(opcode)) {
+        valueOpcode = OPCODE_LOCAL_MOVE;
+      }
+
+      cursor = writeInstructionHeader(output, cursor, valueOpcode, 2);
       cursor = writeUnsignedLittleEndian(output, cursor, valueLocal, 8);
       cursor = writeSignedLittleEndian(output, cursor, operand, 8);
       if (assignment) {

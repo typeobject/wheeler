@@ -198,6 +198,14 @@ classical class Tokens {
   public const long STATEMENT_IF_LOCAL_ASSIGN_BASE = 9216;
   /// Starts resolved negated local conditions guarding global assignment.
   public const long STATEMENT_IF_NOT_LOCAL_ASSIGN_BASE = 9472;
+  /// Names a local condition assigning a prior signed local to global state.
+  public const long STATEMENT_IF_LOCAL_ASSIGN_VALUE_NAMED = 803;
+  /// Names a negated condition assigning a prior signed local to global state.
+  public const long STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_NAMED = 804;
+  /// Starts resolved local conditions assigning prior signed locals.
+  public const long STATEMENT_IF_LOCAL_ASSIGN_VALUE_BASE = 9728;
+  /// Starts resolved negated conditions assigning prior signed locals.
+  public const long STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_BASE = 9984;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -400,6 +408,15 @@ classical class Tokens {
       }
 
       if (conditionalOperator == PUNCTUATION_ASSIGN) {
+        long conditionalRightScalar = utf8Scalar(source, tokenStarts[operatorToken + 1]);
+        if (identifierStart(conditionalRightScalar)) {
+          if (negatedCondition) {
+            return STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_NAMED;
+          }
+
+          return STATEMENT_IF_LOCAL_ASSIGN_VALUE_NAMED;
+        }
+
         if (negatedCondition) {
           return STATEMENT_IF_NOT_LOCAL_ASSIGN_NAMED;
         }

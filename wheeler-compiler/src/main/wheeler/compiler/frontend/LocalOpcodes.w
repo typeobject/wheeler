@@ -85,7 +85,15 @@ classical class LocalOpcodes {
       return true;
     }
 
-    return opcode == STATEMENT_IF_NOT_LOCAL_ASSIGN_NAMED;
+    if (opcode == STATEMENT_IF_NOT_LOCAL_ASSIGN_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_IF_LOCAL_ASSIGN_VALUE_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_NAMED;
   }
 
   /// Checks whether a named local condition negates its Boolean source.
@@ -102,7 +110,11 @@ classical class LocalOpcodes {
       return true;
     }
 
-    return opcode == STATEMENT_IF_NOT_LOCAL_ASSIGN_NAMED;
+    if (opcode == STATEMENT_IF_NOT_LOCAL_ASSIGN_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_NAMED;
   }
 
   /// Checks whether a named local condition guards assignment.
@@ -111,7 +123,24 @@ classical class LocalOpcodes {
       return true;
     }
 
-    return opcode == STATEMENT_IF_NOT_LOCAL_ASSIGN_NAMED;
+    if (opcode == STATEMENT_IF_NOT_LOCAL_ASSIGN_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_IF_LOCAL_ASSIGN_VALUE_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_NAMED;
+  }
+
+  /// Checks whether a named local condition assigns another local.
+  public boolean namedLocalConditionalAssignmentValue(long opcode) {
+    if (opcode == STATEMENT_IF_LOCAL_ASSIGN_VALUE_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_NAMED;
   }
 
   /// Checks whether an opcode carries a resolved two-local equality assertion.
@@ -236,7 +265,7 @@ classical class LocalOpcodes {
       return false;
     }
 
-    return opcode < STATEMENT_IF_NOT_LOCAL_ASSIGN_BASE + 256;
+    return opcode < STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_BASE + 256;
   }
 
   /// Checks whether a resolved local condition negates its Boolean source.
@@ -253,7 +282,15 @@ classical class LocalOpcodes {
       return false;
     }
 
-    return opcode < STATEMENT_IF_NOT_LOCAL_ASSIGN_BASE + 256;
+    if (opcode < STATEMENT_IF_NOT_LOCAL_ASSIGN_BASE + 256) {
+      return true;
+    }
+
+    if (opcode < STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_BASE + 256;
   }
 
   /// Checks whether a resolved local condition guards assignment.
@@ -262,7 +299,16 @@ classical class LocalOpcodes {
       return false;
     }
 
-    return opcode < STATEMENT_IF_NOT_LOCAL_ASSIGN_BASE + 256;
+    return opcode < STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_BASE + 256;
+  }
+
+  /// Checks whether a resolved condition assigns a prior signed local.
+  public boolean resolvedLocalConditionalAssignmentValue(long opcode) {
+    if (opcode < STATEMENT_IF_LOCAL_ASSIGN_VALUE_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_BASE + 256;
   }
 
   /// Checks whether a resolved local condition guards subtraction.
@@ -325,7 +371,15 @@ classical class LocalOpcodes {
       return opcode - STATEMENT_IF_LOCAL_ASSIGN_BASE;
     }
 
-    return opcode - STATEMENT_IF_NOT_LOCAL_ASSIGN_BASE;
+    if (opcode < STATEMENT_IF_LOCAL_ASSIGN_VALUE_BASE) {
+      return opcode - STATEMENT_IF_NOT_LOCAL_ASSIGN_BASE;
+    }
+
+    if (opcode < STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_BASE) {
+      return opcode - STATEMENT_IF_LOCAL_ASSIGN_VALUE_BASE;
+    }
+
+    return opcode - STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_BASE;
   }
 
   /// Checks whether an opcode carries a resolved signed-local binary source.

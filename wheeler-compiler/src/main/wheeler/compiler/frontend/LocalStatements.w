@@ -310,6 +310,14 @@ classical class LocalStatements {
           conditionalBase = STATEMENT_IF_NOT_LOCAL_ASSIGN_BASE;
         }
 
+        if (opcode == STATEMENT_IF_LOCAL_ASSIGN_VALUE_NAMED) {
+          conditionalBase = STATEMENT_IF_LOCAL_ASSIGN_VALUE_BASE;
+        }
+
+        if (opcode == STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_NAMED) {
+          conditionalBase = STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_BASE;
+        }
+
         return conditionalBase + conditionalSourceLocal;
       }
 
@@ -434,6 +442,10 @@ classical class LocalStatements {
       return -1 < operand;
     }
 
+    if (resolvedLocalConditionalAssignmentValue(opcode)) {
+      return -1 < operand;
+    }
+
     return true;
   }
 
@@ -447,6 +459,18 @@ classical class LocalStatements {
     long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (namedLocalConditionalAssignmentValue(opcode)) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementOperandToken(source, tokenStarts, tokenLengths, statementStart),
+        true
+      );
+    }
+
     if (opcode == STATEMENT_ASSERT_LONG_LT_NAMED) {
       return resolvePriorDeclaration(
         source,
