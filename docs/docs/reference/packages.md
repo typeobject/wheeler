@@ -425,7 +425,9 @@ Each modular target may have a bounded nonempty source list. Every selector is c
 
 `ManifestEmitter.w` publishes the exact validated canonical bytes and emits no prefix after failure. The `demo.native` fixture covers two targets, a modular source pair, two dependencies, two capabilities, all three header ranges, and exact rewind. A generated manifest with empty dependency and capability sections fills all eight target slots and passes the independent stage-0 parser. A ninth target fails before publication.
 
-Wrong schemas or kinds, test-selected libraries, bad names or paths, unsorted selectors, and selector sets that miss the root also fail closed. The parser loops allow at most 512 targets, dependencies, or capabilities and 1,024 selectors under the 4,096-byte native recovery input profile. The wider stage-0 limits still need larger scanner and I/O buffers, owned decoded values, and computed identities.
+Wrong schemas or kinds, test-selected libraries, bad names or paths, unsorted selectors, and selector sets that miss the root also fail closed. The parser loops allow at most 512 targets, dependencies, or capabilities and 1,024 selectors under the 4,096-byte native recovery input profile.
+
+`NativeManifestIdentity.w` validates at most 1,024 binary input bytes through an owned strict-UTF-8 view before publishing Wheeler SHA-256. Its table admits one target and one row in each optional section. The canonical one-tool fixture matches the stage-0 manifest identity and rewinds exactly; a second target, malformed schema, or oversized input leaves the digest output empty. Wider stage-0 limits still need larger scanner, I/O, and caller tables.
 
 ## Wheeler-native repository snapshot slice
 

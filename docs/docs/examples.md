@@ -302,6 +302,14 @@ Expected behavior:
 - Empty trailing sections and a generated eight-target manifest pass the independent stage-0 parser, while a ninth target exhausts the fixture table.
 - Wrong schema/kind, test-selected library, malformed name/path, unsorted source selectors, or selectors that omit the root trap before publication.
 
+### `NativeManifestIdentity.w`
+
+Files: [`NativeManifestIdentity.w`](../../wheeler-examples/src/main/wheeler/native/packages/NativeManifestIdentity.w) + [`packages/manifest/Manifest.w`](../../wheeler-package/src/main/wheeler/packages/manifest/Manifest.w) + [`crypto/Sha256.w`](../../wheeler-core/src/main/wheeler/crypto/Sha256.w).
+
+Covers: Bounded binary manifest input, strict UTF-8 ownership, complete canonical validation, Wheeler SHA-256, stage-0 differential identity, fail-closed publication, and exact rewind.
+
+Expected behavior: One canonical tool target produces the same manifest identity as stage 0. A second target exceeds this fixture's table, schema 2 remains the wrong schema, and 1,025 bytes exceed the declared input budget; none receives a participation digest.
+
 ### `LongMap.w`
 
 Files: [`LongMap.w`](../../wheeler-examples/src/main/wheeler/classical/data/LongMap.w) + [`collections/LongMap.w`](../../wheeler-core/src/main/wheeler/collections/LongMap.w).

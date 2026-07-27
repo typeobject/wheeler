@@ -118,6 +118,13 @@ targets:
       - "src/main/wheeler/native/NativeManifest.w"
     test: false
   - kind: "deployable"
+    name: "nativemanifestidentity"
+    root: "src/main/wheeler/native/packages/NativeManifestIdentity.w"
+    module: "examples.packages.manifest_identity"
+    sources:
+      - "src/main/wheeler/native/packages/NativeManifestIdentity.w"
+    test: false
+  - kind: "deployable"
     name: "nativeplan"
     root: "src/main/wheeler/native/NativePlan.w"
     module: "examples.packages.plan_main"
