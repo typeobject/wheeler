@@ -128,6 +128,10 @@ classical class Parser {
       supported = true;
     }
 
+    if (opcode == STATEMENT_LOCAL_LONG_LT_NAMED) {
+      supported = true;
+    }
+
     if (opcode == STATEMENT_ASSERT_BOOLEAN) {
       supported = true;
     }

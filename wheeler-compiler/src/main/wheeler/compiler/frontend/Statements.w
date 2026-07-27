@@ -369,6 +369,10 @@ classical class Statements {
       booleanDeclaration = true;
     }
 
+    if (statementKind == STATEMENT_LOCAL_LONG_LT_NAMED) {
+      booleanDeclaration = true;
+    }
+
     if (booleanDeclaration) {
       if (tokenKinds[statementStart + 1] == 1) {
         if (
@@ -380,6 +384,36 @@ classical class Statements {
             PUNCTUATION_ASSIGN
           )
         ) {
+          if (statementKind == STATEMENT_LOCAL_LONG_LT_NAMED) {
+            if (tokenKinds[statementStart + 3] == 1) {
+              if (
+                punctuationAt(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  statementStart + 4,
+                  PUNCTUATION_LESS_THAN
+                )
+              ) {
+                if (tokenKinds[statementStart + 5] == 1) {
+                  if (
+                    punctuationAt(
+                      source,
+                      tokenKinds,
+                      tokenStarts,
+                      statementStart + 6,
+                      PUNCTUATION_SEMICOLON
+                    )
+                  ) {
+                    return 7;
+                  }
+                }
+              }
+            }
+
+            return -1;
+          }
+
           if (statementKind == STATEMENT_LOCAL_BOOLEAN_EQ_NAMED) {
             if (tokenKinds[statementStart + 3] == 1) {
               if (

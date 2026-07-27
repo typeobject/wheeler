@@ -126,6 +126,10 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_BOOLEAN_EQ_BASE = 4608;
   /// Starts resolved equality declarations over prior signed locals.
   public const long STATEMENT_LOCAL_LONG_EQ_BASE = 4864;
+  /// Names an unresolved less-than declaration over two prior signed locals.
+  public const long STATEMENT_LOCAL_LONG_LT_NAMED = 786;
+  /// Starts resolved less-than declarations over prior signed locals.
+  public const long STATEMENT_LOCAL_LONG_LT_BASE = 5120;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -147,6 +151,8 @@ classical class Tokens {
   public const long PUNCTUATION_MINUS = 45;
   /// Names the ASCII `;` punctuation scalar.
   public const long PUNCTUATION_SEMICOLON = 59;
+  /// Names the ASCII `<` punctuation scalar.
+  public const long PUNCTUATION_LESS_THAN = 60;
   /// Names the ASCII `=` punctuation scalar.
   public const long PUNCTUATION_ASSIGN = 61;
   /// Names the ASCII `^` punctuation scalar.
@@ -341,6 +347,10 @@ classical class Tokens {
         if (utf8Scalar(source, tokenStarts[statementStart + 5]) == PUNCTUATION_ASSIGN) {
           return STATEMENT_LOCAL_BOOLEAN_EQ_NAMED;
         }
+      }
+
+      if (equality == PUNCTUATION_LESS_THAN) {
+        return STATEMENT_LOCAL_LONG_LT_NAMED;
       }
 
       return STATEMENT_LOCAL_BOOLEAN_NAMED;

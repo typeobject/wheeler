@@ -9,6 +9,29 @@ import wheeler.compiler.tokens;
 import wheeler.compiler.type_codes;
 
 classical class Codegen {
+  private long writeLocalComparison(
+    borrow mut bytes output,
+    long cursor,
+    long sourceLocal,
+    long rightLocal,
+    long localBase,
+    long comparisonOpcode
+  ) {
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
+    cursor = writeUnsignedLittleEndian(output, cursor, sourceLocal, 8);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
+    cursor = writeUnsignedLittleEndian(output, cursor, rightLocal, 8);
+    cursor = writeInstructionHeader(output, cursor, comparisonOpcode, 3);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, 8);
+    return writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
+  }
+
   /// Maps a parsed global update to its canonical bytecode opcode.
   public long globalOpcode(long opcode) {
     if (opcode == STATEMENT_UPDATE_ADD) {
@@ -38,9 +61,18 @@ classical class Codegen {
   /// Writes canonical local type codes for one parsed statement.
   public long writeStatementLocalTypes(borrow mut bytes output, long cursor, long opcode) {
     long count = statementLocalCount(opcode);
-    if (resolvedLocalEquality(opcode)) {
+    boolean comparison = resolvedLocalEquality(opcode);
+    if (resolvedLocalLongLessThan(opcode)) {
+      comparison = true;
+    }
+
+    if (comparison) {
       long sourceType = TYPE_BOOLEAN;
       if (resolvedLocalEqualitySigned(opcode)) {
+        sourceType = TYPE_SIGNED;
+      }
+
+      if (resolvedLocalLongLessThan(opcode)) {
         sourceType = TYPE_SIGNED;
       }
 
@@ -96,6 +128,10 @@ classical class Codegen {
 
   /// Returns the encoded byte width of one parsed statement.
   public long statementCodeLength(long opcode) {
+    if (resolvedLocalLongLessThan(opcode)) {
+      return 104;
+    }
+
     if (resolvedLocalEquality(opcode)) {
       return 104;
     }
@@ -210,20 +246,25 @@ classical class Codegen {
     }
 
     if (resolvedLocalEquality(opcode)) {
-      long equalitySourceLocal = resolvedLocalEqualitySource(opcode);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
-      cursor = writeUnsignedLittleEndian(output, cursor, equalitySourceLocal, 8);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
-      cursor = writeUnsignedLittleEndian(output, cursor, operand, 8);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_EQ, 3);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, 8);
-      return writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
+      return writeLocalComparison(
+        output,
+        cursor,
+        resolvedLocalEqualitySource(opcode),
+        operand,
+        localBase,
+        OPCODE_LOCAL_EQ
+      );
+    }
+
+    if (resolvedLocalLongLessThan(opcode)) {
+      return writeLocalComparison(
+        output,
+        cursor,
+        opcode - STATEMENT_LOCAL_LONG_LT_BASE,
+        operand,
+        localBase,
+        OPCODE_LOCAL_LT
+      );
     }
 
     if (resolvedLocalBooleanCopy(opcode)) {

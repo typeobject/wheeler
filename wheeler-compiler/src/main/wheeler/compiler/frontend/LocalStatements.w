@@ -65,7 +65,11 @@ classical class LocalStatements {
       return true;
     }
 
-    return opcode == STATEMENT_LOCAL_BOOLEAN_EQ_NAMED;
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_EQ_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_LOCAL_LONG_LT_NAMED;
   }
 
   private long resolvePriorDeclaration(
@@ -176,6 +180,15 @@ classical class LocalStatements {
     }
 
     return opcode - STATEMENT_LOCAL_BOOLEAN_EQ_BASE;
+  }
+
+  /// Checks whether an opcode carries a resolved signed less-than left source.
+  public boolean resolvedLocalLongLessThan(long opcode) {
+    if (opcode < STATEMENT_LOCAL_LONG_LT_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_LONG_LT_BASE + 256;
   }
 
   /// Checks whether an opcode carries a resolved signed-local binary source.
@@ -318,6 +331,23 @@ classical class LocalStatements {
       return -1;
     }
 
+    if (opcode == STATEMENT_LOCAL_LONG_LT_NAMED) {
+      long lessThanSourceLocal = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3,
+        true
+      );
+      if (-1 < lessThanSourceLocal) {
+        return STATEMENT_LOCAL_LONG_LT_BASE + lessThanSourceLocal;
+      }
+
+      return -1;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN_EQ_NAMED) {
       long equalitySignedLeft = resolvePriorDeclaration(
         source,
@@ -407,6 +437,10 @@ classical class LocalStatements {
       return -1 < operand;
     }
 
+    if (resolvedLocalLongLessThan(opcode)) {
+      return -1 < operand;
+    }
+
     return true;
   }
 
@@ -420,6 +454,18 @@ classical class LocalStatements {
     long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (opcode == STATEMENT_LOCAL_LONG_LT_NAMED) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 5,
+        true
+      );
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN_EQ_NAMED) {
       long operandSignedLeft = resolvePriorDeclaration(
         source,
@@ -525,7 +571,15 @@ classical class LocalStatements {
       return 4;
     }
 
+    if (resolvedLocalLongLessThan(opcode)) {
+      return 4;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN_EQ_NAMED) {
+      return 4;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_LT_NAMED) {
       return 4;
     }
 
@@ -651,6 +705,10 @@ classical class LocalStatements {
     }
 
     if (opcode == STATEMENT_LOCAL_BOOLEAN_EQ_NAMED) {
+      return localBase + 3;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_LT_NAMED) {
       return localBase + 3;
     }
 
