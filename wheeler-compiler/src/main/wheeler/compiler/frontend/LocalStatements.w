@@ -32,6 +32,19 @@ classical class LocalStatements {
     return opcode == STATEMENT_LOCAL_LONG_XOR_LOCALS_NAMED;
   }
 
+  /// Checks for a named one-arm Boolean condition guarding a global update.
+  public boolean namedLocalConditional(long opcode) {
+    if (opcode == STATEMENT_IF_LOCAL_ADD_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_IF_LOCAL_SUB_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_IF_LOCAL_XOR_NAMED;
+  }
+
   private boolean declarationMatches(long opcode, boolean signed) {
     if (signed) {
       if (opcode == STATEMENT_LOCAL_LONG) {
@@ -191,6 +204,28 @@ classical class LocalStatements {
     return opcode < STATEMENT_LOCAL_LONG_LT_BASE + 256;
   }
 
+  /// Checks whether an opcode carries a resolved local conditional source.
+  public boolean resolvedLocalConditional(long opcode) {
+    if (opcode < STATEMENT_IF_LOCAL_ADD_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_IF_LOCAL_XOR_BASE + 256;
+  }
+
+  /// Returns the condition local carried by a resolved conditional opcode.
+  public long resolvedLocalConditionalSource(long opcode) {
+    if (opcode < STATEMENT_IF_LOCAL_SUB_BASE) {
+      return opcode - STATEMENT_IF_LOCAL_ADD_BASE;
+    }
+
+    if (opcode < STATEMENT_IF_LOCAL_XOR_BASE) {
+      return opcode - STATEMENT_IF_LOCAL_SUB_BASE;
+    }
+
+    return opcode - STATEMENT_IF_LOCAL_XOR_BASE;
+  }
+
   /// Checks whether an opcode carries a resolved signed-local binary source.
   public boolean resolvedLocalLongBinary(long opcode) {
     if (opcode < STATEMENT_LOCAL_LONG_ADD_BASE) {
@@ -326,6 +361,32 @@ classical class LocalStatements {
         }
 
         return pairBase + pairSourceLocal;
+      }
+
+      return -1;
+    }
+
+    if (namedLocalConditional(opcode)) {
+      long conditionalSourceLocal = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 2,
+        false
+      );
+      if (-1 < conditionalSourceLocal) {
+        long conditionalBase = STATEMENT_IF_LOCAL_ADD_BASE;
+        if (opcode == STATEMENT_IF_LOCAL_SUB_NAMED) {
+          conditionalBase = STATEMENT_IF_LOCAL_SUB_BASE;
+        }
+
+        if (opcode == STATEMENT_IF_LOCAL_XOR_NAMED) {
+          conditionalBase = STATEMENT_IF_LOCAL_XOR_BASE;
+        }
+
+        return conditionalBase + conditionalSourceLocal;
       }
 
       return -1;
@@ -559,6 +620,14 @@ classical class LocalStatements {
 
   /// Returns the typed-local width required by one parsed statement.
   public long statementLocalCount(long opcode) {
+    if (resolvedLocalConditional(opcode)) {
+      return 3;
+    }
+
+    if (namedLocalConditional(opcode)) {
+      return 3;
+    }
+
     if (resolvedLocalBooleanCopy(opcode)) {
       return 2;
     }
@@ -771,6 +840,10 @@ classical class LocalStatements {
 
     if (opcode == STATEMENT_ASSERT_NAMED_LONG) {
       return statementStart + 5;
+    }
+
+    if (namedLocalConditional(opcode)) {
+      return statementStart + 8;
     }
 
     if (namedLongBinary(opcode)) {

@@ -266,9 +266,18 @@ classical class CompilerDriver {
   ) {
     long index = 0;
     long localBase = 0;
+    long instructionBase = 0;
     while (index < count) limit MAX_MINIMAL_STATEMENTS {
-      cursor = writeStatement(output, cursor, opcodes[index], operands[index], localBase);
+      cursor = writeStatement(
+        output,
+        cursor,
+        opcodes[index],
+        operands[index],
+        localBase,
+        instructionBase
+      );
       localBase += statementLocalCount(opcodes[index]);
+      instructionBase += statementInstructionCount(opcodes[index]);
       index += 1;
     }
 
@@ -532,11 +541,13 @@ classical class CompilerDriver {
         cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN, 0);
       }
 
+      long entryInstructionBase = 0;
       long helperCall = 0;
       while (helperCall < program.helperCallCount) limit 2 {
         cursor = writeInstructionHeader(output, cursor, OPCODE_CALL, 1);
         cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8);
         helperCall += 1;
+        entryInstructionBase += 1;
       }
 
       if (program.preReverseStatementCount == 1) {
@@ -545,8 +556,10 @@ classical class CompilerDriver {
           cursor,
           program.statementOpcodes[0],
           program.statementOperands[0],
-          0
+          0,
+          entryInstructionBase
         );
+        entryInstructionBase += statementInstructionCount(program.statementOpcodes[0]);
       }
 
       if (program.helperReversible == 1) {
@@ -555,6 +568,7 @@ classical class CompilerDriver {
           cursor = writeInstructionHeader(output, cursor, OPCODE_UNCALL, 1);
           cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8);
           helperUncall += 1;
+          entryInstructionBase += 1;
         }
       }
 
@@ -565,8 +579,10 @@ classical class CompilerDriver {
             cursor,
             program.statementOpcodes[0],
             program.statementOperands[0],
-            0
+            0,
+            entryInstructionBase
           );
+          entryInstructionBase += statementInstructionCount(program.statementOpcodes[0]);
         }
       }
 
@@ -577,8 +593,10 @@ classical class CompilerDriver {
             cursor,
             program.statementOpcodes[1],
             program.statementOperands[1],
-            statementLocalCount(program.statementOpcodes[0])
+            statementLocalCount(program.statementOpcodes[0]),
+            entryInstructionBase
           );
+          entryInstructionBase += statementInstructionCount(program.statementOpcodes[1]);
         }
       }
     } else {

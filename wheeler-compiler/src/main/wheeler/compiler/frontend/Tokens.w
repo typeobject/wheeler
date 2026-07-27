@@ -55,6 +55,8 @@ classical class Tokens {
   public const long TOKEN_INVERSE = 96449190704;
   /// Names the stable token hash for `assert`.
   public const long TOKEN_ASSERT = 2886759238;
+  /// Names the stable token hash for `if`.
+  public const long TOKEN_IF = 3357;
   /// Names the stable token hash for `long`.
   public const long TOKEN_LONG = 3327612;
   /// Names the stable token hash for `boolean`.
@@ -130,6 +132,18 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_LONG_LT_NAMED = 786;
   /// Starts resolved less-than declarations over prior signed locals.
   public const long STATEMENT_LOCAL_LONG_LT_BASE = 5120;
+  /// Names unresolved one-arm local conditions guarding global updates.
+  public const long STATEMENT_IF_LOCAL_ADD_NAMED = 787;
+  /// Names an unresolved one-arm local condition guarding subtraction.
+  public const long STATEMENT_IF_LOCAL_SUB_NAMED = 788;
+  /// Names an unresolved one-arm local condition guarding XOR.
+  public const long STATEMENT_IF_LOCAL_XOR_NAMED = 789;
+  /// Starts resolved local conditions guarding global addition.
+  public const long STATEMENT_IF_LOCAL_ADD_BASE = 5376;
+  /// Starts resolved local conditions guarding global subtraction.
+  public const long STATEMENT_IF_LOCAL_SUB_BASE = 5632;
+  /// Starts resolved local conditions guarding global XOR.
+  public const long STATEMENT_IF_LOCAL_XOR_BASE = 5888;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -281,6 +295,23 @@ classical class Tokens {
       }
 
       return STATEMENT_ASSERT_NAMED_LONG;
+    }
+
+    if (keyword == TOKEN_IF) {
+      long conditionalOperator = utf8Scalar(source, tokenStarts[statementStart + 6]);
+      if (conditionalOperator == PUNCTUATION_PLUS) {
+        return STATEMENT_IF_LOCAL_ADD_NAMED;
+      }
+
+      if (conditionalOperator == PUNCTUATION_MINUS) {
+        return STATEMENT_IF_LOCAL_SUB_NAMED;
+      }
+
+      if (conditionalOperator == PUNCTUATION_CARET) {
+        return STATEMENT_IF_LOCAL_XOR_NAMED;
+      }
+
+      return -1;
     }
 
     if (keyword == TOKEN_LONG) {
