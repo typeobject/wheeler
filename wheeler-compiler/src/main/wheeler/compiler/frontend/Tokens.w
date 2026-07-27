@@ -144,6 +144,30 @@ classical class Tokens {
   public const long STATEMENT_IF_LOCAL_SUB_BASE = 5632;
   /// Starts resolved local conditions guarding global XOR.
   public const long STATEMENT_IF_LOCAL_XOR_BASE = 5888;
+  /// Names unresolved multiplication, division, and remainder declarations.
+  public const long STATEMENT_LOCAL_LONG_MUL_NAMED = 790;
+  /// Names an unresolved division declaration with a literal right operand.
+  public const long STATEMENT_LOCAL_LONG_DIV_NAMED = 791;
+  /// Names an unresolved remainder declaration with a literal right operand.
+  public const long STATEMENT_LOCAL_LONG_MOD_NAMED = 792;
+  /// Names unresolved two-local multiplication, division, and remainder declarations.
+  public const long STATEMENT_LOCAL_LONG_MUL_LOCALS_NAMED = 793;
+  /// Names an unresolved division declaration over two prior locals.
+  public const long STATEMENT_LOCAL_LONG_DIV_LOCALS_NAMED = 794;
+  /// Names an unresolved remainder declaration over two prior locals.
+  public const long STATEMENT_LOCAL_LONG_MOD_LOCALS_NAMED = 795;
+  /// Starts resolved multiplication declarations with literal right operands.
+  public const long STATEMENT_LOCAL_LONG_MUL_BASE = 6144;
+  /// Starts resolved division declarations with literal right operands.
+  public const long STATEMENT_LOCAL_LONG_DIV_BASE = 6400;
+  /// Starts resolved remainder declarations with literal right operands.
+  public const long STATEMENT_LOCAL_LONG_MOD_BASE = 6656;
+  /// Starts resolved multiplication declarations over two prior locals.
+  public const long STATEMENT_LOCAL_LONG_MUL_LOCALS_BASE = 6912;
+  /// Starts resolved division declarations over two prior locals.
+  public const long STATEMENT_LOCAL_LONG_DIV_LOCALS_BASE = 7168;
+  /// Starts resolved remainder declarations over two prior locals.
+  public const long STATEMENT_LOCAL_LONG_MOD_LOCALS_BASE = 7424;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -153,16 +177,22 @@ classical class Tokens {
 
   /// Names the ASCII `!` punctuation scalar.
   public const long PUNCTUATION_BANG = 33;
+  /// Names the ASCII `%` punctuation scalar.
+  public const long PUNCTUATION_PERCENT = 37;
   /// Names the ASCII `(` punctuation scalar.
   public const long PUNCTUATION_OPEN_PAREN = 40;
   /// Names the ASCII `)` punctuation scalar.
   public const long PUNCTUATION_CLOSE_PAREN = 41;
+  /// Names the ASCII `*` punctuation scalar.
+  public const long PUNCTUATION_STAR = 42;
   /// Names the ASCII `+` punctuation scalar.
   public const long PUNCTUATION_PLUS = 43;
   /// Names the ASCII `.` punctuation scalar.
   public const long PUNCTUATION_DOT = 46;
   /// Names the ASCII `-` punctuation scalar.
   public const long PUNCTUATION_MINUS = 45;
+  /// Names the ASCII `/` punctuation scalar.
+  public const long PUNCTUATION_SLASH = 47;
   /// Names the ASCII `;` punctuation scalar.
   public const long PUNCTUATION_SEMICOLON = 59;
   /// Names the ASCII `<` punctuation scalar.
@@ -342,6 +372,30 @@ classical class Tokens {
           }
 
           return STATEMENT_LOCAL_LONG_XOR_NAMED;
+        }
+
+        if (initializerOperator == PUNCTUATION_STAR) {
+          if (rightNamed) {
+            return STATEMENT_LOCAL_LONG_MUL_LOCALS_NAMED;
+          }
+
+          return STATEMENT_LOCAL_LONG_MUL_NAMED;
+        }
+
+        if (initializerOperator == PUNCTUATION_SLASH) {
+          if (rightNamed) {
+            return STATEMENT_LOCAL_LONG_DIV_LOCALS_NAMED;
+          }
+
+          return STATEMENT_LOCAL_LONG_DIV_NAMED;
+        }
+
+        if (initializerOperator == PUNCTUATION_PERCENT) {
+          if (rightNamed) {
+            return STATEMENT_LOCAL_LONG_MOD_LOCALS_NAMED;
+          }
+
+          return STATEMENT_LOCAL_LONG_MOD_NAMED;
         }
 
         return STATEMENT_LOCAL_LONG_NAMED;

@@ -158,6 +158,18 @@ classical class LocalStatements {
           base = STATEMENT_LOCAL_LONG_XOR_BASE;
         }
 
+        if (opcode == STATEMENT_LOCAL_LONG_MUL_NAMED) {
+          base = STATEMENT_LOCAL_LONG_MUL_BASE;
+        }
+
+        if (opcode == STATEMENT_LOCAL_LONG_DIV_NAMED) {
+          base = STATEMENT_LOCAL_LONG_DIV_BASE;
+        }
+
+        if (opcode == STATEMENT_LOCAL_LONG_MOD_NAMED) {
+          base = STATEMENT_LOCAL_LONG_MOD_BASE;
+        }
+
         return base + binarySourceLocal;
       }
 
@@ -182,6 +194,18 @@ classical class LocalStatements {
 
         if (opcode == STATEMENT_LOCAL_LONG_XOR_LOCALS_NAMED) {
           pairBase = STATEMENT_LOCAL_LONG_XOR_LOCALS_BASE;
+        }
+
+        if (opcode == STATEMENT_LOCAL_LONG_MUL_LOCALS_NAMED) {
+          pairBase = STATEMENT_LOCAL_LONG_MUL_LOCALS_BASE;
+        }
+
+        if (opcode == STATEMENT_LOCAL_LONG_DIV_LOCALS_NAMED) {
+          pairBase = STATEMENT_LOCAL_LONG_DIV_LOCALS_BASE;
+        }
+
+        if (opcode == STATEMENT_LOCAL_LONG_MOD_LOCALS_NAMED) {
+          pairBase = STATEMENT_LOCAL_LONG_MOD_LOCALS_BASE;
         }
 
         return pairBase + pairSourceLocal;

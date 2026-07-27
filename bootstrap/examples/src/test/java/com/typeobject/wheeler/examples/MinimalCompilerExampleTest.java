@@ -590,6 +590,37 @@ class MinimalCompilerExampleTest {
             + "long result = first ^ second; assert(result == 42); } }");
     assertDifferentialHalt(
         writerProgram,
+        "classical class SignedLocalMul { entry void main() { "
+            + "long first = 6; long result = first * 7; assert(result == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedLocalDiv { entry void main() { "
+            + "long first = 84; long result = first / 2; assert(result == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedLocalMod { entry void main() { "
+            + "long first = 44; long result = first % 2; assert(result == 0); } }");
+    assertDifferentialTrap(
+        writerProgram,
+        "classical class SignedLocalDivZero { entry void main() { "
+            + "long first = 84; long result = first / 0; } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedLocalsMul { entry void main() { "
+            + "long first = 6; long second = 7; "
+            + "long result = first * second; assert(result == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedLocalsDiv { entry void main() { "
+            + "long first = 84; long second = 2; "
+            + "long result = first / second; assert(result == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedLocalsMod { entry void main() { "
+            + "long first = 44; long second = 2; "
+            + "long result = first % second; assert(result == 0); } }");
+    assertDifferentialHalt(
+        writerProgram,
         "classical class GlobalThenLocal { state long value = 7; entry void main() { "
             + "assert(value == 7); long answer = 41; assert(answer == 41); } }");
     assertDifferentialTrap(

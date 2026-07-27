@@ -108,6 +108,30 @@ classical class Parser {
       supported = true;
     }
 
+    if (opcode == STATEMENT_LOCAL_LONG_MUL_NAMED) {
+      supported = true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_DIV_NAMED) {
+      supported = true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_MOD_NAMED) {
+      supported = true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_MUL_LOCALS_NAMED) {
+      supported = true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_DIV_LOCALS_NAMED) {
+      supported = true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_MOD_LOCALS_NAMED) {
+      supported = true;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN) {
       supported = true;
     }

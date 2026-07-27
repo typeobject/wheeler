@@ -376,6 +376,18 @@ classical class Codegen {
         pairOpcode = OPCODE_LOCAL_XOR;
       }
 
+      if (STATEMENT_LOCAL_LONG_MUL_LOCALS_BASE - 1 < opcode) {
+        pairOpcode = OPCODE_LOCAL_MUL;
+      }
+
+      if (STATEMENT_LOCAL_LONG_DIV_LOCALS_BASE - 1 < opcode) {
+        pairOpcode = OPCODE_LOCAL_DIV;
+      }
+
+      if (STATEMENT_LOCAL_LONG_MOD_LOCALS_BASE - 1 < opcode) {
+        pairOpcode = OPCODE_LOCAL_MOD;
+      }
+
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
       cursor = writeUnsignedLittleEndian(output, cursor, pairSourceLocal, 8);
@@ -400,6 +412,18 @@ classical class Codegen {
 
       if (STATEMENT_LOCAL_LONG_XOR_BASE - 1 < opcode) {
         binaryOpcode = OPCODE_LOCAL_XOR;
+      }
+
+      if (STATEMENT_LOCAL_LONG_MUL_BASE - 1 < opcode) {
+        binaryOpcode = OPCODE_LOCAL_MUL;
+      }
+
+      if (STATEMENT_LOCAL_LONG_DIV_BASE - 1 < opcode) {
+        binaryOpcode = OPCODE_LOCAL_DIV;
+      }
+
+      if (STATEMENT_LOCAL_LONG_MOD_BASE - 1 < opcode) {
+        binaryOpcode = OPCODE_LOCAL_MOD;
       }
 
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
