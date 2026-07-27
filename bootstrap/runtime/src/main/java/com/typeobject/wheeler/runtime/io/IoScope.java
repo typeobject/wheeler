@@ -1,6 +1,5 @@
 package com.typeobject.wheeler.runtime.io;
 
-import com.typeobject.wheeler.runtime.io.DeterministicIo.Delivery;
 import com.typeobject.wheeler.runtime.io.IoCompletion.CancellationRelation;
 import com.typeobject.wheeler.runtime.io.IoCompletion.TerminalKind;
 import java.util.ArrayList;
@@ -16,6 +15,12 @@ import java.util.Set;
 
 /** Bounded structured owner for prepared, submitted, terminal, and reaped operations. */
 public final class IoScope implements AutoCloseable {
+  enum Mode {
+    INLINE,
+    DELAYED,
+    THREADED
+  }
+
   /** Selection result that leaves every nonselected operation owned by the caller. */
   public record Selected<T>(IoCompletion<T> completion, List<IoOperation<T>> remaining) {
     public Selected {
@@ -24,11 +29,11 @@ public final class IoScope implements AutoCloseable {
     }
   }
 
-  private static final String BACKEND = "deterministic-io-1";
-
-  private final long scopeId;
-  private final Delivery delivery;
+  private final long operationBase;
+  private final Mode mode;
+  private final String backend;
   private final IoLimits limits;
+  private final ThreadedIo.Dispatcher dispatcher;
   private final Map<Long, IoOperation<?>> active = new LinkedHashMap<>();
   private final Set<Long> delayed = new LinkedHashSet<>();
   private long nextOperation = 1;
@@ -36,32 +41,50 @@ public final class IoScope implements AutoCloseable {
   private int terminalCount;
   private boolean closed;
 
-  IoScope(long scopeId, Delivery delivery, IoLimits limits) {
-    this.scopeId = scopeId;
-    this.delivery = Objects.requireNonNull(delivery, "delivery");
+  IoScope(
+      long scopeId,
+      Mode mode,
+      String backend,
+      IoLimits limits,
+      ThreadedIo.Dispatcher dispatcher) {
+    this.mode = Objects.requireNonNull(mode, "mode");
+    this.backend = Objects.requireNonNull(backend, "backend");
     this.limits = Objects.requireNonNull(limits, "limits");
+    this.operationBase = Math.multiplyExact(scopeId, limits.maxOperations() + 1L);
+    this.dispatcher = dispatcher;
+    if ((mode == Mode.THREADED) != (dispatcher != null)) {
+      throw new IllegalArgumentException("threaded mode and dispatcher must agree");
+    }
   }
 
   /** Submits one prepared request and returns its must-reap operation. */
-  public <T> IoOperation<T> submit(IoRequest<T> request) {
+  public synchronized <T> IoOperation<T> submit(IoRequest<T> request) {
     requireOpen();
     Objects.requireNonNull(request, "request");
-    reserve(1, request.work());
-    request.consume();
-    IoOperation<T> operation = publish(request);
-    if (delivery == Delivery.INLINE) {
-      execute(operation);
+    if (request.isConsumed()) {
+      throw new IllegalStateException("request was already consumed: " + request.identity());
     }
+    reserve(1, request.work());
+    try {
+      request.consume();
+    } catch (RuntimeException failure) {
+      if (dispatcher != null) {
+        dispatcher.release();
+      }
+      throw failure;
+    }
+    IoOperation<T> operation = publish(request);
+    activate(operation);
     return operation;
   }
 
   /** Submits and consumes one request in direct await style. */
-  public <T> IoCompletion<T> await(IoRequest<T> request) {
+  public synchronized <T> IoCompletion<T> await(IoRequest<T> request) {
     return submit(request).await();
   }
 
   /** Submits one bounded independent batch without adding ordering edges. */
-  public <T> List<IoOperation<T>> submitBatch(List<IoRequest<T>> requests) {
+  public synchronized <T> List<IoOperation<T>> submitBatch(List<IoRequest<T>> requests) {
     requireOpen();
     Objects.requireNonNull(requests, "requests");
     if (requests.isEmpty() || requests.size() > limits.maxBatchSize()) {
@@ -77,14 +100,12 @@ public final class IoScope implements AutoCloseable {
     for (IoRequest<T> request : checked) {
       operations.add(publish(request));
     }
-    if (delivery == Delivery.INLINE) {
-      operations.forEach(this::execute);
-    }
+    operations.forEach(this::activate);
     return List.copyOf(operations);
   }
 
   /** Reaps the first canonical terminal operation without orphaning the remainder. */
-  public <T> Selected<T> selectFirst(List<IoOperation<T>> operations) {
+  public synchronized <T> Selected<T> selectFirst(List<IoOperation<T>> operations) {
     requireOpen();
     Objects.requireNonNull(operations, "operations");
     if (operations.isEmpty() || operations.size() > limits.maxBatchSize()) {
@@ -102,18 +123,26 @@ public final class IoScope implements AutoCloseable {
     IoOperation<T> selected = checked.stream()
         .filter(IoOperation::isTerminal)
         .findFirst()
-        .orElseGet(() -> {
-          IoOperation<T> first = checked.get(0);
-          execute(first);
-          return first;
-        });
+        .orElse(null);
+    if (selected == null) {
+      if (mode == Mode.THREADED) {
+        waitForAnyTerminal(checked);
+        selected = checked.stream()
+            .filter(IoOperation::isTerminal)
+            .findFirst()
+            .orElseThrow();
+      } else {
+        selected = checked.get(0);
+        execute(selected);
+      }
+    }
     IoCompletion<T> completion = reap(selected);
     checked.remove(selected);
     return new Selected<>(completion, checked);
   }
 
   /** Executes one terminal-dependency graph and returns completions by node identity. */
-  public <T> List<IoCompletion<T>> awaitGraph(IoGraph<T> graph) {
+  public synchronized <T> List<IoCompletion<T>> awaitGraph(IoGraph<T> graph) {
     requireOpen();
     Objects.requireNonNull(graph, "graph");
     List<IoGraph.Node<T>> nodes = graph.nodes();
@@ -161,23 +190,27 @@ public final class IoScope implements AutoCloseable {
   }
 
   /** Returns the number of submitted operations not yet reaped. */
-  public int activeOperationCount() {
+  public synchronized int activeOperationCount() {
     return active.size();
   }
 
   /** Requires all work terminal and reaped before closing this scope. */
   @Override
-  public void close() {
+  public synchronized void close() {
     if (!active.isEmpty()) {
       throw new IllegalStateException("I/O scope has live or unreaped operations");
     }
     closed = true;
   }
 
-  <T> boolean cancel(IoOperation<T> operation) {
+  synchronized <T> boolean cancel(IoOperation<T> operation) {
     requireOpen();
     validateOwned(operation);
     if (!operation.isTerminal()) {
+      if (mode == Mode.THREADED && operation.isStarted()) {
+        operation.requestCancellation();
+        return false;
+      }
       delayed.remove(operation.id());
       operation.request().releaseResources();
       operation.complete(new IoCompletion<>(
@@ -190,9 +223,13 @@ public final class IoScope implements AutoCloseable {
           0,
           operation.request().work(),
           true,
-          BACKEND));
+          backend));
       terminalCount++;
       requireCompletionCapacity();
+      if (dispatcher != null) {
+        dispatcher.release();
+      }
+      notifyAll();
       return true;
     }
 
@@ -207,17 +244,21 @@ public final class IoScope implements AutoCloseable {
     return false;
   }
 
-  <T> IoCompletion<T> await(IoOperation<T> operation) {
+  synchronized <T> IoCompletion<T> await(IoOperation<T> operation) {
     requireOpen();
     validateOwned(operation);
     if (!operation.isTerminal()) {
-      execute(operation);
+      if (mode == Mode.THREADED) {
+        waitForTerminal(operation);
+      } else {
+        execute(operation);
+      }
     }
     return reap(operation);
   }
 
   private <T> IoOperation<T> publish(IoRequest<T> request) {
-    return publish(request, true);
+    return publish(request, false);
   }
 
   private <T> IoOperation<T> publish(IoRequest<T> request, boolean ready) {
@@ -225,17 +266,21 @@ public final class IoScope implements AutoCloseable {
     IoOperation<T> operation = new IoOperation<>(this, operationId, request);
     active.put(operationId, operation);
     chargedWork += request.work();
-    if (delivery == Delivery.DELAYED && ready) {
-      delayed.add(operationId);
+    if (ready) {
+      activate(operation);
     }
     return operation;
   }
 
   private <T> void activate(IoOperation<T> operation) {
-    if (delivery == Delivery.INLINE) {
+    if (mode == Mode.INLINE) {
       execute(operation);
-    } else if (!delayed.add(operation.id())) {
-      throw new IllegalStateException("graph operation activated more than once");
+    } else if (mode == Mode.DELAYED) {
+      if (!delayed.add(operation.id())) {
+        throw new IllegalStateException("graph operation activated more than once");
+      }
+    } else {
+      dispatcher.submit(() -> executeThreaded(operation));
     }
   }
 
@@ -244,24 +289,53 @@ public final class IoScope implements AutoCloseable {
     if (operation.isTerminal()) {
       return;
     }
-    if (delivery == Delivery.DELAYED && !delayed.remove(operation.id())) {
+    if (mode == Mode.DELAYED && !delayed.remove(operation.id())) {
       throw new IllegalStateException("delayed operation is not queued: " + operation.id());
     }
+    operation.markStarted();
+    finishExecution(operation, runProvider(operation));
+  }
 
+  private <T> void executeThreaded(IoOperation<T> operation) {
+    synchronized (this) {
+      validateOwned(operation);
+      if (operation.isTerminal()) {
+        return;
+      }
+      operation.markStarted();
+    }
+    IoTaskResult<T> result = runProvider(operation);
+    synchronized (this) {
+      finishExecution(operation, result);
+    }
+  }
+
+  private <T> IoTaskResult<T> runProvider(IoOperation<T> operation) {
     IoTaskResult<T> result;
     try {
       result = operation.request().execute();
     } catch (RuntimeException failure) {
       String type = failure.getClass().getSimpleName();
+      if (type.length() > 200) {
+        type = type.substring(0, 200);
+      }
       result = IoTaskResult.failure("provider-exception:" + type, 0);
     }
     if (result.progress() > operation.request().work()) {
-      result = IoTaskResult.failure("invalid-provider-progress", 0);
+      return IoTaskResult.failure("invalid-provider-progress", 0);
     }
+    return result;
+  }
+
+  private <T> void finishExecution(IoOperation<T> operation, IoTaskResult<T> result) {
     operation.request().releaseResources();
     operation.complete(toCompletion(operation, result));
     terminalCount++;
     requireCompletionCapacity();
+    if (dispatcher != null) {
+      dispatcher.release();
+    }
+    notifyAll();
   }
 
   private <T> IoCompletion<T> toCompletion(
@@ -269,21 +343,63 @@ public final class IoScope implements AutoCloseable {
     return switch (result.kind()) {
       case SUCCESS -> new IoCompletion<>(
           operation.id(), operation.requestIdentity(), TerminalKind.SUCCESS,
-          CancellationRelation.NOT_REQUESTED, result.value(), null, result.progress(),
-          operation.request().work(), true, BACKEND);
+          successRelation(operation), result.value(), null, result.progress(),
+          operation.request().work(), true, backend);
       case FAILURE -> new IoCompletion<>(
           operation.id(), operation.requestIdentity(), TerminalKind.FAILURE,
-          CancellationRelation.NOT_REQUESTED, null, result.detail(), result.progress(),
-          operation.request().work(), true, BACKEND);
+          failureRelation(operation), null, result.detail(), result.progress(),
+          operation.request().work(), true, backend);
       case CANCELED_AFTER_PARTIAL_EFFECT -> new IoCompletion<>(
           operation.id(), operation.requestIdentity(), TerminalKind.CANCELED,
           CancellationRelation.CANCELED_AFTER_PARTIAL_EFFECT, null, result.detail(),
-          result.progress(), operation.request().work(), true, BACKEND);
+          result.progress(), operation.request().work(), true, backend);
       case UNCERTAIN -> new IoCompletion<>(
           operation.id(), operation.requestIdentity(), TerminalKind.UNCERTAIN,
-          CancellationRelation.UNCERTAIN_WITHOUT_CANCELLATION, null, result.detail(),
-          result.progress(), operation.request().work(), true, BACKEND);
+          uncertainRelation(operation), null, result.detail(),
+          result.progress(), operation.request().work(), true, backend);
     };
+  }
+
+  private CancellationRelation successRelation(IoOperation<?> operation) {
+    if (operation.cancellationRequested()) {
+      return CancellationRelation.COMPLETED_BEFORE_CANCELLATION;
+    }
+    return CancellationRelation.NOT_REQUESTED;
+  }
+
+  private CancellationRelation failureRelation(IoOperation<?> operation) {
+    if (operation.cancellationRequested()) {
+      return CancellationRelation.FAILED_BEFORE_CANCELLATION;
+    }
+    return CancellationRelation.NOT_REQUESTED;
+  }
+
+  private CancellationRelation uncertainRelation(IoOperation<?> operation) {
+    if (operation.cancellationRequested()) {
+      return CancellationRelation.UNCERTAIN_AFTER_CANCELLATION;
+    }
+    return CancellationRelation.UNCERTAIN_WITHOUT_CANCELLATION;
+  }
+
+  private void waitForTerminal(IoOperation<?> operation) {
+    while (!operation.isTerminal()) {
+      waitForCompletionSignal();
+    }
+  }
+
+  private void waitForAnyTerminal(List<? extends IoOperation<?>> operations) {
+    while (operations.stream().noneMatch(IoOperation::isTerminal)) {
+      waitForCompletionSignal();
+    }
+  }
+
+  private void waitForCompletionSignal() {
+    try {
+      wait();
+    } catch (InterruptedException interrupted) {
+      Thread.currentThread().interrupt();
+      throw new IllegalStateException("interrupted while awaiting I/O completion", interrupted);
+    }
   }
 
   private <T> IoCompletion<T> reap(IoOperation<T> operation) {
@@ -304,6 +420,9 @@ public final class IoScope implements AutoCloseable {
     long nextWork = Math.addExact(chargedWork, work);
     if (nextWork > limits.maxWork()) {
       throw new IllegalStateException("scope work capacity exceeded");
+    }
+    if (dispatcher != null) {
+      dispatcher.reserve(operations);
     }
   }
 
@@ -355,8 +474,7 @@ public final class IoScope implements AutoCloseable {
     if (nextOperation > limits.maxOperations()) {
       throw new IllegalStateException("scope operation identity capacity exceeded");
     }
-    long base = Math.multiplyExact(scopeId, limits.maxOperations() + 1L);
-    return Math.addExact(base, nextOperation++);
+    return Math.addExact(operationBase, nextOperation++);
   }
 
   private void requireCompletionCapacity() {

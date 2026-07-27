@@ -18,10 +18,13 @@ public final class DeterministicIo {
   }
 
   /** Opens one bounded structured I/O scope. */
-  public IoScope scope(IoLimits limits) {
+  public synchronized IoScope scope(IoLimits limits) {
     if (nextScopeId == Long.MAX_VALUE) {
       throw new IllegalStateException("deterministic scope identity exhausted");
     }
-    return new IoScope(nextScopeId++, delivery, limits);
+    IoScope.Mode mode = delivery == Delivery.INLINE
+        ? IoScope.Mode.INLINE
+        : IoScope.Mode.DELAYED;
+    return new IoScope(nextScopeId++, mode, "deterministic-io-1", limits, null);
   }
 }

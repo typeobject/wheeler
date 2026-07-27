@@ -572,6 +572,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] Proposal index, dependent WIPs, current references, and future documentation name WIP-0032 as the sole I/O lifecycle and method-registry owner; no competing portable method family remains in another WIP.
 - [x] The quarantined stage-0 runtime executes the bounded request, scope, operation, terminal-completion, reap, batch, selection, and terminal-dependency graph lifecycle with one deterministic semantic contract. This is executable scaffolding, not permission to fossilize the Java spelling.
 - [x] Inline and delayed deterministic delivery produce equal semantic completions; delayed cancellation-before-effect performs no provider action.
+- [x] The portable stage-0 threaded backend admits work before consuming requests, bounds workers plus in-flight operations, proves two-worker overlap, preserves dependency gates, distinguishes queued cancellation from a running cancellation race, and refuses shutdown with admitted work.
 - [x] A bounded in-memory addressable-file oracle executes positional reads and exact writes through the same request lifecycle. Buffers are inaccessible while captured, return in terminal results, and are released on cancellation-before-effect. Write completion remains gloriously unqualified by durability.
 - [x] The Wheeler-native runtime enforces up to 64 caller-owned lifecycle rows: bounded submission and work charging, terminal-kind/cancellation-relation compatibility, exact progress, resource release, late-cancellation races, one reap, and all-reaped scope closure. The executable example proves complete rewind and fail-closed fifth-row publication at its declared capacity.
 - [ ] Unified request/scope/result model is accepted.
@@ -579,7 +580,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [ ] Terminal completion, cancellation, uncertainty, and reap laws are accepted.
 - [ ] Positional storage and sequential adapters execute.
 - [ ] Groups, batches, graphs, selection, and multishot operations execute.
-- [ ] Deterministic inline and bounded threaded backends pass.
+- [x] Deterministic inline, delayed, and bounded threaded stage-0 backends pass one lifecycle suite.
 - [ ] Event/completion backend passes.
 - [ ] Registered/provided/zero-copy buffer safety passes.
 - [ ] Direct I/O and coherence profile passes.
@@ -598,7 +599,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] Stage-0 request construction performs no provider action.
 - [x] Every stage-0 and Wheeler-native submitted operation has one terminal completion and one reap.
 - [x] Dropping a live stage-0 operation or closing a native lifecycle table with live or unreaped work is rejected.
-- [x] Inline and delayed deterministic completion have equal semantic results.
+- [x] Inline and delayed deterministic completion have equal semantic results; threaded results match the same semantic fields.
 - [ ] `async` may execute inline; `concurrent` fails when overlap is unavailable.
 - [ ] Common examples require no backend vocabulary or manual polling.
 
@@ -633,7 +634,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [ ] Required direct/zero-copy paths reject fallback; preferred paths report it.
 - [ ] Alignment, tail handling, and buffered/direct coherence are explicit.
 - [ ] Direct completion produces no persistence receipt by itself.
-- [ ] One-queue, many-queue, interrupt, worker, and polling backends pass one semantic suite.
+- [ ] One-queue, many-queue, interrupt, and polling backends pass one semantic suite; the bounded worker backend now passes its stage-0 slice.
 - [ ] Connection scale requires no native thread, stack, task, or timer per dormant connection.
 - [ ] Admission, batching, migration, fairness, and overload remain bounded and measurable.
 

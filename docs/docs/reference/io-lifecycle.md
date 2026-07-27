@@ -13,7 +13,8 @@ The quarantined runtime now carries a deterministic executable slice under `boot
 - `IoGraph<T>` is an explicitly bounded terminal-dependency DAG;
 - `OwnedIoBuffer` is inaccessible while captured and returns through a terminal result;
 - `MemoryAddressableFile` is the bounded positional-semantics oracle;
-- `DeterministicIo` offers inline and delayed delivery with identical completion meaning.
+- `DeterministicIo` offers inline and delayed delivery with identical completion meaning;
+- `ThreadedIo` supplies an explicitly bounded portable worker backend.
 
 The implementation is stage-0 scaffolding. Its Java API is replaceable and is not a source-language compatibility promise. The lifecycle and distinctions are the contract.
 
@@ -28,6 +29,8 @@ prepared -> submitted -> terminal -> reaped
 A scope cannot close while an operation is live or terminal-but-unreaped. Awaiting reaps exactly once. A second await fails. Batch and graph preflight failures consume no requests, which avoids the charming recovery protocol known as “guess which half ran.”
 
 Inline submission may produce terminal completion before `submit` returns. Delayed submission produces the same semantic completion when driven by `await` or selection. Tests compare the complete records, not merely result values.
+
+`ThreadedIo(workers, maxInFlight)` adds actual overlap without changing request or completion types. Admission is reserved before request consumption. The executor has a fixed worker count, a bounded queue, and no fallback pool. Closing it with admitted work fails. Cancellation of queued work releases resources without invoking the provider; cancellation racing with started work records which terminal result won instead of interrupting an external effect and hoping for the best.
 
 ## Cancellation and uncertainty
 
@@ -70,4 +73,4 @@ A graph names terminal predecessors. Independent roots are admitted together; a 
 
 This slice performs synthetic provider actions and bounded in-memory positional operations. It does not yet implement host files, threaded delivery, clocks, replay, source-language loans, native completion queues, direct I/O, network protocols, persistence evidence, or durability receipts. A successful completion therefore proves no crash survival, namespace stability, peer application, quorum, or remote persistence.
 
-The conformance tests live at `bootstrap/runtime/src/test/java/com/typeobject/wheeler/runtime/io/DeterministicIoTest.java`. Native source types, effect lowering, positional resources, buffer loans, and the portable threaded backend remain required before WIP-0032 can leave Draft.
+The deterministic and threaded conformance tests live under `bootstrap/runtime/src/test/java/com/typeobject/wheeler/runtime/io/`. Native source request types, effect lowering, host positional resources, source-language buffer loans, and crash-tested receipts remain required before WIP-0032 can leave Draft.

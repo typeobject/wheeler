@@ -7,8 +7,10 @@ public final class IoOperation<T> {
   private final IoScope owner;
   private final long id;
   private final IoRequest<T> request;
-  private IoCompletion<T> completion;
-  private boolean reaped;
+  private volatile IoCompletion<T> completion;
+  private volatile boolean reaped;
+  private boolean started;
+  private boolean cancellationRequested;
 
   IoOperation(IoScope owner, long id, IoRequest<T> request) {
     this.owner = Objects.requireNonNull(owner, "owner");
@@ -52,6 +54,25 @@ public final class IoOperation<T> {
 
   IoCompletion<T> completion() {
     return completion;
+  }
+
+  boolean isStarted() {
+    return started;
+  }
+
+  void markStarted() {
+    if (started || completion != null) {
+      throw new IllegalStateException("operation cannot start twice: " + id);
+    }
+    started = true;
+  }
+
+  boolean cancellationRequested() {
+    return cancellationRequested;
+  }
+
+  void requestCancellation() {
+    cancellationRequested = true;
   }
 
   void complete(IoCompletion<T> terminal) {
