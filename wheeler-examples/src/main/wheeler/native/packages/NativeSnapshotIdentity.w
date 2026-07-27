@@ -2,7 +2,7 @@
 
 module examples.packages.snapshot_identity;
 
-import wheeler.crypto.sha256;
+import wheeler.crypto.content_identity;
 import wheeler.lexer.scanner;
 import wheeler.packages.snapshot;
 
@@ -12,35 +12,12 @@ classical class NativeSnapshotIdentity {
   state long diagnosticOffset = 0;
   state long published = 0;
 
-  private void copyInput(borrow byteview source, borrow mut bytes target) {
-    long cursor = 0;
-    while (cursor < bufferLength(source)) limit 2048 {
-      setByte(target, cursor, source[cursor]);
-      cursor += 1;
-    }
-  }
-
-  private void publishDigest(borrow mut bytes digest, borrow mut bytes output) {
-    long cursor = 0;
-    while (cursor < 32) limit 32 {
-      setByte(output, cursor, digest[cursor]);
-      cursor += 1;
-    }
-  }
-
   /// Validates and identifies one snapshot without publishing partial output.
   ///
   /// - Effects: Mutates fixture state and caller-owned identity output.
   entry void main(borrow byteview rawSource, borrow mut bytes identity) {
-    if (2048 < bufferLength(rawSource)) {
-      long oversized = rawSource[-1];
-    }
-
     region arena = new region(10000, 10);
-    bytes sourceBytes = allocateBytes(arena, bufferLength(rawSource));
-    copyInput(rawSource, sourceBytes);
-    utf8 source = freezeUtf8(sourceBytes);
-    bytes digest = allocateBytes(arena, 32);
+    utf8 source = freezeBoundedUtf8(rawSource, 2048, arena);
     words kinds = allocate(arena, 256);
     words starts = allocate(arena, 256);
     words lengths = allocate(arena, 256);
@@ -62,8 +39,7 @@ classical class NativeSnapshotIdentity {
       case SnapshotResult.Value(SnapshotModel snapshot) {
         releaseCount = snapshot.releaseCount;
         sourceLength = bufferLength(source);
-        hashSha256(rawSource, digest, arena);
-        publishDigest(digest, identity);
+        publishSha256(rawSource, identity, arena);
         published = 1;
       }
       case SnapshotResult.Error(long offset) {
@@ -77,7 +53,6 @@ classical class NativeSnapshotIdentity {
     drop(lengths);
     drop(starts);
     drop(kinds);
-    drop(digest);
     drop(source);
     drop(arena);
   }

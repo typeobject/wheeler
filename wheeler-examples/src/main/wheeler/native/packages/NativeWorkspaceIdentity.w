@@ -1,21 +1,18 @@
-//! Computes the content identity of one bounded canonical package manifest.
+//! Computes the content identity of one bounded canonical workspace manifest.
 
-module examples.packages.manifest_identity;
+module examples.packages.workspace_identity;
 
 import wheeler.crypto.content_identity;
 import wheeler.lexer.scanner;
-import wheeler.packages.manifest;
+import wheeler.packages.workspace;
 
-classical class NativeManifestIdentity {
-  state long targetCount = 0;
-  state long sourceCount = 0;
-  state long dependencyCount = 0;
-  state long capabilityCount = 0;
+classical class NativeWorkspaceIdentity {
+  state long memberCount = 0;
   state long sourceLength = 0;
   state long diagnosticOffset = 0;
   state long published = 0;
 
-  /// Validates and identifies one manifest without publishing partial output.
+  /// Validates and identifies one workspace without publishing partial output.
   ///
   /// - Effects: Mutates fixture state and caller-owned identity output.
   entry void main(borrow byteview rawSource, borrow mut bytes identity) {
@@ -24,10 +21,10 @@ classical class NativeManifestIdentity {
     words kinds = allocate(arena, 256);
     words starts = allocate(arena, 256);
     words lengths = allocate(arena, 256);
-    words targetRows = allocate(arena, 10);
-    words sourceRows = allocate(arena, 2);
-    words dependencyRows = allocate(arena, 5);
-    words capabilityRows = allocate(arena, 4);
+    words memberNameStarts = allocate(arena, 2);
+    words memberNameLengths = allocate(arena, 2);
+    words memberPathStarts = allocate(arena, 2);
+    words memberPathLengths = allocate(arena, 2);
     long count = 0;
     ScanResult scanned = scan(source, kinds, starts, lengths);
     match (scanned) {
@@ -40,38 +37,35 @@ classical class NativeManifestIdentity {
       }
     }
 
-    ManifestResult parsed = parseManifest(
+    WorkspaceResult parsed = parseWorkspace(
       source,
       kinds,
       starts,
       lengths,
       count,
-      targetRows,
-      sourceRows,
-      dependencyRows,
-      capabilityRows
+      memberNameStarts,
+      memberNameLengths,
+      memberPathStarts,
+      memberPathLengths
     );
     match (parsed) {
-      case ManifestResult.Value(ManifestModel manifest) {
-        targetCount = manifest.targetCount;
-        sourceCount = manifest.sourceCount;
-        dependencyCount = manifest.dependencyCount;
-        capabilityCount = manifest.capabilityCount;
+      case WorkspaceResult.Value(WorkspaceModel workspace) {
+        memberCount = workspace.memberCount;
         sourceLength = bufferLength(source);
         publishSha256(rawSource, identity, arena);
         published = 1;
       }
-      case ManifestResult.Error(long offset) {
+      case WorkspaceResult.Error(long offset) {
         diagnosticOffset = offset;
         assert(published == 1);
       }
     }
 
     setOutputLength(identity, published * 32);
-    drop(capabilityRows);
-    drop(dependencyRows);
-    drop(sourceRows);
-    drop(targetRows);
+    drop(memberPathLengths);
+    drop(memberPathStarts);
+    drop(memberNameLengths);
+    drop(memberNameStarts);
     drop(lengths);
     drop(starts);
     drop(kinds);

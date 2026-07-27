@@ -174,6 +174,13 @@ targets:
       - "src/main/wheeler/native/NativeWorkspace.w"
     test: false
   - kind: "deployable"
+    name: "nativeworkspaceidentity"
+    root: "src/main/wheeler/native/packages/NativeWorkspaceIdentity.w"
+    module: "examples.packages.workspace_identity"
+    sources:
+      - "src/main/wheeler/native/packages/NativeWorkspaceIdentity.w"
+    test: false
+  - kind: "deployable"
     name: "ownedreturns"
     root: "src/main/wheeler/classical/ownership/OwnedReturns.w"
     test: false

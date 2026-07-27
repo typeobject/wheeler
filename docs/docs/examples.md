@@ -163,7 +163,7 @@ Expected behavior:
 
 ### `NativeLockIdentity.w`
 
-Files: [`NativeLockIdentity.w`](../../wheeler-examples/src/main/wheeler/native/packages/NativeLockIdentity.w) + [`packages/resolution/Lock.w`](../../wheeler-package/src/main/wheeler/packages/resolution/Lock.w) + [`crypto/Sha256.w`](../../wheeler-core/src/main/wheeler/crypto/Sha256.w).
+Files: [`NativeLockIdentity.w`](../../wheeler-examples/src/main/wheeler/native/packages/NativeLockIdentity.w) + [`packages/resolution/Lock.w`](../../wheeler-package/src/main/wheeler/packages/resolution/Lock.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
 
 Covers: Bounded binary input, strict UTF-8 ownership, complete schema-3 lock validation, Wheeler SHA-256, stage-0 differential identity, fail-closed publication, and exact rewind.
 
@@ -272,7 +272,7 @@ Expected behavior: Canonical views through eight rows publish unchanged; `1.2.0`
 
 ### `NativeSnapshotIdentity.w`
 
-Files: [`NativeSnapshotIdentity.w`](../../wheeler-examples/src/main/wheeler/native/packages/NativeSnapshotIdentity.w) + [`packages/repository/Snapshot.w`](../../wheeler-package/src/main/wheeler/packages/repository/Snapshot.w) + [`crypto/Sha256.w`](../../wheeler-core/src/main/wheeler/crypto/Sha256.w).
+Files: [`NativeSnapshotIdentity.w`](../../wheeler-examples/src/main/wheeler/native/packages/NativeSnapshotIdentity.w) + [`packages/repository/Snapshot.w`](../../wheeler-package/src/main/wheeler/packages/repository/Snapshot.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
 
 Covers: Strict binary-input bounds, owned byte-to-UTF-8 freezing, canonical snapshot validation, Wheeler-native SHA-256 publication, Java/Wheeler differential identities, fail-closed output, and complete VM rewind.
 
@@ -290,6 +290,14 @@ Expected behavior:
 - A sixteen-member generated workspace proves that collection parsing uses table bounds. A seventeenth member exceeds the fixture's declared capacity and traps before publication.
 - Wrong schema/key, malformed names, duplicates, unsorted members, shared/nested paths, and traversal also trap.
 
+### `NativeWorkspaceIdentity.w`
+
+Files: [`NativeWorkspaceIdentity.w`](../../wheeler-examples/src/main/wheeler/native/packages/NativeWorkspaceIdentity.w) + [`packages/workspace/Workspace.w`](../../wheeler-package/src/main/wheeler/packages/workspace/Workspace.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
+
+Covers: Shared bounded binary-to-UTF-8 ownership, canonical workspace validation, Wheeler SHA-256, stage-0 differential identity, fail-closed publication, and exact rewind.
+
+Expected behavior: A sorted two-member workspace matches the stage-0 identity. A third member exceeds this fixture's table, schema drift fails, and 1,025 bytes exceed its input budget. Bad input gets a diagnostic, not a digest-shaped souvenir.
+
 ### `NativeManifest.w`
 
 Files: [`NativeManifest.w`](../../wheeler-examples/src/main/wheeler/native/NativeManifest.w) + [`packages/manifest/Manifest.w`](../../wheeler-package/src/main/wheeler/packages/manifest/Manifest.w) + [`ManifestTokens.w`](../../wheeler-package/src/main/wheeler/packages/manifest/ManifestTokens.w).
@@ -304,7 +312,7 @@ Expected behavior:
 
 ### `NativeManifestIdentity.w`
 
-Files: [`NativeManifestIdentity.w`](../../wheeler-examples/src/main/wheeler/native/packages/NativeManifestIdentity.w) + [`packages/manifest/Manifest.w`](../../wheeler-package/src/main/wheeler/packages/manifest/Manifest.w) + [`crypto/Sha256.w`](../../wheeler-core/src/main/wheeler/crypto/Sha256.w).
+Files: [`NativeManifestIdentity.w`](../../wheeler-examples/src/main/wheeler/native/packages/NativeManifestIdentity.w) + [`packages/manifest/Manifest.w`](../../wheeler-package/src/main/wheeler/packages/manifest/Manifest.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
 
 Covers: Bounded binary manifest input, strict UTF-8 ownership, complete canonical validation, Wheeler SHA-256, stage-0 differential identity, fail-closed publication, and exact rewind.
 

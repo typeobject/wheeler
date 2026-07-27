@@ -8,7 +8,7 @@ import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
-import com.typeobject.wheeler.packageformat.PackageManifestParser;
+import com.typeobject.wheeler.packageformat.WorkspaceManifestParser;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,29 +17,16 @@ import java.util.HexFormat;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-/** Differential tests for Wheeler-native package-manifest identities. */
-final class NativeManifestIdentityExampleTest {
+/** Differential tests for Wheeler-native workspace-manifest identities. */
+final class NativeWorkspaceIdentityExampleTest {
   private static final Path FIXTURE = Path.of(
-      "src/main/wheeler/native/packages/NativeManifestIdentity.w");
-  private static final String MANIFEST = """
-      schema: 1
-      package:
-        name: "demo.identity"
-        version: "1.0.0"
-        profile: "bootstrap-1"
-      targets:
-        - kind: "tool"
-          name: "main"
-          root: "src/Main.w"
-          test: false
-      dependencies: []
-      capabilities: []
-      """;
+      "src/main/wheeler/native/packages/NativeWorkspaceIdentity.w");
 
   @Test
-  void validatesBeforePublishingTheCanonicalManifestIdentity() throws Exception {
+  void validatesBeforePublishingTheCanonicalWorkspaceIdentity() throws Exception {
     Program program = program();
-    byte[] input = MANIFEST.getBytes(StandardCharsets.UTF_8);
+    String canonical = workspace(2);
+    byte[] input = canonical.getBytes(StandardCharsets.UTF_8);
     VirtualMachine machine = vm(program, input);
     var initial = machine.snapshot();
 
@@ -48,47 +35,47 @@ final class NativeManifestIdentityExampleTest {
     byte[] expected = MessageDigest.getInstance("SHA-256").digest(input);
     assertArrayEquals(expected, machine.hostOutput());
     assertEquals(
-        new PackageManifestParser().parse(MANIFEST).identity(),
+        new WorkspaceManifestParser().parse(canonical).identity(),
         HexFormat.of().formatHex(expected));
-    assertEquals(1, machine.global("targetCount"));
-    assertEquals(0, machine.global("sourceCount"));
-    assertEquals(0, machine.global("dependencyCount"));
-    assertEquals(0, machine.global("capabilityCount"));
+    assertEquals(2, machine.global("memberCount"));
     assertEquals(input.length, machine.global("sourceLength"));
     while (machine.historySize() > 0) {
       machine.rewindOne();
     }
     assertEquals(initial, machine.snapshot());
 
-    assertNoIdentity(program, MANIFEST.replace("schema: 1", "schema: 2").getBytes(StandardCharsets.UTF_8));
-    assertNoIdentity(program, twoTargets().getBytes(StandardCharsets.UTF_8));
+    assertNoIdentity(program, canonical.replace("schema: 1", "schema: 2").getBytes(StandardCharsets.UTF_8));
+    assertNoIdentity(program, workspace(3).getBytes(StandardCharsets.UTF_8));
     assertNoIdentity(program, new byte[1025]);
   }
 
   private static Program program() throws Exception {
     return new WheelerCompiler().compileModuleFiles(
         Map.of(
-            "NativeManifestIdentity.w", Files.readString(FIXTURE),
-            "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
-            "Manifest.w", PackageSources.read("packages/manifest/Manifest.w"),
-            "ManifestTokens.w", PackageSources.read("packages/manifest/ManifestTokens.w"),
+            "NativeWorkspaceIdentity.w", Files.readString(FIXTURE),
+            "Workspace.w", PackageSources.read("packages/workspace/Workspace.w"),
             "Names.w", PackageSources.read("packages/workspace/Names.w"),
             "Paths.w", PackageSources.read("packages/workspace/Paths.w"),
-            "Semver.w", PackageSources.read("packages/resolution/Semver.w"),
+            "ManifestTokens.w", PackageSources.read("packages/manifest/ManifestTokens.w"),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
+            "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
-        "examples.packages.manifest_identity");
+        "examples.packages.workspace_identity");
   }
 
-  private static String twoTargets() {
-    return MANIFEST.replace(
-        "dependencies: []",
-        """
-          - kind: "tool"
-            name: "tool"
-            root: "src/Tool.w"
-            test: false
-        dependencies: []""");
+  private static String workspace(int members) {
+    StringBuilder source = new StringBuilder("""
+        schema: 1
+        workspace:
+          name: "demo-workspace"
+          profile: "bootstrap-1"
+        members:
+        """);
+    for (int index = 0; index < members; index++) {
+      source.append("  - name: \"member0").append(index).append("\"\n")
+          .append("    path: \"packages/member0").append(index).append("\"\n");
+    }
+    return source.toString();
   }
 
   private static VirtualMachine vm(Program program, byte[] source) {

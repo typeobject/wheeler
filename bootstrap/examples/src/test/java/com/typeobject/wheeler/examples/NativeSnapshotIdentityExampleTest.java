@@ -71,6 +71,7 @@ final class NativeSnapshotIdentityExampleTest {
     return new WheelerCompiler().compileModuleFiles(
         Map.of(
             "NativeSnapshotIdentity.w", Files.readString(FIXTURE),
+            "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
             "Snapshot.w", PackageSources.read("packages/repository/Snapshot.w"),
             "Semver.w", PackageSources.read("packages/resolution/Semver.w"),
             "ManifestTokens.w", PackageSources.read("packages/manifest/ManifestTokens.w"),

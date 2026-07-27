@@ -64,6 +64,7 @@ final class NativeLockIdentityExampleTest {
     return new WheelerCompiler().compileModuleFiles(
         Map.of(
             "NativeLockIdentity.w", Files.readString(FIXTURE),
+            "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
             "Lock.w", PackageSources.read("packages/resolution/Lock.w"),
             "Semver.w", PackageSources.read("packages/resolution/Semver.w"),
             "Names.w", PackageSources.read("packages/workspace/Names.w"),

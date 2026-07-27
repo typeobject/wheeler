@@ -410,6 +410,8 @@ Archive signatures and registry namespace authorization are separate layers. Con
 
 The Wheeler-written codecs live under canonical `wheeler.packages`. Its entryless library locks `wheeler.compiler` for the shared scanner and `wheeler.core` for binary and SHA-256 tools. Executable roots remain in `wheeler-examples`, which consumes every required exact archive. Fixtures may read canonical source for differential compilation, but package-codec authority stays in the canonical library.
 
+`crypto/ContentIdentity.w` owns the common metadata boundary: at most 4,096 immutable input bytes become one strict UTF-8 owner, and a caller invokes complete 32-byte SHA-256 publication only after its codec accepts the structure. Snapshot, lock, manifest, and workspace fixtures share this path instead of keeping four nearly identical copies. Copy-pasted trust code is still copy-pasted code, even when each copy has a very serious comment.
+
 `NativeManifest.w` imports `packages/manifest/Manifest.w`, the focused `ManifestTokens.w` comparison layer, and the shared scanner. It parses strict canonical YAML into four caller-owned tables:
 
 - ten-word target rows;
@@ -460,6 +462,8 @@ Names must arrive in lexical order. Each path must be unique and must not nest u
 The executable fixture has sixteen slots. Five named members cover normal parsing, all sixteen pass in a generated differential case, and a seventeenth member fails before publication. Duplicate names, duplicate or nested paths, traversal, malformed names, capacity exhaustion, and noncanonical input order all fail closed.
 
 The parser loop allows at most 512 records under the 4,096-byte recovery profile. The caller's table size is often the tighter limit. Supporting the schema's 10,000-member ceiling requires wider scanner and I/O limits.
+
+`NativeWorkspaceIdentity.w` validates at most 1,024 binary bytes with two caller-owned member rows before publishing the Wheeler digest. Its sorted two-member identity matches stage 0 and rewinds exactly. A third member, schema drift, or oversized input leaves digest output untouched.
 
 ## Wheeler-native plan slice
 
