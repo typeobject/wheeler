@@ -49,6 +49,7 @@ classical class HelperParser {
     borrow utf8 source,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
+    long globalCount,
     long nameToken,
     long reversible,
     long proofToken,
@@ -60,7 +61,13 @@ classical class HelperParser {
     long helperStatementCount
   ) {
     SourceRange name = new SourceRange(tokenStarts[2], tokenLengths[2]);
-    SourceRange global = new SourceRange(tokenStarts[6], tokenLengths[6]);
+    SourceRange global = new SourceRange(0, 0);
+    long initial = 0;
+    if (globalCount == 1) {
+      global = new SourceRange(tokenStarts[6], tokenLengths[6]);
+      initial = parsedSignedNumber(source, tokenStarts, tokenLengths, 8);
+    }
+
     SourceRange helper = new SourceRange(tokenStarts[nameToken], tokenLengths[nameToken]);
     SourceRange proof = new SourceRange(0, 0);
     if (proofCount == 1) {
@@ -120,8 +127,8 @@ classical class HelperParser {
     MinimalProgram program = new MinimalProgram(
       name,
       global,
-      1,
-      parsedSignedNumber(source, tokenStarts, tokenLengths, 8),
+      globalCount,
+      initial,
       entrySequence.count,
       entrySequence.opcodes,
       entrySequence.operands,
@@ -146,6 +153,7 @@ classical class HelperParser {
     borrow mut words tokenLengths,
     long count,
     long closeStart,
+    long globalCount,
     long nameToken,
     long reversible,
     long proofToken,
@@ -188,6 +196,7 @@ classical class HelperParser {
             source,
             tokenStarts,
             tokenLengths,
+            globalCount,
             nameToken,
             reversible,
             proofToken,
@@ -275,9 +284,14 @@ classical class HelperParser {
     borrow mut words statementStarts,
     long count
   ) {
+    long globalCount = 1;
     long memberStart = minimalEntryStart(source, tokenKinds, tokenStarts, tokenLengths);
     if (memberStart < 1) {
-      return new MinimalProgramResult.Error(0);
+      globalCount = 0;
+      memberStart = minimalNoGlobalMemberStart(source, tokenKinds, tokenStarts, tokenLengths);
+      if (memberStart < 1) {
+        return new MinimalProgramResult.Error(0);
+      }
     }
 
     long reversible = 0;
@@ -294,6 +308,9 @@ classical class HelperParser {
     if (tokenHash(source, tokenStarts, tokenLengths, voidToken) == TOKEN_REV) {
       reversible = 1;
       voidToken += 1;
+      if (globalCount == 0) {
+        return new MinimalProgramResult.Error(0);
+      }
     }
 
     if (tokenHash(source, tokenStarts, tokenLengths, voidToken) == TOKEN_VOID) {} else {
@@ -411,6 +428,7 @@ classical class HelperParser {
         tokenLengths,
         count,
         afterCalls,
+        globalCount,
         nameToken,
         reversible,
         proof.token,
@@ -464,6 +482,7 @@ classical class HelperParser {
       tokenLengths,
       count,
       reverseEnd + 1,
+      globalCount,
       nameToken,
       reversible,
       proof.token,

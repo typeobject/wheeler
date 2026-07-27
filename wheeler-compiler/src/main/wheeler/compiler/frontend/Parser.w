@@ -60,51 +60,12 @@ classical class Parser {
     borrow mut words tokenStarts,
     borrow mut words tokenLengths
   ) {
-    if (tokenHash(source, tokenStarts, tokenLengths, 0) == TOKEN_CLASSICAL) {
-      if (tokenHash(source, tokenStarts, tokenLengths, 1) == TOKEN_CLASS) {
-        if (tokenKinds[2] == 1) {
-          if (tokenLengths[2] < 257) {
-            if (
-              punctuationAt(source, tokenKinds, tokenStarts, 3, PUNCTUATION_OPEN_BRACE)
-            ) {
-              if (tokenHash(source, tokenStarts, tokenLengths, 4) == TOKEN_ENTRY) {
-                if (tokenHash(source, tokenStarts, tokenLengths, 5) == TOKEN_VOID) {
-                  if (tokenHash(source, tokenStarts, tokenLengths, 6) == TOKEN_MAIN) {
-                    if (
-                      punctuationAt(source, tokenKinds, tokenStarts, 7, PUNCTUATION_OPEN_PAREN)
-                    ) {
-                      if (
-                        punctuationAt(
-                          source,
-                          tokenKinds,
-                          tokenStarts,
-                          8,
-                          PUNCTUATION_CLOSE_PAREN
-                        )
-                      ) {
-                        if (
-                          punctuationAt(
-                            source,
-                            tokenKinds,
-                            tokenStarts,
-                            9,
-                            PUNCTUATION_OPEN_BRACE
-                          )
-                        ) {
-                          return 10;
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+    long memberStart = minimalNoGlobalMemberStart(source, tokenKinds, tokenStarts, tokenLengths);
+    if (memberStart < 1) {
+      return -1;
     }
 
-    return -1;
+    return minimalBodyStart(source, tokenKinds, tokenStarts, tokenLengths, memberStart);
   }
 
   private boolean noGlobalStatementSupported(
@@ -233,23 +194,6 @@ classical class Parser {
     return false;
   }
 
-  private boolean helperDeclarationStarts(long token) {
-    boolean starts = token == TOKEN_VOID;
-    if (token == TOKEN_REV) {
-      starts = true;
-    }
-
-    if (token == TOKEN_PUBLIC) {
-      starts = true;
-    }
-
-    if (token == TOKEN_PRIVATE) {
-      starts = true;
-    }
-
-    return starts;
-  }
-
   /// Parses `minimalProgram` from a bounded canonical input.
   public MinimalProgramResult parseMinimalProgram(
     borrow utf8 source,
@@ -275,25 +219,25 @@ classical class Parser {
           }
           case MinimalProgramResult.Error(long noGlobalOffset) {}
         }
+
+        MinimalProgramResult helper = parseHelperProgram(
+          source,
+          tokenKinds,
+          tokenStarts,
+          tokenLengths,
+          statementStarts,
+          count
+        );
+        match (helper) {
+          case MinimalProgramResult.Value(MinimalProgram helperCandidate) {
+            return new MinimalProgramResult.Value(helperCandidate);
+          }
+          case MinimalProgramResult.Error(long helperOffset) {}
+        }
       }
     }
 
     if (minimalStateCountSupported(count)) {
-      long firstMember = minimalEntryStart(source, tokenKinds, tokenStarts, tokenLengths);
-      if (0 < firstMember) {
-        long firstMemberHash = tokenHash(source, tokenStarts, tokenLengths, firstMember);
-        if (helperDeclarationStarts(firstMemberHash)) {
-          return parseHelperProgram(
-            source,
-            tokenKinds,
-            tokenStarts,
-            tokenLengths,
-            statementStarts,
-            count
-          );
-        }
-      }
-
       long entryStart = minimalEntryStart(source, tokenKinds, tokenStarts, tokenLengths);
       if (0 < entryStart) {
         long bodyStart = minimalBodyStart(

@@ -125,6 +125,40 @@ classical class StringTable {
     return length - helperLength;
   }
 
+  private long compareHelperToEntry(
+    borrow utf8 source,
+    SourceRange moduleName,
+    SourceRange helperName
+  ) {
+    long helperLength = helperName.length;
+    long entryLength = 4;
+    if (0 < moduleName.length) {
+      helperLength += moduleName.length + 2;
+      entryLength += moduleName.length + 2;
+    }
+
+    long limit = helperLength;
+    if (entryLength < limit) {
+      limit = entryLength;
+    }
+
+    long cursor = 0;
+    while (cursor < limit) limit 512 {
+      long difference = helperScalar(source, moduleName, helperName, cursor) - entryScalar(
+        source,
+        moduleName,
+        cursor
+      );
+      if (difference == 0) {
+        cursor += 1;
+      } else {
+        return difference;
+      }
+    }
+
+    return helperLength - entryLength;
+  }
+
   /// Defines immutable `StringTablePlan` values for this module.
   public record StringTablePlan(
     long nameIndex,
@@ -136,6 +170,73 @@ classical class StringTable {
     long encodedLength,
     long valid
   ) {}
+
+  private StringTablePlan planNoGlobalHelper(
+    borrow utf8 source,
+    MinimalProgram program,
+    SourceRange moduleName,
+    long nameMainOrder,
+    long nameLength,
+    long helperLength
+  ) {
+    long nameHelperOrder = compareAsciiSliceToHelper(
+      source,
+      program.name.start,
+      nameLength,
+      moduleName,
+      program.helperName
+    );
+    long helperMainOrder = compareHelperToEntry(source, moduleName, program.helperName);
+    long valid = 1;
+    if (nameMainOrder == 0) {
+      valid = 0;
+    }
+
+    if (nameHelperOrder == 0) {
+      valid = 0;
+    }
+
+    if (helperMainOrder == 0) {
+      valid = 0;
+    }
+
+    long nameIndex = 0;
+    long helperIndex = 0;
+    long mainIndex = 0;
+    if (0 < nameMainOrder) {
+      nameIndex += 1;
+    } else {
+      mainIndex += 1;
+    }
+
+    if (0 < nameHelperOrder) {
+      nameIndex += 1;
+    } else {
+      helperIndex += 1;
+    }
+
+    if (0 < helperMainOrder) {
+      helperIndex += 1;
+    } else {
+      mainIndex += 1;
+    }
+
+    long modulePrefixLength = 0;
+    if (0 < moduleName.length) {
+      modulePrefixLength = moduleName.length + 2;
+    }
+
+    return new StringTablePlan(
+      nameIndex,
+      0,
+      helperIndex,
+      0,
+      mainIndex,
+      3,
+      20 + nameLength + helperLength + modulePrefixLength * 2,
+      valid
+    );
+  }
 
   /// Computes canonical string offsets and total encoded table length.
   public StringTablePlan planStringTable(
@@ -178,6 +279,19 @@ classical class StringTable {
     }
 
     long encodedLength = 16 + nameLength + entryExtra;
+    if (program.helperCount == 1) {
+      if (program.globalCount == 0) {
+        return planNoGlobalHelper(
+          source,
+          program,
+          moduleName,
+          nameMainOrder,
+          nameLength,
+          helperLength
+        );
+      }
+    }
+
     if (program.globalCount == 1) {
       long baseNameGlobalOrder = compareAsciiSlices(
         source,
@@ -259,12 +373,7 @@ classical class StringTable {
         moduleName,
         program.helperName
       );
-      long helperMainOrder = compareAsciiSliceToEntry(
-        source,
-        program.helperName.start,
-        helperLength,
-        moduleName
-      );
+      long helperMainOrder = compareHelperToEntry(source, moduleName, program.helperName);
       if (nameGlobalOrder == 0) {
         valid = 0;
       }

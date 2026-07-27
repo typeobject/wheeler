@@ -66,6 +66,17 @@ class MinimalCompilerExampleTest {
       helperModuleWriter.rewindOne();
     }
     assertEquals(helperModuleInitial, helperModuleWriter.snapshot());
+    String noStateHelperModuleSource =
+        "module examples.seed; classical class NoStateModuleHelper { "
+            + "public void inspect() { boolean ready = true; assert(ready); } "
+            + "entry void main() { inspect(); } }";
+    VirtualMachine noStateHelperModuleWriter = new VirtualMachine(
+        writerProgram, noStateHelperModuleSource.getBytes(StandardCharsets.UTF_8), 1024);
+    noStateHelperModuleWriter.run();
+    assertArrayEquals(
+        new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
+            Map.of("NoStateModuleHelper.w", noStateHelperModuleSource), "examples.seed")),
+        noStateHelperModuleWriter.hostOutput());
     String proofModuleSource = "module examples.seed; classical class ModuleProof { "
         + "state long value = 1; rev void bump() { value += 2; } "
         + "theorem bumpInverse proves inverse(bump); "
@@ -125,6 +136,20 @@ class MinimalCompilerExampleTest {
     assertDifferentialHalt(
         writerProgram,
         "classical class Local { entry void main() { long x = 2; } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class NoStateEmptyHelper { "
+            + "void inspect() { } entry void main() { inspect(); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class NoStatePublicHelper { "
+            + "public void inspect() { boolean ready = true; assert(ready); } "
+            + "entry void main() { inspect(); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class NoStatePrivateHelper { "
+            + "private void inspect() { boolean ready = true; assert(ready); } "
+            + "entry void main() { inspect(); } }");
     assertDifferentialHalt(
         writerProgram,
         "classical class Local { entry void main() { long x = -2; } }");
@@ -474,6 +499,16 @@ class MinimalCompilerExampleTest {
         512);
     assertThrows(VmTrap.class, duplicate::run);
     assertArrayEquals(new byte[512], duplicate.hostOutput());
+
+    VirtualMachine noStateReversibleHelper = new VirtualMachine(
+        writerProgram,
+        ("classical class NoStateReversibleHelper { "
+            + "rev void inspect() { } "
+            + "entry void main() { inspect(); reverse { inspect(); } } }")
+            .getBytes(StandardCharsets.UTF_8),
+        1024);
+    assertThrows(VmTrap.class, noStateReversibleHelper::run);
+    assertArrayEquals(new byte[1024], noStateReversibleHelper.hostOutput());
 
     VirtualMachine duplicateHelperVisibility = new VirtualMachine(
         writerProgram,

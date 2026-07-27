@@ -5,19 +5,47 @@ module wheeler.compiler.structure;
 import wheeler.compiler.tokens;
 
 classical class Structure {
+  private boolean canonicalClassName(borrow mut words tokenKinds, borrow mut words tokenLengths) {
+    if (tokenKinds[2] == 1) {
+      return tokenLengths[2] < 257;
+    }
+
+    return false;
+  }
+
   private boolean canonicalMinimalNames(
     borrow mut words tokenKinds,
     borrow mut words tokenLengths
   ) {
-    if (tokenKinds[2] == 1) {
-      if (tokenLengths[2] < 257) {
-        if (tokenKinds[6] == 1) {
-          return tokenLengths[6] < 257;
-        }
+    if (canonicalClassName(tokenKinds, tokenLengths)) {
+      if (tokenKinds[6] == 1) {
+        return tokenLengths[6] < 257;
       }
     }
 
     return false;
+  }
+
+  /// Returns the first member token of a no-state bounded class.
+  public long minimalNoGlobalMemberStart(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths
+  ) {
+    if (tokenHash(source, tokenStarts, tokenLengths, 0) == TOKEN_CLASSICAL) {
+      if (tokenHash(source, tokenStarts, tokenLengths, 1) == TOKEN_CLASS) {
+        if (canonicalClassName(tokenKinds, tokenLengths)) {
+          if (
+            punctuationAt(source, tokenKinds, tokenStarts, 3, PUNCTUATION_OPEN_BRACE)
+          ) {
+            return 4;
+          }
+        }
+      }
+    }
+
+    return -1;
   }
 
   /// Returns the first source offset of the bounded entry declaration.
