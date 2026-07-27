@@ -5,7 +5,7 @@ module wheeler.compiler.driver;
 import wheeler.compiler.codegen;
 import wheeler.compiler.encoding;
 import wheeler.compiler.ir;
-import wheeler.compiler.local_statements;
+import wheeler.compiler.local_opcodes;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.parser;
 import wheeler.compiler.string_table;

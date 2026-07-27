@@ -3,7 +3,7 @@
 module wheeler.compiler.codegen;
 
 import wheeler.compiler.encoding;
-import wheeler.compiler.local_statements;
+import wheeler.compiler.local_opcodes;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.tokens;
 import wheeler.compiler.type_codes;

@@ -672,6 +672,7 @@ class WheelerCommandTest {
               - "src/compiler/backend/StringTable.w"
               - "src/compiler/frontend/BodyParser.w"
               - "src/compiler/frontend/HelperParser.w"
+              - "src/compiler/frontend/LocalOpcodes.w"
               - "src/compiler/frontend/LocalStatements.w"
               - "src/compiler/frontend/Parser.w"
               - "src/compiler/frontend/Sequences.w"
@@ -719,6 +720,9 @@ class WheelerCommandTest {
     Files.copy(
         compilerSources.resolve("compiler/frontend/HelperParser.w"),
         project.resolve("src/compiler/frontend/HelperParser.w"));
+    Files.copy(
+        compilerSources.resolve("compiler/frontend/LocalOpcodes.w"),
+        project.resolve("src/compiler/frontend/LocalOpcodes.w"));
     Files.copy(
         compilerSources.resolve("compiler/frontend/LocalStatements.w"),
         project.resolve("src/compiler/frontend/LocalStatements.w"));

@@ -2,7 +2,7 @@
 
 module wheeler.compiler.statements;
 
-import wheeler.compiler.local_statements;
+import wheeler.compiler.local_opcodes;
 import wheeler.compiler.tokens;
 
 classical class Statements {
