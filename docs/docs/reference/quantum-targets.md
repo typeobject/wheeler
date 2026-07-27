@@ -6,9 +6,9 @@ Wheeler programs contain semantic quantum regions. A target plans and runs those
 
 A target publishes an immutable `TargetDescriptor` with:
 
-- adapter and target identity;
-- independently negotiated capabilities;
-- a maximum logical-qubit count;
+- adapter and target identity.
+- independently negotiated capabilities.
+- a maximum logical-qubit count.
 - a maximum shot count.
 
 The first capability set includes static circuits, parameter binding, batches, mid-circuit measurement, reset, classical conditions, state-vector diagnostics, and logical qubits. A target advertises only the records it can execute.
@@ -23,7 +23,7 @@ Results use canonical little-endian integer outcomes and carry target identity. 
 
 [WIP-0032](../proposals/WIP-0032-unified-io-fabric-and-durability-receipts.md) will move this lifecycle under `IoScope` while keeping target-specific request and result types plus WIP-0004 identities. That proposal is still a Draft, so the current `QuantumJob` API doesn't implement the general fabric.
 
-In either model, submission moves classical descriptions and observations; coherent quantum state never becomes an I/O buffer.
+In either model, submission moves classical descriptions and observations. Coherent quantum state never becomes an I/O buffer.
 
 ## Ideal state-vector target
 
@@ -35,7 +35,7 @@ The engine supports H, X, Z, phase, controlled phase, CNOT, CZ, swap, generated 
 
 ## Batches and sampled expectations
 
-`QuantumBatch` is an ordered, content-identified list of complete tasks; its identity includes each task identity in semantic order.
+`QuantumBatch` is an ordered, content-identified list of complete tasks. Its identity includes each task identity in semantic order.
 
 `QuantumBatchJob` keeps that order even when tasks finish out of order. It uses one overall timeout, supports cancellation requests across member jobs, and rejects any job or task identity drift.
 
@@ -47,7 +47,7 @@ Generated adjoints negate the symbolic scale. The ideal target evaluates binding
 
 `QuantumResult.zExpectation(...)` estimates a tensor product of Pauli-Z observables from canonical little-endian samples. It reports the value, standard error, and shot count.
 
-Provider-native expectation requests may be used as a lowering optimization; Wheeler can still keep the sampled result and its provenance.
+Provider-native expectation requests may be used as a lowering optimization. Wheeler can still keep the sampled result and its provenance.
 
 ## OpenQASM 3
 

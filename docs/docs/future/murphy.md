@@ -13,8 +13,8 @@ sidebar_position: 2
 
 `Murphy.w` takes a canonical protocol artifact, a finite starting state, safety rules, and a clear fault bound. It searches every allowed schedule of delivery, duplication, loss, crash, restart, partition, healing, timeout, and logical-time advance. The run returns one of three results:
 
-- a deterministically replayable, kernel-certified counterexample;
-- a kernel-checked proof that no counterexample exists within the exact bound;
+- a deterministically replayable, kernel-certified counterexample.
+- a kernel-checked proof that no counterexample exists within the exact bound.
 - `inconclusive`.
 
 The search does not use production logs, traffic archives, packet corpora, or a learned model. It builds the schedule space from the program and the fault grammar.
@@ -752,8 +752,8 @@ hybrid class Murphy {
 The sketch keeps several mechanisms separate:
 
 - `logged rev` means the finite simulator carries explicit event witnesses. It does not claim that real crashes or packet loss run backward.
-- `borrow` and `inout` express alias and mutation ownership; a protocol artifact cannot acquire host authority through interpretation.
-- `record ... await` stores external evidence durably. Replay consumes that evidence; retry creates a new job identity.
+- `borrow` and `inout` express alias and mutation ownership. A protocol artifact cannot acquire host authority through interpretation.
+- `record ... await` stores external evidence durably. Replay consumes that evidence. Retry creates a new job identity.
 - `experiment` returns samples and confidence metadata, never a theorem.
 - `Proof<P>` exists only after bounded deterministic kernel checking.
 - `NoCounterexampleAtLength` is required before search advances to a longer timeline. An empty quantum sample set proves nothing.
@@ -813,12 +813,12 @@ This report gives an exact reproducer and checked evidence, not a one-time CI fa
 
 Existing explicit-state and symbolic model checkers already explore bounded schedules. Murphy's Wheeler-specific goal is to combine several parts in one system:
 
-- explicit reversible witnesses avoid copying a complete cluster at every branch;
-- one finite schedule classifier can execute classically and, when eligible, coherently;
-- quantum search may reduce the candidate-discovery portion for sparse failures;
-- deterministic replay normalizes the proposed timeline;
-- proof-producing checking certifies failure or bounded absence;
-- durable workflow state survives long searches and distinguishes replay from retry;
+- explicit reversible witnesses avoid copying a complete cluster at every branch.
+- one finite schedule classifier can execute classically and, when eligible, coherently.
+- quantum search may reduce the candidate-discovery portion for sparse failures.
+- deterministic replay normalizes the proposed timeline.
+- proof-producing checking certifies failure or bounded absence.
+- durable workflow state survives long searches and distinguishes replay from retry.
 - the package system publishes the exact reproducer and certificates.
 
 Quantum search does not remove state-space growth, fault-tolerant overhead, oracle cleanup, certificate cost, or the need for partial-order reduction and protocol-specific lemmas. A classical checker may still be faster at every practical bound.

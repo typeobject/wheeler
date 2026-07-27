@@ -17,7 +17,7 @@ Wheeler may later explore every execution allowed by a finite distributed-protoc
 
 The protocol, initial state, event grammar, and fault budget define the search space. Production traffic and logs may help debugging, but they are not semantic input or proof evidence.
 
-This WIP does not reserve source syntax. It defines the model and trust boundary needed before Wheeler accepts syntax for protocol artifacts, logged transitions, coherent interpreters, or schedule proofs. Modeled transitions lower to Wheeler's reversible IR with explicit inverses or logged destruction. External delivery and failure observations remain workflow events; network packets are not physically reversible.
+This WIP does not reserve source syntax. It defines the model and trust boundary needed before Wheeler accepts syntax for protocol artifacts, logged transitions, coherent interpreters, or schedule proofs. Modeled transitions lower to Wheeler's reversible IR with explicit inverses or logged destruction. External delivery and failure observations remain workflow events. Network packets are not physically reversible.
 
 ## Motivation
 
@@ -25,11 +25,11 @@ Concurrency bugs depend on event order and fault placement. Random stress tests 
 
 Wheeler's value is a tighter integration:
 
-- finite protocol and event artifacts have canonical identities;
-- each modeled destructive transition carries an explicit inverse witness;
-- search can uncompute candidate state;
-- target evidence, deterministic replay, and proof stay separate;
-- long searches use durable event and recovery rules;
+- finite protocol and event artifacts have canonical identities.
+- each modeled destructive transition carries an explicit inverse witness.
+- search can uncompute candidate state.
+- target evidence, deterministic replay, and proof stay separate.
+- long searches use durable event and recovery rules.
 - counterexamples and certificates ship as normal Wheeler packages.
 
 ## Goals
@@ -67,7 +67,7 @@ A **timeline event** is one canonical scheduler or fault action with explicit op
 
 A **timeline** is a bounded canonical event vector, declared length, and fault counts derived from its active events.
 
-An event is **enabled** when its preconditions hold in the state immediately before it. Disabled events make an encoding invalid; they are not implicit no-ops.
+An event is **enabled** when its preconditions hold in the state immediately before it. Disabled events make an encoding invalid. They are not implicit no-ops.
 
 An **event witness** contains exactly the state needed to reverse one modeled transition.
 
@@ -81,23 +81,23 @@ A **bounded-safety proof** establishes that no admitted timeline through the sel
 
 Every investigation identity includes:
 
-- protocol artifact and compiler identities;
-- protocol schema and semantics profile;
-- initial cluster-state identity;
-- event grammar and canonical encoding identity;
-- enabledness rules;
-- fault-budget type and concrete value;
-- message, node, timer, queue, map, and step ceilings;
-- arithmetic and overflow semantics;
-- safety proposition identity;
-- trace-normalization profile;
+- protocol artifact and compiler identities.
+- protocol schema and semantics profile.
+- initial cluster-state identity.
+- event grammar and canonical encoding identity.
+- enabledness rules.
+- fault-budget type and concrete value.
+- message, node, timer, queue, map, and step ceilings.
+- arithmetic and overflow semantics.
+- safety proposition identity.
+- trace-normalization profile.
 - proof-kernel profile.
 
 Changing any component creates a different claim. A proof about five crash-stop replicas cannot be relabeled as a proof about seven Byzantine replicas.
 
 ## Canonical schedules
 
-A schedule encoding has one declared active prefix. Inactive slots contain one required zero value. Fault counts are computed from active events and must equal any cached count fields. IDs use canonical finite encodings. Partition sides are disjoint and normalized; time advances are positive and bounded.
+A schedule encoding has one declared active prefix. Inactive slots contain one required zero value. Fault counts are computed from active events and must equal any cached count fields. IDs use canonical finite encodings. Partition sides are disjoint and normalized. Time advances are positive and bounded.
 
 Two independent messages may commute. The first profile may retain both orders as distinct schedules. Partial-order reduction enters only with a checked independence relation and a certificate that the removed order cannot change enabledness or the safety result.
 
@@ -107,13 +107,13 @@ Invalid encodings, disabled events, overflowed IDs, exceeded queues, and exhaust
 
 A model transition may wrap an ordinary nonreversible application handler. Its reversibility comes from an explicit event witness:
 
-- delivery retains the removed envelope, previous recipient, emitted envelopes, and previous message-ID cursor;
-- drop retains the removed envelope;
-- duplication retains the inserted envelope and previous cursor;
-- crash moves volatile state into the witness;
-- restart retains previous volatile state and all recovery effects;
-- partition/heal retains previous network state;
-- timeout retains timer, replica, emitted-message, and cursor state;
+- delivery retains the removed envelope, previous recipient, emitted envelopes, and previous message-ID cursor.
+- drop retains the removed envelope.
+- duplication retains the inserted envelope and previous cursor.
+- crash moves volatile state into the witness.
+- restart retains previous volatile state and all recovery effects.
+- partition/heal retains previous network state.
+- timeout retains timer, replica, emitted-message, and cursor state.
 - time advance retains previous logical time.
 
 The witness belongs to the finite simulation. It does not claim physical rollback. A transition whose inverse requires unbounded or omitted data is outside the profile.
@@ -130,7 +130,7 @@ Liveness is separate. A finite schedule cannot establish eventual delivery witho
 
 ## Search and shortestness
 
-Search proceeds by timeline length. A target or classical search engine may propose candidate encodings; every proposal is decoded and replayed by the deterministic checker.
+Search proceeds by timeline length. A target or classical search engine may propose candidate encodings. Every proposal is decoded and replayed by the deterministic checker.
 
 Failure to find a candidate at length `L` does not permit search at `L+1` when shortestness is claimed. Advancement requires a checked certificate that no length-`L` counterexample exists. The accumulated prefix establishes global length minimality for the first accepted counterexample.
 
@@ -142,12 +142,12 @@ Search implementations may use explicit state, symbolic execution, SAT/SMT, dyna
 
 A coherent classifier:
 
-1. decodes one canonical schedule into clean bounded workspace;
-2. records event enabledness reversibly;
-3. executes the finite protocol interpreter and witnesses;
-4. evaluates one pure safety predicate;
-5. toggles or phase-marks one answer bit;
-6. reverses timeline execution, enabledness, and decoding;
+1. decodes one canonical schedule into clean bounded workspace.
+2. records event enabledness reversibly.
+3. executes the finite protocol interpreter and witnesses.
+4. evaluates one pure safety predicate.
+5. toggles or phase-marks one answer bit.
+6. reverses timeline execution, enabledness, and decoding.
 7. returns all cluster, witness, decoder, map, queue, and predicate workspace clean.
 
 Every protocol operation reachable by the classifier needs exact finite coherent semantics. Host I/O, logged VM history, floating-point nondeterminism, unbounded allocation, dynamic provider calls, and unsupported handler effects reject coherent lowering.
@@ -158,11 +158,11 @@ A quantum target returns candidate evidence. It cannot establish absence, minima
 
 The normalized replay artifact records:
 
-- exact protocol, initial state, event grammar, and budget identities;
-- canonical timeline;
-- transition trace in event order;
-- final safety result and first violating transition when defined;
-- checker/compiler identities;
+- exact protocol, initial state, event grammar, and budget identities.
+- canonical timeline.
+- transition trace in event order.
+- final safety result and first violating transition when defined.
+- checker/compiler identities.
 - proof subjects and certificate identities.
 
 Replay never resubmits search. Retry creates a new target job and evidence identity. Search length, accepted absence proofs, candidate evidence, and publication state are durable workflow data. A crash after a length proof resumes at the next length. A crash before commit rechecks the evidence and proof.
@@ -173,13 +173,13 @@ Cancellation, timeout, stale target descriptors, and unavailable proof search le
 
 A counterexample certificate proves:
 
-- artifact and initial-state identity;
-- canonical timeline and budget compliance;
-- enabledness of every event in sequence;
-- exact transition reduction;
+- artifact and initial-state identity.
+- canonical timeline and budget compliance.
+- enabledness of every event in sequence.
+- exact transition reduction.
 - the final named safety violation.
 
-A minimality certificate proves absence at every shorter length; a bounded-safety certificate proves absence through the configured maximum.
+A minimality certificate proves absence at every shorter length. A bounded-safety certificate proves absence through the configured maximum.
 
 Proof-producing search may use induction over the transition trace, finite enumeration, bit-vector certificates, SAT resolution, BDD certificates, partial-order lemmas, or protocol invariants. All elaborate to bounded canonical terms checked without invoking the producer.
 
@@ -187,15 +187,15 @@ Proof-producing search may use induction over the transition trace, finite enume
 
 The result is a closed variant:
 
-- `CounterexampleFound(counterexample, failureProof, minimalityProof)`;
-- `BoundedSafe(safetyProof)`;
+- `CounterexampleFound(counterexample, failureProof, minimalityProof)`.
+- `BoundedSafe(safetyProof)`.
 - `Inconclusive(evidence, boundedDiagnostic)`.
 
 No Boolean `safe` result exists without a proof value. Reports must preserve this distinction visually and in machine-readable encoding.
 
 ## I/O schedule integration
 
-WIP-0032 owns I/O requests, scopes, operations, cancellation, completion, and receipts. This WIP may explore a finite WIP-0032 model by choosing admitted completion orders, partial progress, cancellation races, credit exhaustion, and uncertainty outcomes; it does not define another scheduler or I/O method family.
+WIP-0032 owns I/O requests, scopes, operations, cancellation, completion, and receipts. This WIP may explore a finite WIP-0032 model by choosing admitted completion orders, partial progress, cancellation races, credit exhaustion, and uncertainty outcomes. It does not define another scheduler or I/O method family.
 
 A replay package records canonical operation and schedule identities, instead of payloads or native queue state. A checked schedule can establish behavior of the finite model. It cannot turn simulated persistence into device evidence or infer that a timed-out external effect never occurred.
 
@@ -203,12 +203,12 @@ A replay package records canonical operation and schedule identities, instead of
 
 A counterexample replay package contains:
 
-- protocol package and lock identities;
-- initial state;
-- event/fault profile and concrete budget;
-- canonical timeline and normalized trace;
-- safety failure and minimality certificates;
-- optional human explanation derived from the trace;
+- protocol package and lock identities.
+- initial state.
+- event/fault profile and concrete budget.
+- canonical timeline and normalized trace.
+- safety failure and minimality certificates.
+- optional human explanation derived from the trace.
 - checker and proof-kernel profiles.
 
 A bounded-safe package substitutes the universal certificate. An inconclusive report may include evidence but cannot be imported where `Proof<BoundedSafe>` is required.
@@ -225,16 +225,16 @@ Candidate and diagnostic reduction uses timeline length then canonical encoding.
 
 The system fails closed on:
 
-- malformed or noncanonical protocol/state/schedule data;
-- schema, compiler, model, budget, or proposition mismatch;
-- disabled event or exceeded bounded collection;
-- arithmetic, ID, time, or cardinality overflow;
-- incomplete event witness or dirty inverse workspace;
-- unsupported coherent effect;
-- stale, duplicated, or mismatched search evidence;
-- replay disagreement;
-- rejected proof term;
-- missing shorter-length certificate;
+- malformed or noncanonical protocol/state/schedule data.
+- schema, compiler, model, budget, or proposition mismatch.
+- disabled event or exceeded bounded collection.
+- arithmetic, ID, time, or cardinality overflow.
+- incomplete event witness or dirty inverse workspace.
+- unsupported coherent effect.
+- stale, duplicated, or mismatched search evidence.
+- replay disagreement.
+- rejected proof term.
+- missing shorter-length certificate.
 - unauthorized or partial publication.
 
 A failed transition traps before partial model mutation. A failed investigation produces no false safe result and no partial release.
@@ -283,7 +283,7 @@ A bounded proof does not establish that the model matches production, excludes s
 - [ ] A local delta-debug result is not labeled shortest without all shorter-length proofs.
 - [ ] Empty samples, timeout, cancellation, stale jobs, and target failure produce `Inconclusive`, never `BoundedSafe`.
 - [ ] Bounded-safe certification rejects one omitted enabled schedule.
-- [ ] Replay performs no target submission; retry receives a new evidence identity.
+- [ ] Replay performs no target submission. Retry receives a new evidence identity.
 - [ ] Crash/recovery at every durable phase neither skips a length nor applies evidence twice.
 - [ ] Coherent classification returns all non-answer registers and workspaces clean.
 - [ ] Classical and coherent classifiers agree for every schedule in a tiny complete domain.
@@ -311,11 +311,11 @@ Allowed only as a shortest-known claim. An unqualified shortest claim requires c
 
 ## Open questions
 
-- Which structured-concurrency semantics are small enough for canonical finite protocol artifacts (owner: concurrency maintainers; decision point: before protocol schema)?
-- Which event independence relation supports useful checked partial-order reduction (owner: model-checking maintainers; decision point: before absence certificates)?
-- Which proof format handles bounded transition reachability and nonreachability without trusting the solver (owner: proof maintainers; decision point: before safety certification)?
-- Which application effects are eligible for coherent finite interpretation (owner: quantum/compiler maintainers; decision point: before failure-oracle lowering)?
-- Which observation model defines the applied-at-most-once property for replicated external effects (owner: application maintainers; decision point: before the ledger fixture)?
+- Which structured-concurrency semantics are small enough for canonical finite protocol artifacts (owner: concurrency maintainers. Decision point: before protocol schema)?
+- Which event independence relation supports useful checked partial-order reduction (owner: model-checking maintainers. Decision point: before absence certificates)?
+- Which proof format handles bounded transition reachability and nonreachability without trusting the solver (owner: proof maintainers. Decision point: before safety certification)?
+- Which application effects are eligible for coherent finite interpretation (owner: quantum/compiler maintainers. Decision point: before failure-oracle lowering)?
+- Which observation model defines the applied-at-most-once property for replicated external effects (owner: application maintainers. Decision point: before the ledger fixture)?
 
 ## References
 

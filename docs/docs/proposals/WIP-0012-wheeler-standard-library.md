@@ -63,14 +63,14 @@ The library graph is acyclic and divided by trust and capability.
 
 `wheeler.core` requires no allocator, filesystem, network, clock, randomness, target, or operating-system service. It contains:
 
-- scalar and machine-width types;
-- tuples, records, tagged variants, `Option`, and `Result`;
-- ownership and effect traits or contracts;
-- fixed arrays, slices, ranges, iterators, and comparisons;
-- bounded formatting into caller-owned buffers;
-- UTF-8 decoding over borrowed bytes;
-- hashing primitives needed for canonical identity;
-- minimal proof propositions and certificate decoding interfaces;
+- scalar and machine-width types.
+- tuples, records, tagged variants, `Option`, and `Result`.
+- ownership and effect traits or contracts.
+- fixed arrays, slices, ranges, iterators, and comparisons.
+- bounded formatting into caller-owned buffers.
+- UTF-8 decoding over borrowed bytes.
+- hashing primitives needed for canonical identity.
+- minimal proof propositions and certificate decoding interfaces.
 - panic-free checked arithmetic and explicit traps only where the language requires them.
 
 The compiler, verifier, native transition kernel, and proof kernel can depend on this layer.
@@ -79,10 +79,10 @@ The compiler, verifier, native transition kernel, and proof kernel can depend on
 
 `wheeler.alloc` depends on `core` and an explicit allocator capability. It contains:
 
-- owned vectors, strings, byte builders, bit vectors, deques, maps, sets, heaps, graphs, and arenas;
-- reference-counted immutable values only if their ownership and cycle behavior are specified;
-- region and arena allocation used by compiler phases;
-- bounded canonical serialization buffers;
+- owned vectors, strings, byte builders, bit vectors, deques, maps, sets, heaps, graphs, and arenas.
+- reference-counted immutable values only if their ownership and cycle behavior are specified.
+- region and arena allocation used by compiler phases.
+- bounded canonical serialization buffers.
 - collection transactions and reversible data structures where their contracts are exact.
 
 Allocation failure returns a typed error or declared trap. It never silently invokes a host collector.
@@ -91,14 +91,14 @@ Allocation failure returns a typed error or declared trap. It never silently inv
 
 `wheeler.std` depends on `core`, selected `alloc` packages, and explicit host capabilities. It contains:
 
-- logical paths and package/module identifiers;
-- capability-scoped byte input and output;
-- atomic artifact replacement;
-- process argument and terminal abstractions;
-- deterministic command dispatch;
-- operational deadlines and cancellation tokens;
-- package/archive helpers;
-- test runners and report formats;
+- logical paths and package/module identifiers.
+- capability-scoped byte input and output.
+- atomic artifact replacement.
+- process argument and terminal abstractions.
+- deterministic command dispatch.
+- operational deadlines and cancellation tokens.
+- package/archive helpers.
+- test runners and report formats.
 - quantum target and hybrid runtime client APIs.
 
 Importing `std` grants no capability. Values enter through an application entry point or embedding host.
@@ -109,16 +109,16 @@ Importing `std` grants no capability. Values enter through an application entry 
 
 The standard scalar set includes:
 
-- `bool`;
-- signed and unsigned fixed-width integers;
-- `usize` and `isize` with target-qualified layout but checked portable conversions;
-- Unicode scalar `char`;
-- finite IEEE floating-point types for executable numeric work;
-- fixed-width bit vectors with explicit modular arithmetic;
-- `Never` for unreachable results;
+- `bool`.
+- signed and unsigned fixed-width integers.
+- `usize` and `isize` with target-qualified layout but checked portable conversions.
+- Unicode scalar `char`.
+- finite IEEE floating-point types for executable numeric work.
+- fixed-width bit vectors with explicit modular arithmetic.
+- `Never` for unreachable results.
 - a unit value.
 
-Signed checked arithmetic, unsigned modular arithmetic, and bit-vector arithmetic are distinct APIs. Source operators resolve to a declared model; coherent lifting never guesses that checked arithmetic means modular arithmetic.
+Signed checked arithmetic, unsigned modular arithmetic, and bit-vector arithmetic are distinct APIs. Source operators resolve to a declared model. Coherent lifting never guesses that checked arithmetic means modular arithmetic.
 
 Floating-point APIs specify NaN, infinity, signed zero, rounding, comparison, and conversion behavior. Proof code uses explicit finite, rational, algebraic, interval, or symbolic types when mathematical semantics require them.
 
@@ -126,32 +126,32 @@ Floating-point APIs specify NaN, infinity, signed zero, rounding, comparison, an
 
 Records have named fields and structural value semantics unless declared opaque. Tagged variants are exhaustive and carry bounded payloads. `Option<T>` replaces ambient null. `Result<T, E>` carries ordinary recoverable failure.
 
-A variant tag and record layout have canonical `.wbc` type metadata; native layout remains derived and cannot change value equality or serialization.
+A variant tag and record layout have canonical `.wbc` type metadata. Native layout remains derived and cannot change value equality or serialization.
 
 ### Ownership classes
 
 Types participate in explicit capabilities such as:
 
-- `Copy`: duplication preserves semantics and ownership;
-- `Move`: ownership transfers and the source becomes unavailable;
-- `Drop`: compiler-admitted bounded memory-only destruction; external disposal is a separate explicit effect;
-- `Borrow`: a scoped shared view;
-- `BorrowMut`: a scoped exclusive view;
-- `Affine`: use at most once unless reborrowed under its contract;
-- `MustConsume`: successful paths explicitly transfer or complete the resource;
-- `Clean`: value has the distinguished state required for safe uncomputation or release;
-- `Reversible`: callable operations expose checked inverses under stated contracts;
-- `Coherent`: finite encoding and callable operations may lower to exact quantum permutations;
-- `CanonicalEncode` and `CanonicalDecode`: versioned bounded representation;
+- `Copy`: duplication preserves semantics and ownership.
+- `Move`: ownership transfers and the source becomes unavailable.
+- `Drop`: compiler-admitted bounded memory-only destruction. External disposal is a separate explicit effect.
+- `Borrow`: a scoped shared view.
+- `BorrowMut`: a scoped exclusive view.
+- `Affine`: use at most once unless reborrowed under its contract.
+- `MustConsume`: successful paths explicitly transfer or complete the resource.
+- `Clean`: value has the distinguished state required for safe uncomputation or release.
+- `Reversible`: callable operations expose checked inverses under stated contracts.
+- `Coherent`: finite encoding and callable operations may lower to exact quantum permutations.
+- `CanonicalEncode` and `CanonicalDecode`: versioned bounded representation.
 - `Eq`, `Ord`, and `Hash`: deterministic value relations with compatible laws.
 
-WIP-0028 owns affine owners, structural ownership derivation, must-consume values, second-class shared/exclusive loans, deterministic memory-only drop, and bounded regions. WIP-0029 owns generic values and collections. WIP-0030 owns coherent compile-time classes for ordinary protocols plus certified evidence admission. WIP-0031 owns callable kinds and effect rows. External resources close, commit, abort, release, or return explicitly; `Drop` never becomes a user finalizer. The distinctions remain mandatory, but duplicate trait/interface dialects do not.
+WIP-0028 owns affine owners, structural ownership derivation, must-consume values, second-class shared/exclusive loans, deterministic memory-only drop, and bounded regions. WIP-0029 owns generic values and collections. WIP-0030 owns coherent compile-time classes for ordinary protocols plus certified evidence admission. WIP-0031 owns callable kinds and effect rows. External resources close, commit, abort, release, or return explicitly. `Drop` never becomes a user finalizer. The distinctions remain mandatory, but duplicate trait/interface dialects do not.
 
 ## Collections
 
 ### Arrays and slices
 
-`Array<T, N>` owns exactly `N` elements. `Slice<'a, T>` is a shared bounded view; `SliceMut<'a, T>` is exclusive. Indexing is checked. Iteration order is increasing index.
+`Array<T, N>` owns exactly `N` elements. `Slice<'a, T>` is a shared bounded view. `SliceMut<'a, T>` is exclusive. Indexing is checked. Iteration order is increasing index.
 
 Splitting a mutable slice proves disjoint ranges. Joining requires matching origin, adjacency, ownership, and lifetime. Quantum register slicing follows related affine rules but does not reuse copyable classical slice semantics blindly.
 
@@ -169,10 +169,10 @@ The standard deterministic map provides canonical iteration independent of rando
 
 Map APIs distinguish:
 
-- insert into a known-empty key, which can be reversible when ownership returns exactly;
-- replace, which returns the prior value or records a logged effect;
-- remove, which returns the owned key/value pair;
-- transaction, which exposes explicit commit and abort;
+- insert into a known-empty key, which can be reversible when ownership returns exactly.
+- replace, which returns the prior value or records a logged effect.
+- remove, which returns the owned key/value pair.
+- transaction, which exposes explicit commit and abort.
 - canonical encode, which uses specified key order.
 
 `Set<T>` follows the same identity and ordering rules.
@@ -185,7 +185,7 @@ These types drive arithmetic oracles, packet codecs, bytecode flags, proof finit
 
 ### Arenas and regions
 
-`Arena` owns a bounded region and returns scoped handles. Dropping an arena releases all its storage as one effect; it is not an intrinsic inverse for arbitrary mutations inside the region.
+`Arena` owns a bounded region and returns scoped handles. Dropping an arena releases all its storage as one effect. It is not an intrinsic inverse for arbitrary mutations inside the region.
 
 Compiler phases use immutable values or phase-owned arenas so self-hosting does not require a general tracing collector initially. Values that escape a region are copied, moved to a longer-lived owner, or rejected.
 
@@ -201,11 +201,11 @@ The library provides reversible structures only where inverse ownership is expli
 
 ### Reversible vector operations
 
-A reversible push consumes an owned element and known spare clean slot; its inverse pops and returns that same element. A reversible pop returns both value and structural witness needed to invert. Reallocation is excluded unless an explicit allocator transaction and inverse contract cover it.
+A reversible push consumes an owned element and known spare clean slot. Its inverse pops and returns that same element. A reversible pop returns both value and structural witness needed to invert. Reallocation is excluded unless an explicit allocator transaction and inverse contract cover it.
 
 ### Reversible map operations
 
-Insertion requires proof or checked evidence that the key is absent and returns an insertion witness; removal consumes that witness or returns the complete entry and structural information under a representation-independent theorem. Callers cannot infer intrinsic reversal from an implementation's retained node pointer.
+Insertion requires proof or checked evidence that the key is absent and returns an insertion witness. Removal consumes that witness or returns the complete entry and structural information under a representation-independent theorem. Callers cannot infer intrinsic reversal from an implementation's retained node pointer.
 
 ### Logged and transactional containers
 
@@ -221,31 +221,31 @@ Contracts and WIP-0011 certificates state inverse laws, frame conditions, clean 
 
 ### UTF-8
 
-`Utf8` decoding has one specified malformed-sequence policy: strict decoding returns a source-located error; lossy replacement is a separate named operation. Overlong encodings, surrogates, out-of-range scalars, and truncated sequences are rejected strictly.
+`Utf8` decoding has one specified malformed-sequence policy: strict decoding returns a source-located error. Lossy replacement is a separate named operation. Overlong encodings, surrogates, out-of-range scalars, and truncated sequences are rejected strictly.
 
-`String` is valid UTF-8. Byte length, scalar count, and grapheme segmentation are distinct operations. Indexing a string by arbitrary integer is unavailable; callers use bytes, scalar iterators, or explicit text-boundary indices.
+`String` is valid UTF-8. Byte length, scalar count, and grapheme segmentation are distinct operations. Indexing a string by arbitrary integer is unavailable. Callers use bytes, scalar iterators, or explicit text-boundary indices.
 
 Unicode normalization is never ambient. Identifier and package policies invoke a specific versioned normalization/confusable profile. Compiler canonical artifacts record the relevant profile identity.
 
 ### Bytes and builders
 
-`Bytes` is immutable owned byte data; `ByteSlice` is borrowed; `ByteVec` and `ByteWriter` are bounded mutable buffers. Endian reads and writes are explicit. Checked offset arithmetic fails before partial mutation.
+`Bytes` is immutable owned byte data. `ByteSlice` is borrowed. `ByteVec` and `ByteWriter` are bounded mutable buffers. Endian reads and writes are explicit. Checked offset arithmetic fails before partial mutation.
 
 Canonical encoders write to caller-owned or transaction-owned buffers and publish only after success. Decoder cursors carry source offset and remaining bounds and cannot read host memory outside the slice.
 
 ### Formatting and parsing
 
-Formatting uses deterministic templates and caller-owned writers; debug formatting has depth and byte limits; locale, terminal width, pointer address, and map hash order do not enter canonical output.
+Formatting uses deterministic templates and caller-owned writers. Debug formatting has depth and byte limits. Locale, terminal width, pointer address, and map hash order do not enter canonical output.
 
-Integer and floating parsing specify radix, underscore, exponent, overflow, NaN, infinity, and trailing-input behavior; source literal parsing and standard-library parsing share tested conversion laws but retain source diagnostics.
+Integer and floating parsing specify radix, underscore, exponent, overflow, NaN, infinity, and trailing-input behavior. Source literal parsing and standard-library parsing share tested conversion laws but retain source diagnostics.
 
 ## Paths and source inputs
 
 `Path` is an opaque host path available only through a filesystem capability. `LogicalPath` is a portable normalized package path using `/`, with no root, drive, traversal, NUL, or host case folding.
 
-Compiler and package APIs accept `SourceInput` and manifests with logical identities and bytes. They do not open arbitrary paths. Directory enumeration is converted by the host or package manager into a sorted bounded manifest before Wheeler code observes it.
+Compiler and package APIs accept `SourceInput` and manifests with logical identities and bytes. They do not open arbitrary paths. The host or package manager converts directory enumeration into a sorted bounded manifest before Wheeler code observes it.
 
-Atomic output is a capability operation taking complete bytes and expected destination identity; partial temporary files are operational host state, not language values or successful artifacts.
+Atomic output is a capability operation taking complete bytes and expected destination identity. Partial temporary files are operational host state, not language values or successful artifacts.
 
 ## Arithmetic and scientific types
 
@@ -283,16 +283,16 @@ A qubit can participate in gates, controlled operations, measurement, reset when
 
 ### Quantum registers
 
-`Qreg<N>` or a dynamically bounded `Qreg` owns an ordered logical register; construction is preparation under explicit target/runtime semantics, not ordinary heap allocation.
+`Qreg<N>` or a dynamically bounded `Qreg` owns an ordered logical register. Construction is preparation under explicit target/runtime semantics, not ordinary heap allocation.
 
 Operations include:
 
-- prepare a declared basis or supported semantic state;
-- borrow one qubit;
-- split into statically or dynamically checked disjoint affine views;
-- apply a unitary or coherent function;
-- measure all or a declared subset, consuming or transitioning ownership according to the region contract;
-- reset only under target capability and effect rules;
+- prepare a declared basis or supported semantic state.
+- borrow one qubit.
+- split into statically or dynamically checked disjoint affine views.
+- apply a unitary or coherent function.
+- measure all or a declared subset, consuming or transitioning ownership according to the region contract.
+- reset only under target capability and effect rules.
 - release only in a state permitted by ownership and target semantics.
 
 Register order defines little-endian outcome encoding unless a typed layout says otherwise. Slices preserve origin and logical index mapping through target lowering.
@@ -305,17 +305,17 @@ Ordinary remote `Qreg` values do not survive a job boundary. Persistent quantum 
 
 Builders reject use-after-measure, overlapping mutable qubit views, dirty ancilla release, unsupported control flow, and unbounded construction. Generated adjoint is available only for unitary circuits.
 
-`Unitary<In, Out>` identifies a checked unitary region; `Adjoint<U>` and composition preserve exact semantic identity. Target-native circuits remain derived executable records.
+`Unitary<In, Out>` identifies a checked unitary region. `Adjoint<U>` and composition preserve exact semantic identity. Target-native circuits remain derived executable records.
 
 ### Gates
 
-Standard gates include stable semantic operations such as H, X, Y, Z, S, T, phase, rotations, controlled variants, swap, and selected multi-qubit primitives. The language/compiler may treat the minimal set intrinsically; the library supplies typed constructors, composition, identities, adjoints, matrices for bounded proof/simulation, and resource metadata.
+Standard gates include stable semantic operations such as H, X, Y, Z, S, T, phase, rotations, controlled variants, swap, and selected multi-qubit primitives. The language/compiler may treat the minimal set intrinsically. The library supplies typed constructors, composition, identities, adjoints, matrices for bounded proof/simulation, and resource metadata.
 
 Provider-native gates belong to versioned target extension packages and require explicit target constraints. They do not enter the universal prelude.
 
 ### Parameters
 
-`Parameter<T>` has stable declaration and position identity. `BindingSet` maps a complete parameter schema to canonical finite values; batch tasks identify schema and bindings independently of provider order.
+`Parameter<T>` has stable declaration and position identity. `BindingSet` maps a complete parameter schema to canonical finite values. Batch tasks identify schema and bindings independently of provider order.
 
 Parameter expressions are bounded symbolic DAGs with canonical ordering and finite evaluation. Unknown functions or nonfinite bindings fail before submission.
 
@@ -323,19 +323,19 @@ Parameter expressions are bounded symbolic DAGs with canonical ordering and fini
 
 `Pauli`, `PauliString`, `Observable`, `ExpectationRequest`, `SampleRequest`, and corresponding result types state register layout and endianness.
 
-Counts, per-shot memory, estimates, uncertainty, and diagnostics are separate bounded products; a result always carries task, target, job, request, and schema identity. Convenience access cannot drop provenance silently.
+Counts, per-shot memory, estimates, uncertainty, and diagnostics are separate bounded products. A result always carries task, target, job, request, and schema identity. Convenience access cannot drop provenance silently.
 
 ## Hybrid runtime types
 
 The standard hybrid API includes immutable values for:
 
-- target descriptors and independent capabilities;
-- task, batch, request, plan, executable, job, and result identities;
-- job lifecycle and cancellation request;
-- continuations and typed live values;
-- semantic events and deterministic reduction;
-- run status, observation mode, branch, retry lineage, and commit horizon;
-- transaction phase and compensation result;
+- target descriptors and independent capabilities.
+- task, batch, request, plan, executable, job, and result identities.
+- job lifecycle and cancellation request.
+- continuations and typed live values.
+- semantic events and deterministic reduction.
+- run status, observation mode, branch, retry lineage, and commit horizon.
+- transaction phase and compensation result.
 - bounded persistence snapshots.
 
 Adapters implement host-owned target capabilities. The library owns provider-neutral records and validation. Credentials and provider SDK objects remain embedding-host values outside portable Wheeler state.
@@ -346,17 +346,17 @@ WIP-0032 owns structured I/O requests, operations, scopes, batches, graphs, sele
 
 Host services are unforgeable affine or scoped capability values:
 
-- `ByteInput` and `ByteOutput`;
-- `FileRead`, `AtomicFileWrite`, and bounded manifest access;
-- `Terminal`;
-- `MonotonicDeadline`;
-- `Entropy` for explicitly nondeterministic applications;
-- `Process` for declared native build tools;
-- `Network` for constrained registry/provider clients;
-- `QuantumTarget`;
+- `ByteInput` and `ByteOutput`.
+- `FileRead`, `AtomicFileWrite`, and bounded manifest access.
+- `Terminal`.
+- `MonotonicDeadline`.
+- `Entropy` for explicitly nondeterministic applications.
+- `Process` for declared native build tools.
+- `Network` for constrained registry/provider clients.
+- `QuantumTarget`.
 - `Credential<T>` opaque to portable code.
 
-A package declares required capabilities; an entry point receives granted values. Importing a module, constructing a string, or calling a pure helper grants nothing.
+A package declares required capabilities. An entry point receives granted values. Importing a module, constructing a string, or calling a pure helper grants nothing.
 
 Effects appear in function types and contracts. Reversible and proof contexts restrict them. Capability denial occurs before the host effect and returns a stable typed error.
 
@@ -380,22 +380,22 @@ Public library contracts include algebraic laws for equality, ordering, hash com
 
 `wheeler.test` supplies:
 
-- assertions over typed values and traps;
-- table and parameterized tests;
-- deterministic property generation with explicit seed and case limits;
-- reversible-law helpers checking forward/inverse composition and frame state;
-- canonical encoder/decoder round-trip helpers;
-- async lifecycle mocks and event-delivery permutations;
-- ideal quantum state and distribution assertions;
-- statistical tests with declared confidence, tolerance, and flake budget;
-- compile-fail and proof-fail fixtures with stable diagnostics;
+- assertions over typed values and traps.
+- table and parameterized tests.
+- deterministic property generation with explicit seed and case limits.
+- reversible-law helpers checking forward/inverse composition and frame state.
+- canonical encoder/decoder round-trip helpers.
+- async lifecycle mocks and event-delivery permutations.
+- ideal quantum state and distribution assertions.
+- statistical tests with declared confidence, tolerance, and flake budget.
+- compile-fail and proof-fail fixtures with stable diagnostics.
 - capability-denial harnesses.
 
 Test randomness is explicit input. Failed property cases report a replayable seed and minimized value under bounded deterministic shrinking.
 
 ## Concurrency
 
-Collection thread safety is not ambient. Immutable values may be shared according to ownership rules. Mutable sharing requires a structured-concurrency and synchronization contract; no type silently maps to Java monitors or volatile fields.
+Collection thread safety is not ambient. Immutable values may be shared according to ownership rules. Mutable sharing requires a structured-concurrency and synchronization contract. No type silently maps to Java monitors or volatile fields.
 
 WIP-0032 asynchronous operations and target/build tasks use deterministic result reduction independent of physical completion order unless the program explicitly selects a race. Required concurrency is distinct from independent work that a conforming backend may complete inline. Operational lanes and queues remain separate from semantic event order.
 
@@ -411,46 +411,46 @@ Generic native memory dumps, Java serialization, provider JSON, pointer identity
 
 Standard modules are ordinary locked Wheeler packages with reserved `wheeler.*` namespaces. The compiler may provide intrinsics for performance or primitive semantics, but every intrinsic has the same public contract and conformance tests as its library declaration.
 
-The prelude is small and explicit. It contains scalar types, `Option`, `Result`, core ownership/effect names, and essential annotations; collections, I/O, quantum algorithms, targets, proof automation, and package APIs require imports.
+The prelude is small and explicit. It contains scalar types, `Option`, `Result`, core ownership/effect names, and essential annotations. Collections, I/O, quantum algorithms, targets, proof automation, and package APIs require imports.
 
-API stability is tracked by package version and language profile. Public type, effect, ownership, inverse, coherent, resource, encoding, and proof contracts participate in compatibility. A method changing from pure to allocating or from intrinsic to logged is a semantic compatibility change.
+Package versions and language profiles track API stability. Public type, effect, ownership, inverse, coherent, resource, encoding, and proof contracts participate in compatibility. A method changing from pure to allocating or from intrinsic to logged is a semantic compatibility change.
 
 ## Bootstrap graph
 
 The recovery graph builds in layers:
 
-1. primitive VM and native ABI operations;
-2. `wheeler.core`;
-3. allocator and arenas;
-4. compiler byte/text/collection substrate;
-5. bytecode codec, verifier, proof kernel, and compiler;
-6. package manager and build planner;
-7. runtime, quantum, hybrid, testing, and documentation packages;
+1. primitive VM and native ABI operations.
+2. `wheeler.core`.
+3. allocator and arenas.
+4. compiler byte/text/collection substrate.
+5. bytecode codec, verifier, proof kernel, and compiler.
+6. package manager and build planner.
+7. runtime, quantum, hybrid, testing, and documentation packages.
 8. the executable application portfolio.
 
 No lower layer imports a higher layer. A generated dependency graph and package lock enforce the layering.
 
-Stage-0 host implementations exist only during conformance migration. The final library source and tests are Wheeler; native intrinsics are small ABI or backend operations with explicit contracts, not parallel collection or quantum libraries.
+Stage-0 host implementations exist only during conformance migration. The final library source and tests are Wheeler. Native intrinsics are small ABI or backend operations with explicit contracts, not parallel collection or quantum libraries.
 
 ## Application fixtures
 
 The standard library is accepted through concrete Wheeler programs:
 
-- `ReversiblePacketCodec.w`: bytes, records, variants, `Result`, builders, and exact inverse;
-- `PersistentIndex.w`: arenas, owned nodes, maps, transactions, and canonical encoding;
-- Wheeler lexer/parser/compiler: strings, spans, vectors, maps, diagnostics, and source inputs;
-- Wheeler package resolver: graphs, versions, hashes, archives, and capabilities;
-- `ArithmeticOracle.w`: bit vectors, modular integers, coherent contracts, and permutations;
-- `VqeHydrogen.w`: angles, parameters, observables, batches, estimates, and uncertainty;
-- `Teleportation.w`: affine qubits, dynamic measurement, conditions, and ownership transition;
-- `ExperimentCampaign.w`: jobs, events, persistence, replay, retry, budgets, and deadlines;
+- `ReversiblePacketCodec.w`: bytes, records, variants, `Result`, builders, and exact inverse.
+- `PersistentIndex.w`: arenas, owned nodes, maps, transactions, and canonical encoding.
+- Wheeler lexer/parser/compiler: strings, spans, vectors, maps, diagnostics, and source inputs.
+- Wheeler package resolver: graphs, versions, hashes, archives, and capabilities.
+- `ArithmeticOracle.w`: bit vectors, modular integers, coherent contracts, and permutations.
+- `VqeHydrogen.w`: angles, parameters, observables, batches, estimates, and uncertainty.
+- `Teleportation.w`: affine qubits, dynamic measurement, conditions, and ownership transition.
+- `ExperimentCampaign.w`: jobs, events, persistence, replay, retry, budgets, and deadlines.
 - `PackageProvenance.w`: canonical decoding, hashes, proof certificates, and package identities.
 
 ## Unified I/O library
 
-WIP-0032 exclusively owns the portable I/O lifecycle and method registry, including `Io`, `IoScope`, `Request<T>`, `Operation<T>`, batches, graphs, buffer pools, and receipt types. `wheeler.io` implements that contract; this WIP does not define a parallel API.
+WIP-0032 exclusively owns the portable I/O lifecycle and method registry, including `Io`, `IoScope`, `Request<T>`, `Operation<T>`, batches, graphs, buffer pools, and receipt types. `wheeler.io` implements that contract. This WIP does not define a parallel API.
 
-Filesystem and network libraries contribute domain types and adapters over that fabric. Positional operations are primary for addressable storage; sequential readers and writers are ergonomic cursor views under WIP-0032. The standard library doesn't define a second future, stream, callback, cancellation, or universal `flush()` durability contract. WIP-0032 owns those semantics.
+Filesystem and network libraries contribute domain types and adapters over that fabric. Positional operations are primary for addressable storage. Sequential readers and writers are ergonomic cursor views under WIP-0032. The standard library doesn't define a second future, stream, callback, cancellation, or universal `flush()` durability contract. WIP-0032 owns those semantics.
 
 ## Migration and deletion
 
@@ -471,11 +471,11 @@ Filesystem and network libraries contribute domain types and adapters over that 
 - [x] Deterministic little-endian outcomes, task identities, target capabilities, and bounded snapshots execute.
 - [ ] Core ownership/effect protocols and package layering are accepted.
 - [ ] The language and VM substrate now executes:
-  - scalar and aggregate values;
-  - affine byte buffers and mutable word buffers;
-  - strict UTF-8 freezing and scalar decoding with nested read-only parameter borrows;
-  - borrowed region scratch allocation;
-  - primitive storage owners in parameters and results;
+  - scalar and aggregate values.
+  - affine byte buffers and mutable word buffers.
+  - strict UTF-8 freezing and scalar decoding with nested read-only parameter borrows.
+  - borrowed region scratch allocation.
+  - primitive storage owners in parameters and results.
   - fixed signed maps with checked nested exclusive borrowing.
 
   `OwnedReturns.w` creates every primitive owner in a factory, uses each one in the caller, and transfers all five to a consuming sink. The bytecode verifier and VM also cover typed owner-result relays. Both paths agree under exact rewind, including the Wheeler-written verifier and interpreter.
@@ -501,7 +501,7 @@ Filesystem and network libraries contribute domain types and adapters over that 
 - [ ] Every public operation documents ownership, effects, failure, allocation, limits, inverse availability, and coherent eligibility.
 - [ ] Core packages compile and run without allocator or host capabilities.
 - [ ] Collection iteration and canonical encoding are stable under insertion, allocation, hash, and task-order variation.
-- [ ] Strict UTF-8 validation/scalar decoding covers canonical one-to-four-byte and malformed boundary forms; streaming decode, encoding, normalization, string boundaries, and parser numeric differential corpora remain.
+- [ ] Strict UTF-8 validation/scalar decoding covers canonical one-to-four-byte and malformed boundary forms. Streaming decode, encoding, normalization, string boundaries, and parser numeric differential corpora remain.
 - [ ] Allocation exhaustion, integer overflow, index failure, malformed decode, and capability denial occur before partial publication.
 - [ ] Reversible structures pass generated forward/inverse laws and reject missing clean storage or ownership witnesses.
 - [ ] Arena and ownership tests reject escapes, use after move, overlapping mutable slices, double drop, and cycles unsupported by the profile.
@@ -510,7 +510,7 @@ Filesystem and network libraries contribute domain types and adapters over that 
 - [ ] Host capabilities cannot be forged, serialized, logged, cached, or acquired through import.
 - [ ] Canonical decoders reject duplicate, cyclic, noncanonical, oversized, unknown required, and trailing records.
 - [ ] Proof certificates validate critical equality, ordering, encoding, inverse, and quantum laws.
-- [ ] Standard-library packages build, test, document, and package offline through `wheeler`; the initial `wheeler.core` FIFO slice does, while the remaining package layers and native test/doc tools remain.
+- [ ] Standard-library packages build, test, document, and package offline through `wheeler`. The initial `wheeler.core` FIFO slice does, while the remaining package layers and native test/doc tools remain.
 - [ ] The self-hosted compiler, runtime, package manager, proof kernel, and application portfolio use the Wheeler standard library.
 - [ ] No Java or provider SDK type appears in a public Wheeler library signature after native cutover.
 
@@ -542,11 +542,11 @@ Rejected. Provider SDKs are adapter implementation details. Portable library val
 
 ## Open questions
 
-- Which ownership protocol surface gives affine quantum resources and ordinary compiler aggregates one coherent model (owner: language and library maintainers; decision point: before aggregate bytecode acceptance)?
-- Which deterministic map representation should bootstrap first, and what iteration law becomes stable (owner: compiler and library maintainers; decision point: before Wheeler symbol tables)?
-- Which Unicode versioning and normalization policy belongs in `core` versus package/compiler policy (owner: text and package maintainers; decision point: before Unicode identifiers)?
-- Which exact scalar tower supports quantum simulation and proof without overloading the bootstrap graph (owner: math, quantum, and proof maintainers; decision point: before exact QFT certificates)?
-- Which async/structured-concurrency types are required for target and build jobs (owner: runtime and language maintainers; decision point: before public async syntax)?
+- Which ownership protocol surface gives affine quantum resources and ordinary compiler aggregates one coherent model (owner: language and library maintainers. Decision point: before aggregate bytecode acceptance)?
+- Which deterministic map representation should bootstrap first, and what iteration law becomes stable (owner: compiler and library maintainers. Decision point: before Wheeler symbol tables)?
+- Which Unicode versioning and normalization policy belongs in `core` versus package/compiler policy (owner: text and package maintainers. Decision point: before Unicode identifiers)?
+- Which exact scalar tower supports quantum simulation and proof without overloading the bootstrap graph (owner: math, quantum, and proof maintainers. Decision point: before exact QFT certificates)?
+- Which async/structured-concurrency types are required for target and build jobs (owner: runtime and language maintainers. Decision point: before public async syntax)?
 
 ## References
 

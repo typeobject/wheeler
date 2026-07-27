@@ -146,10 +146,10 @@ At first, the coherent profile accepts only types whose cardinality is exactly `
 
 Examples may include:
 
-- `boolean`;
-- `BitInt<N>`;
-- power-of-two enums;
-- fixed arrays and records whose admitted encodings compose to a power-of-two cardinality;
+- `boolean`.
+- `BitInt<N>`.
+- power-of-two enums.
+- fixed arrays and records whose admitted encodings compose to a power-of-two cardinality.
 - closed generic specializations with resolved finite evidence.
 
 A classical protocol codec does not define the coherent basis. Wire numbers, enum ordinals, memory layout, and provider display order are not basis authority.
@@ -189,13 +189,13 @@ A **typed coherent value** is an affine logical quantum resource:
 qvalue<T>
 ```
 
-Its logical basis is `T`. Its physical representation is owned by a `Qreg` or target region, but raw provider identity is not observable.
+Its logical basis is `T`. A `Qreg` or target region owns its physical representation, but source code cannot observe raw provider identity.
 
 A live `qvalue<T>`:
 
-- implements neither `Copy` nor ordinary `Drop`;
-- cannot be compared, hashed, printed, serialized, or branched on classically;
-- may move, split only through admitted typed projections, borrow under quantum ownership rules, participate in coherent operations, be measured, be reset, or be returned under its contract;
+- implements neither `Copy` nor ordinary `Drop`.
+- cannot be compared, hashed, printed, serialized, or branched on classically.
+- may move, split only through admitted typed projections, borrow under quantum ownership rules, participate in coherent operations, be measured, be reset, or be returned under its contract.
 - cannot survive an ordinary remote job boundary unless a target-session capability explicitly permits it.
 
 ### Predicate oracle
@@ -285,11 +285,11 @@ The destination must be uninitialized or already in the exact state required by 
 
 Preparation records:
 
-- coherent type identity;
-- encoding identity;
-- basis value or canonical parameter identity;
-- destination owner identity;
-- target or semantic-region identity;
+- coherent type identity.
+- encoding identity.
+- basis value or canonical parameter identity.
+- destination owner identity.
+- target or semantic-region identity.
 - source location.
 
 A target may implement basis preparation through direct initialization, X gates, state loading, or another exact lowering. The source result is the same.
@@ -306,11 +306,11 @@ The compiler lowers this to a typed observation transition. The old coherent ide
 
 Measurement validates:
 
-- register width;
-- declared basis;
-- little-endian or typed layout mapping;
-- result schema;
-- target and job identity;
+- register width.
+- declared basis.
+- little-endian or typed layout mapping.
+- result schema.
+- target and job identity.
 - admitted value decoding.
 
 The first profile has no invalid bit patterns because all coherent types use a full power-of-two basis.
@@ -355,9 +355,9 @@ The accepted predicate must satisfy all of these conditions:
 
 A predicate may use ordinary non-injective operations internally. The compiler does not pretend those operations are reversible. It creates a reversible embedding through one of these admitted strategies:
 
-- direct reversible lowering when the body already retains the needed information;
-- compute, copy the Boolean result into the marked bit, then apply the generated inverse;
-- exact finite-table synthesis under hard domain and artifact limits;
+- direct reversible lowering when the body already retains the needed information.
+- compute, copy the Boolean result into the marked bit, then apply the generated inverse.
+- exact finite-table synthesis under hard domain and artifact limits.
 - a separately certified implementation with matching basis semantics.
 
 The chosen strategy is derived implementation data. The semantic oracle identity remains tied to the source predicate and the standard XOR embedding rule.
@@ -409,11 +409,11 @@ public pure boolean contains<T, const long N>(
 
 Each closed oracle identity includes:
 
-- generic declaration identity;
-- concrete type and const arguments;
-- selected class evidence;
-- associated widths and reductions;
-- source predicate identity;
+- generic declaration identity.
+- concrete type and const arguments.
+- selected class evidence.
+- associated widths and reductions.
+- source predicate identity.
 - oracle embedding profile.
 
 No unresolved type, width, effect, or class dictionary reaches quantum IR.
@@ -534,17 +534,17 @@ Persisted hybrid observations use ordinary typed result schemas and WIP-0004 pro
 
 Limits cover:
 
-- coherent type width;
-- cardinality evaluation;
-- encoding proof size;
-- predicate source size;
-- loop and recursion bounds;
-- finite-table entries;
-- generated operations;
-- ancilla count;
-- circuit depth;
-- compiler time and memory;
-- proof obligations and certificate bytes;
+- coherent type width.
+- cardinality evaluation.
+- encoding proof size.
+- predicate source size.
+- loop and recursion bounds.
+- finite-table entries.
+- generated operations.
+- ancilla count.
+- circuit depth.
+- compiler time and memory.
+- proof obligations and certificate bytes.
 - diagnostics.
 
 The first stable diagnostic families should include:

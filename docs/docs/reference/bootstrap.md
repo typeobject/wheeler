@@ -2,14 +2,14 @@
 
 A compiler can reproduce its own bugs. That alone doesn't make it trustworthy. WIP-0007 requires two separate checks:
 
-1. stage 0 builds stage 1, and stage 1 builds a byte-identical stage 2;
+1. stage 0 builds stage 1, and stage 1 builds a byte-identical stage 2.
 2. an independently derived trusted compiler produces the same bytes without first running code from the candidate compiler.
 
 The bootstrap gate records successful evidence in `wheeler.bootstrap.yaml`. The repository does not contain that manifest yet because the bounded Wheeler compiler is not self-hosting. Creating the file early would not provide real evidence.
 
 ## Profile and module derivation
 
-Publish the complete known feature contract; callers cannot subtract an inconvenient feature or add one that neither compiler implements:
+Publish the complete known feature contract. Callers cannot subtract an inconvenient feature or add one that neither compiler implements:
 
 ```text
 wheeler bootstrap-features \
@@ -68,20 +68,20 @@ The acceptance argument must point to a closed artifact tree. Its canonical `whe
 
 Before it publishes anything, the command:
 
-- strictly decodes the canonical `wheeler.compiler` package archive;
-- parses the schema-3 snapshot-bound lock and requires its exact canonical YAML bytes;
-- binds that lock to the source manifest;
-- parses exact schema-1 feature, generated module, option, and limit manifests;
-- requires every profile name to match the source package;
-- requires the module graph to be closed, acyclic, rooted, and free of dead modules;
-- rehashes every declared module source from the compiler archive, reparses its module header, and rejects undeclared `.w` entries;
-- independently decodes and re-encodes stage 1, stage 2, and the diverse output;
-- compares all three complete `.wbc` byte strings;
-- compares the ordinary and diverse diagnostic bytes;
-- requires different ordinary and diverse toolchain identities;
-- requires different ordinary and diverse compiler identities;
-- recomputes the closed acceptance artifact-set identity;
-- requires that set to contain the compiler fixed point;
+- strictly decodes the canonical `wheeler.compiler` package archive.
+- parses the schema-3 snapshot-bound lock and requires its exact canonical YAML bytes.
+- binds that lock to the source manifest.
+- parses exact schema-1 feature, generated module, option, and limit manifests.
+- requires every profile name to match the source package.
+- requires the module graph to be closed, acyclic, rooted, and free of dead modules.
+- rehashes every declared module source from the compiler archive, reparses its module header, and rejects undeclared `.w` entries.
+- independently decodes and re-encodes stage 1, stage 2, and the diverse output.
+- compares all three complete `.wbc` byte strings.
+- compares the ordinary and diverse diagnostic bytes.
+- requires different ordinary and diverse toolchain identities.
+- requires different ordinary and diverse compiler identities.
+- recomputes the closed acceptance artifact-set identity.
+- requires that set to contain the compiler fixed point.
 - parses its own output before replacing the destination atomically.
 
 The command never runs a candidate artifact. A static manifest also cannot prove that an earlier build script followed the right order. The promotion job must show that the diverse comparison happened before candidate execution, bind both toolchain provenance files, and run acceptance only after the comparison gate.
@@ -156,7 +156,7 @@ modules:
       - "wheeler.core"
 ```
 
-Modules, externals, and imports are sorted and unique. Every local import resolves, every external import is declared, every local module is reachable from the root, the local graph is acyclic, source paths are unique, and each source identity must match the file inside the canonical compiler archive. The bounds are 10,000 local modules, 10,000 external modules, and 100,000 direct imports. `NativeBootstrapModulesIdentity.w` now covers one through thirty-two sorted local modules, zero through thirty-two externals, and 128 imports with unique paths, complete binding, rooted reachability, and cycle detection. It also enforces strict names and paths, exact canonical bytes, and fail-closed identity publication. Its 8,192-byte input budget covers the current twenty-five-module, sixty-seven-import, 7,467-byte compiler closure, whose stage-0 identity the native executable reproduces in 3,588,598 transitions. It does not claim the full graph ceiling; a bound written in a comment allocates no table. This manifest records the graph actually trusted for bootstrap; directory enumeration is not a module system.
+Modules, externals, and imports are sorted and unique. Every local import resolves, every external import is declared, every local module is reachable from the root, the local graph is acyclic, source paths are unique, and each source identity must match the file inside the canonical compiler archive. The bounds are 10,000 local modules, 10,000 external modules, and 100,000 direct imports. `NativeBootstrapModulesIdentity.w` now covers one through thirty-two sorted local modules, zero through thirty-two externals, and 128 imports with unique paths, complete binding, rooted reachability, and cycle detection. It also enforces strict names and paths, exact canonical bytes, and fail-closed identity publication. Its 8,192-byte input budget covers the current twenty-five-module, sixty-seven-import, 7,467-byte compiler closure, whose stage-0 identity the native executable reproduces in 3,588,598 transitions. It does not claim the full graph ceiling. A bound written in a comment allocates no table. This manifest records the graph actually trusted for bootstrap. Directory enumeration is not a module system.
 
 Bootstrap options use exact `wheeler.compiler-options.yaml` bytes:
 
@@ -184,11 +184,11 @@ limits:
   steps: 10000000
 ```
 
-Each limit is a positive canonical integer no larger than 1,073,741,824. The schema requires all ten limits and rejects unknown keys; a launcher must apply the same values to both derivations. `NativeCompilerLimitsIdentity.w` consumes the exact canonical field order and decimal spelling, checks all ten bounds, and reproduces the stage-0 identity for manifests up to 512 bytes. Hashing one limits file while using different limits would make the provenance false.
+Each limit is a positive canonical integer no larger than 1,073,741,824. The schema requires all ten limits and rejects unknown keys. A launcher must apply the same values to both derivations. `NativeCompilerLimitsIdentity.w` consumes the exact canonical field order and decimal spelling, checks all ten bounds, and reproduces the stage-0 identity for manifests up to 512 bytes. Hashing one limits file while using different limits would make the provenance false.
 
 Source maps may be enabled only when their normalized logical source identities are part of the canonical output.
 
-`NativeCompilerOptionsIdentity.w` accepts exactly the schema-1 canonical bytes, a 1--128 byte profile in the declared identifier alphabet, and canonical `true` or `false`. It reproduces the stage-0 SHA-256 only after complete validation and exact input consumption. The bounded fixture ceiling is 256 bytes. `BootstrapSyntax.w` owns the shared fail-closed fragment comparison used here and by native artifact-set validation; duplicate tiny parsers become large disagreements remarkably quickly.
+`NativeCompilerOptionsIdentity.w` accepts exactly the schema-1 canonical bytes, a 1--128 byte profile in the declared identifier alphabet, and canonical `true` or `false`. It reproduces the stage-0 SHA-256 only after complete validation and exact input consumption. The bounded fixture ceiling is 256 bytes. `BootstrapSyntax.w` owns the shared fail-closed fragment comparison used here and by native artifact-set validation. Duplicate tiny parsers become large disagreements remarkably quickly.
 
 Each ordinary and diverse toolchain argument uses exact canonical `wheeler.toolchain.yaml`:
 
@@ -202,7 +202,7 @@ toolchain:
   environment: "<sha256>"
 ```
 
-`kind` is `recovery-seed`, `independent-stage0`, or `host-source`. The other fields bind the reviewed toolchain source, its builder, its closed dependency set, and its normalized build environment. `NativeToolchainIdentity.w` accepts only that exact field order, canonical quoted spelling, four lowercase SHA-256 values, and a final LF within its 512-byte budget. The stage-0 parser applies the same canonical-byte check; a map with the right facts in a different order is not the file named by the digest.
+`kind` is `recovery-seed`, `independent-stage0`, or `host-source`. The other fields bind the reviewed toolchain source, its builder, its closed dependency set, and its normalized build environment. `NativeToolchainIdentity.w` accepts only that exact field order, canonical quoted spelling, four lowercase SHA-256 values, and a final LF within its 512-byte budget. The stage-0 parser applies the same canonical-byte check. A map with the right facts in a different order is not the file named by the digest.
 
 The kind is only an audit category. Promotion still requires distinct full provenance and compiler identities, plus a review that confirms the two derivations are truly independent.
 
@@ -240,7 +240,7 @@ acceptance:
   artifact-set: "<sha256>"
 ```
 
-All identities are lowercase SHA-256 values. `source.archive` identifies the canonical package archive, `source.manifest` identifies the package manifest, and `source.lock` identifies the canonical lock. `source.features` fixes the accepted semantic vocabulary; `source.modules` fixes the rooted source graph and each source byte string.
+All identities are lowercase SHA-256 values. `source.archive` identifies the canonical package archive, `source.manifest` identifies the package manifest, and `source.lock` identifies the canonical lock. `source.features` fixes the accepted semantic vocabulary. `source.modules` fixes the rooted source graph and each source byte string.
 
 Features, modules, options, and limits remain separate inputs. A changed resource limit must not look like the same compilation. Toolchain, compiler, runtime, and verifier identities describe both complete derivations instead of the host that ran them.
 
@@ -254,7 +254,7 @@ ordinary.toolchain != diverse.toolchain
 ordinary.compiler != diverse.compiler
 ```
 
-`NativeBootstrapManifestIdentity.w` applies the exact schema-2 field order, validates all twenty-one identities and the bounded source profile, enforces these five relationships, consumes the final LF, and only then publishes SHA-256. Its 2,048-byte ceiling is enough for the sole canonical form. Stage 0 now makes the same canonical-byte comparison; a permissive YAML parse is not provenance, however politely indented.
+`NativeBootstrapManifestIdentity.w` applies the exact schema-2 field order, validates all twenty-one identities and the bounded source profile, enforces these five relationships, consumes the final LF, and only then publishes SHA-256. Its 2,048-byte ceiling is enough for the sole canonical form. Stage 0 now makes the same canonical-byte comparison. A permissive YAML parse is not provenance, however politely indented.
 
 These checks are required for promotion, but they do not prove that source and output match by themselves. The trust case also depends on review, reproducible host builds, the strict verifier, source comparison, fixed-point evidence, and independent derivation.
 

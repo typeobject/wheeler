@@ -13,7 +13,7 @@
 
 ## Summary
 
-Wheeler runs hybrid programs as typed workflow graphs over its reversible IR. Deterministic classical continuations are separated by explicit preparation, quantum submission, observation, reset, and host-effect edges. A `HybridRun` owns the reversible classical state, a bounded ordered event log, durable job identities, target provenance, and commit horizons.
+Wheeler runs hybrid programs as typed workflow graphs over its reversible IR. Explicit preparation, quantum submission, observation, reset, and host-effect edges separate deterministic classical continuations. A `HybridRun` owns the reversible classical state, a bounded ordered event log, durable job identities, target provenance, and commit horizons.
 
 Local simulators and remote hardware follow the same asynchronous lifecycle, even when local work completes at once.
 
@@ -45,7 +45,7 @@ A compilation workflow starts calibration against one target descriptor. Before 
 
 ### Transaction after measurement
 
-A hybrid transaction updates tentative classical state, submits a circuit, and receives a measurement. If a later check fails, rollback restores the classical checkpoint and discards the observation from the active branch. It does not restore the measured hardware state; a retry must prepare and submit again.
+A hybrid transaction updates tentative classical state, submits a circuit, and receives a measurement. If a later check fails, rollback restores the classical checkpoint and discards the observation from the active branch. It does not restore the measured hardware state. A retry must prepare and submit again.
 
 ### Target-resident correction cycle
 
@@ -90,17 +90,17 @@ HybridRun = (
 )
 ```
 
-A **continuation** names a verified resume point and typed live classical values. Quantum resources may be included only through a target session handle whose capability explicitly permits persistence; ordinary remote qubit identities never cross the boundary.
+A **continuation** names a verified resume point and typed live classical values. Quantum resources may be included only through a target session handle whose capability explicitly permits persistence. Ordinary remote qubit identities never cross the boundary.
 
 An **event** is an immutable, sequence-numbered transition envelope. An event may contain bounded semantic data or a content-addressed reference. Initial event kinds are:
 
-- classical checkpoint and commit;
-- effect request, receipt, compensation, and barrier;
-- target descriptor selection and lowering-plan identity;
-- quantum submission request and provider acknowledgement;
-- job state observation and cancellation request;
-- quantum result receipt, rejection, and application;
-- branch creation, activation, discard, retry, and completion;
+- classical checkpoint and commit.
+- effect request, receipt, compensation, and barrier.
+- target descriptor selection and lowering-plan identity.
+- quantum submission request and provider acknowledgement.
+- job state observation and cancellation request.
+- quantum result receipt, rejection, and application.
+- branch creation, activation, discard, retry, and completion.
 - structured trap and recovery decision.
 
 The active state is a deterministic reduction of the checkpoint and accepted events. Duplicate delivery of the same event identity is idempotent.
@@ -142,12 +142,12 @@ Local simulation still travels through submission, completion, validation, and r
 
 A quantum submission identity covers:
 
-- artifact and semantic-region hashes;
-- source run, branch, and sequence;
-- target descriptor and derived-executable fingerprints;
-- parameter schema and canonical bindings;
-- result request, shot count, seed policy, and execution options;
-- lowering and mitigation policy identities;
+- artifact and semantic-region hashes.
+- source run, branch, and sequence.
+- target descriptor and derived-executable fingerprints.
+- parameter schema and canonical bindings.
+- result request, shot count, seed policy, and execution options.
+- lowering and mitigation policy identities.
 - declared cost and result ceilings.
 
 Provider acknowledgement adds a redacted external job identity. After an ambiguous failure, resubmission requires reconciliation or a new retry lineage. Missing acknowledgement does not prove that no submission occurred.
@@ -162,9 +162,9 @@ Application is one atomic classical transition: either the validated typed resul
 
 A run declares one of these observation policies:
 
-- `record`: execute targets and retain accepted observations;
-- `replay`: prohibit target submission and require matching recorded observations;
-- `verify-replay`: replay classical state while optionally submitting comparison jobs whose results cannot affect it;
+- `record`: execute targets and retain accepted observations.
+- `replay`: prohibit target submission and require matching recorded observations.
+- `verify-replay`: replay classical state while optionally submitting comparison jobs whose results cannot affect it.
 - `fresh`: deliberately create new lineages and observations.
 
 Replay validates artifact, semantic region, parameter, schema, and policy identity. It does not substitute an approximately similar circuit or target result.
@@ -184,8 +184,8 @@ The compiler rejects transaction code whose declared rollback guarantee is stron
 
 Three records remain conceptually separate even if stored together:
 
-- step history for local machine rewind;
-- observation/event history for replay and provenance;
+- step history for local machine rewind.
+- observation/event history for replay and provenance.
 - optional debug traces with no semantic authority.
 
 `commit` advances the active rewind horizon only after required event and state persistence succeeds. `clean history before ...` requests retention policy and cannot remove records still referenced by an active continuation, retry lineage, proof, or audit requirement.
@@ -194,13 +194,13 @@ Deletion may preserve a cryptographic or content identity without preserving rep
 
 ### Iterative hybrid workflows
 
-Loops such as `QuantumOptimizer.optimize` compile into repeated classical continuation and quantum region stages. Circuit templates and target executables may be cached; bindings, result requests, and observations remain iteration-specific.
+Loops such as `QuantumOptimizer.optimize` compile into repeated classical continuation and quantum region stages. Circuit templates and target executables may be cached. Bindings, result requests, and observations remain iteration-specific.
 
 A QNN gradient computation may submit parameter-shift or other explicitly selected batches. A measured training register does not survive into the next iteration. State that persists is classical parameter/history state or an explicit target session capability.
 
 ### Target-resident workflows
 
-A WIP-0003 target may execute a bounded hybrid subgraph internally. Wheeler records it as one target submission with declared internal effects, resource bounds, and returned observations. The adapter supplies an execution report; the host does not fabricate per-gate local history.
+A WIP-0003 target may execute a bounded hybrid subgraph internally. Wheeler records it as one target submission with declared internal effects, resource bounds, and returned observations. The adapter supplies an execution report. The host does not fabricate per-gate local history.
 
 Surface-code decoding that cannot meet latency through host round trips must be target-resident or rejected. A host-split emulation is a distinct plan with explicit semantics and performance expectations.
 
@@ -268,14 +268,14 @@ A persisted continuation contains canonical owned request state, external operat
 - [ ] Recovery handles every provider lifecycle and ambiguous acknowledgement state.
 - [x] Replay and fresh retry lineages are distinct and tested.
 - [x] Reversible, prepared-external, observed, and committed transaction phases are implemented.
-- [ ] Optimizer and coherent-layer fixtures execute with replay coverage; cleanup, compensation, batches, and dynamic-circuit fixtures remain.
+- [ ] Optimizer and coherent-layer fixtures execute with replay coverage. Cleanup, compensation, batches, and dynamic-circuit fixtures remain.
 
 ## Testing and acceptance
 
 - [x] Event reduction is deterministic under reordered and duplicated delivery.
 - [ ] Local immediate completion and remote delayed completion produce identical semantic event sequences modulo operational metadata.
 - [ ] Recovery resumes queued, running, succeeded, failed, cancelled, and unknown provider states without double submission or result application.
-- [ ] Result validation rejects wrong artifacts, regions, targets, bindings, schemas, branches, shot counts, and oversized payloads; content-identified tasks cover artifacts, regions, requests, targets, branches, shots, seeds, and outcome widths, while symbolic bindings remain.
+- [ ] Result validation rejects wrong artifacts, regions, targets, bindings, schemas, branches, shot counts, and oversized payloads. Content-identified tasks cover artifacts, regions, requests, targets, branches, shots, seeds, and outcome widths, while symbolic bindings remain.
 - [x] Replay reproduces classical optimizer state without calling a target.
 - [x] Fresh retry creates a distinct submission lineage.
 - [x] Rollback before submission, after acknowledgement, and after measurement follows the declared transaction phase without claiming physical reversal.
@@ -283,7 +283,7 @@ A persisted continuation contains canonical owned request state, external operat
 - [ ] Commit and cleanup make earlier rewind/replay availability explicit and respect live references.
 - [x] Optimizer and coherent-layer fixtures do not retain quantum handles across ordinary target-job boundaries.
 - [ ] Surface-code fixtures require target-resident capabilities when host latency would violate the plan.
-- [ ] Persistence corruption, truncation, unknown required events, and target restarts have bounded failure tests; corruption, truncation, and unknown enums are covered.
+- [ ] Persistence corruption, truncation, unknown required events, and target restarts have bounded failure tests. Corruption, truncation, and unknown enums are covered.
 - [x] Credentials and unrestricted provider payloads never enter persistence.
 - [x] Current runtime documentation explains rewind, inverse, uncompute, replay, retry, cancel, compensate, and discard.
 
@@ -311,9 +311,9 @@ Rejected as the semantic model. Typed continuations plus WIP-0001 checkpoints an
 
 ## Open questions
 
-- Which event-log persistence encoding and integrity mechanism should be standardized first (owner: runtime maintainers; decision point: before durable recovery implementation)?
-- Which stale-result policies are generic runtime choices versus application-supplied decisions (owner: runtime and language maintainers; decision point: before this WIP enters Review)?
-- What minimum target-session lifecycle is needed before a quantum handle may legally appear in a persisted continuation (owner: quantum runtime maintainers; decision point: before session support is implemented)?
+- Which event-log persistence encoding and integrity mechanism should be standardized first (owner: runtime maintainers. Decision point: before durable recovery implementation)?
+- Which stale-result policies are generic runtime choices versus application-supplied decisions (owner: runtime and language maintainers. Decision point: before this WIP enters Review)?
+- What minimum target-session lifecycle is needed before a quantum handle may legally appear in a persisted continuation (owner: quantum runtime maintainers. Decision point: before session support is implemented)?
 
 ## References
 

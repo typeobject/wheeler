@@ -21,11 +21,11 @@ Wheeler puts those rules in the language. The compiler and runtime do not have t
 
 Wheeler follows these rules:
 
-- use ordinary classical code where it fits;
-- mark an operation as reversible when the compiler can check it and build its inverse;
-- write quantum operations without tying source code to one provider;
-- reuse supported reversible logic as coherent quantum logic;
-- make measurement, external effects, retries, and replay visible;
+- use ordinary classical code where it fits.
+- mark an operation as reversible when the compiler can check it and build its inverse.
+- write quantum operations without tying source code to one provider.
+- reuse supported reversible logic as coherent quantum logic.
+- make measurement, external effects, retries, and replay visible.
 - place machine-checkable claims next to the code as proof support grows.
 
 Each form lowers to one typed Wheeler IR. Reversibility here means careful information accounting. It does not mean that printing a message can somehow be undone.
@@ -176,15 +176,15 @@ result = quantumComputer.doQuantumThing();
 
 In practice, it must do work like this:
 
-1. build parameters;
-2. choose a target;
-3. lower a circuit for that target;
-4. submit a job;
-5. save the job identity;
-6. wait for completion;
-7. handle failure, cancellation, duplicate delivery, stale capabilities, or a restart;
-8. validate the result;
-9. update classical state;
+1. build parameters.
+2. choose a target.
+3. lower a circuit for that target.
+4. submit a job.
+5. save the job identity.
+6. wait for completion.
+7. handle failure, cancellation, duplicate delivery, stale capabilities, or a restart.
+8. validate the result.
+9. update classical state.
 10. repeat when needed.
 
 Wheeler treats hybrid quantum and classical work as a durable lifecycle. The current runtime has content-identified tasks and events, recovery for accepted jobs, bounded persistence, result checks, branch quarantine, retry, cancellation, replay, and commit horizons. The source profile includes a bounded optimizer. Production continuation syntax and more dynamic applications remain unfinished.
@@ -197,12 +197,12 @@ This model matches remote, asynchronous, capability-based hardware. It also make
 
 Reversible and quantum programs make claims such as these:
 
-- an inverse restores the starting state;
-- a circuit is unitary;
-- a generated adjoint is exact;
-- two circuits have the same meaning;
-- every temporary qubit returns clean;
-- a plan stays within its qubit or depth limit;
+- an inverse restores the starting state.
+- a circuit is unitary.
+- a generated adjoint is exact.
+- two circuits have the same meaning.
+- every temporary qubit returns clean.
+- a plan stays within its qubit or depth limit.
 - replay never submits another target job.
 
 Those claims often live in prose or tests. Wheeler is moving contracts, theorems, proof blocks, resource claims, and canonical certificates into the language and package model.
@@ -211,13 +211,13 @@ The first trusted-kernel pieces can check generated inverses, generated quantum 
 
 An experiment is useful evidence, but it is not a universal proof. A simulator run or a 4,096-shot hardware result describes what happened during that run. Wheeler records the target, request, shot count, estimator, and observations without treating repeated success as a theorem.
 
-Quantum software mixes normal bugs, mathematical claims, and probabilistic hardware; clear boundaries make each kind of evidence easier to judge.
+Quantum software mixes normal bugs, mathematical claims, and probabilistic hardware. Clear boundaries make each kind of evidence easier to judge.
 
 ### 5. Build a systems language around the quantum parts
 
 Wheeler is meant to do more than express a few circuits and hand the rest of the work to Python.
 
-The executable core already has signed and Boolean values, immutable records, tagged variants, fixed arrays, nonescaping slices, typed calls, bounded loops, and bounded regions. It also has factories for owned word, byte, UTF-8, and map storage; nonescaping storage borrows; strict validation; deterministic module linking; canonical bytecode; deterministic package formats; and exact offline dependency inputs.
+The executable core already has signed and Boolean values, immutable records, tagged variants, fixed arrays, nonescaping slices, typed calls, bounded loops, and bounded regions. It also has factories for owned word, byte, UTF-8, and map storage, plus nonescaping storage borrows, strict validation, deterministic module linking, canonical bytecode, deterministic package formats, and exact offline dependency inputs.
 
 Some major pieces are still under construction. These include owning parameters, returned loans, mutable slices, fuller UTF-8 strings, generic deterministic collections, complete nominal and package modules, and streaming effects. Explicit bounded UTF-8 and binary input already run, as does byte output with checked publish lengths.
 
@@ -257,24 +257,24 @@ Wheeler already has an executable base.
 
 The repository includes:
 
-- familiar class and method syntax with source-located diagnostics;
-- signed and Boolean values, immutable records, tagged variants, fixed arrays, nonescaping slices, typed calls, recursion, conditionals, bounded loops, and function-local bounded regions;
-- affine mutable word and byte buffers, immutable UTF-8 owners, signed maps, and bounded classical function modules;
-- generated inverses for the supported reversible subset;
-- one canonical `.wbc` format, strict decoding, semantic verification, disassembly, and exact VM rewind;
-- finite proof rules for generated inverses, generated adjoints, circuit rewrites, and static step bounds;
-- provider-neutral quantum regions, generated circuit adjoints, and coherent XOR lifting;
-- an asynchronous ideal state-vector target and an application-supplied OpenQASM 3 execution interface;
-- durable hybrid events, recovery, replay, retry, cancellation, quarantine, and transaction phases;
-- canonical package, workspace, lock, build-plan, vendor, and `.wpk` archive formats;
-- exact offline locked builds, sealed-plan execution, explicit grants, and atomic output publication;
+- familiar class and method syntax with source-located diagnostics.
+- signed and Boolean values, immutable records, tagged variants, fixed arrays, nonescaping slices, typed calls, recursion, conditionals, bounded loops, and function-local bounded regions.
+- affine mutable word and byte buffers, immutable UTF-8 owners, signed maps, and bounded classical function modules.
+- generated inverses for the supported reversible subset.
+- one canonical `.wbc` format, strict decoding, semantic verification, disassembly, and exact VM rewind.
+- finite proof rules for generated inverses, generated adjoints, circuit rewrites, and static step bounds.
+- provider-neutral quantum regions, generated circuit adjoints, and coherent XOR lifting.
+- an asynchronous ideal state-vector target and an application-supplied OpenQASM 3 execution interface.
+- durable hybrid events, recovery, replay, retry, cancellation, quarantine, and transaction phases.
+- canonical package, workspace, lock, build-plan, vendor, and `.wpk` archive formats.
+- exact offline locked builds, sealed-plan execution, explicit grants, and atomic output publication.
 - a Tree-sitter grammar, corpus, highlighting, and executable examples.
 
 The examples cover reversible state, typed aggregate values, bounded and recursive control, classical modules, coherent reuse, QFT with a generated adjoint, a bounded hybrid optimizer, circuit normalization, and static error-correction structure.
 
 Large areas are still unfinished. They include borrowing, mutable slices, and compiler-scale region storage. The project also needs a standard library, self-hosted tools, and native Java-free execution. Dynamic target control, richer coherent arithmetic, complete application fixtures, and the full proof system remain open.
 
-Wheeler runs today, but the language is not complete. The WIPs describe reviewed design work and implementation plans; they do not claim that every proposed feature already exists.
+Wheeler runs today, but the language is not complete. The WIPs describe reviewed design work and implementation plans. They do not claim that every proposed feature already exists.
 
 ## Common questions
 

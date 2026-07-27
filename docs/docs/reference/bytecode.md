@@ -47,7 +47,7 @@ New source builds default to 4,000,000 history records and 4,000,000 transitions
 
 ## Type and aggregate descriptors
 
-The type section starts with fixed signed-global descriptors; bounded tables for records and fixed arrays follow.
+The type section starts with fixed signed-global descriptors. Bounded tables for records and fixed arrays follow.
 
 A record descriptor contains a canonical ID, name, and a nonempty ordered field list. Each field has a name and type reference.
 
@@ -55,7 +55,7 @@ The required variant section has canonical nominal IDs and ordered, nonempty cas
 
 An array descriptor stores a canonical ID, element type, and a length from 1 through 65,535. A slice descriptor stores a canonical ID and element type. Slices cannot escape, appear as function results, or become aggregate elements.
 
-Every descriptor ID must equal its table position. Record fields may refer only to earlier record descriptors; variant payloads may refer to records or earlier variants. Both may also embed a later fixed-array descriptor when its element type is signed or Boolean. Both the stage-0 and Wheeler-native verifiers reject slice fields, aggregate-element arrays, and recursive array layouts.
+Every descriptor ID must equal its table position. Record fields may refer only to earlier record descriptors. Variant payloads may refer to records or earlier variants. Both may also embed a later fixed-array descriptor when its element type is signed or Boolean. Both the stage-0 and Wheeler-native verifiers reject slice fields, aggregate-element arrays, and recursive array layouts.
 
 This layout cannot represent recursive, cyclic, or forward inline values. Duplicate names, fields, cases, or IDs fail closed. The decoder also rejects forward references, unknown string IDs, unknown type tags, truncation, and trailing bytes.
 
@@ -76,15 +76,15 @@ The opcode determines one canonical operand count and one semantic rule. Dynamic
 
 Each 40-byte function descriptor declares parameter and local counts, an optional result, code ranges, and a canonical offset into the trailing signature-type table.
 
-When a result exists, its type appears first at that offset; local types follow, and parameter registers occupy the first local slots. Type windows are contiguous in function order.
+When a result exists, its type appears first at that offset. Local types follow, and parameter registers occupy the first local slots. Type windows are contiguous in function order.
 
 One little-endian `u32` per register stores its type:
 
-- `1`: signed 64-bit integer;
-- `2`: Boolean;
-- high-nibble tag `0x1`: record reference;
-- high-nibble tag `0x2`: variant reference;
-- high-nibble tag `0x3`: fixed-array reference;
+- `1`: signed 64-bit integer.
+- `2`: Boolean.
+- high-nibble tag `0x1`: record reference.
+- high-nibble tag `0x2`: variant reference.
+- high-nibble tag `0x3`: fixed-array reference.
 - high-nibble tag `0x4`: borrowed-slice reference.
 
 Aggregate references carry a 28-bit descriptor ID. The result-presence flag `4` means that one result type is present in the signature table.
@@ -109,7 +109,7 @@ Equality and ordering produce Boolean values. Boolean registers contain only `0`
 
 `ARRAY_NEW` consumes exactly the descriptor length from a homogeneous local window. `ARRAY_GET` takes a signed dynamic index and traps before mutation when the index is outside the value.
 
-`SLICE_NEW` verifies the array origin plus a signed start and length; `SLICE_GET` checks a relative index and reads through the retained origin.
+`SLICE_NEW` verifies the array origin plus a signed start and length. `SLICE_GET` checks a relative index and reads through the retained origin.
 
 ### Owned storage
 
@@ -117,7 +117,7 @@ Type code `3` identifies an affine region. Codes `4` and `5` identify affine sig
 
 Owner types may also appear in parameters. Passing an owner consumes the caller's argument and initializes exactly one owner in the callee. Before exit, the callee must consume, forward, drop, or return that value.
 
-`REGION_NEW` creates bounded region storage. The `WORDS_ALLOC`, `WORDS_GET`, and `WORDS_SET` family manages signed-word buffers; `BYTES_ALLOC`, `BYTES_GET`, and `BYTES_SET` does the same for bytes.
+`REGION_NEW` creates bounded region storage. The `WORDS_ALLOC`, `WORDS_GET`, and `WORDS_SET` family manages signed-word buffers. `BYTES_ALLOC`, `BYTES_GET`, and `BYTES_SET` does the same for bytes.
 
 `BUFFER_DROP` and `REGION_DROP` reclaim storage explicitly. Each operation checks allocation bounds, storage kind, byte range, and ownership state.
 
@@ -125,7 +125,7 @@ Owner types may also appear in parameters. Passing an owner consumes the caller'
 
 Type code `6` is an affine, fixed-capacity signed map. `MAP_ALLOC` charges 24 bytes for each slot. `MAP_PUT` inserts or updates, `MAP_HAS` checks membership, and `MAP_GET` traps on a missing key. Map slots use deterministic order and the normal owned-drop opcode.
 
-Type code `7` is an affine immutable UTF-8 owner; `UTF8_FREEZE` consumes mutable bytes only after full strict validation. It changes the allocation kind under logged rewind and initializes the destination. Mutation opcodes continue to accept only mutable byte storage.
+Type code `7` is an affine immutable UTF-8 owner. `UTF8_FREEZE` consumes mutable bytes only after full strict validation. It changes the allocation kind under logged rewind and initializes the destination. Mutation opcodes continue to accept only mutable byte storage.
 
 A function result may return any owned storage type. `RETURN_VALUE` consumes the callee local, then makes the caller destination the sole owner. Flow verification requires every other callee owner to be dead.
 
@@ -153,7 +153,7 @@ Type code `12` is an exclusive region loan. `REGION_BORROW` creates a transient 
 
 Borrow verification rejects a call that passes one storage source into more than one mutable parameter.
 
-Type code `13` is immutable `byteview`; `BYTES_GET` and `BUFFER_LENGTH` may inspect it. Byte writes, owner operations, function results, and aggregate storage reject it.
+Type code `13` is immutable `byteview`. `BYTES_GET` and `BUFFER_LENGTH` may inspect it. Byte writes, owner operations, function results, and aggregate storage reject it.
 
 `BUFFER_BORROW` may derive a temporary immutable view from byte storage for a call. Unlike a mutable byte loan, this view does not join the exclusive-writer alias set.
 
@@ -165,10 +165,10 @@ Verification consumes owner and transient-loan argument slots at the call bounda
 
 The `void` entry accepts one of these signatures:
 
-- no parameters;
-- one type-code-8 UTF-8 input loan;
-- one type-code-13 binary input view;
-- one type-code-11 byte-output loan;
+- no parameters.
+- one type-code-8 UTF-8 input loan.
+- one type-code-13 binary input view.
+- one type-code-11 byte-output loan.
 - either input form followed by the output loan.
 
 The signature declares the required host effects. It does not place effect bytes, capacities, or paths in artifact identity.
@@ -181,10 +181,10 @@ The instruction changes no byte. Its state participates in rewind, and no output
 
 Section 10 appears only when a program carries proof evidence. It begins with a bounded count, followed by fixed records with:
 
-- canonical proof ID;
-- proof-name string ID;
-- trusted rule code;
-- rule-domain subject ID;
+- canonical proof ID.
+- proof-name string ID.
+- trusted rule code.
+- rule-domain subject ID.
 - one signed 64-bit rule argument.
 
 Unary generation rules require argument `-1`. Binary circuit rules use a second circuit ID, and resource rules use a positive bound.
@@ -225,7 +225,7 @@ An instruction either completes and adds one rewind record, or it traps before c
 
 `MinimalCompiler.w` and its IR, token, parser, code-generation, and encoding modules exercise a complete but bounded writer path. Wheeler scans one small source file, builds class and global IR, and emits a canonical artifact.
 
-The accepted grammar supports zero or one signed global, an optional classical or reversible helper with zero through sixty-four statements, and one entry. An entry without a helper may contain zero through sixty-four signed-local, Boolean-local, assertion, assignment, checked-update, or global-expectation statements before `HALT`. Helper-call entries retain the smaller explicit call/reverse shape. Statement starts live in one caller-owned bounded table shared by both body parsers; the sixty-fifth row is not an undocumented storage tier.
+The accepted grammar supports zero or one signed global, an optional classical or reversible helper with zero through sixty-four statements, and one entry. An entry without a helper may contain zero through sixty-four signed-local, Boolean-local, assertion, assignment, checked-update, or global-expectation statements before `HALT`. Helper-call entries retain the smaller explicit call/reverse shape. Statement starts live in one caller-owned bounded table shared by both body parsers. The sixty-fifth row is not an undocumented storage tier.
 
 Identifiers from source are sorted into the canonical string table. Offsets, type windows, local counts, code lengths, and final artifact size are derived from the parsed program.
 
@@ -235,21 +235,21 @@ The `LongClass` fixture contains `state long value = 7` and a checked update. CI
 
 A binary corpus accepts canonical stage-0 artifacts and rejects forged local or global indexes, type codes, call targets, proof subjects, and proof arguments. `NativeVerifier.w` applies the same verifier to immutable binary `byteview`, so verification does not need a text envelope.
 
-`compiler/verification/Codec.w` provides Wheeler's bounded canonical identity encoder. It decodes and verifies the complete typed artifact before copying any byte into caller-owned output. Because `.wbc` 1.0 has one canonical representation, identity encoding is the only correct re-encoding of accepted bytes; there is no permissive spelling to normalize. `NativeBytecodeCodec.w` differentially reproduces a stage-0 artifact, rewinds exactly, and leaves output untouched and unpublished when verification traps or the verified artifact exceeds output capacity.
+`compiler/verification/Codec.w` provides Wheeler's bounded canonical identity encoder. It decodes and verifies the complete typed artifact before copying any byte into caller-owned output. Because `.wbc` 1.0 has one canonical representation, identity encoding is the only correct re-encoding of accepted bytes. There is no permissive spelling to normalize. `NativeBytecodeCodec.w` differentially reproduces a stage-0 artifact, rewinds exactly, and leaves output untouched and unpublished when verification traps or the verified artifact exceeds output capacity.
 
-`NativeBytecodeIdentity.w` re-encodes at most 4,096 verified bytes into private owned storage before publishing Wheeler SHA-256. The complete digest matches stage 0 and rewinds exactly. Damaged framing or oversized input leaves all 32 bytes untouched. A digest identifies an artifact only after verification establishes that there is an artifact to identify; SHA-256 is many things, but it is not a type checker.
+`NativeBytecodeIdentity.w` re-encodes at most 4,096 verified bytes into private owned storage before publishing Wheeler SHA-256. The complete digest matches stage 0 and rewinds exactly. Damaged framing or oversized input leaves all 32 bytes untouched. A digest identifies an artifact only after verification establishes that there is an artifact to identify. SHA-256 is many things, but it is not a type checker.
 
-The bounded compiler implementation now lives in importable `compiler/Driver.w`; `MinimalCompiler.w` is only its executable package wrapper. `compileMinimal` returns the exact verified artifact and code bounds without changing externally visible output length. A canonical module header qualifies entry and helper strings while preserving theorem names exactly as stage 0 does; malformed headers fail, while imports and multi-file linking remain outside the slice. `NativeCompilerIdentity.w` compiles into private 4,096-byte storage and hashes only the returned range. Its digest matches the stage-0 artifact, while malformed or oversized source publishes nothing. This is an artifact-producing recovery boundary, not yet a general-purpose mutable semantic editor.
+The bounded compiler implementation now lives in importable `compiler/Driver.w`. `MinimalCompiler.w` is only its executable package wrapper. `compileMinimal` returns the exact verified artifact and code bounds without changing externally visible output length. A canonical module header qualifies entry and helper strings while preserving theorem names exactly as stage 0 does. Malformed headers fail, while imports and multi-file linking remain outside the slice. `NativeCompilerIdentity.w` compiles into private 4,096-byte storage and hashes only the returned range. Its digest matches the stage-0 artifact, while malformed or oversized source publishes nothing. This is an artifact-producing recovery boundary, not yet a general-purpose mutable semantic editor.
 
 This verifier covers the bounded compiler profile. It is not yet the full production verifier.
 
 Differential fixtures include these exact artifacts and lowering paths:
 
-- the 568-byte two-function `Calls` artifact;
-- the 528-byte inverse-bearing `ReversibleCalls` artifact;
-- post-call local and assertion forms;
-- the proof-bearing `Certified` artifact;
-- the 360-byte no-global `Bare` artifact;
+- the 568-byte two-function `Calls` artifact.
+- the 528-byte inverse-bearing `ReversibleCalls` artifact.
+- post-call local and assertion forms.
+- the proof-bearing `Certified` artifact.
+- the 360-byte no-global `Bare` artifact.
 - alternate identifier orders and the checked-in commented `Counter.w` source.
 
 Classical helper fixtures use two descriptors, end with `RETURN`, and exercise one or two repeated `CALL` sites. Reversible helpers lower checked `+=` and `-=` to opposite bodies and XOR through `^=` to a self-inverse body. Entry code relies on `CALL` and `UNCALL`, while local declarations use `LOCAL_CONST` and `LOCAL_MOVE`. An optional inverse theorem adds a 28-byte `GENERATED_INVERSE` proof section.
@@ -258,10 +258,10 @@ Plain assignment inside a `rev` helper and duplicate names fail before output pu
 
 `compiler/ir/Opcodes.w`, `compiler/ir/TypeCodes.w`, and `compiler/ir/ProofRules.w` are the Wheeler-side authorities for the current opcode, type, and proof identities. Their public `const long` declarations fold at compile time and add no globals or startup work.
 
-`InstructionVerifier.w`, `Verifier.w`, and `Interpreter.w` dispatch through those names instead of repeating integer tables. The focused verifier set also includes `compiler/{FunctionVerifier,InstructionVerifier,ProofVerifier}.w`. The stage-0 `Opcode` table remains the differential reference until compiler promotion; it does not authorize a third source of truth.
+`InstructionVerifier.w`, `Verifier.w`, and `Interpreter.w` dispatch through those names instead of repeating integer tables. The focused verifier set also includes `compiler/{FunctionVerifier,InstructionVerifier,ProofVerifier}.w`. The stage-0 `Opcode` table remains the differential reference until compiler promotion. It does not authorize a third source of truth.
 
 ## Compatibility
 
 The repository defines only format `1.0`. The decoder accepts that exact version and has no compatibility path for an earlier artifact.
 
-Future incompatible work must replace the format on purpose; numeric section and opcode IDs are never silently reused.
+Future incompatible work must replace the format on purpose. Numeric section and opcode IDs are never silently reused.

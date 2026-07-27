@@ -28,7 +28,7 @@ Wheeler also needs package rules that general host tools do not model:
 - A module may expose ordinary, reversible, coherent, unitary, and hybrid entry points.
 - Consumers may require minimum source, bytecode, quantum IR, proof, or platform ABI profiles.
 - Target adapters must describe capabilities without storing credentials or provider objects.
-- Native images derive from canonical `.wbc`; they do not replace its portable identity.
+- Native images derive from canonical `.wbc`. They do not replace its portable identity.
 - Compiler and runtime packages belong to the self-hosting and recovery trust chain.
 - Build tools follow the same bounded effects and replay rules as other Wheeler programs.
 
@@ -100,9 +100,9 @@ Commands operate on the workspace graph by default and accept explicit package, 
 
 `wheeler` is the Wheeler toolchain driver. `wheeler run <package-or-artifact>` executes a selected package target or verified artifact.
 
-`wheeler.package.yaml` is a UTF-8 Wheeler package manifest. `wheeler.workspace.yaml` is the optional workspace manifest. `wheeler.package.lock.yaml` is the generated canonical resolution. `.wpk` is the canonical package archive and `wheeler.workspace.plan` remains the canonical binary build plan. Names and suffixes are Wheeler contracts and do not alias host package formats. The retired extensionless metadata names have no fallback lookup; one package graph does not need two front doors.
+`wheeler.package.yaml` is a UTF-8 Wheeler package manifest. `wheeler.workspace.yaml` is the optional workspace manifest. `wheeler.package.lock.yaml` is the generated canonical resolution. `.wpk` is the canonical package archive and `wheeler.workspace.plan` remains the canonical binary build plan. Names and suffixes are Wheeler contracts and do not alias host package formats. The retired extensionless metadata names have no fallback lookup. One package graph does not need two front doors.
 
-Generated target artifacts and default package archives live below `<repository>/build/<workspace-member>/`; `wheeler clean` owns that tree. A directly invoked member discovers the adjacent workspace and uses the same group, while a standalone package uses its own `build/`. A package-local `vendor/` is different: it is a generated, content-addressed dependency input closure for standalone offline builds and is ignored by Git. The recovery workspace keeps exact locks and canonical member sources; workspace commands reconstruct matching dependency archives in memory. An exported air-gap bundle may still carry a verified vendor set. The source repository doesn't need to contain that generated closure.
+Generated target artifacts and default package archives live below `<repository>/build/<workspace-member>/`. `wheeler clean` owns that tree. A directly invoked member discovers the adjacent workspace and uses the same group, while a standalone package uses its own `build/`. A package-local `vendor/` is different: a standalone offline build generates this content-addressed dependency input closure, and Git ignores it. The recovery workspace keeps exact locks and canonical member sources. Workspace commands reconstruct matching dependency archives in memory. An exported air-gap bundle may still carry a verified vendor set. The source repository doesn't need to contain that generated closure.
 
 A package identity contains:
 
@@ -147,7 +147,7 @@ capabilities:
     path: "build/**"
 ```
 
-The target kind set is closed: `deployable`, `library`, and `tool`. The `test` field selects a runnable target; it is not a separate kind. A later schema may add named feature lists. Schema 1 rejects `features`. Ignoring an option that could change reproducibility is unsafe. Future features may enable optional dependencies or declared target facets. They cannot remove checks, grant capabilities, select credentials, or run code. Unknown keys fail unless a later schema defines them.
+The target kind set is closed: `deployable`, `library`, and `tool`. The `test` field selects a runnable target. It is not a separate kind. A later schema may add named feature lists. Schema 1 rejects `features`. Ignoring an option that could change reproducibility is unsafe. Future features may enable optional dependencies or declared target facets. They cannot remove checks, grant capabilities, select credentials, or run code. Unknown keys fail unless a later schema defines them.
 
 Wheeler accepts a closed YAML profile. It allows one UTF-8 document, LF endings, two-space indentation, plain mapping keys, block mappings and sequences, quoted strings, canonical decimal integers, booleans, and full-line comments.
 
@@ -157,7 +157,7 @@ Logical package paths use `/`, reject traversal and absolute roots, and stay cas
 
 ## Modules and visibility
 
-WIP-0007 modules live inside packages. A package declares roots and exports; imports name modules, not files; resolution maps module names through the package manifest and locked dependencies. Source code cannot walk directories or import undeclared relative host paths.
+WIP-0007 modules live inside packages. A package declares roots and exports. Imports name modules, not files. Resolution maps module names through the package manifest and locked dependencies. Source code cannot walk directories or import undeclared relative host paths.
 
 Package boundaries participate in visibility and effect checking. Public APIs include type, effect, reversibility, coherent eligibility, affine-resource, and target-requirement signatures. A package's API identity changes when one of those observable contracts changes even if method names do not.
 
@@ -171,16 +171,16 @@ Feature selection is additive and namespaced. Features cannot silently remove ch
 
 Resolution:
 
-1. parses all workspace manifests;
-2. verifies names, versions, source identities, and dependency phases;
-3. obtains a signed or content-addressed registry index snapshot unless offline;
-4. selects one deterministic solution under the version and profile constraints;
-5. records every package, content hash, feature, source, and relevant schema identity in `wheeler.package.lock.yaml`;
+1. parses all workspace manifests.
+2. verifies names, versions, source identities, and dependency phases.
+3. obtains a signed or content-addressed registry index snapshot unless offline.
+4. selects one deterministic solution under the version and profile constraints.
+5. records every package, content hash, feature, source, and relevant schema identity in `wheeler.package.lock.yaml`.
 6. verifies the complete graph before fetching or building code.
 
 A locked build does not re-resolve. If a locked archive disappears or has different bytes, the build fails. It does not choose a convenient replacement.
 
-The initial resolver may require one version of each package identity in a final graph; multiple-version support requires explicit type and resource identity rules and is deferred until demonstrated necessary.
+The initial resolver may require one version of each package identity in a final graph. Multiple-version support requires explicit type and resource identity rules and is deferred until demonstrated necessary.
 
 ## Lockfile
 
@@ -198,35 +198,35 @@ packages:
     dependencies: []
 ```
 
-The lock uses the same closed YAML profile and canonical writer as the manifest. It is data for review and merge tooling, but the resolver remains its only author; hand-edited hashes still fail structural and graph verification.
+The lock uses the same closed YAML profile and canonical writer as the manifest. It is data for review and merge tooling, but the resolver remains its only author. Hand-edited hashes still fail structural and graph verification.
 
 The lockfile records:
 
-- schema and resolver versions;
-- root manifest identities;
-- exact package identities and archive hashes;
-- dependency kinds and selected features;
-- language, bytecode, proof, and ABI profiles;
-- registry snapshot or vendored-source identities;
+- schema and resolver versions.
+- root manifest identities.
+- exact package identities and archive hashes.
+- dependency kinds and selected features.
+- language, bytecode, proof, and ABI profiles.
+- registry snapshot or vendored-source identities.
 - build-tool packages and declared output schemas.
 
 It excludes credentials, tokens, home directories, temporary paths, clocks, random seeds not explicitly semantic, provider queue state, and mutable calibration data.
 
-Lockfile updates are atomic. A failed resolution leaves the prior lockfile untouched. Merge conflicts are resolved by rerunning the resolver from reviewed manifests, not hand-editing package hashes.
+Lockfile updates are atomic. A failed resolution leaves the prior lockfile untouched. Rerun the resolver from reviewed manifests to resolve merge conflicts. Do not hand-edit package hashes.
 
 ## Package archive
 
 A `.wpk` archive is a canonical, bounded, content-addressed container. It includes:
 
-- the canonical package manifest;
-- declared source and resource files in logical path order;
-- public API metadata;
-- license and provenance records;
-- optional canonical `.wbc` library or tool artifacts built under the declared compiler identity;
-- optional proof or certificate artifacts with explicit schemas;
+- the canonical package manifest.
+- declared source and resource files in logical path order.
+- public API metadata.
+- license and provenance records.
+- optional canonical `.wbc` library or tool artifacts built under the declared compiler identity.
+- optional proof or certificate artifacts with explicit schemas.
 - checksums for every member and the package root.
 
-Native images may be distributed as target-qualified attachments or separate derived packages. Their identities point back to canonical `.wbc`; a native image cannot replace missing portable semantics.
+Native images may be distributed as target-qualified attachments or separate derived packages. Their identities point back to canonical `.wbc`. A native image cannot replace missing portable semantics.
 
 Archives reject duplicate paths, traversal, links escaping the package root, special devices, unknown required records, excessive expansion, and noncanonical member order. Extracting an archive is not required to verify or compile it.
 
@@ -234,15 +234,15 @@ Archives reject duplicate paths, traversal, links escaping the package root, spe
 
 `wheeler` converts the locked package graph into a deterministic build plan. Nodes declare:
 
-- tool artifact and entry point;
-- canonical input identities;
-- output names and schemas;
-- target and language profiles;
-- granted capabilities;
-- CPU-step, memory, file-byte, output-byte, and deadline policy limits;
+- tool artifact and entry point.
+- canonical input identities.
+- output names and schemas.
+- target and language profiles.
+- granted capabilities.
+- CPU-step, memory, file-byte, output-byte, and deadline policy limits.
 - cacheability and reproducibility requirements.
 
-The plan is content-addressed. Cache hits are accepted only after complete build-input-key matching plus output hash and schema verification. XDG-local and remote caches are equally untrusted stores; signatures may establish provenance but never replace local structural verification.
+The plan is content-addressed. Cache hits are accepted only after complete build-input-key matching plus output hash and schema verification. XDG-local and remote caches are equally untrusted stores. Signatures may establish provenance but never replace local structural verification.
 
 Independent nodes may execute concurrently. Semantic output order, diagnostics, archive members, and lock updates are reduced in canonical graph order instead of task completion order.
 
@@ -250,7 +250,7 @@ Independent nodes may execute concurrently. Semantic output order, diagnostics, 
 
 There are no ambient install scripts. A formatter, parser generator, documentation renderer, native linker driver, or other extension is a locked Wheeler tool package. The build engine launches it with a capability object containing only declared logical inputs and output destinations.
 
-A tool cannot read the workspace, home directory, environment, network, clock, random device, target credentials, or prior undeclared output. Networked fetch is owned by the package manager before tool execution. Native system tool invocation, where temporarily required, is a separate named capability with executable identity and normalized arguments in the build record.
+A tool cannot read the workspace, home directory, environment, network, clock, random device, target credentials, or prior undeclared output. The package manager owns networked fetch before tool execution. Native system tool invocation, where temporarily required, is a separate named capability with executable identity and normalized arguments in the build record.
 
 Generated files belong to declared output trees and are never silently written into source directories. Promotion of generated source or recovery seeds is an explicit reviewed command.
 
@@ -260,22 +260,22 @@ Packages attach the `test` selector to deployable or tool targets and declare th
 
 Test classes include:
 
-- unit and compile-fail tests;
-- bytecode and diagnostic golden tests;
-- reversible-law and replay tests;
-- ideal quantum simulation tests;
-- target-capability planning tests;
+- unit and compile-fail tests.
+- bytecode and diagnostic golden tests.
+- reversible-law and replay tests.
+- ideal quantum simulation tests.
+- target-capability planning tests.
 - opt-in integration or live-hardware tests.
 
 Default tests cannot submit live quantum work. A live test names a target capability profile, budget, and credential grant supplied by the host. Its result is operational evidence, not a reproducible package-build input.
 
-Checked-in examples are normal workspace packages with deployable or tool targets. They compile under the same lock graph and profile as user code; no special parser path or target kind exists for examples.
+Checked-in examples are normal workspace packages with deployable or tool targets. They compile under the same lock graph and profile as user code. No special parser path or target kind exists for examples.
 
 ## Registry and publication
 
 A registry stores immutable package archives by content identity and a signed append-only mapping from package names and versions to archive identities. Publication never mutates an existing `(namespace, name, version)` mapping.
 
-Namespaces have explicit ownership and delegation. Clients verify archive hash, manifest identity, namespace authorization, and package limits before resolution. Registry mirrors and offline vendor stores preserve identities; changing the download location does not change the package.
+Namespaces have explicit ownership and delegation. Clients verify archive hash, manifest identity, namespace authorization, and package limits before resolution. Registry mirrors and offline vendor stores preserve identities. Changing the download location does not change the package.
 
 ### XDG local repository and artifact cache
 
@@ -288,11 +288,11 @@ The default developer repository follows the XDG base-directory contract. Wheele
 | Disposable artifact reuse | `${XDG_CACHE_HOME:-$HOME/.cache}/wheeler/artifacts` | Verified build outputs indexed by complete build-input identity |
 | Local journals and quarantine state | `${XDG_STATE_HOME:-$HOME/.local/state}/wheeler` | Retry records, quarantine decisions, and bounded GC/accounting state |
 
-An XDG variable participates only when it is an absolute physical path, as the XDG specification requires. A missing variable uses the listed fallback; a relative value is ignored with a stable diagnostic instead of reinterpreted beneath the workspace. Repository-policy bytes and selected repository/snapshot identities are deterministic resolver inputs, but their physical XDG location is not. These physical roots never enter `wheeler.package.lock.yaml`, package identity, plan identity, diagnostics intended for comparison, or canonical provenance. The selected object, repository trust domain, snapshot, build-input identity, and bytes do.
+An XDG variable participates only when it is an absolute physical path, as the XDG specification requires. A missing variable uses the listed fallback. A relative value is ignored with a stable diagnostic instead of reinterpreted beneath the workspace. Repository-policy bytes and selected repository/snapshot identities are deterministic resolver inputs, but their physical XDG location is not. These physical roots never enter `wheeler.package.lock.yaml`, package identity, plan identity, diagnostics intended for comparison, or canonical provenance. The selected object, repository trust domain, snapshot, build-input identity, and bytes do.
 
-The repository policy is an ordered list, in the useful Conan 2 sense instead of an unordered bucket of URLs. `wheeler repository add`, `remove`, `enable`, `disable`, `move`, and `list` update or print one canonical file atomically; aliases are unique, repository identities are stable, and physical transports are not identities. Schema 2 also carries a sorted, bounded set of canonical Ed25519 public keys for each trust domain. `trust` and `untrust` change that local authority explicitly; `sign` and `verify` operate on the current immutable snapshot. Once any key is trusted, configured resolution and exact fetch require a valid current signature. The default list contains the XDG data repository as unsigned `local`. Command-line repository selections may choose one alias or an explicit ordered subset, but they do not mutate policy behind the user's back.
+The repository policy is an ordered list, in the useful Conan 2 sense instead of an unordered bucket of URLs. `wheeler repository add`, `remove`, `enable`, `disable`, `move`, and `list` update or print one canonical file atomically. Aliases are unique, repository identities are stable, and physical transports are not identities. Schema 2 also carries a sorted, bounded set of canonical Ed25519 public keys for each trust domain. `trust` and `untrust` change that local authority explicitly. `sign` and `verify` operate on the current immutable snapshot. Once any key is trusted, configured resolution and exact fetch require a valid current signature. The default list contains the XDG data repository as unsigned `local`. Command-line repository selections may choose one alias or an explicit ordered subset, but they do not mutate policy behind the user's back.
 
-Unlocked lookup visits enabled repositories in declared order. For one package instance, the first repository with namespace authority and an admissible release owns the lookup. Lower-priority repositories cannot add newer versions to that candidate set. WIP-0022 aliases may select another repository or allow a separate instance. Locks store stable repository and snapshot identities, never aliases, positions, URLs, or XDG paths; a locked lookup contacts only the bound repository or an identity-preserving mirror or cache. Equal-looking bytes in another repository do not authorize a switch.
+Unlocked lookup visits enabled repositories in declared order. For one package instance, the first repository with namespace authority and an admissible release owns the lookup. Lower-priority repositories cannot add newer versions to that candidate set. WIP-0022 aliases may select another repository or allow a separate instance. Locks store stable repository and snapshot identities, never aliases, positions, URLs, or XDG paths. A locked lookup contacts only the bound repository or an identity-preserving mirror or cache. Equal-looking bytes in another repository do not authorize a switch.
 
 Without an explicit repository argument, `publish` targets `local`, while `fetch` and unlocked developer resolution use the configured order. An explicit repository may select local or remote transport without changing object identity. Local publication verifies canonical bytes, stages the object and mapping privately, rejects a conflicting `(name, version)`, and publishes with no-replace semantics. Equal publication is idempotent. Atomic visibility is not a durability receipt. WIP-0032 defines any stronger evidence separately from `rename(2)`.
 
@@ -302,12 +302,12 @@ Cache insertion is bounded and atomic. Eviction and `wheeler cache gc` are exter
 
 `wheeler publish` performs, in order:
 
-1. locked clean build and test under publication policy;
-2. manifest and public-API validation;
-3. secret and forbidden-file checks;
-4. canonical archive construction;
-5. local archive verification from bytes;
-6. owner signing or authenticated upload;
+1. locked clean build and test under publication policy.
+2. manifest and public-API validation.
+3. secret and forbidden-file checks.
+4. canonical archive construction.
+5. local archive verification from bytes.
+6. owner signing or authenticated upload.
 7. immutable registry acknowledgement recording.
 
 Yanking marks a version ineligible for new unlocked resolution but does not break existing lockfiles or delete the archive. Security advisories are separately signed metadata and never rewrite historical package bytes.
@@ -326,44 +326,44 @@ The implemented stage-0 archive and locked-build core remains the foundation: de
 
 The series preserves these rules:
 
-- a package name is not an instance, and only direct declared dependencies are importable;
-- target edges retain normal/build/development kind and build/target context;
-- repository identity participates in dependency meaning, while mirrors remain transport;
-- locks pin realizable graphs and updates preserve valid instances by default;
-- recipes and revisions are immutable and one build-input identity admits at most one PREV;
-- system packages remain derived policy artifacts;
-- native calls are explicit irreversible effect boundaries;
-- native images contain format-native read-only capsules instead of adjacent or appended ambient payloads;
+- a package name is not an instance, and only direct declared dependencies are importable.
+- target edges retain normal/build/development kind and build/target context.
+- repository identity participates in dependency meaning, while mirrors remain transport.
+- locks pin realizable graphs and updates preserve valid instances by default.
+- recipes and revisions are immutable and one build-input identity admits at most one PREV.
+- system packages remain derived policy artifacts.
+- native calls are explicit irreversible effect boundaries.
+- native images contain format-native read-only capsules instead of adjacent or appended ambient payloads.
 - no resolver, builder, FFI loader, image launcher, or distribution adapter performs ambient discovery.
 
-The shared identity chain is coordinate → RREV → variant → build-input ID → PREV, with separate capsule, native-image, signed-release, and distribution identities. Each arrow adds declared information; none is allowed to erase inconvenient inputs using a callback named `packageId()` and a hopeful expression.
+The shared identity chain is coordinate → RREV → variant → build-input ID → PREV, with separate capsule, native-image, signed-release, and distribution identities. Each arrow adds declared information. None is allowed to erase inconvenient inputs using a callback named `packageId()` and a hopeful expression.
 
 A public-ecosystem release waits for direct imports, profile-aware and prerelease-aware bounded solving, lock-preserving updates, repository snapshots, namespace authority, PREV uniqueness with independent rebuilds, and native closure checks. Archive integrity is required, but it does not cover the rest of the supply chain.
 
 ## Self-hosting and recovery
 
-The package manager, build planner, manifest parser, resolver, archive codec, registry client, and command driver are Wheeler packages. They are built by the WIP-0007 compiler and execute on the WIP-0008 native runtime.
+The package manager, build planner, manifest parser, resolver, archive codec, registry client, and command driver are Wheeler packages. The WIP-0007 compiler builds them, and the WIP-0008 native runtime runs them.
 
 A recovery release contains:
 
-- native `wheeler` for each supported host;
-- canonical compiler, runtime, and package-manager `.wbc` artifacts;
-- the recovery workspace manifests and lockfile;
-- all bootstrap package archives or a verified vendor set;
-- native ABI and backend identities;
+- native `wheeler` for each supported host.
+- canonical compiler, runtime, and package-manager `.wbc` artifacts.
+- the recovery workspace manifests and lockfile.
+- all bootstrap package archives or a verified vendor set.
+- native ABI and backend identities.
 - reproduction and trust metadata.
 
 A clean recovery build runs with network disabled and Java, Gradle, Rust, and Cargo absent. It rebuilds the current package graph, proves the compiler fixed point, runs conformance tests, and emits the next candidate recovery release.
 
-The initial package manager may be seeded by stage-0 build tasks. Once the Wheeler implementation passes differential lock, plan, archive, and failure tests, stage-0 package logic is deleted with Gradle instead of retained as a fallback.
+Stage-0 build tasks seed the initial package manager. Once the Wheeler implementation passes differential lock, plan, archive, and failure tests, delete the stage-0 package logic with Gradle. Do not retain a fallback.
 
 ## Reversibility, effects, and replay
 
 Dependency resolution is deterministic computation over immutable manifests and an identified registry snapshot. Fetching, cache insertion, output replacement, publication, and yanking are external effects.
 
-A failed build transaction discards private outputs. It does not claim to reverse network transfer or terminal output. Lockfile, archive, and artifact replacement use atomic host effects. Publication acknowledgement is a commit barrier; recovery reconciles by content and idempotency identity before retrying.
+A failed build transaction discards private outputs. It does not claim to reverse network transfer or terminal output. Lockfile, archive, and artifact replacement use atomic host effects. Publication acknowledgement is a commit barrier. Recovery reconciles by content and idempotency identity before retrying.
 
-Build-event logs may be replayed for diagnostics and provenance, but replay cannot substitute unavailable package payloads or rerun a publication under an old identity. `wheeler clean` removes only the selected repository build tree; explicit cache GC cannot erase a durable local or remote package version.
+Build-event logs may be replayed for diagnostics and provenance, but replay cannot substitute unavailable package payloads or rerun a publication under an old identity. `wheeler clean` removes only the selected repository build tree. Explicit cache GC cannot erase a durable local or remote package version.
 
 ## Security and limits
 
@@ -397,7 +397,7 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 
 ## Progress
 
-- [x] The project replaced extensionless package, workspace, and lock metadata with `wheeler.package.yaml`, `wheeler.workspace.yaml`, and `wheeler.package.lock.yaml`. Stage-0 and native parsers moved in the same change; the old grammar and format detection paths are gone.
+- [x] The project replaced extensionless package, workspace, and lock metadata with `wheeler.package.yaml`, `wheeler.workspace.yaml`, and `wheeler.package.lock.yaml`. Stage-0 and native parsers moved in the same change. The old grammar and format detection paths are gone.
 - [x] Canonical `.wbc` provides a portable artifact identity for package outputs.
 - [x] WIP-0007 and WIP-0008 define compiler and native recovery requirements.
 - [ ] Workspace, package, lock, and archive schemas have strict stage-0 codecs. Build plans bind compiler, source, package input, output, capability request, execution limit, and explicit grant identities. Sealed stage-0 execution checks the active compiler and core class identity, rederives the plan, and publishes exact verified outputs atomically. Isolated native memory and work enforcement remains.
@@ -411,24 +411,24 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 - [x] Physical catalogs, exact vendor trees, and immutable local file publication and fetch are bounded and integrity-checked. The closed YAML repository policy records trust order, identity, enabled state, file transport, and sorted namespace authority. XDG fallback and override paths are explicit. Relative overrides are diagnosed and ignored. Policy updates are atomic, publication defaults to `local`, and exact fetch uses the first authoritative match.
 - [x] Unlocked stage-0 resolution scans canonical release mappings in configured repository order, filters namespace authority, chooses the first repository with a profile/range-admissible release, and never merges its candidates with lower trust domains.
 - [x] Lock schema 3 binds each package to the repository identity that owned its candidates and the complete snapshot used for selection. Aliases, URLs, list positions, and paths never enter lock identity. A valid existing exact choice remains preferred, but a new lock records the current snapshot even when only an unrelated release changed. Sealed catalogs use one domain-separated bootstrap repository identity and a content-derived snapshot.
-- [x] Exact fetch uses the XDG artifact root as a disposable package-object cache only after an authoritative release mapping supplies expected package/archive/manifest identities. Every hit is fully decoded and compared; corrupt or oversized regular objects are deleted and refetched, cache deletion changes no bytes, and cached objects never become resolver candidates. `wheeler cache gc` performs bounded lexical verification, removes malformed regular objects, and refuses links or special files.
-- [x] Stage-0 plan execution derives `wheeler-build-input-1` from the workspace, compiler, profile, and complete node. Output is reused only when every node has an exact verified schema-1 input, PREV, and length record. Each cached `.wbc` is decoded independently. Any miss rebuilds the full closed tree. A different verified PREV goes to deterministic quarantine and stops publication; bounded cache collection removes malformed or unreferenced records without following links. Cache state cannot become resolver or build authority. Recipe revisions, variants, and native tool axes remain for WIP-0023.
-- [ ] Identity-preserving mirrors and signed network snapshots remain; local locks are snapshot-bound.
-- [x] The root workspace, canonical core, compiler, runtime, package-codec packages, and examples form an executable stage-0 workspace; workspace commands rebuild member archives in memory and require each identity to match the committed lock. No checked-in vendor tree or undeclared source path is used.
+- [x] Exact fetch uses the XDG artifact root as a disposable package-object cache only after an authoritative release mapping supplies expected package/archive/manifest identities. Every hit is fully decoded and compared. Corrupt or oversized regular objects are deleted and refetched, cache deletion changes no bytes, and cached objects never become resolver candidates. `wheeler cache gc` performs bounded lexical verification, removes malformed regular objects, and refuses links or special files.
+- [x] Stage-0 plan execution derives `wheeler-build-input-1` from the workspace, compiler, profile, and complete node. Output is reused only when every node has an exact verified schema-1 input, PREV, and length record. Each cached `.wbc` is decoded independently. Any miss rebuilds the full closed tree. A different verified PREV goes to deterministic quarantine and stops publication. Bounded cache collection removes malformed or unreferenced records without following links. Cache state cannot become resolver or build authority. Recipe revisions, variants, and native tool axes remain for WIP-0023.
+- [ ] Identity-preserving mirrors and signed network snapshots remain. Local locks are snapshot-bound.
+- [x] The root workspace, canonical core, compiler, runtime, package-codec packages, and examples form an executable stage-0 workspace. Workspace commands rebuild member archives in memory and require each identity to match the committed lock. No checked-in vendor tree or undeclared source path is used.
 - [x] Wheeler-written `crypto/Sha256.w` now matches independent digest vectors over bounded binary input and supplies the content-identity primitive required by native lock/plan/archive verification. `crypto/ContentIdentity.w` centralizes bounded binary ownership, strict UTF-8 freezing, output-capacity checking, and complete post-validation digest publication for textual metadata.
-- [x] `NativeSnapshotIdentity.w` freezes bounded binary input into strict UTF-8, validates the complete canonical coordinate view, and only then publishes its Wheeler-computed SHA-256. Empty and populated identities agree with stage 0; malformed or over-capacity views do not get a digest merely for turning up.
-- [x] `NativeLockIdentity.w` applies the same validate-then-hash rule to bounded schema-3 locks. Empty and one-package lock identities match stage 0 with exact rewind; malformed, second-package, and oversized inputs publish no identity.
-- [x] `NativeManifestIdentity.w` validates bounded binary manifest input through the full canonical parser before hashing. A one-tool manifest agrees with stage 0; schema drift, a second target beyond the fixture table, and oversized input fail without digest output.
-- [x] `NativeWorkspaceIdentity.w` validates two sorted caller-owned member rows before hashing. Its identity matches stage 0 with exact rewind; a third member, wrong schema, or oversized input leaves digest output untouched.
+- [x] `NativeSnapshotIdentity.w` freezes bounded binary input into strict UTF-8, validates the complete canonical coordinate view, and only then publishes its Wheeler-computed SHA-256. Empty and populated identities agree with stage 0. Malformed or over-capacity views do not get a digest merely for turning up.
+- [x] `NativeLockIdentity.w` applies the same validate-then-hash rule to bounded schema-3 locks. Empty and one-package lock identities match stage 0 with exact rewind. Malformed, second-package, and oversized inputs publish no identity.
+- [x] `NativeManifestIdentity.w` validates bounded binary manifest input through the full canonical parser before hashing. A one-tool manifest agrees with stage 0. Schema drift, a second target beyond the fixture table, and oversized input fail without digest output.
+- [x] `NativeWorkspaceIdentity.w` validates two sorted caller-owned member rows before hashing. Its identity matches stage 0 with exact rewind. A third member, wrong schema, or oversized input leaves digest output untouched.
 - [x] `wheeler.core.encoding.binary` owns bounded little-endian reads and ASCII name, version, and path checks for binary package codecs. `Plan.w` no longer keeps a private copy of those rules. One shared module now defines that security boundary.
 - [x] `NativeArchive.w` and `packages/archive/Archive.w` verify a Wheeler-computed outer SHA-256 digest and one entry-data digest. They also check schema framing, exact lengths, complete consumption, and stage-0 decode compatibility.
-- [x] `NativeArchiveIdentity.w` computes the final content identity only after complete archive, embedded-manifest, and source-closure validation. Its one-file archive identity matches stage 0 and rewinds exactly; payload-digest damage or oversized input leaves output untouched.
+- [x] `NativeArchiveIdentity.w` computes the final content identity only after complete archive, embedded-manifest, and source-closure validation. Its one-file archive identity matches stage 0 and rewinds exactly. Payload-digest damage or oversized input leaves output untouched.
   - The manifest is copied, frozen, parsed by shared scanner and manifest modules, and re-emitted as exact canonical lines.
   - One or two sorted ASCII logical paths must match the declared target source set.
   - Outer corruption, re-signed data corruption, traversal, undeclared source paths, and noncanonical manifest text fail.
   - Successful runs rewind exactly. Reserved-path checks, the wider manifest, Unicode paths, and more than two entries remain.
 - [x] `NativePlan.w`, `packages/resolution/Plan.w`, and `PlanIdentity.w` read canonical binary plans. They verify framing, schema, payload length, and a Wheeler-computed payload SHA-256.
-- [x] `NativePlanIdentity.w` computes the final plan identity only after payload and node identities reverify. The one-node result matches stage 0 with exact rewind; digest damage or oversized input publishes no identity.
+- [x] `NativePlanIdentity.w` computes the final plan identity only after payload and node identities reverify. The one-node result matches stage 0 with exact rewind. Digest damage or oversized input publishes no identity.
   - The current slice decodes one node with at most one package input and one requested capability. An optional grant must equal that request.
   - It validates bounded ASCII names, a three-part numeric version, output path, target kind, and all five execution limits.
   - It rederives the node identity from the exact length-prefixed fields and rejects a forged identity, even when the payload digest is recomputed.
@@ -453,9 +453,9 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
   - A ninth target exceeds the fixture table. Bad schemas or kinds, tests on libraries, malformed names or paths, unsorted selectors, and missing root coverage fail.
   - Native loops remain capped at 512 collection rows and 1,024 selectors under the 4,096-byte scanner. Build metadata, owned decoded values, and computed manifest identity remain.
 - [x] The unified stage-0 `wheeler` command now covers the full local workflow. It checks, builds, tests runnable targets, and cleans canonical workspaces. It packages and verifies local artifacts, resolves verified catalogs, creates exact offline vendor trees, manages XDG repository policy, and publishes or fetches immutable local releases. It emits, verifies, and executes source-bound plans with exact package inputs, bounded output and time policy, request-scoped grants, exact artifact sets, and atomic publication. It also verifies locks, compiles, runs, disassembles, and emits OpenQASM.
-- [x] Stage 0 loads and validates exact locked offline dependency graphs for check, build, test, selected-target run, and planning; exported library modules source-link dependency-first from verified archive bytes, and direct/sealed builds retain package input identities.
-- [x] The Wheeler compiler slice is promoted into `wheeler.compiler` with canonical tool and entryless library targets. Example roots import it from the exact locked archive; no second compiler source tree remains.
-- [x] The bounded manifest, lock, workspace, plan, archive, canonical-line, and name/path/version modules are promoted into the entryless `wheeler.packages` library. It locks its scanner dependency to `wheeler.compiler` and its binary/SHA-256 primitives to `wheeler.core`; examples lock the exact graph and retain only executable roots.
+- [x] Stage 0 loads and validates exact locked offline dependency graphs for check, build, test, selected-target run, and planning. Exported library modules source-link dependency-first from verified archive bytes, and direct/sealed builds retain package input identities.
+- [x] The Wheeler compiler slice is promoted into `wheeler.compiler` with canonical tool and entryless library targets. Example roots import it from the exact locked archive. No second compiler source tree remains.
+- [x] The bounded manifest, lock, workspace, plan, archive, canonical-line, and name/path/version modules are promoted into the entryless `wheeler.packages` library. It locks its scanner dependency to `wheeler.compiler` and its binary/SHA-256 primitives to `wheeler.core`. Examples lock the exact graph and retain only executable roots.
 - [ ] Wheeler-written package execution, binary-library linkage, and migration of the complete workspace remain.
 - [ ] Native no-Java recovery uses only committed manifests, locks, and workspace sources or an exported verified vendor closure.
 - [ ] Gradle and duplicate build paths are deleted.
@@ -465,16 +465,16 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 ## Testing and acceptance
 
 - [x] Manifest, workspace, and lock parsers accept only the closed YAML profile. They reject malformed UTF-8, duplicate or unknown keys, implicit types, aliases, tags, merges, bad indentation, traversal, deep nesting, and oversized values. Stage 0 and Wheeler recovery fixtures emit the same canonical bytes.
-- [x] Ordered repository policy and immutable release mappings use the same closed YAML profile; duplicate aliases, bad identities/transports/namespaces, relative file locations, unsafe XDG components, malformed release mappings, and conflicting publication fail closed.
-- [x] Resolution is unchanged by catalog or manifest insertion order, and backtracking is bounded. Configured repository order is exact. The first authoritative repository with an admissible release wins, without cross-repository version mixing. Filesystem entries are sorted before they reach the solver.
+- [x] Ordered repository policy and immutable release mappings use the same closed YAML profile. Duplicate aliases, bad identities/transports/namespaces, relative file locations, unsafe XDG components, malformed release mappings, and conflicting publication fail closed.
+- [x] Catalog or manifest insertion order does not change resolution, and explicit limits bound backtracking. Configured repository order is exact. The first authoritative repository with an admissible release wins, without cross-repository version mixing. Filesystem entries are sorted before they reach the solver.
 - [x] Locked and offline stage-0 builds consume either exact in-memory workspace-member archives or a package-local generated vendor tree and never perform resolution, network access, or ambient cache lookup.
 - [ ] Build-plan codecs are order-independent and reject corruption or forged node identities. Direct and sealed clean builds produce byte-identical `.wbc`, and a forged active-compiler identity is rejected. Full reproduction of locks, archives, plans, and provenance remains.
-- [ ] Vendor retries and relocation preserve exact locked bytes and reject poisoned files; XDG repository paths are identity-neutral, and package/build-output cache poisoning, deletion, PREV divergence, quarantine, and GC are tested, while identity-preserving mirrors remain.
+- [ ] Vendor retries and relocation preserve exact locked bytes and reject poisoned files. XDG repository paths are identity-neutral, and package/build-output cache poisoning, deletion, PREV divergence, quarantine, and GC are tested, while identity-preserving mirrors remain.
 - [ ] Build tools cannot observe or mutate undeclared files, environment, network, clock, random state, credentials, or quantum targets.
-- [x] Cyclic package and source-module dependencies, dependency module shadowing, private exports, unreachable local modules, and profile conflicts fail closed; feature and future binary ABI conflicts remain.
-- [ ] Test-selected Wheeler tools execute through `wheeler`; compiler, runtime, package manager, tools, docs, and negative fixtures still require package migration.
-- [x] Package archives verify without extraction and reject duplicate, unordered, escaping, corrupt, oversized, malformed, and trailing members; links and special files are unrepresentable.
-- [x] Local publication is idempotent by content identity, uses canonical YAML mappings, and cannot overwrite an existing version; authenticated remote acknowledgement and retry remain.
+- [x] Cyclic package and source-module dependencies, dependency module shadowing, private exports, unreachable local modules, and profile conflicts fail closed. Feature and future binary ABI conflicts remain.
+- [ ] Test-selected Wheeler tools execute through `wheeler`. Compiler, runtime, package manager, tools, docs, and negative fixtures still require package migration.
+- [x] Package archives verify without extraction and reject duplicate, unordered, escaping, corrupt, oversized, malformed, and trailing members. Links and special files are unrepresentable.
+- [x] Local publication is idempotent by content identity, uses canonical YAML mappings, and cannot overwrite an existing version. Authenticated remote acknowledgement and retry remain.
 - [ ] Live target tests are opt-in, budgeted, capability-gated, and excluded from package output identities.
 - [ ] A clean bootstrap with no Java, Gradle, Rust, Cargo, or network rebuilds and tests the recovery workspace.
 - [ ] No second package resolver or build-graph authority remains after cutover.
@@ -507,8 +507,8 @@ Rejected. Credentials, queue selection, calibration, budgets, and hardware avail
 
 ## Open questions
 
-- Which signature and namespace transparency design should the first registry deploy (owner: registry and security maintainers; decision point: before public publication)?
-- Which documentation renderer belongs in the recovery graph without expanding the bootstrap excessively (owner: documentation and build maintainers; decision point: before `wheeler doc` becomes required for recovery)?
+- Which signature and namespace transparency design should the first registry deploy (owner: registry and security maintainers. Decision point: before public publication)?
+- Which documentation renderer belongs in the recovery graph without expanding the bootstrap excessively (owner: documentation and build maintainers. Decision point: before `wheeler doc` becomes required for recovery)?
 
 ## References
 

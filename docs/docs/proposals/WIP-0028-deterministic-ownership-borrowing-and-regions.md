@@ -87,7 +87,7 @@ borrow mut Qubit right = q.borrowMut(1);
 CNOT(left, right);
 ```
 
-`File` must close, move, or return on every successful path; scope exit cannot invent a successful host close. Close releases the resource and provides no WIP-0032 durability receipt. Quantum loans must be disjoint and end before measurement or register movement.
+`File` must close, move, or return on every successful path. Scope exit cannot invent a successful host close. Close releases the resource and provides no WIP-0032 durability receipt. Quantum loans must be disjoint and end before measurement or register movement.
 
 ### Native pinning
 
@@ -110,15 +110,15 @@ A bounded `Pin<T>` may stabilize storage for one exact WIP-0025 call scope. Pinn
 
 The first profile leaves out:
 
-- the full Rust lifetime, coercion, trait, and `unsafe` model;
-- tracing collection, reference counting, or a fallback GC;
-- Java object identity, reflection, finalizers, resurrection, and weak-finalization queues;
-- exposed pointers, addresses, or arbitrary pointer arithmetic;
-- user code during automatic destruction;
-- hidden failure during resource cleanup;
-- intrinsically reversible allocation or drop;
-- persisted raw loans;
-- shared-memory concurrency;
+- the full Rust lifetime, coercion, trait, and `unsafe` model.
+- tracing collection, reference counting, or a fallback GC.
+- Java object identity, reflection, finalizers, resurrection, and weak-finalization queues.
+- exposed pointers, addresses, or arbitrary pointer arithmetic.
+- user code during automatic destruction.
+- hidden failure during resource cleanup.
+- intrinsically reversible allocation or drop.
+- persisted raw loans.
+- shared-memory concurrency.
 - copying or implicit dropping of quantum resources through generic containers.
 
 General self-referential owners remain rejected. Cycles use one region or graph owner plus typed IDs. Advanced abstractions may retain bounded checks. The design does not require zero runtime checks.
@@ -163,13 +163,13 @@ Simultaneous exclusive loans to `p` and `q` require static proof or a checked pr
 
 Initial loans are second-class. They cannot enter ordinary owned aggregates, persisted state, package archives, certificates, workflow events, retained FFI state, escaping closures, an unrelated task, target submission, measurement transition, or `commit`. A public return or borrowed ABI names its origin explicitly.
 
-WIP-0032 supplies the one suspension exception: an affine operation may own a verifier-visible loan across asynchronous suspension while the continuation cannot access the overlapping place. That loan still cannot enter persisted continuation state; process suspension first completes, cancels and reconciles, or converts the operation to canonical owned resumable state.
+WIP-0032 supplies the one suspension exception: an affine operation may own a verifier-visible loan across asynchronous suspension while the continuation cannot access the overlapping place. That loan still cannot enter persisted continuation state. Process suspension first completes, cancels and reconciles, or converts the operation to canonical owned resumable state.
 
 ### Partial moves and captures
 
 Complete locals and statically representable aggregate fields may move independently. A dynamically indexed element moves only through a collection operation that updates initialized-element state.
 
-A closure copies `Copy` captures, moves owned captures, and may borrow only within the origin lifetime. Exclusive capture is exclusive. A must-consume capture makes the closure must-consume; closure drop is legal only when every capture is droppable. WIP-0031 adds callable characteristics and effects.
+A closure copies `Copy` captures, moves owned captures, and may borrow only within the origin lifetime. Exclusive capture is exclusive. A must-consume capture makes the closure must-consume. Closure drop is legal only when every capture is droppable. WIP-0031 adds callable characteristics and effects.
 
 ## Allocation and reclamation
 
@@ -177,7 +177,7 @@ A closure copies `Copy` captures, moves owned captures, and may borrow only with
 
 Scalars and bounded aggregates may live in frames or inline aggregate storage. Native layout is derived and is never source identity.
 
-A `Box<T>`-like owner stores one `T` in allocator-owned memory. Moving moves ownership; borrowing reaches the contained place; drop destroys `T` under its sealed contract and releases storage.
+A `Box<T>`-like owner stores one `T` in allocator-owned memory. Moving moves ownership. Borrowing reaches the contained place. Drop destroys `T` under its sealed contract and releases storage.
 
 Owned `Vec<T>`, `String`, builders, maps, sets, and queues expose mutation through unique ownership or exclusive loans. Capacity, allocator, and hard bounds are explicit values or declared execution policy.
 
@@ -199,30 +199,30 @@ A future traced `GcRegion` requires its own WIP. A runtime may privately trace h
 
 At normal scope exit, memory-only droppable owners are destroyed in canonical order:
 
-1. inner scopes before outer scopes;
-2. reverse declaration order within one scope;
-3. aggregate fields and collection elements in their declared deterministic order;
+1. inner scopes before outer scopes.
+2. reverse declaration order within one scope.
+3. aggregate fields and collection elements in their declared deterministic order.
 4. never allocation-address or hash-bucket order.
 
 Automatic `Drop` is bounded, infallible, nonblocking, nontrapping for valid input, address-blind, and free of host, network, process, target, provider, clock, random, FFI, or user callback effects. External owners use explicit consuming operations such as `close`, `finish`, `commit`, `abort`, or `releaseTarget`, usually returning `Result`.
 
-On a trap, the runtime deterministically reclaims private frame/region memory without invoking arbitrary user code. External resources follow their declared host/runtime failure contract; committed effects remain committed. Must-consume obligations are required on successful paths, not retroactively declared successful after a trap.
+On a trap, the runtime deterministically reclaims private frame/region memory without invoking arbitrary user code. External resources follow their declared host/runtime failure contract. Committed effects remain committed. Must-consume obligations are required on successful paths, not retroactively declared successful after a trap.
 
 ## Reversibility, history, and commit
 
 Move marking and loan lifetime changes are often compile-time facts and may appear in `rev` code when the ownership relation remains invertible. Swapping or permuting complete owners may be intrinsically reversible.
 
-Allocation and deallocation are ordinary effects. A `rev` body may use caller-owned clean workspace or a certified reversible allocator protocol; it may not allocate and discard. Drop is valid during intrinsic reversal only for statically clean/empty values or when exact owned evidence recreates them. Logged history makes rollback possible, not intrinsic inverse.
+Allocation and deallocation are ordinary effects. A `rev` body may use caller-owned clean workspace or a certified reversible allocator protocol. It may not allocate and discard. Drop is valid during intrinsic reversal only for statically clean/empty values or when exact owned evidence recreates them. Logged history makes rollback possible, not intrinsic inverse.
 
-The VM records allocation, mutation, move, loan, and drop state above the commit horizon and can restore it during rewind. WIP-0001 rewind still does not make allocation/drop legal in a generated inverse. Commit permanently discards older history and permits source-unreachable memory reclamation; no loan spans that horizon.
+The VM records allocation, mutation, move, loan, and drop state above the commit horizon and can restore it during rewind. WIP-0001 rewind still does not make allocation/drop legal in a generated inverse. Commit permanently discards older history and permits source-unreachable memory reclamation. No loan spans that horizon.
 
 ## Quantum ownership
 
 `Qubit`, `Qreg`, quantum views, ancillas, and target-session resources are must-consume affine values. They implement neither `Copy` nor `Shared` and cannot be serialized as ordinary data.
 
-Shared borrows permit metadata operations only. Gates use disjoint exclusive borrows or an owning register operation. Split creates disjoint affine views with origin/index maps; join checks common origin, nonoverlap, required coverage, and absence of child loans. Measurement consumes or transitions the old quantum identity. Ancillas return clean, transition under an accepted measurement/reset contract, or return to the caller; scope exit does not sweep dirty state under the amplitude rug.
+Shared borrows permit metadata operations only. Gates use disjoint exclusive borrows or an owning register operation. Split creates disjoint affine views with origin/index maps. Join checks common origin, nonoverlap, required coverage, and absence of child loans. Measurement consumes or transitions the old quantum identity. Ancillas return clean, transition under an accepted measurement/reset contract, or return to the caller. Scope exit does not sweep dirty state under the amplitude rug.
 
-An ordinary `Vec<Qubit>` is valid only if every operation preserves affinity, origin, and consumption; it is not automatically a `Qreg`.
+An ordinary `Vec<Qubit>` is valid only if every operation preserves affinity, origin, and consumption. It is not automatically a `Qreg`.
 
 ## Capabilities, concurrency, and native calls
 
@@ -236,11 +236,11 @@ WIP-0025 may lower a loan to one bounded native span when the exact descriptor p
 
 WIP-0032 requests capture owners or loans without submitting an effect. Submission moves those obligations into an affine `Operation<T>`: reads hold an exclusive destination loan, writes hold a shared source loan, and moved buffers return through terminal results. The loan ends only at final resource-release completion, not at a convenient earlier transport notification.
 
-Provided-buffer leases, registered regions, remote advertisements, tier allocations, and target sessions are bounded affine resources. A live operation is must-consume; scope exit must cancel or complete, reconcile uncertainty, release every held loan, and reap exactly once.
+Provided-buffer leases, registered regions, remote advertisements, tier allocations, and target sessions are bounded affine resources. A live operation is must-consume. Scope exit must cancel or complete, reconcile uncertainty, release every held loan, and reap exactly once.
 
 ## Reversible IR, proof, bytecode, and packages
 
-Ownership is part of Wheeler's reversible typed IR instead of a source-only lint. Every move, initialization, mutation, loan boundary that survives lowering, release, and resource transition has an exact forward state rule plus its WIP-0001 inverse, logged-rewind, or barrier classification. `rev` bodies may contain only ownership transitions whose inverse relation is checked; coherent and unitary bodies must also satisfy WIP-0002/WIP-0031 affine resource rules. Native lowering consumes these facts and cannot rediscover weaker alias rules from machine pointers.
+Ownership is part of Wheeler's reversible typed IR instead of a source-only lint. Every move, initialization, mutation, loan boundary that survives lowering, release, and resource transition has an exact forward state rule plus its WIP-0001 inverse, logged-rewind, or barrier classification. `rev` bodies may contain only ownership transitions whose inverse relation is checked. Coherent and unitary bodies must also satisfy WIP-0002/WIP-0031 affine resource rules. Native lowering consumes these facts and cannot rediscover weaker alias rules from machine pointers.
 
 Compiler/verifier evidence covers use-after-move, double drop, borrow escape, shared/exclusive compatibility, disjoint split, must-consume completion, region nonescape, and no live loan at destruction. WIP-0011 may expose stronger propositions, but a theorem never disables verifier safety.
 
@@ -251,7 +251,7 @@ uninitialized | owned | partially moved | shared borrowed
 exclusive borrowed | moved | dropped
 ```
 
-The verifier derives compatibility across branches and loops and need not keep runtime counts for statically bounded shared loans. Metadata is source-order-independent; native lowering may not weaken verified alias assumptions.
+The verifier derives compatibility across branches and loops and need not keep runtime counts for statically bounded shared loans. Metadata is source-order-independent. Native lowering may not weaken verified alias assumptions.
 
 Public ownership is package API. Changes from copy to move, droppable to must-consume, shared to exclusive borrow, result origin, lifetime, disposal, allocator/region requirement, or quantum consumption are compatibility changes.
 
@@ -281,8 +281,8 @@ Exhaustion is a deterministic diagnostic, never permission to compile unsafely. 
 - [x] Nonescaping shared and exclusive parameter borrows execute for bootstrap storage.
 - [x] VM snapshots and rewind preserve current owner/drop state.
 - [ ] Canonical value modes and public metadata are accepted.
-- [x] Primitive `region`, `words`, `bytes`, `utf8`, and `longmap` owners return across calls through canonical typed result metadata. The callee consumes the returned local, every other callee owner must be dead, and storage factories allocate through a nonescaping caller-region borrow; the stage-0 VM and Wheeler-written verifier/interpreter agree and rewind the transfer exactly. `OwnedReturns.w` exercises all five owner kinds. The caller gets one owner, not two handles and a motivational poster.
-- [x] Unqualified primitive owner parameters transfer `region`, `words`, `bytes`, `utf8`, or `longmap` ownership into the callee. Definite-ownership flow rejects caller use after the call and requires the callee to drop, forward, or return the owner; bytecode verification, stage-0 execution, Wheeler-native interpretation, and exact rewind agree.
+- [x] Primitive `region`, `words`, `bytes`, `utf8`, and `longmap` owners return across calls through canonical typed result metadata. The callee consumes the returned local, every other callee owner must be dead, and storage factories allocate through a nonescaping caller-region borrow. The stage-0 VM and Wheeler-written verifier/interpreter agree and rewind the transfer exactly. `OwnedReturns.w` exercises all five owner kinds. The caller gets one owner, not two handles and a motivational poster.
+- [x] Unqualified primitive owner parameters transfer `region`, `words`, `bytes`, `utf8`, or `longmap` ownership into the callee. Definite-ownership flow rejects caller use after the call and requires the callee to drop, forward, or return the owner. Bytecode verification, stage-0 execution, Wheeler-native interpretation, and exact rewind agree.
 - [ ] Public borrowed results with explicit origins execute.
 - [ ] Local last-use inference is deterministic.
 - [ ] Unique dynamic allocation executes.
@@ -296,15 +296,15 @@ Exhaustion is a deterministic diagnostic, never permission to compile unsafely. 
 
 ## Testing and acceptance
 
-- [ ] `Copy` values duplicate; owned values move; use after move, double move/drop, and forgotten must-consume values fail.
-- [ ] Shared loans coexist and block mutation; exclusive loans reject overlap; reborrows suspend and restore parent permissions.
-- [ ] Local loans end at deterministic last use; returned loans cannot outlive owners; ambiguous public origins require metadata.
+- [ ] `Copy` values duplicate. Owned values move. Use after move, double move/drop, and forgotten must-consume values fail.
+- [ ] Shared loans coexist and block mutation. Exclusive loans reject overlap. Reborrows suspend and restore parent permissions.
+- [ ] Local loans end at deterministic last use. Returned loans cannot outlive owners. Ambiguous public origins require metadata.
 - [ ] Dynamic split rejects overlap before publishing loans.
-- [ ] Region drop rejects live loans and escapes; cyclic arena graphs release without tracing.
+- [ ] Region drop rejects live loans and escapes. Cyclic arena graphs release without tracing.
 - [ ] `Box<T>` and collections derive element ownership correctly.
 - [ ] Trap cleanup invokes no user finalizer and external failure remains explicit.
-- [ ] VM rewind restores ownership/storage above the horizon; generated inverse rejects arbitrary allocation/drop.
-- [ ] Qubit/register copy, implicit drop, sharing, and serialization fail; split/join/ancilla obligations pass.
+- [ ] VM rewind restores ownership/storage above the horizon. Generated inverse rejects arbitrary allocation/drop.
+- [ ] Qubit/register copy, implicit drop, sharing, and serialization fail. Split/join/ancilla obligations pass.
 - [ ] `Shared<T>` cannot form a strong cycle through its accepted API.
 - [ ] Pinning is bounded and creates no portable address identity.
 - [ ] Forged lifetime, loan, move, and drop metadata fails verification.
@@ -339,10 +339,10 @@ Rejected. WIP-0025 already names the native trust boundary. An unnamed escape ha
 
 ## Open questions
 
-- Is `Shared<T>` required for this WIP's first acceptance or its immediate library milestone (owner: runtime and library maintainers; decision point: standard collection stabilization)?
-- Which must-consume resources receive runtime-managed abort on trap, if any (owner: runtime and workflow maintainers; decision point: external resource type states)?
-- Are named regions visible in ordinary collection types or only ambiguous public signatures (owner: type-system and library maintainers; decision point: cross-function borrow support)?
-- Which ownership facts are stored in `.wbc` and which are rederived (owner: bytecode and verifier maintainers; decision point: ownership section freeze)?
+- Is `Shared<T>` required for this WIP's first acceptance or its immediate library milestone (owner: runtime and library maintainers. Decision point: standard collection stabilization)?
+- Which must-consume resources receive runtime-managed abort on trap, if any (owner: runtime and workflow maintainers. Decision point: external resource type states)?
+- Are named regions visible in ordinary collection types or only ambiguous public signatures (owner: type-system and library maintainers. Decision point: cross-function borrow support)?
+- Which ownership facts are stored in `.wbc` and which are rederived (owner: bytecode and verifier maintainers. Decision point: ownership section freeze)?
 
 ## References
 

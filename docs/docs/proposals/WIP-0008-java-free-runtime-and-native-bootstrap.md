@@ -66,7 +66,7 @@ The following invariants hold:
 1. Verification occurs before interpretation or native lowering.
 2. Native lowering cannot grant capabilities absent from the host launch policy.
 3. Native and interpreted executions have the same specified transitions, traps, limits, and observable results.
-4. Native images are caches; corrupt or stale images cannot redefine `.wbc` semantics.
+4. Native images are caches. Corrupt or stale images cannot redefine `.wbc` semantics.
 5. Canonical artifacts contain no host path, clock, process, address, or random state.
 6. A release bootstrap never invokes Java after cutover.
 
@@ -76,12 +76,12 @@ The following invariants hold:
 
 The production source tree contains Wheeler implementations of:
 
-- bytecode decoding, structural verification, and canonical encoding;
-- the deterministic classical transition kernel;
-- quantum region construction and semantic state-vector conformance;
-- hybrid event reduction, replay, and persistence validation;
-- source compilation from WIP-0007;
-- disassembly, OpenQASM emission, and command dispatch;
+- bytecode decoding, structural verification, and canonical encoding.
+- the deterministic classical transition kernel.
+- quantum region construction and semantic state-vector conformance.
+- hybrid event reduction, replay, and persistence validation.
+- source compilation from WIP-0007.
+- disassembly, OpenQASM emission, and command dispatch.
 - native lowering and deterministic build manifests.
 
 These components share data schemas and conformance fixtures. They do not call hidden Java helpers.
@@ -90,14 +90,14 @@ These components share data schemas and conformance fixtures. They do not call h
 
 The initial native ABI provides only:
 
-- process arguments and exit status;
-- bounded standard input, output, and error byte streams;
-- capability-scoped file open, read, atomic replace, and directory-manifest access;
-- checked memory reservation, release, and page primitives needed by the Wheeler allocator;
-- optional monotonic deadlines for operational timeout policy;
+- process arguments and exit status.
+- bounded standard input, output, and error byte streams.
+- capability-scoped file open, read, atomic replace, and directory-manifest access.
+- checked memory reservation, release, and page primitives needed by the Wheeler allocator.
+- optional monotonic deadlines for operational timeout policy.
 - target submission hooks supplied by an embedding host.
 
-Wall-clock time, environment variables, network sockets, random devices, dynamic libraries, and unrestricted paths are absent unless an application receives an explicit capability. ABI calls return typed status values; they do not throw host exceptions through Wheeler frames.
+Wall-clock time, environment variables, network sockets, random devices, dynamic libraries, and unrestricted paths are absent unless an application receives an explicit capability. ABI calls return typed status values. They do not throw host exceptions through Wheeler frames.
 
 The ABI may have a small C-compatible shim per operating system. That shim contains no parser, verifier, VM transition, compiler, scheduler, replay, or quantum semantics.
 
@@ -105,13 +105,13 @@ The ABI may have a small C-compatible shim per operating system. That shim conta
 
 The first native backend lowers verified `.wbc` through a documented target-neutral native IR and a selected machine-code toolchain. LLVM is a likely implementation component, not the language execution model. A backend WIP shall fix object identity, calling convention, stack maps, traps, and runtime linkage before native output becomes a release artifact.
 
-Ahead-of-time lowering preserves explicit bounds checks, arithmetic traps, effect barriers, history operations, and source mappings; optimizations must be validated against bytecode semantics and cannot erase observable traps or reorder effects.
+Ahead-of-time lowering preserves explicit bounds checks, arithmetic traps, effect barriers, history operations, and source mappings. Optimizations must be validated against bytecode semantics and cannot erase observable traps or reorder effects.
 
 An interpreter remains useful for conformance and unusual targets, but its production implementation is Wheeler code and ships as a native image. It is not the old Java VM.
 
 ### Storage and memory
 
-The Wheeler runtime owns typed stacks, frames, history, regions, and managed values. The platform layer supplies raw bounded memory only. The first native compiler may use compilation arenas and immutable shared values; long-lived applications require a later specified collector or region ownership model.
+The Wheeler runtime owns typed stacks, frames, history, regions, and managed values. The platform layer supplies raw bounded memory only. The first native compiler may use compilation arenas and immutable shared values. Long-lived applications require a later specified collector or region ownership model.
 
 Object layout is an ABI between generated native code and the Wheeler runtime, not a source-language promise. Persisted hybrid values continue to use versioned canonical schemas instead of dumping native memory.
 
@@ -163,7 +163,7 @@ Migration proceeds in replaceable slices:
 4. Compile and run Wheeler-written bytecode codec, verifier, and transition kernel natively.
 5. Port source compiler and tools under WIP-0007.
 6. Port quantum IR, ideal simulator, OpenQASM emission, and hybrid runtime.
-7. Run every corpus and example on Java interpretation, Wheeler interpretation, and native execution; compare semantic traces and artifacts.
+7. Run every corpus and example on Java interpretation, Wheeler interpretation, and native execution. Compare semantic traces and artifacts.
 8. Bootstrap from a prior native release in clean CI with no Java on `PATH`.
 9. Replace Gradle orchestration with the WIP-0009 `wheeler` package and build driver plus minimal platform packaging.
 10. Delete all production and test Java sources, Gradle files, Java CI setup, and JVM documentation in one cutover series.
@@ -174,20 +174,20 @@ A temporary differential harness is migration code. It is removed after native f
 
 Native code retains all declared bytecode, history, stack, heap, workflow, event, result, and compiler limits. Backend arithmetic used for offsets, layouts, relocation, allocation, and lengths is checked. The runtime rejects incompatible ABI, target, endianness, pointer width, feature, or artifact identities before execution.
 
-Signals, access violations, and platform faults become bounded fatal runtime reports; they are not silently converted into source exceptions. A native crash never validates a partial artifact or event-log write.
+Signals, access violations, and platform faults become bounded fatal runtime reports. They are not silently converted into source exceptions. A native crash never validates a partial artifact or event-log write.
 
 Recovery releases are signed or content-addressed by release policy. Bootstrap scripts verify every seed before execution and record the exact host toolchain used for native reproduction.
 
 ## Progress
 
-- [x] All Java source, Java tests, Gradle modules, and the Gradle wrapper are confined to `bootstrap/`; canonical Wheeler package directories contain no Java or Gradle files.
+- [x] All Java source, Java tests, Gradle modules, and the Gradle wrapper are confined to `bootstrap/`. Canonical Wheeler package directories contain no Java or Gradle files.
 - [x] `.wbc` semantics and encoding are independent of JVM bytecode.
 - [x] Provider-neutral quantum IR and OpenQASM lowering do not require Python.
 - [x] Package-selected `NativeVerifier.w` reads exact binary `.wbc` through immutable `byteview`.
-- [x] `NativeBytecodeIdentity.w` verifies and privately re-encodes bounded canonical `.wbc` before publishing Wheeler SHA-256. The result matches stage 0 with exact rewind; malformed or oversized bytes receive no artifact identity.
-- [x] `NativeArtifactSetIdentity.w` strictly decodes bounded canonical artifact-set JSON, validates one through eight sorted safe ASCII paths and their lowercase identities, reconstructs the domain-separated binary set input, checks the embedded identity, and publishes the same digest as stage 0 with exact rewind. It does not claim physical tree closure; native traversal still belongs to the WIP-0032 cutover.
-- [x] `NativeBootstrapFeaturesIdentity.w` reconstructs and checks the sole complete seventeen-feature `bootstrap-1` vocabulary before reproducing its stage-0 identity. `NativeBootstrapModulesIdentity.w` validates exact rooted acyclic closures of up to thirty-two local modules, thirty-two externals, and 128 imports, enough for the current twenty-five-module compiler closure; larger DAGs remain open rather than being waved through with a confident typedef. `NativeCompilerOptionsIdentity.w` consumes exact schema-1 canonical YAML, validates bounded profile syntax and the source-map Boolean, and reproduces the stage-0 identity with no partial output. `NativeCompilerLimitsIdentity.w` does the same for all ten required positive compiler ceilings and canonical decimals. `NativeToolchainIdentity.w` accepts only the three provenance kinds and four canonical lowercase identities. `NativeBootstrapManifestIdentity.w` validates the complete schema-2 fixed-point and diverse-evidence closure before publication. `BootstrapSyntax.w` centralizes their shared fail-closed metadata and identity checks instead of cultivating six nearly identical bootstrap dialects.
-- [x] The Wheeler compiler driver is importable without an entry method or module state. It now preserves canonical module-qualified entry/helper identities. `NativeCompilerIdentity.w` compiles source into private storage and reproduces stage 0's artifact SHA-256; malformed or oversized source publishes no digest.
+- [x] `NativeBytecodeIdentity.w` verifies and privately re-encodes bounded canonical `.wbc` before publishing Wheeler SHA-256. The result matches stage 0 with exact rewind. Malformed or oversized bytes receive no artifact identity.
+- [x] `NativeArtifactSetIdentity.w` strictly decodes bounded canonical artifact-set JSON, validates one through eight sorted safe ASCII paths and their lowercase identities, reconstructs the domain-separated binary set input, checks the embedded identity, and publishes the same digest as stage 0 with exact rewind. It does not claim physical tree closure. Native traversal still belongs to the WIP-0032 cutover.
+- [x] `NativeBootstrapFeaturesIdentity.w` reconstructs and checks the sole complete seventeen-feature `bootstrap-1` vocabulary before reproducing its stage-0 identity. `NativeBootstrapModulesIdentity.w` validates exact rooted acyclic closures of up to thirty-two local modules, thirty-two externals, and 128 imports, enough for the current twenty-five-module compiler closure. Larger DAGs remain open rather than being waved through with a confident typedef. `NativeCompilerOptionsIdentity.w` consumes exact schema-1 canonical YAML, validates bounded profile syntax and the source-map Boolean, and reproduces the stage-0 identity with no partial output. `NativeCompilerLimitsIdentity.w` does the same for all ten required positive compiler ceilings and canonical decimals. `NativeToolchainIdentity.w` accepts only the three provenance kinds and four canonical lowercase identities. `NativeBootstrapManifestIdentity.w` validates the complete schema-2 fixed-point and diverse-evidence closure before publication. `BootstrapSyntax.w` centralizes their shared fail-closed metadata and identity checks instead of cultivating six nearly identical bootstrap dialects.
+- [x] The Wheeler compiler driver is importable without an entry method or module state. It now preserves canonical module-qualified entry/helper identities. `NativeCompilerIdentity.w` compiles source into private storage and reproduces stage 0's artifact SHA-256. Malformed or oversized source publishes no digest.
   - `compiler/verification/Verifier.w` checks framing and payload policy.
   - `compiler/verification/FunctionVerifier.w` checks bounded descriptors, type windows, and code windows.
   - `compiler/verification/InstructionVerifier.w` checks opcode framing, scalar and call operands, and branch targets.
@@ -257,9 +257,9 @@ Rejected. The current implementation is the executable migration oracle. It is t
 
 ## Open questions
 
-- Which derived native backend IR and code generator form the first supported AOT path (owner: compiler and platform maintainers; decision point: before native code enters ordinary CI)?
-- What is the smallest C-compatible ABI shim that supports tier-1 systems without owning language semantics (owner: runtime maintainers; decision point: before Wheeler allocator implementation)?
-- Which object formats can provide byte-reproducible native releases, and where must the manifest compare normalized identities instead (owner: release maintainers; decision point: before the first recovery release)?
+- Which derived native backend IR and code generator form the first supported AOT path (owner: compiler and platform maintainers. Decision point: before native code enters ordinary CI)?
+- What is the smallest C-compatible ABI shim that supports tier-1 systems without owning language semantics (owner: runtime maintainers. Decision point: before Wheeler allocator implementation)?
+- Which object formats can provide byte-reproducible native releases, and where must the manifest compare normalized identities instead (owner: release maintainers. Decision point: before the first recovery release)?
 
 ## References
 

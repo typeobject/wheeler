@@ -6,17 +6,17 @@ Wheeler's first semantic-coverage system watches successful VM transitions. It d
 
 A `VirtualMachine` may receive a `TransitionObserver`. After each successful instruction, the VM emits an immutable observation with:
 
-- a monotonic transition number;
-- `forward` or language-`inverse` direction;
-- function and instruction indexes;
-- the canonical opcode;
+- a monotonic transition number.
+- `forward` or language-`inverse` direction.
+- function and instruction indexes.
+- the canonical opcode.
 - `taken` or `fallthrough` for `JUMP_IF_ZERO`, and `none` for other instructions.
 
 Rewinding saved history emits a separate `rewind_forward` or `rewind_inverse` observation for the transition being undone. These observations do not erase the attempted execution. Failed validation and trapped instructions emit nothing because the machine made no transition.
 
 The observer cannot access mutable machine state. It also cannot change bytecode, instruction limits, history records, effects, or snapshots.
 
-The conformance suite runs the same proof-bearing reversible fixture with collection on and off; it compares both the terminal snapshots and the fully rewound snapshots, which must match.
+The conformance suite runs the same proof-bearing reversible fixture with collection on and off. It compares both the terminal snapshots and the fully rewound snapshots, which must match.
 
 ## Stage-0 report
 

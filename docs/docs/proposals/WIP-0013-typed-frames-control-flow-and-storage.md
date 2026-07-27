@@ -75,7 +75,7 @@ Default arguments, varargs, reflection, implicit numeric narrowing, and ambient 
 
 The first expression set includes literals, local and state references, calls, record construction, field access, variant construction and tests, array/slice indexing, checked arithmetic, bit operations, comparisons, Boolean operations, and explicit conversions.
 
-Evaluation order is left to right; traps and effects follow that order; optimizers cannot reorder potentially trapping or effectful expressions without a checked equivalence.
+Evaluation order is left to right. Traps and effects follow that order. Optimizers cannot reorder potentially trapping or effectful expressions without a checked equivalence.
 
 ### Conditionals
 
@@ -107,27 +107,27 @@ A reversible loop requires a finite iteration witness and an inverse traversal l
 
 Each function descriptor declares:
 
-- function identity and name;
-- parameter count and types;
-- optional result type;
-- local register count and types;
-- maximum call depth contribution;
-- effects and reversibility flags;
-- forward and optional inverse bodies;
+- function identity and name.
+- parameter count and types.
+- optional result type.
+- local register count and types.
+- maximum call depth contribution.
+- effects and reversibility flags.
+- forward and optional inverse bodies.
 - control-flow and loop descriptors.
 
 A frame contains function, direction, program counter, typed register values, caller return destination, and region/borrow scope metadata. Frame values are semantic VM state and appear in snapshots and rewind records through canonical typed representations.
 
 The register instruction families include:
 
-- constants and moves;
-- state/global load and checked/logged store;
-- checked, modular, bitwise, comparison, and Boolean operations;
-- record, variant, array, and slice construction/access;
-- static call, inverse call, return value, and void return;
-- conditional and unconditional branch;
-- loop entry, back edge, and bound check;
-- region allocation, move, borrow, drop, and canonical byte access;
+- constants and moves.
+- state/global load and checked/logged store.
+- checked, modular, bitwise, comparison, and Boolean operations.
+- record, variant, array, and slice construction/access.
+- static call, inverse call, return value, and void return.
+- conditional and unconditional branch.
+- loop entry, back edge, and bound check.
+- region allocation, move, borrow, drop, and canonical byte access.
 - explicit assertion, trap, checkpoint, and commit.
 
 Numeric opcode identities and operand forms are fixed only when the corresponding vertical slice is accepted. Variable-length signatures live in bounded metadata tables instead of ad hoc instruction payloads.
@@ -136,17 +136,17 @@ Numeric opcode identities and operand forms are fixed only when the correspondin
 
 The verifier performs:
 
-1. structural decoding and table identity checks;
-2. function-signature and register-table validation;
-3. instruction operand and register bounds;
-4. control-flow graph construction;
-5. reachable-block and target validation;
-6. definite assignment and type dataflow to a fixed point;
-7. call, inverse-call, effect, and result compatibility;
-8. return completeness and unreachable-result rejection;
-9. loop shape and bound validation;
-10. ownership, move, borrow, drop, region, and escape checks;
-11. reversible-body and coherent-subset checks;
+1. structural decoding and table identity checks.
+2. function-signature and register-table validation.
+3. instruction operand and register bounds.
+4. control-flow graph construction.
+5. reachable-block and target validation.
+6. definite assignment and type dataflow to a fixed point.
+7. call, inverse-call, effect, and result compatibility.
+8. return completeness and unreachable-result rejection.
+9. loop shape and bound validation.
+10. ownership, move, borrow, drop, region, and escape checks.
+11. reversible-body and coherent-subset checks.
 12. maximum frame, call, step, region, and artifact bounds.
 
 Malformed control flow fails before VM construction. Native lowering consumes verified typed IR and does not repeat source inference.
@@ -161,15 +161,15 @@ Commit clears rewind records and advances the semantic horizon. Region reclamati
 
 ## Calls and recursion
 
-Static calls identify one function signature. Arguments are evaluated left to right, moved or borrowed according to type, and copied into callee parameter registers. A non-void return moves or copies into the declared caller destination; a void argument call has no synthetic result register.
+Static calls identify one function signature. Arguments are evaluated left to right, moved or borrowed according to type, and copied into callee parameter registers. A non-void return moves or copies into the declared caller destination. A void argument call has no synthetic result register.
 
-Recursion requires a configured call-depth ceiling and a termination measure for proof or bootstrap profiles; tail-call lowering is permitted only when traps, effects, source traces, and rewind semantics remain equivalent.
+Recursion requires a configured call-depth ceiling and a termination measure for proof or bootstrap profiles. Tail-call lowering is permitted only when traps, effects, source traces, and rewind semantics remain equivalent.
 
 Inverse calls require an inverse body and compatible inverse signature. Coherent calls require a finite encoding and approved effects.
 
 ## Value records and variants
 
-A record has ordered named fields and structural value semantics; a tagged variant has a stable tag and typed payload. Canonical type metadata stores field/tag names, types, visibility, ownership, and version identity.
+A record has ordered named fields and structural value semantics. A tagged variant has a stable tag and typed payload. Canonical type metadata stores field/tag names, types, visibility, ownership, and version identity.
 
 Field order in source APIs is semantic for construction and canonical encoding but native layout is derived. Padding, address, and backend ABI do not enter equality.
 
@@ -179,7 +179,7 @@ Pattern selection is exhaustive. Unknown required tags in persisted or bytecode 
 
 Fixed arrays own inline or region-backed elements under one type and length. Borrowed slices carry origin, start, length, mutability, and lifetime identity. Index operations check bounds before access.
 
-Mutable slices cannot overlap. Split operations establish disjointness; join validates common origin and adjacency; a slice cannot outlive or escape its owner or region.
+Mutable slices cannot overlap. Split operations establish disjointness. Join validates common origin and adjacency. A slice cannot outlive or escape its owner or region.
 
 Quantum register views use affine resource rules from WIP-0012 and are not represented as copyable classical slices.
 
@@ -189,20 +189,20 @@ A region is an owned bounded allocation domain. Its capability declares byte and
 
 The initial compiler uses phase regions:
 
-- source bytes;
-- token stream;
-- syntax tree;
-- resolved semantic model;
-- lowered artifact;
+- source bytes.
+- token stream.
+- syntax tree.
+- resolved semantic model.
+- lowered artifact.
 - diagnostics/output.
 
 A phase may move selected immutable values into a longer-lived region. Reclaiming a region is an ordinary effect. Logged or transactional region APIs state retained history explicitly.
 
-A tracing collector is absent from the bootstrap and ordinary source-value model. Any future explicit traced region requires a separate WIP under WIP-0028; collection timing cannot alter source semantics, diagnostics, limits, canonical output, finalization, or FFI stability, and user finalizers remain excluded.
+A tracing collector is absent from the bootstrap and ordinary source-value model. Any future explicit traced region requires a separate WIP under WIP-0028. Collection timing cannot alter source semantics, diagnostics, limits, canonical output, finalization, or FFI stability, and user finalizers remain excluded.
 
 ## Exceptions and failure
 
-Recoverable failures use `Result`; optional values use `Option`. Assertions, arithmetic violations selected by operator semantics, verified unreachable states, and exhausted hard artifact limits may trap with stable codes.
+Recoverable failures use `Result`. Optional values use `Option`. Assertions, arithmetic violations selected by operator semantics, verified unreachable states, and exhausted hard artifact limits may trap with stable codes.
 
 Stack unwinding does not run arbitrary hidden user effects. Resource cleanup follows ownership and explicit scope rules. External compensation uses explicit hybrid effect contracts.
 
@@ -216,19 +216,19 @@ Parallel compilation reduces diagnostics and declarations in canonical module/so
 
 This profile is accepted against Wheeler implementations of:
 
-- UTF-8 lexer with token records and a bounded loop;
-- recursive-descent parser with tagged syntax variants;
-- deterministic symbol table and dependency graph;
-- bytecode decoder with slices and `Result` diagnostics;
-- canonical byte builder and artifact writer;
-- proof-term checker over records and variants;
+- UTF-8 lexer with token records and a bounded loop.
+- recursive-descent parser with tagged syntax variants.
+- deterministic symbol table and dependency graph.
+- bytecode decoder with slices and `Result` diagnostics.
+- canonical byte builder and artifact writer.
+- proof-term checker over records and variants.
 - package manifest parser and graph resolver.
 
 A feature that cannot express or simplify one of these modules needs separate justification.
 
 ## I/O operation ownership
 
-WIP-0032 operations hold WIP-0013 and WIP-0028 buffer loans until final resource-release completion. Live operations are must-consume values; a scope verifies that each operation is terminal and reaped before releasing its storage.
+WIP-0032 operations hold WIP-0013 and WIP-0028 buffer loans until final resource-release completion. Live operations are must-consume values. A scope verifies that each operation is terminal and reaped before releasing its storage.
 
 Registered and provided buffers remain bounded affine resources. Native queue entries, descriptors, addresses, and remote keys never become portable region addresses.
 
@@ -250,24 +250,24 @@ Registered and provided buffers remain bounded affine resources. Native queue en
 - [x] Stage-0 VM has explicit immutable call frames, checked calls, bounded steps, snapshots, and rewind records.
 - [x] Source and bytecode distinguish state fields from function control.
 - [x] Signed and Boolean parameter, local, and optional result signatures are canonically encoded and verified.
-- [x] Register metadata uses bounded 32-bit scalar or aggregate references; canonical nominal record descriptors reject duplicate, forward, cyclic, and unresolved type IDs.
+- [x] Register metadata uses bounded 32-bit scalar or aggregate references. Canonical nominal record descriptors reject duplicate, forward, cyclic, and unresolved type IDs.
 - [x] Local constants, state load/store, move, checked add/subtract/multiply/divide/remainder, comparison, branches, loop checks, value/void argument calls, and value returns execute and rewind.
 - [x] Typed signed/Boolean parameters, returns, local bindings, expressions, static calls, `if`/`else`, and bounded `while` compile end to end.
 - [x] Immutable nominal records, closed tagged variants, fixed immutable arrays, and nonescaping immutable slices execute with canonical descriptors, typed construction/calls, structural equality, exhaustive selection, checked ranges/indexing, snapshots, and rewind.
-- [ ] Bounded regions now enforce byte/object ceilings, affine moves, leak-free exits, mutable signed-word/byte buffers, immutable validated UTF-8 owners with read-only parameter borrows, exclusive region scratch-allocation borrows, and word/byte/map mutable borrows. Primitive region, word, byte, UTF-8, and map owners may transfer into callees or return across frames; owner relays, caller-region factories, explicit drop order, use-after-call rejection, snapshots, and rewind are differential-tested. Returned loans, split/join borrowing, typed collections, recoverable allocation, capabilities, and compiler-scale arenas remain.
+- [ ] Bounded regions now enforce byte/object ceilings, affine moves, leak-free exits, mutable signed-word/byte buffers, immutable validated UTF-8 owners with read-only parameter borrows, exclusive region scratch-allocation borrows, and word/byte/map mutable borrows. Primitive region, word, byte, UTF-8, and map owners may transfer into callees or return across frames. Owner relays, caller-region factories, explicit drop order, use-after-call rejection, snapshots, and rewind are differential-tested. Returned loans, split/join borrowing, typed collections, recoverable allocation, capabilities, and compiler-scale arenas remain.
 - [ ] Reversible protected control forms generate checked inverses.
 - [ ] A bounded manifest-linked Wheeler scanner and parser now read explicit UTF-8 source input. The scanner writes identifier, number, punctuation, ASCII literal, and comment metadata into owned buffers. Signed-decimal overflow is checked. A dependency parser validates one typed local declaration through simultaneous exclusive borrows and returns a closed value-or-error result. The entry publishes the parsed token through a bounded output borrow with a checked rewindable length. A separate writer expands bounded ASCII literals into checked output for the canonical string table. Complete literals, diagnostics, parsing, codecs, verification, and package-graph fixtures remain.
-- [ ] The Wheeler-written verifier and interpreter now compare bounded owned storage against stage 0. Coverage includes region, word-buffer, and byte-buffer allocation; mutation; lengths; reads; byte ranges; strict UTF-8 validation and decoding; freezing; and nested read-only UTF-8 borrows. It also covers mutable region, word, byte, and map borrows, owner-carrying parameters and results, signed-map operations, drop order, malformed index locals, and exact outer rewind. Returned loans and general native trace parity remain.
+- [ ] The Wheeler-written verifier and interpreter now compare bounded owned storage against stage 0. Coverage includes region, word-buffer, and byte-buffer allocation, mutation, lengths, reads, byte ranges, strict UTF-8 validation and decoding, freezing, and nested read-only UTF-8 borrows. It also covers mutable region, word, byte, and map borrows, owner-carrying parameters and results, signed-map operations, drop order, malformed index locals, and exact outer rewind. Returned loans and general native trace parity remain.
 
 ## Testing and acceptance
 
 - [ ] Bytecode rejects unknown register types, mismatched operands or calls, invalid Boolean values, uninitialized reads, escaped targets, bad joins, bad returns, and malformed loop descriptors. Scalar types, local bounds, definite assignment, branch targets, and fallthrough are covered.
 - [x] VM tests cover the initial signed-local instruction set forward and rewind, including loop and arithmetic traps before mutation.
-- [ ] Calls cover exact signed/Boolean argument transfer, primitive owner parameters/results, recursive execution, 1,024-frame exhaustion, and rewind; returned loans, aggregate move/loan, inverse signatures, and nested trap behavior remain.
-- [ ] Branch tests cover both paths, join assignment, early typed return, and source diagnostics; unreachable-block diagnostics remain.
+- [ ] Calls cover exact signed/Boolean argument transfer, primitive owner parameters/results, recursive execution, 1,024-frame exhaustion, and rewind. Returned loans, aggregate move/loan, inverse signatures, and nested trap behavior remain.
+- [ ] Branch tests cover both paths, join assignment, early typed return, and source diagnostics. Unreachable-block diagnostics remain.
 - [x] `while` and counted `for` tests cover zero and exact bounds, exceeded bounds, update-on-continue, innermost `break`, nested loops, and the independent global step defense.
 - [ ] Reversible methods reject unprotected branch/loop forms and accept only forms with checked inverse laws.
-- [ ] Record and variant tests cover canonical encoding, nested fields and payloads, fixed signed/Boolean array fields and payloads, nominal structural equality, exhaustive selection, malformed descriptors, source type errors, deterministic interning, and rewind. Nonescaping slices and aggregate-element arrays remain excluded from inline layouts, and the verifier rejects forged recursive array descriptors. A manifest-linked FIFO now returns immutable cursor records through explicit `Push`/`Pop` variants over a borrowed word buffer; native layout parity and generic queue ownership remain.
+- [ ] Record and variant tests cover canonical encoding, nested fields and payloads, fixed signed/Boolean array fields and payloads, nominal structural equality, exhaustive selection, malformed descriptors, source type errors, deterministic interning, and rewind. Nonescaping slices and aggregate-element arrays remain excluded from inline layouts, and the verifier rejects forged recursive array descriptors. A manifest-linked FIFO now returns immutable cursor records through explicit `Push`/`Pop` variants over a borrowed word buffer. Native layout parity and generic queue ownership remain.
 - [x] Fixed-array and immutable-slice tests cover typed construction, dynamic boundaries, calls, structural equality, canonical encoding, interning, nonescape, and rewind.
 - [ ] Region tests cover word, byte, and map allocation and mutation. They also cover byte ranges, UTF-8 boundaries, borrow kind and aliasing, scratch cleanup, capacity failures, drop order, moved values, leaks, ownership joins, canonical encoding, snapshots, and rewind. Dangling borrows, output-address independence, recoverable failure, and commit remain.
 - [ ] Stage-0 and Wheeler compilers produce identical typed metadata, code, diagnostics, and artifacts for the shared profile.
@@ -298,8 +298,8 @@ Rejected as the default. Hidden history changes effect and space semantics. Logg
 
 ## Open questions
 
-- Which borrow representation keeps verification, native lowering, and proof terms small (owner: language, VM, and library maintainers; decision point: before slice mutation)?
-- Which reversible branch and loop witnesses should enter the first non-straight-line `rev` profile (owner: reversibility and proof maintainers; decision point: after ordinary control flow executes)?
+- Which borrow representation keeps verification, native lowering, and proof terms small (owner: language, VM, and library maintainers. Decision point: before slice mutation)?
+- Which reversible branch and loop witnesses should enter the first non-straight-line `rev` profile (owner: reversibility and proof maintainers. Decision point: after ordinary control flow executes)?
 
 ## References
 

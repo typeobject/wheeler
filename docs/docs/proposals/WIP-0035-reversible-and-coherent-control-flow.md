@@ -48,9 +48,9 @@ Reading `control` as a classical Boolean would measure it. Treating the source `
 
 The language therefore needs separate, checkable rules for:
 
-- classical reversible branch reconstruction;
-- fixed-count inverse traversal;
-- static classical circuit construction;
+- classical reversible branch reconstruction.
+- fixed-count inverse traversal.
+- static classical circuit construction.
 - coherent controlled application.
 
 ## Use cases
@@ -248,7 +248,7 @@ The control is preserved and may become entangled with the target.
 
 A **controlled implementation** is either:
 
-- a compiler-synthesized controlled form of one accepted operation; or
+- a compiler-synthesized controlled form of one accepted operation, or
 - a declared specialization with exact controlled-equivalence evidence.
 
 The selected implementation is derived planning data. The source controlled semantics remain fixed.
@@ -305,10 +305,10 @@ A syntactically unchanged field is not enough when a called operation may alias 
 
 The first profile automatically accepts predicates over:
 
-- immutable parameters;
-- compile-time constants;
-- fields or locals untouched by either branch;
-- fields passed only to certified frame-preserving calls;
+- immutable parameters.
+- compile-time constants.
+- fields or locals untouched by either branch.
+- fields passed only to certified frame-preserving calls.
 - explicit witness values preserved by both branches.
 
 More complex preservation may use a WIP-0011 theorem.
@@ -364,11 +364,11 @@ for (long i = start; i < end; i += step) limit count {
 
 The compiler proves:
 
-- `count` is finite and exact;
-- `start`, `end`, `step`, and `count` are immutable or reconstructible;
-- the sequence contains exactly `count` indices;
-- the body is reversible or coherent as required;
-- each iteration leaves compatible owner and clean states;
+- `count` is finite and exact.
+- `start`, `end`, `step`, and `count` are immutable or reconstructible.
+- the sequence contains exactly `count` indices.
+- the body is reversible or coherent as required.
+- each iteration leaves compatible owner and clean states.
 - the loop body cannot change the iteration descriptor.
 
 The generated inverse enumerates the same indices in reverse order and invokes the body inverse.
@@ -395,9 +395,9 @@ The first profile rejects `while` in `rev`, `coherent rev`, and `unitary` bodies
 
 A later extension may admit a witnessed loop with:
 
-- a bounded iteration count;
-- an explicit retained exit trace or reconstructible termination predicate;
-- an inverse traversal law;
+- a bounded iteration count.
+- an explicit retained exit trace or reconstructible termination predicate.
+- an inverse traversal law.
 - a static history or workspace bound.
 
 Rejecting the form now avoids hidden per-iteration history.
@@ -422,9 +422,9 @@ A unitary or coherent body may use ordinary `if` or `match` when the condition i
 
 Accepted conditions include:
 
-- const generic values;
-- compile-time constants;
-- immutable classical parameters captured by a closed operation;
+- const generic values.
+- compile-time constants.
+- immutable classical parameters captured by a closed operation.
 - target capability choices resolved before the canonical semantic operation is selected, when the source contract permits distinct implementations.
 
 No runtime classical branch instruction remains inside the emitted unitary body. The selected branch identity contributes to routine and circuit identity.
@@ -447,22 +447,22 @@ The control place is borrowed exclusively for the duration of the block under qu
 
 The body may contain:
 
-- direct unitary calls;
-- coherent callable applications;
-- nested compute–use regions;
-- fixed-count loops;
-- nested controlled blocks;
+- direct unitary calls.
+- coherent callable applications.
+- nested compute/use regions.
+- fixed-count loops.
+- nested controlled blocks.
 - clean ancilla scopes.
 
 The body may not contain:
 
-- measurement;
-- reset;
-- target submission;
-- host effects;
-- ordinary runtime branch on the control;
-- mutation of the control;
-- dynamic callable dispatch;
+- measurement.
+- reset.
+- target submission.
+- host effects.
+- ordinary runtime branch on the control.
+- mutation of the control.
+- dynamic callable dispatch.
 - admitted-input traps.
 
 ### Controlled callable selection
@@ -471,9 +471,9 @@ For each operation inside the block, the compiler selects one closed controlled 
 
 Selection order follows named planning policy but must choose among exact implementations:
 
-1. use a declared certified controlled specialization when selected by policy;
-2. synthesize a controlled form from the semantic operation when supported and within bounds;
-3. decompose through accepted controlled primitives;
+1. use a declared certified controlled specialization when selected by policy.
+2. synthesize a controlled form from the semantic operation when supported and within bounds.
+3. decompose through accepted controlled primitives.
 4. reject the plan.
 
 The compiler cannot silently measure the control, approximate the operation without an error budget, or switch to host control.
@@ -496,7 +496,7 @@ The first profile may lower nested controls directly or combine them into a mult
 
 Negative control and arbitrary Boolean control expressions are deferred. A programmer may express a negative control through explicit reversible basis changes when valid.
 
-### Controlled compute–use regions
+### Controlled compute/use regions
 
 A controlled paired region may exploit conjugation structure.
 
@@ -635,18 +635,18 @@ No branch witness or loop trace is serialized unless it is ordinary source state
 
 Limits cover:
 
-- branch nesting;
-- predicate expression size;
-- read and write places;
-- frame facts;
-- match arms;
-- loop count and range expressions;
-- repeated body size;
-- controlled nesting;
-- controlled synthesis size;
-- ancillas and depth;
-- proof obligations;
-- compiler time and memory;
+- branch nesting.
+- predicate expression size.
+- read and write places.
+- frame facts.
+- match arms.
+- loop count and range expressions.
+- repeated body size.
+- controlled nesting.
+- controlled synthesis size.
+- ancillas and depth.
+- proof obligations.
+- compiler time and memory.
 - diagnostics.
 
 The first stable diagnostic families should include:
@@ -683,7 +683,7 @@ Failure during checking emits no partial inverse branch, inverse loop, controlle
 6. Add static classical branch elimination in coherent and unitary bodies.
 7. Add `controlled` source and semantic-region nodes.
 8. Add controlled callable selection through WIP-0031 descriptors.
-9. Add nested control and compute–use integration.
+9. Add nested control and compute/use integration.
 10. Add parser, Tree-sitter, formatter, disassembly, documentation, and diagnostics.
 11. Migrate one reversible tree or trie traversal and one controlled arithmetic fixture.
 12. Delete temporary branch-history annotations, duplicated inverse loops, and gate-by-gate control prototypes replaced by the accepted forms.
@@ -697,7 +697,7 @@ Failure during checking emits no partial inverse branch, inverse loop, controlle
 - [ ] Static classical control closes before quantum emission.
 - [ ] Coherent controlled blocks execute in the semantic simulator.
 - [ ] Custom controlled specializations can be selected with evidence.
-- [ ] Nested controls and compute–use regions compose.
+- [ ] Nested controls and compute/use regions compose.
 - [ ] Resource and proof metadata integrate.
 - [ ] Temporary control-flow prototypes are deleted.
 

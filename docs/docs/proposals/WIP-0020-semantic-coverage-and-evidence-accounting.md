@@ -29,7 +29,7 @@ Normal coverage tools count source lines or instrument branches. Wheeler needs t
 - VM rewind is not language-level inverse execution.
 - Generated uncomputation matters only when workspace returns clean.
 - Replaying saved evidence is not retrying an effect.
-- A coherent branch cannot be observed by adding a measurement counter.
+- Adding a measurement counter cannot observe a coherent branch.
 - Hardware execution gives sampled evidence, not exact path coverage.
 - Kernel rule execution does not prove that a theorem is true.
 - A recovered workflow attempt is not a new attempt.
@@ -44,13 +44,13 @@ Without one model, each backend will choose convenient counters and dashboards w
 
 2. A reversible test executes a function forward and invokes its generated inverse. The report records forward, inverse, pair, restoration, and clean-workspace observations. A test using VM rewind covers rewind points but leaves inverse coverage absent.
 
-3. A coherent circuit executes on an exact simulator. The collector records circuit operations and adjoint structure from runtime events without measuring hidden state. A separate exact test may establish state restoration; coverage itself does not.
+3. A coherent circuit executes on an exact simulator. The collector records circuit operations and adjoint structure from runtime events without measuring hidden state. A separate exact test may establish state restoration. Coverage itself does not.
 
 4. A hardware run records submitted circuit points, target/job identity, shots, and measurement outcomes. Replay reuses those evidence IDs and does not increase unique job coverage. Retry contributes a distinct attempt and job.
 
 5. Twenty test shards emit partial reports. The reducer verifies artifact, map, policy, and attempt identities, unions hit sets, sums deduplicated counts with checked arithmetic, and emits the byte-identical report produced by a serial run.
 
-6. A compiler refactor preserves source coverage points but changes lowering. Cross-build aggregation succeeds only through an explicit map-lineage record proving equal source points; artifact-level reports remain separate.
+6. A compiler refactor preserves source coverage points but changes lowering. Cross-build aggregation succeeds only through an explicit map-lineage record proving equal source points. Artifact-level reports remain separate.
 
 ## Goals
 
@@ -88,7 +88,7 @@ A **coverage policy** selects dimensions, denominators, generated-code treatment
 
 An **observation** is a runner-owned record that one point occurred in one exact WIP-0018 attempt, execution direction, target/evidence context, and event sequence.
 
-A **hit set** records whether selected points occurred; a **count map** records bounded nonnegative occurrence counts. Counts are secondary evidence; threshold policy defaults to hit sets.
+A **hit set** records whether selected points occurred. A **count map** records bounded nonnegative occurrence counts. Counts are secondary evidence. Threshold policy defaults to hit sets.
 
 A **denominator** is the exact canonical set of points eligible under one policy. A point absent from the denominator cannot improve or damage its percentage.
 
@@ -100,35 +100,35 @@ A **lineage record** is a checked mapping between source point sets of different
 
 Every point identity includes its domain and semantic owner. The first profile defines:
 
-- source declaration entry and normal/abrupt exit;
-- executable source statement;
-- decision and outgoing edge;
-- independently evaluable Boolean condition and outcome;
-- finite match arm and explicit trap/default edge;
-- function call site and resolved callee;
-- bytecode function, instruction, branch edge, call edge, return, and trap;
-- generated inverse instruction and its exact forward mate;
-- uncomputation boundary and clean-resource check;
-- VM checkpoint, rewind request, rewind record, and restored checkpoint;
-- workflow transition, effect request, evidence publication, replay, retry, commit, abort, and recovery;
-- quantum circuit operation, gate/adjoint pair, control relation, measurement site, and sampled outcome;
+- source declaration entry and normal/abrupt exit.
+- executable source statement.
+- decision and outgoing edge.
+- independently evaluable Boolean condition and outcome.
+- finite match arm and explicit trap/default edge.
+- function call site and resolved callee.
+- bytecode function, instruction, branch edge, call edge, return, and trap.
+- generated inverse instruction and its exact forward mate.
+- uncomputation boundary and clean-resource check.
+- VM checkpoint, rewind request, rewind record, and restored checkpoint.
+- workflow transition, effect request, evidence publication, replay, retry, commit, abort, and recovery.
+- quantum circuit operation, gate/adjoint pair, control relation, measurement site, and sampled outcome.
 - proof obligation, kernel rule invocation, certificate acceptance, and certificate rejection.
 
 Source point identities use exact package/source content, declaration, syntax-node range, and role. Bytecode points use exact artifact, function, instruction offset, and role. Generated points identify their generator and source/IR cause.
 
-Absolute host paths, checkout roots, compiler temporary names, and display line numbers are presentation metadata, not identity. Line numbers may change while source-node identity changes or remains related through lineage; they never authorize an automatic merge.
+Absolute host paths, checkout roots, compiler temporary names, and display line numbers are presentation metadata, not identity. Line numbers may change while source-node identity changes or remains related through lineage. They never authorize an automatic merge.
 
 ## Compiler coverage maps
 
 The compiler emits an optional canonical coverage/debug section in `.wbc` format 1.0 after WIP-0001 accepts its encoding and verification. The map contains:
 
-- exact source identities and normalized logical paths;
-- source syntax-node ranges;
-- bytecode function/instruction ranges;
-- decision, condition, and edge topology;
-- match-arm and trap topology;
-- generated inverse/adjoint/uncompute origins;
-- points classified as user, generated-required, generated-diagnostic, or unreachable-by-construction;
+- exact source identities and normalized logical paths.
+- source syntax-node ranges.
+- bytecode function/instruction ranges.
+- decision, condition, and edge topology.
+- match-arm and trap topology.
+- generated inverse/adjoint/uncompute origins.
+- points classified as user, generated-required, generated-diagnostic, or unreachable-by-construction.
 - map profile and compiler identity.
 
 The verifier rejects overlapping illegal ranges, dangling points, impossible edges, duplicate identities, forged forward/inverse relationships, invalid source ranges, unknown required roles, and maps exceeding limits.
@@ -141,7 +141,7 @@ The compiler may emit a separate content-addressed map for production privacy, b
 
 The VM emits typed observation events at already-defined transition boundaries to a caller-owned bounded collector. The collector is not addressable by Wheeler code and cannot influence branch selection, local values, storage, machine status, retained history, quantum state, or effect payloads.
 
-Collection failure is fail-closed when coverage is required. The VM stops before losing the next required observation and reports a collection-limit diagnostic. In advisory mode, collection may stop and mark the report incomplete; incomplete reports never satisfy thresholds.
+Collection failure is fail-closed when coverage is required. The VM stops before losing the next required observation and reports a collection-limit diagnostic. In advisory mode, collection may stop and mark the report incomplete. Incomplete reports never satisfy thresholds.
 
 A conforming native backend emits events corresponding to verified bytecode transitions or supplies a certified mapping from native probe to bytecode point. Statistical program-counter sampling is profiler data, not semantic coverage.
 
@@ -149,11 +149,11 @@ Compiler-inserted executable counter instructions are forbidden in the canonical
 
 ## Classical decisions and conditions
 
-Statement coverage requires entry to each selected executable syntax point. Declaration coverage requires entry to the declaration body; decision coverage requires every feasible declared outgoing edge. Condition coverage requires each independently evaluated condition to produce each feasible Boolean outcome.
+Statement coverage requires entry to each selected executable syntax point. Declaration coverage requires entry to the declaration body. Decision coverage requires every feasible declared outgoing edge. Condition coverage requires each independently evaluated condition to produce each feasible Boolean outcome.
 
 Short-circuit and coherent Boolean operators retain their actual language semantics. A condition not evaluated due to short circuit is not hit.
 
-Bounded modified condition/decision coverage (MC/DC) may be selected for ordinary classical decisions. The report stores canonical witness attempt/value pairs showing an independent effect on the decision. The reducer validates witness topology; raw hit counts cannot satisfy MC/DC.
+Bounded modified condition/decision coverage (MC/DC) may be selected for ordinary classical decisions. The report stores canonical witness attempt/value pairs showing an independent effect on the decision. The reducer validates witness topology. Raw hit counts cannot satisfy MC/DC.
 
 Compiler-proved unreachable edges are excluded only when the map binds a checked proof or canonical finite-type fact. Optimizer omission alone does not make a source branch metaphysically impossible.
 
@@ -169,9 +169,9 @@ vm-rewind
 replay-reduction
 ```
 
-Forward/inverse pair coverage requires both exact mated points under one compatible state/test contract. Round-trip coverage also requires an explicit WIP-0018 restoration assertion. Clean-uncompute coverage requires a successful resource-cleanliness assertion; none follows from only hitting both instructions.
+Forward/inverse pair coverage requires both exact mated points under one compatible state/test contract. Round-trip coverage also requires an explicit WIP-0018 restoration assertion. Clean-uncompute coverage requires a successful resource-cleanliness assertion. None follows from only hitting both instructions.
 
-VM rewind observations refer to undo records and checkpoints, not inverse bytecode points. Rewound forward observations remain in the attempt hit set because execution happened; a report also carries **net-state accounting** showing which checkpoint was ultimately retained. Attempt coverage and net-state accounting are separate views.
+VM rewind observations refer to undo records and checkpoints, not inverse bytecode points. Rewound forward observations remain in the attempt hit set because execution happened. A report also carries **net-state accounting** showing which checkpoint was ultimately retained. Attempt coverage and net-state accounting are separate views.
 
 History overflow preserves observations through the last completed transition and marks the attempt/report partial or failed according to test policy. It never erases the inconvenient part of the run.
 
@@ -189,7 +189,7 @@ Output, filesystem, network, and provider payloads remain private caller-owned e
 
 WIP-0032 coverage distinguishes request construction, submission, progress, terminal completion, cancellation relation, uncertainty, resource release, reaping, replay, and each visibility or persistence transition. A completion hit cannot cover a durability point, and replay cannot inflate unique live submissions.
 
-Reports retain bounded operation, request, resource, backend-profile, receipt, and attempt identities; they exclude payloads, credentials, descriptors, remote keys, and native queue state. Physical completion order is evidence only when the program explicitly observes a selection race.
+Reports retain bounded operation, request, resource, backend-profile, receipt, and attempt identities. They exclude payloads, credentials, descriptors, remote keys, and native queue state. Physical completion order is evidence only when the program explicitly observes a selection race.
 
 ## Quantum coverage
 
@@ -197,7 +197,7 @@ Quantum coverage has two noninterchangeable profiles.
 
 Structural execution coverage records when verified circuit operations, controls, generated adjoints, measurements, legal resets, and target-lowering nodes were constructed, submitted, or executed. It cannot observe amplitudes or identify a coherent branch as having run.
 
-**Sampled evidence coverage** records measurement-site outcomes, shots, target/job/evidence identities, and declared statistical bins. It reports observed support under that sample only. Unobserved outcomes are not proved impossible; observed outcomes are not exact probabilities.
+**Sampled evidence coverage** records measurement-site outcomes, shots, target/job/evidence identities, and declared statistical bins. It reports observed support under that sample only. Unobserved outcomes are not proved impossible. Observed outcomes are not exact probabilities.
 
 Exact simulator assertions from WIP-0018 may attach state-restoration or amplitude evidence identities. Coverage records that the assertion executed and passed but does not duplicate its numerical or proof semantics.
 
@@ -217,17 +217,17 @@ Generated-required points, including generated inverses and adjoints selected by
 
 Exclusions live in reviewed package coverage policy and identify exact point IDs plus reason codes. Allowed reasons initially include foreign or provider boundaries, platform-impossible targets, checked unreachable proofs, and generated presentation adapters. A failing coverage indicator is not an allowed reason.
 
-Policy changes alter policy identity and invalidate threshold comparison until explicitly accepted. Reports display excluded points and reasons; exclusion is not deletion.
+Policy changes alter policy identity and invalidate threshold comparison until explicitly accepted. Reports display excluded points and reasons. Exclusion is not deletion.
 
 ## Counts, attempts, and deterministic merge
 
 Each observation binds a unique attempt identity from WIP-0018. Partial reports declare a closed sorted attempt set and digest. Merge rejects:
 
-- duplicate attempt identities with unequal payloads;
-- overlapping attempt sets unless payloads are byte-identical and deduplicated;
-- different artifact/map/policy identities;
-- incompatible target, kernel, or report profiles;
-- count overflow or exhausted merge limits;
+- duplicate attempt identities with unequal payloads.
+- overlapping attempt sets unless payloads are byte-identical and deduplicated.
+- different artifact/map/policy identities.
+- incompatible target, kernel, or report profiles.
+- count overflow or exhausted merge limits.
 - missing required evidence.
 
 Hit sets merge by union. Counts sum once per unique attempt using checked bounded arithmetic. Sampled outcomes also retain shot/evidence identities so replay cannot inflate counts.
@@ -240,7 +240,7 @@ Cross-artifact source comparison requires an explicit lineage record and emits a
 
 Threshold policies may require exact hit ratios or complete sets for declarations, statements, decisions, conditions, match arms, inverse pairs, clean uncompute, workflow states, quantum structural points, sampled bins, or proof obligations.
 
-Ratios are canonical integer pairs, never floating-point thresholds. A policy may apply to the whole package and named source/module groups. Empty denominators report `not-applicable`; they do not receive 100% by divine intervention.
+Ratios are canonical integer pairs, never floating-point thresholds. A policy may apply to the whole package and named source/module groups. Empty denominators report `not-applicable`. They do not receive 100% by divine intervention.
 
 Threshold evaluation occurs after canonical reduction and before successful publication status. Test failures and threshold failures are independent outcomes. Coverage from failing tests remains valid attempted-execution evidence unless collection itself is invalid.
 
@@ -260,7 +260,7 @@ Coverage maps use an optional verified format-1 artifact section or exact bound 
 
 Unknown required point kinds, dimensions, merge semantics, or threshold rules reject. Unknown optional presentation fields may be ignored after canonical validation.
 
-Partial reports publish atomically after each closed attempt set; final reports publish atomically after merge and threshold evaluation. A failed run may publish a valid final coverage report with failed test status; a malformed or incomplete report cannot satisfy release policy.
+Partial reports publish atomically after each closed attempt set. Final reports publish atomically after merge and threshold evaluation. A failed run may publish a valid final coverage report with failed test status. A malformed or incomplete report cannot satisfy release policy.
 
 ## Safety, privacy, and limits
 
@@ -287,7 +287,7 @@ Quantum targets own execution evidence, not coverage interpretation. The proof k
 5. Add inverse, rewind, uncompute, workflow, replay, retry, and recovery dimensions.
 6. Add quantum structural/sampled and proof-obligation dimensions.
 7. Implement deterministic sharded merge and WIP-0019 report pages.
-8. Port map generation and reduction to Wheeler; compare map/report bytes with stage 0.
+8. Port map generation and reduction to Wheeler. Compare map/report bytes with stage 0.
 9. Add native probe correspondence and Java-free collection.
 10. Delete JaCoCo as a semantic release authority, ad hoc counters, duplicate source mapping, and host-only reducers after parity. Host adapters may remain for Java seed-code coverage while that code exists.
 
@@ -338,14 +338,14 @@ Rejected. Coherent control is not a classical branch trace, and measuring it wou
 
 ### Drop coverage from failed tests
 
-Rejected. Failure paths are often the useful paths. Valid observations remain evidence; test outcome and threshold outcome are separate.
+Rejected. Failure paths are often the useful paths. Valid observations remain evidence. Test outcome and threshold outcome are separate.
 
 ## Open questions
 
-- Which source syntax-node identity survives harmless formatting while remaining exact enough for audit (owner: compiler and formatter maintainers; decision point: before map acceptance)?
-- Which condition forms enter first-profile MC/DC without exponential witness growth (owner: compiler and test maintainers; decision point: before condition coverage implementation)?
-- Should production sidecar maps be encrypted, access-controlled by publication policy, or omitted (owner: release and security maintainers; decision point: before production integration)?
-- Which native probe correspondence requires kernel checking instead of differential conformance (owner: native runtime and proof maintainers; decision point: before Java-free promotion)?
+- Which source syntax-node identity survives harmless formatting while remaining exact enough for audit (owner: compiler and formatter maintainers. Decision point: before map acceptance)?
+- Which condition forms enter first-profile MC/DC without exponential witness growth (owner: compiler and test maintainers. Decision point: before condition coverage implementation)?
+- Should production sidecar maps be encrypted, access-controlled by publication policy, or omitted (owner: release and security maintainers. Decision point: before production integration)?
+- Which native probe correspondence requires kernel checking instead of differential conformance (owner: native runtime and proof maintainers. Decision point: before Java-free promotion)?
 
 ## References
 

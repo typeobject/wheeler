@@ -1,19 +1,19 @@
 # I/O lifecycle
 
-Wheeler's portable I/O contract is specified by [WIP-0032](../proposals/WIP-0032-unified-io-fabric-and-durability-receipts.md). There is one request lifecycle. Files, sockets, storage tiers, RDMA, and quantum target adapters may define resource facts, but they do not get private futures, cancellation folklore, or a second event loop hidden behind the curtains.
+[WIP-0032] specifies Wheeler's portable I/O contract(../proposals/WIP-0032-unified-io-fabric-and-durability-receipts.md). There is one request lifecycle. Files, sockets, storage tiers, RDMA, and quantum target adapters may define resource facts, but they do not get private futures, cancellation folklore, or a second event loop hidden behind the curtains.
 
 ## Executable stage-0 slice
 
 The quarantined runtime now carries a deterministic executable slice under `bootstrap/runtime/src/main/java/com/typeobject/wheeler/runtime/io/`:
 
-- `IoRequest<T>` prepares one pure, affine request;
-- `IoScope` bounds submission, work, batches, graphs, terminal completions, and reaping;
-- `IoOperation<T>` is a live must-reap handle;
-- `IoCompletion<T>` separates terminal kind, cancellation relation, known progress, resource release, and backend identity;
-- `IoGraph<T>` is an explicitly bounded terminal-dependency DAG;
-- `OwnedIoBuffer` is inaccessible while captured and returns through a terminal result;
-- `MemoryAddressableFile` is the bounded positional-semantics oracle;
-- `DeterministicIo` offers inline and delayed delivery with identical completion meaning;
+- `IoRequest<T>` prepares one pure, affine request.
+- `IoScope` bounds submission, work, batches, graphs, terminal completions, and reaping.
+- `IoOperation<T>` is a live must-reap handle.
+- `IoCompletion<T>` separates terminal kind, cancellation relation, known progress, resource release, and backend identity.
+- `IoGraph<T>` is an explicitly bounded terminal-dependency DAG.
+- `OwnedIoBuffer` is inaccessible while captured and returns through a terminal result.
+- `MemoryAddressableFile` is the bounded positional-semantics oracle.
+- `DeterministicIo` offers inline and delayed delivery with identical completion meaning.
 - `ThreadedIo` supplies an explicitly bounded portable worker backend.
 
 The implementation is stage-0 scaffolding. Its Java API is replaceable and is not a source-language compatibility promise. The lifecycle and distinctions are the contract.
@@ -30,7 +30,7 @@ A scope cannot close while an operation is live or terminal-but-unreaped. Awaiti
 
 Inline submission may produce terminal completion before `submit` returns. Delayed submission produces the same semantic completion when driven by `await` or selection. Tests compare the complete records, not merely result values.
 
-`ThreadedIo(workers, maxInFlight)` adds actual overlap without changing request or completion types. Admission is reserved before request consumption. The executor has a fixed worker count, a bounded queue, and no fallback pool. Closing it with admitted work fails. Cancellation of queued work releases resources without invoking the provider; cancellation racing with started work records which terminal result won instead of interrupting an external effect and hoping for the best.
+`ThreadedIo(workers, maxInFlight)` adds actual overlap without changing request or completion types. Admission is reserved before request consumption. The executor has a fixed worker count, a bounded queue, and no fallback pool. Closing it with admitted work fails. Cancellation of queued work releases resources without invoking the provider. Cancellation racing with started work records which terminal result won instead of interrupting an external effect and hoping for the best.
 
 ## Cancellation and uncertainty
 
@@ -38,7 +38,7 @@ Terminal kind and cancellation relation are separate closed enums. The executabl
 
 | Result | Meaning |
 | --- | --- |
-| `CANCELED_BEFORE_EFFECT` | Provider action did not run; progress is zero. |
+| `CANCELED_BEFORE_EFFECT` | Provider action did not run. Progress is zero. |
 | `CANCELED_AFTER_PARTIAL_EFFECT` | Known positive progress occurred before cancellation won. |
 | `COMPLETED_BEFORE_CANCELLATION` | Success was already terminal when cancellation arrived. |
 | `FAILED_BEFORE_CANCELLATION` | A known failure was already terminal. |
@@ -67,7 +67,7 @@ A `WriteCompleted` value proves only that the in-memory copy completed. Calling 
 
 A batch is independent work and adds no ordering edges. Selection reaps one canonical terminal operation and returns every nonselected operation to the caller. Nothing is detached merely because it lost a race.
 
-A graph names terminal predecessors. Independent roots are admitted together; a dependent node is not submitted until all named predecessors are terminal and reaped into the graph result table. Nodes and edges have constructor bounds as well as scope bounds. Graph execution returns completions in stable node order, regardless of physical delivery order.
+A graph names terminal predecessors. Independent roots are admitted together. A dependent node is not submitted until all named predecessors are terminal and reaped into the graph result table. Nodes and edges have constructor bounds as well as scope bounds. Graph execution returns completions in stable node order, regardless of physical delivery order.
 
 ## Receipt schema and monotonicity gate
 
@@ -82,7 +82,7 @@ WriteCompleted
   -> QuorumStable
 ```
 
-`DurabilityReceipt` has no public constructor. The package-private issuer accepts only the next transition and its matching evidence source: operation completion, data flush, metadata flush, atomic rename, namespace flush, then quorum protocol. A promotion binds one immutable subject, failure model, atomicity, replica/quorum rule, backend-profile identity, sorted assumptions, new evidence identity, parent receipt, and chain depth. Subject and profile records receive their own canonical SHA-256 identities. Receipt bytes then bind the SHA-256 domain separator, kind, evidence source, depth, subject, profile, evidence, and parent in a fixed 163-byte form. Stage 0 and Wheeler reproduce every stage byte for byte; the full chain ends at `1d4fb3a8521eaa451dd37734c7fa0017e44bb7a684c004026c7c1c90c3f4d8b5`.
+`DurabilityReceipt` has no public constructor. The package-private issuer accepts only the next transition and its matching evidence source: operation completion, data flush, metadata flush, atomic rename, namespace flush, then quorum protocol. A promotion binds one immutable subject, failure model, atomicity, replica/quorum rule, backend-profile identity, sorted assumptions, new evidence identity, parent receipt, and chain depth. Subject and profile records receive their own canonical SHA-256 identities. Receipt bytes then bind the SHA-256 domain separator, kind, evidence source, depth, subject, profile, evidence, and parent in a fixed 163-byte form. Stage 0 and Wheeler reproduce every stage byte for byte. The full chain ends at `1d4fb3a8521eaa451dd37734c7fa0017e44bb7a684c004026c7c1c90c3f4d8b5`.
 
 Skipping a stage, replaying evidence, claiming namespace visibility without a namespace subject, or claiming quorum stability with one replica fails. These checks establish schema monotonicity. They do not establish that the supplied evidence is true. Release-grade issuance still needs the crash, power, hardware, filesystem, protocol, and configuration conformance demanded by WIP-0032.
 

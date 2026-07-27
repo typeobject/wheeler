@@ -13,7 +13,7 @@
 
 ## Summary
 
-Wheeler will expose native calls through canonical ABI descriptors and package-visible providers; the first profile supports a small, deliberate subset of the C ABI. A provider is either an exact bundled package artifact or a system capability granted by deployment policy and mapped through WIP-0024. Wheeler never finds symbols by searching the host.
+Wheeler will expose native calls through canonical ABI descriptors and package-visible providers. The first profile supports a small, deliberate subset of the C ABI. A provider is either an exact bundled package artifact or a system capability granted by deployment policy and mapped through WIP-0024. Wheeler never finds symbols by searching the host.
 
 Foreign calls are typed WIP-0031 effectful operations. They are forbidden in `rev`, `coherent rev`, `unitary`, proof evaluation, and reverse blocks. Every foreign call starts as an explicit barrier in Wheeler's typed IR. Rewind, inverse, compensation, and foreign cleanup remain different operations.
 
@@ -65,15 +65,15 @@ native_abi_descriptor {
 
 A target ABI fixes OS family, architecture, endianness, pointer width, calling convention, integer widths, alignment/layout, floating ABI, symbol versioning, and libc/runtime baseline. A target triple alone is not the contract.
 
-A bundled provider records exact package instance, RREV, variant, build-input ID, PREV, target ABI, bytes, and exports. A system provider is a deployment capability. Portable artifacts carry the requirement; WIP-0024 maps it. Build-host libraries are irrelevant.
+A bundled provider records exact package instance, RREV, variant, build-input ID, PREV, target ABI, bytes, and exports. A system provider is a deployment capability. Portable artifacts carry the requirement. WIP-0024 maps it. Build-host libraries are irrelevant.
 
-Logical capabilities look like `native:zlib/1`, not filenames. Native link groups identify process-global symbols, allocators, runtimes, or state; incompatible providers cannot coexist without verified isolation.
+Logical capabilities look like `native:zlib/1`, not filenames. Native link groups identify process-global symbols, allocators, runtimes, or state. Incompatible providers cannot coexist without verified isolation.
 
 A foreign function records Wheeler name, native symbol, calling convention, parameter/result descriptors, effects, error rule, blocking, and thread rule.
 
 Initial scalars are exact signed/unsigned 8/16/32/64-bit integers, declared Boolean encoding, and supported IEEE 32/64-bit floats. Target aliases resolve to an exact width before artifact construction.
 
-A buffer view is the native lowering of one WIP-0028 second-class loan for one call. Shared views preserve observation-only access; mutable views are exclusive. The callee cannot retain a view, cross suspension/callback ownership, or manufacture address identity. Retention requires ownership transfer into a declared affine handle.
+A buffer view is the native lowering of one WIP-0028 second-class loan for one call. Shared views preserve observation-only access. Mutable views are exclusive. The callee cannot retain a view, cross suspension/callback ownership, or manufacture address identity. Retention requires ownership transfer into a declared affine handle.
 
 A foreign handle is affine opaque state with provider/type, nullability, creation/destruction, thread affinity, send/share policy, borrows, invalidation, error state, and checkpoint policy. It cannot be copied, compared by address, serialized, cloned, or rewound.
 
@@ -105,7 +105,7 @@ native interface Zlib from capability "native:zlib/1" {
 
 Provider selection is package/deployment policy, never a source path.
 
-Binding generation consumes exact headers, target ABI, definitions, include closure, frontend, declaration allowlist, ownership/effect annotations, and symbol metadata. Ambient include paths/defaults are forbidden. Fixed aggregates verify size, alignment, offsets, representations, ABI, and tool identity; unsupported layout fails.
+Binding generation consumes exact headers, target ABI, definitions, include closure, frontend, declaration allowlist, ownership/effect annotations, and symbol metadata. Ambient include paths/defaults are forbidden. Fixed aggregates verify size, alignment, offsets, representations, ABI, and tool identity. Unsupported layout fails.
 
 A bundled dynamic provider loads only from one exact approved image/package path. Runtime verifies identity, descriptor, ABI, soname/install name, required symbols/versions, and transitive imports. It doesn't search working directory, home, `PATH`, loader environment, defaults, registry, or caches.
 
@@ -113,11 +113,11 @@ Static link plans identify every object/archive, order/group semantics, exports,
 
 System-provider resolution maps a logical capability through a pinned deployment profile. Runtime evidence may include exact provider manifest, ABI fingerprint, symbol version, or distro metadata. The installed build-host library remains irrelevant.
 
-Buffer marshalling validates liveness/ownership/range, stabilizes storage, excludes competing access, executes, validates error/output rules, ends the borrow, and publishes permitted mutations. Failure may leave native output mutated according to its descriptor; Wheeler assumes no rollback.
+Buffer marshalling validates liveness/ownership/range, stabilizes storage, excludes competing access, executes, validates error/output rules, ends the borrow, and publishes permitted mutations. Failure may leave native output mutated according to its descriptor. Wheeler assumes no rollback.
 
 Handle flow rejects copy, address equality, use after destroy, double destroy, wrong-thread movement, borrowed-as-owned return, live owned exit, unsupported persistence, and rewind across creation/destruction.
 
-Foreign calls require explicit commit/effect boundaries and are rejected in inverse/quantum/proof contexts. A future reversible FFI would require a formal foreign state model and verified inverse pair; a destructor alone does not provide that contract.
+Foreign calls require explicit commit/effect boundaries and are rejected in inverse/quantum/proof contexts. A future reversible FFI would require a formal foreign state model and verified inverse pair. A destructor alone does not provide that contract.
 
 Invoking a compiler or linker during build is a process capability, not runtime FFI. Both share exact package/reproducibility rules but differ in lifetime and semantics.
 
@@ -137,7 +137,7 @@ Foreign calls are forbidden in unitary, coherent, and proof execution. Native nu
 
 ## Bytecode and persistence
 
-Bytecode gains versioned foreign descriptors and call references. A call identifies descriptor/function, exact register types, ownership transitions, effects, capability, and source location. Snapshots do not serialize live native handles initially. Portable WBC may carry system capability requirements; target images bind providers.
+Bytecode gains versioned foreign descriptors and call references. A call identifies descriptor/function, exact register types, ownership transitions, effects, capability, and source location. Snapshots do not serialize live native handles initially. Portable WBC may carry system capability requirements. Target images bind providers.
 
 ## Safety and failures
 
@@ -170,7 +170,7 @@ FFI requests declare buffer-retention, callback, cancellation, thread, partial-p
 
 ## Testing and acceptance
 
-- [ ] Scalars and layouts match C fixtures; unsupported layouts fail.
+- [ ] Scalars and layouts match C fixtures. Unsupported layouts fail.
 - [ ] Buffer mutability, aliases, and pointer/length checks hold.
 - [ ] Pointers are not observable and handles cannot copy, leak, or double-destroy.
 - [ ] Status mappings and native crash boundaries are exact.
@@ -186,11 +186,11 @@ Raw loading/function pointers, libffi as language contract, ambient headers, C++
 
 ## Open questions
 
-- Which C ABIs and targets form the first conformance set (owner: native maintainers; decision point: implementation)?
-- Direct stubs, generated shim, or libffi underneath (owner: runtime maintainers; decision point: runtime work)?
-- Are structs in the first slice (owner: ABI maintainers; decision point: parser acceptance)?
-- Which crash isolation and callback subset require successors (owner: security/runtime maintainers; decision point: public packages)?
-- What evidence proves a system provider (owner: distribution/security maintainers; decision point: WIP-0024 integration)?
+- Which C ABIs and targets form the first conformance set (owner: native maintainers. Decision point: implementation)?
+- Direct stubs, generated shim, or libffi underneath (owner: runtime maintainers. Decision point: runtime work)?
+- Are structs in the first slice (owner: ABI maintainers. Decision point: parser acceptance)?
+- Which crash isolation and callback subset require successors (owner: security/runtime maintainers. Decision point: public packages)?
+- What evidence proves a system provider (owner: distribution/security maintainers. Decision point: WIP-0024 integration)?
 
 ## References
 

@@ -25,12 +25,12 @@ Javadoc is an optional stage-0 adapter, not part of bootstrap authority. Wheeler
 
 The repository contains manuals, source-attached Wheeler docs, and a stage-0 Java implementation. Without one publication model, several problems will appear:
 
-- hand-written reference pages will drift from declarations;
-- Wheeler API pages and Javadoc will use different anchors;
-- Java details will leak into language reference;
-- copied examples will compile in one place and fail elsewhere;
-- proof and quantum claims will lose the identities that bind them;
-- site builds will fetch ambient renderer packages and depend on the runtime available in CI;
+- hand-written reference pages will drift from declarations.
+- Wheeler API pages and Javadoc will use different anchors.
+- Java details will leak into language reference.
+- copied examples will compile in one place and fail elsewhere.
+- proof and quantum claims will lose the identities that bind them.
+- site builds will fetch ambient renderer packages and depend on the runtime available in CI.
 - migration to a Wheeler compiler will still leave docs tied to Java reflection.
 
 A generic API generator does not own Wheeler's module graph, package model, theorem evidence, or bootstrap boundary. One system must own both the semantic graph and its fixed safe renderer.
@@ -39,15 +39,15 @@ A generic API generator does not own Wheeler's module graph, package model, theo
 
 1. A public Wheeler function has adjacent `///` documentation and a `Proof` facet. `wheeler docs` resolves the function and theorem identities, emits one API node, and links the manual's `wheeler:` reference to it. A stale theorem name fails before site publication.
 
-2. A stage-0 Java class implements the canonical bytecode reader. A pinned doclet emits a Java API node under the stage-0 namespace. The generated page links to the bytecode manual but is visibly implementation API; deleting Java at native cutover removes the node without changing Wheeler symbol URLs.
+2. A stage-0 Java class implements the canonical bytecode reader. A pinned doclet emits a Java API node under the stage-0 namespace. The generated page links to the bytecode manual but is visibly implementation API. Deleting Java at native cutover removes the node without changing Wheeler symbol URLs.
 
-3. A Markdown tutorial contains a fenced Wheeler example. WIP-0018 compiles and runs the declared test-selected runnable target. The documentation bundle records artifact and test-result identities. A prose edit does not rerun hardware jobs; a changed executable snippet does.
+3. A Markdown tutorial contains a fenced Wheeler example. WIP-0018 compiles and runs the declared test-selected runnable target. The documentation bundle records artifact and test-result identities. A prose edit does not rerun hardware jobs. A changed executable snippet does.
 
 4. Two packages export declarations named `Result`. Cross-package links use exact package, version, module, and symbol identities. An unqualified ambiguous link fails instead of choosing whichever page was visited first.
 
-5. Rendering fails after bundle generation but before publication; the immutable documentation bundle remains complete and content-addressed. Retrying rendering consumes the same verified bundle; it does not regenerate examples, Javadoc, proof checks, or package resolution.
+5. Rendering fails after bundle generation but before publication. The immutable documentation bundle remains complete and content-addressed. Retrying rendering consumes the same verified bundle. It does not regenerate examples, Javadoc, proof checks, or package resolution.
 
-6. A malicious dependency comment contains raw HTML and a script URL. The generator stores inert documented text under the WIP-0016 profile; the renderer escapes unsupported markup and never grants script execution.
+6. A malicious dependency comment contains raw HTML and a script URL. The generator stores inert documented text under the WIP-0016 profile. The renderer escapes unsupported markup and never grants script execution.
 
 ## Goals
 
@@ -71,7 +71,7 @@ A generic API generator does not own Wheeler's module graph, package model, theo
 - Publish private declarations unless a package policy explicitly includes an internal site.
 - Permit scripts, raw HTML, runtime themes, or host-dependent output in the trusted site.
 - Require Java in the final self-hosted toolchain.
-- Turn every code block into a test; examples opt into a declared language, target, and expectation profile.
+- Turn every code block into a test. Examples opt into a declared language, target, and expectation profile.
 - Treat a successful doctest or sampled quantum run as a theorem.
 
 ## Terms and semantic model
@@ -100,7 +100,7 @@ JSON objects use canonical key order, integers, strict UTF-8 strings, and no flo
 
 A **rendering adapter** converts one valid bundle to presentation output. The website adapter is the fixed `wheeler.doc-site/1` safe static renderer. Terminal symbol help and offline package docs may use other explicitly identified adapters.
 
-A **semantic build** produces and validates the graph and bundle. A **render build** consumes a bundle; render retry cannot mutate semantic results.
+A **semantic build** produces and validates the graph and bundle. A **render build** consumes a bundle. Render retry cannot mutate semantic results.
 
 ## Source ownership
 
@@ -120,23 +120,23 @@ Generated signature blocks come from compiler metadata. Documentation does not d
 
 A pinned standard-doclet integration emits a bounded neutral Java declaration model. It does not scrape generated Javadoc HTML. Accepted elements are package, type, constructor, method, field, signature, visibility, deprecation, source link, summary, selected block tags, and exact cross-references.
 
-Java nodes live under an explicit `stage0-java` namespace and banner; they may link to Wheeler declarations through reviewed `implements-stage0` mappings. They cannot create Wheeler declarations, theorem claims, opcode semantics, or package exports.
+Java nodes live under an explicit `stage0-java` namespace and banner. They may link to Wheeler declarations through reviewed `implements-stage0` mappings. They cannot create Wheeler declarations, theorem claims, opcode semantics, or package exports.
 
 When a Java subsystem is deleted, its nodes disappear. Stable Wheeler API and manual identities do not redirect through tombstoned Java pages.
 
 ### Generated reference
 
-Bytecode tables, opcode lists, package schemas, diagnostics, and proof-rule catalogs are generated from their authoritative registries. Test summaries and WIP-0020 coverage pages are rendered from exact semantic reports and retain report/policy identities; the website never recomputes their outcomes. Hand-maintained copies are deleted after generator parity. Generated tables include source authority and generator identity. Their meaning doesn't depend on HTML presentation.
+Bytecode tables, opcode lists, package schemas, diagnostics, and proof-rule catalogs are generated from their authoritative registries. Test summaries and WIP-0020 coverage pages are rendered from exact semantic reports and retain report/policy identities. The website never recomputes their outcomes. Hand-maintained copies are deleted after generator parity. Generated tables include source authority and generator identity. Their meaning doesn't depend on HTML presentation.
 
 ## Stable identities and links
 
 Node identities are domain-separated and include source kind plus the smallest semantic owner:
 
-- manuals: documentation package, version policy, and declared page ID;
-- Wheeler declarations: package release, module, declaration kind, and canonical qualified symbol identity;
-- Java declarations: stage-0 component, Java package, binary type name, and erased-plus-generic signature identity;
-- theorems: proof subject and declaration identity;
-- examples: owning node, declared example name, source/artifact identity, and expectation profile;
+- manuals: documentation package, version policy, and declared page ID.
+- Wheeler declarations: package release, module, declaration kind, and canonical qualified symbol identity.
+- Java declarations: stage-0 component, Java package, binary type name, and erased-plus-generic signature identity.
+- theorems: proof subject and declaration identity.
+- examples: owning node, declared example name, source/artifact identity, and expectation profile.
 - assets: logical path and content digest.
 
 Authored links use explicit schemes:
@@ -157,14 +157,14 @@ Heading anchors derive from declared or canonical heading identity. Renderer-spe
 
 Executable fenced blocks declare:
 
-- language (`wheeler`, `openqasm3`, shell transcript, or inert text);
-- exact package target or self-contained profile;
-- input and output fixtures;
-- expected compile, verification, execution, trap, proof, or sampled result;
-- semantic limits;
+- language (`wheeler`, `openqasm3`, shell transcript, or inert text).
+- exact package target or self-contained profile.
+- input and output fixtures.
+- expected compile, verification, execution, trap, proof, or sampled result.
+- semantic limits.
 - whether execution is exact, replayed, sampled, or presentation-only.
 
-Wheeler examples execute through WIP-0018 in fresh cases. A block may reference a checked-in example instead of copying it. Copied blocks have independent content identities and are tested independently; duplication is therefore possible but painful on purpose.
+Wheeler examples execute through WIP-0018 in fresh cases. A block may reference a checked-in example instead of copying it. Copied blocks have independent content identities and are tested independently. Duplication is therefore possible but painful on purpose.
 
 Hardware examples default to recorded evidence and replay. Regeneration is an explicit workflow with a new evidence identity. Exact simulator examples may execute during the semantic build.
 
@@ -174,15 +174,15 @@ A passing example proves only its declared expectation. The site labels sampled 
 
 WIP-0032 is the sole source of the portable I/O lifecycle and method registry. Standard-library, target, package, native, and example pages link to that contract and add only their domain facts. Copied future, stream, callback, cancellation, or durability APIs fail review because they create a second contract.
 
-Until its executable slice lands, every WIP-0032 page and fenced example is labeled Draft or speculative; current reference pages describe only implemented host loans and target jobs, then identify their migration boundary. Durability prose names exact evidence; atomic replacement, close, rename, staging, direct completion, transport completion, and replication acknowledgement never receive a promotion from the copy editor.
+Until its executable slice lands, every WIP-0032 page and fenced example is labeled Draft or speculative. Current reference pages describe only implemented host loans and target jobs, then identify their migration boundary. Durability prose names exact evidence. Atomic replacement, close, rename, staging, direct completion, transport completion, and replication acknowledgement never receive a promotion from the copy editor.
 
 ## Navigation, versions, and search
 
 Navigation is a canonical tree over node IDs. Each visible node has at most one navigation parent but may have many graph links. Duplicate positions or cycles reject.
 
-Package documentation is versioned by exact package release and lock identity. The site may expose aliases such as `latest`, but aliases resolve in a separately signed publication manifest and never enter stored links or proof claims.
+Exact package releases and lock identities version package documentation. The site may expose aliases such as `latest`, but aliases resolve in a separately signed publication manifest and never enter stored links or proof claims.
 
-Search indexes canonical normalized titles, qualified symbols, summaries, headings, tags, and package versions. Tokenization is specified, locale-independent, and bounded. Search ranking is presentation policy; the indexed node set and terms are semantic bundle data.
+Search indexes canonical normalized titles, qualified symbols, summaries, headings, tags, and package versions. Tokenization is specified, locale-independent, and bounded. Search ranking is presentation policy. The indexed node set and terms are semantic bundle data.
 
 Private/internal nodes are removed before search generation. A search index isn't an access-control system.
 
@@ -190,11 +190,11 @@ Private/internal nodes are removed before search generation. A search index isn'
 
 `wheeler site -o <directory>` discovers the repository's canonical manual and Wheeler source roots. It accepts no theme, plugin, source-root, script, or network configuration. It builds profile-2 graph data in private staging, verifies exact paths and every digest at the rendering boundary, and then renders the fixed safe Markdown subset.
 
-The renderer consumes the accepted scalar MDX-style front matter as metadata and never renders the delimiters or fields as page prose. Front-matter title must agree with the page heading; sidebar positions are bounded. Executable MDX/JSX remains unsupported inert text and is escaped instead of evaluated.
+The renderer consumes the accepted scalar MDX-style front matter as metadata and never renders the delimiters or fields as page prose. Front-matter title must agree with the page heading. Sidebar positions are bounded. Executable MDX/JSX remains unsupported inert text and is escaped instead of evaluated.
 
 The renderer escapes unsupported markup and emits no JavaScript. It installs a restrictive content-security policy, rewrites verified manual links to static routes, and maps source links to exact repository paths. One sidebar follows the fixed Manual, Reference, Proposals, Future order. Introduction and overview pages lead their sections. WIPs sort by identity, and the authoring template stays linkable but does not appear in navigation. The site uses one fixed stylesheet and a standard `sitemap.xml`. That sitemap includes a deterministic digest over sorted page paths and bytes, so content changes update it without a clock or Git timestamp. Output size is bounded, and publication uses one atomic directory move.
 
-`publication-manifest.json` binds the semantic bundle identity, renderer class identity, site profile, and digest of every emitted file. Existing destinations, malformed bundles, raw special files, unclosed fences/admonitions, and output overflow fail before publication. A renderer needing new semantic source fields changes the bundle or site profile; it does not acquire a configuration file in the night.
+`publication-manifest.json` binds the semantic bundle identity, renderer class identity, site profile, and digest of every emitted file. Existing destinations, malformed bundles, raw special files, unclosed fences/admonitions, and output overflow fail before publication. A renderer needing new semantic source fields changes the bundle or site profile. It does not acquire a configuration file in the night.
 
 ## Javadoc adapter
 
@@ -218,7 +218,7 @@ Parsing, extraction, example execution, and rendering may run concurrently only 
 
 Diagnostics sort by source identity, source range, and code. Nodes and edges sort by canonical identity. Worker completion order, filesystem enumeration, locale, CPU count, and cache hit order are unobservable.
 
-Caches are keyed by complete source, tool, policy, and example identities. Cache corruption fails digest verification and triggers recomputation. Stale data is rejected.
+Complete source, tool, policy, and example identities key each cache entry. Cache corruption fails digest verification and triggers recomputation. Stale data is rejected.
 
 ## Quantum and proof implications
 
@@ -232,7 +232,7 @@ Amplitude tables and circuit diagrams are derived presentation assets bound to e
 
 Documentation payload does not affect semantic `.wbc` identity unless a package explicitly ships documentation metadata as a separate content-addressed package input. Production code generation ignores prose.
 
-Compiler-exported symbol/signature metadata and source maps use canonical format-1 sections or separate generator inputs accepted under WIP-0001; this WIP introduces no bytecode format 2.
+Compiler-exported symbol/signature metadata and source maps use canonical format-1 sections or separate generator inputs accepted under WIP-0001. This WIP introduces no bytecode format 2.
 
 Bundle profiles use explicit required features. Readers reject unknown required node, edge, markup, or identity semantics. Renderers may ignore unknown optional presentation hints but must preserve bundle validation.
 
@@ -248,9 +248,9 @@ Dependency documentation is inert untrusted input. Rendering escapes it and appl
 
 ## Ownership and boundaries
 
-The compiler and WIP-0016 own Wheeler declaration/document attachment. The Markdown parser owns the accepted manual syntax. The Javadoc doclet owns Java-source extraction. The documentation generator owns graph validation, identities, links, navigation, examples, and bundle publication. Its current Java implementation is quarantined under `bootstrap/`; the canonical destination is a Wheeler tool package that reproduces the bundle byte-for-byte before the Java generator is deleted.
+The compiler and WIP-0016 own Wheeler declaration/document attachment. The Markdown parser owns the accepted manual syntax. The Javadoc doclet owns Java-source extraction. The documentation generator owns graph validation, identities, links, navigation, examples, and bundle publication. Its current Java implementation is quarantined under `bootstrap/`. The canonical destination is a Wheeler tool package that reproduces the bundle byte-for-byte before the Java generator is deleted.
 
-WIP-0018 owns executable examples. The proof kernel owns proof validity. The package system owns exact source/package sets and locks. The fixed Wheeler renderer owns website bytes only; hosting owns deployment and aliases, not documentation semantics.
+WIP-0018 owns executable examples. The proof kernel owns proof validity. The package system owns exact source/package sets and locks. The fixed Wheeler renderer owns website bytes only. Hosting owns deployment and aliases, not documentation semantics.
 
 ## Migration and deletion
 
@@ -260,10 +260,10 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
 4. Implement the pinned Javadoc doclet and explicit stage-0 namespace.
 5. Route executable examples through WIP-0018 and proof references through WIP-0011.
 6. Render the verified bundle through the fixed no-script Wheeler site profile and delete the generic renderer stack.
-7. Generate bytecode, package, diagnostic, and proof-rule reference tables; delete hand-copied tables.
+7. Generate bytecode, package, diagnostic, and proof-rule reference tables. Delete hand-copied tables.
 8. Publish versioned package documentation and offline bundles.
 9. Port graph construction and bundle emission to Wheeler and compare bundle bytes with stage 0.
-10. Delete Java extraction when each Java subsystem is removed; keep no copied API Markdown, duplicate navigation, renderer package lock, or obsolete build script.
+10. Delete Java extraction when each Java subsystem is removed. Keep no copied API Markdown, duplicate navigation, renderer package lock, or obsolete build script.
 
 ## Progress
 
@@ -326,10 +326,10 @@ Rejected. Themes, plugins, package locks, and runtime-side Markdown interpretati
 
 ## Open questions
 
-- Which safe Markdown extensions beyond the WIP-0016 profile enter the first manual bundle (owner: documentation and security maintainers; decision point: before parser acceptance)?
-- Should source packages ship bundle fragments or only raw docs plus compiler metadata (owner: package and documentation maintainers; decision point: before package publication integration)?
-- Which Java generic-signature identity remains stable across supported stage-0 JDKs (owner: Java and tools maintainers; decision point: before doclet acceptance)?
-- Which additional inert Markdown constructs justify a versioned site-profile change (owner: website and security maintainers; decision point: before accepting such syntax)?
+- Which safe Markdown extensions beyond the WIP-0016 profile enter the first manual bundle (owner: documentation and security maintainers. Decision point: before parser acceptance)?
+- Should source packages ship bundle fragments or only raw docs plus compiler metadata (owner: package and documentation maintainers. Decision point: before package publication integration)?
+- Which Java generic-signature identity remains stable across supported stage-0 JDKs (owner: Java and tools maintainers. Decision point: before doclet acceptance)?
+- Which additional inert Markdown constructs justify a versioned site-profile change (owner: website and security maintainers. Decision point: before accepting such syntax)?
 
 ## References
 

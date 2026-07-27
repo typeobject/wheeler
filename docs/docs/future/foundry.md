@@ -25,14 +25,14 @@ The search uses the specification and the bounded program grammar.
 
 A conforming Foundry run would:
 
-1. enumerate or coherently encode only canonical candidate networks;
-2. check a candidate against every value of the finite input type;
-3. uncompute each temporary candidate execution;
-4. use quantum amplitude amplification only to propose promising candidates;
-5. verify the selected candidate again with deterministic exact semantics;
-6. check a formal correctness certificate in Wheeler's trusted kernel;
-7. check nonexistence certificates for every smaller candidate length;
-8. emit source, canonical `.wbc`, certificates, provenance, and a package manifest;
+1. enumerate or coherently encode only canonical candidate networks.
+2. check a candidate against every value of the finite input type.
+3. uncompute each temporary candidate execution.
+4. use quantum amplitude amplification only to propose promising candidates.
+5. verify the selected candidate again with deterministic exact semantics.
+6. check a formal correctness certificate in Wheeler's trusted kernel.
+7. check nonexistence certificates for every smaller candidate length.
+8. emit source, canonical `.wbc`, certificates, provenance, and a package manifest.
 9. publish through an explicit output capability.
 
 Quantum samples may help choose the next candidate to check. They cannot prove a theorem, prove that no candidate exists, or authorize publication. Only deterministic checking can do that.
@@ -401,17 +401,17 @@ hybrid class AlgorithmFoundry {
 
 Each form in the sketch has one job:
 
-- `rev` states a language-level inverse law; it is not debugger rewind.
+- `rev` states a language-level inverse law. It is not debugger rewind.
 - `borrow` cannot escape, while `inout` transfers exclusive mutable access.
 - `old(...)` is proof-state syntax, not a hidden runtime copy.
 - `forall finite` and `exists finite` quantify over canonical inhabitants of a bounded type.
 - `resources` is part of the checked claim and certificate identity.
 - `experiment` produces empirical evidence with target and job identity.
 - `Proof<P>` is accepted only after deterministic kernel checking.
-- `record ... await` creates durable evidence; `commit` advances the recovery horizon.
+- `record ... await` creates durable evidence. `commit` advances the recovery horizon.
 - capability parameters authorize effects. Imports do not grant authority.
 
-Several rules must be settled before this can become real syntax. Finite types need a canonical enumeration order, and each semantic network must have one bitstring encoding; reverse lowering for `compareExchange` must prove that it clears the saved bit after restoring the pair. Oracle cleanup must cover candidate decoding, model-checking workspace, phase flags, and failure paths. Proof budgets and target limits need integer units and stable identities. Values such as `network.length` also need checked rules before they can affect types.
+Several rules must be settled before this can become real syntax. Finite types need a canonical enumeration order, and each semantic network must have one bitstring encoding. Reverse lowering for `compareExchange` must prove that it clears the saved bit after restoring the pair. Oracle cleanup must cover candidate decoding, model-checking workspace, phase flags, and failure paths. Proof budgets and target limits need integer units and stable identities. Values such as `network.length` also need checked rules before they can affect types.
 
 The generated declaration belongs in Wheeler's future module model. The current one-class profile does not allow top-level functions, packages, or imports.
 
@@ -419,12 +419,12 @@ The generated declaration belongs in Wheeler's future module model. The current 
 
 The result is a normal content-addressed Wheeler package. It contains:
 
-- readable generated Wheeler source;
-- canonical `.wbc` built by an identified compiler;
-- a correctness certificate tied to the exact function body and finite semantics profile;
-- a minimality certificate tied to the exact candidate grammar and resource bound;
-- search and model-check provenance;
-- explicit assumptions and target evidence;
+- readable generated Wheeler source.
+- canonical `.wbc` built by an identified compiler.
+- a correctness certificate tied to the exact function body and finite semantics profile.
+- a minimality certificate tied to the exact candidate grammar and resource bound.
+- search and model-check provenance.
+- explicit assumptions and target evidence.
 - no credential, provider object, ambient cache path, or unbounded solver transcript.
 
 A generated function might look like this:

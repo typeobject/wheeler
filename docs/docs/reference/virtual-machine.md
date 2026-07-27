@@ -6,21 +6,21 @@ The current VM is Wheeler's deterministic, single-threaded transition kernel for
 
 The machine owns:
 
-- one verified, immutable program;
-- a status of `ready`, `running`, `halted`, or `trapped`;
-- a bounded stack of immutable control frames;
-- descriptor-typed signed and Boolean local registers in each frame;
-- typed signed 64-bit global locations;
-- separate bounded tables for immutable records, tagged variants, fixed arrays, and nonescaping slices;
-- bounded owned regions and mutable signed-word or byte buffers;
-- immutable frozen UTF-8 owners and fixed-capacity signed maps;
-- explicit live or dropped state with byte and object accounting;
-- an ordered bounded stack of step records;
+- one verified, immutable program.
+- a status of `ready`, `running`, `halted`, or `trapped`.
+- a bounded stack of immutable control frames.
+- descriptor-typed signed and Boolean local registers in each frame.
+- typed signed 64-bit global locations.
+- separate bounded tables for immutable records, tagged variants, fixed arrays, and nonescaping slices.
+- bounded owned regions and mutable signed-word or byte buffers.
+- immutable frozen UTF-8 owners and fixed-capacity signed maps.
+- explicit live or dropped state with byte and object accounting.
+- an ordered bounded stack of step records.
 - a monotonic transition number for the current run.
 
 Raw host pointers and masked segmented addresses are not machine values.
 
-Source compilation currently writes equal limits of 4,000,000 steps and 4,000,000 retained history records. The VM traps before another mutation when either limit is exhausted. The history budget can therefore retain every transition permitted by the default step budget; hashing the current 7,467-byte bootstrap module closure takes 1,550,149 transitions, and its complete twenty-five-module graph validation finishes in 3,588,598 transitions, instead of falling through a trapdoor three quarters of the way to the advertised ceiling. These defaults allow bounded compiler and package work without adding a commit horizon. An artifact or embedding host may choose lower verified limits.
+Source compilation currently writes equal limits of 4,000,000 steps and 4,000,000 retained history records. The VM traps before another mutation when either limit is exhausted. The history budget can therefore retain every transition permitted by the default step budget. Hashing the current 7,467-byte bootstrap module closure takes 1,550,149 transitions, and its complete twenty-five-module graph validation finishes in 3,588,598 transitions, instead of falling through a trapdoor three quarters of the way to the advertised ceiling. These defaults allow bounded compiler and package work without adding a commit horizon. An artifact or embedding host may choose lower verified limits.
 
 A classical entry may borrow one strict UTF-8 input, one immutable binary `byteview`, one mutable byte output, or one input followed by the output. VM construction requires the exact declared effects and an explicit text or binary binding API.
 
@@ -40,11 +40,11 @@ Live I/O remains a rewind barrier. Building a request doesn't submit it.
 
 The interpreter supports:
 
-- up to eight signed globals;
-- up to 512 interpreted instructions;
-- eight bounded frames;
-- up to eight functions;
-- 256 typed locals per frame;
+- up to eight signed globals.
+- up to 512 interpreted instructions.
+- eight bounded frames.
+- up to eight functions.
+- 256 typed locals per frame.
 - up to 512 instructions per function.
 
 Only the active function's local window is cleared. `compiler/ir/Opcodes.w`, `compiler/ir/TypeCodes.w`, and `compiler/ir/ProofRules.w` define the names used at this boundary.
@@ -53,21 +53,21 @@ Only the active function's local window is cleared. `compiler/ir/Opcodes.w`, `co
 
 The current opcode set includes:
 
-- reversible global add, subtract, and XOR;
-- local constants, state load or store, and moves;
-- checked arithmetic, including `LOCAL_AND` and `LOCAL_ROTR32`;
-- signed and Boolean equality or comparison;
-- bounded loop checks;
-- immutable records, finite variants, fixed arrays, and slices;
-- bounded owned regions and mutable word or byte buffers;
-- strict UTF-8 validation, count, scalar, width, and freeze operations;
-- read-only UTF-8 and byte loans;
-- mutable region, word, byte, and map loans;
-- owner-returning primitive-storage calls;
-- deterministic fixed-capacity signed maps;
-- instruction-index branches and global expectations;
-- zero-argument `CALL` and `UNCALL`;
-- typed `CALL_VALUE`, `CALL_VOID`, `RETURN`, and `RETURN_VALUE`;
+- reversible global add, subtract, and XOR.
+- local constants, state load or store, and moves.
+- checked arithmetic, including `LOCAL_AND` and `LOCAL_ROTR32`.
+- signed and Boolean equality or comparison.
+- bounded loop checks.
+- immutable records, finite variants, fixed arrays, and slices.
+- bounded owned regions and mutable word or byte buffers.
+- strict UTF-8 validation, count, scalar, width, and freeze operations.
+- read-only UTF-8 and byte loans.
+- mutable region, word, byte, and map loans.
+- owner-returning primitive-storage calls.
+- deterministic fixed-capacity signed maps.
+- instruction-index branches and global expectations.
+- zero-argument `CALL` and `UNCALL`.
+- typed `CALL_VALUE`, `CALL_VOID`, `RETURN`, and `RETURN_VALUE`.
 - `HALT`.
 
 The direct checked-update fixture matches the final global value produced by the stage-0 VM, and the outer Wheeler run rewinds exactly. The Wheeler compiler also emits the proof-bearing `Counter.w` artifact byte for byte with stage 0. The Wheeler interpreter runs its repeated forward and inverse calls, then finishes at zero.
@@ -89,13 +89,13 @@ step(C, instruction) = (C', undo)
 unstep(C', undo) = C
 ```
 
-Intrinsic operations recover information through their inverse; logged operations save the value they overwrite. Local-register and control operations retain the earlier immutable frame needed to restore the program counter and local values.
+Intrinsic operations recover information through their inverse. Logged operations save the value they overwrite. Local-register and control operations retain the earlier immutable frame needed to restore the program counter and local values.
 
-Frames use persistent chunks of 32 registers; a control-only step shares all register storage. A local write copies only its chunk and the shallow chunk index.
+Frames use persistent chunks of 32 registers. A control-only step shares all register storage. A local write copies only its chunk and the shallow chunk index.
 
 Snapshots still expose ordinary immutable lists, and equality stays structural. This keeps the declared history budget tied to actual changes instead of charging `records × every local × boxed object`.
 
-Aggregate construction interns values by nominal type, variant tag when present, and ordered fields; rewind restores earlier record, variant, array, and slice table lengths along with the frame.
+Aggregate construction interns values by nominal type, variant tag when present, and ordered fields. Rewind restores earlier record, variant, array, and slice table lengths along with the frame.
 
 Region operations save bounded deltas for accounting, changed buffer contents, drop state, and earlier table lengths. Call and return records keep the control data needed to restore frame depth.
 
@@ -103,7 +103,7 @@ A reverse step restores state once. The VM never restores an earlier state and t
 
 ## Function inverse versus rewind
 
-`CALL` runs the forward body of a zero-argument void function; `UNCALL` runs its generated inverse body as new forward work.
+`CALL` runs the forward body of a zero-argument void function. `UNCALL` runs its generated inverse body as new forward work.
 
 `CALL_VALUE` moves an exact initialized argument window into the callee's parameter registers. The window may include transient verified loans. It also names one caller register whose type matches the declared result.
 

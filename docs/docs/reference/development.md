@@ -10,11 +10,19 @@ export PATH="$JAVA_HOME/bin:$PATH"
 ./bootstrap/gradlew -p bootstrap clean check treeSitterTest
 ```
 
-Java compilation enables every `javac` lint warning and treats warnings as errors. `check` runs JUnit, creates JaCoCo reports for modules with tests, and runs the source conformance gates. Wheeler adopts Error Prone-style checks when they are deterministic and high-signal; it does not accumulate suppressions or a ceremonial warning baseline.
+Java compilation enables every `javac` lint warning and treats warnings as errors. `check` runs JUnit, creates JaCoCo reports for modules with tests, and runs the source conformance gates. Wheeler adopts Error Prone-style checks when they are deterministic and high-signal. It does not accumulate suppressions or a ceremonial warning baseline.
 
 `sourceHeaderTest` requires each authored Java, Wheeler, JavaScript, stylesheet, Gradle, Tree-sitter query, shell, and Python file to begin with a suitable documentation comment. `sourceLayoutTest` allows no more than ten Wheeler files in one physical source directory. Generated parser and website files are not part of the authored set.
 
 `treeSitterTest` installs the pinned CLI, regenerates the parser, runs the syntax corpus, and compiles the editor queries.
+
+## Documentation style
+
+Write in active voice and name the actor first. Address readers as `you` when you give instructions. Use direct sentences and simple words. Cut filler, clichés, repeated conclusions, and marketing language.
+
+Do not use semicolons, en dashes, or em dashes in prose. Code spans and fenced examples keep the punctuation that their syntax requires. Markdown keeps its own list, link, and emphasis markers.
+
+`DocumentationStyleTest` checks every maintained README, reference page, future note, and WIP. It rejects those punctuation forms, common filler phrases, and clear passive forms that hide an actor behind `by`. The check stays narrow on purpose. Review still catches vague claims, needless conditionals, awkward rhythm, and jokes that have outlived their patch.
 
 ## Documentation check
 
@@ -22,17 +30,17 @@ Java compilation enables every `javac` lint warning and treats warnings as error
 
 `wheeler check-docs --stdin` checks one bounded buffer and reports its name as `<stdin>`. Duplicate normalized inputs, symbolic links, malformed UTF-8, non-`.w` files, and selections larger than 65,535 sources fail closed.
 
-The current checker requires a nonempty `//!` file summary as the first content; it also requires adjacent, nonempty `///` documentation for public declarations and Wheeler-semantic members.
+The current checker requires a nonempty `//!` file summary as the first content. It also requires adjacent, nonempty `///` documentation for public declarations and Wheeler-semantic members.
 
 The checker verifies canonical facet order and the required `Effects`, `Inverse`, `Coherent`, and `Adjoint` facets. Declaration attachment comes from parser-owned module, type, member, and block ranges. Parser recovery nodes never count as valid declarations.
 
-The command does not read configuration, use the network, or create placeholder text. The same parser boundary exports module identity and selected declaration details for the stage-0 documentation bundle. Those details include kind, name, source position, modifiers, summary, and ordered facets; a renderer consumes this model but cannot redefine what the source declares.
+The command does not read configuration, use the network, or create placeholder text. The same parser boundary exports module identity and selected declaration details for the stage-0 documentation bundle. Those details include kind, name, source position, modifiers, summary, and ordered facets. A renderer consumes this model but cannot redefine what the source declares.
 
 ## Documentation bundle
 
 `wheeler docs <manual-dir> --wheeler <source-dir>... -o <bundle-dir>` builds a renderer-neutral stage-0 bundle from explicit physical roots. Inputs must be strict UTF-8, nonsymlink files chosen in logical-path order.
 
-The command validates Wheeler `//!` and `///` documentation through the compiler export; it then emits sorted manual, heading, and Wheeler API nodes. Explicit `manual:` and `wheeler:` links, along with root-contained relative Markdown links, become canonical edges.
+The command validates Wheeler `//!` and `///` documentation through the compiler export. It then emits sorted manual, heading, and Wheeler API nodes. Explicit `manual:` and `wheeler:` links, along with root-contained relative Markdown links, become canonical edges.
 
 The bundle includes navigation and search indexes, inert Markdown under `pages/`, and a digest for every emitted file in `manifest.json`. Publication creates a new directory with one required atomic move.
 
@@ -40,7 +48,7 @@ Existing destinations, malformed source, missing manual titles, duplicate node i
 
 The current profile is `wheeler-doc-bundle-2`. Profile 2 adds semantic heading nodes and relative page or heading edges. It does not change profile 1 in place.
 
-Manual IDs come from logical paths. Heading text produces canonical heading IDs with deterministic suffixes for duplicates; Wheeler IDs use module or source identity plus the declaration name.
+Manual IDs come from logical paths. Heading text produces canonical heading IDs with deterministic suffixes for duplicates. Wheeler IDs use module or source identity plus the declaration name.
 
 Relative links to `.md` pages and canonical `#heading` anchors resolve only within the manual root. Escapes, missing targets, and noncanonical anchors fail. Repository source links remain normal site links instead of semantic manual edges.
 
@@ -50,7 +58,7 @@ Scalar MDX-style front matter becomes bounded metadata and is never printed as p
 
 Navigation uses one fixed order: Manual, Reference, Proposals, then Future. Overview pages come first, and the proposal template stays out of the sidebar. The profile has one stylesheet, no scripts, no themes, no plugins, a restrictive content security policy, bounded output, and one atomic publication step.
 
-`sitemap.xml` comes from every generated HTML route and includes a deterministic content-set digest; a page edit changes the sitemap without adding build time to the semantic inputs.
+`sitemap.xml` comes from every generated HTML route and includes a deterministic content-set digest. A page edit changes the sitemap without adding build time to the semantic inputs.
 
 `publication-manifest.json` binds the bundle, renderer classes, and every site file. Existing output is rejected. Atomic publication prevents a partial tree from becoming the selected tree. It is not a [WIP-0032](../proposals/WIP-0032-unified-io-fabric-and-durability-receipts.md) data or namespace durability receipt.
 
@@ -60,7 +68,7 @@ Java doclet nodes, executable examples, proof references, and generated referenc
 
 `wheeler format <file-or-directory>...` formats the same bounded, strict-UTF-8, physical `.w` input set in canonical path order. It parses every selected file before publication and stages changed bytes in verified sibling files. Where available, it keeps ordinary POSIX permission bits and requires atomic replacement.
 
-A validation failure publishes nothing. A crash during replacement may leave a sorted prefix updated, but running the idempotent command again converges. Atomic replacement controls visibility; it does not prove durable data or namespace state.
+A validation failure publishes nothing. A crash during replacement may leave a sorted prefix updated, but running the idempotent command again converges. Atomic replacement controls visibility. It does not prove durable data or namespace state.
 
 `wheeler format --check <file-or-directory>...` writes nothing and reports each differing path as `WFMT001`. `wheeler format --stdin` writes one formatted UTF-8 document. Adding `--check` writes only a difference diagnostic.
 

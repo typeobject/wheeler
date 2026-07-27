@@ -17,14 +17,14 @@ Wheeler will have one capability-based asynchronous I/O fabric that does not dep
 
 The base model is not a stream with one mutable cursor. It includes:
 
-- independently addressed byte-range operations;
-- message and datagram operations that preserve boundaries;
-- pure request construction followed by explicit submission and completion;
-- structured scopes and affine operations that must be consumed;
-- bounded queues, credits, batches, selection, and dependency graphs;
-- owned, borrowed, registered, provided, pinned, and segmented buffers;
-- explicit lanes, topology, ordering domains, fences, and storage tiers;
-- cancellation races, partial progress, and uncertain outcomes;
+- independently addressed byte-range operations.
+- message and datagram operations that preserve boundaries.
+- pure request construction followed by explicit submission and completion.
+- structured scopes and affine operations that must be consumed.
+- bounded queues, credits, batches, selection, and dependency graphs.
+- owned, borrowed, registered, provided, pinned, and segmented buffers.
+- explicit lanes, topology, ordering domains, fences, and storage tiers.
+- cancellation races, partial progress, and uncertain outcomes.
 - typed visibility and durability receipts with exact evidence.
 
 Sequential readers and writers remain useful adapters. Each owns one affine cursor and serializes only the work that depends on that cursor. Positional devices can still use their independent queues.
@@ -69,16 +69,16 @@ Wheeler adopts these rules:
 
 1. Positional range I/O is foundational for addressable storage.
 2. Sequential cursors are explicit affine adapters.
-3. Request construction is pure; submission and waiting are effects.
+3. Request construction is pure. Submission and waiting are effects.
 4. Every submitted operation has exactly one terminal completion and is reaped exactly once.
 5. A live operation cannot be dropped or detached anonymously.
 6. Cancellation races with completion and never means rollback.
 7. Submission order gives no completion, visibility, or persistence order without an explicit contract.
 8. Buffers remain owned or borrowed until final resource-release completion.
-9. Batches expose independent work; graphs expose semantic dependencies.
+9. Batches expose independent work. Graphs expose semantic dependencies.
 10. Logical asynchrony and required concurrency are different contracts.
 11. Direct, zero-copy, registered, ordered, atomic, visible, and durable are independent axes.
-12. Required optimized paths fail when unavailable; preferred paths report fallback.
+12. Required optimized paths fail when unavailable. Preferred paths report fallback.
 13. Completion, close, rename, staging, replication acknowledgement, and RDMA placement imply no unnamed durability.
 14. Durability receipts identify subject, failure model, atomicity, replication, assumptions, evidence source, and receipt chain.
 15. Backends are replaceable implementations of one semantic contract, not separate portable source APIs.
@@ -87,7 +87,7 @@ Wheeler adopts these rules:
 
 WIP-0032 is the sole owner of Wheeler's portable I/O lifecycle and common operation vocabulary: `Io`, capabilities, requests, scopes, operations, groups, batches, graphs, selection, cancellation, completion, lanes, buffers, backpressure, visibility, and durability receipts.
 
-Other WIPs may define resource-domain facts such as path naming, wire protocols, quantum target commands, package grants, native ABI mappings, or proof rules. They integrate those facts through WIP-0032 and don't invent parallel `Future`, stream, callback, cursor, scheduler, cancellation, or durability APIs. A successor may extend a named resource family only by depending on this WIP and preserving its lifecycle and laws. Method registries remain here; integration notes elsewhere stay deliberately narrow.
+Other WIPs may define resource-domain facts such as path naming, wire protocols, quantum target commands, package grants, native ABI mappings, or proof rules. They integrate those facts through WIP-0032 and don't invent parallel `Future`, stream, callback, cursor, scheduler, cancellation, or durability APIs. A successor may extend a named resource family only by depending on this WIP and preserving its lifecycle and laws. Method registries remain here. Integration notes elsewhere stay deliberately narrow.
 
 If two WIPs appear to define how an I/O request is submitted or completed, this WIP wins and the duplicate text is a bug. Please send a patch instead of naming the second event loop.
 
@@ -99,11 +99,11 @@ The missing piece is one I/O lifecycle that joins those contracts without inheri
 
 A cursor-only foundation causes accidental coupling:
 
-- independent reads contend on one mutable offset;
-- scatter/gather and batch submission become afterthoughts;
-- disjoint writes need duplicate handles or seeking games;
-- device queues, object ranges, RDMA, and storage tiers fit poorly;
-- staging and drain become invisible side effects;
+- independent reads contend on one mutable offset.
+- scatter/gather and batch submission become afterthoughts.
+- disjoint writes need duplicate handles or seeking games.
+- device queues, object ranges, RDMA, and storage tiers fit poorly.
+- staging and drain become invisible side effects.
 - `write`, `flush`, `sync`, and `close` cannot express the exact promise being requested.
 
 Modern systems expose many queues, cores, lanes, zones, tiers, and failure domains. A server may own millions of dormant connections while admitting only a bounded active set. Zero-copy sends may have separate transport and reuse completions. RDMA can place bytes without proving peer processing or persistence. Crash-safe publication separates file data, file metadata, visible namespace change, and stable namespace change.
@@ -198,7 +198,7 @@ Scope exit requires every operation terminal and reaped, every held loan release
 
 ### `Operation<T>`
 
-An operation is an affine must-consume handle for submitted work; it has one terminal result; dropping it live is invalid. Cancellation does not consume it; terminal completion and reaping do.
+An operation is an affine must-consume handle for submitted work. It has one terminal result. Dropping it live is invalid. Cancellation does not consume it. Terminal completion and reaping do.
 
 ### Completion
 
@@ -307,7 +307,7 @@ WIP-0028 owns memory semantics.
 - Reads hold exclusive destination loans until final release.
 - Writes hold shared source loans until final release.
 - A caller may move a buffer into an operation and recover it from the terminal result.
-- Segments carry origin, range, mutability, alignment, and registration state; forbidden overlap fails verification.
+- Segments carry origin, range, mutability, alignment, and registration state. Forbidden overlap fails verification.
 - Buffer-pool leases are affine and explicitly returned.
 - Provided-buffer completion transfers one lease to the application.
 - Registered regions consume bounded pin/map credit and cannot move, deallocate, or deregister while referenced.
@@ -320,11 +320,11 @@ The portable core requires no tracing collector or one allocation per operation.
 
 Every queue is bounded. Credits cover pending work, completions, buffers, pinned bytes, connections, timers, task frames, queue depth, RDMA work requests, tier capacity, transfer bytes, and CPU service.
 
-`trySubmit` returns unavailable credit immediately. `submit` may wait under scope cancellation/deadline; `reserve` acquires bounded graph capacity before construction.
+`trySubmit` returns unavailable credit immediately. `submit` may wait under scope cancellation/deadline. `reserve` acquires bounded graph capacity before construction.
 
 Backends reserve enough control capacity for cancellation, completion, scope close, deregistration, shutdown, and error reporting. Saturating the data plane cannot permanently prevent cleanup.
 
-Admission policy may include active/queued limits, tenant quotas, token buckets, weighted fairness, priority, load shedding, and queue-delay bounds. Completion queues never silently drop terminal events; backpressure begins before overflow.
+Admission policy may include active/queued limits, tenant quotas, token buckets, weighted fairness, priority, load shedding, and queue-delay bounds. Completion queues never silently drop terminal events. Backpressure begins before overflow.
 
 Backend profiles name lane count, concurrency, polling, preemption/yield budget, batch size, fairness, memory per operation/connection, timer strategy, migration, and NUMA policy.
 
@@ -348,7 +348,7 @@ Segmented parsers distinguish consumed bytes, examined-but-retained bytes, confi
 
 ### Byte channels, messages, and datagrams
 
-Byte channels preserve byte order, not message boundaries; message and datagram endpoints preserve boundaries and metadata. Framing a byte channel is a protocol adapter; flattening messages requires an explicit framing rule.
+Byte channels preserve byte order, not message boundaries. Message and datagram endpoints preserve boundaries and metadata. Framing a byte channel is a protocol adapter. Flattening messages requires an explicit framing rule.
 
 Send completion says only what the local transport/backend contract says. Peer receipt, peer application, peer persistence, and exactly-once processing require stronger protocol results.
 
@@ -385,7 +385,7 @@ The graph orders what must be ordered and leaves unrelated work alone.
 
 Asynchrony, direct access, zero-copy, and durability are orthogonal.
 
-A direct capability publishes memory/offset/length alignment, segment and transfer limits, and cache-coherence policy. `DirectRequired` rejects fallback; `DirectPreferred` reports the actual path. Zero-copy uses the same required/preferred distinction.
+A direct capability publishes memory/offset/length alignment, segment and transfer limits, and cache-coherence policy. `DirectRequired` rejects fallback. `DirectPreferred` reports the actual path. Zero-copy uses the same required/preferred distinction.
 
 Unaligned tails use an explicit bounce buffer, buffered tail, read-modify-write protocol, or rejection. Mixing overlapping buffered and direct access is rejected without a coherence contract.
 
@@ -397,7 +397,7 @@ Transfer metadata may report copied, kernel zero-copy, device-direct, RDMA one-s
 
 `IoTopology` may describe controller/namespace identity, NUMA placement, queue count/depth, channels/zones, alignment, polling, registration, bandwidth/latency class, failure domain, and endurance.
 
-Backends may distribute disjoint ranges over controller queues, flash channels, dies, zones, device heads, or stripes. Portable algorithms may prefer topology; only specialized capabilities may require it.
+Backends may distribute disjoint ranges over controller queues, flash channels, dies, zones, device heads, or stripes. Portable algorithms may prefer topology. Only specialized capabilities may require it.
 
 Interrupt, worker, busy-poll, adaptive-poll, centralized-poll, and device-notification backends implement the same lifecycle. Polling policy includes CPU budgets and bounded turns.
 
@@ -421,13 +421,13 @@ A tier allocation is an affine capacity lease. `stage` returns `Staged`, which i
 
 `drainTo` is an owned asynchronous operation. It may combine, reorder, stripe, throttle, or offload independent data, but cannot claim destination durability before the required persistence receipt exists.
 
-A full tier waits, rejects, or spills under explicit policy. It never silently evicts uncommitted data. Background drain belongs to a caller/service scope or persisted continuation; a source lease cannot expire while a live drain depends on it.
+A full tier waits, rejects, or spills under explicit policy. It never silently evicts uncommitted data. Background drain belongs to a caller/service scope or persisted continuation. A source lease cannot expire while a live drain depends on it.
 
 Checkpoint staging, drain, persistence, and catalog publication are separate graph phases and receipts.
 
 ## RDMA and remote regions
 
-Local registration binds a bounded range, backend/device, protection domain, rights, epoch, credit, and required affinity; remote advertisement binds session, protected range, rights, remote epoch, expiration/revocation, ordering domain, and protocol identity.
+Local registration binds a bounded range, backend/device, protection domain, rights, epoch, credit, and required affinity. Remote advertisement binds session, protected range, rights, remote epoch, expiration/revocation, ordering domain, and protocol identity.
 
 Raw addresses and keys are not portable values.
 
@@ -453,12 +453,12 @@ Connection loss or revocation may produce `Uncertain` with operation identity, r
 
 A durability guarantee is not a Boolean. It records:
 
-- protected resource/object, generation, ranges/records, content identity, metadata, namespace/catalog relation, and replica set;
-- visibility domain;
-- named failure model;
-- exact atomicity;
-- replication/quorum rule and independence assumptions;
-- backend/profile/operation/protocol evidence;
+- protected resource/object, generation, ranges/records, content identity, metadata, namespace/catalog relation, and replica set.
+- visibility domain.
+- named failure model.
+- exact atomicity.
+- replication/quorum rule and independence assumptions.
+- backend/profile/operation/protocol evidence.
 - assumptions and receipt chain.
 
 Public nominal types include `WriteCompleted`, `RemotePlaced`, `PeerApplied`, `Staged`, `DataStable`, `FileStable`, `NamespaceVisible`, `NamespaceStable`, `QuorumStable`, and `Published`.
@@ -483,11 +483,11 @@ Release-grade durability profiles require crash injection, qualified failure/pow
 
 ## Rewind, replay, retry, and compensation
 
-Submitting or awaiting live I/O is an effect barrier. Machine rewind restores Wheeler state above the horizon; it does not reread, unsend, or unwrite external state.
+Submitting or awaiting live I/O is an effect barrier. Machine rewind restores Wheeler state above the horizon. It does not reread, unsend, or unwrite external state.
 
 A live read may become a WIP-0004 observation. Replay validates exact identity and returns recorded bytes/results without live I/O.
 
-Retry creates a new operation/event lineage. Idempotency keys, expected generations, compare/exchange, deduplication, and reconciliation are explicit protocol tools; the fabric does not infer exactly-once execution.
+Retry creates a new operation/event lineage. Idempotency keys, expected generations, compare/exchange, deduplication, and reconciliation are explicit protocol tools. The fabric does not infer exactly-once execution.
 
 Compensation is a second external effect with its own failure and uncertainty. Isolation and write-new-generation protocols may prevent publication before commit without claiming inverse execution.
 
@@ -524,7 +524,7 @@ Initial backend classes include deterministic inline, bounded threaded, readines
 
 Capability discovery names positional I/O, batch, graph, multishot, provided/registered buffers, direct, zero-copy, polling, RDMA, zoned storage, and exact durability profiles.
 
-A portable threaded backend is required before optimized backends may claim equivalence. Readiness is translated into operation progress; readiness itself is not completion. Completion backends validate native results; polling backends declare CPU budgets. Routing backends cannot change result meaning.
+A portable threaded backend is required before optimized backends may claim equivalence. Readiness is translated into operation progress. Readiness itself is not completion. Completion backends validate native results. Polling backends declare CPU budgets. Routing backends cannot change result meaning.
 
 ## Bytecode, packages, and security
 
@@ -532,11 +532,11 @@ Canonical `.wbc` remains the sole semantic artifact. Typed operation metadata in
 
 The first lowering may use WIP-0001 `EFFECT_CALL` and WIP-0004 continuations instead of multiplying low-level opcodes. Bytecode contains no descriptors, pointers, native queues, addresses, remote keys, provider objects, or credentials.
 
-Package manifests request exact target/phase-scoped capabilities such as file read/write, network connect/listen, direct storage, persistence evidence, RDMA registration/remote access, and target submission. Build programs retain WIP-0023 sealed declared inputs/outputs; runtime I/O support does not hand them the network keys.
+Package manifests request exact target/phase-scoped capabilities such as file read/write, network connect/listen, direct storage, persistence evidence, RDMA registration/remote access, and target submission. Build programs retain WIP-0023 sealed declared inputs/outputs. Runtime I/O support does not hand them the network keys.
 
 Runtime and verifier limits cover scopes, operations, tasks, groups, batches, graph nodes/edges, lanes, completions, segments, pinned bytes, connections, timers, multishot items, transfers, tiers, RDMA resources, evidence bytes, cancellation/reconciliation, and total work.
 
-Untrusted backends cannot forge lengths, identities, rights, receipt strength, or quantum state; privileged direct/user-space/RDMA adapters require declared trust and may require isolation.
+Untrusted backends cannot forge lengths, identities, rights, receipt strength, or quantum state. Privileged direct/user-space/RDMA adapters require declared trust and may require isolation.
 
 ## Ownership and boundaries
 
@@ -565,13 +565,13 @@ WIP-0032 owns the common I/O method registry and lifecycle. Resource-specific WI
 11. Add deterministic failure, replay, and schedule exploration.
 12. Delete ambient I/O globals, cursor-only foundations, hidden unbounded pools, callback-only APIs, bare ambiguous `flush`, and dishonest durability claims.
 
-Filesystem, networking, tier, RDMA, durability-profile, and quantum-network details may receive dependent successor WIPs before WIP-0032 leaves Draft. Such a successor owns domain semantics only and amends this WIP's method registry; it cannot fork the lifecycle. Device-specific details may live in dependent proposals, but they must use the same event lifecycle.
+Filesystem, networking, tier, RDMA, durability-profile, and quantum-network details may receive dependent successor WIPs before WIP-0032 leaves Draft. Such a successor owns domain semantics only and amends this WIP's method registry. It cannot fork the lifecycle. Device-specific details may live in dependent proposals, but they must use the same event lifecycle.
 
 ## Progress
 
-- [x] Proposal index, dependent WIPs, current references, and future documentation name WIP-0032 as the sole I/O lifecycle and method-registry owner; no competing portable method family remains in another WIP.
+- [x] Proposal index, dependent WIPs, current references, and future documentation name WIP-0032 as the sole I/O lifecycle and method-registry owner. No competing portable method family remains in another WIP.
 - [x] The quarantined stage-0 runtime executes the bounded request, scope, operation, terminal-completion, reap, batch, selection, and terminal-dependency graph lifecycle with one deterministic semantic contract. This is executable scaffolding, not permission to fossilize the Java spelling.
-- [x] Inline and delayed deterministic delivery produce equal semantic completions; delayed cancellation-before-effect performs no provider action.
+- [x] Inline and delayed deterministic delivery produce equal semantic completions. Delayed cancellation-before-effect performs no provider action.
 - [x] The portable stage-0 threaded backend admits work before consuming requests, bounds workers plus in-flight operations, proves two-worker overlap, preserves dependency gates, distinguishes queued cancellation from a running cancellation race, and refuses shutdown with admitted work.
 - [x] A bounded in-memory addressable-file oracle executes positional reads and exact writes through the same request lifecycle. Buffers are inaccessible while captured, return in terminal results, and are released on cancellation-before-effect. Write completion remains gloriously unqualified by durability.
 - [x] The Wheeler-native runtime enforces up to 64 caller-owned lifecycle rows: bounded submission and work charging, terminal-kind/cancellation-relation compatibility, exact progress, resource release, late-cancellation races, one reap, and all-reaped scope closure. The executable example proves complete rewind and fail-closed fifth-row publication at its declared capacity.
@@ -600,8 +600,8 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] Stage-0 request construction performs no provider action.
 - [x] Every stage-0 and Wheeler-native submitted operation has one terminal completion and one reap.
 - [x] Dropping a live stage-0 operation or closing a native lifecycle table with live or unreaped work is rejected.
-- [x] Inline and delayed deterministic completion have equal semantic results; threaded results match the same semantic fields.
-- [ ] `async` may execute inline; `concurrent` fails when overlap is unavailable.
+- [x] Inline and delayed deterministic completion have equal semantic results. Threaded results match the same semantic fields.
+- [ ] `async` may execute inline. `concurrent` fails when overlap is unavailable.
 - [ ] Common examples require no backend vocabulary or manual polling.
 
 ### Cancellation and replay
@@ -610,7 +610,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [ ] Deadline expiry requests cancellation and never proves no effect.
 - [ ] Every uncertain result carries reconciliation identity and known progress.
 - [ ] Replay performs no live I/O and validates exact request/resource/profile identity.
-- [ ] Retry creates a new lineage; no generic API claims exactly-once execution.
+- [ ] Retry creates a new lineage. No generic API claims exactly-once execution.
 
 ### Buffers and pressure
 
@@ -624,18 +624,18 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 ### Ordering and addressing
 
 - [ ] Independent batch operations complete in every permitted order.
-- [x] The deterministic stage-0 graph publishes a node only after every named terminal predecessor; independent roots are admitted together.
+- [x] The deterministic stage-0 graph publishes a node only after every named terminal predecessor. Independent roots are admitted together.
 - [ ] Submission order creates no implicit completion or persistence order.
-- [ ] Disjoint ranges run independently; unsafe overlap is rejected or explicitly named.
+- [ ] Disjoint ranges run independently. Unsafe overlap is rejected or explicitly named.
 - [ ] Sequential adapters own exactly one cursor and preserve consumed/examined positions.
 - [ ] Canonical aggregate reduction is independent of physical completion order.
 
 ### Direct, topology, and scale
 
-- [ ] Required direct/zero-copy paths reject fallback; preferred paths report it.
+- [ ] Required direct/zero-copy paths reject fallback. Preferred paths report it.
 - [ ] Alignment, tail handling, and buffered/direct coherence are explicit.
 - [ ] Direct completion produces no persistence receipt by itself.
-- [ ] One-queue, many-queue, interrupt, and polling backends pass one semantic suite; the bounded worker backend now passes its stage-0 slice.
+- [ ] One-queue, many-queue, interrupt, and polling backends pass one semantic suite. The bounded worker backend now passes its stage-0 slice.
 - [ ] Connection scale requires no native thread, stack, task, or timer per dormant connection.
 - [ ] Admission, batching, migration, fairness, and overload remain bounded and measurable.
 
@@ -650,7 +650,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 
 ### Durability
 
-- [x] Stage-0 `WriteCompleted`, `DataStable`, `FileStable`, `NamespaceVisible`, `NamespaceStable`, and `QuorumStable` are distinct closed receipt kinds with no public construction path; the Wheeler identity engine differentially matches their canonical chain.
+- [x] Stage-0 `WriteCompleted`, `DataStable`, `FileStable`, `NamespaceVisible`, `NamespaceStable`, and `QuorumStable` are distinct closed receipt kinds with no public construction path. The Wheeler identity engine differentially matches their canonical chain.
 - [x] Stage-0 receipt requirements name the protected generation/range/content, namespace, failure model, atomicity, replication, quorum, backend profile, and sorted assumptions.
 - [x] Unsupported stage-0 promotions, evidence sources, namespace claims, and quorum profiles fail instead of silently degrading.
 - [x] Stage-0 data, metadata, namespace visibility, namespace stability, and quorum evidence transformations test separately.
@@ -664,7 +664,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [ ] Compensation is a new effect and rewind cannot cross an I/O barrier.
 - [ ] Quantum registers cannot become files, bytes, mapped regions, or RDMA registrations.
 - [ ] Target submission/cancellation/result handling uses WIP-0004 identities and this lifecycle.
-- [ ] Measurement remains a quantum effect; replay reuses only its classical observation.
+- [ ] Measurement remains a quantum effect. Replay reuses only its classical observation.
 - [ ] Deterministic, threaded, readiness, completion, polling, native, and VM implementations agree on lifecycle and encodings.
 
 ## Alternatives
@@ -677,7 +677,7 @@ A future alone is insufficient: it does not define scope ownership, cancellation
 
 Dropping a future as cancellation is rejected because external work may have completed, partially completed, or become uncertain.
 
-Callbacks, actors, CSP channels, and monadic bind remain useful implementation/library techniques; none alone covers positional buffers, device queues, graphs, and receipts. Direct style plus explicit independent composition is primary.
+Callbacks, actors, CSP channels, and monadic bind remain useful implementation/library techniques. None alone covers positional buffers, device queues, graphs, and receipts. Direct style plus explicit independent composition is primary.
 
 Exposing io_uring, IOCP, kqueue, SPDK, or RDMA verbs directly is rejected as the portable API. They are backends with different lifetime and feature rules.
 
@@ -685,15 +685,15 @@ Automatic unreported direct/zero-copy fallback, bare `flush()`, close-as-persist
 
 ## Open questions
 
-- Is `scope.await(request)`, `await request`, or exact sugar for both the final surface (owner: language/tooling; decision point: parser implementation)?
-- Are `async` and `concurrent` keywords, scope operations, or WIP-0031 callable characteristics (owner: language/runtime; decision point: structured-concurrency syntax)?
-- Are `Request<T>` and receipt families explicit source types or commonly inferred (owner: language/library; decision point: API stabilization)?
-- Which operation/result names form the first public vocabulary (owner: library/documentation; decision point: first implementation)?
-- Are durability receipts nominal types, `Receipt<Guarantee>`, or both (owner: storage/types/proof; decision point: schema freeze)?
-- What portable failure-domain algebra accurately covers devices and distributed stores (owner: storage/distributed systems; decision point: durability profile)?
-- Which cancellation outcomes share a common variant and which remain effect-specific (owner: runtime/API; decision point: lifecycle freeze)?
-- Which backend features and numerical scale profiles are tier-one requirements (owner: runtime/platform/performance; decision point: native conformance)?
-- Which filesystem, network, tier, durability, RDMA, and quantum-network domain rules need dependent successor WIPs while this WIP retains the method registry and lifecycle (owner: proposal maintainers; decision point: before Review)?
+- Is `scope.await(request)`, `await request`, or exact sugar for both the final surface (owner: language/tooling. Decision point: parser implementation)?
+- Are `async` and `concurrent` keywords, scope operations, or WIP-0031 callable characteristics (owner: language/runtime. Decision point: structured-concurrency syntax)?
+- Are `Request<T>` and receipt families explicit source types or commonly inferred (owner: language/library. Decision point: API stabilization)?
+- Which operation/result names form the first public vocabulary (owner: library/documentation. Decision point: first implementation)?
+- Are durability receipts nominal types, `Receipt<Guarantee>`, or both (owner: storage/types/proof. Decision point: schema freeze)?
+- What portable failure-domain algebra accurately covers devices and distributed stores (owner: storage/distributed systems. Decision point: durability profile)?
+- Which cancellation outcomes share a common variant and which remain effect-specific (owner: runtime/API. Decision point: lifecycle freeze)?
+- Which backend features and numerical scale profiles are tier-one requirements (owner: runtime/platform/performance. Decision point: native conformance)?
+- Which filesystem, network, tier, durability, RDMA, and quantum-network domain rules need dependent successor WIPs while this WIP retains the method registry and lifecycle (owner: proposal maintainers. Decision point: before Review)?
 
 ## References
 

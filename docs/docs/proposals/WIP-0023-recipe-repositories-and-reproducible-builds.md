@@ -48,7 +48,7 @@ The package system must identify repository state, recipe closure, semantic vari
 - Treat a branch, mutable directory, tag, URL, or mirror order as identity.
 - Accept divergent PREVs and select whichever was uploaded last.
 - Hide undeclared native tools or system libraries inside captured environment metadata.
-- Define graph semantics, OS packages, FFI, or native image layout; WIP-0022, WIP-0024, WIP-0025, and WIP-0026 own those.
+- Define graph semantics, OS packages, FFI, or native image layout. WIP-0022, WIP-0024, WIP-0025, and WIP-0026 own those.
 - Let signatures replace digest and canonical decoding.
 
 ## Identity model
@@ -61,7 +61,7 @@ A snapshot is an immutable canonical view of coordinate-to-RREV mappings, varian
 snapshot_id = hash(canonical snapshot bytes)
 ```
 
-Sequence numbers support audit but are not content identity. A mirror can serve exact snapshot objects; it cannot add candidates or alter namespaces.
+Sequence numbers support audit but are not content identity. A mirror can serve exact snapshot objects. It cannot add candidates or alter namespaces.
 
 A reviewable recipe index may use:
 
@@ -76,7 +76,7 @@ recipes/org.example.library/
         tests/
 ```
 
-Recipes declare sources, patches, targets, features, dependencies, locked tools, typed build/test/export operations, capabilities, limits, exports, and compatibility. Complex behavior lives in a locked Wheeler tool package with a typed interface; there is no generic canonical `run shell string`.
+Recipes declare sources, patches, targets, features, dependencies, locked tools, typed build/test/export operations, capabilities, limits, exports, and compatibility. Complex behavior lives in a locked Wheeler tool package with a typed interface. There is no generic canonical `run shell string`.
 
 A source object is `(name, digest, length, media_type, transport_hints)`. URLs are hints. Only verified bytes enter a build.
 
@@ -127,7 +127,7 @@ A quarantine record binds expected and observed PREVs, build-input ID, attestati
 
 ## Ownership and boundaries
 
-The recipe index owns reviewed packaging intent. Snapshot services own immutable availability and namespace authorization. Source stores own exact bytes. WIP-0022 resolves graphs. The planner owns build-input identity; the executor owns sealed operations. The codec owns canonical package bytes/PREV. Rebuild services compare independent output and quarantine divergence. Publication owns immutable mappings, signatures, yanks, advisories, and acknowledgements. Mirrors own transport only.
+The recipe index owns reviewed packaging intent. Snapshot services own immutable availability and namespace authorization. Source stores own exact bytes. WIP-0022 resolves graphs. The planner owns build-input identity. The executor owns sealed operations. The codec owns canonical package bytes/PREV. Rebuild services compare independent output and quarantine divergence. Publication owns immutable mappings, signatures, yanks, advisories, and acknowledgements. Mirrors own transport only.
 
 ## Design
 
@@ -141,7 +141,7 @@ Root policy binds repository aliases to IDs and namespace allowlists. Overlap is
 
 ### XDG local objects and reusable artifacts
 
-WIP-0009 owns user-facing placement and commands. Repository data lives below `${XDG_DATA_HOME:-$HOME/.local/share}/wheeler/repository`; reusable build artifacts go under `${XDG_CACHE_HOME:-$HOME/.cache}/wheeler/artifacts`. The policy lives at `${XDG_CONFIG_HOME:-$HOME/.config}/wheeler/wheeler.repositories.yaml`; journals and quarantine state use `${XDG_STATE_HOME:-$HOME/.local/state}/wheeler`. These adapter paths do not affect RREV, variant, build-input, PREV, snapshot, or repository identity.
+WIP-0009 owns user-facing placement and commands. Repository data lives below `${XDG_DATA_HOME:-$HOME/.local/share}/wheeler/repository`. Reusable build artifacts go under `${XDG_CACHE_HOME:-$HOME/.cache}/wheeler/artifacts`. The policy lives at `${XDG_CONFIG_HOME:-$HOME/.config}/wheeler/wheeler.repositories.yaml`. Journals and quarantine state use `${XDG_STATE_HOME:-$HOME/.local/state}/wheeler`. These adapter paths do not affect RREV, variant, build-input, PREV, snapshot, or repository identity.
 
 The data repository is an immutable trust domain and the default `local` publication target. The artifact cache is not a repository and contributes no resolver candidates. It may reuse outputs acquired from any repository, workspace, vendor closure, recipe build, mirror, or independent builder only when the complete `build_input_id`, output kind, canonical length, and PREV match. Every hit is decoded and verified under current limits before use. A source label records provenance. Two causes cannot share a key merely because their filenames match.
 
@@ -153,7 +153,7 @@ A complete vendor closure may contain snapshots, recipes, sources, packages, att
 
 Wheeler tools receive typed inputs. Native adapters receive a canonical allowlist equivalent to UTC, `C` locale, explicit source epoch, exact tool paths, empty private home, and a private deterministic-class temporary directory. The host clock and random devices are unavailable for output.
 
-Virtual roots are content-derived logical paths such as `/wheeler/source/<RREV>/` and `/wheeler/output/<build_input_id>/`; host paths are adapter details and debug paths are remapped.
+Virtual roots are content-derived logical paths such as `/wheeler/source/<RREV>/` and `/wheeler/output/<build_input_id>/`. Host paths are adapter details and debug paths are remapped.
 
 Canonical output fixes path encoding/order, timestamps, ownership, modes, safe links, extended attributes, compression, archive metadata, locale, timezone, deterministic seeds, and scheduling-independent order. Every compiler, linker, archiver, generator, stripper, sysroot, standard library, macro set, and support file that can affect bytes is an exact input. Version text is not a toolchain identity.
 
@@ -167,7 +167,7 @@ The immutable mapping is conceptually:
 (repository, coordinate, RREV, variant_id, build_input_id) -> PREV
 ```
 
-A differing PREV enters quarantine, cannot replace canonical output, emits a reproducibility diagnostic, and may suspend eligibility until inputs or implementation are corrected. Publication verifies snapshot, recipes/sources, build-input identity, canonical decode/re-encode, PREV, tests, compatibility, and attestations before no-replace content and mapping writes. Equal concurrent publication is idempotent; conflicting bytes fail.
+A differing PREV enters quarantine, cannot replace canonical output, emits a reproducibility diagnostic, and may suspend eligibility until inputs or implementation are corrected. Publication verifies snapshot, recipes/sources, build-input identity, canonical decode/re-encode, PREV, tests, compatibility, and attestations before no-replace content and mapping writes. Equal concurrent publication is idempotent. Conflicting bytes fail.
 
 Yanks affect new unlocked resolution but preserve bytes and exact locks. Advisories are signed and may bind coordinate, RREV, variant, PREV, or capability profile. Garbage collection is a separate audited reachability operation over retained snapshots, locks, quarantines, and holds.
 
@@ -175,13 +175,13 @@ Patch or minor publication rejects removed exports, incompatible parameters, res
 
 ## Sealed build I/O
 
-WIP-0032 may implement the build driver's acquisition, output publication, and backend scheduling, but it does not relax the sealed recipe contract. Build programs receive immutable declared inputs and explicit output capabilities only; live network, clock, random, host discovery, and undeclared filesystem access remain forbidden.
+WIP-0032 may implement the build driver's acquisition, output publication, and backend scheduling, but it does not relax the sealed recipe contract. Build programs receive immutable declared inputs and explicit output capabilities only. Live network, clock, random, host discovery, and undeclared filesystem access remain forbidden.
 
 Publication acknowledgement and exact persistence evidence are separate external effects. A content digest identifies bytes but neither grants authority nor proves those bytes survived a named failure.
 
 ## Reversibility and determinism
 
-Canonicalization, planning, hashing, and verification are deterministic. Fetch, signing, publication, yanking, and GC are external effects. Publication acknowledgement is a commit barrier; retry reconciles immutable identities. Worker concurrency cannot alter bytes or mapping order.
+Canonicalization, planning, hashing, and verification are deterministic. Fetch, signing, publication, yanking, and GC are external effects. Publication acknowledgement is a commit barrier. Retry reconciles immutable identities. Worker concurrency cannot alter bytes or mapping order.
 
 ## Quantum and proof implications
 
@@ -213,14 +213,14 @@ Reject noncanonical snapshots, invalid delegations, conflicting mappings, source
 - [ ] Fetch separated from build.
 - [x] XDG path resolution, canonical ordered file-repository policy, immutable local publication, canonical release mappings, and exact first-authoritative fetch are implemented in stage 0.
 - [x] Unlocked stage-0 resolution honors namespace authority and first-admissible configured repository order without candidate mixing.
-- [x] Canonical schema-1 local repository snapshots bind the complete sorted coordinate/archive/manifest view, live under immutable content-derived names, and are materialized on publication and resolution without a mutable `latest` authority. Lock schema 3 binds each selected package to both that snapshot and its owning repository trust-domain identity without binding aliases, URLs, order, or physical paths. Strict detached Ed25519 envelopes sign the domain-separated repository identity and complete canonical snapshot bytes and bind snapshot and X.509 key identities. Repository-policy schema 2 pins up to sixteen canonical trusted keys per trust domain. `repository trust`, `untrust`, `sign`, and `verify` manage explicit local authority; configured resolution and exact fetch reject an unsigned current view or malformed trusted envelope before consulting candidates or signed-domain cache objects. Substitution, forgery, wrong key pairs, malformed DER, noncanonical base64, and noncanonical YAML fail closed. Delegations, threshold policy, yanks, advisories, and network acquisition remain. One key is a root, not a committee, however impressive its lanyard.
-- [x] Authoritative exact package fetches populate and reverify a disposable XDG package-object cache; corruption becomes a miss, cache bytes never become candidates, and bounded GC removes malformed regular objects without following links. A repository with trusted signing keys verifies its current complete snapshot before either repository or cache bytes may satisfy an exact fetch.
-- [x] Stage-0 source-package build outputs are keyed by the complete current plan input identity, reverified on every hit, and admitted at one PREV per input. Divergent verified output enters deterministic XDG quarantine and cannot replace the accepted mapping; bounded GC removes malformed and unreachable disposable cache objects.
+- [x] Canonical schema-1 local repository snapshots bind the complete sorted coordinate/archive/manifest view, live under immutable content-derived names, and are materialized on publication and resolution without a mutable `latest` authority. Lock schema 3 binds each selected package to both that snapshot and its owning repository trust-domain identity without binding aliases, URLs, order, or physical paths. Strict detached Ed25519 envelopes sign the domain-separated repository identity and complete canonical snapshot bytes and bind snapshot and X.509 key identities. Repository-policy schema 2 pins up to sixteen canonical trusted keys per trust domain. `repository trust`, `untrust`, `sign`, and `verify` manage explicit local authority. Configured resolution and exact fetch reject an unsigned current view or malformed trusted envelope before consulting candidates or signed-domain cache objects. Substitution, forgery, wrong key pairs, malformed DER, noncanonical base64, and noncanonical YAML fail closed. Delegations, threshold policy, yanks, advisories, and network acquisition remain. One key is a root, not a committee, however impressive its lanyard.
+- [x] Authoritative exact package fetches populate and reverify a disposable XDG package-object cache. Corruption becomes a miss, cache bytes never become candidates, and bounded GC removes malformed regular objects without following links. A repository with trusted signing keys verifies its current complete snapshot before either repository or cache bytes may satisfy an exact fetch.
+- [x] The complete current plan input identity keys stage-0 source-package build outputs. The cache reverifies every hit and admits one PREV per input. Divergent verified output enters deterministic XDG quarantine and cannot replace the accepted mapping. Bounded GC removes malformed and unreachable disposable cache objects.
 - [x] Wheeler parses strict schema-1 repository snapshots into caller-owned coordinate rows, reproduces empty and populated canonical bytes, and agrees with stage 0 on package order plus stable and prerelease semantic-version precedence. The executable fixture publishes eight rows and rejects a ninth at its declared table bound.
-- [x] Wheeler validates bounded immutable snapshot input before computing and publishing its complete SHA-256 identity. Empty and three-release identities match stage 0; malformed, fourth-release, and oversized inputs leave output untouched. Ed25519 envelope verification and trusted-key policy remain on the native path.
-- [x] Wheeler computes a final archive identity only after payload digest, entry digest, embedded canonical manifest, and exact source closure all pass. The bounded one-file result agrees with stage 0; damaged or oversized input publishes no identity.
-- [x] Wheeler computes a final build-plan identity only after the payload digest and exact node identity rederive. The bounded one-node result agrees with stage 0; damage or oversized input leaves output untouched.
-- [ ] Recipe-complete build-input axes and identity-preserving mirrors remain; local locks are snapshot-bound, but public signed snapshots are not implemented.
+- [x] Wheeler validates bounded immutable snapshot input before computing and publishing its complete SHA-256 identity. Empty and three-release identities match stage 0. Malformed, fourth-release, and oversized inputs leave output untouched. Ed25519 envelope verification and trusted-key policy remain on the native path.
+- [x] Wheeler computes a final archive identity only after payload digest, entry digest, embedded canonical manifest, and exact source closure all pass. The bounded one-file result agrees with stage 0. Damaged or oversized input publishes no identity.
+- [x] Wheeler computes a final build-plan identity only after the payload digest and exact node identity rederive. The bounded one-node result agrees with stage 0. Damage or oversized input leaves output untouched.
+- [ ] Recipe-complete build-input axes and identity-preserving mirrors remain. Local locks are snapshot-bound, but public signed snapshots are not implemented.
 - [ ] Reproducibility normalization passes.
 - [ ] Quarantine and independent attestations implemented.
 - [x] Signed snapshot authorization and automatic configured-repository enforcement implemented.
@@ -236,10 +236,10 @@ Reject noncanonical snapshots, invalid delegations, conflicting mappings, source
 - [ ] Source replacement fails before build.
 - [ ] Vendored locked builds use no network.
 - [ ] Mirrors yield identical objects and never compete as repositories.
-- [ ] Ordered repository lookup stops at the first authoritative admissible trust domain; lower repositories cannot inject a newer release, while an explicit alias selects the intended domain.
-- [ ] XDG overrides and fallback paths change placement only; package-object hits reverify complete release and archive identity and cache deletion changes no package bytes, while build-input-keyed outputs from every supported origin remain.
+- [ ] Ordered repository lookup stops at the first authoritative admissible trust domain. Lower repositories cannot inject a newer release, while an explicit alias selects the intended domain.
+- [ ] XDG overrides and fallback paths change placement only. Package-object hits reverify complete release and archive identity and cache deletion changes no package bytes, while build-input-keyed outputs from every supported origin remain.
 - [ ] Path, identity, locale, timezone, order, timestamp, and job count do not alter bytes.
-- [ ] Independent builds produce one PREV; divergence is quarantined.
+- [ ] Independent builds produce one PREV. Divergence is quarantined.
 - [ ] Equal publication is idempotent and conflicts cannot overwrite.
 - [ ] Yanks preserve locks and incompatible patch/minor APIs are rejected.
 - [ ] Stage 0 and Wheeler implementations agree.
@@ -250,11 +250,11 @@ Upstream-only packaging cannot carry reviewed downstream fixes. Conan's review l
 
 ## Open questions
 
-- Separate versions/recipe/source files or one canonical record (owner: repository maintainers; decision point: schema implementation)?
-- Which digest-agility and transparency-witness policy follows SHA-256 (owner: security maintainers; decision point: public launch)?
-- Which independent-builder level applies to each package class (owner: release maintainers; decision point: binary publication)?
-- How is source epoch derived (owner: reproducibility maintainers; decision point: native adapters)?
-- Should source, built, and native-image containers be distinct formats or explicit kinds (owner: format maintainers; decision point: publication)?
+- Separate versions/recipe/source files or one canonical record (owner: repository maintainers. Decision point: schema implementation)?
+- Which digest-agility and transparency-witness policy follows SHA-256 (owner: security maintainers. Decision point: public launch)?
+- Which independent-builder level applies to each package class (owner: release maintainers. Decision point: binary publication)?
+- How is source epoch derived (owner: reproducibility maintainers. Decision point: native adapters)?
+- Should source, built, and native-image containers be distinct formats or explicit kinds (owner: format maintainers. Decision point: publication)?
 
 ## References
 

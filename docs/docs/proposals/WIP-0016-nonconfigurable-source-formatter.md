@@ -19,7 +19,7 @@ Wheeler will ship one deterministic formatter for `.w` files and one convention 
 
 The formatter preserves syntax, declaration order, literal bytes, comment text, and comment attachment. It cannot change ownership, effects, inverse or adjoint characteristics, or any other IR meaning. It applies fixed whitespace and local wrapping rules. It never rewrites documentation prose. A formatting operation either publishes a complete file atomically or leaves the original file unchanged.
 
-Formatting and documentation checks are separate operations over the same lossless syntax tree; a valid file can always be formatted, even when its docs are incomplete. Documentation checks report missing or malformed text without editing the source. Neither command reads a style file, environment setting, editor option, terminal width, locale, or other ambient host state.
+Formatting and documentation checks are separate operations over the same lossless syntax tree. A valid file can always be formatted, even when its docs are incomplete. Documentation checks report missing or malformed text without editing the source. Neither command reads a style file, environment setting, editor option, terminal width, locale, or other ambient host state.
 
 ## Motivation
 
@@ -53,7 +53,7 @@ Formatting must not depend on documentation coverage. Editors need to format wor
 - Make formatting deterministic, idempotent, bounded, formatting-independent, and independent of ambient host state.
 - Keep diffs local by preserving source order, literal content, comment payloads, comment attachment, and stable layout groups.
 - Define distinct file or module documentation and declaration documentation without adding runtime semantics.
-- Make documentation readable in source before it is rendered by a tool.
+- Make documentation readable in source before a tool renders it.
 - Require meaningful summaries on the public and Wheeler-semantic API surface without requiring boilerplate on every private helper.
 - Give reversible, coherent, unitary, effectful, trapping, bounded, and proved behavior a consistent vocabulary.
 - Avoid duplicating parameter types, return types, modifiers, contracts, or theorem statements in prose.
@@ -96,7 +96,7 @@ A **documentation payload** is the text after the `//!` or `///` marker and its 
 
 A **summary** is the first nonempty paragraph of a documentation block.
 
-A **semantic facet** is an optional final list item with a reserved label such as `Effects`, `Inverse`, `Coherent`, `Adjoint`, `Traps`, or `Bounds`. Facets summarize observable behavior; they are not executable contracts.
+A **semantic facet** is an optional final list item with a reserved label such as `Effects`, `Inverse`, `Coherent`, `Adjoint`, `Traps`, or `Bounds`. Facets summarize observable behavior. They are not executable contracts.
 
 A **required documented declaration** is a declaration for which `check-docs` requires an attached nonempty `///` block. The initial set is defined below.
 
@@ -139,7 +139,7 @@ Source locations may change after formatting, but the same declarations receive 
 
 The compiler lexer and concrete parser own tokenization, accepted syntax, exact source ranges, delimiter recovery, and the distinction between valid syntax and recovery nodes.
 
-The lossless concrete-syntax layer owns trivia ranges and stable attachment of leading, trailing, inner, and detached comments. It is shared by the formatter and documentation checker. Wheeler does not maintain a second formatter grammar or a second documentation attachment parser.
+The lossless concrete-syntax layer owns trivia ranges and stable attachment of leading, trailing, inner, and detached comments. The formatter and documentation checker share it. Wheeler does not maintain a second formatter grammar or a second documentation attachment parser.
 
 The formatter owns code whitespace, code line breaks, indentation, blank-line normalization, and formatted UTF-8 bytes. It does not own declaration visibility, name resolution, type checking, proof checking, package resolution, or documentation quality.
 
@@ -177,39 +177,39 @@ wheeler check-docs --stdin
 
 `format --check` checks formatting only. `check-docs` checks documentation only. A repository or package gate may invoke both.
 
-Directories are walked through physical nonsymlink paths in lexical logical-path order and include only `.w` files. Duplicate paths after normalization are rejected; `--stdin` reads one bounded strict-UTF-8 document. Formatter stdin mode writes formatted bytes to standard output unless `--check` is present. Documentation stdin mode writes diagnostics only.
+Directories are walked through physical nonsymlink paths in lexical logical-path order and include only `.w` files. Duplicate paths after normalization are rejected. `--stdin` reads one bounded strict-UTF-8 document. Formatter stdin mode writes formatted bytes to standard output unless `--check` is present. Documentation stdin mode writes diagnostics only.
 
 Unknown options fail. There is no short alias, configuration discovery, exclusion glob, line-width option, project style, documentation bypass, editor-specific mode, locale-sensitive mode, or network-backed resolver.
 
-Generated checked-in Wheeler source follows the same rules as handwritten checked-in source. Disposable generated output may skip the tools; once committed, it has joined the maintained source surface.
+Generated checked-in Wheeler source follows the same rules as handwritten checked-in source. Disposable generated output may skip the tools. Once committed, it has joined the maintained source surface.
 
 ### Fixed code whitespace
 
 The first style version uses these rules:
 
-- strict UTF-8 input;
-- LF line endings;
-- no trailing whitespace;
-- exactly one final newline;
-- two ASCII spaces per indentation level;
-- no tab indentation;
-- opening braces on the declaration or control-header line;
-- an empty block formatted as `{}` when it contains no comment;
-- one statement and one `const` declaration per line;
-- one finite-enum case per line, with source order preserved;
-- one ASCII space around binary and assignment operators;
-- one ASCII space after commas;
-- no space immediately inside parentheses or brackets;
-- no space before a call or index opener;
-- a canonical argument label is written `/* parameter= */ value` and stays beside that value in horizontal or vertical argument layout;
-- module and import declarations each on their own line;
-- one blank line between file documentation, a module declaration, the import group, and the first top-level declaration when those groups exist;
-- one blank line between named top-level or member declarations;
-- no blank line between a `///` block and its declaration;
-- one blank line after a complete `if`/`else`, loop, `match`, or `reverse` block when another statement follows in the same block;
-- no such separator before the containing `}`, an `else`, or the next `case`;
-- at most one additional author-supplied blank line between ordinary statement groups;
-- no column alignment across sibling declarations or assignments;
+- strict UTF-8 input.
+- LF line endings.
+- no trailing whitespace.
+- exactly one final newline.
+- two ASCII spaces per indentation level.
+- no tab indentation.
+- opening braces on the declaration or control-header line.
+- an empty block formatted as `{}` when it contains no comment.
+- one statement and one `const` declaration per line.
+- one finite-enum case per line, with source order preserved.
+- one ASCII space around binary and assignment operators.
+- one ASCII space after commas.
+- no space immediately inside parentheses or brackets.
+- no space before a call or index opener.
+- a canonical argument label is written `/* parameter= */ value` and stays beside that value in horizontal or vertical argument layout.
+- module and import declarations each on their own line.
+- one blank line between file documentation, a module declaration, the import group, and the first top-level declaration when those groups exist.
+- one blank line between named top-level or member declarations.
+- no blank line between a `///` block and its declaration.
+- one blank line after a complete `if`/`else`, loop, `match`, or `reverse` block when another statement follows in the same block.
+- no such separator before the containing `}`, an `else`, or the next `case`.
+- at most one additional author-supplied blank line between ordinary statement groups.
+- no column alignment across sibling declarations or assignments.
 - a soft code-line target of 100 Unicode scalar values, excluding indivisible literal and comment tokens.
 
 The 100-scalar target is fixed and is not a display-column promise. Tabs, combining marks, emoji width, East Asian display width, terminal settings, and font metrics do not become formatter inputs. A literal or preserved comment may exceed the target.
@@ -229,7 +229,7 @@ cursor = writeUnsignedLittleEndian(
 );
 ```
 
-The horizontal form is `writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8)`. The formatter keeps each canonical label beside its argument, includes the label in the 100-scalar fit decision, preserves its payload and attachment, and never invents one. Labels are comments, not binding syntax; the callee signature remains authoritative. Four naked integers are not an API. They are a ransom note with commas.
+The horizontal form is `writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8)`. The formatter keeps each canonical label beside its argument, includes the label in the 100-scalar fit decision, preserves its payload and attachment, and never invents one. Labels are comments, not binding syntax. The callee signature remains authoritative. Four naked integers are not an API. They are a ransom note with commas.
 
 Repository checks may require labels for a narrow, mechanically recognizable bug pattern. Such checks follow the Error Prone rule: deterministic, high-signal, tested on positive and negative cases, and fatal without a warning-baseline swamp. The initial `WREAD001` gate covers adjacent literal `value` and `width` arguments to the compiler's little-endian writers. It does not demand labels for every integer in an array, hash table, test vector, or cryptographic constant. A checker that cries wolf becomes a wolf-preservation program.
 
@@ -239,9 +239,9 @@ Every layout group has an ordered syntax-defined set of legal forms. The formatt
 
 A group remains horizontal when:
 
-- its horizontal form fits the fixed target;
-- it contains no line comment;
-- it contains no source-significant blank-line boundary;
+- its horizontal form fits the fixed target.
+- it contains no line comment.
+- it contains no source-significant blank-line boundary.
 - none of its children requires vertical form.
 
 Otherwise the formatter chooses the first vertical form defined for that construct.
@@ -328,13 +328,13 @@ The first paragraph is a concise summary of observable purpose. For a callable d
 
 Following prose explains only information a reader cannot reliably recover from the signature, types, modifiers, formal contracts, or theorem statement. Useful subjects include:
 
-- units, encodings, coordinate systems, and index domains;
-- ownership or borrowing consequences not obvious from the type spelling;
-- state and resource transitions;
-- measurement, target submission, commit, replay, retry, or other irreversible boundaries;
-- the meaning of a result instead of its type;
-- caller-relevant trap conditions;
-- hard execution or resource bounds;
+- units, encodings, coordinate systems, and index domains.
+- ownership or borrowing consequences not obvious from the type spelling.
+- state and resource transitions.
+- measurement, target submission, commit, replay, retry, or other irreversible boundaries.
+- the meaning of a result instead of its type.
+- caller-relevant trap conditions.
+- hard execution or resource bounds.
 - the relationship to an inverse, coherent lift, adjoint, theorem, or certificate.
 
 Documentation shouldn't enumerate every parameter only because it exists. Parameter names are written in backticks when discussed in prose. A parameter list is appropriate only when several parameters have non-obvious, distinct semantic roles.
@@ -343,11 +343,11 @@ Documentation shouldn't enumerate every parameter only because it exists. Parame
 
 Documentation payload uses a deliberately small source-readable markup profile:
 
-- paragraphs separated by a blank documentation line;
-- inline code spans using backticks;
-- unordered lists using `-`;
-- ordered lists using decimal numbers;
-- fenced code blocks using triple backticks;
+- paragraphs separated by a blank documentation line.
+- inline code spans using backticks.
+- unordered lists using `-`.
+- ordered lists using decimal numbers.
+- fenced code blocks using triple backticks.
 - inline links using `[label](target)`.
 
 Raw HTML, tables, heading syntax, reference-style links, footnotes, embedded scripts, and renderer-specific directives are outside the first profile. A renderer treats unsupported constructs as escaped text instead of executable markup.
@@ -417,15 +417,15 @@ Facets are optional unless required by declaration kind below. Empty facets, dup
 
 Facet meanings are:
 
-- `Inputs`: non-obvious units, encodings, valid domains, alias relationships, or caller obligations not already expressed as a formal contract;
-- `Returns`: the semantic meaning of a result when the summary does not already make it clear;
-- `Effects`: observable mutation, allocation, ownership transition, host I/O, measurement, target submission, commit, replay, retry, or other effect;
-- `Inverse`: the forward declaration's generated or declared inverse behavior;
-- `Coherent`: the exact basis-state action, width assumptions, and clean-resource behavior of coherent lifting;
-- `Adjoint`: the unitary declaration's adjoint behavior;
-- `Traps`: stable caller-relevant conditions that trap before or after specified effects;
-- `Bounds`: source-level hard limits, static bounds, or useful asymptotic resource behavior;
-- `Proof`: names of formal Wheeler theorems or certificates relevant to the described behavior;
+- `Inputs`: non-obvious units, encodings, valid domains, alias relationships, or caller obligations not already expressed as a formal contract.
+- `Returns`: the semantic meaning of a result when the summary does not already make it clear.
+- `Effects`: observable mutation, allocation, ownership transition, host I/O, measurement, target submission, commit, replay, retry, or other effect.
+- `Inverse`: the forward declaration's generated or declared inverse behavior.
+- `Coherent`: the exact basis-state action, width assumptions, and clean-resource behavior of coherent lifting.
+- `Adjoint`: the unitary declaration's adjoint behavior.
+- `Traps`: stable caller-relevant conditions that trap before or after specified effects.
+- `Bounds`: source-level hard limits, static bounds, or useful asymptotic resource behavior.
+- `Proof`: names of formal Wheeler theorems or certificates relevant to the described behavior.
 - `See also`: closely related declarations or reference material.
 
 The facet vocabulary is intentionally Wheeler-specific. Documentation says "traps," "inverse," "adjoint," "rewind," "uncompute," "replay," and "retry" according to their language meanings. It does not use "throws," "undo," or "rollback" as interchangeable substitutes.
@@ -438,11 +438,11 @@ Every checked source file requires one nonempty `//!` block.
 
 The initial declaration set requiring nonempty attached `///` documentation is:
 
-- every `public` class, record, variant, function, method, theorem, experiment, state declaration, or quantum-register declaration supported by the source profile;
-- every `entry` declaration, regardless of visibility;
-- every `rev` declaration, regardless of visibility;
-- every `coherent rev` declaration, regardless of visibility;
-- every `unitary` declaration, regardless of visibility;
+- every `public` class, record, variant, function, method, theorem, experiment, state declaration, or quantum-register declaration supported by the source profile.
+- every `entry` declaration, regardless of visibility.
+- every `rev` declaration, regardless of visibility.
+- every `coherent rev` declaration, regardless of visibility.
+- every `unitary` declaration, regardless of visibility.
 - every theorem or experiment declaration, regardless of visibility.
 
 A file-level `//!` block satisfies the documentation requirement for the containing module or the sole moduleless top-level class. The same class is not required to repeat identical `///` documentation immediately below the file block.
@@ -451,9 +451,9 @@ Private ordinary helpers and private data declarations are not required to have 
 
 The initial required semantic facets are:
 
-- `entry` requires `Effects`;
-- `rev` requires `Inverse`;
-- `coherent rev` requires both `Inverse` and `Coherent`;
+- `entry` requires `Effects`.
+- `rev` requires `Inverse`.
+- `coherent rev` requires both `Inverse` and `Coherent`.
 - `unitary` requires `Adjoint`.
 
 A declaration may satisfy more than one rule. For example, `coherent rev` requires one documentation block containing both facets in canonical order.
@@ -549,7 +549,7 @@ The poor comment repeats syntax, omits the mutated state, and fails the required
 
 ### Diagnostics
 
-Formatter diagnostics use the `WFMT` namespace; documentation diagnostics use the `WDOC` namespace. Codes and primary source ranges are stable tool APIs; explanatory wording may improve.
+Formatter diagnostics use the `WFMT` namespace. Documentation diagnostics use the `WDOC` namespace. Codes and primary source ranges are stable tool APIs. Explanatory wording may improve.
 
 The implemented stage-0 formatter diagnostics are:
 
@@ -560,7 +560,7 @@ WFMT003 <input>:1:1 Formatter input is not strict UTF-8: path
 WFMT004 <output>:1:1 Atomic formatter replacement is unavailable: path
 ```
 
-`WFMT003` identifies bounded path/read/UTF-8 failures; `WFMT004` identifies staging, race, validation, and atomic-publication failures. Exact offending paths remain in the message when the failure occurs before one source record can be admitted.
+`WFMT003` identifies bounded path/read/UTF-8 failures. `WFMT004` identifies staging, race, validation, and atomic-publication failures. Exact offending paths remain in the message when the failure occurs before one source record can be admitted.
 
 The initial documentation diagnostics include:
 
@@ -587,12 +587,12 @@ The formatter parses and formats a complete file in memory before opening an out
 
 For filesystem write mode, the command:
 
-1. validates every requested path and reads every bounded input;
-2. parses and formats every file;
-3. aborts before publication if any input fails;
-4. writes changed outputs to bounded sibling temporary files;
-5. flushes and validates each temporary file;
-6. preserves ordinary permission bits where supported;
+1. validates every requested path and reads every bounded input.
+2. parses and formats every file.
+3. aborts before publication if any input fails.
+4. writes changed outputs to bounded sibling temporary files.
+5. flushes and validates each temporary file.
+6. preserves ordinary permission bits where supported.
 7. atomically replaces destinations in canonical path order.
 
 A host crash during publication may leave a sorted prefix updated. Rerunning converges because formatting is idempotent. The command does not claim a multi-file filesystem transaction.
@@ -607,17 +607,17 @@ Symlinks, nonregular files, escaping paths, duplicate normalized paths, oversize
 
 The formatter library accepts explicit UTF-8 bytes and returns either:
 
-- formatted UTF-8 bytes plus a deterministic minimal text edit; or
+- formatted UTF-8 bytes plus a deterministic minimal text edit, or
 - source-located syntax, limit, or formatting diagnostics.
 
 The initial minimal edit is the longest common byte prefix and suffix around the complete formatted replacement. A later edit-list protocol may provide multiple nonoverlapping edits only if applying them produces exactly the same formatted bytes.
 
 The documentation checker accepts the same explicit UTF-8 bytes and returns attached documentation records plus diagnostics. Each record includes:
 
-- documentation kind: file or declaration;
-- target syntax kind and source range;
-- exact payload bytes;
-- summary range;
+- documentation kind: file or declaration.
+- target syntax kind and source range.
+- exact payload bytes.
+- summary range.
 - recognized facets and their ranges.
 
 Tree-sitter queries expose file and declaration documentation as documentation-comment captures while retaining ordinary comment captures. Tree-sitter is not the validity authority.
@@ -628,9 +628,9 @@ Formatting bytes in memory is a pure deterministic transformation and requires n
 
 Documentation checking is a pure deterministic validation and requires no VM history.
 
-Replacing a host file is an explicit irreversible effect owned by the command driver. WIP-0032 owns that driver's I/O operation and completion API; the formatter defines only canonical source transformation and publication policy. The driver does not describe a filesystem rename as a `rev` operation or a durability receipt.
+Replacing a host file is an explicit irreversible effect owned by the command driver. WIP-0032 owns that driver's I/O operation and completion API. The formatter defines only canonical source transformation and publication policy. The driver does not describe a filesystem rename as a `rev` operation or a durability receipt.
 
-A failed parse, format, bounded write, temporary-file validation, or prepublication path check leaves destination bytes unchanged. After successful replacement, reversal means restoring caller-owned bytes or version-control state; it isn't VM rewind.
+A failed parse, format, bounded write, temporary-file validation, or prepublication path check leaves destination bytes unchanged. After successful replacement, reversal means restoring caller-owned bytes or version-control state. It isn't VM rewind.
 
 Documentation comments describing an inverse, adjoint, rewind, replay, retry, or uncomputation do not perform or prove that operation.
 
@@ -656,14 +656,14 @@ Conformance compiles source before and after formatting and requires byte-identi
 
 Documentation terminology must keep distinct:
 
-- language-level inverse execution;
-- VM history rewind;
-- coherent uncomputation;
-- unitary adjoint;
-- measurement;
-- replay of recorded observations;
-- retry as fresh execution;
-- formal theorem evidence;
+- language-level inverse execution.
+- VM history rewind.
+- coherent uncomputation.
+- unitary adjoint.
+- measurement.
+- replay of recorded observations.
+- retry as fresh execution.
+- formal theorem evidence.
 - empirical experiment evidence.
 
 ## Bytecode, persistence, and compatibility
@@ -676,18 +676,18 @@ Formatter style and documentation structure are versioned tool behavior, not sou
 
 A deliberate style or documentation-structure change requires this WIP or a successor to return to Review, conformance fixtures to change, and one isolated repository-wide mechanical migration. The formatter does not retain old style modes.
 
-Package locks and CI pin exact tool identity. Source archives preserve exact comments as source bytes; generated documentation artifacts, if introduced, use a separately specified canonical format.
+Package locks and CI pin exact tool identity. Source archives preserve exact comments as source bytes. Generated documentation artifacts, if introduced, use a separately specified canonical format.
 
 ## Safety, limits, and failures
 
 The formatter and documentation checker impose explicit ceilings on:
 
-- input bytes and Unicode scalar values;
-- tokens and syntax nodes;
-- nesting depth;
-- individual and aggregate comment payload bytes;
-- output bytes;
-- files per invocation;
+- input bytes and Unicode scalar values.
+- tokens and syntax nodes.
+- nesting depth.
+- individual and aggregate comment payload bytes.
+- output bytes.
+- files per invocation.
 - total traversal and formatting work.
 
 Defaults match compiler and package ceilings where practical. They are host-policy and tool-version limits, not source directives.
@@ -728,20 +728,20 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 
 ## Progress
 
-- [x] The compiler lexer exposes an ordered, lossless stream of token, whitespace, line-comment, and block-comment ranges with one-based locations. Reconstruction is byte-for-byte, including CRLF and comment text; malformed comments fail through the compiler diagnostic boundary.
-- [x] Retained comments receive deterministic lexical `leading`, `trailing`, `inner`, or `detached` placement against exact token ranges; consecutive comment blocks and blank trivia are classified without quadratic rescanning.
-- [x] A bounded structural parser now owns compilation-unit, header, type, member-declaration, and block ranges, delimiter recovery states, and comment targets. Lossless reconstruction remains exact; the branches may stand down.
+- [x] The compiler lexer exposes an ordered, lossless stream of token, whitespace, line-comment, and block-comment ranges with one-based locations. Reconstruction is byte-for-byte, including CRLF and comment text. Malformed comments fail through the compiler diagnostic boundary.
+- [x] Retained comments receive deterministic lexical `leading`, `trailing`, `inner`, or `detached` placement against exact token ranges. Consecutive comment blocks and blank trivia are classified without quadratic rescanning.
+- [x] A bounded structural parser now owns compilation-unit, header, type, member-declaration, and block ranges, delimiter recovery states, and comment targets. Lossless reconstruction remains exact. The branches may stand down.
 - [x] The stage-0 in-memory formatter implements deterministic LF/final-newline, two-space indentation, brace, delimiter, operator, comment-marker, blank-line, and basic horizontal-list whitespace. It requires a blank line after the module declaration, after the import group, between named declarations, and after a completed compound statement when another statement follows. Compact golden input preserves semantic `.wbc`, and every checked example preserves token spelling, comment payload/kind, lexical attachment, and idempotence.
-- [x] Parenthesized parameter/argument/record groups choose horizontal form only when the complete normalized group fits 100 Unicode scalars; otherwise one item occupies each indented line and the closing delimiter owns its line.
+- [x] Parenthesized parameter/argument/record groups choose horizontal form only when the complete normalized group fits 100 Unicode scalars. Otherwise one item occupies each indented line and the closing delimiter owns its line.
 - [x] Overlong binary expressions break before the last fitting operator, use one stable continuation indent, preserve string/comment payloads, and remain idempotent across the complete source corpus.
-- [ ] Bounded-loop-header, array-initializer, deeply indented indivisible-item, and remaining syntax-owned break tables plus the minimal-diff generated corpus are accepted; the command is authoritative for its documented stage-0 subset instead of quietly claiming the rest.
+- [ ] Bounded-loop-header, array-initializer, deeply indented indivisible-item, and remaining syntax-owned break tables plus the minimal-diff generated corpus are accepted. The command is authoritative for its documented stage-0 subset instead of quietly claiming the rest.
 - [x] `//!` file blocks and adjacent/detached `///` declaration blocks have exact lexical attachment fixtures, including BOM, CRLF, ordinary comments, and blank-line detachment.
 - [x] `WDOC001`, `WDOC003`, and `WDOC005` now check missing, empty, and misplaced first-content `//!` file summaries over the shared lossless stream with exact code/location/message fixtures.
 - [x] Parser-owned bootstrap member ranges cover public, entry, reversible, coherent, unitary, theorem, and experiment declarations. They also enforce private-helper exemptions, adjacent summaries, canonical facet order, duplicate facets, and required `Effects`, `Inverse`, `Coherent`, and `Adjoint` facets through `WDOC002..004` and `WDOC006..010`. Malformed delimiter recovery stops formatting before output.
 - [x] `wheeler format`, `--check`, and `--stdin` share bounded strict-UTF-8 physical traversal with `check-docs`, parse every input before publication, report stable `WFMT001..004` diagnostics, preserve ordinary POSIX modes, validate sibling temporary files, and require atomic canonical-order replacement.
 - [x] `wheeler check-docs` and `--stdin` perform bounded strict-UTF-8 reads, reject duplicate/unsafe/non-source inputs, traverse physical files in canonical path order, print stable ordered `WDOC` diagnostics, and write nothing.
-- [x] Every checked-in `.w` example has an authored first-content `//!` summary and every required declaration has adjacent `///` documentation with required facets; the compiler test walks the complete source tree.
-- [x] Every checked-in `.w` example is canonical under the stage-0 formatter; the compiler test rejects drift and the command check is clean.
+- [x] Every checked-in `.w` example has an authored first-content `//!` summary and every required declaration has adjacent `///` documentation with required facets. The compiler test walks the complete source tree.
+- [x] Every checked-in `.w` example is canonical under the stage-0 formatter. The compiler test rejects drift and the command check is clean.
 - [ ] Editor integrations call shared libraries instead of reproduce rules.
 - [ ] A Wheeler-written formatter and documentation checker match stage 0 byte-for-byte.
 - [ ] Stage-0 and duplicate tooling paths are deleted at native cutover.
@@ -822,7 +822,7 @@ Rejected. A local escape creates multiple styles and makes the formatter's outpu
 
 ### Reflow documentation to the code-line target
 
-Rejected. Prose reflow turns a one-word edit into a paragraph diff and depends on markup and natural-language interpretation. Authors use semantic line breaks; the formatter preserves them.
+Rejected. Prose reflow turns a one-word edit into a paragraph diff and depends on markup and natural-language interpretation. Authors use semantic line breaks. The formatter preserves them.
 
 ### Use full CommonMark or raw HTML in source docs
 
@@ -838,7 +838,7 @@ Rejected. The semantic AST intentionally discards trivia and may normalize disti
 
 ### Reorder imports and declarations
 
-Rejected. Ordering may be semantically constrained, and even harmless sorting creates broad diffs outside the edited construct. The compiler should diagnose invalid order; the formatter shouldn't move code during a formatting-only change.
+Rejected. Ordering may be semantically constrained, and even harmless sorting creates broad diffs outside the edited construct. The compiler should diagnose invalid order. The formatter shouldn't move code during a formatting-only change.
 
 ### Preserve all user line breaks
 
@@ -846,9 +846,9 @@ Rejected. That is an indentation fixer instead of a formatter and leaves syntact
 
 ## Open questions
 
-- Should public variant cases receive individual required `///` documentation once the concrete grammar gives case comments stable attachment, or should the containing variant documentation remain sufficient (owner: language and documentation maintainers; decision point: before WIP acceptance)?
+- Should public variant cases receive individual required `///` documentation once the concrete grammar gives case comments stable attachment, or should the containing variant documentation remain sufficient (owner: language and documentation maintainers. Decision point: before WIP acceptance)?
 
-- Should `wheeler check` eventually compose compilation, formatting verification, and documentation checking, or should repositories invoke the three commands explicitly (owner: package and tools maintainers; decision point: before CI integration)?
+- Should `wheeler check` eventually compose compilation, formatting verification, and documentation checking, or should repositories invoke the three commands explicitly (owner: package and tools maintainers. Decision point: before CI integration)?
 
 ## References
 

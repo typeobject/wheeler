@@ -62,12 +62,12 @@ The loader can identify a function or region as quantum or hybrid and report an 
 
 ## Non-goals
 
-- Define quantum gates, measurement, coherent lifting, or target execution; WIP-0002 and WIP-0003 do that.
+- Define quantum gates, measurement, coherent lifting, or target execution. WIP-0002 and WIP-0003 do that.
 - Define concurrent scheduling or shared-memory reversal.
 - Preserve the current 128-bit instruction shape, raw segmented addresses, or `.class` output.
 - Implement the full current Java-like grammar before the bytecode is executable.
 - Make external I/O physically reversible.
-- Standardize an optimizing in-memory compiler IR; bytecode is the verified execution boundary.
+- Standardize an optimizing in-memory compiler IR. Bytecode is the verified execution boundary.
 
 ## Terms and semantic model
 
@@ -160,13 +160,13 @@ The first format reserves these section types:
 | 7 | Ordered classical/quantum workflow | Required for quantum and hybrid artifacts |
 | 8 | Quantum registers and circuit bodies | Required for quantum and hybrid artifacts |
 | 9 | Target requirements | Reserved for WIP-0003 |
-| 10 | Proof certificates | Optional; initial generated-inverse rule from WIP-0011 |
+| 10 | Proof certificates | Optional. Initial generated-inverse rule from WIP-0011 |
 | 11 | Source and debug maps | Optional and non-semantic |
-| 12 | Generic typed library bodies | Reserved for WIP-0029; non-executable |
+| 12 | Generic typed library bodies | Reserved for WIP-0029. Non-executable |
 
 The manifest declares artifact identity inputs, minimum runtime version, entry points, required section features, and global resource ceilings. A function descriptor declares its stable function ID, type signature, effect set, computation domain, frame-slot schema, forward body range, inverse body range when present, and declared bounds.
 
-Only format `1.0` exists. The decoder accepts that exact pair and carries no compatibility path for an unreleased predecessor; any future versioning policy must preserve canonical rejection and may not silently reuse numeric IDs.
+Only format `1.0` exists. The decoder accepts that exact pair and carries no compatibility path for an unreleased predecessor. Any future versioning policy must preserve canonical rejection and may not silently reuse numeric IDs.
 
 ### Instruction encoding
 
@@ -185,29 +185,29 @@ This record shape permits deterministic skipping and diagnostics but does not pe
 
 The initial registry contains these semantic groups:
 
-- control: `NOP`, `HALT`, `JUMP`, `BRANCH`, `CALL`, `UNCALL`, `RETURN`;
-- checked initialization: `INIT`, `CLEAR_EXPECT`, `REGION_ALLOC`, `REGION_FREE_EXPECT`;
-- intrinsic reversible data: `SWAP`, `XOR`, `ADD`, `SUB`, `NEGATE`, rotations, and width-specific variants;
-- typed memory: checked load/copy forms and logged load/store forms;
-- history: `CHECKPOINT`, `COMMIT`, and bounded history assertions;
+- control: `NOP`, `HALT`, `JUMP`, `BRANCH`, `CALL`, `UNCALL`, `RETURN`.
+- checked initialization: `INIT`, `CLEAR_EXPECT`, `REGION_ALLOC`, `REGION_FREE_EXPECT`.
+- intrinsic reversible data: `SWAP`, `XOR`, `ADD`, `SUB`, `NEGATE`, rotations, and width-specific variants.
+- typed memory: checked load/copy forms and logged load/store forms.
+- history: `CHECKPOINT`, `COMMIT`, and bounded history assertions.
 - effects: typed `EFFECT_CALL` with a declared policy and receipt schema.
 
 The normative opcode registry added during implementation records numeric ID, form, operands, type rule, forward transition, inverse relation, reversibility class, undo schema, trap conditions, and cost model. Acceptance of this WIP freezes the first-slice numeric assignments in that registry.
 
 ### Typed slots and regions
 
-Frames expose verifier-typed slots. Instructions cannot reinterpret a floating value as an integer, forge a region reference, or read an uninitialized slot. Integer widths and overflow behavior are explicit. The first slice uses checked arithmetic by default; wrapping operations have distinct opcodes.
+Frames expose verifier-typed slots. Instructions cannot reinterpret a floating value as an integer, forge a region reference, or read an uninitialized slot. Integer widths and overflow behavior are explicit. The first slice uses checked arithmetic by default. Wrapping operations have distinct opcodes.
 
-Memory references are `(region_id, typed_offset)` capabilities. Valid addresses are bounded by one region, never inferred from host pointers, and never alias by masking high address bits. Allocation returns deterministic region IDs. Deallocation requires an expected clean shape or retains the state needed to restore the region.
+Memory references are `(region_id, typed_offset)` capabilities. One region bounds each valid address. The VM never infers addresses from host pointers or aliases them by masking high address bits. Allocation returns deterministic region IDs. Deallocation requires an expected clean shape or retains the state needed to restore the region.
 
-Classical values may be copied. Quantum resources are not classical region values; WIP-0002 introduces affine resource references in separate verified region bodies.
+Classical values may be copied. Quantum resources are not classical region values. WIP-0002 introduces affine resource references in separate verified region bodies.
 
 ### Reversibility classes
 
 Every opcode form has exactly one class:
 
-- Intrinsic operations determine their inverse from the current operands and state. `SWAP` and `XOR` are self-inverse; `ADD` and `SUB` are paired.
-- Checked operations are reversible under a verified or runtime-checked precondition. `INIT(dst, value)` requires an uninitialized or canonical-zero destination; its inverse checks the expected value before clearing it.
+- Intrinsic operations determine their inverse from the current operands and state. `SWAP` and `XOR` are self-inverse. `ADD` and `SUB` are paired.
+- Checked operations are reversible under a verified or runtime-checked precondition. `INIT(dst, value)` requires an uninitialized or canonical-zero destination. Its inverse checks the expected value before clearing it.
 - Logged operations destroy information and emit a typed undo payload, such as an overwritten field value.
 - Barrier operations create an external observation that the machine cannot undo. They produce a receipt and stop rewind unless the effect contract supplies a compensator and runs it successfully.
 
@@ -217,18 +217,18 @@ A `rev` function may use intrinsic, checked, or bounded logged operations accord
 
 A reversible function has either:
 
-- a compiler-generated inverse body validated against the forward body;
-- a declared inverse function validated for compatible signature and effects; or
+- a compiler-generated inverse body validated against the forward body.
+- a declared inverse function validated for compatible signature and effects, or
 - an intrinsic body from the normative registry.
 
-`CALL` selects the forward body; `UNCALL` selects the inverse body. Call and return continuations remain ordinary reversible machine state. Runtime rewind uses step records and is independent of `UNCALL`.
+`CALL` selects the forward body. `UNCALL` selects the inverse body. Call and return continuations remain ordinary reversible machine state. Runtime rewind uses step records and is independent of `UNCALL`.
 
 ### Effects and output
 
 `EFFECT_CALL` names a versioned effect capability and policy:
 
-- `replayable`: the recorded result may be reused during deterministic replay;
-- `compensatable`: a declared compensator may reverse the external effect;
+- `replayable`: the recorded result may be reused during deterministic replay.
+- `compensatable`: a declared compensator may reverse the external effect.
 - `barrier`: execution cannot rewind across the committed receipt.
 
 Console output is a barrier by default. Therefore the `Counter` example may invoke the inverse of `increment` after printing, but debugger rewind cannot erase text that a user has already observed.
@@ -243,7 +243,7 @@ Verification does not prove arbitrary source theorems. It establishes that execu
 
 `StepRecord` is the only authority for machine rewind. Records are ordered, artifact-bound, and integrity-checked in memory or persistence. Each record contains no more than the opcode's declared maximum undo bytes.
 
-History has explicit limits in records and bytes. Before exceeding either limit, execution traps without applying the next instruction unless policy has created a checkpoint and committed an older prefix. `COMMIT` establishes a new rewind horizon and makes discarded history semantically unavailable. `clean history` in source must lower to a visible commit policy; it cannot claim that old states remain reversible.
+History has explicit limits in records and bytes. Before exceeding either limit, execution traps without applying the next instruction unless policy has created a checkpoint and committed an older prefix. `COMMIT` establishes a new rewind horizon and makes discarded history semantically unavailable. `clean history` in source must lower to a visible commit policy. It cannot claim that old states remain reversible.
 
 Checkpoint snapshots are an optimization and persistence mechanism, not an additional reverse semantics. Restoring a checkpoint and replaying records must produce the same state as uninterrupted execution.
 
@@ -267,7 +267,7 @@ Proof metadata is optional and cannot change opcode semantics. A verifier must r
 
 Persisted checkpoints and history identify the exact artifact hash, major/minor bytecode version, runtime semantic version, and effect schema versions. A runtime rejects mismatches instead of replaying records under different opcode semantics.
 
-Canonical re-encoding of a decoded artifact produces byte-identical output except for explicitly non-semantic debug sections. Debug stripping never changes semantic section offsets referenced internally; the writer rebuilds and revalidates the directory.
+Canonical re-encoding of a decoded artifact produces byte-identical output except for explicitly non-semantic debug sections. Debug stripping never changes semantic section offsets referenced internally. The writer rebuilds and revalidates the directory.
 
 ## Safety, limits, and failures
 
@@ -275,7 +275,7 @@ Loaders enforce configurable ceilings before allocation. The manifest cannot rai
 
 An instruction either completes and appends one valid step record or leaves pre-step state intact. Host adapter failure during an effect follows that effect's declared atomicity contract and never fabricates a successful receipt.
 
-Artifact bytes, assembly, debug names, effect payloads, and persisted history are untrusted input; verification has bounded time and memory proportional to declared and host-capped artifact limits.
+Artifact bytes, assembly, debug names, effect payloads, and persisted history are untrusted input. Verification has bounded time and memory proportional to declared and host-capped artifact limits.
 
 ## Unified I/O effects
 
@@ -298,14 +298,14 @@ Submitting or awaiting external I/O remains a typed `EFFECT_CALL` barrier unless
 ## Progress
 
 - [x] Container header, directory, and section schemas are implemented.
-- [x] The initial opcode registry is shared by compiler, VM, verifier, and tools.
+- [x] The compiler, VM, verifier, and tools share the initial opcode registry.
 - [x] The transition kernel and bounded undo records exist.
 - [x] The verifier rejects malformed structure and semantic violations.
-- [x] Major version 1 stores canonical typed local and aggregate references; the decoder has no alternate or legacy format path.
+- [x] Major version 1 stores canonical typed local and aggregate references. The decoder has no alternate or legacy format path.
 - [x] Signed and Boolean frame parameters, results, locals, typed value calls, branch targets, definite assignment, and bounded-loop checks execute and verify.
 - [x] Bytecode and source counter fixtures run forward and inverse.
 - [x] Existing incompatible bytecode and memory paths are deleted.
-- [x] Checked `LOCAL_AND` and low-32-bit `LOCAL_ROTR32` execute, verify, rewind, and provide bounded cryptographic word operations without relying on hidden host arithmetic in SHA-256. Source artifacts now default to four million steps and four million history records; both remain explicit manifest limits, and exhaustion still wins before mutation. The equal ceilings let a fully mutating bounded run remain rewindable instead of exhausting history before its declared transition budget. Immutable frames use persistent 32-register chunks so control steps share storage and local writes copy one chunk instead of a boxed full frame. Memory use remains explicitly bounded.
+- [x] Checked `LOCAL_AND` and low-32-bit `LOCAL_ROTR32` execute, verify, rewind, and provide bounded cryptographic word operations without relying on hidden host arithmetic in SHA-256. Source artifacts now default to four million steps and four million history records. Both remain explicit manifest limits, and exhaustion still wins before mutation. The equal ceilings let a fully mutating bounded run remain rewindable instead of exhausting history before its declared transition budget. Immutable frames use persistent 32-register chunks so control steps share storage and local writes copy one chunk instead of a boxed full frame. Memory use remains explicitly bounded.
 - [x] A Wheeler-written compiler slice parses one bounded source file and emits its full canonical artifact. It derives the aligned layout instead of copying a template. Stage 0 produces the same bytes, the strict decoder accepts them, canonical re-encoding matches, and the VM runs the result.
 
 ## Testing and acceptance
@@ -347,8 +347,8 @@ Rejected. Quantum regions have different ownership, linearity, execution, and ca
 
 ## Open questions
 
-- Which numeric opcode ranges and first-slice operand forms should be frozen in the normative registry (owner: VM and compiler maintainers; decision point: before this WIP enters Review)?
-- Should semantic section hashing be embedded in a dedicated manifest record or remain an artifact identity computed over canonical bytes (owner: runtime maintainers; decision point: before persisted checkpoints are implemented)?
+- Which numeric opcode ranges and first-slice operand forms should be frozen in the normative registry (owner: VM and compiler maintainers. Decision point: before this WIP enters Review)?
+- Should semantic section hashing be embedded in a dedicated manifest record or remain an artifact identity computed over canonical bytes (owner: runtime maintainers. Decision point: before persisted checkpoints are implemented)?
 
 ## References
 

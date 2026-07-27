@@ -76,13 +76,13 @@ A cached target executable identifies the semantic region hash, target descripto
 - Promise deterministic hardware outcomes or identical noise across targets.
 - Make remote quantum jobs synchronous.
 - Standardize pulse schedules in the first target contract.
-- Define workflow rollback, retries, or history retention; WIP-0004 does that.
+- Define workflow rollback, retries, or history retention. WIP-0004 does that.
 
 ## Terms and semantic model
 
 A **semantic region** is WIP-0002 backend-neutral quantum IR with ideal operations and declared requirements.
 
-A **target descriptor** is an immutable, bounded capability snapshot used for one planning decision; it has a stable fingerprint and expiry or freshness policy where provider data changes.
+A **target descriptor** is an immutable, bounded capability snapshot used for one planning decision. It has a stable fingerprint and expiry or freshness policy where provider data changes.
 
 A **lowering plan** maps one semantic region to target operations while preserving its declared ideal semantics and recording policy choices.
 
@@ -90,7 +90,7 @@ A **target executable** is derived, target-qualified content. It is not canonica
 
 A **submission** combines a target executable, parameter bindings, result request, execution options, and provenance identity.
 
-A **job** has an asynchronous lifecycle and may outlive the process that submitted it; a **result** is an immutable typed observation product, never a surviving provider qubit reference.
+A **job** has an asynchronous lifecycle and may outlive the process that submitted it. A **result** is an immutable typed observation product, never a surviving provider qubit reference.
 
 ## Ownership and boundaries
 
@@ -102,26 +102,26 @@ Target adapters own provider translation, native decomposition assigned to them,
 
 The OpenQASM executor owner handles provider compatibility and transport. Provider SDK types don't cross the target boundary.
 
-Hosts own target selection, credentials, network policy, account configuration, and authorization; credentials never enter `.wbc`, job results, debug dumps, or replay logs.
+Hosts own target selection, credentials, network policy, account configuration, and authorization. Credentials never enter `.wbc`, job results, debug dumps, or replay logs.
 
 ## Design
 
 ### Target descriptor
 
-A descriptor identifies adapter, provider, backend, snapshot version, and qubit model; it advertises bounded capability records instead of one linear "generation" number. Initial records cover:
+A descriptor identifies adapter, provider, backend, snapshot version, and qubit model. It advertises bounded capability records instead of one linear "generation" number. Initial records cover:
 
-- physical, simulated, or logical qubit kind and available count;
-- semantic operations accepted directly or through certified decomposition;
-- native operation names and parameter domains;
-- directed connectivity or a declaration that topology is abstract/managed;
-- measurement bases, simultaneous measurement, and per-shot memory availability;
-- reset, mid-circuit measurement, conditionals, bounded loops, switches, and target-resident classical computation;
-- maximum circuit count, operations, depth where known, parameters, shots, result bytes, and wall duration;
-- parameter binding and batch submission;
-- sampling and expectation-value result modes;
-- session or long-lived resource support;
-- timing, scheduling, barriers, and concurrency where exposed;
-- calibration/noise metadata availability and freshness, without making it ideal semantics;
+- physical, simulated, or logical qubit kind and available count.
+- semantic operations accepted directly or through certified decomposition.
+- native operation names and parameter domains.
+- directed connectivity or a declaration that topology is abstract/managed.
+- measurement bases, simultaneous measurement, and per-shot memory availability.
+- reset, mid-circuit measurement, conditionals, bounded loops, switches, and target-resident classical computation.
+- maximum circuit count, operations, depth where known, parameters, shots, result bytes, and wall duration.
+- parameter binding and batch submission.
+- sampling and expectation-value result modes.
+- session or long-lived resource support.
+- timing, scheduling, barriers, and concurrency where exposed.
+- calibration/noise metadata availability and freshness, without making it ideal semantics.
 - logical resource estimation and error goals for future fault-tolerant targets.
 
 Capabilities are individually versioned and may carry constraints. An adapter cannot advertise a broad capability and then silently accept only a provider-specific subset.
@@ -130,16 +130,16 @@ Capabilities are individually versioned and may carry constraints. An adapter ca
 
 Planning has explicit stages:
 
-1. validate semantic region and resource bounds;
-2. compare inferred requirements to the target descriptor;
-3. choose allowed target-independent decompositions;
-4. choose placement, routing, scheduling, and target-native lowering according to named policy;
-5. validate the derived executable against the same descriptor snapshot;
+1. validate semantic region and resource bounds.
+2. compare inferred requirements to the target descriptor.
+3. choose allowed target-independent decompositions.
+4. choose placement, routing, scheduling, and target-native lowering according to named policy.
+5. validate the derived executable against the same descriptor snapshot.
 6. emit a lowering report and derived-executable identity.
 
 The report maps source and semantic operations to derived operations, records inserted swaps/resets, preserves measurement identities, gives depth and resource estimates, and identifies approximations. Approximate synthesis requires an explicit error budget and cannot be selected silently.
 
-Unitary adjoints and coherently lifted functions retain equivalence obligations through decomposition. A provider transpiler may perform additional rewrites only under the selected policy; its version and relevant options become provenance.
+Unitary adjoints and coherently lifted functions retain equivalence obligations through decomposition. A provider transpiler may perform additional rewrites only under the selected policy. Its version and relevant options become provenance.
 
 ### Target API
 
@@ -155,7 +155,7 @@ cancel(JobHandle) -> CancellationState
 result(JobHandle) -> QuantumResult
 ```
 
-Implementations may combine calls for efficiency but preserve their validation and identity boundaries. Job states include `queued`, `running`, `succeeded`, `failed`, `cancel-requested`, `cancelled`, and `unknown`; provider state is retained as bounded metadata.
+Implementations may combine calls for efficiency but preserve their validation and identity boundaries. Job states include `queued`, `running`, `succeeded`, `failed`, `cancel-requested`, `cancelled`, and `unknown`. Provider state is retained as bounded metadata.
 
 Cancellation is a request, not proof that hardware stopped. A late valid result remains identifiable so WIP-0004 policy can discard or archive it.
 
@@ -163,18 +163,18 @@ Cancellation is a request, not proof that hardware stopped. A late valid result 
 
 A result identifies submission, executable, semantic region, target descriptor, bindings, and request. Result products include:
 
-- sampled counts over declared classical registers;
-- optional bounded per-shot memory;
-- expectation values with uncertainty and observable identity;
-- target or simulator diagnostics;
-- mapping and execution metadata;
+- sampled counts over declared classical registers.
+- optional bounded per-shot memory.
+- expectation values with uncertainty and observable identity.
+- target or simulator diagnostics.
+- mapping and execution metadata.
 - timing and provider job identity after credential scrubbing.
 
 Counts use canonical bit/register ordering independent of provider display conventions. Missing shots, malformed keys, nonfinite estimates, oversized metadata, and identity mismatches are rejected.
 
 ### Semantic simulator
 
-The reference simulator implements ideal semantics for the accepted gate and control subset; it prioritizes conformance, source traces, inverse checks, and explicit limits over large-scale performance. Statevector, stabilizer, tensor-network, density-matrix, or noisy simulators may implement the same target contract with distinct capability descriptors.
+The reference simulator implements ideal semantics for the accepted gate and control subset. It prioritizes conformance, source traces, inverse checks, and explicit limits over large-scale performance. Statevector, stabilizer, tensor-network, density-matrix, or noisy simulators may implement the same target contract with distinct capability descriptors.
 
 Seeded simulation records algorithm, seed, and version. Exact amplitudes are a simulator-only diagnostic capability and are never portable hardware program output.
 
@@ -192,12 +192,12 @@ OpenQASM 3 does not replace canonical Wheeler region IR. Regions requiring dynam
 
 The contract avoids assumptions that all useful machines expose physical qubit indices, per-gate cloud circuits, or a host round trip after every measurement. Future adapters may advertise:
 
-- logical qubits and logical operations;
-- bounded uploaded reversible classical kernels;
-- target-resident loops and low-latency decoding;
-- networked entanglement resources;
-- persistent sessions or memories;
-- analog or non-gate operations through versioned semantic extensions;
+- logical qubits and logical operations.
+- bounded uploaded reversible classical kernels.
+- target-resident loops and low-latency decoding.
+- networked entanglement resources.
+- persistent sessions or memories.
+- analog or non-gate operations through versioned semantic extensions.
 - compiled coherent calls from WIP-0002 without decomposition to today's elementary gates.
 
 New capabilities do not weaken affine ownership, explicit measurement, result provenance, or resource bounds.
@@ -214,13 +214,13 @@ Target executables and results are immutable provenance objects. They do not ent
 
 Planning is deterministic for the same semantic region, descriptor snapshot, named policy, and deterministic adapter version unless the policy explicitly permits provider heuristics. Nondeterministic planning inputs are recorded.
 
-Independent jobs may run concurrently. Result delivery is correlated by submission identity, never arrival order. Target batch ordering and bit ordering are normalized.
+Independent jobs may run concurrently. Submission identity, never arrival order, correlates result delivery. The adapter normalizes target batch and bit ordering.
 
 Hardware samples are nondeterministic. Simulator determinism is declared as a capability with seed semantics. No comparison assumes byte-identical distributions from different physical targets.
 
 ## Quantum and proof implications
 
-A lowering report may carry checkable equivalence witnesses for gate decomposition, routing, adjoint preservation, and approximation bounds. Those witnesses are not trusted only because an adapter emits them; a later proof WIP will define accepted certificate forms and trusted checkers.
+A lowering report may carry checkable equivalence witnesses for gate decomposition, routing, adjoint preservation, and approximation bounds. Those witnesses are not trusted only because an adapter emits them. A later proof WIP will define accepted certificate forms and trusted checkers.
 
 Calibration and empirical fidelity are evidence about a target run, not proofs of source-level unitarity or correctness. `QuantumCompiler.w` must distinguish semantic verification, classical compilation, and calibration experiments.
 
@@ -230,7 +230,7 @@ WIP-0003 activates WIP-0001 target-requirement sections. Canonical `.wbc` record
 
 Derived executables, descriptor snapshots, lowering reports, submissions, handles, and results use separate versioned runtime schemas. Cached executables are invalid when any identity input or required freshness condition changes.
 
-Adapters declare the runtime API versions and semantic operation versions they implement. Provider SDK upgrades require adapter parity tests before becoming the default; they do not force a Wheeler bytecode major version unless Wheeler semantics change.
+Adapters declare the runtime API versions and semantic operation versions they implement. Provider SDK upgrades require adapter parity tests before becoming the default. They do not force a Wheeler bytecode major version unless Wheeler semantics change.
 
 ## Safety, limits, and failures
 
@@ -242,7 +242,7 @@ Structured failures distinguish invalid Wheeler IR, missing target capability, l
 
 ## Unified target-operation lifecycle
 
-WIP-0032 supplies the common future lifecycle for target submission, observation, cancellation, result delivery, and recoverable sessions. Target requests and results remain quantum-domain types carrying WIP-0004 identities; they are not generic file writes with provider credentials attached.
+WIP-0032 supplies the common future lifecycle for target submission, observation, cancellation, result delivery, and recoverable sessions. Target requests and results remain quantum-domain types carrying WIP-0004 identities. They are not generic file writes with provider credentials attached.
 
 The current `QuantumJob` API is an executable stage-0 slice of that lifecycle. Migration preserves its submit/acknowledge/validate/recover behavior while moving ownership, queue credit, completion, and cancellation races under `IoScope`. Coherent state never enters the fabric as bytes.
 
@@ -262,10 +262,10 @@ The current `QuantumJob` API is an executable stage-0 slice of that lifecycle. M
 
 - [x] Target descriptor, independent capabilities, limits, and requirement matching are implemented.
 - [x] The ideal state-vector target passes the implemented region conformance suite.
-- [x] Asynchronous jobs cover successful ideal and OpenQASM execution plus malformed results; cancellation and recovery remain.
+- [x] Asynchronous jobs cover successful ideal and OpenQASM execution plus malformed results. Cancellation and recovery remain.
 - [x] Static OpenQASM 3 lowering, canonical symbolic parameter binding, ordered task batches, and sampled Pauli-Z expectations work.
-- [ ] Static capability rejection works; dynamic capability discovery remains.
-- [ ] QFT, inverse QFT, and the bounded optimizer run on the ideal target; OpenQASM executor parity and parameterized optimization remain.
+- [ ] Static capability rejection works. Dynamic capability discovery remains.
+- [ ] QFT, inverse QFT, and the bounded optimizer run on the ideal target. OpenQASM executor parity and parameterized optimization remain.
 
 ## Testing and acceptance
 
@@ -302,12 +302,12 @@ Rejected. Provider selection belongs to deployment and runtime policy. Source sh
 
 ### Hide unsupported features through decomposition or host splitting
 
-Rejected. Decomposition must preserve semantics and error budgets; host splitting changes latency and may be impossible for live quantum state. Both require explicit plans and diagnostics.
+Rejected. Decomposition must preserve semantics and error budgets. Host splitting changes latency and may be impossible for live quantum state. Both require explicit plans and diagnostics.
 
 ## Open questions
 
-- Which provider REST executor should be the first maintained live-hardware adapter (owner: target maintainers; decision point: before live hardware enters CI documentation)?
-- Which expectation and observable model belongs in the first result contract instead of a later extension (owner: quantum API maintainers; decision point: before this WIP enters Review)?
+- Which provider REST executor should be the first maintained live-hardware adapter (owner: target maintainers. Decision point: before live hardware enters CI documentation)?
+- Which expectation and observable model belongs in the first result contract instead of a later extension (owner: quantum API maintainers. Decision point: before this WIP enters Review)?
 
 ## References
 

@@ -77,7 +77,7 @@ application_capsule {
 }
 ```
 
-A capsule entry records kind, logical name, content identity, offset, length, alignment, and flags. Entries are sorted by kind/name/identity and initially remain uncompressed. The capsule uses fixed magic/version/length/count, overflow-checked tables, per-entry SHA-256, whole digest, canonical padding, exact consumption, and no trailing bytes.
+A capsule entry records kind, logical name, content identity, offset, length, alignment, and flags. The packer sorts entries by kind, name, and identity and initially leaves them uncompressed. The capsule uses fixed magic/version/length/count, overflow-checked tables, per-entry SHA-256, whole digest, canonical padding, exact consumption, and no trailing bytes.
 
 ```text
 capsule_id = hash(canonical capsule bytes)
@@ -113,11 +113,11 @@ The complete unsigned native file PREV is the output identity. Signing yields `s
 
 ## Ownership and boundaries
 
-Compiler/package linking owns exact WBC closure and entry. The bytecode verifier owns every embedded executable artifact. Capsule builder owns canonical bytes/ID; native runtime owns startup and execution. Format adapters own platform layout. WIP-0023 owns exact tools, reproducibility, PREV, and publication. WIP-0025 owns providers/link groups. WIP-0024 owns installation and signing policy. The OS loader owns loading; host policy grants runtime authority.
+Compiler/package linking owns exact WBC closure and entry. The bytecode verifier owns every embedded executable artifact. Capsule builder owns canonical bytes/ID. Native runtime owns startup and execution. Format adapters own platform layout. WIP-0023 owns exact tools, reproducibility, PREV, and publication. WIP-0025 owns providers/link groups. WIP-0024 owns installation and signing policy. The OS loader owns loading. Host policy grants runtime authority.
 
 ## Design
 
-A package derives an image from one runnable target without adding a new target kind. Image profile selects platform, embedded-VM mode, baseline, and sealed/system policy; exact tools and artifacts come from the lock/plan.
+A package derives an image from one runnable target without adding a new target kind. Image profile selects platform, embedded-VM mode, baseline, and sealed/system policy. Exact tools and artifacts come from the lock/plan.
 
 The WBC closure contains root and every exact runtime-loadable or inspectable WBC, with no unreachable package artifacts unless explicitly retained. Source-linked applications may contain one final WBC. Version resolution never occurs at startup.
 
@@ -135,7 +135,7 @@ ELF uses ordinary code/data plus a dedicated read-only, nonexecutable `PT_LOAD` 
 
 ### Mach-O
 
-Mach-O uses a read-only nonexecutable `__WHEELER` segment containing manifest, bundle, and resources. It is mapped by normal load commands, located through generated symbols/locator, and embedded before code signing. Universal binaries initially duplicate the exact capsule in each architecture slice; all slices report one capsule ID while runtime/native code may differ.
+Mach-O uses a read-only nonexecutable `__WHEELER` segment containing manifest, bundle, and resources. Normal load commands map it, generated symbols and the locator find it, and the build embeds it before code signing. Universal binaries initially duplicate the exact capsule in each architecture slice. All slices report one capsule ID while runtime/native code may differ.
 
 ### PE/COFF
 
@@ -147,7 +147,7 @@ The first runtime is statically linked or depends only on the declared baseline.
 
 WIP-0025 static providers are preferred for sealed images. Platform-baseline providers are explicit. Embedded dynamic providers are deferred because temp extraction creates filesystem, race, cleanup, signing, and antivirus semantics.
 
-The final native import closure must equal baseline plus declared providers. Inspection may verify declarations; it cannot invent them.
+The final native import closure must equal baseline plus declared providers. Inspection may verify declarations. It cannot invent them.
 
 Host arguments, streams, files, environment allowlist, and exit status are bound only through the entry capability contract. The image itself grants no ambient authority.
 
@@ -169,11 +169,11 @@ Capsule and unsigned image construction finish before signing. ELF repository/di
 
 The root receives one explicit WIP-0032 `Io` implementation plus exact granted resource capabilities. The image, capsule, runtime mode, or linked provider grants no ambient file, network, clock, credential, device, or target access.
 
-WIP-0032 owns request and completion methods. This WIP records the required host-I/O shape and binds backends/providers into the image plan; it does not fork the API. Image replacement and update publication likewise claim no durability beyond an exact accepted receipt.
+WIP-0032 owns request and completion methods. This WIP records the required host-I/O shape and binds backends/providers into the image plan. It does not fork the API. Image replacement and update publication likewise claim no durability beyond an exact accepted receipt.
 
 ## Reversibility, concurrency, quantum, and proofs
 
-Capsule/layout/hashing/verification are deterministic. Linking, writing, signing, notarization, and replacement are external effects. Embedded execution obeys ordinary Wheeler semantics; packaging does not make host effects reversible.
+Capsule/layout/hashing/verification are deterministic. Linking, writing, signing, notarization, and replacement are external effects. Embedded execution obeys ordinary Wheeler semantics. Packaging does not make host effects reversible.
 
 Image inputs are canonically ordered and linker concurrency is allowed only when bytes remain invariant. Runtime capsule pages are immutable/shareable.
 
@@ -221,15 +221,15 @@ Reject malformed native structure, overlapping or escaping ranges, a writable an
 
 ## Alternatives
 
-Adjacent launch directories permit substitution and partial updates. Opaque trailers have inconsistent loader/signing behavior. App bundles are useful wrappers but not the one-file profile; requiring AOT increases compiler risk; omitting WBC loses semantic provenance. Reopening by path and storing only debug sections are brittle. Temp extraction of shared libraries is deferred. Signed bytes alone are not reproducible content identity. Runtime package resolution and in-place WBC updates violate the closed immutable graph. All are rejected.
+Adjacent launch directories permit substitution and partial updates. Opaque trailers have inconsistent loader/signing behavior. App bundles are useful wrappers but not the one-file profile. Requiring AOT increases compiler risk. Omitting WBC loses semantic provenance. Reopening by path and storing only debug sections are brittle. Temp extraction of shared libraries is deferred. Signed bytes alone are not reproducible content identity. Runtime package resolution and in-place WBC updates violate the closed immutable graph. All are rejected.
 
 ## Open questions
 
-- Which canonical capsule encoding and deterministic compression profile (owner: format maintainers; decision point: schema freeze)?
-- Exact ELF locator/note and first Linux baseline (owner: ELF/runtime maintainers; decision point: ELF adapter)?
-- First macOS versions/slices and universal duplication policy (owner: platform maintainers; decision point: Mach-O adapter)?
-- Which host-input capabilities are required for the first CLI (owner: standard-library maintainers; decision point: startup)?
-- Which conformance gate admits AOT, and is PE in first acceptance or successor (owner: compiler/platform maintainers; decision point: acceptance)?
+- Which canonical capsule encoding and deterministic compression profile (owner: format maintainers. Decision point: schema freeze)?
+- Exact ELF locator/note and first Linux baseline (owner: ELF/runtime maintainers. Decision point: ELF adapter)?
+- First macOS versions/slices and universal duplication policy (owner: platform maintainers. Decision point: Mach-O adapter)?
+- Which host-input capabilities are required for the first CLI (owner: standard-library maintainers. Decision point: startup)?
+- Which conformance gate admits AOT, and is PE in first acceptance or successor (owner: compiler/platform maintainers. Decision point: acceptance)?
 
 ## References
 

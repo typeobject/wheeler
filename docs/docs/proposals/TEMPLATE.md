@@ -25,7 +25,7 @@ Describe the real problem, who faces it, and why a local fix would leave the lar
 
 ## Use cases
 
-Give two to four concrete cases that exercise the contract; when relevant, include reversal, failure, lifecycle, malformed input, or concurrency. Use cases explain why the contract exists. They are not a task list.
+Give two to four concrete cases that exercise the contract. When relevant, include reversal, failure, lifecycle, malformed input, or concurrency. Use cases explain why the contract exists. They are not a task list.
 
 ## Goals
 
@@ -38,6 +38,8 @@ Give two to four concrete cases that exercise the contract; when relevant, inclu
 ## Terms and semantic model
 
 Define key terms, machine state, values, and transitions. State each rule clearly enough for another implementation or a conformance test. Prefer pseudocode, transition rules, or a small diagram when prose would be unclear.
+
+Use active voice and direct sentences. Address readers as `you` when you give instructions. Cut filler, marketing language, repeated conclusions, prose semicolons, and typographic dashes. Keep code punctuation inside code spans and fences. If the rule has problems, say so plainly.
 
 ## Ownership and boundaries
 

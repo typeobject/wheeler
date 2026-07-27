@@ -13,7 +13,7 @@
 
 ## Summary
 
-Wheeler adds symbolic resource contracts to declarations and canonical resource evidence to closed callables and semantic regions. A contract may state an exact value or upper bound for compiler-owned dimensions such as steps, storage, history, logical qubits, clean ancillas, semantic operations, depth, measurements, and target submissions. Formulas use bounded const-generic expressions and are checked after specialization. The compiler composes resources according to the semantics of calls, branches, loops, controls, ancilla lifetimes, and compute–use regions. Exact, proved, modeled, and empirical claims remain distinct, and Wheeler does not replace Big-O notation with a new asymptotic language.
+Wheeler adds symbolic resource contracts to declarations and canonical resource evidence to closed callables and semantic regions. A contract may state an exact value or upper bound for compiler-owned dimensions such as steps, storage, history, logical qubits, clean ancillas, semantic operations, depth, measurements, and target submissions. Formulas use bounded const-generic expressions and are checked after specialization. The compiler composes resources according to the semantics of calls, branches, loops, controls, ancilla lifetimes, and compute/use regions. Exact, proved, modeled, and empirical claims remain distinct, and Wheeler does not replace Big-O notation with a new asymptotic language.
 
 ## Motivation
 
@@ -65,7 +65,7 @@ The compiler checks every symbolic formula for each closed `N` before coherent l
 
 Two adders may satisfy the same semantic class but publish different resource profiles. A planning layer chooses one explicit strategy before the unitary region closes.
 
-### Compute–use composition
+### Compute/use composition
 
 For a region with compute `C`, use `U`, and generated cleanup `C†`, Wheeler derives count and depth expressions for `C + U + C†` while calculating peak ancillas from overlapping lifetimes rather than adding every child width.
 
@@ -96,7 +96,7 @@ The compiler may prove an exact logical T count. A fault-tolerant architecture m
 - Support exact equality and checked upper bounds.
 - Evaluate formulas over const generics, shapes, associated constants, and finite compiler-known values.
 - Define one initial set of compiler-owned resource dimensions.
-- Compose resources through calls, branches, loops, controlled regions, adjoints, ancilla scopes, and compute–use regions.
+- Compose resources through calls, branches, loops, controlled regions, adjoints, ancilla scopes, and compute/use regions.
 - Distinguish cumulative resources from peak resources.
 - Bind every formula to a resource-model profile.
 - Carry resource expressions and closed values in canonical `.wbc` metadata.
@@ -124,7 +124,7 @@ The compiler may prove an exact logical T count. A fault-tolerant architecture m
 
 A **resource dimension** is one named nonnegative quantity with one declared composition model and profile identity.
 
-The initial compiler-owned dimensions are grouped by domain.
+The following domains group the initial compiler-owned dimensions.
 
 Classical execution:
 
@@ -174,13 +174,13 @@ The exact first list may be reduced before acceptance. Each admitted dimension h
 
 A **resource expression** is a bounded canonical expression over:
 
-- nonnegative integer literals;
-- const-generic parameters;
-- shape dimensions;
-- accepted associated constants;
-- closed resource expressions from callees;
-- checked `+` and `*`;
-- a small closed set of total intrinsics such as `max`, `ceilDiv`, and `powerOfTwoCeil`;
+- nonnegative integer literals.
+- const-generic parameters.
+- shape dimensions.
+- accepted associated constants.
+- closed resource expressions from callees.
+- checked `+` and `*`.
+- a small closed set of total intrinsics such as `max`, `ceilDiv`, and `powerOfTwoCeil`.
 - conditionals whose condition is a compile-time Boolean.
 
 Expressions are not runtime values. They cannot read state, measurement, clocks, target queues, provider data, or arbitrary function results.
@@ -413,7 +413,7 @@ A controlled operation uses the resource profile of the selected controlled desc
 
 A custom controlled implementation may trade ancillas for depth. Both dimensions remain visible.
 
-### Compute–use regions
+### Compute/use regions
 
 For:
 
@@ -541,7 +541,7 @@ A reversible operation must report retained history separately from explicit log
 
 Deleting history through `commit` changes future rewind availability. It does not retroactively reduce the peak history used before the commit.
 
-A compute–use region reports clean ancilla lifetime. Resetting a dirty ancilla may reduce physical liveness but carries a different effect and cannot satisfy the exact clean resource contract.
+A compute/use region reports clean ancilla lifetime. Resetting a dirty ancilla may reduce physical liveness but carries a different effect and cannot satisfy the exact clean resource contract.
 
 ## Concurrency and determinism
 
@@ -564,13 +564,13 @@ forall N satisfying constraints:
 
 WIP-0011 certificates bind:
 
-- declaration identity;
-- generic parameters and constraints;
-- selected class evidence;
-- callable and controlled identities;
-- semantic operation profile;
-- resource metric profile;
-- proof assumptions;
+- declaration identity.
+- generic parameters and constraints.
+- selected class evidence.
+- callable and controlled identities.
+- semantic operation profile.
+- resource metric profile.
+- proof assumptions.
 - compiler profile.
 
 The proof kernel checks accepted arithmetic and structural composition. It does not trust a provider report because the field is named `depth`.
@@ -600,24 +600,24 @@ Target-qualified plans and empirical run data remain separate versioned runtime 
 
 Adding or tightening a public resource guarantee may affect package compatibility. Weakening a promised upper bound is a breaking semantic change.
 
-Existing artifacts without resource contracts remain valid when no selected target or caller requires them. An artifact using required resource-contract features is rejected by an unaware loader before execution.
+Existing artifacts without resource contracts remain valid when no selected target or caller requires them. A loader that does not understand required resource-contract features rejects the artifact before execution.
 
 ## Safety, limits, and failures
 
 Limits cover:
 
-- resource dimensions per declaration;
-- expression nodes and depth;
-- generic variables;
-- associated reductions;
-- arithmetic magnitude;
-- call-graph edges;
-- loop and branch composition;
-- liveness sets;
-- proof obligations;
-- certificate bytes;
-- target report size;
-- compiler time and memory;
+- resource dimensions per declaration.
+- expression nodes and depth.
+- generic variables.
+- associated reductions.
+- arithmetic magnitude.
+- call-graph edges.
+- loop and branch composition.
+- liveness sets.
+- proof obligations.
+- certificate bytes.
+- target report size.
+- compiler time and memory.
 - diagnostics.
 
 The first stable diagnostic families should include:
@@ -645,7 +645,7 @@ A failed resource check emits no partial verified callable, proof certificate, t
 2. Add canonical resource-expression parsing, normalization, and `.wbc` encoding.
 3. Add source resource clauses over closed nongeneric declarations.
 4. Add symbolic const-generic and associated-constant formulas.
-5. Add call, branch, loop, inverse, adjoint, control, ancilla, and compute–use composition.
+5. Add call, branch, loop, inverse, adjoint, control, ancilla, and compute/use composition.
 6. Add lifetime-based peak resource analysis.
 7. Add WIP-0011 obligations and certificate checking.
 8. Add target-plan comparison against closed profiles.
@@ -676,7 +676,7 @@ A failed resource check emits no partial verified callable, proof certificate, t
 - [ ] Fixed-count loop profiles multiply cumulative costs and preserve peak-local rules.
 - [ ] Adjoint and inverse profiles use the exact selected body identity.
 - [ ] Controlled calls use controlled-descriptor resources rather than a guessed multiplier.
-- [ ] Compute–use regions count forward, use, and cleanup while retaining ancillas through the full lifetime.
+- [ ] Compute/use regions count forward, use, and cleanup while retaining ancillas through the full lifetime.
 - [ ] Peak logical qubits differ from the sum of all child qubit counts in an acceptance fixture.
 - [ ] History bytes, explicit witnesses, and clean workspace remain separate dimensions.
 - [ ] Exact logical resources, modeled physical resources, and empirical runtime remain distinct evidence types.

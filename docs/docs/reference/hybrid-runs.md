@@ -15,8 +15,8 @@ RunStatus status = run.advance();
 
 `advance()` stops in one of these states:
 
-- `WAITING`: a target acknowledged a quantum job;
-- `COMPLETED`: the workflow reached its verified halt;
+- `WAITING`: a target acknowledged a quantum job.
+- `COMPLETED`: the workflow reached its verified halt.
 - `TRAPPED`: a bounded semantic failure stopped the run.
 
 A waiting run accepts a result with a bounded timeout:
@@ -33,10 +33,10 @@ The local ideal simulator uses the same submit, acknowledge, validate, apply, an
 
 Each semantic transition creates an immutable `HybridEvent` with:
 
-- run, branch, sequence, and workflow-edge identity;
-- an event kind;
-- bounded job and target identity;
-- a kind-specific bounded value and detail;
+- run, branch, sequence, and workflow-edge identity.
+- an event kind.
+- bounded job and target identity.
+- a kind-specific bounded value and detail.
 - a SHA-256 content identity.
 
 The first event set covers run start, target selection, transaction start or abort, submission, result application, cancellation request, branch discard or retry, commit, completion, and trap.
@@ -49,34 +49,34 @@ Arrival order does not define semantic order. Operational timestamps, polling at
 
 Before changing classical state, the run checks:
 
-- job identity;
-- target identity;
-- task content identity, including the `.wbc` artifact, register, basis state, circuit or adjoint sequence, shot request, and seed policy;
-- exact shot count;
-- full-register outcome width;
-- the active continuation and branch;
+- job identity.
+- target identity.
+- task content identity, including the `.wbc` artifact, register, basis state, circuit or adjoint sequence, shot request, and seed policy.
+- exact shot count.
+- full-register outcome width.
+- the active continuation and branch.
 - remaining event capacity.
 
 The runtime then applies the accepted observation event and its classical effect once. A second `resume()` fails because the lifecycle has already advanced. A malformed result leaves the continuation, global values, and event stream unchanged.
 
-Measurement outcomes use Wheeler's canonical little-endian integer form; provider display strings never enter semantic event state.
+Measurement outcomes use Wheeler's canonical little-endian integer form. Provider display strings never enter semantic event state.
 
 ## Persistence and recovery
 
 `HybridRunStore` writes a `HybridRunSnapshot` as one canonical bounded binary record with a trailing SHA-256 integrity digest. A snapshot contains:
 
-- schema, artifact, run, mode, status, branch, and limits;
-- the commit horizon;
-- typed global values and the exact workflow edge;
-- a pending acknowledged job and target identity, when present;
-- a transaction checkpoint and phase, when active;
+- schema, artifact, run, mode, status, branch, and limits.
+- the commit horizon.
+- typed global values and the exact workflow edge.
+- a pending acknowledged job and target identity, when present.
+- a transaction checkpoint and phase, when active.
 - the complete bounded semantic event stream.
 
 When the host supports it, writes use temporary output and atomic replacement. Decoding rejects bad magic, unknown enums, invalid counts, truncated or extra data, integrity failure, disagreement between the header and reducer, and a mismatched continuation identity.
 
 Recovery starts from the beginning and replays deterministic workflow edges plus accepted observations. It then compares the rebuilt globals with the persisted typed continuation.
 
-At a waiting edge, recovery calls `QuantumTarget.recover(jobId, task)`; it never turns an acknowledged job into a new submission. A target that cannot match the durable identity must fail recovery clearly.
+At a waiting edge, recovery calls `QuantumTarget.recover(jobId, task)`. It never turns an acknowledged job into a new submission. A target that cannot match the durable identity must fail recovery clearly.
 
 Provider SDK objects, credentials, host pointers, arbitrary object graphs, and raw quantum handles are never persisted.
 

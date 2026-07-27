@@ -13,7 +13,7 @@
 
 ## Summary
 
-Wheeler preserves closed callable hierarchy and structural control as a canonical semantic routine graph inside `.wbc`. A routine is one closed Wheeler callable instance with exact type, effect, inverse, adjoint, controlled, ownership, proof, and resource identity. The graph retains calls, repetition, adjoint, control, compute–use regions, ancilla scopes, preparation, measurement, reset, and hybrid boundaries instead of flattening every operation into gates or bytecode instructions. Optimized, target-native, and visual forms are derived artifacts. Each derived transformation records its source graph, policy, output graph, semantic relation, resource delta, and accepted evidence.
+Wheeler preserves closed callable hierarchy and structural control as a canonical semantic routine graph inside `.wbc`. A routine is one closed Wheeler callable instance with exact type, effect, inverse, adjoint, controlled, ownership, proof, and resource identity. The graph retains calls, repetition, adjoint, control, compute/use regions, ancilla scopes, preparation, measurement, reset, and hybrid boundaries instead of flattening every operation into gates or bytecode instructions. Optimized, target-native, and visual forms are derived artifacts. Each derived transformation records its source graph, policy, output graph, semantic relation, resource delta, and accepted evidence.
 
 ## Motivation
 
@@ -21,15 +21,15 @@ A flat circuit can execute a small quantum example. It is a poor semantic repres
 
 Flattening loses the facts that matter most to Wheeler:
 
-- which source function produced an operation;
-- which generic and type-class instance was selected;
-- which call has a generated inverse or adjoint;
-- which block is controlled;
-- which temporary value belongs to one compute–use lifetime;
-- which ancillas may be reused;
-- which loop represents a billion repeated operations;
-- which resource formula belongs to one reusable routine;
-- which transformation preserved exact semantics and which introduced approximation;
+- which source function produced an operation.
+- which generic and type-class instance was selected.
+- which call has a generated inverse or adjoint.
+- which block is controlled.
+- which temporary value belongs to one compute/use lifetime.
+- which ancillas may be reused.
+- which loop represents a billion repeated operations.
+- which resource formula belongs to one reusable routine.
+- which transformation preserved exact semantics and which introduced approximation.
 - which source location dominates the final cost.
 
 A Construct-like resource analyzer, a QREF exporter, a source-linked circuit viewer, and a fault-tolerant planner all need hierarchy. They should not reconstruct it from flattened gates.
@@ -52,7 +52,7 @@ A report shows that 38 percent of logical depth comes from one lookup routine. T
 
 ### Structured control optimization
 
-A controlled compute–use region has form:
+A controlled compute/use region has form:
 
 ```text
 C ; U ; C†
@@ -76,7 +76,7 @@ A derived transformation fails certificate checking. Wheeler rejects the derived
 
 - Define a routine as a closed semantic callable instance, not a new source object hierarchy.
 - Preserve source call hierarchy in canonical Wheeler artifacts.
-- Preserve structural nodes for repetition, adjoint, control, compute–use, ancilla scopes, and irreversible boundaries.
+- Preserve structural nodes for repetition, adjoint, control, compute/use, ancilla scopes, and irreversible boundaries.
 - Keep generic, type-class, callable, proof, resource, and source identity attached to each routine.
 - Represent very large bounded programs without eager flattening.
 - Make flat circuits and target executables derived artifacts.
@@ -168,14 +168,14 @@ A **derived graph** is produced from another graph by one named transformation p
 
 Examples include:
 
-- inlining;
-- constant propagation;
-- inverse cancellation;
-- control specialization;
-- uncomputation scheduling;
-- arithmetic decomposition;
-- gate-set lowering;
-- routing;
+- inlining.
+- constant propagation.
+- inverse cancellation.
+- control specialization.
+- uncomputation scheduling.
+- arithmetic decomposition.
+- gate-set lowering.
+- routing.
 - fault-tolerant expansion.
 
 A derived graph is never silently promoted to canonical source semantics.
@@ -261,11 +261,11 @@ Documentation or attributes may later add display grouping. They do not create i
 
 A graph root is one of:
 
-- a classical entry body;
-- a coherent callable body;
-- a unitary operation body;
-- a target-resident bounded hybrid region;
-- an experiment body;
+- a classical entry body.
+- a coherent callable body.
+- a unitary operation body.
+- a target-resident bounded hybrid region.
+- an experiment body.
 - a proof-referenced semantic region.
 
 The root descriptor names required effects, resource ceilings, target requirements, and result schema.
@@ -339,17 +339,17 @@ Double adjoint normalizes to the original semantic routine identity under WIP-00
 
 A `Controlled` node records:
 
-- control places;
-- controlled body identity;
-- source controlled region;
-- required control semantics;
-- selected custom or synthesized descriptor when planning closes;
-- controlled-equivalence evidence;
+- control places.
+- controlled body identity.
+- source controlled region.
+- required control semantics.
+- selected custom or synthesized descriptor when planning closes.
+- controlled-equivalence evidence.
 - resource profile.
 
 A derived plan may replace a controlled conjugation with a structure-aware equivalent under accepted evidence.
 
-### Compute–use nodes
+### Compute/use nodes
 
 A `ComputeUse` node preserves the three-part relation from WIP-0034:
 
@@ -367,11 +367,11 @@ The node lets tools render temporary computation once and lets planners consider
 
 An `AncillaScope` records:
 
-- logical types and widths;
-- clean entry and exit bases;
-- lexical lifetime;
-- child nodes that use the resources;
-- proof evidence;
+- logical types and widths.
+- clean entry and exit bases.
+- lexical lifetime.
+- child nodes that use the resources.
+- proof evidence.
 - peak resource contribution.
 
 Physical qubit allocation remains target-derived.
@@ -459,11 +459,11 @@ Execution materialization creates provider or runtime payloads. It has no semant
 
 A transformation may carry:
 
-- kernel-checkable proof;
-- compiler-checked local rewrite witness;
-- admitted intrinsic rule;
-- finite exhaustive validation under a declared bound;
-- test evidence;
+- kernel-checkable proof.
+- compiler-checked local rewrite witness.
+- admitted intrinsic rule.
+- finite exhaustive validation under a declared bound.
+- test evidence.
 - no evidence beyond provenance.
 
 Only the first three may satisfy a requirement for verified exact rewriting in the initial profile. Finite exhaustive validation may be admitted for a specific bounded rule if WIP-0011 defines that certificate form.
@@ -496,11 +496,11 @@ Each node references a WIP-0036 resource profile.
 
 Reports may aggregate by:
 
-- source declaration;
-- routine identity;
-- call site;
-- node kind;
-- target transformation;
+- source declaration.
+- routine identity.
+- call site.
+- node kind.
+- target transformation.
 - proof or assumption status.
 
 A report must distinguish inclusive resource cost from exclusive local cost.
@@ -542,13 +542,13 @@ Routine graph construction and transformation are deterministic compiler activit
 
 The graph preserves each operation’s true relation:
 
-- language inverse;
-- logged rewind class;
-- barrier;
-- coherent permutation;
-- unitary adjoint;
-- measurement;
-- reset;
+- language inverse.
+- logged rewind class.
+- barrier.
+- coherent permutation.
+- unitary adjoint.
+- measurement.
+- reset.
 - target or workflow edge.
 
 A transformation cannot replace one relation with another merely because the final output appears similar in a sample.
@@ -610,7 +610,7 @@ TransformationRelationTable
 SourceGenerationReasonTable
 ```
 
-WIP-0036 resource expressions remain in their own canonical tables and are referenced by node ID.
+WIP-0036 resource expressions remain in their own canonical tables and nodes reference them by ID.
 
 The manifest lists the hierarchical graph feature as required when selected entry points depend on it. A loader that does not recognize the feature rejects the artifact before execution.
 
@@ -618,13 +618,13 @@ Existing `.wbc` artifacts without the feature remain valid. A compatible newer l
 
 Derived graphs, lowering reports, target executables, visual layouts, and provider payloads live in separate versioned artifacts. They identify:
 
-- parent semantic graph;
-- transformation chain;
-- policy;
-- assumptions;
-- target descriptor;
-- tool versions;
-- source mapping;
+- parent semantic graph.
+- transformation chain.
+- policy.
+- assumptions.
+- target descriptor.
+- tool versions.
+- source mapping.
 - proof and resource evidence.
 
 Persisted hybrid runs reference semantic region and executable identities. They do not persist live routine-local quantum resources.
@@ -633,19 +633,19 @@ Persisted hybrid runs reference semantic region and executable identities. They 
 
 Limits cover:
 
-- routines;
-- call sites;
-- graph nodes and edges;
-- node nesting;
-- repeat expression size;
-- source maps;
-- generic and evidence references;
-- transformation chain length;
-- proof and assumption references;
-- resource attachments;
-- derived graph bytes;
-- streaming expansion work;
-- compiler and verifier time and memory;
+- routines.
+- call sites.
+- graph nodes and edges.
+- node nesting.
+- repeat expression size.
+- source maps.
+- generic and evidence references.
+- transformation chain length.
+- proof and assumption references.
+- resource attachments.
+- derived graph bytes.
+- streaming expansion work.
+- compiler and verifier time and memory.
 - diagnostics.
 
 The first stable diagnostic families should include:
@@ -676,7 +676,7 @@ A malformed semantic graph fails before target planning. A failed transformation
 1. Define routine and graph identities over closed callable descriptors.
 2. Emit call and sequence nodes for current quantum and coherent bodies.
 3. Add repeat, adjoint, and controlled nodes.
-4. Add compute–use and ancilla-scope nodes.
+4. Add compute/use and ancilla-scope nodes.
 5. Add preparation, measurement, reset, target, and continuation boundaries.
 6. Add canonical graph encoding and verification in `.wbc` feature metadata.
 7. Add source mapping and generated-reason records.
@@ -692,7 +692,7 @@ A malformed semantic graph fails before target planning. A failed transformation
 - [ ] Routine and routine-instance identity is accepted.
 - [ ] Current coherent and unitary calls emit hierarchy.
 - [ ] Repeat, adjoint, and controlled nodes emit.
-- [ ] Compute–use and ancilla scopes emit.
+- [ ] Compute/use and ancilla scopes emit.
 - [ ] Measurement and hybrid boundaries remain explicit.
 - [ ] Canonical graph encoding and verification pass.
 - [ ] Resource profiles attach to source nodes.
@@ -706,7 +706,7 @@ A malformed semantic graph fails before target planning. A failed transformation
 - [ ] Two clean builds of the same closed program produce byte-identical routine graphs.
 - [ ] Generic and type-class specialization changes routine identity when semantics change.
 - [ ] Repeated operations remain symbolic and bounded without forced flattening.
-- [ ] Adjoint, controlled, compute–use, and ancilla nodes preserve their structural identity.
+- [ ] Adjoint, controlled, compute/use, and ancilla nodes preserve their structural identity.
 - [ ] Measurement, reset, and target boundaries cannot be hidden inside a unitary node.
 - [ ] Ownership and effect edges reject use after move, aliasing, and illegal observation.
 - [ ] A flat simulator execution of the graph matches the existing semantic simulator on acceptance fixtures.

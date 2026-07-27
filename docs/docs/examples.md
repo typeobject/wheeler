@@ -41,13 +41,13 @@ Expected behavior:
 
 - Input `classical class LongClass { state long value = 7; entry void main() { value += 5; } }` drives global and instruction IR, canonical lexical string ordering, function descriptors, and layout.
 - The 504-byte result passes Wheeler's header/directory/payload/instruction-stream verifier, including global/local/type/call operand domains, matches stage 0, and executes with `value = 12`.
-- Canonical `module examples.seed;` input emits stage-0-identical qualified entry/helper strings and unqualified theorem names, including stateless helper classes. Public, explicit-private, and unqualified helpers produce the same linked function bytes, while duplicate visibility fails before output. A malformed dotted header also fails before output; module imports and multi-file linking remain outside this bounded path.
+- Canonical `module examples.seed;` input emits stage-0-identical qualified entry/helper strings and unqualified theorem names, including stateless helper classes. Public, explicit-private, and unqualified helpers produce the same linked function bytes, while duplicate visibility fails before output. A malformed dotted header also fails before output. Module imports and multi-file linking remain outside this bounded path.
 - `verification = 1`.
-- The differential suite covers no-global classes with zero to sixty-four statements; a sixty-fifth statement is rejected before output.
+- The differential suite covers no-global classes with zero to sixty-four statements. A sixty-fifth statement is rejected before output.
 - Cases include signed and Boolean locals, prior signed- and Boolean-local copies, prior-Boolean negation, typed equality declarations and direct assertions over prior Boolean or signed locals, signed-local less-than comparisons, one-arm prior-Boolean `if` guards over checked global updates, checked signed-local `+`, `-`, `^`, `*`, `/`, and `%` expressions over literal or prior-local right operands, signed-local equality assertions, literal or prior-local truth assertions, stateful updates, helper calls, reversible helpers, reverse blocks, and generated-inverse theorems.
 - Fixtures use two to four strings and zero or one global.
-- Bounded entry bodies fit the 256-local, 512-instruction native verification window. A sixty-three-declaration signed window plus its final local equality uses 129 typed locals; `assert(global == constant)` still lowers directly to local-free `EXPECT_EQ`.
-- A named public, explicit-private, or unqualified zero- through sixty-four-statement helper plus static entry call emits two descriptors, `RETURN`, and `CALL`. Ordinary helpers may live in classes with no state. An empty reversible helper and its generated-inverse theorem also compile without inventing dummy state; nonempty reversible bodies remain bounded to checked state updates. An inverse of nothing is modest, but at least it does not lie.
+- Bounded entry bodies fit the 256-local, 512-instruction native verification window. A sixty-three-declaration signed window plus its final local equality uses 129 typed locals. `assert(global == constant)` still lowers directly to local-free `EXPECT_EQ`.
+- A named public, explicit-private, or unqualified zero- through sixty-four-statement helper plus static entry call emits two descriptors, `RETURN`, and `CALL`. Ordinary helpers may live in classes with no state. An empty reversible helper and its generated-inverse theorem also compile without inventing dummy state. Nonempty reversible bodies remain bounded to checked state updates. An inverse of nothing is modest, but at least it does not lie.
 - One or two helper calls derive repeated `CALL` sites.
 - A following entry statement derives its own locals, type window, descriptor length, and code after the call.
 - The `rev` form maps checked `+=`/`-=` to opposite intrinsic bodies and `^=` to a self-inverse body, reverses multi-statement inverse order, emits entry `CALL`/`UNCALL`, then may assert the restored state.
@@ -56,7 +56,7 @@ Expected behavior:
 - The checked-in `Counter.w` compiles byte for byte through the direct VM and package-selected `wheeler run` paths. It runs two calls, two inverse calls, and both assertions.
 - Compiler-local comment compaction leaves the shared teaching scanner's token stream intact.
 - Thirty-two deterministic pseudo-random whitespace, line-comment, and block-comment layouts reproduce the baseline bytes in stage 0 and Wheeler.
-- Compiler token metadata allows 1,024 pre-compaction tokens. A 500-comment source compiles to the baseline bytes; 1,024 comments exceed the bound and trap before publication. Comments remain syntax, not a memory-allocation strategy.
+- Compiler token metadata allows 1,024 pre-compaction tokens. A 500-comment source compiles to the baseline bytes. 1,024 comments exceed the bound and trap before publication. Comments remain syntax, not a memory-allocation strategy.
 - An optional theorem adds a canonically sorted proof name and 28-byte `GENERATED_INVERSE` section accepted by the proof kernel.
 - Signed and Boolean literals, unary negation, literal truth assertions, and prior-local Boolean assertions work in no-global, stateful, and ordinary-helper bodies.
 - They lower through `LOCAL_CONST`, `LOCAL_XOR`, `LOCAL_MOVE`, and `EXPECT_TRUE`. The compiler emits exact signed and Boolean local type windows from named token, punctuation, and statement identities.
@@ -145,7 +145,7 @@ Files: [`NativeArtifactSetIdentity.w`](../../wheeler-examples/src/main/wheeler/n
 
 Covers: Exact bounded `wheeler.artifact-set/1` JSON, one through eight sorted safe ASCII `.wbc` paths, canonical positive byte counts, lowercase SHA-256 fields, the domain-separated binary identity contract, embedded-identity verification, fail-closed publication, and exact rewind.
 
-Expected behavior: A two-artifact manifest reproduces the stage-0 set identity. Unsorted paths, uppercase digests, forged identities, unknown profile keys, a ninth artifact, or input beyond 4,096 bytes publish nothing. This fixture validates manifest metadata; the stage-0 closed-tree command still verifies every physical `.wbc` before emitting those bytes. A manifest is evidence about files only after somebody checks the files. Film at eleven.
+Expected behavior: A two-artifact manifest reproduces the stage-0 set identity. Unsorted paths, uppercase digests, forged identities, unknown profile keys, a ninth artifact, or input beyond 4,096 bytes publish nothing. This fixture validates manifest metadata. The stage-0 closed-tree command still verifies every physical `.wbc` before emitting those bytes. A manifest is evidence about files only after somebody checks the files. Film at eleven.
 
 ### `NativeBootstrapFeaturesIdentity.w`
 
@@ -161,7 +161,7 @@ Files: [`NativeBootstrapManifestIdentity.w`](../../wheeler-examples/src/main/whe
 
 Covers: Exact schema-2 canonical recovery YAML, twenty-one lowercase identities, bounded profile syntax, stage-1/stage-2 equality, diverse-output and diagnostic equality, genuinely distinct toolchain/compiler identities, complete SHA-256 publication, and exact rewind.
 
-Expected behavior: Complete fixed-point and diverse-compilation evidence reproduces the stage-0 manifest identity. A false fixed point, mismatched diverse output, shared alleged-independent toolchain or compiler, reordered field, or input beyond 2,048 bytes publishes nothing. The validator checks evidence relationships; it does not award independence points for wearing a false moustache.
+Expected behavior: Complete fixed-point and diverse-compilation evidence reproduces the stage-0 manifest identity. A false fixed point, mismatched diverse output, shared alleged-independent toolchain or compiler, reordered field, or input beyond 2,048 bytes publishes nothing. The validator checks evidence relationships. It does not award independence points for wearing a false moustache.
 
 ### `NativeBootstrapModulesIdentity.w`
 
@@ -169,7 +169,7 @@ Files: [`NativeBootstrapModulesIdentity.w`](../../wheeler-examples/src/main/whee
 
 Covers: One through thirty-two sorted local source modules, zero through thirty-two externals, 128 total imports, unique paths, complete binding, rooted reachability, cycle rejection, bounded names and paths, lowercase source identities, exact schema bytes, SHA-256 publication, and rewind.
 
-Expected behavior: Empty-import one-module, two-external one-module, and three-, five-, nine-, and seventeen-module rooted DAG closures reproduce stage 0. A cycle, unreachable module, duplicate path, thirty-third module, unsorted external, unbound import, mismatched root, uppercase digest, traversal path, or input beyond 8,192 bytes publishes nothing. The current physical compiler closure has twenty-five modules, sixty-seven imports, and 7,467 canonical bytes; the packaged executable reproduces its stage-0 identity in 3,588,598 transitions. Thirty-two is still deliberately smaller than the 10,000-module schema; pretending otherwise would merely give the graph a fake moustache too.
+Expected behavior: Empty-import one-module, two-external one-module, and three-, five-, nine-, and seventeen-module rooted DAG closures reproduce stage 0. A cycle, unreachable module, duplicate path, thirty-third module, unsorted external, unbound import, mismatched root, uppercase digest, traversal path, or input beyond 8,192 bytes publishes nothing. The current physical compiler closure has twenty-five modules, sixty-seven imports, and 7,467 canonical bytes. The packaged executable reproduces its stage-0 identity in 3,588,598 transitions. Thirty-two is still deliberately smaller than the 10,000-module schema. Pretending otherwise would merely give the graph a fake moustache too.
 
 ### `NativeCompilerLimitsIdentity.w`
 
@@ -185,7 +185,7 @@ Files: [`NativeCompilerOptionsIdentity.w`](../../wheeler-examples/src/main/wheel
 
 Covers: Exact schema-1 canonical YAML, bounded canonical profile names, both source-map values, complete SHA-256 publication, malformed-option rejection, and exact rewind.
 
-Expected behavior: `bootstrap-1` without source maps and `native.test_2` with source maps reproduce stage-0 identities. A leading punctuation profile, unknown Boolean, stray space, or input beyond 256 bytes publishes nothing. Compiler options affect source identity; treating them as command-line ambiance is how reproducible builds acquire folklore.
+Expected behavior: `bootstrap-1` without source maps and `native.test_2` with source maps reproduce stage-0 identities. A leading punctuation profile, unknown Boolean, stray space, or input beyond 256 bytes publishes nothing. Compiler options affect source identity. Treating them as command-line ambiance is how reproducible builds acquire folklore.
 
 ### `NativeToolchainIdentity.w`
 
@@ -232,7 +232,7 @@ Files: [`NativeLockIdentity.w`](../../wheeler-examples/src/main/wheeler/native/p
 
 Covers: Bounded binary input, strict UTF-8 ownership, complete schema-3 lock validation, Wheeler SHA-256, stage-0 differential identity, fail-closed publication, and exact rewind.
 
-Expected behavior: Empty and one-package locks produce the stage-0 identity. Two packages exceed this fixture's table, schema drift is still schema drift after hashing, and 2,049 bytes exceed its input budget; none publishes so much as a consolation nybble.
+Expected behavior: Empty and one-package locks produce the stage-0 identity. Two packages exceed this fixture's table, schema drift is still schema drift after hashing, and 2,049 bytes exceed its input budget. None publishes so much as a consolation nybble.
 
 ### `NativePlan.w`
 
@@ -253,7 +253,7 @@ Files: [`NativePlanIdentity.w`](../../wheeler-examples/src/main/wheeler/native/p
 
 Covers: Payload digest, node-identity rederivation, structural plan validation, final Wheeler SHA-256, stage-0 differential identity, fail-closed output, and exact rewind.
 
-Expected behavior: One canonical tool plan matches `BuildPlanCodec.identity`. Payload-digest damage or input beyond 4,096 bytes publishes nothing. Rehashing a forged plan is not validation; it is stationery.
+Expected behavior: One canonical tool plan matches `BuildPlanCodec.identity`. Payload-digest damage or input beyond 4,096 bytes publishes nothing. Rehashing a forged plan is not validation. It is stationery.
 
 ### `NativeSha256.w`
 
@@ -292,7 +292,7 @@ Files: [`NativeCompilerIdentity.w`](../../wheeler-examples/src/main/wheeler/nati
 
 Covers: The importable Wheeler compiler driver, private canonical `.wbc` output, native verification, ranged SHA-256 publication, stage-0 differential compiler output identity, malformed-source rejection, and exact rewind.
 
-Expected behavior: One canonically module-qualified Wheeler source produces the SHA-256 of the byte-identical stage-0 artifact without exposing private artifact storage. An unresolved operand or source beyond 4,096 bytes publishes no identity. The executable compiler wrapper and the importable driver use one implementation; forks are useful for eating, not for bootstrap logic.
+Expected behavior: One canonically module-qualified Wheeler source produces the SHA-256 of the byte-identical stage-0 artifact without exposing private artifact storage. An unresolved operand or source beyond 4,096 bytes publishes no identity. The executable compiler wrapper and the importable driver use one implementation. Forks are useful for eating, not for bootstrap logic.
 
 ### `NativeVerifier.w`
 
@@ -341,13 +341,13 @@ Files: [`NativeDurabilityReceipts.w`](../../wheeler-examples/src/main/wheeler/na
 
 Covers: The fixed 163-byte `wheeler-durability-receipt-1` identity, separate subject/profile/evidence digests, exact parent chaining, six monotonic file-publication stages, stage-specific evidence, namespace and quorum requirements, fail-closed output, and Java/Wheeler differential identity checks.
 
-Expected behavior: Six independently bounded runs reproduce stage 0 from `WriteCompleted` through `QuorumStable`; the final identity is `1d4fb3a8521eaa451dd37734c7fa0017e44bb7a684c004026c7c1c90c3f4d8b5`. A direct jump from write completion to file stability is rejected and leaves all 32 output bytes untouched. The fixture hashes one transition per VM run because a bound is a contract, not a dare.
+Expected behavior: Six independently bounded runs reproduce stage 0 from `WriteCompleted` through `QuorumStable`. The final identity is `1d4fb3a8521eaa451dd37734c7fa0017e44bb7a684c004026c7c1c90c3f4d8b5`. A direct jump from write completion to file stability is rejected and leaves all 32 output bytes untouched. The fixture hashes one transition per VM run because a bound is a contract, not a dare.
 
 ### `NativeIoLifecycle.w`
 
 Files: [`NativeIoLifecycle.w`](../../wheeler-examples/src/main/wheeler/native/NativeIoLifecycle.w) + [`runtime/io/Lifecycle.w`](../../wheeler-runtime/src/main/wheeler/runtime/io/Lifecycle.w).
 
-Covers: Wheeler-native bounded submission, exact work charging, terminal completion, cancellation-before-effect, known partial cancellation, late cancellation, uncertainty, resource release, exact reaping, scope closure, and fail-closed capacity. Caller-owned columns hold at most 64 operations; no provider handle or durability claim sneaks into the table wearing a fake moustache.
+Covers: Wheeler-native bounded submission, exact work charging, terminal completion, cancellation-before-effect, known partial cancellation, late cancellation, uncertainty, resource release, exact reaping, scope closure, and fail-closed capacity. Caller-owned columns hold at most 64 operations. No provider handle or durability claim sneaks into the table wearing a fake moustache.
 
 Expected result: four operations charge 23 work units, every terminal completion is reaped exactly once, completion-won and uncertain-after-cancellation relations remain distinct, a fifth submission is rejected without publication, and the scope closes. Complete VM rewind restores the empty tables and globals.
 
@@ -357,7 +357,7 @@ Files: [`NativeSnapshot.w`](../../wheeler-examples/src/main/wheeler/native/packa
 
 Covers: Strict schema-1 repository snapshot layout, empty snapshots, caller-owned coordinate rows, lowercase content identities, package ordering, full stable and prerelease semantic-version precedence, exact canonical republication, independent stage-0 decoding, and full VM rewind.
 
-Expected behavior: Canonical views through eight rows publish unchanged; `1.2.0` sorts before `1.10.0`, numeric prerelease identifiers are numbers rather than decorative strings, and stable releases follow their previews. A ninth fixture row or one extra space fails before publication. The parser loop admits more rows when the caller brings a larger table and enough history; neither resource is summoned by positive thinking.
+Expected behavior: Canonical views through eight rows publish unchanged. `1.2.0` sorts before `1.10.0`, numeric prerelease identifiers are numbers rather than decorative strings, and stable releases follow their previews. A ninth fixture row or one extra space fails before publication. The parser loop admits more rows when you bring a larger table and enough history. Positive thinking summons neither resource.
 
 ### `NativeSnapshotIdentity.w`
 
@@ -365,7 +365,7 @@ Files: [`NativeSnapshotIdentity.w`](../../wheeler-examples/src/main/wheeler/nati
 
 Covers: Strict binary-input bounds, owned byte-to-UTF-8 freezing, canonical snapshot validation, Wheeler-native SHA-256 publication, Java/Wheeler differential identities, fail-closed output, and complete VM rewind.
 
-Expected behavior: Empty and three-release snapshots produce the same 32-byte identity as stage 0. A fourth release exceeds this fixture's caller-owned table, malformed spacing is not canonical just because it hashes cleanly, and a 2,049-byte input is over budget; all three failures publish no digest.
+Expected behavior: Empty and three-release snapshots produce the same 32-byte identity as stage 0. A fourth release exceeds this fixture's caller-owned table, malformed spacing is not canonical just because it hashes cleanly, and a 2,049-byte input is over budget. All three failures publish no digest.
 
 ### `NativeWorkspace.w`
 
@@ -405,7 +405,7 @@ Files: [`NativeManifestIdentity.w`](../../wheeler-examples/src/main/wheeler/nati
 
 Covers: Bounded binary manifest input, strict UTF-8 ownership, complete canonical validation, Wheeler SHA-256, stage-0 differential identity, fail-closed publication, and exact rewind.
 
-Expected behavior: One canonical tool target produces the same manifest identity as stage 0. A second target exceeds this fixture's table, schema 2 remains the wrong schema, and 1,025 bytes exceed the declared input budget; none receives a participation digest.
+Expected behavior: One canonical tool target produces the same manifest identity as stage 0. A second target exceeds this fixture's table, schema 2 remains the wrong schema, and 1,025 bytes exceed the declared input budget. None receives a participation digest.
 
 ### `LongMap.w`
 
@@ -545,7 +545,7 @@ No checked-in example uses the planned WIP-0032 unified I/O API. `HostInput.w`, 
 
 `QuantumCompiler.w` checks one small compiler law in two ways. Its exact cancellation rewrite carries a kernel certificate, and execution checks the basis behavior. This fixture is separate from the larger self-hosted compiler effort.
 
-`SurfaceCode.w` is static. A full syndrome loop needs measurement, reset, bounded decoding, conditional correction, and a target that supports dynamic resident control. Wheeler must reject that workflow on a static target; it cannot hide the cost of host round trips.
+`SurfaceCode.w` is static. A full syndrome loop needs measurement, reset, bounded decoding, conditional correction, and a target that supports dynamic resident control. Wheeler must reject that workflow on a static target. It cannot hide the cost of host round trips.
 
 ## Running the suite
 

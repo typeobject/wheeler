@@ -19,7 +19,7 @@ Shared syntax does not erase semantic differences. Ordinary, inverse, coherent, 
 
 Test doubles should be explicit typed values or fixtures passed through normal ownership and capability boundaries. Wheeler shouldn't add Mockito-style interception, `when(...).thenReturn(...)`, ambient replacement registries, or another meaning of `verify`.
 
-This proposal sets the syntax rule and migration gate before the corpus changes; it prevents a broad text replacement from becoming the language definition by accident.
+This proposal sets the syntax rule and migration gate before the corpus changes. It prevents a broad text replacement from becoming the language definition by accident.
 
 ## Motivation
 
@@ -41,7 +41,7 @@ The migration needs a plan because Wheeler source appears in `.w` files, Java te
 2. A parameterized test checks `assert(roundTrip(value) == value);`. It does not choose among `assertTrue`, `assertEquals`, and `expectEqual` according to the author's breakfast.
 3. A package test needs a failing storage provider. It receives an explicit `FailingStore` fixture implementing the required typed boundary. No ambient registry rewrites the production store, and ordinary ownership rules still apply.
 4. A reversible test records an event, runs an inverse, and asserts over the resulting typed state. The assertion is an irreversible observation. Method-like syntax does not make it part of the reversible operation.
-5. Old bare assertion syntax reaches the new parser. Compilation fails at the missing `(` with one bounded diagnostic; no compatibility parser guesses which source generation produced it.
+5. Old bare assertion syntax reaches the new parser. Compilation fails at the missing `(` with one bounded diagnostic. No compatibility parser guesses which source generation produced it.
 
 ## Goals
 
@@ -66,11 +66,11 @@ The migration needs a plan because Wheeler source appears in `.w` files, Java te
 
 An **ordinary call** evaluates explicit arguments left to right, checks the callee's static signature, and crosses the ownership and effect boundary declared by that signature.
 
-An **intrinsic call** uses the same visible argument punctuation but is resolved by the compiler to a language operation instead of a user declaration. Call-shaped syntax does not imply that an intrinsic is a first-class function.
+An **intrinsic call** uses the same visible argument punctuation but the compiler resolves it to a language operation instead of a user declaration. Call-shaped syntax does not imply that an intrinsic is a first-class function.
 
 A **structural form** controls parsing, binding, effects, inversion, or proof construction. Classes, methods, `if`, `match`, `reverse`, and theorem clauses are structural forms and need not mimic calls.
 
-An **assertion** evaluates one Boolean expression exactly once. If it is true, execution advances without mutating program state. If it is false, execution traps before later state mutation or report publication. The assertion event may be recorded by a test runner, but it is not a reversible program-state transition.
+An **assertion** evaluates one Boolean expression exactly once. If it is true, execution advances without mutating program state. If it is false, execution traps before later state mutation or report publication. A test runner can record the assertion event, but the event is not a reversible program-state transition.
 
 A **test double** is an explicit implementation of a typed boundary supplied by a test descriptor or fixture. A double has ordinary identity, ownership, limits, effects, and event output. It is not an instruction to rewrite another declaration.
 
@@ -110,9 +110,9 @@ Documentation and examples consume this contract. They are not a compatibility a
 
 A construct uses call-shaped punctuation when all of the following hold:
 
-1. it consumes zero or more value expressions;
-2. argument evaluation follows ordinary expression order;
-3. it does not introduce a lexical binding or a nested control region;
+1. it consumes zero or more value expressions.
+2. argument evaluation follows ordinary expression order.
+3. it does not introduce a lexical binding or a nested control region.
 4. it does not alter parse precedence outside its parentheses.
 
 A construct remains structural when it introduces names, scopes, branches, loops, inversion regions, ownership transfer syntax, effect clauses, or proof terms whose meaning cannot be represented as ordinary eager arguments.
@@ -153,9 +153,9 @@ RewindEvidence rewind = runner.rewind(machine, inverse.forwardSteps);
 assert(rewind.restoredHistoryCursor);
 ```
 
-The example is design pseudocode, not current reference syntax; in particular, `invokeInverse` and `rewind` return different nominal types. A generic matcher that accepts either would erase the distinction the framework is supposed to test.
+The example is design pseudocode, not current reference syntax. In particular, `invokeInverse` and `rewind` return different nominal types. A generic matcher that accepts either would erase the distinction the framework is supposed to test.
 
-Exact quantum assertions occur outside unitary regions over simulator evidence; an assertion inside coherent evolution would itself be an observation and is rejected. Sampled evidence reduces to `Accepted`, `Rejected`, or `Inconclusive`. Only an explicit comparison with one of those variants yields a Boolean; `Inconclusive` never becomes truthy because the dashboard looked anxious.
+Exact quantum assertions occur outside unitary regions over simulator evidence. An assertion inside coherent evolution would itself be an observation and is rejected. Sampled evidence reduces to `Accepted`, `Rejected`, or `Inconclusive`. Only an explicit comparison with one of those variants yields a Boolean. `Inconclusive` never becomes truthy because the dashboard looked anxious.
 
 Proof assertions consume kernel output. `assert(result.accepted);` establishes that the kernel accepted the exact certificate and proposition identity. It says nothing about exhaustive compiler search or ideal hardware behavior. It also cannot treat a differently encoded proposition as equivalent.
 
@@ -169,7 +169,7 @@ assert(evidence.outcome == Outcome.Trap(TrapCode.Bounds));
 assert(evidence.successfulTransitions == 0);
 ```
 
-`observe { ... }` is structural pseudocode because it delimits execution, ownership, and trap capture; it is not proposed as an ordinary eager function. WIP-0018 owns its final spelling and descriptor semantics.
+`observe { ... }` is structural pseudocode because it delimits execution, ownership, and trap capture. It is not proposed as an ordinary eager function. WIP-0018 owns its final spelling and descriptor semantics.
 
 ### Test doubles
 
@@ -179,7 +179,7 @@ There is no method interception, invocation-count matcher, hidden global replace
 
 ### Naming
 
-Assertion-related operations use the `assert` stem only when they terminate a case on failure. Predicates remain predicates: `isEmpty`, `contains`, `verified`, or a domain name. Verification operations retain domain-qualified meaning and return typed results or diagnostics; they are not assertion aliases.
+Assertion-related operations use the `assert` stem only when they terminate a case on failure. Predicates remain predicates: `isEmpty`, `contains`, `verified`, or a domain name. Verification operations retain domain-qualified meaning and return typed results or diagnostics. They are not assertion aliases.
 
 The manual must not teach `assertTrue`, `assertFalse`, `assertEquals`, `expectEqual`, bare `assert`, Mockito matcher names, or fluent stubbing as Wheeler syntax.
 
@@ -195,7 +195,7 @@ A test double follows the reversibility contract of its typed boundary. Pure det
 
 Assertion expression evaluation follows the language's ordinary deterministic evaluation order. The runner assigns assertion events stable case-local sequence numbers. Parallel case completion cannot alter semantic report order.
 
-Test doubles are invocation-owned unless a descriptor explicitly declares shared state; shared doubles require a deterministic scheduler or append-only canonical event order. Ambient singleton doubles and process-wide call counters are rejected.
+Test doubles are invocation-owned unless a descriptor explicitly declares shared state. Shared doubles require a deterministic scheduler or append-only canonical event order. Ambient singleton doubles and process-wide call counters are rejected.
 
 ## Quantum and proof implications
 
@@ -207,7 +207,7 @@ The proof kernel's `verify` operation retains its semantic name. Mockito-style `
 
 ## Bytecode, persistence, and compatibility
 
-The punctuation migration does not require a new `.wbc` opcode. The accepted assertion lowers to the existing checked operation where its expression fits the current profile; broader Boolean expressions may require separately reviewed lowering but not a duplicate assertion family.
+The punctuation migration does not require a new `.wbc` opcode. The accepted assertion lowers to the existing checked operation where its expression fits the current profile. Broader Boolean expressions may require separately reviewed lowering but not a duplicate assertion family.
 
 Source compatibility is intentionally broken. The parser rejects bare `assert condition;` after migration. Canonical package archives containing source must be rebuilt and relocked. Existing canonical `.wbc` artifacts remain valid because their semantics do not depend on source punctuation.
 
@@ -215,21 +215,21 @@ Artifacts and manifests contain no legacy assertion syntax switch. Source profil
 
 ## Safety, limits, and failures
 
-Assertion expressions obey ordinary expression depth, local, step, and arithmetic limits; evaluation traps before the assertion outcome if the expression itself traps. A false result produces one stable assertion diagnostic. Diagnostic payloads and rendered values remain bounded.
+Assertion expressions obey ordinary expression depth, local, step, and arithmetic limits. Evaluation traps before the assertion outcome if the expression itself traps. A false result produces one stable assertion diagnostic. Diagnostic payloads and rendered values remain bounded.
 
 Test-double event logs, queued responses, failures, and fixture bytes have descriptor limits. Exhaustion fails the case instead of dropping events or returning an undeclared default. Unknown fixture kinds, incompatible boundary types, duplicate fixture identities, and ambient replacement requests fail during discovery.
 
 Near-miss syntax is rejected deterministically:
 
-- bare assertion: expected `(` after `assert`;
-- empty assertion: expected a Boolean expression;
-- extra assertion arguments: expected `)` after one expression;
-- non-Boolean expression: expected Boolean assertion condition;
+- bare assertion: expected `(` after `assert`.
+- empty assertion: expected a Boolean expression.
+- extra assertion arguments: expected `)` after one expression.
+- non-Boolean expression: expected Boolean assertion condition.
 - `assertTrue` or `assertEquals`: ordinary unresolved function unless explicitly declared by user code, never a language intrinsic.
 
 ## Migration and deletion
 
-1. Inventory assertion and test-double spellings in Wheeler files, embedded source fixtures, Tree-sitter corpora, Markdown, package archives, and generated locks. Classify matches; do not replace English prose based only on a text search.
+1. Inventory assertion and test-double spellings in Wheeler files, embedded source fixtures, Tree-sitter corpora, Markdown, package archives, and generated locks. Classify matches. Do not replace English prose based only on a text search.
 2. Add parser and Tree-sitter acceptance for `assert(condition);`, plus malformed tests for the old and near-miss forms.
 3. Update the Wheeler-native parser and differential compiler fixtures. Require stage-0/native byte-identical `.wbc` for equivalent accepted sources.
 4. Update the formatter and documentation validator tests for token preservation, comments, idempotence, and call punctuation.
@@ -245,13 +245,13 @@ Near-miss syntax is rejected deterministically:
 - [x] The implemented classical expression profile treats one Boolean expression as the assertion condition. The expression may use Boolean locals, calls, equality, ordering, right-associative negation, arithmetic, and composition. It evaluates once and lowers to typed `EXPECT_TRUE`. Direct equality between a signed global and literal keeps the compact `EXPECT_EQ` form.
 - [x] Bare, empty, multiple-argument, non-Boolean, and duplicate `assertEquals` forms fail with focused diagnostics.
 - [x] Stage-0 and Wheeler-native compilers emit byte-identical artifacts for assertion fixtures and both reject bare syntax.
-- [x] Canonical Wheeler packages, rebuilt compiler archives and locks, examples, embedded source fixtures, current manuals, and future sketches use the accepted spelling; a root build gate rejects bare and duplicate assertion APIs in authored `.w` files.
+- [x] Canonical Wheeler packages, rebuilt compiler archives and locks, examples, embedded source fixtures, current manuals, and future sketches use the accepted spelling. A root build gate rejects bare and duplicate assertion APIs in authored `.w` files.
 - [ ] Test fixtures expose explicit typed doubles and bounded event logs without interception APIs.
 - [ ] Assertion and test-double vocabulary audits contain no undocumented competing authority.
 
 ## Testing and acceptance
 
-- [x] Stage-0 and Tree-sitter parser tests cover literals, locals, calls, equality, ordering, right-associative negation, and composed Boolean expressions; logical negation executes its operand once and constant-folds under the same Boolean-only rule.
+- [x] Stage-0 and Tree-sitter parser tests cover literals, locals, calls, equality, ordering, right-associative negation, and composed Boolean expressions. Logical negation executes its operand once and constant-folds under the same Boolean-only rule.
 - [ ] The Wheeler-native source compiler matches stage 0 for logical-negation fixtures.
 - [x] Negative parser and type tests cover bare, empty, multiple-argument, non-Boolean, duplicate-name, and malformed assertions.
 - [x] An assertion expression is evaluated once, including a stateful function call.
@@ -286,8 +286,8 @@ Rejected. Control flow, binding, inversion, and proofs have region semantics tha
 
 ## Open questions
 
-- Should assertion failure bytecode retain typed comparison metadata for structural diffs, or should the first profile report only the source range and Boolean result (owner: compiler and runtime maintainers; decision point: before broad expression lowering)?
-- Which minimal fixture interface should demonstrate typed event-recording doubles without preempting WIP-0018 lifecycle design (owner: testing and package maintainers; decision point: before fixture implementation)?
+- Should assertion failure bytecode retain typed comparison metadata for structural diffs, or should the first profile report only the source range and Boolean result (owner: compiler and runtime maintainers. Decision point: before broad expression lowering)?
+- Which minimal fixture interface should demonstrate typed event-recording doubles without preempting WIP-0018 lifecycle design (owner: testing and package maintainers. Decision point: before fixture implementation)?
 
 ## References
 

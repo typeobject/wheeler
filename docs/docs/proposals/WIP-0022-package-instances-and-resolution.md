@@ -17,7 +17,7 @@ Wheeler resolves dependencies as exact package instances joined by typed, target
 
 The resolver takes explicit runnable or library roots, repository snapshots, build and target profiles, selected features, and an optional existing lock. It returns one deterministic realizable graph or one deterministic incompatibility explanation. Total work is bounded. A locked instance stays selected while it remains valid unless an explicit update allows it to move.
 
-A workspace owns one root set and one graph. Several normal versions of a package may coexist under distinct aliases and nominal identities. Graph selection fixes exact source, generic and class evidence, callable identity, and IR identity before emission; resolution must not rewrite an inverse, adjoint, effect, or quantum region to make a dependency fit.
+A workspace owns one root set and one graph. Several normal versions of a package may coexist under distinct aliases and nominal identities. Graph selection fixes exact source, generic and class evidence, callable identity, and IR identity before emission. Resolution must not rewrite an inverse, adjoint, effect, or quantum region to make a dependency fit.
 
 Packages that truly cannot coexist declare a singleton or native link-group constraint. They do not force global version lockstep.
 
@@ -25,15 +25,15 @@ Packages that truly cannot coexist declare a singleton or native link-group cons
 
 The stage-0 resolver currently selects one version for each package name and gives the compiler a flat map of the locked closure. That is enough for the current packages, but keeping it would cause several problems:
 
-- development and build dependencies could leak into unrelated targets;
-- unselected tests, tools, or deployables could still be compiled;
-- code could import modules through a transitive dependency;
-- module names would have to be unique across the full closure;
-- profile conflicts would appear after selection instead of causing solver backtracking;
-- stable ranges could admit prereleases;
-- exponential search could hide behind a package-count limit;
-- repository additions could churn unrelated lock entries;
-- workspace members could use different graphs;
+- development and build dependencies could leak into unrelated targets.
+- unselected tests, tools, or deployables could still be compiled.
+- code could import modules through a transitive dependency.
+- module names would have to be unique across the full closure.
+- profile conflicts would appear after selection instead of causing solver backtracking.
+- stable ranges could admit prereleases.
+- exponential search could hide behind a package-count limit.
+- repository additions could churn unrelated lock entries.
+- workspace members could use different graphs.
 - package-wide grants could exceed the needs of the selected phase.
 
 These are part of graph meaning, not small cleanup tasks. Once outside packages depend on them, changing the rules would require a compatibility migration.
@@ -41,7 +41,7 @@ These are part of graph meaning, not small cleanup tasks. Once outside packages 
 ## Goals
 
 - Define package instances, aliases, typed target edges, and build/target contexts.
-- Preserve exactly three target kinds: `deployable`, `library`, and `tool`; `test` remains an orthogonal selector on runnable targets.
+- Preserve exactly three target kinds: `deployable`, `library`, and `tool`. `test` remains an orthogonal selector on runnable targets.
 - Permit source imports only through direct declared normal dependencies.
 - Keep build dependencies invisible to target source and development dependencies root-selected and nontransitive.
 - Support multiple package versions with instance-qualified nominal types and output paths.
@@ -56,17 +56,17 @@ These are part of graph meaning, not small cleanup tasks. Once outside packages 
 
 ## Non-goals
 
-- Define repository snapshots or recipe/package revisions; WIP-0023 owns them.
-- Define system-package export; WIP-0024 owns it.
-- Define FFI; WIP-0025 owns it.
-- Define platform-native executable layout; WIP-0026 owns it.
+- Define repository snapshots or recipe/package revisions. WIP-0023 owns them.
+- Define system-package export. WIP-0024 owns it.
+- Define FFI. WIP-0025 owns it.
+- Define platform-native executable layout. WIP-0026 owns it.
 - Infer dependencies from imports, link errors, installed libraries, or ambient caches.
 - Add arbitrary resolver plugins or let a lock override current manifests.
 - Add decorative target kinds for tests, examples, documentation, images, or distributions.
 
 ## Terms and semantic model
 
-A **repository identity** names one trust domain, not one URL. Mirrors serve the same signed snapshots and objects. Different repository identities never merge candidate sets. WIP-0009's canonical ordered policy may explicitly try trust domains in sequence; the first authoritative repository with an admissible candidate binds that package-instance lookup, and later repositories do not compete until a requirement names another alias.
+A **repository identity** names one trust domain, not one URL. Mirrors serve the same signed snapshots and objects. Different repository identities never merge candidate sets. WIP-0009's canonical ordered policy may explicitly try trust domains in sequence. The first authoritative repository with an admissible candidate binds that package-instance lookup, and later repositories do not compete until a requirement names another alias.
 
 A human package coordinate is:
 
@@ -141,7 +141,7 @@ An exported nominal type identity includes:
 
 Equal spelling and layout do not merge nominal types from different instances.
 
-WIP-0030 type-class adapter instances obey the same boundary. Class-package and principal-type-package instances are intrinsic to those exact package instances; an adapter activates only through a direct declared dependency and explicit source selection. It never leaks transitively. Selected evidence records exact package-instance identity in WIP-0029 generic bodies and closed reversible IR artifacts.
+WIP-0030 type-class adapter instances obey the same boundary. Class-package and principal-type-package instances are intrinsic to those exact package instances. An adapter activates only through a direct declared dependency and explicit source selection. It never leaks transitively. Selected evidence records exact package-instance identity in WIP-0029 generic bodies and closed reversible IR artifacts.
 
 ### Coexistence and singleton groups
 
@@ -159,7 +159,7 @@ A lock is realizable only when every snapshot and recipe revision exists. Each e
 
 ## Ownership and boundaries
 
-Manifests own targets, requirements, aliases, exports, features, compatibility metadata, and capability requests. Repository snapshots own candidates. The resolver owns selection, conflicts, work limits, and graph construction. The lock owns one exact realizable graph. The compiler owns direct imports, visibility, nominal identity, and profile checks; the planner owns selected closure, tools, grants, limits, inputs, and outputs. The workspace owns roots and one graph.
+Manifests own targets, requirements, aliases, exports, features, compatibility metadata, and capability requests. Repository snapshots own candidates. The resolver owns selection, conflicts, work limits, and graph construction. The lock owns one exact realizable graph. The compiler owns direct imports, visibility, nominal identity, and profile checks. The planner owns selected closure, tools, grants, limits, inputs, and outputs. The workspace owns roots and one graph.
 
 ## Design
 
@@ -167,14 +167,14 @@ For each selected root target, the resolver creates an instance and expands only
 
 Normal source cycles, build-tool cycles, tools depending on outputs they produce, and context-crossing future-output cycles are rejected.
 
-The solver is incompatibility-driven; PubGrub-style or semantically equivalent. Every decision records declaring instance/target, edge kind/context, version/profile/feature requirement, snapshot, old-lock preference, and rejection reason. Equivalent failed states are learned.
+The solver is incompatibility-driven. PubGrub-style or semantically equivalent. Every decision records declaring instance/target, edge kind/context, version/profile/feature requirement, snapshot, old-lock preference, and rejection reason. Equivalent failed states are learned.
 
 After filtering, candidate order is:
 
-1. retain a valid locked candidate;
-2. honor explicit update scope;
-3. apply semantic-version and prerelease policy;
-4. apply immutable recipe-revision policy within the pinned snapshot;
+1. retain a valid locked candidate.
+2. honor explicit update scope.
+3. apply semantic-version and prerelease policy.
+4. apply immutable recipe-revision policy within the pinned snapshot.
 5. break exact ties by canonical content identity.
 
 Mirror order, response order, filenames, timestamps, locale, and map iteration are irrelevant.
@@ -183,9 +183,9 @@ Hard limits cover roots, instances, edges, candidates, incompatibilities, decisi
 
 The ordinary update objective preserves the maximum valid locked instances, changes explicitly selected packages and forced dependents, minimizes changed contextual edges, then prefers highest compatible stable versions with canonical tie-breakers. Resolver/objective versions enter the lock.
 
-A workspace names members, root targets, an ordered repository-alias/snapshot policy, explicit content-identified overrides, and capability policy; member dependencies bind directly to exact member source identity and cannot be published accidentally as upstream coordinates.
+A workspace names members, root targets, an ordered repository-alias/snapshot policy, explicit content-identified overrides, and capability policy. Member dependencies bind directly to exact member source identity and cannot be published accidentally as upstream coordinates.
 
-Capabilities are keyed by:
+Capabilities use these keys:
 
 ```text
 (package_instance, target, phase, capability_name, resource_pattern)
@@ -203,7 +203,7 @@ Each request and grant remains keyed by package instance, target, phase, capabil
 
 ## Reversibility and determinism
 
-Resolution and lock verification are pure deterministic computations. Atomic lock replacement is an external effect; failure leaves the old lock unchanged; fetch/cache insertion reconciles by immutable identity instead of pretending to be reversible.
+Resolution and lock verification are pure deterministic computations. Atomic lock replacement is an external effect. Failure leaves the old lock unchanged. Fetch/cache insertion reconciles by immutable identity instead of pretending to be reversible.
 
 Candidate discovery may run concurrently, but canonicalization precedes solving. Graph bytes, diagnostics, and lock bytes match serial execution regardless of completion order.
 
@@ -231,7 +231,7 @@ Reject unknown repositories/snapshots, unauthorized namespaces, duplicate aliase
 8. Replace the lock schema and introduce one workspace graph.
 9. Scope capabilities.
 10. Add multiple-instance nominal/output identity and singleton groups.
-11. Replace every fixture, lock, and archive atomically; retain no old graph authority.
+11. Replace every fixture, lock, and archive atomically. Retain no old graph authority.
 
 ## Progress
 
@@ -242,11 +242,11 @@ Reject unknown repositories/snapshots, unauthorized namespaces, duplicate aliase
 - [x] Stable exact, caret, and tilde requirements exclude prerelease candidates unless the requirement itself names a prerelease. Candidate ordering still prefers the highest compatible release, but a newly uploaded preview cannot ambush an unchanged stable range. Wheeler now implements the same bounded semantic-version precedence for native repository snapshots, including numeric prerelease identifiers and stable-after-prerelease ordering.
 - [x] Stage 0 filters dependency candidates by the root's exact source profile during solving, so an incompatible higher release backtracks to a compatible lower one instead of failing after selection.
 - [ ] Bytecode, proof, target, platform, ABI, richer source-profile compatibility, and explicit prerelease-policy filtering implemented.
-- [x] The current deterministic backtracking solver has a 10,000-unit total budget over solver-state and candidate visits; exhaustion is a distinct error instead of counterfeit unsatisfiability.
+- [x] The current deterministic backtracking solver has a 10,000-unit total budget over solver-state and candidate visits. Exhaustion is a distinct error instead of counterfeit unsatisfiability.
 - [ ] Incompatibility-driven solving, learned failed states, canonical derivations, and the complete versioned work schedule implemented.
 - [x] Resolver and `wheeler resolve` prefer exact archive/manifest selections from an existing canonical output lock, revalidate them against the current catalog, range, profile, and transitive graph, and move only selections forced invalid. A stale lock is considered, but it cannot override current validity checks.
-- [x] Wheeler validates bounded schema-3 lock graphs before computing their content identity; empty and populated native identities match the stage-0 lock model, while failed validation leaves digest output untouched.
-- [x] `wheeler resolve --update <package>` ignores the preferred selection for each named reachable package, while `--update-all` ignores all preferences; both retain canonical candidate order and reject unknown targets.
+- [x] Wheeler validates bounded schema-3 lock graphs before computing their content identity. Empty and populated native identities match the stage-0 lock model, while failed validation leaves digest output untouched.
+- [x] `wheeler resolve --update <package>` ignores the preferred selection for each named reachable package, while `--update-all` ignores all preferences. Both retain canonical candidate order and reject unknown targets.
 - [ ] Minimum-version update mode and the complete contextual-edge change-minimization objective implemented.
 - [ ] Workspace graph and target-scoped capabilities implemented.
 - [ ] Multiple instances compile safely.
@@ -255,16 +255,16 @@ Reject unknown repositories/snapshots, unauthorized namespaces, duplicate aliase
 
 ## Testing and acceptance
 
-- [x] Development dependencies never propagate transitively; root-off, root-on, and missing transitive-development fixtures agree.
+- [x] Development dependencies never propagate transitively. Root-off, root-on, and missing transitive-development fixtures agree.
 - [ ] Build/target contexts cross-compile and unselected targets stay uncompiled.
 - [ ] Transitive imports fail and equal module names do not collide.
 - [ ] Incompatible majors coexist while nominal types remain distinct.
 - [ ] Singleton conflicts are deterministic.
-- [x] Version- or source-profile-incompatible high releases backtrack and stable ranges exclude prereleases; focused insertion-order, profile, and preview-candidate fixtures cover all three.
+- [x] Version- or source-profile-incompatible high releases backtrack and stable ranges exclude prereleases. Focused insertion-order, profile, and preview-candidate fixtures cover all three.
 - [ ] Input order cannot alter the graph.
 - [x] Work exhaustion differs from unsatisfiability in diagnostics and focused worst-order candidate tests.
 - [ ] Conflict explanations name causal edges.
-- [x] Unrelated additions and higher compatible releases do not change a valid preferred lock; forced range changes move the invalid selection.
+- [x] Unrelated additions and higher compatible releases do not change a valid preferred lock. Forced range changes move the invalid selection.
 - [ ] Targeted updates preserve unrelated instances.
 - [ ] Workspace overrides are visible and publication-safe.
 - [ ] Locked vendored builds invoke no resolver, network, or ambient cache.
@@ -272,14 +272,14 @@ Reject unknown repositories/snapshots, unauthorized namespaces, duplicate aliase
 
 ## Alternatives
 
-One version per name forces ecosystem lockstep; actual singleton constraints are narrower. Exposing transitive modules makes manifests dishonest. Import inference couples resolution to conditional parsing; unbounded depth-first backtracking has no total-work argument. Always choosing highest versions causes churn; resolver plugins create local package dialects. All are rejected.
+One version per name forces ecosystem lockstep. Actual singleton constraints are narrower. Exposing transitive modules makes manifests dishonest. Import inference couples resolution to conditional parsing. Unbounded depth-first backtracking has no total-work argument. Always choosing highest versions causes churn. Resolver plugins create local package dialects. All are rejected.
 
 ## Open questions
 
-- Which alias-qualified import spelling best fits Wheeler (owner: language/module maintainers; decision point: before parser implementation)?
-- Which additive feature unification rules are safe (owner: package/type maintainers; decision point: before features)?
-- Which singleton scopes are required first (owner: runtime/native maintainers; decision point: before WIP-0025 acceptance)?
-- Which incompatibility derivation encoding is canonical (owner: resolver maintainers; decision point: before implementation)?
+- Which alias-qualified import spelling best fits Wheeler (owner: language/module maintainers. Decision point: before parser implementation)?
+- Which additive feature unification rules are safe (owner: package/type maintainers. Decision point: before features)?
+- Which singleton scopes are required first (owner: runtime/native maintainers. Decision point: before WIP-0025 acceptance)?
+- Which incompatibility derivation encoding is canonical (owner: resolver maintainers. Decision point: before implementation)?
 
 ## References
 

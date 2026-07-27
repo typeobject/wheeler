@@ -25,11 +25,11 @@ This WIP does not reserve source syntax today. It defines the semantic parts and
 
 Wheeler already has several useful parts for bounded synthesis:
 
-- finite encodings that support exact enumeration and coherent interpretation;
-- explicit inverses and uncomputation;
-- provider-neutral quantum regions and target capabilities;
-- durable replayable workflows;
-- a small certificate kernel;
+- finite encodings that support exact enumeration and coherent interpretation.
+- explicit inverses and uncomputation.
+- provider-neutral quantum regions and target capabilities.
+- durable replayable workflows.
+- a small certificate kernel.
 - canonical compiler and package identities.
 
 The synthesis service must not become a second compiler, proof authority, package format, or target API. Search may use heuristics, distributed workers, quantum assistance, or a different algorithm later. Acceptance remains deterministic and content-addressed.
@@ -78,19 +78,19 @@ A **minimality certificate** proves that no candidate with a strictly smaller de
 
 Every quantified type supplies:
 
-- canonical type identity;
-- exact cardinality;
-- canonical inhabitant encoding and decoding;
-- rejection of noncanonical bit patterns;
-- deterministic enumeration order;
-- bounded equality and hashing;
+- canonical type identity.
+- exact cardinality.
+- canonical inhabitant encoding and decoding.
+- rejection of noncanonical bit patterns.
+- deterministic enumeration order.
+- bounded equality and hashing.
 - no ambient host object or address.
 
 Cardinality arithmetic is checked and bounded. A quantifier whose domain exceeds the selected proof/checking profile is rejected before search.
 
 ### Candidate identity
 
-Candidate source text isn't the search identity. A grammar-specific canonical AST or instruction vector is. Equivalent encodings are removed by construction or by a deterministic normalization certificate.
+Candidate source text isn't the search identity. A grammar-specific canonical AST or instruction vector is. Construction or a deterministic normalization certificate removes equivalent encodings.
 
 For comparator networks, each instruction names two distinct indices in canonical order. Inactive slots have one required zero encoding. Network length is part of the candidate value. Scheduling symmetries may be normalized only by a checked rule.
 
@@ -112,10 +112,10 @@ Absence at a candidate length requires a checked nonexistence certificate. Timeo
 
 The selected candidate is checked again without trusting search evidence. An implementation may use:
 
-- exhaustive reversible evaluation;
-- canonical bit-vector evaluation;
-- proof-producing SAT/SMT;
-- specialized comparator-network lemmas;
+- exhaustive reversible evaluation.
+- canonical bit-vector evaluation.
+- proof-producing SAT/SMT.
+- specialized comparator-network lemmas.
 - checked combinations of these methods.
 
 All methods elaborate to bounded canonical proof terms. The kernel does not invoke a solver or quantum target.
@@ -130,17 +130,17 @@ The claim does not extend to another instruction set, arithmetic semantics, widt
 
 A future syntax proposal must define, instead of only illustrate:
 
-- `type`, finite-width integer, finite array, and index declarations;
-- generic and dependent bounds;
-- `borrow`, `inout`, move, and lifetime behavior;
-- `requires`, `ensures`, `old`, invariants, and resource clauses;
-- first-class specifications, propositions, proof values, and proof blocks;
-- `forall finite` and `exists finite` elaboration;
-- coherent lambdas and reversible candidate interpretation;
-- synthesis and experiment declarations;
-- effect and capability interfaces;
-- durable `record await`, checkpoints, commits, and cancellation;
-- generated-source and certificate attachment syntax;
+- `type`, finite-width integer, finite array, and index declarations.
+- generic and dependent bounds.
+- `borrow`, `inout`, move, and lifetime behavior.
+- `requires`, `ensures`, `old`, invariants, and resource clauses.
+- first-class specifications, propositions, proof values, and proof blocks.
+- `forall finite` and `exists finite` elaboration.
+- coherent lambdas and reversible candidate interpretation.
+- synthesis and experiment declarations.
+- effect and capability interfaces.
+- durable `record await`, checkpoints, commits, and cancellation.
+- generated-source and certificate attachment syntax.
 - module/package declarations and visibility.
 
 The [Foundry design page](../future/foundry.md) is syntax input for those proposals. It is not grammar authority.
@@ -149,13 +149,13 @@ The [Foundry design page](../future/foundry.md) is syntax input for those propos
 
 The trusted path contains only:
 
-1. canonical artifact decoding;
-2. ordinary bytecode and ownership verification;
-3. finite-type and candidate-grammar identity checks;
-4. proof-term decoding and bounded kernel checking;
+1. canonical artifact decoding.
+2. ordinary bytecode and ownership verification.
+3. finite-type and candidate-grammar identity checks.
+4. proof-term decoding and bounded kernel checking.
 5. package/archive identity verification.
 
-Quantum targets, model checkers, SAT/SMT solvers, candidate selectors, proof search, source generation, registry transport, and user interfaces are untrusted producers. A defect may lose work or produce a rejected certificate; it cannot establish a false theorem.
+Quantum targets, model checkers, SAT/SMT solvers, candidate selectors, proof search, source generation, registry transport, and user interfaces are untrusted producers. A defect may lose work or produce a rejected certificate. It cannot establish a false theorem.
 
 ## Durable execution
 
@@ -169,13 +169,13 @@ Winning target evidence must be stored outside loop-local scope and tied to the 
 
 The generated package contains:
 
-- canonical manifest and module names;
-- generated Wheeler source;
-- canonical `.wbc` and compiler identity;
-- specification and candidate-grammar identities;
-- correctness and minimality certificates;
-- explicit assumptions and semantics/resource profiles;
-- search/model-check provenance and winning evidence identity;
+- canonical manifest and module names.
+- generated Wheeler source.
+- canonical `.wbc` and compiler identity.
+- specification and candidate-grammar identities.
+- correctness and minimality certificates.
+- explicit assumptions and semantics/resource profiles.
+- search/model-check provenance and winning evidence identity.
 - dependency lock and exact package inputs.
 
 Publication requires an explicit capability and follows WIP-0009 immutability rules. Search credentials, provider objects, local cache paths, and unbounded logs are excluded.
@@ -190,16 +190,16 @@ Parallel or distributed search may finish in any order. Candidate selection redu
 
 The implementation fails closed on:
 
-- noncanonical finite values or candidate encodings;
-- cardinality or resource arithmetic overflow;
-- dirty oracle workspace;
-- candidate interpreter traps;
-- stale or mismatched target evidence;
-- unknown proof rules or assumptions;
-- malformed, oversized, or incomplete certificates;
-- a candidate that exact checking rejects;
-- an absence proof that the kernel rejects;
-- compiler, grammar, specification, or resource identity mismatch;
+- noncanonical finite values or candidate encodings.
+- cardinality or resource arithmetic overflow.
+- dirty oracle workspace.
+- candidate interpreter traps.
+- stale or mismatched target evidence.
+- unknown proof rules or assumptions.
+- malformed, oversized, or incomplete certificates.
+- a candidate that exact checking rejects.
+- an absence proof that the kernel rejects.
+- compiler, grammar, specification, or resource identity mismatch.
 - package output without authority.
 
 No partial package is published. A failed publication leaves a checked theorem valid and creates no release.
@@ -239,7 +239,7 @@ No partial package is published. A failed publication leaves a checked theorem v
 - [ ] Correctness certificate rejects one changed instruction, operand, bound, type profile, or specification identity.
 - [ ] Minimality certificate rejects one omitted shorter candidate and one changed metric.
 - [ ] Empty samples, target timeout, cancellation, and retry never become absence evidence.
-- [ ] Replay consumes recorded evidence without a new submission; retry uses a new identity.
+- [ ] Replay consumes recorded evidence without a new submission. Retry uses a new identity.
 - [ ] Classical and quantum-assisted searches select the same canonical winner when both complete under a small conformance bound.
 - [ ] Kernel checking is deterministic under proof-search, solver, thread, and declaration order.
 - [ ] Generated source compiles to the certified artifact and the package verifies offline from its exact lock/vendor inputs.
@@ -272,11 +272,11 @@ Rejected. Minimality without a grammar and metric is not a finite proposition.
 
 ## Open questions
 
-- Which finite-type primitives keep enumeration, coherent encoding, and kernel terms small (owner: type and proof maintainers; decision point: before finite quantifiers)?
-- Which candidate normalization rules are cheap enough to check but strong enough to remove comparator-network symmetries (owner: synthesis maintainers; decision point: before candidate encoding)?
-- Which proof-producing engine establishes useful network absence bounds without entering the TCB (owner: proof-search maintainers; decision point: before minimality certificates)?
-- Which target capability describes coherent finite model checking without describing it as one hardware instruction (owner: target maintainers; decision point: before quantum search planning)?
-- Which resource metric is the first accepted comparator-network minimality claim: comparator count, depth, or lexicographic pair (owner: application maintainers; decision point: before the first Foundry fixture)?
+- Which finite-type primitives keep enumeration, coherent encoding, and kernel terms small (owner: type and proof maintainers. Decision point: before finite quantifiers)?
+- Which candidate normalization rules are cheap enough to check but strong enough to remove comparator-network symmetries (owner: synthesis maintainers. Decision point: before candidate encoding)?
+- Which proof-producing engine establishes useful network absence bounds without entering the TCB (owner: proof-search maintainers. Decision point: before minimality certificates)?
+- Which target capability describes coherent finite model checking without describing it as one hardware instruction (owner: target maintainers. Decision point: before quantum search planning)?
+- Which resource metric is the first accepted comparator-network minimality claim: comparator count, depth, or lexicographic pair (owner: application maintainers. Decision point: before the first Foundry fixture)?
 
 ## References
 

@@ -50,7 +50,7 @@ A classical optimizer binds parameters into a quantum circuit template, submits 
 
 ### Dynamic error correction
 
-A surface-code cycle contains coherent gates, syndrome measurement, bounded classical decoding, reset, and conditional corrections. It can execute as one region only on a target advertising the required dynamic-circuit and latency capabilities; otherwise the compiler reports a capability error or uses an explicitly selected host-split plan.
+A surface-code cycle contains coherent gates, syndrome measurement, bounded classical decoding, reset, and conditional corrections. It can execute as one region only on a target advertising the required dynamic-circuit and latency capabilities. Otherwise the compiler reports a capability error or uses an explicitly selected host-split plan.
 
 ### Ancilla cleanup
 
@@ -72,8 +72,8 @@ A lifted reversible computation borrows ancillas initialized to zero, computes a
 - Promise that every classical Wheeler function can execute coherently.
 - Make floating-point optimization, I/O, arbitrary allocation, exceptions, or logged history unitary.
 - Hide measurement or claim that a hardware measurement can be undone.
-- Define provider queues, credentials, jobs, or Qiskit transport; WIP-0003 does that.
-- Define durable workflow history and retry; WIP-0004 does that.
+- Define provider queues, credentials, jobs, or Qiskit transport. WIP-0003 does that.
+- Define durable workflow history and retry. WIP-0004 does that.
 - Accept the existing proof syntax as a sound theorem system.
 - Standardize pulse-level control or one physical error-correction architecture.
 
@@ -94,7 +94,7 @@ Computation domains, callable characteristics, and effects are separate. WIP-003
 | Form | Meaning |
 | --- | --- |
 | `pure` | Empty ordinary effect row under the explicit trap contract. |
-| `rev` | Checked classical inverse relation; bounded WIP-0001 history is recorded separately and does not by itself confer this characteristic. |
+| `rev` | Checked classical inverse relation. Bounded WIP-0001 history is recorded separately and does not by itself confer this characteristic. |
 | `coherent rev` | Exact finite reversible permutation eligible for quantum lifting. |
 | `unitary` | Coherent state transition with a validated adjoint and no observation. |
 | `prepare` effect | Initialize a quantum resource from a declared known state or encoding. |
@@ -147,19 +147,19 @@ Targets own physical or simulated quantum state. Wheeler code never receives raw
 
 A `rev` callable receives the WIP-0031 `CoherentFunction` characteristic when the compiler proves all of the following:
 
-- inputs, outputs, and mutable state have finite exact encodings;
-- every reachable operation is intrinsic or checked reversible and has a unitary lowering;
-- no operation uses logged undo, measurement, reset, submission, host I/O, randomness, wall time, or exceptions;
-- loops are statically bounded or lower to a verified reversible control structure;
-- temporary allocation has a static bound and every ancilla is returned to its declared clean state;
-- arithmetic semantics have a finite reversible representation, such as explicit modular width;
+- inputs, outputs, and mutable state have finite exact encodings.
+- every reachable operation is intrinsic or checked reversible and has a unitary lowering.
+- no operation uses logged undo, measurement, reset, submission, host I/O, randomness, wall time, or exceptions.
+- loops are statically bounded or lower to a verified reversible control structure.
+- temporary allocation has a static bound and every ancilla is returned to its declared clean state.
+- arithmetic semantics have a finite reversible representation, such as explicit modular width.
 - all callees are coherently eligible.
 
 An optional source annotation may require coherent eligibility and turn loss of eligibility into a declaration-site error. Eligibility is recorded in the function descriptor and can be independently checked from quantum-body metadata.
 
-Calling an eligible function with classical operands uses its WIP-0001 body. Calling it with coherent encodings inside a quantum region uses its lifted unitary body. Dispatch follows static operand domains; there is no runtime provider-name overload.
+Calling an eligible function with classical operands uses its WIP-0001 body. Calling it with coherent encodings inside a quantum region uses its lifted unitary body. Dispatch follows static operand domains. There is no runtime provider-name overload.
 
-A reversible in-place function lowers as a permutation of basis states. A non-bijective pure function may only become an oracle through an explicit reversible embedding such as `(x, y) -> (x, y xor f(x))`; that broader oracle synthesis is not implied by `pure`.
+A reversible in-place function lowers as a permutation of basis states. A non-bijective pure function may only become an oracle through an explicit reversible embedding such as `(x, y) -> (x, y xor f(x))`. That broader oracle synthesis is not implied by `pure`.
 
 ### Affine quantum ownership
 
@@ -177,14 +177,14 @@ An ancilla declares its initial and required final state, normally `|0>` or a lo
 
 The `.wbc` region graph describes dependencies among classical bodies, quantum bodies, preparation, measurement, and host materialization points. A quantum body contains typed operations for:
 
-- logical resource declaration and disjoint slicing;
-- a small semantic gate set and parameter expressions;
-- calls to unitary bodies and coherently lifted reversible functions;
-- adjoint and controlled application;
-- barriers that constrain optimization but do not imply host synchronization;
-- measurement with explicit destination and basis;
-- reset and known-state preparation;
-- bounded static control and target-capability-dependent dynamic control;
+- logical resource declaration and disjoint slicing.
+- a small semantic gate set and parameter expressions.
+- calls to unitary bodies and coherently lifted reversible functions.
+- adjoint and controlled application.
+- barriers that constrain optimization but do not imply host synchronization.
+- measurement with explicit destination and basis.
+- reset and known-state preparation.
+- bounded static control and target-capability-dependent dynamic control.
 - source locations, inverse relationships, and resource estimates.
 
 The IR names semantic operations, not Qiskit classes or one hardware native gate set. WIP-0003 lowering decomposes those operations for a target.
@@ -193,10 +193,10 @@ The IR names semantic operations, not Qiskit classes or one hardware native gate
 
 The compiler partitions a hybrid function into maximal regions allowed by data dependencies and target capabilities:
 
-- compile-time classical loops around gates may be unrolled or represented symbolically;
-- coherent conditions become controlled unitary operations;
-- measurement-conditioned control remains target-resident only with dynamic-circuit support;
-- host classical computation after measurement ends the current remote quantum region unless the target supports an uploaded bounded classical kernel;
+- compile-time classical loops around gates may be unrolled or represented symbolically.
+- coherent conditions become controlled unitary operations.
+- measurement-conditioned control remains target-resident only with dynamic-circuit support.
+- host classical computation after measurement ends the current remote quantum region unless the target supports an uploaded bounded classical kernel.
 - a later quantum region starts from explicit newly prepared or target-session state, never an assumed surviving cloud qubit handle.
 
 Partitioning is observable in cost and latency but not in typed program results. The compiler can emit a plan explaining every split and capability requirement.
@@ -205,20 +205,20 @@ Partitioning is observable in cost and latency but not in typed program results.
 
 Before measurement, a transaction consisting only of classical reversible and unitary operations may abort by applying inverses while resources remain live.
 
-After measurement, reset, submission, or external effect, abort cannot restore an unknown physical pre-measurement state; it may restore classical state, discard observations, reset/reprepare resources, and retry according to WIP-0004. Source `rollback` must therefore carry an effect-sensitive type and cannot promise physical time reversal.
+After measurement, reset, submission, or external effect, abort cannot restore an unknown physical pre-measurement state. It may restore classical state, discard observations, reset/reprepare resources, and retry according to WIP-0004. Source `rollback` must therefore carry an effect-sensitive type and cannot promise physical time reversal.
 
 ### Example interpretation
 
 | Example | Intended interpretation or required correction |
 | --- | --- |
-| `Counter` | Classical `rev`; printing is an effect, while inverse calls remain valid. |
-| `BinaryTree` | Reversible API using bounded logged mutation; history cleanup creates a commit horizon. |
-| `QFT` | Closed unitary region; inverse should be generated or validated instead of maintained independently without checking. |
-| `QFTProof` | Supplies future proof goals; measurements cannot be theorem variables for an unknown preserved pre-measurement state. |
+| `Counter` | Classical `rev`. Printing is an effect, while inverse calls remain valid. |
+| `BinaryTree` | Reversible API using bounded logged mutation. History cleanup creates a commit horizon. |
+| `QFT` | Closed unitary region. Inverse should be generated or validated instead of maintained independently without checking. |
+| `QFTProof` | Supplies future proof goals. Measurements cannot be theorem variables for an unknown preserved pre-measurement state. |
 | `QuantumOptimizer` | Parameterized circuit template plus repeated measurement and classical updates. |
-| `QuantumNeuralNetwork` | Hybrid job loop; CNOT recording creates entanglement, not a clone, and ancillas must be uncomputed before destructive boundaries. |
+| `QuantumNeuralNetwork` | Hybrid job loop. CNOT recording creates entanglement, not a clone, and ancillas must be uncomputed before destructive boundaries. |
 | `SurfaceCode` | Dynamic target region with measurement, reset, decoding, and feed-forward capability requirements. |
-| `QuantumCompiler` | Circuit transformation and mapping are classical; calibration and fidelity estimation are submitted quantum experiments. |
+| `QuantumCompiler` | Circuit transformation and mapping are classical. Calibration and fidelity estimation are submitted quantum experiments. |
 
 ## Reversibility and history
 
@@ -232,7 +232,7 @@ A lifted `rev` body must not depend on WIP-0001 dynamic history. Information nee
 
 Within one quantum body, operation dependency order is deterministic. Operations on disjoint resources may be scheduled in parallel by a target when commutation and declared barriers permit it.
 
-Measurement outcomes are nondeterministic observations. Simulators accept explicit seeds where the model supports seeded sampling; hardware does not promise seeded outcomes. WIP-0004 records result provenance for replay.
+Measurement outcomes are nondeterministic observations. Simulators accept explicit seeds where the model supports seeded sampling. Hardware does not promise seeded outcomes. WIP-0004 records result provenance for replay.
 
 This proposal does not define shared-memory VM threads. A later concurrency design must preserve affine quantum ownership and cannot concurrently mutate one quantum resource through aliases.
 
@@ -240,11 +240,11 @@ This proposal does not define shared-memory VM threads. A later concurrency desi
 
 This proposal establishes the semantic facts a later proof system may trust: operation signatures, effect sets, affine resource flow, inverse/adjoint relationships, region boundaries, and target requirements. It does not trust textual `because` clauses or make a compiler test equivalent to a mathematical proof.
 
-A future proof certificate may establish unitary equivalence, ancilla cleanup, bounds, decomposition equivalence, or properties such as QFT correctness. Runtime execution remains safe without such certificates; unsupported optimization or theorem claims are rejected instead of assumed.
+A future proof certificate may establish unitary equivalence, ancilla cleanup, bounds, decomposition equivalence, or properties such as QFT correctness. Runtime execution remains safe without such certificates. Unsupported optimization or theorem claims are rejected instead of assumed.
 
 ## Bytecode, persistence, and compatibility
 
-WIP-0002 activates WIP-0001 section types 7 and 8; region and quantum records are length-delimited and versioned. Function descriptors gain explicit effect sets, coherent eligibility, and quantum-body references.
+WIP-0002 activates WIP-0001 section types 7 and 8. Region and quantum records are length-delimited and versioned. Function descriptors gain explicit effect sets, coherent eligibility, and quantum-body references.
 
 Provider-compiled circuits, physical layouts, calibration snapshots, and credentials are not canonical semantic bytecode. They may be cached as target-qualified derived artifacts keyed by semantic region hash and target fingerprint.
 
@@ -279,7 +279,7 @@ Quantum state is not a byte stream, file, mapped object, direct-I/O buffer, or R
 ## Progress
 
 - [x] Classical, quantum, and hybrid program domains are represented and verified.
-- [ ] Quantum resources have complete affine ownership and slice checking; the first profile prevents aliases by construction.
+- [ ] Quantum resources have complete affine ownership and slice checking. The first profile prevents aliases by construction.
 - [x] Coherent eligibility and lifted reversible calls work for the exact XOR subset.
 - [x] Workflow and quantum body sections have canonical encoding and strict decoding.
 - [x] The semantic state-vector simulator executes the initial gate and lifted-function subset.
@@ -292,7 +292,7 @@ Quantum state is not a byte stream, file, mapped object, direct-I/O buffer, or R
 - [x] A lifted function and unitary circuit followed by its generated adjoint restore the simulated register.
 - [ ] Compiler-negative tests reject cloning, dirty ancillas, overlapping slices, use after measure, hidden logged history, I/O, and unbounded loops in coherent bodies.
 - [x] QFT followed by its generated adjoint restores the checked basis-state fixture within numeric tolerance.
-- [x] Full-register measurement produces a typed classical observation; broader consumed-identity checking remains.
+- [x] Full-register measurement produces a typed classical observation. Broader consumed-identity checking remains.
 - [ ] Static, host-split, and dynamic region plans preserve the same ideal result distributions where each is semantically valid.
 - [ ] The optimizer fixture alternates parameter binding, quantum sampling, and classical updates without provider APIs in source.
 - [ ] The surface-code fixture declares and checks dynamic measurement/reset/feed-forward requirements.
@@ -315,7 +315,7 @@ Rejected. Automatic region partitioning is useful, but preparation and measureme
 
 ### Treat measurement as logged reversible mutation
 
-Rejected. Recording an outcome supports deterministic workflow replay; it does not reconstruct an unknown pre-measurement physical state.
+Rejected. Recording an outcome supports deterministic workflow replay. It does not reconstruct an unknown pre-measurement physical state.
 
 ### Permit arbitrary classical calls from a quantum region
 
@@ -327,9 +327,9 @@ Rejected by no-cloning. It copies known basis information in a restricted case a
 
 ## Open questions
 
-- What source annotation should require, instead of only infer, coherent eligibility for a `rev` function (owner: language maintainers; decision point: before this WIP enters Review)?
-- Which small semantic gate set gives stable meaning while keeping decomposition practical for today's targets (owner: quantum compiler maintainers; decision point: before quantum-body encoding is frozen)?
-- Which finite classical data encodings are required in the first coherent-lifting slice beyond bits and fixed-width unsigned integers (owner: type-system maintainers; decision point: before implementation begins)?
+- What source annotation should require, instead of only infer, coherent eligibility for a `rev` function (owner: language maintainers. Decision point: before this WIP enters Review)?
+- Which small semantic gate set gives stable meaning while keeping decomposition practical for today's targets (owner: quantum compiler maintainers. Decision point: before quantum-body encoding is frozen)?
+- Which finite classical data encodings are required in the first coherent-lifting slice beyond bits and fixed-width unsigned integers (owner: type-system maintainers. Decision point: before implementation begins)?
 
 ## References
 

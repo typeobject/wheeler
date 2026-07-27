@@ -30,7 +30,7 @@ classical class Counter {
 }
 ```
 
-The compiler generates `increment`'s inverse. The `reverse` block executes new inverse operations in reverse lexical order; it does not rewind saved machine history.
+The compiler generates `increment`'s inverse. The `reverse` block executes new inverse operations in reverse lexical order. It does not rewind saved machine history.
 
 Wheeler currently includes a reversible VM, backend-neutral quantum regions, an ideal state-vector target, asynchronous target jobs, [OpenQASM 3](https://openqasm.com/) lowering, and [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) tooling.
 
@@ -47,9 +47,9 @@ Wheeler currently includes a reversible VM, backend-neutral quantum regions, an 
 
 Executable examples:
 
-- [`Counter.w`](wheeler-examples/src/main/wheeler/classical/control/Counter.w) — reversible classical state;
-- [`CoherentOracle.w`](wheeler-examples/src/main/wheeler/quantum/CoherentOracle.w) — one function over classical and coherent data;
-- [`QFT.w`](wheeler-examples/src/main/wheeler/quantum/QFT.w) — the [quantum Fourier transform](https://en.wikipedia.org/wiki/Quantum_Fourier_transform) and its generated adjoint.
+- [`Counter.w`](wheeler-examples/src/main/wheeler/classical/control/Counter.w): reversible classical state.
+- [`CoherentOracle.w`](wheeler-examples/src/main/wheeler/quantum/CoherentOracle.w): one function over classical and coherent data.
+- [`QFT.w`](wheeler-examples/src/main/wheeler/quantum/QFT.w): the [quantum Fourier transform](https://en.wikipedia.org/wiki/Quantum_Fourier_transform) and its generated adjoint.
 
 ## License
 

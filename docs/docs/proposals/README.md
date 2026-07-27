@@ -7,20 +7,20 @@ sidebar_position: 1
 
 A Wheeler Improvement Proposal, or WIP, records a decision that is too large for an issue or pull request. It explains the problem, sets the rules, assigns ownership, chooses a design, and says how the work will be tested and adopted.
 
-WIPs are Wheeler's long-term decision record; a `WIP-NNNN` number identifies a proposal. It does not mean the work is currently underway. Proposals may describe planned, accepted, or active work. Guides and reference pages describe features that work today, so they must not present an unfinished WIP as current behavior.
+WIPs are Wheeler's long-term decision record. A `WIP-NNNN` number identifies a proposal. It does not mean the work is currently underway. Proposals may describe planned, accepted, or active work. Guides and reference pages describe features that work today, so they must not present an unfinished WIP as current behavior.
 
 ## When to write a WIP
 
 Write a WIP for a change to:
 
-- source syntax, types, proof rules, or visible behavior;
-- reversibility, retained history, uncomputation, or irreversible effects;
-- the VM instruction set, memory model, scheduler, concurrency, transactions, or synchronization;
-- bytecode containers, loaders, verification, versioning, or compatibility;
-- quantum state, gates, measurement, simulation, or hardware backends;
-- the trusted computing base for proofs or program checks;
-- ownership shared by the compiler, runtime, tools, or modules;
-- determinism, limits, safety, security, diagnostics, or failure behavior;
+- source syntax, types, proof rules, or visible behavior.
+- reversibility, retained history, uncomputation, or irreversible effects.
+- the VM instruction set, memory model, scheduler, concurrency, transactions, or synchronization.
+- bytecode containers, loaders, verification, versioning, or compatibility.
+- quantum state, gates, measurement, simulation, or hardware backends.
+- the trusted computing base for proofs or program checks.
+- ownership shared by the compiler, runtime, tools, or modules.
+- determinism, limits, safety, security, diagnostics, or failure behavior.
 - a compatibility removal or migration that crosses several modules or tools.
 
 A local refactor, small bug fix, test, documentation correction, or private optimization does not need a WIP. Write one only when the change affects one of these contracts.
@@ -41,7 +41,7 @@ Only maintainers may change a WIP to **Accepted**, **Implemented**, **Superseded
 
 ## How to create a proposal
 
-1. Copy [the template](TEMPLATE.md) to `WIP-NNNN-short-title.md`; use the next unused four-digit number.
+1. Copy [the template](TEMPLATE.md) to `WIP-NNNN-short-title.md`. Use the next unused four-digit number.
 2. Fill in every metadata field, including owners, dates, and dependencies.
 3. Write the summary, motivation, and use cases before choosing opcodes, classes, or APIs.
 4. Define the semantic model and its invariants. When state can change, explain forward and reverse behavior.
@@ -60,15 +60,15 @@ Once a proposal leaves **Draft**, its number and filename stay fixed. A Draft ma
 
 A Wheeler proposal should:
 
-- define visible behavior before choosing an encoding or Java API;
-- name one owner for each piece of mutable state;
-- separate operations that are truly reversible from operations that need saved history;
-- explain measurement, I/O, exceptions, allocation, thread interaction, and other irreversible boundaries;
-- define scheduling and replay order when concurrency changes;
-- cover malformed input, resource limits, and history exhaustion;
-- explain bytecode and stored-state compatibility when a representation changes;
-- keep classical reversal, quantum behavior, and proof claims separate;
-- include executable laws or conformance fixtures for important rules;
+- define visible behavior before choosing an encoding or Java API.
+- name one owner for each piece of mutable state.
+- separate operations that are truly reversible from operations that need saved history.
+- explain measurement, I/O, exceptions, allocation, thread interaction, and other irreversible boundaries.
+- define scheduling and replay order when concurrency changes.
+- cover malformed input, resource limits, and history exhaustion.
+- explain bytecode and stored-state compatibility when a representation changes.
+- keep classical reversal, quantum behavior, and proof claims separate.
+- include executable laws or conformance fixtures for important rules.
 - name obsolete code, formats, and compatibility paths that must be removed.
 
 Write "Not applicable" and give a reason for sections that do not apply. Split work that can be accepted, implemented, or rolled back alone. Put final API reference in the manual after implementation. Keep task planning in issues.
@@ -81,11 +81,11 @@ WIP-0029 may add non-executable generic typed bodies as a versioned library sect
 
 "Reversible IR" does not mean every operation is bijective. Each operation declares one explicit relation:
 
-- an intrinsic or checked inverse for information-preserving classical work;
-- bounded logged history for destructive work that supports VM rewind but has no intrinsic inverse;
-- an explicit barrier for irreversible host observation;
-- an exact finite permutation for coherent classical lifting;
-- an adjoint-bearing semantic region for unitary quantum work;
+- an intrinsic or checked inverse for information-preserving classical work.
+- bounded logged history for destructive work that supports VM rewind but has no intrinsic inverse.
+- an explicit barrier for irreversible host observation.
+- an exact finite permutation for coherent classical lifting.
+- an adjoint-bearing semantic region for unitary quantum work.
 - an explicit measurement, reset, target, or workflow transition when information crosses domains.
 
 Source syntax, generic specialization, class evidence, tests, proofs, packages, native lowering, and documentation must keep those differences. No WIP may treat rewind as inverse, replay as physical reversal, compensation as uncomputation, a provider circuit as semantic IR, or an unchecked annotation as proof. Host ASTs, JVM bytecode, LLVM IR, native objects, and provider payloads are derived implementation data. Verified Wheeler IR remains authoritative.

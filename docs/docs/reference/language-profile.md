@@ -6,7 +6,7 @@ Accepted source lowers to one typed `.wbc` IR. That IR keeps function inverses, 
 
 The source profile grows only after a feature has parser, verifier, runtime, negative, editor-grammar, and end-to-end tests.
 
-Whitespace and line breaks do not change meaning. Simple statements end with semicolons; Wheeler supports both `//` and `/* ... */` comments.
+Whitespace and line breaks do not change meaning. Simple statements end with semicolons. Wheeler supports both `//` and `/* ... */` comments.
 
 ## Classes and state
 
@@ -60,10 +60,10 @@ For now, `rev`, `coherent rev`, and `unitary` methods take no arguments and retu
 
 | Source | Meaning |
 | --- | --- |
-| `count += 1;` | Checked signed addition; inverse is subtraction. |
-| `count -= 1;` | Checked signed subtraction; inverse is addition. |
-| `bit ^= 1;` | Bitwise XOR; self-inverse and coherently eligible. |
-| `count = 7;` | Logged overwrite; rejected from generated-inverse methods. |
+| `count += 1;` | Checked signed addition. Inverse is subtraction. |
+| `count -= 1;` | Checked signed subtraction. Inverse is addition. |
+| `bit ^= 1;` | Bitwise XOR. Self-inverse and coherently eligible. |
+| `count = 7;` | Logged overwrite. Rejected from generated-inverse methods. |
 | `increment();` | Invoke a forward method or unitary region. |
 | `reverse increment();` | Invoke a method inverse or unitary adjoint. |
 | `assert(count == 2);` | Trap before mutation when unequal. |
@@ -91,7 +91,7 @@ This runs `reverse second();` and then `reverse first();`.
 
 ## Local expressions and bounded control
 
-Normal classical methods support `long` and `boolean` locals. Expressions include checked `*`, `/`, `%`, `+`, and `-`; signed or Boolean `^`; Boolean `!`; `<`; and `==`.
+Normal classical methods support `long` and `boolean` locals. Expressions include checked `*`, `/`, `%`, `+`, and `-`. Signed or Boolean `^`. Boolean `!`. `<`, and `==`.
 
 Multiplication binds before addition and subtraction. Logical negation binds before multiplication and associates to the right.
 
@@ -99,7 +99,7 @@ Arithmetic and ordering require signed operands. Addition, subtraction, and mult
 
 Division truncates toward zero, and remainder follows that quotient. A zero divisor traps. `Long.MIN_VALUE / -1` also traps before any write.
 
-Equality requires both operands to have the same type and returns a Boolean; XOR accepts either two signed values or two Booleans, then preserves that type. Logical `!` accepts only Boolean input and evaluates it once.
+Equality requires both operands to have the same type and returns a Boolean. XOR accepts either two signed values or two Booleans, then preserves that type. Logical `!` accepts only Boolean input and evaluates it once.
 
 Conditions must be Boolean. Integer values are never treated as true or false.
 
@@ -142,7 +142,7 @@ A value-returning method may return early from a branch. Every reachable path mu
 
 Static recursion is allowed under the VM limit of 1,024 frames and the program step limit.
 
-Local control lowers to typed frame registers and explicit branch targets; each function descriptor stores one canonical type code for every register.
+Local control lowers to typed frame registers and explicit branch targets. Each function descriptor stores one canonical type code for every register.
 
 The verifier rejects unknown type codes, bad targets, invalid local indexes, reads without definite assignment, type mismatches, non-Boolean conditions, invalid Boolean constants, and functions that fall through without returning.
 
@@ -150,7 +150,7 @@ Control flow is not yet allowed in `rev` or `coherent rev` methods. Reversible b
 
 ## Compile-time constants and finite enums
 
-A scalar constant is evaluated during parsing and lowering; it adds no global, initializer function, or runtime lookup:
+A scalar constant is evaluated during parsing and lowering. It adds no global, initializer function, or runtime lookup:
 
 ```java
 const long BASE = 0x0200;
@@ -245,7 +245,7 @@ long[4] values = new long[4](2, 4, 6, 8);
 long selected = values[2];
 ```
 
-Construction requires exactly the declared number of values and checks each type from left to right. Arrays may be locals, parameters, results, record fields, and variant payloads. Aggregate fields currently admit only signed or Boolean array elements; this keeps descriptor graphs acyclic while allowing compiler IR to carry bounded columns directly.
+Construction requires exactly the declared number of values and checks each type from left to right. Arrays may be locals, parameters, results, record fields, and variant payloads. Aggregate fields currently admit only signed or Boolean array elements. This keeps descriptor graphs acyclic while allowing compiler IR to carry bounded columns directly.
 
 An index is a signed value. A negative index or one at least as large as the array length traps before mutation.
 
@@ -264,7 +264,7 @@ Slice indexing is relative and checked. Slices may be locals and parameters, but
 
 Mutable slices, split and join, and overlapping-loan analysis remain future work.
 
-Equal arrays and slices are interned in deterministic order under separate 65,535-value limits. Their handles remain unobservable and type-specific; snapshots and rewind include both tables.
+Equal arrays and slices are interned in deterministic order under separate 65,535-value limits. Their handles remain unobservable and type-specific. Snapshots and rewind include both tables.
 
 ## Bounded owned regions
 
@@ -287,7 +287,7 @@ drop(arena);
 
 `writeAscii(raw, offset, "WHEELBC")` is a bootstrap encoding statement. The literal may contain at most 4,096 printable ASCII characters and has no escape syntax. It is not a first-class string.
 
-The compiler expands the statement into checked byte writes starting at the signed offset; a failed run publishes no external output, and VM rewind restores each expanded write.
+The compiler expands the statement into checked byte writes starting at the signed offset. A failed run publishes no external output, and VM rewind restores each expanded write.
 
 A region declares hard byte and live-object limits. The VM also caps total live region storage at 16 MiB.
 
@@ -323,7 +323,7 @@ The caller keeps ownership and must later drop the value. The callee may inspect
 
 Bytecode uses a separate register type for these loans. Call lowering creates only temporary loan windows.
 
-A plain `utf8` parameter transfers ownership instead; the callee must consume or return it. The same rule applies to each primitive owner type.
+A plain `utf8` parameter transfers ownership instead. The callee must consume or return it. The same rule applies to each primitive owner type.
 
 Runtime owner and kind checks defend against malformed artifacts. Verifier rules stop valid bytecode from turning a loan into an owner.
 
@@ -372,7 +372,7 @@ The caller keeps ownership but does not execute while the callee frame is active
 
 A map loan cannot be moved, dropped, returned, or stored in an aggregate.
 
-A normal function may return one `region`, `words`, `bytes`, `utf8`, or `longmap` owner; `return` consumes that local and requires every other callee owner to be dead.
+A normal function may return one `region`, `words`, `bytes`, `utf8`, or `longmap` owner. `return` consumes that local and requires every other callee owner to be dead.
 
 A returned region must therefore be empty. Other returned storage must remain charged to a live caller region reached through a nonescaping region loan.
 
@@ -384,11 +384,11 @@ An explicit `borrow` or `borrow mut` parameter receives only a checked, nonescap
 
 Definite-ownership flow rejects use after move, drop, or owning call. It also rejects overwriting a live owner, joining branches with different ownership state, and leaving any owned local live at function exit.
 
-An owning callee must drop, move onward, or return its parameter; runtime dropped-state and owner checks remain a second line of defense.
+An owning callee must drop, move onward, or return its parameter. Runtime dropped-state and owner checks remain a second line of defense.
 
 Snapshots expose canonical region and buffer state. Rewind restores allocation, mutation, parameter and result ownership, loan windows, moves, and drops exactly.
 
-This slice supports bounded storage factories, owner transfer through calls, owner return, final-caller use, and explicit drop; it also covers scratch-region loans, exclusive buffer mutation, strict UTF-8 freezing and decoding, and signed symbol maps.
+This slice supports bounded storage factories, owner transfer through calls, owner return, final-caller use, and explicit drop. It also covers scratch-region loans, exclusive buffer mutation, strict UTF-8 freezing and decoding, and signed symbol maps.
 
 It is not yet a full compiler arena. Library strings and normalization remain WIP-0012 work. WIP-0028 owns public loan origins, non-lexical loans, split and join, recoverable allocation, and commit-aware reclamation over the WIP-0013 machine substrate. WIP-0029 adds generic collections, while WIP-0030 adds their coherent static protocol evidence.
 
@@ -432,7 +432,7 @@ unitary void bell() {
 }
 ```
 
-The current semantic gates are `H`, `X`, `Z`, `Phase`, `CPhase`, `CNOT`, `CZ`, and `Swap`; a target adapter may decompose these gates, but it cannot change their ideal meaning.
+The current semantic gates are `H`, `X`, `Z`, `Phase`, `CPhase`, `CNOT`, `CZ`, and `Swap`. A target adapter may decompose these gates, but it cannot change their ideal meaning.
 
 Preparation and measurement are explicit:
 
@@ -516,7 +516,7 @@ Nonpublic references, ambiguous exports, import cycles, unsorted imports, quantu
 
 Single-source stage-0 `compile` rejects module declarations. A modular `wheeler.package.yaml` target lists its exact sorted source set and root module.
 
-The bounded Wheeler-native driver accepts one canonical contiguous dotted `module` header before its classical class. It qualifies `main` and an optional helper exactly as stage 0 does while keeping theorem names unqualified, so both artifacts retain identical string tables and section offsets. A malformed header fails before output. Imports and multi-file linking still use stage 0; silently discarding a module name was considered and rejected on the grounds that names are generally expected to name things.
+The bounded Wheeler-native driver accepts one canonical contiguous dotted `module` header before its classical class. It qualifies `main` and an optional helper exactly as stage 0 does while keeping theorem names unqualified, so both artifacts retain identical string tables and section offsets. A malformed header fails before output. Imports and multi-file linking still use stage 0. Silently discarding a module name was considered and rejected on the grounds that names are generally expected to name things.
 
 Local, workspace, planned, archived, and locked offline builds use the same linker. Imports do not come from file paths.
 
@@ -586,7 +586,7 @@ Proofs will use Wheeler syntax and semantics. Contracts attach to executable dec
 
 Formal theorem evidence stays separate from simulator tests and sampled hardware results.
 
-`QFTProof.w` is currently an executable inverse law, not a formal theorem; `Counter.w`, `QFT.w`, and `QuantumCompiler.w` carry the first finite-rule certificates.
+`QFTProof.w` is currently an executable inverse law, not a formal theorem. `Counter.w`, `QFT.w`, and `QuantumCompiler.w` carry the first finite-rule certificates.
 
 General proposition terms, contracts, matrix-level quantum proofs, resource claims, and tool contracts remain specified work in [WIP-0011](../proposals/WIP-0011-integrated-proofs-and-certificates.md).
 
@@ -608,7 +608,7 @@ It has no generic declarations, type classes, associated types, const-generic pa
 
 [WIP-0031](../proposals/WIP-0031-reversible-quantum-and-effect-polymorphism.md) defines closure ownership, effect rows, and distinct reversible, coherent, and unitary callable kinds.
 
-Each feature must still lower to the same typed reversible `.wbc` IR; none is implemented yet unless the reference above describes its executable slice.
+Each feature must still lower to the same typed reversible `.wbc` IR. None is implemented yet unless the reference above describes its executable slice.
 
 ## Teaching path
 

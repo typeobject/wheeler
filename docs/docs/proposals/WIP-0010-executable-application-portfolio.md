@@ -45,43 +45,43 @@ The portfolio goes beyond textbook quantum algorithms. Wheeler must also handle 
 
 Every executable fixture provides:
 
-1. Wheeler source using the accepted profile;
-2. canonical `.wbc` round-trip coverage;
-3. Tree-sitter parsing without unexpected `ERROR` or `MISSING` nodes;
-4. deterministic expected state or a declared statistical test with fixed confidence and seed policy;
-5. target capability requirements and a negative planning test for missing requirements;
-6. replay and retry expectations when observations occur;
-7. explicit qubit, shot, event, memory, stack, and step ceilings;
+1. Wheeler source using the accepted profile.
+2. canonical `.wbc` round-trip coverage.
+3. Tree-sitter parsing without unexpected `ERROR` or `MISSING` nodes.
+4. deterministic expected state or a declared statistical test with fixed confidence and seed policy.
+5. target capability requirements and a negative planning test for missing requirements.
+6. replay and retry expectations when observations occur.
+7. explicit qubit, shot, event, memory, stack, and step ceilings.
 8. a concise reference entry explaining what the fixture proves and what it does not prove.
 
 A formal fixture also identifies its trusted checker, claim schema, assumptions, and certificate bounds. A native or bootstrap fixture identifies its compiler, runtime, platform ABI, package lock, and reproducibility inputs.
 
-No authored fixture file exceeds 1,000 lines; larger applications are packages composed of smaller modules.
+No authored fixture file exceeds 1,000 lines. Larger applications are packages composed of smaller modules.
 
 ## Current executable base
 
 The repository currently executes these bounded fixtures:
 
-- `Counter.w`: generated inverse and reverse-block order;
-- `BinaryTree.w`: fixed-capacity reversible state layout;
-- `BootstrapControl.w`: signed locals, expressions, branch joins, and a source-bounded loop;
-- `FunctionValues.w`: signed/Boolean parameters, logical negation, returns, static value calls, and callee control flow;
-- `RecursiveValue.w`: recursive value calls under hard frame and step ceilings;
-- `RegionStorage.w`: affine bounded word/byte storage and UTF-8 scalar decoding;
-- `FrozenUtf8.w`: checked consumption of mutable bytes into immutable UTF-8;
-- `HostInput.w`: explicit bounded host UTF-8 input and byte output without ambient authority;
-- `LongMap.w`: region-owned fixed-capacity signed symbol map;
-- `modules/ModuleMain.w` plus `Arithmetic.w`, `Collections.w`, and `Results.w`: exact package source set with private helpers, public function/record/closed-variant/fixed-array/slice linking over scalar and nominal values, and an imported exhaustive match;
-- `Utf8Lexer.w` plus `lexer/Parser.w` and `lexer/Scanner.w`: manifest-bound scanner/parser modules over explicit UTF-8 input and bounded byte output;
-- `CoherentOracle.w`: classical and coherent XOR behavior;
-- `QFT.w`: unitary execution and generated adjoint;
-- `QFTProof.w`: executable inverse law;
-- `QuantumOptimizer.w`: repeated observations, classical acceptance, commit, and replay;
-- `QuantumNeuralNetwork.w`: one-bit coherent layer;
-- `QuantumCompiler.w`: source/normalized circuit equivalence on basis input;
+- `Counter.w`: generated inverse and reverse-block order.
+- `BinaryTree.w`: fixed-capacity reversible state layout.
+- `BootstrapControl.w`: signed locals, expressions, branch joins, and a source-bounded loop.
+- `FunctionValues.w`: signed/Boolean parameters, logical negation, returns, static value calls, and callee control flow.
+- `RecursiveValue.w`: recursive value calls under hard frame and step ceilings.
+- `RegionStorage.w`: affine bounded word/byte storage and UTF-8 scalar decoding.
+- `FrozenUtf8.w`: checked consumption of mutable bytes into immutable UTF-8.
+- `HostInput.w`: explicit bounded host UTF-8 input and byte output without ambient authority.
+- `LongMap.w`: region-owned fixed-capacity signed symbol map.
+- `modules/ModuleMain.w` plus `Arithmetic.w`, `Collections.w`, and `Results.w`: exact package source set with private helpers, public function/record/closed-variant/fixed-array/slice linking over scalar and nominal values, and an imported exhaustive match.
+- `Utf8Lexer.w` plus `lexer/Parser.w` and `lexer/Scanner.w`: manifest-bound scanner/parser modules over explicit UTF-8 input and bounded byte output.
+- `CoherentOracle.w`: classical and coherent XOR behavior.
+- `QFT.w`: unitary execution and generated adjoint.
+- `QFTProof.w`: executable inverse law.
+- `QuantumOptimizer.w`: repeated observations, classical acceptance, commit, and replay.
+- `QuantumNeuralNetwork.w`: one-bit coherent layer.
+- `QuantumCompiler.w`: source/normalized circuit equivalence on basis input.
 - `SurfaceCode.w`: static correction kernel and dynamic-target boundary.
 
-These files are starting points. Their names remain stable when richer implementations preserve the same teaching role; otherwise a new fixture gets a distinct name and contract.
+These files are starting points. Their names remain stable when richer implementations preserve the same teaching role. Otherwise a new fixture gets a distinct name and contract.
 
 ## Reversible systems applications
 
@@ -91,9 +91,9 @@ These files are starting points. Their names remain stable when richer implement
 
 Acceptance requires:
 
-- `decode(encode(value)) == value` over generated bounded records;
-- `encode(decode(bytes)) == bytes` for canonical frames;
-- malformed lengths and checksums fail without partial output;
+- `decode(encode(value)) == value` over generated bounded records.
+- `encode(decode(bytes)) == bytes` for canonical frames.
+- malformed lengths and checksums fail without partial output.
 - inverse execution and VM rewind are tested as different operations.
 
 This fixture drives bootstrap strings, bytes, records, variants, and `Result` values.
@@ -128,11 +128,11 @@ Acceptance requires deterministic shape, no leaked nodes after abort, exact reco
 
 ### Wheeler parser
 
-`compiler/parse.w` builds records and tagged syntax variants with bounded recovery. It compiles every portfolio source and matches the stable negative corpus; Tree-sitter remains a differential concrete-syntax implementation, not a linked parser dependency.
+`compiler/parse.w` builds records and tagged syntax variants with bounded recovery. It compiles every portfolio source and matches the stable negative corpus. Tree-sitter remains a differential concrete-syntax implementation, not a linked parser dependency.
 
 ### Bytecode codec and verifier
 
-`bytecode/codec.w` reads and writes canonical `.wbc`; `bytecode/verify.w` rejects malformed control, type, resource, workflow, and quantum records. Stage output and diagnostics match the independent conformance corpus byte for byte where specified.
+`bytecode/codec.w` reads and writes canonical `.wbc`. `bytecode/verify.w` rejects malformed control, type, resource, workflow, and quantum records. Stage output and diagnostics match the independent conformance corpus byte for byte where specified.
 
 ### Self-hosting compiler
 
@@ -168,7 +168,7 @@ This fixture is the gate for broadening coherent eligibility beyond XOR. Checked
 
 ### Phase estimation
 
-`PhaseEstimation.w` estimates a phase for a unitary with known eigenstate. A static implementation covers controlled powers and inverse QFT; an adaptive implementation is a separate dynamic-target fixture with measurement-conditioned rotations.
+`PhaseEstimation.w` estimates a phase for a unitary with known eigenstate. A static implementation covers controlled powers and inverse QFT. An adaptive implementation is a separate dynamic-target fixture with measurement-conditioned rotations.
 
 ### Amplitude estimation
 
@@ -178,14 +178,14 @@ This fixture is the gate for broadening coherent eligibility beyond XOR. Checked
 
 ### Molecular energy
 
-`VqeHydrogen.w` estimates a small molecular Hamiltonian with parameterized circuit batches and expectation results; the fixture pins the Hamiltonian, ansatz, optimizer policy, seeds, shot allocation, and confidence criterion.
+`VqeHydrogen.w` estimates a small molecular Hamiltonian with parameterized circuit batches and expectation results. The fixture pins the Hamiltonian, ansatz, optimizer policy, seeds, shot allocation, and confidence criterion.
 
 Acceptance requires:
 
-- exact state-vector energy for a reference parameter point;
-- batch and single-task estimators agree under deterministic simulation;
-- replay reaches the same optimizer state without target calls;
-- fresh retry creates a distinct observation lineage;
+- exact state-vector energy for a reference parameter point.
+- batch and single-task estimators agree under deterministic simulation.
+- replay reaches the same optimizer state without target calls.
+- fresh retry creates a distinct observation lineage.
 - an OpenQASM executor receives equivalent static circuits.
 
 ### Graph optimization
@@ -226,11 +226,11 @@ Acceptance requires target-resident feedback capability, bounded decoder latency
 
 ### Logical lattice operation
 
-`LogicalCnot.w` expresses a logical operation and resource request without physical coupling-map assumptions; a mock logical target plans code distance, logical qubits, cycles, and failure budget. A physical static target rejects the semantic operation unless an explicit verified lowering is available.
+`LogicalCnot.w` expresses a logical operation and resource request without physical coupling-map assumptions. A mock logical target plans code distance, logical qubits, cycles, and failure budget. A physical static target rejects the semantic operation unless an explicit verified lowering is available.
 
 ### Magic-state resource plan
 
-`MagicStateFactory.w` composes logical resources, factory throughput, distillation error, and consumption schedule into a bounded target plan. It is primarily a type, unit, planning, and proof-certificate fixture; ordinary CI uses a deterministic planner, not hardware.
+`MagicStateFactory.w` composes logical resources, factory throughput, distillation error, and consumption schedule into a bounded target plan. It is primarily a type, unit, planning, and proof-certificate fixture. Ordinary CI uses a deterministic planner, not hardware.
 
 ### Distributed Bell pair
 
@@ -238,7 +238,7 @@ Acceptance requires target-resident feedback capability, bounded decoder latency
 
 ### Blind delegated computation
 
-`DelegatedComputation.w` separates client-owned secret preparation from provider execution and validates a bounded verification result. The fixture must state its protocol and threat model; ordinary target metadata or redaction is not presented as cryptographic privacy.
+`DelegatedComputation.w` separates client-owned secret preparation from provider execution and validates a bounded verification result. The fixture must state its protocol and threat model. Ordinary target metadata or redaction is not presented as cryptographic privacy.
 
 ## Durable hybrid applications
 
@@ -250,11 +250,11 @@ The test suite stops and restores the run in queued, running, succeeded, failed,
 
 ### Calibration-aware circuit compiler
 
-`CalibrationCompiler.w` compiles a semantic circuit against an immutable target descriptor and calibration epoch, submits bounded calibration experiments, and rejects stale results unless policy explicitly accepts them. Provider data remains bounded target input; credentials and provider objects never enter compiler state.
+`CalibrationCompiler.w` compiles a semantic circuit against an immutable target descriptor and calibration epoch, submits bounded calibration experiments, and rejects stale results unless policy explicitly accepts them. Provider data remains bounded target input. Credentials and provider objects never enter compiler state.
 
 ### Adaptive experiment
 
-`AdaptivePhaseEstimation.w` selects each next circuit from recorded prior observations. Replay follows the identical decision tree without target calls; fresh mode may follow another valid branch. Completion arrival order cannot change batch reduction.
+`AdaptivePhaseEstimation.w` selects each next circuit from recorded prior observations. Replay follows the identical decision tree without target calls. Fresh mode may follow another valid branch. Completion arrival order cannot change batch reduction.
 
 ### Hybrid workflow compensation
 
@@ -266,7 +266,7 @@ The test suite stops and restores the run in queued, running, succeeded, failed,
 
 ### Certified adversarial schedule debugger
 
-`Murphy.w` is the future WIP-0015 capstone. It searches finite distributed-protocol schedules in increasing length, reverses modeled event transitions through explicit witnesses, replays proposed failures deterministically, proves the violation and absence of shorter failures, and packages the reproducer. Empty samples, target timeout, and failed proof search return `Inconclusive`; they never establish safety. The [future-system design](../future/murphy.md) remains documentation syntax until structured concurrency, finite protocol artifacts, replay packages, and general certificates execute.
+`Murphy.w` is the future WIP-0015 capstone. It searches finite distributed-protocol schedules in increasing length, reverses modeled event transitions through explicit witnesses, replays proposed failures deterministically, proves the violation and absence of shorter failures, and packages the reproducer. Empty samples, target timeout, and failed proof search return `Inconclusive`. They never establish safety. The [future-system design](../future/murphy.md) remains documentation syntax until structured concurrency, finite protocol artifacts, replay packages, and general certificates execute.
 
 ## Proof and certificate applications
 
@@ -288,7 +288,7 @@ The test suite stops and restores the run in queued, running, succeeded, failed,
 
 ### Package provenance
 
-`PackageProvenance.w` verifies a package archive's member hashes, manifest identity, dependency lock, compiler identity, and build-plan provenance. Signature verification establishes namespace authorization; it does not establish semantic correctness of package code.
+`PackageProvenance.w` verifies a package archive's member hashes, manifest identity, dependency lock, compiler identity, and build-plan provenance. Signature verification establishes namespace authorization. It does not establish semantic correctness of package code.
 
 ### Bounded algorithm foundry
 
@@ -310,22 +310,22 @@ The Wheeler workspace builds compiler, runtime, package manager, tools, examples
 
 ### Cross-target native execution
 
-`NativeMatrix.w` is a package of small semantic kernels compiled for every tier-1 target triple. Native and interpreted normalized traces match; native image identities remain derived from the same `.wbc` artifacts.
+`NativeMatrix.w` is a package of small semantic kernels compiled for every tier-1 target triple. Native and interpreted normalized traces match. Native image identities remain derived from the same `.wbc` artifacts.
 
 ## Teaching applications
 
 The teaching track uses small fixtures with one primary law each:
 
-- reversible counter and swap;
-- fixed-capacity structured state;
-- packet codec and `Result` diagnostics;
-- coherent bit permutation;
-- Bell state and measurement;
-- QFT and adjoint;
-- Grover oracle and uncomputation;
-- measured optimizer, persistence, and replay;
-- dynamic teleportation and capability rejection;
-- package resolution and compiler bootstrap;
+- reversible counter and swap.
+- fixed-capacity structured state.
+- packet codec and `Result` diagnostics.
+- coherent bit permutation.
+- Bell state and measurement.
+- QFT and adjoint.
+- Grover oracle and uncomputation.
+- measured optimizer, persistence, and replay.
+- dynamic teleportation and capability rejection.
+- package resolution and compiler bootstrap.
 - checked circuit equivalence and resource bounds.
 
 A teaching example may share implementation modules with a portfolio application but keeps its entry point and expected result small enough to inspect manually.
@@ -341,7 +341,7 @@ Portfolio work follows these rules:
 - Randomized tests record seeds and bound case counts.
 - Statistical tests state null hypothesis, confidence, tolerance, and flake budget.
 - Live tests are opt-in and never gate deterministic CI.
-- Superseded bounded implementations are replaced in place; no compatibility path keeps two semantic authorities.
+- Superseded bounded implementations are replaced in place. No compatibility path keeps two semantic authorities.
 
 ## Progress
 
@@ -370,7 +370,7 @@ Portfolio work follows these rules:
   - `compiler/Driver.w` parses a bounded source file and emits the full artifact through the shared encoding module. `MinimalCompiler.w` is its thin executable wrapper, while `NativeCompilerIdentity.w` keeps output private and publishes only the verified artifact digest.
   - Source strings are sorted canonically, and section layout is derived.
   - All 504 bytes for `LongClass` with `state long value = 7` and `value += 5` match stage 0.
-  - Empty and one- through sixty-four-statement entry bodies also match. Public, explicit-private, and unqualified helpers have the same independent bound, including the empty body. Ordinary helpers need no class state. Empty reversible helpers and generated-inverse theorems also avoid dummy globals; nonempty reversible helpers retain the bounded state-update profile. Repeated visibility does not receive a participation trophy. Canonical module-qualified entry and helper names match stage 0; malformed module headers fail before output. The suite covers signed and Boolean locals, prior signed- and Boolean-local copies, prior-Boolean negation, typed equality declarations and direct assertions over prior Boolean or signed locals, signed-local less-than comparisons, one-arm prior-Boolean `if` guards over checked global updates, checked signed-local `+`, `-`, `^`, `*`, `/`, and `%` expressions over literal or prior-local right operands, resolved signed-local and Boolean-local assertions, one global, assignment, checked arithmetic, XOR, static helpers, reverse blocks, and generated inverse certificates.
+  - Empty and one- through sixty-four-statement entry bodies also match. Public, explicit-private, and unqualified helpers have the same independent bound, including the empty body. Ordinary helpers need no class state. Empty reversible helpers and generated-inverse theorems also avoid dummy globals. Nonempty reversible helpers retain the bounded state-update profile. Repeated visibility does not receive a participation trophy. Canonical module-qualified entry and helper names match stage 0. Malformed module headers fail before output. The suite covers signed and Boolean locals, prior signed- and Boolean-local copies, prior-Boolean negation, typed equality declarations and direct assertions over prior Boolean or signed locals, signed-local less-than comparisons, one-arm prior-Boolean `if` guards over checked global updates, checked signed-local `+`, `-`, `^`, `*`, `/`, and `%` expressions over literal or prior-local right operands, resolved signed-local and Boolean-local assertions, one global, assignment, checked arithmetic, XOR, static helpers, reverse blocks, and generated inverse certificates.
   - The compiler derives zero through twenty local slots and exact code sizes.
   - Tests cover signed constants, Boolean literals, unary negation, literal and prior-local assertions, exact type windows, shared token and statement identities, decoding, canonical re-encoding, and execution.
   - A Wheeler-native bounded verifier checks emitted bytes before publication. General IR payloads and full control, type, and resource verification remain.
@@ -437,7 +437,7 @@ Rejected. Minimal fixtures do not force the aggregate values, effects, persisten
 
 ### Check in aspirational source files
 
-Rejected. Unsupported `.w` files create a second fictional language; planned programs stay in this WIP until executable.
+Rejected. Unsupported `.w` files create a second fictional language. Planned programs stay in this WIP until executable.
 
 ### Use benchmark kernels without expected semantics
 
@@ -449,10 +449,10 @@ Rejected. Deterministic simulators and lifecycle mocks establish semantics. Opt-
 
 ## Open questions
 
-- Which three aggregate/storage fixtures should define the first bootstrap heap profile (owner: language, VM, and compiler maintainers; decision point: before aggregate bytecode lands)?
-- Which dynamic simulator and capability vocabulary should gate teleportation and correction fixtures (owner: quantum target maintainers; decision point: before dynamic workflow implementation)?
-- Which proof checker is small enough to join the trusted recovery graph (owner: proof and bootstrap maintainers; decision point: before formal QFT claims land)?
-- Which statistical testing library and report schema belong in the Wheeler package test contract (owner: runtime and package maintainers; decision point: before sampled portfolio tests expand)?
+- Which three aggregate/storage fixtures should define the first bootstrap heap profile (owner: language, VM, and compiler maintainers. Decision point: before aggregate bytecode lands)?
+- Which dynamic simulator and capability vocabulary should gate teleportation and correction fixtures (owner: quantum target maintainers. Decision point: before dynamic workflow implementation)?
+- Which proof checker is small enough to join the trusted recovery graph (owner: proof and bootstrap maintainers. Decision point: before formal QFT claims land)?
+- Which statistical testing library and report schema belong in the Wheeler package test contract (owner: runtime and package maintainers. Decision point: before sampled portfolio tests expand)?
 
 ## References
 

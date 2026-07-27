@@ -13,7 +13,7 @@
 
 ## Summary
 
-Wheeler adds a lexical compute–use–uncompute form and clean ancilla declarations for coherent and unitary code. A paired `compute { ... } use { ... }` region executes the compute block, executes the use block, then applies the validated inverse or adjoint of the compute block. Values produced for temporary use must remain available to the generated inverse, and every declared ancilla must return to its stated clean basis before the region exits. The compiler records the structure directly instead of relying on hidden runtime history or a mutable stack of prior calls.
+Wheeler adds a lexical compute, use, and uncompute form and clean ancilla declarations for coherent and unitary code. A paired `compute { ... } use { ... }` region executes the compute block, executes the use block, then applies the validated inverse or adjoint of the compute block. Values produced for temporary use must remain available to the generated inverse, and every declared ancilla must return to its stated clean basis before the region exits. The compiler records the structure directly instead of relying on hidden runtime history or a mutable stack of prior calls.
 
 ## Motivation
 
@@ -76,11 +76,11 @@ A generic routine receives one statically selected lookup implementation. The co
 
 ### Rejection after measurement
 
-A use block that measures the computed value cannot be followed by exact uncomputation. Wheeler rejects the region instead of calling measurement “cleanup.”
+Exact uncomputation cannot follow a use block that measures the computed value. Wheeler rejects the region instead of calling measurement “cleanup.”
 
 ### Nested conjugation
 
-One compute–use region may appear inside another. The compiler preserves lexical nesting and emits inverse operations in the required order.
+One compute/use region may appear inside another. The compiler preserves lexical nesting and emits inverse operations in the required order.
 
 ## Goals
 
@@ -264,43 +264,43 @@ For a coherent reversible region, the same rule uses the checked language invers
 
 The first profile accepts these statements:
 
-- direct calls to `coherent rev` or `unitary` operations;
-- calls through statically closed WIP-0031 callable values;
-- nested compute–use regions;
-- clean ancilla declarations;
-- compile-time or immutable classical parameters;
-- fixed coherent control accepted by WIP-0035;
+- direct calls to `coherent rev` or `unitary` operations.
+- calls through statically closed WIP-0031 callable values.
+- nested compute/use regions.
+- clean ancilla declarations.
+- compile-time or immutable classical parameters.
+- fixed coherent control accepted by WIP-0035.
 - bounded repetition accepted by WIP-0035.
 
 It rejects these statements:
 
-- measurement;
-- reset;
-- target submission;
-- host effects;
-- runtime undo history;
-- dynamic callable dispatch;
-- ordinary allocation whose release is not part of the exact inverse;
-- admitted-input traps;
+- measurement.
+- reset.
+- target submission.
+- host effects.
+- runtime undo history.
+- dynamic callable dispatch.
+- ordinary allocation whose release is not part of the exact inverse.
+- admitted-input traps.
 - unbounded recursion or loops.
 
 ### Accepted use statements
 
 The use block may perform:
 
-- call unitary or coherent operations on disjoint target resources;
-- use a computed value as a coherent control;
-- frame-preserve a computed value through a certified operation;
-- introduce nested ancilla and paired regions;
+- call unitary or coherent operations on disjoint target resources.
+- use a computed value as a coherent control.
+- frame-preserve a computed value through a certified operation.
+- introduce nested ancilla and paired regions.
 - modify designated result resources that are disjoint from inverse dependencies.
 
 The use block cannot:
 
-- measure, reset, release, move, or overwrite a computed value;
-- change an immutable classical parameter captured by the compute block;
-- replace a strategy or callable identity used by the compute block;
-- create an alias that outlives the paired scope;
-- perform an operation whose frame relation leaves the computed value unknown;
+- measure, reset, release, move, or overwrite a computed value.
+- change an immutable classical parameter captured by the compute block.
+- replace a strategy or callable identity used by the compute block.
+- create an alias that outlives the paired scope.
+- perform an operation whose frame relation leaves the computed value unknown.
 - cross a target or workflow boundary.
 
 ### Dependency and frame checking
@@ -333,7 +333,7 @@ use writes only disjoint or explicitly frame-compatible places
 all introduced owners are consumed or returned by the scope end
 ```
 
-Simple cases are decided by ownership and frame metadata. Harder accepted cases may use WIP-0011 evidence.
+Ownership and frame metadata decide simple cases. Harder accepted cases may use WIP-0011 evidence.
 
 A shared source spelling such as `borrow` does not by itself prove frame preservation for a live quantum value. Quantum operations generally require exclusive ownership while they execute. The callable’s certified frame relation supplies the semantic preservation fact.
 
@@ -341,11 +341,11 @@ A shared source spelling such as `borrow` does not by itself prove frame preserv
 
 An ancilla declaration names:
 
-- the logical resource type;
-- the clean entry basis;
-- the required clean exit basis;
-- the lexical origin;
-- an optional source name;
+- the logical resource type.
+- the clean entry basis.
+- the required clean exit basis.
+- the lexical origin.
+- an optional source name.
 - a static width or shape.
 
 For example:
@@ -372,21 +372,21 @@ An ancilla declared in a compute block remains live through the use block and ge
 
 An ancilla declared in a nested scope cannot escape through:
 
-- a return value;
-- a closure capture;
-- an aggregate field;
-- a target submission;
-- a measurement result;
-- a persisted continuation;
+- a return value.
+- a closure capture.
+- an aggregate field.
+- a target submission.
+- a measurement result.
+- a persisted continuation.
 - an outer borrowed view whose origin would outlive the scope.
 
 ### Clean-state proof
 
 The compiler may establish clean exit through:
 
-- structural inverse composition;
-- a callable’s certified frame and cleanup contract;
-- finite exact proof;
+- structural inverse composition.
+- a callable’s certified frame and cleanup contract.
+- finite exact proof.
 - a WIP-0011 certificate.
 
 Testing a few basis states is not enough to release the ancilla in verified code.
@@ -423,7 +423,7 @@ The verifier records the nesting directly.
 
 A `reverse { ... }` block runs the inverse of calls listed in the block in reverse lexical order. It is explicit inverse execution.
 
-A compute–use region instead declares a conjugation-shaped lifetime and asks the compiler to generate the cleanup portion.
+A compute/use region instead declares a conjugation-shaped lifetime and asks the compiler to generate the cleanup portion.
 
 The two forms are not aliases. `reverse` may appear where the programmer wants inverse execution as the primary action. `compute/use` is for temporary information that must be cleaned after another operation uses it.
 
@@ -433,12 +433,12 @@ The source semantics places the generated inverse immediately after the use bloc
 
 A verified optimizer may move all or part of cleanup within the same enclosing coherent or unitary region only when it preserves:
 
-- semantic equivalence;
-- ownership;
-- control dependencies;
-- ancilla cleanliness;
-- declared barriers;
-- resource contracts;
+- semantic equivalence.
+- ownership.
+- control dependencies.
+- ancilla cleanliness.
+- declared barriers.
+- resource contracts.
 - source-level debugging guarantees selected by policy.
 
 Any movement appears in a derived transformation report under WIP-0037. It does not change the canonical source region.
@@ -479,7 +479,7 @@ Operations on disjoint quantum resources may be scheduled in parallel by a targe
 
 Physical reuse may differ across targets. The logical ancilla high-water mark and clean-lifetime graph remain stable for the same semantic region and policy.
 
-No shared mutable classical state or cross-task ancilla borrowing is introduced by this proposal.
+This proposal introduces no shared mutable classical state or cross-task ancilla borrowing.
 
 ## Quantum and proof implications
 
@@ -549,18 +549,18 @@ The feature does not create persisted live quantum values. Hybrid runs persist o
 
 Limits cover:
 
-- nesting depth;
-- statements per block;
-- introduced ancillas;
-- logical ancilla width;
-- total and peak logical width;
-- dependency places;
-- frame facts;
-- generic specializations;
-- generated inverse size;
-- proof obligations;
-- resource expressions;
-- compiler time and memory;
+- nesting depth.
+- statements per block.
+- introduced ancillas.
+- logical ancilla width.
+- total and peak logical width.
+- dependency places.
+- frame facts.
+- generic specializations.
+- generated inverse size.
+- proof obligations.
+- resource expressions.
+- compiler time and memory.
 - diagnostics.
 
 The first stable diagnostic families should include:
@@ -610,7 +610,7 @@ A failed check emits no partial paired region, generated inverse body, proof cer
 
 ## Testing and acceptance
 
-- [ ] A compute–use region produces the same semantic action as the explicit forward/use/inverse sequence.
+- [ ] A compute/use region produces the same semantic action as the explicit forward/use/inverse sequence.
 - [ ] The programmer writes the compute call only once.
 - [ ] Generic arguments, associated types, evidence, and callable identities match between compute and cleanup.
 - [ ] A computed value may control a frame-preserving operation and still uncompute.
@@ -651,7 +651,7 @@ Rejected. Automatic drop cannot prove that unknown quantum state returned to the
 
 Rejected. They add ownership and suspension problems before the lexical contract is proven useful.
 
-### Infer compute–use patterns from optimized IR
+### Infer compute/use patterns from optimized IR
 
 Rejected. Source intent, diagnostics, proof identity, and resource lifetime should not depend on a pattern-matching optimization.
 
