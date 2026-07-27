@@ -286,6 +286,17 @@ classical class Parser {
             count
           );
         }
+
+        if (firstMemberHash == TOKEN_PUBLIC) {
+          return parseHelperProgram(
+            source,
+            tokenKinds,
+            tokenStarts,
+            tokenLengths,
+            statementStarts,
+            count
+          );
+        }
       }
 
       long entryStart = minimalEntryStart(source, tokenKinds, tokenStarts, tokenLengths);

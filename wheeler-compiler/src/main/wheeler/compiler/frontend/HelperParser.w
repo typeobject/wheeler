@@ -282,7 +282,11 @@ classical class HelperParser {
 
     long reversible = 0;
     long voidToken = memberStart;
-    if (tokenHash(source, tokenStarts, tokenLengths, memberStart) == TOKEN_REV) {
+    if (tokenHash(source, tokenStarts, tokenLengths, voidToken) == TOKEN_PUBLIC) {
+      voidToken += 1;
+    }
+
+    if (tokenHash(source, tokenStarts, tokenLengths, voidToken) == TOKEN_REV) {
       reversible = 1;
       voidToken += 1;
     }

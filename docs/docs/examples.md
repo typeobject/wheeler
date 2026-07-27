@@ -41,13 +41,13 @@ Expected behavior:
 
 - Input `classical class LongClass { state long value = 7; entry void main() { value += 5; } }` drives global and instruction IR, canonical lexical string ordering, function descriptors, and layout.
 - The 504-byte result passes Wheeler's header/directory/payload/instruction-stream verifier, including global/local/type/call operand domains, matches stage 0, and executes with `value = 12`.
-- Canonical `module examples.seed;` input emits stage-0-identical qualified entry/helper strings and unqualified theorem names. A malformed dotted header fails before output; module imports and multi-file linking remain outside this bounded path.
+- Canonical `module examples.seed;` input emits stage-0-identical qualified entry/helper strings and unqualified theorem names. Public and private helpers produce the same linked function bytes, while duplicate visibility fails before output. A malformed dotted header also fails before output; module imports and multi-file linking remain outside this bounded path.
 - `verification = 1`.
 - The differential suite covers no-global classes with zero to sixteen statements; a seventeenth statement is rejected before output.
 - Cases include signed and Boolean locals, literal or prior-local truth assertions, stateful updates, helper calls, reversible helpers, reverse blocks, and generated-inverse theorems.
 - Fixtures use two to four strings and zero or one global.
 - Bounded entry bodies derive up to twenty locals and 528 code bytes while `assert(global == constant)` lowers directly to local-free `EXPECT_EQ`.
-- A named zero- through sixteen-statement helper plus static entry call emits two descriptors, `RETURN`, and `CALL`.
+- A named public or private zero- through sixteen-statement helper plus static entry call emits two descriptors, `RETURN`, and `CALL`.
 - One or two helper calls derive repeated `CALL` sites.
 - A following entry statement derives its own locals, type window, descriptor length, and code after the call.
 - The `rev` form maps checked `+=`/`-=` to opposite intrinsic bodies and `^=` to a self-inverse body, reverses multi-statement inverse order, emits entry `CALL`/`UNCALL`, then may assert the restored state.

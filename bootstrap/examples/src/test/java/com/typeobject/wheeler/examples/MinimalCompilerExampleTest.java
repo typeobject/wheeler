@@ -52,15 +52,20 @@ class MinimalCompilerExampleTest {
             Map.of("ModuleSubject.w", moduleSource), "examples.seed")),
         moduleWriter.hostOutput());
     String helperModuleSource = "module examples.seed; classical class ModuleHelper { "
-        + "state long value = 1; void bump() { value += 2; } "
+        + "state long value = 1; public void bump() { value += 2; } "
         + "entry void main() { bump(); assert(value == 3); } }";
     VirtualMachine helperModuleWriter = new VirtualMachine(
         writerProgram, helperModuleSource.getBytes(StandardCharsets.UTF_8), 1024);
+    var helperModuleInitial = helperModuleWriter.snapshot();
     helperModuleWriter.run();
     assertArrayEquals(
         new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
             Map.of("ModuleHelper.w", helperModuleSource), "examples.seed")),
         helperModuleWriter.hostOutput());
+    while (helperModuleWriter.historySize() > 0) {
+      helperModuleWriter.rewindOne();
+    }
+    assertEquals(helperModuleInitial, helperModuleWriter.snapshot());
     String proofModuleSource = "module examples.seed; classical class ModuleProof { "
         + "state long value = 1; rev void bump() { value += 2; } "
         + "theorem bumpInverse proves inverse(bump); "
@@ -443,14 +448,14 @@ class MinimalCompilerExampleTest {
         15);
     assertDifferentialExecution(
         writerProgram,
-        "classical class SixteenHelper { state long value = 0; void setup() { "
+        "classical class SixteenHelper { state long value = 0; public void setup() { "
             + "value += 1; ".repeat(15)
             + "assert(value == 15); } entry void main() { setup(); } }",
         "value",
         15);
     assertDifferentialExecution(
         writerProgram,
-        "classical class SixteenReverse { state long value = 0; rev void raise() { "
+        "classical class SixteenReverse { state long value = 0; public rev void raise() { "
             + "value += 1; ".repeat(16)
             + "} entry void main() { raise(); reverse { raise(); } assert(value == 0); } }",
         "value",
@@ -469,6 +474,16 @@ class MinimalCompilerExampleTest {
         512);
     assertThrows(VmTrap.class, duplicate::run);
     assertArrayEquals(new byte[512], duplicate.hostOutput());
+
+    VirtualMachine duplicateHelperVisibility = new VirtualMachine(
+        writerProgram,
+        ("classical class DuplicateVisibility { state long value = 0; "
+            + "public public void setup() { value += 1; } "
+            + "entry void main() { setup(); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        1024);
+    assertThrows(VmTrap.class, duplicateHelperVisibility::run);
+    assertArrayEquals(new byte[1024], duplicateHelperVisibility.hostOutput());
 
     VirtualMachine irreversibleHelper = new VirtualMachine(
         writerProgram,
