@@ -28,7 +28,7 @@ classical class Statements {
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
     long statementStart,
-    long[8] previousStarts,
+    borrow mut words previousStarts,
     long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
@@ -49,7 +49,7 @@ classical class Statements {
     long matchedLocal = -1;
     long matchCount = 0;
     long previous = 0;
-    while (previous < previousCount) limit 8 {
+    while (previous < previousCount) limit 16 {
       long previousStart = previousStarts[previous];
       if (0 < previousStart) {
         long previousOpcode = statementOpcode(source, tokenStarts, tokenLengths, previousStart);

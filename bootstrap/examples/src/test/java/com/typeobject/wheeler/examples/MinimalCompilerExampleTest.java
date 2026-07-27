@@ -26,6 +26,8 @@ class MinimalCompilerExampleTest {
     String root = CompilerSources.read("MinimalCompiler.w");
     String aggregateVerifier = Files.readString(
         CompilerSources.path("compiler/verification/AggregateVerifier.w"));
+    String bodyParser = Files.readString(
+        CompilerSources.path("compiler/frontend/BodyParser.w"));
     String codegen = Files.readString(CompilerSources.path("compiler/backend/Codegen.w"));
     String encoding = Files.readString(CompilerSources.path("compiler/backend/Encoding.w"));
     String functionVerifier = Files.readString(
@@ -60,6 +62,7 @@ class MinimalCompilerExampleTest {
     var writerProgram = new WheelerCompiler().compileModuleFiles(
         Map.ofEntries(
             Map.entry("AggregateVerifier.w", aggregateVerifier),
+            Map.entry("BodyParser.w", bodyParser),
             Map.entry("MinimalCompiler.w", root),
             Map.entry("Codegen.w", codegen),
             Map.entry("Encoding.w", encoding),
@@ -234,6 +237,19 @@ class MinimalCompilerExampleTest {
             + "entry void main() { total = 4; total ^= 7; } }",
         "total",
         3);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class EmptyHelper { state long value = 1; "
+            + "void noop() { } entry void main() { noop(); assert(value == 1); } }",
+        "value",
+        1);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class EmptyReverse { state long value = 1; "
+            + "rev void noop() { } entry void main() { noop(); reverse { noop(); } "
+            + "assert(value == 1); } }",
+        "value",
+        1);
     assertDifferentialExecution(
         writerProgram,
         "classical class Calls { state long value = 1; "
@@ -442,6 +458,32 @@ class MinimalCompilerExampleTest {
             + "assert(value == 8); } }",
         "value",
         8);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class Sixteen { state long value = 0; entry void main() { "
+            + "value += 1; ".repeat(15)
+            + "assert(value == 15); } }",
+        "value",
+        15);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class SixteenHelper { state long value = 0; void setup() { "
+            + "value += 1; ".repeat(15)
+            + "assert(value == 15); } entry void main() { setup(); } }",
+        "value",
+        15);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class SixteenReverse { state long value = 0; rev void raise() { "
+            + "value += 1; ".repeat(16)
+            + "} entry void main() { raise(); reverse { raise(); } assert(value == 0); } }",
+        "value",
+        0);
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SixteenLocals { entry void main() { "
+            + booleanDeclarations(16)
+            + "} }");
 
     VirtualMachine duplicate = new VirtualMachine(
         writerProgram,
@@ -506,27 +548,26 @@ class MinimalCompilerExampleTest {
     assertThrows(VmTrap.class, doubleNegation::run);
     assertArrayEquals(new byte[512], doubleNegation.hostOutput());
 
-    VirtualMachine ninthHelperStatement = new VirtualMachine(
+    VirtualMachine seventeenthHelperStatement = new VirtualMachine(
         writerProgram,
-        ("classical class NineHelperStatements { state long value = 0; "
-            + "void setup() { value += 1; value += 1; value += 1; "
-            + "value += 1; value += 1; value += 1; value += 1; "
-            + "value += 1; value += 1; } entry void main() { setup(); } }")
+        ("classical class SeventeenHelperStatements { state long value = 0; "
+            + "void setup() { "
+            + "value += 1; ".repeat(17)
+            + "} entry void main() { setup(); } }")
             .getBytes(StandardCharsets.UTF_8),
-        1024);
-    assertThrows(VmTrap.class, ninthHelperStatement::run);
-    assertArrayEquals(new byte[1024], ninthHelperStatement.hostOutput());
+        4096);
+    assertThrows(VmTrap.class, seventeenthHelperStatement::run);
+    assertArrayEquals(new byte[4096], seventeenthHelperStatement.hostOutput());
 
-    VirtualMachine ninthStatement = new VirtualMachine(
+    VirtualMachine seventeenthStatement = new VirtualMachine(
         writerProgram,
-        ("classical class NineLocals { entry void main() { "
-            + "boolean a = true; boolean b = false; boolean c = true; "
-            + "boolean d = false; boolean e = true; boolean f = false; "
-            + "boolean g = true; boolean h = false; boolean i = true; } }")
+        ("classical class SeventeenLocals { entry void main() { "
+            + booleanDeclarations(17)
+            + "} }")
             .getBytes(StandardCharsets.UTF_8),
-        1024);
-    assertThrows(VmTrap.class, ninthStatement::run);
-    assertArrayEquals(new byte[1024], ninthStatement.hostOutput());
+        4096);
+    assertThrows(VmTrap.class, seventeenthStatement::run);
+    assertArrayEquals(new byte[4096], seventeenthStatement.hostOutput());
 
     VirtualMachine unresolvedLocal = new VirtualMachine(
         writerProgram,
@@ -708,6 +749,14 @@ class MinimalCompilerExampleTest {
     throw new AssertionError("missing opcode " + expectedOpcode);
   }
 
+  private static String booleanDeclarations(int count) {
+    StringBuilder source = new StringBuilder();
+    for (int index = 0; index < count; index++) {
+      source.append("boolean value").append(index).append(" = true; ");
+    }
+    return source.toString();
+  }
+
   private static String decoratedMinimalSource(long seed) {
     String[] tokens = {
         "classical", "class", "LongClass", "{", "state", "long", "value", "=", "7", ";",
@@ -728,7 +777,7 @@ class MinimalCompilerExampleTest {
       Program writerProgram,
       String source) {
     VirtualMachine writer = new VirtualMachine(
-        writerProgram, source.getBytes(StandardCharsets.UTF_8), 2048);
+        writerProgram, source.getBytes(StandardCharsets.UTF_8), 4096);
     writer.run();
     assertArrayEquals(
         new WheelerCompiler().compileToBytecode(source),
@@ -743,7 +792,7 @@ class MinimalCompilerExampleTest {
       Program writerProgram,
       String source) {
     VirtualMachine writer = new VirtualMachine(
-        writerProgram, source.getBytes(StandardCharsets.UTF_8), 2048);
+        writerProgram, source.getBytes(StandardCharsets.UTF_8), 4096);
     writer.run();
     assertArrayEquals(
         new WheelerCompiler().compileToBytecode(source),
@@ -759,8 +808,16 @@ class MinimalCompilerExampleTest {
       String global,
       long expected) {
     VirtualMachine writer = new VirtualMachine(
-        writerProgram, source.getBytes(StandardCharsets.UTF_8), 2048);
-    writer.run();
+        writerProgram, source.getBytes(StandardCharsets.UTF_8), 4096);
+    try {
+      writer.run();
+    } catch (VmTrap trap) {
+      throw new AssertionError(
+          "Wheeler compiler trapped at output cursor " + writer.global("finalCursor")
+              + " with verification " + writer.global("verification")
+              + " and diagnostic stage " + writer.global("diagnosticStage"),
+          trap);
+    }
     assertArrayEquals(
         new WheelerCompiler().compileToBytecode(source),
         writer.hostOutput());

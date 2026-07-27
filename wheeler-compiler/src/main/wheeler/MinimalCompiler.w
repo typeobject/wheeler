@@ -14,9 +14,17 @@ import wheeler.compiler.verifier;
 import wheeler.lexer.scanner;
 
 classical class MinimalCompiler {
+  /// Names a scanner rejection in `diagnosticStage`.
+  public const long DIAGNOSTIC_SCAN = 1;
+  /// Names a parser rejection in `diagnosticStage`.
+  public const long DIAGNOSTIC_PARSE = 2;
+  /// Names a string-table rejection in `diagnosticStage`.
+  public const long DIAGNOSTIC_STRING_TABLE = 3;
+
   state long finalCursor = 0;
   state long codeStart = 0;
   state long verification = 0;
+  state long diagnosticStage = 0;
 
   private long compactCompilerTokens(
     borrow mut words tokenKinds,
@@ -54,26 +62,28 @@ classical class MinimalCompiler {
     borrow utf8 source,
     borrow mut words tokenKinds,
     borrow mut words tokenStarts,
-    borrow mut words tokenLengths
+    borrow mut words tokenLengths,
+    borrow mut words statementStarts
   ) {
     ScanResult scanned = scan(source, tokenKinds, tokenStarts, tokenLengths);
     match (scanned) {
-      case ScanResult.Error(ScanDiagnostic diagnostic) {
+      case ScanResult.Error(ScanDiagnostic scanDiagnostic) {
+        diagnosticStage = DIAGNOSTIC_SCAN;
         assert(finalCursor == 1);
-        SourceRange scanName = new SourceRange(diagnostic.offset, 0);
-        SourceRange scanGlobal = new SourceRange(diagnostic.offset, 0);
+        SourceRange scanName = new SourceRange(scanDiagnostic.offset, 0);
+        SourceRange scanGlobal = new SourceRange(scanDiagnostic.offset, 0);
         return new MinimalProgram(
           scanName,
           scanGlobal,
           0,
           0,
           0,
-          new long[8](-1, -1, -1, -1, -1, -1, -1, -1),
-          new long[8](0, 0, 0, 0, 0, 0, 0, 0),
+          new long[16](-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+          new long[16](0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
           scanGlobal,
           0,
-          new long[8](-1, -1, -1, -1, -1, -1, -1, -1),
-          new long[8](0, 0, 0, 0, 0, 0, 0, 0),
+          new long[16](-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+          new long[16](0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
           0,
           scanGlobal,
           0,
@@ -89,10 +99,12 @@ classical class MinimalCompiler {
           tokenKinds,
           tokenStarts,
           tokenLengths,
+          statementStarts,
           semanticCount
         );
         match (parsed) {
           case MinimalProgramResult.Error(long parseOffset) {
+            diagnosticStage = DIAGNOSTIC_PARSE;
             assert(finalCursor == 1);
             SourceRange parseName = new SourceRange(parseOffset, 0);
             SourceRange parseGlobal = new SourceRange(parseOffset, 0);
@@ -102,12 +114,12 @@ classical class MinimalCompiler {
               0,
               0,
               0,
-              new long[8](-1, -1, -1, -1, -1, -1, -1, -1),
-              new long[8](0, 0, 0, 0, 0, 0, 0, 0),
+              new long[16](-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+              new long[16](0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
               parseGlobal,
               0,
-              new long[8](-1, -1, -1, -1, -1, -1, -1, -1),
-              new long[8](0, 0, 0, 0, 0, 0, 0, 0),
+              new long[16](-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+              new long[16](0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
               0,
               parseGlobal,
               0,
@@ -127,11 +139,11 @@ classical class MinimalCompiler {
   private long writeSequenceLocalTypes(
     borrow mut bytes output,
     long cursor,
-    long[8] opcodes,
+    long[16] opcodes,
     long count
   ) {
     long index = 0;
-    while (index < count) limit 8 {
+    while (index < count) limit 16 {
       cursor = writeStatementLocalTypes(output, cursor, opcodes[index]);
       index += 1;
     }
@@ -142,13 +154,13 @@ classical class MinimalCompiler {
   private long writeSequence(
     borrow mut bytes output,
     long cursor,
-    long[8] opcodes,
-    long[8] operands,
+    long[16] opcodes,
+    long[16] operands,
     long count
   ) {
     long index = 0;
     long localBase = 0;
-    while (index < count) limit 8 {
+    while (index < count) limit 16 {
       cursor = writeStatement(output, cursor, opcodes[index], operands[index], localBase);
       localBase += statementLocalCount(opcodes[index]);
       index += 1;
@@ -160,15 +172,15 @@ classical class MinimalCompiler {
   private long writeReversibleSequence(
     borrow mut bytes output,
     long cursor,
-    long[8] opcodes,
-    long[8] operands,
+    long[16] opcodes,
+    long[16] operands,
     long count,
     boolean inverse
   ) {
     long index = 0;
     if (inverse) {
       index = count;
-      while (0 < index) limit 8 {
+      while (0 < index) limit 16 {
         index -= 1;
         cursor = writeInverseGlobalUpdate(output, cursor, opcodes[index], operands[index]);
       }
@@ -176,7 +188,7 @@ classical class MinimalCompiler {
       return cursor;
     }
 
-    while (index < count) limit 8 {
+    while (index < count) limit 16 {
       cursor = writeGlobalUpdate(output, cursor, opcodes[index], operands[index]);
       index += 1;
     }
@@ -188,18 +200,21 @@ classical class MinimalCompiler {
   ///
   /// - Effects: Mutates declared state and caller-owned byte output.
   entry void main(borrow utf8 source, borrow mut bytes output) {
-    region arena = new region(12288, 3);
+    region arena = new region(12416, 4);
     words tokenKinds = allocate(arena, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(arena, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(arena, MAX_COMPILER_TOKENS);
+    words statementStarts = allocate(arena, 16);
     MinimalProgram program = requireMinimalProgram(
       source,
       tokenKinds,
       tokenStarts,
-      tokenLengths
+      tokenLengths,
+      statementStarts
     );
     StringTablePlan strings = planStringTable(source, program);
     if (strings.valid == 0) {
+      diagnosticStage = DIAGNOSTIC_STRING_TABLE;
       assert(finalCursor == 1);
     }
 
@@ -223,7 +238,7 @@ classical class MinimalCompiler {
     long localCount = 0;
     long codeLength = 8;
     long statementIndex = 0;
-    while (statementIndex < program.statementCount) limit 8 {
+    while (statementIndex < program.statementCount) limit 16 {
       long statementOpcode = program.statementOpcodes[statementIndex];
       localCount += statementLocalCount(statementOpcode);
       codeLength += statementCodeLength(statementOpcode);
@@ -236,7 +251,7 @@ classical class MinimalCompiler {
     long helperLocalCount = 0;
     long helperForwardLength = 8;
     long helperStatementIndex = 0;
-    while (helperStatementIndex < program.helperStatementCount) limit 8 {
+    while (helperStatementIndex < program.helperStatementCount) limit 16 {
       long helperOpcode = program.helperOpcodes[helperStatementIndex];
       helperLocalCount += statementLocalCount(helperOpcode);
       helperForwardLength += statementCodeLength(helperOpcode);
@@ -488,6 +503,7 @@ classical class MinimalCompiler {
     assert(verification == 1);
     setOutputLength(output, finalCursor);
 
+    drop(statementStarts);
     drop(tokenLengths);
     drop(tokenStarts);
     drop(tokenKinds);

@@ -669,6 +669,7 @@ class WheelerCommandTest {
               - "src/compiler/backend/Codegen.w"
               - "src/compiler/backend/Encoding.w"
               - "src/compiler/backend/StringTable.w"
+              - "src/compiler/frontend/BodyParser.w"
               - "src/compiler/frontend/HelperParser.w"
               - "src/compiler/frontend/Parser.w"
               - "src/compiler/frontend/Sequences.w"
@@ -708,6 +709,9 @@ class WheelerCommandTest {
     Files.copy(
         compilerSources.resolve("compiler/verification/FunctionVerifier.w"),
         project.resolve("src/compiler/verification/FunctionVerifier.w"));
+    Files.copy(
+        compilerSources.resolve("compiler/frontend/BodyParser.w"),
+        project.resolve("src/compiler/frontend/BodyParser.w"));
     Files.copy(
         compilerSources.resolve("compiler/frontend/HelperParser.w"),
         project.resolve("src/compiler/frontend/HelperParser.w"));

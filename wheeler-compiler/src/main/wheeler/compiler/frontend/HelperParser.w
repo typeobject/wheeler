@@ -2,6 +2,7 @@
 
 module wheeler.compiler.helper_parser;
 
+import wheeler.compiler.body_parser;
 import wheeler.compiler.ir;
 import wheeler.compiler.sequences;
 import wheeler.compiler.statements;
@@ -55,7 +56,7 @@ classical class HelperParser {
     long entryStatement,
     long helperCallCount,
     long preReverseStatement,
-    long[8] helperStarts,
+    borrow mut words helperStarts,
     long helperStatementCount
   ) {
     SourceRange name = new SourceRange(tokenStarts[2], tokenLengths[2]);
@@ -103,12 +104,13 @@ classical class HelperParser {
       }
     }
 
-    long[8] entryStarts = new long[8](entryFirst, entrySecond, -1, -1, -1, -1, -1, -1);
+    set(helperStarts, 0, entryFirst);
+    set(helperStarts, 1, entrySecond);
     StatementSequence entrySequence = parseStatementSequence(
       source,
       tokenStarts,
       tokenLengths,
-      entryStarts,
+      helperStarts,
       entryCount
     );
     if (entrySequence.valid == false) {
@@ -150,7 +152,7 @@ classical class HelperParser {
     long proofCount,
     long helperCallCount,
     long preReverseStatement,
-    long[8] helperStarts,
+    borrow mut words helperStarts,
     long helperStatementCount
   ) {
     long entryStatement = -1;
@@ -203,160 +205,7 @@ classical class HelperParser {
     return new MinimalProgramResult.Error(0);
   }
 
-  private record HelperStatements(long end, long count, long[8] starts, boolean valid) {}
-
   private record ProofHeader(long entryStart, long token, long count) {}
-
-  private HelperStatements helperStatements(
-    borrow utf8 source,
-    borrow mut words tokenKinds,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    long body
-  ) {
-    long[8] absent = new long[8](-1, -1, -1, -1, -1, -1, -1, -1);
-    long firstWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, body);
-    if (firstWidth < 1) {
-      return new HelperStatements(-1, 0, absent, false);
-    }
-
-    long firstEnd = body + firstWidth;
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, firstEnd, PUNCTUATION_CLOSE_BRACE)
-    ) {
-      return new HelperStatements(
-        firstEnd,
-        1,
-        new long[8](body, -1, -1, -1, -1, -1, -1, -1),
-        true
-      );
-    }
-
-    long secondWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, firstEnd);
-    if (secondWidth < 1) {
-      return new HelperStatements(-1, 0, absent, false);
-    }
-
-    long secondEnd = firstEnd + secondWidth;
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, secondEnd, PUNCTUATION_CLOSE_BRACE)
-    ) {
-      return new HelperStatements(
-        secondEnd,
-        2,
-        new long[8](body, firstEnd, -1, -1, -1, -1, -1, -1),
-        true
-      );
-    }
-
-    long thirdWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, secondEnd);
-    if (thirdWidth < 1) {
-      return new HelperStatements(-1, 0, absent, false);
-    }
-
-    long thirdEnd = secondEnd + thirdWidth;
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, thirdEnd, PUNCTUATION_CLOSE_BRACE)
-    ) {
-      return new HelperStatements(
-        thirdEnd,
-        3,
-        new long[8](body, firstEnd, secondEnd, -1, -1, -1, -1, -1),
-        true
-      );
-    }
-
-    long fourthWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, thirdEnd);
-    if (fourthWidth < 1) {
-      return new HelperStatements(-1, 0, absent, false);
-    }
-
-    long fourthEnd = thirdEnd + fourthWidth;
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, fourthEnd, PUNCTUATION_CLOSE_BRACE)
-    ) {
-      return new HelperStatements(
-        fourthEnd,
-        4,
-        new long[8](body, firstEnd, secondEnd, thirdEnd, -1, -1, -1, -1),
-        true
-      );
-    }
-
-    long fifthWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, fourthEnd);
-    if (fifthWidth < 1) {
-      return new HelperStatements(-1, 0, absent, false);
-    }
-
-    long fifthEnd = fourthEnd + fifthWidth;
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, fifthEnd, PUNCTUATION_CLOSE_BRACE)
-    ) {
-      return new HelperStatements(
-        fifthEnd,
-        5,
-        new long[8](body, firstEnd, secondEnd, thirdEnd, fourthEnd, -1, -1, -1),
-        true
-      );
-    }
-
-    long sixthWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, fifthEnd);
-    if (sixthWidth < 1) {
-      return new HelperStatements(-1, 0, absent, false);
-    }
-
-    long sixthEnd = fifthEnd + sixthWidth;
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, sixthEnd, PUNCTUATION_CLOSE_BRACE)
-    ) {
-      return new HelperStatements(
-        sixthEnd,
-        6,
-        new long[8](body, firstEnd, secondEnd, thirdEnd, fourthEnd, fifthEnd, -1, -1),
-        true
-      );
-    }
-
-    long seventhWidth = statementWidth(source, tokenKinds, tokenStarts, tokenLengths, sixthEnd);
-    if (seventhWidth < 1) {
-      return new HelperStatements(-1, 0, absent, false);
-    }
-
-    long seventhEnd = sixthEnd + seventhWidth;
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, seventhEnd, PUNCTUATION_CLOSE_BRACE)
-    ) {
-      return new HelperStatements(
-        seventhEnd,
-        7,
-        new long[8](body, firstEnd, secondEnd, thirdEnd, fourthEnd, fifthEnd, sixthEnd, -1),
-        true
-      );
-    }
-
-    long eighthWidth = statementWidth(
-      source,
-      tokenKinds,
-      tokenStarts,
-      tokenLengths,
-      seventhEnd
-    );
-    if (eighthWidth < 1) {
-      return new HelperStatements(-1, 0, absent, false);
-    }
-
-    long[8] eighthStarts = new long[8](
-      body,
-      firstEnd,
-      secondEnd,
-      thirdEnd,
-      fourthEnd,
-      fifthEnd,
-      sixthEnd,
-      seventhEnd
-    );
-    return new HelperStatements(seventhEnd + eighthWidth, 8, eighthStarts, true);
-  }
 
   private ProofHeader proofHeader(
     borrow utf8 source,
@@ -423,6 +272,7 @@ classical class HelperParser {
     borrow mut words tokenKinds,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
+    borrow mut words statementStarts,
     long count
   ) {
     long memberStart = minimalEntryStart(source, tokenKinds, tokenStarts, tokenLengths);
@@ -470,11 +320,12 @@ classical class HelperParser {
     }
 
     long helperBody = nameToken + 4;
-    HelperStatements statements = helperStatements(
+    BodyScan statements = scanBody(
       source,
       tokenKinds,
       tokenStarts,
       tokenLengths,
+      statementStarts,
       helperBody
     );
     if (statements.valid == false) {
@@ -557,7 +408,7 @@ classical class HelperParser {
         proof.count,
         helperCallCount,
         -1,
-        statements.starts,
+        statementStarts,
         statements.count
       );
     }
@@ -610,7 +461,7 @@ classical class HelperParser {
       proof.count,
       helperCallCount,
       preReverseStatement,
-      statements.starts,
+      statementStarts,
       statements.count
     );
   }

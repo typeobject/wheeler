@@ -225,7 +225,7 @@ An instruction either completes and adds one rewind record, or it traps before c
 
 `MinimalCompiler.w` and its IR, token, parser, code-generation, and encoding modules exercise a complete but bounded writer path. Wheeler scans one small source file, builds class and global IR, and emits a canonical artifact.
 
-The accepted grammar supports zero or one signed global, an optional classical or reversible helper with one through eight statements, and one entry. The entry may contain zero through eight signed-local, Boolean-local, assertion, assignment, checked-update, or global-expectation statements before `HALT`.
+The accepted grammar supports zero or one signed global, an optional classical or reversible helper with zero through sixteen statements, and one entry. An entry without a helper may contain zero through sixteen signed-local, Boolean-local, assertion, assignment, checked-update, or global-expectation statements before `HALT`. Helper-call entries retain the smaller explicit call/reverse shape. Statement starts live in one caller-owned bounded table shared by both body parsers; the seventeenth row is not an undocumented storage tier.
 
 Identifiers from source are sorted into the canonical string table. Offsets, type windows, local counts, code lengths, and final artifact size are derived from the parsed program.
 

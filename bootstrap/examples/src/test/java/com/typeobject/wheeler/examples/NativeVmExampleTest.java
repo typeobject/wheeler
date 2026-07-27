@@ -708,6 +708,9 @@ class NativeVmExampleTest {
             Map.entry(
                 "AggregateVerifier.w",
                 CompilerSources.read("compiler/verification/AggregateVerifier.w")),
+            Map.entry(
+                "BodyParser.w",
+                CompilerSources.read("compiler/frontend/BodyParser.w")),
             Map.entry("Codegen.w", CompilerSources.read("compiler/backend/Codegen.w")),
             Map.entry("Encoding.w", CompilerSources.read("compiler/backend/Encoding.w")),
             Map.entry(
