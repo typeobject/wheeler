@@ -161,6 +161,14 @@ Expected behavior:
 - Empty and generated six-package locks pass the independent stage-0 parser, while a seventh package exceeds the fixture's declared capacity and traps before publication.
 - Wrong schema, uppercase digest, duplicate or unsorted packages/dependencies, and unknown targets also trap.
 
+### `NativeLockIdentity.w`
+
+Files: [`NativeLockIdentity.w`](../../wheeler-examples/src/main/wheeler/native/packages/NativeLockIdentity.w) + [`packages/resolution/Lock.w`](../../wheeler-package/src/main/wheeler/packages/resolution/Lock.w) + [`crypto/Sha256.w`](../../wheeler-core/src/main/wheeler/crypto/Sha256.w).
+
+Covers: Bounded binary input, strict UTF-8 ownership, complete schema-3 lock validation, Wheeler SHA-256, stage-0 differential identity, fail-closed publication, and exact rewind.
+
+Expected behavior: Empty and one-package locks produce the stage-0 identity. Two packages exceed this fixture's table, schema drift is still schema drift after hashing, and 2,049 bytes exceed its input budget; none publishes so much as a consolation nybble.
+
 ### `NativePlan.w`
 
 Files: [`NativePlan.w`](../../wheeler-examples/src/main/wheeler/native/NativePlan.w) + [`packages/resolution/Plan.w`](../../wheeler-package/src/main/wheeler/packages/resolution/Plan.w) + [`PlanIdentity.w`](../../wheeler-package/src/main/wheeler/packages/resolution/PlanIdentity.w).

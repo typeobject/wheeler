@@ -445,7 +445,9 @@ The parser accepts canonical empty locks and any sorted package or dependency th
 
 Shared `LineEmitter.w` publishes the exact validated bytes, and the independent stage-0 lock parser accepts them. The executable fixture provides six package slots and sixteen edge slots; the two-package forward-edge case and generated empty and six-package cases pass. A seventh package, schema drift, uppercase hex, duplicate or unsorted package or dependency names, and an unknown target fail before publication.
 
-The fixture remains below the VM history ceiling. Under the 4,096-byte recovery input profile, parser loops cap packages at 512 and edges at 1,024. Schema 3 allows 10,000 packages, which needs wider scanner and I/O limits. Hash computation also remains future work. Syntax checking validates the digest field; computing and comparing the digest establishes identity.
+The fixture remains below the VM history ceiling. Under the 4,096-byte recovery input profile, parser loops cap packages at 512 and edges at 1,024. Schema 3 allows 10,000 packages, which needs wider scanner and I/O limits.
+
+`NativeLockIdentity.w` owns at most 2,048 binary input bytes, freezes strict UTF-8, validates an empty or one-package lock, and only then publishes Wheeler SHA-256. Both identities match stage 0 and rewind exactly. A two-package lock exceeds that executable's caller table, while malformed or oversized inputs leave 32 zero output bytes. The six-package structural fixture remains separate because hashing a large textual lock crosses the default retained-history budget; increasing a bound in a test would prove only that integers can be made larger.
 
 ## Wheeler-native workspace slice
 

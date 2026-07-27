@@ -104,6 +104,13 @@ targets:
       - "src/main/wheeler/native/NativeLock.w"
     test: false
   - kind: "deployable"
+    name: "nativelockidentity"
+    root: "src/main/wheeler/native/packages/NativeLockIdentity.w"
+    module: "examples.packages.lock_identity"
+    sources:
+      - "src/main/wheeler/native/packages/NativeLockIdentity.w"
+    test: false
+  - kind: "deployable"
     name: "nativemanifest"
     root: "src/main/wheeler/native/NativeManifest.w"
     module: "examples.packages.main"

@@ -1,13 +1,14 @@
-//! Computes the content identity of one bounded canonical repository snapshot.
+//! Computes the content identity of one bounded canonical dependency lock.
 
-module examples.packages.snapshot_identity;
+module examples.packages.lock_identity;
 
 import wheeler.crypto.sha256;
 import wheeler.lexer.scanner;
-import wheeler.packages.snapshot;
+import wheeler.packages.lock;
 
-classical class NativeSnapshotIdentity {
-  state long releaseCount = 0;
+classical class NativeLockIdentity {
+  state long packageCount = 0;
+  state long edgeCount = 0;
   state long sourceLength = 0;
   state long diagnosticOffset = 0;
   state long published = 0;
@@ -28,7 +29,7 @@ classical class NativeSnapshotIdentity {
     }
   }
 
-  /// Validates and identifies one snapshot without publishing partial output.
+  /// Validates and identifies one lock without publishing partial output.
   ///
   /// - Effects: Mutates fixture state and caller-owned identity output.
   entry void main(borrow byteview rawSource, borrow mut bytes identity) {
@@ -36,7 +37,7 @@ classical class NativeSnapshotIdentity {
       long oversized = rawSource[-1];
     }
 
-    region arena = new region(10000, 10);
+    region arena = new region(11000, 24);
     bytes sourceBytes = allocateBytes(arena, bufferLength(rawSource));
     copyInput(rawSource, sourceBytes);
     utf8 source = freezeUtf8(sourceBytes);
@@ -44,7 +45,18 @@ classical class NativeSnapshotIdentity {
     words kinds = allocate(arena, 256);
     words starts = allocate(arena, 256);
     words lengths = allocate(arena, 256);
-    words rows = allocate(arena, 24);
+    words packageNameStarts = allocate(arena, 1);
+    words packageNameLengths = allocate(arena, 1);
+    words versionStarts = allocate(arena, 1);
+    words versionLengths = allocate(arena, 1);
+    words repositoryStarts = allocate(arena, 1);
+    words snapshotStarts = allocate(arena, 1);
+    words archiveStarts = allocate(arena, 1);
+    words manifestStarts = allocate(arena, 1);
+    words dependencyOffsets = allocate(arena, 1);
+    words dependencyCounts = allocate(arena, 1);
+    words edgeTargetStarts = allocate(arena, 1);
+    words edgeTargetLengths = allocate(arena, 1);
     long count = 0;
     ScanResult scanned = scan(source, kinds, starts, lengths);
     match (scanned) {
@@ -57,23 +69,53 @@ classical class NativeSnapshotIdentity {
       }
     }
 
-    SnapshotResult parsed = parseSnapshot(source, kinds, starts, lengths, count, rows);
+    LockResult parsed = parse(
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      packageNameStarts,
+      packageNameLengths,
+      versionStarts,
+      versionLengths,
+      repositoryStarts,
+      snapshotStarts,
+      archiveStarts,
+      manifestStarts,
+      dependencyOffsets,
+      dependencyCounts,
+      edgeTargetStarts,
+      edgeTargetLengths
+    );
     match (parsed) {
-      case SnapshotResult.Value(SnapshotModel snapshot) {
-        releaseCount = snapshot.releaseCount;
+      case LockResult.Value(LockModel lock) {
+        packageCount = lock.packageCount;
+        edgeCount = lock.edgeCount;
         sourceLength = bufferLength(source);
         hashSha256(rawSource, digest, arena);
         publishDigest(digest, identity);
         published = 1;
       }
-      case SnapshotResult.Error(long offset) {
+      case LockResult.Error(long offset) {
         diagnosticOffset = offset;
         assert(published == 1);
       }
     }
 
     setOutputLength(identity, published * 32);
-    drop(rows);
+    drop(edgeTargetLengths);
+    drop(edgeTargetStarts);
+    drop(dependencyCounts);
+    drop(dependencyOffsets);
+    drop(manifestStarts);
+    drop(archiveStarts);
+    drop(snapshotStarts);
+    drop(repositoryStarts);
+    drop(versionLengths);
+    drop(versionStarts);
+    drop(packageNameLengths);
+    drop(packageNameStarts);
     drop(lengths);
     drop(starts);
     drop(kinds);
