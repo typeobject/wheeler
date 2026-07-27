@@ -422,6 +422,7 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 - [x] `NativeWorkspaceIdentity.w` validates two sorted caller-owned member rows before hashing. Its identity matches stage 0 with exact rewind; a third member, wrong schema, or oversized input leaves digest output untouched.
 - [x] `wheeler.core.encoding.binary` owns bounded little-endian reads and ASCII name, version, and path checks for binary package codecs. `Plan.w` no longer keeps a private copy of those rules. One shared module now defines that security boundary.
 - [x] `NativeArchive.w` and `packages/archive/Archive.w` verify a Wheeler-computed outer SHA-256 digest and one entry-data digest. They also check schema framing, exact lengths, complete consumption, and stage-0 decode compatibility.
+- [x] `NativeArchiveIdentity.w` computes the final content identity only after complete archive, embedded-manifest, and source-closure validation. Its one-file archive identity matches stage 0 and rewinds exactly; payload-digest damage or oversized input leaves output untouched.
   - The manifest is copied, frozen, parsed by shared scanner and manifest modules, and re-emitted as exact canonical lines.
   - One or two sorted ASCII logical paths must match the declared target source set.
   - Outer corruption, re-signed data corruption, traversal, undeclared source paths, and noncanonical manifest text fail.

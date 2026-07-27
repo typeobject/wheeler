@@ -485,7 +485,9 @@ The decoder copies the manifest into bounded region storage, freezes it as stric
 
 Both digests use Wheeler `crypto/Sha256.w`; stage 0 independently accepts the encoded fixture. Damage to the outer digest fails. Changing an entry path or its data also fails after the test recomputes the outer digest. A successful run rewinds all scratch and caller-visible state.
 
-The current manifest check covers one bounded native target, not every stage-0 declaration. It also omits more than two entries, reserved `wheeler.package.yaml` rejection, the wider manifest profile, UTF-8 paths, and final archive identity. The slice can inspect one integrity-checked archive, but it cannot install one yet. An extractor needs closure checks before it's more than a file copy.
+`NativeArchiveIdentity.w` runs that complete inspection before hashing all archive bytes. The one-entry identity matches `PackageArchive.identity`, and outer-digest damage or input beyond 4,096 bytes leaves output untouched. This is distinct from the archive's trailing payload digest: the final identity covers that digest too, because leaving the checksum outside the checked artifact would be an unusually literal reading of "payload."
+
+The current manifest check covers one bounded native target, not every stage-0 declaration. It also omits more than two entries, reserved `wheeler.package.yaml` rejection, the wider manifest profile, and UTF-8 paths. The slice can identify one integrity-checked archive, but it cannot install one yet. An extractor needs closure checks before it's more than a file copy.
 
 ## Implementation direction
 

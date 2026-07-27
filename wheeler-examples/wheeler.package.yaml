@@ -76,6 +76,13 @@ targets:
       - "src/main/wheeler/native/NativeArchive.w"
     test: false
   - kind: "deployable"
+    name: "nativearchiveidentity"
+    root: "src/main/wheeler/native/packages/NativeArchiveIdentity.w"
+    module: "examples.packages.archive_identity"
+    sources:
+      - "src/main/wheeler/native/packages/NativeArchiveIdentity.w"
+    test: false
+  - kind: "deployable"
     name: "nativebytecodecodec"
     root: "src/main/wheeler/native/NativeBytecodeCodec.w"
     module: "examples.compiler.native_bytecode_codec"

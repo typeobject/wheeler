@@ -149,6 +149,14 @@ Expected behavior:
 - An independently encoded `demo.archive` package with `src/Main.w` yields path/data lengths `10/4`, stage-0 decode acceptance, and exact rewind.
 - Outer digest damage, re-signed data corruption, traversal, valid-but-wrong source paths, and a re-signed malformed YAML key trap.
 
+### `NativeArchiveIdentity.w`
+
+Files: [`NativeArchiveIdentity.w`](../../wheeler-examples/src/main/wheeler/native/packages/NativeArchiveIdentity.w) + [`packages/archive/Archive.w`](../../wheeler-package/src/main/wheeler/packages/archive/Archive.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
+
+Covers: Complete archive structure, payload and entry-data digests, embedded canonical manifest/source closure, final Wheeler SHA-256, stage-0 differential identity, fail-closed output, and exact rewind.
+
+Expected behavior: A one-file canonical library archive matches the complete stage-0 archive identity. Outer-digest damage and input beyond 4,096 bytes publish nothing. An archive is not valid merely because its last 32 bytes look busy.
+
 ### `NativeLock.w`
 
 Files: [`NativeLock.w`](../../wheeler-examples/src/main/wheeler/native/NativeLock.w) + [`packages/resolution/Lock.w`](../../wheeler-package/src/main/wheeler/packages/resolution/Lock.w).
