@@ -163,6 +163,14 @@ Covers: Exact schema-2 canonical recovery YAML, twenty-one lowercase identities,
 
 Expected behavior: Complete fixed-point and diverse-compilation evidence reproduces the stage-0 manifest identity. A false fixed point, mismatched diverse output, shared alleged-independent toolchain or compiler, reordered field, or input beyond 2,048 bytes publishes nothing. The validator checks evidence relationships; it does not award independence points for wearing a false moustache.
 
+### `NativeBootstrapModulesIdentity.w`
+
+Files: [`NativeBootstrapModulesIdentity.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/NativeBootstrapModulesIdentity.w) + [`BootstrapSyntax.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/BootstrapSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
+
+Covers: One canonical rooted source module, a bounded profile and source path, zero through four sorted external modules and matching imports, lowercase source identity, exact schema bytes, SHA-256 publication, and rewind.
+
+Expected behavior: Empty and two-external one-module closures reproduce stage 0. Unsorted externals, an unbound import, mismatched root, uppercase digest, traversal path, or input beyond 2,048 bytes publishes nothing. The one-module fixture is deliberately smaller than the 10,000-module schema; pretending otherwise would merely give the graph a fake moustache too.
+
 ### `NativeCompilerLimitsIdentity.w`
 
 Files: [`NativeCompilerLimitsIdentity.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/NativeCompilerLimitsIdentity.w) + [`BootstrapSyntax.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/BootstrapSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
