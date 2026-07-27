@@ -6,13 +6,29 @@ import wheeler.compiler.ir;
 import wheeler.compiler.tokens;
 
 classical class Statements {
+  private boolean namedLongBinary(long opcode) {
+    if (opcode == STATEMENT_LOCAL_LONG_ADD_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_SUB_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_LOCAL_LONG_XOR_NAMED;
+  }
+
   private boolean declarationMatches(long opcode, boolean signed) {
     if (signed) {
       if (opcode == STATEMENT_LOCAL_LONG) {
         return true;
       }
 
-      return opcode == STATEMENT_LOCAL_LONG_NAMED;
+      if (opcode == STATEMENT_LOCAL_LONG_NAMED) {
+        return true;
+      }
+
+      return namedLongBinary(opcode);
     }
 
     if (opcode == STATEMENT_LOCAL_BOOLEAN) {
@@ -87,6 +103,28 @@ classical class Statements {
     return opcode < STATEMENT_LOCAL_LONG_COPY_BASE + 256;
   }
 
+  /// Checks whether an opcode carries a resolved signed-local binary source.
+  public boolean resolvedLocalLongBinary(long opcode) {
+    if (opcode < STATEMENT_LOCAL_LONG_ADD_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_LONG_XOR_BASE + 256;
+  }
+
+  /// Returns the source local carried by a resolved signed binary opcode.
+  public long resolvedLocalLongBinarySource(long opcode) {
+    if (opcode < STATEMENT_LOCAL_LONG_SUB_BASE) {
+      return opcode - STATEMENT_LOCAL_LONG_ADD_BASE;
+    }
+
+    if (opcode < STATEMENT_LOCAL_LONG_XOR_BASE) {
+      return opcode - STATEMENT_LOCAL_LONG_SUB_BASE;
+    }
+
+    return opcode - STATEMENT_LOCAL_LONG_XOR_BASE;
+  }
+
   /// Resolves named signed operations into opcodes carrying local indices.
   public long sequenceStatementOpcode(
     borrow utf8 source,
@@ -126,6 +164,32 @@ classical class Statements {
       );
       if (-1 < sourceLocal) {
         return STATEMENT_LOCAL_LONG_COPY_BASE + sourceLocal;
+      }
+
+      return -1;
+    }
+
+    if (namedLongBinary(opcode)) {
+      long binarySourceLocal = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3,
+        true
+      );
+      if (-1 < binarySourceLocal) {
+        long base = STATEMENT_LOCAL_LONG_ADD_BASE;
+        if (opcode == STATEMENT_LOCAL_LONG_SUB_NAMED) {
+          base = STATEMENT_LOCAL_LONG_SUB_BASE;
+        }
+
+        if (opcode == STATEMENT_LOCAL_LONG_XOR_NAMED) {
+          base = STATEMENT_LOCAL_LONG_XOR_BASE;
+        }
+
+        return base + binarySourceLocal;
       }
 
       return -1;
@@ -184,6 +248,14 @@ classical class Statements {
 
     if (resolvedLocalLongCopy(opcode)) {
       return 2;
+    }
+
+    if (resolvedLocalLongBinary(opcode)) {
+      return 4;
+    }
+
+    if (namedLongBinary(opcode)) {
+      return 4;
     }
 
     if (opcode == STATEMENT_LOCAL_LONG_NAMED) {
@@ -249,6 +321,10 @@ classical class Statements {
 
     if (opcode == STATEMENT_LOCAL_LONG_NAMED) {
       return localBase + 1;
+    }
+
+    if (namedLongBinary(opcode)) {
+      return localBase + 3;
     }
 
     if (opcode == STATEMENT_LOCAL_BOOLEAN) {
@@ -500,6 +576,10 @@ classical class Statements {
       signedDeclaration = true;
     }
 
+    if (namedLongBinary(statementKind)) {
+      signedDeclaration = true;
+    }
+
     if (signedDeclaration) {
       if (tokenKinds[statementStart + 1] == 1) {
         if (
@@ -523,6 +603,36 @@ classical class Statements {
                 )
               ) {
                 return 5;
+              }
+            }
+
+            return -1;
+          }
+
+          if (namedLongBinary(statementKind)) {
+            if (tokenKinds[statementStart + 3] == 1) {
+              long binaryWidth = signedNumberWidth(
+                source,
+                tokenKinds,
+                tokenStarts,
+                statementStart + 5
+              );
+              if (0 < binaryWidth) {
+                if (
+                  signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 5)
+                ) {
+                  if (
+                    punctuationAt(
+                      source,
+                      tokenKinds,
+                      tokenStarts,
+                      statementStart + 5 + binaryWidth,
+                      PUNCTUATION_SEMICOLON
+                    )
+                  ) {
+                    return 6 + binaryWidth;
+                  }
+                }
               }
             }
 
@@ -794,6 +904,10 @@ classical class Statements {
     }
 
     if (opcode == STATEMENT_ASSERT_NAMED_LONG) {
+      return statementStart + 5;
+    }
+
+    if (namedLongBinary(opcode)) {
       return statementStart + 5;
     }
 

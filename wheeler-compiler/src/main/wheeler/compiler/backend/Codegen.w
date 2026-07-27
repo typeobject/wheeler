@@ -76,6 +76,10 @@ classical class Codegen {
 
   /// Returns the encoded byte width of one parsed statement.
   public long statementCodeLength(long opcode) {
+    if (resolvedLocalLongBinary(opcode)) {
+      return 104;
+    }
+
     if (resolvedLocalLongCopy(opcode)) {
       return 48;
     }
@@ -167,6 +171,32 @@ classical class Codegen {
       cursor = writeUnsignedLittleEndian(output, cursor, operand, 8);
       cursor = writeInstructionHeader(output, cursor, OPCODE_EXPECT_TRUE, 1);
       return writeUnsignedLittleEndian(output, cursor, localBase, 8);
+    }
+
+    if (resolvedLocalLongBinary(opcode)) {
+      long binarySourceLocal = resolvedLocalLongBinarySource(opcode);
+      long binaryOpcode = OPCODE_LOCAL_ADD;
+      if (STATEMENT_LOCAL_LONG_SUB_BASE - 1 < opcode) {
+        binaryOpcode = OPCODE_LOCAL_SUB;
+      }
+
+      if (STATEMENT_LOCAL_LONG_XOR_BASE - 1 < opcode) {
+        binaryOpcode = OPCODE_LOCAL_XOR;
+      }
+
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, binarySourceLocal, 8);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, 2);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
+      cursor = writeSignedLittleEndian(output, cursor, operand, 8);
+      cursor = writeInstructionHeader(output, cursor, binaryOpcode, 3);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, 8);
+      return writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
     }
 
     if (resolvedLocalLongCopy(opcode)) {

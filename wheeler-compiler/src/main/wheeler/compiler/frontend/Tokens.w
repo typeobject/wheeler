@@ -71,6 +71,18 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_LONG_NAMED = 776;
   /// Starts resolved signed-local copy opcodes; the source local is the delta.
   public const long STATEMENT_LOCAL_LONG_COPY_BASE = 2304;
+  /// Names an unresolved checked signed-local addition declaration.
+  public const long STATEMENT_LOCAL_LONG_ADD_NAMED = 777;
+  /// Names an unresolved checked signed-local subtraction declaration.
+  public const long STATEMENT_LOCAL_LONG_SUB_NAMED = 778;
+  /// Names an unresolved checked signed-local XOR declaration.
+  public const long STATEMENT_LOCAL_LONG_XOR_NAMED = 779;
+  /// Starts resolved checked signed-local addition declaration opcodes.
+  public const long STATEMENT_LOCAL_LONG_ADD_BASE = 2560;
+  /// Starts resolved checked signed-local subtraction declaration opcodes.
+  public const long STATEMENT_LOCAL_LONG_SUB_BASE = 2816;
+  /// Starts resolved checked signed-local XOR declaration opcodes.
+  public const long STATEMENT_LOCAL_LONG_XOR_BASE = 3072;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -238,6 +250,19 @@ classical class Tokens {
       }
 
       if (named) {
+        long initializerOperator = utf8Scalar(source, tokenStarts[statementStart + 4]);
+        if (initializerOperator == PUNCTUATION_PLUS) {
+          return STATEMENT_LOCAL_LONG_ADD_NAMED;
+        }
+
+        if (initializerOperator == PUNCTUATION_MINUS) {
+          return STATEMENT_LOCAL_LONG_SUB_NAMED;
+        }
+
+        if (initializerOperator == PUNCTUATION_CARET) {
+          return STATEMENT_LOCAL_LONG_XOR_NAMED;
+        }
+
         return STATEMENT_LOCAL_LONG_NAMED;
       }
 

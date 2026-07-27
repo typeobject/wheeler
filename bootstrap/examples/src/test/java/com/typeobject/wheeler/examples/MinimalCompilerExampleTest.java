@@ -518,6 +518,18 @@ class MinimalCompilerExampleTest {
             + "long first = 41; long second = first; assert(second == 41); } }");
     assertDifferentialHalt(
         writerProgram,
+        "classical class SignedLocalAdd { entry void main() { "
+            + "long first = 41; long second = first + 1; assert(second == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedLocalSub { entry void main() { "
+            + "long first = 41; long second = first - 1; assert(second == 40); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedLocalXor { entry void main() { "
+            + "long first = 41; long second = first ^ 1; assert(second == 40); } }");
+    assertDifferentialHalt(
+        writerProgram,
         "classical class GlobalThenLocal { state long value = 7; entry void main() { "
             + "assert(value == 7); long answer = 41; assert(answer == 41); } }");
     assertDifferentialTrap(
@@ -642,6 +654,14 @@ class MinimalCompilerExampleTest {
         512);
     assertThrows(VmTrap.class, unresolvedSignedCopy::run);
     assertArrayEquals(new byte[512], unresolvedSignedCopy.hostOutput());
+
+    VirtualMachine unresolvedSignedAdd = new VirtualMachine(
+        writerProgram,
+        "classical class UnknownSignedAdd { entry void main() { long result = missing + 1; } }"
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, unresolvedSignedAdd::run);
+    assertArrayEquals(new byte[512], unresolvedSignedAdd.hostOutput());
 
     VirtualMachine unresolvedLocal = new VirtualMachine(
         writerProgram,
