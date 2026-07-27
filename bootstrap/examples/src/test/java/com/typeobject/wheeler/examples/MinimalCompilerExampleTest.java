@@ -322,6 +322,24 @@ class MinimalCompilerExampleTest {
             + "long answer = 42; result = answer; assert(result == 42); } }",
         "result",
         42);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class LocalUpdateAdd { state long result = 40; entry void main() { "
+            + "long delta = 2; result += delta; assert(result == 42); } }",
+        "result",
+        42);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class LocalUpdateSub { state long result = 44; entry void main() { "
+            + "long delta = 2; result -= delta; assert(result == 42); } }",
+        "result",
+        42);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class LocalUpdateXor { state long result = 40; entry void main() { "
+            + "long delta = 2; result ^= delta; assert(result == 42); } }",
+        "result",
+        42);
     assertDifferentialHalt(
         writerProgram,
         "classical class FifthLocal { entry void main() { "

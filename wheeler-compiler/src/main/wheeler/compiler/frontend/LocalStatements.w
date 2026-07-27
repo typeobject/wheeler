@@ -450,6 +450,10 @@ classical class LocalStatements {
       return -1 < operand;
     }
 
+    if (namedGlobalUpdate(opcode)) {
+      return -1 < operand;
+    }
+
     return true;
   }
 
@@ -463,6 +467,18 @@ classical class LocalStatements {
     long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (namedGlobalUpdate(opcode)) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3,
+        true
+      );
+    }
+
     if (opcode == STATEMENT_ASSIGN_LOCAL_NAMED) {
       return resolvePriorDeclaration(
         source,

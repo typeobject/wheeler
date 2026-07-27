@@ -55,6 +55,19 @@ classical class LocalOpcodes {
     return opcode == STATEMENT_LOCAL_LONG_MOD_LOCALS_NAMED;
   }
 
+  /// Checks whether a global update reads a prior signed local.
+  public boolean namedGlobalUpdate(long opcode) {
+    if (opcode == STATEMENT_UPDATE_ADD_LOCAL_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_UPDATE_SUB_LOCAL_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_UPDATE_XOR_LOCAL_NAMED;
+  }
+
   /// Checks for a named one-arm Boolean condition guarding a global update.
   public boolean namedLocalConditional(long opcode) {
     if (opcode == STATEMENT_IF_LOCAL_ADD_NAMED) {
@@ -609,6 +622,10 @@ classical class LocalOpcodes {
     }
 
     if (opcode == STATEMENT_UPDATE_XOR) {
+      return 2;
+    }
+
+    if (namedGlobalUpdate(opcode)) {
       return 2;
     }
 

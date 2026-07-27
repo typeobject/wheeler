@@ -737,6 +737,34 @@ classical class Statements {
         }
 
         if (0 < opcode) {
+          if (namedGlobalUpdate(opcode)) {
+            if (
+              punctuationAt(
+                source,
+                tokenKinds,
+                tokenStarts,
+                statementStart + 2,
+                PUNCTUATION_ASSIGN
+              )
+            ) {
+              if (tokenKinds[statementStart + 3] == 1) {
+                if (
+                  punctuationAt(
+                    source,
+                    tokenKinds,
+                    tokenStarts,
+                    statementStart + 4,
+                    PUNCTUATION_SEMICOLON
+                  )
+                ) {
+                  return 5;
+                }
+              }
+            }
+
+            return -1;
+          }
+
           if (
             punctuationAt(
               source,

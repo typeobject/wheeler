@@ -208,6 +208,12 @@ classical class Tokens {
   public const long STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_BASE = 9984;
   /// Names a global assignment from a prior signed local.
   public const long STATEMENT_ASSIGN_LOCAL_NAMED = 805;
+  /// Names checked global addition from a prior signed local.
+  public const long STATEMENT_UPDATE_ADD_LOCAL_NAMED = 806;
+  /// Names checked global subtraction from a prior signed local.
+  public const long STATEMENT_UPDATE_SUB_LOCAL_NAMED = 807;
+  /// Names global XOR from a prior signed local.
+  public const long STATEMENT_UPDATE_XOR_LOCAL_NAMED = 808;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -536,15 +542,29 @@ classical class Tokens {
       return STATEMENT_ASSIGN;
     }
 
+    long updateScalar = utf8Scalar(source, tokenStarts[statementStart + 3]);
+    boolean localUpdate = identifierStart(updateScalar);
     if (operator == PUNCTUATION_PLUS) {
+      if (localUpdate) {
+        return STATEMENT_UPDATE_ADD_LOCAL_NAMED;
+      }
+
       return STATEMENT_UPDATE_ADD;
     }
 
     if (operator == PUNCTUATION_MINUS) {
+      if (localUpdate) {
+        return STATEMENT_UPDATE_SUB_LOCAL_NAMED;
+      }
+
       return STATEMENT_UPDATE_SUB;
     }
 
     if (operator == PUNCTUATION_CARET) {
+      if (localUpdate) {
+        return STATEMENT_UPDATE_XOR_LOCAL_NAMED;
+      }
+
       return STATEMENT_UPDATE_XOR;
     }
 
