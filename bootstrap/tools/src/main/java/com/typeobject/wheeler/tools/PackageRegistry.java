@@ -6,6 +6,7 @@ import com.typeobject.wheeler.packageformat.PackageFormatException;
 import com.typeobject.wheeler.packageformat.PackageRelease;
 import com.typeobject.wheeler.packageformat.RepositoryRelease;
 import com.typeobject.wheeler.packageformat.RepositorySnapshot;
+import com.typeobject.wheeler.packageformat.RepositorySnapshotSignature;
 import com.typeobject.wheeler.packageformat.SemanticVersion;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -135,6 +136,50 @@ final class PackageRegistry {
     return new SnapshotView(snapshot.identity(), releases);
   }
 
+  RepositorySnapshot snapshotObject(String identity) throws IOException {
+    requireIdentity(identity, "snapshot");
+    Path object = descend("snapshots", identity + RepositorySnapshot.SUFFIX);
+    RepositorySnapshot snapshot = RepositorySnapshot.parse(PhysicalEvidenceFile.read(
+        object, false, 16L * 1024 * 1024, "repository snapshot").bytes());
+    if (!snapshot.identity().equals(identity)) {
+      throw new PackageFormatException("Stored repository snapshot identity mismatch");
+    }
+    return snapshot;
+  }
+
+  void writeSignature(RepositorySnapshotSignature signature) throws IOException {
+    Path signatures = physicalDirectory("signatures");
+    Path object = signatures.resolve(signatureFileName(
+        signature.snapshotIdentity(), signature.keyIdentity()));
+    writeImmutable(object, signature.canonicalBytes(), "snapshot signature");
+    RepositorySnapshotSignature decoded = RepositorySnapshotSignature.parse(
+        PhysicalEvidenceFile.read(
+            object, false, 16 * 1024, "repository snapshot signature").bytes());
+    if (!decoded.equals(signature)) {
+      throw new PackageFormatException("Stored repository snapshot signature changed identity");
+    }
+  }
+
+  RepositorySnapshotSignature signatureIfPresent(String snapshot, String key)
+      throws IOException {
+    requireIdentity(snapshot, "snapshot");
+    requireIdentity(key, "key");
+    Path root = this.root.resolve("signatures");
+    if (!Files.exists(root, LinkOption.NOFOLLOW_LINKS)) {
+      return null;
+    }
+    if (!Files.isDirectory(root, LinkOption.NOFOLLOW_LINKS) || Files.isSymbolicLink(root)) {
+      throw new IOException("Repository signatures path is not a physical directory");
+    }
+    Path object = root.resolve(signatureFileName(snapshot, key));
+    if (!Files.exists(object, LinkOption.NOFOLLOW_LINKS)) {
+      return null;
+    }
+    requirePhysicalFile(object, "snapshot signature");
+    return RepositorySnapshotSignature.parse(PhysicalEvidenceFile.read(
+        object, false, 16 * 1024, "repository snapshot signature").bytes());
+  }
+
   List<PackageRelease> releases() throws IOException {
     Path releaseRoot = root.resolve("releases");
     if (!Files.exists(releaseRoot, LinkOption.NOFOLLOW_LINKS)) {
@@ -253,6 +298,16 @@ final class PackageRegistry {
         decoded.manifest().version(),
         decoded.identity(),
         decoded.manifest().identity());
+  }
+
+  private static String signatureFileName(String snapshot, String key) {
+    return snapshot + "." + key + RepositorySnapshotSignature.SUFFIX;
+  }
+
+  private static void requireIdentity(String identity, String description) {
+    if (identity == null || !identity.matches("[0-9a-f]{64}")) {
+      throw new PackageFormatException("Invalid repository " + description + " identity");
+    }
   }
 
   private static void requirePackageName(String name) {

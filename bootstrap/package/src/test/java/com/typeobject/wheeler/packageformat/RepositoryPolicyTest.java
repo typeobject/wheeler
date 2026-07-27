@@ -7,7 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.packageformat.RepositoryPolicy.Repository;
 import com.typeobject.wheeler.packageformat.RepositoryPolicy.Transport;
+import com.typeobject.wheeler.packageformat.RepositoryPolicy.TrustedKey;
 import java.nio.file.Path;
+import java.security.KeyPairGenerator;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +18,7 @@ class RepositoryPolicyTest {
   @Test
   void policyPreservesTrustOrderWhileCanonicalizingNamespaceSets() {
     RepositoryPolicy policy = new RepositoryPolicy(
-        1,
+        RepositoryPolicy.SCHEMA_VERSION,
         List.of(
             repository("private", "1", "/srv/private", true, "zeta", "acme"),
             repository("local", "2", "/srv/local", false, "*")));
@@ -44,9 +46,25 @@ class RepositoryPolicyTest {
   }
 
   @Test
+  void trustedKeysAreCanonicalAndExplicitlyRemovable() throws Exception {
+    TrustedKey key = TrustedKey.from(
+        KeyPairGenerator.getInstance("Ed25519").generateKeyPair().getPublic());
+    RepositoryPolicy policy = RepositoryPolicy.defaultLocal(Path.of("/srv/local"))
+        .trustKey("local", key);
+
+    RepositoryPolicy parsed = new RepositoryPolicyParser().parse(policy.canonicalText());
+    assertEquals(List.of(key), parsed.repositories().getFirst().keys());
+    assertEquals(
+        List.of(),
+        parsed.untrustKey("local", key.identity()).repositories().getFirst().keys());
+    assertThrows(PackageFormatException.class, () -> parsed.trustKey("local", key));
+  }
+
+  @Test
   void malformedAndAmbiguousPoliciesFailClosed() {
     RepositoryPolicy policy = new RepositoryPolicy(
-        1, List.of(repository("local", "a", "/srv/local", true, "*")));
+        RepositoryPolicy.SCHEMA_VERSION,
+        List.of(repository("local", "a", "/srv/local", true, "*")));
     String canonical = policy.canonicalText();
 
     assertThrows(PackageFormatException.class,
@@ -59,7 +77,7 @@ class RepositoryPolicyTest {
         () -> new RepositoryPolicyParser().parse(canonical.replace(
             "enabled: true", "enabled: yes")));
     assertThrows(PackageFormatException.class,
-        () -> new RepositoryPolicy(1, List.of(
+        () -> new RepositoryPolicy(RepositoryPolicy.SCHEMA_VERSION, List.of(
             repository("same", "a", "/srv/a", true, "*"),
             repository("same", "b", "/srv/b", true, "*"))));
     assertThrows(PackageFormatException.class,
@@ -69,6 +87,12 @@ class RepositoryPolicyTest {
   private static Repository repository(
       String alias, String identityDigit, String path, boolean enabled, String... namespaces) {
     return new Repository(
-        alias, identityDigit.repeat(64), Transport.FILE, path, enabled, List.of(namespaces));
+        alias,
+        identityDigit.repeat(64),
+        Transport.FILE,
+        path,
+        enabled,
+        List.of(namespaces),
+        List.of());
   }
 }

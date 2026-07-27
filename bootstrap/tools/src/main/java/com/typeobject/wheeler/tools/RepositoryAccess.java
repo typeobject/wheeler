@@ -6,6 +6,7 @@ import com.typeobject.wheeler.packageformat.PackageResolver;
 import com.typeobject.wheeler.packageformat.RepositoryPolicy;
 import com.typeobject.wheeler.packageformat.RepositoryRelease;
 import com.typeobject.wheeler.packageformat.RepositorySnapshot;
+import com.typeobject.wheeler.packageformat.RepositorySnapshotSignature;
 import com.typeobject.wheeler.packageformat.RepositoryPolicy.Repository;
 import com.typeobject.wheeler.packageformat.RepositoryPolicy.Transport;
 import java.io.IOException;
@@ -52,7 +53,9 @@ final class RepositoryAccess {
       requireEnabledFile(repository);
       Path root = Path.of(repository.location());
       if (Files.exists(root, LinkOption.NOFOLLOW_LINKS)) {
-        PackageRegistry.SnapshotView snapshot = PackageRegistry.open(root).snapshot();
+        PackageRegistry registry = PackageRegistry.open(root);
+        PackageRegistry.SnapshotView snapshot = registry.snapshot();
+        requireSnapshotAuthorization(repository, registry, snapshot.identity());
         List<PackageRelease> releases = snapshot.releases().stream()
             .filter(release -> repository.authoritativeFor(release.manifest().name()))
             .toList();
@@ -110,6 +113,10 @@ final class RepositoryAccess {
       return null;
     }
     PackageRegistry registry = PackageRegistry.open(root);
+    if (!repository.keys().isEmpty()) {
+      PackageRegistry.SnapshotView snapshot = registry.snapshot();
+      requireSnapshotAuthorization(repository, registry, snapshot.identity());
+    }
     RepositoryRelease release = registry.releaseIfPresent(name, version);
     if (release == null) {
       return null;
@@ -121,6 +128,29 @@ final class RepositoryAccess {
     byte[] fetched = registry.fetch(release);
     cache.store(release, fetched);
     return fetched;
+  }
+
+  static void requireSnapshotAuthorization(
+      Repository repository,
+      PackageRegistry registry,
+      String snapshotIdentity) throws IOException {
+    if (repository.keys().isEmpty()) {
+      return;
+    }
+    RepositorySnapshot snapshot = registry.snapshotObject(snapshotIdentity);
+    boolean accepted = false;
+    for (RepositoryPolicy.TrustedKey key : repository.keys()) {
+      RepositorySnapshotSignature signature = registry.signatureIfPresent(
+          snapshotIdentity, key.identity());
+      if (signature != null) {
+        signature.verify(repository.identity(), snapshot, key.decoded());
+        accepted = true;
+      }
+    }
+    if (!accepted) {
+      throw new PackageFormatException(
+          "Repository snapshot has no signature from a trusted key: " + snapshotIdentity);
+    }
   }
 
   private static void requireEnabledFile(Repository repository) {

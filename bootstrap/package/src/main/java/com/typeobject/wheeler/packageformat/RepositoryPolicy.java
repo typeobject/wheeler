@@ -4,7 +4,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.List;
@@ -14,7 +16,7 @@ import java.util.regex.Pattern;
 
 /** Ordered immutable repository policy stored as {@code wheeler.repositories.yaml}. */
 public record RepositoryPolicy(int schemaVersion, List<Repository> repositories) {
-  public static final int SCHEMA_VERSION = 1;
+  public static final int SCHEMA_VERSION = 2;
   public static final String FILE_NAME = "wheeler.repositories.yaml";
   private static final int MAX_REPOSITORIES = 64;
   private static final Pattern ALIAS = Pattern.compile("[a-z][a-z0-9]*(?:-[a-z0-9]+)*");
@@ -52,7 +54,8 @@ public record RepositoryPolicy(int schemaVersion, List<Repository> repositories)
             Transport.FILE,
             dataRepository.normalize().toString(),
             true,
-            List.of("*"))));
+            List.of("*"),
+            List.of())));
   }
 
   /** Stable trust-domain identity for the default local repository. */
@@ -98,6 +101,26 @@ public record RepositoryPolicy(int schemaVersion, List<Repository> repositories)
     return new RepositoryPolicy(schemaVersion, changed);
   }
 
+  public RepositoryPolicy trustKey(String alias, TrustedKey key) {
+    return replace(alias, require(alias).withKey(key));
+  }
+
+  public RepositoryPolicy untrustKey(String alias, String keyIdentity) {
+    Repository repository = require(alias);
+    Repository changed = repository.withoutKey(keyIdentity);
+    if (changed.keys().size() == repository.keys().size()) {
+      throw new PackageFormatException("Unknown repository trusted key " + keyIdentity);
+    }
+    return replace(alias, changed);
+  }
+
+  private RepositoryPolicy replace(String alias, Repository replacement) {
+    List<Repository> changed = repositories.stream()
+        .map(repository -> repository.alias().equals(alias) ? replacement : repository)
+        .toList();
+    return new RepositoryPolicy(schemaVersion, changed);
+  }
+
   public RepositoryPolicy moveBefore(String alias, String before) {
     if (alias.equals(before)) {
       require(alias);
@@ -123,7 +146,7 @@ public record RepositoryPolicy(int schemaVersion, List<Repository> repositories)
   }
 
   public String canonicalText() {
-    StringBuilder text = new StringBuilder("schema: 1\nrepositories:\n");
+    StringBuilder text = new StringBuilder("schema: 2\nrepositories:\n");
     for (Repository repository : repositories) {
       text.append("  - alias: ").append(CanonicalYaml.quote(repository.alias())).append('\n')
           .append("    identity: ").append(CanonicalYaml.quote(repository.identity())).append('\n')
@@ -139,18 +162,62 @@ public record RepositoryPolicy(int schemaVersion, List<Repository> repositories)
           text.append("      - ").append(CanonicalYaml.quote(namespace)).append('\n');
         }
       }
+      if (repository.keys().isEmpty()) {
+        text.append("    keys: []\n");
+      } else {
+        text.append("    keys:\n");
+        for (TrustedKey key : repository.keys()) {
+          text.append("      - identity: ").append(CanonicalYaml.quote(key.identity()))
+              .append('\n')
+              .append("        public-key: ").append(CanonicalYaml.quote(key.publicKey()))
+              .append('\n');
+        }
+      }
     }
     return text.toString();
   }
 
-  /** One repository transport and its authoritative namespace allowlist. */
+  /** One canonical Ed25519 public key explicitly trusted for a repository. */
+  public record TrustedKey(String identity, String publicKey) {
+    public TrustedKey {
+      Objects.requireNonNull(identity, "identity");
+      Objects.requireNonNull(publicKey, "publicKey");
+      byte[] encoded;
+      try {
+        encoded = Base64.getDecoder().decode(publicKey);
+      } catch (IllegalArgumentException exception) {
+        throw new PackageFormatException("Invalid repository trusted public key", exception);
+      }
+      if (encoded.length > 1024
+          || !Base64.getEncoder().encodeToString(encoded).equals(publicKey)) {
+        throw new PackageFormatException("Repository trusted public key is not canonical base64");
+      }
+      PublicKey decoded = RepositorySnapshotSignature.decodePublicKey(encoded);
+      if (!RepositorySnapshotSignature.keyIdentity(decoded).equals(identity)) {
+        throw new PackageFormatException("Repository trusted key identity mismatch");
+      }
+    }
+
+    public static TrustedKey from(PublicKey key) {
+      return new TrustedKey(
+          RepositorySnapshotSignature.keyIdentity(key),
+          Base64.getEncoder().encodeToString(key.getEncoded()));
+    }
+
+    public PublicKey decoded() {
+      return RepositorySnapshotSignature.decodePublicKey(Base64.getDecoder().decode(publicKey));
+    }
+  }
+
+  /** One repository transport, authority allowlist, and trusted signing keys. */
   public record Repository(
       String alias,
       String identity,
       Transport transport,
       String location,
       boolean enabled,
-      List<String> namespaces) {
+      List<String> namespaces,
+      List<TrustedKey> keys) {
     public Repository {
       Objects.requireNonNull(alias, "alias");
       Objects.requireNonNull(identity, "identity");
@@ -184,10 +251,39 @@ public record RepositoryPolicy(int schemaVersion, List<Repository> repositories)
         }
       }
       namespaces = List.copyOf(ordered);
+      if (keys.size() > 16) {
+        throw new PackageFormatException("Repository exceeds trusted key limit");
+      }
+      List<TrustedKey> orderedKeys = new ArrayList<>(List.copyOf(keys));
+      orderedKeys.sort(java.util.Comparator.comparing(TrustedKey::identity));
+      Set<String> keyIdentities = new HashSet<>();
+      for (TrustedKey key : orderedKeys) {
+        if (!keyIdentities.add(key.identity())) {
+          throw new PackageFormatException("Duplicate repository trusted key " + key.identity());
+        }
+      }
+      keys = List.copyOf(orderedKeys);
     }
 
     public Repository withEnabled(boolean next) {
-      return new Repository(alias, identity, transport, location, next, namespaces);
+      return new Repository(alias, identity, transport, location, next, namespaces, keys);
+    }
+
+    public Repository withKey(TrustedKey key) {
+      List<TrustedKey> changed = new ArrayList<>(keys);
+      changed.add(key);
+      return new Repository(alias, identity, transport, location, enabled, namespaces, changed);
+    }
+
+    public Repository withoutKey(String keyIdentity) {
+      return new Repository(
+          alias,
+          identity,
+          transport,
+          location,
+          enabled,
+          namespaces,
+          keys.stream().filter(key -> !key.identity().equals(keyIdentity)).toList());
     }
 
     public boolean authoritativeFor(String packageName) {

@@ -4,6 +4,7 @@ import com.typeobject.wheeler.packageformat.CanonicalYaml.Mapping;
 import com.typeobject.wheeler.packageformat.CanonicalYaml.Value;
 import com.typeobject.wheeler.packageformat.RepositoryPolicy.Repository;
 import com.typeobject.wheeler.packageformat.RepositoryPolicy.Transport;
+import com.typeobject.wheeler.packageformat.RepositoryPolicy.TrustedKey;
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CodingErrorAction;
@@ -17,7 +18,8 @@ public final class RepositoryPolicyParser {
   private static final int MAX_BYTES = 1024 * 1024;
   private static final Set<String> ROOT_FIELDS = Set.of("schema", "repositories");
   private static final Set<String> REPOSITORY_FIELDS = Set.of(
-      "alias", "identity", "transport", "location", "enabled", "namespaces");
+      "alias", "identity", "transport", "location", "enabled", "namespaces", "keys");
+  private static final Set<String> KEY_FIELDS = Set.of("identity", "public-key");
 
   public RepositoryPolicy parse(byte[] utf8) {
     if (utf8.length > MAX_BYTES) {
@@ -59,7 +61,8 @@ public final class RepositoryPolicyParser {
           CanonicalYaml.bool(
               CanonicalYaml.required(repository, "enabled", "repository"),
               "repository.enabled"),
-          strings(repository, "namespaces")));
+          strings(repository, "namespaces"),
+          keys(repository)));
     }
     return new RepositoryPolicy(schema, repositories);
   }
@@ -67,6 +70,17 @@ public final class RepositoryPolicyParser {
   private static String string(Mapping mapping, String key) {
     return CanonicalYaml.string(
         CanonicalYaml.required(mapping, key, "repository"), "repository." + key);
+  }
+
+  private static List<TrustedKey> keys(Mapping repository) {
+    List<TrustedKey> result = new ArrayList<>();
+    for (Value value : CanonicalYaml.sequence(
+        CanonicalYaml.required(repository, "keys", "repository"), "repository.keys").values()) {
+      Mapping key = CanonicalYaml.mapping(value, "repository trusted key");
+      CanonicalYaml.fields(key, KEY_FIELDS, "repository trusted key");
+      result.add(new TrustedKey(string(key, "identity"), string(key, "public-key")));
+    }
+    return List.copyOf(result);
   }
 
   private static List<String> strings(Mapping mapping, String key) {

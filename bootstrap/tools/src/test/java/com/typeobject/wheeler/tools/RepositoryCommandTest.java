@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.packageformat.PackageArchive;
+import com.typeobject.wheeler.packageformat.PackageFormatException;
 import com.typeobject.wheeler.packageformat.PackageManifest;
 import com.typeobject.wheeler.packageformat.PackageManifest.Dependency;
 import com.typeobject.wheeler.packageformat.PackageManifest.DependencyKind;
@@ -21,6 +22,7 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.KeyPairGenerator;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -92,9 +94,20 @@ class RepositoryCommandTest {
     XdgPaths paths = paths();
     Path privateRoot = temporary.toRealPath().resolve("private");
     Repository privateRepository = new Repository(
-        "private", "b".repeat(64), Transport.FILE, privateRoot.toString(), true, List.of("demo"));
-    Repository local = RepositoryPolicy.defaultLocal(paths.dataRepository()).repositories().getFirst();
-    RepositoryPolicyStore.write(paths, new RepositoryPolicy(1, List.of(privateRepository, local)));
+        "private",
+        "b".repeat(64),
+        Transport.FILE,
+        privateRoot.toString(),
+        true,
+        List.of("demo"),
+        List.of());
+    Repository local = RepositoryPolicy.defaultLocal(paths.dataRepository())
+        .repositories().getFirst();
+    RepositoryPolicyStore.write(
+        paths,
+        new RepositoryPolicy(
+            RepositoryPolicy.SCHEMA_VERSION,
+            List.of(privateRepository, local)));
     byte[] localBytes = archive((byte) 1);
     byte[] privateBytes = archive((byte) 2);
 
@@ -156,6 +169,59 @@ class RepositoryCommandTest {
         paths));
     assertTrue(gcOutput.toString(StandardCharsets.UTF_8).contains("removed 1"));
     assertFalse(Files.exists(junk));
+  }
+
+  @Test
+  void trustedSnapshotSignaturesGateResolutionAndFetch() throws Exception {
+    XdgPaths paths = paths();
+    byte[] archive = archive((byte) 7);
+    RepositoryAccess.publication(paths, "local").publish(archive);
+    var key = KeyPairGenerator.getInstance("Ed25519").generateKeyPair();
+    Path privateKey = Files.write(temporary.resolve("repository.pk8"), key.getPrivate().getEncoded());
+    Path publicKey = Files.write(temporary.resolve("repository.x509"), key.getPublic().getEncoded());
+    PrintStream out = new PrintStream(new ByteArrayOutputStream());
+    PrintStream error = new PrintStream(new ByteArrayOutputStream());
+
+    assertEquals(0, RepositoryCommand.execute(
+        new String[] {"repository", "trust", "local", publicKey.toString()},
+        out,
+        error,
+        paths));
+    assertThrows(
+        PackageFormatException.class,
+        () -> RepositoryAccess.fetch(paths, null, "demo.library", "1.0.0"));
+    assertEquals(0, RepositoryCommand.execute(
+        new String[] {
+            "repository", "sign", "local", privateKey.toString(), publicKey.toString()
+        },
+        out,
+        error,
+        paths));
+    assertEquals(0, RepositoryCommand.execute(
+        new String[] {
+            "repository", "sign", "local", privateKey.toString(), publicKey.toString()
+        },
+        out,
+        error,
+        paths));
+    assertEquals(0, RepositoryCommand.execute(
+        new String[] {"repository", "verify", "local"}, out, error, paths));
+    assertArrayEquals(
+        archive,
+        RepositoryAccess.fetch(paths, null, "demo.library", "1.0.0"));
+    RepositoryAccess.resolver(paths, List.of());
+
+    Path signature;
+    try (var signatures = Files.list(paths.dataRepository().resolve("signatures"))) {
+      signature = signatures.findFirst().orElseThrow();
+    }
+    byte[] forged = Files.readAllBytes(signature);
+    forged[forged.length - 3] ^= 1;
+    Files.write(signature, forged);
+    assertThrows(
+        PackageFormatException.class,
+        () -> RepositoryCommand.execute(
+            new String[] {"repository", "verify", "local"}, out, error, paths));
   }
 
   @Test
