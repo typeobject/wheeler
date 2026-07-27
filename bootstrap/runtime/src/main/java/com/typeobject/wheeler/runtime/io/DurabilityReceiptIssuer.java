@@ -10,7 +10,8 @@ import java.util.Objects;
 
 /** Runtime authority for monotonic, evidence-bound file durability transitions. */
 final class DurabilityReceiptIssuer {
-  private static final String DOMAIN = "wheeler-durability-receipt-1";
+  private static final byte[] DOMAIN = HexFormat.of().parseHex(
+      "5ab36810f15038147c175389ebe86e931703910abacdf4d16a717d8df1cf9e82");
 
   private DurabilityReceiptIssuer() {}
 
@@ -86,15 +87,34 @@ final class DurabilityReceiptIssuer {
       DurabilityEvidence evidence,
       String parent,
       int depth) {
-    StringBuilder canonical = new StringBuilder()
-        .append(DOMAIN).append('\n')
-        .append("kind=").append(kind).append('\n')
-        .append("resource=").append(subject.resourceIdentity()).append('\n')
-        .append("generation=").append(subject.generation()).append('\n')
-        .append("offset=").append(subject.offset()).append('\n')
-        .append("length=").append(subject.length()).append('\n')
-        .append("content=").append(subject.contentIdentity()).append('\n')
-        .append("namespace=").append(subject.namespaceIdentity()).append('\n')
+    byte[] canonical = new byte[163];
+    System.arraycopy(DOMAIN, 0, canonical, 0, 32);
+    canonical[32] = (byte) (kind.ordinal() + 1);
+    canonical[33] = (byte) (evidence.source().ordinal() + 1);
+    canonical[34] = (byte) depth;
+    System.arraycopy(subjectIdentity(subject), 0, canonical, 35, 32);
+    System.arraycopy(profileIdentity(profile), 0, canonical, 67, 32);
+    System.arraycopy(HexFormat.of().parseHex(evidence.evidenceIdentity()), 0, canonical, 99, 32);
+    if (!parent.equals("-")) {
+      System.arraycopy(HexFormat.of().parseHex(parent), 0, canonical, 131, 32);
+    }
+    String identity = sha256(canonical);
+    return new DurabilityReceipt(kind, subject, profile, evidence, parent, identity, depth);
+  }
+
+  static byte[] subjectIdentity(DurabilitySubject subject) {
+    String canonical = "wheeler-durability-subject-1\n"
+        + "resource=" + subject.resourceIdentity() + "\n"
+        + "generation=" + subject.generation() + "\n"
+        + "offset=" + subject.offset() + "\n"
+        + "length=" + subject.length() + "\n"
+        + "content=" + subject.contentIdentity() + "\n"
+        + "namespace=" + subject.namespaceIdentity() + "\n";
+    return digest(canonical.getBytes(StandardCharsets.UTF_8));
+  }
+
+  static byte[] profileIdentity(DurabilityProfile profile) {
+    StringBuilder canonical = new StringBuilder("wheeler-durability-profile-1\n")
         .append("failure=").append(profile.failureModel()).append('\n')
         .append("atomicity=").append(profile.atomicity()).append('\n')
         .append("replicas=").append(profile.replicas()).append('\n')
@@ -103,18 +123,16 @@ final class DurabilityReceiptIssuer {
     for (String assumption : profile.assumptions()) {
       canonical.append("assumption=").append(assumption).append('\n');
     }
-    canonical.append("evidence-source=").append(evidence.source()).append('\n')
-        .append("evidence=").append(evidence.evidenceIdentity()).append('\n')
-        .append("detail=").append(evidence.detail()).append('\n')
-        .append("parent=").append(parent).append('\n')
-        .append("depth=").append(depth).append('\n');
-    String identity = sha256(canonical.toString().getBytes(StandardCharsets.UTF_8));
-    return new DurabilityReceipt(kind, subject, profile, evidence, parent, identity, depth);
+    return digest(canonical.toString().getBytes(StandardCharsets.UTF_8));
   }
 
   private static String sha256(byte[] bytes) {
+    return HexFormat.of().formatHex(digest(bytes));
+  }
+
+  private static byte[] digest(byte[] bytes) {
     try {
-      return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
+      return MessageDigest.getInstance("SHA-256").digest(bytes);
     } catch (NoSuchAlgorithmException impossible) {
       throw new IllegalStateException("SHA-256 is unavailable", impossible);
     }

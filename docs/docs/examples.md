@@ -238,6 +238,14 @@ Expected behavior:
 - Every case agrees with stage 0 across all declared globals, up to eight, and rewinds exactly.
 - Forged record-field, variant-tag, array-index-local, slice-index-local, word/byte-index-local UTF-8-index-local and map-key-local operands, recursive aggregate-element arrays, a forged static-step bound, a structurally valid wrong generated inverse, and damaged artifacts and forged branch/call targets trap before interpretation.
 
+### `NativeDurabilityReceipts.w`
+
+Files: [`NativeDurabilityReceipts.w`](../../wheeler-examples/src/main/wheeler/native/io/NativeDurabilityReceipts.w) + [`runtime/io/Receipts.w`](../../wheeler-runtime/src/main/wheeler/runtime/io/Receipts.w) + [`crypto/Sha256.w`](../../wheeler-core/src/main/wheeler/crypto/Sha256.w).
+
+Covers: The fixed 163-byte `wheeler-durability-receipt-1` identity, separate subject/profile/evidence digests, exact parent chaining, six monotonic file-publication stages, stage-specific evidence, namespace and quorum requirements, fail-closed output, and Java/Wheeler differential identity checks.
+
+Expected behavior: Six independently bounded runs reproduce stage 0 from `WriteCompleted` through `QuorumStable`; the final identity is `1d4fb3a8521eaa451dd37734c7fa0017e44bb7a684c004026c7c1c90c3f4d8b5`. A direct jump from write completion to file stability is rejected and leaves all 32 output bytes untouched. The fixture hashes one transition per VM run because a bound is a contract, not a dare.
+
 ### `NativeIoLifecycle.w`
 
 Files: [`NativeIoLifecycle.w`](../../wheeler-examples/src/main/wheeler/native/NativeIoLifecycle.w) + [`runtime/io/Lifecycle.w`](../../wheeler-runtime/src/main/wheeler/runtime/io/Lifecycle.w).

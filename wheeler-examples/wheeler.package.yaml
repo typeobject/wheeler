@@ -83,6 +83,13 @@ targets:
       - "src/main/wheeler/native/NativeBytecodeCodec.w"
     test: false
   - kind: "deployable"
+    name: "nativedurabilityreceipts"
+    root: "src/main/wheeler/native/io/NativeDurabilityReceipts.w"
+    module: "examples.native.durability_receipts"
+    sources:
+      - "src/main/wheeler/native/io/NativeDurabilityReceipts.w"
+    test: false
+  - kind: "deployable"
     name: "nativeiolifecycle"
     root: "src/main/wheeler/native/NativeIoLifecycle.w"
     module: "examples.native.io_lifecycle"

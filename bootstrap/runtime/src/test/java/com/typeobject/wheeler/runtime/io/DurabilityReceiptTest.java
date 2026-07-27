@@ -34,7 +34,7 @@ final class DurabilityReceiptTest {
     assertEquals(Kind.QUORUM_STABLE, quorum.kind());
     assertEquals(6, quorum.depth());
     assertEquals(
-        "4cd384b584c7b50f0fd219a787ac0f7d1c7b32c434362cf8ed8332677d9dbdae",
+        "1d4fb3a8521eaa451dd37734c7fa0017e44bb7a684c004026c7c1c90c3f4d8b5",
         quorum.identity());
     assertEquals(namespace.identity(), quorum.parentIdentity());
     assertEquals(subject, quorum.subject());
