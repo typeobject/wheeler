@@ -184,6 +184,7 @@ Recovery releases are signed or content-addressed by release policy. Bootstrap s
 - [x] `.wbc` semantics and encoding are independent of JVM bytecode.
 - [x] Provider-neutral quantum IR and OpenQASM lowering do not require Python.
 - [x] Package-selected `NativeVerifier.w` reads exact binary `.wbc` through immutable `byteview`.
+- [x] `NativeBytecodeIdentity.w` verifies and privately re-encodes bounded canonical `.wbc` before publishing Wheeler SHA-256. The result matches stage 0 with exact rewind; malformed or oversized bytes receive no artifact identity.
   - `compiler/verification/Verifier.w` checks framing and payload policy.
   - `compiler/verification/FunctionVerifier.w` checks bounded descriptors, type windows, and code windows.
   - `compiler/verification/InstructionVerifier.w` checks opcode framing, scalar and call operands, and branch targets.

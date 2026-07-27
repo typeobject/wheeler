@@ -221,6 +221,14 @@ Expected behavior:
 - Damaged magic or insufficient output capacity traps before the first output write or publication.
 - Copying unverified bytes is not this codec. That trick already has a name: `cp`.
 
+### `NativeBytecodeIdentity.w`
+
+Files: [`NativeBytecodeIdentity.w`](../../wheeler-examples/src/main/wheeler/native/compiler/NativeBytecodeIdentity.w) + [`compiler/verification/Codec.w`](../../wheeler-compiler/src/main/wheeler/compiler/verification/Codec.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
+
+Covers: Complete typed artifact verification, canonical byte-for-byte re-encoding into private storage, final Wheeler SHA-256, stage-0 differential identity, fail-closed publication, and exact rewind.
+
+Expected behavior: A bounded stage-0 artifact produces its exact content identity. Damaged magic and input beyond 4,096 bytes leave all 32 output bytes untouched. Hashing arbitrary bytes first and asking semantic questions later is a checksum utility, not a recovery boundary.
+
 ### `NativeVerifier.w`
 
 Files: [`NativeVerifier.w`](../../wheeler-examples/src/main/wheeler/native/NativeVerifier.w) + [`compiler/verification/Verifier.w`](../../wheeler-compiler/src/main/wheeler/compiler/verification/Verifier.w) + [`compiler/verification/FunctionVerifier.w`](../../wheeler-compiler/src/main/wheeler/compiler/verification/FunctionVerifier.w) + [`compiler/verification/InstructionVerifier.w`](../../wheeler-compiler/src/main/wheeler/compiler/verification/InstructionVerifier.w) + [`compiler/verification/ProofVerifier.w`](../../wheeler-compiler/src/main/wheeler/compiler/verification/ProofVerifier.w).

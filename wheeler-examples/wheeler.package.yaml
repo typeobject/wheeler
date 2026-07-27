@@ -90,6 +90,13 @@ targets:
       - "src/main/wheeler/native/NativeBytecodeCodec.w"
     test: false
   - kind: "deployable"
+    name: "nativebytecodeidentity"
+    root: "src/main/wheeler/native/compiler/NativeBytecodeIdentity.w"
+    module: "examples.compiler.native_bytecode_identity"
+    sources:
+      - "src/main/wheeler/native/compiler/NativeBytecodeIdentity.w"
+    test: false
+  - kind: "deployable"
     name: "nativedurabilityreceipts"
     root: "src/main/wheeler/native/io/NativeDurabilityReceipts.w"
     module: "examples.native.durability_receipts"
