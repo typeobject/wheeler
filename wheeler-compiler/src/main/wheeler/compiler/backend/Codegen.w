@@ -76,6 +76,10 @@ classical class Codegen {
 
   /// Returns the encoded byte width of one parsed statement.
   public long statementCodeLength(long opcode) {
+    if (resolvedLocalLongCopy(opcode)) {
+      return 48;
+    }
+
     if (resolvedLocalLongAssertion(opcode)) {
       return 96;
     }
@@ -162,6 +166,16 @@ classical class Codegen {
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
       cursor = writeUnsignedLittleEndian(output, cursor, operand, 8);
       cursor = writeInstructionHeader(output, cursor, OPCODE_EXPECT_TRUE, 1);
+      return writeUnsignedLittleEndian(output, cursor, localBase, 8);
+    }
+
+    if (resolvedLocalLongCopy(opcode)) {
+      long sourceLocal = opcode - STATEMENT_LOCAL_LONG_COPY_BASE;
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, sourceLocal, 8);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
       return writeUnsignedLittleEndian(output, cursor, localBase, 8);
     }
 

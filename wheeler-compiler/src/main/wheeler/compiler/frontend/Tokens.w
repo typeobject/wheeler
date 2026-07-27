@@ -67,6 +67,10 @@ classical class Tokens {
   public const long STATEMENT_ASSERT_NAMED_LONG = 775;
   /// Starts resolved signed-local assertion opcodes; the local index is the delta.
   public const long STATEMENT_ASSERT_LOCAL_LONG_BASE = 2048;
+  /// Names an unresolved signed declaration initialized from a prior local.
+  public const long STATEMENT_LOCAL_LONG_NAMED = 776;
+  /// Starts resolved signed-local copy opcodes; the source local is the delta.
+  public const long STATEMENT_LOCAL_LONG_COPY_BASE = 2304;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -219,6 +223,24 @@ classical class Tokens {
     }
 
     if (keyword == TOKEN_LONG) {
+      long initializer = utf8Scalar(source, tokenStarts[statementStart + 3]);
+      boolean named = initializer == 95;
+      if (64 < initializer) {
+        named = initializer < 91;
+      }
+
+      if (96 < initializer) {
+        named = initializer < 123;
+      }
+
+      if (initializer == 95) {
+        named = true;
+      }
+
+      if (named) {
+        return STATEMENT_LOCAL_LONG_NAMED;
+      }
+
       return STATEMENT_LOCAL_LONG;
     }
 

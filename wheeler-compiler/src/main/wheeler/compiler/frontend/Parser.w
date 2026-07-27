@@ -80,6 +80,10 @@ classical class Parser {
 
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
     boolean supported = opcode == STATEMENT_LOCAL_LONG;
+    if (opcode == STATEMENT_LOCAL_LONG_NAMED) {
+      supported = true;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN) {
       supported = true;
     }

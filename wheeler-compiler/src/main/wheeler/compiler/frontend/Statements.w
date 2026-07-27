@@ -8,7 +8,11 @@ import wheeler.compiler.tokens;
 classical class Statements {
   private boolean declarationMatches(long opcode, boolean signed) {
     if (signed) {
-      return opcode == STATEMENT_LOCAL_LONG;
+      if (opcode == STATEMENT_LOCAL_LONG) {
+        return true;
+      }
+
+      return opcode == STATEMENT_LOCAL_LONG_NAMED;
     }
 
     if (opcode == STATEMENT_LOCAL_BOOLEAN) {
@@ -74,7 +78,16 @@ classical class Statements {
     return opcode < STATEMENT_ASSERT_LOCAL_LONG_BASE + 256;
   }
 
-  /// Resolves a named signed assertion into an opcode carrying its local index.
+  /// Checks whether an opcode carries one resolved signed-local copy source.
+  public boolean resolvedLocalLongCopy(long opcode) {
+    if (opcode < STATEMENT_LOCAL_LONG_COPY_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_LONG_COPY_BASE + 256;
+  }
+
+  /// Resolves named signed operations into opcodes carrying local indices.
   public long sequenceStatementOpcode(
     borrow utf8 source,
     borrow mut words tokenStarts,
@@ -96,6 +109,23 @@ classical class Statements {
       );
       if (-1 < local) {
         return STATEMENT_ASSERT_LOCAL_LONG_BASE + local;
+      }
+
+      return -1;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_NAMED) {
+      long sourceLocal = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3,
+        true
+      );
+      if (-1 < sourceLocal) {
+        return STATEMENT_LOCAL_LONG_COPY_BASE + sourceLocal;
       }
 
       return -1;
@@ -127,6 +157,10 @@ classical class Statements {
     long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (opcode == STATEMENT_LOCAL_LONG_NAMED) {
+      return 0;
+    }
+
     if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {
       return resolvePriorDeclaration(
         source,
@@ -146,6 +180,14 @@ classical class Statements {
   public long statementLocalCount(long opcode) {
     if (resolvedLocalLongAssertion(opcode)) {
       return 3;
+    }
+
+    if (resolvedLocalLongCopy(opcode)) {
+      return 2;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_NAMED) {
+      return 2;
     }
 
     if (opcode == STATEMENT_ASSERT_NAMED_LONG) {
@@ -202,6 +244,10 @@ classical class Statements {
   /// Returns the initialized result local for a declaration statement.
   public long statementResultLocal(long opcode, long localBase) {
     if (opcode == STATEMENT_LOCAL_LONG) {
+      return localBase + 1;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_NAMED) {
       return localBase + 1;
     }
 
@@ -449,7 +495,12 @@ classical class Statements {
       return -1;
     }
 
-    if (statementKind == STATEMENT_LOCAL_LONG) {
+    boolean signedDeclaration = statementKind == STATEMENT_LOCAL_LONG;
+    if (statementKind == STATEMENT_LOCAL_LONG_NAMED) {
+      signedDeclaration = true;
+    }
+
+    if (signedDeclaration) {
       if (tokenKinds[statementStart + 1] == 1) {
         if (
           punctuationAt(
@@ -460,6 +511,24 @@ classical class Statements {
             PUNCTUATION_ASSIGN
           )
         ) {
+          if (statementKind == STATEMENT_LOCAL_LONG_NAMED) {
+            if (tokenKinds[statementStart + 3] == 1) {
+              if (
+                punctuationAt(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  statementStart + 4,
+                  PUNCTUATION_SEMICOLON
+                )
+              ) {
+                return 5;
+              }
+            }
+
+            return -1;
+          }
+
           long localWidth = signedNumberWidth(
             source,
             tokenKinds,
