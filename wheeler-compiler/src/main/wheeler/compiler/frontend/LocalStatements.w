@@ -61,7 +61,11 @@ classical class LocalStatements {
       return true;
     }
 
-    return opcode == STATEMENT_LOCAL_BOOLEAN_NOT_NAMED;
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_LOCAL_BOOLEAN_EQ_NAMED;
   }
 
   private long resolvePriorDeclaration(
@@ -145,6 +149,33 @@ classical class LocalStatements {
     }
 
     return opcode < STATEMENT_LOCAL_BOOLEAN_NOT_BASE + 256;
+  }
+
+  /// Checks whether an opcode carries a resolved local-equality left source.
+  public boolean resolvedLocalEquality(long opcode) {
+    if (opcode < STATEMENT_LOCAL_BOOLEAN_EQ_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_LONG_EQ_BASE + 256;
+  }
+
+  /// Reports whether a resolved local equality compares signed values.
+  public boolean resolvedLocalEqualitySigned(long opcode) {
+    if (opcode < STATEMENT_LOCAL_LONG_EQ_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_LONG_EQ_BASE + 256;
+  }
+
+  /// Returns the left source local carried by a resolved equality opcode.
+  public long resolvedLocalEqualitySource(long opcode) {
+    if (resolvedLocalEqualitySigned(opcode)) {
+      return opcode - STATEMENT_LOCAL_LONG_EQ_BASE;
+    }
+
+    return opcode - STATEMENT_LOCAL_BOOLEAN_EQ_BASE;
   }
 
   /// Checks whether an opcode carries a resolved signed-local binary source.
@@ -287,6 +318,40 @@ classical class LocalStatements {
       return -1;
     }
 
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_EQ_NAMED) {
+      long equalitySignedLeft = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3,
+        true
+      );
+      long equalityBooleanLeft = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3,
+        false
+      );
+      if (-1 < equalitySignedLeft) {
+        if (equalityBooleanLeft < 0) {
+          return STATEMENT_LOCAL_LONG_EQ_BASE + equalitySignedLeft;
+        }
+      }
+
+      if (-1 < equalityBooleanLeft) {
+        if (equalitySignedLeft < 0) {
+          return STATEMENT_LOCAL_BOOLEAN_EQ_BASE + equalityBooleanLeft;
+        }
+      }
+
+      return -1;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN_NAMED) {
       long booleanSourceLocal = resolvePriorDeclaration(
         source,
@@ -338,6 +403,10 @@ classical class LocalStatements {
       return -1 < operand;
     }
 
+    if (resolvedLocalEquality(opcode)) {
+      return -1 < operand;
+    }
+
     return true;
   }
 
@@ -351,6 +420,58 @@ classical class LocalStatements {
     long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_EQ_NAMED) {
+      long operandSignedLeft = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3,
+        true
+      );
+      long operandSignedRight = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 6,
+        true
+      );
+      if (-1 < operandSignedLeft) {
+        if (-1 < operandSignedRight) {
+          return operandSignedRight;
+        }
+      }
+
+      long operandBooleanLeft = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3,
+        false
+      );
+      long operandBooleanRight = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 6,
+        false
+      );
+      if (-1 < operandBooleanLeft) {
+        if (-1 < operandBooleanRight) {
+          return operandBooleanRight;
+        }
+      }
+
+      return -1;
+    }
+
     if (opcode == STATEMENT_LOCAL_LONG_NAMED) {
       return 0;
     }
@@ -397,6 +518,14 @@ classical class LocalStatements {
     }
 
     if (resolvedLocalBooleanNot(opcode)) {
+      return 4;
+    }
+
+    if (resolvedLocalEquality(opcode)) {
+      return 4;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_EQ_NAMED) {
       return 4;
     }
 
@@ -518,6 +647,10 @@ classical class LocalStatements {
     }
 
     if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT_NAMED) {
+      return localBase + 3;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_EQ_NAMED) {
       return localBase + 3;
     }
 

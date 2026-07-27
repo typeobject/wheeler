@@ -208,6 +208,16 @@ class MinimalCompilerExampleTest {
             + "boolean first = false; boolean second = !first; assert(second); } }");
     assertDifferentialHalt(
         writerProgram,
+        "classical class LocalBooleanEquality { entry void main() { "
+            + "boolean first = true; boolean second = true; "
+            + "boolean same = first == second; assert(same); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class LocalSignedEquality { entry void main() { "
+            + "long first = 41; long second = 41; "
+            + "boolean same = first == second; assert(same); } }");
+    assertDifferentialHalt(
+        writerProgram,
         "classical class FifthLocal { entry void main() { "
             + "boolean first = false; boolean second = false; boolean third = false; "
             + "boolean fourth = true; assert(fourth); } }");
@@ -669,6 +679,16 @@ class MinimalCompilerExampleTest {
         8192);
     assertThrows(VmTrap.class, sixtyFifthStatement::run);
     assertArrayEquals(new byte[8192], sixtyFifthStatement.hostOutput());
+
+    VirtualMachine mixedLocalEquality = new VirtualMachine(
+        writerProgram,
+        ("classical class MixedLocalEquality { entry void main() { "
+                + "long first = 1; boolean second = true; "
+                + "boolean same = first == second; } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, mixedLocalEquality::run);
+    assertArrayEquals(new byte[512], mixedLocalEquality.hostOutput());
 
     VirtualMachine unresolvedBooleanCopy = new VirtualMachine(
         writerProgram,

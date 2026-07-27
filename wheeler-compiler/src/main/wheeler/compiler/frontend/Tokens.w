@@ -120,6 +120,12 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_BOOLEAN_NOT_NAMED = 784;
   /// Starts resolved negated Boolean-local declaration opcodes.
   public const long STATEMENT_LOCAL_BOOLEAN_NOT_BASE = 4352;
+  /// Names an unresolved equality declaration over two prior locals.
+  public const long STATEMENT_LOCAL_BOOLEAN_EQ_NAMED = 785;
+  /// Starts resolved equality declarations over prior Boolean locals.
+  public const long STATEMENT_LOCAL_BOOLEAN_EQ_BASE = 4608;
+  /// Starts resolved equality declarations over prior signed locals.
+  public const long STATEMENT_LOCAL_LONG_EQ_BASE = 4864;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -328,6 +334,13 @@ classical class Tokens {
 
       if (booleanInitializer == TOKEN_FALSE) {
         return STATEMENT_LOCAL_BOOLEAN;
+      }
+
+      long equality = utf8Scalar(source, tokenStarts[statementStart + 4]);
+      if (equality == PUNCTUATION_ASSIGN) {
+        if (utf8Scalar(source, tokenStarts[statementStart + 5]) == PUNCTUATION_ASSIGN) {
+          return STATEMENT_LOCAL_BOOLEAN_EQ_NAMED;
+        }
       }
 
       return STATEMENT_LOCAL_BOOLEAN_NAMED;
