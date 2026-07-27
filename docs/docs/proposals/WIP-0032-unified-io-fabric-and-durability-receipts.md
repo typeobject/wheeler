@@ -575,6 +575,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] The portable stage-0 threaded backend admits work before consuming requests, bounds workers plus in-flight operations, proves two-worker overlap, preserves dependency gates, distinguishes queued cancellation from a running cancellation race, and refuses shutdown with admitted work.
 - [x] A bounded in-memory addressable-file oracle executes positional reads and exact writes through the same request lifecycle. Buffers are inaccessible while captured, return in terminal results, and are released on cancellation-before-effect. Write completion remains gloriously unqualified by durability.
 - [x] The Wheeler-native runtime enforces up to 64 caller-owned lifecycle rows: bounded submission and work charging, terminal-kind/cancellation-relation compatibility, exact progress, resource release, late-cancellation races, one reap, and all-reaped scope closure. The executable example proves complete rewind and fail-closed fifth-row publication at its declared capacity.
+- [x] Stage 0 carries a closed, content-addressed receipt chain from `WriteCompleted` through data, file, namespace, and quorum stability. Every promotion requires the exact next evidence source, a new evidence identity, one immutable subject/profile, and canonical parent identity. This proves the schema and monotonicity gate, not that anyone's laptop survived a forklift.
 - [ ] Unified request/scope/result model is accepted.
 - [ ] Async versus required-concurrent behavior is accepted.
 - [ ] Terminal completion, cancellation, uncertainty, and reap laws are accepted.
@@ -649,10 +650,10 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 
 ### Durability
 
-- [ ] `WriteCompleted`, `DataStable`, `FileStable`, `NamespaceVisible`, `NamespaceStable`, and `QuorumStable` cannot be confused or forged.
-- [ ] Requirements name protected subject, failure model, atomicity, and replication.
-- [ ] Unsupported requirements fail instead of silently degrade.
-- [ ] Data, metadata, namespace, catalog, and quorum stages test separately.
+- [x] Stage-0 `WriteCompleted`, `DataStable`, `FileStable`, `NamespaceVisible`, `NamespaceStable`, and `QuorumStable` are distinct closed receipt kinds with no public construction path.
+- [x] Stage-0 receipt requirements name the protected generation/range/content, namespace, failure model, atomicity, replication, quorum, backend profile, and sorted assumptions.
+- [x] Unsupported stage-0 promotions, evidence sources, namespace claims, and quorum profiles fail instead of silently degrading.
+- [x] Stage-0 data, metadata, namespace visibility, namespace stability, and quorum evidence transformations test separately.
 - [ ] Persistence failures report known, partial, or uncertain state accurately.
 - [ ] Crash/power/profile evidence binds exact backend assumptions.
 - [ ] Documentation uses the word durable for close, rename, staging, direct completion, transport completion, or ordinary replication only when exact evidence supports it.

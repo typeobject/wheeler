@@ -84,6 +84,7 @@ public final class ThreadedIo implements AutoCloseable {
   private long nextScopeId = 1;
   private boolean closed;
 
+  /** Creates a fixed worker backend with one global admitted-work bound. */
   public ThreadedIo(int workers, int maxInFlight) {
     if (workers < 1 || workers > 64) {
       throw new IllegalArgumentException("thread worker count must be between 1 and 64");

@@ -69,8 +69,25 @@ A batch is independent work and adds no ordering edges. Selection reaps one cano
 
 A graph names terminal predecessors. Independent roots are admitted together; a dependent node is not submitted until all named predecessors are terminal and reaped into the graph result table. Nodes and edges have constructor bounds as well as scope bounds. Graph execution returns completions in stable node order, regardless of physical delivery order.
 
+## Receipt schema and monotonicity gate
+
+Stage 0 now has a runtime-owned file-publication receipt chain:
+
+```text
+WriteCompleted
+  -> DataStable
+  -> FileStable
+  -> NamespaceVisible
+  -> NamespaceStable
+  -> QuorumStable
+```
+
+`DurabilityReceipt` has no public constructor. The package-private issuer accepts only the next transition and its matching evidence source: operation completion, data flush, metadata flush, atomic rename, namespace flush, then quorum protocol. A promotion binds one immutable subject, failure model, atomicity, replica/quorum rule, backend-profile identity, sorted assumptions, new evidence identity, parent receipt, and chain depth. Canonical identity uses domain `wheeler-durability-receipt-1`; the full six-stage fixture has identity `4cd384b584c7b50f0fd219a787ac0f7d1c7b32c434362cf8ed8332677d9dbdae`.
+
+Skipping a stage, replaying evidence, claiming namespace visibility without a namespace subject, or claiming quorum stability with one replica fails. These checks establish schema monotonicity. They do not establish that the supplied evidence is true. Release-grade issuance still needs the crash, power, hardware, filesystem, protocol, and configuration conformance demanded by WIP-0032.
+
 ## Deliberate nonclaims
 
-This slice performs synthetic provider actions and bounded in-memory positional operations. It does not yet implement host files, threaded delivery, clocks, replay, source-language loans, native completion queues, direct I/O, network protocols, persistence evidence, or durability receipts. A successful completion therefore proves no crash survival, namespace stability, peer application, quorum, or remote persistence.
+This slice performs synthetic provider actions and bounded in-memory positional operations. It has a typed receipt schema but no release-grade evidence issuer. It does not yet implement host files, clocks, replay, source-language loans, native completion queues, direct I/O, network protocols, or crash-qualified persistence evidence. A successful completion therefore proves no crash survival, namespace stability, peer application, quorum, or remote persistence.
 
 The deterministic and threaded conformance tests live under `bootstrap/runtime/src/test/java/com/typeobject/wheeler/runtime/io/`. Native source request types, effect lowering, host positional resources, source-language buffer loans, and crash-tested receipts remain required before WIP-0032 can leave Draft.
