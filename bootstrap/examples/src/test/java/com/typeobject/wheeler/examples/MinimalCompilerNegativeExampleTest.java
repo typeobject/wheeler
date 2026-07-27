@@ -171,6 +171,26 @@ class MinimalCompilerNegativeExampleTest {
     assertThrows(VmTrap.class, booleanLocalUpdate::run);
     assertArrayEquals(new byte[512], booleanLocalUpdate.hostOutput());
 
+    VirtualMachine unknownGuardedLocalUpdate = new VirtualMachine(
+        writerProgram,
+        ("classical class UnknownGuardedLocalUpdate { state long result = 0; "
+                + "entry void main() { boolean ready = true; "
+                + "if (ready) { result += missing; } } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, unknownGuardedLocalUpdate::run);
+    assertArrayEquals(new byte[512], unknownGuardedLocalUpdate.hostOutput());
+
+    VirtualMachine booleanGuardedLocalUpdate = new VirtualMachine(
+        writerProgram,
+        ("classical class BooleanGuardedLocalUpdate { state long result = 0; "
+                + "entry void main() { boolean ready = true; boolean delta = true; "
+                + "if (ready) { result += delta; } } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, booleanGuardedLocalUpdate::run);
+    assertArrayEquals(new byte[512], booleanGuardedLocalUpdate.hostOutput());
+
     VirtualMachine booleanLessThan = new VirtualMachine(
         writerProgram,
         ("classical class BooleanLessThan { entry void main() { "

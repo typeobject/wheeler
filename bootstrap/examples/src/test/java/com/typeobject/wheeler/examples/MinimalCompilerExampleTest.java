@@ -340,6 +340,41 @@ class MinimalCompilerExampleTest {
             + "long delta = 2; result ^= delta; assert(result == 42); } }",
         "result",
         42);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class LocalIfUpdateAdd { state long result = 40; entry void main() { "
+            + "boolean ready = true; long delta = 2; "
+            + "if (ready) { result += delta; } assert(result == 42); } }",
+        "result",
+        42);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class LocalIfUpdateSub { state long result = 44; entry void main() { "
+            + "boolean ready = true; long delta = 2; "
+            + "if (ready) { result -= delta; } assert(result == 42); } }",
+        "result",
+        42);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class LocalIfUpdateXor { state long result = 40; entry void main() { "
+            + "boolean ready = true; long delta = 2; "
+            + "if (ready) { result ^= delta; } assert(result == 42); } }",
+        "result",
+        42);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class LocalIfNotUpdate { state long result = 40; entry void main() { "
+            + "boolean ready = false; long delta = 2; "
+            + "if (!ready) { result += delta; } assert(result == 42); } }",
+        "result",
+        42);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class LocalIfUpdateSkipped { state long result = 40; entry void main() { "
+            + "boolean ready = false; long delta = 2; "
+            + "if (ready) { result += delta; } assert(result == 40); } }",
+        "result",
+        40);
     assertDifferentialHalt(
         writerProgram,
         "classical class FifthLocal { entry void main() { "

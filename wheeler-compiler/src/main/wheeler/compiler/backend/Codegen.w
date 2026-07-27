@@ -439,7 +439,7 @@ classical class Codegen {
       cursor = writeUnsignedLittleEndian(output, cursor, guardLocal, 8);
       cursor = writeUnsignedLittleEndian(output, cursor, endInstruction, 8);
       long valueOpcode = OPCODE_LOCAL_CONST;
-      if (resolvedLocalConditionalAssignmentValue(opcode)) {
+      if (resolvedLocalConditionalValue(opcode)) {
         valueOpcode = OPCODE_LOCAL_MOVE;
       }
 

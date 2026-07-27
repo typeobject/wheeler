@@ -214,6 +214,30 @@ classical class Tokens {
   public const long STATEMENT_UPDATE_SUB_LOCAL_NAMED = 807;
   /// Names global XOR from a prior signed local.
   public const long STATEMENT_UPDATE_XOR_LOCAL_NAMED = 808;
+  /// Names a local condition guarding addition from a prior signed local.
+  public const long STATEMENT_IF_LOCAL_ADD_VALUE_NAMED = 809;
+  /// Names a local condition guarding subtraction from a prior signed local.
+  public const long STATEMENT_IF_LOCAL_SUB_VALUE_NAMED = 810;
+  /// Names a local condition guarding XOR from a prior signed local.
+  public const long STATEMENT_IF_LOCAL_XOR_VALUE_NAMED = 811;
+  /// Names a negated condition guarding addition from a prior signed local.
+  public const long STATEMENT_IF_NOT_LOCAL_ADD_VALUE_NAMED = 812;
+  /// Names a negated condition guarding subtraction from a prior signed local.
+  public const long STATEMENT_IF_NOT_LOCAL_SUB_VALUE_NAMED = 813;
+  /// Names a negated condition guarding XOR from a prior signed local.
+  public const long STATEMENT_IF_NOT_LOCAL_XOR_VALUE_NAMED = 814;
+  /// Starts local conditions guarding addition from prior signed locals.
+  public const long STATEMENT_IF_LOCAL_ADD_VALUE_BASE = 10240;
+  /// Starts local conditions guarding subtraction from prior signed locals.
+  public const long STATEMENT_IF_LOCAL_SUB_VALUE_BASE = 10496;
+  /// Starts local conditions guarding XOR from prior signed locals.
+  public const long STATEMENT_IF_LOCAL_XOR_VALUE_BASE = 10752;
+  /// Starts negated conditions guarding addition from prior signed locals.
+  public const long STATEMENT_IF_NOT_LOCAL_ADD_VALUE_BASE = 11008;
+  /// Starts negated conditions guarding subtraction from prior signed locals.
+  public const long STATEMENT_IF_NOT_LOCAL_SUB_VALUE_BASE = 11264;
+  /// Starts negated conditions guarding XOR from prior signed locals.
+  public const long STATEMENT_IF_NOT_LOCAL_XOR_VALUE_BASE = 11520;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -391,9 +415,19 @@ classical class Tokens {
       }
 
       long conditionalOperator = utf8Scalar(source, tokenStarts[operatorToken]);
+      long conditionalUpdateScalar = utf8Scalar(source, tokenStarts[operatorToken + 2]);
+      boolean conditionalUpdateNamed = identifierStart(conditionalUpdateScalar);
       if (conditionalOperator == PUNCTUATION_PLUS) {
         if (negatedCondition) {
+          if (conditionalUpdateNamed) {
+            return STATEMENT_IF_NOT_LOCAL_ADD_VALUE_NAMED;
+          }
+
           return STATEMENT_IF_NOT_LOCAL_ADD_NAMED;
+        }
+
+        if (conditionalUpdateNamed) {
+          return STATEMENT_IF_LOCAL_ADD_VALUE_NAMED;
         }
 
         return STATEMENT_IF_LOCAL_ADD_NAMED;
@@ -401,7 +435,15 @@ classical class Tokens {
 
       if (conditionalOperator == PUNCTUATION_MINUS) {
         if (negatedCondition) {
+          if (conditionalUpdateNamed) {
+            return STATEMENT_IF_NOT_LOCAL_SUB_VALUE_NAMED;
+          }
+
           return STATEMENT_IF_NOT_LOCAL_SUB_NAMED;
+        }
+
+        if (conditionalUpdateNamed) {
+          return STATEMENT_IF_LOCAL_SUB_VALUE_NAMED;
         }
 
         return STATEMENT_IF_LOCAL_SUB_NAMED;
@@ -409,7 +451,15 @@ classical class Tokens {
 
       if (conditionalOperator == PUNCTUATION_CARET) {
         if (negatedCondition) {
+          if (conditionalUpdateNamed) {
+            return STATEMENT_IF_NOT_LOCAL_XOR_VALUE_NAMED;
+          }
+
           return STATEMENT_IF_NOT_LOCAL_XOR_NAMED;
+        }
+
+        if (conditionalUpdateNamed) {
+          return STATEMENT_IF_LOCAL_XOR_VALUE_NAMED;
         }
 
         return STATEMENT_IF_LOCAL_XOR_NAMED;

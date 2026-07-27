@@ -281,44 +281,7 @@ classical class LocalStatements {
         false
       );
       if (-1 < conditionalSourceLocal) {
-        long conditionalBase = STATEMENT_IF_LOCAL_ADD_BASE;
-        if (opcode == STATEMENT_IF_LOCAL_SUB_NAMED) {
-          conditionalBase = STATEMENT_IF_LOCAL_SUB_BASE;
-        }
-
-        if (opcode == STATEMENT_IF_LOCAL_XOR_NAMED) {
-          conditionalBase = STATEMENT_IF_LOCAL_XOR_BASE;
-        }
-
-        if (opcode == STATEMENT_IF_NOT_LOCAL_ADD_NAMED) {
-          conditionalBase = STATEMENT_IF_NOT_LOCAL_ADD_BASE;
-        }
-
-        if (opcode == STATEMENT_IF_NOT_LOCAL_SUB_NAMED) {
-          conditionalBase = STATEMENT_IF_NOT_LOCAL_SUB_BASE;
-        }
-
-        if (opcode == STATEMENT_IF_NOT_LOCAL_XOR_NAMED) {
-          conditionalBase = STATEMENT_IF_NOT_LOCAL_XOR_BASE;
-        }
-
-        if (opcode == STATEMENT_IF_LOCAL_ASSIGN_NAMED) {
-          conditionalBase = STATEMENT_IF_LOCAL_ASSIGN_BASE;
-        }
-
-        if (opcode == STATEMENT_IF_NOT_LOCAL_ASSIGN_NAMED) {
-          conditionalBase = STATEMENT_IF_NOT_LOCAL_ASSIGN_BASE;
-        }
-
-        if (opcode == STATEMENT_IF_LOCAL_ASSIGN_VALUE_NAMED) {
-          conditionalBase = STATEMENT_IF_LOCAL_ASSIGN_VALUE_BASE;
-        }
-
-        if (opcode == STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_NAMED) {
-          conditionalBase = STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_BASE;
-        }
-
-        return conditionalBase + conditionalSourceLocal;
+        return namedLocalConditionalBase(opcode) + conditionalSourceLocal;
       }
 
       return -1;
@@ -491,7 +454,7 @@ classical class LocalStatements {
       );
     }
 
-    if (namedLocalConditionalAssignmentValue(opcode)) {
+    if (namedLocalConditionalValue(opcode)) {
       return resolvePriorDeclaration(
         source,
         tokenStarts,
