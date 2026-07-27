@@ -32,6 +32,7 @@ final class CompilerSources {
       "compiler/backend/StringTable.w",
       "compiler/frontend/BodyParser.w",
       "compiler/frontend/HelperParser.w",
+      "compiler/frontend/LocalStatements.w",
       "compiler/frontend/Parser.w",
       "compiler/frontend/Sequences.w",
       "compiler/frontend/Statements.w",

@@ -530,6 +530,21 @@ class MinimalCompilerExampleTest {
             + "long first = 41; long second = first ^ 1; assert(second == 40); } }");
     assertDifferentialHalt(
         writerProgram,
+        "classical class SignedLocalsAdd { entry void main() { "
+            + "long first = 40; long second = 2; "
+            + "long result = first + second; assert(result == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedLocalsSub { entry void main() { "
+            + "long first = 44; long second = 2; "
+            + "long result = first - second; assert(result == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedLocalsXor { entry void main() { "
+            + "long first = 40; long second = 2; "
+            + "long result = first ^ second; assert(result == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
         "classical class GlobalThenLocal { state long value = 7; entry void main() { "
             + "assert(value == 7); long answer = 41; assert(answer == 41); } }");
     assertDifferentialTrap(
@@ -662,6 +677,15 @@ class MinimalCompilerExampleTest {
         512);
     assertThrows(VmTrap.class, unresolvedSignedAdd::run);
     assertArrayEquals(new byte[512], unresolvedSignedAdd.hostOutput());
+
+    VirtualMachine unresolvedSignedPair = new VirtualMachine(
+        writerProgram,
+        ("classical class UnknownSignedPair { entry void main() { "
+                + "long first = 1; long result = first + missing; } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, unresolvedSignedPair::run);
+    assertArrayEquals(new byte[512], unresolvedSignedPair.hostOutput());
 
     VirtualMachine unresolvedLocal = new VirtualMachine(
         writerProgram,

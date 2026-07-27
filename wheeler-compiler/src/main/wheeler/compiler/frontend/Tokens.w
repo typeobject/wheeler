@@ -5,6 +5,23 @@ module wheeler.compiler.tokens;
 import wheeler.lexer.scanner;
 
 classical class Tokens {
+  private boolean identifierStart(long scalar) {
+    boolean accepted = scalar == 95;
+    if (64 < scalar) {
+      accepted = scalar < 91;
+    }
+
+    if (96 < scalar) {
+      accepted = scalar < 123;
+    }
+
+    if (scalar == 95) {
+      accepted = true;
+    }
+
+    return accepted;
+  }
+
   /// Caps compiler token metadata before comment compaction.
   public const long MAX_COMPILER_TOKENS = 1024;
 
@@ -83,6 +100,18 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_LONG_SUB_BASE = 2816;
   /// Starts resolved checked signed-local XOR declaration opcodes.
   public const long STATEMENT_LOCAL_LONG_XOR_BASE = 3072;
+  /// Names an unresolved checked addition of two prior signed locals.
+  public const long STATEMENT_LOCAL_LONG_ADD_LOCALS_NAMED = 780;
+  /// Names an unresolved checked subtraction of two prior signed locals.
+  public const long STATEMENT_LOCAL_LONG_SUB_LOCALS_NAMED = 781;
+  /// Names an unresolved checked XOR of two prior signed locals.
+  public const long STATEMENT_LOCAL_LONG_XOR_LOCALS_NAMED = 782;
+  /// Starts resolved checked addition opcodes for two prior signed locals.
+  public const long STATEMENT_LOCAL_LONG_ADD_LOCALS_BASE = 3328;
+  /// Starts resolved checked subtraction opcodes for two prior signed locals.
+  public const long STATEMENT_LOCAL_LONG_SUB_LOCALS_BASE = 3584;
+  /// Starts resolved checked XOR opcodes for two prior signed locals.
+  public const long STATEMENT_LOCAL_LONG_XOR_LOCALS_BASE = 3840;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -236,30 +265,31 @@ classical class Tokens {
 
     if (keyword == TOKEN_LONG) {
       long initializer = utf8Scalar(source, tokenStarts[statementStart + 3]);
-      boolean named = initializer == 95;
-      if (64 < initializer) {
-        named = initializer < 91;
-      }
-
-      if (96 < initializer) {
-        named = initializer < 123;
-      }
-
-      if (initializer == 95) {
-        named = true;
-      }
-
-      if (named) {
+      if (identifierStart(initializer)) {
         long initializerOperator = utf8Scalar(source, tokenStarts[statementStart + 4]);
+        long rightScalar = utf8Scalar(source, tokenStarts[statementStart + 5]);
+        boolean rightNamed = identifierStart(rightScalar);
         if (initializerOperator == PUNCTUATION_PLUS) {
+          if (rightNamed) {
+            return STATEMENT_LOCAL_LONG_ADD_LOCALS_NAMED;
+          }
+
           return STATEMENT_LOCAL_LONG_ADD_NAMED;
         }
 
         if (initializerOperator == PUNCTUATION_MINUS) {
+          if (rightNamed) {
+            return STATEMENT_LOCAL_LONG_SUB_LOCALS_NAMED;
+          }
+
           return STATEMENT_LOCAL_LONG_SUB_NAMED;
         }
 
         if (initializerOperator == PUNCTUATION_CARET) {
+          if (rightNamed) {
+            return STATEMENT_LOCAL_LONG_XOR_LOCALS_NAMED;
+          }
+
           return STATEMENT_LOCAL_LONG_XOR_NAMED;
         }
 

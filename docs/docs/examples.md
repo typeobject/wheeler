@@ -33,7 +33,7 @@ Expected result: `sum = 10`, `branch = 1`.
 
 ### `MinimalCompiler.w`
 
-Files: [`MinimalCompiler.w`](../../wheeler-compiler/src/main/wheeler/MinimalCompiler.w) + [`compiler/Driver.w`](../../wheeler-compiler/src/main/wheeler/compiler/Driver.w) + [`compiler/frontend/Parser.w`](../../wheeler-compiler/src/main/wheeler/compiler/frontend/Parser.w) + [`compiler/backend/StringTable.w`](../../wheeler-compiler/src/main/wheeler/compiler/backend/StringTable.w) + dedicated IR/token/scanner/code-generation/encoding modules.
+Files: [`MinimalCompiler.w`](../../wheeler-compiler/src/main/wheeler/MinimalCompiler.w) + [`compiler/Driver.w`](../../wheeler-compiler/src/main/wheeler/compiler/Driver.w) + [`compiler/frontend/Parser.w`](../../wheeler-compiler/src/main/wheeler/compiler/frontend/Parser.w) + [`compiler/backend/StringTable.w`](../../wheeler-compiler/src/main/wheeler/compiler/backend/StringTable.w) + dedicated local-resolution, IR, token, scanner, code-generation, and encoding modules.
 
 Covers: Wheeler compilation of one bounded minimal source grammar to canonical `.wbc`.
 
@@ -44,7 +44,7 @@ Expected behavior:
 - Canonical `module examples.seed;` input emits stage-0-identical qualified entry/helper strings and unqualified theorem names, including stateless helper classes. Public, explicit-private, and unqualified helpers produce the same linked function bytes, while duplicate visibility fails before output. A malformed dotted header also fails before output; module imports and multi-file linking remain outside this bounded path.
 - `verification = 1`.
 - The differential suite covers no-global classes with zero to sixty-four statements; a sixty-fifth statement is rejected before output.
-- Cases include signed and Boolean locals, prior signed-local copies, checked signed-local `+`, `-`, and `^` expressions, signed-local equality assertions, literal or prior-local truth assertions, stateful updates, helper calls, reversible helpers, reverse blocks, and generated-inverse theorems.
+- Cases include signed and Boolean locals, prior signed-local copies, checked signed-local `+`, `-`, and `^` expressions over literal or prior-local right operands, signed-local equality assertions, literal or prior-local truth assertions, stateful updates, helper calls, reversible helpers, reverse blocks, and generated-inverse theorems.
 - Fixtures use two to four strings and zero or one global.
 - Bounded entry bodies fit the 256-local, 512-instruction native verification window. A sixty-three-declaration signed window plus its final local equality uses 129 typed locals; `assert(global == constant)` still lowers directly to local-free `EXPECT_EQ`.
 - A named public, explicit-private, or unqualified zero- through sixty-four-statement helper plus static entry call emits two descriptors, `RETURN`, and `CALL`. Ordinary helpers may live in classes with no state. An empty reversible helper and its generated-inverse theorem also compile without inventing dummy state; nonempty reversible bodies remain bounded to checked state updates. An inverse of nothing is modest, but at least it does not lie.
@@ -169,7 +169,7 @@ Files: [`NativeBootstrapModulesIdentity.w`](../../wheeler-examples/src/main/whee
 
 Covers: One through thirty-two sorted local source modules, zero through thirty-two externals, 128 total imports, unique paths, complete binding, rooted reachability, cycle rejection, bounded names and paths, lowercase source identities, exact schema bytes, SHA-256 publication, and rewind.
 
-Expected behavior: Empty-import one-module, two-external one-module, and three-, five-, nine-, and seventeen-module rooted DAG closures reproduce stage 0. A cycle, unreachable module, duplicate path, thirty-third module, unsorted external, unbound import, mismatched root, uppercase digest, traversal path, or input beyond 8,192 bytes publishes nothing. The current physical compiler closure has twenty-three modules, sixty-three imports, and 6,897 canonical bytes; the packaged executable reproduces its stage-0 identity in 3,201,524 transitions. Thirty-two is still deliberately smaller than the 10,000-module schema; pretending otherwise would merely give the graph a fake moustache too.
+Expected behavior: Empty-import one-module, two-external one-module, and three-, five-, nine-, and seventeen-module rooted DAG closures reproduce stage 0. A cycle, unreachable module, duplicate path, thirty-third module, unsorted external, unbound import, mismatched root, uppercase digest, traversal path, or input beyond 8,192 bytes publishes nothing. The current physical compiler closure has twenty-four modules, sixty-five imports, and 7,200 canonical bytes; the packaged executable reproduces its stage-0 identity in 3,404,336 transitions. Thirty-two is still deliberately smaller than the 10,000-module schema; pretending otherwise would merely give the graph a fake moustache too.
 
 ### `NativeCompilerLimitsIdentity.w`
 

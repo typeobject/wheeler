@@ -3,8 +3,8 @@
 module wheeler.compiler.codegen;
 
 import wheeler.compiler.encoding;
+import wheeler.compiler.local_statements;
 import wheeler.compiler.opcodes;
-import wheeler.compiler.statements;
 import wheeler.compiler.tokens;
 import wheeler.compiler.type_codes;
 
@@ -76,6 +76,10 @@ classical class Codegen {
 
   /// Returns the encoded byte width of one parsed statement.
   public long statementCodeLength(long opcode) {
+    if (resolvedLocalLongPair(opcode)) {
+      return 104;
+    }
+
     if (resolvedLocalLongBinary(opcode)) {
       return 104;
     }
@@ -171,6 +175,32 @@ classical class Codegen {
       cursor = writeUnsignedLittleEndian(output, cursor, operand, 8);
       cursor = writeInstructionHeader(output, cursor, OPCODE_EXPECT_TRUE, 1);
       return writeUnsignedLittleEndian(output, cursor, localBase, 8);
+    }
+
+    if (resolvedLocalLongPair(opcode)) {
+      long pairSourceLocal = resolvedLocalLongPairSource(opcode);
+      long pairOpcode = OPCODE_LOCAL_ADD;
+      if (STATEMENT_LOCAL_LONG_SUB_LOCALS_BASE - 1 < opcode) {
+        pairOpcode = OPCODE_LOCAL_SUB;
+      }
+
+      if (STATEMENT_LOCAL_LONG_XOR_LOCALS_BASE - 1 < opcode) {
+        pairOpcode = OPCODE_LOCAL_XOR;
+      }
+
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, pairSourceLocal, 8);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, operand, 8);
+      cursor = writeInstructionHeader(output, cursor, pairOpcode, 3);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, 8);
+      return writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
     }
 
     if (resolvedLocalLongBinary(opcode)) {

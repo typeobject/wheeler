@@ -96,6 +96,18 @@ classical class Parser {
       supported = true;
     }
 
+    if (opcode == STATEMENT_LOCAL_LONG_ADD_LOCALS_NAMED) {
+      supported = true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_SUB_LOCALS_NAMED) {
+      supported = true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_XOR_LOCALS_NAMED) {
+      supported = true;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN) {
       supported = true;
     }
