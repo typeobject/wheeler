@@ -2,6 +2,7 @@
 
 module wheeler.compiler.codegen;
 
+import wheeler.compiler.conditionals;
 import wheeler.compiler.encoding;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.opcodes;
