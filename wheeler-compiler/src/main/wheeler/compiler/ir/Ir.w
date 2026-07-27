@@ -3,6 +3,9 @@
 module wheeler.compiler.ir;
 
 classical class CompilerIr {
+  /// Caps source statements in one bounded entry or helper body.
+  public const long MAX_MINIMAL_STATEMENTS = 64;
+
   /// Defines immutable `SourceRange` values for this module.
   public record SourceRange(long start, long length) {}
 
@@ -13,12 +16,12 @@ classical class CompilerIr {
     long globalCount,
     long initialValue,
     long statementCount,
-    long[32] statementOpcodes,
-    long[32] statementOperands,
+    long[64] statementOpcodes,
+    long[64] statementOperands,
     SourceRange helperName,
     long helperCount,
-    long[32] helperOpcodes,
-    long[32] helperOperands,
+    long[64] helperOpcodes,
+    long[64] helperOperands,
     long helperReversible,
     SourceRange proofName,
     long proofCount,
@@ -28,8 +31,40 @@ classical class CompilerIr {
   ) {}
 
   /// Returns the sole empty opcode column used before a parse succeeds.
-  public long[32] emptyStatementOpcodes() {
-    return new long[32](
+  public long[64] emptyStatementOpcodes() {
+    return new long[64](
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
       -1,
       -1,
       -1,
@@ -66,8 +101,40 @@ classical class CompilerIr {
   }
 
   /// Returns the sole empty operand column used before a parse succeeds.
-  public long[32] emptyStatementOperands() {
-    return new long[32](
+  public long[64] emptyStatementOperands() {
+    return new long[64](
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
       0,
       0,
       0,

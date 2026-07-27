@@ -140,7 +140,7 @@ classical class Opcodes {
   /// Names the compile-time `INTERPRETER_AGGREGATE_FIELDS` value owned by this module.
   public const long INTERPRETER_AGGREGATE_FIELDS = 128;
   /// Names the compile-time `INTERPRETER_LOCAL_WIDTH` value owned by this module.
-  public const long INTERPRETER_LOCAL_WIDTH = 64;
+  public const long INTERPRETER_LOCAL_WIDTH = 128;
   /// Names the compile-time `INTERPRETER_FRAME_COUNT` value owned by this module.
   public const long INTERPRETER_FRAME_COUNT = 8;
   /// Names the compile-time `INTERPRETER_FUNCTION_COUNT` value owned by this module.
@@ -152,7 +152,7 @@ classical class Opcodes {
   /// Names the compile-time `INTERPRETER_MAX_CALL_DEPTH` value owned by this module.
   public const long INTERPRETER_MAX_CALL_DEPTH = INTERPRETER_FRAME_COUNT - 1;
   /// Names the compile-time `MAX_CODE_INSTRUCTIONS` value owned by this module.
-  public const long MAX_CODE_INSTRUCTIONS = 128;
+  public const long MAX_CODE_INSTRUCTIONS = 256;
   /// Names the compile-time `MAX_INTERPRETED_STEPS` value owned by this module.
   public const long MAX_INTERPRETED_STEPS = 512;
 

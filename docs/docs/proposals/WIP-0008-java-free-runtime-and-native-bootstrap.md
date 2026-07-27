@@ -198,7 +198,7 @@ Recovery releases are signed or content-addressed by release policy. Bootstrap s
   - This is a Wheeler-executed verifier milestone, not a native machine-code verifier.
 - [x] The accepted aggregate, storage, UTF-8, map, and transition interpreters live only in the entryless `wheeler.runtime` package, locked to `wheeler.compiler` verification and `wheeler.core` binary primitives. The examples consume its exact vendored archive. No runtime implementation remains in compiler or example source.
 - [x] `NativeVm.w` and `runtime/Interpreter.w` execute the verified bounded compiler profile inside Wheeler.
-  - The profile supports up to eight signed globals, eight frames, sixty-four typed locals per frame, 128 instructions per function, and eight functions. Only the active function window is cleared.
+  - The profile supports up to eight signed globals, eight frames, 128 typed locals per frame, 256 instructions per function, and eight functions. Only the active function window is cleared.
   - It executes constants, loads, stores, moves, arithmetic, comparisons, branches, bounded loops, expectations, reversible global operations, `CALL`, `UNCALL`, `CALL_VALUE`, `CALL_VOID`, `RETURN`, `RETURN_VALUE`, and `HALT`.
   - Aggregate support covers immutable records, finite variants, fixed arrays, and slices. It includes construction, inspection, indexed or field reads, and equality.
   - Storage support covers bounded regions, mutable word and byte buffers, strict UTF-8, nested read-only and mutable loans, owner-carrying calls, and fixed-capacity signed maps.

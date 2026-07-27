@@ -135,7 +135,7 @@ classical class Parser {
     }
 
     long statement = 0;
-    while (statement < statements.count) limit 32 {
+    while (statement < statements.count) limit MAX_MINIMAL_STATEMENTS {
       if (
         noGlobalStatementSupported(
           source,

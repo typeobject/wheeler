@@ -162,7 +162,8 @@ subprojects {
         // A bounded seed must not turn host CPU count into test-process fan-out.
         maxParallelForks = 1
         forkEvery = 0
-        maxHeapSize = '768m'
+        // Sixty-four-statement compiler differentials retain bounded rewind histories.
+        maxHeapSize = '1024m'
         jvmArgs '-XX:ActiveProcessorCount=2'
         testLogging {
             events 'failed', 'skipped'

@@ -2,6 +2,7 @@
 
 module wheeler.compiler.body_parser;
 
+import wheeler.compiler.ir;
 import wheeler.compiler.statements;
 import wheeler.compiler.tokens;
 
@@ -9,7 +10,7 @@ classical class BodyParser {
   /// Describes one body scan without lending the caller-owned start table.
   public record BodyScan(long end, long count, boolean valid) {}
 
-  /// Finds zero through thirty-two statements ending at one closing brace.
+  /// Finds zero through sixty-four statements ending at one closing brace.
   public BodyScan scanBody(
     borrow utf8 source,
     borrow mut words tokenKinds,
@@ -20,7 +21,7 @@ classical class BodyParser {
   ) {
     long cursor = bodyStart;
     long count = 0;
-    while (count < 32) limit 32 {
+    while (count < MAX_MINIMAL_STATEMENTS) limit MAX_MINIMAL_STATEMENTS {
       if (
         punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_CLOSE_BRACE)
       ) {

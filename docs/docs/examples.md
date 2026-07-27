@@ -43,11 +43,11 @@ Expected behavior:
 - The 504-byte result passes Wheeler's header/directory/payload/instruction-stream verifier, including global/local/type/call operand domains, matches stage 0, and executes with `value = 12`.
 - Canonical `module examples.seed;` input emits stage-0-identical qualified entry/helper strings and unqualified theorem names, including stateless helper classes. Public, explicit-private, and unqualified helpers produce the same linked function bytes, while duplicate visibility fails before output. A malformed dotted header also fails before output; module imports and multi-file linking remain outside this bounded path.
 - `verification = 1`.
-- The differential suite covers no-global classes with zero to thirty-two statements; a thirty-third statement is rejected before output.
+- The differential suite covers no-global classes with zero to sixty-four statements; a sixty-fifth statement is rejected before output.
 - Cases include signed and Boolean locals, literal or prior-local truth assertions, stateful updates, helper calls, reversible helpers, reverse blocks, and generated-inverse theorems.
 - Fixtures use two to four strings and zero or one global.
 - Bounded entry bodies derive up to twenty locals and 528 code bytes while `assert(global == constant)` lowers directly to local-free `EXPECT_EQ`.
-- A named public, explicit-private, or unqualified zero- through thirty-two-statement helper plus static entry call emits two descriptors, `RETURN`, and `CALL`. Ordinary helpers may live in classes with no state. An empty reversible helper and its generated-inverse theorem also compile without inventing dummy state; nonempty reversible bodies remain bounded to checked state updates. An inverse of nothing is modest, but at least it does not lie.
+- A named public, explicit-private, or unqualified zero- through sixty-four-statement helper plus static entry call emits two descriptors, `RETURN`, and `CALL`. Ordinary helpers may live in classes with no state. An empty reversible helper and its generated-inverse theorem also compile without inventing dummy state; nonempty reversible bodies remain bounded to checked state updates. An inverse of nothing is modest, but at least it does not lie.
 - One or two helper calls derive repeated `CALL` sites.
 - A following entry statement derives its own locals, type window, descriptor length, and code after the call.
 - The `rev` form maps checked `+=`/`-=` to opposite intrinsic bodies and `^=` to a self-inverse body, reverses multi-statement inverse order, emits entry `CALL`/`UNCALL`, then may assert the restored state.

@@ -2,6 +2,7 @@
 
 module wheeler.compiler.statements;
 
+import wheeler.compiler.ir;
 import wheeler.compiler.tokens;
 
 classical class Statements {
@@ -40,7 +41,7 @@ classical class Statements {
       return -1;
     }
 
-    if (8 < previousCount) {
+    if (MAX_MINIMAL_STATEMENTS < previousCount) {
       return -1;
     }
 
@@ -49,7 +50,7 @@ classical class Statements {
     long matchedLocal = -1;
     long matchCount = 0;
     long previous = 0;
-    while (previous < previousCount) limit 32 {
+    while (previous < previousCount) limit MAX_MINIMAL_STATEMENTS {
       long previousStart = previousStarts[previous];
       if (0 < previousStart) {
         long previousOpcode = statementOpcode(source, tokenStarts, tokenLengths, previousStart);

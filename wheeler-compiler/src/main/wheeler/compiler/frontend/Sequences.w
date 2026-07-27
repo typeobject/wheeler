@@ -10,8 +10,8 @@ classical class StatementSequences {
   /// Defines immutable `StatementSequence` values for this module.
   public record StatementSequence(
     long count,
-    long[32] opcodes,
-    long[32] operands,
+    long[64] opcodes,
+    long[64] operands,
     boolean valid
   ) {}
 
@@ -60,17 +60,17 @@ classical class StatementSequences {
     borrow mut words statementStarts,
     long count
   ) {
-    long[32] absentOpcodes = emptyStatementOpcodes();
-    long[32] absentOperands = emptyStatementOperands();
+    long[64] absentOpcodes = emptyStatementOpcodes();
+    long[64] absentOperands = emptyStatementOperands();
     if (count < 0) {
       return new StatementSequence(0, absentOpcodes, absentOperands, false);
     }
 
-    if (32 < count) {
+    if (MAX_MINIMAL_STATEMENTS < count) {
       return new StatementSequence(0, absentOpcodes, absentOperands, false);
     }
 
-    long[32] opcodes = new long[32](
+    long[64] opcodes = new long[64](
       sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 0),
       sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 1),
       sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 2),
@@ -102,9 +102,41 @@ classical class StatementSequences {
       sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 28),
       sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 29),
       sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 30),
-      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 31)
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 31),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 32),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 33),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 34),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 35),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 36),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 37),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 38),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 39),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 40),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 41),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 42),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 43),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 44),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 45),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 46),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 47),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 48),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 49),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 50),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 51),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 52),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 53),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 54),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 55),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 56),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 57),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 58),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 59),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 60),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 61),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 62),
+      sequenceOpcode(source, tokenStarts, tokenLengths, statementStarts, count, 63)
     );
-    long[32] operands = new long[32](
+    long[64] operands = new long[64](
       sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 0),
       sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 1),
       sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 2),
@@ -136,11 +168,43 @@ classical class StatementSequences {
       sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 28),
       sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 29),
       sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 30),
-      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 31)
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 31),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 32),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 33),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 34),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 35),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 36),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 37),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 38),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 39),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 40),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 41),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 42),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 43),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 44),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 45),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 46),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 47),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 48),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 49),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 50),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 51),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 52),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 53),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 54),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 55),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 56),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 57),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 58),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 59),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 60),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 61),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 62),
+      sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 63)
     );
 
     long statement = 0;
-    while (statement < count) limit 32 {
+    while (statement < count) limit MAX_MINIMAL_STATEMENTS {
       if (sequenceOperandValid(opcodes[statement], operands[statement]) == false) {
         return new StatementSequence(count, opcodes, operands, false);
       }
@@ -158,7 +222,7 @@ classical class StatementSequences {
     }
 
     long statement = 0;
-    while (statement < sequence.count) limit 32 {
+    while (statement < sequence.count) limit MAX_MINIMAL_STATEMENTS {
       long opcode = sequence.opcodes[statement];
       boolean reversible = opcode == STATEMENT_UPDATE_ADD;
       if (opcode == STATEMENT_UPDATE_SUB) {
