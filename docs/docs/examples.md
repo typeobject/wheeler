@@ -56,7 +56,7 @@ Expected behavior:
 - The checked-in `Counter.w` compiles byte for byte through the direct VM and package-selected `wheeler run` paths. It runs two calls, two inverse calls, and both assertions.
 - Compiler-local comment compaction leaves the shared teaching scanner's token stream intact.
 - Thirty-two deterministic pseudo-random whitespace, line-comment, and block-comment layouts reproduce the baseline bytes in stage 0 and Wheeler.
-- Compiler token metadata allows 512 pre-compaction tokens. A 200-comment source compiles to the baseline bytes; a 500-comment source exceeds the bound and traps before publication.
+- Compiler token metadata allows 1,024 pre-compaction tokens. A 500-comment source compiles to the baseline bytes; 1,024 comments exceed the bound and trap before publication. Comments remain syntax, not a memory-allocation strategy.
 - An optional theorem adds a canonically sorted proof name and 28-byte `GENERATED_INVERSE` section accepted by the proof kernel.
 - Signed and Boolean literals, unary negation, literal truth assertions, and prior-local Boolean assertions work in no-global, stateful, and ordinary-helper bodies.
 - They lower through `LOCAL_CONST`, `LOCAL_XOR`, `LOCAL_MOVE`, and `EXPECT_TRUE`. The compiler emits exact signed and Boolean local type windows from named token, punctuation, and statement identities.

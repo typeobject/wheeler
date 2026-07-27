@@ -25,7 +25,7 @@ classical class CompilerDriver {
   ) {
     long readCursor = 0;
     long writeCursor = 0;
-    while (readCursor < count) limit 812 {
+    while (readCursor < count) limit 1024 {
       long kind = tokenKinds[readCursor];
       boolean emit = true;
       if (kind == 4) {
@@ -304,7 +304,7 @@ classical class CompilerDriver {
 
   /// Compiles one bounded bootstrap source into caller-owned artifact storage.
   public Compilation compileMinimal(borrow utf8 source, borrow mut bytes output) {
-    region arena = new region(12432, 5);
+    region arena = new region(24720, 5);
     words tokenKinds = allocate(arena, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(arena, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(arena, MAX_COMPILER_TOKENS);

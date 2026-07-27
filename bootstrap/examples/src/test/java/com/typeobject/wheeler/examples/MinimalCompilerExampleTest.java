@@ -91,12 +91,12 @@ class MinimalCompilerExampleTest {
           stageZero,
           new WheelerCompiler().compileToBytecode(decorated));
     }
-    String commentHeavy = "/*c*/".repeat(200) + source;
+    String commentHeavy = "/*c*/".repeat(500) + source;
     VirtualMachine commentHeavyWriter = new VirtualMachine(
         writerProgram, commentHeavy.getBytes(StandardCharsets.UTF_8), 512);
     commentHeavyWriter.run();
     assertArrayEquals(stageZero, commentHeavyWriter.hostOutput());
-    String commentOverflow = "/*c*/".repeat(500) + source;
+    String commentOverflow = "/*c*/".repeat(1024) + source;
     VirtualMachine commentOverflowWriter = new VirtualMachine(
         writerProgram, commentOverflow.getBytes(StandardCharsets.UTF_8), 512);
     assertThrows(VmTrap.class, commentOverflowWriter::run);
