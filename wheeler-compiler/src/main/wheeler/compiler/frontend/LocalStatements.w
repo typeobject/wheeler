@@ -714,6 +714,112 @@ classical class LocalStatements {
     return parsedSignedNumber(source, tokenStarts, tokenLengths, operandToken);
   }
 
+  /// Validates and sizes one equality assertion over two signed literals.
+  public long literalEqualityStatementWidth(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart
+  ) {
+    if (
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        statementStart + 1,
+        PUNCTUATION_OPEN_PAREN
+      ) == false
+    ) {
+      return -1;
+    }
+
+    long leftWidth = signedNumberWidth(source, tokenKinds, tokenStarts, statementStart + 2);
+    if (leftWidth < 1) {
+      return -1;
+    }
+
+    if (
+      signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 2) == false
+    ) {
+      return -1;
+    }
+
+    long equalityStart = statementStart + 2 + leftWidth;
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, equalityStart, PUNCTUATION_ASSIGN) == false
+    ) {
+      return -1;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, equalityStart + 1, PUNCTUATION_ASSIGN) == false
+    ) {
+      return -1;
+    }
+
+    long rightStart = equalityStart + 2;
+    long rightWidth = signedNumberWidth(source, tokenKinds, tokenStarts, rightStart);
+    if (rightWidth < 1) {
+      return -1;
+    }
+
+    if (signedNumberValid(source, tokenStarts, tokenLengths, rightStart) == false) {
+      return -1;
+    }
+
+    if (
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        rightStart + rightWidth,
+        PUNCTUATION_CLOSE_PAREN
+      ) == false
+    ) {
+      return -1;
+    }
+
+    if (
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        rightStart + rightWidth + 1,
+        PUNCTUATION_SEMICOLON
+      )
+    ) {
+      return rightStart + rightWidth + 2 - statementStart;
+    }
+
+    return -1;
+  }
+
+  /// Resolves the optional second scalar operand for one statement.
+  public long sequenceStatementSecondaryOperand(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart
+  ) {
+    long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (opcode == STATEMENT_ASSERT_LITERAL_EQ) {
+      long leftWidth = 1;
+      if (utf8Scalar(source, tokenStarts[statementStart + 2]) == PUNCTUATION_MINUS) {
+        leftWidth = 2;
+      }
+
+      return parsedSignedNumber(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart + 2 + leftWidth + 2
+      );
+    }
+
+    return 0;
+  }
+
   /// Returns the operand-token offset for one bounded statement.
   public long statementOperandToken(
     borrow utf8 source,
@@ -728,6 +834,10 @@ classical class LocalStatements {
 
     if (opcode == STATEMENT_ASSERT_EQ) {
       return statementStart + 5;
+    }
+
+    if (opcode == STATEMENT_ASSERT_LITERAL_EQ) {
+      return statementStart + 2;
     }
 
     if (opcode == STATEMENT_LOCAL_LONG_EQ_LITERAL_NAMED) {

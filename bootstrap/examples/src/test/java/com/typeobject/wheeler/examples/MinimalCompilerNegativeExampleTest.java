@@ -80,6 +80,14 @@ class MinimalCompilerNegativeExampleTest {
     assertThrows(VmTrap.class, bareAssertion::run);
     assertArrayEquals(new byte[512], bareAssertion.hostOutput());
 
+    VirtualMachine malformedLiteralAssertion = new VirtualMachine(
+        writerProgram,
+        "classical class BadLiteralAssert { entry void main() { assert(0 = 0); } }"
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, malformedLiteralAssertion::run);
+    assertArrayEquals(new byte[512], malformedLiteralAssertion.hostOutput());
+
     VirtualMachine invalidBoolean = new VirtualMachine(
         writerProgram,
         "classical class BadBoolean { entry void main() { boolean flag = 1; } }"

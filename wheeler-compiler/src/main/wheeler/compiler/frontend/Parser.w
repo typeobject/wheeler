@@ -40,9 +40,11 @@ classical class Parser {
       statements.count,
       statements.opcodes,
       statements.operands,
+      statements.secondaryOperands,
       helper,
       0,
       emptyStatementOpcodes(),
+      emptyStatementOperands(),
       emptyStatementOperands(),
       0,
       helper,
@@ -165,6 +167,10 @@ classical class Parser {
     }
 
     if (opcode == STATEMENT_ASSERT_BOOLEAN) {
+      supported = true;
+    }
+
+    if (opcode == STATEMENT_ASSERT_LITERAL_EQ) {
       supported = true;
     }
 

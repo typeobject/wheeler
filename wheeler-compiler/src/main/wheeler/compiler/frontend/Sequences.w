@@ -12,6 +12,7 @@ classical class StatementSequences {
     long count,
     long[64] opcodes,
     long[64] operands,
+    long[64] secondaryOperands,
     boolean valid
   ) {}
 
@@ -59,6 +60,26 @@ classical class StatementSequences {
     return 0;
   }
 
+  private long sequenceSecondaryOperand(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    borrow mut words statementStarts,
+    long count,
+    long index
+  ) {
+    if (index < count) {
+      return sequenceStatementSecondaryOperand(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStarts[index]
+      );
+    }
+
+    return 0;
+  }
+
   /// Resolves one ordered source sequence without publishing partial results.
   public StatementSequence parseStatementSequence(
     borrow utf8 source,
@@ -70,11 +91,11 @@ classical class StatementSequences {
     long[64] absentOpcodes = emptyStatementOpcodes();
     long[64] absentOperands = emptyStatementOperands();
     if (count < 0) {
-      return new StatementSequence(0, absentOpcodes, absentOperands, false);
+      return new StatementSequence(0, absentOpcodes, absentOperands, absentOperands, false);
     }
 
     if (MAX_MINIMAL_STATEMENTS < count) {
-      return new StatementSequence(0, absentOpcodes, absentOperands, false);
+      return new StatementSequence(0, absentOpcodes, absentOperands, absentOperands, false);
     }
 
     long[64] opcodes = new long[64](
@@ -209,17 +230,83 @@ classical class StatementSequences {
       sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 62),
       sequenceOperand(source, tokenStarts, tokenLengths, statementStarts, count, 63)
     );
+    long[64] secondaryOperands = new long[64](
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 0),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 1),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 2),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 3),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 4),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 5),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 6),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 7),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 8),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 9),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 10),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 11),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 12),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 13),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 14),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 15),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 16),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 17),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 18),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 19),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 20),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 21),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 22),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 23),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 24),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 25),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 26),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 27),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 28),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 29),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 30),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 31),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 32),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 33),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 34),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 35),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 36),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 37),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 38),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 39),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 40),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 41),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 42),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 43),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 44),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 45),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 46),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 47),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 48),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 49),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 50),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 51),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 52),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 53),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 54),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 55),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 56),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 57),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 58),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 59),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 60),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 61),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 62),
+      sequenceSecondaryOperand(source, tokenStarts, tokenLengths, statementStarts, count, 63)
+    );
 
     long statement = 0;
     while (statement < count) limit MAX_MINIMAL_STATEMENTS {
       if (sequenceOperandValid(opcodes[statement], operands[statement]) == false) {
-        return new StatementSequence(count, opcodes, operands, false);
+        return new StatementSequence(count, opcodes, operands, secondaryOperands, false);
       }
 
       statement += 1;
     }
 
-    return new StatementSequence(count, opcodes, operands, true);
+    return new StatementSequence(count, opcodes, operands, secondaryOperands, true);
   }
 
   /// Checks that every resolved statement has a reversible global-update inverse.

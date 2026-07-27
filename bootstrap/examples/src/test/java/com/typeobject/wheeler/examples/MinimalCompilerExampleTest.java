@@ -186,6 +186,12 @@ class MinimalCompilerExampleTest {
         "classical class AssertNotTrue { entry void main() { assert(!true); } }");
     assertDifferentialHalt(
         writerProgram,
+        "classical class AssertEqualLiterals { entry void main() { assert(-1 == -1); } }");
+    assertDifferentialTrap(
+        writerProgram,
+        "classical class AssertUnequalLiterals { entry void main() { assert(0 == 1); } }");
+    assertDifferentialHalt(
+        writerProgram,
         "classical class LocalSeries { entry void main() { "
             + "long amount = -2; boolean first = true; assert(first); "
             + "boolean second = !true; } }");

@@ -246,6 +246,8 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_LONG_EQ_LITERAL_BASE = 11776;
   /// Starts resolved signed-local less-than with literal right operands.
   public const long STATEMENT_LOCAL_LONG_LT_LITERAL_BASE = 12032;
+  /// Names an equality assertion over two signed literals.
+  public const long STATEMENT_ASSERT_LITERAL_EQ = 817;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -386,8 +388,13 @@ classical class Tokens {
         return STATEMENT_ASSERT_BOOLEAN;
       }
 
-      if (utf8Scalar(source, tokenStarts[assertExpression]) == PUNCTUATION_BANG) {
+      long assertScalar = utf8Scalar(source, tokenStarts[assertExpression]);
+      if (assertScalar == PUNCTUATION_BANG) {
         return STATEMENT_ASSERT_BOOLEAN_NOT;
+      }
+
+      if (identifierStart(assertScalar) == false) {
+        return STATEMENT_ASSERT_LITERAL_EQ;
       }
 
       if (

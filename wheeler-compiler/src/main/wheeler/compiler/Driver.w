@@ -168,9 +168,11 @@ classical class CompilerDriver {
           0,
           emptyStatementOpcodes(),
           emptyStatementOperands(),
+          emptyStatementOperands(),
           scanGlobal,
           0,
           emptyStatementOpcodes(),
+          emptyStatementOperands(),
           emptyStatementOperands(),
           0,
           scanGlobal,
@@ -222,9 +224,11 @@ classical class CompilerDriver {
               0,
               emptyStatementOpcodes(),
               emptyStatementOperands(),
+              emptyStatementOperands(),
               parseGlobal,
               0,
               emptyStatementOpcodes(),
+              emptyStatementOperands(),
               emptyStatementOperands(),
               0,
               parseGlobal,
@@ -262,6 +266,7 @@ classical class CompilerDriver {
     long cursor,
     long[64] opcodes,
     long[64] operands,
+    long[64] secondaryOperands,
     long count
   ) {
     long index = 0;
@@ -273,6 +278,7 @@ classical class CompilerDriver {
         cursor,
         opcodes[index],
         operands[index],
+        secondaryOperands[index],
         localBase,
         instructionBase
       );
@@ -536,6 +542,7 @@ classical class CompilerDriver {
           cursor,
           program.helperOpcodes,
           program.helperOperands,
+          program.helperSecondaryOperands,
           program.helperStatementCount
         );
         cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN, 0);
@@ -556,6 +563,7 @@ classical class CompilerDriver {
           cursor,
           program.statementOpcodes[0],
           program.statementOperands[0],
+          program.statementSecondaryOperands[0],
           0,
           entryInstructionBase
         );
@@ -579,6 +587,7 @@ classical class CompilerDriver {
             cursor,
             program.statementOpcodes[0],
             program.statementOperands[0],
+            program.statementSecondaryOperands[0],
             0,
             entryInstructionBase
           );
@@ -593,6 +602,7 @@ classical class CompilerDriver {
             cursor,
             program.statementOpcodes[1],
             program.statementOperands[1],
+            program.statementSecondaryOperands[1],
             statementLocalCount(program.statementOpcodes[0]),
             entryInstructionBase
           );
@@ -605,6 +615,7 @@ classical class CompilerDriver {
         cursor,
         program.statementOpcodes,
         program.statementOperands,
+        program.statementSecondaryOperands,
         program.statementCount
       );
     }
