@@ -125,6 +125,13 @@ targets:
       - "src/main/wheeler/native/NativeSha256.w"
     test: false
   - kind: "deployable"
+    name: "nativesnapshot"
+    root: "src/main/wheeler/native/packages/NativeSnapshot.w"
+    module: "examples.packages.snapshot"
+    sources:
+      - "src/main/wheeler/native/packages/NativeSnapshot.w"
+    test: false
+  - kind: "deployable"
     name: "nativeverifier"
     root: "src/main/wheeler/native/NativeVerifier.w"
     module: "examples.compiler.native_verifier"

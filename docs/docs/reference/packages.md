@@ -427,6 +427,14 @@ Each modular target may have a bounded nonempty source list. Every selector is c
 
 Wrong schemas or kinds, test-selected libraries, bad names or paths, unsorted selectors, and selector sets that miss the root also fail closed. The parser loops allow at most 512 targets, dependencies, or capabilities and 1,024 selectors under the 4,096-byte native recovery input profile. The wider stage-0 limits still need larger scanner and I/O buffers, owned decoded values, and computed identities.
 
+## Wheeler-native repository snapshot slice
+
+`NativeSnapshot.w` and `packages/repository/Snapshot.w` parse canonical schema-1 snapshot YAML into caller-owned eight-word coordinate rows. Each row stores quote-free package, version, archive, and manifest ranges. Package names and lowercase 64-nybble identities are checked before publication. Rows sort first by package and then by semantic-version precedence; `1.2.0` therefore precedes `1.10.0`, numeric prerelease identifiers sort numerically, prereleases precede their stable release, and duplicate coordinates fail.
+
+The parser checks exact key order, indentation, spaces, line endings, quotes, and final consumption instead of blessing formatter-independent YAML as canonical metadata. Empty views and tables through eight releases round-trip byte for byte and pass the independent stage-0 decoder. A ninth row exhausts only the executable fixture's caller table; the library loop remains bounded at 10,000. Noncanonical spacing fails before output. Wheeler and stage 0 agree on stable and prerelease ordering, which is more useful than agreeing that strings can be alphabetized badly.
+
+The native slice does not yet compute the complete snapshot SHA-256, verify Ed25519 envelopes, apply trusted-key policy, or expose 10,000 physical rows. Those operations remain stage-0 authority until the crypto and I/O paths join the package codec.
+
 ## Wheeler-native lock slice
 
 `NativeLock.w` uses the shared scanner and name/version checks. It parses schema-3 YAML into caller-owned package columns, per-package edge windows, and a flat dependency-target table.

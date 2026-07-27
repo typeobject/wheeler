@@ -6,6 +6,7 @@ import wheeler.packages.archive;
 import wheeler.packages.emitter;
 import wheeler.packages.lock;
 import wheeler.packages.plan;
+import wheeler.packages.snapshot;
 import wheeler.packages.workspace;
 
 classical class PackageLibrary {}

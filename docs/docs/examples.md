@@ -254,6 +254,14 @@ Covers: Wheeler-native bounded submission, exact work charging, terminal complet
 
 Expected result: four operations charge 23 work units, every terminal completion is reaped exactly once, completion-won and uncertain-after-cancellation relations remain distinct, a fifth submission is rejected without publication, and the scope closes. Complete VM rewind restores the empty tables and globals.
 
+### `NativeSnapshot.w`
+
+Files: [`NativeSnapshot.w`](../../wheeler-examples/src/main/wheeler/native/packages/NativeSnapshot.w) + [`packages/repository/Snapshot.w`](../../wheeler-package/src/main/wheeler/packages/repository/Snapshot.w) + [`Semver.w`](../../wheeler-package/src/main/wheeler/packages/resolution/Semver.w).
+
+Covers: Strict schema-1 repository snapshot layout, empty snapshots, caller-owned coordinate rows, lowercase content identities, package ordering, full stable and prerelease semantic-version precedence, exact canonical republication, independent stage-0 decoding, and full VM rewind.
+
+Expected behavior: Canonical views through eight rows publish unchanged; `1.2.0` sorts before `1.10.0`, numeric prerelease identifiers are numbers rather than decorative strings, and stable releases follow their previews. A ninth fixture row or one extra space fails before publication. The parser loop admits more rows when the caller brings a larger table and enough history; neither resource is summoned by positive thinking.
+
 ### `NativeWorkspace.w`
 
 Files: [`NativeWorkspace.w`](../../wheeler-examples/src/main/wheeler/native/NativeWorkspace.w) + [`packages/workspace/Workspace.w`](../../wheeler-package/src/main/wheeler/packages/workspace/Workspace.w).
