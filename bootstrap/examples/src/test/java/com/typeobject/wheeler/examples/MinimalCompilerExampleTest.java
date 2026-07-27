@@ -23,68 +23,10 @@ import org.junit.jupiter.api.Test;
 class MinimalCompilerExampleTest {
   @Test
   void wheelerCompilesMinimalSourceToACanonicalExecutableArtifact() throws Exception {
-    String root = CompilerSources.read("MinimalCompiler.w");
-    String aggregateVerifier = Files.readString(
-        CompilerSources.path("compiler/verification/AggregateVerifier.w"));
-    String bodyParser = Files.readString(
-        CompilerSources.path("compiler/frontend/BodyParser.w"));
-    String codegen = Files.readString(CompilerSources.path("compiler/backend/Codegen.w"));
-    String encoding = Files.readString(CompilerSources.path("compiler/backend/Encoding.w"));
-    String functionVerifier = Files.readString(
-        CompilerSources.path("compiler/verification/FunctionVerifier.w"));
-    String helperParser = Files.readString(
-        CompilerSources.path("compiler/frontend/HelperParser.w"));
-    String instructionVerifier = Files.readString(
-        CompilerSources.path("compiler/verification/InstructionVerifier.w"));
-    String ir = Files.readString(CompilerSources.path("compiler/ir/Ir.w"));
-    String opcodes = Files.readString(CompilerSources.path("compiler/ir/Opcodes.w"));
-    String parser = Files.readString(CompilerSources.path("compiler/frontend/Parser.w"));
-    String proofRules = Files.readString(
-        CompilerSources.path("compiler/ir/ProofRules.w"));
-    String proofVerifier = Files.readString(
-        CompilerSources.path("compiler/verification/ProofVerifier.w"));
-    String statements = Files.readString(
-        CompilerSources.path("compiler/frontend/Statements.w"));
-    String storageVerifier = Files.readString(
-        CompilerSources.path("compiler/verification/StorageVerifier.w"));
-    String stringTable = Files.readString(
-        CompilerSources.path("compiler/backend/StringTable.w"));
-    String structure = Files.readString(
-        CompilerSources.path("compiler/frontend/Structure.w"));
-    String tokens = Files.readString(CompilerSources.path("compiler/frontend/Tokens.w"));
-    String typeCodes = Files.readString(
-        CompilerSources.path("compiler/ir/TypeCodes.w"));
-    String verifier = Files.readString(CompilerSources.path("compiler/verification/Verifier.w"));
-    String scanner = Files.readString(CompilerSources.path("lexer/Scanner.w"));
-    String sequences = Files.readString(
-        CompilerSources.path("compiler/frontend/Sequences.w"));
-    String binary = Files.readString(CoreSources.path("encoding/Binary.w"));
+    Map<String, String> writerSources = CompilerSources.minimalCompilerModules();
+    writerSources.put("Binary.w", CoreSources.read("encoding/Binary.w"));
     var writerProgram = new WheelerCompiler().compileModuleFiles(
-        Map.ofEntries(
-            Map.entry("AggregateVerifier.w", aggregateVerifier),
-            Map.entry("BodyParser.w", bodyParser),
-            Map.entry("MinimalCompiler.w", root),
-            Map.entry("Codegen.w", codegen),
-            Map.entry("Encoding.w", encoding),
-            Map.entry("FunctionVerifier.w", functionVerifier),
-            Map.entry("HelperParser.w", helperParser),
-            Map.entry("InstructionVerifier.w", instructionVerifier),
-            Map.entry("Ir.w", ir),
-            Map.entry("Opcodes.w", opcodes),
-            Map.entry("Parser.w", parser),
-            Map.entry("ProofRules.w", proofRules),
-            Map.entry("ProofVerifier.w", proofVerifier),
-            Map.entry("Scanner.w", scanner),
-            Map.entry("Sequences.w", sequences),
-            Map.entry("Statements.w", statements),
-            Map.entry("StorageVerifier.w", storageVerifier),
-            Map.entry("StringTable.w", stringTable),
-            Map.entry("Structure.w", structure),
-            Map.entry("Tokens.w", tokens),
-            Map.entry("TypeCodes.w", typeCodes),
-            Map.entry("Verifier.w", verifier),
-            Map.entry("Binary.w", binary)),
-        "wheeler.compiler.driver");
+        writerSources, "wheeler.compiler.main");
     String source =
         "classical class LongClass { state long value = 7; "
             + "entry void main() { value += 5; } }";

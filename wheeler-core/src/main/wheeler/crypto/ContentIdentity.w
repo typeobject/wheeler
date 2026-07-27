@@ -39,12 +39,23 @@ classical class ContentIdentities {
     borrow mut bytes output,
     borrow mut region arena
   ) {
+    publishSha256Range(source, 0, bufferLength(source), output, arena);
+  }
+
+  /// Computes and publishes SHA-256 over one checked input range.
+  public void publishSha256Range(
+    borrow byteview source,
+    long start,
+    long length,
+    borrow mut bytes output,
+    borrow mut region arena
+  ) {
     if (bufferLength(output) < 32) {
       long undersized = output[-1];
     }
 
     bytes digest = allocateBytes(arena, 32);
-    hashSha256(source, digest, arena);
+    hashSha256Range(source, start, length, digest, arena);
     long cursor = 0;
     while (cursor < 32) limit 32 {
       setByte(output, cursor, digest[cursor]);

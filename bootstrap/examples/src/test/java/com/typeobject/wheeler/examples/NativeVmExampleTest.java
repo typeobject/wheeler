@@ -350,7 +350,7 @@ class NativeVmExampleTest {
     assertEquals(initial, machine.snapshot());
 
     String counterSource = Files.readString(root.resolve("classical/control/Counter.w"));
-    byte[] counter = compileInWheeler(root, counterSource);
+    byte[] counter = compileInWheeler(counterSource);
     assertArrayEquals(compiler.compileToBytecode(counterSource), counter);
     VirtualMachine counterMachine = VirtualMachine.withBinaryInput(
         interpreter, counter);
@@ -702,51 +702,11 @@ class NativeVmExampleTest {
     return forged;
   }
 
-  private static byte[] compileInWheeler(Path root, String source) throws Exception {
+  private static byte[] compileInWheeler(String source) throws Exception {
+    Map<String, String> modules = CompilerSources.minimalCompilerModules();
+    modules.put("Binary.w", CoreSources.read("encoding/Binary.w"));
     Program compiler = new WheelerCompiler().compileModuleFiles(
-        Map.ofEntries(
-            Map.entry(
-                "AggregateVerifier.w",
-                CompilerSources.read("compiler/verification/AggregateVerifier.w")),
-            Map.entry(
-                "BodyParser.w",
-                CompilerSources.read("compiler/frontend/BodyParser.w")),
-            Map.entry("Codegen.w", CompilerSources.read("compiler/backend/Codegen.w")),
-            Map.entry("Encoding.w", CompilerSources.read("compiler/backend/Encoding.w")),
-            Map.entry(
-                "FunctionVerifier.w",
-                CompilerSources.read("compiler/verification/FunctionVerifier.w")),
-            Map.entry(
-                "HelperParser.w",
-                CompilerSources.read("compiler/frontend/HelperParser.w")),
-            Map.entry(
-                "InstructionVerifier.w",
-                CompilerSources.read("compiler/verification/InstructionVerifier.w")),
-            Map.entry("Ir.w", CompilerSources.read("compiler/ir/Ir.w")),
-            Map.entry(
-                "MinimalCompiler.w", CompilerSources.read("MinimalCompiler.w")),
-            Map.entry("Opcodes.w", CompilerSources.read("compiler/ir/Opcodes.w")),
-            Map.entry("Parser.w", CompilerSources.read("compiler/frontend/Parser.w")),
-            Map.entry("ProofRules.w", CompilerSources.read("compiler/ir/ProofRules.w")),
-            Map.entry(
-                "ProofVerifier.w",
-                CompilerSources.read("compiler/verification/ProofVerifier.w")),
-            Map.entry("Scanner.w", CompilerSources.read("lexer/Scanner.w")),
-            Map.entry(
-                "Sequences.w", CompilerSources.read("compiler/frontend/Sequences.w")),
-            Map.entry(
-                "Statements.w", CompilerSources.read("compiler/frontend/Statements.w")),
-            Map.entry(
-                "StorageVerifier.w",
-                CompilerSources.read("compiler/verification/StorageVerifier.w")),
-            Map.entry(
-                "StringTable.w", CompilerSources.read("compiler/backend/StringTable.w")),
-            Map.entry("Structure.w", CompilerSources.read("compiler/frontend/Structure.w")),
-            Map.entry("Tokens.w", CompilerSources.read("compiler/frontend/Tokens.w")),
-            Map.entry("TypeCodes.w", CompilerSources.read("compiler/ir/TypeCodes.w")),
-            Map.entry("Verifier.w", CompilerSources.read("compiler/verification/Verifier.w")),
-            Map.entry("Binary.w", CoreSources.read("encoding/Binary.w"))),
-        "wheeler.compiler.driver");
+        modules, "wheeler.compiler.main");
     VirtualMachine machine = new VirtualMachine(
         compiler, source.getBytes(StandardCharsets.UTF_8), 1024);
     machine.run();

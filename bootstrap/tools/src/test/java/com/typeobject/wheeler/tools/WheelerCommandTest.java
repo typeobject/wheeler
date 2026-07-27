@@ -663,9 +663,10 @@ class WheelerCommandTest {
           - kind: "deployable"
             name: "compiler"
             root: "src/MinimalCompiler.w"
-            module: "wheeler.compiler.driver"
+            module: "wheeler.compiler.main"
             sources:
               - "src/MinimalCompiler.w"
+              - "src/compiler/Driver.w"
               - "src/compiler/backend/Codegen.w"
               - "src/compiler/backend/Encoding.w"
               - "src/compiler/backend/StringTable.w"
@@ -697,6 +698,8 @@ class WheelerCommandTest {
     Path coreSources = Path.of("wheeler-core/src/main/wheeler");
     Files.copy(
         compilerSources.resolve("MinimalCompiler.w"), project.resolve("src/MinimalCompiler.w"));
+    Files.copy(
+        compilerSources.resolve("compiler/Driver.w"), project.resolve("src/compiler/Driver.w"));
     Files.copy(
         compilerSources.resolve("compiler/verification/AggregateVerifier.w"),
         project.resolve("src/compiler/verification/AggregateVerifier.w"));

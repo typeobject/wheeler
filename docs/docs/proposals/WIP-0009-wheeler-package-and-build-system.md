@@ -126,7 +126,7 @@ targets:
   - kind: "tool"
     name: "compiler"
     root: "src/main/wheeler/MinimalCompiler.w"
-    module: "wheeler.compiler.driver"
+    module: "wheeler.compiler.main"
     sources:
       - "src/main/wheeler/MinimalCompiler.w"
       - "src/main/wheeler/compiler"

@@ -7,9 +7,10 @@ targets:
   - kind: "tool"
     name: "compiler"
     root: "src/main/wheeler/MinimalCompiler.w"
-    module: "wheeler.compiler.driver"
+    module: "wheeler.compiler.main"
     sources:
       - "src/main/wheeler/MinimalCompiler.w"
+      - "src/main/wheeler/compiler/Driver.w"
       - "src/main/wheeler/compiler/backend"
       - "src/main/wheeler/compiler/frontend"
       - "src/main/wheeler/compiler/ir"

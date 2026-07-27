@@ -4,6 +4,7 @@ module wheeler.compiler.library;
 
 import wheeler.compiler.codec;
 import wheeler.compiler.codegen;
+import wheeler.compiler.driver;
 import wheeler.compiler.parser;
 import wheeler.compiler.string_table;
 import wheeler.compiler.verifier;

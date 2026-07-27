@@ -367,7 +367,7 @@ Portfolio work follows these rules:
 
 - [ ] Wheeler lexer and parser.
 - [ ] Wheeler bytecode codec and verifier:
-  - `MinimalCompiler.w` parses a bounded source file and emits the full artifact through the shared encoding module.
+  - `compiler/Driver.w` parses a bounded source file and emits the full artifact through the shared encoding module. `MinimalCompiler.w` is its thin executable wrapper, while `NativeCompilerIdentity.w` keeps output private and publishes only the verified artifact digest.
   - Source strings are sorted canonically, and section layout is derived.
   - All 504 bytes for `LongClass` with `state long value = 7` and `value += 5` match stage 0.
   - Empty and one- through sixteen-statement entry bodies also match. Helpers have the same independent bound, including the empty body. The suite covers signed and Boolean locals, assertions, one global, assignment, checked arithmetic, XOR, static helpers, reverse blocks, and generated inverse certificates.

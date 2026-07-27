@@ -229,6 +229,14 @@ Covers: Complete typed artifact verification, canonical byte-for-byte re-encodin
 
 Expected behavior: A bounded stage-0 artifact produces its exact content identity. Damaged magic and input beyond 4,096 bytes leave all 32 output bytes untouched. Hashing arbitrary bytes first and asking semantic questions later is a checksum utility, not a recovery boundary.
 
+### `NativeCompilerIdentity.w`
+
+Files: [`NativeCompilerIdentity.w`](../../wheeler-examples/src/main/wheeler/native/compiler/NativeCompilerIdentity.w) + [`compiler/Driver.w`](../../wheeler-compiler/src/main/wheeler/compiler/Driver.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
+
+Covers: The importable Wheeler compiler driver, private canonical `.wbc` output, native verification, ranged SHA-256 publication, stage-0 differential compiler output identity, malformed-source rejection, and exact rewind.
+
+Expected behavior: One bounded Wheeler source produces the SHA-256 of the byte-identical stage-0 artifact without exposing private artifact storage. An unresolved operand or source beyond 4,096 bytes publishes no identity. The executable compiler wrapper and the importable driver use one implementation; forks are useful for eating, not for bootstrap logic.
+
 ### `NativeVerifier.w`
 
 Files: [`NativeVerifier.w`](../../wheeler-examples/src/main/wheeler/native/NativeVerifier.w) + [`compiler/verification/Verifier.w`](../../wheeler-compiler/src/main/wheeler/compiler/verification/Verifier.w) + [`compiler/verification/FunctionVerifier.w`](../../wheeler-compiler/src/main/wheeler/compiler/verification/FunctionVerifier.w) + [`compiler/verification/InstructionVerifier.w`](../../wheeler-compiler/src/main/wheeler/compiler/verification/InstructionVerifier.w) + [`compiler/verification/ProofVerifier.w`](../../wheeler-compiler/src/main/wheeler/compiler/verification/ProofVerifier.w).
