@@ -52,7 +52,7 @@ class MinimalCompilerExampleTest {
             Map.of("ModuleSubject.w", moduleSource), "examples.seed")),
         moduleWriter.hostOutput());
     String helperModuleSource = "module examples.seed; classical class ModuleHelper { "
-        + "state long value = 1; public void bump() { value += 2; } "
+        + "state long value = 1; private void bump() { value += 2; } "
         + "entry void main() { bump(); assert(value == 3); } }";
     VirtualMachine helperModuleWriter = new VirtualMachine(
         writerProgram, helperModuleSource.getBytes(StandardCharsets.UTF_8), 1024);
@@ -484,6 +484,15 @@ class MinimalCompilerExampleTest {
         1024);
     assertThrows(VmTrap.class, duplicateHelperVisibility::run);
     assertArrayEquals(new byte[1024], duplicateHelperVisibility.hostOutput());
+    VirtualMachine duplicatePrivateVisibility = new VirtualMachine(
+        writerProgram,
+        ("classical class DuplicatePrivateVisibility { state long value = 0; "
+            + "private private void setup() { value += 1; } "
+            + "entry void main() { setup(); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        1024);
+    assertThrows(VmTrap.class, duplicatePrivateVisibility::run);
+    assertArrayEquals(new byte[1024], duplicatePrivateVisibility.hostOutput());
 
     VirtualMachine irreversibleHelper = new VirtualMachine(
         writerProgram,

@@ -233,6 +233,23 @@ classical class Parser {
     return false;
   }
 
+  private boolean helperDeclarationStarts(long token) {
+    boolean starts = token == TOKEN_VOID;
+    if (token == TOKEN_REV) {
+      starts = true;
+    }
+
+    if (token == TOKEN_PUBLIC) {
+      starts = true;
+    }
+
+    if (token == TOKEN_PRIVATE) {
+      starts = true;
+    }
+
+    return starts;
+  }
+
   /// Parses `minimalProgram` from a bounded canonical input.
   public MinimalProgramResult parseMinimalProgram(
     borrow utf8 source,
@@ -265,29 +282,7 @@ classical class Parser {
       long firstMember = minimalEntryStart(source, tokenKinds, tokenStarts, tokenLengths);
       if (0 < firstMember) {
         long firstMemberHash = tokenHash(source, tokenStarts, tokenLengths, firstMember);
-        if (firstMemberHash == TOKEN_VOID) {
-          return parseHelperProgram(
-            source,
-            tokenKinds,
-            tokenStarts,
-            tokenLengths,
-            statementStarts,
-            count
-          );
-        }
-
-        if (firstMemberHash == TOKEN_REV) {
-          return parseHelperProgram(
-            source,
-            tokenKinds,
-            tokenStarts,
-            tokenLengths,
-            statementStarts,
-            count
-          );
-        }
-
-        if (firstMemberHash == TOKEN_PUBLIC) {
+        if (helperDeclarationStarts(firstMemberHash)) {
           return parseHelperProgram(
             source,
             tokenKinds,

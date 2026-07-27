@@ -12,6 +12,8 @@ classical class Tokens {
   public const long TOKEN_MODULE = 3226183276;
   /// Names the stable token hash for `public`.
   public const long TOKEN_PUBLIC = 3317543529;
+  /// Names the stable token hash for `private`.
+  public const long TOKEN_PRIVATE = 102764717443;
   /// Names the stable token hash for `classical`.
   public const long TOKEN_CLASSICAL = 87497064671293;
   /// Names the stable token hash for `class`.
