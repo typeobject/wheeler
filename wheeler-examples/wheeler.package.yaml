@@ -213,6 +213,14 @@ targets:
       - "src/main/wheeler/native/packages/NativeSnapshotIdentity.w"
     test: false
   - kind: "deployable"
+    name: "nativetoolchainidentity"
+    root: "src/main/wheeler/native/bootstrap/NativeToolchainIdentity.w"
+    module: "examples.bootstrap.toolchain_identity"
+    sources:
+      - "src/main/wheeler/native/bootstrap/BootstrapSyntax.w"
+      - "src/main/wheeler/native/bootstrap/NativeToolchainIdentity.w"
+    test: false
+  - kind: "deployable"
     name: "nativeverifier"
     root: "src/main/wheeler/native/NativeVerifier.w"
     module: "examples.compiler.native_verifier"

@@ -23,12 +23,16 @@ public final class BootstrapToolchainParser {
         CanonicalYaml.required(root, "toolchain", "toolchain provenance"),
         "toolchain provenance.toolchain");
     CanonicalYaml.fields(toolchain, TOOLCHAIN_FIELDS, "toolchain provenance.toolchain");
-    return new BootstrapToolchain(
+    BootstrapToolchain provenance = new BootstrapToolchain(
         BootstrapToolchain.Kind.fromKeyword(string(toolchain, "kind")),
         string(toolchain, "source"),
         string(toolchain, "builder"),
         string(toolchain, "dependencies"),
         string(toolchain, "environment"));
+    if (!text.equals(provenance.canonicalText())) {
+      throw new PackageFormatException("Toolchain provenance is not canonical");
+    }
+    return provenance;
   }
 
   private static String string(CanonicalYaml.Mapping toolchain, String name) {

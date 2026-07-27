@@ -202,7 +202,7 @@ toolchain:
   environment: "<sha256>"
 ```
 
-`kind` is `recovery-seed`, `independent-stage0`, or `host-source`. The other fields bind the reviewed toolchain source, its builder, its closed dependency set, and its normalized build environment.
+`kind` is `recovery-seed`, `independent-stage0`, or `host-source`. The other fields bind the reviewed toolchain source, its builder, its closed dependency set, and its normalized build environment. `NativeToolchainIdentity.w` accepts only that exact field order, canonical quoted spelling, four lowercase SHA-256 values, and a final LF within its 512-byte budget. The stage-0 parser applies the same canonical-byte check; a map with the right facts in a different order is not the file named by the digest.
 
 The kind is only an audit category. Promotion still requires distinct full provenance and compiler identities, plus a review that confirms the two derivations are truly independent.
 

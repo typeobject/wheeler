@@ -171,6 +171,14 @@ Covers: Exact schema-1 canonical YAML, bounded canonical profile names, both sou
 
 Expected behavior: `bootstrap-1` without source maps and `native.test_2` with source maps reproduce stage-0 identities. A leading punctuation profile, unknown Boolean, stray space, or input beyond 256 bytes publishes nothing. Compiler options affect source identity; treating them as command-line ambiance is how reproducible builds acquire folklore.
 
+### `NativeToolchainIdentity.w`
+
+Files: [`NativeToolchainIdentity.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/NativeToolchainIdentity.w) + [`BootstrapSyntax.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/BootstrapSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
+
+Covers: Exact schema-1 canonical YAML, all three closed toolchain kinds, four lowercase SHA-256 provenance identities, complete publication, and exact rewind.
+
+Expected behavior: Recovery-seed, independent-stage-0, and host-source records reproduce the stage-0 identity of their accepted bytes. An invented kind, uppercase digest, reordered field, missing final LF, or input beyond 512 bytes publishes nothing. Calling a compiler "independent" is evidence only that the typist found the word.
+
 ### `NativeArchive.w`
 
 Files: [`NativeArchive.w`](../../wheeler-examples/src/main/wheeler/native/NativeArchive.w) + [`packages/archive/Archive.w`](../../wheeler-package/src/main/wheeler/packages/archive/Archive.w).

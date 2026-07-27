@@ -35,6 +35,13 @@ final class BootstrapConfigurationTest {
 
     assertEquals(toolchain, new BootstrapToolchainParser().parse(toolchain.canonicalBytes()));
     assertEquals(64, toolchain.identity().length());
+    String reordered = toolchain.canonicalText().replace(
+        "  source: \"" + "00".repeat(32) + "\"\n"
+            + "  builder: \"" + "11".repeat(32) + "\"\n",
+        "  builder: \"" + "11".repeat(32) + "\"\n"
+            + "  source: \"" + "00".repeat(32) + "\"\n");
+    assertThrows(PackageFormatException.class, () ->
+        new BootstrapToolchainParser().parse(reordered.getBytes(StandardCharsets.UTF_8)));
   }
 
   @Test

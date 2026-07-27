@@ -27,6 +27,35 @@ classical class BootstrapSyntax {
     return cursor + length;
   }
 
+  /// Consumes one quoted lowercase SHA-256 identity.
+  public long consumeQuotedIdentity(
+    borrow byteview source,
+    long cursor,
+    borrow mut bytes expected
+  ) {
+    requireMetadata(cursor + 66 < bufferLength(source) + 1, source);
+    setByte(expected, 0, 34);
+    requireMetadata(source[cursor] == expected[0], source);
+    long index = 0;
+    while (index < 64) limit 64 {
+      long scalar = source[cursor + index + 1];
+      boolean valid = 47 < scalar;
+      if (57 < scalar) {
+        valid = false;
+      }
+
+      if (96 < scalar) {
+        valid = scalar < 103;
+      }
+
+      requireMetadata(valid, source);
+      index += 1;
+    }
+
+    requireMetadata(source[cursor + 65] == expected[0], source);
+    return cursor + 66;
+  }
+
   /// Checks one canonical bootstrap profile byte.
   public boolean profileByte(long scalar, boolean first) {
     boolean valid = 47 < scalar;
