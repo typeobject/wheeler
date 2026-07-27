@@ -168,6 +168,12 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_LONG_DIV_LOCALS_BASE = 7168;
   /// Starts resolved remainder declarations over two prior locals.
   public const long STATEMENT_LOCAL_LONG_MOD_LOCALS_BASE = 7424;
+  /// Names an unresolved equality assertion over two prior locals.
+  public const long STATEMENT_ASSERT_LOCAL_PAIR_NAMED = 796;
+  /// Starts resolved equality assertions over prior signed locals.
+  public const long STATEMENT_ASSERT_LONG_PAIR_BASE = 7680;
+  /// Starts resolved equality assertions over prior Boolean locals.
+  public const long STATEMENT_ASSERT_BOOLEAN_PAIR_BASE = 7936;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -322,6 +328,11 @@ classical class Tokens {
         if (sameTokenText(source, tokenStarts, tokenLengths, 6, assertExpression)) {
           return STATEMENT_ASSERT_EQ;
         }
+      }
+
+      long assertedRight = utf8Scalar(source, tokenStarts[statementStart + 5]);
+      if (identifierStart(assertedRight)) {
+        return STATEMENT_ASSERT_LOCAL_PAIR_NAMED;
       }
 
       return STATEMENT_ASSERT_NAMED_LONG;

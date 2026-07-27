@@ -68,6 +68,33 @@ classical class LocalOpcodes {
     return opcode == STATEMENT_IF_LOCAL_XOR_NAMED;
   }
 
+  /// Checks whether an opcode carries a resolved two-local equality assertion.
+  public boolean resolvedLocalPairAssertion(long opcode) {
+    if (opcode < STATEMENT_ASSERT_LONG_PAIR_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_ASSERT_BOOLEAN_PAIR_BASE + 256;
+  }
+
+  /// Reports whether a resolved two-local assertion compares signed values.
+  public boolean resolvedLocalPairAssertionSigned(long opcode) {
+    if (opcode < STATEMENT_ASSERT_LONG_PAIR_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_ASSERT_BOOLEAN_PAIR_BASE;
+  }
+
+  /// Returns the left source carried by a resolved two-local assertion.
+  public long resolvedLocalPairAssertionSource(long opcode) {
+    if (resolvedLocalPairAssertionSigned(opcode)) {
+      return opcode - STATEMENT_ASSERT_LONG_PAIR_BASE;
+    }
+
+    return opcode - STATEMENT_ASSERT_BOOLEAN_PAIR_BASE;
+  }
+
   /// Checks whether an opcode carries one resolved signed-local identity.
   public boolean resolvedLocalLongAssertion(long opcode) {
     if (opcode < STATEMENT_ASSERT_LOCAL_LONG_BASE) {
@@ -244,6 +271,14 @@ classical class LocalOpcodes {
 
   /// Returns the typed-local width required by one parsed statement.
   public long statementLocalCount(long opcode) {
+    if (resolvedLocalPairAssertion(opcode)) {
+      return 3;
+    }
+
+    if (opcode == STATEMENT_ASSERT_LOCAL_PAIR_NAMED) {
+      return 3;
+    }
+
     if (resolvedLocalConditional(opcode)) {
       return 3;
     }

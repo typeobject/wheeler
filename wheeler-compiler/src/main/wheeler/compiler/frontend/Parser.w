@@ -172,6 +172,10 @@ classical class Parser {
       supported = true;
     }
 
+    if (opcode == STATEMENT_ASSERT_LOCAL_PAIR_NAMED) {
+      supported = true;
+    }
+
     return supported;
   }
 

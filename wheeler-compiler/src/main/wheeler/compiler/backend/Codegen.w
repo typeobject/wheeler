@@ -32,6 +32,27 @@ classical class Codegen {
     return writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
   }
 
+  private long writeLocalPairAssertion(
+    borrow mut bytes output,
+    long cursor,
+    long leftLocal,
+    long rightLocal,
+    long localBase
+  ) {
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
+    cursor = writeUnsignedLittleEndian(output, cursor, leftLocal, 8);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
+    cursor = writeUnsignedLittleEndian(output, cursor, rightLocal, 8);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_EQ, 3);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_EXPECT_TRUE, 1);
+    return writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
+  }
+
   /// Maps a parsed global update to its canonical bytecode opcode.
   public long globalOpcode(long opcode) {
     if (opcode == STATEMENT_UPDATE_ADD) {
@@ -61,6 +82,17 @@ classical class Codegen {
   /// Writes canonical local type codes for one parsed statement.
   public long writeStatementLocalTypes(borrow mut bytes output, long cursor, long opcode) {
     long count = statementLocalCount(opcode);
+    if (resolvedLocalPairAssertion(opcode)) {
+      long assertedType = TYPE_BOOLEAN;
+      if (resolvedLocalPairAssertionSigned(opcode)) {
+        assertedType = TYPE_SIGNED;
+      }
+
+      cursor = writeUnsignedLittleEndian(output, cursor, assertedType, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, assertedType, 4);
+      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+    }
+
     if (resolvedLocalConditional(opcode)) {
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
@@ -134,6 +166,10 @@ classical class Codegen {
 
   /// Returns the encoded byte width of one parsed statement.
   public long statementCodeLength(long opcode) {
+    if (resolvedLocalPairAssertion(opcode)) {
+      return 96;
+    }
+
     if (resolvedLocalConditional(opcode)) {
       return 168;
     }
@@ -268,6 +304,16 @@ classical class Codegen {
     long localBase,
     long instructionBase
   ) {
+    if (resolvedLocalPairAssertion(opcode)) {
+      return writeLocalPairAssertion(
+        output,
+        cursor,
+        resolvedLocalPairAssertionSource(opcode),
+        operand,
+        localBase
+      );
+    }
+
     if (resolvedLocalConditional(opcode)) {
       long conditionLocal = resolvedLocalConditionalSource(opcode);
       long conditionalOpcode = OPCODE_LOCAL_ADD;

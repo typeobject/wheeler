@@ -121,6 +121,40 @@ classical class LocalStatements {
       return -1;
     }
 
+    if (opcode == STATEMENT_ASSERT_LOCAL_PAIR_NAMED) {
+      long pairAssertionSignedLeft = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 2,
+        true
+      );
+      long pairAssertionBooleanLeft = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 2,
+        false
+      );
+      if (-1 < pairAssertionSignedLeft) {
+        if (pairAssertionBooleanLeft < 0) {
+          return STATEMENT_ASSERT_LONG_PAIR_BASE + pairAssertionSignedLeft;
+        }
+      }
+
+      if (-1 < pairAssertionBooleanLeft) {
+        if (pairAssertionSignedLeft < 0) {
+          return STATEMENT_ASSERT_BOOLEAN_PAIR_BASE + pairAssertionBooleanLeft;
+        }
+      }
+
+      return -1;
+    }
+
     if (opcode == STATEMENT_LOCAL_LONG_NAMED) {
       long sourceLocal = resolvePriorDeclaration(
         source,
@@ -350,6 +384,10 @@ classical class LocalStatements {
       return -1 < operand;
     }
 
+    if (resolvedLocalPairAssertion(opcode)) {
+      return -1 < operand;
+    }
+
     return true;
   }
 
@@ -363,6 +401,58 @@ classical class LocalStatements {
     long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (opcode == STATEMENT_ASSERT_LOCAL_PAIR_NAMED) {
+      long assertionSignedLeft = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 2,
+        true
+      );
+      long assertionSignedRight = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 5,
+        true
+      );
+      if (-1 < assertionSignedLeft) {
+        if (-1 < assertionSignedRight) {
+          return assertionSignedRight;
+        }
+      }
+
+      long assertionBooleanLeft = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 2,
+        false
+      );
+      long assertionBooleanRight = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 5,
+        false
+      );
+      if (-1 < assertionBooleanLeft) {
+        if (-1 < assertionBooleanRight) {
+          return assertionBooleanRight;
+        }
+      }
+
+      return -1;
+    }
+
     if (opcode == STATEMENT_LOCAL_LONG_LT_NAMED) {
       return resolvePriorDeclaration(
         source,
