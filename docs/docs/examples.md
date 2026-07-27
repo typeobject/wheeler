@@ -155,6 +155,14 @@ Covers: Exact schema-1 canonical YAML, the complete ordered seventeen-feature `b
 
 Expected behavior: The stage-0 feature manifest reproduces its identity. A renamed feature, changed version, missing final feature, or input beyond 2,048 bytes publishes nothing. A bootstrap feature list is closed evidence, not a buffet where the compiler leaves unsupported vegetables on the plate.
 
+### `NativeBootstrapManifestIdentity.w`
+
+Files: [`NativeBootstrapManifestIdentity.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/NativeBootstrapManifestIdentity.w) + [`BootstrapSyntax.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/BootstrapSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
+
+Covers: Exact schema-2 canonical recovery YAML, twenty-one lowercase identities, bounded profile syntax, stage-1/stage-2 equality, diverse-output and diagnostic equality, genuinely distinct toolchain/compiler identities, complete SHA-256 publication, and exact rewind.
+
+Expected behavior: Complete fixed-point and diverse-compilation evidence reproduces the stage-0 manifest identity. A false fixed point, mismatched diverse output, shared alleged-independent toolchain or compiler, reordered field, or input beyond 2,048 bytes publishes nothing. The validator checks evidence relationships; it does not award independence points for wearing a false moustache.
+
 ### `NativeCompilerLimitsIdentity.w`
 
 Files: [`NativeCompilerLimitsIdentity.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/NativeCompilerLimitsIdentity.w) + [`BootstrapSyntax.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/BootstrapSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).

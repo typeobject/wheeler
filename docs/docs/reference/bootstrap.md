@@ -254,6 +254,8 @@ ordinary.toolchain != diverse.toolchain
 ordinary.compiler != diverse.compiler
 ```
 
+`NativeBootstrapManifestIdentity.w` applies the exact schema-2 field order, validates all twenty-one identities and the bounded source profile, enforces these five relationships, consumes the final LF, and only then publishes SHA-256. Its 2,048-byte ceiling is enough for the sole canonical form. Stage 0 now makes the same canonical-byte comparison; a permissive YAML parse is not provenance, however politely indented.
+
 These checks are required for promotion, but they do not prove that source and output match by themselves. The trust case also depends on review, reproducible host builds, the strict verifier, source comparison, fixed-point evidence, and independent derivation.
 
 ## Publication and retention

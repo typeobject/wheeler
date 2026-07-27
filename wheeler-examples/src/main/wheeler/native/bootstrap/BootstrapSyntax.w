@@ -35,7 +35,7 @@ classical class BootstrapSyntax {
   ) {
     requireMetadata(cursor + 66 < bufferLength(source) + 1, source);
     setByte(expected, 0, 34);
-    requireMetadata(source[cursor] == expected[0], source);
+    boolean accepted = source[cursor] == expected[0];
     long index = 0;
     while (index < 64) limit 64 {
       long scalar = source[cursor + index + 1];
@@ -48,11 +48,18 @@ classical class BootstrapSyntax {
         valid = scalar < 103;
       }
 
-      requireMetadata(valid, source);
+      if (valid == false) {
+        accepted = false;
+      }
+
       index += 1;
     }
 
-    requireMetadata(source[cursor + 65] == expected[0], source);
+    if ((source[cursor + 65] == expected[0]) == false) {
+      accepted = false;
+    }
+
+    requireMetadata(accepted, source);
     return cursor + 66;
   }
 

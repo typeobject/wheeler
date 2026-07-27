@@ -38,7 +38,7 @@ public final class BootstrapManifestParser {
     CanonicalYaml.fields(diverse, DIVERSE_FIELDS, "bootstrap manifest.diverse");
     CanonicalYaml.fields(acceptance, ACCEPTANCE_FIELDS, "bootstrap manifest.acceptance");
 
-    return new BootstrapManifest(
+    BootstrapManifest manifest = new BootstrapManifest(
         new Source(
             string(source, "archive"),
             string(source, "manifest"),
@@ -64,6 +64,10 @@ public final class BootstrapManifestParser {
             string(diverse, "output"),
             string(diverse, "diagnostics")),
         string(acceptance, "artifact-set"));
+    if (!text.equals(manifest.canonicalText())) {
+      throw new PackageFormatException("Bootstrap manifest is not canonical");
+    }
+    return manifest;
   }
 
   private static CanonicalYaml.Mapping child(CanonicalYaml.Mapping parent, String name) {

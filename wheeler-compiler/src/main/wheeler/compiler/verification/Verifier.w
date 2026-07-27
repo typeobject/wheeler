@@ -429,7 +429,7 @@ classical class Verifier {
       return 0;
     }
 
-    if (differs(readUnsigned(artifact, manifestOffset + 8, 4), 250000)) {
+    if (differs(readUnsigned(artifact, manifestOffset + 8, 4), 1000000)) {
       return 0;
     }
 

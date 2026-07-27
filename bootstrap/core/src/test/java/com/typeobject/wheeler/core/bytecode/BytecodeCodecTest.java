@@ -38,7 +38,7 @@ class BytecodeCodecTest {
     String digest = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(artifact));
 
     assertEquals(616, artifact.length);
-    assertEquals("7ccc3837b9ba3582be64f63d8f613407496abb151fe1d5e992e8549a71cb7b51", digest);
+    assertEquals("82da5348fc54dfa3136eef815918a81d48d41e326f1a1e78c210dd61bf761774", digest);
   }
 
   @Test

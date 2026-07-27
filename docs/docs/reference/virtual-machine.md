@@ -20,7 +20,7 @@ The machine owns:
 
 Raw host pointers and masked segmented addresses are not machine values.
 
-Source compilation currently writes limits of 1,000,000 steps and 250,000 retained history records. The VM traps before another mutation when either limit is exhausted. These defaults allow bounded compiler and package work without adding a commit horizon. An artifact or embedding host may choose lower verified limits.
+Source compilation currently writes equal limits of 1,000,000 steps and 1,000,000 retained history records. The VM traps before another mutation when either limit is exhausted. The history budget can therefore retain every transition permitted by the default step budget; hashing a bootstrap manifest no longer falls through a trapdoor three quarters of the way to the advertised ceiling. These defaults allow bounded compiler and package work without adding a commit horizon. An artifact or embedding host may choose lower verified limits.
 
 A classical entry may borrow one strict UTF-8 input, one immutable binary `byteview`, one mutable byte output, or one input followed by the output. VM construction requires the exact declared effects and an explicit text or binary binding API.
 

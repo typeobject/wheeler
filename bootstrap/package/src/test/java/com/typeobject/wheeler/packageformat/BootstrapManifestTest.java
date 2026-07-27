@@ -63,6 +63,11 @@ final class BootstrapManifestTest {
         new BootstrapManifestParser().parse(unknown.getBytes(StandardCharsets.UTF_8)));
     assertThrows(PackageFormatException.class, () ->
         new Source("ABC", B, C, "bootstrap-1", D, E, F, A));
+    String reordered = manifest().canonicalText().replace(
+        "  archive: \"" + A + "\"\n  manifest: \"" + B + "\"\n",
+        "  manifest: \"" + B + "\"\n  archive: \"" + A + "\"\n");
+    assertThrows(PackageFormatException.class, () ->
+        new BootstrapManifestParser().parse(reordered.getBytes(StandardCharsets.UTF_8)));
   }
 
   private static BootstrapManifest manifest() {
