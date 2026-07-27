@@ -6,6 +6,11 @@ import examples.bootstrap.syntax;
 import wheeler.crypto.content_identity;
 
 classical class NativeBootstrapModulesIdentity {
+  private const long MAX_LOCAL_MODULES = 16;
+  private const long MAX_EXTERNAL_MODULES = 16;
+  private const long MAX_IMPORTS_PER_MODULE = 16;
+  private const long MAX_IMPORTS = 64;
+
   state long moduleCount = 0;
   state long externalCount = 0;
   state long importCount = 0;
@@ -185,7 +190,7 @@ classical class NativeBootstrapModulesIdentity {
   ) {
     boolean found = false;
     long index = 0;
-    while (index < count) limit 4 {
+    while (index < count) limit MAX_LOCAL_MODULES {
       if (
         sameText(source, starts[index], lengths[index], candidate, candidateLength)
       ) {
@@ -228,7 +233,7 @@ classical class NativeBootstrapModulesIdentity {
   ) {
     long found = -1;
     long index = 0;
-    while (index < count) limit 4 {
+    while (index < count) limit MAX_LOCAL_MODULES {
       if (
         sameText(source, starts[index], lengths[index], candidate, candidateLength)
       ) {
@@ -241,24 +246,24 @@ classical class NativeBootstrapModulesIdentity {
     return found;
   }
 
-  /// Publishes SHA-256 for up to four rooted modules and four externals.
+  /// Publishes SHA-256 for up to sixteen rooted modules and sixteen externals.
   ///
   /// - Effects: Mutates fixture state and caller-owned identity output.
   entry void main(borrow byteview source, borrow mut bytes identity) {
-    requireMetadata(bufferLength(source) < 2049, source);
+    requireMetadata(bufferLength(source) < 4097, source);
     requireMetadata(31 < bufferLength(identity), source);
-    region arena = new region(2600, 20);
+    region arena = new region(6500, 20);
     bytes expected = allocateBytes(arena, 256);
-    words externalStarts = allocate(arena, 4);
-    words externalLengths = allocate(arena, 4);
-    words moduleStarts = allocate(arena, 4);
-    words moduleLengths = allocate(arena, 4);
-    words sourceStarts = allocate(arena, 4);
-    words sourceLengths = allocate(arena, 4);
-    words edgeOwners = allocate(arena, 16);
-    words edgeStarts = allocate(arena, 16);
-    words edgeLengths = allocate(arena, 16);
-    words adjacency = allocate(arena, 16);
+    words externalStarts = allocate(arena, MAX_EXTERNAL_MODULES);
+    words externalLengths = allocate(arena, MAX_EXTERNAL_MODULES);
+    words moduleStarts = allocate(arena, MAX_LOCAL_MODULES);
+    words moduleLengths = allocate(arena, MAX_LOCAL_MODULES);
+    words sourceStarts = allocate(arena, MAX_LOCAL_MODULES);
+    words sourceLengths = allocate(arena, MAX_LOCAL_MODULES);
+    words edgeOwners = allocate(arena, MAX_IMPORTS);
+    words edgeStarts = allocate(arena, MAX_IMPORTS);
+    words edgeLengths = allocate(arena, MAX_IMPORTS);
+    words adjacency = allocate(arena, MAX_LOCAL_MODULES * MAX_LOCAL_MODULES);
 
     writeAscii(expected, 0, "schema: 1");
     setByte(expected, 9, 10);
@@ -302,8 +307,8 @@ classical class NativeBootstrapModulesIdentity {
       setByte(expected, 5, 34);
       cursor = consumeMetadata(source, cursor, expected, 6);
       boolean moreExternals = true;
-      while (moreExternals) limit 4 {
-        requireMetadata(parsedExternals < 4, source);
+      while (moreExternals) limit MAX_EXTERNAL_MODULES {
+        requireMetadata(parsedExternals < MAX_EXTERNAL_MODULES, source);
         long nameStart = cursor;
         cursor = consumeModuleName(source, cursor);
         long nameLength = cursor - nameStart;
@@ -347,8 +352,8 @@ classical class NativeBootstrapModulesIdentity {
     long parsedModules = 0;
     long parsedImports = 0;
     boolean moreModules = true;
-    while (moreModules) limit 4 {
-      requireMetadata(parsedModules < 4, source);
+    while (moreModules) limit MAX_LOCAL_MODULES {
+      requireMetadata(parsedModules < MAX_LOCAL_MODULES, source);
       long moduleStart = cursor;
       cursor = consumeModuleName(source, cursor);
       long moduleLength = cursor - moduleStart;
@@ -377,7 +382,7 @@ classical class NativeBootstrapModulesIdentity {
       cursor = consumeSourcePath(source, cursor);
       long sourceLength = cursor - sourceStart;
       long previousSource = 0;
-      while (previousSource < parsedModules) limit 4 {
+      while (previousSource < parsedModules) limit MAX_LOCAL_MODULES {
         requireMetadata(
           samePath(
             source,
@@ -414,9 +419,9 @@ classical class NativeBootstrapModulesIdentity {
         setByte(expected, 9, 34);
         cursor = consumeMetadata(source, cursor, expected, 10);
         boolean moreImports = true;
-        while (moreImports) limit 4 {
-          requireMetadata(moduleImportCount < 4, source);
-          requireMetadata(parsedImports < 16, source);
+        while (moreImports) limit MAX_IMPORTS_PER_MODULE {
+          requireMetadata(moduleImportCount < MAX_IMPORTS_PER_MODULE, source);
+          requireMetadata(parsedImports < MAX_IMPORTS, source);
           long importStart = cursor;
           cursor = consumeModuleName(source, cursor);
           long importLength = cursor - importStart;
@@ -474,7 +479,7 @@ classical class NativeBootstrapModulesIdentity {
     );
     requireMetadata(-1 < rootModule, source);
     long external = 0;
-    while (external < parsedExternals) limit 4 {
+    while (external < parsedExternals) limit MAX_EXTERNAL_MODULES {
       requireMetadata(
         listedIndex(
           source,
@@ -490,7 +495,7 @@ classical class NativeBootstrapModulesIdentity {
     }
 
     long edge = 0;
-    while (edge < parsedImports) limit 16 {
+    while (edge < parsedImports) limit MAX_IMPORTS {
       long localTarget = listedIndex(
         source,
         moduleStarts,
@@ -514,21 +519,21 @@ classical class NativeBootstrapModulesIdentity {
       requireMetadata(resolved, source);
       if (-1 < localTarget) {
         requireMetadata((localTarget == edgeOwners[edge]) == false, source);
-        set(adjacency, edgeOwners[edge] * 4 + localTarget, 1);
+        set(adjacency, edgeOwners[edge] * MAX_LOCAL_MODULES + localTarget, 1);
       }
 
       edge += 1;
     }
 
     long bridge = 0;
-    while (bridge < parsedModules) limit 4 {
+    while (bridge < parsedModules) limit MAX_LOCAL_MODULES {
       long fromModule = 0;
-      while (fromModule < parsedModules) limit 4 {
-        if (adjacency[fromModule * 4 + bridge] == 1) {
+      while (fromModule < parsedModules) limit MAX_LOCAL_MODULES {
+        if (adjacency[fromModule * MAX_LOCAL_MODULES + bridge] == 1) {
           long toModule = 0;
-          while (toModule < parsedModules) limit 4 {
-            if (adjacency[bridge * 4 + toModule] == 1) {
-              set(adjacency, fromModule * 4 + toModule, 1);
+          while (toModule < parsedModules) limit MAX_LOCAL_MODULES {
+            if (adjacency[bridge * MAX_LOCAL_MODULES + toModule] == 1) {
+              set(adjacency, fromModule * MAX_LOCAL_MODULES + toModule, 1);
             }
 
             toModule += 1;
@@ -542,10 +547,10 @@ classical class NativeBootstrapModulesIdentity {
     }
 
     long reached = 0;
-    while (reached < parsedModules) limit 4 {
-      requireMetadata(adjacency[reached * 4 + reached] == 0, source);
+    while (reached < parsedModules) limit MAX_LOCAL_MODULES {
+      requireMetadata(adjacency[reached * MAX_LOCAL_MODULES + reached] == 0, source);
       if ((reached == rootModule) == false) {
-        requireMetadata(adjacency[rootModule * 4 + reached] == 1, source);
+        requireMetadata(adjacency[rootModule * MAX_LOCAL_MODULES + reached] == 1, source);
       }
 
       reached += 1;

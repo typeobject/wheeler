@@ -167,9 +167,9 @@ Expected behavior: Complete fixed-point and diverse-compilation evidence reprodu
 
 Files: [`NativeBootstrapModulesIdentity.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/NativeBootstrapModulesIdentity.w) + [`BootstrapSyntax.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/BootstrapSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
 
-Covers: One through four sorted local source modules, zero through four externals, sixteen total imports, unique paths, complete binding, rooted reachability, cycle rejection, bounded names and paths, lowercase source identities, exact schema bytes, SHA-256 publication, and rewind.
+Covers: One through sixteen sorted local source modules, zero through sixteen externals, sixty-four total imports, unique paths, complete binding, rooted reachability, cycle rejection, bounded names and paths, lowercase source identities, exact schema bytes, SHA-256 publication, and rewind.
 
-Expected behavior: Empty-import one-module, two-external one-module, and three-module rooted DAG closures reproduce stage 0. A cycle, unreachable module, duplicate path, fifth module, unsorted external, unbound import, mismatched root, uppercase digest, traversal path, or input beyond 2,048 bytes publishes nothing. Four is deliberately smaller than the 10,000-module schema; pretending otherwise would merely give the graph a fake moustache too.
+Expected behavior: Empty-import one-module, two-external one-module, and three-, five-, and nine-module rooted DAG closures reproduce stage 0. A cycle, unreachable module, duplicate path, seventeenth module, unsorted external, unbound import, mismatched root, uppercase digest, traversal path, or input beyond 4,096 bytes publishes nothing. Sixteen is deliberately smaller than the 10,000-module schema; pretending otherwise would merely give the graph a fake moustache too.
 
 ### `NativeCompilerLimitsIdentity.w`
 

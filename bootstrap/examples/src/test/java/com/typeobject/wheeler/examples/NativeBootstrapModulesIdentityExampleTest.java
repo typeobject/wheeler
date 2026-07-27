@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -88,10 +89,14 @@ final class NativeBootstrapModulesIdentityExampleTest {
             new Module("bootstrap.m2", "src/M2.w", "12".repeat(32), List.of()),
             new Module("bootstrap.m3", "src/M3.w", "13".repeat(32), List.of()),
             new Module("bootstrap.m4", "src/M4.w", "14".repeat(32), List.of())));
-    assertNoIdentity(program, fiveModules.canonicalBytes());
+    assertIdentity(program, fiveModules, 5, 0, 4, false);
+    BootstrapModuleManifest nineModules = generatedGraph(9);
+    assertIdentity(program, nineModules, 9, 0, 8, false);
+    BootstrapModuleManifest seventeenModules = generatedGraph(17);
+    assertNoIdentity(program, seventeenModules.canonicalBytes());
 
     String text = imported.canonicalText();
-    assertNoIdentity(program, new byte[2_049]);
+    assertNoIdentity(program, new byte[4_097]);
     assertNoIdentity(program, text.replace(
         "  - \"wheeler.core\"\n  - \"wheeler.runtime\"",
         "  - \"wheeler.runtime\"\n  - \"wheeler.core\"")
@@ -104,6 +109,23 @@ final class NativeBootstrapModulesIdentityExampleTest {
         .getBytes(StandardCharsets.UTF_8));
     assertNoIdentity(program, text.replace("Compiler.w", "../Compiler.w")
         .getBytes(StandardCharsets.UTF_8));
+  }
+
+  private static BootstrapModuleManifest generatedGraph(int count) {
+    List<String> rootImports = new ArrayList<>();
+    List<Module> rows = new ArrayList<>();
+    for (int index = 1; index < count; index++) {
+      rootImports.add("bootstrap.m" + index);
+    }
+    for (int index = 0; index < count; index++) {
+      rows.add(new Module(
+          "bootstrap.m" + index,
+          "src/M" + index + ".w",
+          "%02x".formatted(32 + index).repeat(32),
+          index == 0 ? rootImports : List.of()));
+    }
+    return new BootstrapModuleManifest(
+        "bootstrap-1", "bootstrap.m0", List.of(), rows);
   }
 
   private static void assertIdentity(
