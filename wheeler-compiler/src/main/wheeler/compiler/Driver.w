@@ -414,9 +414,9 @@ classical class CompilerDriver {
 
     cursor = writeUnsignedLittleEndian(output, cursor, nameIndex, 4);
     cursor = writeUnsignedLittleEndian(output, cursor, program.helperCount, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, 1000000, 4);
+    cursor = writeUnsignedLittleEndian(output, cursor, 4000000, 4);
     cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, 1000000, 8);
+    cursor = writeUnsignedLittleEndian(output, cursor, 4000000, 8);
 
     cursor = writeStringTable(output, cursor, source, program, moduleName, strings);
     cursor = align8(cursor);

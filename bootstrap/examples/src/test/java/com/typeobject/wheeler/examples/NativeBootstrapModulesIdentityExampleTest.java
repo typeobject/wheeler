@@ -93,10 +93,12 @@ final class NativeBootstrapModulesIdentityExampleTest {
     BootstrapModuleManifest nineModules = generatedGraph(9);
     assertIdentity(program, nineModules, 9, 0, 8, false);
     BootstrapModuleManifest seventeenModules = generatedGraph(17);
-    assertNoIdentity(program, seventeenModules.canonicalBytes());
+    assertIdentity(program, seventeenModules, 17, 0, 16, false);
+    BootstrapModuleManifest thirtyThreeModules = generatedGraph(33);
+    assertNoIdentity(program, thirtyThreeModules.canonicalBytes());
 
     String text = imported.canonicalText();
-    assertNoIdentity(program, new byte[4_097]);
+    assertNoIdentity(program, new byte[8_193]);
     assertNoIdentity(program, text.replace(
         "  - \"wheeler.core\"\n  - \"wheeler.runtime\"",
         "  - \"wheeler.runtime\"\n  - \"wheeler.core\"")

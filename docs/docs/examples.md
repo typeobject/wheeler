@@ -167,9 +167,9 @@ Expected behavior: Complete fixed-point and diverse-compilation evidence reprodu
 
 Files: [`NativeBootstrapModulesIdentity.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/NativeBootstrapModulesIdentity.w) + [`BootstrapSyntax.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/BootstrapSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
 
-Covers: One through sixteen sorted local source modules, zero through sixteen externals, sixty-four total imports, unique paths, complete binding, rooted reachability, cycle rejection, bounded names and paths, lowercase source identities, exact schema bytes, SHA-256 publication, and rewind.
+Covers: One through thirty-two sorted local source modules, zero through thirty-two externals, 128 total imports, unique paths, complete binding, rooted reachability, cycle rejection, bounded names and paths, lowercase source identities, exact schema bytes, SHA-256 publication, and rewind.
 
-Expected behavior: Empty-import one-module, two-external one-module, and three-, five-, and nine-module rooted DAG closures reproduce stage 0. A cycle, unreachable module, duplicate path, seventeenth module, unsorted external, unbound import, mismatched root, uppercase digest, traversal path, or input beyond 4,096 bytes publishes nothing. Sixteen is deliberately smaller than the 10,000-module schema; pretending otherwise would merely give the graph a fake moustache too.
+Expected behavior: Empty-import one-module, two-external one-module, and three-, five-, nine-, and seventeen-module rooted DAG closures reproduce stage 0. A cycle, unreachable module, duplicate path, thirty-third module, unsorted external, unbound import, mismatched root, uppercase digest, traversal path, or input beyond 8,192 bytes publishes nothing. The current physical compiler closure has twenty-three modules, sixty-three imports, and 6,897 canonical bytes; the packaged executable reproduces its stage-0 identity in 3,201,524 transitions. Thirty-two is still deliberately smaller than the 10,000-module schema; pretending otherwise would merely give the graph a fake moustache too.
 
 ### `NativeCompilerLimitsIdentity.w`
 

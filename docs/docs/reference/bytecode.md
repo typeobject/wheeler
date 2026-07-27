@@ -43,7 +43,7 @@ WIP-0003 reserves a later section for target requirements. Provider-specific exe
 
 The manifest records the program kind as `classical`, `quantum`, or `hybrid`. It also stores the name, entry function, history limit, and step limit.
 
-New source builds default to 1,000,000 history records and 1,000,000 transitions. These values are encoded, verifier-bounded policy inputs instead of fixed rules of the container format. Equal defaults guarantee that the transition ceiling, not an undersized journal, governs a run in which every transition must remain rewindable.
+New source builds default to 4,000,000 history records and 4,000,000 transitions. These values are encoded, verifier-bounded policy inputs instead of fixed rules of the container format. Equal defaults guarantee that the transition ceiling, not an undersized journal, governs a run in which every transition must remain rewindable.
 
 ## Type and aggregate descriptors
 
