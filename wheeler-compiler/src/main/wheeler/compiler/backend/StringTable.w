@@ -6,6 +6,125 @@ import wheeler.compiler.encoding;
 import wheeler.compiler.ir;
 
 classical class StringTable {
+  private long entryScalar(borrow utf8 source, SourceRange moduleName, long index) {
+    if (index < moduleName.length) {
+      return utf8Scalar(source, moduleName.start + index);
+    }
+
+    long suffix = index - moduleName.length;
+    if (0 < moduleName.length) {
+      if (suffix < 2) {
+        return 58;
+      }
+
+      suffix -= 2;
+    }
+
+    if (suffix == 0) {
+      return 109;
+    }
+
+    if (suffix == 1) {
+      return 97;
+    }
+
+    if (suffix == 2) {
+      return 105;
+    }
+
+    return 110;
+  }
+
+  private long compareAsciiSliceToEntry(
+    borrow utf8 source,
+    long start,
+    long length,
+    SourceRange moduleName
+  ) {
+    long entryLength = 4;
+    if (0 < moduleName.length) {
+      entryLength += moduleName.length + 2;
+    }
+
+    long limit = length;
+    if (entryLength < limit) {
+      limit = entryLength;
+    }
+
+    long cursor = 0;
+    while (cursor < limit) limit 512 {
+      long difference = utf8Scalar(source, start + cursor) - entryScalar(
+        source,
+        moduleName,
+        cursor
+      );
+      if (difference == 0) {
+        cursor += 1;
+      } else {
+        return difference;
+      }
+    }
+
+    return length - entryLength;
+  }
+
+  private long helperScalar(
+    borrow utf8 source,
+    SourceRange moduleName,
+    SourceRange helperName,
+    long index
+  ) {
+    if (index < moduleName.length) {
+      return utf8Scalar(source, moduleName.start + index);
+    }
+
+    long suffix = index - moduleName.length;
+    if (0 < moduleName.length) {
+      if (suffix < 2) {
+        return 58;
+      }
+
+      suffix -= 2;
+    }
+
+    return utf8Scalar(source, helperName.start + suffix);
+  }
+
+  private long compareAsciiSliceToHelper(
+    borrow utf8 source,
+    long start,
+    long length,
+    SourceRange moduleName,
+    SourceRange helperName
+  ) {
+    long helperLength = helperName.length;
+    if (0 < moduleName.length) {
+      helperLength += moduleName.length + 2;
+    }
+
+    long limit = length;
+    if (helperLength < limit) {
+      limit = helperLength;
+    }
+
+    long cursor = 0;
+    while (cursor < limit) limit 512 {
+      long difference = utf8Scalar(source, start + cursor) - helperScalar(
+        source,
+        moduleName,
+        helperName,
+        cursor
+      );
+      if (difference == 0) {
+        cursor += 1;
+      } else {
+        return difference;
+      }
+    }
+
+    return length - helperLength;
+  }
+
   /// Defines immutable `StringTablePlan` values for this module.
   public record StringTablePlan(
     long nameIndex,
@@ -19,12 +138,21 @@ classical class StringTable {
   ) {}
 
   /// Computes canonical string offsets and total encoded table length.
-  public StringTablePlan planStringTable(borrow utf8 source, MinimalProgram program) {
+  public StringTablePlan planStringTable(
+    borrow utf8 source,
+    MinimalProgram program,
+    SourceRange moduleName
+  ) {
     long nameLength = program.name.length;
     long globalLength = program.global.length;
     long helperLength = program.helperName.length;
     long proofLength = program.proofName.length;
-    long nameMainOrder = compareAsciiSliceToMain(source, program.name.start, nameLength);
+    long nameMainOrder = compareAsciiSliceToEntry(
+      source,
+      program.name.start,
+      nameLength,
+      moduleName
+    );
     long valid = 1;
     if (nameMainOrder == 0) {
       valid = 0;
@@ -44,7 +172,12 @@ classical class StringTable {
     }
 
     long stringCount = 2;
-    long encodedLength = 16 + nameLength;
+    long entryExtra = 0;
+    if (0 < moduleName.length) {
+      entryExtra = moduleName.length + 2;
+    }
+
+    long encodedLength = 16 + nameLength + entryExtra;
     if (program.globalCount == 1) {
       long baseNameGlobalOrder = compareAsciiSlices(
         source,
@@ -53,10 +186,11 @@ classical class StringTable {
         program.global.start,
         globalLength
       );
-      long baseGlobalMainOrder = compareAsciiSliceToMain(
+      long baseGlobalMainOrder = compareAsciiSliceToEntry(
         source,
         program.global.start,
-        globalLength
+        globalLength,
+        moduleName
       );
       if (baseNameGlobalOrder == 0) {
         valid = 0;
@@ -94,7 +228,7 @@ classical class StringTable {
       }
 
       stringCount = 3;
-      encodedLength = 20 + nameLength + globalLength;
+      encodedLength = 20 + nameLength + globalLength + entryExtra;
     }
 
     if (program.helperCount == 1) {
@@ -105,25 +239,31 @@ classical class StringTable {
         program.global.start,
         globalLength
       );
-      long globalMainOrder = compareAsciiSliceToMain(source, program.global.start, globalLength);
-      long nameHelperOrder = compareAsciiSlices(
-        source,
-        program.name.start,
-        nameLength,
-        program.helperName.start,
-        helperLength
-      );
-      long globalHelperOrder = compareAsciiSlices(
+      long globalMainOrder = compareAsciiSliceToEntry(
         source,
         program.global.start,
         globalLength,
-        program.helperName.start,
-        helperLength
+        moduleName
       );
-      long helperMainOrder = compareAsciiSliceToMain(
+      long nameHelperOrder = compareAsciiSliceToHelper(
+        source,
+        program.name.start,
+        nameLength,
+        moduleName,
+        program.helperName
+      );
+      long globalHelperOrder = compareAsciiSliceToHelper(
+        source,
+        program.global.start,
+        globalLength,
+        moduleName,
+        program.helperName
+      );
+      long helperMainOrder = compareAsciiSliceToEntry(
         source,
         program.helperName.start,
-        helperLength
+        helperLength,
+        moduleName
       );
       if (nameGlobalOrder == 0) {
         valid = 0;
@@ -198,7 +338,10 @@ classical class StringTable {
       }
 
       stringCount = 4;
-      encodedLength = 24 + nameLength + globalLength + helperLength;
+      encodedLength = 24 + nameLength + globalLength + helperLength + entryExtra;
+      if (0 < moduleName.length) {
+        encodedLength += moduleName.length + 2;
+      }
     }
 
     if (program.proofCount == 1) {
@@ -223,7 +366,12 @@ classical class StringTable {
         program.proofName.start,
         proofLength
       );
-      long proofMainOrder = compareAsciiSliceToMain(source, program.proofName.start, proofLength);
+      long proofMainOrder = compareAsciiSliceToEntry(
+        source,
+        program.proofName.start,
+        proofLength,
+        moduleName
+      );
       if (proofNameOrder == 0) {
         valid = 0;
       }
@@ -265,7 +413,7 @@ classical class StringTable {
       }
 
       stringCount = 5;
-      encodedLength = 28 + nameLength + globalLength + helperLength + proofLength;
+      encodedLength = 28 + nameLength + globalLength + helperLength + proofLength + entryExtra;
     }
 
     return new StringTablePlan(
@@ -286,6 +434,7 @@ classical class StringTable {
     long cursor,
     borrow utf8 source,
     MinimalProgram program,
+    SourceRange moduleName,
     StringTablePlan plan
   ) {
     cursor = writeUnsignedLittleEndian(output, cursor, plan.stringCount, 4);
@@ -317,7 +466,25 @@ classical class StringTable {
 
       if (program.helperCount == 1) {
         if (stringIndex == plan.helperIndex) {
-          cursor = writeUnsignedLittleEndian(output, cursor, program.helperName.length, 4);
+          long helperOutputLength = program.helperName.length;
+          if (0 < moduleName.length) {
+            helperOutputLength += moduleName.length + 2;
+          }
+
+          cursor = writeUnsignedLittleEndian(output, cursor, helperOutputLength, 4);
+          if (0 < moduleName.length) {
+            cursor = writeAsciiSlice(
+              output,
+              cursor,
+              source,
+              moduleName.start,
+              moduleName.length
+            );
+            setByte(output, cursor, 58);
+            setByte(output, cursor + 1, 58);
+            cursor += 2;
+          }
+
           cursor = writeAsciiSlice(
             output,
             cursor,
@@ -342,7 +509,19 @@ classical class StringTable {
       }
 
       if (stringIndex == plan.mainIndex) {
-        cursor = writeUnsignedLittleEndian(output, cursor, 4, 4);
+        long entryLength = 4;
+        if (0 < moduleName.length) {
+          entryLength += moduleName.length + 2;
+        }
+
+        cursor = writeUnsignedLittleEndian(output, cursor, entryLength, 4);
+        if (0 < moduleName.length) {
+          cursor = writeAsciiSlice(output, cursor, source, moduleName.start, moduleName.length);
+          setByte(output, cursor, 58);
+          setByte(output, cursor + 1, 58);
+          cursor += 2;
+        }
+
         writeAscii(output, cursor, "main");
         cursor += 4;
       }

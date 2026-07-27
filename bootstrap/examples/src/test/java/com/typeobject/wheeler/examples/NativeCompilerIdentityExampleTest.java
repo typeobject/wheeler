@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
+import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
@@ -23,9 +24,11 @@ final class NativeCompilerIdentityExampleTest {
   @Test
   void compilesBeforePublishingTheVerifiedArtifactIdentity() throws Exception {
     Program program = program();
-    String source = "classical class IdentitySubject { state long value = 3; "
+    String source = "module examples.identity; classical class IdentitySubject { state long value = 3; "
         + "entry void main() { value += 4; assert(value == 7); } }";
-    byte[] expectedArtifact = new WheelerCompiler().compileToBytecode(source);
+    byte[] expectedArtifact = new BytecodeWriter().write(
+        new WheelerCompiler().compileModuleFiles(
+            Map.of("IdentitySubject.w", source), "examples.identity"));
     VirtualMachine machine = vm(program, source);
     var initial = machine.snapshot();
 

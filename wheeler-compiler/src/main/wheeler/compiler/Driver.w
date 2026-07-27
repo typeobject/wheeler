@@ -14,13 +14,6 @@ import wheeler.compiler.verifier;
 import wheeler.lexer.scanner;
 
 classical class CompilerDriver {
-  /// Names a scanner rejection in `diagnosticStage`.
-  public const long DIAGNOSTIC_SCAN = 1;
-  /// Names a parser rejection in `diagnosticStage`.
-  public const long DIAGNOSTIC_PARSE = 2;
-  /// Names a string-table rejection in `diagnosticStage`.
-  public const long DIAGNOSTIC_STRING_TABLE = 3;
-
   /// Carries the exact bounds of one verified compiler artifact.
   public record Compilation(long length, long codeStart) {}
 
@@ -56,12 +49,110 @@ classical class CompilerDriver {
     return writeCursor;
   }
 
+  private long moduleBodyStart(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    borrow mut words moduleRange,
+    long count
+  ) {
+    set(moduleRange, 0, 0);
+    set(moduleRange, 1, 0);
+    if (count == 0) {
+      return -1;
+    }
+
+    if (tokenHash(source, tokenStarts, tokenLengths, 0) == TOKEN_CLASSICAL) {
+      return 0;
+    }
+
+    if (tokenHash(source, tokenStarts, tokenLengths, 0) == TOKEN_MODULE) {} else {
+      return -1;
+    }
+
+    long cursor = 1;
+    long nameStart = 0;
+    long nameEnd = 0;
+    boolean expectName = true;
+    while (cursor < count) limit 64 {
+      if (expectName) {
+        if (tokenKinds[cursor] == 1) {
+          if (nameStart == 0) {
+            nameStart = tokenStarts[cursor];
+          } else {
+            if (tokenStarts[cursor] == nameEnd + 1) {} else {
+              return -1;
+            }
+          }
+
+          nameEnd = tokenStarts[cursor] + tokenLengths[cursor];
+          expectName = false;
+          cursor += 1;
+        } else {
+          return -1;
+        }
+      } else {
+        if (
+          punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_SEMICOLON)
+        ) {
+          cursor += 1;
+          if (cursor < count) {
+            if (
+              tokenHash(source, tokenStarts, tokenLengths, cursor) == TOKEN_CLASSICAL
+            ) {
+              set(moduleRange, 0, nameStart);
+              set(moduleRange, 1, nameEnd - nameStart);
+              return cursor;
+            }
+          }
+
+          return -1;
+        }
+
+        if (punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_DOT)) {
+          if (tokenStarts[cursor] == nameEnd) {} else {
+            return -1;
+          }
+
+          expectName = true;
+          cursor += 1;
+        } else {
+          return -1;
+        }
+      }
+    }
+
+    return -1;
+  }
+
+  private long discardLeadingTokens(
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long bodyStart,
+    long count
+  ) {
+    long readCursor = bodyStart;
+    long writeCursor = 0;
+    while (readCursor < count) limit 512 {
+      set(tokenKinds, writeCursor, tokenKinds[readCursor]);
+      set(tokenStarts, writeCursor, tokenStarts[readCursor]);
+      set(tokenLengths, writeCursor, tokenLengths[readCursor]);
+      readCursor += 1;
+      writeCursor += 1;
+    }
+
+    return writeCursor;
+  }
+
   private MinimalProgram requireMinimalProgram(
     borrow utf8 source,
     borrow mut words tokenKinds,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
-    borrow mut words statementStarts
+    borrow mut words statementStarts,
+    borrow mut words moduleRange
   ) {
     ScanResult scanned = scan(source, tokenKinds, tokenStarts, tokenLengths);
     match (scanned) {
@@ -91,6 +182,25 @@ classical class CompilerDriver {
       }
       case ScanResult.Value(long count) {
         long semanticCount = compactCompilerTokens(tokenKinds, tokenStarts, tokenLengths, count);
+        long bodyStart = moduleBodyStart(
+          source,
+          tokenKinds,
+          tokenStarts,
+          tokenLengths,
+          moduleRange,
+          semanticCount
+        );
+        if (bodyStart < 0) {
+          assert(0 == 1);
+        }
+
+        semanticCount = discardLeadingTokens(
+          tokenKinds,
+          tokenStarts,
+          tokenLengths,
+          bodyStart,
+          semanticCount
+        );
         MinimalProgramResult parsed = parseMinimalProgram(
           source,
           tokenKinds,
@@ -194,19 +304,28 @@ classical class CompilerDriver {
 
   /// Compiles one bounded bootstrap source into caller-owned artifact storage.
   public Compilation compileMinimal(borrow utf8 source, borrow mut bytes output) {
-    region arena = new region(12416, 4);
+    region arena = new region(12432, 5);
     words tokenKinds = allocate(arena, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(arena, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(arena, MAX_COMPILER_TOKENS);
     words statementStarts = allocate(arena, 16);
+    words moduleRange = allocate(arena, 2);
     MinimalProgram program = requireMinimalProgram(
       source,
       tokenKinds,
       tokenStarts,
       tokenLengths,
-      statementStarts
+      statementStarts,
+      moduleRange
     );
-    StringTablePlan strings = planStringTable(source, program);
+    SourceRange moduleName = new SourceRange(moduleRange[0], moduleRange[1]);
+    if (0 < moduleName.length) {
+      if (program.proofCount == 1) {
+        assert(0 == 1);
+      }
+    }
+
+    StringTablePlan strings = planStringTable(source, program, moduleName);
     if (strings.valid == 0) {
       assert(0 == 1);
     }
@@ -305,7 +424,7 @@ classical class CompilerDriver {
     cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
     cursor = writeUnsignedLittleEndian(output, cursor, 1000000, 8);
 
-    cursor = writeStringTable(output, cursor, source, program, strings);
+    cursor = writeStringTable(output, cursor, source, program, moduleName, strings);
     cursor = align8(cursor);
 
     cursor = writeUnsignedLittleEndian(output, cursor, program.globalCount, 4);
@@ -494,6 +613,7 @@ classical class CompilerDriver {
     long verification = verifyArtifact(output, finalCursor);
     assert(verification == 1);
 
+    drop(moduleRange);
     drop(statementStarts);
     drop(tokenLengths);
     drop(tokenStarts);

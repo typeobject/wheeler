@@ -8,7 +8,6 @@ classical class MinimalCompiler {
   state long finalCursor = 0;
   state long codeStart = 0;
   state long verification = 0;
-  state long diagnosticStage = 0;
 
   /// Compiles one host source into canonical caller-owned artifact bytes.
   ///

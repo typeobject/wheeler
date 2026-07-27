@@ -514,7 +514,9 @@ The linker assigns collision-free internal function and type names before normal
 
 Nonpublic references, ambiguous exports, import cycles, unsorted imports, quantum dependency domains, dependency state or proofs, and implicit transitive access all fail closed.
 
-Single-source `compile` rejects module declarations. A modular `wheeler.package.yaml` target lists its exact sorted source set and root module.
+Single-source stage-0 `compile` rejects module declarations. A modular `wheeler.package.yaml` target lists its exact sorted source set and root module.
+
+The bounded Wheeler-native driver accepts one canonical contiguous dotted `module` header before its classical class. It qualifies `main` and an optional helper exactly as stage 0 does, so both artifacts retain identical string tables and section offsets. A malformed header fails before output. Imports, module proofs, and multi-file linking still use stage 0; silently discarding a module name was considered and rejected on the grounds that names are generally expected to name things.
 
 Local, workspace, planned, archived, and locked offline builds use the same linker. Imports do not come from file paths.
 

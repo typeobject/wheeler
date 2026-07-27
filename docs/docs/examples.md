@@ -33,7 +33,7 @@ Expected result: `sum = 10`, `branch = 1`.
 
 ### `MinimalCompiler.w`
 
-Files: [`MinimalCompiler.w`](../../wheeler-compiler/src/main/wheeler/MinimalCompiler.w) + [`compiler/frontend/Parser.w`](../../wheeler-compiler/src/main/wheeler/compiler/frontend/Parser.w) + [`compiler/backend/StringTable.w`](../../wheeler-compiler/src/main/wheeler/compiler/backend/StringTable.w) + dedicated IR/token/scanner/code-generation/encoding modules.
+Files: [`MinimalCompiler.w`](../../wheeler-compiler/src/main/wheeler/MinimalCompiler.w) + [`compiler/Driver.w`](../../wheeler-compiler/src/main/wheeler/compiler/Driver.w) + [`compiler/frontend/Parser.w`](../../wheeler-compiler/src/main/wheeler/compiler/frontend/Parser.w) + [`compiler/backend/StringTable.w`](../../wheeler-compiler/src/main/wheeler/compiler/backend/StringTable.w) + dedicated IR/token/scanner/code-generation/encoding modules.
 
 Covers: Wheeler compilation of one bounded minimal source grammar to canonical `.wbc`.
 
@@ -41,6 +41,7 @@ Expected behavior:
 
 - Input `classical class LongClass { state long value = 7; entry void main() { value += 5; } }` drives global and instruction IR, canonical lexical string ordering, function descriptors, and layout.
 - The 504-byte result passes Wheeler's header/directory/payload/instruction-stream verifier, including global/local/type/call operand domains, matches stage 0, and executes with `value = 12`.
+- Canonical `module examples.seed;` input emits stage-0-identical `examples.seed::main` and helper strings. A malformed dotted header fails before output; module imports and proofs remain outside this bounded path.
 - `verification = 1`.
 - The differential suite covers no-global classes with zero to sixteen statements; a seventeenth statement is rejected before output.
 - Cases include signed and Boolean locals, literal or prior-local truth assertions, stateful updates, helper calls, reversible helpers, reverse blocks, and generated-inverse theorems.
@@ -235,7 +236,7 @@ Files: [`NativeCompilerIdentity.w`](../../wheeler-examples/src/main/wheeler/nati
 
 Covers: The importable Wheeler compiler driver, private canonical `.wbc` output, native verification, ranged SHA-256 publication, stage-0 differential compiler output identity, malformed-source rejection, and exact rewind.
 
-Expected behavior: One bounded Wheeler source produces the SHA-256 of the byte-identical stage-0 artifact without exposing private artifact storage. An unresolved operand or source beyond 4,096 bytes publishes no identity. The executable compiler wrapper and the importable driver use one implementation; forks are useful for eating, not for bootstrap logic.
+Expected behavior: One canonically module-qualified Wheeler source produces the SHA-256 of the byte-identical stage-0 artifact without exposing private artifact storage. An unresolved operand or source beyond 4,096 bytes publishes no identity. The executable compiler wrapper and the importable driver use one implementation; forks are useful for eating, not for bootstrap logic.
 
 ### `NativeVerifier.w`
 

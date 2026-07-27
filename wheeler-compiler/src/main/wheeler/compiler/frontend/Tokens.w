@@ -8,6 +8,8 @@ classical class Tokens {
   /// Caps compiler token metadata before comment compaction.
   public const long MAX_COMPILER_TOKENS = 512;
 
+  /// Names the stable token hash for `module`.
+  public const long TOKEN_MODULE = 3226183276;
   /// Names the stable token hash for `classical`.
   public const long TOKEN_CLASSICAL = 87497064671293;
   /// Names the stable token hash for `class`.
@@ -72,6 +74,8 @@ classical class Tokens {
   public const long PUNCTUATION_CLOSE_PAREN = 41;
   /// Names the ASCII `+` punctuation scalar.
   public const long PUNCTUATION_PLUS = 43;
+  /// Names the ASCII `.` punctuation scalar.
+  public const long PUNCTUATION_DOT = 46;
   /// Names the ASCII `-` punctuation scalar.
   public const long PUNCTUATION_MINUS = 45;
   /// Names the ASCII `;` punctuation scalar.

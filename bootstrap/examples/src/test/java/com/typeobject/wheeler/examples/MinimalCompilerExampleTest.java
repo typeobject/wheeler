@@ -43,6 +43,29 @@ class MinimalCompilerExampleTest {
     assertEquals(1, writer.global("verification"));
     assertEquals(504, emitted.length);
     assertArrayEquals(stageZero, emitted);
+    String moduleSource = "module examples.seed; " + source;
+    VirtualMachine moduleWriter = new VirtualMachine(
+        writerProgram, moduleSource.getBytes(StandardCharsets.UTF_8), 528);
+    moduleWriter.run();
+    assertArrayEquals(
+        new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
+            Map.of("ModuleSubject.w", moduleSource), "examples.seed")),
+        moduleWriter.hostOutput());
+    String helperModuleSource = "module examples.seed; classical class ModuleHelper { "
+        + "state long value = 1; void bump() { value += 2; } "
+        + "entry void main() { bump(); assert(value == 3); } }";
+    VirtualMachine helperModuleWriter = new VirtualMachine(
+        writerProgram, helperModuleSource.getBytes(StandardCharsets.UTF_8), 1024);
+    helperModuleWriter.run();
+    assertArrayEquals(
+        new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
+            Map.of("ModuleHelper.w", helperModuleSource), "examples.seed")),
+        helperModuleWriter.hostOutput());
+    VirtualMachine malformedModule = new VirtualMachine(
+        writerProgram,
+        ("module examples.; " + source).getBytes(StandardCharsets.UTF_8),
+        528);
+    assertThrows(VmTrap.class, malformedModule::run);
     VirtualMachine undersizedOutput = new VirtualMachine(
         writerProgram, source.getBytes(StandardCharsets.UTF_8), emitted.length - 1);
     assertThrows(VmTrap.class, undersizedOutput::run);
@@ -756,8 +779,7 @@ class MinimalCompilerExampleTest {
     } catch (VmTrap trap) {
       throw new AssertionError(
           "Wheeler compiler trapped at output cursor " + writer.global("finalCursor")
-              + " with verification " + writer.global("verification")
-              + " and diagnostic stage " + writer.global("diagnosticStage"),
+              + " with verification " + writer.global("verification"),
           trap);
     }
     assertArrayEquals(
