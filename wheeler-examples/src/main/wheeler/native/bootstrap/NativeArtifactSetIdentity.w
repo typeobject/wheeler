@@ -2,6 +2,7 @@
 
 module examples.bootstrap.artifact_set_identity;
 
+import examples.bootstrap.syntax;
 import wheeler.crypto.sha256;
 
 classical class NativeArtifactSetIdentity {
@@ -9,28 +10,6 @@ classical class NativeArtifactSetIdentity {
   state long canonicalLength = 0;
   state long validationPhase = 0;
   state long published = 0;
-
-  private void require(boolean condition, borrow byteview source) {
-    if (condition == false) {
-      long invalid = source[-1];
-    }
-  }
-
-  private long consume(
-    borrow byteview source,
-    long cursor,
-    borrow mut bytes expected,
-    long length
-  ) {
-    require(cursor + length < bufferLength(source) + 1, source);
-    long index = 0;
-    while (index < length) limit 64 {
-      require(source[cursor + index] == expected[index], source);
-      index += 1;
-    }
-
-    return cursor + length;
-  }
 
   private boolean pathByte(long scalar) {
     boolean valid = 47 < scalar;
@@ -311,15 +290,15 @@ classical class NativeArtifactSetIdentity {
   ///
   /// - Effects: Mutates fixture state and caller-owned identity output.
   entry void main(borrow byteview source, borrow mut bytes identity) {
-    require(bufferLength(source) < 4097, source);
-    require(31 < bufferLength(identity), source);
+    requireMetadata(bufferLength(source) < 4097, source);
+    requireMetadata(31 < bufferLength(identity), source);
     region arena = new region(5600, 8);
     bytes canonical = allocateBytes(arena, 4096);
     bytes expected = allocateBytes(arena, 64);
     bytes digest = allocateBytes(arena, 32);
     long encoded = writeProfileField(canonical);
     long expectedLength = writeArtifactsHeader(expected);
-    long cursor = consume(source, 0, expected, expectedLength);
+    long cursor = consumeMetadata(source, 0, expected, expectedLength);
     validationPhase = 1;
     long previousPathStart = 0;
     long previousPathLength = 0;
@@ -327,7 +306,7 @@ classical class NativeArtifactSetIdentity {
     boolean more = true;
     while (more) limit 8 {
       expectedLength = writeBytesPrefix(expected);
-      cursor = consume(source, cursor, expected, expectedLength);
+      cursor = consumeMetadata(source, cursor, expected, expectedLength);
       long bytesStart = cursor;
       long byteLength = 0;
       long bytesValue = 0;
@@ -346,16 +325,16 @@ classical class NativeArtifactSetIdentity {
         }
       }
 
-      require(0 < byteLength, source);
+      requireMetadata(0 < byteLength, source);
       if (source[bytesStart] == 48) {
-        require(false, source);
+        requireMetadata(false, source);
       }
 
-      require(0 < bytesValue, source);
-      require(bytesValue < 16777217, source);
+      requireMetadata(0 < bytesValue, source);
+      requireMetadata(bytesValue < 16777217, source);
       validationPhase = 2;
       expectedLength = writeNamedStringPrefix(expected, 44, false);
-      cursor = consume(source, cursor, expected, expectedLength);
+      cursor = consumeMetadata(source, cursor, expected, expectedLength);
       long pathStart = cursor;
       while (cursor < bufferLength(source)) limit 256 {
         if (source[cursor] == 34) {
@@ -367,9 +346,9 @@ classical class NativeArtifactSetIdentity {
 
       long pathLength = cursor - pathStart;
       validationPhase = 3;
-      require(validPath(source, pathStart, pathLength), source);
+      requireMetadata(validPath(source, pathStart, pathLength), source);
       if (0 < count) {
-        require(
+        requireMetadata(
           comparePaths(source, previousPathStart, previousPathLength, pathStart, pathLength) < 0,
           source
         );
@@ -377,15 +356,15 @@ classical class NativeArtifactSetIdentity {
 
       previousPathStart = pathStart;
       previousPathLength = pathLength;
-      require(source[cursor] == 34, source);
+      requireMetadata(source[cursor] == 34, source);
       cursor += 1;
       validationPhase = 4;
       expectedLength = writeNamedStringPrefix(expected, 44, true);
-      cursor = consume(source, cursor, expected, expectedLength);
+      cursor = consumeMetadata(source, cursor, expected, expectedLength);
       long shaStart = cursor;
       long shaIndex = 0;
       while (shaIndex < 64) limit 64 {
-        require(lowercaseHex(source[cursor + shaIndex]), source);
+        requireMetadata(lowercaseHex(source[cursor + shaIndex]), source);
         shaIndex += 1;
       }
 
@@ -393,7 +372,7 @@ classical class NativeArtifactSetIdentity {
       validationPhase = 5;
       setByte(expected, 0, 34);
       setByte(expected, 1, 125);
-      cursor = consume(source, cursor, expected, 2);
+      cursor = consumeMetadata(source, cursor, expected, 2);
       encoded = writeField(canonical, encoded, source, pathStart, pathLength);
       encoded = writeField(canonical, encoded, source, shaStart, 64);
       encoded = writeField(canonical, encoded, source, bytesStart, byteLength);
@@ -406,19 +385,19 @@ classical class NativeArtifactSetIdentity {
       }
     }
 
-    require(0 < count, source);
+    requireMetadata(0 < count, source);
     validationPhase = 7;
     expectedLength = writeIdentityPrefix(expected);
-    cursor = consume(source, cursor, expected, expectedLength);
+    cursor = consumeMetadata(source, cursor, expected, expectedLength);
     long identityStart = cursor;
     cursor += 64;
     validationPhase = 8;
     expectedLength = writeProfileSuffix(expected);
-    cursor = consume(source, cursor, expected, expectedLength);
-    require(cursor == bufferLength(source), source);
+    cursor = consumeMetadata(source, cursor, expected, expectedLength);
+    requireMetadata(cursor == bufferLength(source), source);
     validationPhase = 9;
     hashSha256Range(canonical, 0, encoded, digest, arena);
-    require(digestMatches(source, identityStart, digest), source);
+    requireMetadata(digestMatches(source, identityStart, digest), source);
     long outputIndex = 0;
     while (outputIndex < 32) limit 32 {
       setByte(identity, outputIndex, digest[outputIndex]);

@@ -188,6 +188,8 @@ Each limit is a positive canonical integer no larger than 1,073,741,824. The sch
 
 Source maps may be enabled only when their normalized logical source identities are part of the canonical output.
 
+`NativeCompilerOptionsIdentity.w` accepts exactly the schema-1 canonical bytes, a 1--128 byte profile in the declared identifier alphabet, and canonical `true` or `false`. It reproduces the stage-0 SHA-256 only after complete validation and exact input consumption. The bounded fixture ceiling is 256 bytes. `BootstrapSyntax.w` owns the shared fail-closed fragment comparison used here and by native artifact-set validation; duplicate tiny parsers become large disagreements remarkably quickly.
+
 Each ordinary and diverse toolchain argument uses exact canonical `wheeler.toolchain.yaml`:
 
 ```yaml

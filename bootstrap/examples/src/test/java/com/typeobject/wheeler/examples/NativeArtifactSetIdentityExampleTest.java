@@ -77,6 +77,7 @@ final class NativeArtifactSetIdentityExampleTest {
     return new WheelerCompiler().compileModuleFiles(
         Map.of(
             "NativeArtifactSetIdentity.w", Files.readString(FIXTURE),
+            "BootstrapSyntax.w", Files.readString(FIXTURE.resolveSibling("BootstrapSyntax.w")),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
         "examples.bootstrap.artifact_set_identity");
   }

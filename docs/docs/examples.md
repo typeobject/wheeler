@@ -147,6 +147,14 @@ Covers: Exact bounded `wheeler.artifact-set/1` JSON, one through eight sorted sa
 
 Expected behavior: A two-artifact manifest reproduces the stage-0 set identity. Unsorted paths, uppercase digests, forged identities, unknown profile keys, a ninth artifact, or input beyond 4,096 bytes publish nothing. This fixture validates manifest metadata; the stage-0 closed-tree command still verifies every physical `.wbc` before emitting those bytes. A manifest is evidence about files only after somebody checks the files. Film at eleven.
 
+### `NativeCompilerOptionsIdentity.w`
+
+Files: [`NativeCompilerOptionsIdentity.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/NativeCompilerOptionsIdentity.w) + [`BootstrapSyntax.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/BootstrapSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
+
+Covers: Exact schema-1 canonical YAML, bounded canonical profile names, both source-map values, complete SHA-256 publication, malformed-option rejection, and exact rewind.
+
+Expected behavior: `bootstrap-1` without source maps and `native.test_2` with source maps reproduce stage-0 identities. A leading punctuation profile, unknown Boolean, stray space, or input beyond 256 bytes publishes nothing. Compiler options affect source identity; treating them as command-line ambiance is how reproducible builds acquire folklore.
+
 ### `NativeArchive.w`
 
 Files: [`NativeArchive.w`](../../wheeler-examples/src/main/wheeler/native/NativeArchive.w) + [`packages/archive/Archive.w`](../../wheeler-package/src/main/wheeler/packages/archive/Archive.w).

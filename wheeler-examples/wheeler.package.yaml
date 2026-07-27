@@ -87,6 +87,7 @@ targets:
     root: "src/main/wheeler/native/bootstrap/NativeArtifactSetIdentity.w"
     module: "examples.bootstrap.artifact_set_identity"
     sources:
+      - "src/main/wheeler/native/bootstrap/BootstrapSyntax.w"
       - "src/main/wheeler/native/bootstrap/NativeArtifactSetIdentity.w"
     test: false
   - kind: "deployable"
@@ -109,6 +110,14 @@ targets:
     module: "examples.compiler.native_compiler_identity"
     sources:
       - "src/main/wheeler/native/compiler/NativeCompilerIdentity.w"
+    test: false
+  - kind: "deployable"
+    name: "nativecompileroptionsidentity"
+    root: "src/main/wheeler/native/bootstrap/NativeCompilerOptionsIdentity.w"
+    module: "examples.bootstrap.compiler_options_identity"
+    sources:
+      - "src/main/wheeler/native/bootstrap/BootstrapSyntax.w"
+      - "src/main/wheeler/native/bootstrap/NativeCompilerOptionsIdentity.w"
     test: false
   - kind: "deployable"
     name: "nativedurabilityreceipts"
