@@ -38,6 +38,12 @@ classical class Codegen {
   /// Writes canonical local type codes for one parsed statement.
   public long writeStatementLocalTypes(borrow mut bytes output, long cursor, long opcode) {
     long count = statementLocalCount(opcode);
+    if (resolvedLocalLongAssertion(opcode)) {
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+    }
+
     long typeCode = TYPE_SIGNED;
     if (opcode == STATEMENT_LOCAL_BOOLEAN) {
       typeCode = TYPE_BOOLEAN;
@@ -70,6 +76,10 @@ classical class Codegen {
 
   /// Returns the encoded byte width of one parsed statement.
   public long statementCodeLength(long opcode) {
+    if (resolvedLocalLongAssertion(opcode)) {
+      return 96;
+    }
+
     if (opcode == STATEMENT_ASSERT_EQ) {
       return 24;
     }
@@ -153,6 +163,22 @@ classical class Codegen {
       cursor = writeUnsignedLittleEndian(output, cursor, operand, 8);
       cursor = writeInstructionHeader(output, cursor, OPCODE_EXPECT_TRUE, 1);
       return writeUnsignedLittleEndian(output, cursor, localBase, 8);
+    }
+
+    if (resolvedLocalLongAssertion(opcode)) {
+      long assertedLocal = opcode - STATEMENT_ASSERT_LOCAL_LONG_BASE;
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, assertedLocal, 8);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, 2);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
+      cursor = writeSignedLittleEndian(output, cursor, operand, 8);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_EQ, 3);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_EXPECT_TRUE, 1);
+      return writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
     }
 
     cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, 2);

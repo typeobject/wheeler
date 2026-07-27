@@ -24,7 +24,14 @@ classical class StatementSequences {
     long index
   ) {
     if (index < count) {
-      return statementOpcode(source, tokenStarts, tokenLengths, statementStarts[index]);
+      return sequenceStatementOpcode(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStarts[index],
+        statementStarts,
+        index
+      );
     }
 
     return -1;

@@ -24,7 +24,7 @@ classical class NativeVm {
   ///
   /// - Effects: Mutates only the fixture's declared state.
   entry void main(borrow byteview artifact) {
-    region arena = new region(12608, 20);
+    region arena = new region(20800, 20);
     words globals = allocate(arena, INTERPRETER_GLOBAL_COUNT);
     words locals = allocate(arena, INTERPRETER_LOCAL_CAPACITY);
     words returnCursors = allocate(arena, INTERPRETER_FRAME_COUNT);

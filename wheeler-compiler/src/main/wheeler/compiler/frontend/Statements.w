@@ -6,7 +6,11 @@ import wheeler.compiler.ir;
 import wheeler.compiler.tokens;
 
 classical class Statements {
-  private boolean booleanDeclaration(long opcode) {
+  private boolean declarationMatches(long opcode, boolean signed) {
+    if (signed) {
+      return opcode == STATEMENT_LOCAL_LONG;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN) {
       return true;
     }
@@ -14,29 +18,15 @@ classical class Statements {
     return opcode == STATEMENT_LOCAL_BOOLEAN_NOT;
   }
 
-  /// Checks whether a resolved statement operand names a valid prior local.
-  public boolean sequenceOperandValid(long opcode, long operand) {
-    if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {
-      return -1 < operand;
-    }
-
-    return true;
-  }
-
-  /// Resolves one statement operand against a bounded prior-declaration table.
-  public long sequenceStatementOperand(
+  private long resolvePriorDeclaration(
     borrow utf8 source,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
-    long statementStart,
     borrow mut words previousStarts,
-    long previousCount
+    long previousCount,
+    long assertedName,
+    boolean signed
   ) {
-    long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
-    if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {} else {
-      return statementOperand(source, tokenStarts, tokenLengths, statementStart);
-    }
-
     if (previousCount < 0) {
       return -1;
     }
@@ -45,7 +35,6 @@ classical class Statements {
       return -1;
     }
 
-    long assertedName = statementStart + 2;
     long localBase = 0;
     long matchedLocal = -1;
     long matchCount = 0;
@@ -54,7 +43,7 @@ classical class Statements {
       long previousStart = previousStarts[previous];
       if (0 < previousStart) {
         long previousOpcode = statementOpcode(source, tokenStarts, tokenLengths, previousStart);
-        if (booleanDeclaration(previousOpcode)) {
+        if (declarationMatches(previousOpcode, signed)) {
           if (
             sameTokenText(source, tokenStarts, tokenLengths, previousStart + 1, assertedName)
           ) {
@@ -76,8 +65,93 @@ classical class Statements {
     return -1;
   }
 
+  /// Checks whether an opcode carries one resolved signed-local identity.
+  public boolean resolvedLocalLongAssertion(long opcode) {
+    if (opcode < STATEMENT_ASSERT_LOCAL_LONG_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_ASSERT_LOCAL_LONG_BASE + 256;
+  }
+
+  /// Resolves a named signed assertion into an opcode carrying its local index.
+  public long sequenceStatementOpcode(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart,
+    borrow mut words previousStarts,
+    long previousCount
+  ) {
+    long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (opcode == STATEMENT_ASSERT_NAMED_LONG) {
+      long local = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 2,
+        true
+      );
+      if (-1 < local) {
+        return STATEMENT_ASSERT_LOCAL_LONG_BASE + local;
+      }
+
+      return -1;
+    }
+
+    return opcode;
+  }
+
+  /// Checks whether a resolved statement operand names a valid prior local.
+  public boolean sequenceOperandValid(long opcode, long operand) {
+    if (opcode < 0) {
+      return false;
+    }
+
+    if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {
+      return -1 < operand;
+    }
+
+    return true;
+  }
+
+  /// Resolves one statement operand against a bounded prior-declaration table.
+  public long sequenceStatementOperand(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart,
+    borrow mut words previousStarts,
+    long previousCount
+  ) {
+    long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 2,
+        false
+      );
+    }
+
+    return statementOperand(source, tokenStarts, tokenLengths, statementStart);
+  }
+
   /// Returns the typed-local width required by one parsed statement.
   public long statementLocalCount(long opcode) {
+    if (resolvedLocalLongAssertion(opcode)) {
+      return 3;
+    }
+
+    if (opcode == STATEMENT_ASSERT_NAMED_LONG) {
+      return 3;
+    }
+
     if (opcode == STATEMENT_ASSERT_EQ) {
       return 0;
     }
@@ -127,6 +201,10 @@ classical class Statements {
 
   /// Returns the initialized result local for a declaration statement.
   public long statementResultLocal(long opcode, long localBase) {
+    if (opcode == STATEMENT_LOCAL_LONG) {
+      return localBase + 1;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN) {
       return localBase + 1;
     }
@@ -147,7 +225,12 @@ classical class Statements {
     long statementStart
   ) {
     long statementKind = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
-    if (statementKind == STATEMENT_ASSERT_EQ) {
+    boolean signedAssertion = statementKind == STATEMENT_ASSERT_EQ;
+    if (statementKind == STATEMENT_ASSERT_NAMED_LONG) {
+      signedAssertion = true;
+    }
+
+    if (signedAssertion) {
       if (
         punctuationAt(
           source,
@@ -158,9 +241,14 @@ classical class Statements {
         )
       ) {
         if (tokenKinds[statementStart + 2] == 1) {
+          boolean acceptedName = statementKind == STATEMENT_ASSERT_NAMED_LONG;
           if (
             sameTokenText(source, tokenStarts, tokenLengths, 6, statementStart + 2)
           ) {
+            acceptedName = true;
+          }
+
+          if (acceptedName) {
             if (
               punctuationAt(
                 source,
@@ -633,6 +721,10 @@ classical class Statements {
     }
 
     if (opcode == STATEMENT_ASSERT_EQ) {
+      return statementStart + 5;
+    }
+
+    if (opcode == STATEMENT_ASSERT_NAMED_LONG) {
       return statementStart + 5;
     }
 

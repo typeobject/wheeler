@@ -44,8 +44,8 @@ The interpreter supports:
 - up to 512 interpreted instructions;
 - eight bounded frames;
 - up to eight functions;
-- 128 typed locals per frame;
-- up to 256 instructions per function.
+- 256 typed locals per frame;
+- up to 512 instructions per function.
 
 Only the active function's local window is cleared. `compiler/ir/Opcodes.w`, `compiler/ir/TypeCodes.w`, and `compiler/ir/ProofRules.w` define the names used at this boundary.
 

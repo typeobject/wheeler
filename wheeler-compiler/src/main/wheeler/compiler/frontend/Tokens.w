@@ -63,6 +63,10 @@ classical class Tokens {
   public const long STATEMENT_ASSERT_BOOLEAN_NOT = 773;
   /// Names the parser IR code for an assertion over a prior Boolean local.
   public const long STATEMENT_ASSERT_LOCAL_BOOLEAN = 774;
+  /// Names an unresolved equality assertion over a signed name.
+  public const long STATEMENT_ASSERT_NAMED_LONG = 775;
+  /// Starts resolved signed-local assertion opcodes; the local index is the delta.
+  public const long STATEMENT_ASSERT_LOCAL_LONG_BASE = 2048;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -205,7 +209,13 @@ classical class Tokens {
         return STATEMENT_ASSERT_LOCAL_BOOLEAN;
       }
 
-      return STATEMENT_ASSERT_EQ;
+      if (tokenHash(source, tokenStarts, tokenLengths, 5) == TOKEN_LONG) {
+        if (sameTokenText(source, tokenStarts, tokenLengths, 6, assertExpression)) {
+          return STATEMENT_ASSERT_EQ;
+        }
+      }
+
+      return STATEMENT_ASSERT_NAMED_LONG;
     }
 
     if (keyword == TOKEN_LONG) {

@@ -507,6 +507,19 @@ class MinimalCompilerExampleTest {
         "classical class FullLocalWindow { entry void main() { "
             + booleanDeclarations(63)
             + "assert(value0); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedLocalWindow { entry void main() { "
+            + longDeclarations(63)
+            + "assert(value62 == 62); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class GlobalThenLocal { state long value = 7; entry void main() { "
+            + "assert(value == 7); long answer = 41; assert(answer == 41); } }");
+    assertDifferentialTrap(
+        writerProgram,
+        "classical class FalseSignedLocal { entry void main() { "
+            + "long answer = 41; assert(answer == 42); } }");
 
     VirtualMachine duplicate = new VirtualMachine(
         writerProgram,
@@ -796,6 +809,14 @@ class MinimalCompilerExampleTest {
       cursor += bytes.getInt(cursor + 4);
     }
     throw new AssertionError("missing opcode " + expectedOpcode);
+  }
+
+  private static String longDeclarations(int count) {
+    StringBuilder source = new StringBuilder();
+    for (int index = 0; index < count; index++) {
+      source.append("long value").append(index).append(" = ").append(index).append("; ");
+    }
+    return source.toString();
   }
 
   private static String booleanDeclarations(int count) {
