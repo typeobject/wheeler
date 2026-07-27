@@ -11,7 +11,7 @@ Stage 0 currently supports these operations:
 - emit, verify, and execute source-bound build plans;
 - read and write content-addressed `.wpk` archives.
 
-A physical local registry provides immutable publish and fetch transport. Locked source modules can link through direct dependencies. Network transport, repository-bound locks, unlocked solving, reusable build-output caching, signed namespace authority, and complete Wheeler-native package execution remain future work.
+Physical and configured file repositories provide immutable publish and fetch transport. Locks bind repository and snapshot identities; unlocked solving follows first-authoritative policy order; package objects and complete verified build outputs use disposable XDG caches; and trusted snapshots carry detached Ed25519 signatures. Namespace delegation, yanks and advisories, identity-preserving network mirrors, complete recipe revisions, and complete Wheeler-native package execution remain future work.
 
 Package, workspace, and lock files use the canonical-YAML profile from [WIP-0009](../proposals/WIP-0009-wheeler-package-and-build-system.md#manifest-language). Stage 0 rejects duplicate or unknown keys, implicit types, aliases, tags, merge keys, invalid indentation, and unbounded structures. Wheeler-native recovery examples parse the files and emit the same canonical bytes. The retired extensionless records and parser are gone, and format sniffing remains unsupported.
 
@@ -19,7 +19,7 @@ Stage 0 resolves XDG config, data, cache, and state paths. It diagnoses relative
 
 Exact fetch checks enabled authoritative repositories in policy order without merging them. A caller may select one alias directly. Physical `--registry` transport remains available for sealed bootstrap fixtures. Unlocked resolution uses configured order, an explicit ordered set of repeated `--repository` aliases, or one sealed `--catalog`.
 
-Exact fetch keeps a disposable verified package-object cache under the XDG artifact root. Build-output caching is not implemented yet. [WIP-0023](../proposals/WIP-0023-recipe-repositories-and-reproducible-builds.md#xdg-local-objects-and-reusable-artifacts) owns repository, build-input, and PREV semantics. A path under `$HOME` is not provenance by itself.
+Exact fetch keeps a disposable verified package-object cache under the XDG artifact root. Complete build outputs are cached by `wheeler-build-input-1`; every hit is independently verified, one input admits one PREV, and divergent verified output enters deterministic quarantine rather than replacing accepted bytes. Bounded `cache gc` removes malformed or unreachable disposable objects. [WIP-0023](../proposals/WIP-0023-recipe-repositories-and-reproducible-builds.md#xdg-local-objects-and-reusable-artifacts) owns repository, build-input, and PREV semantics. A path under `$HOME` is not provenance by itself.
 
 ## Workspace manifest
 
@@ -346,7 +346,7 @@ Libraries participate in `build`. Selected runnable targets may also participate
 
 ## Future hardening boundaries
 
-The current schema is name-global, source-package-only, and local. It does not yet support coexisting package instances, repository snapshots, recipe revisions, byte-reproducible PREVs, system-package exports, native FFI providers, or self-contained platform images. WIP-0022 through WIP-0026 define those contracts under WIP-0009.
+The current graph is name-global and source-package-only. It has immutable repository snapshots and byte-reproducible cached PREVs, but not coexisting package instances, complete recipe revisions and variants, system-package exports, native FFI providers, or self-contained platform images. WIP-0022 through WIP-0026 define those remaining contracts under WIP-0009.
 
 Later WIPs add more public metadata:
 
@@ -371,7 +371,7 @@ Vendoring verifies archive and manifest identities against every lock entry. An 
 
 A standalone package with dependencies uses a physical `vendor/` directory produced by `wheeler vendor`. A workspace member instead rebuilds canonical archives for all physical members in memory, requires every locked dependency to name one of those exact archive/manifest/version/profile identities, and rejects a stale lock before compilation. Both paths validate constraints and complete dependency edges, reject unreachable entries and cycles, and compile dependencies in canonical dependency-first order. `check`, `build`, `test`, selected-target `run`, and workspace `plan` neither resolve, fetch, consult an ambient cache, nor silently omit dependencies. Development edges are loaded only when present in the canonical lock generated with `--development`.
 
-Wheeler source does not yet expose package module imports, so this slice validates and builds each locked package as an independently verified target graph. WIP-0007 module names and visibility will connect exported APIs without changing archive or lock identity.
+Stage 0 links direct locked package imports and rejects undeclared or transitive source visibility. The Wheeler-native compiler now preserves canonical module identities but does not yet parse imports or link multiple source files. WIP-0007 owns that native cutover without changing archive or lock identity.
 
 The local host adapter requires a physical package directory, manifest, and target files. A target path that crosses a symbolic link or resolves outside the package fails before compilation. It reads only the manifest and declared target sources; capability requests remain policy data and do not grant broader host access.
 
