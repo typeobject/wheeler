@@ -308,9 +308,6 @@ classical class HelperParser {
     if (tokenHash(source, tokenStarts, tokenLengths, voidToken) == TOKEN_REV) {
       reversible = 1;
       voidToken += 1;
-      if (globalCount == 0) {
-        return new MinimalProgramResult.Error(0);
-      }
     }
 
     if (tokenHash(source, tokenStarts, tokenLengths, voidToken) == TOKEN_VOID) {} else {

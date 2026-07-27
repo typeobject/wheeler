@@ -77,6 +77,18 @@ class MinimalCompilerExampleTest {
         new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
             Map.of("NoStateModuleHelper.w", noStateHelperModuleSource), "examples.seed")),
         noStateHelperModuleWriter.hostOutput());
+    String noStateProofModuleSource =
+        "module examples.seed; classical class NoStateModuleProof { "
+            + "rev void inspect() { } "
+            + "theorem inspectInverse proves inverse(inspect); "
+            + "entry void main() { inspect(); reverse { inspect(); } } }";
+    VirtualMachine noStateProofModuleWriter = new VirtualMachine(
+        writerProgram, noStateProofModuleSource.getBytes(StandardCharsets.UTF_8), 1024);
+    noStateProofModuleWriter.run();
+    assertArrayEquals(
+        new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
+            Map.of("NoStateModuleProof.w", noStateProofModuleSource), "examples.seed")),
+        noStateProofModuleWriter.hostOutput());
     String proofModuleSource = "module examples.seed; classical class ModuleProof { "
         + "state long value = 1; rev void bump() { value += 2; } "
         + "theorem bumpInverse proves inverse(bump); "
@@ -500,15 +512,12 @@ class MinimalCompilerExampleTest {
     assertThrows(VmTrap.class, duplicate::run);
     assertArrayEquals(new byte[512], duplicate.hostOutput());
 
-    VirtualMachine noStateReversibleHelper = new VirtualMachine(
+    assertDifferentialHalt(
         writerProgram,
-        ("classical class NoStateReversibleHelper { "
+        "classical class NoStateReversibleHelper { "
             + "rev void inspect() { } "
-            + "entry void main() { inspect(); reverse { inspect(); } } }")
-            .getBytes(StandardCharsets.UTF_8),
-        1024);
-    assertThrows(VmTrap.class, noStateReversibleHelper::run);
-    assertArrayEquals(new byte[1024], noStateReversibleHelper.hostOutput());
+            + "theorem inspectInverse proves inverse(inspect); "
+            + "entry void main() { inspect(); reverse { inspect(); } } }");
 
     VirtualMachine duplicateHelperVisibility = new VirtualMachine(
         writerProgram,

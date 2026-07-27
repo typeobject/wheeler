@@ -47,7 +47,7 @@ Expected behavior:
 - Cases include signed and Boolean locals, literal or prior-local truth assertions, stateful updates, helper calls, reversible helpers, reverse blocks, and generated-inverse theorems.
 - Fixtures use two to four strings and zero or one global.
 - Bounded entry bodies derive up to twenty locals and 528 code bytes while `assert(global == constant)` lowers directly to local-free `EXPECT_EQ`.
-- A named public, explicit-private, or unqualified zero- through sixteen-statement helper plus static entry call emits two descriptors, `RETURN`, and `CALL`. Ordinary helpers may live in classes with no state; reversible helpers still require the bounded state-update profile, because an inverse of nothing is not yet a compiler architecture.
+- A named public, explicit-private, or unqualified zero- through sixteen-statement helper plus static entry call emits two descriptors, `RETURN`, and `CALL`. Ordinary helpers may live in classes with no state. An empty reversible helper and its generated-inverse theorem also compile without inventing dummy state; nonempty reversible bodies remain bounded to checked state updates. An inverse of nothing is modest, but at least it does not lie.
 - One or two helper calls derive repeated `CALL` sites.
 - A following entry statement derives its own locals, type window, descriptor length, and code after the call.
 - The `rev` form maps checked `+=`/`-=` to opposite intrinsic bodies and `^=` to a self-inverse body, reverses multi-statement inverse order, emits entry `CALL`/`UNCALL`, then may assert the restored state.

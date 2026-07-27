@@ -221,6 +221,65 @@ classical class StringTable {
       mainIndex += 1;
     }
 
+    long proofIndex = 0;
+    long stringCount = 3;
+    long proofExtra = 0;
+    if (program.proofCount == 1) {
+      long proofLength = program.proofName.length;
+      long nameProofOrder = compareAsciiSlices(
+        source,
+        program.name.start,
+        nameLength,
+        program.proofName.start,
+        proofLength
+      );
+      long helperProofOrder = 0 - compareAsciiSliceToHelper(
+        source,
+        program.proofName.start,
+        proofLength,
+        moduleName,
+        program.helperName
+      );
+      long proofMainOrder = compareAsciiSliceToEntry(
+        source,
+        program.proofName.start,
+        proofLength,
+        moduleName
+      );
+      if (nameProofOrder == 0) {
+        valid = 0;
+      }
+
+      if (helperProofOrder == 0) {
+        valid = 0;
+      }
+
+      if (proofMainOrder == 0) {
+        valid = 0;
+      }
+
+      if (0 < nameProofOrder) {
+        nameIndex += 1;
+      } else {
+        proofIndex += 1;
+      }
+
+      if (0 < helperProofOrder) {
+        helperIndex += 1;
+      } else {
+        proofIndex += 1;
+      }
+
+      if (proofMainOrder < 0) {
+        mainIndex += 1;
+      } else {
+        proofIndex += 1;
+      }
+
+      stringCount = 4;
+      proofExtra = proofLength + 4;
+    }
+
     long modulePrefixLength = 0;
     if (0 < moduleName.length) {
       modulePrefixLength = moduleName.length + 2;
@@ -230,10 +289,10 @@ classical class StringTable {
       nameIndex,
       0,
       helperIndex,
-      0,
+      proofIndex,
       mainIndex,
-      3,
-      20 + nameLength + helperLength + modulePrefixLength * 2,
+      stringCount,
+      20 + nameLength + helperLength + modulePrefixLength * 2 + proofExtra,
       valid
     );
   }
