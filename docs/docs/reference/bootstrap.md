@@ -184,7 +184,7 @@ limits:
   steps: 10000000
 ```
 
-Each limit is a positive canonical integer no larger than 1,073,741,824. The schema requires all ten limits and rejects unknown keys; a launcher must apply the same values to both derivations. Hashing one limits file while using different limits would make the provenance false.
+Each limit is a positive canonical integer no larger than 1,073,741,824. The schema requires all ten limits and rejects unknown keys; a launcher must apply the same values to both derivations. `NativeCompilerLimitsIdentity.w` consumes the exact canonical field order and decimal spelling, checks all ten bounds, and reproduces the stage-0 identity for manifests up to 512 bytes. Hashing one limits file while using different limits would make the provenance false.
 
 Source maps may be enabled only when their normalized logical source identities are part of the canonical output.
 

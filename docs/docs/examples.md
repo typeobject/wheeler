@@ -147,6 +147,14 @@ Covers: Exact bounded `wheeler.artifact-set/1` JSON, one through eight sorted sa
 
 Expected behavior: A two-artifact manifest reproduces the stage-0 set identity. Unsorted paths, uppercase digests, forged identities, unknown profile keys, a ninth artifact, or input beyond 4,096 bytes publish nothing. This fixture validates manifest metadata; the stage-0 closed-tree command still verifies every physical `.wbc` before emitting those bytes. A manifest is evidence about files only after somebody checks the files. Film at eleven.
 
+### `NativeCompilerLimitsIdentity.w`
+
+Files: [`NativeCompilerLimitsIdentity.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/NativeCompilerLimitsIdentity.w) + [`BootstrapSyntax.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/BootstrapSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
+
+Covers: Exact schema-1 canonical YAML, all ten required positive compiler ceilings, canonical decimal spelling, the 1,073,741,824 per-field maximum, complete SHA-256 publication, and exact rewind.
+
+Expected behavior: The documented bootstrap limits reproduce the stage-0 identity. Zero, a leading zero, an over-ceiling value, stray whitespace, or input beyond 512 bytes publishes nothing. A missing resource limit is not an exciting opportunity for dynamic defaults.
+
 ### `NativeCompilerOptionsIdentity.w`
 
 Files: [`NativeCompilerOptionsIdentity.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/NativeCompilerOptionsIdentity.w) + [`BootstrapSyntax.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/BootstrapSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
