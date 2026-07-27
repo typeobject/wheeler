@@ -45,7 +45,15 @@ classical class LocalStatements {
       return true;
     }
 
-    return opcode == STATEMENT_LOCAL_LONG_LT_NAMED;
+    if (opcode == STATEMENT_LOCAL_LONG_LT_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_EQ_LITERAL_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_LOCAL_LONG_LT_LITERAL_NAMED;
   }
 
   private long resolvePriorDeclaration(
@@ -283,6 +291,40 @@ classical class LocalStatements {
       );
       if (-1 < conditionalSourceLocal) {
         return namedLocalConditionalBase(opcode) + conditionalSourceLocal;
+      }
+
+      return -1;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_EQ_LITERAL_NAMED) {
+      long equalityLiteralSource = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3,
+        true
+      );
+      if (-1 < equalityLiteralSource) {
+        return STATEMENT_LOCAL_LONG_EQ_LITERAL_BASE + equalityLiteralSource;
+      }
+
+      return -1;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_LT_LITERAL_NAMED) {
+      long lessThanLiteralSource = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3,
+        true
+      );
+      if (-1 < lessThanLiteralSource) {
+        return STATEMENT_LOCAL_LONG_LT_LITERAL_BASE + lessThanLiteralSource;
       }
 
       return -1;
@@ -685,6 +727,14 @@ classical class LocalStatements {
     }
 
     if (opcode == STATEMENT_ASSERT_EQ) {
+      return statementStart + 5;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_EQ_LITERAL_NAMED) {
+      return statementStart + 6;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_LT_LITERAL_NAMED) {
       return statementStart + 5;
     }
 

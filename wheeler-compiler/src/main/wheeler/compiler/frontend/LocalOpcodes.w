@@ -105,6 +105,42 @@ classical class LocalOpcodes {
     return opcode < STATEMENT_ASSERT_LONG_LT_BASE + 256;
   }
 
+  /// Checks whether an opcode carries signed equality with a literal.
+  public boolean resolvedLocalLiteralEquality(long opcode) {
+    if (opcode < STATEMENT_LOCAL_LONG_EQ_LITERAL_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_LONG_EQ_LITERAL_BASE + 256;
+  }
+
+  /// Checks whether an opcode carries signed less-than with a literal.
+  public boolean resolvedLocalLiteralLessThan(long opcode) {
+    if (opcode < STATEMENT_LOCAL_LONG_LT_LITERAL_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_LONG_LT_LITERAL_BASE + 256;
+  }
+
+  /// Checks whether an opcode carries a signed comparison with a literal.
+  public boolean resolvedLocalLiteralComparison(long opcode) {
+    if (resolvedLocalLiteralEquality(opcode)) {
+      return true;
+    }
+
+    return resolvedLocalLiteralLessThan(opcode);
+  }
+
+  /// Returns the source local carried by a literal comparison.
+  public long resolvedLocalLiteralComparisonSource(long opcode) {
+    if (resolvedLocalLiteralEquality(opcode)) {
+      return opcode - STATEMENT_LOCAL_LONG_EQ_LITERAL_BASE;
+    }
+
+    return opcode - STATEMENT_LOCAL_LONG_LT_LITERAL_BASE;
+  }
+
   /// Checks whether an opcode carries one resolved signed-local identity.
   public boolean resolvedLocalLongAssertion(long opcode) {
     if (opcode < STATEMENT_ASSERT_LOCAL_LONG_BASE) {
@@ -259,6 +295,18 @@ classical class LocalOpcodes {
 
   /// Returns the typed-local width required by one parsed statement.
   public long statementLocalCount(long opcode) {
+    if (resolvedLocalLiteralComparison(opcode)) {
+      return 4;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_EQ_LITERAL_NAMED) {
+      return 4;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_LT_LITERAL_NAMED) {
+      return 4;
+    }
+
     if (resolvedLocalLessThanAssertion(opcode)) {
       return 3;
     }
@@ -453,6 +501,14 @@ classical class LocalOpcodes {
     }
 
     if (opcode == STATEMENT_LOCAL_LONG_LT_NAMED) {
+      return localBase + 3;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_EQ_LITERAL_NAMED) {
+      return localBase + 3;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_LT_LITERAL_NAMED) {
       return localBase + 3;
     }
 

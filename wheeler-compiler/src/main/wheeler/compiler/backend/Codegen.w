@@ -16,14 +16,20 @@ classical class Codegen {
     long sourceLocal,
     long rightLocal,
     long localBase,
+    long rightOpcode,
     long comparisonOpcode
   ) {
     cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
     cursor = writeUnsignedLittleEndian(output, cursor, sourceLocal, 8);
-    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
+    cursor = writeInstructionHeader(output, cursor, rightOpcode, 2);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
-    cursor = writeUnsignedLittleEndian(output, cursor, rightLocal, 8);
+    if (rightOpcode == OPCODE_LOCAL_CONST) {
+      cursor = writeSignedLittleEndian(output, cursor, rightLocal, 8);
+    } else {
+      cursor = writeUnsignedLittleEndian(output, cursor, rightLocal, 8);
+    }
+
     cursor = writeInstructionHeader(output, cursor, comparisonOpcode, 3);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
@@ -146,6 +152,10 @@ classical class Codegen {
       comparison = true;
     }
 
+    if (resolvedLocalLiteralComparison(opcode)) {
+      comparison = true;
+    }
+
     if (comparison) {
       long sourceType = TYPE_BOOLEAN;
       if (resolvedLocalEqualitySigned(opcode)) {
@@ -153,6 +163,10 @@ classical class Codegen {
       }
 
       if (resolvedLocalLongLessThan(opcode)) {
+        sourceType = TYPE_SIGNED;
+      }
+
+      if (resolvedLocalLiteralComparison(opcode)) {
         sourceType = TYPE_SIGNED;
       }
 
@@ -208,6 +222,10 @@ classical class Codegen {
 
   /// Returns the encoded byte width of one parsed statement.
   public long statementCodeLength(long opcode) {
+    if (resolvedLocalLiteralComparison(opcode)) {
+      return 104;
+    }
+
     if (resolvedLocalLessThanAssertion(opcode)) {
       return 96;
     }
@@ -483,6 +501,23 @@ classical class Codegen {
       return writeUnsignedLittleEndian(output, cursor, localBase, 8);
     }
 
+    if (resolvedLocalLiteralComparison(opcode)) {
+      long literalComparisonOpcode = OPCODE_LOCAL_LT;
+      if (resolvedLocalLiteralEquality(opcode)) {
+        literalComparisonOpcode = OPCODE_LOCAL_EQ;
+      }
+
+      return writeLocalComparison(
+        output,
+        cursor,
+        resolvedLocalLiteralComparisonSource(opcode),
+        operand,
+        localBase,
+        OPCODE_LOCAL_CONST,
+        literalComparisonOpcode
+      );
+    }
+
     if (resolvedLocalEquality(opcode)) {
       return writeLocalComparison(
         output,
@@ -490,6 +525,7 @@ classical class Codegen {
         resolvedLocalEqualitySource(opcode),
         operand,
         localBase,
+        OPCODE_LOCAL_MOVE,
         OPCODE_LOCAL_EQ
       );
     }
@@ -501,6 +537,7 @@ classical class Codegen {
         opcode - STATEMENT_LOCAL_LONG_LT_BASE,
         operand,
         localBase,
+        OPCODE_LOCAL_MOVE,
         OPCODE_LOCAL_LT
       );
     }

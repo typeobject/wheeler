@@ -238,6 +238,14 @@ classical class Tokens {
   public const long STATEMENT_IF_NOT_LOCAL_SUB_VALUE_BASE = 11264;
   /// Starts negated conditions guarding XOR from prior signed locals.
   public const long STATEMENT_IF_NOT_LOCAL_XOR_VALUE_BASE = 11520;
+  /// Names signed-local equality with a literal right operand.
+  public const long STATEMENT_LOCAL_LONG_EQ_LITERAL_NAMED = 815;
+  /// Names signed-local less-than with a literal right operand.
+  public const long STATEMENT_LOCAL_LONG_LT_LITERAL_NAMED = 816;
+  /// Starts resolved signed-local equality with literal right operands.
+  public const long STATEMENT_LOCAL_LONG_EQ_LITERAL_BASE = 11776;
+  /// Starts resolved signed-local less-than with literal right operands.
+  public const long STATEMENT_LOCAL_LONG_LT_LITERAL_BASE = 12032;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -571,12 +579,22 @@ classical class Tokens {
       long equality = utf8Scalar(source, tokenStarts[statementStart + 4]);
       if (equality == PUNCTUATION_ASSIGN) {
         if (utf8Scalar(source, tokenStarts[statementStart + 5]) == PUNCTUATION_ASSIGN) {
-          return STATEMENT_LOCAL_BOOLEAN_EQ_NAMED;
+          long equalityRight = utf8Scalar(source, tokenStarts[statementStart + 6]);
+          if (identifierStart(equalityRight)) {
+            return STATEMENT_LOCAL_BOOLEAN_EQ_NAMED;
+          }
+
+          return STATEMENT_LOCAL_LONG_EQ_LITERAL_NAMED;
         }
       }
 
       if (equality == PUNCTUATION_LESS_THAN) {
-        return STATEMENT_LOCAL_LONG_LT_NAMED;
+        long lessThanRight = utf8Scalar(source, tokenStarts[statementStart + 5]);
+        if (identifierStart(lessThanRight)) {
+          return STATEMENT_LOCAL_LONG_LT_NAMED;
+        }
+
+        return STATEMENT_LOCAL_LONG_LT_LITERAL_NAMED;
       }
 
       return STATEMENT_LOCAL_BOOLEAN_NAMED;

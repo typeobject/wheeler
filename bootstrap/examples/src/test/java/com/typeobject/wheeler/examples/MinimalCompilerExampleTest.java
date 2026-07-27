@@ -236,6 +236,18 @@ class MinimalCompilerExampleTest {
         "classical class LocalSignedLessThan { entry void main() { "
             + "long first = 40; long second = 42; "
             + "boolean less = first < second; assert(less); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class LocalSignedEqualsLiteral { entry void main() { "
+            + "long answer = 42; boolean same = answer == 42; assert(same); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class LocalSignedLessThanLiteral { entry void main() { "
+            + "long answer = -2; boolean less = answer < -1; assert(less); } }");
+    assertDifferentialTrap(
+        writerProgram,
+        "classical class LocalSignedNotEqualsLiteral { entry void main() { "
+            + "long answer = 41; boolean same = answer == 42; assert(same); } }");
     assertDifferentialExecution(
         writerProgram,
         "classical class LocalIfAdd { state long result = 0; entry void main() { "

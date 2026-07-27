@@ -467,6 +467,14 @@ classical class Statements {
       booleanDeclaration = true;
     }
 
+    if (statementKind == STATEMENT_LOCAL_LONG_EQ_LITERAL_NAMED) {
+      booleanDeclaration = true;
+    }
+
+    if (statementKind == STATEMENT_LOCAL_LONG_LT_LITERAL_NAMED) {
+      booleanDeclaration = true;
+    }
+
     if (booleanDeclaration) {
       if (tokenKinds[statementStart + 1] == 1) {
         if (
@@ -478,6 +486,46 @@ classical class Statements {
             PUNCTUATION_ASSIGN
           )
         ) {
+          if (statementKind == STATEMENT_LOCAL_LONG_LT_LITERAL_NAMED) {
+            if (tokenKinds[statementStart + 3] == 1) {
+              if (
+                punctuationAt(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  statementStart + 4,
+                  PUNCTUATION_LESS_THAN
+                )
+              ) {
+                long lessThanWidth = signedNumberWidth(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  statementStart + 5
+                );
+                if (0 < lessThanWidth) {
+                  if (
+                    signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 5)
+                  ) {
+                    if (
+                      punctuationAt(
+                        source,
+                        tokenKinds,
+                        tokenStarts,
+                        statementStart + 5 + lessThanWidth,
+                        PUNCTUATION_SEMICOLON
+                      )
+                    ) {
+                      return 6 + lessThanWidth;
+                    }
+                  }
+                }
+              }
+            }
+
+            return -1;
+          }
+
           if (statementKind == STATEMENT_LOCAL_LONG_LT_NAMED) {
             if (tokenKinds[statementStart + 3] == 1) {
               if (
@@ -500,6 +548,56 @@ classical class Statements {
                     )
                   ) {
                     return 7;
+                  }
+                }
+              }
+            }
+
+            return -1;
+          }
+
+          if (statementKind == STATEMENT_LOCAL_LONG_EQ_LITERAL_NAMED) {
+            if (tokenKinds[statementStart + 3] == 1) {
+              if (
+                punctuationAt(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  statementStart + 4,
+                  PUNCTUATION_ASSIGN
+                )
+              ) {
+                if (
+                  punctuationAt(
+                    source,
+                    tokenKinds,
+                    tokenStarts,
+                    statementStart + 5,
+                    PUNCTUATION_ASSIGN
+                  )
+                ) {
+                  long equalityWidth = signedNumberWidth(
+                    source,
+                    tokenKinds,
+                    tokenStarts,
+                    statementStart + 6
+                  );
+                  if (0 < equalityWidth) {
+                    if (
+                      signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 6)
+                    ) {
+                      if (
+                        punctuationAt(
+                          source,
+                          tokenKinds,
+                          tokenStarts,
+                          statementStart + 6 + equalityWidth,
+                          PUNCTUATION_SEMICOLON
+                        )
+                      ) {
+                        return 7 + equalityWidth;
+                      }
+                    }
                   }
                 }
               }
