@@ -32,7 +32,7 @@ final class NativeBootstrapModulesIdentityExampleTest {
         List.of(),
         List.of(new Module(
             "wheeler.compiler", "src/main/wheeler/Compiler.w", IDENTITY, List.of())));
-    assertIdentity(program, empty, 0, 0, true);
+    assertIdentity(program, empty, 1, 0, 0, true);
 
     BootstrapModuleManifest imported = new BootstrapModuleManifest(
         "bootstrap-1",
@@ -43,7 +43,52 @@ final class NativeBootstrapModulesIdentityExampleTest {
             "src/main/wheeler/Compiler.w",
             IDENTITY,
             List.of("wheeler.core", "wheeler.runtime"))));
-    assertIdentity(program, imported, 2, 2, false);
+    assertIdentity(program, imported, 1, 2, 2, false);
+
+    BootstrapModuleManifest graph = new BootstrapModuleManifest(
+        "bootstrap-1",
+        "wheeler.compiler",
+        List.of("wheeler.core"),
+        List.of(
+            new Module(
+                "wheeler.compiler",
+                "src/main/wheeler/Compiler.w",
+                "01".repeat(32),
+                List.of("wheeler.compiler.backend", "wheeler.core")),
+            new Module(
+                "wheeler.compiler.backend",
+                "src/main/wheeler/Backend.w",
+                "02".repeat(32),
+                List.of("wheeler.compiler.tokens")),
+            new Module(
+                "wheeler.compiler.tokens",
+                "src/main/wheeler/Tokens.w",
+                "03".repeat(32),
+                List.of())));
+    assertIdentity(program, graph, 3, 1, 3, false);
+    String graphText = graph.canonicalText();
+    assertNoIdentity(program, graphText.replace(
+        "    imports: []\n",
+        "    imports:\n      - \"wheeler.compiler\"\n")
+        .getBytes(StandardCharsets.UTF_8));
+    assertNoIdentity(program, graphText.replace(
+        "      - \"wheeler.compiler.backend\"\n", "")
+        .getBytes(StandardCharsets.UTF_8));
+    assertNoIdentity(program, graphText.replace("Tokens.w", "Backend.w")
+        .getBytes(StandardCharsets.UTF_8));
+    BootstrapModuleManifest fiveModules = new BootstrapModuleManifest(
+        "bootstrap-1",
+        "bootstrap.m0",
+        List.of(),
+        List.of(
+            new Module(
+                "bootstrap.m0", "src/M0.w", "10".repeat(32),
+                List.of("bootstrap.m1", "bootstrap.m2", "bootstrap.m3", "bootstrap.m4")),
+            new Module("bootstrap.m1", "src/M1.w", "11".repeat(32), List.of()),
+            new Module("bootstrap.m2", "src/M2.w", "12".repeat(32), List.of()),
+            new Module("bootstrap.m3", "src/M3.w", "13".repeat(32), List.of()),
+            new Module("bootstrap.m4", "src/M4.w", "14".repeat(32), List.of())));
+    assertNoIdentity(program, fiveModules.canonicalBytes());
 
     String text = imported.canonicalText();
     assertNoIdentity(program, new byte[2_049]);
@@ -64,6 +109,7 @@ final class NativeBootstrapModulesIdentityExampleTest {
   private static void assertIdentity(
       Program program,
       BootstrapModuleManifest manifest,
+      int modules,
       int externals,
       int imports,
       boolean rewind
@@ -76,7 +122,7 @@ final class NativeBootstrapModulesIdentityExampleTest {
 
     assertArrayEquals(MessageDigest.getInstance("SHA-256").digest(canonical),
         machine.hostOutput());
-    assertEquals(1, machine.global("moduleCount"));
+    assertEquals(modules, machine.global("moduleCount"));
     assertEquals(externals, machine.global("externalCount"));
     assertEquals(imports, machine.global("importCount"));
     assertEquals(1, machine.global("published"));

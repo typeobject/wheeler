@@ -198,18 +198,67 @@ classical class NativeBootstrapModulesIdentity {
     return found;
   }
 
-  /// Publishes SHA-256 for one canonical rooted module and up to four externals.
+  private boolean samePath(
+    borrow byteview source,
+    long left,
+    long leftLength,
+    long right,
+    long rightLength
+  ) {
+    boolean same = leftLength == rightLength;
+    long index = 0;
+    while (index < leftLength) limit 256 {
+      if ((source[left + index] == source[right + index]) == false) {
+        same = false;
+      }
+
+      index += 1;
+    }
+
+    return same;
+  }
+
+  private long listedIndex(
+    borrow byteview source,
+    borrow mut words starts,
+    borrow mut words lengths,
+    long count,
+    long candidate,
+    long candidateLength
+  ) {
+    long found = -1;
+    long index = 0;
+    while (index < count) limit 4 {
+      if (
+        sameText(source, starts[index], lengths[index], candidate, candidateLength)
+      ) {
+        found = index;
+      }
+
+      index += 1;
+    }
+
+    return found;
+  }
+
+  /// Publishes SHA-256 for up to four rooted modules and four externals.
   ///
   /// - Effects: Mutates fixture state and caller-owned identity output.
   entry void main(borrow byteview source, borrow mut bytes identity) {
     requireMetadata(bufferLength(source) < 2049, source);
     requireMetadata(31 < bufferLength(identity), source);
-    region arena = new region(1800, 12);
+    region arena = new region(2600, 20);
     bytes expected = allocateBytes(arena, 256);
     words externalStarts = allocate(arena, 4);
     words externalLengths = allocate(arena, 4);
-    words importedStarts = allocate(arena, 4);
-    words importedLengths = allocate(arena, 4);
+    words moduleStarts = allocate(arena, 4);
+    words moduleLengths = allocate(arena, 4);
+    words sourceStarts = allocate(arena, 4);
+    words sourceLengths = allocate(arena, 4);
+    words edgeOwners = allocate(arena, 16);
+    words edgeStarts = allocate(arena, 16);
+    words edgeLengths = allocate(arena, 16);
+    words adjacency = allocate(arena, 16);
 
     writeAscii(expected, 0, "schema: 1");
     setByte(expected, 9, 10);
@@ -295,93 +344,228 @@ classical class NativeBootstrapModulesIdentity {
     writeAscii(expected, 9, "  - name: ");
     setByte(expected, 19, 34);
     cursor = consumeMetadata(source, cursor, expected, 20);
-    long moduleStart = cursor;
-    cursor = consumeModuleName(source, cursor);
-    long moduleLength = cursor - moduleStart;
-    requireMetadata(
-      sameText(source, rootStart, rootLength, moduleStart, moduleLength),
-      source
-    );
-
-    setByte(expected, 0, 34);
-    setByte(expected, 1, 10);
-    writeAscii(expected, 2, "    source: ");
-    setByte(expected, 14, 34);
-    cursor = consumeMetadata(source, cursor, expected, 15);
-    cursor = consumeSourcePath(source, cursor);
-    setByte(expected, 0, 34);
-    setByte(expected, 1, 10);
-    writeAscii(expected, 2, "    identity: ");
-    cursor = consumeMetadata(source, cursor, expected, 16);
-    cursor = consumeQuotedIdentity(source, cursor, expected);
-
-    setByte(expected, 0, 10);
-    writeAscii(expected, 1, "    imports:");
-    cursor = consumeMetadata(source, cursor, expected, 13);
+    long parsedModules = 0;
     long parsedImports = 0;
-    if (source[cursor] == 32) {
-      writeAscii(expected, 0, " []");
-      setByte(expected, 3, 10);
-      cursor = consumeMetadata(source, cursor, expected, 4);
-    } else {
-      setByte(expected, 0, 10);
-      writeAscii(expected, 1, "      - ");
-      setByte(expected, 9, 34);
-      cursor = consumeMetadata(source, cursor, expected, 10);
-      boolean moreImports = true;
-      while (moreImports) limit 4 {
-        requireMetadata(parsedImports < 4, source);
-        long importStart = cursor;
-        cursor = consumeModuleName(source, cursor);
-        long importLength = cursor - importStart;
+    boolean moreModules = true;
+    while (moreModules) limit 4 {
+      requireMetadata(parsedModules < 4, source);
+      long moduleStart = cursor;
+      cursor = consumeModuleName(source, cursor);
+      long moduleLength = cursor - moduleStart;
+      if (0 < parsedModules) {
         requireMetadata(
-          listed(
+          orderedAfter(
             source,
-            externalStarts,
-            externalLengths,
-            parsedExternals,
-            importStart,
-            importLength
+            moduleStarts[parsedModules - 1],
+            moduleLengths[parsedModules - 1],
+            moduleStart,
+            moduleLength
           ),
           source
         );
-        if (0 < parsedImports) {
-          requireMetadata(
-            orderedAfter(
-              source,
-              importedStarts[parsedImports - 1],
-              importedLengths[parsedImports - 1],
-              importStart,
-              importLength
-            ),
-            source
-          );
-        }
+      }
 
-        set(importedStarts, parsedImports, importStart);
-        set(importedLengths, parsedImports, importLength);
-        parsedImports += 1;
-        setByte(expected, 0, 34);
-        setByte(expected, 1, 10);
-        cursor = consumeMetadata(source, cursor, expected, 2);
-        moreImports = cursor < bufferLength(source);
-        if (moreImports) {
-          writeAscii(expected, 0, "      - ");
-          setByte(expected, 8, 34);
-          cursor = consumeMetadata(source, cursor, expected, 9);
+      set(moduleStarts, parsedModules, moduleStart);
+      set(moduleLengths, parsedModules, moduleLength);
+
+      setByte(expected, 0, 34);
+      setByte(expected, 1, 10);
+      writeAscii(expected, 2, "    source: ");
+      setByte(expected, 14, 34);
+      cursor = consumeMetadata(source, cursor, expected, 15);
+      long sourceStart = cursor;
+      cursor = consumeSourcePath(source, cursor);
+      long sourceLength = cursor - sourceStart;
+      long previousSource = 0;
+      while (previousSource < parsedModules) limit 4 {
+        requireMetadata(
+          samePath(
+            source,
+            sourceStarts[previousSource],
+            sourceLengths[previousSource],
+            sourceStart,
+            sourceLength
+          ) == false,
+          source
+        );
+        previousSource += 1;
+      }
+
+      set(sourceStarts, parsedModules, sourceStart);
+      set(sourceLengths, parsedModules, sourceLength);
+
+      setByte(expected, 0, 34);
+      setByte(expected, 1, 10);
+      writeAscii(expected, 2, "    identity: ");
+      cursor = consumeMetadata(source, cursor, expected, 16);
+      cursor = consumeQuotedIdentity(source, cursor, expected);
+      setByte(expected, 0, 10);
+      writeAscii(expected, 1, "    imports:");
+      cursor = consumeMetadata(source, cursor, expected, 13);
+
+      long moduleImportCount = 0;
+      if (source[cursor] == 32) {
+        writeAscii(expected, 0, " []");
+        setByte(expected, 3, 10);
+        cursor = consumeMetadata(source, cursor, expected, 4);
+      } else {
+        setByte(expected, 0, 10);
+        writeAscii(expected, 1, "      - ");
+        setByte(expected, 9, 34);
+        cursor = consumeMetadata(source, cursor, expected, 10);
+        boolean moreImports = true;
+        while (moreImports) limit 4 {
+          requireMetadata(moduleImportCount < 4, source);
+          requireMetadata(parsedImports < 16, source);
+          long importStart = cursor;
+          cursor = consumeModuleName(source, cursor);
+          long importLength = cursor - importStart;
+          if (0 < moduleImportCount) {
+            requireMetadata(
+              orderedAfter(
+                source,
+                edgeStarts[parsedImports - 1],
+                edgeLengths[parsedImports - 1],
+                importStart,
+                importLength
+              ),
+              source
+            );
+          }
+
+          set(edgeOwners, parsedImports, parsedModules);
+          set(edgeStarts, parsedImports, importStart);
+          set(edgeLengths, parsedImports, importLength);
+          parsedImports += 1;
+          moduleImportCount += 1;
+          setByte(expected, 0, 34);
+          setByte(expected, 1, 10);
+          cursor = consumeMetadata(source, cursor, expected, 2);
+          moreImports = false;
+          if (cursor + 2 < bufferLength(source)) {
+            moreImports = source[cursor + 2] == 32;
+          }
+
+          if (moreImports) {
+            writeAscii(expected, 0, "      - ");
+            setByte(expected, 8, 34);
+            cursor = consumeMetadata(source, cursor, expected, 9);
+          }
         }
       }
+
+      parsedModules += 1;
+      moreModules = cursor < bufferLength(source);
+      if (moreModules) {
+        writeAscii(expected, 0, "  - name: ");
+        setByte(expected, 10, 34);
+        cursor = consumeMetadata(source, cursor, expected, 11);
+      }
+    }
+
+    requireMetadata(0 < parsedModules, source);
+    long rootModule = listedIndex(
+      source,
+      moduleStarts,
+      moduleLengths,
+      parsedModules,
+      rootStart,
+      rootLength
+    );
+    requireMetadata(-1 < rootModule, source);
+    long external = 0;
+    while (external < parsedExternals) limit 4 {
+      requireMetadata(
+        listedIndex(
+          source,
+          moduleStarts,
+          moduleLengths,
+          parsedModules,
+          externalStarts[external],
+          externalLengths[external]
+        ) < 0,
+        source
+      );
+      external += 1;
+    }
+
+    long edge = 0;
+    while (edge < parsedImports) limit 16 {
+      long localTarget = listedIndex(
+        source,
+        moduleStarts,
+        moduleLengths,
+        parsedModules,
+        edgeStarts[edge],
+        edgeLengths[edge]
+      );
+      boolean resolved = -1 < localTarget;
+      if (resolved == false) {
+        resolved = listed(
+          source,
+          externalStarts,
+          externalLengths,
+          parsedExternals,
+          edgeStarts[edge],
+          edgeLengths[edge]
+        );
+      }
+
+      requireMetadata(resolved, source);
+      if (-1 < localTarget) {
+        requireMetadata((localTarget == edgeOwners[edge]) == false, source);
+        set(adjacency, edgeOwners[edge] * 4 + localTarget, 1);
+      }
+
+      edge += 1;
+    }
+
+    long bridge = 0;
+    while (bridge < parsedModules) limit 4 {
+      long fromModule = 0;
+      while (fromModule < parsedModules) limit 4 {
+        if (adjacency[fromModule * 4 + bridge] == 1) {
+          long toModule = 0;
+          while (toModule < parsedModules) limit 4 {
+            if (adjacency[bridge * 4 + toModule] == 1) {
+              set(adjacency, fromModule * 4 + toModule, 1);
+            }
+
+            toModule += 1;
+          }
+        }
+
+        fromModule += 1;
+      }
+
+      bridge += 1;
+    }
+
+    long reached = 0;
+    while (reached < parsedModules) limit 4 {
+      requireMetadata(adjacency[reached * 4 + reached] == 0, source);
+      if ((reached == rootModule) == false) {
+        requireMetadata(adjacency[rootModule * 4 + reached] == 1, source);
+      }
+
+      reached += 1;
     }
 
     requireMetadata(cursor == bufferLength(source), source);
     publishSha256(source, identity, arena);
-    moduleCount = 1;
+    moduleCount = parsedModules;
     externalCount = parsedExternals;
     importCount = parsedImports;
     published = 1;
     setOutputLength(identity, 32);
-    drop(importedLengths);
-    drop(importedStarts);
+    drop(adjacency);
+    drop(edgeLengths);
+    drop(edgeStarts);
+    drop(edgeOwners);
+    drop(sourceLengths);
+    drop(sourceStarts);
+    drop(moduleLengths);
+    drop(moduleStarts);
     drop(externalLengths);
     drop(externalStarts);
     drop(expected);
