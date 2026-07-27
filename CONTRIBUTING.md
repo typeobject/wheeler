@@ -27,6 +27,8 @@ rm -rf docs-site
 - Update examples and current reference pages with behavior changes.
 - Update an Implementing WIP's checklist in the patch that supplies the evidence.
 - Use small commits whose message states the completed feature.
+- Run `wheeler format --check .`; canonical `/* parameter= */ value` comments label adjacent ambiguous literals without pretending comments are named-argument syntax.
+- Add mechanical checks only when they are deterministic, high-signal, and fatal without a suppression ledger.
 
 Compiler warnings are errors. Broken documentation links are errors. Tree-sitter conflicts and corpus failures are errors.
 

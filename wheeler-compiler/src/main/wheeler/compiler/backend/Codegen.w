@@ -166,7 +166,7 @@ classical class Codegen {
   /// Writes `globalUpdate` into caller-owned bounded output.
   public long writeGlobalUpdate(borrow mut bytes output, long cursor, long opcode, long operand) {
     cursor = writeInstructionHeader(output, cursor, globalOpcode(opcode), 2);
-    cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8);
     return writeSignedLittleEndian(output, cursor, operand, 8);
   }
 
@@ -183,7 +183,7 @@ classical class Codegen {
       inverseGlobalOpcode(globalOpcode(opcode)),
       2
     );
-    cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8);
     return writeSignedLittleEndian(output, cursor, operand, 8);
   }
 
@@ -197,7 +197,7 @@ classical class Codegen {
   ) {
     if (opcode == STATEMENT_ASSERT_EQ) {
       cursor = writeInstructionHeader(output, cursor, OPCODE_EXPECT_EQ, 2);
-      cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8);
       return writeSignedLittleEndian(output, cursor, operand, 8);
     }
 
@@ -243,7 +243,7 @@ classical class Codegen {
       cursor = writeUnsignedLittleEndian(output, cursor, negatedSourceLocal, 8);
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, 2);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
-      cursor = writeSignedLittleEndian(output, cursor, 1, 8);
+      cursor = writeSignedLittleEndian(output, cursor, /* value= */ 1, /* width= */ 8);
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_XOR, 3);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
@@ -342,7 +342,7 @@ classical class Codegen {
     if (opcode == STATEMENT_ASSERT_BOOLEAN_NOT) {
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, 2);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
-      cursor = writeUnsignedLittleEndian(output, cursor, 1, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 1, /* width= */ 8);
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_XOR, 3);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
@@ -366,7 +366,7 @@ classical class Codegen {
     if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT) {
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, 2);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
-      cursor = writeUnsignedLittleEndian(output, cursor, 1, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 1, /* width= */ 8);
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_XOR, 3);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
@@ -378,19 +378,19 @@ classical class Codegen {
 
     if (opcode == STATEMENT_ASSIGN) {
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_STORE_GLOBAL, 2);
-      cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8);
       return writeUnsignedLittleEndian(output, cursor, localBase, 8);
     }
 
     cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_LOAD_GLOBAL, 2);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
-    cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8);
     cursor = writeInstructionHeader(output, cursor, opcode, 3);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
     cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_STORE_GLOBAL, 2);
-    cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8);
     return writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
   }
 
@@ -415,7 +415,7 @@ classical class Codegen {
     cursor = writeUnsignedLittleEndian(output, cursor, forwardLength, 4);
     cursor = writeUnsignedLittleEndian(output, cursor, inverseOffset, 4);
     cursor = writeUnsignedLittleEndian(output, cursor, inverseLength, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, 0, 4);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 4);
     cursor = writeUnsignedLittleEndian(output, cursor, localCount, 4);
     return writeUnsignedLittleEndian(output, cursor, typeOffset, 4);
   }

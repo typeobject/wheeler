@@ -201,6 +201,7 @@ The first style version uses these rules:
 - one ASCII space after commas;
 - no space immediately inside parentheses or brackets;
 - no space before a call or index opener;
+- a canonical argument label is written `/* parameter= */ value` and stays beside that value in horizontal or vertical argument layout;
 - module and import declarations each on their own line;
 - one blank line between file documentation, a module declaration, the import group, and the first top-level declaration when those groups exist;
 - one blank line between named top-level or member declarations;
@@ -214,6 +215,23 @@ The first style version uses these rules:
 The 100-scalar target is fixed and is not a display-column promise. Tabs, combining marks, emoji width, East Asian display width, terminal settings, and font metrics do not become formatter inputs. A literal or preserved comment may exceed the target.
 
 Documentation payload is not automatically wrapped to the code-line target.
+
+### Argument labels and mechanical checks
+
+Wheeler has no named-argument syntax yet. Where adjacent primitive literals would otherwise require counting commas, an author may label them with exact block comments:
+
+```wheeler
+cursor = writeUnsignedLittleEndian(
+  output,
+  cursor,
+  /* value= */ 0,
+  /* width= */ 8
+);
+```
+
+The horizontal form is `writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8)`. The formatter keeps each canonical label beside its argument, includes the label in the 100-scalar fit decision, preserves its payload and attachment, and never invents one. Labels are comments, not binding syntax; the callee signature remains authoritative. Four naked integers are not an API. They are a ransom note with commas.
+
+Repository checks may require labels for a narrow, mechanically recognizable bug pattern. Such checks follow the Error Prone rule: deterministic, high-signal, tested on positive and negative cases, and fatal without a warning-baseline swamp. The initial `WREAD001` gate covers adjacent literal `value` and `width` arguments to the compiler's little-endian writers. It does not demand labels for every integer in an array, hash table, test vector, or cryptographic constant. A checker that cries wolf becomes a wolf-preservation program.
 
 ### Stable line breaking
 

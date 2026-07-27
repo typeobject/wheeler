@@ -86,6 +86,15 @@ public final class SourceFormatter {
     }
 
     private void comment(int index, Element element) {
+      if (isArgumentLabel(element)
+          && ("(".equals(previousToken) || ",".equals(previousToken))) {
+        pendingBlank = false;
+        if (lineStart) {
+          indentation();
+        }
+        result.append(normalizeComment(element)).append(' ');
+        return;
+      }
       if (pendingBlank && lineStart && result.length() > 0) {
         blankLine();
       }
@@ -351,10 +360,15 @@ public final class SourceFormatter {
         throw new IllegalStateException("Parser accepted an unmatched parenthesis");
       }
       int width = 2;
-      String previous = null;
+      String previous = "(";
       for (int index = opener + 1; index < closer; index++) {
         Element element = elements.get(index);
         if (element.kind() == Kind.LINE_COMMENT || element.kind() == Kind.BLOCK_COMMENT) {
+          if (isArgumentLabel(element)
+              && ("(".equals(previous) || ",".equals(previous))) {
+            width += element.text().codePointCount(0, element.text().length()) + 1;
+            continue;
+          }
           return LINE_TARGET + 1;
         }
         if (element.kind() != Kind.TOKEN) {
@@ -527,6 +541,27 @@ public final class SourceFormatter {
       }
     }
     return result;
+  }
+
+  private static boolean isArgumentLabel(Element element) {
+    if (element.kind() != Kind.BLOCK_COMMENT) {
+      return false;
+    }
+    String text = element.text();
+    if (!text.startsWith("/* ") || !text.endsWith("= */")) {
+      return false;
+    }
+    String name = text.substring(3, text.length() - 4);
+    if (name.isEmpty() || name.charAt(0) < 'a' || name.charAt(0) > 'z') {
+      return false;
+    }
+    for (int index = 1; index < name.length(); index++) {
+      char scalar = name.charAt(index);
+      if (!Character.isLetterOrDigit(scalar)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private static String normalizeComment(Element element) {

@@ -53,6 +53,25 @@ class SourceFormatterTest {
   }
 
   @Test
+  void keepsCanonicalArgumentLabelsBesideTheirValues() {
+    String compact = "//! Labeled arguments.\nclassical class Labels { "
+        + "long shortCall() { return f(/* value= */0,/* width= */8); } "
+        + "long longCall() { return writeUnsignedLittleEndian(output, cursor, "
+        + "/* value= */0, /* width= */8); } }";
+
+    String formatted = SourceFormatter.format(compact);
+
+    assertTrue(formatted.contains(
+        "return f(/* value= */ 0, /* width= */ 8);"));
+    assertTrue(formatted.contains(
+        "return writeUnsignedLittleEndian("
+            + "output, cursor, /* value= */ 0, /* width= */ 8);"));
+    assertEquals(formatted, SourceFormatter.format(formatted));
+    assertEquals(tokens(compact), tokens(formatted));
+    assertEquals(comments(compact), comments(formatted));
+  }
+
+  @Test
   void separatesModuleImportsAndCompoundStatements() {
     String source = "module demo;import values;import words;classical class Demo { "
         + "entry void main() { if (true) { assert(true); } assert(true); } }";

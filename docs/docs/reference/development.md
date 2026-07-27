@@ -10,7 +10,7 @@ export PATH="$JAVA_HOME/bin:$PATH"
 ./bootstrap/gradlew -p bootstrap clean check treeSitterTest
 ```
 
-Java compilation enables every lint warning and treats warnings as errors. `check` runs JUnit, creates JaCoCo reports for modules with tests, and runs the source conformance gates.
+Java compilation enables every `javac` lint warning and treats warnings as errors. `check` runs JUnit, creates JaCoCo reports for modules with tests, and runs the source conformance gates. Wheeler adopts Error Prone-style checks when they are deterministic and high-signal; it does not accumulate suppressions or a ceremonial warning baseline.
 
 `sourceHeaderTest` requires each authored Java, Wheeler, JavaScript, stylesheet, Gradle, Tree-sitter query, shell, and Python file to begin with a suitable documentation comment. `sourceLayoutTest` allows no more than ten Wheeler files in one physical source directory. Generated parser and website files are not part of the authored set.
 
@@ -72,7 +72,11 @@ A finished conditional, loop, match, or `reverse` block gets one blank line befo
 
 A parameter, argument, or record group stays on one line only when its full normalized form fits within 100 Unicode scalar values. Otherwise, each comma item and the closing delimiter get stable lines.
 
-Long binary expressions continue with leading operators at one fixed extra indent. Comments and indivisible literals stay unchanged instead of being wrapped. Bounded-loop headers and the remaining syntax-owned break rules are still WIP-0016 work.
+Long binary expressions continue with leading operators at one fixed extra indent. Comments and indivisible literals stay unchanged instead of being wrapped. Canonical `/* parameter= */ value` labels remain adjacent to ambiguous literal arguments and participate in the same 100-scalar fit decision.
+
+`WREAD001` rejects unlabeled adjacent literal `value` and `width` arguments to the compiler's signed and unsigned little-endian writers. The check is deliberately narrow: array fixtures and cryptographic tables do not need a novella between every comma. New mechanical checks need a stable diagnostic, positive and negative tests, and enough precision to run as errors from day one.
+
+Bounded-loop headers and the remaining syntax-owned break rules are still WIP-0016 work.
 
 ## Design workflow
 

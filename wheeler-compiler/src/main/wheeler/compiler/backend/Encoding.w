@@ -209,10 +209,10 @@ classical class Encoding {
     long sectionLength
   ) {
     cursor = writeUnsignedLittleEndian(output, cursor, sectionType, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, 1, 4);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 1, /* width= */ 4);
     cursor = writeUnsignedLittleEndian(output, cursor, sectionOffset, 8);
     cursor = writeUnsignedLittleEndian(output, cursor, sectionLength, 8);
-    cursor = writeUnsignedLittleEndian(output, cursor, 8, 4);
-    return writeUnsignedLittleEndian(output, cursor, 0, 4);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 8, /* width= */ 4);
+    return writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 4);
   }
 }
