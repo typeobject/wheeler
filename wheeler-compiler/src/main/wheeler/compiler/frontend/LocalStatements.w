@@ -446,6 +446,10 @@ classical class LocalStatements {
       return -1 < operand;
     }
 
+    if (opcode == STATEMENT_ASSIGN_LOCAL_NAMED) {
+      return -1 < operand;
+    }
+
     return true;
   }
 
@@ -459,6 +463,18 @@ classical class LocalStatements {
     long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (opcode == STATEMENT_ASSIGN_LOCAL_NAMED) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 2,
+        true
+      );
+    }
+
     if (namedLocalConditionalAssignmentValue(opcode)) {
       return resolvePriorDeclaration(
         source,

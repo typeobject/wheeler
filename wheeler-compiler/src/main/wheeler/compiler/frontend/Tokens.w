@@ -206,6 +206,8 @@ classical class Tokens {
   public const long STATEMENT_IF_LOCAL_ASSIGN_VALUE_BASE = 9728;
   /// Starts resolved negated conditions assigning prior signed locals.
   public const long STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_BASE = 9984;
+  /// Names a global assignment from a prior signed local.
+  public const long STATEMENT_ASSIGN_LOCAL_NAMED = 805;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -526,6 +528,11 @@ classical class Tokens {
 
     long operator = utf8Scalar(source, tokenStarts[statementStart + 1]);
     if (operator == PUNCTUATION_ASSIGN) {
+      long assignedScalar = utf8Scalar(source, tokenStarts[statementStart + 2]);
+      if (identifierStart(assignedScalar)) {
+        return STATEMENT_ASSIGN_LOCAL_NAMED;
+      }
+
       return STATEMENT_ASSIGN;
     }
 

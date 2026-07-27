@@ -270,6 +270,10 @@ classical class Codegen {
       return 48;
     }
 
+    if (opcode == STATEMENT_ASSIGN_LOCAL_NAMED) {
+      return 48;
+    }
+
     if (0 < opcode) {
       return 104;
     }
@@ -602,6 +606,15 @@ classical class Codegen {
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
       cursor = writeInstructionHeader(output, cursor, OPCODE_EXPECT_TRUE, 1);
       return writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
+    }
+
+    if (opcode == STATEMENT_ASSIGN_LOCAL_NAMED) {
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, operand, 8);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_STORE_GLOBAL, 2);
+      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8);
+      return writeUnsignedLittleEndian(output, cursor, localBase, 8);
     }
 
     cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, 2);

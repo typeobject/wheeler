@@ -692,6 +692,24 @@ classical class Statements {
     if (tokenKinds[statementStart] == 1) {
       if (sameTokenText(source, tokenStarts, tokenLengths, 6, statementStart)) {
         long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+        if (opcode == STATEMENT_ASSIGN_LOCAL_NAMED) {
+          if (tokenKinds[statementStart + 2] == 1) {
+            if (
+              punctuationAt(
+                source,
+                tokenKinds,
+                tokenStarts,
+                statementStart + 3,
+                PUNCTUATION_SEMICOLON
+              )
+            ) {
+              return 4;
+            }
+          }
+
+          return -1;
+        }
+
         if (opcode == 0) {
           long operandWidth = signedNumberWidth(
             source,

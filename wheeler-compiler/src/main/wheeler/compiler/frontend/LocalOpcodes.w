@@ -596,6 +596,10 @@ classical class LocalOpcodes {
       return 1;
     }
 
+    if (opcode == STATEMENT_ASSIGN_LOCAL_NAMED) {
+      return 1;
+    }
+
     if (opcode == STATEMENT_UPDATE_ADD) {
       return 2;
     }

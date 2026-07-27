@@ -1,6 +1,8 @@
 package com.typeobject.wheeler.examples;
 
 import com.typeobject.wheeler.compiler.SourceModuleInspection;
+import com.typeobject.wheeler.compiler.WheelerCompiler;
+import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.packageformat.BootstrapModuleManifest;
 import com.typeobject.wheeler.packageformat.BootstrapModuleManifest.Module;
 import java.io.IOException;
@@ -101,6 +103,13 @@ final class CompilerSources {
         "wheeler.compiler.main",
         List.copyOf(externals),
         modules);
+  }
+
+  /** Compiles the complete bounded self-hosting compiler fixture. */
+  static Program minimalCompilerProgram() throws IOException {
+    Map<String, String> sources = minimalCompilerModules();
+    sources.put("Binary.w", CoreSources.read("encoding/Binary.w"));
+    return new WheelerCompiler().compileModuleFiles(sources, "wheeler.compiler.main");
   }
 
   /** Returns the importable compiler driver without its executable wrapper. */
