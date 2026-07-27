@@ -78,19 +78,19 @@ classical class Conditionals {
       return -1;
     }
 
+    long operatorToken = statementStart + 7 + bodyShift;
+    long operandToken = statementStart + 8 + bodyShift;
+    if (namedLocalConditionalAssignment(statementKind)) {
+      operatorToken -= 1;
+      operandToken -= 1;
+    }
+
     if (
-      punctuationAt(
-        source,
-        tokenKinds,
-        tokenStarts,
-        statementStart + 7 + bodyShift,
-        PUNCTUATION_ASSIGN
-      ) == false
+      punctuationAt(source, tokenKinds, tokenStarts, operatorToken, PUNCTUATION_ASSIGN) == false
     ) {
       return -1;
     }
 
-    long operandToken = statementStart + 8 + bodyShift;
     long operandWidth = signedNumberWidth(source, tokenKinds, tokenStarts, operandToken);
     if (operandWidth < 1) {
       return -1;
@@ -124,6 +124,6 @@ classical class Conditionals {
       return -1;
     }
 
-    return 10 + bodyShift + operandWidth;
+    return operandToken - statementStart + operandWidth + 2;
   }
 }

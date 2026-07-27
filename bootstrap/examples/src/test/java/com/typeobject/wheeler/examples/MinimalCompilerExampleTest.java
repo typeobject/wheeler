@@ -287,6 +287,24 @@ class MinimalCompilerExampleTest {
             + "boolean ready = false; if (!ready) { result ^= 3; } assert(result == 1); } }",
         "result",
         1);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class LocalIfAssign { state long result = 0; entry void main() { "
+            + "boolean ready = true; if (ready) { result = 42; } assert(result == 42); } }",
+        "result",
+        42);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class LocalIfNotAssign { state long result = 0; entry void main() { "
+            + "boolean ready = false; if (!ready) { result = 42; } assert(result == 42); } }",
+        "result",
+        42);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class LocalIfAssignSkipped { state long result = 7; entry void main() { "
+            + "boolean ready = false; if (ready) { result = 42; } assert(result == 7); } }",
+        "result",
+        7);
     assertDifferentialHalt(
         writerProgram,
         "classical class FifthLocal { entry void main() { "

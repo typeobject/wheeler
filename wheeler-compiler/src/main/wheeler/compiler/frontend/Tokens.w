@@ -190,6 +190,14 @@ classical class Tokens {
   public const long STATEMENT_IF_NOT_LOCAL_SUB_BASE = 8704;
   /// Starts resolved negated local conditions guarding global XOR.
   public const long STATEMENT_IF_NOT_LOCAL_XOR_BASE = 8960;
+  /// Names a local condition guarding global assignment.
+  public const long STATEMENT_IF_LOCAL_ASSIGN_NAMED = 801;
+  /// Names a negated local condition guarding global assignment.
+  public const long STATEMENT_IF_NOT_LOCAL_ASSIGN_NAMED = 802;
+  /// Starts resolved local conditions guarding global assignment.
+  public const long STATEMENT_IF_LOCAL_ASSIGN_BASE = 9216;
+  /// Starts resolved negated local conditions guarding global assignment.
+  public const long STATEMENT_IF_NOT_LOCAL_ASSIGN_BASE = 9472;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -389,6 +397,14 @@ classical class Tokens {
         }
 
         return STATEMENT_IF_LOCAL_XOR_NAMED;
+      }
+
+      if (conditionalOperator == PUNCTUATION_ASSIGN) {
+        if (negatedCondition) {
+          return STATEMENT_IF_NOT_LOCAL_ASSIGN_NAMED;
+        }
+
+        return STATEMENT_IF_LOCAL_ASSIGN_NAMED;
       }
 
       return -1;

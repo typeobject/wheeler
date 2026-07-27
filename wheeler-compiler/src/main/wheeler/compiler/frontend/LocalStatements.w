@@ -302,6 +302,14 @@ classical class LocalStatements {
           conditionalBase = STATEMENT_IF_NOT_LOCAL_XOR_BASE;
         }
 
+        if (opcode == STATEMENT_IF_LOCAL_ASSIGN_NAMED) {
+          conditionalBase = STATEMENT_IF_LOCAL_ASSIGN_BASE;
+        }
+
+        if (opcode == STATEMENT_IF_NOT_LOCAL_ASSIGN_NAMED) {
+          conditionalBase = STATEMENT_IF_NOT_LOCAL_ASSIGN_BASE;
+        }
+
         return conditionalBase + conditionalSourceLocal;
       }
 
@@ -665,11 +673,16 @@ classical class LocalStatements {
     }
 
     if (namedLocalConditional(opcode)) {
+      long operandToken = statementStart + 8;
       if (namedLocalConditionalNegated(opcode)) {
-        return statementStart + 9;
+        operandToken += 1;
       }
 
-      return statementStart + 8;
+      if (namedLocalConditionalAssignment(opcode)) {
+        operandToken -= 1;
+      }
+
+      return operandToken;
     }
 
     if (namedLongBinary(opcode)) {
