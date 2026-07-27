@@ -91,6 +91,14 @@ targets:
       - "src/main/wheeler/native/bootstrap/NativeArtifactSetIdentity.w"
     test: false
   - kind: "deployable"
+    name: "nativebootstrapfeaturesidentity"
+    root: "src/main/wheeler/native/bootstrap/NativeBootstrapFeaturesIdentity.w"
+    module: "examples.bootstrap.features_identity"
+    sources:
+      - "src/main/wheeler/native/bootstrap/BootstrapSyntax.w"
+      - "src/main/wheeler/native/bootstrap/NativeBootstrapFeaturesIdentity.w"
+    test: false
+  - kind: "deployable"
     name: "nativebytecodecodec"
     root: "src/main/wheeler/native/NativeBytecodeCodec.w"
     module: "examples.compiler.native_bytecode_codec"

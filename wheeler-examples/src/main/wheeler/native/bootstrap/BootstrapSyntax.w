@@ -19,7 +19,7 @@ classical class BootstrapSyntax {
   ) {
     requireMetadata(cursor + length < bufferLength(source) + 1, source);
     long index = 0;
-    while (index < length) limit 64 {
+    while (index < length) limit 2048 {
       requireMetadata(source[cursor + index] == expected[index], source);
       index += 1;
     }

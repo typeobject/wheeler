@@ -132,7 +132,7 @@ features:
     version: 1
 ```
 
-Feature names are sorted and unique. Schema 1 accepts exactly this seventeen-feature `bootstrap-1` set, all at version 1. A feature version names a semantic contract, not a marketing release. Unknown, duplicated, missing, reordered, empty, or oversized vocabularies fail closed. Adding a feature therefore requires a new reviewed profile contract and changes its identity even if somebody forgot to update a slide deck.
+Feature names are sorted and unique. Schema 1 accepts exactly this seventeen-feature `bootstrap-1` set, all at version 1. `NativeBootstrapFeaturesIdentity.w` reconstructs those sole canonical bytes, requires exact complete consumption, and reproduces the stage-0 identity for manifests up to 2,048 bytes. A feature version names a semantic contract, not a marketing release. Unknown, duplicated, missing, reordered, empty, or oversized vocabularies fail closed. Adding a feature therefore requires a new reviewed profile contract and changes its identity even if somebody forgot to update a slide deck.
 
 The exact compiler module closure uses `wheeler.bootstrap-modules.yaml`:
 

@@ -147,6 +147,14 @@ Covers: Exact bounded `wheeler.artifact-set/1` JSON, one through eight sorted sa
 
 Expected behavior: A two-artifact manifest reproduces the stage-0 set identity. Unsorted paths, uppercase digests, forged identities, unknown profile keys, a ninth artifact, or input beyond 4,096 bytes publish nothing. This fixture validates manifest metadata; the stage-0 closed-tree command still verifies every physical `.wbc` before emitting those bytes. A manifest is evidence about files only after somebody checks the files. Film at eleven.
 
+### `NativeBootstrapFeaturesIdentity.w`
+
+Files: [`NativeBootstrapFeaturesIdentity.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/NativeBootstrapFeaturesIdentity.w) + [`BootstrapSyntax.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/BootstrapSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
+
+Covers: Exact schema-1 canonical YAML, the complete ordered seventeen-feature `bootstrap-1` vocabulary, version 1 for every contract, complete SHA-256 publication, and exact rewind.
+
+Expected behavior: The stage-0 feature manifest reproduces its identity. A renamed feature, changed version, missing final feature, or input beyond 2,048 bytes publishes nothing. A bootstrap feature list is closed evidence, not a buffet where the compiler leaves unsupported vegetables on the plate.
+
 ### `NativeCompilerLimitsIdentity.w`
 
 Files: [`NativeCompilerLimitsIdentity.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/NativeCompilerLimitsIdentity.w) + [`BootstrapSyntax.w`](../../wheeler-examples/src/main/wheeler/native/bootstrap/BootstrapSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
