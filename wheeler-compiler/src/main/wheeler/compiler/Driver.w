@@ -586,39 +586,26 @@ classical class CompilerDriver {
       }
 
       long entryInstructionBase = 0;
-      long helperCall = 0;
-      while (helperCall < program.helperCallCount) limit 2 {
-        cursor = writeInstructionHeader(output, cursor, OPCODE_CALL, 1);
-        cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8);
-        helperCall += 1;
-        entryInstructionBase += 1;
-      }
-
-      if (program.preReverseStatementCount == 1) {
-        cursor = writeStatement(
+      if (1 < program.helperReversible) {
+        cursor = writeSequence(
           output,
           cursor,
-          program.statementOpcodes[0],
-          program.statementOperands[0],
-          program.statementSecondaryOperands[0],
-          0,
-          entryInstructionBase
+          program.statementOpcodes,
+          program.statementOperands,
+          program.statementSecondaryOperands,
+          program.statementCount,
+          0
         );
-        entryInstructionBase += statementInstructionCount(program.statementOpcodes[0]);
-      }
-
-      if (program.helperReversible == 1) {
-        long helperUncall = 0;
-        while (helperUncall < program.helperCallCount) limit 2 {
-          cursor = writeInstructionHeader(output, cursor, OPCODE_UNCALL, 1);
+      } else {
+        long helperCall = 0;
+        while (helperCall < program.helperCallCount) limit 2 {
+          cursor = writeInstructionHeader(output, cursor, OPCODE_CALL, 1);
           cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8);
-          helperUncall += 1;
+          helperCall += 1;
           entryInstructionBase += 1;
         }
-      }
 
-      if (program.preReverseStatementCount == 0) {
-        if (0 < program.statementCount) {
+        if (program.preReverseStatementCount == 1) {
           cursor = writeStatement(
             output,
             cursor,
@@ -630,20 +617,45 @@ classical class CompilerDriver {
           );
           entryInstructionBase += statementInstructionCount(program.statementOpcodes[0]);
         }
-      }
 
-      if (program.preReverseStatementCount == 1) {
-        if (1 < program.statementCount) {
-          cursor = writeStatement(
-            output,
-            cursor,
-            program.statementOpcodes[1],
-            program.statementOperands[1],
-            program.statementSecondaryOperands[1],
-            statementLocalCount(program.statementOpcodes[0]),
-            entryInstructionBase
-          );
-          entryInstructionBase += statementInstructionCount(program.statementOpcodes[1]);
+        if (program.helperReversible == 1) {
+          long helperUncall = 0;
+          while (helperUncall < program.helperCallCount) limit 2 {
+            cursor = writeInstructionHeader(output, cursor, OPCODE_UNCALL, 1);
+            cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8);
+            helperUncall += 1;
+            entryInstructionBase += 1;
+          }
+        }
+
+        if (program.preReverseStatementCount == 0) {
+          if (0 < program.statementCount) {
+            cursor = writeStatement(
+              output,
+              cursor,
+              program.statementOpcodes[0],
+              program.statementOperands[0],
+              program.statementSecondaryOperands[0],
+              0,
+              entryInstructionBase
+            );
+            entryInstructionBase += statementInstructionCount(program.statementOpcodes[0]);
+          }
+        }
+
+        if (program.preReverseStatementCount == 1) {
+          if (1 < program.statementCount) {
+            cursor = writeStatement(
+              output,
+              cursor,
+              program.statementOpcodes[1],
+              program.statementOperands[1],
+              program.statementSecondaryOperands[1],
+              statementLocalCount(program.statementOpcodes[0]),
+              entryInstructionBase
+            );
+            entryInstructionBase += statementInstructionCount(program.statementOpcodes[1]);
+          }
         }
       }
     } else {

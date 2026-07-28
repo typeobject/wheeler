@@ -300,6 +300,8 @@ classical class Tokens {
   public const long STATEMENT_RETURN_LOCAL_DIV_NAMED = 833;
   /// Names a signed helper return taking its parameter modulo a literal.
   public const long STATEMENT_RETURN_LOCAL_MOD_NAMED = 834;
+  /// Names a signed local initialized by passing a prior local to a helper.
+  public const long STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED = 835;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -340,6 +342,10 @@ classical class Tokens {
 
   /// Checks for one bounded helper value statement.
   public boolean helperValueStatement(long opcode) {
+    if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+      return true;
+    }
+
     if (opcode < STATEMENT_LOCAL_CALL_NAMED) {
       return false;
     }
@@ -669,6 +675,10 @@ classical class Tokens {
           long callArgument = utf8Scalar(source, tokenStarts[statementStart + 5]);
           if (callArgument == PUNCTUATION_CLOSE_PAREN) {
             return STATEMENT_LOCAL_CALL_NAMED;
+          }
+
+          if (identifierStart(callArgument)) {
+            return STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED;
           }
 
           return STATEMENT_LOCAL_CALL_ARGUMENT_NAMED;

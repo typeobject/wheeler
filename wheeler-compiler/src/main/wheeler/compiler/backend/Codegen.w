@@ -243,185 +243,6 @@ classical class Codegen {
     return cursor;
   }
 
-  /// Returns the encoded byte width of one parsed statement.
-  public long statementCodeLength(long opcode) {
-    if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
-      return 64;
-    }
-
-    if (opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED) {
-      return 112;
-    }
-
-    if (opcode == STATEMENT_RETURN_LONG) {
-      return 40;
-    }
-
-    if (opcode == STATEMENT_RETURN_LOCAL_NAMED) {
-      return 40;
-    }
-
-    if (returnLocalBinaryStatement(opcode)) {
-      return 96;
-    }
-
-    if (opcode == STATEMENT_ASSERT_LITERAL_EQ) {
-      return 96;
-    }
-
-    if (resolvedLocalLiteralComparison(opcode)) {
-      return 104;
-    }
-
-    if (resolvedLocalLessThanAssertion(opcode)) {
-      return 96;
-    }
-
-    if (resolvedLocalPairAssertion(opcode)) {
-      return 96;
-    }
-
-    if (resolvedLiteralComparisonConditional(opcode)) {
-      if (literalComparisonConditionalAssignment(opcode)) {
-        return 168;
-      }
-
-      return 224;
-    }
-
-    if (resolvedLocalConditional(opcode)) {
-      if (resolvedLocalConditionalAssignment(opcode)) {
-        if (resolvedLocalConditionalNegated(opcode)) {
-          return 168;
-        }
-
-        return 112;
-      }
-
-      if (resolvedLocalConditionalNegated(opcode)) {
-        return 224;
-      }
-
-      return 168;
-    }
-
-    if (resolvedLocalLongLessThan(opcode)) {
-      return 104;
-    }
-
-    if (resolvedLocalEquality(opcode)) {
-      return 104;
-    }
-
-    if (resolvedLocalBooleanCopy(opcode)) {
-      return 48;
-    }
-
-    if (resolvedLocalBooleanNot(opcode)) {
-      return 104;
-    }
-
-    if (resolvedLocalLongPair(opcode)) {
-      return 104;
-    }
-
-    if (resolvedLocalLongBinary(opcode)) {
-      return 104;
-    }
-
-    if (resolvedLocalLongCopy(opcode)) {
-      return 48;
-    }
-
-    if (resolvedLocalLongAssertion(opcode)) {
-      return 96;
-    }
-
-    if (opcode == STATEMENT_ASSERT_EQ) {
-      return 24;
-    }
-
-    if (opcode == STATEMENT_ASSERT_BOOLEAN) {
-      return 40;
-    }
-
-    if (opcode == STATEMENT_ASSERT_BOOLEAN_NOT) {
-      return 96;
-    }
-
-    if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {
-      return 40;
-    }
-
-    if (opcode == STATEMENT_LOCAL_LONG) {
-      return 48;
-    }
-
-    if (opcode == STATEMENT_LOCAL_BOOLEAN) {
-      return 48;
-    }
-
-    if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT) {
-      return 104;
-    }
-
-    if (opcode == STATEMENT_ASSIGN) {
-      return 48;
-    }
-
-    if (opcode == STATEMENT_ASSIGN_LOCAL_NAMED) {
-      return 48;
-    }
-
-    if (0 < opcode) {
-      return 104;
-    }
-
-    return 0;
-  }
-
-  /// Returns the instruction count emitted by one parsed statement.
-  public long statementInstructionCount(long opcode) {
-    if (opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED) {
-      return 4;
-    }
-
-    long length = statementCodeLength(opcode);
-    if (length == 24) {
-      return 1;
-    }
-
-    if (length == 40) {
-      return 2;
-    }
-
-    if (length == 48) {
-      return 2;
-    }
-
-    if (length == 64) {
-      return 2;
-    }
-
-    if (length == 112) {
-      return 5;
-    }
-
-    if (length == 168) {
-      return 7;
-    }
-
-    if (length == 224) {
-      return 9;
-    }
-
-    if (0 < length) {
-      return 4;
-    }
-
-    return 0;
-  }
-
   /// Writes `globalUpdate` into caller-owned bounded output.
   public long writeGlobalUpdate(borrow mut bytes output, long cursor, long opcode, long operand) {
     cursor = writeInstructionHeader(output, cursor, globalOpcode(opcode), 2);
@@ -456,6 +277,23 @@ classical class Codegen {
     long localBase,
     long instructionBase
   ) {
+    if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, operand, 8);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_CALL_VALUE, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 1, /* width= */ 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, 8);
+      return writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
+    }
+
     if (opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED) {
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, 2);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);

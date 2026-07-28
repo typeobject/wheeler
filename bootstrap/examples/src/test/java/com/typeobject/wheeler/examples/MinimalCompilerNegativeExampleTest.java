@@ -141,6 +141,25 @@ class MinimalCompilerNegativeExampleTest {
     assertThrows(VmTrap.class, unexpectedCallArgument::run);
     assertArrayEquals(new byte[512], unexpectedCallArgument.hostOutput());
 
+    VirtualMachine missingLocalCallArgument = new VirtualMachine(
+        writerProgram,
+        ("classical class MissingLocalCallArgument { "
+                + "long identity(long value) { return value; } "
+                + "entry void main() { long answer = identity(missing); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, missingLocalCallArgument::run);
+    assertArrayEquals(new byte[512], missingLocalCallArgument.hostOutput());
+
+    VirtualMachine booleanCallArgument = new VirtualMachine(
+        writerProgram,
+        ("classical class BooleanCallArgument { long identity(long value) { return value; } "
+                + "entry void main() { boolean flag = true; long answer = identity(flag); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, booleanCallArgument::run);
+    assertArrayEquals(new byte[512], booleanCallArgument.hostOutput());
+
     VirtualMachine wrongResultHelper = new VirtualMachine(
         writerProgram,
         ("classical class WrongResultHelper { long answer() { return 42; } "

@@ -35,6 +35,11 @@ class MinimalCompilerResultExampleTest {
             + "assert(answer == 42); } }");
     assertDifferentialHalt(
         writerProgram,
+        "classical class SignedLocalArgument { long increment(long value) { return value + 1; } "
+            + "entry void main() { long seed = 41; long answer = increment(seed); "
+            + "assert(answer == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
         "classical class SignedParameterSubtract { "
             + "long adjust(long value) { return value - 2; } "
             + "entry void main() { long answer = adjust(44); assert(answer == 42); } }");
@@ -67,8 +72,9 @@ class MinimalCompilerResultExampleTest {
 
   private static void assertDifferentialHalt(Program writerProgram, String source) {
     VirtualMachine writer = writer(writerProgram, source);
-    writer.run();
-    assertArrayEquals(new WheelerCompiler().compileToBytecode(source), writer.hostOutput());
+    runWriter(writer, writerProgram);
+    byte[] expected = new WheelerCompiler().compileToBytecode(source);
+    assertArrayEquals(expected, writer.hostOutput());
 
     VirtualMachine artifact = new VirtualMachine(new BytecodeReader().read(writer.hostOutput()));
     artifact.run();
@@ -77,11 +83,31 @@ class MinimalCompilerResultExampleTest {
 
   private static void assertDifferentialTrap(Program writerProgram, String source) {
     VirtualMachine writer = writer(writerProgram, source);
-    writer.run();
+    runWriter(writer, writerProgram);
     assertArrayEquals(new WheelerCompiler().compileToBytecode(source), writer.hostOutput());
 
     VirtualMachine artifact = new VirtualMachine(new BytecodeReader().read(writer.hostOutput()));
     assertThrows(VmTrap.class, artifact::run);
+  }
+
+  private static void runWriter(VirtualMachine writer, Program writerProgram) {
+    try {
+      writer.run();
+    } catch (VmTrap trap) {
+      throw new AssertionError(
+          "Wheeler compiler trapped at instruction "
+              + writer.snapshot().frames().getLast().programCounter()
+              + " (" + writerProgramInstruction(writer, writerProgram) + ")"
+              + ", output cursor " + writer.global("finalCursor")
+              + ", and verification " + writer.global("verification"),
+          trap);
+    }
+  }
+
+  private static String writerProgramInstruction(VirtualMachine writer, Program writerProgram) {
+    var frame = writer.snapshot().frames().getLast();
+    return writerProgram.function(frame.functionId()).name() + " "
+        + writerProgram.function(frame.functionId()).forward().get(frame.programCounter()).toString();
   }
 
   private static VirtualMachine writer(Program writerProgram, String source) {

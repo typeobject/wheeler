@@ -57,6 +57,9 @@ classical class HelperParser {
     boolean expectedCall = opcode == STATEMENT_LOCAL_CALL_NAMED;
     if (helperKind == 3) {
       expectedCall = opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED;
+      if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+        expectedCall = true;
+      }
     }
 
     if (expectedCall) {
@@ -77,6 +80,7 @@ classical class HelperParser {
     long proofCount,
     long entryStatement,
     long helperCallCount,
+    long entryPreludeStatement,
     long preReverseStatement,
     borrow mut words helperStarts,
     long helperStatementCount
@@ -159,11 +163,25 @@ classical class HelperParser {
     long entryCount = 0;
     long entryFirst = -1;
     long entrySecond = -1;
+    long entryThird = -1;
     long preReverseCount = 0;
-    if (-1 < preReverseStatement) {
+    if (-1 < entryPreludeStatement) {
       entryCount = 1;
-      preReverseCount = 1;
-      entryFirst = preReverseStatement;
+      entryFirst = entryPreludeStatement;
+    }
+
+    if (-1 < preReverseStatement) {
+      if (entryCount == 0) {
+        entryCount = 1;
+        entryFirst = preReverseStatement;
+      } else {
+        entryCount = 2;
+        entrySecond = preReverseStatement;
+      }
+
+      if (reversible == 1) {
+        preReverseCount = 1;
+      }
     }
 
     if (-1 < entryStatement) {
@@ -171,13 +189,19 @@ classical class HelperParser {
         entryCount = 1;
         entryFirst = entryStatement;
       } else {
-        entryCount = 2;
-        entrySecond = entryStatement;
+        if (entryCount == 1) {
+          entryCount = 2;
+          entrySecond = entryStatement;
+        } else {
+          entryCount = 3;
+          entryThird = entryStatement;
+        }
       }
     }
 
     set(helperStarts, 0, entryFirst);
     set(helperStarts, 1, entrySecond);
+    set(helperStarts, 2, entryThird);
     StatementSequence entrySequence = parseStatementSequence(
       source,
       tokenStarts,
@@ -226,6 +250,7 @@ classical class HelperParser {
     long proofToken,
     long proofCount,
     long helperCallCount,
+    long entryPreludeStatement,
     long preReverseStatement,
     borrow mut words helperStarts,
     long helperStatementCount
@@ -270,6 +295,7 @@ classical class HelperParser {
             proofCount,
             entryStatement,
             helperCallCount,
+            entryPreludeStatement,
             preReverseStatement,
             helperStarts,
             helperStatementCount
@@ -496,11 +522,37 @@ classical class HelperParser {
     }
 
     if (1 < reversible) {
+      long entryPreludeStatement = -1;
+      long resultCall = entryBody;
       if (
-        resultCallValid(source, tokenStarts, tokenLengths, nameToken, entryBody, reversible)
+        resultCallValid(source, tokenStarts, tokenLengths, nameToken, resultCall, reversible)
           == false
       ) {
-        return new MinimalProgramResult.Error(0);
+        long entryPreludeWidth = statementWidth(
+          source,
+          tokenKinds,
+          tokenStarts,
+          tokenLengths,
+          entryBody
+        );
+        if (entryPreludeWidth < 1) {
+          return new MinimalProgramResult.Error(0);
+        }
+
+        entryPreludeStatement = entryBody;
+        resultCall += entryPreludeWidth;
+        if (
+          resultCallValid(
+            source,
+            tokenStarts,
+            tokenLengths,
+            nameToken,
+            resultCall,
+            reversible
+          ) == false
+        ) {
+          return new MinimalProgramResult.Error(0);
+        }
       }
 
       long resultCallWidth = statementWidth(
@@ -508,7 +560,7 @@ classical class HelperParser {
         tokenKinds,
         tokenStarts,
         tokenLengths,
-        entryBody
+        resultCall
       );
       if (resultCallWidth < 1) {
         return new MinimalProgramResult.Error(0);
@@ -520,14 +572,15 @@ classical class HelperParser {
         tokenStarts,
         tokenLengths,
         count,
-        entryBody + resultCallWidth,
+        resultCall + resultCallWidth,
         globalCount,
         nameToken,
         reversible,
         proof.token,
         proof.count,
         0,
-        entryBody,
+        entryPreludeStatement,
+        resultCall,
         statementStarts,
         statements.count
       );
@@ -583,6 +636,7 @@ classical class HelperParser {
         proof.count,
         helperCallCount,
         -1,
+        -1,
         statementStarts,
         statements.count
       );
@@ -636,6 +690,7 @@ classical class HelperParser {
       proof.token,
       proof.count,
       helperCallCount,
+      -1,
       preReverseStatement,
       statementStarts,
       statements.count

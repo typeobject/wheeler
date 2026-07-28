@@ -303,6 +303,10 @@ classical class LocalOpcodes {
       return 4;
     }
 
+    if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+      return 4;
+    }
+
     if (opcode == STATEMENT_RETURN_LONG) {
       return 1;
     }
@@ -520,6 +524,10 @@ classical class LocalOpcodes {
       return localBase + 3;
     }
 
+    if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+      return localBase + 3;
+    }
+
     if (namedLongBinary(opcode)) {
       return localBase + 3;
     }
@@ -563,4 +571,190 @@ classical class LocalOpcodes {
     return -1;
   }
 
+  /// Returns the encoded byte width of one parsed statement.
+  public long statementCodeLength(long opcode) {
+    if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
+      return 64;
+    }
+
+    if (opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED) {
+      return 112;
+    }
+
+    if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+      return 112;
+    }
+
+    if (opcode == STATEMENT_RETURN_LONG) {
+      return 40;
+    }
+
+    if (opcode == STATEMENT_RETURN_LOCAL_NAMED) {
+      return 40;
+    }
+
+    if (returnLocalBinaryStatement(opcode)) {
+      return 96;
+    }
+
+    if (opcode == STATEMENT_ASSERT_LITERAL_EQ) {
+      return 96;
+    }
+
+    if (resolvedLocalLiteralComparison(opcode)) {
+      return 104;
+    }
+
+    if (resolvedLocalLessThanAssertion(opcode)) {
+      return 96;
+    }
+
+    if (resolvedLocalPairAssertion(opcode)) {
+      return 96;
+    }
+
+    if (resolvedLiteralComparisonConditional(opcode)) {
+      if (literalComparisonConditionalAssignment(opcode)) {
+        return 168;
+      }
+
+      return 224;
+    }
+
+    if (resolvedLocalConditional(opcode)) {
+      if (resolvedLocalConditionalAssignment(opcode)) {
+        if (resolvedLocalConditionalNegated(opcode)) {
+          return 168;
+        }
+
+        return 112;
+      }
+
+      if (resolvedLocalConditionalNegated(opcode)) {
+        return 224;
+      }
+
+      return 168;
+    }
+
+    if (resolvedLocalLongLessThan(opcode)) {
+      return 104;
+    }
+
+    if (resolvedLocalEquality(opcode)) {
+      return 104;
+    }
+
+    if (resolvedLocalBooleanCopy(opcode)) {
+      return 48;
+    }
+
+    if (resolvedLocalBooleanNot(opcode)) {
+      return 104;
+    }
+
+    if (resolvedLocalLongPair(opcode)) {
+      return 104;
+    }
+
+    if (resolvedLocalLongBinary(opcode)) {
+      return 104;
+    }
+
+    if (resolvedLocalLongCopy(opcode)) {
+      return 48;
+    }
+
+    if (resolvedLocalLongAssertion(opcode)) {
+      return 96;
+    }
+
+    if (opcode == STATEMENT_ASSERT_EQ) {
+      return 24;
+    }
+
+    if (opcode == STATEMENT_ASSERT_BOOLEAN) {
+      return 40;
+    }
+
+    if (opcode == STATEMENT_ASSERT_BOOLEAN_NOT) {
+      return 96;
+    }
+
+    if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {
+      return 40;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG) {
+      return 48;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN) {
+      return 48;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT) {
+      return 104;
+    }
+
+    if (opcode == STATEMENT_ASSIGN) {
+      return 48;
+    }
+
+    if (opcode == STATEMENT_ASSIGN_LOCAL_NAMED) {
+      return 48;
+    }
+
+    if (0 < opcode) {
+      return 104;
+    }
+
+    return 0;
+  }
+
+  /// Returns the instruction count emitted by one parsed statement.
+  public long statementInstructionCount(long opcode) {
+    if (opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED) {
+      return 4;
+    }
+
+    if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+      return 4;
+    }
+
+    long length = statementCodeLength(opcode);
+    if (length == 24) {
+      return 1;
+    }
+
+    if (length == 40) {
+      return 2;
+    }
+
+    if (length == 48) {
+      return 2;
+    }
+
+    if (length == 64) {
+      return 2;
+    }
+
+    if (length == 112) {
+      return 5;
+    }
+
+    if (length == 168) {
+      return 7;
+    }
+
+    if (length == 224) {
+      return 9;
+    }
+
+    if (0 < length) {
+      return 4;
+    }
+
+    return 0;
+  }
 }

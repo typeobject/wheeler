@@ -26,6 +26,10 @@ classical class LocalStatements {
         return true;
       }
 
+      if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+        return true;
+      }
+
       if (namedLongBinary(opcode)) {
         return true;
       }
@@ -510,6 +514,18 @@ classical class LocalStatements {
       );
     }
 
+    if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 5,
+        true
+      );
+    }
+
     if (opcode == STATEMENT_ASSIGN_LOCAL_NAMED) {
       return resolvePriorDeclaration(
         source,
@@ -798,6 +814,10 @@ classical class LocalStatements {
     }
 
     if (opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED) {
+      return statementStart + 5;
+    }
+
+    if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
       return statementStart + 5;
     }
 
