@@ -685,6 +685,7 @@ class WheelerCommandTest {
               - "src/compiler/ir/Opcodes.w"
               - "src/compiler/ir/ProofRules.w"
               - "src/compiler/ir/TypeCodes.w"
+              - "src/compiler/resolution/HelperCalls.w"
               - "src/compiler/resolution/Operands.w"
               - "src/compiler/verification/AggregateVerifier.w"
               - "src/compiler/verification/FunctionVerifier.w"
@@ -741,6 +742,9 @@ class WheelerCommandTest {
     Files.copy(
         compilerSources.resolve("compiler/ir/Opcodes.w"),
         project.resolve("src/compiler/ir/Opcodes.w"));
+    Files.copy(
+        compilerSources.resolve("compiler/resolution/HelperCalls.w"),
+        project.resolve("src/compiler/resolution/HelperCalls.w"));
     Files.copy(
         compilerSources.resolve("compiler/resolution/Operands.w"),
         project.resolve("src/compiler/resolution/Operands.w"));
