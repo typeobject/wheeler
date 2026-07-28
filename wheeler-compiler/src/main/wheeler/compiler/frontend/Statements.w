@@ -16,6 +16,28 @@ classical class Statements {
     long statementStart
   ) {
     long statementKind = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (statementKind == STATEMENT_RETURN_LONG) {
+      return helperValueStatementWidth(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        statementKind
+      );
+    }
+
+    if (statementKind == STATEMENT_LOCAL_CALL_NAMED) {
+      return helperValueStatementWidth(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        statementKind
+      );
+    }
+
     if (namedLiteralComparisonConditional(statementKind)) {
       return literalComparisonConditionalWidth(
         source,

@@ -159,6 +159,10 @@ class MinimalCompilerExampleTest {
             + "entry void main() { inspect(); } }");
     assertDifferentialHalt(
         writerProgram,
+        "classical class SignedResultHelper { long answer() { return -42; } "
+            + "entry void main() { long value = answer(); assert(value == -42); } }");
+    assertDifferentialHalt(
+        writerProgram,
         "classical class Local { entry void main() { long x = -2; } }");
     assertDifferentialHalt(
         writerProgram,

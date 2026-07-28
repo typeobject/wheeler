@@ -10,6 +10,7 @@ import wheeler.compiler.opcodes;
 import wheeler.compiler.parser;
 import wheeler.compiler.string_table;
 import wheeler.compiler.tokens;
+import wheeler.compiler.type_codes;
 import wheeler.compiler.verifier;
 import wheeler.lexer.scanner;
 
@@ -379,6 +380,10 @@ classical class CompilerDriver {
       helperStatementIndex += 1;
     }
 
+    if (program.helperReversible == 2) {
+      helperForwardLength -= 8;
+    }
+
     long helperInverseLength = 0;
     long helperInverseOffset = 4294967295;
     long entryForwardLength = 8 + program.helperCallCount * 16 + entryStatementLength;
@@ -390,9 +395,15 @@ classical class CompilerDriver {
       entryForwardLength = 8 + program.helperCallCount * 32 + entryStatementLength;
     }
 
+    long entryTypeOffset = helperLocalCount;
     if (program.helperCount == 1) {
       localCount = helperLocalCount;
       functionsLength = 84 + helperLocalCount * 4 + entryLocalCount * 4;
+      if (program.helperReversible == 2) {
+        functionsLength += 4;
+        entryTypeOffset += 1;
+      }
+
       codeLength = helperForwardLength + helperInverseLength + entryForwardLength;
     }
 
@@ -451,6 +462,11 @@ classical class CompilerDriver {
 
     cursor = writeUnsignedLittleEndian(output, cursor, 1 + program.helperCount, 4);
     if (program.helperCount == 1) {
+      long helperFlags = program.helperReversible;
+      if (program.helperReversible == 2) {
+        helperFlags = 4;
+      }
+
       cursor = writeFunctionDescriptor(
         output,
         cursor,
@@ -458,7 +474,7 @@ classical class CompilerDriver {
         helperIndex,
         0,
         helperForwardLength,
-        program.helperReversible,
+        helperFlags,
         helperInverseOffset,
         helperInverseLength,
         helperLocalCount,
@@ -475,9 +491,13 @@ classical class CompilerDriver {
         4294967295,
         0,
         entryLocalCount,
-        helperLocalCount
+        entryTypeOffset
       );
-      if (program.helperReversible == 0) {
+      if (program.helperReversible == 2) {
+        cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      }
+
+      if (program.helperReversible == 1) {} else {
         cursor = writeSequenceLocalTypes(
           output,
           cursor,
@@ -545,7 +565,9 @@ classical class CompilerDriver {
           program.helperSecondaryOperands,
           program.helperStatementCount
         );
-        cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN, 0);
+        if (program.helperReversible == 2) {} else {
+          cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN, 0);
+        }
       }
 
       long entryInstructionBase = 0;

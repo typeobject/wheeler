@@ -65,6 +65,8 @@ classical class Tokens {
   public const long TOKEN_TRUE = 3569038;
   /// Names the stable token hash for `false`.
   public const long TOKEN_FALSE = 97196323;
+  /// Names the stable token hash for `return`.
+  public const long TOKEN_RETURN = 3360570672;
 
   /// Names the parser IR code for direct assignment.
   public const long STATEMENT_ASSIGN = 0;
@@ -280,6 +282,10 @@ classical class Tokens {
   public const long STATEMENT_IF_LOCAL_LT_LITERAL_XOR_BASE = 13824;
   /// Starts resolved less-than conditions guarding global assignment.
   public const long STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_BASE = 14080;
+  /// Names a signed local initialized by a zero-argument helper call.
+  public const long STATEMENT_LOCAL_CALL_NAMED = 826;
+  /// Names a signed literal return from a helper.
+  public const long STATEMENT_RETURN_LONG = 827;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -453,6 +459,10 @@ classical class Tokens {
       return STATEMENT_ASSERT_NAMED_LONG;
     }
 
+    if (keyword == TOKEN_RETURN) {
+      return STATEMENT_RETURN_LONG;
+    }
+
     if (keyword == TOKEN_IF) {
       long conditionOperator = utf8Scalar(source, tokenStarts[statementStart + 3]);
       long comparisonLiteralToken = -1;
@@ -597,6 +607,10 @@ classical class Tokens {
       long initializer = utf8Scalar(source, tokenStarts[statementStart + 3]);
       if (identifierStart(initializer)) {
         long initializerOperator = utf8Scalar(source, tokenStarts[statementStart + 4]);
+        if (initializerOperator == PUNCTUATION_OPEN_PAREN) {
+          return STATEMENT_LOCAL_CALL_NAMED;
+        }
+
         long rightScalar = utf8Scalar(source, tokenStarts[statementStart + 5]);
         boolean rightNamed = identifierStart(rightScalar);
         if (initializerOperator == PUNCTUATION_PLUS) {
@@ -734,6 +748,98 @@ classical class Tokens {
       }
 
       return STATEMENT_UPDATE_XOR;
+    }
+
+    return -1;
+  }
+
+  /// Validates and sizes one bounded helper value statement.
+  public long helperValueStatementWidth(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart,
+    long statementKind
+  ) {
+    if (statementKind == STATEMENT_RETURN_LONG) {
+      long returnWidth = signedNumberWidth(source, tokenKinds, tokenStarts, statementStart + 1);
+      if (returnWidth < 1) {
+        return -1;
+      }
+
+      if (
+        signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 1) == false
+      ) {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 1 + returnWidth,
+          PUNCTUATION_SEMICOLON
+        )
+      ) {
+        return returnWidth + 2;
+      }
+
+      return -1;
+    }
+
+    if (statementKind == STATEMENT_LOCAL_CALL_NAMED) {
+      if (tokenKinds[statementStart + 1] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, PUNCTUATION_ASSIGN)
+          == false
+      ) {
+        return -1;
+      }
+
+      if (tokenKinds[statementStart + 3] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 4,
+          PUNCTUATION_OPEN_PAREN
+        ) == false
+      ) {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 5,
+          PUNCTUATION_CLOSE_PAREN
+        ) == false
+      ) {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 6,
+          PUNCTUATION_SEMICOLON
+        )
+      ) {
+        return 7;
+      }
     }
 
     return -1;

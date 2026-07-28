@@ -104,6 +104,33 @@ class MinimalCompilerNegativeExampleTest {
     assertThrows(VmTrap.class, doubleNegation::run);
     assertArrayEquals(new byte[512], doubleNegation.hostOutput());
 
+    VirtualMachine missingResult = new VirtualMachine(
+        writerProgram,
+        ("classical class MissingResult { long answer() { } "
+                + "entry void main() { long value = answer(); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, missingResult::run);
+    assertArrayEquals(new byte[512], missingResult.hostOutput());
+
+    VirtualMachine wrongResultHelper = new VirtualMachine(
+        writerProgram,
+        ("classical class WrongResultHelper { long answer() { return 42; } "
+                + "entry void main() { long value = other(); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, wrongResultHelper::run);
+    assertArrayEquals(new byte[512], wrongResultHelper.hostOutput());
+
+    VirtualMachine valueFromVoid = new VirtualMachine(
+        writerProgram,
+        ("classical class ValueFromVoid { void answer() { return 42; } "
+                + "entry void main() { answer(); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, valueFromVoid::run);
+    assertArrayEquals(new byte[512], valueFromVoid.hostOutput());
+
     VirtualMachine sixtyFifthHelperStatement = new VirtualMachine(
         writerProgram,
         ("classical class SixtyFiveHelperStatements { state long value = 0; "

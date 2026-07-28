@@ -18,6 +18,10 @@ classical class LocalStatements {
         return true;
       }
 
+      if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
+        return true;
+      }
+
       if (namedLongBinary(opcode)) {
         return true;
       }
@@ -728,6 +732,10 @@ classical class LocalStatements {
       return -1;
     }
 
+    if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
+      return 0;
+    }
+
     return parsedSignedNumber(source, tokenStarts, tokenLengths, operandToken);
   }
 
@@ -775,6 +783,10 @@ classical class LocalStatements {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
     if (opcode == STATEMENT_ASSIGN) {
       return statementStart + 2;
+    }
+
+    if (opcode == STATEMENT_RETURN_LONG) {
+      return statementStart + 1;
     }
 
     if (opcode == STATEMENT_ASSERT_EQ) {

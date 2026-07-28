@@ -295,6 +295,14 @@ classical class LocalOpcodes {
 
   /// Returns the typed-local width required by one parsed statement.
   public long statementLocalCount(long opcode) {
+    if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
+      return 2;
+    }
+
+    if (opcode == STATEMENT_RETURN_LONG) {
+      return 1;
+    }
+
     if (namedLiteralComparisonConditional(opcode)) {
       if (literalComparisonConditionalAssignment(opcode)) {
         return 4;
@@ -489,6 +497,10 @@ classical class LocalOpcodes {
     }
 
     if (opcode == STATEMENT_LOCAL_LONG_NAMED) {
+      return localBase + 1;
+    }
+
+    if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
       return localBase + 1;
     }
 

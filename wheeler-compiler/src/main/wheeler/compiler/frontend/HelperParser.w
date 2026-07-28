@@ -45,6 +45,21 @@ classical class HelperParser {
     return false;
   }
 
+  private boolean resultCallValid(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long nameToken,
+    long callStart
+  ) {
+    long opcode = statementOpcode(source, tokenStarts, tokenLengths, callStart);
+    if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
+      return sameTokenText(source, tokenStarts, tokenLengths, nameToken, callStart + 3);
+    }
+
+    return false;
+  }
+
   private MinimalProgramResult helperProgram(
     borrow utf8 source,
     borrow mut words tokenStarts,
@@ -83,6 +98,25 @@ classical class HelperParser {
     );
     if (helperSequence.valid == false) {
       return new MinimalProgramResult.Error(0);
+    }
+
+    if (reversible == 2) {
+      if (helperSequence.count == 1) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+
+      if (helperSequence.opcodes[0] == STATEMENT_RETURN_LONG) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+    } else {
+      long helperStatement = 0;
+      while (helperStatement < helperSequence.count) limit MAX_MINIMAL_STATEMENTS {
+        if (helperSequence.opcodes[helperStatement] == STATEMENT_RETURN_LONG) {
+          return new MinimalProgramResult.Error(0);
+        }
+
+        helperStatement += 1;
+      }
     }
 
     if (reversible == 1) {
@@ -228,7 +262,7 @@ classical class HelperParser {
     long reversible
   ) {
     ProofHeader absent = new ProofHeader(entryStart, -1, 0);
-    if (reversible == 0) {
+    if (reversible == 1) {} else {
       return absent;
     }
 
@@ -312,8 +346,17 @@ classical class HelperParser {
       voidToken += 1;
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, voidToken) == TOKEN_VOID) {} else {
-      return new MinimalProgramResult.Error(0);
+    long helperType = tokenHash(source, tokenStarts, tokenLengths, voidToken);
+    if (helperType == TOKEN_VOID) {} else {
+      if (helperType == TOKEN_LONG) {
+        if (reversible == 0) {
+          reversible = 2;
+        } else {
+          return new MinimalProgramResult.Error(0);
+        }
+      } else {
+        return new MinimalProgramResult.Error(0);
+      }
     }
 
     long nameToken = voidToken + 1;
@@ -382,6 +425,43 @@ classical class HelperParser {
     );
     if (entryBody < 1) {
       return new MinimalProgramResult.Error(0);
+    }
+
+    if (reversible == 2) {
+      if (
+        resultCallValid(source, tokenStarts, tokenLengths, nameToken, entryBody) == false
+      ) {
+        return new MinimalProgramResult.Error(0);
+      }
+
+      long resultCallWidth = statementWidth(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        entryBody
+      );
+      if (resultCallWidth < 1) {
+        return new MinimalProgramResult.Error(0);
+      }
+
+      return finishEntry(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        count,
+        entryBody + resultCallWidth,
+        globalCount,
+        nameToken,
+        reversible,
+        proof.token,
+        proof.count,
+        0,
+        entryBody,
+        statementStarts,
+        statements.count
+      );
     }
 
     if (
