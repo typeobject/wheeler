@@ -43,7 +43,7 @@ public enum Opcode {
   LOCAL_LT(OpcodeIds.LOCAL_LT, InstructionForm.LOCAL_BINARY, Reversibility.CHECKED),
   JUMP(OpcodeIds.JUMP, InstructionForm.TARGET, Reversibility.CHECKED),
   JUMP_IF_ZERO(OpcodeIds.JUMP_IF_ZERO, InstructionForm.LOCAL_TARGET, Reversibility.CHECKED),
-  LOCAL_LOOP_CHECK(OpcodeIds.LOCAL_LOOP_CHECK, InstructionForm.LOCAL_PAIR,
+  LOCAL_LOOP_CHECK(OpcodeIds.LOCAL_LOOP_CHECK, InstructionForm.LOOP_CHECK,
       Reversibility.CHECKED),
 
   RECORD_NEW(OpcodeIds.RECORD_NEW, InstructionForm.RECORD_NEW, Reversibility.CHECKED),

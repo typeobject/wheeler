@@ -1,17 +1,31 @@
 package com.typeobject.wheeler.core.bytecode;
 
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ARGUMENT_BASE;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ARGUMENT_COUNT;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.CAPACITY;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.CONDITION;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.DESTINATION;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.DESCRIPTOR;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ELEMENT_BASE;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ELEMENT_COUNT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.FUNCTION;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.GLOBAL;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.IMMEDIATE;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.INDEX;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ITERATION;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.KEY;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LEFT_GLOBAL;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LEFT_SOURCE;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LENGTH;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LIMIT;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LOCAL;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.OWNER;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RIGHT_GLOBAL;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RIGHT_SOURCE;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.SOURCE;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.START;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.TAG;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.TARGET;
 
 import com.typeobject.wheeler.core.proof.ProofKernel;
@@ -206,7 +220,7 @@ public final class BytecodeVerifier {
             fail("Coherent function contains " + instruction.opcode() + ": " + function.name());
           }
           if (instruction.opcode() == Opcode.CALL || instruction.opcode() == Opcode.UNCALL) {
-            FunctionBody target = program.function(Math.toIntExact(instruction.operands().getFirst()));
+            FunctionBody target = program.function(Math.toIntExact(instruction.operand(FUNCTION)));
             if (!target.coherent()) {
               fail("Coherent function calls noncoherent function: " + target.name());
             }
@@ -355,8 +369,8 @@ public final class BytecodeVerifier {
         verifyJump(owner, instruction, TARGET, pc, owner.body(inverseBody));
       }
       case LOCAL_LOOP_CHECK -> {
-        requireType(owner, verifyLocal(owner, instruction, LEFT_SOURCE, pc), ValueType.SIGNED, pc);
-        requireType(owner, verifyLocal(owner, instruction, RIGHT_SOURCE, pc), ValueType.SIGNED, pc);
+        requireType(owner, verifyLocal(owner, instruction, ITERATION, pc), ValueType.SIGNED, pc);
+        requireType(owner, verifyLocal(owner, instruction, LIMIT, pc), ValueType.SIGNED, pc);
       }
       case RECORD_NEW -> verifyRecordNew(program, owner, instruction, pc);
       case RECORD_GET -> verifyRecordGet(program, owner, instruction, pc);
@@ -430,10 +444,10 @@ public final class BytecodeVerifier {
 
   private static void verifyRecordNew(
       Program program, FunctionBody owner, Instruction instruction, int pc) {
-    int destination = verifyLocal(owner, instruction.operands().get(0), pc);
-    int typeId = Math.toIntExact(instruction.operands().get(1));
-    int base = Math.toIntExact(instruction.operands().get(2));
-    int count = Math.toIntExact(instruction.operands().get(3));
+    int destination = verifyLocal(owner, instruction, DESTINATION, pc);
+    int typeId = Math.toIntExact(instruction.operand(DESCRIPTOR));
+    int base = Math.toIntExact(instruction.operand(ELEMENT_BASE));
+    int count = Math.toIntExact(instruction.operand(ELEMENT_COUNT));
     RecordType record = program.recordType(typeId);
     if (!owner.localType(destination).equals(ValueType.record(typeId))
         || count != record.fields().size()
@@ -451,9 +465,9 @@ public final class BytecodeVerifier {
 
   private static void verifyRecordGet(
       Program program, FunctionBody owner, Instruction instruction, int pc) {
-    int destination = verifyLocal(owner, instruction.operands().get(0), pc);
-    int source = verifyLocal(owner, instruction.operands().get(1), pc);
-    int field = Math.toIntExact(instruction.operands().get(2));
+    int destination = verifyLocal(owner, instruction, DESTINATION, pc);
+    int source = verifyLocal(owner, instruction, OWNER, pc);
+    int field = Math.toIntExact(instruction.operand(INDEX));
     ValueType sourceType = owner.localType(source);
     if (sourceType.kind() != ValueType.Kind.RECORD) {
       fail(location(owner, pc) + " field access requires a record");
@@ -467,11 +481,11 @@ public final class BytecodeVerifier {
 
   private static void verifyVariantNew(
       Program program, FunctionBody owner, Instruction instruction, int pc) {
-    int destination = verifyLocal(owner, instruction.operands().get(0), pc);
-    int typeId = Math.toIntExact(instruction.operands().get(1));
-    int tag = Math.toIntExact(instruction.operands().get(2));
-    int base = Math.toIntExact(instruction.operands().get(3));
-    int count = Math.toIntExact(instruction.operands().get(4));
+    int destination = verifyLocal(owner, instruction, DESTINATION, pc);
+    int typeId = Math.toIntExact(instruction.operand(DESCRIPTOR));
+    int tag = Math.toIntExact(instruction.operand(TAG));
+    int base = Math.toIntExact(instruction.operand(ELEMENT_BASE));
+    int count = Math.toIntExact(instruction.operand(ELEMENT_COUNT));
     VariantType variant = program.variantType(typeId);
     if (tag < 0 || tag >= variant.cases().size()) {
       fail(location(owner, pc) + " variant construction has invalid tag");
@@ -493,9 +507,9 @@ public final class BytecodeVerifier {
 
   private static void verifyVariantTag(
       Program program, FunctionBody owner, Instruction instruction, int pc) {
-    int destination = verifyLocal(owner, instruction.operands().get(0), pc);
-    int source = verifyLocal(owner, instruction.operands().get(1), pc);
-    int tag = Math.toIntExact(instruction.operands().get(2));
+    int destination = verifyLocal(owner, instruction, DESTINATION, pc);
+    int source = verifyLocal(owner, instruction, OWNER, pc);
+    int tag = Math.toIntExact(instruction.operand(TAG));
     ValueType sourceType = owner.localType(source);
     if (sourceType.kind() != ValueType.Kind.VARIANT
         || tag < 0
@@ -507,10 +521,10 @@ public final class BytecodeVerifier {
 
   private static void verifyVariantGet(
       Program program, FunctionBody owner, Instruction instruction, int pc) {
-    int destination = verifyLocal(owner, instruction.operands().get(0), pc);
-    int source = verifyLocal(owner, instruction.operands().get(1), pc);
-    int tag = Math.toIntExact(instruction.operands().get(2));
-    int field = Math.toIntExact(instruction.operands().get(3));
+    int destination = verifyLocal(owner, instruction, DESTINATION, pc);
+    int source = verifyLocal(owner, instruction, OWNER, pc);
+    int tag = Math.toIntExact(instruction.operand(TAG));
+    int field = Math.toIntExact(instruction.operand(INDEX));
     ValueType sourceType = owner.localType(source);
     if (sourceType.kind() != ValueType.Kind.VARIANT) {
       fail(location(owner, pc) + " payload access requires a variant");
@@ -528,10 +542,10 @@ public final class BytecodeVerifier {
 
   private static void verifyArrayNew(
       Program program, FunctionBody owner, Instruction instruction, int pc) {
-    int destination = verifyLocal(owner, instruction.operands().get(0), pc);
-    int typeId = Math.toIntExact(instruction.operands().get(1));
-    int base = Math.toIntExact(instruction.operands().get(2));
-    int count = Math.toIntExact(instruction.operands().get(3));
+    int destination = verifyLocal(owner, instruction, DESTINATION, pc);
+    int typeId = Math.toIntExact(instruction.operand(DESCRIPTOR));
+    int base = Math.toIntExact(instruction.operand(ELEMENT_BASE));
+    int count = Math.toIntExact(instruction.operand(ELEMENT_COUNT));
     ArrayType array = program.arrayType(typeId);
     if (!owner.localType(destination).equals(ValueType.array(typeId))
         || count != array.length()
@@ -546,9 +560,9 @@ public final class BytecodeVerifier {
 
   private static void verifyArrayGet(
       Program program, FunctionBody owner, Instruction instruction, int pc) {
-    int destination = verifyLocal(owner, instruction.operands().get(0), pc);
-    int source = verifyLocal(owner, instruction.operands().get(1), pc);
-    int index = verifyLocal(owner, instruction.operands().get(2), pc);
+    int destination = verifyLocal(owner, instruction, DESTINATION, pc);
+    int source = verifyLocal(owner, instruction, OWNER, pc);
+    int index = verifyLocal(owner, instruction, INDEX, pc);
     ValueType sourceType = owner.localType(source);
     if (sourceType.kind() != ValueType.Kind.ARRAY) {
       fail(location(owner, pc) + " indexing requires an array");
@@ -559,11 +573,11 @@ public final class BytecodeVerifier {
 
   private static void verifySliceNew(
       Program program, FunctionBody owner, Instruction instruction, int pc) {
-    int destination = verifyLocal(owner, instruction.operands().get(0), pc);
-    int typeId = Math.toIntExact(instruction.operands().get(1));
-    int array = verifyLocal(owner, instruction.operands().get(2), pc);
-    int start = verifyLocal(owner, instruction.operands().get(3), pc);
-    int length = verifyLocal(owner, instruction.operands().get(4), pc);
+    int destination = verifyLocal(owner, instruction, DESTINATION, pc);
+    int typeId = Math.toIntExact(instruction.operand(DESCRIPTOR));
+    int array = verifyLocal(owner, instruction, OWNER, pc);
+    int start = verifyLocal(owner, instruction, START, pc);
+    int length = verifyLocal(owner, instruction, LENGTH, pc);
     ValueType arrayType = owner.localType(array);
     if (arrayType.kind() != ValueType.Kind.ARRAY
         || !program.arrayType(arrayType.descriptorId()).elementType()
@@ -577,9 +591,9 @@ public final class BytecodeVerifier {
 
   private static void verifySliceGet(
       Program program, FunctionBody owner, Instruction instruction, int pc) {
-    int destination = verifyLocal(owner, instruction.operands().get(0), pc);
-    int source = verifyLocal(owner, instruction.operands().get(1), pc);
-    int index = verifyLocal(owner, instruction.operands().get(2), pc);
+    int destination = verifyLocal(owner, instruction, DESTINATION, pc);
+    int source = verifyLocal(owner, instruction, OWNER, pc);
+    int index = verifyLocal(owner, instruction, INDEX, pc);
     ValueType sourceType = owner.localType(source);
     if (sourceType.kind() != ValueType.Kind.SLICE) {
       fail(location(owner, pc) + " indexing requires a slice");
@@ -608,17 +622,17 @@ public final class BytecodeVerifier {
       }
       if (instruction.opcode() == Opcode.OWNED_MOVE
           || instruction.opcode() == Opcode.UTF8_FREEZE) {
-        assigned.clear(Math.toIntExact(instruction.operands().get(1)));
+        assigned.clear(Math.toIntExact(instruction.operand(SOURCE)));
       } else if (instruction.opcode() == Opcode.RETURN_VALUE
           && owner.resultType() != null && owned(owner.resultType())) {
-        assigned.clear(Math.toIntExact(instruction.operands().getFirst()));
+        assigned.clear(Math.toIntExact(instruction.operand(RESULT)));
       } else if (instruction.opcode() == Opcode.BUFFER_DROP
           || instruction.opcode() == Opcode.REGION_DROP) {
-        assigned.clear(Math.toIntExact(instruction.operands().getFirst()));
+        assigned.clear(Math.toIntExact(instruction.operand(LOCAL)));
       } else if (instruction.opcode() == Opcode.CALL_VALUE
           || instruction.opcode() == Opcode.CALL_VOID) {
-        int base = Math.toIntExact(instruction.operands().get(1));
-        int count = Math.toIntExact(instruction.operands().get(2));
+        int base = Math.toIntExact(instruction.operand(ARGUMENT_BASE));
+        int count = Math.toIntExact(instruction.operand(ARGUMENT_COUNT));
         for (int local = base; local < base + count; local++) {
           if (owned(owner.localType(local))
               || owner.localType(local).equals(ValueType.UTF8_BORROW)
@@ -676,46 +690,46 @@ public final class BytecodeVerifier {
         || instruction.opcode() == Opcode.RECORD_NEW
         || instruction.opcode() == Opcode.VARIANT_NEW
         || instruction.opcode() == Opcode.ARRAY_NEW) {
-      int baseOperand = switch (instruction.opcode()) {
-        case CALL_VALUE, CALL_VOID -> 1;
-        case RECORD_NEW -> 2;
-        case VARIANT_NEW -> 3;
-        case ARRAY_NEW -> 2;
+      InstructionForm.OperandRole baseRole = switch (instruction.opcode()) {
+        case CALL_VALUE, CALL_VOID -> ARGUMENT_BASE;
+        case RECORD_NEW, VARIANT_NEW, ARRAY_NEW -> ELEMENT_BASE;
         default -> throw new IllegalStateException();
       };
-      int countOperand = baseOperand + 1;
-      int base = Math.toIntExact(instruction.operands().get(baseOperand));
-      int count = Math.toIntExact(instruction.operands().get(countOperand));
+      InstructionForm.OperandRole countRole = switch (instruction.opcode()) {
+        case CALL_VALUE, CALL_VOID -> ARGUMENT_COUNT;
+        case RECORD_NEW, VARIANT_NEW, ARRAY_NEW -> ELEMENT_COUNT;
+        default -> throw new IllegalStateException();
+      };
+      int base = Math.toIntExact(instruction.operand(baseRole));
+      int count = Math.toIntExact(instruction.operand(countRole));
       for (int local = base; local < base + count; local++) {
         requireAssignedLocal(owner, pc, assigned, local);
       }
       return;
     }
-    int[] reads = switch (instruction.opcode()) {
-      case LOCAL_STORE_GLOBAL -> new int[] {1};
-      case LOCAL_MOVE, OWNED_MOVE, UTF8_FREEZE, UTF8_BORROW, MAP_BORROW,
-          BUFFER_BORROW, REGION_BORROW ->
-          new int[] {1};
+    List<InstructionForm.OperandRole> reads = switch (instruction.opcode()) {
+      case LOCAL_STORE_GLOBAL, LOCAL_MOVE, OWNED_MOVE, UTF8_FREEZE, UTF8_BORROW,
+          MAP_BORROW, BUFFER_BORROW, REGION_BORROW -> List.of(SOURCE);
       case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND,
-          LOCAL_ROTR32, LOCAL_XOR, LOCAL_EQ, LOCAL_LT ->
-          new int[] {1, 2};
-      case JUMP_IF_ZERO, EXPECT_TRUE -> new int[] {0};
-      case LOCAL_LOOP_CHECK -> new int[] {0, 1};
-      case RETURN_VALUE -> new int[] {0};
-      case RECORD_GET, VARIANT_TAG_EQ, VARIANT_GET -> new int[] {1};
-      case ARRAY_GET, SLICE_GET, WORDS_GET, BYTES_GET,
-          UTF8_SCALAR, UTF8_WIDTH -> new int[] {1, 2};
-      case UTF8_VALID, UTF8_COUNT, BUFFER_LENGTH -> new int[] {1};
-      case SLICE_NEW -> new int[] {2, 3, 4};
-      case WORDS_ALLOC, BYTES_ALLOC, MAP_ALLOC -> new int[] {1, 2};
-      case WORDS_SET, BYTES_SET, MAP_PUT -> new int[] {0, 1, 2};
-      case MAP_GET, MAP_HAS -> new int[] {1, 2};
-      case BUFFER_DROP, REGION_DROP -> new int[] {0};
-      case OUTPUT_LENGTH -> new int[] {0, 1};
-      default -> new int[0];
+          LOCAL_ROTR32, LOCAL_XOR, LOCAL_EQ, LOCAL_LT -> List.of(LEFT_SOURCE, RIGHT_SOURCE);
+      case JUMP_IF_ZERO, EXPECT_TRUE -> List.of(CONDITION);
+      case LOCAL_LOOP_CHECK -> List.of(ITERATION, LIMIT);
+      case RETURN_VALUE -> List.of(RESULT);
+      case RECORD_GET, VARIANT_TAG_EQ, VARIANT_GET -> List.of(OWNER);
+      case ARRAY_GET, SLICE_GET, WORDS_GET, BYTES_GET, UTF8_SCALAR, UTF8_WIDTH ->
+          List.of(OWNER, INDEX);
+      case UTF8_VALID, UTF8_COUNT, BUFFER_LENGTH -> List.of(SOURCE);
+      case SLICE_NEW -> List.of(OWNER, START, LENGTH);
+      case WORDS_ALLOC, BYTES_ALLOC, MAP_ALLOC -> List.of(OWNER, CAPACITY);
+      case WORDS_SET, BYTES_SET -> List.of(OWNER, INDEX, SOURCE);
+      case MAP_PUT -> List.of(OWNER, KEY, SOURCE);
+      case MAP_GET, MAP_HAS -> List.of(OWNER, KEY);
+      case BUFFER_DROP, REGION_DROP -> List.of(LOCAL);
+      case OUTPUT_LENGTH -> List.of(OWNER, LENGTH);
+      default -> List.of();
     };
-    for (int operandIndex : reads) {
-      int local = Math.toIntExact(instruction.operands().get(operandIndex));
+    for (InstructionForm.OperandRole role : reads) {
+      int local = Math.toIntExact(instruction.operand(role));
       requireAssignedLocal(owner, pc, assigned, local);
     }
   }
@@ -737,15 +751,14 @@ public final class BytecodeVerifier {
       case LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, OWNED_MOVE,
           LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND,
           LOCAL_ROTR32, LOCAL_XOR, LOCAL_EQ, LOCAL_LT,
-          LOCAL_LOOP_CHECK,
           RECORD_NEW, RECORD_GET, VARIANT_NEW, VARIANT_TAG_EQ, VARIANT_GET,
           ARRAY_NEW, ARRAY_GET, SLICE_NEW, SLICE_GET, REGION_NEW,
           WORDS_ALLOC, WORDS_GET, BYTES_ALLOC, BYTES_GET,
           UTF8_VALID, UTF8_COUNT, BUFFER_LENGTH, UTF8_SCALAR, UTF8_WIDTH,
           MAP_ALLOC, MAP_GET, MAP_HAS, UTF8_FREEZE, UTF8_BORROW, MAP_BORROW,
-          BUFFER_BORROW, REGION_BORROW ->
-          Math.toIntExact(instruction.operands().getFirst());
-      case CALL_VALUE -> Math.toIntExact(instruction.operands().get(3));
+          BUFFER_BORROW, REGION_BORROW -> Math.toIntExact(instruction.operand(DESTINATION));
+      case LOCAL_LOOP_CHECK -> Math.toIntExact(instruction.operand(ITERATION));
+      case CALL_VALUE -> Math.toIntExact(instruction.operand(RESULT));
       default -> -1;
     };
   }
@@ -758,11 +771,11 @@ public final class BytecodeVerifier {
       return List.of();
     }
     if (instruction.opcode() == Opcode.JUMP) {
-      return List.of(Math.toIntExact(instruction.operands().getFirst()));
+      return List.of(Math.toIntExact(instruction.operand(TARGET)));
     }
     if (instruction.opcode() == Opcode.JUMP_IF_ZERO) {
       int next = checkedFallthrough(owner, body, pc);
-      return List.of(next, Math.toIntExact(instruction.operands().get(1)));
+      return List.of(next, Math.toIntExact(instruction.operand(TARGET)));
     }
     return List.of(checkedFallthrough(owner, body, pc));
   }
@@ -780,9 +793,9 @@ public final class BytecodeVerifier {
       Instruction instruction,
       int pc,
       boolean returnsValue) {
-    FunctionBody target = program.function(Math.toIntExact(instruction.operands().get(0)));
-    int base = Math.toIntExact(instruction.operands().get(1));
-    int count = Math.toIntExact(instruction.operands().get(2));
+    FunctionBody target = program.function(Math.toIntExact(instruction.operand(FUNCTION)));
+    int base = Math.toIntExact(instruction.operand(ARGUMENT_BASE));
+    int count = Math.toIntExact(instruction.operand(ARGUMENT_COUNT));
     if (target.returnsValue() != returnsValue
         || count != target.parameterCount()
         || base < 0
@@ -791,7 +804,7 @@ public final class BytecodeVerifier {
       fail(location(owner, pc) + " call signature mismatch for " + target.name());
     }
     if (returnsValue) {
-      int destination = verifyLocal(owner, instruction.operands().get(3), pc);
+      int destination = verifyLocal(owner, instruction, RESULT, pc);
       requireType(owner, destination, target.resultType(), pc);
     }
     for (int argument = 0; argument < count; argument++) {
@@ -799,13 +812,6 @@ public final class BytecodeVerifier {
         fail(location(owner, pc) + " call argument type mismatch for " + target.name());
       }
     }
-  }
-
-  private static int verifyLocal(FunctionBody owner, long operand, int pc) {
-    if (operand < 0 || operand >= owner.localCount()) {
-      fail(location(owner, pc) + " invalid local index " + operand);
-    }
-    return Math.toIntExact(operand);
   }
 
   private static int verifyLocal(

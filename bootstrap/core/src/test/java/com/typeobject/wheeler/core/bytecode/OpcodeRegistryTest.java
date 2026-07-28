@@ -4,7 +4,9 @@ import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.A
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ARGUMENT_COUNT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.DESTINATION;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.FUNCTION;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ITERATION;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LEFT_SOURCE;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LIMIT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RIGHT_SOURCE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,7 +21,7 @@ import org.junit.jupiter.api.Test;
 /** Conformance checks for stable opcode identities and regular operand forms. */
 class OpcodeRegistryTest {
   private static final int VALID_LOCAL = 0;
-  private static final int INVALID_DESTINATION = 9;
+  private static final int INVALID_LOCAL = 9;
 
   @Test
   void givesEveryOpcodeOneUniqueIdentityAndOneCompleteForm() {
@@ -34,27 +36,15 @@ class OpcodeRegistryTest {
 
   @Test
   void namesInvalidOperandRolesInVerifierDiagnostics() {
-    FunctionBody main = new FunctionBody(
-        VALID_LOCAL,
-        "main",
-        false,
-        VALID_LOCAL,
-        List.of(ValueType.SIGNED),
-        null,
-        List.of(
-            Instruction.of(
-                Opcode.LOCAL_ADD,
-                INVALID_DESTINATION,
-                VALID_LOCAL,
-                VALID_LOCAL),
-            Instruction.of(Opcode.HALT)),
-        List.of());
-    Program program = new Program("roles", VALID_LOCAL, List.of(), List.of(main));
-
-    BytecodeException exception = assertThrows(
-        BytecodeException.class,
-        () -> BytecodeVerifier.verify(program));
-    assertTrue(exception.getMessage().contains("destination local index"));
+    assertInvalidRole(
+        Instruction.of(Opcode.LOCAL_ADD, INVALID_LOCAL, VALID_LOCAL, VALID_LOCAL),
+        "destination local index");
+    assertInvalidRole(
+        Instruction.of(Opcode.RECORD_GET, VALID_LOCAL, INVALID_LOCAL, VALID_LOCAL),
+        "owner local index");
+    assertInvalidRole(
+        Instruction.of(Opcode.BYTES_GET, VALID_LOCAL, INVALID_LOCAL, VALID_LOCAL),
+        "owner local index");
   }
 
   @Test
@@ -65,5 +55,24 @@ class OpcodeRegistryTest {
     assertEquals(
         List.of(FUNCTION, ARGUMENT_BASE, ARGUMENT_COUNT, RESULT),
         Opcode.CALL_VALUE.form().roles());
+    assertEquals(List.of(ITERATION, LIMIT), Opcode.LOCAL_LOOP_CHECK.form().roles());
+  }
+
+  private static void assertInvalidRole(Instruction instruction, String expectedRole) {
+    FunctionBody main = new FunctionBody(
+        VALID_LOCAL,
+        "main",
+        false,
+        VALID_LOCAL,
+        List.of(ValueType.SIGNED),
+        null,
+        List.of(instruction, Instruction.of(Opcode.HALT)),
+        List.of());
+    Program program = new Program("roles", VALID_LOCAL, List.of(), List.of(main));
+
+    BytecodeException exception = assertThrows(
+        BytecodeException.class,
+        () -> BytecodeVerifier.verify(program));
+    assertTrue(exception.getMessage().contains(expectedRole));
   }
 }

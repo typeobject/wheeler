@@ -1,7 +1,19 @@
 package com.typeobject.wheeler.core.bytecode;
 
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ALLOCATION_LIMIT;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.CAPACITY;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.DESTINATION;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.INDEX;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.KEY;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LOCAL;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.OWNER;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.SOURCE;
+
 /** Type and immediate checks for affine region, buffer, and UTF-8 instructions. */
 final class StorageInstructionVerifier {
+  private static final long MAX_REGION_BYTES = 1L << 30;
+  private static final long MAX_REGION_OBJECTS = 65_535;
+
   private StorageInstructionVerifier() {}
 
   static boolean isOwned(ValueType type) {
@@ -38,76 +50,77 @@ final class StorageInstructionVerifier {
       case MAP_GET -> verifyMapRead(owner, instruction, pc, ValueType.SIGNED);
       case MAP_HAS -> verifyMapRead(owner, instruction, pc, ValueType.BOOLEAN);
       case BUFFER_DROP -> verifyBufferDrop(owner, instruction, pc);
-      case REGION_DROP -> require(owner, instruction, 0, ValueType.REGION, pc);
+      case REGION_DROP -> require(owner, instruction, LOCAL, ValueType.REGION, pc);
       default -> throw new IllegalArgumentException(
           "Not a storage instruction: " + instruction.opcode());
     }
   }
 
   private static void verifyRegion(FunctionBody owner, Instruction instruction, int pc) {
-    require(owner, instruction, 0, ValueType.REGION, pc);
-    long bytes = instruction.operands().get(1);
-    long objects = instruction.operands().get(2);
-    if (bytes <= 0 || bytes > (1L << 30) || objects <= 0 || objects > 65_535) {
+    require(owner, instruction, DESTINATION, ValueType.REGION, pc);
+    long bytes = instruction.operand(CAPACITY);
+    long objects = instruction.operand(ALLOCATION_LIMIT);
+    if (bytes <= 0 || bytes > MAX_REGION_BYTES
+        || objects <= 0 || objects > MAX_REGION_OBJECTS) {
       fail(owner, pc, "invalid region limits");
     }
   }
 
   private static void verifyAllocate(
       FunctionBody owner, Instruction instruction, int pc, ValueType type) {
-    require(owner, instruction, 0, type, pc);
-    int region = local(owner, instruction.operands().get(1), pc);
+    require(owner, instruction, DESTINATION, type, pc);
+    int region = local(owner, instruction, OWNER, pc);
     ValueType regionType = owner.localType(region);
     if (!regionType.equals(ValueType.REGION)
         && !regionType.equals(ValueType.REGION_BORROW)) {
       fail(owner, pc, "allocation requires a region owner or borrow");
     }
-    require(owner, instruction, 2, ValueType.SIGNED, pc);
+    require(owner, instruction, CAPACITY, ValueType.SIGNED, pc);
   }
 
   private static void verifyGet(
       FunctionBody owner, Instruction instruction, int pc, ValueType type) {
-    require(owner, instruction, 0, ValueType.SIGNED, pc);
-    int source = local(owner, instruction.operands().get(1), pc);
+    require(owner, instruction, DESTINATION, ValueType.SIGNED, pc);
+    int source = local(owner, instruction, OWNER, pc);
     if (type.equals(ValueType.BYTES)
         && owner.localType(source).equals(ValueType.BYTE_VIEW)) {
       // Immutable host byte views share the byte read opcode, never its write opcode.
     } else {
-      requireBuffer(owner, instruction, 1, type, pc);
+      requireBuffer(owner, instruction, OWNER, type, pc);
     }
-    require(owner, instruction, 2, ValueType.SIGNED, pc);
+    require(owner, instruction, INDEX, ValueType.SIGNED, pc);
   }
 
   private static void verifySet(
       FunctionBody owner, Instruction instruction, int pc, ValueType type) {
-    requireBuffer(owner, instruction, 0, type, pc);
-    require(owner, instruction, 1, ValueType.SIGNED, pc);
-    require(owner, instruction, 2, ValueType.SIGNED, pc);
+    requireBuffer(owner, instruction, OWNER, type, pc);
+    require(owner, instruction, INDEX, ValueType.SIGNED, pc);
+    require(owner, instruction, SOURCE, ValueType.SIGNED, pc);
   }
 
   private static void verifyUtf8Whole(
       FunctionBody owner, Instruction instruction, int pc, ValueType result) {
-    require(owner, instruction, 0, result, pc);
-    requireUtf8Sequence(owner, instruction, 1, pc);
+    require(owner, instruction, DESTINATION, result, pc);
+    requireUtf8Sequence(owner, instruction, SOURCE, pc);
   }
 
   private static void verifyUtf8At(
       FunctionBody owner, Instruction instruction, int pc) {
-    require(owner, instruction, 0, ValueType.SIGNED, pc);
-    requireUtf8Sequence(owner, instruction, 1, pc);
-    require(owner, instruction, 2, ValueType.SIGNED, pc);
+    require(owner, instruction, DESTINATION, ValueType.SIGNED, pc);
+    requireUtf8Sequence(owner, instruction, OWNER, pc);
+    require(owner, instruction, INDEX, ValueType.SIGNED, pc);
   }
 
   private static void verifyFreeze(
       FunctionBody owner, Instruction instruction, int pc) {
-    require(owner, instruction, 0, ValueType.UTF8, pc);
-    require(owner, instruction, 1, ValueType.BYTES, pc);
+    require(owner, instruction, DESTINATION, ValueType.UTF8, pc);
+    require(owner, instruction, SOURCE, ValueType.BYTES, pc);
   }
 
   private static void verifyBorrow(
       FunctionBody owner, Instruction instruction, int pc) {
-    require(owner, instruction, 0, ValueType.UTF8_BORROW, pc);
-    int source = local(owner, instruction.operands().get(1), pc);
+    require(owner, instruction, DESTINATION, ValueType.UTF8_BORROW, pc);
+    int source = local(owner, instruction, SOURCE, pc);
     ValueType type = owner.localType(source);
     if (!type.equals(ValueType.UTF8) && !type.equals(ValueType.UTF8_BORROW)) {
       fail(owner, pc, "UTF-8 borrow requires an immutable UTF-8 source");
@@ -116,8 +129,8 @@ final class StorageInstructionVerifier {
 
   private static void verifyRegionBorrow(
       FunctionBody owner, Instruction instruction, int pc) {
-    require(owner, instruction, 0, ValueType.REGION_BORROW, pc);
-    int source = local(owner, instruction.operands().get(1), pc);
+    require(owner, instruction, DESTINATION, ValueType.REGION_BORROW, pc);
+    int source = local(owner, instruction, SOURCE, pc);
     ValueType type = owner.localType(source);
     if (!type.equals(ValueType.REGION) && !type.equals(ValueType.REGION_BORROW)) {
       fail(owner, pc, "region borrow requires a region source");
@@ -126,8 +139,8 @@ final class StorageInstructionVerifier {
 
   private static void verifyBufferBorrow(
       FunctionBody owner, Instruction instruction, int pc) {
-    int destination = local(owner, instruction.operands().get(0), pc);
-    int source = local(owner, instruction.operands().get(1), pc);
+    int destination = local(owner, instruction, DESTINATION, pc);
+    int source = local(owner, instruction, SOURCE, pc);
     ValueType expectedOwner;
     if (owner.localType(destination).equals(ValueType.WORDS_BORROW)) {
       expectedOwner = ValueType.WORDS;
@@ -151,8 +164,8 @@ final class StorageInstructionVerifier {
 
   private static void verifyMapBorrow(
       FunctionBody owner, Instruction instruction, int pc) {
-    require(owner, instruction, 0, ValueType.LONG_MAP_BORROW, pc);
-    int source = local(owner, instruction.operands().get(1), pc);
+    require(owner, instruction, DESTINATION, ValueType.LONG_MAP_BORROW, pc);
+    int source = local(owner, instruction, SOURCE, pc);
     ValueType type = owner.localType(source);
     if (!type.equals(ValueType.LONG_MAP) && !type.equals(ValueType.LONG_MAP_BORROW)) {
       fail(owner, pc, "map borrow requires a signed-map source");
@@ -161,21 +174,21 @@ final class StorageInstructionVerifier {
 
   private static void verifyMapPut(
       FunctionBody owner, Instruction instruction, int pc) {
-    requireMap(owner, instruction, 0, pc);
-    require(owner, instruction, 1, ValueType.SIGNED, pc);
-    require(owner, instruction, 2, ValueType.SIGNED, pc);
+    requireMap(owner, instruction, OWNER, pc);
+    require(owner, instruction, KEY, ValueType.SIGNED, pc);
+    require(owner, instruction, SOURCE, ValueType.SIGNED, pc);
   }
 
   private static void verifyMapRead(
       FunctionBody owner, Instruction instruction, int pc, ValueType result) {
-    require(owner, instruction, 0, result, pc);
-    requireMap(owner, instruction, 1, pc);
-    require(owner, instruction, 2, ValueType.SIGNED, pc);
+    require(owner, instruction, DESTINATION, result, pc);
+    requireMap(owner, instruction, OWNER, pc);
+    require(owner, instruction, KEY, ValueType.SIGNED, pc);
   }
 
   private static void verifyLength(FunctionBody owner, Instruction instruction, int pc) {
-    require(owner, instruction, 0, ValueType.SIGNED, pc);
-    int source = local(owner, instruction.operands().get(1), pc);
+    require(owner, instruction, DESTINATION, ValueType.SIGNED, pc);
+    int source = local(owner, instruction, SOURCE, pc);
     ValueType type = owner.localType(source);
     if (!isBuffer(type) && !type.equals(ValueType.UTF8)
         && !type.equals(ValueType.UTF8_BORROW)
@@ -188,7 +201,7 @@ final class StorageInstructionVerifier {
 
   private static void verifyBufferDrop(
       FunctionBody owner, Instruction instruction, int pc) {
-    int source = local(owner, instruction.operands().getFirst(), pc);
+    int source = local(owner, instruction, LOCAL, pc);
     ValueType type = owner.localType(source);
     if (!isBuffer(type) && !type.equals(ValueType.LONG_MAP)
         && !type.equals(ValueType.UTF8)) {
@@ -199,10 +212,10 @@ final class StorageInstructionVerifier {
   private static void requireBuffer(
       FunctionBody owner,
       Instruction instruction,
-      int operand,
+      InstructionForm.OperandRole role,
       ValueType expectedOwner,
       int pc) {
-    int local = local(owner, instruction.operands().get(operand), pc);
+    int local = local(owner, instruction, role, pc);
     ValueType type = owner.localType(local);
     ValueType borrow = expectedOwner.equals(ValueType.WORDS)
         ? ValueType.WORDS_BORROW : ValueType.BYTES_BORROW;
@@ -212,8 +225,11 @@ final class StorageInstructionVerifier {
   }
 
   private static void requireMap(
-      FunctionBody owner, Instruction instruction, int operand, int pc) {
-    int local = local(owner, instruction.operands().get(operand), pc);
+      FunctionBody owner,
+      Instruction instruction,
+      InstructionForm.OperandRole role,
+      int pc) {
+    int local = local(owner, instruction, role, pc);
     ValueType type = owner.localType(local);
     if (!type.equals(ValueType.LONG_MAP) && !type.equals(ValueType.LONG_MAP_BORROW)) {
       fail(owner, pc, "expected longmap or a map borrow local " + local);
@@ -221,8 +237,11 @@ final class StorageInstructionVerifier {
   }
 
   private static void requireUtf8Sequence(
-      FunctionBody owner, Instruction instruction, int operand, int pc) {
-    int local = local(owner, instruction.operands().get(operand), pc);
+      FunctionBody owner,
+      Instruction instruction,
+      InstructionForm.OperandRole role,
+      int pc) {
+    int local = local(owner, instruction, role, pc);
     ValueType type = owner.localType(local);
     if (!type.equals(ValueType.BYTES) && !type.equals(ValueType.BYTES_BORROW)
         && !type.equals(ValueType.UTF8) && !type.equals(ValueType.UTF8_BORROW)) {
@@ -233,18 +252,23 @@ final class StorageInstructionVerifier {
   private static void require(
       FunctionBody owner,
       Instruction instruction,
-      int operand,
+      InstructionForm.OperandRole role,
       ValueType expected,
       int pc) {
-    int local = local(owner, instruction.operands().get(operand), pc);
+    int local = local(owner, instruction, role, pc);
     if (!owner.localType(local).equals(expected)) {
       fail(owner, pc, "expected " + expected.displayName() + " local " + local);
     }
   }
 
-  private static int local(FunctionBody owner, long value, int pc) {
+  private static int local(
+      FunctionBody owner,
+      Instruction instruction,
+      InstructionForm.OperandRole role,
+      int pc) {
+    long value = instruction.operand(role);
     if (value < 0 || value >= owner.localCount()) {
-      fail(owner, pc, "invalid local index " + value);
+      fail(owner, pc, "invalid " + role.name().toLowerCase() + " local index " + value);
     }
     return Math.toIntExact(value);
   }

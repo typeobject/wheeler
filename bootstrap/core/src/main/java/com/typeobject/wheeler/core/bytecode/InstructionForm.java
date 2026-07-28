@@ -16,7 +16,7 @@ public enum InstructionForm {
   GLOBAL_LOCAL(OperandRole.GLOBAL, OperandRole.SOURCE),
   LOCAL_SOURCE(OperandRole.DESTINATION, OperandRole.SOURCE),
   LOCAL_BINARY(OperandRole.DESTINATION, OperandRole.LEFT_SOURCE, OperandRole.RIGHT_SOURCE),
-  LOCAL_PAIR(OperandRole.LEFT_SOURCE, OperandRole.RIGHT_SOURCE),
+  LOOP_CHECK(OperandRole.ITERATION, OperandRole.LIMIT),
   TARGET(OperandRole.TARGET),
   LOCAL_TARGET(OperandRole.CONDITION, OperandRole.TARGET),
   CALL_VALUE(
@@ -96,6 +96,8 @@ public enum InstructionForm {
     ELEMENT_BASE,
     ELEMENT_COUNT,
     INDEX,
+    ITERATION,
+    LIMIT,
     TAG,
     START,
     LENGTH,
