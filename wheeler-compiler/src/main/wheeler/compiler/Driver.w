@@ -319,11 +319,11 @@ classical class CompilerDriver {
 
   /// Compiles one bounded bootstrap source into caller-owned artifact storage.
   public Compilation compileMinimal(borrow utf8 source, borrow mut bytes output) {
-    region arena = new region(/* bytes= */ 25120, /* allocations= */ 5);
+    region arena = new region(/* bytes= */ 25632, /* allocations= */ 5);
     words tokenKinds = allocate(arena, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(arena, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(arena, MAX_COMPILER_TOKENS);
-    words statementStarts = allocate(arena, MAX_HELPER_RESOLUTION_STARTS);
+    words statementStarts = allocate(arena, MAX_PROGRAM_RESOLUTION_STARTS);
     words moduleRange = allocate(arena, 2);
     MinimalProgram program = requireMinimalProgram(
       source,

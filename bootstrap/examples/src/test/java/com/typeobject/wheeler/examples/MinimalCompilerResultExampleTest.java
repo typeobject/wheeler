@@ -47,7 +47,7 @@ class MinimalCompilerResultExampleTest {
         writerProgram,
         "classical class SignedTwoLocalArguments { "
             + "long add(long left, long right) { return left + right; } "
-            + "entry void main() { long first = 20; long second = 22; "
+            + "entry void main() { long first = 20; long second = 22; long ignored = 0; "
             + "long answer = add(first, second); assert(answer == 42); } }");
     assertDifferentialHalt(
         writerProgram,

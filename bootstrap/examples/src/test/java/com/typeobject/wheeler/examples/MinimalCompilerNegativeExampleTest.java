@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Test;
 
 /** Fail-closed corpus for malformed bounded compiler inputs. */
 class MinimalCompilerNegativeExampleTest {
+  private static final int MAX_RESULT_ENTRY_STATEMENTS = 64;
+
   @Test
   void rejectsMalformedOrUnresolvedSourcesWithoutPublishingOutput() throws Exception {
     Program writerProgram = CompilerSources.minimalCompilerProgram();
@@ -213,16 +215,19 @@ class MinimalCompilerNegativeExampleTest {
     assertThrows(VmTrap.class, missingPairPreludeSource::run);
     assertArrayEquals(new byte[512], missingPairPreludeSource.hostOutput());
 
-    VirtualMachine thirdEntryPrelude = new VirtualMachine(
+    StringBuilder oversizedResultEntry = new StringBuilder(
+        "classical class OversizedResultEntry { long value() { return 1; } entry void main() { ");
+    for (int statement = 0; statement < MAX_RESULT_ENTRY_STATEMENTS; statement++) {
+      oversizedResultEntry.append("long value").append(statement).append(" = ")
+          .append(statement).append("; ");
+    }
+    oversizedResultEntry.append("long answer = value(); } }");
+    VirtualMachine oversizedResultEntryMachine = new VirtualMachine(
         writerProgram,
-        ("classical class ThirdEntryPrelude { "
-                + "long add(long left, long right) { return left + right; } "
-                + "entry void main() { long first = 20; long second = 22; long third = 0; "
-                + "long answer = add(first, second); } }")
-            .getBytes(StandardCharsets.UTF_8),
-        512);
-    assertThrows(VmTrap.class, thirdEntryPrelude::run);
-    assertArrayEquals(new byte[512], thirdEntryPrelude.hostOutput());
+        oversizedResultEntry.toString().getBytes(StandardCharsets.UTF_8),
+        4096);
+    assertThrows(VmTrap.class, oversizedResultEntryMachine::run);
+    assertArrayEquals(new byte[4096], oversizedResultEntryMachine.hostOutput());
 
     VirtualMachine missingCallArgument = new VirtualMachine(
         writerProgram,

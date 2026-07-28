@@ -7,6 +7,9 @@ classical class CompilerIr {
   public const long MAX_MINIMAL_STATEMENTS = 64;
   /// Holds two parameter names before a full helper statement table.
   public const long MAX_HELPER_RESOLUTION_STARTS = MAX_MINIMAL_STATEMENTS + 2;
+  /// Holds disjoint helper and entry statement-resolution tables.
+  public const long MAX_PROGRAM_RESOLUTION_STARTS = MAX_HELPER_RESOLUTION_STARTS
+    + MAX_MINIMAL_STATEMENTS;
 
   /// Defines immutable `SourceRange` values for this module.
   public record SourceRange(long start, long length) {}
