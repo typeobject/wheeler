@@ -121,7 +121,12 @@ classical class HelperParser {
         return new MinimalProgramResult.Error(0);
       }
 
-      if (helperSequence.opcodes[0] == STATEMENT_RETURN_LOCAL_NAMED) {} else {
+      boolean parameterReturn = helperSequence.opcodes[0] == STATEMENT_RETURN_LOCAL_NAMED;
+      if (helperSequence.opcodes[0] == STATEMENT_RETURN_LOCAL_ADD_NAMED) {
+        parameterReturn = true;
+      }
+
+      if (parameterReturn == false) {
         return new MinimalProgramResult.Error(0);
       }
     }
@@ -134,6 +139,10 @@ classical class HelperParser {
         }
 
         if (helperSequence.opcodes[helperStatement] == STATEMENT_RETURN_LOCAL_NAMED) {
+          return new MinimalProgramResult.Error(0);
+        }
+
+        if (helperSequence.opcodes[helperStatement] == STATEMENT_RETURN_LOCAL_ADD_NAMED) {
           return new MinimalProgramResult.Error(0);
         }
 

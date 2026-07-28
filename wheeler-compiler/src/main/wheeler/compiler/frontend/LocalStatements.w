@@ -805,6 +805,10 @@ classical class LocalStatements {
       return statementStart + 1;
     }
 
+    if (opcode == STATEMENT_RETURN_LOCAL_ADD_NAMED) {
+      return statementStart + 3;
+    }
+
     if (opcode == STATEMENT_ASSERT_EQ) {
       return statementStart + 5;
     }

@@ -311,6 +311,10 @@ classical class LocalOpcodes {
       return 1;
     }
 
+    if (opcode == STATEMENT_RETURN_LOCAL_ADD_NAMED) {
+      return 3;
+    }
+
     if (namedLiteralComparisonConditional(opcode)) {
       if (literalComparisonConditionalAssignment(opcode)) {
         return 4;

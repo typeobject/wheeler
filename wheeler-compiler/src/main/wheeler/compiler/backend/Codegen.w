@@ -261,6 +261,10 @@ classical class Codegen {
       return 40;
     }
 
+    if (opcode == STATEMENT_RETURN_LOCAL_ADD_NAMED) {
+      return 96;
+    }
+
     if (opcode == STATEMENT_ASSERT_LITERAL_EQ) {
       return 96;
     }
@@ -478,6 +482,21 @@ classical class Codegen {
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
       return writeUnsignedLittleEndian(output, cursor, localBase, 8);
+    }
+
+    if (opcode == STATEMENT_RETURN_LOCAL_ADD_NAMED) {
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, 2);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
+      cursor = writeSignedLittleEndian(output, cursor, operand, 8);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_ADD, 3);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN_VALUE, 1);
+      return writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
     }
 
     if (opcode == STATEMENT_RETURN_LOCAL_NAMED) {

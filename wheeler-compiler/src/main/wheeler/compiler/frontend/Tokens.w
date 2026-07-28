@@ -290,6 +290,8 @@ classical class Tokens {
   public const long STATEMENT_RETURN_LOCAL_NAMED = 828;
   /// Names a signed local initialized by a one-argument helper call.
   public const long STATEMENT_LOCAL_CALL_ARGUMENT_NAMED = 829;
+  /// Names a signed helper return adding a literal to its parameter.
+  public const long STATEMENT_RETURN_LOCAL_ADD_NAMED = 830;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -334,7 +336,7 @@ classical class Tokens {
       return false;
     }
 
-    return opcode < STATEMENT_LOCAL_CALL_ARGUMENT_NAMED + 1;
+    return opcode < STATEMENT_RETURN_LOCAL_ADD_NAMED + 1;
   }
 
   /// Computes the stable hash of one bounded source token.
@@ -475,6 +477,11 @@ classical class Tokens {
     if (keyword == TOKEN_RETURN) {
       long returnedScalar = utf8Scalar(source, tokenStarts[statementStart + 1]);
       if (identifierStart(returnedScalar)) {
+        long returnOperator = utf8Scalar(source, tokenStarts[statementStart + 2]);
+        if (returnOperator == PUNCTUATION_PLUS) {
+          return STATEMENT_RETURN_LOCAL_ADD_NAMED;
+        }
+
         return STATEMENT_RETURN_LOCAL_NAMED;
       }
 

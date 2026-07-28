@@ -168,6 +168,16 @@ class MinimalCompilerExampleTest {
             + "assert(answer == -42); } }");
     assertDifferentialHalt(
         writerProgram,
+        "classical class SignedParameterAdd { long increment(long value) { return value + 1; } "
+            + "entry void main() { long answer = increment(41); "
+            + "assert(answer == 42); } }");
+    assertDifferentialTrap(
+        writerProgram,
+        "classical class SignedParameterOverflow { "
+            + "long increment(long value) { return value + 1; } "
+            + "entry void main() { long answer = increment(9223372036854775807); } }");
+    assertDifferentialHalt(
+        writerProgram,
         "classical class Local { entry void main() { long x = -2; } }");
     assertDifferentialHalt(
         writerProgram,
