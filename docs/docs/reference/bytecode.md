@@ -213,6 +213,18 @@ Proof metadata cannot weaken normal verification or change execution. Omitting s
 
 Quantum bodies declare affine logical registers, unitary circuits, semantic gates, symbolic phase parameters with finite scale, and references to compiler-checked coherent functions. Symbol names are canonical string-table entries.
 
+Quantum instructions use a regular provider-neutral record:
+
+```text
+u32 quantum_opcode
+u32 field_count
+u64 fields[field_count]
+```
+
+`QuantumOpcode` names `APPLY_GATE`, `APPLY_SYMBOLIC_GATE`, and `CALL_UNITARY` in the executable unitary subset. Each opcode has one `QuantumInstructionForm` with ordered semantic field groups. `Gate` identities no longer depend on Java enum order. Each gate names a `GateForm` that fixes control, target, and angle roles. The initial descriptors are `H`, `X`, `Z`, `PHASE`, `CPHASE`, `CNOT`, `CZ`, and `SWAP`.
+
+The variable field window leaves room for wider standard gates and distinct measurement, reset, preparation, control, and barrier instructions without replacing the record. Those operations still need accepted semantics and explicit opcodes before use. Unknown quantum opcodes, gate IDs, field counts, and noncanonical parameters fail closed. Provider-native gates and QASM remain derived output.
+
 Runtime tasks provide an exact finite binding map. Task identity covers its schema, values, circuit applications, request, and seed policy.
 
 Workflow records describe preparation, circuit or adjoint application, measurement into classical state, classical call or inverse, assertion, commit, and halt.

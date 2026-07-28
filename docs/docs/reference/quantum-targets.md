@@ -49,6 +49,12 @@ Generated adjoints negate the symbolic scale. The ideal target evaluates binding
 
 Provider-native expectation requests may be used as a lowering optimization. Wheeler can still keep the sampled result and its provenance.
 
+## Provider-neutral quantum ISA
+
+`.wbc` stores regular quantum instruction records and stable semantic gate descriptors. The executable unitary subset applies fixed or symbolic gates and calls compiler-verified coherent functions. Gate forms name ordered controls, targets, and angle parameters. Targets decompose those operations into their native basis and advertise any stricter limits.
+
+No physical gate basis is common to every provider. Wheeler therefore standardizes semantic meaning, not pulse names or appliance opcodes. Measurement, reset, preparation, target-resident control, and barriers use distinct semantic instruction families as they become executable. Provider payloads do not extend the canonical ISA at runtime.
+
 ## OpenQASM 3
 
 `OpenQasm3Emitter` lowers a supported static task into a complete program:

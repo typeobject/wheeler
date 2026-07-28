@@ -12,7 +12,7 @@ public record ParameterizedGateOperation(
     Objects.requireNonNull(gate, "gate");
     Objects.requireNonNull(parameterName, "parameterName");
     qubits = List.copyOf(qubits);
-    if ((gate != Gate.PHASE && gate != Gate.CPHASE)
+    if (!gate.parameterized()
         || qubits.size() != gate.arity()
         || qubits.stream().anyMatch(index -> index < 0)
         || parameterName.isBlank()

@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler language, compiler, and quantum maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-07-17 |
+| Updated | 2026-07-27 |
 | Area | Language, hybrid execution, quantum IR, reversibility |
 | Depends on | WIP-0001 |
 | Supersedes | None |
@@ -189,6 +189,26 @@ The `.wbc` region graph describes dependencies among classical bodies, quantum b
 
 The IR names semantic operations, not Qiskit classes or one hardware native gate set. WIP-0003 lowering decomposes those operations for a target.
 
+### Generic quantum instruction set
+
+Section 8 uses a provider-neutral quantum instruction stream from the first format. It does not grow by embedding QASM strings or assigning provider opcodes after the fact.
+
+Each instruction record has this regular shape:
+
+```text
+u32 quantum_opcode
+u32 field_count
+u64 fields[field_count]
+```
+
+The quantum opcode selects a named form with ordered semantic field groups. Gate instructions name a stable gate descriptor, an exact logical-qubit window, and an exact numeric or symbolic parameter window. Unitary calls name a verified coherent function and direction. Measurement, reset, preparation, controlled application, bounded quantum control, and barriers receive their own forms as those semantics become executable. They do not masquerade as gates.
+
+Gate descriptors own stable identities, qubit roles, parameter roles, adjoint rules, and capability requirements. The baseline registry contains `H`, `X`, `Z`, `PHASE`, `CPHASE`, `CNOT`, `CZ`, and `SWAP`. A target may decompose them. It may not change their meaning. Later standard gates append descriptors under explicit capability and version rules without changing the instruction record.
+
+Unknown quantum opcodes and gates fail before execution. A field count lets the decoder bound a record, but it never permits semantic skipping. Provider-native gates, pulse schedules, calibration references, and QASM remain derived target data.
+
+This is a generic semantic ISA, not a claim that hardware shares one physical instruction set. The split keeps one portable source of truth while allowing superconducting, trapped-ion, neutral-atom, photonic, and simulated targets to choose different native bases.
+
 ### Region partitioning
 
 The compiler partitions a hybrid function into maximal regions allowed by data dependencies and target capabilities:
@@ -282,6 +302,8 @@ Quantum state is not a byte stream, file, mapped object, direct-I/O buffer, or R
 - [ ] Quantum resources have complete affine ownership and slice checking. The first profile prevents aliases by construction.
 - [x] Coherent eligibility and lifted reversible calls work for the exact XOR subset.
 - [x] Workflow and quantum body sections have canonical encoding and strict decoding.
+- [x] Quantum instructions use stable opcode and gate registries, named forms, ordered roles, and bounded variable-length records.
+- [ ] Measurement, reset, preparation, controlled application, and target-resident control need executable instruction forms.
 - [x] The semantic state-vector simulator executes the initial gate and lifted-function subset.
 - [x] Counter, coherent oracle, QFT, and the bounded measured optimizer pass end to end.
 
@@ -328,7 +350,7 @@ Rejected by no-cloning. It copies known basis information in a restricted case a
 ## Open questions
 
 - What source annotation should require, instead of only infer, coherent eligibility for a `rev` function (owner: language maintainers. Decision point: before this WIP enters Review)?
-- Which small semantic gate set gives stable meaning while keeping decomposition practical for today's targets (owner: quantum compiler maintainers. Decision point: before quantum-body encoding is frozen)?
+- Which additional baseline gate descriptors earn canonical identities rather than remaining verified decompositions (owner: quantum compiler maintainers. Decision point: before the first post-baseline gate enters Review)?
 - Which finite classical data encodings are required in the first coherent-lifting slice beyond bits and fixed-width unsigned integers (owner: type-system maintainers. Decision point: before implementation begins)?
 
 ## References

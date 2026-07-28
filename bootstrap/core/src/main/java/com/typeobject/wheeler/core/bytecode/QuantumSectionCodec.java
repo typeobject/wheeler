@@ -5,6 +5,7 @@ import com.typeobject.wheeler.core.quantum.GateOperation;
 import com.typeobject.wheeler.core.quantum.LiftedCall;
 import com.typeobject.wheeler.core.quantum.ParameterizedGateOperation;
 import com.typeobject.wheeler.core.quantum.QuantumCircuit;
+import com.typeobject.wheeler.core.quantum.QuantumOpcode;
 import com.typeobject.wheeler.core.quantum.QuantumOperation;
 import com.typeobject.wheeler.core.quantum.QuantumRegister;
 import java.nio.ByteBuffer;
@@ -13,23 +14,38 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/** Strict bounded codec for canonical quantum registers and circuits. */
+/** Strict bounded codec for canonical quantum registers, circuits, and regular instructions. */
 final class QuantumSectionCodec {
   record QuantumContent(List<QuantumRegister> registers, List<QuantumCircuit> circuits) {}
 
-  private static final int GATE = 1;
-  private static final int LIFTED_CALL = 2;
-  private static final int PARAMETERIZED_GATE = 3;
-  private static final int OPERATION_BYTES = 32;
+  private static final int REGISTER_BYTES = Integer.BYTES * 3;
+  private static final int CIRCUIT_HEADER_BYTES = Integer.BYTES * 4;
+  private static final int OPERATION_HEADER_BYTES = Integer.BYTES * 2;
+  private static final int OPERATION_FIELD_BYTES = Long.BYTES;
+  private static final int GATE_ID_FIELDS = 1;
+  private static final int SYMBOLIC_PARAMETER_FIELDS = 2;
+  private static final int LIFTED_CALL_FIELDS = 2;
+  private static final int MAX_OPERATION_FIELDS = 64;
+  private static final int MAX_SECTION_ITEMS = 65_535;
+  private static final int MAX_CIRCUIT_OPERATIONS = 1_000_000;
+  private static final int FUNCTION_FIELD = 0;
+  private static final int DIRECTION_FIELD = 1;
+  private static final int FORWARD_DIRECTION = 0;
+  private static final int INVERSE_DIRECTION = 1;
+  private static final double NO_PARAMETER = 0.0;
 
   private QuantumSectionCodec() {}
 
   static byte[] write(Program program, Map<String, Integer> strings) {
-    int operations = program.quantumCircuits().stream()
-        .mapToInt(circuit -> circuit.operations().size())
+    int operationsBytes = program.quantumCircuits().stream()
+        .flatMap(circuit -> circuit.operations().stream())
+        .mapToInt(QuantumSectionCodec::operationBytes)
         .sum();
-    int size = 4 + program.quantumRegisters().size() * 12 + 4
-        + program.quantumCircuits().size() * 16 + operations * OPERATION_BYTES;
+    int size = Integer.BYTES
+        + program.quantumRegisters().size() * REGISTER_BYTES
+        + Integer.BYTES
+        + program.quantumCircuits().size() * CIRCUIT_HEADER_BYTES
+        + operationsBytes;
     ByteBuffer buffer = ByteBuffer.allocate(size).order(ByteOrder.LITTLE_ENDIAN);
     buffer.putInt(program.quantumRegisters().size());
     for (QuantumRegister register : program.quantumRegisters()) {
@@ -49,26 +65,25 @@ final class QuantumSectionCodec {
   }
 
   static QuantumContent read(ByteBuffer buffer, List<String> strings) {
-    int registerCount = count(buffer, "quantum register");
+    int registerCount = count(buffer, "quantum register", MAX_SECTION_ITEMS);
     List<QuantumRegister> registers = new ArrayList<>(registerCount);
-    for (int i = 0; i < registerCount; i++) {
-      require(buffer, 12, "quantum register");
+    for (int register = 0; register < registerCount; register++) {
+      require(buffer, REGISTER_BYTES, "quantum register");
       int id = buffer.getInt();
       int name = buffer.getInt();
       int qubits = buffer.getInt();
       registers.add(new QuantumRegister(id, string(strings, name), qubits));
     }
-    int circuitCount = count(buffer, "quantum circuit");
+
+    int circuitCount = count(buffer, "quantum circuit", MAX_SECTION_ITEMS);
     List<QuantumCircuit> circuits = new ArrayList<>(circuitCount);
-    for (int i = 0; i < circuitCount; i++) {
-      require(buffer, 16, "quantum circuit");
+    for (int circuit = 0; circuit < circuitCount; circuit++) {
+      require(buffer, CIRCUIT_HEADER_BYTES, "quantum circuit");
       int id = buffer.getInt();
       int name = buffer.getInt();
       int register = buffer.getInt();
-      int operationCount = buffer.getInt();
-      if (operationCount < 0 || operationCount > 1_000_000) {
-        throw new BytecodeException("Invalid quantum operation count");
-      }
+      int operationCount = boundedCount(
+          buffer.getInt(), "quantum operation", MAX_CIRCUIT_OPERATIONS);
       List<QuantumOperation> operations = new ArrayList<>(operationCount);
       for (int operation = 0; operation < operationCount; operation++) {
         operations.add(readOperation(buffer, strings));
@@ -81,82 +96,159 @@ final class QuantumSectionCodec {
     return new QuantumContent(List.copyOf(registers), List.copyOf(circuits));
   }
 
+  private static int operationBytes(QuantumOperation operation) {
+    return Math.addExact(
+        OPERATION_HEADER_BYTES,
+        Math.multiplyExact(operationFieldCount(operation), OPERATION_FIELD_BYTES));
+  }
+
+  private static int operationFieldCount(QuantumOperation operation) {
+    if (operation instanceof GateOperation gate) {
+      return GATE_ID_FIELDS + gate.qubits().size() + gate.gate().form().parameterCount();
+    }
+    if (operation instanceof ParameterizedGateOperation gate) {
+      return GATE_ID_FIELDS + gate.qubits().size() + SYMBOLIC_PARAMETER_FIELDS;
+    }
+    if (operation instanceof LiftedCall) {
+      return LIFTED_CALL_FIELDS;
+    }
+    throw new IllegalArgumentException("Unsupported quantum operation " + operation);
+  }
+
   private static void writeOperation(
       ByteBuffer buffer, QuantumOperation operation, Map<String, Integer> strings) {
+    int fieldCount = operationFieldCount(operation);
     if (operation instanceof GateOperation gate) {
-      buffer.putInt(GATE);
-      buffer.putInt(gate.gate().ordinal());
-      buffer.putInt(gate.qubits().getFirst());
-      buffer.putInt(gate.qubits().size() == 2 ? gate.qubits().get(1) : -1);
-      buffer.putDouble(gate.parameter());
-      buffer.putInt(-1);
-      buffer.putInt(0);
-    } else if (operation instanceof LiftedCall lifted) {
-      buffer.putInt(LIFTED_CALL);
-      buffer.putInt(0);
-      buffer.putInt(-1);
-      buffer.putInt(-1);
-      buffer.putDouble(0);
-      buffer.putInt(lifted.functionId());
-      buffer.putInt(lifted.inverseDirection() ? 1 : 0);
-    } else if (operation instanceof ParameterizedGateOperation gate) {
-      buffer.putInt(PARAMETERIZED_GATE);
-      buffer.putInt(gate.gate().ordinal());
-      buffer.putInt(gate.qubits().getFirst());
-      buffer.putInt(gate.qubits().size() == 2 ? gate.qubits().get(1) : -1);
-      buffer.putDouble(gate.scale());
-      buffer.putInt(strings.get(gate.parameterName()));
-      buffer.putInt(0);
-    } else {
-      throw new IllegalArgumentException("Unsupported quantum operation " + operation);
+      writeHeader(buffer, QuantumOpcode.APPLY_GATE, fieldCount);
+      buffer.putLong(gate.gate().code());
+      gate.qubits().forEach(qubit -> buffer.putLong(qubit));
+      if (gate.gate().parameterized()) {
+        buffer.putLong(Double.doubleToRawLongBits(gate.parameter()));
+      }
+      return;
     }
+    if (operation instanceof ParameterizedGateOperation gate) {
+      writeHeader(buffer, QuantumOpcode.APPLY_SYMBOLIC_GATE, fieldCount);
+      buffer.putLong(gate.gate().code());
+      gate.qubits().forEach(qubit -> buffer.putLong(qubit));
+      buffer.putLong(strings.get(gate.parameterName()));
+      buffer.putLong(Double.doubleToRawLongBits(gate.scale()));
+      return;
+    }
+
+    LiftedCall lifted = (LiftedCall) operation;
+    writeHeader(buffer, QuantumOpcode.CALL_UNITARY, fieldCount);
+    buffer.putLong(lifted.functionId());
+    buffer.putLong(lifted.inverseDirection() ? INVERSE_DIRECTION : FORWARD_DIRECTION);
+  }
+
+  private static void writeHeader(
+      ByteBuffer buffer, QuantumOpcode opcode, int fieldCount) {
+    buffer.putInt(opcode.code());
+    buffer.putInt(fieldCount);
   }
 
   private static QuantumOperation readOperation(ByteBuffer buffer, List<String> strings) {
-    require(buffer, OPERATION_BYTES, "quantum operation");
-    int type = buffer.getInt();
-    int code = buffer.getInt();
-    int first = buffer.getInt();
-    int second = buffer.getInt();
-    double parameter = buffer.getDouble();
-    int function = buffer.getInt();
-    int flags = buffer.getInt();
-    if (type == GATE) {
-      Gate gate = Gate.fromCode(code);
-      if (function != -1 || flags != 0 || (gate.arity() == 1 && second != -1)) {
-        throw new BytecodeException("Invalid gate operation record");
-      }
-      return gate.arity() == 1
-          ? new GateOperation(gate, List.of(first), parameter)
-          : new GateOperation(gate, List.of(first, second), parameter);
+    require(buffer, OPERATION_HEADER_BYTES, "quantum instruction header");
+    QuantumOpcode opcode = QuantumOpcode.fromCode(buffer.getInt());
+    int fieldCount = boundedCount(
+        buffer.getInt(), "quantum instruction field", MAX_OPERATION_FIELDS);
+    require(
+        buffer,
+        Math.multiplyExact(fieldCount, OPERATION_FIELD_BYTES),
+        "quantum instruction fields");
+    long[] fields = new long[fieldCount];
+    for (int field = 0; field < fieldCount; field++) {
+      fields[field] = buffer.getLong();
     }
-    if (type == LIFTED_CALL) {
-      if (code != 0 || first != -1 || second != -1 || parameter != 0 || (flags & ~1) != 0) {
-        throw new BytecodeException("Invalid lifted-call record");
-      }
-      return new LiftedCall(function, (flags & 1) != 0);
-    }
-    if (type == PARAMETERIZED_GATE) {
-      Gate gate = Gate.fromCode(code);
-      if (flags != 0 || (gate.arity() == 1 && second != -1)) {
-        throw new BytecodeException("Invalid parameterized gate record");
-      }
-      return new ParameterizedGateOperation(
-          gate,
-          gate.arity() == 1 ? List.of(first) : List.of(first, second),
-          string(strings, function),
-          parameter);
-    }
-    throw new BytecodeException("Unknown quantum operation type " + type);
+
+    return switch (opcode) {
+      case APPLY_GATE -> readGate(fields);
+      case APPLY_SYMBOLIC_GATE -> readSymbolicGate(fields, strings);
+      case CALL_UNITARY -> readLiftedCall(fields);
+    };
   }
 
-  private static int count(ByteBuffer buffer, String description) {
-    require(buffer, 4, description + " count");
-    int count = buffer.getInt();
-    if (count < 0 || count > 65_535) {
+  private static GateOperation readGate(long[] fields) {
+    int cursor = 0;
+    Gate gate = Gate.fromCode(exactInt(field(fields, cursor++, "gate identity"), "gate identity"));
+    int expected = GATE_ID_FIELDS + gate.arity() + gate.form().parameterCount();
+    requireFieldCount(fields, expected, "gate");
+    List<Integer> qubits = readQubits(fields, cursor, gate);
+    cursor += gate.arity();
+    double parameter = NO_PARAMETER;
+    if (gate.parameterized()) {
+      parameter = Double.longBitsToDouble(fields[cursor]);
+    }
+    return new GateOperation(gate, qubits, parameter);
+  }
+
+  private static ParameterizedGateOperation readSymbolicGate(
+      long[] fields, List<String> strings) {
+    int cursor = 0;
+    Gate gate = Gate.fromCode(exactInt(field(fields, cursor++, "gate identity"), "gate identity"));
+    if (!gate.parameterized()) {
+      throw new BytecodeException("Symbolic instruction requires a parameterized gate");
+    }
+    int expected = GATE_ID_FIELDS + gate.arity() + SYMBOLIC_PARAMETER_FIELDS;
+    requireFieldCount(fields, expected, "symbolic gate");
+    List<Integer> qubits = readQubits(fields, cursor, gate);
+    cursor += gate.arity();
+    int parameterName = exactInt(fields[cursor++], "quantum parameter string");
+    double scale = Double.longBitsToDouble(fields[cursor]);
+    return new ParameterizedGateOperation(
+        gate, qubits, string(strings, parameterName), scale);
+  }
+
+  private static LiftedCall readLiftedCall(long[] fields) {
+    requireFieldCount(fields, LIFTED_CALL_FIELDS, "unitary call");
+    int function = exactInt(fields[FUNCTION_FIELD], "lifted function");
+    long direction = fields[DIRECTION_FIELD];
+    if (direction != FORWARD_DIRECTION && direction != INVERSE_DIRECTION) {
+      throw new BytecodeException("Invalid unitary-call direction");
+    }
+    return new LiftedCall(function, direction == INVERSE_DIRECTION);
+  }
+
+  private static List<Integer> readQubits(long[] fields, int start, Gate gate) {
+    List<Integer> qubits = new ArrayList<>(gate.arity());
+    for (int qubit = 0; qubit < gate.arity(); qubit++) {
+      qubits.add(exactInt(fields[start + qubit], "logical qubit"));
+    }
+    return List.copyOf(qubits);
+  }
+
+  private static long field(long[] fields, int index, String description) {
+    if (index < 0 || index >= fields.length) {
+      throw new BytecodeException("Missing " + description);
+    }
+    return fields[index];
+  }
+
+  private static void requireFieldCount(long[] fields, int expected, String description) {
+    if (fields.length != expected) {
+      throw new BytecodeException("Noncanonical " + description + " field count");
+    }
+  }
+
+  private static int count(ByteBuffer buffer, String description, int maximum) {
+    require(buffer, Integer.BYTES, description + " count");
+    return boundedCount(buffer.getInt(), description, maximum);
+  }
+
+  private static int boundedCount(int count, String description, int maximum) {
+    if (count < 0 || count > maximum) {
       throw new BytecodeException("Invalid " + description + " count");
     }
     return count;
+  }
+
+  private static int exactInt(long value, String description) {
+    try {
+      return Math.toIntExact(value);
+    } catch (ArithmeticException exception) {
+      throw new BytecodeException("Invalid " + description, exception);
+    }
   }
 
   private static String string(List<String> strings, int id) {
@@ -167,7 +259,7 @@ final class QuantumSectionCodec {
   }
 
   private static void require(ByteBuffer buffer, int bytes, String description) {
-    if (buffer.remaining() < bytes) {
+    if (bytes < 0 || buffer.remaining() < bytes) {
       throw new BytecodeException("Truncated " + description);
     }
   }
