@@ -19,6 +19,14 @@ public record Instruction(Opcode opcode, List<Long> operands) {
     return new Instruction(opcode, java.util.Arrays.stream(operands).boxed().toList());
   }
 
+  public long operand(InstructionForm.OperandRole role) {
+    int index = opcode.form().roles().indexOf(role);
+    if (index < 0) {
+      throw new IllegalArgumentException(opcode + " has no " + role.name().toLowerCase());
+    }
+    return operands.get(index);
+  }
+
   public int encodedLength() {
     return BytecodeFormat.INSTRUCTION_HEADER_SIZE
         + operands.size() * BytecodeFormat.INSTRUCTION_OPERAND_SIZE;

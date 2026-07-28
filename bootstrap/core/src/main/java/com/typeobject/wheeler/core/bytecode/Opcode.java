@@ -23,7 +23,7 @@ public enum Opcode {
   EXPECT_EQ(OpcodeIds.EXPECT_EQ, InstructionForm.GLOBAL_IMMEDIATE, Reversibility.CHECKED),
   CHECKPOINT(OpcodeIds.CHECKPOINT, InstructionForm.NONE, Reversibility.INTRINSIC),
   COMMIT(OpcodeIds.COMMIT, InstructionForm.NONE, Reversibility.BARRIER),
-  EXPECT_TRUE(OpcodeIds.EXPECT_TRUE, InstructionForm.LOCAL, Reversibility.CHECKED),
+  EXPECT_TRUE(OpcodeIds.EXPECT_TRUE, InstructionForm.CONDITION, Reversibility.CHECKED),
 
   LOCAL_CONST(OpcodeIds.LOCAL_CONST, InstructionForm.LOCAL_IMMEDIATE, Reversibility.CHECKED),
   LOCAL_LOAD_GLOBAL(OpcodeIds.LOCAL_LOAD_GLOBAL, InstructionForm.LOCAL_GLOBAL,
@@ -43,7 +43,7 @@ public enum Opcode {
   LOCAL_LT(OpcodeIds.LOCAL_LT, InstructionForm.LOCAL_BINARY, Reversibility.CHECKED),
   JUMP(OpcodeIds.JUMP, InstructionForm.TARGET, Reversibility.CHECKED),
   JUMP_IF_ZERO(OpcodeIds.JUMP_IF_ZERO, InstructionForm.LOCAL_TARGET, Reversibility.CHECKED),
-  LOCAL_LOOP_CHECK(OpcodeIds.LOCAL_LOOP_CHECK, InstructionForm.LOCAL_TARGET,
+  LOCAL_LOOP_CHECK(OpcodeIds.LOCAL_LOOP_CHECK, InstructionForm.LOCAL_PAIR,
       Reversibility.CHECKED),
 
   RECORD_NEW(OpcodeIds.RECORD_NEW, InstructionForm.RECORD_NEW, Reversibility.CHECKED),

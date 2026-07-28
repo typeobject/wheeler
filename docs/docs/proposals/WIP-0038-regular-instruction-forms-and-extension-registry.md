@@ -219,7 +219,7 @@ Registry duplication fails tests and build checks. Runtime registration does not
 - [x] Instruction count and byte length derive from form and format constants.
 - [x] Wheeler-native emitters use named instruction arities and operand widths.
 - [x] Registry tests reject duplicate identities and field-order drift.
-- [ ] Verifier diagnostics name operand roles from registry metadata.
+- [ ] Verifier diagnostics name operand roles from registry metadata. Scalar and control checks do. Aggregate and storage checks remain.
 - [x] Disassembly labels fields from registry metadata.
 - [ ] Artifact metadata declares required instruction extensions.
 - [ ] Generated metadata replaces remaining parallel semantic tables.
@@ -233,7 +233,7 @@ Registry duplication fails tests and build checks. Runtime registration does not
 - [x] Wheeler-native compiler output remains byte-identical to stage 0.
 - [ ] Malformed extension declarations fail before instruction decoding.
 - [ ] Unsupported required extensions fail before execution.
-- [ ] Verifier diagnostics and tests name invalid operand roles.
+- [ ] Verifier diagnostics and tests name every invalid operand role. Scalar and control checks are covered.
 - [x] Disassembler tests assert role-labelled output.
 - [ ] Current reference docs describe extension negotiation after it works.
 

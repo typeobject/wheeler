@@ -1,5 +1,19 @@
 package com.typeobject.wheeler.core.bytecode;
 
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.CONDITION;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.DESTINATION;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.FUNCTION;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.GLOBAL;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.IMMEDIATE;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LEFT_GLOBAL;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LEFT_SOURCE;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LENGTH;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RIGHT_GLOBAL;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RIGHT_SOURCE;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.SOURCE;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.TARGET;
+
 import com.typeobject.wheeler.core.proof.ProofKernel;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -260,13 +274,13 @@ public final class BytecodeVerifier {
     Opcode opcode = instruction.opcode();
     switch (opcode) {
       case ADD_CONST, SUB_CONST, XOR_CONST, SET_LOGGED, EXPECT_EQ ->
-          verifyGlobal(program, instruction.operands().getFirst(), owner, pc);
+          verifyGlobal(program, instruction, GLOBAL, owner, pc);
       case EXPECT_TRUE -> {
-        int condition = verifyLocal(owner, instruction.operands().getFirst(), pc);
+        int condition = verifyLocal(owner, instruction, CONDITION, pc);
         requireType(owner, condition, ValueType.BOOLEAN, pc);
       }
       case LOCAL_CONST -> {
-        int destination = verifyLocal(owner, instruction.operands().getFirst(), pc);
+        int destination = verifyLocal(owner, instruction, DESTINATION, pc);
         if (owner.localType(destination).kind() == ValueType.Kind.RECORD
             || owner.localType(destination).kind() == ValueType.Kind.VARIANT
             || owner.localType(destination).kind() == ValueType.Kind.ARRAY
@@ -275,25 +289,25 @@ public final class BytecodeVerifier {
           fail(location(owner, pc) + " aggregate local requires aggregate construction");
         }
         if (owner.localType(destination).equals(ValueType.BOOLEAN)) {
-          long value = instruction.operands().get(1);
+          long value = instruction.operand(IMMEDIATE);
           if (value != 0 && value != 1) {
             fail(location(owner, pc) + " invalid Boolean constant " + value);
           }
         }
       }
       case LOCAL_LOAD_GLOBAL -> {
-        int destination = verifyLocal(owner, instruction.operands().get(0), pc);
+        int destination = verifyLocal(owner, instruction, DESTINATION, pc);
         requireType(owner, destination, ValueType.SIGNED, pc);
-        verifyGlobal(program, instruction.operands().get(1), owner, pc);
+        verifyGlobal(program, instruction, GLOBAL, owner, pc);
       }
       case LOCAL_STORE_GLOBAL -> {
-        verifyGlobal(program, instruction.operands().get(0), owner, pc);
-        int source = verifyLocal(owner, instruction.operands().get(1), pc);
+        verifyGlobal(program, instruction, GLOBAL, owner, pc);
+        int source = verifyLocal(owner, instruction, SOURCE, pc);
         requireType(owner, source, ValueType.SIGNED, pc);
       }
       case LOCAL_MOVE, OWNED_MOVE -> {
-        int destination = verifyLocal(owner, instruction.operands().get(0), pc);
-        int source = verifyLocal(owner, instruction.operands().get(1), pc);
+        int destination = verifyLocal(owner, instruction, DESTINATION, pc);
+        int source = verifyLocal(owner, instruction, SOURCE, pc);
         requireSameType(owner, destination, source, pc);
         if (owned(owner.localType(source)) != (opcode == Opcode.OWNED_MOVE)) {
           fail(location(owner, pc) + " uses the wrong copy/move operation");
@@ -301,14 +315,14 @@ public final class BytecodeVerifier {
       }
       case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND,
           LOCAL_ROTR32 -> {
-        for (long operand : instruction.operands()) {
-          requireType(owner, verifyLocal(owner, operand, pc), ValueType.SIGNED, pc);
-        }
+        requireType(owner, verifyLocal(owner, instruction, DESTINATION, pc), ValueType.SIGNED, pc);
+        requireType(owner, verifyLocal(owner, instruction, LEFT_SOURCE, pc), ValueType.SIGNED, pc);
+        requireType(owner, verifyLocal(owner, instruction, RIGHT_SOURCE, pc), ValueType.SIGNED, pc);
       }
       case LOCAL_XOR -> {
-        int destination = verifyLocal(owner, instruction.operands().get(0), pc);
-        int left = verifyLocal(owner, instruction.operands().get(1), pc);
-        int right = verifyLocal(owner, instruction.operands().get(2), pc);
+        int destination = verifyLocal(owner, instruction, DESTINATION, pc);
+        int left = verifyLocal(owner, instruction, LEFT_SOURCE, pc);
+        int right = verifyLocal(owner, instruction, RIGHT_SOURCE, pc);
         requireSameType(owner, destination, left, pc);
         requireSameType(owner, destination, right, pc);
         if (owner.localType(destination).kind() == ValueType.Kind.RECORD
@@ -320,9 +334,9 @@ public final class BytecodeVerifier {
         }
       }
       case LOCAL_EQ -> {
-        int destination = verifyLocal(owner, instruction.operands().get(0), pc);
-        int left = verifyLocal(owner, instruction.operands().get(1), pc);
-        int right = verifyLocal(owner, instruction.operands().get(2), pc);
+        int destination = verifyLocal(owner, instruction, DESTINATION, pc);
+        int left = verifyLocal(owner, instruction, LEFT_SOURCE, pc);
+        int right = verifyLocal(owner, instruction, RIGHT_SOURCE, pc);
         requireType(owner, destination, ValueType.BOOLEAN, pc);
         requireSameType(owner, left, right, pc);
         if (owned(owner.localType(left))) {
@@ -330,24 +344,19 @@ public final class BytecodeVerifier {
         }
       }
       case LOCAL_LT -> {
-        requireType(
-            owner, verifyLocal(owner, instruction.operands().get(0), pc), ValueType.BOOLEAN, pc);
-        requireType(
-            owner, verifyLocal(owner, instruction.operands().get(1), pc), ValueType.SIGNED, pc);
-        requireType(
-            owner, verifyLocal(owner, instruction.operands().get(2), pc), ValueType.SIGNED, pc);
+        requireType(owner, verifyLocal(owner, instruction, DESTINATION, pc), ValueType.BOOLEAN, pc);
+        requireType(owner, verifyLocal(owner, instruction, LEFT_SOURCE, pc), ValueType.SIGNED, pc);
+        requireType(owner, verifyLocal(owner, instruction, RIGHT_SOURCE, pc), ValueType.SIGNED, pc);
       }
-      case JUMP -> verifyJump(owner, instruction.operands().getFirst(), pc, owner.body(inverseBody));
+      case JUMP -> verifyJump(owner, instruction, TARGET, pc, owner.body(inverseBody));
       case JUMP_IF_ZERO -> {
-        int condition = verifyLocal(owner, instruction.operands().get(0), pc);
+        int condition = verifyLocal(owner, instruction, CONDITION, pc);
         requireType(owner, condition, ValueType.BOOLEAN, pc);
-        verifyJump(owner, instruction.operands().get(1), pc, owner.body(inverseBody));
+        verifyJump(owner, instruction, TARGET, pc, owner.body(inverseBody));
       }
       case LOCAL_LOOP_CHECK -> {
-        requireType(
-            owner, verifyLocal(owner, instruction.operands().get(0), pc), ValueType.SIGNED, pc);
-        requireType(
-            owner, verifyLocal(owner, instruction.operands().get(1), pc), ValueType.SIGNED, pc);
+        requireType(owner, verifyLocal(owner, instruction, LEFT_SOURCE, pc), ValueType.SIGNED, pc);
+        requireType(owner, verifyLocal(owner, instruction, RIGHT_SOURCE, pc), ValueType.SIGNED, pc);
       }
       case RECORD_NEW -> verifyRecordNew(program, owner, instruction, pc);
       case RECORD_GET -> verifyRecordGet(program, owner, instruction, pc);
@@ -365,8 +374,8 @@ public final class BytecodeVerifier {
           MAP_BORROW, BUFFER_BORROW, REGION_BORROW ->
           StorageInstructionVerifier.verify(owner, instruction, pc);
       case OUTPUT_LENGTH -> {
-        int output = verifyLocal(owner, instruction.operands().get(0), pc);
-        int length = verifyLocal(owner, instruction.operands().get(1), pc);
+        int output = verifyLocal(owner, instruction, InstructionForm.OperandRole.OWNER, pc);
+        int length = verifyLocal(owner, instruction, LENGTH, pc);
         if (owner.id() != program.entryFunctionId()
             || !owner.localType(output).equals(ValueType.BYTES_BORROW)) {
           fail(location(owner, pc) + " output length requires the entry output parameter");
@@ -374,11 +383,11 @@ public final class BytecodeVerifier {
         requireType(owner, length, ValueType.SIGNED, pc);
       }
       case SWAP -> {
-        verifyGlobal(program, instruction.operands().get(0), owner, pc);
-        verifyGlobal(program, instruction.operands().get(1), owner, pc);
+        verifyGlobal(program, instruction, LEFT_GLOBAL, owner, pc);
+        verifyGlobal(program, instruction, RIGHT_GLOBAL, owner, pc);
       }
       case CALL -> {
-        FunctionBody target = program.function(Math.toIntExact(instruction.operands().getFirst()));
+        FunctionBody target = program.function(Math.toIntExact(instruction.operand(FUNCTION)));
         if (target.parameterCount() != 0 || target.returnsValue()) {
           fail(location(owner, pc) + " void call signature mismatch for " + target.name());
         }
@@ -386,7 +395,7 @@ public final class BytecodeVerifier {
       case CALL_VALUE -> verifyArgumentCall(program, owner, instruction, pc, true);
       case CALL_VOID -> verifyArgumentCall(program, owner, instruction, pc, false);
       case UNCALL -> {
-        FunctionBody target = program.function(Math.toIntExact(instruction.operands().getFirst()));
+        FunctionBody target = program.function(Math.toIntExact(instruction.operand(FUNCTION)));
         if (!target.reversible()) {
           fail(location(owner, pc) + " calls missing inverse for " + target.name());
         }
@@ -402,7 +411,7 @@ public final class BytecodeVerifier {
         }
       }
       case RETURN_VALUE -> {
-        int source = verifyLocal(owner, instruction.operands().getFirst(), pc);
+        int source = verifyLocal(owner, instruction, RESULT, pc);
         if (owner.id() == program.entryFunctionId() || !owner.returnsValue()) {
           fail(location(owner, pc) + " invalid value RETURN");
         }
@@ -799,6 +808,19 @@ public final class BytecodeVerifier {
     return Math.toIntExact(operand);
   }
 
+  private static int verifyLocal(
+      FunctionBody owner,
+      Instruction instruction,
+      InstructionForm.OperandRole role,
+      int pc) {
+    long operand = instruction.operand(role);
+    if (operand < 0 || operand >= owner.localCount()) {
+      fail(location(owner, pc) + " invalid " + role.name().toLowerCase()
+          + " local index " + operand);
+    }
+    return Math.toIntExact(operand);
+  }
+
   private static void requireType(
       FunctionBody owner, int local, ValueType expected, int pc) {
     if (!owner.localType(local).equals(expected)) {
@@ -815,16 +837,27 @@ public final class BytecodeVerifier {
   }
 
   private static void verifyJump(
-      FunctionBody owner, long operand, int pc, List<Instruction> body) {
+      FunctionBody owner,
+      Instruction instruction,
+      InstructionForm.OperandRole role,
+      int pc,
+      List<Instruction> body) {
+    long operand = instruction.operand(role);
     if (operand < 0 || operand >= body.size()) {
-      fail(location(owner, pc) + " invalid jump target " + operand);
+      fail(location(owner, pc) + " invalid " + role.name().toLowerCase() + " " + operand);
     }
   }
 
   private static void verifyGlobal(
-      Program program, long operand, FunctionBody owner, int pc) {
+      Program program,
+      Instruction instruction,
+      InstructionForm.OperandRole role,
+      FunctionBody owner,
+      int pc) {
+    long operand = instruction.operand(role);
     if (operand < 0 || operand >= program.globals().size()) {
-      fail(location(owner, pc) + " invalid global index " + operand);
+      fail(location(owner, pc) + " invalid " + role.name().toLowerCase()
+          + " global index " + operand);
     }
   }
 

@@ -10,11 +10,13 @@ public enum InstructionForm {
   GLOBAL_IMMEDIATE(OperandRole.GLOBAL, OperandRole.IMMEDIATE),
   GLOBAL_PAIR(OperandRole.LEFT_GLOBAL, OperandRole.RIGHT_GLOBAL),
   LOCAL(OperandRole.LOCAL),
+  CONDITION(OperandRole.CONDITION),
   LOCAL_IMMEDIATE(OperandRole.DESTINATION, OperandRole.IMMEDIATE),
   LOCAL_GLOBAL(OperandRole.DESTINATION, OperandRole.GLOBAL),
   GLOBAL_LOCAL(OperandRole.GLOBAL, OperandRole.SOURCE),
   LOCAL_SOURCE(OperandRole.DESTINATION, OperandRole.SOURCE),
   LOCAL_BINARY(OperandRole.DESTINATION, OperandRole.LEFT_SOURCE, OperandRole.RIGHT_SOURCE),
+  LOCAL_PAIR(OperandRole.LEFT_SOURCE, OperandRole.RIGHT_SOURCE),
   TARGET(OperandRole.TARGET),
   LOCAL_TARGET(OperandRole.CONDITION, OperandRole.TARGET),
   CALL_VALUE(

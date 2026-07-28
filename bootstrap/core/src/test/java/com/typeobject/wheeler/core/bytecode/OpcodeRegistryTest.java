@@ -8,6 +8,7 @@ import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.L
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RIGHT_SOURCE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
@@ -17,6 +18,9 @@ import org.junit.jupiter.api.Test;
 
 /** Conformance checks for stable opcode identities and regular operand forms. */
 class OpcodeRegistryTest {
+  private static final int VALID_LOCAL = 0;
+  private static final int INVALID_DESTINATION = 9;
+
   @Test
   void givesEveryOpcodeOneUniqueIdentityAndOneCompleteForm() {
     Set<Integer> identities = new HashSet<>();
@@ -26,6 +30,31 @@ class OpcodeRegistryTest {
       assertEquals(opcode.form().roles().size(), opcode.operandCount(), opcode.name());
       assertEquals(opcode, Opcode.fromCode(opcode.code()));
     }
+  }
+
+  @Test
+  void namesInvalidOperandRolesInVerifierDiagnostics() {
+    FunctionBody main = new FunctionBody(
+        VALID_LOCAL,
+        "main",
+        false,
+        VALID_LOCAL,
+        List.of(ValueType.SIGNED),
+        null,
+        List.of(
+            Instruction.of(
+                Opcode.LOCAL_ADD,
+                INVALID_DESTINATION,
+                VALID_LOCAL,
+                VALID_LOCAL),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    Program program = new Program("roles", VALID_LOCAL, List.of(), List.of(main));
+
+    BytecodeException exception = assertThrows(
+        BytecodeException.class,
+        () -> BytecodeVerifier.verify(program));
+    assertTrue(exception.getMessage().contains("destination local index"));
   }
 
   @Test
