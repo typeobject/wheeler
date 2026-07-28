@@ -2,6 +2,7 @@
 
 module wheeler.compiler.helper_calls;
 
+import wheeler.compiler.ir;
 import wheeler.compiler.statements;
 import wheeler.compiler.tokens;
 
@@ -53,14 +54,18 @@ classical class HelperCalls {
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, callStart);
     boolean expectedCall = opcode == STATEMENT_LOCAL_CALL_NAMED;
-    if (helperKind == 3) {
+    if (helperKind == HELPER_BOOLEAN) {
+      expectedCall = opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED;
+    }
+
+    if (helperKind == HELPER_SIGNED_ONE) {
       expectedCall = opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED;
       if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
         expectedCall = true;
       }
     }
 
-    if (helperKind == 4) {
+    if (helperKind == HELPER_SIGNED_TWO) {
       expectedCall = twoArgumentCallStatement(opcode);
     }
 

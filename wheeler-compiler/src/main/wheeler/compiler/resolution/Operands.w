@@ -272,6 +272,10 @@ classical class Operands {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
     long operandToken = statementOperandToken(source, tokenStarts, tokenLengths, statementStart);
     boolean booleanLiteral = opcode == STATEMENT_LOCAL_BOOLEAN;
+    if (opcode == STATEMENT_RETURN_BOOLEAN) {
+      booleanLiteral = true;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT) {
       booleanLiteral = true;
     }
@@ -295,6 +299,10 @@ classical class Operands {
 
     if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {
       return -1;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED) {
+      return 0;
     }
 
     if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
@@ -380,6 +388,10 @@ classical class Operands {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
     if (opcode == STATEMENT_ASSIGN) {
       return statementStart + 2;
+    }
+
+    if (opcode == STATEMENT_RETURN_BOOLEAN) {
+      return statementStart + 1;
     }
 
     if (opcode == STATEMENT_RETURN_LONG) {

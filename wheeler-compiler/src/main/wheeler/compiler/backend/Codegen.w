@@ -89,6 +89,11 @@ classical class Codegen {
     return writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
   }
 
+  /// Writes one canonical Boolean local type code.
+  public long writeBooleanLocalType(borrow mut bytes output, long cursor) {
+    return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+  }
+
   /// Maps a parsed global update to its canonical bytecode opcode.
   public long globalOpcode(long opcode) {
     if (opcode == STATEMENT_UPDATE_ADD) {
@@ -143,6 +148,15 @@ classical class Codegen {
   /// Writes canonical local type codes for one parsed statement.
   public long writeStatementLocalTypes(borrow mut bytes output, long cursor, long opcode) {
     long count = statementLocalCount(opcode);
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED) {
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+    }
+
+    if (opcode == STATEMENT_RETURN_BOOLEAN) {
+      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+    }
+
     if (opcode == STATEMENT_ASSERT_LITERAL_EQ) {
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
@@ -367,7 +381,12 @@ classical class Codegen {
       return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
     }
 
-    if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
+    boolean zeroArgumentCall = opcode == STATEMENT_LOCAL_CALL_NAMED;
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED) {
+      zeroArgumentCall = true;
+    }
+
+    if (zeroArgumentCall) {
       cursor = writeInstructionHeader(output, cursor, OPCODE_CALL_VALUE, FORM_QUATERNARY);
       cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, U64);
@@ -459,7 +478,12 @@ classical class Codegen {
       return writeUnsignedLittleEndian(output, cursor, localBase, U64);
     }
 
-    if (opcode == STATEMENT_RETURN_LONG) {
+    boolean literalReturn = opcode == STATEMENT_RETURN_LONG;
+    if (opcode == STATEMENT_RETURN_BOOLEAN) {
+      literalReturn = true;
+    }
+
+    if (literalReturn) {
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
       cursor = writeSignedLittleEndian(output, cursor, operand, U64);

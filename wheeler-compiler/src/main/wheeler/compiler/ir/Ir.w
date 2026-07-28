@@ -3,6 +3,18 @@
 module wheeler.compiler.ir;
 
 classical class CompilerIr {
+  /// Names an ordinary void helper.
+  public const long HELPER_VOID = 0;
+  /// Names a reversible void helper.
+  public const long HELPER_REVERSIBLE = 1;
+  /// Names a zero-argument signed-result helper.
+  public const long HELPER_SIGNED = 2;
+  /// Names a one-parameter signed-result helper.
+  public const long HELPER_SIGNED_ONE = 3;
+  /// Names a two-parameter signed-result helper.
+  public const long HELPER_SIGNED_TWO = 4;
+  /// Names a zero-argument Boolean-result helper.
+  public const long HELPER_BOOLEAN = 5;
   /// Caps source statements in one bounded entry or helper body.
   public const long MAX_MINIMAL_STATEMENTS = 64;
   /// Holds two parameter names before a full helper statement table.
@@ -29,7 +41,7 @@ classical class CompilerIr {
     long[64] helperOpcodes,
     long[64] helperOperands,
     long[64] helperSecondaryOperands,
-    long helperReversible,
+    long helperKind,
     SourceRange proofName,
     long proofCount,
     long helperCallCount,

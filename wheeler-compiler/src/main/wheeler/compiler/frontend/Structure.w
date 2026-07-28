@@ -154,6 +154,30 @@ classical class Structure {
     long statementStart,
     long statementKind
   ) {
+    if (statementKind == STATEMENT_RETURN_BOOLEAN) {
+      long returned = tokenHash(source, tokenStarts, tokenLengths, statementStart + 1);
+      boolean valid = returned == TOKEN_TRUE;
+      if (returned == TOKEN_FALSE) {
+        valid = true;
+      }
+
+      if (valid) {
+        if (
+          punctuationAt(
+            source,
+            tokenKinds,
+            tokenStarts,
+            statementStart + 2,
+            PUNCTUATION_SEMICOLON
+          )
+        ) {
+          return 3;
+        }
+      }
+
+      return -1;
+    }
+
     if (statementKind == STATEMENT_RETURN_LONG) {
       long returnWidth = signedNumberWidth(source, tokenKinds, tokenStarts, statementStart + 1);
       if (returnWidth < 1) {
@@ -307,7 +331,12 @@ classical class Structure {
       return -1;
     }
 
-    if (statementKind == STATEMENT_LOCAL_CALL_NAMED) {
+    boolean zeroArgumentCall = statementKind == STATEMENT_LOCAL_CALL_NAMED;
+    if (statementKind == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED) {
+      zeroArgumentCall = true;
+    }
+
+    if (zeroArgumentCall) {
       if (tokenKinds[statementStart + 1] == 1) {} else {
         return -1;
       }

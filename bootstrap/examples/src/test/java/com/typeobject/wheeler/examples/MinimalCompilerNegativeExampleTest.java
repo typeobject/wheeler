@@ -144,6 +144,24 @@ class MinimalCompilerNegativeExampleTest {
     assertThrows(VmTrap.class, booleanResultLocal::run);
     assertArrayEquals(new byte[512], booleanResultLocal.hostOutput());
 
+    VirtualMachine booleanResultAsSigned = new VirtualMachine(
+        writerProgram,
+        ("classical class BooleanResultAsSigned { boolean ready() { return true; } "
+                + "entry void main() { long result = ready(); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, booleanResultAsSigned::run);
+    assertArrayEquals(new byte[512], booleanResultAsSigned.hostOutput());
+
+    VirtualMachine signedResultAsBoolean = new VirtualMachine(
+        writerProgram,
+        ("classical class SignedResultAsBoolean { long answer() { return 1; } "
+                + "entry void main() { boolean result = answer(); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, signedResultAsBoolean::run);
+    assertArrayEquals(new byte[512], signedResultAsBoolean.hostOutput());
+
     VirtualMachine wrongReturnedParameter = new VirtualMachine(
         writerProgram,
         ("classical class WrongReturnedParameter { "

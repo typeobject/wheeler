@@ -320,6 +320,10 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_CALL_TWO_SECOND_LOCAL_NAMED = 843;
   /// Names a two-argument helper call with two prior locals.
   public const long STATEMENT_LOCAL_CALL_TWO_LOCALS_NAMED = 844;
+  /// Names a Boolean local initialized by a zero-argument helper call.
+  public const long STATEMENT_LOCAL_BOOLEAN_CALL_NAMED = 845;
+  /// Names a Boolean literal return from a helper.
+  public const long STATEMENT_RETURN_BOOLEAN = 846;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -362,6 +366,12 @@ classical class Tokens {
 
   /// Checks for one bounded helper value statement.
   public boolean helperValueStatement(long opcode) {
+    if (STATEMENT_LOCAL_BOOLEAN_CALL_NAMED - 1 < opcode) {
+      if (opcode < STATEMENT_RETURN_BOOLEAN + 1) {
+        return true;
+      }
+    }
+
     if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
       return true;
     }
@@ -509,6 +519,15 @@ classical class Tokens {
     return -1;
   }
 
+  /// Checks the closed pair of Boolean literal token hashes.
+  public boolean booleanTokenHash(long hash) {
+    if (hash == TOKEN_TRUE) {
+      return true;
+    }
+
+    return hash == TOKEN_FALSE;
+  }
+
   /// Maps one statement token to its bounded parser opcode.
   public long statementOpcode(
     borrow utf8 source,
@@ -520,11 +539,7 @@ classical class Tokens {
     if (keyword == TOKEN_ASSERT) {
       long assertExpression = statementStart + 2;
       long assertHash = tokenHash(source, tokenStarts, tokenLengths, assertExpression);
-      if (assertHash == TOKEN_TRUE) {
-        return STATEMENT_ASSERT_BOOLEAN;
-      }
-
-      if (assertHash == TOKEN_FALSE) {
+      if (booleanTokenHash(assertHash)) {
         return STATEMENT_ASSERT_BOOLEAN;
       }
 
@@ -562,6 +577,11 @@ classical class Tokens {
     }
 
     if (keyword == TOKEN_RETURN) {
+      long returnedHash = tokenHash(source, tokenStarts, tokenLengths, statementStart + 1);
+      if (booleanTokenHash(returnedHash)) {
+        return STATEMENT_RETURN_BOOLEAN;
+      }
+
       long returnedScalar = utf8Scalar(source, tokenStarts[statementStart + 1]);
       if (identifierStart(returnedScalar)) {
         long returnOperator = utf8Scalar(source, tokenStarts[statementStart + 2]);
@@ -856,11 +876,7 @@ classical class Tokens {
     if (keyword == TOKEN_BOOLEAN) {
       if (utf8Scalar(source, tokenStarts[statementStart + 3]) == PUNCTUATION_BANG) {
         long negated = tokenHash(source, tokenStarts, tokenLengths, statementStart + 4);
-        if (negated == TOKEN_TRUE) {
-          return STATEMENT_LOCAL_BOOLEAN_NOT;
-        }
-
-        if (negated == TOKEN_FALSE) {
+        if (booleanTokenHash(negated)) {
           return STATEMENT_LOCAL_BOOLEAN_NOT;
         }
 
@@ -868,15 +884,15 @@ classical class Tokens {
       }
 
       long booleanInitializer = tokenHash(source, tokenStarts, tokenLengths, statementStart + 3);
-      if (booleanInitializer == TOKEN_TRUE) {
-        return STATEMENT_LOCAL_BOOLEAN;
-      }
-
-      if (booleanInitializer == TOKEN_FALSE) {
+      if (booleanTokenHash(booleanInitializer)) {
         return STATEMENT_LOCAL_BOOLEAN;
       }
 
       long equality = utf8Scalar(source, tokenStarts[statementStart + 4]);
+      if (equality == PUNCTUATION_OPEN_PAREN) {
+        return STATEMENT_LOCAL_BOOLEAN_CALL_NAMED;
+      }
+
       if (equality == PUNCTUATION_ASSIGN) {
         if (utf8Scalar(source, tokenStarts[statementStart + 5]) == PUNCTUATION_ASSIGN) {
           long equalityRight = utf8Scalar(source, tokenStarts[statementStart + 6]);

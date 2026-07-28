@@ -41,6 +41,10 @@ classical class LocalStatements {
       return namedLongPair(opcode);
     }
 
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED) {
+      return true;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN) {
       return true;
     }

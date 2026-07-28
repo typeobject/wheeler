@@ -12,6 +12,10 @@ import wheeler.compiler.tokens;
 
 classical class HelperParser {
   private boolean resultStatement(long opcode) {
+    if (opcode == STATEMENT_RETURN_BOOLEAN) {
+      return true;
+    }
+
     if (opcode == STATEMENT_RETURN_LONG) {
       return true;
     }
@@ -33,7 +37,7 @@ classical class HelperParser {
     borrow mut words tokenLengths,
     long globalCount,
     long nameToken,
-    long reversible,
+    long helperKind,
     long proofToken,
     long proofCount,
     long entryStatement,
@@ -58,11 +62,11 @@ classical class HelperParser {
     }
 
     long parameterCount = 0;
-    if (reversible == 3) {
+    if (helperKind == HELPER_SIGNED_ONE) {
       parameterCount = 1;
     }
 
-    if (reversible == 4) {
+    if (helperKind == HELPER_SIGNED_TWO) {
       parameterCount = 2;
     }
 
@@ -90,7 +94,7 @@ classical class HelperParser {
       return new MinimalProgramResult.Error(0);
     }
 
-    if (reversible == 2) {
+    if (helperKind == HELPER_SIGNED) {
       if (0 < helperSequence.count) {} else {
         return new MinimalProgramResult.Error(0);
       }
@@ -116,7 +120,27 @@ classical class HelperParser {
       }
     }
 
-    if (reversible == 3) {
+    if (helperKind == HELPER_BOOLEAN) {
+      if (0 < helperSequence.count) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+
+      long booleanResultIndex = helperSequence.count - 1;
+      if (helperSequence.opcodes[booleanResultIndex] == STATEMENT_RETURN_BOOLEAN) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+
+      long booleanPreludeStatement = 0;
+      while (booleanPreludeStatement < booleanResultIndex) limit MAX_MINIMAL_STATEMENTS {
+        if (resultStatement(helperSequence.opcodes[booleanPreludeStatement])) {
+          return new MinimalProgramResult.Error(0);
+        }
+
+        booleanPreludeStatement += 1;
+      }
+    }
+
+    if (helperKind == HELPER_SIGNED_ONE) {
       if (0 < helperSequence.count) {} else {
         return new MinimalProgramResult.Error(0);
       }
@@ -136,7 +160,7 @@ classical class HelperParser {
       }
     }
 
-    if (reversible == 4) {
+    if (helperKind == HELPER_SIGNED_TWO) {
       if (0 < helperSequence.count) {} else {
         return new MinimalProgramResult.Error(0);
       }
@@ -162,7 +186,7 @@ classical class HelperParser {
       }
     }
 
-    if (reversible < 2) {
+    if (helperKind < HELPER_SIGNED) {
       long helperStatement = 0;
       while (helperStatement < helperSequence.count) limit MAX_MINIMAL_STATEMENTS {
         if (resultStatement(helperSequence.opcodes[helperStatement])) {
@@ -173,7 +197,7 @@ classical class HelperParser {
       }
     }
 
-    if (reversible == 1) {
+    if (helperKind == HELPER_REVERSIBLE) {
       if (reversibleSequenceValid(helperSequence) == false) {
         return new MinimalProgramResult.Error(0);
       }
@@ -190,7 +214,7 @@ classical class HelperParser {
       if (-1 < preReverseStatement) {
         set(helperStarts, entryCount, preReverseStatement);
         entryCount += 1;
-        if (reversible == 1) {
+        if (helperKind == HELPER_REVERSIBLE) {
           preReverseCount = 1;
         }
       }
@@ -226,7 +250,7 @@ classical class HelperParser {
       helperSequence.opcodes,
       helperSequence.operands,
       helperSequence.secondaryOperands,
-      reversible,
+      helperKind,
       proof,
       proofCount,
       helperCallCount,
@@ -245,7 +269,7 @@ classical class HelperParser {
     long closeStart,
     long globalCount,
     long nameToken,
-    long reversible,
+    long helperKind,
     long proofToken,
     long proofCount,
     long helperCallCount,
@@ -288,7 +312,7 @@ classical class HelperParser {
             tokenLengths,
             globalCount,
             nameToken,
-            reversible,
+            helperKind,
             proofToken,
             proofCount,
             entryStatement,
@@ -314,10 +338,10 @@ classical class HelperParser {
     borrow mut words tokenLengths,
     long entryStart,
     long nameToken,
-    long reversible
+    long helperKind
   ) {
     ProofHeader absent = new ProofHeader(entryStart, -1, 0);
-    if (reversible == 1) {} else {
+    if (helperKind == HELPER_REVERSIBLE) {} else {
       return absent;
     }
 
@@ -385,7 +409,7 @@ classical class HelperParser {
       }
     }
 
-    long reversible = 0;
+    long helperKind = HELPER_VOID;
     long voidToken = memberStart;
     long visibility = tokenHash(source, tokenStarts, tokenLengths, voidToken);
     if (visibility == TOKEN_PUBLIC) {
@@ -397,20 +421,28 @@ classical class HelperParser {
     }
 
     if (tokenHash(source, tokenStarts, tokenLengths, voidToken) == TOKEN_REV) {
-      reversible = 1;
+      helperKind = HELPER_REVERSIBLE;
       voidToken += 1;
     }
 
     long helperType = tokenHash(source, tokenStarts, tokenLengths, voidToken);
     if (helperType == TOKEN_VOID) {} else {
       if (helperType == TOKEN_LONG) {
-        if (reversible == 0) {
-          reversible = 2;
+        if (helperKind == HELPER_VOID) {
+          helperKind = HELPER_SIGNED;
         } else {
           return new MinimalProgramResult.Error(0);
         }
       } else {
-        return new MinimalProgramResult.Error(0);
+        if (helperType == TOKEN_BOOLEAN) {
+          if (helperKind == HELPER_VOID) {
+            helperKind = HELPER_BOOLEAN;
+          } else {
+            return new MinimalProgramResult.Error(0);
+          }
+        } else {
+          return new MinimalProgramResult.Error(0);
+        }
       }
     }
 
@@ -432,7 +464,7 @@ classical class HelperParser {
     long parameterToken = -1;
     long secondParameterToken = -1;
     long closeParameters = nameToken + 2;
-    if (reversible == 2) {
+    if (helperKind == HELPER_SIGNED) {
       if (tokenHash(source, tokenStarts, tokenLengths, closeParameters) == TOKEN_LONG) {
         parameterToken = nameToken + 3;
         if (tokenKinds[parameterToken] == 1) {} else {
@@ -444,7 +476,7 @@ classical class HelperParser {
         }
 
         closeParameters = nameToken + 4;
-        reversible = 3;
+        helperKind = HELPER_SIGNED_ONE;
         if (
           punctuationAt(source, tokenKinds, tokenStarts, closeParameters, PUNCTUATION_COMMA)
         ) {
@@ -473,7 +505,7 @@ classical class HelperParser {
             }
 
             closeParameters += 3;
-            reversible = 4;
+            helperKind = HELPER_SIGNED_TWO;
           }
         }
       }
@@ -511,7 +543,7 @@ classical class HelperParser {
       return new MinimalProgramResult.Error(0);
     }
 
-    if (reversible == 3) {
+    if (helperKind == HELPER_SIGNED_ONE) {
       if (statements.count == 1) {
         long returnStart = statementStarts[0];
         if (
@@ -532,7 +564,7 @@ classical class HelperParser {
       }
     }
 
-    if (reversible == 4) {
+    if (helperKind == HELPER_SIGNED_TWO) {
       if (statements.count == 1) {
         long pairReturnStart = statementStarts[0];
         long pairReturnOpcode = statementOpcode(
@@ -580,7 +612,7 @@ classical class HelperParser {
       tokenLengths,
       statements.end + 1,
       nameToken,
-      reversible
+      helperKind
     );
     long entryBody = minimalBodyStart(
       source,
@@ -593,7 +625,7 @@ classical class HelperParser {
       return new MinimalProgramResult.Error(0);
     }
 
-    if (1 < reversible) {
+    if (HELPER_REVERSIBLE < helperKind) {
       long resultEntryCount = 0;
       long resultCallCount = 0;
       long entryCursor = entryBody;
@@ -624,7 +656,7 @@ classical class HelperParser {
             tokenLengths,
             nameToken,
             entryCursor,
-            reversible
+            helperKind
           )
         ) {
           resultCallCount += 1;
@@ -666,7 +698,7 @@ classical class HelperParser {
         tokenLengths,
         globalCount,
         nameToken,
-        reversible,
+        helperKind,
         proof.token,
         proof.count,
         -1,
@@ -694,7 +726,7 @@ classical class HelperParser {
     }
 
     long preReverseStatement = -1;
-    if (reversible == 1) {
+    if (helperKind == HELPER_REVERSIBLE) {
       long reverseHash = tokenHash(source, tokenStarts, tokenLengths, afterCalls);
       if (reverseHash == TOKEN_REVERSE) {} else {
         long preReverseWidth = statementWidth(
@@ -713,7 +745,7 @@ classical class HelperParser {
       }
     }
 
-    if (reversible == 0) {
+    if (helperKind == HELPER_VOID) {
       return finishEntry(
         source,
         tokenKinds,
@@ -723,7 +755,7 @@ classical class HelperParser {
         afterCalls,
         globalCount,
         nameToken,
-        reversible,
+        helperKind,
         proof.token,
         proof.count,
         helperCallCount,
@@ -777,7 +809,7 @@ classical class HelperParser {
       reverseEnd + 1,
       globalCount,
       nameToken,
-      reversible,
+      helperKind,
       proof.token,
       proof.count,
       helperCallCount,

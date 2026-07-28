@@ -295,6 +295,10 @@ classical class LocalOpcodes {
 
   /// Returns the typed-local width required by one parsed statement.
   public long statementLocalCount(long opcode) {
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED) {
+      return 2;
+    }
+
     if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
       return 2;
     }
@@ -309,6 +313,10 @@ classical class LocalOpcodes {
 
     if (twoArgumentCallStatement(opcode)) {
       return 6;
+    }
+
+    if (opcode == STATEMENT_RETURN_BOOLEAN) {
+      return 1;
     }
 
     if (opcode == STATEMENT_RETURN_LONG) {
@@ -516,6 +524,10 @@ classical class LocalOpcodes {
 
   /// Returns the initialized result local for a declaration statement.
   public long statementResultLocal(long opcode, long localBase) {
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED) {
+      return localBase + 1;
+    }
+
     if (opcode == STATEMENT_LOCAL_LONG) {
       return localBase + 1;
     }
@@ -585,6 +597,10 @@ classical class LocalOpcodes {
 
   /// Returns the encoded byte width of one parsed statement.
   public long statementCodeLength(long opcode) {
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED) {
+      return 64;
+    }
+
     if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
       return 64;
     }
@@ -599,6 +615,10 @@ classical class LocalOpcodes {
 
     if (twoArgumentCallStatement(opcode)) {
       return 160;
+    }
+
+    if (opcode == STATEMENT_RETURN_BOOLEAN) {
+      return 40;
     }
 
     if (opcode == STATEMENT_RETURN_LONG) {

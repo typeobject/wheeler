@@ -381,17 +381,17 @@ classical class CompilerDriver {
       helperStatementIndex += 1;
     }
 
-    if (1 < program.helperReversible) {
+    if (HELPER_REVERSIBLE < program.helperKind) {
       helperForwardLength -= 8;
     }
 
-    if (program.helperReversible == 3) {
+    if (program.helperKind == HELPER_SIGNED_ONE) {
       helperLocalCount += 1;
       helperParameterCount = 1;
       helperLocalBase = 1;
     }
 
-    if (program.helperReversible == 4) {
+    if (program.helperKind == HELPER_SIGNED_TWO) {
       helperLocalCount += 2;
       helperParameterCount = 2;
       helperLocalBase = 2;
@@ -400,7 +400,7 @@ classical class CompilerDriver {
     long helperInverseLength = 0;
     long helperInverseOffset = 4294967295;
     long entryForwardLength = 8 + program.helperCallCount * 16 + entryStatementLength;
-    if (program.helperReversible == 1) {
+    if (program.helperKind == HELPER_REVERSIBLE) {
       helperLocalCount = 0;
       helperForwardLength = 8 + program.helperStatementCount * 24;
       helperInverseLength = helperForwardLength;
@@ -412,7 +412,7 @@ classical class CompilerDriver {
     if (program.helperCount == 1) {
       localCount = helperLocalCount;
       functionsLength = 84 + helperLocalCount * 4 + entryLocalCount * 4;
-      if (1 < program.helperReversible) {
+      if (HELPER_REVERSIBLE < program.helperKind) {
         functionsLength += 4;
         entryTypeOffset += 1;
       }
@@ -480,8 +480,8 @@ classical class CompilerDriver {
       ENCODING_WIDTH_U32
     );
     if (program.helperCount == 1) {
-      long helperFlags = program.helperReversible;
-      if (1 < program.helperReversible) {
+      long helperFlags = program.helperKind;
+      if (HELPER_REVERSIBLE < program.helperKind) {
         helperFlags = 4;
       }
 
@@ -513,20 +513,24 @@ classical class CompilerDriver {
         entryLocalCount,
         entryTypeOffset
       );
-      if (1 < program.helperReversible) {
+      if (HELPER_REVERSIBLE < program.helperKind) {
+        if (program.helperKind == HELPER_BOOLEAN) {
+          cursor = writeBooleanLocalType(output, cursor);
+        } else {
+          cursor = writeSignedLocalType(output, cursor);
+        }
+      }
+
+      if (program.helperKind == HELPER_SIGNED_ONE) {
         cursor = writeSignedLocalType(output, cursor);
       }
 
-      if (program.helperReversible == 3) {
-        cursor = writeSignedLocalType(output, cursor);
-      }
-
-      if (program.helperReversible == 4) {
+      if (program.helperKind == HELPER_SIGNED_TWO) {
         cursor = writeSignedLocalType(output, cursor);
         cursor = writeSignedLocalType(output, cursor);
       }
 
-      if (program.helperReversible == 1) {} else {
+      if (program.helperKind == HELPER_REVERSIBLE) {} else {
         cursor = writeSequenceLocalTypes(
           output,
           cursor,
@@ -567,7 +571,7 @@ classical class CompilerDriver {
     cursor = align8(cursor);
 
     if (program.helperCount == 1) {
-      if (program.helperReversible == 1) {
+      if (program.helperKind == HELPER_REVERSIBLE) {
         cursor = writeReversibleSequence(
           output,
           cursor,
@@ -596,7 +600,7 @@ classical class CompilerDriver {
           program.helperStatementCount,
           helperLocalBase
         );
-        if (1 < program.helperReversible) {} else {
+        if (HELPER_REVERSIBLE < program.helperKind) {} else {
           cursor = writeInstructionHeader(
             output,
             cursor,
@@ -607,7 +611,7 @@ classical class CompilerDriver {
       }
 
       long entryInstructionBase = 0;
-      if (1 < program.helperReversible) {
+      if (HELPER_REVERSIBLE < program.helperKind) {
         cursor = writeSequence(
           output,
           cursor,
@@ -639,7 +643,7 @@ classical class CompilerDriver {
           entryInstructionBase += statementInstructionCount(program.statementOpcodes[0]);
         }
 
-        if (program.helperReversible == 1) {
+        if (program.helperKind == HELPER_REVERSIBLE) {
           long helperUncall = 0;
           while (helperUncall < program.helperCallCount) limit 2 {
             cursor = writeInstructionHeader(

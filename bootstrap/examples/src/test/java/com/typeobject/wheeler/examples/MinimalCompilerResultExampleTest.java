@@ -13,11 +13,25 @@ import com.typeobject.wheeler.core.vm.VmTrap;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 
-/** Differential tests for bounded signed helper parameters and results. */
+/** Differential tests for bounded scalar helper parameters and results. */
 class MinimalCompilerResultExampleTest {
   @Test
   void compilesSignedHelperResultsAndCheckedArithmetic() throws Exception {
     Program writerProgram = CompilerSources.minimalCompilerProgram();
+
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class BooleanResultHelper { boolean ready() { return true; } "
+            + "entry void main() { boolean value = ready(); assert(value); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class BooleanFalseResultHelper { boolean ready() { return false; } "
+            + "entry void main() { boolean value = ready(); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class RepeatedBooleanResultCalls { boolean ready() { return true; } "
+            + "entry void main() { boolean first = ready(); boolean second = ready(); "
+            + "assert(first == second); } }");
 
     assertDifferentialHalt(
         writerProgram,
