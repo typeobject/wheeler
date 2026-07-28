@@ -36,8 +36,6 @@ import com.typeobject.wheeler.core.bytecode.InstructionExtensions;
 import com.typeobject.wheeler.core.bytecode.InstructionForm;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
-import com.typeobject.wheeler.core.bytecode.RecordType;
-import com.typeobject.wheeler.core.bytecode.ValueType;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -673,257 +671,16 @@ public final class VirtualMachine {
   }
 
   private void validateBeforeMutation(Instruction instruction) {
-    try {
-      if (OwnedInstructionValidator.handles(instruction.opcode())) {
-        OwnedInstructionValidator.validate(instruction, currentFrame(), owned);
-        return;
-      }
-      switch (instruction.opcode()) {
-        case ADD_CONST -> Math.addExact(
-            globals[globalIndex(instruction, GLOBAL)], instruction.operand(IMMEDIATE));
-        case SUB_CONST -> Math.subtractExact(
-            globals[globalIndex(instruction, GLOBAL)], instruction.operand(IMMEDIATE));
-        case LOCAL_ADD -> {
-          localIndex(instruction, DESTINATION);
-          Math.addExact(
-              localValue(instruction, LEFT_SOURCE),
-              localValue(instruction, RIGHT_SOURCE));
-        }
-        case LOCAL_SUB -> {
-          localIndex(instruction, DESTINATION);
-          Math.subtractExact(
-              localValue(instruction, LEFT_SOURCE),
-              localValue(instruction, RIGHT_SOURCE));
-        }
-        case LOCAL_MUL -> {
-          localIndex(instruction, DESTINATION);
-          Math.multiplyExact(
-              localValue(instruction, LEFT_SOURCE),
-              localValue(instruction, RIGHT_SOURCE));
-        }
-        case LOCAL_DIV, LOCAL_MOD -> {
-          localIndex(instruction, DESTINATION);
-          long dividend = localValue(instruction, LEFT_SOURCE);
-          long divisor = localValue(instruction, RIGHT_SOURCE);
-          if (divisor == 0) {
-            trap("Division by zero");
-          }
-          if (instruction.opcode() == Opcode.LOCAL_DIV
-              && dividend == Long.MIN_VALUE && divisor == -1) {
-            trap("Arithmetic overflow in LOCAL_DIV");
-          }
-        }
-        case LOCAL_CONST -> localIndex(instruction, DESTINATION);
-        case LOCAL_LOAD_GLOBAL -> {
-          localIndex(instruction, DESTINATION);
-          globalIndex(instruction, GLOBAL);
-        }
-        case LOCAL_STORE_GLOBAL -> {
-          globalIndex(instruction, GLOBAL);
-          localIndex(instruction, SOURCE);
-        }
-        case LOCAL_MOVE, OWNED_MOVE -> {
-          localIndex(instruction, DESTINATION);
-          localIndex(instruction, SOURCE);
-        }
-        case LOCAL_AND, LOCAL_XOR, LOCAL_EQ, LOCAL_LT -> {
-          localIndex(instruction, DESTINATION);
-          localIndex(instruction, LEFT_SOURCE);
-          localIndex(instruction, RIGHT_SOURCE);
-        }
-        case LOCAL_ROTR32 -> {
-          localIndex(instruction, DESTINATION);
-          localIndex(instruction, LEFT_SOURCE);
-          long amount = localValue(instruction, RIGHT_SOURCE);
-          if (amount < 0 || amount > 31) {
-            trap("32-bit rotate amount must be between 0 and 31");
-          }
-        }
-        case JUMP -> VmControlChecks.jumpTarget(program, currentFrame(), instruction);
-        case JUMP_IF_ZERO -> {
-          localIndex(instruction, CONDITION);
-          VmControlChecks.jumpTarget(program, currentFrame(), instruction);
-        }
-        case LOCAL_LOOP_CHECK -> {
-          long iteration = localValue(instruction, ITERATION);
-          long limit = localValue(instruction, LIMIT);
-          if (iteration < 0 || limit < 0 || iteration >= limit) {
-            trap("Loop iteration limit exceeded");
-          }
-          Math.addExact(iteration, 1);
-        }
-        case RECORD_NEW -> {
-          localIndex(instruction, DESTINATION);
-          RecordType type = program.recordType(Math.toIntExact(instruction.operand(DESCRIPTOR)));
-          int base = Math.toIntExact(instruction.operand(ELEMENT_BASE));
-          int count = Math.toIntExact(instruction.operand(ELEMENT_COUNT));
-          List<Long> fields = new ArrayList<>(count);
-          for (int field = 0; field < count; field++) {
-            long value = currentFrame().local(base + field);
-            fields.add(value);
-            ValueType fieldType = type.fields().get(field).type();
-            if (fieldType.kind() == ValueType.Kind.RECORD
-                && VmAggregateChecks.record(aggregates, value).typeId()
-                    != fieldType.descriptorId()) {
-              trap("Nested record type mismatch");
-            }
-          }
-          if (aggregates.fullForNew(new RecordValue(type.id(), fields))) {
-            trap("Record value limit exceeded");
-          }
-        }
-        case RECORD_GET -> {
-          localIndex(instruction, DESTINATION);
-          RecordValue value = VmAggregateChecks.record(
-              aggregates, localValue(instruction, OWNER));
-          int field = Math.toIntExact(instruction.operand(INDEX));
-          if (field < 0 || field >= value.fields().size()) {
-            trap("Record field index out of range");
-          }
-        }
-        case VARIANT_NEW -> {
-          localIndex(instruction, DESTINATION);
-          var type = program.variantType(Math.toIntExact(instruction.operand(DESCRIPTOR)));
-          int tag = Math.toIntExact(instruction.operand(TAG));
-          int base = Math.toIntExact(instruction.operand(ELEMENT_BASE));
-          int count = Math.toIntExact(instruction.operand(ELEMENT_COUNT));
-          var variantCase = type.cases().get(tag);
-          List<Long> fields = new ArrayList<>(count);
-          for (int field = 0; field < count; field++) {
-            long value = currentFrame().local(base + field);
-            VmAggregateChecks.validateValue(
-                aggregates, variantCase.fields().get(field).type(), value);
-            fields.add(value);
-          }
-          if (aggregates.fullForNew(new VariantValue(type.id(), tag, fields))) {
-            trap("Variant value limit exceeded");
-          }
-        }
-        case VARIANT_TAG_EQ -> {
-          localIndex(instruction, DESTINATION);
-          VariantValue value = VmAggregateChecks.checkedVariant(
-              aggregates, program, currentFrame(), instruction, OWNER);
-          if (instruction.operand(TAG) < 0
-              || instruction.operand(TAG) >= program.variantType(value.typeId()).cases().size()) {
-            trap("Variant tag out of range");
-          }
-        }
-        case VARIANT_GET -> {
-          localIndex(instruction, DESTINATION);
-          VariantValue value = VmAggregateChecks.checkedVariant(
-              aggregates, program, currentFrame(), instruction, OWNER);
-          int tag = Math.toIntExact(instruction.operand(TAG));
-          int field = Math.toIntExact(instruction.operand(INDEX));
-          if (value.tag() != tag || field < 0 || field >= value.fields().size()) {
-            trap("Variant payload access mismatch");
-          }
-        }
-        case ARRAY_NEW -> {
-          localIndex(instruction, DESTINATION);
-          var type = program.arrayType(Math.toIntExact(instruction.operand(DESCRIPTOR)));
-          int base = Math.toIntExact(instruction.operand(ELEMENT_BASE));
-          int count = Math.toIntExact(instruction.operand(ELEMENT_COUNT));
-          List<Long> elements = new ArrayList<>(count);
-          for (int element = 0; element < count; element++) {
-            long value = currentFrame().local(base + element);
-            VmAggregateChecks.validateValue(aggregates, type.elementType(), value);
-            elements.add(value);
-          }
-          if (aggregates.fullForNew(new ArrayValue(type.id(), elements))) {
-            trap("Array value limit exceeded");
-          }
-        }
-        case ARRAY_GET -> {
-          localIndex(instruction, DESTINATION);
-          ArrayValue value = VmAggregateChecks.checkedArray(
-              aggregates, program, currentFrame(), instruction, OWNER);
-          long index = localValue(instruction, INDEX);
-          if (index < 0 || index >= value.elements().size()) {
-            trap("Array index out of bounds: " + index);
-          }
-        }
-        case SLICE_NEW -> {
-          localIndex(instruction, DESTINATION);
-          ArrayValue array = VmAggregateChecks.checkedArray(
-              aggregates, program, currentFrame(), instruction, OWNER);
-          long start = localValue(instruction, START);
-          long length = localValue(instruction, LENGTH);
-          long end = Math.addExact(start, length);
-          if (start < 0 || length < 0 || end > array.elements().size()) {
-            trap("Slice range is outside its array");
-          }
-          SliceValue value = new SliceValue(
-              Math.toIntExact(instruction.operand(DESCRIPTOR)),
-              localValue(instruction, OWNER),
-              Math.toIntExact(start),
-              Math.toIntExact(length));
-          if (aggregates.fullForNew(value)) {
-            trap("Slice value limit exceeded");
-          }
-        }
-        case SLICE_GET -> {
-          localIndex(instruction, DESTINATION);
-          SliceValue value = VmAggregateChecks.checkedSlice(
-              aggregates, program, currentFrame(), instruction, OWNER);
-          long index = localValue(instruction, INDEX);
-          if (index < 0 || index >= value.length()) {
-            trap("Slice index out of bounds: " + index);
-          }
-        }
-        case OUTPUT_LENGTH -> {
-          long handle = localValue(instruction, OWNER);
-          long length = localValue(instruction, LENGTH);
-          if (handle != hostOutputHandle || length < 0 || length > owned.length(handle)) {
-            trap("Invalid host output length: " + length);
-          }
-        }
-        case CALL -> {
-          requireCallCapacity();
-          program.function(Math.toIntExact(instruction.operand(FUNCTION)));
-        }
-        case CALL_VALUE, CALL_VOID -> {
-          requireCallCapacity();
-          FunctionBody target = program.function(Math.toIntExact(instruction.operand(FUNCTION)));
-          int base = Math.toIntExact(instruction.operand(ARGUMENT_BASE));
-          int count = Math.toIntExact(instruction.operand(ARGUMENT_COUNT));
-          boolean returnsValue = instruction.opcode() == Opcode.CALL_VALUE;
-          if (returnsValue) {
-            localIndex(instruction, RESULT);
-          }
-          if (target.returnsValue() != returnsValue || target.parameterCount() != count
-              || base < 0 || count < 0 || base > currentFrame().localCount() - count) {
-            trap("Argument call signature mismatch for " + target.name());
-          }
-        }
-        case UNCALL -> {
-          requireCallCapacity();
-          FunctionBody function = program.function(Math.toIntExact(instruction.operand(FUNCTION)));
-          if (!function.reversible()) {
-            trap("Function has no inverse: " + function.name());
-          }
-        }
-        case RETURN -> {
-          if (tasks.frameDepth() <= 1 || currentFrame().returnDestination() != -1) {
-            trap("Invalid void return");
-          }
-        }
-        case RETURN_VALUE -> {
-          localIndex(instruction, RESULT);
-          if (tasks.frameDepth() <= 1 || currentFrame().returnDestination() < 0) {
-            trap("Invalid value return");
-          }
-        }
-        case EXPECT_EQ -> VmControlChecks.requireGlobalEqual(
-            program, globals, globalIndex(instruction, GLOBAL), instruction.operand(IMMEDIATE));
-        case EXPECT_TRUE -> VmControlChecks.requireTrue(
-            currentFrame(), localIndex(instruction, CONDITION));
-        case HALT, NOP, XOR_CONST, SWAP, SET_LOGGED, CHECKPOINT, COMMIT -> {
-          // The verifier and operand access establish all remaining preconditions.
-        }
-      }
-    } catch (ArithmeticException exception) {
-      trap("Arithmetic overflow in " + instruction.opcode());
-    }
+    VmPreflight.validate(
+        instruction,
+        program,
+        globals,
+        currentFrame(),
+        tasks.frameDepth(),
+        owned,
+        aggregates,
+        hostOutputHandle,
+        this::trap);
   }
 
   private Instruction fetch(Frame frame) {
@@ -975,12 +732,6 @@ public final class VirtualMachine {
   private long localValue(
       Instruction instruction, InstructionForm.OperandRole role) {
     return currentFrame().local(localIndex(instruction, role));
-  }
-
-  private void requireCallCapacity() {
-    if (tasks.frameDepth() >= MAX_CALL_DEPTH) {
-      trap("Call depth limit exceeded");
-    }
   }
 
   private void trap(String message) {
