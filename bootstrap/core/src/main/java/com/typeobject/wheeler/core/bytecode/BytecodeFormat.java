@@ -8,7 +8,10 @@ public final class BytecodeFormat {
   public static final int MAJOR_VERSION = 1;
   public static final int MINOR_VERSION = 0;
   public static final int HEADER_SIZE = 40;
+  public static final int HEADER_SECTION_COUNT_OFFSET = 24;
+  public static final int HEADER_DIRECTORY_OFFSET = 32;
   public static final int DIRECTORY_ENTRY_SIZE = 32;
+  public static final int DIRECTORY_SECTION_OFFSET = 8;
   public static final int INSTRUCTION_HEADER_SIZE = Short.BYTES * 2 + Integer.BYTES;
   public static final int INSTRUCTION_OPERAND_SIZE = Long.BYTES;
   public static final int REQUIRED_SECTION = 1;
@@ -23,6 +26,7 @@ public final class BytecodeFormat {
   public static final int WORKFLOW = 7;
   public static final int QUANTUM = 8;
   public static final int PROOFS = 10;
+  public static final int INSTRUCTION_EXTENSIONS = 13;
 
   private BytecodeFormat() {}
 

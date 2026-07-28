@@ -19,6 +19,10 @@ import org.junit.jupiter.api.Test;
 
 /** Conformance tests for canonical bytecode encoding, decoding, and disassembly. */
 class BytecodeCodecTest {
+  private static final String FUTURE_INSTRUCTION_EXTENSION = "wheeler.classical.future/1";
+  private static final int EMPTY_EXTENSION_COUNT = 0;
+  private static final int UNKNOWN_OPCODE = 0xffff;
+
   private final BytecodeWriter writer = new BytecodeWriter();
   private final BytecodeReader reader = new BytecodeReader();
 
@@ -48,6 +52,47 @@ class BytecodeCodecTest {
     assertTrue(text.contains("function 1 increment reversible"));
     assertTrue(text.contains("ADD_CONST    global=0, immediate=1"));
     assertTrue(text.contains("SUB_CONST    global=0, immediate=1"));
+  }
+
+  @Test
+  void requiredInstructionExtensionsFailBeforeProgramConstruction() {
+    Program base = ProgramFixtures.counter();
+    Program future = withInstructionExtensions(
+        base,
+        java.util.List.of(FUTURE_INSTRUCTION_EXTENSION));
+
+    byte[] artifact = writer.write(future);
+    assertEquals(
+        java.util.List.of(FUTURE_INSTRUCTION_EXTENSION),
+        InstructionExtensionCodec.read(ByteBuffer.wrap(InstructionExtensionCodec.write(
+            java.util.List.of(FUTURE_INSTRUCTION_EXTENSION)))));
+    BytecodeException unsupported = assertThrows(
+        BytecodeException.class,
+        () -> reader.read(artifact));
+    assertTrue(unsupported.getMessage().contains(FUTURE_INSTRUCTION_EXTENSION));
+
+    byte[] unknownCode = artifact.clone();
+    ByteBuffer.wrap(unknownCode)
+        .order(ByteOrder.LITTLE_ENDIAN)
+        .putShort(sectionOffset(unknownCode, BytecodeFormat.CODE), (short) UNKNOWN_OPCODE);
+    BytecodeException negotiationFirst = assertThrows(
+        BytecodeException.class,
+        () -> reader.read(unknownCode));
+    assertTrue(negotiationFirst.getMessage().contains(FUTURE_INSTRUCTION_EXTENSION));
+
+    assertThrows(
+        BytecodeException.class,
+        () -> new com.typeobject.wheeler.core.vm.VirtualMachine(future));
+
+    byte[] emptyRequirements = artifact.clone();
+    ByteBuffer.wrap(emptyRequirements)
+        .order(ByteOrder.LITTLE_ENDIAN)
+        .putInt(sectionOffset(emptyRequirements, BytecodeFormat.INSTRUCTION_EXTENSIONS),
+            EMPTY_EXTENSION_COUNT);
+    assertThrows(BytecodeException.class, () -> reader.read(emptyRequirements));
+
+    Program unsorted = withInstructionExtensions(base, java.util.List.of("z/1", "a/1"));
+    assertThrows(BytecodeException.class, () -> writer.write(unsorted));
   }
 
   @Test
@@ -209,6 +254,41 @@ class BytecodeCodecTest {
         java.util.List.of(new ProofCertificate(
             0, "falseClaim", ProofRule.GENERATED_INVERSE, 0, -1)));
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(forged));
+  }
+
+  private static int sectionOffset(byte[] artifact, int expectedType) {
+    ByteBuffer input = ByteBuffer.wrap(artifact).order(ByteOrder.LITTLE_ENDIAN);
+    int sectionCount = input.getInt(BytecodeFormat.HEADER_SECTION_COUNT_OFFSET);
+    int directory = Math.toIntExact(input.getLong(BytecodeFormat.HEADER_DIRECTORY_OFFSET));
+    for (int index = 0; index < sectionCount; index++) {
+      int entry = directory + index * BytecodeFormat.DIRECTORY_ENTRY_SIZE;
+      if (input.getInt(entry) == expectedType) {
+        return Math.toIntExact(input.getLong(entry + BytecodeFormat.DIRECTORY_SECTION_OFFSET));
+      }
+    }
+    throw new AssertionError("Missing section " + expectedType);
+  }
+
+  private static Program withInstructionExtensions(
+      Program program,
+      java.util.List<String> extensions) {
+    return new Program(
+        program.name(),
+        program.kind(),
+        program.entryFunctionId(),
+        program.globals(),
+        program.recordTypes(),
+        program.variantTypes(),
+        program.arrayTypes(),
+        program.sliceTypes(),
+        program.functions(),
+        program.proofCertificates(),
+        program.quantumRegisters(),
+        program.quantumCircuits(),
+        program.workflow(),
+        extensions,
+        program.maxHistoryRecords(),
+        program.maxSteps());
   }
 
   @Test

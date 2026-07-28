@@ -3,6 +3,7 @@ package com.typeobject.wheeler.core.vm;
 import com.typeobject.wheeler.core.bytecode.BytecodeVerifier;
 import com.typeobject.wheeler.core.bytecode.FunctionBody;
 import com.typeobject.wheeler.core.bytecode.Instruction;
+import com.typeobject.wheeler.core.bytecode.InstructionExtensions;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.RecordType;
@@ -69,6 +70,7 @@ public final class VirtualMachine {
       boolean binaryInput,
       TransitionObserver observer) {
     BytecodeVerifier.verify(program);
+    InstructionExtensions.requireSupported(program);
     this.program = program;
     this.observer = Objects.requireNonNull(observer, "observer");
     this.globals = program.globals().stream().mapToLong(global -> global.initialValue()).toArray();

@@ -4,6 +4,7 @@ import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.CODE;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.DIRECTORY_ENTRY_SIZE;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.FUNCTIONS;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.HEADER_SIZE;
+import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.INSTRUCTION_EXTENSIONS;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.MANIFEST;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.REQUIRED_SECTION;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.STRINGS;
@@ -46,6 +47,12 @@ public final class BytecodeWriter {
     sections.add(new Section(CODE, code, 0));
     if (!program.proofCertificates().isEmpty()) {
       sections.add(new Section(PROOFS, proofs(program, strings), 0));
+    }
+    if (!program.requiredInstructionExtensions().isEmpty()) {
+      sections.add(new Section(
+          INSTRUCTION_EXTENSIONS,
+          InstructionExtensionCodec.write(program.requiredInstructionExtensions()),
+          0));
     }
     if (program.kind() != ProgramKind.CLASSICAL) {
       sections.add(new Section(WORKFLOW, WorkflowSectionCodec.write(program.workflow()), 0));

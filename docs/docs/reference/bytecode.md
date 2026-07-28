@@ -36,6 +36,7 @@ Each directory entry stores the section type, flags, offset, length, alignment, 
 | 7 | Ordered classical and quantum workflow records. |
 | 8 | Quantum registers, circuits, literal or symbolic gates, and coherently lifted calls. |
 | 10 | Optional canonical proof certificates checked by the trusted finite kernel. |
+| 13 | Optional required classical instruction extensions. |
 
 Quantum and hybrid artifacts require sections 7 and 8. Canonical classical artifacts omit both. The decoder rejects unknown required sections.
 
@@ -74,7 +75,11 @@ The opcode selects one named instruction form. Each form fixes an ordered semant
 
 Related register instructions keep destination first and sources after it. `CALL_VALUE` uses function, argument base, argument count, and result. Stable Java opcode identities live in `OpcodeIds`, while `InstructionForm` owns roles. Wheeler-native emitters use named nullary through quinary form constants and one named operand width. Numeric arities no longer decorate emission sites like lost screws on a workbench.
 
-Unknown executable opcodes always fail. A valid byte length locates the next record, but it cannot make skipped behavior safe. Wheeler has no runtime vendor-opcode registration. Future standard extensions need immutable identities, complete verifier and VM semantics, explicit artifact negotiation, and a version rule before they enter this stream.
+Unknown executable opcodes always fail. A valid byte length locates the next record, but it cannot make skipped behavior safe. Wheeler has no runtime vendor-opcode registration.
+
+Optional required section 13 starts with a nonzero `u32` requirement count. Each entry stores a `u32` byte length followed by a canonical ASCII extension name and positive decimal version, such as `wheeler.classical.example/1`. Names are unique, sorted, and limited to 128 bytes. The current registry supports no extension. This is deliberate. The reader validates the complete section and rejects unsupported requirements before it decodes instructions. Direct VM construction applies the same compatibility gate before execution. An empty requirement set omits section 13, so baseline artifacts retain their bytes.
+
+A future standard extension needs immutable identities, complete verifier and VM semantics, explicit artifact negotiation, and a version rule before it enters this stream. Adding a name to the supported set without those pieces would merely teach the loader a new spelling for trouble.
 
 Dynamic undo data never appears in an instruction. The runtime stores it in step records.
 

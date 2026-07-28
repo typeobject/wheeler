@@ -27,6 +27,7 @@ public final class Program {
   private final List<QuantumRegister> quantumRegisters;
   private final List<QuantumCircuit> quantumCircuits;
   private final List<WorkflowStep> workflow;
+  private final List<String> requiredInstructionExtensions;
   private final int maxHistoryRecords;
   private final long maxSteps;
   private final Map<Integer, RecordType> recordTypesById;
@@ -54,6 +55,42 @@ public final class Program {
       List<WorkflowStep> workflow,
       int maxHistoryRecords,
       long maxSteps) {
+    this(
+        name,
+        kind,
+        entryFunctionId,
+        globals,
+        recordTypes,
+        variantTypes,
+        arrayTypes,
+        sliceTypes,
+        functions,
+        proofCertificates,
+        quantumRegisters,
+        quantumCircuits,
+        workflow,
+        List.of(),
+        maxHistoryRecords,
+        maxSteps);
+  }
+
+  public Program(
+      String name,
+      ProgramKind kind,
+      int entryFunctionId,
+      List<Global> globals,
+      List<RecordType> recordTypes,
+      List<VariantType> variantTypes,
+      List<ArrayType> arrayTypes,
+      List<SliceType> sliceTypes,
+      List<FunctionBody> functions,
+      List<ProofCertificate> proofCertificates,
+      List<QuantumRegister> quantumRegisters,
+      List<QuantumCircuit> quantumCircuits,
+      List<WorkflowStep> workflow,
+      List<String> requiredInstructionExtensions,
+      int maxHistoryRecords,
+      long maxSteps) {
     this.name = Objects.requireNonNull(name, "name");
     this.kind = Objects.requireNonNull(kind, "kind");
     this.entryFunctionId = entryFunctionId;
@@ -67,6 +104,7 @@ public final class Program {
     this.quantumRegisters = List.copyOf(quantumRegisters);
     this.quantumCircuits = List.copyOf(quantumCircuits);
     this.workflow = List.copyOf(workflow);
+    this.requiredInstructionExtensions = List.copyOf(requiredInstructionExtensions);
     this.maxHistoryRecords = maxHistoryRecords;
     this.maxSteps = maxSteps;
     this.recordTypesById = index(this.recordTypes, RecordType::id, "record type");
@@ -198,6 +236,10 @@ public final class Program {
 
   public List<WorkflowStep> workflow() {
     return workflow;
+  }
+
+  public List<String> requiredInstructionExtensions() {
+    return requiredInstructionExtensions;
   }
 
   public int maxHistoryRecords() {

@@ -221,7 +221,7 @@ Registry duplication fails tests and build checks. Runtime registration does not
 - [x] Registry tests reject duplicate identities and field-order drift.
 - [x] Local-index verifier diagnostics name roles across scalar, aggregate, and storage checks.
 - [x] Disassembly labels fields from registry metadata.
-- [ ] Artifact metadata declares required instruction extensions.
+- [x] Optional required section 13 declares unique sorted instruction-extension names and versions.
 - [ ] Generated metadata replaces remaining parallel semantic tables.
 
 ## Testing and acceptance
@@ -231,11 +231,11 @@ Registry duplication fails tests and build checks. Runtime registration does not
 - [x] Representative arithmetic and call forms lock field order.
 - [x] Existing bytecode codec, verifier, VM, rewind, compiler, and example suites pass unchanged.
 - [x] Wheeler-native compiler output remains byte-identical to stage 0.
-- [ ] Malformed extension declarations fail before instruction decoding.
-- [ ] Unsupported required extensions fail before execution.
+- [x] Malformed extension declarations fail before instruction decoding.
+- [x] Unsupported required extensions fail before execution.
 - [ ] Verifier diagnostics and tests name every invalid operand role.
 - [x] Disassembler tests assert role-labelled output.
-- [ ] Current reference docs describe extension negotiation after it works.
+- [x] Current reference docs describe extension negotiation and the empty supported registry.
 
 ## Alternatives
 

@@ -163,6 +163,7 @@ The first format reserves these section types:
 | 10 | Proof certificates | Optional. Initial generated-inverse rule from WIP-0011 |
 | 11 | Source and debug maps | Optional and non-semantic |
 | 12 | Generic typed library bodies | Reserved for WIP-0029. Non-executable |
+| 13 | Required classical instruction extensions | Optional declaration section from WIP-0038 |
 
 The manifest declares artifact identity inputs, minimum runtime version, entry points, required section features, and global resource ceilings. A function descriptor declares its stable function ID, type signature, effect set, computation domain, frame-slot schema, forward body range, inverse body range when present, and declared bounds.
 

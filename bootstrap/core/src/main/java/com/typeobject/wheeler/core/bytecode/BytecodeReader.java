@@ -2,6 +2,7 @@ package com.typeobject.wheeler.core.bytecode;
 
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.CODE;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.FUNCTIONS;
+import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.INSTRUCTION_EXTENSIONS;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.MANIFEST;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.STRINGS;
 import static com.typeobject.wheeler.core.bytecode.BytecodeFormat.TYPES;
@@ -132,6 +133,10 @@ public final class BytecodeReader {
 
     List<String> strings = readStrings(slice(input, sections.get(STRINGS)));
     Manifest manifest = readManifest(slice(input, sections.get(MANIFEST)), strings.size());
+    List<String> requiredExtensions = sections.containsKey(INSTRUCTION_EXTENSIONS)
+        ? InstructionExtensionCodec.read(slice(input, sections.get(INSTRUCTION_EXTENSIONS)))
+        : List.of();
+    InstructionExtensionCodec.requireSupported(requiredExtensions);
     TypeSection types = readTypes(slice(input, sections.get(TYPES)), strings);
     List<VariantType> variants = readVariants(slice(input, sections.get(VARIANTS)), strings);
     List<FunctionDescriptor> descriptors = readFunctionDescriptors(slice(input, sections.get(FUNCTIONS)));
@@ -168,6 +173,7 @@ public final class BytecodeReader {
         registers,
         circuits,
         workflow,
+        requiredExtensions,
         manifest.maxHistory(),
         manifest.maxSteps());
     BytecodeVerifier.verify(program);
@@ -176,7 +182,16 @@ public final class BytecodeReader {
 
   private static void requireSections(Map<Integer, Section> sections) {
     Set<Integer> known = Set.of(
-        MANIFEST, STRINGS, TYPES, VARIANTS, FUNCTIONS, CODE, WORKFLOW, QUANTUM, PROOFS);
+        MANIFEST,
+        STRINGS,
+        TYPES,
+        VARIANTS,
+        FUNCTIONS,
+        CODE,
+        WORKFLOW,
+        QUANTUM,
+        PROOFS,
+        INSTRUCTION_EXTENSIONS);
     Set<Integer> base = Set.of(MANIFEST, STRINGS, TYPES, VARIANTS, FUNCTIONS, CODE);
     for (int required : base) {
       if (!sections.containsKey(required)) {

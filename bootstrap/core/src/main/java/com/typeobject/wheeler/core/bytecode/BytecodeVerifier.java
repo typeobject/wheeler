@@ -44,6 +44,7 @@ public final class BytecodeVerifier {
   private BytecodeVerifier() {}
 
   public static void verify(Program program) {
+    InstructionExtensionCodec.validate(program.requiredInstructionExtensions());
     verifyLimits(program);
     verifyGlobals(program);
     verifyRecordTypes(program);
