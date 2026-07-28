@@ -3,6 +3,15 @@
 module wheeler.compiler.encoding;
 
 classical class Encoding {
+  /// Names the canonical unsigned 16-bit field width.
+  public const long ENCODING_WIDTH_U16 = 2;
+  /// Names the canonical unsigned 32-bit field width.
+  public const long ENCODING_WIDTH_U32 = 4;
+  /// Names the canonical unsigned 64-bit field width.
+  public const long ENCODING_WIDTH_U64 = 8;
+  /// Names the canonical instruction-header width.
+  private const long INSTRUCTION_HEADER_WIDTH = 8;
+
   /// Writes `unsignedLittleEndian` into caller-owned bounded output.
   public long writeUnsignedLittleEndian(
     borrow mut bytes output,
@@ -181,9 +190,10 @@ classical class Encoding {
     long opcode,
     long operandCount
   ) {
-    offset = writeUnsignedLittleEndian(output, offset, opcode, 2);
-    offset = writeUnsignedLittleEndian(output, offset, operandCount, 2);
-    return writeUnsignedLittleEndian(output, offset, 8 + operandCount * 8, 4);
+    offset = writeUnsignedLittleEndian(output, offset, opcode, ENCODING_WIDTH_U16);
+    offset = writeUnsignedLittleEndian(output, offset, operandCount, ENCODING_WIDTH_U16);
+    long byteLength = INSTRUCTION_HEADER_WIDTH + operandCount * ENCODING_WIDTH_U64;
+    return writeUnsignedLittleEndian(output, offset, byteLength, ENCODING_WIDTH_U32);
   }
 
   /// Rounds a nonnegative offset up to the next eight-byte boundary.
@@ -208,12 +218,12 @@ classical class Encoding {
     long sectionOffset,
     long sectionLength
   ) {
-    cursor = writeUnsignedLittleEndian(output, cursor, sectionType, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 1, /* width= */ 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, sectionOffset, 8);
-    cursor = writeUnsignedLittleEndian(output, cursor, sectionLength, 8);
-    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 8, /* width= */ 4);
-    return writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 4);
+    cursor = writeUnsignedLittleEndian(output, cursor, sectionType, ENCODING_WIDTH_U32);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 1, ENCODING_WIDTH_U32);
+    cursor = writeUnsignedLittleEndian(output, cursor, sectionOffset, ENCODING_WIDTH_U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, sectionLength, ENCODING_WIDTH_U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 8, ENCODING_WIDTH_U32);
+    return writeUnsignedLittleEndian(output, cursor, /* value= */ 0, ENCODING_WIDTH_U32);
   }
 
   /// Writes `functionDescriptor` into caller-owned bounded output.
@@ -231,15 +241,15 @@ classical class Encoding {
     long localCount,
     long typeOffset
   ) {
-    cursor = writeUnsignedLittleEndian(output, cursor, id, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, name, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, flags, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, forwardOffset, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, forwardLength, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, inverseOffset, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, inverseLength, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, parameterCount, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, localCount, 4);
-    return writeUnsignedLittleEndian(output, cursor, typeOffset, 4);
+    cursor = writeUnsignedLittleEndian(output, cursor, id, ENCODING_WIDTH_U32);
+    cursor = writeUnsignedLittleEndian(output, cursor, name, ENCODING_WIDTH_U32);
+    cursor = writeUnsignedLittleEndian(output, cursor, flags, ENCODING_WIDTH_U32);
+    cursor = writeUnsignedLittleEndian(output, cursor, forwardOffset, ENCODING_WIDTH_U32);
+    cursor = writeUnsignedLittleEndian(output, cursor, forwardLength, ENCODING_WIDTH_U32);
+    cursor = writeUnsignedLittleEndian(output, cursor, inverseOffset, ENCODING_WIDTH_U32);
+    cursor = writeUnsignedLittleEndian(output, cursor, inverseLength, ENCODING_WIDTH_U32);
+    cursor = writeUnsignedLittleEndian(output, cursor, parameterCount, ENCODING_WIDTH_U32);
+    cursor = writeUnsignedLittleEndian(output, cursor, localCount, ENCODING_WIDTH_U32);
+    return writeUnsignedLittleEndian(output, cursor, typeOffset, ENCODING_WIDTH_U32);
   }
 }

@@ -42,7 +42,28 @@ class SourceReadabilityTest {
   }
 
   @Test
-  void adjacentEndianValueAndWidthLiteralsCarryCanonicalLabels() throws Exception {
+  void reportsRawInstructionForms() {
+    List<String> diagnostics = new ArrayList<>();
+    check(
+        Path.of("Broken.w"),
+        "cursor = writeInstructionHeader(output, cursor, OPCODE_HALT, 0);\n",
+        diagnostics);
+    assertEquals(
+        List.of("Broken.w:1: WREAD002 raw instruction form requires a named constant"),
+        diagnostics);
+
+    diagnostics.clear();
+    check(
+        Path.of("Clear.w"),
+        "cursor = writeInstructionHeader(\n"
+            + "  output, cursor, OPCODE_HALT, INSTRUCTION_FORM_NULLARY\n"
+            + ");\n",
+        diagnostics);
+    assertEquals(List.of(), diagnostics);
+  }
+
+  @Test
+  void maintainedCompilerSourcesPassReadabilityChecks() throws Exception {
     Path root = Path.of("../wheeler-compiler/src/main/wheeler");
     List<String> diagnostics = new ArrayList<>();
     try (var paths = Files.walk(root)) {
@@ -55,6 +76,8 @@ class SourceReadabilityTest {
   }
 
   private static void check(Path source, String text, List<String> diagnostics) {
+    checkInstructionForms(source, text, diagnostics);
+
     var calls = ENDIAN_WRITE.matcher(text);
     while (calls.find()) {
       String[] arguments = calls.group(1).split(",", -1);
@@ -72,6 +95,44 @@ class SourceReadabilityTest {
         diagnostics.add(source + ":" + line
             + ": WREAD001 adjacent endian literals require value and width labels");
       }
+    }
+  }
+
+  private static void checkInstructionForms(
+      Path source, String text, List<String> diagnostics) {
+    String callPrefix = "writeInstructionHeader(";
+    int search = 0;
+    while (true) {
+      int start = text.indexOf(callPrefix, search);
+      if (start < 0) {
+        return;
+      }
+
+      int cursor = start + callPrefix.length();
+      int depth = 1;
+      int finalComma = -1;
+      while (cursor < text.length() && depth > 0) {
+        char scalar = text.charAt(cursor);
+        if (scalar == '(') {
+          depth++;
+        } else if (scalar == ')') {
+          depth--;
+        } else if (scalar == ',' && depth == 1) {
+          finalComma = cursor;
+        }
+        cursor++;
+      }
+
+      if (depth != 0 || finalComma < 0) {
+        return;
+      }
+      String form = text.substring(finalComma + 1, cursor - 1).trim();
+      if (INTEGER.matcher(form).matches()) {
+        int line = 1 + text.substring(0, start).replaceAll("[^\\n]", "").length();
+        diagnostics.add(source + ":" + line
+            + ": WREAD002 raw instruction form requires a named constant");
+      }
+      search = cursor;
     }
   }
 

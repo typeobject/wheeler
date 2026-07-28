@@ -4,88 +4,92 @@ import java.util.Arrays;
 
 /** Classical Wheeler opcodes. Numeric codes are stable first-format artifact identities. */
 public enum Opcode {
-  NOP(0x0000, 0, Reversibility.INTRINSIC),
-  HALT(0x0001, 0, Reversibility.CHECKED),
-  RETURN(0x0002, 0, Reversibility.CHECKED),
+  NOP(OpcodeIds.NOP, InstructionForm.NONE, Reversibility.INTRINSIC),
+  HALT(OpcodeIds.HALT, InstructionForm.NONE, Reversibility.CHECKED),
+  RETURN(OpcodeIds.RETURN, InstructionForm.NONE, Reversibility.CHECKED),
 
-  ADD_CONST(0x0100, 2, Reversibility.INTRINSIC),
-  SUB_CONST(0x0101, 2, Reversibility.INTRINSIC),
-  XOR_CONST(0x0102, 2, Reversibility.INTRINSIC),
-  SWAP(0x0103, 2, Reversibility.INTRINSIC),
-  SET_LOGGED(0x0104, 2, Reversibility.LOGGED),
+  ADD_CONST(OpcodeIds.ADD_CONST, InstructionForm.GLOBAL_IMMEDIATE, Reversibility.INTRINSIC),
+  SUB_CONST(OpcodeIds.SUB_CONST, InstructionForm.GLOBAL_IMMEDIATE, Reversibility.INTRINSIC),
+  XOR_CONST(OpcodeIds.XOR_CONST, InstructionForm.GLOBAL_IMMEDIATE, Reversibility.INTRINSIC),
+  SWAP(OpcodeIds.SWAP, InstructionForm.GLOBAL_PAIR, Reversibility.INTRINSIC),
+  SET_LOGGED(OpcodeIds.SET_LOGGED, InstructionForm.GLOBAL_IMMEDIATE, Reversibility.LOGGED),
 
-  CALL(0x0200, 1, Reversibility.CHECKED),
-  UNCALL(0x0201, 1, Reversibility.CHECKED),
-  CALL_VALUE(0x0202, 4, Reversibility.CHECKED),
-  CALL_VOID(0x0204, 3, Reversibility.CHECKED),
-  RETURN_VALUE(0x0203, 1, Reversibility.CHECKED),
+  CALL(OpcodeIds.CALL, InstructionForm.FUNCTION, Reversibility.CHECKED),
+  UNCALL(OpcodeIds.UNCALL, InstructionForm.FUNCTION, Reversibility.CHECKED),
+  CALL_VALUE(OpcodeIds.CALL_VALUE, InstructionForm.CALL_VALUE, Reversibility.CHECKED),
+  CALL_VOID(OpcodeIds.CALL_VOID, InstructionForm.CALL_VOID, Reversibility.CHECKED),
+  RETURN_VALUE(OpcodeIds.RETURN_VALUE, InstructionForm.RESULT, Reversibility.CHECKED),
 
-  EXPECT_EQ(0x0300, 2, Reversibility.CHECKED),
-  CHECKPOINT(0x0301, 0, Reversibility.INTRINSIC),
-  COMMIT(0x0302, 0, Reversibility.BARRIER),
-  EXPECT_TRUE(0x0303, 1, Reversibility.CHECKED),
+  EXPECT_EQ(OpcodeIds.EXPECT_EQ, InstructionForm.GLOBAL_IMMEDIATE, Reversibility.CHECKED),
+  CHECKPOINT(OpcodeIds.CHECKPOINT, InstructionForm.NONE, Reversibility.INTRINSIC),
+  COMMIT(OpcodeIds.COMMIT, InstructionForm.NONE, Reversibility.BARRIER),
+  EXPECT_TRUE(OpcodeIds.EXPECT_TRUE, InstructionForm.LOCAL, Reversibility.CHECKED),
 
-  LOCAL_CONST(0x0400, 2, Reversibility.CHECKED),
-  LOCAL_LOAD_GLOBAL(0x0401, 2, Reversibility.CHECKED),
-  LOCAL_STORE_GLOBAL(0x0402, 2, Reversibility.LOGGED),
-  LOCAL_MOVE(0x0403, 2, Reversibility.CHECKED),
-  LOCAL_ADD(0x0410, 3, Reversibility.CHECKED),
-  LOCAL_SUB(0x0411, 3, Reversibility.CHECKED),
-  LOCAL_XOR(0x0412, 3, Reversibility.CHECKED),
-  LOCAL_MUL(0x0413, 3, Reversibility.CHECKED),
-  LOCAL_DIV(0x0414, 3, Reversibility.CHECKED),
-  LOCAL_MOD(0x0415, 3, Reversibility.CHECKED),
-  LOCAL_AND(0x0416, 3, Reversibility.CHECKED),
-  LOCAL_ROTR32(0x0417, 3, Reversibility.CHECKED),
-  LOCAL_EQ(0x0420, 3, Reversibility.CHECKED),
-  LOCAL_LT(0x0421, 3, Reversibility.CHECKED),
-  JUMP(0x0430, 1, Reversibility.CHECKED),
-  JUMP_IF_ZERO(0x0431, 2, Reversibility.CHECKED),
-  LOCAL_LOOP_CHECK(0x0432, 2, Reversibility.CHECKED),
+  LOCAL_CONST(OpcodeIds.LOCAL_CONST, InstructionForm.LOCAL_IMMEDIATE, Reversibility.CHECKED),
+  LOCAL_LOAD_GLOBAL(OpcodeIds.LOCAL_LOAD_GLOBAL, InstructionForm.LOCAL_GLOBAL,
+      Reversibility.CHECKED),
+  LOCAL_STORE_GLOBAL(OpcodeIds.LOCAL_STORE_GLOBAL, InstructionForm.GLOBAL_LOCAL,
+      Reversibility.LOGGED),
+  LOCAL_MOVE(OpcodeIds.LOCAL_MOVE, InstructionForm.LOCAL_SOURCE, Reversibility.CHECKED),
+  LOCAL_ADD(OpcodeIds.LOCAL_ADD, InstructionForm.LOCAL_BINARY, Reversibility.CHECKED),
+  LOCAL_SUB(OpcodeIds.LOCAL_SUB, InstructionForm.LOCAL_BINARY, Reversibility.CHECKED),
+  LOCAL_XOR(OpcodeIds.LOCAL_XOR, InstructionForm.LOCAL_BINARY, Reversibility.CHECKED),
+  LOCAL_MUL(OpcodeIds.LOCAL_MUL, InstructionForm.LOCAL_BINARY, Reversibility.CHECKED),
+  LOCAL_DIV(OpcodeIds.LOCAL_DIV, InstructionForm.LOCAL_BINARY, Reversibility.CHECKED),
+  LOCAL_MOD(OpcodeIds.LOCAL_MOD, InstructionForm.LOCAL_BINARY, Reversibility.CHECKED),
+  LOCAL_AND(OpcodeIds.LOCAL_AND, InstructionForm.LOCAL_BINARY, Reversibility.CHECKED),
+  LOCAL_ROTR32(OpcodeIds.LOCAL_ROTR32, InstructionForm.LOCAL_BINARY, Reversibility.CHECKED),
+  LOCAL_EQ(OpcodeIds.LOCAL_EQ, InstructionForm.LOCAL_BINARY, Reversibility.CHECKED),
+  LOCAL_LT(OpcodeIds.LOCAL_LT, InstructionForm.LOCAL_BINARY, Reversibility.CHECKED),
+  JUMP(OpcodeIds.JUMP, InstructionForm.TARGET, Reversibility.CHECKED),
+  JUMP_IF_ZERO(OpcodeIds.JUMP_IF_ZERO, InstructionForm.LOCAL_TARGET, Reversibility.CHECKED),
+  LOCAL_LOOP_CHECK(OpcodeIds.LOCAL_LOOP_CHECK, InstructionForm.LOCAL_TARGET,
+      Reversibility.CHECKED),
 
-  RECORD_NEW(0x0500, 4, Reversibility.CHECKED),
-  RECORD_GET(0x0501, 3, Reversibility.CHECKED),
-  VARIANT_NEW(0x0510, 5, Reversibility.CHECKED),
-  VARIANT_TAG_EQ(0x0511, 3, Reversibility.CHECKED),
-  VARIANT_GET(0x0512, 4, Reversibility.CHECKED),
-  ARRAY_NEW(0x0520, 4, Reversibility.CHECKED),
-  ARRAY_GET(0x0521, 3, Reversibility.CHECKED),
-  SLICE_NEW(0x0530, 5, Reversibility.CHECKED),
-  SLICE_GET(0x0531, 3, Reversibility.CHECKED),
+  RECORD_NEW(OpcodeIds.RECORD_NEW, InstructionForm.RECORD_NEW, Reversibility.CHECKED),
+  RECORD_GET(OpcodeIds.RECORD_GET, InstructionForm.RECORD_GET, Reversibility.CHECKED),
+  VARIANT_NEW(OpcodeIds.VARIANT_NEW, InstructionForm.VARIANT_NEW, Reversibility.CHECKED),
+  VARIANT_TAG_EQ(OpcodeIds.VARIANT_TAG_EQ, InstructionForm.VARIANT_TAG,
+      Reversibility.CHECKED),
+  VARIANT_GET(OpcodeIds.VARIANT_GET, InstructionForm.VARIANT_GET, Reversibility.CHECKED),
+  ARRAY_NEW(OpcodeIds.ARRAY_NEW, InstructionForm.ARRAY_NEW, Reversibility.CHECKED),
+  ARRAY_GET(OpcodeIds.ARRAY_GET, InstructionForm.ARRAY_GET, Reversibility.CHECKED),
+  SLICE_NEW(OpcodeIds.SLICE_NEW, InstructionForm.SLICE_NEW, Reversibility.CHECKED),
+  SLICE_GET(OpcodeIds.SLICE_GET, InstructionForm.SLICE_GET, Reversibility.CHECKED),
 
-  OWNED_MOVE(0x0540, 2, Reversibility.CHECKED),
-  REGION_NEW(0x0541, 3, Reversibility.CHECKED),
-  WORDS_ALLOC(0x0542, 3, Reversibility.CHECKED),
-  WORDS_GET(0x0543, 3, Reversibility.CHECKED),
-  WORDS_SET(0x0544, 3, Reversibility.LOGGED),
-  BUFFER_DROP(0x0545, 1, Reversibility.CHECKED),
-  REGION_DROP(0x0546, 1, Reversibility.CHECKED),
-  BYTES_ALLOC(0x0547, 3, Reversibility.CHECKED),
-  BYTES_GET(0x0548, 3, Reversibility.CHECKED),
-  BYTES_SET(0x0549, 3, Reversibility.LOGGED),
-  UTF8_VALID(0x054a, 2, Reversibility.CHECKED),
-  UTF8_COUNT(0x054b, 2, Reversibility.CHECKED),
-  BUFFER_LENGTH(0x054c, 2, Reversibility.CHECKED),
-  UTF8_SCALAR(0x054d, 3, Reversibility.CHECKED),
-  UTF8_WIDTH(0x054e, 3, Reversibility.CHECKED),
-  MAP_ALLOC(0x054f, 3, Reversibility.CHECKED),
-  MAP_PUT(0x0550, 3, Reversibility.LOGGED),
-  MAP_GET(0x0551, 3, Reversibility.CHECKED),
-  MAP_HAS(0x0552, 3, Reversibility.CHECKED),
-  UTF8_FREEZE(0x0553, 2, Reversibility.LOGGED),
-  UTF8_BORROW(0x0554, 2, Reversibility.CHECKED),
-  MAP_BORROW(0x0555, 2, Reversibility.CHECKED),
-  BUFFER_BORROW(0x0556, 2, Reversibility.CHECKED),
-  REGION_BORROW(0x0557, 2, Reversibility.CHECKED),
-  OUTPUT_LENGTH(0x0558, 2, Reversibility.LOGGED);
+  OWNED_MOVE(OpcodeIds.OWNED_MOVE, InstructionForm.LOCAL_SOURCE, Reversibility.CHECKED),
+  REGION_NEW(OpcodeIds.REGION_NEW, InstructionForm.REGION_NEW, Reversibility.CHECKED),
+  WORDS_ALLOC(OpcodeIds.WORDS_ALLOC, InstructionForm.STORAGE_ALLOC, Reversibility.CHECKED),
+  WORDS_GET(OpcodeIds.WORDS_GET, InstructionForm.STORAGE_GET, Reversibility.CHECKED),
+  WORDS_SET(OpcodeIds.WORDS_SET, InstructionForm.STORAGE_SET, Reversibility.LOGGED),
+  BUFFER_DROP(OpcodeIds.BUFFER_DROP, InstructionForm.LOCAL, Reversibility.CHECKED),
+  REGION_DROP(OpcodeIds.REGION_DROP, InstructionForm.LOCAL, Reversibility.CHECKED),
+  BYTES_ALLOC(OpcodeIds.BYTES_ALLOC, InstructionForm.STORAGE_ALLOC, Reversibility.CHECKED),
+  BYTES_GET(OpcodeIds.BYTES_GET, InstructionForm.STORAGE_GET, Reversibility.CHECKED),
+  BYTES_SET(OpcodeIds.BYTES_SET, InstructionForm.STORAGE_SET, Reversibility.LOGGED),
+  UTF8_VALID(OpcodeIds.UTF8_VALID, InstructionForm.LOCAL_SOURCE, Reversibility.CHECKED),
+  UTF8_COUNT(OpcodeIds.UTF8_COUNT, InstructionForm.LOCAL_SOURCE, Reversibility.CHECKED),
+  BUFFER_LENGTH(OpcodeIds.BUFFER_LENGTH, InstructionForm.LOCAL_SOURCE, Reversibility.CHECKED),
+  UTF8_SCALAR(OpcodeIds.UTF8_SCALAR, InstructionForm.STORAGE_GET, Reversibility.CHECKED),
+  UTF8_WIDTH(OpcodeIds.UTF8_WIDTH, InstructionForm.STORAGE_GET, Reversibility.CHECKED),
+  MAP_ALLOC(OpcodeIds.MAP_ALLOC, InstructionForm.STORAGE_ALLOC, Reversibility.CHECKED),
+  MAP_PUT(OpcodeIds.MAP_PUT, InstructionForm.MAP_PUT, Reversibility.LOGGED),
+  MAP_GET(OpcodeIds.MAP_GET, InstructionForm.MAP_GET, Reversibility.CHECKED),
+  MAP_HAS(OpcodeIds.MAP_HAS, InstructionForm.MAP_GET, Reversibility.CHECKED),
+  UTF8_FREEZE(OpcodeIds.UTF8_FREEZE, InstructionForm.LOCAL_SOURCE, Reversibility.LOGGED),
+  UTF8_BORROW(OpcodeIds.UTF8_BORROW, InstructionForm.LOCAL_SOURCE, Reversibility.CHECKED),
+  MAP_BORROW(OpcodeIds.MAP_BORROW, InstructionForm.LOCAL_SOURCE, Reversibility.CHECKED),
+  BUFFER_BORROW(OpcodeIds.BUFFER_BORROW, InstructionForm.LOCAL_SOURCE, Reversibility.CHECKED),
+  REGION_BORROW(OpcodeIds.REGION_BORROW, InstructionForm.LOCAL_SOURCE, Reversibility.CHECKED),
+  OUTPUT_LENGTH(OpcodeIds.OUTPUT_LENGTH, InstructionForm.OUTPUT_LENGTH, Reversibility.LOGGED);
 
   private final int code;
-  private final int operandCount;
+  private final InstructionForm form;
   private final Reversibility reversibility;
 
-  Opcode(int code, int operandCount, Reversibility reversibility) {
+  Opcode(int code, InstructionForm form, Reversibility reversibility) {
     this.code = code;
-    this.operandCount = operandCount;
+    this.form = form;
     this.reversibility = reversibility;
   }
 
@@ -93,8 +97,12 @@ public enum Opcode {
     return code;
   }
 
+  public InstructionForm form() {
+    return form;
+  }
+
   public int operandCount() {
-    return operandCount;
+    return form.operandCount();
   }
 
   public Reversibility reversibility() {

@@ -495,8 +495,11 @@ public final class BytecodeReader {
       int form = Short.toUnsignedInt(body.getShort());
       int byteLength = body.getInt();
       Opcode opcode = Opcode.fromCode(opcodeCode);
-      int expectedLength = 8 + opcode.operandCount() * Long.BYTES;
-      if (form != opcode.operandCount() || byteLength != expectedLength || byteLength > body.remaining() + 8) {
+      int expectedLength = BytecodeFormat.INSTRUCTION_HEADER_SIZE
+          + opcode.operandCount() * BytecodeFormat.INSTRUCTION_OPERAND_SIZE;
+      if (form != opcode.operandCount()
+          || byteLength != expectedLength
+          || byteLength > body.remaining() + BytecodeFormat.INSTRUCTION_HEADER_SIZE) {
         fail("Noncanonical " + opcode + " instruction record");
       }
       List<Long> operands = new ArrayList<>(opcode.operandCount());

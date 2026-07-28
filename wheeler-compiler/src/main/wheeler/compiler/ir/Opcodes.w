@@ -2,6 +2,21 @@
 module wheeler.compiler.opcodes;
 
 classical class Opcodes {
+  /// Names an instruction form with no operand fields.
+  public const long INSTRUCTION_FORM_NULLARY = 0;
+  /// Names an instruction form with one operand field.
+  public const long INSTRUCTION_FORM_UNARY = 1;
+  /// Names an instruction form with two operand fields.
+  public const long INSTRUCTION_FORM_BINARY = 2;
+  /// Names an instruction form with three operand fields.
+  public const long INSTRUCTION_FORM_TERNARY = 3;
+  /// Names an instruction form with four operand fields.
+  public const long INSTRUCTION_FORM_QUATERNARY = 4;
+  /// Names an instruction form with five operand fields.
+  public const long INSTRUCTION_FORM_QUINARY = 5;
+  /// Names the byte width of every canonical instruction operand.
+  public const long INSTRUCTION_OPERAND_WIDTH = 8;
+
   /// Names the compile-time `OPCODE_HALT` value owned by this module.
   public const long OPCODE_HALT = 0x0001;
   /// Names the compile-time `OPCODE_RETURN` value owned by this module.

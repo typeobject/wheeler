@@ -130,3 +130,4 @@ Source syntax, generic specialization, class evidence, tests, proofs, packages, 
 | [WIP-0035](WIP-0035-reversible-and-coherent-control-flow.md) | Draft | Reversible and coherent control flow | Language, control flow, reversibility, coherent control, proofs |
 | [WIP-0036](WIP-0036-symbolic-resource-contracts-and-compositional-cost-evidence.md) | Draft | Symbolic resource contracts and compositional cost evidence | Language, resource bounds, proofs, quantum planning, diagnostics |
 | [WIP-0037](WIP-0037-hierarchical-semantic-routine-graphs.md) | Draft | Hierarchical semantic routine graphs and verified transformations | IR, bytecode, routines, transformations, resource analysis, tooling |
+| [WIP-0038](WIP-0038-regular-instruction-forms-and-extension-registry.md) | Implementing | Regular instruction forms and extension registry | Bytecode, VM, verifier, compiler, extensions, tooling |

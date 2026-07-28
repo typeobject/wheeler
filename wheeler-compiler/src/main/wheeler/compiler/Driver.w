@@ -431,13 +431,13 @@ classical class CompilerDriver {
 
     writeAscii(output, 0, "WHEELBC");
     long cursor = 8;
-    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 1, /* width= */ 2);
-    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 2);
-    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, fileLength, 8);
-    cursor = writeUnsignedLittleEndian(output, cursor, sectionCount, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 32, /* width= */ 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 40, /* width= */ 8);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 1, ENCODING_WIDTH_U16);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, ENCODING_WIDTH_U16);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, ENCODING_WIDTH_U32);
+    cursor = writeUnsignedLittleEndian(output, cursor, fileLength, ENCODING_WIDTH_U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, sectionCount, ENCODING_WIDTH_U32);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 32, ENCODING_WIDTH_U32);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 40, ENCODING_WIDTH_U64);
 
     cursor = writeDirectoryEntry(output, cursor, 1, manifestOffset, 24);
     cursor = writeDirectoryEntry(output, cursor, 2, stringsOffset, stringsLength);
@@ -451,29 +451,34 @@ classical class CompilerDriver {
 
     cursor = align8(cursor);
 
-    cursor = writeUnsignedLittleEndian(output, cursor, nameIndex, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, program.helperCount, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 4000000, /* width= */ 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 4000000, /* width= */ 8);
+    cursor = writeUnsignedLittleEndian(output, cursor, nameIndex, ENCODING_WIDTH_U32);
+    cursor = writeUnsignedLittleEndian(output, cursor, program.helperCount, ENCODING_WIDTH_U32);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 4000000, ENCODING_WIDTH_U32);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, ENCODING_WIDTH_U32);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 4000000, ENCODING_WIDTH_U64);
 
     cursor = writeStringTable(output, cursor, source, program, moduleName, strings);
     cursor = align8(cursor);
 
-    cursor = writeUnsignedLittleEndian(output, cursor, program.globalCount, 4);
+    cursor = writeUnsignedLittleEndian(output, cursor, program.globalCount, ENCODING_WIDTH_U32);
     if (program.globalCount == 1) {
-      cursor = writeUnsignedLittleEndian(output, cursor, globalIndex, 4);
-      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 1, /* width= */ 4);
-      cursor = writeSignedLittleEndian(output, cursor, program.initialValue, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, globalIndex, ENCODING_WIDTH_U32);
+      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 1, ENCODING_WIDTH_U32);
+      cursor = writeSignedLittleEndian(output, cursor, program.initialValue, ENCODING_WIDTH_U64);
     }
 
-    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 4);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, ENCODING_WIDTH_U32);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, ENCODING_WIDTH_U32);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, ENCODING_WIDTH_U32);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, ENCODING_WIDTH_U32);
     cursor = align8(cursor);
 
-    cursor = writeUnsignedLittleEndian(output, cursor, 1 + program.helperCount, 4);
+    cursor = writeUnsignedLittleEndian(
+      output,
+      cursor,
+      1 + program.helperCount,
+      ENCODING_WIDTH_U32
+    );
     if (program.helperCount == 1) {
       long helperFlags = program.helperReversible;
       if (1 < program.helperReversible) {
@@ -571,7 +576,7 @@ classical class CompilerDriver {
           program.helperStatementCount,
           false
         );
-        cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN, 0);
+        cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN, INSTRUCTION_FORM_NULLARY);
         cursor = writeReversibleSequence(
           output,
           cursor,
@@ -580,7 +585,7 @@ classical class CompilerDriver {
           program.helperStatementCount,
           true
         );
-        cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN, 0);
+        cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN, INSTRUCTION_FORM_NULLARY);
       } else {
         cursor = writeSequence(
           output,
@@ -592,7 +597,12 @@ classical class CompilerDriver {
           helperLocalBase
         );
         if (1 < program.helperReversible) {} else {
-          cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN, 0);
+          cursor = writeInstructionHeader(
+            output,
+            cursor,
+            OPCODE_RETURN,
+            INSTRUCTION_FORM_NULLARY
+          );
         }
       }
 
@@ -610,8 +620,8 @@ classical class CompilerDriver {
       } else {
         long helperCall = 0;
         while (helperCall < program.helperCallCount) limit 2 {
-          cursor = writeInstructionHeader(output, cursor, OPCODE_CALL, 1);
-          cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8);
+          cursor = writeInstructionHeader(output, cursor, OPCODE_CALL, INSTRUCTION_FORM_UNARY);
+          cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, ENCODING_WIDTH_U64);
           helperCall += 1;
           entryInstructionBase += 1;
         }
@@ -632,8 +642,18 @@ classical class CompilerDriver {
         if (program.helperReversible == 1) {
           long helperUncall = 0;
           while (helperUncall < program.helperCallCount) limit 2 {
-            cursor = writeInstructionHeader(output, cursor, OPCODE_UNCALL, 1);
-            cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8);
+            cursor = writeInstructionHeader(
+              output,
+              cursor,
+              OPCODE_UNCALL,
+              INSTRUCTION_FORM_UNARY
+            );
+            cursor = writeUnsignedLittleEndian(
+              output,
+              cursor,
+              /* value= */ 0,
+              ENCODING_WIDTH_U64
+            );
             helperUncall += 1;
             entryInstructionBase += 1;
           }
@@ -681,15 +701,15 @@ classical class CompilerDriver {
       );
     }
 
-    cursor = writeInstructionHeader(output, cursor, OPCODE_HALT, 0);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_HALT, INSTRUCTION_FORM_NULLARY);
     if (program.proofCount == 1) {
       cursor = align8(cursor);
-      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 1, /* width= */ 4);
-      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 4);
-      cursor = writeUnsignedLittleEndian(output, cursor, proofIndex, 4);
-      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 1, /* width= */ 4);
-      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 4);
-      cursor = writeSignedLittleEndian(output, cursor, /* value= */ -1, /* width= */ 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 1, ENCODING_WIDTH_U32);
+      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, ENCODING_WIDTH_U32);
+      cursor = writeUnsignedLittleEndian(output, cursor, proofIndex, ENCODING_WIDTH_U32);
+      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 1, ENCODING_WIDTH_U32);
+      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, ENCODING_WIDTH_U32);
+      cursor = writeSignedLittleEndian(output, cursor, /* value= */ -1, ENCODING_WIDTH_U64);
       cursor = align8(cursor);
     }
 

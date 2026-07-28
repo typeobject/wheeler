@@ -20,7 +20,8 @@ public record Instruction(Opcode opcode, List<Long> operands) {
   }
 
   public int encodedLength() {
-    return 8 + operands.size() * Long.BYTES;
+    return BytecodeFormat.INSTRUCTION_HEADER_SIZE
+        + operands.size() * BytecodeFormat.INSTRUCTION_OPERAND_SIZE;
   }
 
   public Instruction inverse() {

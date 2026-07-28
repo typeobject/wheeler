@@ -70,7 +70,13 @@ u32 byte_length
 u64 operands[operand_count]
 ```
 
-The opcode determines one canonical operand count and one semantic rule. Dynamic undo data never appears in an instruction. The runtime stores it in step records.
+The opcode selects one named instruction form. Each form fixes an ordered semantic role list, such as destination, source, immediate, function, argument window, result, owner, index, or target. The writer derives `operand_count_form` and `byte_length` from that list. The reader checks both wire values before it constructs an instruction.
+
+Related register instructions keep destination first and sources after it. `CALL_VALUE` uses function, argument base, argument count, and result. Stable Java opcode identities live in `OpcodeIds`, while `InstructionForm` owns roles. Wheeler-native emitters use named nullary through quinary form constants and one named operand width. Numeric arities no longer decorate emission sites like lost screws on a workbench.
+
+Unknown executable opcodes always fail. A valid byte length locates the next record, but it cannot make skipped behavior safe. Wheeler has no runtime vendor-opcode registration. Future standard extensions need immutable identities, complete verifier and VM semantics, explicit artifact negotiation, and a version rule before they enter this stream.
+
+Dynamic undo data never appears in an instruction. The runtime stores it in step records.
 
 ### Function signatures and local types
 

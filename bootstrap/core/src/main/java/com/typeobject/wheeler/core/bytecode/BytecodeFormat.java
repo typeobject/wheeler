@@ -9,6 +9,8 @@ public final class BytecodeFormat {
   public static final int MINOR_VERSION = 0;
   public static final int HEADER_SIZE = 40;
   public static final int DIRECTORY_ENTRY_SIZE = 32;
+  public static final int INSTRUCTION_HEADER_SIZE = Short.BYTES * 2 + Integer.BYTES;
+  public static final int INSTRUCTION_OPERAND_SIZE = Long.BYTES;
   public static final int REQUIRED_SECTION = 1;
   public static final int MAX_ARTIFACT_BYTES = 16 * 1024 * 1024;
 

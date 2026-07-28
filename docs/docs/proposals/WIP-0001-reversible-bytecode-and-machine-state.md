@@ -179,7 +179,7 @@ u32 byte_length
 byte[byte_length - 8] operands_and_zero_padding
 ```
 
-`byte_length` is at least 8, is a multiple of 8, and cannot exceed the artifact limit. Each `(opcode, form)` has one canonical operand schema. Slot IDs, region IDs, function IDs, constant IDs, and branch targets use fixed-width integers specified by that form. Branch targets are byte offsets within the current body and must name verified instruction boundaries.
+`byte_length` is at least 8, is a multiple of 8, and cannot exceed the artifact limit. Each opcode has one named form with an ordered semantic role list. Slot IDs, region IDs, function IDs, constant IDs, and branch targets use fixed-width integers specified by that form. Branch targets are byte offsets within the current body and must name verified instruction boundaries. WIP-0038 regularizes these roles and extension rules using the useful parts of RISC-V's registry discipline without replacing Wheeler IR with hardware code.
 
 This record shape permits deterministic skipping and diagnostics but does not permit execution of unknown opcodes. It replaces the current static `history` field: undo information depends on runtime values and belongs in `StepRecord`.
 
@@ -347,7 +347,7 @@ Rejected. Quantum regions have different ownership, linearity, execution, and ca
 
 ## Open questions
 
-- Which numeric opcode ranges and first-slice operand forms should be frozen in the normative registry (owner: VM and compiler maintainers. Decision point: before this WIP enters Review)?
+- Which artifact declaration should negotiate the first standard opcode extension (owner: VM and compiler maintainers. Decision point: before the first extension enters Review)?
 - Should semantic section hashing be embedded in a dedicated manifest record or remain an artifact identity computed over canonical bytes (owner: runtime maintainers. Decision point: before persisted checkpoints are implemented)?
 
 ## References
@@ -356,6 +356,7 @@ Rejected. Quantum regions have different ownership, linearity, execution, and ca
 - [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
 - [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
+- [WIP-0038](WIP-0038-regular-instruction-forms-and-extension-registry.md)
 - [Proposal process](README.md)
 - [Bytecode reference](../reference/bytecode.md)
 - [Virtual-machine reference](../reference/virtual-machine.md)
