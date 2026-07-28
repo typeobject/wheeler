@@ -128,7 +128,7 @@ public final class VirtualMachine {
     if (record == null) {
       throw new VmTrap("No reversible history is available");
     }
-    undoData(record);
+    replaceCurrentFrame(VmDataRewinder.undo(record, globals, currentFrame()));
     aggregates.rewind(new AggregateStore.Counts(
         record.previousRecordCount(),
         record.previousVariantCount(),
@@ -826,43 +826,6 @@ public final class VirtualMachine {
       }
     } catch (ArithmeticException exception) {
       trap("Arithmetic overflow in " + instruction.opcode());
-    }
-  }
-
-  private void undoData(StepRecord record) {
-    Instruction instruction = record.instruction();
-    switch (instruction.opcode()) {
-      case ADD_CONST -> {
-        int index = globalIndex(instruction, 0);
-        globals[index] = Math.subtractExact(globals[index], operand(instruction, 1));
-      }
-      case SUB_CONST -> {
-        int index = globalIndex(instruction, 0);
-        globals[index] = Math.addExact(globals[index], operand(instruction, 1));
-      }
-      case XOR_CONST -> globals[globalIndex(instruction, 0)] ^= operand(instruction, 1);
-      case SWAP -> {
-        int left = globalIndex(instruction, 0);
-        int right = globalIndex(instruction, 1);
-        long value = globals[left];
-        globals[left] = globals[right];
-        globals[right] = value;
-      }
-      case SET_LOGGED, LOCAL_STORE_GLOBAL ->
-          globals[record.changedGlobal()] = record.previousValue();
-      case NOP, HALT, RETURN, RETURN_VALUE, CALL, UNCALL, CALL_VALUE, CALL_VOID,
-          OUTPUT_LENGTH,
-          EXPECT_EQ, EXPECT_TRUE, CHECKPOINT, COMMIT,
-          LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, LOCAL_ADD, LOCAL_SUB,
-          LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_ROTR32, LOCAL_XOR, LOCAL_EQ, LOCAL_LT,
-          JUMP, JUMP_IF_ZERO, LOCAL_LOOP_CHECK,
-          RECORD_NEW, RECORD_GET -> {
-        // These instructions alter only control or status state.
-      }
-    }
-    if (record.changedLocal() != StepRecord.NO_LOCAL) {
-      replaceCurrentFrame(
-          currentFrame().withLocal(record.changedLocal(), record.previousLocalValue()));
     }
   }
 
