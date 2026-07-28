@@ -40,6 +40,11 @@ class MinimalCompilerResultExampleTest {
             + "entry void main() { long answer = add(20, 22); assert(answer == 42); } }");
     assertDifferentialHalt(
         writerProgram,
+        "classical class SignedTwoParameterLocalResult { "
+            + "long add(long left, long right) { long result = left + right; return result; } "
+            + "entry void main() { long answer = add(20, 22); assert(answer == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
         "classical class SignedTwoParameterFirstLocal { "
             + "long add(long left, long right) { return left + right; } "
             + "entry void main() { long left = 20; long answer = add(left, 22); "

@@ -202,6 +202,17 @@ class MinimalCompilerNegativeExampleTest {
     assertThrows(VmTrap.class, reversedParameters::run);
     assertArrayEquals(new byte[512], reversedParameters.hostOutput());
 
+    VirtualMachine missingPairPreludeSource = new VirtualMachine(
+        writerProgram,
+        ("classical class MissingPairPreludeSource { "
+                + "long add(long left, long right) { "
+                + "long result = left + missing; return result; } "
+                + "entry void main() { long answer = add(20, 22); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, missingPairPreludeSource::run);
+    assertArrayEquals(new byte[512], missingPairPreludeSource.hostOutput());
+
     VirtualMachine missingCallArgument = new VirtualMachine(
         writerProgram,
         ("classical class MissingCallArgument { long identity(long value) { return value; } "

@@ -199,12 +199,28 @@ classical class HelperParser {
     }
 
     if (reversible == 4) {
-      if (helperSequence.count == 1) {} else {
+      if (0 < helperSequence.count) {} else {
         return new MinimalProgramResult.Error(0);
       }
 
-      if (returnLocalPairStatement(helperSequence.opcodes[0]) == false) {
-        return new MinimalProgramResult.Error(0);
+      long pairResultIndex = helperSequence.count - 1;
+      if (helperSequence.count == 1) {
+        if (returnLocalPairStatement(helperSequence.opcodes[pairResultIndex])) {} else {
+          return new MinimalProgramResult.Error(0);
+        }
+      } else {
+        if (helperSequence.opcodes[pairResultIndex] == STATEMENT_RETURN_LOCAL_NAMED) {} else {
+          return new MinimalProgramResult.Error(0);
+        }
+      }
+
+      long pairPreludeStatement = 0;
+      while (pairPreludeStatement < pairResultIndex) limit MAX_MINIMAL_STATEMENTS {
+        if (resultStatement(helperSequence.opcodes[pairPreludeStatement])) {
+          return new MinimalProgramResult.Error(0);
+        }
+
+        pairPreludeStatement += 1;
       }
     }
 
@@ -600,38 +616,36 @@ classical class HelperParser {
     }
 
     if (reversible == 4) {
-      if (statements.count == 1) {} else {
-        return new MinimalProgramResult.Error(0);
-      }
-
-      long pairReturnStart = statementStarts[0];
-      long pairReturnOpcode = statementOpcode(
-        source,
-        tokenStarts,
-        tokenLengths,
-        pairReturnStart
-      );
-      if (returnLocalPairStatement(pairReturnOpcode) == false) {
-        return new MinimalProgramResult.Error(0);
-      }
-
-      if (
-        sameTokenText(source, tokenStarts, tokenLengths, parameterToken, pairReturnStart + 1)
-          == false
-      ) {
-        return new MinimalProgramResult.Error(0);
-      }
-
-      if (
-        sameTokenText(
+      if (statements.count == 1) {
+        long pairReturnStart = statementStarts[0];
+        long pairReturnOpcode = statementOpcode(
           source,
           tokenStarts,
           tokenLengths,
-          secondParameterToken,
-          pairReturnStart + 3
-        ) == false
-      ) {
-        return new MinimalProgramResult.Error(0);
+          pairReturnStart
+        );
+        if (returnLocalPairStatement(pairReturnOpcode) == false) {
+          return new MinimalProgramResult.Error(0);
+        }
+
+        if (
+          sameTokenText(source, tokenStarts, tokenLengths, parameterToken, pairReturnStart + 1)
+            == false
+        ) {
+          return new MinimalProgramResult.Error(0);
+        }
+
+        if (
+          sameTokenText(
+            source,
+            tokenStarts,
+            tokenLengths,
+            secondParameterToken,
+            pairReturnStart + 3
+          ) == false
+        ) {
+          return new MinimalProgramResult.Error(0);
+        }
       }
     }
 
