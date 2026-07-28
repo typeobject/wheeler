@@ -5,6 +5,8 @@ import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.packageformat.BootstrapModuleManifest;
 import com.typeobject.wheeler.packageformat.BootstrapModuleManifest.Module;
+import com.typeobject.wheeler.packageformat.PackageManifest;
+import com.typeobject.wheeler.packageformat.PackageManifestParser;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -20,38 +22,40 @@ import java.util.TreeSet;
 
 /** Resolves canonical Wheeler compiler sources without lending the examples a private copy. */
 final class CompilerSources {
-  private static final Path ROOT = Path.of("../wheeler-compiler/src/main/wheeler");
-  private static final List<String> MINIMAL_PATHS = List.of(
-      "MinimalCompiler.w",
-      "compiler/Driver.w",
-      "compiler/backend/Codegen.w",
-      "compiler/backend/Encoding.w",
-      "compiler/backend/StringTable.w",
-      "compiler/frontend/BodyParser.w",
-      "compiler/frontend/Conditionals.w",
-      "compiler/frontend/HelperParser.w",
-      "compiler/frontend/LocalOpcodes.w",
-      "compiler/frontend/LocalStatements.w",
-      "compiler/frontend/Parser.w",
-      "compiler/frontend/Sequences.w",
-      "compiler/frontend/Statements.w",
-      "compiler/frontend/Structure.w",
-      "compiler/frontend/Tokens.w",
-      "compiler/ir/Ir.w",
-      "compiler/ir/Opcodes.w",
-      "compiler/ir/ProofRules.w",
-      "compiler/ir/TypeCodes.w",
-      "compiler/resolution/HelperCalls.w",
-      "compiler/resolution/Operands.w",
-      "compiler/verification/AggregateVerifier.w",
-      "compiler/verification/FunctionVerifier.w",
-      "compiler/verification/InstructionVerifier.w",
-      "compiler/verification/ProofVerifier.w",
-      "compiler/verification/StorageVerifier.w",
-      "compiler/verification/Verifier.w",
-      "lexer/Scanner.w");
+  private static final Path PACKAGE = Path.of("../wheeler-compiler");
+  private static final Path ROOT = PACKAGE.resolve("src/main/wheeler");
+  private static final String SOURCE_PREFIX = "src/main/wheeler/";
 
   private CompilerSources() {}
+
+  private static List<String> minimalPaths() throws IOException {
+    PackageManifest manifest = new PackageManifestParser().parse(
+        Files.readString(PACKAGE.resolve("wheeler.package.yaml")));
+    PackageManifest.Target target = manifest.targets().stream()
+        .filter(candidate -> candidate.name().equals("compiler"))
+        .findFirst()
+        .orElseThrow(() -> new IOException("Compiler package has no compiler target"));
+    TreeSet<String> paths = new TreeSet<>();
+    for (String selector : target.sources()) {
+      if (!selector.startsWith(SOURCE_PREFIX)) {
+        throw new IOException("Compiler source escapes its canonical root: " + selector);
+      }
+      String logicalPath = selector.substring(SOURCE_PREFIX.length());
+      Path selected = ROOT.resolve(logicalPath);
+      if (Files.isRegularFile(selected)) {
+        paths.add(logicalPath);
+      } else {
+        try (var files = Files.walk(selected)) {
+          files.filter(Files::isRegularFile)
+              .filter(path -> path.getFileName().toString().endsWith(".w"))
+              .map(ROOT::relativize)
+              .map(Path::toString)
+              .forEach(paths::add);
+        }
+      }
+    }
+    return List.copyOf(paths);
+  }
 
   /** Returns one canonical compiler source path. */
   static Path path(String logicalPath) {
@@ -66,7 +70,7 @@ final class CompilerSources {
   /** Returns the complete bounded self-hosting compiler module set. */
   static Map<String, String> minimalCompilerModules() throws IOException {
     Map<String, String> modules = new LinkedHashMap<>();
-    for (String logicalPath : MINIMAL_PATHS) {
+    for (String logicalPath : minimalPaths()) {
       modules.put(Path.of(logicalPath).getFileName().toString(), read(logicalPath));
     }
     return modules;
@@ -77,7 +81,7 @@ final class CompilerSources {
     MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
     Map<String, SourceModuleInspection.Header> headers = new LinkedHashMap<>();
     Map<String, byte[]> sources = new LinkedHashMap<>();
-    for (String logicalPath : MINIMAL_PATHS) {
+    for (String logicalPath : minimalPaths()) {
       byte[] source = read(logicalPath).getBytes(StandardCharsets.UTF_8);
       SourceModuleInspection.Header header = SourceModuleInspection.inspect(source);
       headers.put(logicalPath, header);
@@ -88,7 +92,7 @@ final class CompilerSources {
     headers.values().forEach(header -> localNames.add(header.name()));
     TreeSet<String> externals = new TreeSet<>();
     List<Module> modules = new ArrayList<>();
-    for (String logicalPath : MINIMAL_PATHS) {
+    for (String logicalPath : minimalPaths()) {
       SourceModuleInspection.Header header = headers.get(logicalPath);
       header.imports().stream()
           .filter(imported -> !localNames.contains(imported))
