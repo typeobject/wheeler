@@ -201,14 +201,30 @@ classical class Structure {
       return -1;
     }
 
-    if (statementKind == STATEMENT_RETURN_LOCAL_ADD_NAMED) {
+    if (returnLocalBinaryStatement(statementKind)) {
       if (tokenKinds[statementStart + 1] == 1) {} else {
         return -1;
       }
 
+      long returnOperator = PUNCTUATION_PLUS;
+      if (statementKind == STATEMENT_RETURN_LOCAL_SUB_NAMED) {
+        returnOperator = PUNCTUATION_MINUS;
+      }
+
+      if (statementKind == STATEMENT_RETURN_LOCAL_MUL_NAMED) {
+        returnOperator = PUNCTUATION_STAR;
+      }
+
+      if (statementKind == STATEMENT_RETURN_LOCAL_DIV_NAMED) {
+        returnOperator = PUNCTUATION_SLASH;
+      }
+
+      if (statementKind == STATEMENT_RETURN_LOCAL_MOD_NAMED) {
+        returnOperator = PUNCTUATION_PERCENT;
+      }
+
       if (
-        punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, PUNCTUATION_PLUS)
-          == false
+        punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, returnOperator) == false
       ) {
         return -1;
       }

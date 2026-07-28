@@ -122,7 +122,7 @@ classical class HelperParser {
       }
 
       boolean parameterReturn = helperSequence.opcodes[0] == STATEMENT_RETURN_LOCAL_NAMED;
-      if (helperSequence.opcodes[0] == STATEMENT_RETURN_LOCAL_ADD_NAMED) {
+      if (returnLocalBinaryStatement(helperSequence.opcodes[0])) {
         parameterReturn = true;
       }
 
@@ -142,7 +142,7 @@ classical class HelperParser {
           return new MinimalProgramResult.Error(0);
         }
 
-        if (helperSequence.opcodes[helperStatement] == STATEMENT_RETURN_LOCAL_ADD_NAMED) {
+        if (returnLocalBinaryStatement(helperSequence.opcodes[helperStatement])) {
           return new MinimalProgramResult.Error(0);
         }
 

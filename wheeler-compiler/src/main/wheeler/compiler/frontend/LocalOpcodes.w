@@ -311,7 +311,7 @@ classical class LocalOpcodes {
       return 1;
     }
 
-    if (opcode == STATEMENT_RETURN_LOCAL_ADD_NAMED) {
+    if (returnLocalBinaryStatement(opcode)) {
       return 3;
     }
 

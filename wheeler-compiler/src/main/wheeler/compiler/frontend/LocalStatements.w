@@ -805,7 +805,7 @@ classical class LocalStatements {
       return statementStart + 1;
     }
 
-    if (opcode == STATEMENT_RETURN_LOCAL_ADD_NAMED) {
+    if (returnLocalBinaryStatement(opcode)) {
       return statementStart + 3;
     }
 

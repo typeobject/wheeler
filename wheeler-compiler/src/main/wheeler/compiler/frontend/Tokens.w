@@ -292,6 +292,14 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_CALL_ARGUMENT_NAMED = 829;
   /// Names a signed helper return adding a literal to its parameter.
   public const long STATEMENT_RETURN_LOCAL_ADD_NAMED = 830;
+  /// Names a signed helper return subtracting a literal from its parameter.
+  public const long STATEMENT_RETURN_LOCAL_SUB_NAMED = 831;
+  /// Names a signed helper return multiplying its parameter by a literal.
+  public const long STATEMENT_RETURN_LOCAL_MUL_NAMED = 832;
+  /// Names a signed helper return dividing its parameter by a literal.
+  public const long STATEMENT_RETURN_LOCAL_DIV_NAMED = 833;
+  /// Names a signed helper return taking its parameter modulo a literal.
+  public const long STATEMENT_RETURN_LOCAL_MOD_NAMED = 834;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -336,7 +344,16 @@ classical class Tokens {
       return false;
     }
 
-    return opcode < STATEMENT_RETURN_LOCAL_ADD_NAMED + 1;
+    return opcode < STATEMENT_RETURN_LOCAL_MOD_NAMED + 1;
+  }
+
+  /// Checks for a signed helper return with a literal right operand.
+  public boolean returnLocalBinaryStatement(long opcode) {
+    if (opcode < STATEMENT_RETURN_LOCAL_ADD_NAMED) {
+      return false;
+    }
+
+    return opcode < STATEMENT_RETURN_LOCAL_MOD_NAMED + 1;
   }
 
   /// Computes the stable hash of one bounded source token.
@@ -480,6 +497,22 @@ classical class Tokens {
         long returnOperator = utf8Scalar(source, tokenStarts[statementStart + 2]);
         if (returnOperator == PUNCTUATION_PLUS) {
           return STATEMENT_RETURN_LOCAL_ADD_NAMED;
+        }
+
+        if (returnOperator == PUNCTUATION_MINUS) {
+          return STATEMENT_RETURN_LOCAL_SUB_NAMED;
+        }
+
+        if (returnOperator == PUNCTUATION_STAR) {
+          return STATEMENT_RETURN_LOCAL_MUL_NAMED;
+        }
+
+        if (returnOperator == PUNCTUATION_SLASH) {
+          return STATEMENT_RETURN_LOCAL_DIV_NAMED;
+        }
+
+        if (returnOperator == PUNCTUATION_PERCENT) {
+          return STATEMENT_RETURN_LOCAL_MOD_NAMED;
         }
 
         return STATEMENT_RETURN_LOCAL_NAMED;

@@ -261,7 +261,7 @@ classical class Codegen {
       return 40;
     }
 
-    if (opcode == STATEMENT_RETURN_LOCAL_ADD_NAMED) {
+    if (returnLocalBinaryStatement(opcode)) {
       return 96;
     }
 
@@ -484,14 +484,31 @@ classical class Codegen {
       return writeUnsignedLittleEndian(output, cursor, localBase, 8);
     }
 
-    if (opcode == STATEMENT_RETURN_LOCAL_ADD_NAMED) {
+    if (returnLocalBinaryStatement(opcode)) {
+      long returnOpcode = OPCODE_LOCAL_ADD;
+      if (opcode == STATEMENT_RETURN_LOCAL_SUB_NAMED) {
+        returnOpcode = OPCODE_LOCAL_SUB;
+      }
+
+      if (opcode == STATEMENT_RETURN_LOCAL_MUL_NAMED) {
+        returnOpcode = OPCODE_LOCAL_MUL;
+      }
+
+      if (opcode == STATEMENT_RETURN_LOCAL_DIV_NAMED) {
+        returnOpcode = OPCODE_LOCAL_DIV;
+      }
+
+      if (opcode == STATEMENT_RETURN_LOCAL_MOD_NAMED) {
+        returnOpcode = OPCODE_LOCAL_MOD;
+      }
+
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
       cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8);
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, 2);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
       cursor = writeSignedLittleEndian(output, cursor, operand, 8);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_ADD, 3);
+      cursor = writeInstructionHeader(output, cursor, returnOpcode, 3);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
@@ -950,30 +967,4 @@ classical class Codegen {
     return writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
   }
 
-  /// Writes `functionDescriptor` into caller-owned bounded output.
-  public long writeFunctionDescriptor(
-    borrow mut bytes output,
-    long cursor,
-    long id,
-    long name,
-    long forwardOffset,
-    long forwardLength,
-    long flags,
-    long inverseOffset,
-    long inverseLength,
-    long parameterCount,
-    long localCount,
-    long typeOffset
-  ) {
-    cursor = writeUnsignedLittleEndian(output, cursor, id, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, name, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, flags, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, forwardOffset, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, forwardLength, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, inverseOffset, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, inverseLength, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, parameterCount, 4);
-    cursor = writeUnsignedLittleEndian(output, cursor, localCount, 4);
-    return writeUnsignedLittleEndian(output, cursor, typeOffset, 4);
-  }
 }

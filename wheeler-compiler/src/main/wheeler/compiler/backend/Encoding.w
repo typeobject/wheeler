@@ -215,4 +215,31 @@ classical class Encoding {
     cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 8, /* width= */ 4);
     return writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 4);
   }
+
+  /// Writes `functionDescriptor` into caller-owned bounded output.
+  public long writeFunctionDescriptor(
+    borrow mut bytes output,
+    long cursor,
+    long id,
+    long name,
+    long forwardOffset,
+    long forwardLength,
+    long flags,
+    long inverseOffset,
+    long inverseLength,
+    long parameterCount,
+    long localCount,
+    long typeOffset
+  ) {
+    cursor = writeUnsignedLittleEndian(output, cursor, id, 4);
+    cursor = writeUnsignedLittleEndian(output, cursor, name, 4);
+    cursor = writeUnsignedLittleEndian(output, cursor, flags, 4);
+    cursor = writeUnsignedLittleEndian(output, cursor, forwardOffset, 4);
+    cursor = writeUnsignedLittleEndian(output, cursor, forwardLength, 4);
+    cursor = writeUnsignedLittleEndian(output, cursor, inverseOffset, 4);
+    cursor = writeUnsignedLittleEndian(output, cursor, inverseLength, 4);
+    cursor = writeUnsignedLittleEndian(output, cursor, parameterCount, 4);
+    cursor = writeUnsignedLittleEndian(output, cursor, localCount, 4);
+    return writeUnsignedLittleEndian(output, cursor, typeOffset, 4);
+  }
 }
