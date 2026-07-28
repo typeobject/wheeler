@@ -157,6 +157,15 @@ classical class Codegen {
       return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
     }
 
+    if (resolvedLocalReturn(opcode)) {
+      long resultType = TYPE_BOOLEAN;
+      if (resolvedSignedLocalReturn(opcode)) {
+        resultType = TYPE_SIGNED;
+      }
+
+      return writeUnsignedLittleEndian(output, cursor, resultType, 4);
+    }
+
     if (opcode == STATEMENT_ASSERT_LITERAL_EQ) {
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
@@ -470,10 +479,15 @@ classical class Codegen {
       return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
     }
 
-    if (opcode == STATEMENT_RETURN_LOCAL_NAMED) {
+    if (resolvedLocalReturn(opcode)) {
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, operand, U64);
+      cursor = writeUnsignedLittleEndian(
+        output,
+        cursor,
+        resolvedLocalReturnSource(opcode),
+        U64
+      );
       cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN_VALUE, FORM_UNARY);
       return writeUnsignedLittleEndian(output, cursor, localBase, U64);
     }

@@ -5,6 +5,7 @@ module wheeler.compiler.helper_parser;
 import wheeler.compiler.body_parser;
 import wheeler.compiler.helper_calls;
 import wheeler.compiler.ir;
+import wheeler.compiler.local_opcodes;
 import wheeler.compiler.sequences;
 import wheeler.compiler.statements;
 import wheeler.compiler.structure;
@@ -20,7 +21,23 @@ classical class HelperParser {
       return true;
     }
 
-    if (opcode == STATEMENT_RETURN_LOCAL_NAMED) {
+    if (resolvedLocalReturn(opcode)) {
+      return true;
+    }
+
+    if (returnLocalBinaryStatement(opcode)) {
+      return true;
+    }
+
+    return returnLocalPairStatement(opcode);
+  }
+
+  private boolean signedResultStatement(long opcode) {
+    if (opcode == STATEMENT_RETURN_LONG) {
+      return true;
+    }
+
+    if (resolvedSignedLocalReturn(opcode)) {
       return true;
     }
 
@@ -101,12 +118,7 @@ classical class HelperParser {
 
       long resultIndex = helperSequence.count - 1;
       long resultOpcode = helperSequence.opcodes[resultIndex];
-      boolean supportedResult = resultOpcode == STATEMENT_RETURN_LONG;
-      if (resultOpcode == STATEMENT_RETURN_LOCAL_NAMED) {
-        supportedResult = true;
-      }
-
-      if (supportedResult == false) {
+      if (signedResultStatement(resultOpcode) == false) {
         return new MinimalProgramResult.Error(0);
       }
 
@@ -126,7 +138,15 @@ classical class HelperParser {
       }
 
       long booleanResultIndex = helperSequence.count - 1;
-      if (helperSequence.opcodes[booleanResultIndex] == STATEMENT_RETURN_BOOLEAN) {} else {
+      long booleanResultOpcode = helperSequence.opcodes[booleanResultIndex];
+      boolean supportedBooleanResult = booleanResultOpcode == STATEMENT_RETURN_BOOLEAN;
+      if (resolvedLocalReturn(booleanResultOpcode)) {
+        if (resolvedSignedLocalReturn(booleanResultOpcode) == false) {
+          supportedBooleanResult = true;
+        }
+      }
+
+      if (supportedBooleanResult == false) {
         return new MinimalProgramResult.Error(0);
       }
 
@@ -146,7 +166,7 @@ classical class HelperParser {
       }
 
       long parameterResultIndex = helperSequence.count - 1;
-      if (resultStatement(helperSequence.opcodes[parameterResultIndex])) {} else {
+      if (signedResultStatement(helperSequence.opcodes[parameterResultIndex])) {} else {
         return new MinimalProgramResult.Error(0);
       }
 
@@ -171,7 +191,7 @@ classical class HelperParser {
           return new MinimalProgramResult.Error(0);
         }
       } else {
-        if (helperSequence.opcodes[pairResultIndex] == STATEMENT_RETURN_LOCAL_NAMED) {} else {
+        if (resolvedSignedLocalReturn(helperSequence.opcodes[pairResultIndex])) {} else {
           return new MinimalProgramResult.Error(0);
         }
       }

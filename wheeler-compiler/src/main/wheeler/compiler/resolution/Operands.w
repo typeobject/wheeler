@@ -56,11 +56,7 @@ classical class Operands {
     }
 
     if (opcode == STATEMENT_RETURN_LOCAL_NAMED) {
-      if (previousCount == 0) {
-        return 0;
-      }
-
-      return resolvePriorDeclaration(
+      long signedReturn = resolvePriorDeclaration(
         source,
         tokenStarts,
         tokenLengths,
@@ -69,6 +65,28 @@ classical class Operands {
         statementStart + 1,
         true
       );
+      long booleanReturn = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 1,
+        false
+      );
+      if (-1 < signedReturn) {
+        if (booleanReturn < 0) {
+          return signedReturn;
+        }
+      }
+
+      if (-1 < booleanReturn) {
+        if (signedReturn < 0) {
+          return booleanReturn;
+        }
+      }
+
+      return -1;
     }
 
     if (opcode == STATEMENT_ASSIGN_LOCAL_NAMED) {

@@ -29,6 +29,11 @@ class MinimalCompilerResultExampleTest {
             + "entry void main() { boolean value = ready(); } }");
     assertDifferentialHalt(
         writerProgram,
+        "classical class BooleanLocalResultHelper { "
+            + "boolean ready() { boolean result = true; return result; } "
+            + "entry void main() { boolean value = ready(); assert(value); } }");
+    assertDifferentialHalt(
+        writerProgram,
         "classical class RepeatedBooleanResultCalls { boolean ready() { return true; } "
             + "entry void main() { boolean first = ready(); boolean second = ready(); "
             + "assert(first == second); } }");
