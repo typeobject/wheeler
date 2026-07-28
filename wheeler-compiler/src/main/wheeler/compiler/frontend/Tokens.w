@@ -286,6 +286,10 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_CALL_NAMED = 826;
   /// Names a signed literal return from a helper.
   public const long STATEMENT_RETURN_LONG = 827;
+  /// Names a signed return from a helper parameter.
+  public const long STATEMENT_RETURN_LOCAL_NAMED = 828;
+  /// Names a signed local initialized by a one-argument helper call.
+  public const long STATEMENT_LOCAL_CALL_ARGUMENT_NAMED = 829;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -323,6 +327,15 @@ classical class Tokens {
   public const long PUNCTUATION_OPEN_BRACE = 123;
   /// Names the ASCII `}` punctuation scalar.
   public const long PUNCTUATION_CLOSE_BRACE = 125;
+
+  /// Checks for one bounded helper value statement.
+  public boolean helperValueStatement(long opcode) {
+    if (opcode < STATEMENT_LOCAL_CALL_NAMED) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_CALL_ARGUMENT_NAMED + 1;
+  }
 
   /// Computes the stable hash of one bounded source token.
   public long tokenHash(
@@ -460,6 +473,11 @@ classical class Tokens {
     }
 
     if (keyword == TOKEN_RETURN) {
+      long returnedScalar = utf8Scalar(source, tokenStarts[statementStart + 1]);
+      if (identifierStart(returnedScalar)) {
+        return STATEMENT_RETURN_LOCAL_NAMED;
+      }
+
       return STATEMENT_RETURN_LONG;
     }
 
@@ -608,7 +626,12 @@ classical class Tokens {
       if (identifierStart(initializer)) {
         long initializerOperator = utf8Scalar(source, tokenStarts[statementStart + 4]);
         if (initializerOperator == PUNCTUATION_OPEN_PAREN) {
-          return STATEMENT_LOCAL_CALL_NAMED;
+          long callArgument = utf8Scalar(source, tokenStarts[statementStart + 5]);
+          if (callArgument == PUNCTUATION_CLOSE_PAREN) {
+            return STATEMENT_LOCAL_CALL_NAMED;
+          }
+
+          return STATEMENT_LOCAL_CALL_ARGUMENT_NAMED;
         }
 
         long rightScalar = utf8Scalar(source, tokenStarts[statementStart + 5]);
@@ -748,179 +771,6 @@ classical class Tokens {
       }
 
       return STATEMENT_UPDATE_XOR;
-    }
-
-    return -1;
-  }
-
-  /// Validates and sizes one bounded helper value statement.
-  public long helperValueStatementWidth(
-    borrow utf8 source,
-    borrow mut words tokenKinds,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    long statementStart,
-    long statementKind
-  ) {
-    if (statementKind == STATEMENT_RETURN_LONG) {
-      long returnWidth = signedNumberWidth(source, tokenKinds, tokenStarts, statementStart + 1);
-      if (returnWidth < 1) {
-        return -1;
-      }
-
-      if (
-        signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 1) == false
-      ) {
-        return -1;
-      }
-
-      if (
-        punctuationAt(
-          source,
-          tokenKinds,
-          tokenStarts,
-          statementStart + 1 + returnWidth,
-          PUNCTUATION_SEMICOLON
-        )
-      ) {
-        return returnWidth + 2;
-      }
-
-      return -1;
-    }
-
-    if (statementKind == STATEMENT_LOCAL_CALL_NAMED) {
-      if (tokenKinds[statementStart + 1] == 1) {} else {
-        return -1;
-      }
-
-      if (
-        punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, PUNCTUATION_ASSIGN)
-          == false
-      ) {
-        return -1;
-      }
-
-      if (tokenKinds[statementStart + 3] == 1) {} else {
-        return -1;
-      }
-
-      if (
-        punctuationAt(
-          source,
-          tokenKinds,
-          tokenStarts,
-          statementStart + 4,
-          PUNCTUATION_OPEN_PAREN
-        ) == false
-      ) {
-        return -1;
-      }
-
-      if (
-        punctuationAt(
-          source,
-          tokenKinds,
-          tokenStarts,
-          statementStart + 5,
-          PUNCTUATION_CLOSE_PAREN
-        ) == false
-      ) {
-        return -1;
-      }
-
-      if (
-        punctuationAt(
-          source,
-          tokenKinds,
-          tokenStarts,
-          statementStart + 6,
-          PUNCTUATION_SEMICOLON
-        )
-      ) {
-        return 7;
-      }
-    }
-
-    return -1;
-  }
-
-  /// Validates and sizes one equality assertion over two signed literals.
-  public long literalEqualityStatementWidth(
-    borrow utf8 source,
-    borrow mut words tokenKinds,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    long statementStart
-  ) {
-    if (
-      punctuationAt(
-        source,
-        tokenKinds,
-        tokenStarts,
-        statementStart + 1,
-        PUNCTUATION_OPEN_PAREN
-      ) == false
-    ) {
-      return -1;
-    }
-
-    long leftWidth = signedNumberWidth(source, tokenKinds, tokenStarts, statementStart + 2);
-    if (leftWidth < 1) {
-      return -1;
-    }
-
-    if (
-      signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 2) == false
-    ) {
-      return -1;
-    }
-
-    long equalityStart = statementStart + 2 + leftWidth;
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, equalityStart, PUNCTUATION_ASSIGN) == false
-    ) {
-      return -1;
-    }
-
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, equalityStart + 1, PUNCTUATION_ASSIGN) == false
-    ) {
-      return -1;
-    }
-
-    long rightStart = equalityStart + 2;
-    long rightWidth = signedNumberWidth(source, tokenKinds, tokenStarts, rightStart);
-    if (rightWidth < 1) {
-      return -1;
-    }
-
-    if (signedNumberValid(source, tokenStarts, tokenLengths, rightStart) == false) {
-      return -1;
-    }
-
-    if (
-      punctuationAt(
-        source,
-        tokenKinds,
-        tokenStarts,
-        rightStart + rightWidth,
-        PUNCTUATION_CLOSE_PAREN
-      ) == false
-    ) {
-      return -1;
-    }
-
-    if (
-      punctuationAt(
-        source,
-        tokenKinds,
-        tokenStarts,
-        rightStart + rightWidth + 1,
-        PUNCTUATION_SEMICOLON
-      )
-    ) {
-      return rightStart + rightWidth + 2 - statementStart;
     }
 
     return -1;

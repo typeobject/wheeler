@@ -299,7 +299,15 @@ classical class LocalOpcodes {
       return 2;
     }
 
+    if (opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED) {
+      return 4;
+    }
+
     if (opcode == STATEMENT_RETURN_LONG) {
+      return 1;
+    }
+
+    if (opcode == STATEMENT_RETURN_LOCAL_NAMED) {
       return 1;
     }
 
@@ -502,6 +510,10 @@ classical class LocalOpcodes {
 
     if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
       return localBase + 1;
+    }
+
+    if (opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED) {
+      return localBase + 3;
     }
 
     if (namedLongBinary(opcode)) {

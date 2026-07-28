@@ -163,6 +163,11 @@ class MinimalCompilerExampleTest {
             + "entry void main() { long value = answer(); assert(value == -42); } }");
     assertDifferentialHalt(
         writerProgram,
+        "classical class SignedParameterHelper { long identity(long value) { return value; } "
+            + "entry void main() { long answer = identity(-42); "
+            + "assert(answer == -42); } }");
+    assertDifferentialHalt(
+        writerProgram,
         "classical class Local { entry void main() { long x = -2; } }");
     assertDifferentialHalt(
         writerProgram,

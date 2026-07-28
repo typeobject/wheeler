@@ -113,6 +113,34 @@ class MinimalCompilerNegativeExampleTest {
     assertThrows(VmTrap.class, missingResult::run);
     assertArrayEquals(new byte[512], missingResult.hostOutput());
 
+    VirtualMachine wrongReturnedParameter = new VirtualMachine(
+        writerProgram,
+        ("classical class WrongReturnedParameter { "
+                + "long identity(long value) { return other; } "
+                + "entry void main() { long answer = identity(42); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, wrongReturnedParameter::run);
+    assertArrayEquals(new byte[512], wrongReturnedParameter.hostOutput());
+
+    VirtualMachine missingCallArgument = new VirtualMachine(
+        writerProgram,
+        ("classical class MissingCallArgument { long identity(long value) { return value; } "
+                + "entry void main() { long answer = identity(); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, missingCallArgument::run);
+    assertArrayEquals(new byte[512], missingCallArgument.hostOutput());
+
+    VirtualMachine unexpectedCallArgument = new VirtualMachine(
+        writerProgram,
+        ("classical class UnexpectedCallArgument { long answer() { return 42; } "
+                + "entry void main() { long value = answer(1); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, unexpectedCallArgument::run);
+    assertArrayEquals(new byte[512], unexpectedCallArgument.hostOutput());
+
     VirtualMachine wrongResultHelper = new VirtualMachine(
         writerProgram,
         ("classical class WrongResultHelper { long answer() { return 42; } "

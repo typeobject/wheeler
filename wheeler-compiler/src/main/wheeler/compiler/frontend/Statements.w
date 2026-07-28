@@ -4,6 +4,7 @@ module wheeler.compiler.statements;
 
 import wheeler.compiler.conditionals;
 import wheeler.compiler.local_opcodes;
+import wheeler.compiler.structure;
 import wheeler.compiler.tokens;
 
 classical class Statements {
@@ -16,18 +17,7 @@ classical class Statements {
     long statementStart
   ) {
     long statementKind = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
-    if (statementKind == STATEMENT_RETURN_LONG) {
-      return helperValueStatementWidth(
-        source,
-        tokenKinds,
-        tokenStarts,
-        tokenLengths,
-        statementStart,
-        statementKind
-      );
-    }
-
-    if (statementKind == STATEMENT_LOCAL_CALL_NAMED) {
+    if (helperValueStatement(statementKind)) {
       return helperValueStatementWidth(
         source,
         tokenKinds,

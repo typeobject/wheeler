@@ -10,7 +10,6 @@ import wheeler.compiler.opcodes;
 import wheeler.compiler.parser;
 import wheeler.compiler.string_table;
 import wheeler.compiler.tokens;
-import wheeler.compiler.type_codes;
 import wheeler.compiler.verifier;
 import wheeler.lexer.scanner;
 
@@ -268,10 +267,10 @@ classical class CompilerDriver {
     long[64] opcodes,
     long[64] operands,
     long[64] secondaryOperands,
-    long count
+    long count,
+    long localBase
   ) {
     long index = 0;
-    long localBase = 0;
     long instructionBase = 0;
     while (index < count) limit MAX_MINIMAL_STATEMENTS {
       cursor = writeStatement(
@@ -371,6 +370,8 @@ classical class CompilerDriver {
     long entryStatementLength = codeLength - 8;
     long functionsLength = 44 + localCount * 4;
     long helperLocalCount = 0;
+    long helperParameterCount = 0;
+    long helperLocalBase = 0;
     long helperForwardLength = 8;
     long helperStatementIndex = 0;
     while (helperStatementIndex < program.helperStatementCount) limit MAX_MINIMAL_STATEMENTS {
@@ -380,8 +381,14 @@ classical class CompilerDriver {
       helperStatementIndex += 1;
     }
 
-    if (program.helperReversible == 2) {
+    if (1 < program.helperReversible) {
       helperForwardLength -= 8;
+    }
+
+    if (program.helperReversible == 3) {
+      helperLocalCount += 1;
+      helperParameterCount = 1;
+      helperLocalBase = 1;
     }
 
     long helperInverseLength = 0;
@@ -399,7 +406,7 @@ classical class CompilerDriver {
     if (program.helperCount == 1) {
       localCount = helperLocalCount;
       functionsLength = 84 + helperLocalCount * 4 + entryLocalCount * 4;
-      if (program.helperReversible == 2) {
+      if (1 < program.helperReversible) {
         functionsLength += 4;
         entryTypeOffset += 1;
       }
@@ -463,7 +470,7 @@ classical class CompilerDriver {
     cursor = writeUnsignedLittleEndian(output, cursor, 1 + program.helperCount, 4);
     if (program.helperCount == 1) {
       long helperFlags = program.helperReversible;
-      if (program.helperReversible == 2) {
+      if (1 < program.helperReversible) {
         helperFlags = 4;
       }
 
@@ -477,6 +484,7 @@ classical class CompilerDriver {
         helperFlags,
         helperInverseOffset,
         helperInverseLength,
+        helperParameterCount,
         helperLocalCount,
         0
       );
@@ -490,11 +498,16 @@ classical class CompilerDriver {
         0,
         4294967295,
         0,
+        0,
         entryLocalCount,
         entryTypeOffset
       );
-      if (program.helperReversible == 2) {
-        cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      if (1 < program.helperReversible) {
+        cursor = writeSignedLocalType(output, cursor);
+      }
+
+      if (program.helperReversible == 3) {
+        cursor = writeSignedLocalType(output, cursor);
       }
 
       if (program.helperReversible == 1) {} else {
@@ -522,6 +535,7 @@ classical class CompilerDriver {
         codeLength,
         0,
         4294967295,
+        0,
         0,
         localCount,
         0
@@ -563,9 +577,10 @@ classical class CompilerDriver {
           program.helperOpcodes,
           program.helperOperands,
           program.helperSecondaryOperands,
-          program.helperStatementCount
+          program.helperStatementCount,
+          helperLocalBase
         );
-        if (program.helperReversible == 2) {} else {
+        if (1 < program.helperReversible) {} else {
           cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN, 0);
         }
       }
@@ -638,7 +653,8 @@ classical class CompilerDriver {
         program.statementOpcodes,
         program.statementOperands,
         program.statementSecondaryOperands,
-        program.statementCount
+        program.statementCount,
+        0
       );
     }
 

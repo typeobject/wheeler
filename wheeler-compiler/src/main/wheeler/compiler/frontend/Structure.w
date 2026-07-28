@@ -144,4 +144,267 @@ classical class Structure {
 
     return -1;
   }
+
+  /// Validates and sizes one bounded helper value statement.
+  public long helperValueStatementWidth(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart,
+    long statementKind
+  ) {
+    if (statementKind == STATEMENT_RETURN_LONG) {
+      long returnWidth = signedNumberWidth(source, tokenKinds, tokenStarts, statementStart + 1);
+      if (returnWidth < 1) {
+        return -1;
+      }
+
+      if (
+        signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 1) == false
+      ) {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 1 + returnWidth,
+          PUNCTUATION_SEMICOLON
+        )
+      ) {
+        return returnWidth + 2;
+      }
+
+      return -1;
+    }
+
+    if (statementKind == STATEMENT_RETURN_LOCAL_NAMED) {
+      if (tokenKinds[statementStart + 1] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 2,
+          PUNCTUATION_SEMICOLON
+        )
+      ) {
+        return 3;
+      }
+
+      return -1;
+    }
+
+    if (statementKind == STATEMENT_LOCAL_CALL_NAMED) {
+      if (tokenKinds[statementStart + 1] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, PUNCTUATION_ASSIGN)
+          == false
+      ) {
+        return -1;
+      }
+
+      if (tokenKinds[statementStart + 3] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 4,
+          PUNCTUATION_OPEN_PAREN
+        ) == false
+      ) {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 5,
+          PUNCTUATION_CLOSE_PAREN
+        ) == false
+      ) {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 6,
+          PUNCTUATION_SEMICOLON
+        )
+      ) {
+        return 7;
+      }
+    }
+
+    if (statementKind == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED) {
+      if (tokenKinds[statementStart + 1] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, PUNCTUATION_ASSIGN)
+          == false
+      ) {
+        return -1;
+      }
+
+      if (tokenKinds[statementStart + 3] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 4,
+          PUNCTUATION_OPEN_PAREN
+        ) == false
+      ) {
+        return -1;
+      }
+
+      long argumentWidth = signedNumberWidth(
+        source,
+        tokenKinds,
+        tokenStarts,
+        statementStart + 5
+      );
+      if (argumentWidth < 1) {
+        return -1;
+      }
+
+      if (
+        signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 5) == false
+      ) {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 5 + argumentWidth,
+          PUNCTUATION_CLOSE_PAREN
+        ) == false
+      ) {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 6 + argumentWidth,
+          PUNCTUATION_SEMICOLON
+        )
+      ) {
+        return argumentWidth + 7;
+      }
+    }
+
+    return -1;
+  }
+
+  /// Validates and sizes one equality assertion over two signed literals.
+  public long literalEqualityStatementWidth(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart
+  ) {
+    if (
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        statementStart + 1,
+        PUNCTUATION_OPEN_PAREN
+      ) == false
+    ) {
+      return -1;
+    }
+
+    long leftWidth = signedNumberWidth(source, tokenKinds, tokenStarts, statementStart + 2);
+    if (leftWidth < 1) {
+      return -1;
+    }
+
+    if (
+      signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 2) == false
+    ) {
+      return -1;
+    }
+
+    long equalityStart = statementStart + 2 + leftWidth;
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, equalityStart, PUNCTUATION_ASSIGN) == false
+    ) {
+      return -1;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, equalityStart + 1, PUNCTUATION_ASSIGN) == false
+    ) {
+      return -1;
+    }
+
+    long rightStart = equalityStart + 2;
+    long rightWidth = signedNumberWidth(source, tokenKinds, tokenStarts, rightStart);
+    if (rightWidth < 1) {
+      return -1;
+    }
+
+    if (signedNumberValid(source, tokenStarts, tokenLengths, rightStart) == false) {
+      return -1;
+    }
+
+    if (
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        rightStart + rightWidth,
+        PUNCTUATION_CLOSE_PAREN
+      ) == false
+    ) {
+      return -1;
+    }
+
+    if (
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        rightStart + rightWidth + 1,
+        PUNCTUATION_SEMICOLON
+      )
+    ) {
+      return rightStart + rightWidth + 2 - statementStart;
+    }
+
+    return -1;
+  }
+
 }

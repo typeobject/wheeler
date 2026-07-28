@@ -50,10 +50,16 @@ classical class HelperParser {
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
     long nameToken,
-    long callStart
+    long callStart,
+    long helperKind
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, callStart);
-    if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
+    boolean expectedCall = opcode == STATEMENT_LOCAL_CALL_NAMED;
+    if (helperKind == 3) {
+      expectedCall = opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED;
+    }
+
+    if (expectedCall) {
       return sameTokenText(source, tokenStarts, tokenLengths, nameToken, callStart + 3);
     }
 
@@ -108,10 +114,26 @@ classical class HelperParser {
       if (helperSequence.opcodes[0] == STATEMENT_RETURN_LONG) {} else {
         return new MinimalProgramResult.Error(0);
       }
-    } else {
+    }
+
+    if (reversible == 3) {
+      if (helperSequence.count == 1) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+
+      if (helperSequence.opcodes[0] == STATEMENT_RETURN_LOCAL_NAMED) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+    }
+
+    if (reversible < 2) {
       long helperStatement = 0;
       while (helperStatement < helperSequence.count) limit MAX_MINIMAL_STATEMENTS {
         if (helperSequence.opcodes[helperStatement] == STATEMENT_RETURN_LONG) {
+          return new MinimalProgramResult.Error(0);
+        }
+
+        if (helperSequence.opcodes[helperStatement] == STATEMENT_RETURN_LOCAL_NAMED) {
           return new MinimalProgramResult.Error(0);
         }
 
@@ -374,20 +396,44 @@ classical class HelperParser {
       return new MinimalProgramResult.Error(0);
     }
 
+    long parameterToken = -1;
+    long closeParameters = nameToken + 2;
+    if (reversible == 2) {
+      if (tokenHash(source, tokenStarts, tokenLengths, closeParameters) == TOKEN_LONG) {
+        parameterToken = nameToken + 3;
+        if (tokenKinds[parameterToken] == 1) {} else {
+          return new MinimalProgramResult.Error(0);
+        }
+
+        if (tokenLengths[parameterToken] < 257) {} else {
+          return new MinimalProgramResult.Error(0);
+        }
+
+        closeParameters = nameToken + 4;
+        reversible = 3;
+      }
+    }
+
     if (
-      punctuationAt(source, tokenKinds, tokenStarts, nameToken + 2, PUNCTUATION_CLOSE_PAREN)
+      punctuationAt(source, tokenKinds, tokenStarts, closeParameters, PUNCTUATION_CLOSE_PAREN)
         == false
     ) {
       return new MinimalProgramResult.Error(0);
     }
 
     if (
-      punctuationAt(source, tokenKinds, tokenStarts, nameToken + 3, PUNCTUATION_OPEN_BRACE) == false
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        closeParameters + 1,
+        PUNCTUATION_OPEN_BRACE
+      ) == false
     ) {
       return new MinimalProgramResult.Error(0);
     }
 
-    long helperBody = nameToken + 4;
+    long helperBody = closeParameters + 2;
     BodyScan statements = scanBody(
       source,
       tokenKinds,
@@ -398,6 +444,19 @@ classical class HelperParser {
     );
     if (statements.valid == false) {
       return new MinimalProgramResult.Error(0);
+    }
+
+    if (reversible == 3) {
+      if (statements.count == 1) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+
+      long returnStart = statementStarts[0];
+      if (
+        sameTokenText(source, tokenStarts, tokenLengths, parameterToken, returnStart + 1) == false
+      ) {
+        return new MinimalProgramResult.Error(0);
+      }
     }
 
     if (
@@ -427,9 +486,10 @@ classical class HelperParser {
       return new MinimalProgramResult.Error(0);
     }
 
-    if (reversible == 2) {
+    if (1 < reversible) {
       if (
-        resultCallValid(source, tokenStarts, tokenLengths, nameToken, entryBody) == false
+        resultCallValid(source, tokenStarts, tokenLengths, nameToken, entryBody, reversible)
+          == false
       ) {
         return new MinimalProgramResult.Error(0);
       }
