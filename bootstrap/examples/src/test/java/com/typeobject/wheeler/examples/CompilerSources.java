@@ -41,6 +41,7 @@ final class CompilerSources {
       "compiler/ir/Opcodes.w",
       "compiler/ir/ProofRules.w",
       "compiler/ir/TypeCodes.w",
+      "compiler/resolution/Operands.w",
       "compiler/verification/AggregateVerifier.w",
       "compiler/verification/FunctionVerifier.w",
       "compiler/verification/InstructionVerifier.w",

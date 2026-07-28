@@ -650,6 +650,7 @@ class WheelerCommandTest {
     Files.createDirectories(project.resolve("src/compiler/backend"));
     Files.createDirectories(project.resolve("src/compiler/frontend"));
     Files.createDirectories(project.resolve("src/compiler/ir"));
+    Files.createDirectories(project.resolve("src/compiler/resolution"));
     Files.createDirectories(project.resolve("src/compiler/verification"));
     Files.createDirectories(project.resolve("src/lexer"));
     Files.createDirectories(project.resolve("src/packages"));
@@ -684,6 +685,7 @@ class WheelerCommandTest {
               - "src/compiler/ir/Opcodes.w"
               - "src/compiler/ir/ProofRules.w"
               - "src/compiler/ir/TypeCodes.w"
+              - "src/compiler/resolution/Operands.w"
               - "src/compiler/verification/AggregateVerifier.w"
               - "src/compiler/verification/FunctionVerifier.w"
               - "src/compiler/verification/InstructionVerifier.w"
@@ -739,6 +741,9 @@ class WheelerCommandTest {
     Files.copy(
         compilerSources.resolve("compiler/ir/Opcodes.w"),
         project.resolve("src/compiler/ir/Opcodes.w"));
+    Files.copy(
+        compilerSources.resolve("compiler/resolution/Operands.w"),
+        project.resolve("src/compiler/resolution/Operands.w"));
     Files.copy(
         compilerSources.resolve("compiler/frontend/Parser.w"),
         project.resolve("src/compiler/frontend/Parser.w"));

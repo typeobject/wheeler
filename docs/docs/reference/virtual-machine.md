@@ -20,7 +20,7 @@ The machine owns:
 
 Raw host pointers and masked segmented addresses are not machine values.
 
-Source compilation currently writes equal limits of 4,000,000 steps and 4,000,000 retained history records. The VM traps before another mutation when either limit is exhausted. The history budget can therefore retain every transition permitted by the default step budget. Hashing the current 7,898-byte bootstrap module closure takes 1,642,951 transitions, and its complete twenty-six-module graph validation finishes in 3,902,656 transitions, instead of falling through a trapdoor three quarters of the way to the advertised ceiling. These defaults allow bounded compiler and package work without adding a commit horizon. An artifact or embedding host may choose lower verified limits.
+Source compilation currently writes equal limits of 4,000,000 steps and 4,000,000 retained history records. The `run()` loop traps at the step limit. Every execution path traps before it exceeds the history limit. The history budget can therefore retain every transition in one default run. The physical bootstrap closure evidence uses explicit single stepping with a 5,000,000-transition test ceiling and commits history every 10,000 records. Its complete twenty-seven-module graph validation finishes in 4,215,719 transitions. The test keeps that larger evidence run bounded without quietly changing source program policy. An artifact or embedding host may choose lower verified limits.
 
 A classical entry may borrow one strict UTF-8 input, one immutable binary `byteview`, one mutable byte output, or one input followed by the output. VM construction requires the exact declared effects and an explicit text or binary binding API.
 

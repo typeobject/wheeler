@@ -4,6 +4,7 @@ module wheeler.compiler.sequences;
 
 import wheeler.compiler.ir;
 import wheeler.compiler.local_statements;
+import wheeler.compiler.operands;
 import wheeler.compiler.tokens;
 
 classical class StatementSequences {
