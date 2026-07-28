@@ -25,6 +25,7 @@ final class NativeBootstrapModulesIdentityExampleTest {
   private static final Path ROOT = Path.of("src/main/wheeler/native/bootstrap");
   private static final String IDENTITY = "ab".repeat(32);
   private static final long MAX_CLOSURE_TRANSITIONS = 5_000_000;
+  private static final long MAX_LARGE_GRAPH_TRANSITIONS = 50_000_000;
 
   @Test
   void validatesThePhysicalBoundedCompilerClosure() throws Exception {
@@ -123,10 +124,18 @@ final class NativeBootstrapModulesIdentityExampleTest {
     BootstrapModuleManifest seventeenModules = generatedGraph(17);
     assertIdentity(program, seventeenModules, 17, 0, 16, false);
     BootstrapModuleManifest thirtyThreeModules = generatedGraph(33);
-    assertNoIdentity(program, thirtyThreeModules.canonicalBytes());
+    assertIdentity(program, thirtyThreeModules, 33, 0, 32, false);
+    BootstrapModuleManifest sixtyFourModules = generatedGraph(64);
+    assertLargeIdentity(program, sixtyFourModules, 64, 63);
+    BootstrapModuleManifest sixtyFiveModules = generatedGraph(65);
+    assertNoIdentity(program, sixtyFiveModules.canonicalBytes());
+    BootstrapModuleManifest sixtyFourExternals = generatedExternalGraph(64);
+    assertIdentity(program, sixtyFourExternals, 1, 64, 0, false);
+    BootstrapModuleManifest sixtyFiveExternals = generatedExternalGraph(65);
+    assertNoIdentity(program, sixtyFiveExternals.canonicalBytes());
 
     String text = imported.canonicalText();
-    assertNoIdentity(program, new byte[16_385]);
+    assertNoIdentity(program, new byte[32_769]);
     assertNoIdentity(program, text.replace(
         "  - \"wheeler.core\"\n  - \"wheeler.runtime\"",
         "  - \"wheeler.runtime\"\n  - \"wheeler.core\"")
@@ -139,6 +148,45 @@ final class NativeBootstrapModulesIdentityExampleTest {
         .getBytes(StandardCharsets.UTF_8));
     assertNoIdentity(program, text.replace("Compiler.w", "../Compiler.w")
         .getBytes(StandardCharsets.UTF_8));
+  }
+
+  private static void assertLargeIdentity(
+      Program program,
+      BootstrapModuleManifest manifest,
+      int modules,
+      int imports
+  ) throws Exception {
+    byte[] canonical = manifest.canonicalBytes();
+    VirtualMachine machine = vm(program, canonical);
+    long transitions = 0;
+    while (machine.status() != MachineStatus.HALTED
+        && transitions < MAX_LARGE_GRAPH_TRANSITIONS) {
+      machine.step();
+      transitions += 1;
+      if (10_000 <= machine.historySize()) {
+        machine.commitHistory();
+      }
+    }
+
+    assertEquals(MachineStatus.HALTED, machine.status());
+    assertArrayEquals(MessageDigest.getInstance("SHA-256").digest(canonical),
+        machine.hostOutput());
+    assertEquals(modules, machine.global("moduleCount"));
+    assertEquals(imports, machine.global("importCount"));
+    assertEquals(1, machine.global("published"));
+  }
+
+  private static BootstrapModuleManifest generatedExternalGraph(int count) {
+    List<String> externals = new ArrayList<>();
+    for (int index = 0; index < count; index++) {
+      externals.add("external.m%02d".formatted(index));
+    }
+    return new BootstrapModuleManifest(
+        "bootstrap-1",
+        "bootstrap.root",
+        externals,
+        List.of(new Module(
+            "bootstrap.root", "src/Root.w", IDENTITY, List.of())));
   }
 
   private static BootstrapModuleManifest generatedGraph(int count) {
