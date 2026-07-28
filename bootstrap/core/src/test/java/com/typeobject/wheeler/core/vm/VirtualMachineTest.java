@@ -377,9 +377,9 @@ class VirtualMachineTest {
 
     assertEquals(1, machine.snapshot().variants().size());
     assertEquals(List.of(7L), machine.snapshot().variants().getFirst().fields());
-    assertEquals(1, machine.snapshot().frames().getFirst().local(2));
-    assertEquals(7, machine.snapshot().frames().getFirst().local(3));
-    assertEquals(1, machine.snapshot().frames().getFirst().local(5));
+    assertEquals(1, machine.snapshot().selectedFrames().getFirst().local(2));
+    assertEquals(7, machine.snapshot().selectedFrames().getFirst().local(3));
+    assertEquals(1, machine.snapshot().selectedFrames().getFirst().local(5));
     for (int step = 0; step < 6; step++) {
       machine.rewindOne();
     }
@@ -425,8 +425,8 @@ class VirtualMachineTest {
 
     assertEquals(1, machine.snapshot().arrays().size());
     assertEquals(List.of(3L, 5L, 7L), machine.snapshot().arrays().getFirst().elements());
-    assertEquals(5, machine.snapshot().frames().getFirst().local(5));
-    assertEquals(1, machine.snapshot().frames().getFirst().local(7));
+    assertEquals(5, machine.snapshot().selectedFrames().getFirst().local(5));
+    assertEquals(1, machine.snapshot().selectedFrames().getFirst().local(7));
     while (machine.historySize() > 0) {
       machine.rewindOne();
     }
@@ -501,7 +501,7 @@ class VirtualMachineTest {
     machine.run();
 
     assertEquals(1, machine.snapshot().slices().size());
-    assertEquals(6, machine.snapshot().frames().getFirst().local(9));
+    assertEquals(6, machine.snapshot().selectedFrames().getFirst().local(9));
     while (machine.historySize() > 0) {
       machine.rewindOne();
     }
@@ -775,9 +775,9 @@ class VirtualMachineTest {
       machine.step();
     }
 
-    assertEquals(0, machine.snapshot().frames().getFirst().locals().get(5));
+    assertEquals(0, machine.snapshot().selectedFrames().getFirst().locals().get(5));
     assertThrows(VmTrap.class, machine::step);
-    assertEquals(0, machine.snapshot().frames().getFirst().locals().get(6));
+    assertEquals(0, machine.snapshot().selectedFrames().getFirst().locals().get(6));
   }
 
   @Test
@@ -818,13 +818,13 @@ class VirtualMachineTest {
       machine.step();
     }
     assertEquals(BufferKind.UTF8, machine.snapshot().buffers().getFirst().kind());
-    assertEquals(0, machine.snapshot().frames().getFirst().locals().get(2));
-    assertEquals(1, machine.snapshot().frames().getFirst().locals().get(5));
+    assertEquals(0, machine.snapshot().selectedFrames().getFirst().locals().get(2));
+    assertEquals(1, machine.snapshot().selectedFrames().getFirst().locals().get(5));
 
     machine.rewindOne();
     assertEquals(BufferKind.BYTES, machine.snapshot().buffers().getFirst().kind());
-    assertEquals(1, machine.snapshot().frames().getFirst().locals().get(2));
-    assertEquals(0, machine.snapshot().frames().getFirst().locals().get(5));
+    assertEquals(1, machine.snapshot().selectedFrames().getFirst().locals().get(2));
+    assertEquals(0, machine.snapshot().selectedFrames().getFirst().locals().get(5));
 
     machine.run();
     while (machine.historySize() > 0) {

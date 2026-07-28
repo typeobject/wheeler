@@ -23,7 +23,7 @@ public final class VirtualMachine {
 
   private final Program program;
   private final long[] globals;
-  private final List<Frame> frames = new ArrayList<>();
+  private final TaskTable tasks;
   private final AggregateStore aggregates = new AggregateStore();
   private final OwnedStore owned = new OwnedStore();
   private final long hostOutputHandle;
@@ -79,7 +79,7 @@ public final class VirtualMachine {
         HostEffectBinder.bind(entry, owned, hostInput, binaryInput, outputBytes);
     hostOutputHandle = effects.outputHandle();
     hostOutputLength = Math.max(0, outputBytes);
-    this.frames.add(Frame.create(
+    this.tasks = new TaskTable(Frame.create(
         entry.id(), false, entry.localCount(), -1, effects.arguments()));
   }
 
@@ -144,13 +144,13 @@ public final class VirtualMachine {
     switch (record.controlChange()) {
       case ADVANCE -> replaceCurrentFrame(record.previousFrame());
       case CALL -> {
-        if (frames.size() < 2) {
+        if (tasks.frameDepth() < 2) {
           throw new IllegalStateException("Corrupt CALL undo state");
         }
-        frames.removeLast();
+        tasks.removeLastFrame();
         replaceCurrentFrame(record.previousFrame());
       }
-      case RETURN -> frames.add(record.previousFrame());
+      case RETURN -> tasks.addFrame(record.previousFrame());
     }
     hostOutputLength = record.previousHostOutputLength();
     status = record.previousStatus();
@@ -185,9 +185,9 @@ public final class VirtualMachine {
       throw new VmTrap("Function has no inverse: " + function.name());
     }
     history.clear();
-    int callerDepth = frames.size();
-    frames.add(Frame.create(functionId, inverse, function.localCount()));
-    while (frames.size() > callerDepth) {
+    int callerDepth = tasks.frameDepth();
+    tasks.addFrame(Frame.create(functionId, inverse, function.localCount()));
+    while (tasks.frameDepth() > callerDepth) {
       step();
     }
     history.clear();
@@ -232,10 +232,10 @@ public final class VirtualMachine {
       values.put(program.globals().get(i).name(), globals[i]);
     }
     return new MachineSnapshot(
-        TaskId.ROOT,
+        tasks.selected(),
         0,
         status,
-        List.copyOf(frames),
+        tasks.snapshotFrames(),
         Map.copyOf(values),
         aggregates.records(),
         aggregates.variants(),
@@ -538,24 +538,24 @@ public final class VirtualMachine {
         int functionId = Math.toIntExact(operand(instruction, 0));
         advanceCurrentFrame();
         FunctionBody target = program.function(functionId);
-        frames.add(Frame.create(functionId, opcode == Opcode.UNCALL, target.localCount()));
+        tasks.addFrame(Frame.create(functionId, opcode == Opcode.UNCALL, target.localCount()));
         control = StepRecord.ControlChange.CALL;
       }
       case CALL_VALUE, CALL_VOID -> {
         ArgumentCallBinder.Binding binding = ArgumentCallBinder.bind(
             program, currentFrame(), instruction, opcode == Opcode.CALL_VALUE);
         replaceCurrentFrame(binding.caller());
-        frames.add(binding.callee());
+        tasks.addFrame(binding.callee());
         control = StepRecord.ControlChange.CALL;
       }
       case RETURN -> {
-        frames.removeLast();
+        tasks.removeLastFrame();
         control = StepRecord.ControlChange.RETURN;
       }
       case RETURN_VALUE -> {
         long result = localValue(instruction, 0);
         int destination = frame.returnDestination();
-        frames.removeLast();
+        tasks.removeLastFrame();
         changedLocal = destination;
         previousLocalValue = currentFrame().local(destination);
         replaceCurrentFrame(currentFrame().withLocal(destination, result));
@@ -809,13 +809,13 @@ public final class VirtualMachine {
           }
         }
         case RETURN -> {
-          if (frames.size() <= 1 || currentFrame().returnDestination() != -1) {
+          if (tasks.frameDepth() <= 1 || currentFrame().returnDestination() != -1) {
             trap("Invalid void return");
           }
         }
         case RETURN_VALUE -> {
           localIndex(instruction, 0);
-          if (frames.size() <= 1 || currentFrame().returnDestination() < 0) {
+          if (tasks.frameDepth() <= 1 || currentFrame().returnDestination() < 0) {
             trap("Invalid value return");
           }
         }
@@ -841,10 +841,10 @@ public final class VirtualMachine {
   }
 
   private Frame currentFrame() {
-    if (frames.isEmpty()) {
+    if (tasks.frameStackEmpty()) {
       throw new IllegalStateException("Machine has no control frame");
     }
-    return frames.getLast();
+    return tasks.currentFrame();
   }
 
   private void advanceCurrentFrame() {
@@ -860,7 +860,7 @@ public final class VirtualMachine {
   }
 
   private void replaceCurrentFrame(Frame frame) {
-    frames.set(frames.size() - 1, frame);
+    tasks.replaceCurrentFrame(frame);
   }
 
   private int globalIndex(Instruction instruction, int operandIndex) {
@@ -942,7 +942,7 @@ public final class VirtualMachine {
   }
 
   private void requireCallCapacity() {
-    if (frames.size() >= MAX_CALL_DEPTH) {
+    if (tasks.frameDepth() >= MAX_CALL_DEPTH) {
       trap("Call depth limit exceeded");
     }
   }

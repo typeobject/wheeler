@@ -206,7 +206,7 @@ class MinimalCompilerResultExampleTest {
     } catch (VmTrap trap) {
       throw new AssertionError(
           "Wheeler compiler trapped at instruction "
-              + writer.snapshot().frames().getLast().programCounter()
+              + writer.snapshot().selectedFrames().getLast().programCounter()
               + " (" + writerProgramInstruction(writer, writerProgram) + ")"
               + ", output cursor " + writer.global("finalCursor")
               + ", and verification " + writer.global("verification"),
@@ -215,7 +215,7 @@ class MinimalCompilerResultExampleTest {
   }
 
   private static String writerProgramInstruction(VirtualMachine writer, Program writerProgram) {
-    var frame = writer.snapshot().frames().getLast();
+    var frame = writer.snapshot().selectedFrames().getLast();
     return writerProgram.function(frame.functionId()).name() + " "
         + writerProgram.function(frame.functionId()).forward().get(frame.programCounter()).toString();
   }

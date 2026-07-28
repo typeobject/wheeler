@@ -8,7 +8,7 @@ public record MachineSnapshot(
     TaskId selectedTask,
     long workflowEpoch,
     MachineStatus status,
-    List<Frame> frames,
+    Map<TaskId, List<Frame>> taskFrames,
     Map<String, Long> globals,
     List<RecordValue> records,
     List<VariantValue> variants,
@@ -18,4 +18,13 @@ public record MachineSnapshot(
     List<BufferValue> buffers,
     int hostOutputLength,
     int historyRecords,
-    long sequence) {}
+    long sequence) {
+  /** Returns the immutable frame stack for the selected semantic task. */
+  public List<Frame> selectedFrames() {
+    List<Frame> selected = taskFrames.get(selectedTask);
+    if (selected == null) {
+      throw new IllegalStateException("Snapshot omits its selected task");
+    }
+    return selected;
+  }
+}
