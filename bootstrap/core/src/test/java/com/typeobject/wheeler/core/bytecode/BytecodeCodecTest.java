@@ -46,8 +46,8 @@ class BytecodeCodecTest {
     String text = new Disassembler().disassemble(reader.read(writer.write(ProgramFixtures.counter())));
 
     assertTrue(text.contains("function 1 increment reversible"));
-    assertTrue(text.contains("ADD_CONST"));
-    assertTrue(text.contains("SUB_CONST"));
+    assertTrue(text.contains("ADD_CONST    global=0, immediate=1"));
+    assertTrue(text.contains("SUB_CONST    global=0, immediate=1"));
   }
 
   @Test

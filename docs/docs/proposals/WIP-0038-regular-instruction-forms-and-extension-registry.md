@@ -220,7 +220,7 @@ Registry duplication fails tests and build checks. Runtime registration does not
 - [x] Wheeler-native emitters use named instruction arities and operand widths.
 - [x] Registry tests reject duplicate identities and field-order drift.
 - [ ] Verifier diagnostics name operand roles from registry metadata.
-- [ ] Disassembly labels fields from registry metadata.
+- [x] Disassembly labels fields from registry metadata.
 - [ ] Artifact metadata declares required instruction extensions.
 - [ ] Generated metadata replaces remaining parallel semantic tables.
 
@@ -233,7 +233,8 @@ Registry duplication fails tests and build checks. Runtime registration does not
 - [x] Wheeler-native compiler output remains byte-identical to stage 0.
 - [ ] Malformed extension declarations fail before instruction decoding.
 - [ ] Unsupported required extensions fail before execution.
-- [ ] Verifier and disassembler tests assert role-labelled output.
+- [ ] Verifier diagnostics and tests name invalid operand roles.
+- [x] Disassembler tests assert role-labelled output.
 - [ ] Current reference docs describe extension negotiation after it works.
 
 ## Alternatives

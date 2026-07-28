@@ -121,7 +121,11 @@ public final class Disassembler {
     for (int pc = 0; pc < body.size(); pc++) {
       Instruction instruction = body.get(pc);
       StringJoiner operands = new StringJoiner(", ");
-      instruction.operands().forEach(operand -> operands.add(Long.toString(operand)));
+      var roles = instruction.opcode().form().roles();
+      for (int operand = 0; operand < instruction.operands().size(); operand++) {
+        String role = roles.get(operand).name().toLowerCase();
+        operands.add(role + "=" + instruction.operands().get(operand));
+      }
       output.append("    %04d  %-12s %s%n".formatted(pc, instruction.opcode(), operands));
     }
   }
