@@ -108,6 +108,7 @@ public final class VirtualMachine {
     TaskId previousSchedulerCursor = scheduler.cursor();
     TaskId selectedTask = scheduler.next(tasks.runnableTaskIds());
     tasks.select(selectedTask);
+    TaskStatus previousTaskStatus = tasks.selectedStatus();
     Frame frame;
     Instruction instruction;
     try {
@@ -123,17 +124,25 @@ public final class VirtualMachine {
       throw exception;
     }
     scheduler.commit(selectedTask);
+    tasks.setSelectedStatus(TaskStatus.RUNNING);
 
     MachineStatus previousStatus = status;
     status = MachineStatus.RUNNING;
     StepRecord record = execute(
-        frame, instruction, previousStatus, previousSelectedTask, previousSchedulerCursor);
+        frame,
+        instruction,
+        previousStatus,
+        previousSelectedTask,
+        previousSchedulerCursor,
+        previousTaskStatus);
     sequence = Math.addExact(sequence, 1);
     if (instruction.opcode() == Opcode.COMMIT) {
       history.clear();
     } else {
       history.push(record);
     }
+    tasks.setSelectedStatus(
+        status == MachineStatus.HALTED ? TaskStatus.COMPLETED : TaskStatus.RUNNABLE);
     observer.observe(
         TransitionObserver.execution(sequence, tasks.selected(), frame, instruction));
   }
@@ -169,6 +178,7 @@ public final class VirtualMachine {
       case RETURN -> tasks.addFrame(record.previousFrame());
     }
     hostOutputLength = record.previousHostOutputLength();
+    tasks.setSelectedStatus(record.previousTaskStatus());
     tasks.select(record.previousSelectedTask());
     scheduler.restore(record.previousSchedulerCursor());
     status = record.previousStatus();
@@ -254,6 +264,7 @@ public final class VirtualMachine {
         scheduler.cursor(),
         0,
         status,
+        tasks.snapshotStatuses(),
         tasks.snapshotFrames(),
         Map.copyOf(values),
         aggregates.records(),
@@ -280,7 +291,8 @@ public final class VirtualMachine {
       Instruction instruction,
       MachineStatus previousStatus,
       TaskId previousSelectedTask,
-      TaskId previousSchedulerCursor) {
+      TaskId previousSchedulerCursor,
+      TaskStatus previousTaskStatus) {
     Opcode opcode = instruction.opcode();
     int changedGlobal = StepRecord.NO_GLOBAL;
     long previousValue = 0;
@@ -596,6 +608,7 @@ public final class VirtualMachine {
         new EventId(0, tasks.selected(), Math.addExact(sequence, 1)),
         previousSelectedTask,
         previousSchedulerCursor,
+        previousTaskStatus,
         instruction,
         previousStatus,
         control,
@@ -978,6 +991,7 @@ public final class VirtualMachine {
 
   private void trap(String message) {
     status = MachineStatus.TRAPPED;
+    tasks.setSelectedStatus(TaskStatus.FAILED);
     throw new VmTrap(message);
   }
 }

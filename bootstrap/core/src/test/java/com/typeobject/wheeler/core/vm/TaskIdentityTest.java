@@ -31,6 +31,7 @@ final class TaskIdentityTest {
     assertEquals(TaskId.ROOT, machine.snapshot().selectedTask());
     assertEquals(TaskId.ROOT, machine.snapshot().schedulerCursor());
     assertEquals(List.of(TaskId.ROOT), machine.snapshot().taskFrames().keySet().stream().toList());
+    assertEquals(TaskStatus.RUNNABLE, machine.snapshot().taskStatuses().get(TaskId.ROOT));
     assertEquals(machine.snapshot().taskFrames().get(TaskId.ROOT),
         machine.snapshot().selectedFrames());
     assertEquals(0, machine.snapshot().workflowEpoch());
@@ -42,6 +43,11 @@ final class TaskIdentityTest {
     assertEquals(executed, observations.get(1).eventId());
     assertEquals(TransitionObserver.Direction.FORWARD, observations.get(0).direction());
     assertEquals(TransitionObserver.Direction.REWIND_FORWARD, observations.get(1).direction());
+    assertEquals(TaskStatus.RUNNABLE, machine.snapshot().taskStatuses().get(TaskId.ROOT));
+
+    VirtualMachine completed = new VirtualMachine(ProgramFixtures.counter());
+    completed.run();
+    assertEquals(TaskStatus.COMPLETED, completed.snapshot().taskStatuses().get(TaskId.ROOT));
   }
 
   @Test

@@ -9,6 +9,7 @@ public record MachineSnapshot(
     TaskId schedulerCursor,
     long workflowEpoch,
     MachineStatus status,
+    Map<TaskId, TaskStatus> taskStatuses,
     Map<TaskId, List<Frame>> taskFrames,
     Map<String, Long> globals,
     List<RecordValue> records,

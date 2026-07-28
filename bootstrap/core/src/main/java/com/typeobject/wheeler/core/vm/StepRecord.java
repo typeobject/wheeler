@@ -9,6 +9,7 @@ public record StepRecord(
     EventId eventId,
     TaskId previousSelectedTask,
     TaskId previousSchedulerCursor,
+    TaskStatus previousTaskStatus,
     Instruction instruction,
     MachineStatus previousStatus,
     ControlChange controlChange,
@@ -35,6 +36,7 @@ public record StepRecord(
     Objects.requireNonNull(eventId, "eventId");
     Objects.requireNonNull(previousSelectedTask, "previousSelectedTask");
     Objects.requireNonNull(previousSchedulerCursor, "previousSchedulerCursor");
+    Objects.requireNonNull(previousTaskStatus, "previousTaskStatus");
     Objects.requireNonNull(instruction, "instruction");
     Objects.requireNonNull(previousStatus, "previousStatus");
     Objects.requireNonNull(controlChange, "controlChange");

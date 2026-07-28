@@ -402,7 +402,7 @@ Native worker failure and external uncertainty follow their owning WIPs. They do
 
 - [x] Quantum target work uses QuantumSubmission. I/O backend work uses IoProviderResult. Task terminology is reserved for this VM model.
 - [x] Existing artifacts execute through a canonical task table containing root task zero with stable TaskId and EventId origins.
-- [x] The compatibility VM owns a deterministic round-robin selector and rewindable scheduler cursor. Multi-task lifecycle remains open.
+- [x] The compatibility VM owns typed root-task lifecycle state, a deterministic round-robin selector, and rewindable task and scheduler deltas. Multi-task lifecycle remains open.
 - [ ] Task-aware snapshots and complete global task event records exist.
 - [ ] Structured spawn, completion, join, and exit execute.
 - [ ] Canonical scheduling is deterministic.

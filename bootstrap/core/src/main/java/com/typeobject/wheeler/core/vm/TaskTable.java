@@ -12,10 +12,12 @@ import java.util.TreeSet;
 /** Bounded canonical owner of semantic tasks and their frame stacks. */
 final class TaskTable {
   private final TreeMap<TaskId, ArrayList<Frame>> frames = new TreeMap<>();
+  private final TreeMap<TaskId, TaskStatus> statuses = new TreeMap<>();
   private TaskId selected = TaskId.ROOT;
 
   TaskTable(Frame rootFrame) {
     frames.put(TaskId.ROOT, new ArrayList<>(List.of(rootFrame)));
+    statuses.put(TaskId.ROOT, TaskStatus.RUNNABLE);
   }
 
   TaskId selected() {
@@ -23,7 +25,13 @@ final class TaskTable {
   }
 
   NavigableSet<TaskId> runnableTaskIds() {
-    return Collections.unmodifiableNavigableSet(new TreeSet<>(frames.navigableKeySet()));
+    TreeSet<TaskId> runnable = new TreeSet<>();
+    statuses.forEach((task, status) -> {
+      if (status == TaskStatus.RUNNABLE) {
+        runnable.add(task);
+      }
+    });
+    return Collections.unmodifiableNavigableSet(runnable);
   }
 
   void select(TaskId taskId) {
@@ -31,6 +39,21 @@ final class TaskTable {
       throw new VmTrap("Scheduler selected an unknown task: " + taskId.canonicalName());
     }
     selected = taskId;
+  }
+
+  TaskStatus selectedStatus() {
+    TaskStatus status = statuses.get(selected);
+    if (status == null) {
+      throw new VmTrap("Selected task has no status: " + selected.canonicalName());
+    }
+    return status;
+  }
+
+  void setSelectedStatus(TaskStatus status) {
+    if (status == null) {
+      throw new IllegalArgumentException("Task status is required");
+    }
+    statuses.put(selected, status);
   }
 
   int frameDepth() {
@@ -62,6 +85,10 @@ final class TaskTable {
     Map<TaskId, List<Frame>> snapshot = new LinkedHashMap<>();
     frames.forEach((task, stack) -> snapshot.put(task, List.copyOf(stack)));
     return Collections.unmodifiableMap(snapshot);
+  }
+
+  Map<TaskId, TaskStatus> snapshotStatuses() {
+    return Collections.unmodifiableMap(new LinkedHashMap<>(statuses));
   }
 
   private ArrayList<Frame> selectedFrames() {
