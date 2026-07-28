@@ -634,7 +634,7 @@ classical class HelperParser {
         entryCursor += entryWidth;
       }
 
-      if (resultCallCount == 1) {} else {
+      if (0 < resultCallCount) {} else {
         return new MinimalProgramResult.Error(0);
       }
 

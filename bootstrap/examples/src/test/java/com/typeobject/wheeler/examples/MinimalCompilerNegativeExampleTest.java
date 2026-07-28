@@ -229,6 +229,15 @@ class MinimalCompilerNegativeExampleTest {
     assertThrows(VmTrap.class, oversizedResultEntryMachine::run);
     assertArrayEquals(new byte[4096], oversizedResultEntryMachine.hostOutput());
 
+    VirtualMachine missingResultCall = new VirtualMachine(
+        writerProgram,
+        ("classical class MissingResultCall { long value() { return 1; } "
+                + "entry void main() { long ignored = 0; } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, missingResultCall::run);
+    assertArrayEquals(new byte[512], missingResultCall.hostOutput());
+
     VirtualMachine missingCallArgument = new VirtualMachine(
         writerProgram,
         ("classical class MissingCallArgument { long identity(long value) { return value; } "
