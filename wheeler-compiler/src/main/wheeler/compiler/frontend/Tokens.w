@@ -302,6 +302,16 @@ classical class Tokens {
   public const long STATEMENT_RETURN_LOCAL_MOD_NAMED = 834;
   /// Names a signed local initialized by passing a prior local to a helper.
   public const long STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED = 835;
+  /// Names a signed helper return adding its parameter to itself.
+  public const long STATEMENT_RETURN_LOCAL_ADD_LOCAL_NAMED = 836;
+  /// Names a signed helper return subtracting its parameter from itself.
+  public const long STATEMENT_RETURN_LOCAL_SUB_LOCAL_NAMED = 837;
+  /// Names a signed helper return multiplying its parameter by itself.
+  public const long STATEMENT_RETURN_LOCAL_MUL_LOCAL_NAMED = 838;
+  /// Names a signed helper return dividing its parameter by itself.
+  public const long STATEMENT_RETURN_LOCAL_DIV_LOCAL_NAMED = 839;
+  /// Names a signed helper return reducing its parameter modulo itself.
+  public const long STATEMENT_RETURN_LOCAL_MOD_LOCAL_NAMED = 840;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -346,6 +356,10 @@ classical class Tokens {
       return true;
     }
 
+    if (returnLocalPairStatement(opcode)) {
+      return true;
+    }
+
     if (opcode < STATEMENT_LOCAL_CALL_NAMED) {
       return false;
     }
@@ -360,6 +374,15 @@ classical class Tokens {
     }
 
     return opcode < STATEMENT_RETURN_LOCAL_MOD_NAMED + 1;
+  }
+
+  /// Checks for a signed helper return using its parameter twice.
+  public boolean returnLocalPairStatement(long opcode) {
+    if (opcode < STATEMENT_RETURN_LOCAL_ADD_LOCAL_NAMED) {
+      return false;
+    }
+
+    return opcode < STATEMENT_RETURN_LOCAL_MOD_LOCAL_NAMED + 1;
   }
 
   /// Computes the stable hash of one bounded source token.
@@ -501,23 +524,46 @@ classical class Tokens {
       long returnedScalar = utf8Scalar(source, tokenStarts[statementStart + 1]);
       if (identifierStart(returnedScalar)) {
         long returnOperator = utf8Scalar(source, tokenStarts[statementStart + 2]);
+        boolean returnRightNamed = identifierStart(
+          utf8Scalar(source, tokenStarts[statementStart + 3])
+        );
         if (returnOperator == PUNCTUATION_PLUS) {
+          if (returnRightNamed) {
+            return STATEMENT_RETURN_LOCAL_ADD_LOCAL_NAMED;
+          }
+
           return STATEMENT_RETURN_LOCAL_ADD_NAMED;
         }
 
         if (returnOperator == PUNCTUATION_MINUS) {
+          if (returnRightNamed) {
+            return STATEMENT_RETURN_LOCAL_SUB_LOCAL_NAMED;
+          }
+
           return STATEMENT_RETURN_LOCAL_SUB_NAMED;
         }
 
         if (returnOperator == PUNCTUATION_STAR) {
+          if (returnRightNamed) {
+            return STATEMENT_RETURN_LOCAL_MUL_LOCAL_NAMED;
+          }
+
           return STATEMENT_RETURN_LOCAL_MUL_NAMED;
         }
 
         if (returnOperator == PUNCTUATION_SLASH) {
+          if (returnRightNamed) {
+            return STATEMENT_RETURN_LOCAL_DIV_LOCAL_NAMED;
+          }
+
           return STATEMENT_RETURN_LOCAL_DIV_NAMED;
         }
 
         if (returnOperator == PUNCTUATION_PERCENT) {
+          if (returnRightNamed) {
+            return STATEMENT_RETURN_LOCAL_MOD_LOCAL_NAMED;
+          }
+
           return STATEMENT_RETURN_LOCAL_MOD_NAMED;
         }
 

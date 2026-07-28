@@ -201,6 +201,53 @@ classical class Structure {
       return -1;
     }
 
+    if (returnLocalPairStatement(statementKind)) {
+      if (tokenKinds[statementStart + 1] == 1) {} else {
+        return -1;
+      }
+
+      if (tokenKinds[statementStart + 3] == 1) {} else {
+        return -1;
+      }
+
+      long pairOperator = PUNCTUATION_PLUS;
+      if (statementKind == STATEMENT_RETURN_LOCAL_SUB_LOCAL_NAMED) {
+        pairOperator = PUNCTUATION_MINUS;
+      }
+
+      if (statementKind == STATEMENT_RETURN_LOCAL_MUL_LOCAL_NAMED) {
+        pairOperator = PUNCTUATION_STAR;
+      }
+
+      if (statementKind == STATEMENT_RETURN_LOCAL_DIV_LOCAL_NAMED) {
+        pairOperator = PUNCTUATION_SLASH;
+      }
+
+      if (statementKind == STATEMENT_RETURN_LOCAL_MOD_LOCAL_NAMED) {
+        pairOperator = PUNCTUATION_PERCENT;
+      }
+
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, pairOperator) == false
+      ) {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 4,
+          PUNCTUATION_SEMICOLON
+        )
+      ) {
+        return 5;
+      }
+
+      return -1;
+    }
+
     if (returnLocalBinaryStatement(statementKind)) {
       if (tokenKinds[statementStart + 1] == 1) {} else {
         return -1;

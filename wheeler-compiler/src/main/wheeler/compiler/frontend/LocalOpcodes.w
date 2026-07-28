@@ -319,6 +319,10 @@ classical class LocalOpcodes {
       return 3;
     }
 
+    if (returnLocalPairStatement(opcode)) {
+      return 3;
+    }
+
     if (namedLiteralComparisonConditional(opcode)) {
       if (literalComparisonConditionalAssignment(opcode)) {
         return 4;
@@ -594,6 +598,10 @@ classical class LocalOpcodes {
     }
 
     if (returnLocalBinaryStatement(opcode)) {
+      return 96;
+    }
+
+    if (returnLocalPairStatement(opcode)) {
       return 96;
     }
 

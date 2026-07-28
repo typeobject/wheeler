@@ -130,6 +130,10 @@ classical class HelperParser {
         parameterReturn = true;
       }
 
+      if (returnLocalPairStatement(helperSequence.opcodes[0])) {
+        parameterReturn = true;
+      }
+
       if (parameterReturn == false) {
         return new MinimalProgramResult.Error(0);
       }
@@ -147,6 +151,10 @@ classical class HelperParser {
         }
 
         if (returnLocalBinaryStatement(helperSequence.opcodes[helperStatement])) {
+          return new MinimalProgramResult.Error(0);
+        }
+
+        if (returnLocalPairStatement(helperSequence.opcodes[helperStatement])) {
           return new MinimalProgramResult.Error(0);
         }
 
@@ -491,6 +499,15 @@ classical class HelperParser {
         sameTokenText(source, tokenStarts, tokenLengths, parameterToken, returnStart + 1) == false
       ) {
         return new MinimalProgramResult.Error(0);
+      }
+
+      long returnOpcode = statementOpcode(source, tokenStarts, tokenLengths, returnStart);
+      if (returnLocalPairStatement(returnOpcode)) {
+        if (
+          sameTokenText(source, tokenStarts, tokenLengths, parameterToken, returnStart + 3) == false
+        ) {
+          return new MinimalProgramResult.Error(0);
+        }
       }
     }
 

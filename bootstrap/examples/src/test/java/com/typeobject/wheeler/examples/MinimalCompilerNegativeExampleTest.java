@@ -123,6 +123,16 @@ class MinimalCompilerNegativeExampleTest {
     assertThrows(VmTrap.class, wrongReturnedParameter::run);
     assertArrayEquals(new byte[512], wrongReturnedParameter.hostOutput());
 
+    VirtualMachine wrongReturnRightParameter = new VirtualMachine(
+        writerProgram,
+        ("classical class WrongReturnRightParameter { "
+                + "long identity(long value) { return value + other; } "
+                + "entry void main() { long answer = identity(42); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, wrongReturnRightParameter::run);
+    assertArrayEquals(new byte[512], wrongReturnRightParameter.hostOutput());
+
     VirtualMachine missingCallArgument = new VirtualMachine(
         writerProgram,
         ("classical class MissingCallArgument { long identity(long value) { return value; } "

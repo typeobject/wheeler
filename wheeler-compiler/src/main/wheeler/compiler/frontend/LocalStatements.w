@@ -760,6 +760,10 @@ classical class LocalStatements {
       return 0;
     }
 
+    if (returnLocalPairStatement(opcode)) {
+      return 0;
+    }
+
     return parsedSignedNumber(source, tokenStarts, tokenLengths, operandToken);
   }
 

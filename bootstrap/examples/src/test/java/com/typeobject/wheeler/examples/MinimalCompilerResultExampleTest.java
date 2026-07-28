@@ -30,6 +30,35 @@ class MinimalCompilerResultExampleTest {
             + "assert(answer == -42); } }");
     assertDifferentialHalt(
         writerProgram,
+        "classical class SignedParameterPairAdd { long twice(long value) { return value + value; } "
+            + "entry void main() { long answer = twice(21); assert(answer == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedParameterPairSubtract { "
+            + "long zero(long value) { return value - value; } "
+            + "entry void main() { long answer = zero(42); assert(answer == 0); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedParameterPairMultiply { "
+            + "long square(long value) { return value * value; } "
+            + "entry void main() { long answer = square(6); assert(answer == 36); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedParameterPairDivide { "
+            + "long unit(long value) { return value / value; } "
+            + "entry void main() { long answer = unit(42); assert(answer == 1); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedParameterPairRemainder { "
+            + "long zero(long value) { return value % value; } "
+            + "entry void main() { long answer = zero(42); assert(answer == 0); } }");
+    assertDifferentialTrap(
+        writerProgram,
+        "classical class SignedParameterPairDivideZero { "
+            + "long fail(long value) { return value / value; } "
+            + "entry void main() { long answer = fail(0); } }");
+    assertDifferentialHalt(
+        writerProgram,
         "classical class SignedParameterAdd { long increment(long value) { return value + 1; } "
             + "entry void main() { long answer = increment(41); "
             + "assert(answer == 42); } }");

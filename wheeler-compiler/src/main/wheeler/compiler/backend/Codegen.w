@@ -322,6 +322,38 @@ classical class Codegen {
       return writeUnsignedLittleEndian(output, cursor, localBase, 8);
     }
 
+    if (returnLocalPairStatement(opcode)) {
+      long returnPairOpcode = OPCODE_LOCAL_ADD;
+      if (opcode == STATEMENT_RETURN_LOCAL_SUB_LOCAL_NAMED) {
+        returnPairOpcode = OPCODE_LOCAL_SUB;
+      }
+
+      if (opcode == STATEMENT_RETURN_LOCAL_MUL_LOCAL_NAMED) {
+        returnPairOpcode = OPCODE_LOCAL_MUL;
+      }
+
+      if (opcode == STATEMENT_RETURN_LOCAL_DIV_LOCAL_NAMED) {
+        returnPairOpcode = OPCODE_LOCAL_DIV;
+      }
+
+      if (opcode == STATEMENT_RETURN_LOCAL_MOD_LOCAL_NAMED) {
+        returnPairOpcode = OPCODE_LOCAL_MOD;
+      }
+
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, 2);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8);
+      cursor = writeInstructionHeader(output, cursor, returnPairOpcode, 3);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN_VALUE, 1);
+      return writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
+    }
+
     if (returnLocalBinaryStatement(opcode)) {
       long returnOpcode = OPCODE_LOCAL_ADD;
       if (opcode == STATEMENT_RETURN_LOCAL_SUB_NAMED) {
