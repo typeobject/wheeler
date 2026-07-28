@@ -88,6 +88,10 @@ classical class HelperParser {
       parameterCount = 2;
     }
 
+    if (helperKind == HELPER_BOOLEAN_ONE) {
+      parameterCount = 1;
+    }
+
     if (0 < parameterCount) {
       long shifted = helperStatementCount;
       while (0 < shifted) limit MAX_MINIMAL_STATEMENTS {
@@ -95,7 +99,12 @@ classical class HelperParser {
         shifted -= 1;
       }
 
-      set(helperStarts, 0, 0 - (nameToken + 3));
+      long firstParameterMarker = 0 - (nameToken + 3);
+      if (helperKind == HELPER_BOOLEAN_ONE) {
+        firstParameterMarker -= BOOLEAN_PARAMETER_TOKEN_BIAS;
+      }
+
+      set(helperStarts, 0, firstParameterMarker);
       if (parameterCount == 2) {
         set(helperStarts, 1, 0 - (nameToken + 6));
       }
@@ -133,7 +142,12 @@ classical class HelperParser {
       }
     }
 
-    if (helperKind == HELPER_BOOLEAN) {
+    boolean booleanHelper = helperKind == HELPER_BOOLEAN;
+    if (helperKind == HELPER_BOOLEAN_ONE) {
+      booleanHelper = true;
+    }
+
+    if (booleanHelper) {
       if (0 < helperSequence.count) {} else {
         return new MinimalProgramResult.Error(0);
       }
@@ -529,6 +543,24 @@ classical class HelperParser {
             helperKind = HELPER_SIGNED_TWO;
           }
         }
+      }
+    }
+
+    if (helperKind == HELPER_BOOLEAN) {
+      if (
+        tokenHash(source, tokenStarts, tokenLengths, closeParameters) == TOKEN_BOOLEAN
+      ) {
+        parameterToken = nameToken + 3;
+        if (tokenKinds[parameterToken] == 1) {} else {
+          return new MinimalProgramResult.Error(0);
+        }
+
+        if (tokenLengths[parameterToken] < 257) {} else {
+          return new MinimalProgramResult.Error(0);
+        }
+
+        closeParameters = nameToken + 4;
+        helperKind = HELPER_BOOLEAN_ONE;
       }
     }
 

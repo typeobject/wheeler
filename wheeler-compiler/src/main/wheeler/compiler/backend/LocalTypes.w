@@ -1,0 +1,179 @@
+//! Encodes bounded statement-local type tables.
+
+module wheeler.compiler.local_types;
+
+import wheeler.compiler.conditionals;
+import wheeler.compiler.encoding;
+import wheeler.compiler.local_opcodes;
+import wheeler.compiler.statement_forms;
+import wheeler.compiler.tokens;
+import wheeler.compiler.type_codes;
+
+classical class LocalTypes {
+  /// Bounds the temporary local window emitted by one source statement.
+  private const long MAX_STATEMENT_LOCALS = 6;
+
+  /// Writes one canonical signed local type code.
+  public long writeSignedLocalType(borrow mut bytes output, long cursor) {
+    return writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+  }
+
+  /// Writes one canonical Boolean local type code.
+  public long writeBooleanLocalType(borrow mut bytes output, long cursor) {
+    return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+  }
+
+  /// Writes canonical local type codes for one parsed statement.
+  public long writeStatementLocalTypes(borrow mut bytes output, long cursor, long opcode) {
+    long count = statementLocalCount(opcode);
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED) {
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+    }
+
+    if (oneArgumentBooleanCall(opcode)) {
+      long callLocal = 0;
+      while (callLocal < 4) limit MAX_STATEMENT_LOCALS {
+        cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+        callLocal += 1;
+      }
+
+      return cursor;
+    }
+
+    if (opcode == STATEMENT_RETURN_BOOLEAN) {
+      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+    }
+
+    if (resolvedLocalReturn(opcode)) {
+      long resultType = TYPE_BOOLEAN;
+      if (resolvedSignedLocalReturn(opcode)) {
+        resultType = TYPE_SIGNED;
+      }
+
+      return writeUnsignedLittleEndian(output, cursor, resultType, 4);
+    }
+
+    if (opcode == STATEMENT_ASSERT_LITERAL_EQ) {
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+    }
+
+    if (resolvedLocalLessThanAssertion(opcode)) {
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+    }
+
+    if (resolvedLocalPairAssertion(opcode)) {
+      long assertedType = TYPE_BOOLEAN;
+      if (resolvedLocalPairAssertionSigned(opcode)) {
+        assertedType = TYPE_SIGNED;
+      }
+
+      cursor = writeUnsignedLittleEndian(output, cursor, assertedType, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, assertedType, 4);
+      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+    }
+
+    if (resolvedLiteralComparisonConditional(opcode)) {
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      if (literalComparisonConditionalAssignment(opcode)) {
+        return cursor;
+      }
+
+      return writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+    }
+
+    if (resolvedLocalConditional(opcode)) {
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+      if (resolvedLocalConditionalNegated(opcode)) {
+        cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+      }
+
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      if (resolvedLocalConditionalAssignment(opcode)) {
+        return cursor;
+      }
+
+      return writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+    }
+
+    boolean comparison = resolvedLocalEquality(opcode);
+    if (resolvedLocalLongLessThan(opcode)) {
+      comparison = true;
+    }
+
+    if (resolvedLocalLiteralComparison(opcode)) {
+      comparison = true;
+    }
+
+    if (comparison) {
+      long sourceType = TYPE_BOOLEAN;
+      if (resolvedLocalEqualitySigned(opcode)) {
+        sourceType = TYPE_SIGNED;
+      }
+
+      if (resolvedLocalLongLessThan(opcode)) {
+        sourceType = TYPE_SIGNED;
+      }
+
+      if (resolvedLocalLiteralComparison(opcode)) {
+        sourceType = TYPE_SIGNED;
+      }
+
+      cursor = writeUnsignedLittleEndian(output, cursor, sourceType, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, sourceType, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+    }
+
+    if (resolvedLocalLongAssertion(opcode)) {
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+    }
+
+    long typeCode = TYPE_SIGNED;
+    if (resolvedLocalBooleanCopy(opcode)) {
+      typeCode = TYPE_BOOLEAN;
+    }
+
+    if (resolvedLocalBooleanNot(opcode)) {
+      typeCode = TYPE_BOOLEAN;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN) {
+      typeCode = TYPE_BOOLEAN;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT) {
+      typeCode = TYPE_BOOLEAN;
+    }
+
+    if (opcode == STATEMENT_ASSERT_BOOLEAN) {
+      typeCode = TYPE_BOOLEAN;
+    }
+
+    if (opcode == STATEMENT_ASSERT_BOOLEAN_NOT) {
+      typeCode = TYPE_BOOLEAN;
+    }
+
+    if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {
+      typeCode = TYPE_BOOLEAN;
+    }
+
+    long local = 0;
+    while (local < count) limit MAX_STATEMENT_LOCALS {
+      cursor = writeUnsignedLittleEndian(output, cursor, typeCode, 4);
+      local += 1;
+    }
+
+    return cursor;
+  }
+}

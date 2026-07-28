@@ -37,6 +37,22 @@ class MinimalCompilerResultExampleTest {
         "classical class RepeatedBooleanResultCalls { boolean ready() { return true; } "
             + "entry void main() { boolean first = ready(); boolean second = ready(); "
             + "assert(first == second); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class BooleanParameterLiteral { "
+            + "boolean identity(boolean value) { return value; } "
+            + "entry void main() { boolean result = identity(true); assert(result); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class BooleanParameterLocal { "
+            + "boolean identity(boolean value) { boolean result = value; return result; } "
+            + "entry void main() { boolean seed = true; boolean result = identity(seed); "
+            + "assert(result); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class BooleanParameterFalse { "
+            + "boolean identity(boolean value) { return value; } "
+            + "entry void main() { boolean result = identity(false); } }");
 
     assertDifferentialHalt(
         writerProgram,

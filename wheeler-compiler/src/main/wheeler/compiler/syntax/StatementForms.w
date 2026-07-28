@@ -30,7 +30,7 @@ classical class StatementForms {
       }
     }
 
-    if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+    if (oneArgumentCallStatement(opcode)) {
       return true;
     }
 
@@ -56,6 +56,41 @@ classical class StatementForms {
     }
 
     return opcode < STATEMENT_RETURN_LOCAL_MOD_NAMED + 1;
+  }
+
+  /// Checks for a signed or Boolean one-argument helper call.
+  public boolean oneArgumentCallStatement(long opcode) {
+    if (opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_ARGUMENT_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_LOCAL_BOOLEAN_CALL_LOCAL_ARGUMENT_NAMED;
+  }
+
+  /// Checks whether one helper call argument names a prior local.
+  public boolean oneArgumentCallNamed(long opcode) {
+    if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_LOCAL_BOOLEAN_CALL_LOCAL_ARGUMENT_NAMED;
+  }
+
+  /// Checks whether one helper call returns a Boolean.
+  public boolean oneArgumentBooleanCall(long opcode) {
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_ARGUMENT_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_LOCAL_BOOLEAN_CALL_LOCAL_ARGUMENT_NAMED;
   }
 
   /// Checks for a signed two-argument helper call.
@@ -465,7 +500,26 @@ classical class StatementForms {
 
       long equality = utf8Scalar(source, tokenStarts[statementStart + 4]);
       if (equality == PUNCTUATION_OPEN_PAREN) {
-        return STATEMENT_LOCAL_BOOLEAN_CALL_NAMED;
+        long booleanCallArgument = utf8Scalar(source, tokenStarts[statementStart + 5]);
+        if (booleanCallArgument == PUNCTUATION_CLOSE_PAREN) {
+          return STATEMENT_LOCAL_BOOLEAN_CALL_NAMED;
+        }
+
+        long booleanArgumentHash = tokenHash(
+          source,
+          tokenStarts,
+          tokenLengths,
+          statementStart + 5
+        );
+        if (booleanTokenHash(booleanArgumentHash)) {
+          return STATEMENT_LOCAL_BOOLEAN_CALL_ARGUMENT_NAMED;
+        }
+
+        if (identifierStart(booleanCallArgument)) {
+          return STATEMENT_LOCAL_BOOLEAN_CALL_LOCAL_ARGUMENT_NAMED;
+        }
+
+        return -1;
       }
 
       if (equality == PUNCTUATION_ASSIGN) {

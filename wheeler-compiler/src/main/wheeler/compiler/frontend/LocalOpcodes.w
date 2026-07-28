@@ -336,11 +336,7 @@ classical class LocalOpcodes {
       return 2;
     }
 
-    if (opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED) {
-      return 4;
-    }
-
-    if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+    if (oneArgumentCallStatement(opcode)) {
       return 4;
     }
 
@@ -577,11 +573,7 @@ classical class LocalOpcodes {
       return localBase + 1;
     }
 
-    if (opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED) {
-      return localBase + 3;
-    }
-
-    if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+    if (oneArgumentCallStatement(opcode)) {
       return localBase + 3;
     }
 
@@ -642,11 +634,7 @@ classical class LocalOpcodes {
       return 64;
     }
 
-    if (opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED) {
-      return 112;
-    }
-
-    if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+    if (oneArgumentCallStatement(opcode)) {
       return 112;
     }
 
@@ -795,11 +783,7 @@ classical class LocalOpcodes {
 
   /// Returns the instruction count emitted by one parsed statement.
   public long statementInstructionCount(long opcode) {
-    if (opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED) {
-      return 4;
-    }
-
-    if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+    if (oneArgumentCallStatement(opcode)) {
       return 4;
     }
 

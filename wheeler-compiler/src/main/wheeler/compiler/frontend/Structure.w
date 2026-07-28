@@ -482,7 +482,7 @@ classical class Structure {
       return -1;
     }
 
-    if (statementKind == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+    if (oneArgumentCallNamed(statementKind)) {
       if (tokenKinds[statementStart + 1] == 1) {} else {
         return -1;
       }
@@ -541,7 +541,12 @@ classical class Structure {
       return -1;
     }
 
-    if (statementKind == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED) {
+    boolean literalOneArgumentCall = statementKind == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED;
+    if (statementKind == STATEMENT_LOCAL_BOOLEAN_CALL_ARGUMENT_NAMED) {
+      literalOneArgumentCall = true;
+    }
+
+    if (literalOneArgumentCall) {
       if (tokenKinds[statementStart + 1] == 1) {} else {
         return -1;
       }
@@ -569,20 +574,23 @@ classical class Structure {
         return -1;
       }
 
-      long argumentWidth = signedNumberWidth(
-        source,
-        tokenKinds,
-        tokenStarts,
-        statementStart + 5
-      );
-      if (argumentWidth < 1) {
-        return -1;
-      }
+      long argumentWidth = 1;
+      if (statementKind == STATEMENT_LOCAL_BOOLEAN_CALL_ARGUMENT_NAMED) {
+        long argumentHash = tokenHash(source, tokenStarts, tokenLengths, statementStart + 5);
+        if (booleanTokenHash(argumentHash) == false) {
+          return -1;
+        }
+      } else {
+        argumentWidth = signedNumberWidth(source, tokenKinds, tokenStarts, statementStart + 5);
+        if (argumentWidth < 1) {
+          return -1;
+        }
 
-      if (
-        signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 5) == false
-      ) {
-        return -1;
+        if (
+          signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 5) == false
+        ) {
+          return -1;
+        }
       }
 
       if (

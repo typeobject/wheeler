@@ -44,7 +44,12 @@ classical class Operands {
       );
     }
 
-    if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+    if (oneArgumentCallNamed(opcode)) {
+      boolean signedArgument = true;
+      if (oneArgumentBooleanCall(opcode)) {
+        signedArgument = false;
+      }
+
       return resolvePriorDeclaration(
         source,
         tokenStarts,
@@ -52,7 +57,7 @@ classical class Operands {
         previousStarts,
         previousCount,
         statementStart + 5,
-        true
+        signedArgument
       );
     }
 
@@ -291,6 +296,10 @@ classical class Operands {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
     long operandToken = statementOperandToken(source, tokenStarts, tokenLengths, statementStart);
     boolean booleanLiteral = opcode == STATEMENT_LOCAL_BOOLEAN;
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_ARGUMENT_NAMED) {
+      booleanLiteral = true;
+    }
+
     if (opcode == STATEMENT_RETURN_BOOLEAN) {
       booleanLiteral = true;
     }
@@ -417,15 +426,11 @@ classical class Operands {
       return statementStart + 1;
     }
 
-    if (opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED) {
+    if (oneArgumentCallStatement(opcode)) {
       return statementStart + 5;
     }
 
     if (twoArgumentCallStatement(opcode)) {
-      return statementStart + 5;
-    }
-
-    if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
       return statementStart + 5;
     }
 

@@ -303,6 +303,26 @@ class MinimalCompilerNegativeExampleTest {
     assertThrows(VmTrap.class, booleanCallArgument::run);
     assertArrayEquals(new byte[512], booleanCallArgument.hostOutput());
 
+    VirtualMachine signedBooleanCallArgument = new VirtualMachine(
+        writerProgram,
+        ("classical class SignedBooleanCallArgument { "
+                + "boolean identity(boolean value) { return value; } "
+                + "entry void main() { boolean answer = identity(1); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, signedBooleanCallArgument::run);
+    assertArrayEquals(new byte[512], signedBooleanCallArgument.hostOutput());
+
+    VirtualMachine signedLocalBooleanCallArgument = new VirtualMachine(
+        writerProgram,
+        ("classical class SignedLocalBooleanCallArgument { "
+                + "boolean identity(boolean value) { return value; } "
+                + "entry void main() { long value = 1; boolean answer = identity(value); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, signedLocalBooleanCallArgument::run);
+    assertArrayEquals(new byte[512], signedLocalBooleanCallArgument.hostOutput());
+
     VirtualMachine booleanTwoArgument = new VirtualMachine(
         writerProgram,
         ("classical class BooleanTwoArgument { "

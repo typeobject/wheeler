@@ -7,6 +7,8 @@ import wheeler.lexer.scanner;
 classical class Tokens {
   /// Caps compiler token metadata before comment compaction.
   public const long MAX_COMPILER_TOKENS = 1024;
+  /// Distinguishes Boolean parameter markers from signed parameter markers.
+  public const long BOOLEAN_PARAMETER_TOKEN_BIAS = MAX_COMPILER_TOKENS;
 
   /// Names the stable token hash for `module`.
   public const long TOKEN_MODULE = 3226183276;
@@ -307,6 +309,10 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_BOOLEAN_CALL_NAMED = 845;
   /// Names a Boolean literal return from a helper.
   public const long STATEMENT_RETURN_BOOLEAN = 846;
+  /// Names a Boolean result call with one literal argument.
+  public const long STATEMENT_LOCAL_BOOLEAN_CALL_ARGUMENT_NAMED = 847;
+  /// Names a Boolean result call with one prior-local argument.
+  public const long STATEMENT_LOCAL_BOOLEAN_CALL_LOCAL_ARGUMENT_NAMED = 848;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.

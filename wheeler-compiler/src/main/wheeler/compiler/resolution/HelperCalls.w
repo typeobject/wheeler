@@ -59,6 +59,10 @@ classical class HelperCalls {
       expectedCall = opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED;
     }
 
+    if (helperKind == HELPER_BOOLEAN_ONE) {
+      expectedCall = oneArgumentBooleanCall(opcode);
+    }
+
     if (helperKind == HELPER_SIGNED_ONE) {
       expectedCall = opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED;
       if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {

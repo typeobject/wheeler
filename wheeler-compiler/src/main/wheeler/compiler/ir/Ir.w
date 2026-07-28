@@ -15,6 +15,8 @@ classical class CompilerIr {
   public const long HELPER_SIGNED_TWO = 4;
   /// Names a zero-argument Boolean-result helper.
   public const long HELPER_BOOLEAN = 5;
+  /// Names a one-parameter Boolean-result helper.
+  public const long HELPER_BOOLEAN_ONE = 6;
   /// Caps source statements in one bounded entry or helper body.
   public const long MAX_MINIMAL_STATEMENTS = 64;
   /// Holds two parameter names before a full helper statement table.

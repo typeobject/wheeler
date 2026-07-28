@@ -6,6 +6,7 @@ import wheeler.compiler.codegen;
 import wheeler.compiler.encoding;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
+import wheeler.compiler.local_types;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.parser;
 import wheeler.compiler.statement_forms;
@@ -398,6 +399,12 @@ classical class CompilerDriver {
       helperLocalBase = 2;
     }
 
+    if (program.helperKind == HELPER_BOOLEAN_ONE) {
+      helperLocalCount += 1;
+      helperParameterCount = 1;
+      helperLocalBase = 1;
+    }
+
     long helperInverseLength = 0;
     long helperInverseOffset = 4294967295;
     long entryForwardLength = 8 + program.helperCallCount * 16 + entryStatementLength;
@@ -515,7 +522,12 @@ classical class CompilerDriver {
         entryTypeOffset
       );
       if (HELPER_REVERSIBLE < program.helperKind) {
-        if (program.helperKind == HELPER_BOOLEAN) {
+        boolean booleanResult = program.helperKind == HELPER_BOOLEAN;
+        if (program.helperKind == HELPER_BOOLEAN_ONE) {
+          booleanResult = true;
+        }
+
+        if (booleanResult) {
           cursor = writeBooleanLocalType(output, cursor);
         } else {
           cursor = writeSignedLocalType(output, cursor);
@@ -529,6 +541,10 @@ classical class CompilerDriver {
       if (program.helperKind == HELPER_SIGNED_TWO) {
         cursor = writeSignedLocalType(output, cursor);
         cursor = writeSignedLocalType(output, cursor);
+      }
+
+      if (program.helperKind == HELPER_BOOLEAN_ONE) {
+        cursor = writeBooleanLocalType(output, cursor);
       }
 
       if (program.helperKind == HELPER_REVERSIBLE) {} else {

@@ -46,6 +46,10 @@ classical class LocalStatements {
       return true;
     }
 
+    if (oneArgumentBooleanCall(opcode)) {
+      return true;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN) {
       return true;
     }
@@ -103,7 +107,13 @@ classical class LocalStatements {
       long previousStart = previousStarts[previous];
       if (previousStart < 0) {
         long parameterToken = 0 - previousStart;
-        if (signed) {
+        boolean parameterSigned = true;
+        if (BOOLEAN_PARAMETER_TOKEN_BIAS < parameterToken) {
+          parameterToken -= BOOLEAN_PARAMETER_TOKEN_BIAS;
+          parameterSigned = false;
+        }
+
+        if (signed == parameterSigned) {
           if (
             sameTokenText(source, tokenStarts, tokenLengths, parameterToken, assertedName)
           ) {
