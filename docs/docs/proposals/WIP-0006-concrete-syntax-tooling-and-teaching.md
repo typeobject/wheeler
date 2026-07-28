@@ -163,7 +163,17 @@ Rejected. ASCII Java-shaped syntax is easier to type, teach, search, and support
 - When should the initial ASCII identifier profile expand to full Unicode identifier classes (owner: language and tooling maintainers. Decision point: before module/package syntax)?
 - Which stable syntax-node compatibility policy begins with the first external editor integration (owner: tooling maintainers. Decision point: before grammar package release)?
 
+## Integration with reversible concurrency
+
+### Structured-task syntax boundary
+
+Tree-sitter may add task-scope, spawn, join, atomic, and witness nodes only after WIP-0005 accepts source spelling. Tooling distinguishes TaskScope from WIP-0032 IoScope and assigns no Java or JavaScript meaning to `async`, `concurrent`, `parallel`, or `await`.
+
+Teaching introduces private tasks before atomics, atomics before bakery, and VM rewind before witnessed source inverse.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0005](WIP-0005-wheeler-source-language.md)
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)

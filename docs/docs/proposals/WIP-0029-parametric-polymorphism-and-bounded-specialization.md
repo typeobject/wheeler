@@ -426,7 +426,19 @@ Rejected. Both obscure API meaning and make resolution dependent on context. Com
 - May representation-identical bodies share machine code while retaining distinct symbols and source identity (owner: compiler and native maintainers. Decision point: optimization)?
 - Do first-order constructor parameters precede WIP-0030 acceptance or its second milestone (owner: type-system maintainers. Decision point: class-library stabilization)?
 
+## Integration with reversible concurrency
+
+### Generic task and atomic values
+
+Generic façades may expose Task, JoinHandle, AtomicCell, AtomicRef, and TaskScheduleWitness only after ownership and effects specialize to closed facts.
+
+Atomic element types require sealed evidence for width, representation, equality, arithmetic where present, and canonical encoding. The first extension may expose concrete signed and Boolean forms only.
+
+Task entry, captures, atomic types, effects, transfer facts, and witness bounds close before bytecode emission. Coherent and unitary lowering has no dynamic task dispatch.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
 - [WIP-0005](WIP-0005-wheeler-source-language.md)

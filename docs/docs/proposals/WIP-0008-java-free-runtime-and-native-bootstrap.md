@@ -261,7 +261,17 @@ Rejected. The current implementation is the executable migration oracle. It is t
 - What is the smallest C-compatible ABI shim that supports tier-1 systems without owning language semantics (owner: runtime maintainers. Decision point: before Wheeler allocator implementation)?
 - Which object formats can provide byte-reproducible native releases, and where must the manifest compare normalized identities instead (owner: release maintainers. Decision point: before the first recovery release)?
 
+## Integration with reversible concurrency
+
+### Native structured-task runtime
+
+The production task transition kernel is Wheeler code. ABI shims may provide threads, parking, wakeup, and memory primitives. They contain no task selection, memory model, event order, rewind, or causal semantics.
+
+The one-thread interpreter is the oracle. Parallel execution must emit the same EventIds, observations, traps, history use, and final state. Thread identity, core number, work-stealing order, futex identity, and completion arrival never enter portable state.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)

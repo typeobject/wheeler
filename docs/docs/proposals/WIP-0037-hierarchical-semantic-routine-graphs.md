@@ -762,7 +762,17 @@ Rejected. QREF is useful interchange, but it does not own Wheeler’s complete t
 - Which exact relation vocabulary belongs in the first transformation profile? **Owner:** quantum, proof, and target maintainers. **Decide by:** before certificate schema freeze.
 - May a newer loader synthesize a trivial hierarchy for an older flat artifact in normal tooling, or only under an explicit compatibility flag? **Owner:** bytecode and tooling maintainers. **Decide by:** before migration implementation.
 
+## Integration with reversible concurrency
+
+### Task structure and runtime event graphs
+
+After WIP-0039, classical routine graphs may contain TaskScope, Spawn, Join, and AtomicAccess nodes. They describe source semantics and bounds, not one selected runtime schedule.
+
+The total journal and causal event graph are run artifacts. Quantum parallelism remains DisjointGroup. Task graphs reject inside coherent and unitary routines. Target scheduling derives from quantum dependencies and capability, never TaskId order.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)

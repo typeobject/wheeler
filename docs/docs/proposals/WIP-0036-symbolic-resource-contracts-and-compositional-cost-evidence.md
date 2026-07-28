@@ -722,7 +722,17 @@ Rejected. Peak resources depend on lifetime overlap. Naive addition would make m
 - Which exact ideal operation set defines `semantic_operations` and `semantic_two_qubit_operations`? **Owner:** quantum IR maintainers. **Decide by:** before metric profile acceptance.
 - Does the first profile encode disjoint parallel groups or report conservative sequential depth only? **Owner:** compiler and quantum scheduling maintainers. **Decide by:** before implementation.
 
+## Integration with reversible concurrency
+
+### Structured-task resource dimensions
+
+Candidate compiler dimensions are `live_tasks`, `task_tree_depth`, `task_events`, `scheduler_decisions`, `shared_atomic_cells`, `blocked_tasks`, and `task_witness_bits`.
+
+Task events and scheduler decisions are cumulative. Live tasks, blocked tasks, shared owners, and tree depth are peaks. Task witness bits remain separate from history bytes. Disjoint groups may sum work and take maximum ideal depth only under a named profile. Native worker count is deployment data, not semantic width.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)

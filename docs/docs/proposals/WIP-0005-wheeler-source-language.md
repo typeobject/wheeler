@@ -162,7 +162,11 @@ Reverse blocks only accept operations with a declared language-level inverse. Ex
 
 ## Concurrency and determinism
 
-The implemented profile has no Java threads, monitors, volatile fields, or asynchronous syntax. WIP-0004 target jobs remain runtime-managed. Draft WIP-0032 owns future `IoScope`, request submission, direct `await`, and the distinction between independent asynchronous work and required concurrency without inheriting accidental JVM memory semantics.
+The implemented profile has no Java threads, monitors, volatile fields, or asynchronous task syntax.
+
+WIP-0039 owns future Task, TaskScope, spawn, join, and shared-atomic semantics. WIP-0040 owns source inverse for eligible task scopes. WIP-0032 retains sole ownership of IoScope, external requests, direct await, logical asynchrony, and required physical concurrency.
+
+The language does not reuse Java Thread, synchronized, monitor, or volatile semantics. Final spelling lands only with parser, type, effect, verifier, VM, Tree-sitter, formatter, test, and reference coverage.
 
 ## Quantum and proof implications
 
@@ -227,6 +231,9 @@ Rejected. Reversibility, affine quantum resources, reverse blocks, and measureme
 - Should coherent invocation eventually use ordinary overload resolution on coherent value types, method references, or both (owner: language and quantum maintainers. Decision point: before parameters are added)?
 
 ## References
+
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)

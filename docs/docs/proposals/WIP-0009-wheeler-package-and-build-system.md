@@ -510,7 +510,19 @@ Rejected. Credentials, queue selection, calibration, budgets, and hardware avail
 - Which signature and namespace transparency design should the first registry deploy (owner: registry and security maintainers. Decision point: before public publication)?
 - Which documentation renderer belongs in the recovery graph without expanding the bootstrap excessively (owner: documentation and build maintainers. Decision point: before `wheeler doc` becomes required for recovery)?
 
+## Integration with reversible concurrency
+
+### Task-profile compatibility
+
+Public API identity includes task, shared, and blocking effects, transfer modes, required task extension, memory model, and public witness and resource contracts.
+
+Build nodes may run concurrently as engine work. Output and diagnostics still reduce in canonical graph order. Build workers are not Wheeler Tasks unless the tool executes a WIP-0039 artifact.
+
+Worker count and native scheduling do not enter package identity. Required physical concurrency remains explicit deployment policy.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
 - [WIP-0004](WIP-0004-hybrid-jobs-history-and-replay.md)

@@ -329,7 +329,19 @@ Rejected. Assertions, event recording, target submission, fixture I/O, and repor
 - Which exact simulator tolerance profiles are portable enough for semantic assertions (owner: quantum and numerical maintainers. Decision point: before quantum assertion acceptance)?
 - Which fixture capabilities belong in the first self-host compiler suite (owner: compiler and package maintainers. Decision point: before bootstrap runner promotion)?
 
+## Integration with reversible concurrency
+
+### Program tasks versus test workers
+
+Runner workers execute independent cases outside program semantics. A task-aware case runs one WIP-0039 machine under a declared canonical, replay, or exploration plan.
+
+Attempt identity includes schedule profile and concrete plan when results depend on them. Worker completion cannot select program schedule.
+
+Assertions may inspect task trees, deadlock diagnostics, EventIds, atomic observations, global rewind, WIP-0040 inverse restoration, and witness cleanliness. Runner cancellation remains distinct from source task and external-operation cancellation.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
 - [WIP-0004](WIP-0004-hybrid-jobs-history-and-replay.md)

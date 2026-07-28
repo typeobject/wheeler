@@ -401,7 +401,19 @@ Rejected. Simulation can establish exact finite cases under its model or provide
 - Which proof terms remain inline in `.wbc` and which use content-addressed package attachments (owner: bytecode and package maintainers. Decision point: before certificate section acceptance)?
 - Which automation tools belong in the recovery graph while keeping the kernel small (owner: bootstrap and proof maintainers. Decision point: before self-hosted elaboration)?
 
+## Integration with reversible concurrency
+
+### Structured-task proof subjects
+
+Task concurrency adds TaskTreeWellFormed, ScheduleEnabled, SequentiallyConsistent, ReadFrom, EventIndependent, MutualExclusion, DeadlockFreeWithinBound, TaskScopeInverse, and TaskWitnessClean subjects.
+
+A future causal-rollback certificate checks accepted independence plus causal safety and liveness. Recording edges alone proves neither.
+
+Bakery claims separate mutual exclusion, termination under one schedule, progress under named fairness, and universal bounded safety. Sampled schedules do not prove the stronger forms.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)

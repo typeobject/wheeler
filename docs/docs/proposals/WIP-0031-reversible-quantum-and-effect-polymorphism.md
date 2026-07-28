@@ -458,7 +458,17 @@ Rejected. Static semantic IR and checked universal evidence are required. Tests 
 - May ordinary classical code share verified runtime closure/dictionary representations, or are all first-profile calls monomorphized (owner: compiler and native maintainers. Decision point: optimization)?
 - Which effect labels are compiler-owned and which may be package-qualified (owner: type-system and capability maintainers. Decision point: public effect APIs)?
 
+## Integration with reversible concurrency
+
+### Structured-task effects
+
+The initial effect vocabulary adds `task` and `shared`. `task` covers spawn, join, yield, and lifecycle. `shared` covers WIP-0039 atomics and later synchronization. `blocking` covers possible suspension. WIP-0032 `async` remains logical external work and promises no VM task or physical overlap.
+
+A task scope adds no callable kind. An eligible relation remains ReversibleFunction under WIP-0040. Task, shared, blocking, and async effects reject from CoherentFunction and UnitaryOperation. A finite WIP-0015 model may remain coherent only as closed reversible data with no live scheduler.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)

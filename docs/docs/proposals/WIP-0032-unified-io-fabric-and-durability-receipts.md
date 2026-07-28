@@ -695,7 +695,21 @@ Automatic unreported direct/zero-copy fallback, bare `flush()`, close-as-persist
 - Which backend features and numerical scale profiles are tier-one requirements (owner: runtime/platform/performance. Decision point: native conformance)?
 - Which filesystem, network, tier, durability, RDMA, and quantum-network domain rules need dependent successor WIPs while this WIP retains the method registry and lifecycle (owner: proposal maintainers. Decision point: before Review)?
 
+## Integration with reversible concurrency
+
+### Structured-task continuation integration
+
+WIP-0039 may provide the classical continuation substrate after implementation. WIP-0032 remains the sole owner of Request, Operation, IoScope, submission, await, cancellation, completion, selection, lanes, buffers, uncertainty, and receipts.
+
+Submission and live await remain barriers. They are not task joins. Accepted completion resumes a verified continuation in a new WIP-0004 epoch. One-thread task execution does not satisfy required physical concurrency.
+
+Task cleanup requests cancellation when permitted, waits for terminal resource release, and reaps once. Native descriptors, registered addresses, remote keys, process loans, and held foreign guards do not enter persisted task state.
+
+The internal `IoTaskResult` name migrates to `IoProviderResult` or `IoExecutionResult` before VM Task becomes public. The final name follows provider lifecycle ownership. No half rename is permitted.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 ### Wheeler proposals
 

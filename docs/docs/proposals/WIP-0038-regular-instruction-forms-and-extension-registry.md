@@ -261,7 +261,19 @@ Rejected. Artifact meaning would depend on process configuration and load order.
 - Which artifact section should carry required standard extension identities. **Owner:** bytecode and package maintainers. **Decide by:** before the first post-base opcode enters Review.
 - Should generated registry data originate from Wheeler source after stage-1 promotion. **Owner:** compiler and bootstrap maintainers. **Decide by:** before deleting the Java differential registry.
 
+## Integration with reversible concurrency
+
+### Structured-task standard extension
+
+After WIP-0039 acceptance, the registry adds one required standard extension with a stable name and version. It owns task-scope, spawn, join, scheduler, and scalar-atomic instruction families.
+
+Numeric identities land only with compiler, decoder, verifier, VM, disassembler, malformed-artifact, rewind, and bakery coverage. WIP-0039 names semantic families but reserves no numbers.
+
+Extension metadata names task descriptors, memory model, schedule plan, event record, and effects. Old loaders reject the requirement before execution. New operand roles land only with their opcodes.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)

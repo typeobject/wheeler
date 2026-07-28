@@ -757,7 +757,17 @@ Rejected. A runtime ceiling does not provide the iteration trace needed for inve
 - Under what policy may the compiler synthesize a controlled form instead of requiring a declared specialization? **Owner:** compiler, quantum, and resource maintainers. **Decide by:** before target planning implementation.
 - Which global-phase equivalence rules are sufficient for an uncontrolled implementation but insufficient for its controlled form? **Owner:** proof and quantum maintainers. **Decide by:** before custom controlled certificates are accepted.
 
+## Integration with reversible concurrency
+
+### Task-scope control witnesses
+
+WIP-0040 defines no second branch or loop history. Each task keeps WIP-0035 branch, match, and loop witnesses. TaskScheduleWitness references their identities and stores only inter-task schedule and shared-observation evidence.
+
+A branch driven by an atomic read is not reconstructible merely because the cell later holds the same value. The scope retains the observation or proves the predicate from its complete concurrent frame relation.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)
 - [WIP-0005](WIP-0005-wheeler-source-language.md)

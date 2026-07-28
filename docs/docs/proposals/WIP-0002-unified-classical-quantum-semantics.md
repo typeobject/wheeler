@@ -353,7 +353,19 @@ Rejected by no-cloning. It copies known basis information in a restricted case a
 - Which additional baseline gate descriptors earn canonical identities rather than remaining verified decompositions (owner: quantum compiler maintainers. Decision point: before the first post-baseline gate enters Review)?
 - Which finite classical data encodings are required in the first coherent-lifting slice beyond bits and fixed-width unsigned integers (owner: type-system maintainers. Decision point: before implementation begins)?
 
+## Integration with reversible concurrency
+
+### Classical tasks and quantum resources
+
+WIP-0039 task, shared, blocking, and schedule-observation effects are outside coherent and unitary eligibility.
+
+A classical task may move one affine Qreg owner to one child or proven-disjoint views to different children. Every view rejoins before cross-view work. Entanglement grants no copyable ownership.
+
+Static parallel unitary work remains WIP-0037 DisjointGroup. Target submission and results remain WIP-0003 and WIP-0032 operations. Provider jobs are not VM tasks.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
 - [WIP-0003](WIP-0003-quantum-target-and-qiskit-backend.md)

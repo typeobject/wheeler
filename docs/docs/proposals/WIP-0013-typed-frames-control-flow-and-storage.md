@@ -301,7 +301,19 @@ Rejected as the default. Hidden history changes effect and space semantics. Logg
 - Which borrow representation keeps verification, native lowering, and proof terms small (owner: language, VM, and library maintainers. Decision point: before slice mutation)?
 - Which reversible branch and loop witnesses should enter the first non-straight-line `rev` profile (owner: reversibility and proof maintainers. Decision point: after ordinary control flow executes)?
 
+## Integration with reversible concurrency
+
+### Task frame integration
+
+WIP-0039 reuses the typed Frame contract. Each task owns one bounded frame stack. The task table replaces the current assumption that one VM owns exactly one active stack.
+
+Frame values, local types, definite assignment, calls, ownership, and control-flow verification remain WIP-0013 semantics. WIP-0039 adds task selection, lifecycle, shared atomics, and global event order around those transitions.
+
+A frame does not make an ordinary loan task-owned. Captures follow WIP-0028 and WIP-0039 transfer rules.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
 - [WIP-0005](WIP-0005-wheeler-source-language.md)

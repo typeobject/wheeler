@@ -218,7 +218,7 @@ Each `HybridRun` has one total semantic event order. Jobs may execute and comple
 
 Event producers use idempotency keys and bounded queues. Polling schedules, provider queue times, wall-clock timestamps, and log ordering are operational metadata unless the program explicitly requests a time effect.
 
-General parallel branches require a later structured-concurrency WIP. This proposal permits independent target jobs but does not allow unsynchronized shared classical mutation.
+WIP-0039 supplies structured classical tasks inside one deterministic continuation. Independent target jobs remain workflow operations, and ordinary unsynchronized shared mutation remains invalid.
 
 ## Quantum and proof implications
 
@@ -315,7 +315,19 @@ Rejected as the semantic model. Typed continuations plus WIP-0001 checkpoints an
 - Which stale-result policies are generic runtime choices versus application-supplied decisions (owner: runtime and language maintainers. Decision point: before this WIP enters Review)?
 - What minimum target-session lifecycle is needed before a quantum handle may legally appear in a persisted continuation (owner: quantum runtime maintainers. Decision point: before session support is implemented)?
 
+## Integration with reversible concurrency
+
+### Structured-task workflow epochs
+
+WIP-0039 supplies structured classical tasks inside one deterministic continuation. HybridRun keeps one total workflow-event order. Task events form one local epoch above the workflow horizon. Submission, accepted completion, measurement, reset, result application, retry, branch discard, compensation, and durable commit remain WIP-0004 events.
+
+A task-aware continuation names task-tree, scheduler, atomic-store, ownership, and wait-state schemas. The first persistence profile may require every child joined. No profile persists native stacks or locks.
+
+SchedulePlan is run input. An I/O or target completion chosen by first, deadline, or quorum policy is an external observation and remains replay evidence.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)

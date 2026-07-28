@@ -663,7 +663,17 @@ Rejected. Source intent, diagnostics, proof identity, and resource lifetime shou
 - Which frame facts may the compiler derive automatically, and which require WIP-0011 evidence? **Owner:** type-system and proof maintainers. **Decide by:** before implementation.
 - Should the first profile permit the form in ordinary noncoherent `rev` code, or restrict it to coherent and unitary bodies? **Owner:** language and reversible-runtime maintainers. **Decide by:** before acceptance.
 
+## Integration with reversible concurrency
+
+### Task exclusion
+
+Task, shared atomic, synchronization, and blocking operations reject from compute and use regions. A TaskScope is not an ancilla scope. Schedule observations and TaskScheduleWitness values cannot masquerade as clean quantum workspace.
+
+A finite WIP-0015 model may use bounded task-model workspace only when every model transition and witness uncomputes under this WIP.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)
 - [WIP-0005](WIP-0005-wheeler-source-language.md)

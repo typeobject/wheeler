@@ -548,7 +548,19 @@ Rejected. Provider SDKs are adapter implementation details. Portable library val
 - Which exact scalar tower supports quantum simulation and proof without overloading the bootstrap graph (owner: math, quantum, and proof maintainers. Decision point: before exact QFT certificates)?
 - Which async/structured-concurrency types are required for target and build jobs (owner: runtime and language maintainers. Decision point: before public async syntax)?
 
+## Integration with reversible concurrency
+
+### Structured-task library
+
+`wheeler.concurrent` may expose TaskScope, Task, JoinHandle, AtomicCell, AtomicRef, SchedulePlan, and TaskScheduleWitness over WIP-0039 and WIP-0040.
+
+The first slice may use concrete signed and Boolean atomics. Generic atomics wait for WIP-0029 and sealed AtomicValue evidence.
+
+RevCell remains task-local reversible state. AtomicCell is explicitly shared sequentially consistent state. Mutexes, channels, semaphores, and sessions require later focused work.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)

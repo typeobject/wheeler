@@ -309,7 +309,19 @@ Rejected. Decomposition must preserve semantics and error budgets. Host splittin
 - Which provider REST executor should be the first maintained live-hardware adapter (owner: target maintainers. Decision point: before live hardware enters CI documentation)?
 - Which expectation and observable model belongs in the first result contract instead of a later extension (owner: quantum API maintainers. Decision point: before this WIP enters Review)?
 
+## Integration with reversible concurrency
+
+### Target concurrency and task terminology
+
+Independent submissions may overlap. Result correlation uses submission identity, never arrival order. Shared target sessions declare concurrency, partition, ordering, cancellation, lifetime, and result limits. Otherwise overlap serializes or rejects.
+
+Provider workers and jobs are not WIP-0039 Tasks. Target-internal feedback remains one target operation.
+
+Implementation migration renames runtime `QuantumTask` to `QuantumSubmission` or `QuantumRequest`, its builder to the matching name, and `taskIdentity` to `submissionIdentity`. WIP-0003 and WIP-0032 choose one final term before code changes. Half a rename is two bugs wearing one badge.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)
 - [WIP-0004](WIP-0004-hybrid-jobs-history-and-replay.md)

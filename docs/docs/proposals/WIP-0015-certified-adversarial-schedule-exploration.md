@@ -7,7 +7,7 @@
 | Created | 2026-07-18 |
 | Updated | 2026-07-18 |
 | Area | Protocol models, finite schedules, reversible exploration, replay, proofs |
-| Depends on | WIP-0002, WIP-0004, WIP-0007, WIP-0008, WIP-0009, WIP-0010, WIP-0011, WIP-0012, WIP-0013 |
+| Depends on | WIP-0002, WIP-0004, WIP-0007, WIP-0008, WIP-0009, WIP-0010, WIP-0011, WIP-0012, WIP-0013, WIP-0039 |
 | Supersedes | None |
 | Superseded by | None |
 
@@ -317,7 +317,21 @@ Allowed only as a shortest-known claim. An unqualified shortest claim requires c
 - Which application effects are eligible for coherent finite interpretation (owner: quantum/compiler maintainers. Decision point: before failure-oracle lowering)?
 - Which observation model defines the applied-at-most-once property for replicated external effects (owner: application maintainers. Decision point: before the ledger fixture)?
 
+## Integration with reversible concurrency
+
+### Structured-task schedule model
+
+For WIP-0039 artifacts, timeline events select enabled TaskIds or modeled external events. Enabledness, atomic observations, read-from, modification order, task-tree changes, and footprints come from the task transition contract.
+
+The first reduction may use checked Mazurkiewicz independence and DPOR. Reads-value-from reduction may follow for local safety. Every reduced class keeps one concrete SchedulePlan replayed by the reference VM.
+
+The live scheduler never runs coherently. A coherent classifier interprets finite canonical model data, marks one result, and uncomputes all workspace.
+
+Bakery acceptance covers every admitted schedule in a complete tiny domain. Omitting one enabled representative invalidates certification. Classical and coherent finite models agree schedule by schedule.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [Murphy future-system design](../future/murphy.md)
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)

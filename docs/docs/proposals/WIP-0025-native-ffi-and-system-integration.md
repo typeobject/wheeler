@@ -192,7 +192,19 @@ Raw loading/function pointers, libffi as language contract, ambient headers, C++
 - Which crash isolation and callback subset require successors (owner: security/runtime maintainers. Decision point: public packages)?
 - What evidence proves a system provider (owner: distribution/security maintainers. Decision point: WIP-0024 integration)?
 
+## Integration with reversible concurrency
+
+### Native threads and Wheeler tasks
+
+A native thread is not a TaskId. Foreign affinity remains opaque and cannot convert to portable task identity.
+
+The first FFI profile cannot create implicit Wheeler tasks, invoke arbitrary Wheeler code from callbacks, move thread-affine handles between tasks, or retain ordinary loans across foreign asynchronous work.
+
+Blocking foreign calls remain declared FFI and blocking barriers. Native asynchronous work integrates through WIP-0032.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0013](WIP-0013-typed-frames-control-flow-and-storage.md)
 - [WIP-0022](WIP-0022-package-instances-and-resolution.md)

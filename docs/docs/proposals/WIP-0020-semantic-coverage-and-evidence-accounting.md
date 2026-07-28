@@ -347,7 +347,19 @@ Rejected. Failure paths are often the useful paths. Valid observations remain ev
 - Should production sidecar maps be encrypted, access-controlled by publication policy, or omitted (owner: release and security maintainers. Decision point: before production integration)?
 - Which native probe correspondence requires kernel checking instead of differential conformance (owner: native runtime and proof maintainers. Decision point: before Java-free promotion)?
 
+## Integration with reversible concurrency
+
+### Structured-task coverage
+
+Coverage families include scope enter and exit, spawn, start, completion, join, scheduler selection, atomic operations, read-from, block, wake, deadlock, task-scope inverse, machine rewind, and schedule replay.
+
+Runner worker order is not task coverage. Reduction does not manufacture hits for omitted schedules unless a policy reports certified equivalence-class coverage.
+
+Task inverse, exact rewind, causal rollback, external replay, and quantum adjoint remain separate dimensions.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)

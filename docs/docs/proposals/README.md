@@ -131,3 +131,5 @@ Source syntax, generic specialization, class evidence, tests, proofs, packages, 
 | [WIP-0036](WIP-0036-symbolic-resource-contracts-and-compositional-cost-evidence.md) | Draft | Symbolic resource contracts and compositional cost evidence | Language, resource bounds, proofs, quantum planning, diagnostics |
 | [WIP-0037](WIP-0037-hierarchical-semantic-routine-graphs.md) | Draft | Hierarchical semantic routine graphs and verified transformations | IR, bytecode, routines, transformations, resource analysis, tooling |
 | [WIP-0038](WIP-0038-regular-instruction-forms-and-extension-registry.md) | Implementing | Regular instruction forms and extension registry | Bytecode, VM, verifier, compiler, extensions, tooling |
+| [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md) | Draft | Deterministic structured task machine and global rewind | VM, structured tasks, scheduling, atomics, rewind |
+| [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md) | Draft | Explicit schedule witnesses for reversible task scopes | Language inverse, task witnesses, shared atomics |

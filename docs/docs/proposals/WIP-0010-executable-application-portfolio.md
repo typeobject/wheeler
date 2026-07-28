@@ -454,7 +454,21 @@ Rejected. Deterministic simulators and lifecycle mocks establish semantics. Opt-
 - Which proof checker is small enough to join the trusted recovery graph (owner: proof and bootstrap maintainers. Decision point: before formal QFT claims land)?
 - Which statistical testing library and report schema belong in the Wheeler package test contract (owner: runtime and package maintainers. Decision point: before sampled portfolio tests expand)?
 
+## Integration with reversible concurrency
+
+### Reversible concurrency fixtures
+
+`BakeryMutex.w` implements one-shot bounded Lamport bakery with WIP-0039 tasks and SC atomics. It covers canonical scheduling, replay, exploration, deadlock, overflow, and exact rewind.
+
+`ReversibleBakery.w` adds a WIP-0040 TaskScheduleWitness. Forward then source inverse restores application, task, atomic, ownership, control-witness, and schedule-witness state.
+
+`BakeryScheduleModel.w` interprets a tiny finite schedule as reversible model data, marks a violation bit, and uncomputes cleanly. Direct coherent lifting of live bakery rejects.
+
+A later `BlackWhiteBakery.w` covers repeated bounded entry after generic atomics and reversible control exist.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)

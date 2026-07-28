@@ -351,7 +351,19 @@ Rejected. Quantum regions have different ownership, linearity, execution, and ca
 - Which artifact declaration should negotiate the first standard opcode extension (owner: VM and compiler maintainers. Decision point: before the first extension enters Review)?
 - Should semantic section hashing be embedded in a dedicated manifest record or remain an artifact identity computed over canonical bytes (owner: runtime maintainers. Decision point: before persisted checkpoints are implemented)?
 
+## Integration with reversible concurrency
+
+### Structured-task extension boundary
+
+WIP-0039 extends classical state with a bounded task tree, one memory-model state, scheduler state, ownership state, one global event journal, and bounded causal metadata.
+
+The base StepRecord law remains authoritative for artifacts without the extension. A structured-task artifact uses extension event records whose `unstep` restores the complete task machine. No task-private history may bypass a newer event from another task.
+
+WIP-0040 source inverse remains new forward execution over explicit witnesses. It never consumes the WIP-0039 journal.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)
 - [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)

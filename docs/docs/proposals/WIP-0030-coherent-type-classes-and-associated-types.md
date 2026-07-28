@@ -400,7 +400,17 @@ Rejected for privileged semantics. Tests and prose are useful, but canonical ide
 - Which constructor-kinded classes validate the design without bloating the prelude (owner: library and type-system maintainers. Decision point: higher-kinded acceptance)?
 - How does package SemVer classify adding a legal but potentially conflicting instance (owner: package and compatibility maintainers. Decision point: public instance publication)?
 
+## Integration with reversible concurrency
+
+### Task and atomic authority
+
+Task transfer, scoped sharing, atomic values, and task-scope inverse evidence are privileged facts. An ordinary instance cannot grant that authority.
+
+Operational classes may add helpers after core APIs settle. They cannot hide task creation, blocking, shared mutation, schedule observation, witness retention, or external effects.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0005](WIP-0005-wheeler-source-language.md)
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)

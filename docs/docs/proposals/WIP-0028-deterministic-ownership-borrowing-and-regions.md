@@ -344,7 +344,19 @@ Rejected. WIP-0025 already names the native trust boundary. An unnamed escape ha
 - Are named regions visible in ordinary collection types or only ambiguous public signatures (owner: type-system and library maintainers. Decision point: cross-function borrow support)?
 - Which ownership facts are stored in `.wbc` and which are rederived (owner: bytecode and verifier maintainers. Decision point: ownership section freeze)?
 
+## Integration with reversible concurrency
+
+### Task transfer and scoped sharing
+
+WIP-0039 defines sealed compiler-derived task-transfer properties. Copy values may copy into a child. An owner may move into one child. Immutable sharing needs compiler evidence. Ordinary loans do not cross spawn. AtomicRef stays inside its TaskScope. JoinHandle is affine and scope-owned.
+
+WIP-0032 keeps its verifier-visible operation loan across external suspension. Quantum owners move to one task or split into proven-disjoint affine views.
+
+Normal WIP-0030 instances cannot grant task transfer, atomic sharing, or quantum sharing authority.
+
 ## References
+- [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
+- [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 
 - [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
 - [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)
