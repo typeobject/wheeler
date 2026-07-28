@@ -219,6 +219,7 @@ Registry duplication fails tests and build checks. Runtime registration does not
 - [x] Instruction count and byte length derive from form and format constants.
 - [x] Wheeler-native emitters use named instruction arities and operand widths.
 - [x] Registry tests reject duplicate identities and field-order drift.
+- [x] Stage 0 mechanically cross-checks every opcode identity consumed by the native compiler.
 - [x] Local-index verifier diagnostics name roles across scalar, aggregate, and storage checks.
 - [x] Disassembly labels fields from registry metadata.
 - [x] Optional required section 13 declares unique sorted instruction-extension names and versions.

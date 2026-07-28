@@ -16,6 +16,10 @@ class SourceReadabilityTest {
   private static final Pattern LABELED_INTEGER = Pattern.compile(
       "/\\* [a-z][A-Za-z0-9]*= \\*/\\s*-?[0-9]+");
   private static final Pattern INTEGER = Pattern.compile("-?[0-9]+");
+  private static final Pattern JAVA_OPCODE = Pattern.compile(
+      "static final int ([A-Z0-9_]+) = (0x[0-9a-f]+);");
+  private static final Pattern WHEELER_OPCODE = Pattern.compile(
+      "public const long OPCODE_([A-Z0-9_]+) = (0x[0-9a-f]+);");
 
   @Test
   void reportsOnlyUnlabeledAdjacentEndianLiterals() {
@@ -63,6 +67,20 @@ class SourceReadabilityTest {
   }
 
   @Test
+  void nativeOpcodeIdentitiesMatchTheCanonicalRegistry() throws Exception {
+    String javaSource = Files.readString(Path.of(
+        "../bootstrap/core/src/main/java/com/typeobject/wheeler/core/bytecode/OpcodeIds.java"));
+    String wheelerSource = Files.readString(Path.of(
+        "../wheeler-compiler/src/main/wheeler/compiler/ir/Opcodes.w"));
+    var javaOpcodes = opcodeIdentities(JAVA_OPCODE, javaSource);
+    var wheelerOpcodes = opcodeIdentities(WHEELER_OPCODE, wheelerSource);
+
+    for (var opcode : wheelerOpcodes.entrySet()) {
+      assertEquals(javaOpcodes.get(opcode.getKey()), opcode.getValue(), opcode.getKey());
+    }
+  }
+
+  @Test
   void maintainedCompilerSourcesPassReadabilityChecks() throws Exception {
     Path root = Path.of("../wheeler-compiler/src/main/wheeler");
     List<String> diagnostics = new ArrayList<>();
@@ -73,6 +91,20 @@ class SourceReadabilityTest {
     }
 
     assertEquals(List.of(), diagnostics);
+  }
+
+  private static java.util.Map<String, Integer> opcodeIdentities(
+      Pattern declaration,
+      String source) {
+    var result = new java.util.LinkedHashMap<String, Integer>();
+    var matches = declaration.matcher(source);
+    while (matches.find()) {
+      String name = matches.group(1);
+      if (result.put(name, Integer.decode(matches.group(2))) != null) {
+        throw new AssertionError("Duplicate opcode identity declaration " + name);
+      }
+    }
+    return java.util.Map.copyOf(result);
   }
 
   private static void check(Path source, String text, List<String> diagnostics) {
