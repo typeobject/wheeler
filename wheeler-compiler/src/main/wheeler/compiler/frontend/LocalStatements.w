@@ -85,7 +85,7 @@ classical class LocalStatements {
       return -1;
     }
 
-    if (MAX_MINIMAL_STATEMENTS < previousCount) {
+    if (MAX_HELPER_RESOLUTION_STARTS < previousCount) {
       return -1;
     }
 
@@ -93,20 +93,39 @@ classical class LocalStatements {
     long matchedLocal = -1;
     long matchCount = 0;
     long previous = 0;
-    while (previous < previousCount) limit MAX_MINIMAL_STATEMENTS {
+    while (previous < previousCount) limit MAX_HELPER_RESOLUTION_STARTS {
       long previousStart = previousStarts[previous];
-      if (0 < previousStart) {
-        long previousOpcode = statementOpcode(source, tokenStarts, tokenLengths, previousStart);
-        if (declarationMatches(previousOpcode, signed)) {
+      if (previousStart < 0) {
+        long parameterToken = 0 - previousStart;
+        if (signed) {
           if (
-            sameTokenText(source, tokenStarts, tokenLengths, previousStart + 1, assertedName)
+            sameTokenText(source, tokenStarts, tokenLengths, parameterToken, assertedName)
           ) {
-            matchedLocal = statementResultLocal(previousOpcode, localBase);
+            matchedLocal = localBase;
             matchCount += 1;
           }
         }
 
-        localBase += statementLocalCount(previousOpcode);
+        localBase += 1;
+      } else {
+        if (0 < previousStart) {
+          long previousOpcode = statementOpcode(
+            source,
+            tokenStarts,
+            tokenLengths,
+            previousStart
+          );
+          if (declarationMatches(previousOpcode, signed)) {
+            if (
+              sameTokenText(source, tokenStarts, tokenLengths, previousStart + 1, assertedName)
+            ) {
+              matchedLocal = statementResultLocal(previousOpcode, localBase);
+              matchCount += 1;
+            }
+          }
+
+          localBase += statementLocalCount(previousOpcode);
+        }
       }
 
       previous += 1;

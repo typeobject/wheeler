@@ -7,6 +7,18 @@ import wheeler.compiler.local_statements;
 import wheeler.compiler.tokens;
 
 classical class StatementSequences {
+  private long resolutionPrefix(borrow mut words statementStarts) {
+    long prefix = 0;
+    if (statementStarts[0] < 0) {
+      prefix = 1;
+      if (statementStarts[1] < 0) {
+        prefix = 2;
+      }
+    }
+
+    return prefix;
+  }
+
   /// Defines immutable `StatementSequence` values for this module.
   public record StatementSequence(
     long count,
@@ -25,13 +37,14 @@ classical class StatementSequences {
     long index
   ) {
     if (index < count) {
+      long resolvedIndex = resolutionPrefix(statementStarts) + index;
       return sequenceStatementOpcode(
         source,
         tokenStarts,
         tokenLengths,
-        statementStarts[index],
+        statementStarts[resolvedIndex],
         statementStarts,
-        index
+        resolvedIndex
       );
     }
 
@@ -47,13 +60,14 @@ classical class StatementSequences {
     long index
   ) {
     if (index < count) {
+      long resolvedIndex = resolutionPrefix(statementStarts) + index;
       return sequenceStatementOperand(
         source,
         tokenStarts,
         tokenLengths,
-        statementStarts[index],
+        statementStarts[resolvedIndex],
         statementStarts,
-        index
+        resolvedIndex
       );
     }
 
@@ -69,13 +83,14 @@ classical class StatementSequences {
     long index
   ) {
     if (index < count) {
+      long resolvedIndex = resolutionPrefix(statementStarts) + index;
       return sequenceStatementSecondaryOperand(
         source,
         tokenStarts,
         tokenLengths,
-        statementStarts[index],
+        statementStarts[resolvedIndex],
         statementStarts,
-        index
+        resolvedIndex
       );
     }
 

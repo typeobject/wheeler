@@ -152,6 +152,26 @@ class MinimalCompilerNegativeExampleTest {
     assertThrows(VmTrap.class, wrongReturnedParameter::run);
     assertArrayEquals(new byte[512], wrongReturnedParameter.hostOutput());
 
+    VirtualMachine missingParameterPreludeSource = new VirtualMachine(
+        writerProgram,
+        ("classical class MissingParameterPreludeSource { "
+                + "long increment(long value) { long result = missing + 1; return result; } "
+                + "entry void main() { long answer = increment(41); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, missingParameterPreludeSource::run);
+    assertArrayEquals(new byte[512], missingParameterPreludeSource.hostOutput());
+
+    VirtualMachine duplicateParameterLocal = new VirtualMachine(
+        writerProgram,
+        ("classical class DuplicateParameterLocal { "
+                + "long increment(long value) { long value = value + 1; return value; } "
+                + "entry void main() { long answer = increment(41); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, duplicateParameterLocal::run);
+    assertArrayEquals(new byte[512], duplicateParameterLocal.hostOutput());
+
     VirtualMachine wrongReturnRightParameter = new VirtualMachine(
         writerProgram,
         ("classical class WrongReturnRightParameter { "

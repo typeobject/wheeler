@@ -119,6 +119,28 @@ classical class HelperParser {
       proof = new SourceRange(tokenStarts[proofToken], tokenLengths[proofToken]);
     }
 
+    long parameterCount = 0;
+    if (reversible == 3) {
+      parameterCount = 1;
+    }
+
+    if (reversible == 4) {
+      parameterCount = 2;
+    }
+
+    if (0 < parameterCount) {
+      long shifted = helperStatementCount;
+      while (0 < shifted) limit MAX_MINIMAL_STATEMENTS {
+        set(helperStarts, shifted + parameterCount - 1, helperStarts[shifted - 1]);
+        shifted -= 1;
+      }
+
+      set(helperStarts, 0, 0 - (nameToken + 3));
+      if (parameterCount == 2) {
+        set(helperStarts, 1, 0 - (nameToken + 6));
+      }
+    }
+
     StatementSequence helperSequence = parseStatementSequence(
       source,
       tokenStarts,
@@ -157,21 +179,22 @@ classical class HelperParser {
     }
 
     if (reversible == 3) {
-      if (helperSequence.count == 1) {} else {
+      if (0 < helperSequence.count) {} else {
         return new MinimalProgramResult.Error(0);
       }
 
-      boolean parameterReturn = helperSequence.opcodes[0] == STATEMENT_RETURN_LOCAL_NAMED;
-      if (returnLocalBinaryStatement(helperSequence.opcodes[0])) {
-        parameterReturn = true;
-      }
-
-      if (returnLocalPairStatement(helperSequence.opcodes[0])) {
-        parameterReturn = true;
-      }
-
-      if (parameterReturn == false) {
+      long parameterResultIndex = helperSequence.count - 1;
+      if (resultStatement(helperSequence.opcodes[parameterResultIndex])) {} else {
         return new MinimalProgramResult.Error(0);
+      }
+
+      long parameterPreludeStatement = 0;
+      while (parameterPreludeStatement < parameterResultIndex) limit MAX_MINIMAL_STATEMENTS {
+        if (resultStatement(helperSequence.opcodes[parameterPreludeStatement])) {
+          return new MinimalProgramResult.Error(0);
+        }
+
+        parameterPreludeStatement += 1;
       }
     }
 
@@ -556,23 +579,22 @@ classical class HelperParser {
     }
 
     if (reversible == 3) {
-      if (statements.count == 1) {} else {
-        return new MinimalProgramResult.Error(0);
-      }
-
-      long returnStart = statementStarts[0];
-      if (
-        sameTokenText(source, tokenStarts, tokenLengths, parameterToken, returnStart + 1) == false
-      ) {
-        return new MinimalProgramResult.Error(0);
-      }
-
-      long returnOpcode = statementOpcode(source, tokenStarts, tokenLengths, returnStart);
-      if (returnLocalPairStatement(returnOpcode)) {
+      if (statements.count == 1) {
+        long returnStart = statementStarts[0];
         if (
-          sameTokenText(source, tokenStarts, tokenLengths, parameterToken, returnStart + 3) == false
+          sameTokenText(source, tokenStarts, tokenLengths, parameterToken, returnStart + 1) == false
         ) {
           return new MinimalProgramResult.Error(0);
+        }
+
+        long returnOpcode = statementOpcode(source, tokenStarts, tokenLengths, returnStart);
+        if (returnLocalPairStatement(returnOpcode)) {
+          if (
+            sameTokenText(source, tokenStarts, tokenLengths, parameterToken, returnStart + 3)
+              == false
+          ) {
+            return new MinimalProgramResult.Error(0);
+          }
         }
       }
     }

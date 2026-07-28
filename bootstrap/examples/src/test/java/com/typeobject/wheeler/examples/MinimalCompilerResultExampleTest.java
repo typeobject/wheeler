@@ -117,6 +117,17 @@ class MinimalCompilerResultExampleTest {
             + "assert(answer == 42); } }");
     assertDifferentialHalt(
         writerProgram,
+        "classical class SignedParameterLocalResult { "
+            + "long increment(long value) { long result = value + 1; return result; } "
+            + "entry void main() { long answer = increment(41); assert(answer == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedParameterLocalChain { "
+            + "long adjust(long value) { "
+            + "long doubled = value * 2; long result = doubled - 42; return result; } "
+            + "entry void main() { long answer = adjust(42); assert(answer == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
         "classical class SignedLocalArgument { long increment(long value) { return value + 1; } "
             + "entry void main() { long seed = 41; long answer = increment(seed); "
             + "assert(answer == 42); } }");
