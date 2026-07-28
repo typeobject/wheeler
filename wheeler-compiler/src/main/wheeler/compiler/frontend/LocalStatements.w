@@ -274,6 +274,23 @@ classical class LocalStatements {
       return -1;
     }
 
+    if (namedLiteralEqualityConditional(opcode)) {
+      long comparisonSourceLocal = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 2,
+        true
+      );
+      if (-1 < comparisonSourceLocal) {
+        return namedLiteralEqualityConditionalBase(opcode) + comparisonSourceLocal;
+      }
+
+      return -1;
+    }
+
     if (namedLocalConditional(opcode)) {
       long conditionToken = statementStart + 2;
       if (namedLocalConditionalNegated(opcode)) {
@@ -714,87 +731,6 @@ classical class LocalStatements {
     return parsedSignedNumber(source, tokenStarts, tokenLengths, operandToken);
   }
 
-  /// Validates and sizes one equality assertion over two signed literals.
-  public long literalEqualityStatementWidth(
-    borrow utf8 source,
-    borrow mut words tokenKinds,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    long statementStart
-  ) {
-    if (
-      punctuationAt(
-        source,
-        tokenKinds,
-        tokenStarts,
-        statementStart + 1,
-        PUNCTUATION_OPEN_PAREN
-      ) == false
-    ) {
-      return -1;
-    }
-
-    long leftWidth = signedNumberWidth(source, tokenKinds, tokenStarts, statementStart + 2);
-    if (leftWidth < 1) {
-      return -1;
-    }
-
-    if (
-      signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 2) == false
-    ) {
-      return -1;
-    }
-
-    long equalityStart = statementStart + 2 + leftWidth;
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, equalityStart, PUNCTUATION_ASSIGN) == false
-    ) {
-      return -1;
-    }
-
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, equalityStart + 1, PUNCTUATION_ASSIGN) == false
-    ) {
-      return -1;
-    }
-
-    long rightStart = equalityStart + 2;
-    long rightWidth = signedNumberWidth(source, tokenKinds, tokenStarts, rightStart);
-    if (rightWidth < 1) {
-      return -1;
-    }
-
-    if (signedNumberValid(source, tokenStarts, tokenLengths, rightStart) == false) {
-      return -1;
-    }
-
-    if (
-      punctuationAt(
-        source,
-        tokenKinds,
-        tokenStarts,
-        rightStart + rightWidth,
-        PUNCTUATION_CLOSE_PAREN
-      ) == false
-    ) {
-      return -1;
-    }
-
-    if (
-      punctuationAt(
-        source,
-        tokenKinds,
-        tokenStarts,
-        rightStart + rightWidth + 1,
-        PUNCTUATION_SEMICOLON
-      )
-    ) {
-      return rightStart + rightWidth + 2 - statementStart;
-    }
-
-    return -1;
-  }
-
   /// Resolves the optional second scalar operand for one statement.
   public long sequenceStatementSecondaryOperand(
     borrow utf8 source,
@@ -803,6 +739,10 @@ classical class LocalStatements {
     long statementStart
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (namedLiteralEqualityConditional(opcode)) {
+      return parsedSignedNumber(source, tokenStarts, tokenLengths, statementStart + 5);
+    }
+
     if (opcode == STATEMENT_ASSERT_LITERAL_EQ) {
       long leftWidth = 1;
       if (utf8Scalar(source, tokenStarts[statementStart + 2]) == PUNCTUATION_MINUS) {
@@ -850,6 +790,20 @@ classical class LocalStatements {
 
     if (opcode == STATEMENT_ASSERT_NAMED_LONG) {
       return statementStart + 5;
+    }
+
+    if (namedLiteralEqualityConditional(opcode)) {
+      long comparisonWidth = 1;
+      if (utf8Scalar(source, tokenStarts[statementStart + 5]) == PUNCTUATION_MINUS) {
+        comparisonWidth = 2;
+      }
+
+      long comparisonOperandToken = statementStart + 10 + comparisonWidth;
+      if (literalEqualityConditionalAssignment(opcode)) {
+        comparisonOperandToken -= 1;
+      }
+
+      return comparisonOperandToken;
     }
 
     if (namedLocalConditional(opcode)) {

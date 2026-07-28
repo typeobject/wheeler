@@ -248,6 +248,22 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_LONG_LT_LITERAL_BASE = 12032;
   /// Names an equality assertion over two signed literals.
   public const long STATEMENT_ASSERT_LITERAL_EQ = 817;
+  /// Names a signed-local equality condition guarding global addition.
+  public const long STATEMENT_IF_LOCAL_EQ_LITERAL_ADD_NAMED = 818;
+  /// Names a signed-local equality condition guarding global subtraction.
+  public const long STATEMENT_IF_LOCAL_EQ_LITERAL_SUB_NAMED = 819;
+  /// Names a signed-local equality condition guarding global XOR.
+  public const long STATEMENT_IF_LOCAL_EQ_LITERAL_XOR_NAMED = 820;
+  /// Names a signed-local equality condition guarding global assignment.
+  public const long STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_NAMED = 821;
+  /// Starts resolved equality conditions guarding global addition.
+  public const long STATEMENT_IF_LOCAL_EQ_LITERAL_ADD_BASE = 12288;
+  /// Starts resolved equality conditions guarding global subtraction.
+  public const long STATEMENT_IF_LOCAL_EQ_LITERAL_SUB_BASE = 12544;
+  /// Starts resolved equality conditions guarding global XOR.
+  public const long STATEMENT_IF_LOCAL_EQ_LITERAL_XOR_BASE = 12800;
+  /// Starts resolved equality conditions guarding global assignment.
+  public const long STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_BASE = 13056;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -422,6 +438,39 @@ classical class Tokens {
     }
 
     if (keyword == TOKEN_IF) {
+      long conditionOperator = utf8Scalar(source, tokenStarts[statementStart + 3]);
+      if (conditionOperator == PUNCTUATION_ASSIGN) {
+        long conditionSecondOperator = utf8Scalar(source, tokenStarts[statementStart + 4]);
+        if (conditionSecondOperator == PUNCTUATION_ASSIGN) {
+          long comparisonWidth = 1;
+          if (utf8Scalar(source, tokenStarts[statementStart + 5]) == PUNCTUATION_MINUS) {
+            comparisonWidth = 2;
+          }
+
+          long comparisonBodyOperator = utf8Scalar(
+            source,
+            tokenStarts[statementStart + 8 + comparisonWidth]
+          );
+          if (comparisonBodyOperator == PUNCTUATION_PLUS) {
+            return STATEMENT_IF_LOCAL_EQ_LITERAL_ADD_NAMED;
+          }
+
+          if (comparisonBodyOperator == PUNCTUATION_MINUS) {
+            return STATEMENT_IF_LOCAL_EQ_LITERAL_SUB_NAMED;
+          }
+
+          if (comparisonBodyOperator == PUNCTUATION_CARET) {
+            return STATEMENT_IF_LOCAL_EQ_LITERAL_XOR_NAMED;
+          }
+
+          if (comparisonBodyOperator == PUNCTUATION_ASSIGN) {
+            return STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_NAMED;
+          }
+
+          return -1;
+        }
+      }
+
       boolean negatedCondition = utf8Scalar(source, tokenStarts[statementStart + 2])
         == PUNCTUATION_BANG;
       long operatorToken = statementStart + 6;
@@ -641,6 +690,87 @@ classical class Tokens {
       }
 
       return STATEMENT_UPDATE_XOR;
+    }
+
+    return -1;
+  }
+
+  /// Validates and sizes one equality assertion over two signed literals.
+  public long literalEqualityStatementWidth(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart
+  ) {
+    if (
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        statementStart + 1,
+        PUNCTUATION_OPEN_PAREN
+      ) == false
+    ) {
+      return -1;
+    }
+
+    long leftWidth = signedNumberWidth(source, tokenKinds, tokenStarts, statementStart + 2);
+    if (leftWidth < 1) {
+      return -1;
+    }
+
+    if (
+      signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 2) == false
+    ) {
+      return -1;
+    }
+
+    long equalityStart = statementStart + 2 + leftWidth;
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, equalityStart, PUNCTUATION_ASSIGN) == false
+    ) {
+      return -1;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, equalityStart + 1, PUNCTUATION_ASSIGN) == false
+    ) {
+      return -1;
+    }
+
+    long rightStart = equalityStart + 2;
+    long rightWidth = signedNumberWidth(source, tokenKinds, tokenStarts, rightStart);
+    if (rightWidth < 1) {
+      return -1;
+    }
+
+    if (signedNumberValid(source, tokenStarts, tokenLengths, rightStart) == false) {
+      return -1;
+    }
+
+    if (
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        rightStart + rightWidth,
+        PUNCTUATION_CLOSE_PAREN
+      ) == false
+    ) {
+      return -1;
+    }
+
+    if (
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        rightStart + rightWidth + 1,
+        PUNCTUATION_SEMICOLON
+      )
+    ) {
+      return rightStart + rightWidth + 2 - statementStart;
     }
 
     return -1;

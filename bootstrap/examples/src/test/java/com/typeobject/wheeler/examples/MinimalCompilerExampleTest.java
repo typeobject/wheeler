@@ -256,6 +256,34 @@ class MinimalCompilerExampleTest {
             + "long answer = 41; boolean same = answer == 42; assert(same); } }");
     assertDifferentialExecution(
         writerProgram,
+        "classical class EqualityIfAdd { state long result = 0; entry void main() { "
+            + "long answer = 42; if (answer == 42) { result += 1; } "
+            + "assert(result == 1); } }",
+        "result",
+        1);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class EqualityIfSkipped { state long result = 2; entry void main() { "
+            + "long answer = -1; if (answer == 0) { result -= 1; } "
+            + "assert(result == 2); } }",
+        "result",
+        2);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class EqualityIfXor { state long result = 6; entry void main() { "
+            + "long answer = 42; if (answer == 42) { result ^= 3; } "
+            + "assert(result == 5); } }",
+        "result",
+        5);
+    assertDifferentialExecution(
+        writerProgram,
+        "classical class EqualityIfAssign { state long result = 0; entry void main() { "
+            + "long answer = 42; if (answer == 42) { result = 9; } "
+            + "assert(result == 9); } }",
+        "result",
+        9);
+    assertDifferentialExecution(
+        writerProgram,
         "classical class LocalIfAdd { state long result = 0; entry void main() { "
             + "boolean ready = true; if (ready) { result += 1; } assert(result == 1); } }",
         "result",
