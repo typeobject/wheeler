@@ -138,12 +138,12 @@ classical class Codegen {
       return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
     }
 
-    if (resolvedLiteralEqualityConditional(opcode)) {
+    if (resolvedLiteralComparisonConditional(opcode)) {
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
-      if (literalEqualityConditionalAssignment(opcode)) {
+      if (literalComparisonConditionalAssignment(opcode)) {
         return cursor;
       }
 
@@ -256,8 +256,8 @@ classical class Codegen {
       return 96;
     }
 
-    if (resolvedLiteralEqualityConditional(opcode)) {
-      if (literalEqualityConditionalAssignment(opcode)) {
+    if (resolvedLiteralComparisonConditional(opcode)) {
+      if (literalComparisonConditionalAssignment(opcode)) {
         return 168;
       }
 
@@ -460,17 +460,22 @@ classical class Codegen {
       );
     }
 
-    if (resolvedLiteralEqualityConditional(opcode)) {
+    if (resolvedLiteralComparisonConditional(opcode)) {
       long comparisonUpdateOpcode = OPCODE_LOCAL_ADD;
-      if (literalEqualityConditionalSubtract(opcode)) {
+      if (literalComparisonConditionalSubtract(opcode)) {
         comparisonUpdateOpcode = OPCODE_LOCAL_SUB;
       }
 
-      if (literalEqualityConditionalXor(opcode)) {
+      if (literalComparisonConditionalXor(opcode)) {
         comparisonUpdateOpcode = OPCODE_LOCAL_XOR;
       }
 
-      boolean comparisonAssignment = literalEqualityConditionalAssignment(opcode);
+      long guardComparisonOpcode = OPCODE_LOCAL_EQ;
+      if (literalComparisonConditionalLessThan(opcode)) {
+        guardComparisonOpcode = OPCODE_LOCAL_LT;
+      }
+
+      boolean comparisonAssignment = literalComparisonConditionalAssignment(opcode);
       long comparisonEndInstruction = instructionBase + 9;
       if (comparisonAssignment) {
         comparisonEndInstruction = instructionBase + 7;
@@ -481,13 +486,13 @@ classical class Codegen {
       cursor = writeUnsignedLittleEndian(
         output,
         cursor,
-        resolvedLiteralEqualityConditionalSource(opcode),
+        resolvedLiteralComparisonConditionalSource(opcode),
         8
       );
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, 2);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);
       cursor = writeSignedLittleEndian(output, cursor, secondaryOperand, 8);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_EQ, 3);
+      cursor = writeInstructionHeader(output, cursor, guardComparisonOpcode, 3);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, 8);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, 8);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, 8);

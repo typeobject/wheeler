@@ -5,8 +5,8 @@ module wheeler.compiler.conditionals;
 import wheeler.compiler.tokens;
 
 classical class Conditionals {
-  /// Returns the token width of one signed equality condition.
-  public long literalEqualityConditionalWidth(
+  /// Returns the token width of one signed literal-comparison condition.
+  public long literalComparisonConditionalWidth(
     borrow utf8 source,
     borrow mut words tokenKinds,
     borrow mut words tokenStarts,
@@ -14,7 +14,7 @@ classical class Conditionals {
     long statementStart,
     long statementKind
   ) {
-    if (namedLiteralEqualityConditional(statementKind) == false) {
+    if (namedLiteralComparisonConditional(statementKind) == false) {
       return -1;
     }
 
@@ -34,37 +34,48 @@ classical class Conditionals {
       return -1;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, statementStart + 3, PUNCTUATION_ASSIGN)
-        == false
-    ) {
-      return -1;
+    long comparisonStart = statementStart + 5;
+    if (literalComparisonConditionalLessThan(statementKind)) {
+      comparisonStart = statementStart + 4;
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 3,
+          PUNCTUATION_LESS_THAN
+        ) == false
+      ) {
+        return -1;
+      }
+    } else {
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, statementStart + 3, PUNCTUATION_ASSIGN)
+          == false
+      ) {
+        return -1;
+      }
+
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, statementStart + 4, PUNCTUATION_ASSIGN)
+          == false
+      ) {
+        return -1;
+      }
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, statementStart + 4, PUNCTUATION_ASSIGN)
-        == false
-    ) {
-      return -1;
-    }
-
-    long comparisonWidth = signedNumberWidth(
-      source,
-      tokenKinds,
-      tokenStarts,
-      statementStart + 5
-    );
+    long comparisonWidth = signedNumberWidth(source, tokenKinds, tokenStarts, comparisonStart);
     if (comparisonWidth < 1) {
       return -1;
     }
 
     if (
-      signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 5) == false
+      signedNumberValid(source, tokenStarts, tokenLengths, comparisonStart) == false
     ) {
       return -1;
     }
 
-    long closeCondition = statementStart + 5 + comparisonWidth;
+    long closeCondition = comparisonStart + comparisonWidth;
     if (
       punctuationAt(source, tokenKinds, tokenStarts, closeCondition, PUNCTUATION_CLOSE_PAREN)
         == false
@@ -91,17 +102,17 @@ classical class Conditionals {
     }
 
     long operatorToken = closeCondition + 3;
-    long expectedOperator = PUNCTUATION_ASSIGN;
-    if (statementKind == STATEMENT_IF_LOCAL_EQ_LITERAL_ADD_NAMED) {
-      expectedOperator = PUNCTUATION_PLUS;
-    }
-
-    if (statementKind == STATEMENT_IF_LOCAL_EQ_LITERAL_SUB_NAMED) {
+    long expectedOperator = PUNCTUATION_PLUS;
+    if (literalComparisonConditionalSubtract(statementKind)) {
       expectedOperator = PUNCTUATION_MINUS;
     }
 
-    if (statementKind == STATEMENT_IF_LOCAL_EQ_LITERAL_XOR_NAMED) {
+    if (literalComparisonConditionalXor(statementKind)) {
       expectedOperator = PUNCTUATION_CARET;
+    }
+
+    if (literalComparisonConditionalAssignment(statementKind)) {
+      expectedOperator = PUNCTUATION_ASSIGN;
     }
 
     if (
@@ -111,7 +122,7 @@ classical class Conditionals {
     }
 
     long operandToken = operatorToken + 1;
-    if (literalEqualityConditionalAssignment(statementKind) == false) {
+    if (literalComparisonConditionalAssignment(statementKind) == false) {
       if (
         punctuationAt(source, tokenKinds, tokenStarts, operandToken, PUNCTUATION_ASSIGN) == false
       ) {
@@ -286,8 +297,8 @@ classical class Conditionals {
     return operandToken - statementStart + operandWidth + 2;
   }
 
-  /// Checks for a named signed equality condition.
-  public boolean namedLiteralEqualityConditional(long opcode) {
+  /// Checks for a named signed literal-comparison condition.
+  public boolean namedLiteralComparisonConditional(long opcode) {
     if (opcode == STATEMENT_IF_LOCAL_EQ_LITERAL_ADD_NAMED) {
       return true;
     }
@@ -300,20 +311,61 @@ classical class Conditionals {
       return true;
     }
 
-    return opcode == STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_NAMED;
+    if (opcode == STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_ADD_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_SUB_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_XOR_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_NAMED;
   }
 
-  /// Checks for a resolved signed equality condition.
-  public boolean resolvedLiteralEqualityConditional(long opcode) {
+  /// Checks for a resolved signed literal-comparison condition.
+  public boolean resolvedLiteralComparisonConditional(long opcode) {
     if (opcode < STATEMENT_IF_LOCAL_EQ_LITERAL_ADD_BASE) {
       return false;
     }
 
-    return opcode < STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_BASE + 256;
+    return opcode < STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_BASE + 256;
   }
 
-  /// Returns the signed source local carried by an equality condition.
-  public long resolvedLiteralEqualityConditionalSource(long opcode) {
+  /// Checks whether a condition compares with signed less-than.
+  public boolean literalComparisonConditionalLessThan(long opcode) {
+    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_ADD_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_SUB_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_XOR_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_NAMED) {
+      return true;
+    }
+
+    if (opcode < STATEMENT_IF_LOCAL_LT_LITERAL_ADD_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_BASE + 256;
+  }
+
+  /// Returns the signed source local carried by a comparison condition.
+  public long resolvedLiteralComparisonConditionalSource(long opcode) {
     if (opcode < STATEMENT_IF_LOCAL_EQ_LITERAL_SUB_BASE) {
       return opcode - STATEMENT_IF_LOCAL_EQ_LITERAL_ADD_BASE;
     }
@@ -326,50 +378,93 @@ classical class Conditionals {
       return opcode - STATEMENT_IF_LOCAL_EQ_LITERAL_XOR_BASE;
     }
 
-    return opcode - STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_BASE;
+    if (opcode < STATEMENT_IF_LOCAL_LT_LITERAL_ADD_BASE) {
+      return opcode - STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_BASE;
+    }
+
+    if (opcode < STATEMENT_IF_LOCAL_LT_LITERAL_SUB_BASE) {
+      return opcode - STATEMENT_IF_LOCAL_LT_LITERAL_ADD_BASE;
+    }
+
+    if (opcode < STATEMENT_IF_LOCAL_LT_LITERAL_XOR_BASE) {
+      return opcode - STATEMENT_IF_LOCAL_LT_LITERAL_SUB_BASE;
+    }
+
+    if (opcode < STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_BASE) {
+      return opcode - STATEMENT_IF_LOCAL_LT_LITERAL_XOR_BASE;
+    }
+
+    return opcode - STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_BASE;
   }
 
-  /// Checks whether an equality condition guards subtraction.
-  public boolean literalEqualityConditionalSubtract(long opcode) {
+  /// Checks whether a comparison condition guards subtraction.
+  public boolean literalComparisonConditionalSubtract(long opcode) {
     if (opcode == STATEMENT_IF_LOCAL_EQ_LITERAL_SUB_NAMED) {
       return true;
     }
 
-    if (opcode < STATEMENT_IF_LOCAL_EQ_LITERAL_SUB_BASE) {
+    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_SUB_NAMED) {
+      return true;
+    }
+
+    boolean equalitySubtract = STATEMENT_IF_LOCAL_EQ_LITERAL_SUB_BASE - 1 < opcode;
+    if (opcode < STATEMENT_IF_LOCAL_EQ_LITERAL_XOR_BASE) {
+      return equalitySubtract;
+    }
+
+    if (opcode < STATEMENT_IF_LOCAL_LT_LITERAL_SUB_BASE) {
       return false;
     }
 
-    return opcode < STATEMENT_IF_LOCAL_EQ_LITERAL_XOR_BASE;
+    return opcode < STATEMENT_IF_LOCAL_LT_LITERAL_XOR_BASE;
   }
 
-  /// Checks whether an equality condition guards XOR.
-  public boolean literalEqualityConditionalXor(long opcode) {
+  /// Checks whether a comparison condition guards XOR.
+  public boolean literalComparisonConditionalXor(long opcode) {
     if (opcode == STATEMENT_IF_LOCAL_EQ_LITERAL_XOR_NAMED) {
       return true;
     }
 
-    if (opcode < STATEMENT_IF_LOCAL_EQ_LITERAL_XOR_BASE) {
+    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_XOR_NAMED) {
+      return true;
+    }
+
+    boolean equalityXor = STATEMENT_IF_LOCAL_EQ_LITERAL_XOR_BASE - 1 < opcode;
+    if (opcode < STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_BASE) {
+      return equalityXor;
+    }
+
+    if (opcode < STATEMENT_IF_LOCAL_LT_LITERAL_XOR_BASE) {
       return false;
     }
 
-    return opcode < STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_BASE;
+    return opcode < STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_BASE;
   }
 
-  /// Checks whether an equality condition guards assignment.
-  public boolean literalEqualityConditionalAssignment(long opcode) {
+  /// Checks whether a comparison condition guards assignment.
+  public boolean literalComparisonConditionalAssignment(long opcode) {
     if (opcode == STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_NAMED) {
       return true;
     }
 
-    if (opcode < STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_BASE) {
+    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_NAMED) {
+      return true;
+    }
+
+    boolean equalityAssignment = STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_BASE - 1 < opcode;
+    if (opcode < STATEMENT_IF_LOCAL_LT_LITERAL_ADD_BASE) {
+      return equalityAssignment;
+    }
+
+    if (opcode < STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_BASE) {
       return false;
     }
 
-    return opcode < STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_BASE + 256;
+    return opcode < STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_BASE + 256;
   }
 
-  /// Returns the resolved base for one signed equality condition.
-  public long namedLiteralEqualityConditionalBase(long opcode) {
+  /// Returns the resolved base for one signed comparison condition.
+  public long namedLiteralComparisonConditionalBase(long opcode) {
     if (opcode == STATEMENT_IF_LOCAL_EQ_LITERAL_ADD_NAMED) {
       return STATEMENT_IF_LOCAL_EQ_LITERAL_ADD_BASE;
     }
@@ -382,7 +477,23 @@ classical class Conditionals {
       return STATEMENT_IF_LOCAL_EQ_LITERAL_XOR_BASE;
     }
 
-    return STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_BASE;
+    if (opcode == STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_NAMED) {
+      return STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_BASE;
+    }
+
+    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_ADD_NAMED) {
+      return STATEMENT_IF_LOCAL_LT_LITERAL_ADD_BASE;
+    }
+
+    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_SUB_NAMED) {
+      return STATEMENT_IF_LOCAL_LT_LITERAL_SUB_BASE;
+    }
+
+    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_XOR_NAMED) {
+      return STATEMENT_IF_LOCAL_LT_LITERAL_XOR_BASE;
+    }
+
+    return STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_BASE;
   }
 
   /// Checks for a named one-arm Boolean condition guarding a global update.

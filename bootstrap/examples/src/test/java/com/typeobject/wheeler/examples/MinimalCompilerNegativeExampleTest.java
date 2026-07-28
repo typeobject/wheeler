@@ -199,6 +199,16 @@ class MinimalCompilerNegativeExampleTest {
     assertThrows(VmTrap.class, booleanGuardedLocalUpdate::run);
     assertArrayEquals(new byte[512], booleanGuardedLocalUpdate.hostOutput());
 
+    VirtualMachine booleanLessThanCondition = new VirtualMachine(
+        writerProgram,
+        ("classical class BooleanLessThanCondition { state long result = 0; "
+                + "entry void main() { boolean answer = true; "
+                + "if (answer < 1) { result += 1; } } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, booleanLessThanCondition::run);
+    assertArrayEquals(new byte[512], booleanLessThanCondition.hostOutput());
+
     VirtualMachine booleanEqualityCondition = new VirtualMachine(
         writerProgram,
         ("classical class BooleanEqualityCondition { state long result = 0; "

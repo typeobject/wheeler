@@ -274,7 +274,7 @@ classical class LocalStatements {
       return -1;
     }
 
-    if (namedLiteralEqualityConditional(opcode)) {
+    if (namedLiteralComparisonConditional(opcode)) {
       long comparisonSourceLocal = resolvePriorDeclaration(
         source,
         tokenStarts,
@@ -285,7 +285,7 @@ classical class LocalStatements {
         true
       );
       if (-1 < comparisonSourceLocal) {
-        return namedLiteralEqualityConditionalBase(opcode) + comparisonSourceLocal;
+        return namedLiteralComparisonConditionalBase(opcode) + comparisonSourceLocal;
       }
 
       return -1;
@@ -739,8 +739,13 @@ classical class LocalStatements {
     long statementStart
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
-    if (namedLiteralEqualityConditional(opcode)) {
-      return parsedSignedNumber(source, tokenStarts, tokenLengths, statementStart + 5);
+    if (namedLiteralComparisonConditional(opcode)) {
+      long comparisonToken = statementStart + 5;
+      if (literalComparisonConditionalLessThan(opcode)) {
+        comparisonToken -= 1;
+      }
+
+      return parsedSignedNumber(source, tokenStarts, tokenLengths, comparisonToken);
     }
 
     if (opcode == STATEMENT_ASSERT_LITERAL_EQ) {
@@ -792,14 +797,19 @@ classical class LocalStatements {
       return statementStart + 5;
     }
 
-    if (namedLiteralEqualityConditional(opcode)) {
+    if (namedLiteralComparisonConditional(opcode)) {
+      long comparisonToken = statementStart + 5;
+      if (literalComparisonConditionalLessThan(opcode)) {
+        comparisonToken -= 1;
+      }
+
       long comparisonWidth = 1;
-      if (utf8Scalar(source, tokenStarts[statementStart + 5]) == PUNCTUATION_MINUS) {
+      if (utf8Scalar(source, tokenStarts[comparisonToken]) == PUNCTUATION_MINUS) {
         comparisonWidth = 2;
       }
 
-      long comparisonOperandToken = statementStart + 10 + comparisonWidth;
-      if (literalEqualityConditionalAssignment(opcode)) {
+      long comparisonOperandToken = comparisonToken + comparisonWidth + 5;
+      if (literalComparisonConditionalAssignment(opcode)) {
         comparisonOperandToken -= 1;
       }
 

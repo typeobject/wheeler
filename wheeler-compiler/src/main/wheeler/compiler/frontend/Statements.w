@@ -16,8 +16,8 @@ classical class Statements {
     long statementStart
   ) {
     long statementKind = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
-    if (namedLiteralEqualityConditional(statementKind)) {
-      return literalEqualityConditionalWidth(
+    if (namedLiteralComparisonConditional(statementKind)) {
+      return literalComparisonConditionalWidth(
         source,
         tokenKinds,
         tokenStarts,

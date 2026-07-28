@@ -190,6 +190,22 @@ classical class Parser {
       supported = true;
     }
 
+    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_ADD_NAMED) {
+      supported = true;
+    }
+
+    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_SUB_NAMED) {
+      supported = true;
+    }
+
+    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_XOR_NAMED) {
+      supported = true;
+    }
+
+    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_NAMED) {
+      supported = true;
+    }
+
     if (opcode == STATEMENT_ASSERT_BOOLEAN_NOT) {
       supported = true;
     }

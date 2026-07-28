@@ -264,6 +264,22 @@ classical class Tokens {
   public const long STATEMENT_IF_LOCAL_EQ_LITERAL_XOR_BASE = 12800;
   /// Starts resolved equality conditions guarding global assignment.
   public const long STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_BASE = 13056;
+  /// Names a signed-local less-than condition guarding global addition.
+  public const long STATEMENT_IF_LOCAL_LT_LITERAL_ADD_NAMED = 822;
+  /// Names a signed-local less-than condition guarding global subtraction.
+  public const long STATEMENT_IF_LOCAL_LT_LITERAL_SUB_NAMED = 823;
+  /// Names a signed-local less-than condition guarding global XOR.
+  public const long STATEMENT_IF_LOCAL_LT_LITERAL_XOR_NAMED = 824;
+  /// Names a signed-local less-than condition guarding global assignment.
+  public const long STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_NAMED = 825;
+  /// Starts resolved less-than conditions guarding global addition.
+  public const long STATEMENT_IF_LOCAL_LT_LITERAL_ADD_BASE = 13312;
+  /// Starts resolved less-than conditions guarding global subtraction.
+  public const long STATEMENT_IF_LOCAL_LT_LITERAL_SUB_BASE = 13568;
+  /// Starts resolved less-than conditions guarding global XOR.
+  public const long STATEMENT_IF_LOCAL_LT_LITERAL_XOR_BASE = 13824;
+  /// Starts resolved less-than conditions guarding global assignment.
+  public const long STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_BASE = 14080;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -439,36 +455,64 @@ classical class Tokens {
 
     if (keyword == TOKEN_IF) {
       long conditionOperator = utf8Scalar(source, tokenStarts[statementStart + 3]);
+      long comparisonLiteralToken = -1;
+      boolean lessThanComparison = conditionOperator == PUNCTUATION_LESS_THAN;
+      if (lessThanComparison) {
+        comparisonLiteralToken = statementStart + 4;
+      }
+
       if (conditionOperator == PUNCTUATION_ASSIGN) {
         long conditionSecondOperator = utf8Scalar(source, tokenStarts[statementStart + 4]);
         if (conditionSecondOperator == PUNCTUATION_ASSIGN) {
-          long comparisonWidth = 1;
-          if (utf8Scalar(source, tokenStarts[statementStart + 5]) == PUNCTUATION_MINUS) {
-            comparisonWidth = 2;
-          }
-
-          long comparisonBodyOperator = utf8Scalar(
-            source,
-            tokenStarts[statementStart + 8 + comparisonWidth]
-          );
-          if (comparisonBodyOperator == PUNCTUATION_PLUS) {
-            return STATEMENT_IF_LOCAL_EQ_LITERAL_ADD_NAMED;
-          }
-
-          if (comparisonBodyOperator == PUNCTUATION_MINUS) {
-            return STATEMENT_IF_LOCAL_EQ_LITERAL_SUB_NAMED;
-          }
-
-          if (comparisonBodyOperator == PUNCTUATION_CARET) {
-            return STATEMENT_IF_LOCAL_EQ_LITERAL_XOR_NAMED;
-          }
-
-          if (comparisonBodyOperator == PUNCTUATION_ASSIGN) {
-            return STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_NAMED;
-          }
-
-          return -1;
+          comparisonLiteralToken = statementStart + 5;
         }
+      }
+
+      if (-1 < comparisonLiteralToken) {
+        long comparisonWidth = 1;
+        if (
+          utf8Scalar(source, tokenStarts[comparisonLiteralToken]) == PUNCTUATION_MINUS
+        ) {
+          comparisonWidth = 2;
+        }
+
+        long comparisonBodyOperator = utf8Scalar(
+          source,
+          tokenStarts[comparisonLiteralToken + 3 + comparisonWidth]
+        );
+        if (comparisonBodyOperator == PUNCTUATION_PLUS) {
+          if (lessThanComparison) {
+            return STATEMENT_IF_LOCAL_LT_LITERAL_ADD_NAMED;
+          }
+
+          return STATEMENT_IF_LOCAL_EQ_LITERAL_ADD_NAMED;
+        }
+
+        if (comparisonBodyOperator == PUNCTUATION_MINUS) {
+          if (lessThanComparison) {
+            return STATEMENT_IF_LOCAL_LT_LITERAL_SUB_NAMED;
+          }
+
+          return STATEMENT_IF_LOCAL_EQ_LITERAL_SUB_NAMED;
+        }
+
+        if (comparisonBodyOperator == PUNCTUATION_CARET) {
+          if (lessThanComparison) {
+            return STATEMENT_IF_LOCAL_LT_LITERAL_XOR_NAMED;
+          }
+
+          return STATEMENT_IF_LOCAL_EQ_LITERAL_XOR_NAMED;
+        }
+
+        if (comparisonBodyOperator == PUNCTUATION_ASSIGN) {
+          if (lessThanComparison) {
+            return STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_NAMED;
+          }
+
+          return STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_NAMED;
+        }
+
+        return -1;
       }
 
       boolean negatedCondition = utf8Scalar(source, tokenStarts[statementStart + 2])

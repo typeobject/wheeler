@@ -295,16 +295,16 @@ classical class LocalOpcodes {
 
   /// Returns the typed-local width required by one parsed statement.
   public long statementLocalCount(long opcode) {
-    if (namedLiteralEqualityConditional(opcode)) {
-      if (literalEqualityConditionalAssignment(opcode)) {
+    if (namedLiteralComparisonConditional(opcode)) {
+      if (literalComparisonConditionalAssignment(opcode)) {
         return 4;
       }
 
       return 5;
     }
 
-    if (resolvedLiteralEqualityConditional(opcode)) {
-      if (literalEqualityConditionalAssignment(opcode)) {
+    if (resolvedLiteralComparisonConditional(opcode)) {
+      if (literalComparisonConditionalAssignment(opcode)) {
         return 4;
       }
 
