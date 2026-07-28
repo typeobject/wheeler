@@ -92,6 +92,10 @@ classical class HelperParser {
       parameterCount = 1;
     }
 
+    if (helperKind == HELPER_BOOLEAN_TWO) {
+      parameterCount = 2;
+    }
+
     if (0 < parameterCount) {
       long shifted = helperStatementCount;
       while (0 < shifted) limit MAX_MINIMAL_STATEMENTS {
@@ -100,13 +104,23 @@ classical class HelperParser {
       }
 
       long firstParameterMarker = 0 - (nameToken + 3);
-      if (helperKind == HELPER_BOOLEAN_ONE) {
+      boolean booleanParameters = helperKind == HELPER_BOOLEAN_ONE;
+      if (helperKind == HELPER_BOOLEAN_TWO) {
+        booleanParameters = true;
+      }
+
+      if (booleanParameters) {
         firstParameterMarker -= BOOLEAN_PARAMETER_TOKEN_BIAS;
       }
 
       set(helperStarts, 0, firstParameterMarker);
       if (parameterCount == 2) {
-        set(helperStarts, 1, 0 - (nameToken + 6));
+        long secondParameterMarker = 0 - (nameToken + 6);
+        if (booleanParameters) {
+          secondParameterMarker -= BOOLEAN_PARAMETER_TOKEN_BIAS;
+        }
+
+        set(helperStarts, 1, secondParameterMarker);
       }
     }
 
@@ -144,6 +158,10 @@ classical class HelperParser {
 
     boolean booleanHelper = helperKind == HELPER_BOOLEAN;
     if (helperKind == HELPER_BOOLEAN_ONE) {
+      booleanHelper = true;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_TWO) {
       booleanHelper = true;
     }
 
@@ -561,6 +579,42 @@ classical class HelperParser {
 
         closeParameters = nameToken + 4;
         helperKind = HELPER_BOOLEAN_ONE;
+      }
+    }
+
+    if (helperKind == HELPER_BOOLEAN_ONE) {
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, closeParameters, PUNCTUATION_COMMA)
+      ) {
+        if (
+          tokenHash(source, tokenStarts, tokenLengths, closeParameters + 1) == TOKEN_BOOLEAN
+        ) {
+          secondParameterToken = closeParameters + 2;
+          if (tokenKinds[secondParameterToken] == 1) {} else {
+            return new MinimalProgramResult.Error(0);
+          }
+
+          if (tokenLengths[secondParameterToken] < 257) {} else {
+            return new MinimalProgramResult.Error(0);
+          }
+
+          if (
+            sameTokenText(
+              source,
+              tokenStarts,
+              tokenLengths,
+              parameterToken,
+              secondParameterToken
+            )
+          ) {
+            return new MinimalProgramResult.Error(0);
+          }
+
+          closeParameters += 3;
+          helperKind = HELPER_BOOLEAN_TWO;
+        } else {
+          return new MinimalProgramResult.Error(0);
+        }
       }
     }
 

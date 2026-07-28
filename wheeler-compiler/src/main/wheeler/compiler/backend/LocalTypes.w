@@ -41,6 +41,16 @@ classical class LocalTypes {
       return cursor;
     }
 
+    if (twoArgumentBooleanCall(opcode)) {
+      long pairCallLocal = 0;
+      while (pairCallLocal < 6) limit MAX_STATEMENT_LOCALS {
+        cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+        pairCallLocal += 1;
+      }
+
+      return cursor;
+    }
+
     if (opcode == STATEMENT_RETURN_BOOLEAN) {
       return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
     }

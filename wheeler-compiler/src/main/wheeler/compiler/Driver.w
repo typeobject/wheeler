@@ -405,6 +405,12 @@ classical class CompilerDriver {
       helperLocalBase = 1;
     }
 
+    if (program.helperKind == HELPER_BOOLEAN_TWO) {
+      helperLocalCount += 2;
+      helperParameterCount = 2;
+      helperLocalBase = 2;
+    }
+
     long helperInverseLength = 0;
     long helperInverseOffset = 4294967295;
     long entryForwardLength = 8 + program.helperCallCount * 16 + entryStatementLength;
@@ -527,6 +533,10 @@ classical class CompilerDriver {
           booleanResult = true;
         }
 
+        if (program.helperKind == HELPER_BOOLEAN_TWO) {
+          booleanResult = true;
+        }
+
         if (booleanResult) {
           cursor = writeBooleanLocalType(output, cursor);
         } else {
@@ -544,6 +554,11 @@ classical class CompilerDriver {
       }
 
       if (program.helperKind == HELPER_BOOLEAN_ONE) {
+        cursor = writeBooleanLocalType(output, cursor);
+      }
+
+      if (program.helperKind == HELPER_BOOLEAN_TWO) {
+        cursor = writeBooleanLocalType(output, cursor);
         cursor = writeBooleanLocalType(output, cursor);
       }
 

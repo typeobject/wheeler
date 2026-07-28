@@ -33,6 +33,11 @@ classical class Operands {
     }
 
     if (twoArgumentCallFirstNamed(opcode)) {
+      boolean pairSignedArgument = true;
+      if (twoArgumentBooleanCall(opcode)) {
+        pairSignedArgument = false;
+      }
+
       return resolvePriorDeclaration(
         source,
         tokenStarts,
@@ -40,7 +45,7 @@ classical class Operands {
         previousStarts,
         previousCount,
         statementStart + 5,
-        true
+        pairSignedArgument
       );
     }
 
@@ -300,6 +305,10 @@ classical class Operands {
       booleanLiteral = true;
     }
 
+    if (twoArgumentBooleanCall(opcode)) {
+      booleanLiteral = true;
+    }
+
     if (opcode == STATEMENT_RETURN_BOOLEAN) {
       booleanLiteral = true;
     }
@@ -366,6 +375,11 @@ classical class Operands {
 
       long secondToken = statementStart + 6 + firstWidth;
       if (twoArgumentCallSecondNamed(opcode)) {
+        boolean signedArgument = true;
+        if (twoArgumentBooleanCall(opcode)) {
+          signedArgument = false;
+        }
+
         return resolvePriorDeclaration(
           source,
           tokenStarts,
@@ -373,8 +387,17 @@ classical class Operands {
           previousStarts,
           previousCount,
           secondToken,
-          true
+          signedArgument
         );
+      }
+
+      if (twoArgumentBooleanCall(opcode)) {
+        long literal = tokenHash(source, tokenStarts, tokenLengths, secondToken);
+        if (literal == TOKEN_TRUE) {
+          return 1;
+        }
+
+        return 0;
       }
 
       return parsedSignedNumber(source, tokenStarts, tokenLengths, secondToken);

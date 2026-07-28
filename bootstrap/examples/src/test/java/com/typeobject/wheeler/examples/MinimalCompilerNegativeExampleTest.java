@@ -323,6 +323,36 @@ class MinimalCompilerNegativeExampleTest {
     assertThrows(VmTrap.class, signedLocalBooleanCallArgument::run);
     assertArrayEquals(new byte[512], signedLocalBooleanCallArgument.hostOutput());
 
+    VirtualMachine signedBooleanPairArgument = new VirtualMachine(
+        writerProgram,
+        ("classical class SignedBooleanPairArgument { "
+                + "boolean same(boolean left, boolean right) { return left; } "
+                + "entry void main() { boolean answer = same(true, 1); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, signedBooleanPairArgument::run);
+    assertArrayEquals(new byte[512], signedBooleanPairArgument.hostOutput());
+
+    VirtualMachine missingBooleanPairArgument = new VirtualMachine(
+        writerProgram,
+        ("classical class MissingBooleanPairArgument { "
+                + "boolean same(boolean left, boolean right) { return left; } "
+                + "entry void main() { boolean answer = same(true); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, missingBooleanPairArgument::run);
+    assertArrayEquals(new byte[512], missingBooleanPairArgument.hostOutput());
+
+    VirtualMachine duplicateBooleanParameters = new VirtualMachine(
+        writerProgram,
+        ("classical class DuplicateBooleanParameters { "
+                + "boolean same(boolean value, boolean value) { return value; } "
+                + "entry void main() { boolean answer = same(true, true); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, duplicateBooleanParameters::run);
+    assertArrayEquals(new byte[512], duplicateBooleanParameters.hostOutput());
+
     VirtualMachine booleanTwoArgument = new VirtualMachine(
         writerProgram,
         ("classical class BooleanTwoArgument { "

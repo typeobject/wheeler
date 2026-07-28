@@ -313,6 +313,14 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_BOOLEAN_CALL_ARGUMENT_NAMED = 847;
   /// Names a Boolean result call with one prior-local argument.
   public const long STATEMENT_LOCAL_BOOLEAN_CALL_LOCAL_ARGUMENT_NAMED = 848;
+  /// Names a Boolean result call with two literal arguments.
+  public const long STATEMENT_LOCAL_BOOLEAN_CALL_TWO_ARGUMENT_NAMED = 849;
+  /// Names a Boolean result call with a first prior-local argument.
+  public const long STATEMENT_LOCAL_BOOLEAN_CALL_TWO_FIRST_LOCAL_NAMED = 850;
+  /// Names a Boolean result call with a second prior-local argument.
+  public const long STATEMENT_LOCAL_BOOLEAN_CALL_TWO_SECOND_LOCAL_NAMED = 851;
+  /// Names a Boolean result call with two prior-local arguments.
+  public const long STATEMENT_LOCAL_BOOLEAN_CALL_TWO_LOCALS_NAMED = 852;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.

@@ -93,13 +93,28 @@ classical class StatementForms {
     return opcode == STATEMENT_LOCAL_BOOLEAN_CALL_LOCAL_ARGUMENT_NAMED;
   }
 
-  /// Checks for a signed two-argument helper call.
+  /// Checks for a signed or Boolean two-argument helper call.
   public boolean twoArgumentCallStatement(long opcode) {
-    if (opcode < STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED) {
+    if (STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED - 1 < opcode) {
+      if (opcode < STATEMENT_LOCAL_CALL_TWO_LOCALS_NAMED + 1) {
+        return true;
+      }
+    }
+
+    if (opcode < STATEMENT_LOCAL_BOOLEAN_CALL_TWO_ARGUMENT_NAMED) {
       return false;
     }
 
-    return opcode < STATEMENT_LOCAL_CALL_TWO_LOCALS_NAMED + 1;
+    return opcode < STATEMENT_LOCAL_BOOLEAN_CALL_TWO_LOCALS_NAMED + 1;
+  }
+
+  /// Checks whether a two-argument helper call returns a Boolean.
+  public boolean twoArgumentBooleanCall(long opcode) {
+    if (opcode < STATEMENT_LOCAL_BOOLEAN_CALL_TWO_ARGUMENT_NAMED) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_BOOLEAN_CALL_TWO_LOCALS_NAMED + 1;
   }
 
   /// Checks whether the first call argument names a prior local.
@@ -108,7 +123,15 @@ classical class StatementForms {
       return true;
     }
 
-    return opcode == STATEMENT_LOCAL_CALL_TWO_LOCALS_NAMED;
+    if (opcode == STATEMENT_LOCAL_CALL_TWO_LOCALS_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_TWO_FIRST_LOCAL_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_LOCAL_BOOLEAN_CALL_TWO_LOCALS_NAMED;
   }
 
   /// Checks whether the second call argument names a prior local.
@@ -117,7 +140,15 @@ classical class StatementForms {
       return true;
     }
 
-    return opcode == STATEMENT_LOCAL_CALL_TWO_LOCALS_NAMED;
+    if (opcode == STATEMENT_LOCAL_CALL_TWO_LOCALS_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_TWO_SECOND_LOCAL_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_LOCAL_BOOLEAN_CALL_TWO_LOCALS_NAMED;
   }
 
   /// Checks for a signed helper return using its parameter twice.
@@ -500,26 +531,70 @@ classical class StatementForms {
 
       long equality = utf8Scalar(source, tokenStarts[statementStart + 4]);
       if (equality == PUNCTUATION_OPEN_PAREN) {
-        long booleanCallArgument = utf8Scalar(source, tokenStarts[statementStart + 5]);
-        if (booleanCallArgument == PUNCTUATION_CLOSE_PAREN) {
+        long firstArgumentToken = statementStart + 5;
+        long firstArgumentScalar = utf8Scalar(source, tokenStarts[firstArgumentToken]);
+        if (firstArgumentScalar == PUNCTUATION_CLOSE_PAREN) {
           return STATEMENT_LOCAL_BOOLEAN_CALL_NAMED;
         }
 
-        long booleanArgumentHash = tokenHash(
+        long firstArgumentHash = tokenHash(
           source,
           tokenStarts,
           tokenLengths,
-          statementStart + 5
+          firstArgumentToken
         );
-        if (booleanTokenHash(booleanArgumentHash)) {
+        boolean booleanFirstArgumentNamed = identifierStart(firstArgumentScalar);
+        if (booleanTokenHash(firstArgumentHash)) {
+          booleanFirstArgumentNamed = false;
+        } else {
+          if (booleanFirstArgumentNamed) {} else {
+            return -1;
+          }
+        }
+
+        long delimiter = utf8Scalar(source, tokenStarts[firstArgumentToken + 1]);
+        if (delimiter == PUNCTUATION_CLOSE_PAREN) {
+          if (booleanFirstArgumentNamed) {
+            return STATEMENT_LOCAL_BOOLEAN_CALL_LOCAL_ARGUMENT_NAMED;
+          }
+
           return STATEMENT_LOCAL_BOOLEAN_CALL_ARGUMENT_NAMED;
         }
 
-        if (identifierStart(booleanCallArgument)) {
-          return STATEMENT_LOCAL_BOOLEAN_CALL_LOCAL_ARGUMENT_NAMED;
+        if (delimiter == PUNCTUATION_COMMA) {} else {
+          return -1;
         }
 
-        return -1;
+        long secondArgumentToken = firstArgumentToken + 2;
+        long secondArgumentScalar = utf8Scalar(source, tokenStarts[secondArgumentToken]);
+        long secondArgumentHash = tokenHash(
+          source,
+          tokenStarts,
+          tokenLengths,
+          secondArgumentToken
+        );
+        boolean booleanSecondArgumentNamed = identifierStart(secondArgumentScalar);
+        if (booleanTokenHash(secondArgumentHash)) {
+          booleanSecondArgumentNamed = false;
+        } else {
+          if (booleanSecondArgumentNamed) {} else {
+            return -1;
+          }
+        }
+
+        if (booleanFirstArgumentNamed) {
+          if (booleanSecondArgumentNamed) {
+            return STATEMENT_LOCAL_BOOLEAN_CALL_TWO_LOCALS_NAMED;
+          }
+
+          return STATEMENT_LOCAL_BOOLEAN_CALL_TWO_FIRST_LOCAL_NAMED;
+        }
+
+        if (booleanSecondArgumentNamed) {
+          return STATEMENT_LOCAL_BOOLEAN_CALL_TWO_SECOND_LOCAL_NAMED;
+        }
+
+        return STATEMENT_LOCAL_BOOLEAN_CALL_TWO_ARGUMENT_NAMED;
       }
 
       if (equality == PUNCTUATION_ASSIGN) {

@@ -32,7 +32,9 @@ classical class LocalStatements {
       }
 
       if (twoArgumentCallStatement(opcode)) {
-        return true;
+        if (twoArgumentBooleanCall(opcode)) {} else {
+          return true;
+        }
       }
 
       if (namedLongBinary(opcode)) {
@@ -47,6 +49,10 @@ classical class LocalStatements {
     }
 
     if (oneArgumentBooleanCall(opcode)) {
+      return true;
+    }
+
+    if (twoArgumentBooleanCall(opcode)) {
       return true;
     }
 
