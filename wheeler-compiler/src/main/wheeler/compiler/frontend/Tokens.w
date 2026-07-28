@@ -312,6 +312,8 @@ classical class Tokens {
   public const long STATEMENT_RETURN_LOCAL_DIV_LOCAL_NAMED = 839;
   /// Names a signed helper return reducing its parameter modulo itself.
   public const long STATEMENT_RETURN_LOCAL_MOD_LOCAL_NAMED = 840;
+  /// Names a signed local initialized by a two-argument helper call.
+  public const long STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED = 841;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -331,6 +333,8 @@ classical class Tokens {
   public const long PUNCTUATION_STAR = 42;
   /// Names the ASCII `+` punctuation scalar.
   public const long PUNCTUATION_PLUS = 43;
+  /// Names the ASCII `,` punctuation scalar.
+  public const long PUNCTUATION_COMMA = 44;
   /// Names the ASCII `.` punctuation scalar.
   public const long PUNCTUATION_DOT = 46;
   /// Names the ASCII `-` punctuation scalar.
@@ -353,6 +357,10 @@ classical class Tokens {
   /// Checks for one bounded helper value statement.
   public boolean helperValueStatement(long opcode) {
     if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED) {
       return true;
     }
 
@@ -725,6 +733,18 @@ classical class Tokens {
 
           if (identifierStart(callArgument)) {
             return STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED;
+          }
+
+          long firstArgumentWidth = 1;
+          if (callArgument == PUNCTUATION_MINUS) {
+            firstArgumentWidth = 2;
+          }
+
+          if (
+            utf8Scalar(source, tokenStarts[statementStart + 5 + firstArgumentWidth])
+              == PUNCTUATION_COMMA
+          ) {
+            return STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED;
           }
 
           return STATEMENT_LOCAL_CALL_ARGUMENT_NAMED;

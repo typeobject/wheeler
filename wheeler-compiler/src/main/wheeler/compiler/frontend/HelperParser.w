@@ -62,6 +62,10 @@ classical class HelperParser {
       }
     }
 
+    if (helperKind == 4) {
+      expectedCall = opcode == STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED;
+    }
+
     if (expectedCall) {
       return sameTokenText(source, tokenStarts, tokenLengths, nameToken, callStart + 3);
     }
@@ -135,6 +139,16 @@ classical class HelperParser {
       }
 
       if (parameterReturn == false) {
+        return new MinimalProgramResult.Error(0);
+      }
+    }
+
+    if (reversible == 4) {
+      if (helperSequence.count == 1) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+
+      if (returnLocalPairStatement(helperSequence.opcodes[0]) == false) {
         return new MinimalProgramResult.Error(0);
       }
     }
@@ -440,6 +454,7 @@ classical class HelperParser {
     }
 
     long parameterToken = -1;
+    long secondParameterToken = -1;
     long closeParameters = nameToken + 2;
     if (reversible == 2) {
       if (tokenHash(source, tokenStarts, tokenLengths, closeParameters) == TOKEN_LONG) {
@@ -454,6 +469,37 @@ classical class HelperParser {
 
         closeParameters = nameToken + 4;
         reversible = 3;
+        if (
+          punctuationAt(source, tokenKinds, tokenStarts, closeParameters, PUNCTUATION_COMMA)
+        ) {
+          if (
+            tokenHash(source, tokenStarts, tokenLengths, closeParameters + 1) == TOKEN_LONG
+          ) {
+            secondParameterToken = closeParameters + 2;
+            if (tokenKinds[secondParameterToken] == 1) {} else {
+              return new MinimalProgramResult.Error(0);
+            }
+
+            if (tokenLengths[secondParameterToken] < 257) {} else {
+              return new MinimalProgramResult.Error(0);
+            }
+
+            if (
+              sameTokenText(
+                source,
+                tokenStarts,
+                tokenLengths,
+                parameterToken,
+                secondParameterToken
+              )
+            ) {
+              return new MinimalProgramResult.Error(0);
+            }
+
+            closeParameters += 3;
+            reversible = 4;
+          }
+        }
       }
     }
 
@@ -508,6 +554,42 @@ classical class HelperParser {
         ) {
           return new MinimalProgramResult.Error(0);
         }
+      }
+    }
+
+    if (reversible == 4) {
+      if (statements.count == 1) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+
+      long pairReturnStart = statementStarts[0];
+      long pairReturnOpcode = statementOpcode(
+        source,
+        tokenStarts,
+        tokenLengths,
+        pairReturnStart
+      );
+      if (returnLocalPairStatement(pairReturnOpcode) == false) {
+        return new MinimalProgramResult.Error(0);
+      }
+
+      if (
+        sameTokenText(source, tokenStarts, tokenLengths, parameterToken, pairReturnStart + 1)
+          == false
+      ) {
+        return new MinimalProgramResult.Error(0);
+      }
+
+      if (
+        sameTokenText(
+          source,
+          tokenStarts,
+          tokenLengths,
+          secondParameterToken,
+          pairReturnStart + 3
+        ) == false
+      ) {
+        return new MinimalProgramResult.Error(0);
       }
     }
 

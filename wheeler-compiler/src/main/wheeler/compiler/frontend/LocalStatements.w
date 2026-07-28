@@ -30,6 +30,10 @@ classical class LocalStatements {
         return true;
       }
 
+      if (opcode == STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED) {
+        return true;
+      }
+
       if (namedLongBinary(opcode)) {
         return true;
       }
@@ -784,6 +788,20 @@ classical class LocalStatements {
       return parsedSignedNumber(source, tokenStarts, tokenLengths, comparisonToken);
     }
 
+    if (opcode == STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED) {
+      long firstWidth = 1;
+      if (utf8Scalar(source, tokenStarts[statementStart + 5]) == PUNCTUATION_MINUS) {
+        firstWidth = 2;
+      }
+
+      return parsedSignedNumber(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart + 6 + firstWidth
+      );
+    }
+
     if (opcode == STATEMENT_ASSERT_LITERAL_EQ) {
       long leftWidth = 1;
       if (utf8Scalar(source, tokenStarts[statementStart + 2]) == PUNCTUATION_MINUS) {
@@ -818,6 +836,10 @@ classical class LocalStatements {
     }
 
     if (opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED) {
+      return statementStart + 5;
+    }
+
+    if (opcode == STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED) {
       return statementStart + 5;
     }
 

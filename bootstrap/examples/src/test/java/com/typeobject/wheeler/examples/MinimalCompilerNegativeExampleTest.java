@@ -133,6 +133,26 @@ class MinimalCompilerNegativeExampleTest {
     assertThrows(VmTrap.class, wrongReturnRightParameter::run);
     assertArrayEquals(new byte[512], wrongReturnRightParameter.hostOutput());
 
+    VirtualMachine duplicateParameters = new VirtualMachine(
+        writerProgram,
+        ("classical class DuplicateParameters { "
+                + "long add(long value, long value) { return value + value; } "
+                + "entry void main() { long answer = add(20, 22); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, duplicateParameters::run);
+    assertArrayEquals(new byte[512], duplicateParameters.hostOutput());
+
+    VirtualMachine reversedParameters = new VirtualMachine(
+        writerProgram,
+        ("classical class ReversedParameters { "
+                + "long subtract(long left, long right) { return right - left; } "
+                + "entry void main() { long answer = subtract(64, 22); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, reversedParameters::run);
+    assertArrayEquals(new byte[512], reversedParameters.hostOutput());
+
     VirtualMachine missingCallArgument = new VirtualMachine(
         writerProgram,
         ("classical class MissingCallArgument { long identity(long value) { return value; } "

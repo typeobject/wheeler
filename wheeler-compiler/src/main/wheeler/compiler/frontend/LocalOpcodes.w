@@ -307,6 +307,10 @@ classical class LocalOpcodes {
       return 4;
     }
 
+    if (opcode == STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED) {
+      return 6;
+    }
+
     if (opcode == STATEMENT_RETURN_LONG) {
       return 1;
     }
@@ -532,6 +536,10 @@ classical class LocalOpcodes {
       return localBase + 3;
     }
 
+    if (opcode == STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED) {
+      return localBase + 5;
+    }
+
     if (namedLongBinary(opcode)) {
       return localBase + 3;
     }
@@ -587,6 +595,10 @@ classical class LocalOpcodes {
 
     if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
       return 112;
+    }
+
+    if (opcode == STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED) {
+      return 160;
     }
 
     if (opcode == STATEMENT_RETURN_LONG) {
@@ -728,6 +740,10 @@ classical class LocalOpcodes {
 
     if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
       return 4;
+    }
+
+    if (opcode == STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED) {
+      return 6;
     }
 
     long length = statementCodeLength(opcode);

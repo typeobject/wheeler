@@ -30,6 +30,36 @@ class MinimalCompilerResultExampleTest {
             + "assert(answer == -42); } }");
     assertDifferentialHalt(
         writerProgram,
+        "classical class SignedTwoParameterAdd { "
+            + "long add(long left, long right) { return left + right; } "
+            + "entry void main() { long answer = add(20, 22); assert(answer == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedTwoParameterSubtract { "
+            + "long subtract(long left, long right) { return left - right; } "
+            + "entry void main() { long answer = subtract(64, 22); assert(answer == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedTwoParameterMultiply { "
+            + "long multiply(long left, long right) { return left * right; } "
+            + "entry void main() { long answer = multiply(6, 7); assert(answer == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedTwoParameterDivide { "
+            + "long divide(long left, long right) { return left / right; } "
+            + "entry void main() { long answer = divide(84, 2); assert(answer == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedTwoParameterRemainder { "
+            + "long remainder(long left, long right) { return left % right; } "
+            + "entry void main() { long answer = remainder(85, 43); assert(answer == 42); } }");
+    assertDifferentialTrap(
+        writerProgram,
+        "classical class SignedTwoParameterDivideZero { "
+            + "long divide(long left, long right) { return left / right; } "
+            + "entry void main() { long answer = divide(42, 0); } }");
+    assertDifferentialHalt(
+        writerProgram,
         "classical class SignedParameterPairAdd { long twice(long value) { return value + value; } "
             + "entry void main() { long answer = twice(21); assert(answer == 42); } }");
     assertDifferentialHalt(

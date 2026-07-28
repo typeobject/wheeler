@@ -391,6 +391,12 @@ classical class CompilerDriver {
       helperLocalBase = 1;
     }
 
+    if (program.helperReversible == 4) {
+      helperLocalCount += 2;
+      helperParameterCount = 2;
+      helperLocalBase = 2;
+    }
+
     long helperInverseLength = 0;
     long helperInverseOffset = 4294967295;
     long entryForwardLength = 8 + program.helperCallCount * 16 + entryStatementLength;
@@ -507,6 +513,11 @@ classical class CompilerDriver {
       }
 
       if (program.helperReversible == 3) {
+        cursor = writeSignedLocalType(output, cursor);
+      }
+
+      if (program.helperReversible == 4) {
+        cursor = writeSignedLocalType(output, cursor);
         cursor = writeSignedLocalType(output, cursor);
       }
 
