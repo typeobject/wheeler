@@ -124,15 +124,15 @@ final class NativeBootstrapModulesIdentityExampleTest {
     BootstrapModuleManifest seventeenModules = generatedGraph(17);
     assertIdentity(program, seventeenModules, 17, 0, 16, false);
     BootstrapModuleManifest thirtyThreeModules = generatedGraph(33);
-    assertIdentity(program, thirtyThreeModules, 33, 0, 32, false);
+    assertLargeIdentity(program, thirtyThreeModules, 33, 0, 32);
     BootstrapModuleManifest sixtyFourModules = generatedGraph(64);
-    assertLargeIdentity(program, sixtyFourModules, 64, 63);
+    assertLargeIdentity(program, sixtyFourModules, 64, 0, 63);
     BootstrapModuleManifest sixtyFiveModules = generatedGraph(65);
-    assertNoIdentity(program, sixtyFiveModules.canonicalBytes());
+    assertLargeNoIdentity(program, sixtyFiveModules.canonicalBytes());
     BootstrapModuleManifest sixtyFourExternals = generatedExternalGraph(64);
-    assertIdentity(program, sixtyFourExternals, 1, 64, 0, false);
+    assertLargeIdentity(program, sixtyFourExternals, 1, 64, 0);
     BootstrapModuleManifest sixtyFiveExternals = generatedExternalGraph(65);
-    assertNoIdentity(program, sixtyFiveExternals.canonicalBytes());
+    assertLargeNoIdentity(program, sixtyFiveExternals.canonicalBytes());
 
     String text = imported.canonicalText();
     assertNoIdentity(program, new byte[32_769]);
@@ -154,6 +154,7 @@ final class NativeBootstrapModulesIdentityExampleTest {
       Program program,
       BootstrapModuleManifest manifest,
       int modules,
+      int externals,
       int imports
   ) throws Exception {
     byte[] canonical = manifest.canonicalBytes();
@@ -172,8 +173,31 @@ final class NativeBootstrapModulesIdentityExampleTest {
     assertArrayEquals(MessageDigest.getInstance("SHA-256").digest(canonical),
         machine.hostOutput());
     assertEquals(modules, machine.global("moduleCount"));
+    assertEquals(externals, machine.global("externalCount"));
     assertEquals(imports, machine.global("importCount"));
     assertEquals(1, machine.global("published"));
+  }
+
+  private static void assertLargeNoIdentity(Program program, byte[] source) {
+    VirtualMachine machine = vm(program, source);
+    long transitions = 0;
+    while (machine.status() != MachineStatus.HALTED
+        && machine.status() != MachineStatus.TRAPPED
+        && transitions < MAX_LARGE_GRAPH_TRANSITIONS) {
+      try {
+        machine.step();
+      } catch (VmTrap expected) {
+        // The first rejected transition sets the fail-closed machine state.
+      }
+      transitions += 1;
+      if (10_000 <= machine.historySize()) {
+        machine.commitHistory();
+      }
+    }
+
+    assertEquals(MachineStatus.TRAPPED, machine.status());
+    assertArrayEquals(new byte[32], machine.hostOutput());
+    assertEquals(0, machine.global("published"));
   }
 
   private static BootstrapModuleManifest generatedExternalGraph(int count) {
