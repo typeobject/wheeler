@@ -119,7 +119,9 @@ A future persistence layer will make checkpoint and replay availability explicit
 
 ## Traps and limits
 
-An optional transition observer receives an immutable function, instruction, and opcode observation only after a successful mutation. It reports forward, inverse, rewind-forward, and rewind-inverse transitions separately. The observer receives no mutable machine state.
+An optional transition observer receives an immutable function, instruction, opcode, and EventId observation only after a successful mutation. It reports forward, inverse, rewind-forward, and rewind-inverse transitions separately. Execution and rewind report the same stable event origin. The observer receives no mutable machine state.
+
+The implemented compatibility machine executes every current artifact as `TaskId.ROOT` in workflow epoch zero. Snapshots expose that selected task and epoch. Hierarchical TaskId construction and ordering are bounded and deterministic, but spawn, scheduling, and atomics remain WIP-0039 work.
 
 The stage-0 semantic coverage reducer in [semantic coverage](coverage.md) uses this boundary without changing artifacts or history.
 

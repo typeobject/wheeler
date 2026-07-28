@@ -5,6 +5,8 @@ import java.util.Map;
 
 /** Immutable public projection of machine state for tests, tools, and debugging. */
 public record MachineSnapshot(
+    TaskId selectedTask,
+    long workflowEpoch,
     MachineStatus status,
     List<Frame> frames,
     Map<String, Long> globals,

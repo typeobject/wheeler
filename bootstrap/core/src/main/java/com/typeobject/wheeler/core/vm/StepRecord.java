@@ -6,6 +6,7 @@ import java.util.Objects;
 /** Minimal information needed to reverse one successful VM transition. */
 public record StepRecord(
     long sequence,
+    EventId eventId,
     Instruction instruction,
     MachineStatus previousStatus,
     ControlChange controlChange,
@@ -29,6 +30,7 @@ public record StepRecord(
   public static final int NO_LOCAL = -1;
 
   public StepRecord {
+    Objects.requireNonNull(eventId, "eventId");
     Objects.requireNonNull(instruction, "instruction");
     Objects.requireNonNull(previousStatus, "previousStatus");
     Objects.requireNonNull(controlChange, "controlChange");

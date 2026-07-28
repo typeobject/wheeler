@@ -21,6 +21,7 @@ public interface TransitionObserver {
     }
     return new Observation(
         sequence,
+        EventId.root(sequence),
         frame.inverse() ? Direction.INVERSE : Direction.FORWARD,
         frame.functionId(),
         frame.programCounter(),
@@ -33,6 +34,7 @@ public interface TransitionObserver {
     Frame frame = record.previousFrame();
     return new Observation(
         record.sequence(),
+        record.eventId(),
         frame.inverse() ? Direction.REWIND_INVERSE : Direction.REWIND_FORWARD,
         frame.functionId(),
         frame.programCounter(),
@@ -51,14 +53,15 @@ public interface TransitionObserver {
   /** One typed, instruction-addressed transition observation. */
   record Observation(
       long sequence,
+      EventId eventId,
       Direction direction,
       int functionId,
       int instructionIndex,
       Opcode opcode,
       int branchOutcome) {
     public Observation {
-      if (sequence < 0 || functionId < 0 || instructionIndex < 0 || opcode == null
-          || branchOutcome < -1 || branchOutcome > 1) {
+      if (sequence < 0 || eventId == null || functionId < 0 || instructionIndex < 0
+          || opcode == null || branchOutcome < -1 || branchOutcome > 1) {
         throw new IllegalArgumentException("Invalid transition observation");
       }
     }

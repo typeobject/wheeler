@@ -232,6 +232,8 @@ public final class VirtualMachine {
       values.put(program.globals().get(i).name(), globals[i]);
     }
     return new MachineSnapshot(
+        TaskId.ROOT,
+        0,
         status,
         List.copyOf(frames),
         Map.copyOf(values),
@@ -568,6 +570,7 @@ public final class VirtualMachine {
 
     return new StepRecord(
         sequence,
+        EventId.root(Math.addExact(sequence, 1)),
         instruction,
         previousStatus,
         control,

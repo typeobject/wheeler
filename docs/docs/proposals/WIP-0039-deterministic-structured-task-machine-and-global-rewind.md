@@ -401,8 +401,8 @@ Native worker failure and external uncertainty follow their owning WIPs. They do
 ## Progress
 
 - [x] Quantum target work uses QuantumSubmission. I/O backend work uses IoProviderResult. Task terminology is reserved for this VM model.
-- [ ] Existing artifacts execute as root task zero unchanged.
-- [ ] Task-aware snapshots and global event records exist.
+- [x] Existing artifacts execute as root task zero with stable TaskId and EventId origins.
+- [ ] Task-aware snapshots and complete global task event records exist.
 - [ ] Structured spawn, completion, join, and exit execute.
 - [ ] Canonical scheduling is deterministic.
 - [ ] Replay rejects disabled choices before mutation.
@@ -419,7 +419,7 @@ Native worker failure and external uncertainty follow their owning WIPs. They do
 
 ## Testing and acceptance
 
-- [ ] Existing single-task outputs, traps, snapshots, history, and rewind remain unchanged.
+- [x] Existing single-task outputs, traps, history, and rewind remain unchanged. Snapshots add root task and workflow-epoch identity.
 - [ ] Spawn rewind restores captures, ordinal, task table, handle, and scheduler.
 - [ ] Completion rewind restores frames, result, blocked joiner, and runnable set.
 - [ ] Join and scope-exit rewind restore ownership and tables.
