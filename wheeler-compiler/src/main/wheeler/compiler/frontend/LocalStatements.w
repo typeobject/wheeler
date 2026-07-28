@@ -542,6 +542,22 @@ classical class LocalStatements {
       );
     }
 
+    if (opcode == STATEMENT_RETURN_LOCAL_NAMED) {
+      if (previousCount == 0) {
+        return 0;
+      }
+
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 1,
+        true
+      );
+    }
+
     if (opcode == STATEMENT_ASSIGN_LOCAL_NAMED) {
       return resolvePriorDeclaration(
         source,

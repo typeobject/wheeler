@@ -73,6 +73,22 @@ classical class HelperParser {
     return false;
   }
 
+  private boolean resultStatement(long opcode) {
+    if (opcode == STATEMENT_RETURN_LONG) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_RETURN_LOCAL_NAMED) {
+      return true;
+    }
+
+    if (returnLocalBinaryStatement(opcode)) {
+      return true;
+    }
+
+    return returnLocalPairStatement(opcode);
+  }
+
   private MinimalProgramResult helperProgram(
     borrow utf8 source,
     borrow mut words tokenStarts,
@@ -115,12 +131,28 @@ classical class HelperParser {
     }
 
     if (reversible == 2) {
-      if (helperSequence.count == 1) {} else {
+      if (0 < helperSequence.count) {} else {
         return new MinimalProgramResult.Error(0);
       }
 
-      if (helperSequence.opcodes[0] == STATEMENT_RETURN_LONG) {} else {
+      long resultIndex = helperSequence.count - 1;
+      long resultOpcode = helperSequence.opcodes[resultIndex];
+      boolean supportedResult = resultOpcode == STATEMENT_RETURN_LONG;
+      if (resultOpcode == STATEMENT_RETURN_LOCAL_NAMED) {
+        supportedResult = true;
+      }
+
+      if (supportedResult == false) {
         return new MinimalProgramResult.Error(0);
+      }
+
+      long preludeStatement = 0;
+      while (preludeStatement < resultIndex) limit MAX_MINIMAL_STATEMENTS {
+        if (resultStatement(helperSequence.opcodes[preludeStatement])) {
+          return new MinimalProgramResult.Error(0);
+        }
+
+        preludeStatement += 1;
       }
     }
 
@@ -156,19 +188,7 @@ classical class HelperParser {
     if (reversible < 2) {
       long helperStatement = 0;
       while (helperStatement < helperSequence.count) limit MAX_MINIMAL_STATEMENTS {
-        if (helperSequence.opcodes[helperStatement] == STATEMENT_RETURN_LONG) {
-          return new MinimalProgramResult.Error(0);
-        }
-
-        if (helperSequence.opcodes[helperStatement] == STATEMENT_RETURN_LOCAL_NAMED) {
-          return new MinimalProgramResult.Error(0);
-        }
-
-        if (returnLocalBinaryStatement(helperSequence.opcodes[helperStatement])) {
-          return new MinimalProgramResult.Error(0);
-        }
-
-        if (returnLocalPairStatement(helperSequence.opcodes[helperStatement])) {
+        if (resultStatement(helperSequence.opcodes[helperStatement])) {
           return new MinimalProgramResult.Error(0);
         }
 

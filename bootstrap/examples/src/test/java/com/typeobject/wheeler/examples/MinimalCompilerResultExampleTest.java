@@ -25,6 +25,11 @@ class MinimalCompilerResultExampleTest {
             + "entry void main() { long value = answer(); assert(value == -42); } }");
     assertDifferentialHalt(
         writerProgram,
+        "classical class SignedResultLocalHelper { "
+            + "long answer() { long base = 20; long result = base + 22; return result; } "
+            + "entry void main() { long value = answer(); assert(value == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
         "classical class SignedParameterHelper { long identity(long value) { return value; } "
             + "entry void main() { long answer = identity(-42); "
             + "assert(answer == -42); } }");

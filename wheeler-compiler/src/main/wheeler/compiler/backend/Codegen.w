@@ -454,7 +454,7 @@ classical class Codegen {
     if (opcode == STATEMENT_RETURN_LOCAL_NAMED) {
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, operand, U64);
       cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN_VALUE, FORM_UNARY);
       return writeUnsignedLittleEndian(output, cursor, localBase, U64);
     }

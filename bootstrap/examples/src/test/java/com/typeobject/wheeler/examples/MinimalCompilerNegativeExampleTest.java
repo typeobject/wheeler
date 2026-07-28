@@ -113,6 +113,35 @@ class MinimalCompilerNegativeExampleTest {
     assertThrows(VmTrap.class, missingResult::run);
     assertArrayEquals(new byte[512], missingResult.hostOutput());
 
+    VirtualMachine earlyResult = new VirtualMachine(
+        writerProgram,
+        ("classical class EarlyResult { long answer() { return 42; long late = 0; } "
+                + "entry void main() { long value = answer(); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, earlyResult::run);
+    assertArrayEquals(new byte[512], earlyResult.hostOutput());
+
+    VirtualMachine missingResultLocal = new VirtualMachine(
+        writerProgram,
+        ("classical class MissingResultLocal { "
+                + "long answer() { long value = 42; return missing; } "
+                + "entry void main() { long result = answer(); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, missingResultLocal::run);
+    assertArrayEquals(new byte[512], missingResultLocal.hostOutput());
+
+    VirtualMachine booleanResultLocal = new VirtualMachine(
+        writerProgram,
+        ("classical class BooleanResultLocal { "
+                + "long answer() { boolean value = true; return value; } "
+                + "entry void main() { long result = answer(); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, booleanResultLocal::run);
+    assertArrayEquals(new byte[512], booleanResultLocal.hostOutput());
+
     VirtualMachine wrongReturnedParameter = new VirtualMachine(
         writerProgram,
         ("classical class WrongReturnedParameter { "
