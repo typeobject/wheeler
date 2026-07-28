@@ -312,8 +312,14 @@ classical class Tokens {
   public const long STATEMENT_RETURN_LOCAL_DIV_LOCAL_NAMED = 839;
   /// Names a signed helper return reducing its parameter modulo itself.
   public const long STATEMENT_RETURN_LOCAL_MOD_LOCAL_NAMED = 840;
-  /// Names a signed local initialized by a two-argument helper call.
+  /// Names a signed local initialized by two literal helper arguments.
   public const long STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED = 841;
+  /// Names a two-argument helper call with a prior local first.
+  public const long STATEMENT_LOCAL_CALL_TWO_FIRST_LOCAL_NAMED = 842;
+  /// Names a two-argument helper call with a prior local second.
+  public const long STATEMENT_LOCAL_CALL_TWO_SECOND_LOCAL_NAMED = 843;
+  /// Names a two-argument helper call with two prior locals.
+  public const long STATEMENT_LOCAL_CALL_TWO_LOCALS_NAMED = 844;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -360,7 +366,7 @@ classical class Tokens {
       return true;
     }
 
-    if (opcode == STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED) {
+    if (twoArgumentCallStatement(opcode)) {
       return true;
     }
 
@@ -382,6 +388,33 @@ classical class Tokens {
     }
 
     return opcode < STATEMENT_RETURN_LOCAL_MOD_NAMED + 1;
+  }
+
+  /// Checks for a signed two-argument helper call.
+  public boolean twoArgumentCallStatement(long opcode) {
+    if (opcode < STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_CALL_TWO_LOCALS_NAMED + 1;
+  }
+
+  /// Checks whether the first call argument names a prior local.
+  public boolean twoArgumentCallFirstNamed(long opcode) {
+    if (opcode == STATEMENT_LOCAL_CALL_TWO_FIRST_LOCAL_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_LOCAL_CALL_TWO_LOCALS_NAMED;
+  }
+
+  /// Checks whether the second call argument names a prior local.
+  public boolean twoArgumentCallSecondNamed(long opcode) {
+    if (opcode == STATEMENT_LOCAL_CALL_TWO_SECOND_LOCAL_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_LOCAL_CALL_TWO_LOCALS_NAMED;
   }
 
   /// Checks for a signed helper return using its parameter twice.
@@ -731,20 +764,34 @@ classical class Tokens {
             return STATEMENT_LOCAL_CALL_NAMED;
           }
 
-          if (identifierStart(callArgument)) {
-            return STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED;
-          }
-
+          boolean firstArgumentNamed = identifierStart(callArgument);
           long firstArgumentWidth = 1;
           if (callArgument == PUNCTUATION_MINUS) {
             firstArgumentWidth = 2;
           }
 
-          if (
-            utf8Scalar(source, tokenStarts[statementStart + 5 + firstArgumentWidth])
-              == PUNCTUATION_COMMA
-          ) {
+          long commaToken = statementStart + 5 + firstArgumentWidth;
+          if (utf8Scalar(source, tokenStarts[commaToken]) == PUNCTUATION_COMMA) {
+            boolean secondArgumentNamed = identifierStart(
+              utf8Scalar(source, tokenStarts[commaToken + 1])
+            );
+            if (firstArgumentNamed) {
+              if (secondArgumentNamed) {
+                return STATEMENT_LOCAL_CALL_TWO_LOCALS_NAMED;
+              }
+
+              return STATEMENT_LOCAL_CALL_TWO_FIRST_LOCAL_NAMED;
+            }
+
+            if (secondArgumentNamed) {
+              return STATEMENT_LOCAL_CALL_TWO_SECOND_LOCAL_NAMED;
+            }
+
             return STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED;
+          }
+
+          if (firstArgumentNamed) {
+            return STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED;
           }
 
           return STATEMENT_LOCAL_CALL_ARGUMENT_NAMED;

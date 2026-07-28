@@ -190,6 +190,16 @@ class MinimalCompilerNegativeExampleTest {
     assertThrows(VmTrap.class, booleanCallArgument::run);
     assertArrayEquals(new byte[512], booleanCallArgument.hostOutput());
 
+    VirtualMachine booleanTwoArgument = new VirtualMachine(
+        writerProgram,
+        ("classical class BooleanTwoArgument { "
+                + "long add(long left, long right) { return left + right; } "
+                + "entry void main() { boolean flag = true; long answer = add(flag, 1); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, booleanTwoArgument::run);
+    assertArrayEquals(new byte[512], booleanTwoArgument.hostOutput());
+
     VirtualMachine wrongResultHelper = new VirtualMachine(
         writerProgram,
         ("classical class WrongResultHelper { long answer() { return 42; } "

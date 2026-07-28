@@ -30,7 +30,7 @@ classical class LocalStatements {
         return true;
       }
 
-      if (opcode == STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED) {
+      if (twoArgumentCallStatement(opcode)) {
         return true;
       }
 
@@ -518,6 +518,18 @@ classical class LocalStatements {
       );
     }
 
+    if (twoArgumentCallFirstNamed(opcode)) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 5,
+        true
+      );
+    }
+
     if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
       return resolvePriorDeclaration(
         source,
@@ -776,9 +788,33 @@ classical class LocalStatements {
     borrow utf8 source,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
-    long statementStart
+    long statementStart,
+    borrow mut words previousStarts,
+    long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (twoArgumentCallStatement(opcode)) {
+      long firstWidth = 1;
+      if (utf8Scalar(source, tokenStarts[statementStart + 5]) == PUNCTUATION_MINUS) {
+        firstWidth = 2;
+      }
+
+      long secondToken = statementStart + 6 + firstWidth;
+      if (twoArgumentCallSecondNamed(opcode)) {
+        return resolvePriorDeclaration(
+          source,
+          tokenStarts,
+          tokenLengths,
+          previousStarts,
+          previousCount,
+          secondToken,
+          true
+        );
+      }
+
+      return parsedSignedNumber(source, tokenStarts, tokenLengths, secondToken);
+    }
+
     if (namedLiteralComparisonConditional(opcode)) {
       long comparisonToken = statementStart + 5;
       if (literalComparisonConditionalLessThan(opcode)) {
@@ -786,20 +822,6 @@ classical class LocalStatements {
       }
 
       return parsedSignedNumber(source, tokenStarts, tokenLengths, comparisonToken);
-    }
-
-    if (opcode == STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED) {
-      long firstWidth = 1;
-      if (utf8Scalar(source, tokenStarts[statementStart + 5]) == PUNCTUATION_MINUS) {
-        firstWidth = 2;
-      }
-
-      return parsedSignedNumber(
-        source,
-        tokenStarts,
-        tokenLengths,
-        statementStart + 6 + firstWidth
-      );
     }
 
     if (opcode == STATEMENT_ASSERT_LITERAL_EQ) {
@@ -839,7 +861,7 @@ classical class LocalStatements {
       return statementStart + 5;
     }
 
-    if (opcode == STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED) {
+    if (twoArgumentCallStatement(opcode)) {
       return statementStart + 5;
     }
 

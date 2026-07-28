@@ -35,6 +35,24 @@ class MinimalCompilerResultExampleTest {
             + "entry void main() { long answer = add(20, 22); assert(answer == 42); } }");
     assertDifferentialHalt(
         writerProgram,
+        "classical class SignedTwoParameterFirstLocal { "
+            + "long add(long left, long right) { return left + right; } "
+            + "entry void main() { long left = 20; long answer = add(left, 22); "
+            + "assert(answer == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedTwoParameterSecondLocal { "
+            + "long add(long left, long right) { return left + right; } "
+            + "entry void main() { long right = 22; long answer = add(20, right); "
+            + "assert(answer == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedTwoParameterBothLocal { "
+            + "long add(long left, long right) { return left + right; } "
+            + "entry void main() { long half = 21; long answer = add(half, half); "
+            + "assert(answer == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
         "classical class SignedTwoParameterSubtract { "
             + "long subtract(long left, long right) { return left - right; } "
             + "entry void main() { long answer = subtract(64, 22); assert(answer == 42); } }");

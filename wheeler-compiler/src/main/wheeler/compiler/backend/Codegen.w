@@ -20,6 +20,19 @@ classical class Codegen {
   /// Aliases the named instruction operand width for compact emitter calls.
   private const long U64 = INSTRUCTION_OPERAND_WIDTH;
 
+  private long writeScalarOperand(
+    borrow mut bytes output,
+    long cursor,
+    long opcode,
+    long operand
+  ) {
+    if (opcode == OPCODE_LOCAL_CONST) {
+      return writeSignedLittleEndian(output, cursor, operand, U64);
+    }
+
+    return writeUnsignedLittleEndian(output, cursor, operand, U64);
+  }
+
   private long writeLocalComparison(
     borrow mut bytes output,
     long cursor,
@@ -287,13 +300,23 @@ classical class Codegen {
     long localBase,
     long instructionBase
   ) {
-    if (opcode == STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED) {
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
+    if (twoArgumentCallStatement(opcode)) {
+      long firstArgumentOpcode = OPCODE_LOCAL_CONST;
+      if (twoArgumentCallFirstNamed(opcode)) {
+        firstArgumentOpcode = OPCODE_LOCAL_MOVE;
+      }
+
+      long secondArgumentOpcode = OPCODE_LOCAL_CONST;
+      if (twoArgumentCallSecondNamed(opcode)) {
+        secondArgumentOpcode = OPCODE_LOCAL_MOVE;
+      }
+
+      cursor = writeInstructionHeader(output, cursor, firstArgumentOpcode, FORM_BINARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeSignedLittleEndian(output, cursor, operand, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
+      cursor = writeScalarOperand(output, cursor, firstArgumentOpcode, operand);
+      cursor = writeInstructionHeader(output, cursor, secondArgumentOpcode, FORM_BINARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      cursor = writeSignedLittleEndian(output, cursor, secondaryOperand, U64);
+      cursor = writeScalarOperand(output, cursor, secondArgumentOpcode, secondaryOperand);
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);

@@ -307,7 +307,7 @@ classical class LocalOpcodes {
       return 4;
     }
 
-    if (opcode == STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED) {
+    if (twoArgumentCallStatement(opcode)) {
       return 6;
     }
 
@@ -536,7 +536,7 @@ classical class LocalOpcodes {
       return localBase + 3;
     }
 
-    if (opcode == STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED) {
+    if (twoArgumentCallStatement(opcode)) {
       return localBase + 5;
     }
 
@@ -597,7 +597,7 @@ classical class LocalOpcodes {
       return 112;
     }
 
-    if (opcode == STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED) {
+    if (twoArgumentCallStatement(opcode)) {
       return 160;
     }
 
@@ -742,7 +742,7 @@ classical class LocalOpcodes {
       return 4;
     }
 
-    if (opcode == STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED) {
+    if (twoArgumentCallStatement(opcode)) {
       return 6;
     }
 

@@ -360,7 +360,7 @@ classical class Structure {
       }
     }
 
-    if (statementKind == STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED) {
+    if (twoArgumentCallStatement(statementKind)) {
       if (tokenKinds[statementStart + 1] == 1) {} else {
         return -1;
       }
@@ -388,20 +388,27 @@ classical class Structure {
         return -1;
       }
 
-      long firstArgumentWidth = signedNumberWidth(
-        source,
-        tokenKinds,
-        tokenStarts,
-        statementStart + 5
-      );
-      if (firstArgumentWidth < 1) {
-        return -1;
-      }
+      long firstArgumentWidth = 1;
+      if (twoArgumentCallFirstNamed(statementKind)) {
+        if (tokenKinds[statementStart + 5] == 1) {} else {
+          return -1;
+        }
+      } else {
+        firstArgumentWidth = signedNumberWidth(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 5
+        );
+        if (firstArgumentWidth < 1) {
+          return -1;
+        }
 
-      if (
-        signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 5) == false
-      ) {
-        return -1;
+        if (
+          signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 5) == false
+        ) {
+          return -1;
+        }
       }
 
       long commaToken = statementStart + 5 + firstArgumentWidth;
@@ -411,20 +418,22 @@ classical class Structure {
         return -1;
       }
 
-      long secondArgumentWidth = signedNumberWidth(
-        source,
-        tokenKinds,
-        tokenStarts,
-        commaToken + 1
-      );
-      if (secondArgumentWidth < 1) {
-        return -1;
-      }
+      long secondArgumentWidth = 1;
+      if (twoArgumentCallSecondNamed(statementKind)) {
+        if (tokenKinds[commaToken + 1] == 1) {} else {
+          return -1;
+        }
+      } else {
+        secondArgumentWidth = signedNumberWidth(source, tokenKinds, tokenStarts, commaToken + 1);
+        if (secondArgumentWidth < 1) {
+          return -1;
+        }
 
-      if (
-        signedNumberValid(source, tokenStarts, tokenLengths, commaToken + 1) == false
-      ) {
-        return -1;
+        if (
+          signedNumberValid(source, tokenStarts, tokenLengths, commaToken + 1) == false
+        ) {
+          return -1;
+        }
       }
 
       long closeToken = commaToken + 1 + secondArgumentWidth;

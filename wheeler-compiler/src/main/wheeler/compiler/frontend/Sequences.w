@@ -73,7 +73,9 @@ classical class StatementSequences {
         source,
         tokenStarts,
         tokenLengths,
-        statementStarts[index]
+        statementStarts[index],
+        statementStarts,
+        index
       );
     }
 

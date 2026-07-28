@@ -63,7 +63,7 @@ classical class HelperParser {
     }
 
     if (helperKind == 4) {
-      expectedCall = opcode == STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED;
+      expectedCall = twoArgumentCallStatement(opcode);
     }
 
     if (expectedCall) {
