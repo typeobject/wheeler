@@ -29,6 +29,7 @@ final class TaskIdentityTest {
     VirtualMachine machine = new VirtualMachine(ProgramFixtures.counter(), observations::add);
 
     assertEquals(TaskId.ROOT, machine.snapshot().selectedTask());
+    assertEquals(TaskId.ROOT, machine.snapshot().schedulerCursor());
     assertEquals(List.of(TaskId.ROOT), machine.snapshot().taskFrames().keySet().stream().toList());
     assertEquals(machine.snapshot().taskFrames().get(TaskId.ROOT),
         machine.snapshot().selectedFrames());

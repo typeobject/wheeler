@@ -5,7 +5,9 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 /** Bounded canonical owner of semantic tasks and their frame stacks. */
 final class TaskTable {
@@ -18,6 +20,17 @@ final class TaskTable {
 
   TaskId selected() {
     return selected;
+  }
+
+  NavigableSet<TaskId> runnableTaskIds() {
+    return Collections.unmodifiableNavigableSet(new TreeSet<>(frames.navigableKeySet()));
+  }
+
+  void select(TaskId taskId) {
+    if (!frames.containsKey(taskId)) {
+      throw new VmTrap("Scheduler selected an unknown task: " + taskId.canonicalName());
+    }
+    selected = taskId;
   }
 
   int frameDepth() {

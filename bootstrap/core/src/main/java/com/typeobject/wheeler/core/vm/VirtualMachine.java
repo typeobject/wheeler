@@ -24,6 +24,7 @@ public final class VirtualMachine {
   private final Program program;
   private final long[] globals;
   private final TaskTable tasks;
+  private final TaskScheduler scheduler = new TaskScheduler();
   private final AggregateStore aggregates = new AggregateStore();
   private final OwnedStore owned = new OwnedStore();
   private final long hostOutputHandle;
@@ -103,24 +104,38 @@ public final class VirtualMachine {
     if (status == MachineStatus.TRAPPED) {
       throw new VmTrap("Cannot step a trapped machine");
     }
-    Frame frame = currentFrame();
-    Instruction instruction = fetch(frame);
-    validateBeforeMutation(instruction);
-    if (instruction.opcode() != Opcode.COMMIT
-        && history.size() >= program.maxHistoryRecords()) {
-      trap("History record limit exceeded");
+    TaskId previousSelectedTask = tasks.selected();
+    TaskId previousSchedulerCursor = scheduler.cursor();
+    TaskId selectedTask = scheduler.next(tasks.runnableTaskIds());
+    tasks.select(selectedTask);
+    Frame frame;
+    Instruction instruction;
+    try {
+      frame = currentFrame();
+      instruction = fetch(frame);
+      validateBeforeMutation(instruction);
+      if (instruction.opcode() != Opcode.COMMIT
+          && history.size() >= program.maxHistoryRecords()) {
+        trap("History record limit exceeded");
+      }
+    } catch (RuntimeException exception) {
+      tasks.select(previousSelectedTask);
+      throw exception;
     }
+    scheduler.commit(selectedTask);
 
     MachineStatus previousStatus = status;
     status = MachineStatus.RUNNING;
-    StepRecord record = execute(frame, instruction, previousStatus);
+    StepRecord record = execute(
+        frame, instruction, previousStatus, previousSelectedTask, previousSchedulerCursor);
     sequence = Math.addExact(sequence, 1);
     if (instruction.opcode() == Opcode.COMMIT) {
       history.clear();
     } else {
       history.push(record);
     }
-    observer.observe(TransitionObserver.execution(sequence, frame, instruction));
+    observer.observe(
+        TransitionObserver.execution(sequence, tasks.selected(), frame, instruction));
   }
 
   public void rewindOne() {
@@ -128,6 +143,7 @@ public final class VirtualMachine {
     if (record == null) {
       throw new VmTrap("No reversible history is available");
     }
+    tasks.select(record.eventId().taskId());
     replaceCurrentFrame(VmDataRewinder.undo(record, globals, currentFrame()));
     aggregates.rewind(new AggregateStore.Counts(
         record.previousRecordCount(),
@@ -153,6 +169,8 @@ public final class VirtualMachine {
       case RETURN -> tasks.addFrame(record.previousFrame());
     }
     hostOutputLength = record.previousHostOutputLength();
+    tasks.select(record.previousSelectedTask());
+    scheduler.restore(record.previousSchedulerCursor());
     status = record.previousStatus();
     sequence = record.sequence();
     observer.observe(TransitionObserver.rewind(record));
@@ -233,6 +251,7 @@ public final class VirtualMachine {
     }
     return new MachineSnapshot(
         tasks.selected(),
+        scheduler.cursor(),
         0,
         status,
         tasks.snapshotFrames(),
@@ -257,7 +276,11 @@ public final class VirtualMachine {
   }
 
   private StepRecord execute(
-      Frame frame, Instruction instruction, MachineStatus previousStatus) {
+      Frame frame,
+      Instruction instruction,
+      MachineStatus previousStatus,
+      TaskId previousSelectedTask,
+      TaskId previousSchedulerCursor) {
     Opcode opcode = instruction.opcode();
     int changedGlobal = StepRecord.NO_GLOBAL;
     long previousValue = 0;
@@ -570,7 +593,9 @@ public final class VirtualMachine {
 
     return new StepRecord(
         sequence,
-        EventId.root(Math.addExact(sequence, 1)),
+        new EventId(0, tasks.selected(), Math.addExact(sequence, 1)),
+        previousSelectedTask,
+        previousSchedulerCursor,
         instruction,
         previousStatus,
         control,

@@ -7,6 +7,8 @@ import java.util.Objects;
 public record StepRecord(
     long sequence,
     EventId eventId,
+    TaskId previousSelectedTask,
+    TaskId previousSchedulerCursor,
     Instruction instruction,
     MachineStatus previousStatus,
     ControlChange controlChange,
@@ -31,6 +33,8 @@ public record StepRecord(
 
   public StepRecord {
     Objects.requireNonNull(eventId, "eventId");
+    Objects.requireNonNull(previousSelectedTask, "previousSelectedTask");
+    Objects.requireNonNull(previousSchedulerCursor, "previousSchedulerCursor");
     Objects.requireNonNull(instruction, "instruction");
     Objects.requireNonNull(previousStatus, "previousStatus");
     Objects.requireNonNull(controlChange, "controlChange");

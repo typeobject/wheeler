@@ -13,7 +13,8 @@ public interface TransitionObserver {
   void observe(Observation observation);
 
   /** Creates an observation for one successful execution transition. */
-  static Observation execution(long sequence, Frame frame, Instruction instruction) {
+  static Observation execution(
+      long sequence, TaskId taskId, Frame frame, Instruction instruction) {
     int branchOutcome = -1;
     if (instruction.opcode() == Opcode.JUMP_IF_ZERO) {
       int condition = Math.toIntExact(instruction.operands().getFirst());
@@ -21,7 +22,7 @@ public interface TransitionObserver {
     }
     return new Observation(
         sequence,
-        EventId.root(sequence),
+        new EventId(0, taskId, sequence),
         frame.inverse() ? Direction.INVERSE : Direction.FORWARD,
         frame.functionId(),
         frame.programCounter(),
