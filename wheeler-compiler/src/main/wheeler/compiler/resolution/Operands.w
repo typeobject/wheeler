@@ -6,6 +6,7 @@ import wheeler.compiler.conditionals;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_statements;
+import wheeler.compiler.statement_forms;
 import wheeler.compiler.tokens;
 
 classical class Operands {

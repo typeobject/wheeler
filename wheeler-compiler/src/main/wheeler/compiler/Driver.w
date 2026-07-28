@@ -8,6 +8,7 @@ import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.parser;
+import wheeler.compiler.statement_forms;
 import wheeler.compiler.string_table;
 import wheeler.compiler.tokens;
 import wheeler.compiler.verifier;

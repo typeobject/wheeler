@@ -2,6 +2,7 @@
 
 module wheeler.compiler.structure;
 
+import wheeler.compiler.statement_forms;
 import wheeler.compiler.tokens;
 
 classical class Structure {

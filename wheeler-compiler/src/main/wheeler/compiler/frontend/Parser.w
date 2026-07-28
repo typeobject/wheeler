@@ -6,6 +6,7 @@ import wheeler.compiler.body_parser;
 import wheeler.compiler.helper_parser;
 import wheeler.compiler.ir;
 import wheeler.compiler.sequences;
+import wheeler.compiler.statement_forms;
 import wheeler.compiler.statements;
 import wheeler.compiler.structure;
 import wheeler.compiler.tokens;
