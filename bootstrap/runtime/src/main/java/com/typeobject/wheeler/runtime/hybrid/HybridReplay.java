@@ -5,7 +5,7 @@ import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.workflow.WorkflowOpcode;
 import com.typeobject.wheeler.core.workflow.WorkflowStep;
 import com.typeobject.wheeler.runtime.ExecutionResult;
-import com.typeobject.wheeler.runtime.quantum.QuantumTaskBuilder;
+import com.typeobject.wheeler.runtime.quantum.QuantumSubmissionBuilder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,7 +16,7 @@ final class HybridReplay {
   private final Program program;
   private final HybridEventReducer.HybridReduction reduction;
   private final VirtualMachine machine;
-  private final Map<Integer, QuantumTaskBuilder> prepared = new HashMap<>();
+  private final Map<Integer, QuantumSubmissionBuilder> prepared = new HashMap<>();
   private final List<Long> measurements = new ArrayList<>();
   private final List<String> jobs = new ArrayList<>();
 
@@ -37,7 +37,7 @@ final class HybridReplay {
       switch (step.opcode()) {
         case PREPARE -> {
           int register = Math.toIntExact(step.first());
-          prepared.put(register, new QuantumTaskBuilder(program, register, step.second()));
+          prepared.put(register, new QuantumSubmissionBuilder(program, register, step.second()));
         }
         case APPLY, UNAPPLY -> {
           int circuit = Math.toIntExact(step.first());
@@ -74,8 +74,8 @@ final class HybridReplay {
     jobs.add(observation.jobId());
   }
 
-  private QuantumTaskBuilder require(int register) {
-    QuantumTaskBuilder builder = prepared.get(register);
+  private QuantumSubmissionBuilder require(int register) {
+    QuantumSubmissionBuilder builder = prepared.get(register);
     if (builder == null) {
       throw new HybridRunException("Replay register is not prepared: " + register);
     }

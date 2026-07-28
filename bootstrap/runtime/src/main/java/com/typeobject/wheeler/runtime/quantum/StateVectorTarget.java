@@ -34,27 +34,27 @@ public final class StateVectorTarget implements QuantumTarget {
   }
 
   @Override
-  public QuantumJob submit(QuantumTask task) {
+  public QuantumJob submit(QuantumSubmission submission) {
     descriptor.require(TargetCapability.STATIC_CIRCUIT);
-    QuantumRegister register = task.program().quantumRegister(task.registerId());
+    QuantumRegister register = submission.program().quantumRegister(submission.registerId());
     if (register.qubits() > descriptor.maxQubits()) {
-      throw new QuantumExecutionException("Task exceeds target qubit limit");
+      throw new QuantumExecutionException("Submission exceeds target qubit limit");
     }
-    if (task.shots() > descriptor.maxShots()) {
-      throw new QuantumExecutionException("Task exceeds target shot limit");
+    if (submission.shots() > descriptor.maxShots()) {
+      throw new QuantumExecutionException("Submission exceeds target shot limit");
     }
 
-    List<Long> outcomes = new ArrayList<>(task.shots());
+    List<Long> outcomes = new ArrayList<>(submission.shots());
     Map<Long, Long> counts = new LinkedHashMap<>();
-    for (int shot = 0; shot < task.shots(); shot++) {
-      StateVectorEngine engine = new StateVectorEngine(task.seed() + shot);
-      engine.prepare(register, task.basisState());
-      for (CircuitApplication application : task.applications()) {
+    for (int shot = 0; shot < submission.shots(); shot++) {
+      StateVectorEngine engine = new StateVectorEngine(submission.seed() + shot);
+      engine.prepare(register, submission.basisState());
+      for (CircuitApplication application : submission.applications()) {
         engine.apply(
-            task.program(),
-            task.program().quantumCircuit(application.circuitId()),
+            submission.program(),
+            submission.program().quantumCircuit(application.circuitId()),
             application.inverse(),
-            task.bindings());
+            submission.bindings());
       }
       long outcome = engine.measure(register);
       outcomes.add(outcome);
@@ -62,19 +62,19 @@ public final class StateVectorTarget implements QuantumTarget {
     }
     String id = "state-vector-" + JOB_SEQUENCE.incrementAndGet();
     QuantumJob job = new CompletedQuantumJob(
-        new QuantumResult(id, task.identity(), outcomes, counts, descriptor.target()));
-    jobs.put(id, new StoredJob(task.identity(), job));
+        new QuantumResult(id, submission.identity(), outcomes, counts, descriptor.target()));
+    jobs.put(id, new StoredJob(submission.identity(), job));
     return job;
   }
 
   @Override
-  public QuantumJob recover(String jobId, QuantumTask task) {
+  public QuantumJob recover(String jobId, QuantumSubmission submission) {
     StoredJob stored = jobs.get(jobId);
-    if (stored == null || !stored.taskIdentity().equals(task.identity())) {
+    if (stored == null || !stored.submissionIdentity().equals(submission.identity())) {
       throw new QuantumExecutionException("Unknown or mismatched state-vector job " + jobId);
     }
     return stored.job();
   }
 
-  private record StoredJob(String taskIdentity, QuantumJob job) {}
+  private record StoredJob(String submissionIdentity, QuantumJob job) {}
 }

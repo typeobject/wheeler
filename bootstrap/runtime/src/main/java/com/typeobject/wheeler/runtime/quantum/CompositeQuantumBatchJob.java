@@ -15,9 +15,9 @@ final class CompositeQuantumBatchJob implements QuantumBatchJob {
 
   CompositeQuantumBatchJob(QuantumTarget target, QuantumBatch batch) {
     this.batch = batch;
-    List<QuantumJob> submitted = new ArrayList<>(batch.tasks().size());
-    for (QuantumTask task : batch.tasks()) {
-      submitted.add(target.submit(task));
+    List<QuantumJob> submitted = new ArrayList<>(batch.submissions().size());
+    for (QuantumSubmission submission : batch.submissions()) {
+      submitted.add(target.submit(submission));
     }
     this.jobs = List.copyOf(submitted);
   }
@@ -80,9 +80,9 @@ final class CompositeQuantumBatchJob implements QuantumBatchJob {
         throw new QuantumExecutionException("Timed out waiting for quantum batch " + id);
       }
       QuantumResult result = jobs.get(index).await(Duration.ofNanos(remaining));
-      QuantumTask task = batch.tasks().get(index);
+      QuantumSubmission submission = batch.submissions().get(index);
       if (!result.jobId().equals(jobs.get(index).id())
-          || !result.taskIdentity().equals(task.identity())) {
+          || !result.submissionIdentity().equals(submission.identity())) {
         throw new QuantumExecutionException("Quantum batch result identity mismatch at " + index);
       }
       results.add(result);

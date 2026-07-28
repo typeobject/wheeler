@@ -44,7 +44,7 @@ final class ThreadedIoTest {
         blockingRequest("threaded:capacity-0", 0, started, release));
     assertTrue(started.await(2, TimeUnit.SECONDS));
     IoRequest<Integer> next = IoRequest.prepare(
-        "threaded:capacity-1", 1, () -> IoTaskResult.success(1, 1));
+        "threaded:capacity-1", 1, () -> IoProviderResult.success(1, 1));
     assertThrows(IllegalStateException.class, () -> scope.submit(next));
     assertThrows(IllegalStateException.class, io::close);
 
@@ -67,7 +67,7 @@ final class ThreadedIoTest {
       assertTrue(started.await(2, TimeUnit.SECONDS));
       IoOperation<Integer> queued = scope.submit(IoRequest.prepare(
           "threaded:queued", 1,
-          () -> IoTaskResult.success(queuedEffects.incrementAndGet(), 1)));
+          () -> IoProviderResult.success(queuedEffects.incrementAndGet(), 1)));
       assertTrue(queued.cancel());
       IoCompletion<Integer> canceled = queued.await();
       assertEquals(TerminalKind.CANCELED, canceled.terminalKind());
@@ -107,7 +107,7 @@ final class ThreadedIoTest {
           "threaded:uncertain-race", 4, () -> {
             started.countDown();
             await(release);
-            return IoTaskResult.uncertain("reconcile:threaded-1", 2);
+            return IoProviderResult.uncertain("reconcile:threaded-1", 2);
           }));
       assertTrue(started.await(2, TimeUnit.SECONDS));
       assertFalse(operation.cancel());
@@ -132,7 +132,7 @@ final class ThreadedIoTest {
     graph.addAfter(
         IoRequest.prepare("threaded:graph-2", 1, () -> {
           int observed = completedRoots.get();
-          return IoTaskResult.success(observed, 1);
+          return IoProviderResult.success(observed, 1);
         }),
         first,
         second);
@@ -152,12 +152,12 @@ final class ThreadedIoTest {
     IoCompletion<Long> threaded;
     try (IoScope scope = new DeterministicIo(Delivery.INLINE).scope(LIMITS)) {
       inline = scope.await(IoRequest.prepare(
-          "threaded:differential", 3, () -> IoTaskResult.success(19L, 3)));
+          "threaded:differential", 3, () -> IoProviderResult.success(19L, 3)));
     }
     try (ThreadedIo io = new ThreadedIo(1, 1);
         IoScope scope = io.scope(LIMITS)) {
       threaded = scope.await(IoRequest.prepare(
-          "threaded:differential", 3, () -> IoTaskResult.success(19L, 3)));
+          "threaded:differential", 3, () -> IoProviderResult.success(19L, 3)));
     }
     assertEquals(inline.operationId(), threaded.operationId());
     assertEquals(inline.requestIdentity(), threaded.requestIdentity());
@@ -177,7 +177,7 @@ final class ThreadedIoTest {
     return IoRequest.prepare(identity, 1, () -> {
       started.countDown();
       await(release);
-      return IoTaskResult.success(value, 1);
+      return IoProviderResult.success(value, 1);
     });
   }
 
@@ -190,7 +190,7 @@ final class ThreadedIoTest {
       roots.countDown();
       await(roots);
       completedRoots.incrementAndGet();
-      return IoTaskResult.success(value, 1);
+      return IoProviderResult.success(value, 1);
     });
   }
 

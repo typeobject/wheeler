@@ -29,9 +29,9 @@ class OpenQasmTargetTest {
           submitted.set(qasm);
           return java.util.Collections.nCopies(shots, 1L);
         });
-    QuantumTask task = task(3);
+    QuantumSubmission submission = submission(3);
 
-    QuantumJob job = target.submit(task);
+    QuantumJob job = target.submit(submission);
     QuantumResult result = job.await(Duration.ofSeconds(2));
 
     assertTrue(submitted.get().startsWith("OPENQASM 3.0;"));
@@ -49,7 +49,7 @@ class OpenQasmTargetTest {
         0,
         List.of(new ParameterizedGateOperation(Gate.PHASE, List.of(0), "theta", -2)));
     Program program = StateVectorTargetTest.program(register, circuit, List.of());
-    QuantumTask task = new QuantumTask(
+    QuantumSubmission submission = new QuantumSubmission(
         program,
         0,
         0,
@@ -67,7 +67,7 @@ class OpenQasmTargetTest {
           return List.of(0L);
         });
 
-    target.submit(task).await(Duration.ofSeconds(2));
+    target.submit(submission).await(Duration.ofSeconds(2));
 
     assertTrue(submitted.get().contains("p(-0.5) q[0];"));
   }
@@ -77,18 +77,18 @@ class OpenQasmTargetTest {
     OpenQasmTarget target = new OpenQasmTarget(
         "broken-provider", 8, 100, (qasm, shots, seed) -> List.of(4L));
 
-    QuantumJob job = target.submit(task(2));
+    QuantumJob job = target.submit(submission(2));
 
     assertThrows(QuantumExecutionException.class, () -> job.await(Duration.ofSeconds(2)));
     assertEquals(JobState.FAILED, job.state());
   }
 
-  private static QuantumTask task(int shots) {
+  private static QuantumSubmission submission(int shots) {
     QuantumRegister register = new QuantumRegister(0, "q", 1);
     QuantumCircuit circuit = new QuantumCircuit(
         0, "flip", 0, List.of(GateOperation.of(Gate.X, 0)));
     Program program = StateVectorTargetTest.program(register, circuit, List.of());
-    return new QuantumTask(
+    return new QuantumSubmission(
         program, 0, 0, List.of(new CircuitApplication(0, false)), Map.of(), shots, 4);
   }
 }

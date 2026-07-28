@@ -24,7 +24,7 @@ final class DeterministicIoTest {
     AtomicInteger effects = new AtomicInteger();
     IoRequest<Integer> request = IoRequest.prepare(
         "test:pure-request", 3,
-        () -> IoTaskResult.success(effects.incrementAndGet(), 3));
+        () -> IoProviderResult.success(effects.incrementAndGet(), 3));
     assertEquals(0, effects.get());
 
     try (IoScope scope = new DeterministicIo(Delivery.INLINE).scope(LIMITS)) {
@@ -43,7 +43,7 @@ final class DeterministicIoTest {
     AtomicInteger effects = new AtomicInteger();
     IoRequest<Integer> request = IoRequest.prepare(
         "test:cancel-before", 1,
-        () -> IoTaskResult.success(effects.incrementAndGet(), 1));
+        () -> IoProviderResult.success(effects.incrementAndGet(), 1));
     IoScope scope = new DeterministicIo(Delivery.DELAYED).scope(LIMITS);
     IoOperation<Integer> operation = scope.submit(request);
     assertThrows(IllegalStateException.class, scope::close);
@@ -66,7 +66,7 @@ final class DeterministicIoTest {
   void cancellationAfterInlineCompletionRecordsThatCompletionWon() {
     IoScope scope = new DeterministicIo(Delivery.INLINE).scope(LIMITS);
     IoOperation<Long> operation = scope.submit(IoRequest.prepare(
-        "test:completion-won", 2, () -> IoTaskResult.success(7L, 2)));
+        "test:completion-won", 2, () -> IoProviderResult.success(7L, 2)));
     assertFalse(operation.cancel());
     IoCompletion<Long> completion = operation.await();
     assertEquals(
@@ -81,7 +81,7 @@ final class DeterministicIoTest {
     try (IoScope scope = new DeterministicIo(Delivery.INLINE).scope(LIMITS)) {
       IoCompletion<Long> partial = scope.await(IoRequest.prepare(
           "test:partial", 8,
-          () -> IoTaskResult.canceledAfterPartial("four-bytes-visible", 4)));
+          () -> IoProviderResult.canceledAfterPartial("four-bytes-visible", 4)));
       assertEquals(TerminalKind.CANCELED, partial.terminalKind());
       assertEquals(
           CancellationRelation.CANCELED_AFTER_PARTIAL_EFFECT,
@@ -90,7 +90,7 @@ final class DeterministicIoTest {
 
       IoCompletion<Long> uncertain = scope.await(IoRequest.prepare(
           "test:uncertain", 8,
-          () -> IoTaskResult.uncertain("reconcile:request-44", 3)));
+          () -> IoProviderResult.uncertain("reconcile:request-44", 3)));
       assertEquals(TerminalKind.UNCERTAIN, uncertain.terminalKind());
       assertEquals(
           CancellationRelation.UNCERTAIN_WITHOUT_CANCELLATION,
@@ -99,7 +99,7 @@ final class DeterministicIoTest {
 
       IoCompletion<Long> failure = scope.await(IoRequest.prepare(
           "test:failure", 8,
-          () -> IoTaskResult.failure("provider-rejected", 0)));
+          () -> IoProviderResult.failure("provider-rejected", 0)));
       assertEquals(TerminalKind.FAILURE, failure.terminalKind());
       assertEquals(0, failure.progress());
     }
@@ -149,9 +149,9 @@ final class DeterministicIoTest {
   void preflightLimitFailureConsumesNeitherBatchRequest() {
     IoLimits one = new IoLimits(1, 1, 2, 2, 2, 8);
     IoRequest<Integer> first = IoRequest.prepare(
-        "test:limit-0", 1, () -> IoTaskResult.success(0, 1));
+        "test:limit-0", 1, () -> IoProviderResult.success(0, 1));
     IoRequest<Integer> second = IoRequest.prepare(
-        "test:limit-1", 1, () -> IoTaskResult.success(1, 1));
+        "test:limit-1", 1, () -> IoProviderResult.success(1, 1));
     try (IoScope scope = new DeterministicIo(Delivery.INLINE).scope(one)) {
       assertThrows(
           IllegalStateException.class,
@@ -244,9 +244,9 @@ final class DeterministicIoTest {
   @Test
   void consumedBatchMemberDoesNotPublishItsNeighbors() {
     IoRequest<Integer> available = IoRequest.prepare(
-        "test:batch-available", 1, () -> IoTaskResult.success(1, 1));
+        "test:batch-available", 1, () -> IoProviderResult.success(1, 1));
     IoRequest<Integer> consumed = IoRequest.prepare(
-        "test:batch-consumed", 1, () -> IoTaskResult.success(2, 1));
+        "test:batch-consumed", 1, () -> IoProviderResult.success(2, 1));
     try (IoScope scope = new DeterministicIo(Delivery.INLINE).scope(LIMITS)) {
       assertEquals(2, scope.await(consumed).value());
     }
@@ -262,7 +262,7 @@ final class DeterministicIoTest {
   void malformedProviderProgressBecomesAKnownFailure() {
     try (IoScope scope = new DeterministicIo(Delivery.INLINE).scope(LIMITS)) {
       IoCompletion<Integer> completion = scope.await(IoRequest.prepare(
-          "test:bad-progress", 1, () -> IoTaskResult.success(4, 2)));
+          "test:bad-progress", 1, () -> IoProviderResult.success(4, 2)));
       assertEquals(TerminalKind.FAILURE, completion.terminalKind());
       assertEquals("invalid-provider-progress", completion.detail());
       assertEquals(0, completion.progress());
@@ -273,13 +273,13 @@ final class DeterministicIoTest {
   void graphConstructionHonorsItsOwnExplicitBounds() {
     IoGraph<Integer> graph = new IoGraph<>(2, 1);
     int first = graph.add(IoRequest.prepare(
-        "test:bounded-0", 1, () -> IoTaskResult.success(0, 1)));
+        "test:bounded-0", 1, () -> IoProviderResult.success(0, 1)));
     graph.addAfter(IoRequest.prepare(
-        "test:bounded-1", 1, () -> IoTaskResult.success(1, 1)), first);
+        "test:bounded-1", 1, () -> IoProviderResult.success(1, 1)), first);
     assertThrows(
         IllegalStateException.class,
         () -> graph.add(IoRequest.prepare(
-            "test:bounded-2", 1, () -> IoTaskResult.success(2, 1))));
+            "test:bounded-2", 1, () -> IoProviderResult.success(2, 1))));
   }
 
   @Test
@@ -288,11 +288,11 @@ final class DeterministicIoTest {
     IoCompletion<Long> delayed;
     try (IoScope scope = new DeterministicIo(Delivery.INLINE).scope(LIMITS)) {
       inline = scope.await(IoRequest.prepare(
-          "test:delivery", 5, () -> IoTaskResult.success(23L, 5)));
+          "test:delivery", 5, () -> IoProviderResult.success(23L, 5)));
     }
     try (IoScope scope = new DeterministicIo(Delivery.DELAYED).scope(LIMITS)) {
       delayed = scope.await(IoRequest.prepare(
-          "test:delivery", 5, () -> IoTaskResult.success(23L, 5)));
+          "test:delivery", 5, () -> IoProviderResult.success(23L, 5)));
     }
     assertEquals(inline, delayed);
   }
@@ -301,7 +301,7 @@ final class DeterministicIoTest {
       String identity, int value, List<Integer> execution) {
     return IoRequest.prepare(identity, 1, () -> {
       execution.add(value);
-      return IoTaskResult.success(value, 1);
+      return IoProviderResult.success(value, 1);
     });
   }
 }

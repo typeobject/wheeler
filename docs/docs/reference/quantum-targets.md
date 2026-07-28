@@ -13,7 +13,7 @@ A target publishes an immutable `TargetDescriptor` with:
 
 The first capability set includes static circuits, parameter binding, batches, mid-circuit measurement, reset, classical conditions, state-vector diagnostics, and logical qubits. A target advertises only the records it can execute.
 
-The runtime submits an immutable `QuantumTask`. It contains the verified artifact, logical register, basis preparation, ordered circuit or adjoint applications, shot count, and simulator seed policy.
+The runtime submits an immutable `QuantumSubmission`. It contains the verified artifact, logical register, basis preparation, ordered circuit or adjoint applications, shot count, and simulator seed policy.
 
 `QuantumJob` is asynchronous even when a local simulator finishes at once. It reports identity and lifecycle, accepts a cancellation request, and returns a bounded `QuantumResult`.
 

@@ -58,7 +58,7 @@ public final class MemoryAddressableFile {
             synchronized (this) {
               destination.copyFrom(bytes, start, bufferOffset, bytesRead);
             }
-            return IoTaskResult.success(
+            return IoProviderResult.success(
                 new ReadCompleted(destination, position, bufferOffset, bytesRead),
                 bytesRead);
           },
@@ -96,7 +96,7 @@ public final class MemoryAddressableFile {
             synchronized (this) {
               source.copyTo(bufferOffset, bytes, start, length);
             }
-            return IoTaskResult.success(
+            return IoProviderResult.success(
                 new WriteCompleted(source, position, bufferOffset, length),
                 length);
           },

@@ -10,8 +10,8 @@ import com.typeobject.wheeler.runtime.quantum.JobState;
 import com.typeobject.wheeler.runtime.quantum.QuantumJob;
 import com.typeobject.wheeler.runtime.quantum.QuantumResult;
 import com.typeobject.wheeler.runtime.quantum.QuantumTarget;
-import com.typeobject.wheeler.runtime.quantum.QuantumTask;
-import com.typeobject.wheeler.runtime.quantum.QuantumTaskBuilder;
+import com.typeobject.wheeler.runtime.quantum.QuantumSubmission;
+import com.typeobject.wheeler.runtime.quantum.QuantumSubmissionBuilder;
 import com.typeobject.wheeler.runtime.quantum.TargetCapability;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ public final class HybridRun {
   private final String artifactId;
   private final String runId;
   private final VirtualMachine machine;
-  private final Map<Integer, QuantumTaskBuilder> prepared = new HashMap<>();
+  private final Map<Integer, QuantumSubmissionBuilder> prepared = new HashMap<>();
   private final List<HybridEvent> events = new ArrayList<>();
   private final List<Long> measurements = new ArrayList<>();
   private final List<String> jobs = new ArrayList<>();
@@ -107,7 +107,7 @@ public final class HybridRun {
       switch (step.opcode()) {
         case PREPARE -> {
           int register = Math.toIntExact(step.first());
-          if (prepared.put(register, new QuantumTaskBuilder(program, register, step.second())) != null) {
+          if (prepared.put(register, new QuantumSubmissionBuilder(program, register, step.second())) != null) {
             return trap("Quantum register prepared twice without measurement");
           }
           workflowIndex++;
@@ -120,9 +120,9 @@ public final class HybridRun {
         }
         case MEASURE -> {
           int register = Math.toIntExact(step.first());
-          QuantumTask task = requirePrepared(register).build(1, measurements.size());
-          QuantumJob job = target.submit(task);
-          pending = new PendingSubmission(task, job, register, Math.toIntExact(step.second()));
+          QuantumSubmission submission = requirePrepared(register).build(1, measurements.size());
+          QuantumJob job = target.submit(submission);
+          pending = new PendingSubmission(submission, job, register, Math.toIntExact(step.second()));
           if (transactionPhase == TransactionPhase.REVERSIBLE) {
             transactionPhase = TransactionPhase.PREPARED_EXTERNAL;
           }
@@ -131,8 +131,8 @@ public final class HybridRun {
               workflowIndex,
               job.id(),
               target.descriptor().target(),
-              task.shots(),
-              task.identity());
+              submission.shots(),
+              submission.identity());
           status = RunStatus.WAITING;
           return status;
         }
@@ -345,7 +345,7 @@ public final class HybridRun {
     }
     ensureAdditionalEvents(4);
     String oldBranch = activeBranch;
-    QuantumTask task = pending.task();
+    QuantumSubmission submission = pending.submission();
     append(
         HybridEventKind.CANCELLATION_REQUESTED,
         workflowIndex,
@@ -365,15 +365,15 @@ public final class HybridRun {
     branchSequence++;
     activeBranch = "retry-" + branchSequence;
     append(HybridEventKind.BRANCH_RETRIED, workflowIndex, "", "", retries, oldBranch);
-    QuantumJob job = target.submit(task);
-    pending = new PendingSubmission(task, job, pending.registerId(), pending.globalId());
+    QuantumJob job = target.submit(submission);
+    pending = new PendingSubmission(submission, job, pending.registerId(), pending.globalId());
     append(
         HybridEventKind.QUANTUM_SUBMITTED,
         workflowIndex,
         job.id(),
         target.descriptor().target(),
-        task.shots(),
-        task.identity());
+        submission.shots(),
+        submission.identity());
     status = RunStatus.WAITING;
     return job.id();
   }
@@ -512,20 +512,20 @@ public final class HybridRun {
         throw new HybridRunException("Waiting continuation is not at a measurement edge");
       }
       int register = Math.toIntExact(step.first());
-      QuantumTask task = requirePrepared(register).build(1, measurements.size());
+      QuantumSubmission submission = requirePrepared(register).build(1, measurements.size());
       String jobId = snapshot.continuation().pendingJobId();
       if (!target.descriptor().target().equals(snapshot.continuation().pendingTarget())) {
         throw new HybridRunException("Recovered target identity mismatch");
       }
-      HybridEvent submission = latestSubmission(workflowIndex, jobId);
-      if (!submission.detail().equals(task.identity())) {
-        throw new HybridRunException("Recovered quantum task identity mismatch");
+      HybridEvent submissionEvent = latestSubmission(workflowIndex, jobId);
+      if (!submissionEvent.detail().equals(submission.identity())) {
+        throw new HybridRunException("Recovered quantum submission identity mismatch");
       }
-      QuantumJob job = target.recover(jobId, task);
+      QuantumJob job = target.recover(jobId, submission);
       if (!job.id().equals(jobId)) {
         throw new HybridRunException("Recovered quantum job identity mismatch");
       }
-      pending = new PendingSubmission(task, job, register, Math.toIntExact(step.second()));
+      pending = new PendingSubmission(submission, job, register, Math.toIntExact(step.second()));
     }
   }
 
@@ -533,7 +533,7 @@ public final class HybridRun {
     switch (step.opcode()) {
       case PREPARE -> {
         int register = Math.toIntExact(step.first());
-        prepared.put(register, new QuantumTaskBuilder(program, register, step.second()));
+        prepared.put(register, new QuantumSubmissionBuilder(program, register, step.second()));
       }
       case APPLY, UNAPPLY -> {
         int circuit = Math.toIntExact(step.first());
@@ -561,8 +561,8 @@ public final class HybridRun {
     jobs.add(observation.jobId());
   }
 
-  private QuantumTaskBuilder requirePrepared(int register) {
-    QuantumTaskBuilder builder = prepared.get(register);
+  private QuantumSubmissionBuilder requirePrepared(int register) {
+    QuantumSubmissionBuilder builder = prepared.get(register);
     if (builder == null) {
       throw new HybridRunException("Quantum register is not prepared: " + register);
     }
@@ -576,10 +576,10 @@ public final class HybridRun {
     if (!target.descriptor().target().equals(result.target())) {
       throw new HybridRunException("Quantum result target identity mismatch");
     }
-    if (!submission.task().identity().equals(result.taskIdentity())) {
-      throw new HybridRunException("Quantum result task identity mismatch");
+    if (!submission.submission().identity().equals(result.submissionIdentity())) {
+      throw new HybridRunException("Quantum result submission identity mismatch");
     }
-    if (result.outcomes().size() != submission.task().shots()) {
+    if (result.outcomes().size() != submission.submission().shots()) {
       throw new HybridRunException("Quantum result shot count mismatch");
     }
     int qubits = program.quantumRegister(submission.registerId()).qubits();
@@ -648,7 +648,7 @@ public final class HybridRun {
   }
 
   private record PendingSubmission(
-      QuantumTask task, QuantumJob job, int registerId, int globalId) {}
+      QuantumSubmission submission, QuantumJob job, int registerId, int globalId) {}
 
   private record TransactionCheckpoint(
       int workflowIndex, Map<String, Long> globals, int observationCount) {

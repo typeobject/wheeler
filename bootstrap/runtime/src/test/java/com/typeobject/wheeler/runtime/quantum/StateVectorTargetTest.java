@@ -78,10 +78,10 @@ class StateVectorTargetTest {
     QuantumRegister register = new QuantumRegister(0, "q", 1);
     QuantumCircuit circuit = new QuantumCircuit(0, "flip", 0, List.of(GateOperation.of(Gate.X, 0)));
     Program program = program(register, circuit, List.of());
-    QuantumTask task = new QuantumTask(
+    QuantumSubmission submission = new QuantumSubmission(
         program, 0, 0, List.of(new CircuitApplication(0, false)), Map.of(), 1, 0);
 
-    String qasm = new OpenQasm3Emitter().emit(task);
+    String qasm = new OpenQasm3Emitter().emit(submission);
 
     assertEquals("""
         OPENQASM 3.0;
@@ -98,19 +98,19 @@ class StateVectorTargetTest {
     QuantumRegister register = new QuantumRegister(0, "q", 1);
     QuantumCircuit circuit = new QuantumCircuit(0, "flip", 0, List.of(GateOperation.of(Gate.X, 0)));
     Program program = program(register, circuit, List.of());
-    QuantumTask task = new QuantumTask(
+    QuantumSubmission submission = new QuantumSubmission(
         program, 0, 0, List.of(new CircuitApplication(0, false)), Map.of(), 4, 9);
 
     StateVectorTarget target = new StateVectorTarget();
-    QuantumJob job = target.submit(task);
+    QuantumJob job = target.submit(submission);
     QuantumResult result = job.await(Duration.ofSeconds(1));
 
     assertEquals(JobState.SUCCEEDED, job.state());
-    assertEquals(task.identity(), result.taskIdentity());
+    assertEquals(submission.identity(), result.submissionIdentity());
     assertEquals(List.of(1L, 1L, 1L, 1L), result.outcomes());
     assertEquals(4L, result.counts().get(1L));
-    assertEquals(job.id(), target.recover(job.id(), task).id());
-    QuantumTask mismatched = new QuantumTask(
+    assertEquals(job.id(), target.recover(job.id(), submission).id());
+    QuantumSubmission mismatched = new QuantumSubmission(
         program, 0, 0, List.of(new CircuitApplication(0, false)), Map.of(), 4, 10);
     assertThrows(QuantumExecutionException.class, () -> target.recover(job.id(), mismatched));
   }
@@ -159,7 +159,7 @@ class StateVectorTargetTest {
     byte[] artifact = new BytecodeWriter().write(source);
     Program program = new BytecodeReader().read(artifact);
     assertArrayEquals(artifact, new BytecodeWriter().write(program));
-    QuantumTask zero = new QuantumTask(
+    QuantumSubmission zero = new QuantumSubmission(
         program,
         0,
         0,
@@ -167,7 +167,7 @@ class StateVectorTargetTest {
         Map.of("theta", 0.0),
         8,
         3);
-    QuantumTask pi = new QuantumTask(
+    QuantumSubmission pi = new QuantumSubmission(
         program,
         0,
         0,
@@ -177,7 +177,7 @@ class StateVectorTargetTest {
         4);
     assertThrows(
         IllegalArgumentException.class,
-        () -> new QuantumTask(
+        () -> new QuantumSubmission(
             program,
             0,
             0,
@@ -202,9 +202,9 @@ class StateVectorTargetTest {
     QuantumCircuit circuit = new QuantumCircuit(
         0, "flip", 0, List.of(GateOperation.of(Gate.X, 0)));
     Program program = program(register, circuit, List.of());
-    QuantumTask first = new QuantumTask(
+    QuantumSubmission first = new QuantumSubmission(
         program, 0, 0, List.of(new CircuitApplication(0, false)), Map.of(), 8, 3);
-    QuantumTask second = new QuantumTask(
+    QuantumSubmission second = new QuantumSubmission(
         program, 0, 1, List.of(new CircuitApplication(0, false)), Map.of(), 8, 4);
     QuantumBatch batch = new QuantumBatch(List.of(first, second));
     StateVectorTarget target = new StateVectorTarget();
@@ -215,7 +215,7 @@ class StateVectorTargetTest {
     assertEquals(JobState.SUCCEEDED, job.state());
     assertEquals(batch.identity(), result.batchIdentity());
     assertEquals(List.of(first.identity(), second.identity()), result.results().stream()
-        .map(QuantumResult::taskIdentity)
+        .map(QuantumResult::submissionIdentity)
         .toList());
     assertEquals(-1.0, result.results().get(0).zExpectation(0).value());
     assertEquals(1.0, result.results().get(1).zExpectation(0).value());

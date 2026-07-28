@@ -350,7 +350,7 @@ Task and atomic effects reject inside coherent and unitary bodies. A classical t
 
 Static unitary parallelism remains WIP-0037 `DisjointGroup`. Target submission remains a WIP-0003 and WIP-0032 operation. Provider jobs are not VM tasks.
 
-The current quantum submission type named `QuantumTask` must be renamed before VM Task becomes public.
+The runtime uses `QuantumSubmission` and reserves Task for this VM model.
 
 ## Proof implications
 
@@ -400,6 +400,7 @@ Native worker failure and external uncertainty follow their owning WIPs. They do
 
 ## Progress
 
+- [x] Quantum target work uses QuantumSubmission. I/O backend work uses IoProviderResult. Task terminology is reserved for this VM model.
 - [ ] Existing artifacts execute as root task zero unchanged.
 - [ ] Task-aware snapshots and global event records exist.
 - [ ] Structured spawn, completion, join, and exit execute.

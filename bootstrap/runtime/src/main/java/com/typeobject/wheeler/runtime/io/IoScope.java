@@ -304,14 +304,14 @@ public final class IoScope implements AutoCloseable {
       }
       operation.markStarted();
     }
-    IoTaskResult<T> result = runProvider(operation);
+    IoProviderResult<T> result = runProvider(operation);
     synchronized (this) {
       finishExecution(operation, result);
     }
   }
 
-  private <T> IoTaskResult<T> runProvider(IoOperation<T> operation) {
-    IoTaskResult<T> result;
+  private <T> IoProviderResult<T> runProvider(IoOperation<T> operation) {
+    IoProviderResult<T> result;
     try {
       result = operation.request().execute();
     } catch (RuntimeException failure) {
@@ -319,15 +319,15 @@ public final class IoScope implements AutoCloseable {
       if (type.length() > 200) {
         type = type.substring(0, 200);
       }
-      result = IoTaskResult.failure("provider-exception:" + type, 0);
+      result = IoProviderResult.failure("provider-exception:" + type, 0);
     }
     if (result.progress() > operation.request().work()) {
-      return IoTaskResult.failure("invalid-provider-progress", 0);
+      return IoProviderResult.failure("invalid-provider-progress", 0);
     }
     return result;
   }
 
-  private <T> void finishExecution(IoOperation<T> operation, IoTaskResult<T> result) {
+  private <T> void finishExecution(IoOperation<T> operation, IoProviderResult<T> result) {
     operation.request().releaseResources();
     operation.complete(toCompletion(operation, result));
     terminalCount++;
@@ -339,7 +339,7 @@ public final class IoScope implements AutoCloseable {
   }
 
   private <T> IoCompletion<T> toCompletion(
-      IoOperation<T> operation, IoTaskResult<T> result) {
+      IoOperation<T> operation, IoProviderResult<T> result) {
     return switch (result.kind()) {
       case SUCCESS -> new IoCompletion<>(
           operation.id(), operation.requestIdentity(), TerminalKind.SUCCESS,

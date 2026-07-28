@@ -3,7 +3,7 @@ package com.typeobject.wheeler.runtime.io;
 import java.util.Objects;
 
 /** Provider result before the scope assigns lifecycle and cancellation facts. */
-public record IoTaskResult<T>(Kind kind, T value, String detail, long progress) {
+public record IoProviderResult<T>(Kind kind, T value, String detail, long progress) {
   /** Closed provider outcomes; completion and durability remain separate. */
   public enum Kind {
     SUCCESS,
@@ -12,7 +12,7 @@ public record IoTaskResult<T>(Kind kind, T value, String detail, long progress) 
     UNCERTAIN
   }
 
-  public IoTaskResult {
+  public IoProviderResult {
     Objects.requireNonNull(kind, "kind");
     if (progress < 0) {
       throw new IllegalArgumentException("progress cannot be negative");
@@ -36,22 +36,22 @@ public record IoTaskResult<T>(Kind kind, T value, String detail, long progress) 
   }
 
   /** Returns a successful provider result. */
-  public static <T> IoTaskResult<T> success(T value, long progress) {
-    return new IoTaskResult<>(Kind.SUCCESS, value, null, progress);
+  public static <T> IoProviderResult<T> success(T value, long progress) {
+    return new IoProviderResult<>(Kind.SUCCESS, value, null, progress);
   }
 
   /** Returns a known provider failure. */
-  public static <T> IoTaskResult<T> failure(String detail, long progress) {
-    return new IoTaskResult<>(Kind.FAILURE, null, detail, progress);
+  public static <T> IoProviderResult<T> failure(String detail, long progress) {
+    return new IoProviderResult<>(Kind.FAILURE, null, detail, progress);
   }
 
   /** Returns cancellation after known partial external progress. */
-  public static <T> IoTaskResult<T> canceledAfterPartial(String detail, long progress) {
-    return new IoTaskResult<>(Kind.CANCELED_AFTER_PARTIAL_EFFECT, null, detail, progress);
+  public static <T> IoProviderResult<T> canceledAfterPartial(String detail, long progress) {
+    return new IoProviderResult<>(Kind.CANCELED_AFTER_PARTIAL_EFFECT, null, detail, progress);
   }
 
   /** Returns an uncertain external outcome with reconciliation detail. */
-  public static <T> IoTaskResult<T> uncertain(String detail, long progress) {
-    return new IoTaskResult<>(Kind.UNCERTAIN, null, detail, progress);
+  public static <T> IoProviderResult<T> uncertain(String detail, long progress) {
+    return new IoProviderResult<>(Kind.UNCERTAIN, null, detail, progress);
   }
 }

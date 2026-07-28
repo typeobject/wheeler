@@ -317,7 +317,7 @@ Independent submissions may overlap. Result correlation uses submission identity
 
 Provider workers and jobs are not WIP-0039 Tasks. Target-internal feedback remains one target operation.
 
-Implementation migration renames runtime `QuantumTask` to `QuantumSubmission` or `QuantumRequest`, its builder to the matching name, and `taskIdentity` to `submissionIdentity`. WIP-0003 and WIP-0032 choose one final term before code changes. Half a rename is two bugs wearing one badge.
+The runtime now uses `QuantumSubmission`, `QuantumSubmissionBuilder`, and `submissionIdentity`. This completed rename reserves Task for WIP-0039 VM tasks and leaves one lifecycle term instead of two bugs wearing one badge.
 
 ## References
 - [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)

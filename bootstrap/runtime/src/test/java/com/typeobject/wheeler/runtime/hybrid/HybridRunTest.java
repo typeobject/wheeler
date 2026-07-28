@@ -24,7 +24,7 @@ import com.typeobject.wheeler.runtime.quantum.JobState;
 import com.typeobject.wheeler.runtime.quantum.QuantumJob;
 import com.typeobject.wheeler.runtime.quantum.QuantumResult;
 import com.typeobject.wheeler.runtime.quantum.QuantumTarget;
-import com.typeobject.wheeler.runtime.quantum.QuantumTask;
+import com.typeobject.wheeler.runtime.quantum.QuantumSubmission;
 import com.typeobject.wheeler.runtime.quantum.TargetCapability;
 import com.typeobject.wheeler.runtime.quantum.TargetDescriptor;
 import java.time.Duration;
@@ -161,7 +161,7 @@ class HybridRunTest {
   @Test
   void malformedResultCannotMutateContinuation() {
     RecoverableTarget target = new RecoverableTarget(1);
-    target.wrongTaskIdentity = true;
+    target.wrongSubmissionIdentity = true;
     HybridRun run = HybridRun.start(program(), target);
     run.advance();
     HybridRunSnapshot before = run.snapshot();
@@ -290,7 +290,7 @@ class HybridRunTest {
     private int recoveries;
     private String lastJobId = "";
     private boolean wrongJobIdentity;
-    private boolean wrongTaskIdentity;
+    private boolean wrongSubmissionIdentity;
 
     private RecoverableTarget(long outcome) {
       this.outcome = outcome;
@@ -302,18 +302,18 @@ class HybridRunTest {
     }
 
     @Override
-    public QuantumJob submit(QuantumTask task) {
+    public QuantumJob submit(QuantumSubmission submission) {
       submissions++;
       String id = "job-" + submissions;
       lastJobId = id;
       TestJob job = new TestJob(
-          id, task.identity(), outcome, wrongJobIdentity, wrongTaskIdentity);
+          id, submission.identity(), outcome, wrongJobIdentity, wrongSubmissionIdentity);
       jobs.put(id, job);
       return job;
     }
 
     @Override
-    public QuantumJob recover(String jobId, QuantumTask task) {
+    public QuantumJob recover(String jobId, QuantumSubmission submission) {
       recoveries++;
       QuantumJob job = jobs.get(jobId);
       if (job == null) {
@@ -324,23 +324,23 @@ class HybridRunTest {
 
     private final class TestJob implements QuantumJob {
       private final String id;
-      private final String taskIdentity;
+      private final String submissionIdentity;
       private final long value;
       private final boolean wrongIdentity;
-      private final boolean wrongTaskIdentity;
+      private final boolean wrongSubmissionIdentity;
       private JobState state = JobState.SUCCEEDED;
 
       private TestJob(
           String id,
-          String taskIdentity,
+          String submissionIdentity,
           long value,
           boolean wrongIdentity,
-          boolean wrongTaskIdentity) {
+          boolean wrongSubmissionIdentity) {
         this.id = id;
-        this.taskIdentity = taskIdentity;
+        this.submissionIdentity = submissionIdentity;
         this.value = value;
         this.wrongIdentity = wrongIdentity;
-        this.wrongTaskIdentity = wrongTaskIdentity;
+        this.wrongSubmissionIdentity = wrongSubmissionIdentity;
       }
 
       @Override
@@ -363,7 +363,7 @@ class HybridRunTest {
       public QuantumResult await(Duration timeout) {
         return new QuantumResult(
             wrongIdentity ? id + "-wrong" : id,
-            wrongTaskIdentity ? taskIdentity + "-wrong" : taskIdentity,
+            wrongSubmissionIdentity ? submissionIdentity + "-wrong" : submissionIdentity,
             List.of(value),
             Map.of(value, 1L),
             descriptor.target());

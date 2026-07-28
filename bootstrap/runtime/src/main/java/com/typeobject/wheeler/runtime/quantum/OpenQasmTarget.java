@@ -40,37 +40,37 @@ public final class OpenQasmTarget implements QuantumTarget {
   }
 
   @Override
-  public QuantumJob submit(QuantumTask task) {
-    int qubits = task.program().quantumRegister(task.registerId()).qubits();
-    if (qubits > descriptor.maxQubits() || task.shots() > descriptor.maxShots()) {
-      throw new QuantumExecutionException("Task exceeds OpenQASM target limits");
+  public QuantumJob submit(QuantumSubmission submission) {
+    int qubits = submission.program().quantumRegister(submission.registerId()).qubits();
+    if (qubits > descriptor.maxQubits() || submission.shots() > descriptor.maxShots()) {
+      throw new QuantumExecutionException("Submission exceeds OpenQASM target limits");
     }
     String id = "openqasm-" + JOB_SEQUENCE.incrementAndGet();
-    String qasm = new OpenQasm3Emitter().emit(task);
-    QuantumJob job = new OpenQasmJob(id, task, qasm);
-    jobs.put(id, new StoredJob(task.identity(), job));
+    String qasm = new OpenQasm3Emitter().emit(submission);
+    QuantumJob job = new OpenQasmJob(id, submission, qasm);
+    jobs.put(id, new StoredJob(submission.identity(), job));
     return job;
   }
 
   @Override
-  public QuantumJob recover(String jobId, QuantumTask task) {
+  public QuantumJob recover(String jobId, QuantumSubmission submission) {
     StoredJob stored = jobs.get(jobId);
-    if (stored == null || !stored.taskIdentity().equals(task.identity())) {
+    if (stored == null || !stored.submissionIdentity().equals(submission.identity())) {
       throw new QuantumExecutionException("Unknown or mismatched OpenQASM job " + jobId);
     }
     return stored.job();
   }
 
-  private record StoredJob(String taskIdentity, QuantumJob job) {}
+  private record StoredJob(String submissionIdentity, QuantumJob job) {}
 
   private final class OpenQasmJob implements QuantumJob {
     private final String id;
     private final AtomicReference<JobState> state = new AtomicReference<>(JobState.QUEUED);
     private final CompletableFuture<QuantumResult> future;
 
-    private OpenQasmJob(String id, QuantumTask task, String qasm) {
+    private OpenQasmJob(String id, QuantumSubmission submission, String qasm) {
       this.id = id;
-      this.future = CompletableFuture.supplyAsync(() -> execute(task, qasm));
+      this.future = CompletableFuture.supplyAsync(() -> execute(submission, qasm));
     }
 
     @Override
@@ -114,15 +114,15 @@ public final class OpenQasmTarget implements QuantumTarget {
       }
     }
 
-    private QuantumResult execute(QuantumTask task, String qasm) {
+    private QuantumResult execute(QuantumSubmission submission, String qasm) {
       state.set(JobState.RUNNING);
       try {
-        List<Long> outcomes = List.copyOf(executor.execute(qasm, task.shots(), task.seed()));
-        validateOutcomes(task, outcomes);
+        List<Long> outcomes = List.copyOf(executor.execute(qasm, submission.shots(), submission.seed()));
+        validateOutcomes(submission, outcomes);
         Map<Long, Long> counts = new LinkedHashMap<>();
         outcomes.forEach(value -> counts.merge(value, 1L, Long::sum));
         state.set(JobState.SUCCEEDED);
-        return new QuantumResult(id, task.identity(), outcomes, counts, descriptor.target());
+        return new QuantumResult(id, submission.identity(), outcomes, counts, descriptor.target());
       } catch (QuantumExecutionException exception) {
         state.set(JobState.FAILED);
         throw exception;
@@ -133,12 +133,12 @@ public final class OpenQasmTarget implements QuantumTarget {
     }
   }
 
-  private static void validateOutcomes(QuantumTask task, List<Long> outcomes) {
-    if (outcomes.size() != task.shots()) {
+  private static void validateOutcomes(QuantumSubmission submission, List<Long> outcomes) {
+    if (outcomes.size() != submission.shots()) {
       throw new QuantumExecutionException(
-          "Executor returned %d outcomes for %d shots".formatted(outcomes.size(), task.shots()));
+          "Executor returned %d outcomes for %d shots".formatted(outcomes.size(), submission.shots()));
     }
-    int qubits = task.program().quantumRegister(task.registerId()).qubits();
+    int qubits = submission.program().quantumRegister(submission.registerId()).qubits();
     for (long outcome : outcomes) {
       if (outcome < 0 || (qubits < 63 && outcome >= (1L << qubits))) {
         throw new QuantumExecutionException("Executor outcome exceeds register width");

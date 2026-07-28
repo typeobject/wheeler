@@ -15,8 +15,8 @@ import com.typeobject.wheeler.packageformat.PackageResolver;
 import com.typeobject.wheeler.runtime.ExecutionResult;
 import com.typeobject.wheeler.runtime.WheelerRuntime;
 import com.typeobject.wheeler.runtime.quantum.OpenQasm3Emitter;
-import com.typeobject.wheeler.runtime.quantum.QuantumTask;
-import com.typeobject.wheeler.runtime.quantum.QuantumTaskBuilder;
+import com.typeobject.wheeler.runtime.quantum.QuantumSubmission;
+import com.typeobject.wheeler.runtime.quantum.QuantumSubmissionBuilder;
 import com.typeobject.wheeler.runtime.quantum.StateVectorTarget;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -592,25 +592,25 @@ public final class Wheeler {
       return 2;
     }
     Program program = new BytecodeReader().read(Files.readAllBytes(Path.of(args[1])));
-    byte[] qasm = new OpenQasm3Emitter().emit(singleQuantumTask(program))
+    byte[] qasm = new OpenQasm3Emitter().emit(singleQuantumSubmission(program))
         .getBytes(StandardCharsets.UTF_8);
     PackageProject.writeAtomically(Path.of(args[2]), qasm);
     out.println("wrote " + args[2]);
     return 0;
   }
 
-  private static QuantumTask singleQuantumTask(Program program) {
-    Map<Integer, QuantumTaskBuilder> pending = new HashMap<>();
-    QuantumTask result = null;
+  private static QuantumSubmission singleQuantumSubmission(Program program) {
+    Map<Integer, QuantumSubmissionBuilder> pending = new HashMap<>();
+    QuantumSubmission result = null;
     for (var step : program.workflow()) {
       switch (step.opcode()) {
         case PREPARE -> pending.put(
             Math.toIntExact(step.first()),
-            new QuantumTaskBuilder(program, Math.toIntExact(step.first()), step.second()));
+            new QuantumSubmissionBuilder(program, Math.toIntExact(step.first()), step.second()));
         case APPLY, UNAPPLY -> {
           int circuit = Math.toIntExact(step.first());
           int register = program.quantumCircuit(circuit).registerId();
-          QuantumTaskBuilder builder = pending.get(register);
+          QuantumSubmissionBuilder builder = pending.get(register);
           if (builder == null) {
             throw new IllegalArgumentException("Circuit is applied before register preparation");
           }
@@ -625,7 +625,7 @@ public final class Wheeler {
           result = pending.remove(register).build(1, 0);
         }
         case CLASSICAL_CALL, CLASSICAL_UNCALL, EXPECT, COMMIT, HALT -> {
-          // Classical workflow edges do not change the static quantum task.
+          // Classical workflow edges do not change the static quantum submission.
         }
       }
     }

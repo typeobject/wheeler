@@ -1,6 +1,6 @@
 package com.typeobject.wheeler.runtime.quantum;
 
-/** One forward circuit or generated adjoint in a submitted task. */
+/** One forward circuit or generated adjoint in a submitted submission. */
 public record CircuitApplication(int circuitId, boolean inverse) {
   public CircuitApplication {
     if (circuitId < 0) {

@@ -5,14 +5,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/** Mutable run-local planner; submitted tasks are immutable. */
-public final class QuantumTaskBuilder {
+/** Mutable run-local planner. Built submissions are immutable. */
+public final class QuantumSubmissionBuilder {
   private final Program program;
   private final int registerId;
   private final long basisState;
   private final List<CircuitApplication> applications = new ArrayList<>();
 
-  public QuantumTaskBuilder(Program program, int registerId, long basisState) {
+  public QuantumSubmissionBuilder(Program program, int registerId, long basisState) {
     this.program = program;
     this.registerId = registerId;
     this.basisState = basisState;
@@ -25,12 +25,12 @@ public final class QuantumTaskBuilder {
     applications.add(new CircuitApplication(circuitId, inverse));
   }
 
-  public QuantumTask build(int shots, long seed) {
+  public QuantumSubmission build(int shots, long seed) {
     return build(shots, seed, Map.of());
   }
 
-  public QuantumTask build(int shots, long seed, Map<String, Double> bindings) {
-    return new QuantumTask(
+  public QuantumSubmission build(int shots, long seed, Map<String, Double> bindings) {
+    return new QuantumSubmission(
         program, registerId, basisState, List.copyOf(applications), bindings, shots, seed);
   }
 }

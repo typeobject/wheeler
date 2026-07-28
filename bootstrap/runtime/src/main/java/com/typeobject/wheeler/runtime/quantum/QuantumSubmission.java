@@ -18,7 +18,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 /** A complete portable prepare-unitary-measure target submission. */
-public record QuantumTask(
+public record QuantumSubmission(
     Program program,
     int registerId,
     long basisState,
@@ -26,7 +26,7 @@ public record QuantumTask(
     Map<String, Double> bindings,
     int shots,
     long seed) {
-  public QuantumTask {
+  public QuantumSubmission {
     Objects.requireNonNull(program, "program");
     applications = List.copyOf(applications);
     TreeMap<String, Double> ordered = new TreeMap<>();
@@ -39,7 +39,7 @@ public record QuantumTask(
     });
     bindings = Map.copyOf(ordered);
     if (registerId < 0 || shots <= 0) {
-      throw new IllegalArgumentException("Invalid quantum task");
+      throw new IllegalArgumentException("Invalid quantum submission");
     }
     Set<String> required = new HashSet<>();
     for (CircuitApplication application : applications) {
@@ -51,7 +51,7 @@ public record QuantumTask(
     }
     if (!required.equals(bindings.keySet())) {
       throw new IllegalArgumentException(
-          "Quantum parameter bindings do not match task schema: expected " + required);
+          "Quantum parameter bindings do not match submission schema: expected " + required);
     }
   }
 

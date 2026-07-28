@@ -571,6 +571,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 
 - [x] Proposal index, dependent WIPs, current references, and future documentation name WIP-0032 as the sole I/O lifecycle and method-registry owner. No competing portable method family remains in another WIP.
 - [x] The quarantined stage-0 runtime executes the bounded request, scope, operation, terminal-completion, reap, batch, selection, and terminal-dependency graph lifecycle with one deterministic semantic contract. This is executable scaffolding, not permission to fossilize the Java spelling.
+- [x] Provider completion uses `IoProviderResult`. The I/O lifecycle no longer borrows Task terminology from the structured-task design.
 - [x] Inline and delayed deterministic delivery produce equal semantic completions. Delayed cancellation-before-effect performs no provider action.
 - [x] The portable stage-0 threaded backend admits work before consuming requests, bounds workers plus in-flight operations, proves two-worker overlap, preserves dependency gates, distinguishes queued cancellation from a running cancellation race, and refuses shutdown with admitted work.
 - [x] A bounded in-memory addressable-file oracle executes positional reads and exact writes through the same request lifecycle. Buffers are inaccessible while captured, return in terminal results, and are released on cancellation-before-effect. Write completion remains gloriously unqualified by durability.
@@ -705,7 +706,7 @@ Submission and live await remain barriers. They are not task joins. Accepted com
 
 Task cleanup requests cancellation when permitted, waits for terminal resource release, and reaps once. Native descriptors, registered addresses, remote keys, process loans, and held foreign guards do not enter persisted task state.
 
-The internal `IoTaskResult` name migrates to `IoProviderResult` or `IoExecutionResult` before VM Task becomes public. The final name follows provider lifecycle ownership. No half rename is permitted.
+The provider completion value now uses `IoProviderResult`. This completed rename follows provider lifecycle ownership and reserves Task for the WIP-0039 VM model.
 
 ## References
 - [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)

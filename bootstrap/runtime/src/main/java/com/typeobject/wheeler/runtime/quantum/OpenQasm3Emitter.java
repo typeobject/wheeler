@@ -11,24 +11,24 @@ import java.util.List;
 
 /** Lossless OpenQASM 3 lowering for Wheeler's current static-circuit subset. */
 public final class OpenQasm3Emitter {
-  public String emit(QuantumTask task) {
-    int qubits = task.program().quantumRegister(task.registerId()).qubits();
+  public String emit(QuantumSubmission submission) {
+    int qubits = submission.program().quantumRegister(submission.registerId()).qubits();
     StringBuilder output = new StringBuilder();
     output.append("OPENQASM 3.0;\n")
         .append("include \"stdgates.inc\";\n")
         .append("bit[").append(qubits).append("] c;\n")
         .append("qubit[").append(qubits).append("] q;\n");
     for (int qubit = 0; qubit < qubits; qubit++) {
-      if ((task.basisState() & (1L << qubit)) != 0) {
+      if ((submission.basisState() & (1L << qubit)) != 0) {
         output.append("x q[").append(qubit).append("];\n");
       }
     }
-    for (CircuitApplication application : task.applications()) {
+    for (CircuitApplication application : submission.applications()) {
       List<QuantumOperation> operations = application.inverse()
-          ? task.program().quantumCircuit(application.circuitId()).inverseOperations()
-          : task.program().quantumCircuit(application.circuitId()).operations();
+          ? submission.program().quantumCircuit(application.circuitId()).inverseOperations()
+          : submission.program().quantumCircuit(application.circuitId()).operations();
       for (QuantumOperation operation : operations) {
-        appendOperation(output, task, operation, qubits);
+        appendOperation(output, submission, operation, qubits);
       }
     }
     output.append("c = measure q;\n");
@@ -36,20 +36,20 @@ public final class OpenQasm3Emitter {
   }
 
   private static void appendOperation(
-      StringBuilder output, QuantumTask task, QuantumOperation operation, int qubits) {
+      StringBuilder output, QuantumSubmission submission, QuantumOperation operation, int qubits) {
     if (operation instanceof GateOperation gate) {
       appendGate(output, gate);
       return;
     }
     if (operation instanceof ParameterizedGateOperation gate) {
-      appendGate(output, gate.bind(task.bindings()));
+      appendGate(output, gate.bind(submission.bindings()));
       return;
     }
     LiftedCall lifted = (LiftedCall) operation;
     appendLifted(
         output,
-        task,
-        task.program().function(lifted.functionId()),
+        submission,
+        submission.program().function(lifted.functionId()),
         lifted.inverseDirection(),
         qubits);
   }
@@ -71,7 +71,7 @@ public final class OpenQasm3Emitter {
 
   private static void appendLifted(
       StringBuilder output,
-      QuantumTask task,
+      QuantumSubmission submission,
       FunctionBody function,
       boolean inverse,
       int qubits) {
@@ -87,8 +87,8 @@ public final class OpenQasm3Emitter {
           || instruction.opcode() == Opcode.UNCALL) {
         appendLifted(
             output,
-            task,
-            task.program().function(Math.toIntExact(instruction.operands().getFirst())),
+            submission,
+            submission.program().function(Math.toIntExact(instruction.operands().getFirst())),
             instruction.opcode() == Opcode.UNCALL,
             qubits);
       } else if (instruction.opcode() != Opcode.NOP

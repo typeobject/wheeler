@@ -9,7 +9,7 @@ public final class IoRequest<T> {
   /** Replaceable provider action invoked only after submission. */
   @FunctionalInterface
   public interface Action<T> {
-    IoTaskResult<T> execute();
+    IoProviderResult<T> execute();
   }
 
   private final String identity;
@@ -60,7 +60,7 @@ public final class IoRequest<T> {
     }
   }
 
-  IoTaskResult<T> execute() {
+  IoProviderResult<T> execute() {
     return Objects.requireNonNull(action.execute(), "provider result");
   }
 
