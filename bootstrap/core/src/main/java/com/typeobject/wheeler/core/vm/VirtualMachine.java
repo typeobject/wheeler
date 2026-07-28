@@ -1,9 +1,39 @@
 package com.typeobject.wheeler.core.vm;
 
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ALLOCATION_LIMIT;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ARGUMENT_BASE;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ARGUMENT_COUNT;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.CAPACITY;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.CONDITION;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.DESCRIPTOR;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.DESTINATION;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ELEMENT_BASE;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ELEMENT_COUNT;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.FUNCTION;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.GLOBAL;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.IMMEDIATE;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.INDEX;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ITERATION;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.KEY;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LEFT_GLOBAL;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LEFT_SOURCE;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LENGTH;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LIMIT;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LOCAL;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.OWNER;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RIGHT_GLOBAL;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RIGHT_SOURCE;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.SOURCE;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.START;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.TAG;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.TARGET;
+
 import com.typeobject.wheeler.core.bytecode.BytecodeVerifier;
 import com.typeobject.wheeler.core.bytecode.FunctionBody;
 import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.InstructionExtensions;
+import com.typeobject.wheeler.core.bytecode.InstructionForm;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.RecordType;
@@ -207,7 +237,8 @@ public final class VirtualMachine {
     }
     FunctionBody function = program.function(functionId);
     if (function.parameterCount() != 0 || function.returnsValue()) {
-      throw new VmTrap("Workflow invocation requires a void zero-argument function: " + function.name());
+      throw new VmTrap(
+          "Workflow invocation requires a void zero-argument function: " + function.name());
     }
     if (inverse && !function.reversible()) {
       throw new VmTrap("Function has no inverse: " + function.name());
@@ -305,97 +336,106 @@ public final class VirtualMachine {
 
     switch (opcode) {
       case ADD_CONST -> {
-        int index = globalIndex(instruction, 0);
-        globals[index] = Math.addExact(globals[index], operand(instruction, 1));
+        int index = globalIndex(instruction, GLOBAL);
+        globals[index] = Math.addExact(globals[index], instruction.operand(IMMEDIATE));
         advanceCurrentFrame();
       }
       case SUB_CONST -> {
-        int index = globalIndex(instruction, 0);
-        globals[index] = Math.subtractExact(globals[index], operand(instruction, 1));
+        int index = globalIndex(instruction, GLOBAL);
+        globals[index] = Math.subtractExact(globals[index], instruction.operand(IMMEDIATE));
         advanceCurrentFrame();
       }
       case XOR_CONST -> {
-        int index = globalIndex(instruction, 0);
-        globals[index] ^= operand(instruction, 1);
+        int index = globalIndex(instruction, GLOBAL);
+        globals[index] ^= instruction.operand(IMMEDIATE);
         advanceCurrentFrame();
       }
       case SWAP -> {
-        int left = globalIndex(instruction, 0);
-        int right = globalIndex(instruction, 1);
+        int left = globalIndex(instruction, LEFT_GLOBAL);
+        int right = globalIndex(instruction, RIGHT_GLOBAL);
         long value = globals[left];
         globals[left] = globals[right];
         globals[right] = value;
         advanceCurrentFrame();
       }
       case SET_LOGGED -> {
-        changedGlobal = globalIndex(instruction, 0);
+        changedGlobal = globalIndex(instruction, GLOBAL);
         previousValue = globals[changedGlobal];
-        globals[changedGlobal] = operand(instruction, 1);
+        globals[changedGlobal] = instruction.operand(IMMEDIATE);
         advanceCurrentFrame();
       }
       case LOCAL_CONST -> setLocalAndAdvance(
-          localIndex(instruction, 0), operand(instruction, 1));
+          localIndex(instruction, DESTINATION), instruction.operand(IMMEDIATE));
       case LOCAL_LOAD_GLOBAL -> setLocalAndAdvance(
-          localIndex(instruction, 0), globals[globalIndex(instruction, 1)]);
+          localIndex(instruction, DESTINATION), globals[globalIndex(instruction, GLOBAL)]);
       case LOCAL_STORE_GLOBAL -> {
-        changedGlobal = globalIndex(instruction, 0);
+        changedGlobal = globalIndex(instruction, GLOBAL);
         previousValue = globals[changedGlobal];
-        globals[changedGlobal] = localValue(instruction, 1);
+        globals[changedGlobal] = localValue(instruction, SOURCE);
         advanceCurrentFrame();
       }
       case LOCAL_MOVE -> setLocalAndAdvance(
-          localIndex(instruction, 0), localValue(instruction, 1));
+          localIndex(instruction, DESTINATION), localValue(instruction, SOURCE));
       case OWNED_MOVE -> {
-        int destination = localIndex(instruction, 0);
-        int source = localIndex(instruction, 1);
+        int destination = localIndex(instruction, DESTINATION);
+        int source = localIndex(instruction, SOURCE);
         long value = currentFrame().local(source);
         replaceCurrentFrame(
             currentFrame().withLocal(source, 0).withLocal(destination, value).advance());
       }
       case LOCAL_ADD -> setLocalAndAdvance(
-          localIndex(instruction, 0),
-          Math.addExact(localValue(instruction, 1), localValue(instruction, 2)));
+          localIndex(instruction, DESTINATION),
+          Math.addExact(
+              localValue(instruction, LEFT_SOURCE),
+              localValue(instruction, RIGHT_SOURCE)));
       case LOCAL_SUB -> setLocalAndAdvance(
-          localIndex(instruction, 0),
-          Math.subtractExact(localValue(instruction, 1), localValue(instruction, 2)));
+          localIndex(instruction, DESTINATION),
+          Math.subtractExact(
+              localValue(instruction, LEFT_SOURCE),
+              localValue(instruction, RIGHT_SOURCE)));
       case LOCAL_MUL -> setLocalAndAdvance(
-          localIndex(instruction, 0),
-          Math.multiplyExact(localValue(instruction, 1), localValue(instruction, 2)));
+          localIndex(instruction, DESTINATION),
+          Math.multiplyExact(
+              localValue(instruction, LEFT_SOURCE),
+              localValue(instruction, RIGHT_SOURCE)));
       case LOCAL_DIV -> setLocalAndAdvance(
-          localIndex(instruction, 0),
-          localValue(instruction, 1) / localValue(instruction, 2));
+          localIndex(instruction, DESTINATION),
+          localValue(instruction, LEFT_SOURCE) / localValue(instruction, RIGHT_SOURCE));
       case LOCAL_MOD -> setLocalAndAdvance(
-          localIndex(instruction, 0),
-          localValue(instruction, 1) % localValue(instruction, 2));
+          localIndex(instruction, DESTINATION),
+          localValue(instruction, LEFT_SOURCE) % localValue(instruction, RIGHT_SOURCE));
       case LOCAL_AND -> setLocalAndAdvance(
-          localIndex(instruction, 0), localValue(instruction, 1) & localValue(instruction, 2));
+          localIndex(instruction, DESTINATION),
+          localValue(instruction, LEFT_SOURCE) & localValue(instruction, RIGHT_SOURCE));
       case LOCAL_ROTR32 -> setLocalAndAdvance(
-          localIndex(instruction, 0),
+          localIndex(instruction, DESTINATION),
           Integer.toUnsignedLong(Integer.rotateRight(
-              (int) localValue(instruction, 1), Math.toIntExact(localValue(instruction, 2)))));
+              (int) localValue(instruction, LEFT_SOURCE),
+              Math.toIntExact(localValue(instruction, RIGHT_SOURCE)))));
       case LOCAL_XOR -> setLocalAndAdvance(
-          localIndex(instruction, 0), localValue(instruction, 1) ^ localValue(instruction, 2));
+          localIndex(instruction, DESTINATION),
+          localValue(instruction, LEFT_SOURCE) ^ localValue(instruction, RIGHT_SOURCE));
       case LOCAL_EQ -> setLocalAndAdvance(
-          localIndex(instruction, 0),
-          localValue(instruction, 1) == localValue(instruction, 2) ? 1 : 0);
+          localIndex(instruction, DESTINATION),
+          localValue(instruction, LEFT_SOURCE) == localValue(instruction, RIGHT_SOURCE) ? 1 : 0);
       case LOCAL_LT -> setLocalAndAdvance(
-          localIndex(instruction, 0),
-          localValue(instruction, 1) < localValue(instruction, 2) ? 1 : 0);
-      case JUMP -> jumpCurrentFrame(Math.toIntExact(operand(instruction, 0)));
+          localIndex(instruction, DESTINATION),
+          localValue(instruction, LEFT_SOURCE) < localValue(instruction, RIGHT_SOURCE) ? 1 : 0);
+      case JUMP -> jumpCurrentFrame(Math.toIntExact(instruction.operand(TARGET)));
       case JUMP_IF_ZERO -> {
-        if (localValue(instruction, 0) == 0) {
-          jumpCurrentFrame(Math.toIntExact(operand(instruction, 1)));
+        if (localValue(instruction, CONDITION) == 0) {
+          jumpCurrentFrame(Math.toIntExact(instruction.operand(TARGET)));
         } else {
           advanceCurrentFrame();
         }
       }
       case LOCAL_LOOP_CHECK -> setLocalAndAdvance(
-          localIndex(instruction, 0), Math.addExact(localValue(instruction, 0), 1));
+          localIndex(instruction, ITERATION), Math.addExact(localValue(instruction, ITERATION), 1));
       case RECORD_NEW -> {
-        int destination = localIndex(instruction, 0);
-        int typeId = Math.toIntExact(operand(instruction, 1));
-        int base = Math.toIntExact(operand(instruction, 2));
-        int count = Math.toIntExact(operand(instruction, 3));
+        int destination = localIndex(instruction, DESTINATION);
+        int typeId = Math.toIntExact(instruction.operand(DESCRIPTOR));
+        int base = Math.toIntExact(instruction.operand(ELEMENT_BASE));
+        int count = Math.toIntExact(instruction.operand(ELEMENT_COUNT));
         List<Long> fields = new ArrayList<>(count);
         for (int field = 0; field < count; field++) {
           fields.add(currentFrame().local(base + field));
@@ -404,17 +444,17 @@ public final class VirtualMachine {
         setLocalAndAdvance(destination, aggregates.intern(value));
       }
       case RECORD_GET -> {
-        int destination = localIndex(instruction, 0);
-        RecordValue value = recordValue(localValue(instruction, 1));
-        int field = Math.toIntExact(operand(instruction, 2));
+        int destination = localIndex(instruction, DESTINATION);
+        RecordValue value = VmAggregateChecks.record(aggregates, localValue(instruction, OWNER));
+        int field = Math.toIntExact(instruction.operand(INDEX));
         setLocalAndAdvance(destination, value.fields().get(field));
       }
       case VARIANT_NEW -> {
-        int destination = localIndex(instruction, 0);
-        int typeId = Math.toIntExact(operand(instruction, 1));
-        int tag = Math.toIntExact(operand(instruction, 2));
-        int base = Math.toIntExact(operand(instruction, 3));
-        int count = Math.toIntExact(operand(instruction, 4));
+        int destination = localIndex(instruction, DESTINATION);
+        int typeId = Math.toIntExact(instruction.operand(DESCRIPTOR));
+        int tag = Math.toIntExact(instruction.operand(TAG));
+        int base = Math.toIntExact(instruction.operand(ELEMENT_BASE));
+        int count = Math.toIntExact(instruction.operand(ELEMENT_COUNT));
         List<Long> fields = new ArrayList<>(count);
         for (int field = 0; field < count; field++) {
           fields.add(currentFrame().local(base + field));
@@ -423,25 +463,25 @@ public final class VirtualMachine {
         setLocalAndAdvance(destination, aggregates.intern(value));
       }
       case VARIANT_TAG_EQ -> {
-        VariantValue value = variantValue(localValue(instruction, 1));
+        VariantValue value = VmAggregateChecks.variant(aggregates, localValue(instruction, OWNER));
         setLocalAndAdvance(
-            localIndex(instruction, 0), value.tag() == operand(instruction, 2) ? 1 : 0);
+            localIndex(instruction, DESTINATION), value.tag() == instruction.operand(TAG) ? 1 : 0);
       }
       case VARIANT_GET -> {
-        VariantValue value = variantValue(localValue(instruction, 1));
-        int expectedTag = Math.toIntExact(operand(instruction, 2));
+        VariantValue value = VmAggregateChecks.variant(aggregates, localValue(instruction, OWNER));
+        int expectedTag = Math.toIntExact(instruction.operand(TAG));
         if (value.tag() != expectedTag) {
           throw new VmTrap("Variant payload tag mismatch");
         }
         setLocalAndAdvance(
-            localIndex(instruction, 0),
-            value.fields().get(Math.toIntExact(operand(instruction, 3))));
+            localIndex(instruction, DESTINATION),
+            value.fields().get(Math.toIntExact(instruction.operand(INDEX))));
       }
       case ARRAY_NEW -> {
-        int destination = localIndex(instruction, 0);
-        int typeId = Math.toIntExact(operand(instruction, 1));
-        int base = Math.toIntExact(operand(instruction, 2));
-        int count = Math.toIntExact(operand(instruction, 3));
+        int destination = localIndex(instruction, DESTINATION);
+        int typeId = Math.toIntExact(instruction.operand(DESCRIPTOR));
+        int base = Math.toIntExact(instruction.operand(ELEMENT_BASE));
+        int count = Math.toIntExact(instruction.operand(ELEMENT_COUNT));
         List<Long> elements = new ArrayList<>(count);
         for (int element = 0; element < count; element++) {
           elements.add(currentFrame().local(base + element));
@@ -450,83 +490,85 @@ public final class VirtualMachine {
         setLocalAndAdvance(destination, aggregates.intern(value));
       }
       case ARRAY_GET -> {
-        ArrayValue value = arrayValue(localValue(instruction, 1));
-        int index = Math.toIntExact(localValue(instruction, 2));
-        setLocalAndAdvance(localIndex(instruction, 0), value.elements().get(index));
+        ArrayValue value = VmAggregateChecks.array(aggregates, localValue(instruction, OWNER));
+        int index = Math.toIntExact(localValue(instruction, INDEX));
+        setLocalAndAdvance(localIndex(instruction, DESTINATION), value.elements().get(index));
       }
       case SLICE_NEW -> {
-        int destination = localIndex(instruction, 0);
-        int typeId = Math.toIntExact(operand(instruction, 1));
-        long arrayHandle = localValue(instruction, 2);
-        int start = Math.toIntExact(localValue(instruction, 3));
-        int length = Math.toIntExact(localValue(instruction, 4));
+        int destination = localIndex(instruction, DESTINATION);
+        int typeId = Math.toIntExact(instruction.operand(DESCRIPTOR));
+        long arrayHandle = localValue(instruction, OWNER);
+        int start = Math.toIntExact(localValue(instruction, START));
+        int length = Math.toIntExact(localValue(instruction, LENGTH));
         SliceValue value = new SliceValue(typeId, arrayHandle, start, length);
         setLocalAndAdvance(destination, aggregates.intern(value));
       }
       case SLICE_GET -> {
-        SliceValue slice = sliceValue(localValue(instruction, 1));
-        ArrayValue array = arrayValue(slice.arrayHandle());
-        int index = Math.toIntExact(localValue(instruction, 2));
+        SliceValue slice = VmAggregateChecks.slice(aggregates, localValue(instruction, OWNER));
+        ArrayValue array = VmAggregateChecks.array(aggregates, slice.arrayHandle());
+        int index = Math.toIntExact(localValue(instruction, INDEX));
         setLocalAndAdvance(
-            localIndex(instruction, 0), array.elements().get(slice.start() + index));
+            localIndex(instruction, DESTINATION), array.elements().get(slice.start() + index));
       }
       case REGION_NEW -> {
         OwnedStore.Allocation allocation = owned.createRegion(
-            operand(instruction, 1), Math.toIntExact(operand(instruction, 2)), ownedChange);
+            instruction.operand(CAPACITY),
+            Math.toIntExact(instruction.operand(ALLOCATION_LIMIT)),
+            ownedChange);
         ownedChange = allocation.change();
-        setLocalAndAdvance(localIndex(instruction, 0), allocation.handle());
+        setLocalAndAdvance(localIndex(instruction, DESTINATION), allocation.handle());
       }
       case WORDS_ALLOC, BYTES_ALLOC -> {
         BufferKind kind = opcode == Opcode.WORDS_ALLOC
             ? BufferKind.WORDS : BufferKind.BYTES;
         OwnedStore.Allocation allocation = owned.allocate(
-            localValue(instruction, 1),
-            Math.toIntExact(localValue(instruction, 2)),
+            localValue(instruction, OWNER),
+            Math.toIntExact(localValue(instruction, CAPACITY)),
             kind,
             ownedChange);
         ownedChange = allocation.change();
-        setLocalAndAdvance(localIndex(instruction, 0), allocation.handle());
+        setLocalAndAdvance(localIndex(instruction, DESTINATION), allocation.handle());
       }
       case WORDS_GET, BYTES_GET -> {
         BufferKind kind = opcode == Opcode.WORDS_GET
             ? BufferKind.WORDS : BufferKind.BYTES;
         setLocalAndAdvance(
-            localIndex(instruction, 0),
+            localIndex(instruction, DESTINATION),
             owned.get(
-                localValue(instruction, 1),
-                Math.toIntExact(localValue(instruction, 2)),
+                localValue(instruction, OWNER),
+                Math.toIntExact(localValue(instruction, INDEX)),
                 kind));
       }
       case WORDS_SET, BYTES_SET -> {
         BufferKind kind = opcode == Opcode.WORDS_SET
             ? BufferKind.WORDS : BufferKind.BYTES;
         ownedChange = owned.set(
-            localValue(instruction, 0),
-            Math.toIntExact(localValue(instruction, 1)),
-            localValue(instruction, 2),
+            localValue(instruction, OWNER),
+            Math.toIntExact(localValue(instruction, INDEX)),
+            localValue(instruction, SOURCE),
             kind,
             ownedChange);
         advanceCurrentFrame();
       }
       case UTF8_VALID -> setLocalAndAdvance(
-          localIndex(instruction, 0),
-          Utf8.analyze(owned.utf8Bytes(localValue(instruction, 1))).valid() ? 1 : 0);
+          localIndex(instruction, DESTINATION),
+          Utf8.analyze(owned.utf8Bytes(localValue(instruction, SOURCE))).valid() ? 1 : 0);
       case UTF8_COUNT -> setLocalAndAdvance(
-          localIndex(instruction, 0),
-          Utf8.analyze(owned.utf8Bytes(localValue(instruction, 1))).scalarCount());
+          localIndex(instruction, DESTINATION),
+          Utf8.analyze(owned.utf8Bytes(localValue(instruction, SOURCE))).scalarCount());
       case BUFFER_LENGTH -> setLocalAndAdvance(
-          localIndex(instruction, 0), owned.length(localValue(instruction, 1)));
+          localIndex(instruction, DESTINATION), owned.length(localValue(instruction, SOURCE)));
       case UTF8_SCALAR, UTF8_WIDTH -> {
         Utf8.Scalar scalar = VmControlChecks.utf8Scalar(owned, currentFrame(), instruction);
         setLocalAndAdvance(
-            localIndex(instruction, 0),
+            localIndex(instruction, DESTINATION),
             opcode == Opcode.UTF8_SCALAR ? scalar.value() : scalar.width());
       }
       case UTF8_BORROW, MAP_BORROW, BUFFER_BORROW, REGION_BORROW -> setLocalAndAdvance(
-          localIndex(instruction, 0), localValue(instruction, 1));
+          localIndex(instruction, DESTINATION), localValue(instruction, SOURCE));
       case UTF8_FREEZE -> {
-        int destination = localIndex(instruction, 0);
-        int source = localIndex(instruction, 1);
+        int destination = localIndex(instruction, DESTINATION);
+        int source = localIndex(instruction, SOURCE);
         long handle = currentFrame().local(source);
         ownedChange = owned.freezeUtf8(handle, ownedChange);
         replaceCurrentFrame(
@@ -534,43 +576,43 @@ public final class VirtualMachine {
       }
       case MAP_ALLOC -> {
         OwnedStore.Allocation allocation = owned.allocate(
-            localValue(instruction, 1),
-            Math.toIntExact(localValue(instruction, 2)),
+            localValue(instruction, OWNER),
+            Math.toIntExact(localValue(instruction, CAPACITY)),
             BufferKind.LONG_MAP,
             ownedChange);
         ownedChange = allocation.change();
-        setLocalAndAdvance(localIndex(instruction, 0), allocation.handle());
+        setLocalAndAdvance(localIndex(instruction, DESTINATION), allocation.handle());
       }
       case MAP_PUT -> {
         ownedChange = owned.mapPut(
-            localValue(instruction, 0),
-            localValue(instruction, 1),
-            localValue(instruction, 2),
+            localValue(instruction, OWNER),
+            localValue(instruction, KEY),
+            localValue(instruction, SOURCE),
             ownedChange);
         advanceCurrentFrame();
       }
       case MAP_GET -> setLocalAndAdvance(
-          localIndex(instruction, 0),
-          owned.mapGet(localValue(instruction, 1), localValue(instruction, 2)));
+          localIndex(instruction, DESTINATION),
+          owned.mapGet(localValue(instruction, OWNER), localValue(instruction, KEY)));
       case MAP_HAS -> setLocalAndAdvance(
-          localIndex(instruction, 0),
-          owned.mapHas(localValue(instruction, 1), localValue(instruction, 2)) ? 1 : 0);
+          localIndex(instruction, DESTINATION),
+          owned.mapHas(localValue(instruction, OWNER), localValue(instruction, KEY)) ? 1 : 0);
       case BUFFER_DROP -> {
-        int local = localIndex(instruction, 0);
+        int local = localIndex(instruction, LOCAL);
         ownedChange = owned.dropBuffer(currentFrame().local(local), ownedChange);
         setLocalAndAdvance(local, 0);
       }
       case REGION_DROP -> {
-        int local = localIndex(instruction, 0);
+        int local = localIndex(instruction, LOCAL);
         ownedChange = owned.dropRegion(currentFrame().local(local), ownedChange);
         setLocalAndAdvance(local, 0);
       }
       case OUTPUT_LENGTH -> {
-        hostOutputLength = Math.toIntExact(localValue(instruction, 1));
+        hostOutputLength = Math.toIntExact(localValue(instruction, LENGTH));
         advanceCurrentFrame();
       }
       case CALL, UNCALL -> {
-        int functionId = Math.toIntExact(operand(instruction, 0));
+        int functionId = Math.toIntExact(instruction.operand(FUNCTION));
         advanceCurrentFrame();
         FunctionBody target = program.function(functionId);
         tasks.addFrame(Frame.create(functionId, opcode == Opcode.UNCALL, target.localCount()));
@@ -588,7 +630,7 @@ public final class VirtualMachine {
         control = StepRecord.ControlChange.RETURN;
       }
       case RETURN_VALUE -> {
-        long result = localValue(instruction, 0);
+        long result = localValue(instruction, RESULT);
         int destination = frame.returnDestination();
         tasks.removeLastFrame();
         changedLocal = destination;
@@ -638,25 +680,31 @@ public final class VirtualMachine {
       }
       switch (instruction.opcode()) {
         case ADD_CONST -> Math.addExact(
-            globals[globalIndex(instruction, 0)], operand(instruction, 1));
+            globals[globalIndex(instruction, GLOBAL)], instruction.operand(IMMEDIATE));
         case SUB_CONST -> Math.subtractExact(
-            globals[globalIndex(instruction, 0)], operand(instruction, 1));
+            globals[globalIndex(instruction, GLOBAL)], instruction.operand(IMMEDIATE));
         case LOCAL_ADD -> {
-          localIndex(instruction, 0);
-          Math.addExact(localValue(instruction, 1), localValue(instruction, 2));
+          localIndex(instruction, DESTINATION);
+          Math.addExact(
+              localValue(instruction, LEFT_SOURCE),
+              localValue(instruction, RIGHT_SOURCE));
         }
         case LOCAL_SUB -> {
-          localIndex(instruction, 0);
-          Math.subtractExact(localValue(instruction, 1), localValue(instruction, 2));
+          localIndex(instruction, DESTINATION);
+          Math.subtractExact(
+              localValue(instruction, LEFT_SOURCE),
+              localValue(instruction, RIGHT_SOURCE));
         }
         case LOCAL_MUL -> {
-          localIndex(instruction, 0);
-          Math.multiplyExact(localValue(instruction, 1), localValue(instruction, 2));
+          localIndex(instruction, DESTINATION);
+          Math.multiplyExact(
+              localValue(instruction, LEFT_SOURCE),
+              localValue(instruction, RIGHT_SOURCE));
         }
         case LOCAL_DIV, LOCAL_MOD -> {
-          localIndex(instruction, 0);
-          long dividend = localValue(instruction, 1);
-          long divisor = localValue(instruction, 2);
+          localIndex(instruction, DESTINATION);
+          long dividend = localValue(instruction, LEFT_SOURCE);
+          long divisor = localValue(instruction, RIGHT_SOURCE);
           if (divisor == 0) {
             trap("Division by zero");
           }
@@ -665,57 +713,58 @@ public final class VirtualMachine {
             trap("Arithmetic overflow in LOCAL_DIV");
           }
         }
-        case LOCAL_CONST -> localIndex(instruction, 0);
+        case LOCAL_CONST -> localIndex(instruction, DESTINATION);
         case LOCAL_LOAD_GLOBAL -> {
-          localIndex(instruction, 0);
-          globalIndex(instruction, 1);
+          localIndex(instruction, DESTINATION);
+          globalIndex(instruction, GLOBAL);
         }
         case LOCAL_STORE_GLOBAL -> {
-          globalIndex(instruction, 0);
-          localIndex(instruction, 1);
+          globalIndex(instruction, GLOBAL);
+          localIndex(instruction, SOURCE);
         }
         case LOCAL_MOVE, OWNED_MOVE -> {
-          localIndex(instruction, 0);
-          localIndex(instruction, 1);
+          localIndex(instruction, DESTINATION);
+          localIndex(instruction, SOURCE);
         }
         case LOCAL_AND, LOCAL_XOR, LOCAL_EQ, LOCAL_LT -> {
-          localIndex(instruction, 0);
-          localIndex(instruction, 1);
-          localIndex(instruction, 2);
+          localIndex(instruction, DESTINATION);
+          localIndex(instruction, LEFT_SOURCE);
+          localIndex(instruction, RIGHT_SOURCE);
         }
         case LOCAL_ROTR32 -> {
-          localIndex(instruction, 0);
-          localIndex(instruction, 1);
-          long amount = localValue(instruction, 2);
+          localIndex(instruction, DESTINATION);
+          localIndex(instruction, LEFT_SOURCE);
+          long amount = localValue(instruction, RIGHT_SOURCE);
           if (amount < 0 || amount > 31) {
             trap("32-bit rotate amount must be between 0 and 31");
           }
         }
         case JUMP -> VmControlChecks.jumpTarget(program, currentFrame(), instruction);
         case JUMP_IF_ZERO -> {
-          localIndex(instruction, 0);
+          localIndex(instruction, CONDITION);
           VmControlChecks.jumpTarget(program, currentFrame(), instruction);
         }
         case LOCAL_LOOP_CHECK -> {
-          long iteration = localValue(instruction, 0);
-          long limit = localValue(instruction, 1);
+          long iteration = localValue(instruction, ITERATION);
+          long limit = localValue(instruction, LIMIT);
           if (iteration < 0 || limit < 0 || iteration >= limit) {
             trap("Loop iteration limit exceeded");
           }
           Math.addExact(iteration, 1);
         }
         case RECORD_NEW -> {
-          localIndex(instruction, 0);
-          RecordType type = program.recordType(Math.toIntExact(operand(instruction, 1)));
-          int base = Math.toIntExact(operand(instruction, 2));
-          int count = Math.toIntExact(operand(instruction, 3));
+          localIndex(instruction, DESTINATION);
+          RecordType type = program.recordType(Math.toIntExact(instruction.operand(DESCRIPTOR)));
+          int base = Math.toIntExact(instruction.operand(ELEMENT_BASE));
+          int count = Math.toIntExact(instruction.operand(ELEMENT_COUNT));
           List<Long> fields = new ArrayList<>(count);
           for (int field = 0; field < count; field++) {
             long value = currentFrame().local(base + field);
             fields.add(value);
             ValueType fieldType = type.fields().get(field).type();
             if (fieldType.kind() == ValueType.Kind.RECORD
-                && recordValue(value).typeId() != fieldType.descriptorId()) {
+                && VmAggregateChecks.record(aggregates, value).typeId()
+                    != fieldType.descriptorId()) {
               trap("Nested record type mismatch");
             }
           }
@@ -724,24 +773,26 @@ public final class VirtualMachine {
           }
         }
         case RECORD_GET -> {
-          localIndex(instruction, 0);
-          RecordValue value = recordValue(localValue(instruction, 1));
-          int field = Math.toIntExact(operand(instruction, 2));
+          localIndex(instruction, DESTINATION);
+          RecordValue value = VmAggregateChecks.record(
+              aggregates, localValue(instruction, OWNER));
+          int field = Math.toIntExact(instruction.operand(INDEX));
           if (field < 0 || field >= value.fields().size()) {
             trap("Record field index out of range");
           }
         }
         case VARIANT_NEW -> {
-          localIndex(instruction, 0);
-          var type = program.variantType(Math.toIntExact(operand(instruction, 1)));
-          int tag = Math.toIntExact(operand(instruction, 2));
-          int base = Math.toIntExact(operand(instruction, 3));
-          int count = Math.toIntExact(operand(instruction, 4));
+          localIndex(instruction, DESTINATION);
+          var type = program.variantType(Math.toIntExact(instruction.operand(DESCRIPTOR)));
+          int tag = Math.toIntExact(instruction.operand(TAG));
+          int base = Math.toIntExact(instruction.operand(ELEMENT_BASE));
+          int count = Math.toIntExact(instruction.operand(ELEMENT_COUNT));
           var variantCase = type.cases().get(tag);
           List<Long> fields = new ArrayList<>(count);
           for (int field = 0; field < count; field++) {
             long value = currentFrame().local(base + field);
-            validateAggregateValue(variantCase.fields().get(field).type(), value);
+            VmAggregateChecks.validateValue(
+                aggregates, variantCase.fields().get(field).type(), value);
             fields.add(value);
           }
           if (aggregates.fullForNew(new VariantValue(type.id(), tag, fields))) {
@@ -749,31 +800,33 @@ public final class VirtualMachine {
           }
         }
         case VARIANT_TAG_EQ -> {
-          localIndex(instruction, 0);
-          VariantValue value = checkedVariantSource(instruction, 1);
-          if (operand(instruction, 2) < 0
-              || operand(instruction, 2) >= program.variantType(value.typeId()).cases().size()) {
+          localIndex(instruction, DESTINATION);
+          VariantValue value = VmAggregateChecks.checkedVariant(
+              aggregates, program, currentFrame(), instruction, OWNER);
+          if (instruction.operand(TAG) < 0
+              || instruction.operand(TAG) >= program.variantType(value.typeId()).cases().size()) {
             trap("Variant tag out of range");
           }
         }
         case VARIANT_GET -> {
-          localIndex(instruction, 0);
-          VariantValue value = checkedVariantSource(instruction, 1);
-          int tag = Math.toIntExact(operand(instruction, 2));
-          int field = Math.toIntExact(operand(instruction, 3));
+          localIndex(instruction, DESTINATION);
+          VariantValue value = VmAggregateChecks.checkedVariant(
+              aggregates, program, currentFrame(), instruction, OWNER);
+          int tag = Math.toIntExact(instruction.operand(TAG));
+          int field = Math.toIntExact(instruction.operand(INDEX));
           if (value.tag() != tag || field < 0 || field >= value.fields().size()) {
             trap("Variant payload access mismatch");
           }
         }
         case ARRAY_NEW -> {
-          localIndex(instruction, 0);
-          var type = program.arrayType(Math.toIntExact(operand(instruction, 1)));
-          int base = Math.toIntExact(operand(instruction, 2));
-          int count = Math.toIntExact(operand(instruction, 3));
+          localIndex(instruction, DESTINATION);
+          var type = program.arrayType(Math.toIntExact(instruction.operand(DESCRIPTOR)));
+          int base = Math.toIntExact(instruction.operand(ELEMENT_BASE));
+          int count = Math.toIntExact(instruction.operand(ELEMENT_COUNT));
           List<Long> elements = new ArrayList<>(count);
           for (int element = 0; element < count; element++) {
             long value = currentFrame().local(base + element);
-            validateAggregateValue(type.elementType(), value);
+            VmAggregateChecks.validateValue(aggregates, type.elementType(), value);
             elements.add(value);
           }
           if (aggregates.fullForNew(new ArrayValue(type.id(), elements))) {
@@ -781,25 +834,27 @@ public final class VirtualMachine {
           }
         }
         case ARRAY_GET -> {
-          localIndex(instruction, 0);
-          ArrayValue value = checkedArraySource(instruction, 1);
-          long index = localValue(instruction, 2);
+          localIndex(instruction, DESTINATION);
+          ArrayValue value = VmAggregateChecks.checkedArray(
+              aggregates, program, currentFrame(), instruction, OWNER);
+          long index = localValue(instruction, INDEX);
           if (index < 0 || index >= value.elements().size()) {
             trap("Array index out of bounds: " + index);
           }
         }
         case SLICE_NEW -> {
-          localIndex(instruction, 0);
-          ArrayValue array = checkedArraySource(instruction, 2);
-          long start = localValue(instruction, 3);
-          long length = localValue(instruction, 4);
+          localIndex(instruction, DESTINATION);
+          ArrayValue array = VmAggregateChecks.checkedArray(
+              aggregates, program, currentFrame(), instruction, OWNER);
+          long start = localValue(instruction, START);
+          long length = localValue(instruction, LENGTH);
           long end = Math.addExact(start, length);
           if (start < 0 || length < 0 || end > array.elements().size()) {
             trap("Slice range is outside its array");
           }
           SliceValue value = new SliceValue(
-              Math.toIntExact(operand(instruction, 1)),
-              localValue(instruction, 2),
+              Math.toIntExact(instruction.operand(DESCRIPTOR)),
+              localValue(instruction, OWNER),
               Math.toIntExact(start),
               Math.toIntExact(length));
           if (aggregates.fullForNew(value)) {
@@ -807,32 +862,33 @@ public final class VirtualMachine {
           }
         }
         case SLICE_GET -> {
-          localIndex(instruction, 0);
-          SliceValue value = checkedSliceSource(instruction, 1);
-          long index = localValue(instruction, 2);
+          localIndex(instruction, DESTINATION);
+          SliceValue value = VmAggregateChecks.checkedSlice(
+              aggregates, program, currentFrame(), instruction, OWNER);
+          long index = localValue(instruction, INDEX);
           if (index < 0 || index >= value.length()) {
             trap("Slice index out of bounds: " + index);
           }
         }
         case OUTPUT_LENGTH -> {
-          long handle = localValue(instruction, 0);
-          long length = localValue(instruction, 1);
+          long handle = localValue(instruction, OWNER);
+          long length = localValue(instruction, LENGTH);
           if (handle != hostOutputHandle || length < 0 || length > owned.length(handle)) {
             trap("Invalid host output length: " + length);
           }
         }
         case CALL -> {
           requireCallCapacity();
-          program.function(Math.toIntExact(operand(instruction, 0)));
+          program.function(Math.toIntExact(instruction.operand(FUNCTION)));
         }
         case CALL_VALUE, CALL_VOID -> {
           requireCallCapacity();
-          FunctionBody target = program.function(Math.toIntExact(operand(instruction, 0)));
-          int base = Math.toIntExact(operand(instruction, 1));
-          int count = Math.toIntExact(operand(instruction, 2));
+          FunctionBody target = program.function(Math.toIntExact(instruction.operand(FUNCTION)));
+          int base = Math.toIntExact(instruction.operand(ARGUMENT_BASE));
+          int count = Math.toIntExact(instruction.operand(ARGUMENT_COUNT));
           boolean returnsValue = instruction.opcode() == Opcode.CALL_VALUE;
           if (returnsValue) {
-            localIndex(instruction, 3);
+            localIndex(instruction, RESULT);
           }
           if (target.returnsValue() != returnsValue || target.parameterCount() != count
               || base < 0 || count < 0 || base > currentFrame().localCount() - count) {
@@ -841,7 +897,7 @@ public final class VirtualMachine {
         }
         case UNCALL -> {
           requireCallCapacity();
-          FunctionBody function = program.function(Math.toIntExact(operand(instruction, 0)));
+          FunctionBody function = program.function(Math.toIntExact(instruction.operand(FUNCTION)));
           if (!function.reversible()) {
             trap("Function has no inverse: " + function.name());
           }
@@ -852,15 +908,15 @@ public final class VirtualMachine {
           }
         }
         case RETURN_VALUE -> {
-          localIndex(instruction, 0);
+          localIndex(instruction, RESULT);
           if (tasks.frameDepth() <= 1 || currentFrame().returnDestination() < 0) {
             trap("Invalid value return");
           }
         }
         case EXPECT_EQ -> VmControlChecks.requireGlobalEqual(
-            program, globals, globalIndex(instruction, 0), operand(instruction, 1));
+            program, globals, globalIndex(instruction, GLOBAL), instruction.operand(IMMEDIATE));
         case EXPECT_TRUE -> VmControlChecks.requireTrue(
-            currentFrame(), localIndex(instruction, 0));
+            currentFrame(), localIndex(instruction, CONDITION));
         case HALT, NOP, XOR_CONST, SWAP, SET_LOGGED, CHECKPOINT, COMMIT -> {
           // The verifier and operand access establish all remaining preconditions.
         }
@@ -901,92 +957,30 @@ public final class VirtualMachine {
     tasks.replaceCurrentFrame(frame);
   }
 
-  private int globalIndex(Instruction instruction, int operandIndex) {
+  private int globalIndex(
+      Instruction instruction, InstructionForm.OperandRole role) {
     return VmControlChecks.globalIndex(
-        globals.length, Math.toIntExact(operand(instruction, operandIndex)));
+        globals.length, Math.toIntExact(instruction.operand(role)));
   }
 
-  private int localIndex(Instruction instruction, int operandIndex) {
-    int index = Math.toIntExact(operand(instruction, operandIndex));
+  private int localIndex(
+      Instruction instruction, InstructionForm.OperandRole role) {
+    int index = Math.toIntExact(instruction.operand(role));
     if (index < 0 || index >= currentFrame().localCount()) {
       throw new VmTrap("Invalid local index " + index);
     }
     return index;
   }
 
-  private long localValue(Instruction instruction, int operandIndex) {
-    return currentFrame().local(localIndex(instruction, operandIndex));
-  }
-
-  private RecordValue recordValue(long handle) {
-    return aggregates.record(handle);
-  }
-
-  private VariantValue variantValue(long handle) {
-    return aggregates.variant(handle);
-  }
-
-  private VariantValue checkedVariantSource(Instruction instruction, int operandIndex) {
-    int source = localIndex(instruction, operandIndex);
-    VariantValue value = variantValue(currentFrame().local(source));
-    ValueType type = program.function(currentFrame().functionId()).localType(source);
-    if (type.kind() != ValueType.Kind.VARIANT || value.typeId() != type.descriptorId()) {
-      trap("Variant handle type mismatch");
-    }
-    return value;
-  }
-
-  private void validateAggregateValue(ValueType type, long value) {
-    if (type.kind() == ValueType.Kind.RECORD
-        && recordValue(value).typeId() != type.descriptorId()) {
-      trap("Nested record type mismatch");
-    }
-    if (type.kind() == ValueType.Kind.VARIANT
-        && variantValue(value).typeId() != type.descriptorId()) {
-      trap("Nested variant type mismatch");
-    }
-    if (type.kind() == ValueType.Kind.ARRAY
-        && arrayValue(value).typeId() != type.descriptorId()) {
-      trap("Nested array type mismatch");
-    }
-  }
-
-  private ArrayValue arrayValue(long handle) {
-    return aggregates.array(handle);
-  }
-
-  private ArrayValue checkedArraySource(Instruction instruction, int operandIndex) {
-    int source = localIndex(instruction, operandIndex);
-    ArrayValue value = arrayValue(currentFrame().local(source));
-    ValueType type = program.function(currentFrame().functionId()).localType(source);
-    if (type.kind() != ValueType.Kind.ARRAY || value.typeId() != type.descriptorId()) {
-      trap("Array handle type mismatch");
-    }
-    return value;
-  }
-
-  private SliceValue sliceValue(long handle) {
-    return aggregates.slice(handle);
-  }
-
-  private SliceValue checkedSliceSource(Instruction instruction, int operandIndex) {
-    int source = localIndex(instruction, operandIndex);
-    SliceValue value = sliceValue(currentFrame().local(source));
-    ValueType type = program.function(currentFrame().functionId()).localType(source);
-    if (type.kind() != ValueType.Kind.SLICE || value.typeId() != type.descriptorId()) {
-      trap("Slice handle type mismatch");
-    }
-    return value;
+  private long localValue(
+      Instruction instruction, InstructionForm.OperandRole role) {
+    return currentFrame().local(localIndex(instruction, role));
   }
 
   private void requireCallCapacity() {
     if (tasks.frameDepth() >= MAX_CALL_DEPTH) {
       trap("Call depth limit exceeded");
     }
-  }
-
-  private static long operand(Instruction instruction, int index) {
-    return instruction.operands().get(index);
   }
 
   private void trap(String message) {

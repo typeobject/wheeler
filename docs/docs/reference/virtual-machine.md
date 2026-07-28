@@ -109,7 +109,7 @@ A reverse step restores state once. The VM never restores an earlier state and t
 
 `RETURN_VALUE` checks the result and moves it back to the caller. Every call and return adds history, including the write to the caller's result register, so each transition can be rewound.
 
-`rewindOne` consumes the newest step record and restores the exact earlier machine state. `VmDataRewinder` restores scalar data through semantic instruction roles before the VM restores control and aggregate deltas. It does not call a function inverse.
+`rewindOne` consumes the newest step record and restores the exact earlier machine state. `VmDataRewinder` restores scalar data through semantic instruction roles before the VM restores control and aggregate deltas. Execution, preflight, call binding, storage checks, and aggregate checks use the same roles. They do not carry private operand positions that can drift from the registry. `rewindOne` does not call a function inverse.
 
 ## Commit horizons
 
