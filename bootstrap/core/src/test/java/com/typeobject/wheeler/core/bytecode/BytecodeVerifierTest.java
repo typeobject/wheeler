@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.EnumSet;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -25,8 +27,8 @@ class BytecodeVerifierTest {
         List.of());
     Program badEntry = programWith(signedEntry);
 
-    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(badGlobal));
-    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(badFunction));
+    assertOperandFailure(badGlobal, Opcode.ADD_CONST, "global");
+    assertOperandFailure(badFunction, Opcode.CALL, "function");
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(badEntry));
   }
 
@@ -54,7 +56,7 @@ class BytecodeVerifierTest {
         List.of());
 
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(uninitialized)));
-    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(badJump)));
+    assertOperandFailure(programWith(badJump), Opcode.JUMP, "target");
   }
 
   @Test
@@ -94,12 +96,12 @@ class BytecodeVerifierTest {
             Instruction.of(Opcode.HALT)));
 
     assertEquals(ValueType.record(7), ValueType.fromCode(ValueType.record(7).code()));
-    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(signedCondition)));
-    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(signedAssertion)));
+    assertOperandFailure(programWith(signedCondition), Opcode.JUMP_IF_ZERO, "condition");
+    assertOperandFailure(programWith(signedAssertion), Opcode.EXPECT_TRUE, "condition");
     assertThrows(
         BytecodeException.class, () -> BytecodeVerifier.verify(programWith(uninitializedAssertion)));
-    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(booleanStore)));
-    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(invalidBoolean)));
+    assertOperandFailure(programWith(booleanStore), Opcode.LOCAL_STORE_GLOBAL, "source");
+    assertOperandFailure(programWith(invalidBoolean), Opcode.LOCAL_CONST, "immediate");
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(unresolvedRecord)));
   }
 
@@ -152,7 +154,7 @@ class BytecodeVerifierTest {
     Program malformed = Program.classical(
         "MalformedRecord", 0, List.of(), List.of(pair),
         List.of(), List.of(), List.of(), List.of(badConstruction), List.of());
-    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(malformed));
+    assertOperandFailure(malformed, Opcode.RECORD_NEW, "element_count");
 
     VariantType option = new VariantType(
         0, "Option", List.of(new VariantType.Case("None", List.of())));
@@ -164,7 +166,7 @@ class BytecodeVerifierTest {
     Program malformedVariant = Program.classical(
         "MalformedVariant", 0, List.of(), List.of(), List.of(option),
         List.of(), List.of(), List.of(badTag), List.of());
-    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(malformedVariant));
+    assertOperandFailure(malformedVariant, Opcode.VARIANT_NEW, "tag");
     assertEquals(ValueType.variant(3), ValueType.fromCode(ValueType.variant(3).code()));
 
     ArrayType pairArray = new ArrayType(0, ValueType.SIGNED, 2);
@@ -177,7 +179,7 @@ class BytecodeVerifierTest {
     Program malformedArray = Program.classical(
         "MalformedArray", 0, List.of(), List.of(), List.of(),
         List.of(pairArray), List.of(), List.of(badArray), List.of());
-    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(malformedArray));
+    assertOperandFailure(malformedArray, Opcode.ARRAY_NEW, "element_count");
     assertEquals(ValueType.array(4), ValueType.fromCode(ValueType.array(4).code()));
 
     SliceType signedSlice = new SliceType(0, ValueType.SIGNED);
@@ -272,8 +274,7 @@ class BytecodeVerifierTest {
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(copied)));
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(movedTwice)));
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(leaked)));
-    assertThrows(
-        BytecodeException.class, () -> BytecodeVerifier.verify(programWith(wrongBufferKind)));
+    assertOperandFailure(programWith(wrongBufferKind), Opcode.WORDS_GET, "owner");
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(strayBorrow)));
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(divergent)));
     assertEquals(ValueType.REGION, ValueType.fromCode(ValueType.REGION.code()));
@@ -417,12 +418,135 @@ class BytecodeVerifierTest {
   }
 
   @Test
+  void rejectsReferenceWindowAndLimitOperandsWithTheirRegistryRoles() {
+    RecordType scalar = new RecordType(
+        0, "Scalar", List.of(new RecordType.Field("value", ValueType.SIGNED)));
+    FunctionBody badDescriptor = typedMain(
+        List.of(ValueType.record(0)),
+        List.of(
+            Instruction.of(Opcode.RECORD_NEW, 0, 9, 0, 0),
+            Instruction.of(Opcode.HALT)));
+    Program descriptorProgram = Program.classical(
+        "BadDescriptor", 0, List.of(), List.of(scalar), List.of(), List.of(), List.of(),
+        List.of(badDescriptor), List.of());
+    assertOperandFailure(descriptorProgram, Opcode.RECORD_NEW, "descriptor");
+
+    FunctionBody badElementBase = typedMain(
+        List.of(ValueType.record(0), ValueType.SIGNED),
+        List.of(
+            Instruction.of(Opcode.RECORD_NEW, 0, 0, 2, 1),
+            Instruction.of(Opcode.HALT)));
+    Program elementBaseProgram = Program.classical(
+        "BadElementBase", 0, List.of(), List.of(scalar), List.of(), List.of(), List.of(),
+        List.of(badElementBase), List.of());
+    assertOperandFailure(elementBaseProgram, Opcode.RECORD_NEW, "element_base");
+
+    FunctionBody badIndex = typedMain(
+        List.of(ValueType.SIGNED, ValueType.record(0), ValueType.SIGNED),
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 1),
+            Instruction.of(Opcode.RECORD_NEW, 1, 0, 0, 1),
+            Instruction.of(Opcode.RECORD_GET, 2, 1, 1),
+            Instruction.of(Opcode.HALT)));
+    Program indexProgram = Program.classical(
+        "BadIndex", 0, List.of(), List.of(scalar), List.of(), List.of(), List.of(),
+        List.of(badIndex), List.of());
+    assertOperandFailure(indexProgram, Opcode.RECORD_GET, "index");
+
+    FunctionBody parameterTarget = new FunctionBody(
+        0, "consume", false, 1, List.of(ValueType.SIGNED), null,
+        List.of(Instruction.of(Opcode.RETURN)), List.of());
+    FunctionBody badCountMain = new FunctionBody(
+        1, "main", false, 0, List.of(), null,
+        List.of(
+            Instruction.of(Opcode.CALL_VOID, 0, 0, 0),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    Program countProgram = new Program(
+        "BadArgumentCount", 1, List.of(), List.of(parameterTarget, badCountMain));
+    assertOperandFailure(countProgram, Opcode.CALL_VOID, "argument_count");
+
+    FunctionBody voidTarget = new FunctionBody(
+        0, "consume", false, 0, List.of(), null,
+        List.of(Instruction.of(Opcode.RETURN)), List.of());
+    FunctionBody badBaseMain = new FunctionBody(
+        1, "main", false, 0, List.of(), null,
+        List.of(
+            Instruction.of(Opcode.CALL_VOID, 0, 1, 0),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    Program baseProgram = new Program(
+        "BadArgumentBase", 1, List.of(), List.of(voidTarget, badBaseMain));
+    assertOperandFailure(baseProgram, Opcode.CALL_VOID, "argument_base");
+
+    FunctionBody valueTarget = new FunctionBody(
+        0, "value", false, 0, List.of(ValueType.SIGNED), ValueType.SIGNED,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 1),
+            Instruction.of(Opcode.RETURN_VALUE, 0)),
+        List.of());
+    FunctionBody badResultMain = new FunctionBody(
+        1, "main", false, 0, List.of(ValueType.BOOLEAN), null,
+        List.of(
+            Instruction.of(Opcode.CALL_VALUE, 0, 0, 0, 0),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    Program resultProgram = new Program(
+        "BadResult", 1, List.of(), List.of(valueTarget, badResultMain));
+    assertOperandFailure(resultProgram, Opcode.CALL_VALUE, "result");
+
+    FunctionBody badCapacity = typedMain(
+        List.of(ValueType.REGION),
+        List.of(
+            Instruction.of(Opcode.REGION_NEW, 0, 0, 1),
+            Instruction.of(Opcode.HALT)));
+    assertOperandFailure(programWith(badCapacity), Opcode.REGION_NEW, "capacity");
+
+    FunctionBody badAllocationLimit = typedMain(
+        List.of(ValueType.REGION),
+        List.of(
+            Instruction.of(Opcode.REGION_NEW, 0, 1, 0),
+            Instruction.of(Opcode.HALT)));
+    assertOperandFailure(
+        programWith(badAllocationLimit), Opcode.REGION_NEW, "allocation_limit");
+  }
+
+  @Test
+  void everyRegisteredOperandRoleHasTheCanonicalDiagnosticLabel() {
+    FunctionBody owner = typedMain(List.of(), List.of(Instruction.of(Opcode.HALT)));
+    EnumSet<InstructionForm.OperandRole> covered =
+        EnumSet.noneOf(InstructionForm.OperandRole.class);
+    for (Opcode opcode : Opcode.values()) {
+      Instruction instruction = Instruction.of(opcode, new long[opcode.operandCount()]);
+      for (InstructionForm.OperandRole role : opcode.form().roles()) {
+        BytecodeException error = assertThrows(
+            BytecodeException.class,
+            () -> InstructionOperandVerifier.failOperand(
+                owner, instruction, role, 0, "test rejection"));
+        assertTrue(
+            error.getMessage().contains(opcode.name() + " " + role.label() + " "),
+            error.getMessage());
+        covered.add(role);
+      }
+    }
+    assertEquals(EnumSet.allOf(InstructionForm.OperandRole.class), covered);
+  }
+
+  @Test
   void everyGeneratedInversePairIsSymmetric() {
     for (Opcode opcode : Opcode.values()) {
       if (opcode.supportsGeneratedInverse()) {
         assertEquals(opcode, opcode.inverse().inverse(), opcode.name());
       }
     }
+  }
+
+  private static void assertOperandFailure(
+      Program program, Opcode opcode, String role) {
+    BytecodeException error = assertThrows(
+        BytecodeException.class, () -> BytecodeVerifier.verify(program));
+    assertTrue(error.getMessage().contains(opcode.name() + " " + role + " "),
+        error.getMessage());
   }
 
   private static FunctionBody typedMain(

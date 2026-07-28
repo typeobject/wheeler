@@ -691,10 +691,10 @@ public final class VirtualMachine {
             trap("32-bit rotate amount must be between 0 and 31");
           }
         }
-        case JUMP -> VmControlChecks.jumpTarget(program, currentFrame(), instruction, 0);
+        case JUMP -> VmControlChecks.jumpTarget(program, currentFrame(), instruction);
         case JUMP_IF_ZERO -> {
           localIndex(instruction, 0);
-          VmControlChecks.jumpTarget(program, currentFrame(), instruction, 1);
+          VmControlChecks.jumpTarget(program, currentFrame(), instruction);
         }
         case LOCAL_LOOP_CHECK -> {
           long iteration = localValue(instruction, 0);

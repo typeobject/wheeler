@@ -60,9 +60,13 @@ final class StorageInstructionVerifier {
     require(owner, instruction, DESTINATION, ValueType.REGION, pc);
     long bytes = instruction.operand(CAPACITY);
     long objects = instruction.operand(ALLOCATION_LIMIT);
-    if (bytes <= 0 || bytes > MAX_REGION_BYTES
-        || objects <= 0 || objects > MAX_REGION_OBJECTS) {
-      fail(owner, pc, "invalid region limits");
+    if (bytes <= 0 || bytes > MAX_REGION_BYTES) {
+      fail(owner, instruction, CAPACITY, pc, "region byte limit is outside the supported range");
+    }
+    if (objects <= 0 || objects > MAX_REGION_OBJECTS) {
+      fail(
+          owner, instruction, ALLOCATION_LIMIT, pc,
+          "region allocation limit is outside the supported range");
     }
   }
 
@@ -73,7 +77,7 @@ final class StorageInstructionVerifier {
     ValueType regionType = owner.localType(region);
     if (!regionType.equals(ValueType.REGION)
         && !regionType.equals(ValueType.REGION_BORROW)) {
-      fail(owner, pc, "allocation requires a region owner or borrow");
+      fail(owner, instruction, OWNER, pc, "allocation requires a region owner or borrow");
     }
     require(owner, instruction, CAPACITY, ValueType.SIGNED, pc);
   }
@@ -123,7 +127,9 @@ final class StorageInstructionVerifier {
     int source = local(owner, instruction, SOURCE, pc);
     ValueType type = owner.localType(source);
     if (!type.equals(ValueType.UTF8) && !type.equals(ValueType.UTF8_BORROW)) {
-      fail(owner, pc, "UTF-8 borrow requires an immutable UTF-8 source");
+      fail(
+          owner, instruction, SOURCE, pc,
+          "UTF-8 borrow requires an immutable UTF-8 source");
     }
   }
 
@@ -133,7 +139,7 @@ final class StorageInstructionVerifier {
     int source = local(owner, instruction, SOURCE, pc);
     ValueType type = owner.localType(source);
     if (!type.equals(ValueType.REGION) && !type.equals(ValueType.REGION_BORROW)) {
-      fail(owner, pc, "region borrow requires a region source");
+      fail(owner, instruction, SOURCE, pc, "region borrow requires a region source");
     }
   }
 
@@ -148,7 +154,7 @@ final class StorageInstructionVerifier {
         || owner.localType(destination).equals(ValueType.BYTE_VIEW)) {
       expectedOwner = ValueType.BYTES;
     } else {
-      fail(owner, pc, "buffer borrow destination has the wrong type");
+      fail(owner, instruction, DESTINATION, pc, "buffer borrow destination has the wrong type");
       return;
     }
     ValueType sourceType = owner.localType(source);
@@ -158,7 +164,9 @@ final class StorageInstructionVerifier {
         && !(expectedOwner.equals(ValueType.BYTES)
             && (sourceType.equals(ValueType.BYTES_BORROW)
                 || sourceType.equals(ValueType.BYTE_VIEW)))) {
-      fail(owner, pc, "buffer borrow source kind differs from its destination");
+      fail(
+          owner, instruction, SOURCE, pc,
+          "buffer borrow source kind differs from its destination");
     }
   }
 
@@ -168,7 +176,7 @@ final class StorageInstructionVerifier {
     int source = local(owner, instruction, SOURCE, pc);
     ValueType type = owner.localType(source);
     if (!type.equals(ValueType.LONG_MAP) && !type.equals(ValueType.LONG_MAP_BORROW)) {
-      fail(owner, pc, "map borrow requires a signed-map source");
+      fail(owner, instruction, SOURCE, pc, "map borrow requires a signed-map source");
     }
   }
 
@@ -195,7 +203,9 @@ final class StorageInstructionVerifier {
         && !type.equals(ValueType.WORDS_BORROW)
         && !type.equals(ValueType.BYTES_BORROW)
         && !type.equals(ValueType.BYTE_VIEW)) {
-      fail(owner, pc, "buffer length requires words, bytes, byteview, or utf8");
+      fail(
+          owner, instruction, SOURCE, pc,
+          "buffer length requires words, bytes, byteview, or utf8");
     }
   }
 
@@ -205,7 +215,9 @@ final class StorageInstructionVerifier {
     ValueType type = owner.localType(source);
     if (!isBuffer(type) && !type.equals(ValueType.LONG_MAP)
         && !type.equals(ValueType.UTF8)) {
-      fail(owner, pc, "buffer drop requires words, bytes, longmap, or utf8");
+      fail(
+          owner, instruction, LOCAL, pc,
+          "buffer drop requires words, bytes, longmap, or utf8");
     }
   }
 
@@ -220,7 +232,7 @@ final class StorageInstructionVerifier {
     ValueType borrow = expectedOwner.equals(ValueType.WORDS)
         ? ValueType.WORDS_BORROW : ValueType.BYTES_BORROW;
     if (!type.equals(expectedOwner) && !type.equals(borrow)) {
-      fail(owner, pc, "buffer source kind differs from its opcode");
+      fail(owner, instruction, role, pc, "buffer source kind differs from its opcode");
     }
   }
 
@@ -232,7 +244,9 @@ final class StorageInstructionVerifier {
     int local = local(owner, instruction, role, pc);
     ValueType type = owner.localType(local);
     if (!type.equals(ValueType.LONG_MAP) && !type.equals(ValueType.LONG_MAP_BORROW)) {
-      fail(owner, pc, "expected longmap or a map borrow local " + local);
+      fail(
+          owner, instruction, role, pc,
+          "expected longmap or a map borrow local " + local);
     }
   }
 
@@ -245,7 +259,9 @@ final class StorageInstructionVerifier {
     ValueType type = owner.localType(local);
     if (!type.equals(ValueType.BYTES) && !type.equals(ValueType.BYTES_BORROW)
         && !type.equals(ValueType.UTF8) && !type.equals(ValueType.UTF8_BORROW)) {
-      fail(owner, pc, "expected bytes, utf8, or a UTF-8 borrow local " + local);
+      fail(
+          owner, instruction, role, pc,
+          "expected bytes, utf8, or a UTF-8 borrow local " + local);
     }
   }
 
@@ -257,7 +273,9 @@ final class StorageInstructionVerifier {
       int pc) {
     int local = local(owner, instruction, role, pc);
     if (!owner.localType(local).equals(expected)) {
-      fail(owner, pc, "expected " + expected.displayName() + " local " + local);
+      fail(
+          owner, instruction, role, pc,
+          "expected " + expected.displayName() + " local " + local);
     }
   }
 
@@ -268,12 +286,17 @@ final class StorageInstructionVerifier {
       int pc) {
     long value = instruction.operand(role);
     if (value < 0 || value >= owner.localCount()) {
-      fail(owner, pc, "invalid " + role.name().toLowerCase() + " local index " + value);
+      fail(owner, instruction, role, pc, "local index outside the frame: " + value);
     }
     return Math.toIntExact(value);
   }
 
-  private static void fail(FunctionBody owner, int pc, String message) {
-    throw new BytecodeException(owner.name() + "[" + pc + "] " + message);
+  private static void fail(
+      FunctionBody owner,
+      Instruction instruction,
+      InstructionForm.OperandRole role,
+      int pc,
+      String message) {
+    InstructionOperandVerifier.failOperand(owner, instruction, role, pc, message);
   }
 }

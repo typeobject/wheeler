@@ -22,7 +22,7 @@ public record Instruction(Opcode opcode, List<Long> operands) {
   public long operand(InstructionForm.OperandRole role) {
     int index = opcode.form().roles().indexOf(role);
     if (index < 0) {
-      throw new IllegalArgumentException(opcode + " has no " + role.name().toLowerCase());
+      throw new IllegalArgumentException(opcode + " has no " + role.label());
     }
     return operands.get(index);
   }

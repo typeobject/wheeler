@@ -4,6 +4,7 @@ import com.typeobject.wheeler.core.quantum.GateOperation;
 import com.typeobject.wheeler.core.quantum.LiftedCall;
 import com.typeobject.wheeler.core.quantum.ParameterizedGateOperation;
 import com.typeobject.wheeler.core.quantum.QuantumOperation;
+import java.util.Locale;
 import java.util.StringJoiner;
 
 /** Produces deterministic human-readable Wheeler assembly. */
@@ -11,7 +12,7 @@ public final class Disassembler {
   public String disassemble(Program program) {
     StringBuilder output = new StringBuilder();
     output.append("program ").append(program.name()).append('\n');
-    output.append("kind ").append(program.kind().name().toLowerCase()).append('\n');
+    output.append("kind ").append(program.kind().name().toLowerCase(Locale.ROOT)).append('\n');
     output.append("entry ").append(program.entryFunctionId()).append("\n\n");
     for (int i = 0; i < program.globals().size(); i++) {
       Global global = program.globals().get(i);
@@ -123,8 +124,8 @@ public final class Disassembler {
       StringJoiner operands = new StringJoiner(", ");
       var roles = instruction.opcode().form().roles();
       for (int operand = 0; operand < instruction.operands().size(); operand++) {
-        String role = roles.get(operand).name().toLowerCase();
-        operands.add(role + "=" + instruction.operands().get(operand));
+        String role = roles.get(operand).label();
+        operands.add(role + "=" + instruction.operand(roles.get(operand)));
       }
       output.append("    %04d  %-12s %s%n".formatted(pc, instruction.opcode(), operands));
     }

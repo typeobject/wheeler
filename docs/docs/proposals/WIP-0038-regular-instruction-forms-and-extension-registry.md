@@ -220,7 +220,8 @@ Registry duplication fails tests and build checks. Runtime registration does not
 - [x] Wheeler-native emitters use named instruction arities and operand widths.
 - [x] Registry tests reject duplicate identities and field-order drift.
 - [x] Stage 0 mechanically cross-checks every opcode identity consumed by the native compiler.
-- [x] Local-index verifier diagnostics name roles across scalar, aggregate, and storage checks.
+- [x] Verifier diagnostics name the opcode and canonical role for local types, references, windows, descriptors, tags, indices, limits, and storage checks.
+- [x] Borrow-window checks, argument binding, transition observation, storage preflight, and disassembly consume semantic roles instead of private operand positions.
 - [x] Disassembly labels fields from registry metadata.
 - [x] Optional required section 13 declares unique sorted instruction-extension names and versions.
 - [ ] Generated metadata replaces remaining parallel semantic tables.
@@ -234,7 +235,7 @@ Registry duplication fails tests and build checks. Runtime registration does not
 - [x] Wheeler-native compiler output remains byte-identical to stage 0.
 - [x] Malformed extension declarations fail before instruction decoding.
 - [x] Unsupported required extensions fail before execution.
-- [ ] Verifier diagnostics and tests name every invalid operand role.
+- [x] Verifier diagnostics and tests name every invalid operand role.
 - [x] Disassembler tests assert role-labelled output.
 - [x] Current reference docs describe extension negotiation and the empty supported registry.
 

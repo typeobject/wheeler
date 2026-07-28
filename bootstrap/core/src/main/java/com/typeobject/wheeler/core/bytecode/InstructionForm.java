@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.core.bytecode;
 
 import java.util.List;
+import java.util.Locale;
 
 /** Stable operand layouts for classical instructions. */
 public enum InstructionForm {
@@ -103,6 +104,11 @@ public enum InstructionForm {
     LENGTH,
     CAPACITY,
     ALLOCATION_LIMIT,
-    KEY
+    KEY;
+
+    /** Canonical ASCII label used by diagnostics and disassembly. */
+    public String label() {
+      return name().toLowerCase(Locale.ROOT);
+    }
   }
 }

@@ -1,5 +1,9 @@
 package com.typeobject.wheeler.core.vm;
 
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.INDEX;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.OWNER;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.TARGET;
+
 import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Program;
 
@@ -9,8 +13,8 @@ final class VmControlChecks {
 
   /** Validates one instruction-index jump against the active function direction. */
   static int jumpTarget(
-      Program program, Frame frame, Instruction instruction, int operandIndex) {
-    int target = Math.toIntExact(instruction.operands().get(operandIndex));
+      Program program, Frame frame, Instruction instruction) {
+    int target = Math.toIntExact(instruction.operand(TARGET));
     int bodySize = program.function(frame.functionId()).body(frame.inverse()).size();
     if (target < 0 || target >= bodySize) {
       throw new VmTrap("Invalid jump target " + target);
@@ -38,8 +42,8 @@ final class VmControlChecks {
   /** Decodes one UTF-8 scalar using checked local handles from the active frame. */
   static Utf8.Scalar utf8Scalar(
       OwnedStore owned, Frame frame, Instruction instruction) {
-    long buffer = frame.local(Math.toIntExact(instruction.operands().get(1)));
-    long index = frame.local(Math.toIntExact(instruction.operands().get(2)));
+    long buffer = frame.local(Math.toIntExact(instruction.operand(OWNER)));
+    long index = frame.local(Math.toIntExact(instruction.operand(INDEX)));
     return Utf8.decode(owned.utf8Bytes(buffer), Math.toIntExact(index));
   }
 

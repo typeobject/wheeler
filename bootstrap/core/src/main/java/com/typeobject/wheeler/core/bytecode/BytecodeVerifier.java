@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.core.bytecode;
 
+import static com.typeobject.wheeler.core.bytecode.InstructionOperandVerifier.*;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ARGUMENT_BASE;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ARGUMENT_COUNT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.CAPACITY;
@@ -216,14 +217,17 @@ public final class BytecodeVerifier {
         if (!function.reversible()) {
           fail("Coherent function is not reversible: " + function.name());
         }
-        for (Instruction instruction : function.forward()) {
+        for (int pc = 0; pc < function.forward().size(); pc++) {
+          Instruction instruction = function.forward().get(pc);
           if (!COHERENT_OPCODES.contains(instruction.opcode())) {
             fail("Coherent function contains " + instruction.opcode() + ": " + function.name());
           }
           if (instruction.opcode() == Opcode.CALL || instruction.opcode() == Opcode.UNCALL) {
             FunctionBody target = program.function(Math.toIntExact(instruction.operand(FUNCTION)));
             if (!target.coherent()) {
-              fail("Coherent function calls noncoherent function: " + target.name());
+              failOperand(
+                  function, instruction, FUNCTION, pc,
+                  "coherent function calls noncoherent function " + target.name());
             }
           }
         }
@@ -292,7 +296,7 @@ public final class BytecodeVerifier {
           verifyGlobal(program, instruction, GLOBAL, owner, pc);
       case EXPECT_TRUE -> {
         int condition = verifyLocal(owner, instruction, CONDITION, pc);
-        requireType(owner, condition, ValueType.BOOLEAN, pc);
+        requireType(owner, instruction, condition, CONDITION, ValueType.BOOLEAN, pc);
       }
       case LOCAL_CONST -> {
         int destination = verifyLocal(owner, instruction, DESTINATION, pc);
@@ -301,77 +305,104 @@ public final class BytecodeVerifier {
             || owner.localType(destination).kind() == ValueType.Kind.ARRAY
             || owner.localType(destination).kind() == ValueType.Kind.SLICE
             || owned(owner.localType(destination))) {
-          fail(location(owner, pc) + " aggregate local requires aggregate construction");
+          failOperand(
+              owner, instruction, DESTINATION, pc,
+              "aggregate local requires aggregate construction");
         }
         if (owner.localType(destination).equals(ValueType.BOOLEAN)) {
           long value = instruction.operand(IMMEDIATE);
           if (value != 0 && value != 1) {
-            fail(location(owner, pc) + " invalid Boolean constant " + value);
+            failOperand(
+                owner, instruction, IMMEDIATE, pc,
+                "Boolean constant must be zero or one, got " + value);
           }
         }
       }
       case LOCAL_LOAD_GLOBAL -> {
         int destination = verifyLocal(owner, instruction, DESTINATION, pc);
-        requireType(owner, destination, ValueType.SIGNED, pc);
+        requireType(owner, instruction, destination, DESTINATION, ValueType.SIGNED, pc);
         verifyGlobal(program, instruction, GLOBAL, owner, pc);
       }
       case LOCAL_STORE_GLOBAL -> {
         verifyGlobal(program, instruction, GLOBAL, owner, pc);
         int source = verifyLocal(owner, instruction, SOURCE, pc);
-        requireType(owner, source, ValueType.SIGNED, pc);
+        requireType(owner, instruction, source, SOURCE, ValueType.SIGNED, pc);
       }
       case LOCAL_MOVE, OWNED_MOVE -> {
         int destination = verifyLocal(owner, instruction, DESTINATION, pc);
         int source = verifyLocal(owner, instruction, SOURCE, pc);
-        requireSameType(owner, destination, source, pc);
+        requireSameType(
+            owner, instruction, destination, DESTINATION, source, SOURCE, pc);
         if (owned(owner.localType(source)) != (opcode == Opcode.OWNED_MOVE)) {
-          fail(location(owner, pc) + " uses the wrong copy/move operation");
+          failOperand(owner, instruction, SOURCE, pc, "uses the wrong copy/move operation");
         }
       }
       case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND,
           LOCAL_ROTR32 -> {
-        requireType(owner, verifyLocal(owner, instruction, DESTINATION, pc), ValueType.SIGNED, pc);
-        requireType(owner, verifyLocal(owner, instruction, LEFT_SOURCE, pc), ValueType.SIGNED, pc);
-        requireType(owner, verifyLocal(owner, instruction, RIGHT_SOURCE, pc), ValueType.SIGNED, pc);
+        requireType(
+            owner, instruction, verifyLocal(owner, instruction, DESTINATION, pc),
+            DESTINATION, ValueType.SIGNED, pc);
+        requireType(
+            owner, instruction, verifyLocal(owner, instruction, LEFT_SOURCE, pc),
+            LEFT_SOURCE, ValueType.SIGNED, pc);
+        requireType(
+            owner, instruction, verifyLocal(owner, instruction, RIGHT_SOURCE, pc),
+            RIGHT_SOURCE, ValueType.SIGNED, pc);
       }
       case LOCAL_XOR -> {
         int destination = verifyLocal(owner, instruction, DESTINATION, pc);
         int left = verifyLocal(owner, instruction, LEFT_SOURCE, pc);
         int right = verifyLocal(owner, instruction, RIGHT_SOURCE, pc);
-        requireSameType(owner, destination, left, pc);
-        requireSameType(owner, destination, right, pc);
+        requireSameType(
+            owner, instruction, destination, DESTINATION, left, LEFT_SOURCE, pc);
+        requireSameType(
+            owner, instruction, destination, DESTINATION, right, RIGHT_SOURCE, pc);
         if (owner.localType(destination).kind() == ValueType.Kind.RECORD
             || owner.localType(destination).kind() == ValueType.Kind.VARIANT
             || owner.localType(destination).kind() == ValueType.Kind.ARRAY
             || owner.localType(destination).kind() == ValueType.Kind.SLICE
             || owned(owner.localType(destination))) {
-          fail(location(owner, pc) + " XOR does not accept aggregate or owned values");
+          failOperand(
+              owner, instruction, DESTINATION, pc,
+              "XOR does not accept aggregate or owned values");
         }
       }
       case LOCAL_EQ -> {
         int destination = verifyLocal(owner, instruction, DESTINATION, pc);
         int left = verifyLocal(owner, instruction, LEFT_SOURCE, pc);
         int right = verifyLocal(owner, instruction, RIGHT_SOURCE, pc);
-        requireType(owner, destination, ValueType.BOOLEAN, pc);
-        requireSameType(owner, left, right, pc);
+        requireType(owner, instruction, destination, DESTINATION, ValueType.BOOLEAN, pc);
+        requireSameType(owner, instruction, left, LEFT_SOURCE, right, RIGHT_SOURCE, pc);
         if (owned(owner.localType(left))) {
-          fail(location(owner, pc) + " owned handles do not support value equality");
+          failOperand(
+              owner, instruction, LEFT_SOURCE, pc,
+              "owned handles do not support value equality");
         }
       }
       case LOCAL_LT -> {
-        requireType(owner, verifyLocal(owner, instruction, DESTINATION, pc), ValueType.BOOLEAN, pc);
-        requireType(owner, verifyLocal(owner, instruction, LEFT_SOURCE, pc), ValueType.SIGNED, pc);
-        requireType(owner, verifyLocal(owner, instruction, RIGHT_SOURCE, pc), ValueType.SIGNED, pc);
+        requireType(
+            owner, instruction, verifyLocal(owner, instruction, DESTINATION, pc),
+            DESTINATION, ValueType.BOOLEAN, pc);
+        requireType(
+            owner, instruction, verifyLocal(owner, instruction, LEFT_SOURCE, pc),
+            LEFT_SOURCE, ValueType.SIGNED, pc);
+        requireType(
+            owner, instruction, verifyLocal(owner, instruction, RIGHT_SOURCE, pc),
+            RIGHT_SOURCE, ValueType.SIGNED, pc);
       }
       case JUMP -> verifyJump(owner, instruction, TARGET, pc, owner.body(inverseBody));
       case JUMP_IF_ZERO -> {
         int condition = verifyLocal(owner, instruction, CONDITION, pc);
-        requireType(owner, condition, ValueType.BOOLEAN, pc);
+        requireType(owner, instruction, condition, CONDITION, ValueType.BOOLEAN, pc);
         verifyJump(owner, instruction, TARGET, pc, owner.body(inverseBody));
       }
       case LOCAL_LOOP_CHECK -> {
-        requireType(owner, verifyLocal(owner, instruction, ITERATION, pc), ValueType.SIGNED, pc);
-        requireType(owner, verifyLocal(owner, instruction, LIMIT, pc), ValueType.SIGNED, pc);
+        requireType(
+            owner, instruction, verifyLocal(owner, instruction, ITERATION, pc),
+            ITERATION, ValueType.SIGNED, pc);
+        requireType(
+            owner, instruction, verifyLocal(owner, instruction, LIMIT, pc),
+            LIMIT, ValueType.SIGNED, pc);
       }
       case RECORD_NEW -> verifyRecordNew(program, owner, instruction, pc);
       case RECORD_GET -> verifyRecordGet(program, owner, instruction, pc);
@@ -393,26 +424,34 @@ public final class BytecodeVerifier {
         int length = verifyLocal(owner, instruction, LENGTH, pc);
         if (owner.id() != program.entryFunctionId()
             || !owner.localType(output).equals(ValueType.BYTES_BORROW)) {
-          fail(location(owner, pc) + " output length requires the entry output parameter");
+          failOperand(
+              owner, instruction, OWNER, pc,
+              "output length requires the entry output parameter");
         }
-        requireType(owner, length, ValueType.SIGNED, pc);
+        requireType(owner, instruction, length, LENGTH, ValueType.SIGNED, pc);
       }
       case SWAP -> {
         verifyGlobal(program, instruction, LEFT_GLOBAL, owner, pc);
         verifyGlobal(program, instruction, RIGHT_GLOBAL, owner, pc);
       }
       case CALL -> {
-        FunctionBody target = program.function(Math.toIntExact(instruction.operand(FUNCTION)));
+        FunctionBody target = program.function(verifyReference(
+            owner, instruction, FUNCTION, pc, program.functions().size(), "function"));
         if (target.parameterCount() != 0 || target.returnsValue()) {
-          fail(location(owner, pc) + " void call signature mismatch for " + target.name());
+          failOperand(
+              owner, instruction, FUNCTION, pc,
+              "void call signature mismatch for " + target.name());
         }
       }
       case CALL_VALUE -> verifyArgumentCall(program, owner, instruction, pc, true);
       case CALL_VOID -> verifyArgumentCall(program, owner, instruction, pc, false);
       case UNCALL -> {
-        FunctionBody target = program.function(Math.toIntExact(instruction.operand(FUNCTION)));
+        FunctionBody target = program.function(verifyReference(
+            owner, instruction, FUNCTION, pc, program.functions().size(), "function"));
         if (!target.reversible()) {
-          fail(location(owner, pc) + " calls missing inverse for " + target.name());
+          failOperand(
+              owner, instruction, FUNCTION, pc,
+              "calls missing inverse for " + target.name());
         }
       }
       case HALT -> {
@@ -430,7 +469,7 @@ public final class BytecodeVerifier {
         if (owner.id() == program.entryFunctionId() || !owner.returnsValue()) {
           fail(location(owner, pc) + " invalid value RETURN");
         }
-        requireType(owner, source, owner.resultType(), pc);
+        requireType(owner, instruction, source, RESULT, owner.resultType(), pc);
       }
       case COMMIT -> {
         if (inverseBody) {
@@ -446,21 +485,21 @@ public final class BytecodeVerifier {
   private static void verifyRecordNew(
       Program program, FunctionBody owner, Instruction instruction, int pc) {
     int destination = verifyLocal(owner, instruction, DESTINATION, pc);
-    int typeId = Math.toIntExact(instruction.operand(DESCRIPTOR));
-    int base = Math.toIntExact(instruction.operand(ELEMENT_BASE));
-    int count = Math.toIntExact(instruction.operand(ELEMENT_COUNT));
+    int typeId = verifyReference(
+        owner, instruction, DESCRIPTOR, pc, program.recordTypes().size(), "record type");
+    var window = verifyLocalWindow(owner, instruction, ELEMENT_BASE, ELEMENT_COUNT, pc);
     RecordType record = program.recordType(typeId);
-    if (!owner.localType(destination).equals(ValueType.record(typeId))
-        || count != record.fields().size()
-        || base < 0
-        || count < 0
-        || base > owner.localCount() - count) {
-      fail(location(owner, pc) + " record construction signature mismatch");
+    requireType(
+        owner, instruction, destination, DESTINATION, ValueType.record(typeId), pc);
+    if (window.count() != record.fields().size()) {
+      failOperand(
+          owner, instruction, ELEMENT_COUNT, pc,
+          "field count must be " + record.fields().size() + ", got " + window.count());
     }
-    for (int field = 0; field < count; field++) {
-      if (!owner.localType(base + field).equals(record.fields().get(field).type())) {
-        fail(location(owner, pc) + " record field type mismatch at " + field);
-      }
+    for (int field = 0; field < window.count(); field++) {
+      requireType(
+          owner, instruction, window.base() + field, ELEMENT_BASE,
+          record.fields().get(field).type(), pc);
     }
   }
 
@@ -468,41 +507,39 @@ public final class BytecodeVerifier {
       Program program, FunctionBody owner, Instruction instruction, int pc) {
     int destination = verifyLocal(owner, instruction, DESTINATION, pc);
     int source = verifyLocal(owner, instruction, OWNER, pc);
-    int field = Math.toIntExact(instruction.operand(INDEX));
     ValueType sourceType = owner.localType(source);
     if (sourceType.kind() != ValueType.Kind.RECORD) {
-      fail(location(owner, pc) + " field access requires a record");
+      failOperand(owner, instruction, OWNER, pc, "field access requires a record");
     }
     RecordType record = program.recordType(sourceType.descriptorId());
-    if (field < 0 || field >= record.fields().size()
-        || !owner.localType(destination).equals(record.fields().get(field).type())) {
-      fail(location(owner, pc) + " record field access signature mismatch");
-    }
+    int field = verifyReference(
+        owner, instruction, INDEX, pc, record.fields().size(), "record field");
+    requireType(
+        owner, instruction, destination, DESTINATION, record.fields().get(field).type(), pc);
   }
 
   private static void verifyVariantNew(
       Program program, FunctionBody owner, Instruction instruction, int pc) {
     int destination = verifyLocal(owner, instruction, DESTINATION, pc);
-    int typeId = Math.toIntExact(instruction.operand(DESCRIPTOR));
-    int tag = Math.toIntExact(instruction.operand(TAG));
-    int base = Math.toIntExact(instruction.operand(ELEMENT_BASE));
-    int count = Math.toIntExact(instruction.operand(ELEMENT_COUNT));
+    int typeId = verifyReference(
+        owner, instruction, DESCRIPTOR, pc, program.variantTypes().size(), "variant type");
     VariantType variant = program.variantType(typeId);
-    if (tag < 0 || tag >= variant.cases().size()) {
-      fail(location(owner, pc) + " variant construction has invalid tag");
-    }
+    int tag = verifyReference(
+        owner, instruction, TAG, pc, variant.cases().size(), "variant tag");
+    var window = verifyLocalWindow(owner, instruction, ELEMENT_BASE, ELEMENT_COUNT, pc);
     VariantType.Case variantCase = variant.cases().get(tag);
-    if (!owner.localType(destination).equals(ValueType.variant(typeId))
-        || count != variantCase.fields().size()
-        || base < 0
-        || count < 0
-        || base > owner.localCount() - count) {
-      fail(location(owner, pc) + " variant construction signature mismatch");
+    requireType(
+        owner, instruction, destination, DESTINATION, ValueType.variant(typeId), pc);
+    if (window.count() != variantCase.fields().size()) {
+      failOperand(
+          owner, instruction, ELEMENT_COUNT, pc,
+          "payload count must be " + variantCase.fields().size()
+              + ", got " + window.count());
     }
-    for (int field = 0; field < count; field++) {
-      if (!owner.localType(base + field).equals(variantCase.fields().get(field).type())) {
-        fail(location(owner, pc) + " variant payload type mismatch at " + field);
-      }
+    for (int field = 0; field < window.count(); field++) {
+      requireType(
+          owner, instruction, window.base() + field, ELEMENT_BASE,
+          variantCase.fields().get(field).type(), pc);
     }
   }
 
@@ -510,52 +547,52 @@ public final class BytecodeVerifier {
       Program program, FunctionBody owner, Instruction instruction, int pc) {
     int destination = verifyLocal(owner, instruction, DESTINATION, pc);
     int source = verifyLocal(owner, instruction, OWNER, pc);
-    int tag = Math.toIntExact(instruction.operand(TAG));
     ValueType sourceType = owner.localType(source);
-    if (sourceType.kind() != ValueType.Kind.VARIANT
-        || tag < 0
-        || tag >= program.variantType(sourceType.descriptorId()).cases().size()) {
-      fail(location(owner, pc) + " invalid variant tag test");
+    if (sourceType.kind() != ValueType.Kind.VARIANT) {
+      failOperand(owner, instruction, OWNER, pc, "tag test requires a variant");
     }
-    requireType(owner, destination, ValueType.BOOLEAN, pc);
+    VariantType variant = program.variantType(sourceType.descriptorId());
+    verifyReference(owner, instruction, TAG, pc, variant.cases().size(), "variant tag");
+    requireType(owner, instruction, destination, DESTINATION, ValueType.BOOLEAN, pc);
   }
 
   private static void verifyVariantGet(
       Program program, FunctionBody owner, Instruction instruction, int pc) {
     int destination = verifyLocal(owner, instruction, DESTINATION, pc);
     int source = verifyLocal(owner, instruction, OWNER, pc);
-    int tag = Math.toIntExact(instruction.operand(TAG));
-    int field = Math.toIntExact(instruction.operand(INDEX));
     ValueType sourceType = owner.localType(source);
     if (sourceType.kind() != ValueType.Kind.VARIANT) {
-      fail(location(owner, pc) + " payload access requires a variant");
+      failOperand(owner, instruction, OWNER, pc, "payload access requires a variant");
     }
     VariantType variant = program.variantType(sourceType.descriptorId());
-    if (tag < 0 || tag >= variant.cases().size()) {
-      fail(location(owner, pc) + " variant payload access has invalid tag");
-    }
+    int tag = verifyReference(
+        owner, instruction, TAG, pc, variant.cases().size(), "variant tag");
     VariantType.Case variantCase = variant.cases().get(tag);
-    if (field < 0 || field >= variantCase.fields().size()
-        || !owner.localType(destination).equals(variantCase.fields().get(field).type())) {
-      fail(location(owner, pc) + " variant payload access signature mismatch");
-    }
+    int field = verifyReference(
+        owner, instruction, INDEX, pc, variantCase.fields().size(), "variant field");
+    requireType(
+        owner, instruction, destination, DESTINATION,
+        variantCase.fields().get(field).type(), pc);
   }
 
   private static void verifyArrayNew(
       Program program, FunctionBody owner, Instruction instruction, int pc) {
     int destination = verifyLocal(owner, instruction, DESTINATION, pc);
-    int typeId = Math.toIntExact(instruction.operand(DESCRIPTOR));
-    int base = Math.toIntExact(instruction.operand(ELEMENT_BASE));
-    int count = Math.toIntExact(instruction.operand(ELEMENT_COUNT));
+    int typeId = verifyReference(
+        owner, instruction, DESCRIPTOR, pc, program.arrayTypes().size(), "array type");
+    var window = verifyLocalWindow(owner, instruction, ELEMENT_BASE, ELEMENT_COUNT, pc);
     ArrayType array = program.arrayType(typeId);
-    if (!owner.localType(destination).equals(ValueType.array(typeId))
-        || count != array.length()
-        || base < 0
-        || base > owner.localCount() - count) {
-      fail(location(owner, pc) + " array construction signature mismatch");
+    requireType(
+        owner, instruction, destination, DESTINATION, ValueType.array(typeId), pc);
+    if (window.count() != array.length()) {
+      failOperand(
+          owner, instruction, ELEMENT_COUNT, pc,
+          "element count must be " + array.length() + ", got " + window.count());
     }
-    for (int element = 0; element < count; element++) {
-      requireType(owner, base + element, array.elementType(), pc);
+    for (int element = 0; element < window.count(); element++) {
+      requireType(
+          owner, instruction, window.base() + element, ELEMENT_BASE,
+          array.elementType(), pc);
     }
   }
 
@@ -566,16 +603,19 @@ public final class BytecodeVerifier {
     int index = verifyLocal(owner, instruction, INDEX, pc);
     ValueType sourceType = owner.localType(source);
     if (sourceType.kind() != ValueType.Kind.ARRAY) {
-      fail(location(owner, pc) + " indexing requires an array");
+      failOperand(owner, instruction, OWNER, pc, "indexing requires an array");
     }
-    requireType(owner, destination, program.arrayType(sourceType.descriptorId()).elementType(), pc);
-    requireType(owner, index, ValueType.SIGNED, pc);
+    requireType(
+        owner, instruction, destination, DESTINATION,
+        program.arrayType(sourceType.descriptorId()).elementType(), pc);
+    requireType(owner, instruction, index, INDEX, ValueType.SIGNED, pc);
   }
 
   private static void verifySliceNew(
       Program program, FunctionBody owner, Instruction instruction, int pc) {
     int destination = verifyLocal(owner, instruction, DESTINATION, pc);
-    int typeId = Math.toIntExact(instruction.operand(DESCRIPTOR));
+    int typeId = verifyReference(
+        owner, instruction, DESCRIPTOR, pc, program.sliceTypes().size(), "slice type");
     int array = verifyLocal(owner, instruction, OWNER, pc);
     int start = verifyLocal(owner, instruction, START, pc);
     int length = verifyLocal(owner, instruction, LENGTH, pc);
@@ -583,11 +623,11 @@ public final class BytecodeVerifier {
     if (arrayType.kind() != ValueType.Kind.ARRAY
         || !program.arrayType(arrayType.descriptorId()).elementType()
             .equals(program.sliceType(typeId).elementType())) {
-      fail(location(owner, pc) + " slice origin type mismatch");
+      failOperand(owner, instruction, OWNER, pc, "slice origin type mismatch");
     }
-    requireType(owner, destination, ValueType.slice(typeId), pc);
-    requireType(owner, start, ValueType.SIGNED, pc);
-    requireType(owner, length, ValueType.SIGNED, pc);
+    requireType(owner, instruction, destination, DESTINATION, ValueType.slice(typeId), pc);
+    requireType(owner, instruction, start, START, ValueType.SIGNED, pc);
+    requireType(owner, instruction, length, LENGTH, ValueType.SIGNED, pc);
   }
 
   private static void verifySliceGet(
@@ -597,10 +637,12 @@ public final class BytecodeVerifier {
     int index = verifyLocal(owner, instruction, INDEX, pc);
     ValueType sourceType = owner.localType(source);
     if (sourceType.kind() != ValueType.Kind.SLICE) {
-      fail(location(owner, pc) + " indexing requires a slice");
+      failOperand(owner, instruction, OWNER, pc, "indexing requires a slice");
     }
-    requireType(owner, destination, program.sliceType(sourceType.descriptorId()).elementType(), pc);
-    requireType(owner, index, ValueType.SIGNED, pc);
+    requireType(
+        owner, instruction, destination, DESTINATION,
+        program.sliceType(sourceType.descriptorId()).elementType(), pc);
+    requireType(owner, instruction, index, INDEX, ValueType.SIGNED, pc);
   }
 
   private static void verifyLocalFlow(FunctionBody owner, List<Instruction> body) {
@@ -617,7 +659,9 @@ public final class BytecodeVerifier {
       int written = writtenLocal(instruction);
       if (written >= 0) {
         if (owned(owner.localType(written)) && assigned.get(written)) {
-          fail(location(owner, pc) + " overwrites a live owned local " + written);
+          failOperand(
+              owner, instruction, writtenRole(instruction), pc,
+              "overwrites live owned local " + written);
         }
         assigned.set(written);
       }
@@ -704,7 +748,7 @@ public final class BytecodeVerifier {
       int base = Math.toIntExact(instruction.operand(baseRole));
       int count = Math.toIntExact(instruction.operand(countRole));
       for (int local = base; local < base + count; local++) {
-        requireAssignedLocal(owner, pc, assigned, local);
+        requireAssignedLocal(owner, instruction, baseRole, pc, assigned, local);
       }
       return;
     }
@@ -731,20 +775,27 @@ public final class BytecodeVerifier {
     };
     for (InstructionForm.OperandRole role : reads) {
       int local = Math.toIntExact(instruction.operand(role));
-      requireAssignedLocal(owner, pc, assigned, local);
+      requireAssignedLocal(owner, instruction, role, pc, assigned, local);
     }
   }
 
   private static void requireAssignedLocal(
-      FunctionBody owner, int pc, BitSet assigned, int local) {
+      FunctionBody owner,
+      Instruction instruction,
+      InstructionForm.OperandRole role,
+      int pc,
+      BitSet assigned,
+      int local) {
     if (assigned.get(local)) {
       return;
     }
     if (owned(owner.localType(local))) {
-      fail(location(owner, pc) + " reads unavailable owned local " + local
-          + " after move, drop, return, or call transfer");
+      failOperand(
+          owner, instruction, role, pc,
+          "reads unavailable owned local " + local
+              + " after move, drop, return, or call transfer");
     }
-    fail(location(owner, pc) + " reads uninitialized local " + local);
+    failOperand(owner, instruction, role, pc, "reads uninitialized local " + local);
   }
 
   private static int writtenLocal(Instruction instruction) {
@@ -761,6 +812,14 @@ public final class BytecodeVerifier {
       case LOCAL_LOOP_CHECK -> Math.toIntExact(instruction.operand(ITERATION));
       case CALL_VALUE -> Math.toIntExact(instruction.operand(RESULT));
       default -> -1;
+    };
+  }
+
+  private static InstructionForm.OperandRole writtenRole(Instruction instruction) {
+    return switch (instruction.opcode()) {
+      case LOCAL_LOOP_CHECK -> ITERATION;
+      case CALL_VALUE -> RESULT;
+      default -> DESTINATION;
     };
   }
 
@@ -794,77 +853,27 @@ public final class BytecodeVerifier {
       Instruction instruction,
       int pc,
       boolean returnsValue) {
-    FunctionBody target = program.function(Math.toIntExact(instruction.operand(FUNCTION)));
-    int base = Math.toIntExact(instruction.operand(ARGUMENT_BASE));
-    int count = Math.toIntExact(instruction.operand(ARGUMENT_COUNT));
+    FunctionBody target = program.function(verifyReference(
+        owner, instruction, FUNCTION, pc, program.functions().size(), "function"));
+    var window = verifyLocalWindow(owner, instruction, ARGUMENT_BASE, ARGUMENT_COUNT, pc);
+    int base = window.base();
+    int count = window.count();
     if (target.returnsValue() != returnsValue
-        || count != target.parameterCount()
-        || base < 0
-        || count < 0
-        || base > owner.localCount() - count) {
-      fail(location(owner, pc) + " call signature mismatch for " + target.name());
+        || count != target.parameterCount()) {
+      failOperand(
+          owner, instruction, ARGUMENT_COUNT, pc,
+          "call signature mismatch for " + target.name());
     }
     if (returnsValue) {
       int destination = verifyLocal(owner, instruction, RESULT, pc);
-      requireType(owner, destination, target.resultType(), pc);
+      requireType(owner, instruction, destination, RESULT, target.resultType(), pc);
     }
     for (int argument = 0; argument < count; argument++) {
       if (!owner.localType(base + argument).equals(target.localType(argument))) {
-        fail(location(owner, pc) + " call argument type mismatch for " + target.name());
+        failOperand(
+            owner, instruction, ARGUMENT_BASE, pc,
+            "argument " + argument + " type mismatch for " + target.name());
       }
-    }
-  }
-
-  private static int verifyLocal(
-      FunctionBody owner,
-      Instruction instruction,
-      InstructionForm.OperandRole role,
-      int pc) {
-    long operand = instruction.operand(role);
-    if (operand < 0 || operand >= owner.localCount()) {
-      fail(location(owner, pc) + " invalid " + role.name().toLowerCase()
-          + " local index " + operand);
-    }
-    return Math.toIntExact(operand);
-  }
-
-  private static void requireType(
-      FunctionBody owner, int local, ValueType expected, int pc) {
-    if (!owner.localType(local).equals(expected)) {
-      fail(location(owner, pc) + " local " + local + " must have type "
-          + expected.displayName());
-    }
-  }
-
-  private static void requireSameType(
-      FunctionBody owner, int left, int right, int pc) {
-    if (!owner.localType(left).equals(owner.localType(right))) {
-      fail(location(owner, pc) + " local type mismatch between " + left + " and " + right);
-    }
-  }
-
-  private static void verifyJump(
-      FunctionBody owner,
-      Instruction instruction,
-      InstructionForm.OperandRole role,
-      int pc,
-      List<Instruction> body) {
-    long operand = instruction.operand(role);
-    if (operand < 0 || operand >= body.size()) {
-      fail(location(owner, pc) + " invalid " + role.name().toLowerCase() + " " + operand);
-    }
-  }
-
-  private static void verifyGlobal(
-      Program program,
-      Instruction instruction,
-      InstructionForm.OperandRole role,
-      FunctionBody owner,
-      int pc) {
-    long operand = instruction.operand(role);
-    if (operand < 0 || operand >= program.globals().size()) {
-      fail(location(owner, pc) + " invalid " + role.name().toLowerCase()
-          + " global index " + operand);
     }
   }
 

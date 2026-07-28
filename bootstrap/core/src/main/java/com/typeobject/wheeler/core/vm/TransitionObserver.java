@@ -1,5 +1,7 @@
 package com.typeobject.wheeler.core.vm;
 
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.CONDITION;
+
 import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 
@@ -17,7 +19,7 @@ public interface TransitionObserver {
       long sequence, TaskId taskId, Frame frame, Instruction instruction) {
     int branchOutcome = -1;
     if (instruction.opcode() == Opcode.JUMP_IF_ZERO) {
-      int condition = Math.toIntExact(instruction.operands().getFirst());
+      int condition = Math.toIntExact(instruction.operand(CONDITION));
       branchOutcome = frame.local(condition) == 0 ? 1 : 0;
     }
     return new Observation(

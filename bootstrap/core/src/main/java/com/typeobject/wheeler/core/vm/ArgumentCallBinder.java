@@ -1,5 +1,10 @@
 package com.typeobject.wheeler.core.vm;
 
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ARGUMENT_BASE;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ARGUMENT_COUNT;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.FUNCTION;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT;
+
 import com.typeobject.wheeler.core.bytecode.FunctionBody;
 import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Program;
@@ -15,11 +20,11 @@ final class ArgumentCallBinder {
 
   static Binding bind(
       Program program, Frame current, Instruction instruction, boolean returnsValue) {
-    int functionId = Math.toIntExact(instruction.operands().get(0));
-    int argumentBase = Math.toIntExact(instruction.operands().get(1));
-    int argumentCount = Math.toIntExact(instruction.operands().get(2));
+    int functionId = Math.toIntExact(instruction.operand(FUNCTION));
+    int argumentBase = Math.toIntExact(instruction.operand(ARGUMENT_BASE));
+    int argumentCount = Math.toIntExact(instruction.operand(ARGUMENT_COUNT));
     int destination = returnsValue
-        ? Math.toIntExact(instruction.operands().get(3)) : -1;
+        ? Math.toIntExact(instruction.operand(RESULT)) : -1;
     List<Long> arguments = new ArrayList<>(argumentCount);
     for (int index = 0; index < argumentCount; index++) {
       arguments.add(current.local(argumentBase + index));

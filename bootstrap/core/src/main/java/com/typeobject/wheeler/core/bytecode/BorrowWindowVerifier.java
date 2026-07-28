@@ -1,5 +1,11 @@
 package com.typeobject.wheeler.core.bytecode;
 
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ARGUMENT_BASE;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ARGUMENT_COUNT;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.DESTINATION;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.FUNCTION;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.SOURCE;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -17,16 +23,16 @@ final class BorrowWindowVerifier {
       if (!isBorrow(borrow.opcode())) {
         continue;
       }
-      int destination = Math.toIntExact(borrow.operands().getFirst());
+      int destination = Math.toIntExact(borrow.operand(DESTINATION));
       int callPc = nextCall(body, pc);
       if (callPc < 0) {
-        fail(owner, pc, "borrow is not a transient call argument");
+        fail(owner, borrow, SOURCE, pc, "borrow is not a transient call argument");
       }
       Instruction call = body.get(callPc);
-      int base = Math.toIntExact(call.operands().get(1));
-      int count = Math.toIntExact(call.operands().get(2));
+      int base = Math.toIntExact(call.operand(ARGUMENT_BASE));
+      int count = Math.toIntExact(call.operand(ARGUMENT_COUNT));
       int parameter = destination - base;
-      FunctionBody target = program.function(Math.toIntExact(call.operands().get(0)));
+      FunctionBody target = program.function(Math.toIntExact(call.operand(FUNCTION)));
       ValueType expected = borrow.opcode() == Opcode.UTF8_BORROW
           ? ValueType.UTF8_BORROW
           : borrow.opcode() == Opcode.MAP_BORROW
@@ -36,14 +42,16 @@ final class BorrowWindowVerifier {
                   : owner.localType(destination);
       if (parameter < 0 || parameter >= count
           || !target.localType(parameter).equals(expected)) {
-        fail(owner, pc, "borrow targets a nonborrowed argument");
+        fail(owner, borrow, DESTINATION, pc, "borrow targets a nonborrowed argument");
       }
       boolean immutable = borrow.opcode() == Opcode.UTF8_BORROW
           || owner.localType(destination).equals(ValueType.BYTE_VIEW);
       if (!immutable
           && !mutableSources.computeIfAbsent(callPc, ignored -> new HashSet<>())
-              .add(borrow.operands().get(1))) {
-        fail(owner, pc, "one storage owner aliases multiple mutable parameters");
+              .add(borrow.operand(SOURCE))) {
+        fail(
+            owner, borrow, SOURCE, pc,
+            "one storage owner aliases multiple mutable parameters");
       }
     }
   }
@@ -68,7 +76,12 @@ final class BorrowWindowVerifier {
         || opcode == Opcode.REGION_BORROW;
   }
 
-  private static void fail(FunctionBody owner, int pc, String message) {
-    throw new BytecodeException(owner.name() + "[" + pc + "] " + message);
+  private static void fail(
+      FunctionBody owner,
+      Instruction instruction,
+      InstructionForm.OperandRole role,
+      int pc,
+      String message) {
+    InstructionOperandVerifier.failOperand(owner, instruction, role, pc, message);
   }
 }

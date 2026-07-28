@@ -1,5 +1,15 @@
 package com.typeobject.wheeler.core.vm;
 
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ALLOCATION_LIMIT;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.CAPACITY;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.DESTINATION;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.INDEX;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.KEY;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LOCAL;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.OWNER;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.SOURCE;
+
+import com.typeobject.wheeler.core.bytecode.InstructionForm;
 import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 
@@ -22,85 +32,86 @@ final class OwnedInstructionValidator {
   static void validate(Instruction instruction, Frame frame, OwnedStore store) {
     switch (instruction.opcode()) {
       case REGION_NEW -> {
-        localIndex(frame, instruction, 0);
+        localIndex(frame, instruction, DESTINATION);
         store.validateRegionLimits(
-            operand(instruction, 1), Math.toIntExact(operand(instruction, 2)));
+            instruction.operand(CAPACITY),
+            Math.toIntExact(instruction.operand(ALLOCATION_LIMIT)));
       }
       case WORDS_ALLOC, BYTES_ALLOC, MAP_ALLOC -> {
-        localIndex(frame, instruction, 0);
+        localIndex(frame, instruction, DESTINATION);
         store.validateAllocation(
-            local(frame, instruction, 1),
-            Math.toIntExact(local(frame, instruction, 2)),
+            local(frame, instruction, OWNER),
+            Math.toIntExact(local(frame, instruction, CAPACITY)),
             allocationKind(instruction.opcode()));
       }
       case WORDS_GET, BYTES_GET -> {
-        localIndex(frame, instruction, 0);
+        localIndex(frame, instruction, DESTINATION);
         store.validateGet(
-            local(frame, instruction, 1),
-            Math.toIntExact(local(frame, instruction, 2)),
+            local(frame, instruction, OWNER),
+            Math.toIntExact(local(frame, instruction, INDEX)),
             bufferKind(instruction.opcode(), Opcode.WORDS_GET));
       }
       case WORDS_SET, BYTES_SET -> store.validateSet(
-          local(frame, instruction, 0),
-          Math.toIntExact(local(frame, instruction, 1)),
-          local(frame, instruction, 2),
+          local(frame, instruction, OWNER),
+          Math.toIntExact(local(frame, instruction, INDEX)),
+          local(frame, instruction, SOURCE),
           bufferKind(instruction.opcode(), Opcode.WORDS_SET));
       case UTF8_VALID -> {
-        localIndex(frame, instruction, 0);
-        store.validateUtf8Bytes(local(frame, instruction, 1));
+        localIndex(frame, instruction, DESTINATION);
+        store.validateUtf8Bytes(local(frame, instruction, SOURCE));
       }
       case UTF8_COUNT -> {
-        localIndex(frame, instruction, 0);
-        if (!Utf8.analyze(store.utf8Bytes(local(frame, instruction, 1))).valid()) {
+        localIndex(frame, instruction, DESTINATION);
+        if (!Utf8.analyze(store.utf8Bytes(local(frame, instruction, SOURCE))).valid()) {
           throw new VmTrap("Invalid UTF-8 byte sequence");
         }
       }
       case BUFFER_LENGTH -> {
-        localIndex(frame, instruction, 0);
-        store.validateBuffer(local(frame, instruction, 1));
+        localIndex(frame, instruction, DESTINATION);
+        store.validateBuffer(local(frame, instruction, SOURCE));
       }
       case UTF8_SCALAR, UTF8_WIDTH -> {
-        localIndex(frame, instruction, 0);
+        localIndex(frame, instruction, DESTINATION);
         Utf8.Scalar scalar = Utf8.decode(
-            store.utf8Bytes(local(frame, instruction, 1)),
-            Math.toIntExact(local(frame, instruction, 2)));
+            store.utf8Bytes(local(frame, instruction, OWNER)),
+            Math.toIntExact(local(frame, instruction, INDEX)));
         if (!scalar.valid()) {
           throw new VmTrap("Invalid UTF-8 scalar boundary");
         }
       }
       case UTF8_FREEZE -> {
-        localIndex(frame, instruction, 0);
-        store.validateFreezeUtf8(local(frame, instruction, 1));
+        localIndex(frame, instruction, DESTINATION);
+        store.validateFreezeUtf8(local(frame, instruction, SOURCE));
       }
       case UTF8_BORROW -> {
-        localIndex(frame, instruction, 0);
-        store.validateUtf8Bytes(local(frame, instruction, 1));
+        localIndex(frame, instruction, DESTINATION);
+        store.validateUtf8Bytes(local(frame, instruction, SOURCE));
       }
       case MAP_BORROW -> {
-        localIndex(frame, instruction, 0);
-        store.validateMap(local(frame, instruction, 1));
+        localIndex(frame, instruction, DESTINATION);
+        store.validateMap(local(frame, instruction, SOURCE));
       }
       case BUFFER_BORROW -> {
-        localIndex(frame, instruction, 0);
-        store.validateBuffer(local(frame, instruction, 1));
+        localIndex(frame, instruction, DESTINATION);
+        store.validateBuffer(local(frame, instruction, SOURCE));
       }
       case REGION_BORROW -> {
-        localIndex(frame, instruction, 0);
-        store.validateRegion(local(frame, instruction, 1));
+        localIndex(frame, instruction, DESTINATION);
+        store.validateRegion(local(frame, instruction, SOURCE));
       }
       case MAP_PUT -> store.validateMapPut(
-          local(frame, instruction, 0), local(frame, instruction, 1));
+          local(frame, instruction, OWNER), local(frame, instruction, KEY));
       case MAP_GET -> {
-        localIndex(frame, instruction, 0);
+        localIndex(frame, instruction, DESTINATION);
         store.validateMapGet(
-            local(frame, instruction, 1), local(frame, instruction, 2));
+            local(frame, instruction, OWNER), local(frame, instruction, KEY));
       }
       case MAP_HAS -> {
-        localIndex(frame, instruction, 0);
-        store.validateMap(local(frame, instruction, 1));
+        localIndex(frame, instruction, DESTINATION);
+        store.validateMap(local(frame, instruction, OWNER));
       }
-      case BUFFER_DROP -> store.validateDropBuffer(local(frame, instruction, 0));
-      case REGION_DROP -> store.validateDropRegion(local(frame, instruction, 0));
+      case BUFFER_DROP -> store.validateDropBuffer(local(frame, instruction, LOCAL));
+      case REGION_DROP -> store.validateDropRegion(local(frame, instruction, LOCAL));
       default -> throw new IllegalArgumentException(
           "Not an owned-storage instruction: " + instruction.opcode());
     }
@@ -119,17 +130,15 @@ final class OwnedInstructionValidator {
     return opcode == wordsOpcode ? BufferKind.WORDS : BufferKind.BYTES;
   }
 
-  private static int localIndex(Frame frame, Instruction instruction, int operand) {
-    int index = Math.toIntExact(operand(instruction, operand));
+  private static int localIndex(
+      Frame frame, Instruction instruction, InstructionForm.OperandRole role) {
+    int index = Math.toIntExact(instruction.operand(role));
     frame.local(index);
     return index;
   }
 
-  private static long local(Frame frame, Instruction instruction, int operand) {
-    return frame.local(localIndex(frame, instruction, operand));
-  }
-
-  private static long operand(Instruction instruction, int index) {
-    return instruction.operands().get(index);
+  private static long local(
+      Frame frame, Instruction instruction, InstructionForm.OperandRole role) {
+    return frame.local(localIndex(frame, instruction, role));
   }
 }
