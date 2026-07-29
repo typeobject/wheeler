@@ -29,12 +29,17 @@ final class CompilerSources {
   private CompilerSources() {}
 
   private static List<String> minimalPaths() throws IOException {
+    return targetPaths("compiler");
+  }
+
+  private static List<String> targetPaths(String targetName) throws IOException {
     PackageManifest manifest = new PackageManifestParser().parse(
         Files.readString(PACKAGE.resolve("wheeler.package.yaml")));
     PackageManifest.Target target = manifest.targets().stream()
-        .filter(candidate -> candidate.name().equals("compiler"))
+        .filter(candidate -> candidate.name().equals(targetName))
         .findFirst()
-        .orElseThrow(() -> new IOException("Compiler package has no compiler target"));
+        .orElseThrow(() -> new IOException(
+            "Compiler package has no " + targetName + " target"));
     TreeSet<String> paths = new TreeSet<>();
     for (String selector : target.sources()) {
       if (!selector.startsWith(SOURCE_PREFIX)) {
@@ -76,6 +81,42 @@ final class CompilerSources {
     return modules;
   }
 
+  /** Returns the canonical local dependency closure rooted at one compiler module. */
+  static Map<String, String> moduleClosure(String rootModule) throws IOException {
+    Map<String, ModuleSource> byName = new LinkedHashMap<>();
+    for (String logicalPath : targetPaths("library")) {
+      String source = read(logicalPath);
+      SourceModuleInspection.Header header = SourceModuleInspection.inspect(
+          source.getBytes(StandardCharsets.UTF_8));
+      ModuleSource previous = byName.put(header.name(), new ModuleSource(
+          Path.of(logicalPath).getFileName().toString(), source, header.imports()));
+      if (previous != null) {
+        throw new IOException("Compiler library repeats module " + header.name());
+      }
+    }
+    if (!byName.containsKey(rootModule)) {
+      throw new IOException("Compiler library has no module " + rootModule);
+    }
+
+    Map<String, String> closure = new LinkedHashMap<>();
+    collectModule(rootModule, byName, closure);
+    return Map.copyOf(closure);
+  }
+
+  private static void collectModule(
+      String name,
+      Map<String, ModuleSource> byName,
+      Map<String, String> closure) {
+    ModuleSource module = byName.get(name);
+    if (module == null || closure.containsKey(module.fileName())) {
+      return;
+    }
+    for (String imported : module.imports()) {
+      collectModule(imported, byName, closure);
+    }
+    closure.put(module.fileName(), module.source());
+  }
+
   /** Derives the rooted module evidence for the physical bounded compiler closure. */
   static BootstrapModuleManifest bootstrapModuleManifest() throws Exception {
     MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
@@ -110,6 +151,8 @@ final class CompilerSources {
         List.copyOf(externals),
         modules);
   }
+
+  private record ModuleSource(String fileName, String source, List<String> imports) {}
 
   /** Compiles the complete bounded self-hosting compiler fixture. */
   static Program minimalCompilerProgram() throws IOException {

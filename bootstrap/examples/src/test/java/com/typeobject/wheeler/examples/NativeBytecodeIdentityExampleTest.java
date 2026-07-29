@@ -11,7 +11,7 @@ import com.typeobject.wheeler.core.vm.VmTrap;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
-import java.util.Map;
+import java.util.LinkedHashMap;
 import org.junit.jupiter.api.Test;
 
 /** Differential tests for Wheeler-native canonical bytecode identities. */
@@ -47,29 +47,14 @@ final class NativeBytecodeIdentityExampleTest {
   }
 
   private static Program program() throws Exception {
+    var modules = new LinkedHashMap<>(
+        CompilerSources.moduleClosure("wheeler.compiler.codec"));
+    modules.put("Binary.w", CoreSources.read("encoding/Binary.w"));
+    modules.put("ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"));
+    modules.put("NativeBytecodeIdentity.w", Files.readString(FIXTURE));
+    modules.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     return new WheelerCompiler().compileModuleFiles(
-        Map.ofEntries(
-            Map.entry("NativeBytecodeIdentity.w", Files.readString(FIXTURE)),
-            Map.entry("AggregateVerifier.w",
-                CompilerSources.read("compiler/verification/AggregateVerifier.w")),
-            Map.entry("Binary.w", CoreSources.read("encoding/Binary.w")),
-            Map.entry("Codec.w", CompilerSources.read("compiler/verification/Codec.w")),
-            Map.entry("ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w")),
-            Map.entry("FunctionVerifier.w",
-                CompilerSources.read("compiler/verification/FunctionVerifier.w")),
-            Map.entry("InstructionVerifier.w",
-                CompilerSources.read("compiler/verification/InstructionVerifier.w")),
-            Map.entry("Opcodes.w", CompilerSources.read("compiler/ir/Opcodes.w")),
-            Map.entry("ProofRules.w", CompilerSources.read("compiler/ir/ProofRules.w")),
-            Map.entry("ProofVerifier.w",
-                CompilerSources.read("compiler/verification/ProofVerifier.w")),
-            Map.entry("Sha256.w", CoreSources.read("crypto/Sha256.w")),
-            Map.entry("StorageVerifier.w",
-                CompilerSources.read("compiler/verification/StorageVerifier.w")),
-            Map.entry("TypeCodes.w", CompilerSources.read("compiler/ir/TypeCodes.w")),
-            Map.entry("Verifier.w",
-                CompilerSources.read("compiler/verification/Verifier.w"))),
-        "examples.compiler.native_bytecode_identity");
+        modules, "examples.compiler.native_bytecode_identity");
   }
 
   private static VirtualMachine vm(Program program, byte[] source) {

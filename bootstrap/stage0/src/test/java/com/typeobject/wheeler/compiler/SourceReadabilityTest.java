@@ -2,6 +2,7 @@ package com.typeobject.wheeler.compiler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.typeobject.wheeler.core.bytecode.Opcode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -20,6 +21,8 @@ class SourceReadabilityTest {
       "static final int ([A-Z0-9_]+) = (0x[0-9a-f]+);");
   private static final Pattern WHEELER_OPCODE = Pattern.compile(
       "public const long OPCODE_([A-Z0-9_]+) = (0x[0-9a-f]+);");
+  private static final Pattern WHEELER_FORM = Pattern.compile(
+      "if \\(opcode == OPCODE_([A-Z0-9_]+)\\) \\{\\s+return ([0-9]+);");
 
   @Test
   void reportsOnlyUnlabeledAdjacentEndianLiterals() {
@@ -81,6 +84,21 @@ class SourceReadabilityTest {
   }
 
   @Test
+  void nativeInstructionFormsMatchTheCanonicalRegistry() throws Exception {
+    String opcodeSource = Files.readString(Path.of(
+        "src/main/wheeler/compiler/ir/Opcodes.w"));
+    String formSource = Files.readString(Path.of(
+        "src/main/wheeler/compiler/ir/InstructionForms.w"));
+    var nativeOpcodes = opcodeIdentities(WHEELER_OPCODE, opcodeSource);
+    var nativeForms = nativeInstructionForms(formSource);
+
+    assertEquals(nativeOpcodes.keySet(), nativeForms.keySet());
+    for (var form : nativeForms.entrySet()) {
+      assertEquals(Opcode.valueOf(form.getKey()).operandCount(), form.getValue(), form.getKey());
+    }
+  }
+
+  @Test
   void maintainedCompilerSourcesPassReadabilityChecks() throws Exception {
     Path root = Path.of("../wheeler-compiler/src/main/wheeler");
     List<String> diagnostics = new ArrayList<>();
@@ -102,6 +120,18 @@ class SourceReadabilityTest {
       String name = matches.group(1);
       if (result.put(name, Integer.decode(matches.group(2))) != null) {
         throw new AssertionError("Duplicate opcode identity declaration " + name);
+      }
+    }
+    return java.util.Map.copyOf(result);
+  }
+
+  private static java.util.Map<String, Integer> nativeInstructionForms(String source) {
+    var result = new java.util.LinkedHashMap<String, Integer>();
+    var matches = WHEELER_FORM.matcher(source);
+    while (matches.find()) {
+      String name = matches.group(1);
+      if (result.put(name, Integer.parseInt(matches.group(2))) != null) {
+        throw new AssertionError("Duplicate native instruction form " + name);
       }
     }
     return java.util.Map.copyOf(result);

@@ -9,7 +9,7 @@ import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
+import java.util.LinkedHashMap;
 import org.junit.jupiter.api.Test;
 
 /** Differential tests for Wheeler-native canonical bytecode re-encoding. */
@@ -17,34 +17,14 @@ final class NativeBytecodeCodecExampleTest {
   @Test
   void verifiedArtifactsReencodeByteForByteAndMalformedInputPublishesNothing()
       throws Exception {
+    var modules = new LinkedHashMap<>(
+        CompilerSources.moduleClosure("wheeler.compiler.codec"));
+    modules.put("Binary.w", CoreSources.read("encoding/Binary.w"));
+    modules.put(
+        "NativeBytecodeCodec.w",
+        Files.readString(Path.of("src/main/wheeler/native/NativeBytecodeCodec.w")));
     var codec = new WheelerCompiler().compileModuleFiles(
-        Map.ofEntries(
-            Map.entry(
-                "AggregateVerifier.w",
-                CompilerSources.read("compiler/verification/AggregateVerifier.w")),
-            Map.entry("Binary.w", CoreSources.read("encoding/Binary.w")),
-            Map.entry("Codec.w", CompilerSources.read("compiler/verification/Codec.w")),
-            Map.entry(
-                "FunctionVerifier.w",
-                CompilerSources.read("compiler/verification/FunctionVerifier.w")),
-            Map.entry(
-                "InstructionVerifier.w",
-                CompilerSources.read("compiler/verification/InstructionVerifier.w")),
-            Map.entry(
-                "NativeBytecodeCodec.w",
-                Files.readString(Path.of(
-                    "src/main/wheeler/native/NativeBytecodeCodec.w"))),
-            Map.entry("Opcodes.w", CompilerSources.read("compiler/ir/Opcodes.w")),
-            Map.entry("ProofRules.w", CompilerSources.read("compiler/ir/ProofRules.w")),
-            Map.entry(
-                "ProofVerifier.w",
-                CompilerSources.read("compiler/verification/ProofVerifier.w")),
-            Map.entry(
-                "StorageVerifier.w",
-                CompilerSources.read("compiler/verification/StorageVerifier.w")),
-            Map.entry("TypeCodes.w", CompilerSources.read("compiler/ir/TypeCodes.w")),
-            Map.entry("Verifier.w", CompilerSources.read("compiler/verification/Verifier.w"))),
-        "examples.compiler.native_bytecode_codec");
+        modules, "examples.compiler.native_bytecode_codec");
     WheelerCompiler compiler = new WheelerCompiler();
     byte[] artifact = compiler.compileToBytecode(
         "classical class CodecSubject { state long value = 2; "

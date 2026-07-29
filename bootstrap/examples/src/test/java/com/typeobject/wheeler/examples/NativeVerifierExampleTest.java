@@ -8,7 +8,7 @@ import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
+import java.util.LinkedHashMap;
 import org.junit.jupiter.api.Test;
 
 /** Conformance tests for Wheeler-native canonical bytecode verification. */
@@ -16,31 +16,12 @@ class NativeVerifierExampleTest {
   @Test
   void wheelerVerifiesACanonicalBinaryArtifactAndRewinds() throws Exception {
     Path root = Path.of("src/main/wheeler/native");
+    var modules = new LinkedHashMap<>(
+        CompilerSources.moduleClosure("wheeler.compiler.verifier"));
+    modules.put("Binary.w", CoreSources.read("encoding/Binary.w"));
+    modules.put("NativeVerifier.w", Files.readString(root.resolve("NativeVerifier.w")));
     var verifier = new WheelerCompiler().compileModuleFiles(
-        Map.ofEntries(
-            Map.entry(
-                "AggregateVerifier.w",
-                CompilerSources.read("compiler/verification/AggregateVerifier.w")),
-            Map.entry("Binary.w", CoreSources.read("encoding/Binary.w")),
-            Map.entry(
-                "FunctionVerifier.w",
-                CompilerSources.read("compiler/verification/FunctionVerifier.w")),
-            Map.entry(
-                "InstructionVerifier.w",
-                CompilerSources.read("compiler/verification/InstructionVerifier.w")),
-            Map.entry(
-                "NativeVerifier.w", Files.readString(root.resolve("NativeVerifier.w"))),
-            Map.entry("Opcodes.w", CompilerSources.read("compiler/ir/Opcodes.w")),
-            Map.entry("ProofRules.w", CompilerSources.read("compiler/ir/ProofRules.w")),
-            Map.entry(
-                "ProofVerifier.w",
-                CompilerSources.read("compiler/verification/ProofVerifier.w")),
-            Map.entry(
-                "StorageVerifier.w",
-                CompilerSources.read("compiler/verification/StorageVerifier.w")),
-            Map.entry("TypeCodes.w", CompilerSources.read("compiler/ir/TypeCodes.w")),
-            Map.entry("Verifier.w", CompilerSources.read("compiler/verification/Verifier.w"))),
-        "examples.compiler.native_verifier");
+        modules, "examples.compiler.native_verifier");
     WheelerCompiler compiler = new WheelerCompiler();
     byte[] artifact = compiler.compileToBytecode(
         "classical class NativeSubject { state long value = 4; "

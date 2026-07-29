@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.Map;
+import java.util.LinkedHashMap;
 import org.junit.jupiter.api.Test;
 
 /** Conformance tests for the Wheeler-written canonical artifact verifier. */
@@ -56,40 +56,12 @@ class MinimalCompilerVerifierExampleTest {
           }
         }
         """;
-    String binary = Files.readString(
-        CoreSources.path("encoding/Binary.w"));
-    String aggregateVerifier = Files.readString(
-        CompilerSources.path("compiler/verification/AggregateVerifier.w"));
-    String functionVerifier = Files.readString(
-        CompilerSources.path("compiler/verification/FunctionVerifier.w"));
-    String instructionVerifier = Files.readString(
-        CompilerSources.path("compiler/verification/InstructionVerifier.w"));
-    String opcodes = Files.readString(
-        CompilerSources.path("compiler/ir/Opcodes.w"));
-    String proofRules = Files.readString(
-        CompilerSources.path("compiler/ir/ProofRules.w"));
-    String proofVerifier = Files.readString(
-        CompilerSources.path("compiler/verification/ProofVerifier.w"));
-    String storageVerifier = Files.readString(
-        CompilerSources.path("compiler/verification/StorageVerifier.w"));
-    String typeCodes = Files.readString(
-        CompilerSources.path("compiler/ir/TypeCodes.w"));
-    String verifier = Files.readString(
-        CompilerSources.path("compiler/verification/Verifier.w"));
+    var modules = new LinkedHashMap<>(
+        CompilerSources.moduleClosure("wheeler.compiler.verifier"));
+    modules.put("Binary.w", Files.readString(CoreSources.path("encoding/Binary.w")));
+    modules.put("VerifierTest.w", root);
     Program program = new WheelerCompiler().compileModuleFiles(
-        Map.ofEntries(
-            Map.entry("AggregateVerifier.w", aggregateVerifier),
-            Map.entry("Binary.w", binary),
-            Map.entry("FunctionVerifier.w", functionVerifier),
-            Map.entry("InstructionVerifier.w", instructionVerifier),
-            Map.entry("Opcodes.w", opcodes),
-            Map.entry("ProofRules.w", proofRules),
-            Map.entry("ProofVerifier.w", proofVerifier),
-            Map.entry("StorageVerifier.w", storageVerifier),
-            Map.entry("TypeCodes.w", typeCodes),
-            Map.entry("Verifier.w", verifier),
-            Map.entry("VerifierTest.w", root)),
-        "examples.compiler.verifiertest");
+        modules, "examples.compiler.verifiertest");
     WheelerCompiler stageZero = new WheelerCompiler();
     byte[] locals = stageZero.compileToBytecode(
         "classical class OperandCheck { state long value = 1; "

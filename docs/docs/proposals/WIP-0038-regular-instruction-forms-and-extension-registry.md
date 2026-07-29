@@ -219,12 +219,13 @@ Registry duplication fails tests and build checks. Runtime registration does not
 - [x] Instruction count and byte length derive from form and format constants.
 - [x] Wheeler-native emitters use named instruction arities and operand widths.
 - [x] Registry tests reject duplicate identities and field-order drift.
-- [x] Stage 0 mechanically cross-checks every opcode identity consumed by the native compiler.
+- [x] Stage 0 mechanically cross-checks every opcode identity and operand count consumed by the native compiler.
+- [x] The Wheeler-native verifier reads operand counts from one instruction-form registry instead of carrying a private switch.
 - [x] Verifier diagnostics name the opcode and canonical role for local types, references, windows, descriptors, tags, indices, limits, and storage checks.
 - [x] VM execution, preflight, aggregate checks, borrow-window checks, argument binding, transition observation, storage preflight, and disassembly consume semantic roles instead of private operand positions.
 - [x] Disassembly labels fields from registry metadata.
 - [x] Optional required section 13 declares unique sorted instruction-extension names and versions.
-- [ ] Generated metadata replaces remaining parallel semantic tables.
+- [ ] Stage 1 generates the mechanically cross-checked Java and Wheeler registry views from one promoted source.
 
 ## Testing and acceptance
 
