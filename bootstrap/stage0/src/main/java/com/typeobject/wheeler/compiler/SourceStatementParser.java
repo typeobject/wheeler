@@ -15,7 +15,7 @@ abstract class SourceStatementParser extends SourceTokenCursor {
       expect(Type.LEFT_PAREN, "'(' after assert");
       String state = expect(Type.IDENTIFIER, "state in assertion").text();
       expect(Type.EQUAL, "'==' in assertion");
-      String value = signedNumber();
+      String value = signedStatementOperand();
       expect(Type.RIGHT_PAREN, "')' after assertion");
       expect(Type.SEMICOLON, "';' after assertion");
       return statement("expect", start.line(), state, value);
@@ -30,7 +30,7 @@ abstract class SourceStatementParser extends SourceTokenCursor {
         expect(Type.SEMICOLON, "';' after measurement");
         return statement("measure", start.line(), register, start.text());
       }
-      String value = signedNumber();
+      String value = signedStatementOperand();
       expect(Type.SEMICOLON, "';' after assignment");
       String operation = switch (operator) {
         case PLUS_ASSIGN -> "add";
@@ -129,6 +129,10 @@ abstract class SourceStatementParser extends SourceTokenCursor {
   protected final void emptyArguments() {
     expect(Type.LEFT_PAREN, "'(' after method name");
     expect(Type.RIGHT_PAREN, "zero-argument method call");
+  }
+
+  protected String signedStatementOperand() {
+    return signedNumber();
   }
 
   protected final String signedNumber() {

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.typeobject.wheeler.compiler.CompilerException;
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.Program;
@@ -78,6 +79,17 @@ class MinimalCompilerConstantExampleTest {
             + "const long INPUT = INITIAL; state long value = INITIAL; "
             + "long identity(long input) { return input; } entry void main() { "
             + "long result = identity(INPUT); assert(value == 42); assert(result == 42); } }");
+  }
+
+  @Test
+  void substitutesConstantsIntoGeneratedReversibleUpdates() throws Exception {
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    assertDifferentialHalt(
+        compiler,
+        "classical class ReversibleConstantUpdate { state long value = 0; "
+            + "const long STEP = 1 + 1; rev void bump() { value += STEP; } "
+            + "theorem bumpInverse proves inverse(bump); entry void main() { "
+            + "bump(); assert(value == STEP); reverse { bump(); } assert(value == 0); } }");
   }
 
   @Test
@@ -348,6 +360,13 @@ class MinimalCompilerConstantExampleTest {
         compiler,
         "classical class WrongUpdateConstant { const boolean STEP = true; "
             + "entry void main() { long value = 0; value += STEP; } }");
+    String wrongReversibleUpdate = "classical class WrongReversibleUpdate { "
+        + "state long value = 0; const boolean STEP = true; "
+        + "rev void bump() { value += STEP; } entry void main() { bump(); } }";
+    assertNativeTrap(compiler, wrongReversibleUpdate);
+    assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compileToBytecode(wrongReversibleUpdate));
     assertNativeTrap(
         compiler,
         "classical class WrongExpressionConstant { const boolean STEP = true; "

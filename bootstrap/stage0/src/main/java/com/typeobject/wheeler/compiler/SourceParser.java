@@ -358,6 +358,11 @@ final class SourceParser extends SourceStatementParser {
         returnType, body, line);
   }
 
+  @Override
+  protected String signedStatementOperand() {
+    return SourceConstantParser.signedStatementOperand(this);
+  }
+
   private void parseBufferSet(
       List<Statement> body, SourceToken start, String operation) {
     expect(Type.LEFT_PAREN, "'(' after " + start.text());

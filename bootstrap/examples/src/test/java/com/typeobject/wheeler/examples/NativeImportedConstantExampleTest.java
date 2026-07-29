@@ -49,6 +49,22 @@ class NativeImportedConstantExampleTest {
     VirtualMachine program = new VirtualMachine(new BytecodeReader().read(artifact));
     program.run();
     assertEquals(84, program.global("outcome"));
+
+    String reversibleRoot = "module examples.root; import examples.constants; "
+        + "classical class ImportedReversibleConstant { state long outcome = 0; "
+        + "rev void bump() { outcome += examples.constants::ANSWER; } "
+        + "theorem bumpInverse proves inverse(bump); entry void main() { bump(); "
+        + "assert(outcome == 42); reverse { bump(); } assert(outcome == 0); } }";
+    byte[] reversibleArtifact = compileNative(compiler, imported, reversibleRoot);
+    sources.put("Root.w", reversibleRoot);
+    assertArrayEquals(
+        new BytecodeWriter().write(
+            new WheelerCompiler().compileModuleFiles(sources, "examples.root")),
+        reversibleArtifact);
+    VirtualMachine reversibleProgram = new VirtualMachine(
+        new BytecodeReader().read(reversibleArtifact));
+    reversibleProgram.run();
+    assertEquals(0, reversibleProgram.global("outcome"));
   }
 
   @Test

@@ -27,6 +27,26 @@ final class SourceConstantParser {
         name.text(), type.text(), value.value(), exported, start.line());
   }
 
+  static String signedStatementOperand(SourceParser parser) {
+    if (!parser.check(Type.IDENTIFIER)) {
+      return parser.signedNumber();
+    }
+
+    SourceToken source = parser.advance();
+    String name = source.text();
+    ConstantDefinition constant;
+    if (qualifiedReferenceAhead(parser)) {
+      name = qualifiedReference(parser, source);
+      constant = parser.resolveRequiredConstant(name, source);
+    } else {
+      constant = parser.resolveConstant(name, source, true);
+    }
+    if (!constant.type().equals("long")) {
+      SourceTokenCursor.fail(source, "signed statement operand requires a long constant");
+    }
+    return Long.toString(constant.value());
+  }
+
   static ConstantValue parseValue(
       SourceTokenCursor parser, ConstantResolver resolver) {
     return parseExpression(parser, resolver);

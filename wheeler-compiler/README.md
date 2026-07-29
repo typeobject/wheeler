@@ -48,7 +48,8 @@ sixty-four declarations, and parentheses stop at depth thirty-two. Cycles, unkno
 type errors, malformed forms, and arithmetic traps publish nothing.
 
 The resolver substitutes evaluated values into matching local declarations, scalar helper
-returns, scalar assignments, checked signed updates, one- or two-argument scalar helper calls,
+returns, scalar assignments, checked signed updates including generated reversible helper updates,
+one- or two-argument scalar helper calls,
 right operands of signed arithmetic and ordering expressions, signed or Boolean equality and
 inequality expressions,
 signed arithmetic or typed scalar comparison returns, signed or Boolean equality assertions, signed ordering assertions, conditions and their
