@@ -31,8 +31,8 @@ and one entry. A modular source may carry up to sixty-four sorted unique direct 
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
 or excess imports before publication. `compileMinimalWithConstantImport`,
 `compileMinimalWithConstantImports`, and `compileMinimalWithThreeConstantImports` link one,
-two, or three direct scalar-constant modules. The pair API also links one
-leaf-to-dependent-to-root chain. A leaf export becomes private inside its dependent, so a
+two, or three direct scalar-constant modules. The pair and triple APIs also link one exact
+two-edge or three-edge chain. A leaf export becomes private inside its dependent, so a
 root cannot acquire transitive access by spelling the leaf name loudly. Executable imported
 members, mismatched module names, wider graphs, and more than three root imports fail
 closed. General symbol resolution remains future work. Entry and helper bodies
@@ -62,8 +62,8 @@ may mix constants with prior locals. Helper parameters and locals cannot reuse c
 Constants create no global, initializer, lookup, or declaration-order artifact noise. The
 native header path accepts direct import declarations. The linker resolves bounded public
 scalar constants through unqualified or canonical owner-qualified uses and preserves stage-0
-artifact bytes. It also resolves one two-edge chain while preventing the leaf from becoming a
-root export. Root collisions with imported private names, colliding exports, wider graphs,
+artifact bytes. It also resolves one exact two-edge or three-edge chain while preventing
+intermediate exports from reaching the root. Root collisions with imported private names, colliding exports, wider graphs,
 and general multi-file linking remain stage-0 work until native differential artifacts pin
 them down.
 

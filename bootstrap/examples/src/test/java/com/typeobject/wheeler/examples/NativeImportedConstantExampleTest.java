@@ -163,6 +163,48 @@ class NativeImportedConstantExampleTest {
   }
 
   @Test
+  void linksAThreeEdgeConstantChainWithoutTransitiveExports() throws Exception {
+    Program compiler = program();
+    String leaf = "module examples.alpha; classical class Alpha { "
+        + "private const long HIDDEN = 39; public const long BASE = HIDDEN + 1; }";
+    String middle = "module examples.beta; import examples.alpha; "
+        + "classical class Beta { public const long PARTIAL = examples.alpha::BASE + 1; }";
+    String dependent = "module examples.gamma; import examples.beta; "
+        + "classical class Gamma { public const long ANSWER = examples.beta::PARTIAL + 1; "
+        + "public const boolean READY = ANSWER == 42; }";
+    String root = "module examples.root; import examples.gamma; classical class Root { "
+        + "state long outcome = 0; entry void main() { "
+        + "outcome = examples.gamma::ANSWER; boolean ready = examples.gamma::READY; "
+        + "assert(ready); assert(outcome == 42); } }";
+
+    byte[] artifact = compileNative(compiler, List.of(leaf, middle, dependent), root);
+    assertArrayEquals(
+        artifact,
+        compileNative(compiler, List.of(dependent, leaf, middle), root));
+    Map<String, String> sources = new LinkedHashMap<>();
+    sources.put("Alpha.w", leaf);
+    sources.put("Beta.w", middle);
+    sources.put("Gamma.w", dependent);
+    sources.put("Root.w", root);
+    assertArrayEquals(
+        new BytecodeWriter().write(
+            new WheelerCompiler().compileModuleFiles(sources, "examples.root")),
+        artifact);
+    VirtualMachine program = new VirtualMachine(new BytecodeReader().read(artifact));
+    program.run();
+    assertEquals(42, program.global("outcome"));
+
+    assertNativeTrap(
+        compiler,
+        List.of(middle, dependent, leaf),
+        root.replace("outcome = examples.gamma::ANSWER;", "outcome = BASE;"));
+    assertNativeTrap(
+        compiler,
+        List.of(leaf, middle, dependent),
+        root.replace("outcome = examples.gamma::ANSWER;", "outcome = PARTIAL;"));
+  }
+
+  @Test
   void rejectsInaccessibleMismatchedAndNonconstantImportsBeforePublication() throws Exception {
     Program compiler = program();
     String root = "module examples.root; import examples.constants; "
@@ -243,6 +285,17 @@ class NativeImportedConstantExampleTest {
         compiler,
         List.of(firstCollision, secondCollision, firstCollision, secondCollision),
         collisionRoot);
+    String threeCycleAlpha = "module examples.alpha; import examples.gamma; "
+        + "classical class Alpha { public const long ALPHA = GAMMA; }";
+    String threeCycleBeta = "module examples.beta; import examples.alpha; "
+        + "classical class Beta { public const long BETA = ALPHA; }";
+    String threeCycleGamma = "module examples.gamma; import examples.beta; "
+        + "classical class Gamma { public const long GAMMA = BETA; }";
+    assertNativeTrap(
+        compiler,
+        List.of(threeCycleBeta, threeCycleGamma, threeCycleAlpha),
+        "module examples.root; import examples.gamma; classical class Root { "
+            + "entry void main() { long value = GAMMA; } }");
     String cyclicAlpha = "module examples.alpha; import examples.beta; "
         + "classical class Alpha { public const long LEFT = RIGHT; }";
     String cyclicBeta = "module examples.beta; import examples.alpha; "

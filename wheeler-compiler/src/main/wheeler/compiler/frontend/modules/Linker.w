@@ -614,6 +614,15 @@ classical class ModuleLinker {
     return planConstantImportMode(importedSource, rootSource, expectedImportCount, false, true);
   }
 
+  /// Plans one resolved dependency whose exports become private in its importer.
+  public LinkPlan planPrivateResolvedConstantImport(
+    borrow utf8 importedSource,
+    borrow utf8 rootSource,
+    long expectedImportCount
+  ) {
+    return planConstantImportMode(importedSource, rootSource, expectedImportCount, true, true);
+  }
+
   /// Plans one module after every import in its header has been resolved.
   public LinkPlan planResolvedConstantImport(
     borrow utf8 importedSource,
