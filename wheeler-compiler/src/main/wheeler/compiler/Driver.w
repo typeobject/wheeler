@@ -2,7 +2,6 @@
 
 module wheeler.compiler.driver;
 
-import wheeler.compiler.codegen;
 import wheeler.compiler.encoding;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
@@ -11,6 +10,7 @@ import wheeler.compiler.module_headers;
 import wheeler.compiler.module_linker;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.parser;
+import wheeler.compiler.program_codegen;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.string_table;
 import wheeler.compiler.tokens;
@@ -188,62 +188,6 @@ classical class CompilerDriver {
     return cursor;
   }
 
-  private long writeSequence(
-    borrow mut bytes output,
-    long cursor,
-    long[64] opcodes,
-    long[64] operands,
-    long[64] secondaryOperands,
-    long count,
-    long localBase
-  ) {
-    long index = 0;
-    long instructionBase = 0;
-    while (index < count) limit MAX_MINIMAL_STATEMENTS {
-      cursor = writeStatement(
-        output,
-        cursor,
-        opcodes[index],
-        operands[index],
-        secondaryOperands[index],
-        localBase,
-        instructionBase
-      );
-      localBase += statementLocalCount(opcodes[index]);
-      instructionBase += statementInstructionCount(opcodes[index]);
-      index += 1;
-    }
-
-    return cursor;
-  }
-
-  private long writeReversibleSequence(
-    borrow mut bytes output,
-    long cursor,
-    long[64] opcodes,
-    long[64] operands,
-    long count,
-    boolean inverse
-  ) {
-    long index = 0;
-    if (inverse) {
-      index = count;
-      while (0 < index) limit MAX_MINIMAL_STATEMENTS {
-        index -= 1;
-        cursor = writeInverseGlobalUpdate(output, cursor, opcodes[index], operands[index]);
-      }
-
-      return cursor;
-    }
-
-    while (index < count) limit MAX_MINIMAL_STATEMENTS {
-      cursor = writeGlobalUpdate(output, cursor, opcodes[index], operands[index]);
-      index += 1;
-    }
-
-    return cursor;
-  }
-
   /// Compiles one bounded bootstrap source into caller-owned artifact storage.
   public Compilation compileMinimal(borrow utf8 source, borrow mut bytes output) {
     region arena = new region(/* bytes= */ 25632, /* allocations= */ 5);
@@ -283,13 +227,20 @@ classical class CompilerDriver {
     long typesOffset = align8(stringsOffset + stringsLength);
     long variantsOffset = align8(typesOffset + typesLength);
     long functionsOffset = align8(variantsOffset + 4);
+    boolean resultSlotProgram = resultSlotHelper(program.helperKind);
     long localCount = 0;
     long codeLength = 8;
     long statementIndex = 0;
     while (statementIndex < program.statementCount) limit MAX_MINIMAL_STATEMENTS {
       long statementOpcode = program.statementOpcodes[statementIndex];
-      localCount += statementLocalCount(statementOpcode);
-      codeLength += statementCodeLength(statementOpcode);
+      if (resultSlotProgram) {
+        localCount += resultSlotEntryLocalCount(statementOpcode);
+        codeLength += resultSlotEntryCodeLength(statementOpcode);
+      } else {
+        localCount += statementLocalCount(statementOpcode);
+        codeLength += statementCodeLength(statementOpcode);
+      }
+
       statementIndex += 1;
     }
 
@@ -309,7 +260,9 @@ classical class CompilerDriver {
     }
 
     if (HELPER_REVERSIBLE < program.helperKind) {
-      helperForwardLength -= 8;
+      if (resultSlotProgram) {} else {
+        helperForwardLength -= 8;
+      }
     }
 
     long helperInverseLength = 0;
@@ -321,6 +274,14 @@ classical class CompilerDriver {
       helperInverseLength = helperForwardLength;
       helperInverseOffset = helperForwardLength;
       entryForwardLength = 8 + program.helperCallCount * 32 + entryStatementLength;
+    }
+
+    if (resultSlotProgram) {
+      helperLocalCount = RESULT_SLOT_LOCAL_COUNT;
+      helperForwardLength = RESULT_SLOT_BODY_LENGTH;
+      helperInverseLength = RESULT_SLOT_BODY_LENGTH;
+      helperInverseOffset = RESULT_SLOT_BODY_LENGTH;
+      entryForwardLength = 8 + entryStatementLength;
     }
 
     long entryTypeOffset = helperLocalCount;
@@ -400,6 +361,10 @@ classical class CompilerDriver {
         helperFlags = 4;
       }
 
+      if (resultSlotProgram) {
+        helperFlags = RESULT_SLOT_FUNCTION_FLAGS;
+      }
+
       cursor = writeFunctionDescriptor(
         output,
         cursor,
@@ -448,20 +413,37 @@ classical class CompilerDriver {
       }
 
       if (program.helperKind == HELPER_REVERSIBLE) {} else {
+        if (resultSlotProgram) {
+          cursor = writeBooleanLocalType(output, cursor);
+          cursor = writeSignedLocalType(output, cursor);
+        } else {
+          cursor = writeSequenceLocalTypes(
+            output,
+            cursor,
+            program.helperOpcodes,
+            program.helperStatementCount
+          );
+        }
+      }
+
+      if (resultSlotProgram) {
+        long resultEntryType = 0;
+        while (resultEntryType < program.statementCount) limit MAX_MINIMAL_STATEMENTS {
+          cursor = writeResultSlotEntryLocalTypes(
+            output,
+            cursor,
+            program.statementOpcodes[resultEntryType]
+          );
+          resultEntryType += 1;
+        }
+      } else {
         cursor = writeSequenceLocalTypes(
           output,
           cursor,
-          program.helperOpcodes,
-          program.helperStatementCount
+          program.statementOpcodes,
+          program.statementCount
         );
       }
-
-      cursor = writeSequenceLocalTypes(
-        output,
-        cursor,
-        program.statementOpcodes,
-        program.statementCount
-      );
     } else {
       cursor = writeFunctionDescriptor(
         output,
@@ -487,140 +469,7 @@ classical class CompilerDriver {
 
     cursor = align8(cursor);
 
-    if (program.helperCount == 1) {
-      if (program.helperKind == HELPER_REVERSIBLE) {
-        cursor = writeReversibleSequence(
-          output,
-          cursor,
-          program.helperOpcodes,
-          program.helperOperands,
-          program.helperStatementCount,
-          false
-        );
-        cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN, INSTRUCTION_FORM_NULLARY);
-        cursor = writeReversibleSequence(
-          output,
-          cursor,
-          program.helperOpcodes,
-          program.helperOperands,
-          program.helperStatementCount,
-          true
-        );
-        cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN, INSTRUCTION_FORM_NULLARY);
-      } else {
-        cursor = writeSequence(
-          output,
-          cursor,
-          program.helperOpcodes,
-          program.helperOperands,
-          program.helperSecondaryOperands,
-          program.helperStatementCount,
-          helperLocalBase
-        );
-        if (HELPER_REVERSIBLE < program.helperKind) {} else {
-          cursor = writeInstructionHeader(
-            output,
-            cursor,
-            OPCODE_RETURN,
-            INSTRUCTION_FORM_NULLARY
-          );
-        }
-      }
-
-      long entryInstructionBase = 0;
-      if (HELPER_REVERSIBLE < program.helperKind) {
-        cursor = writeSequence(
-          output,
-          cursor,
-          program.statementOpcodes,
-          program.statementOperands,
-          program.statementSecondaryOperands,
-          program.statementCount,
-          0
-        );
-      } else {
-        long helperCall = 0;
-        while (helperCall < program.helperCallCount) limit 2 {
-          cursor = writeInstructionHeader(output, cursor, OPCODE_CALL, INSTRUCTION_FORM_UNARY);
-          cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, ENCODING_WIDTH_U64);
-          helperCall += 1;
-          entryInstructionBase += 1;
-        }
-
-        if (program.preReverseStatementCount == 1) {
-          cursor = writeStatement(
-            output,
-            cursor,
-            program.statementOpcodes[0],
-            program.statementOperands[0],
-            program.statementSecondaryOperands[0],
-            0,
-            entryInstructionBase
-          );
-          entryInstructionBase += statementInstructionCount(program.statementOpcodes[0]);
-        }
-
-        if (program.helperKind == HELPER_REVERSIBLE) {
-          long helperUncall = 0;
-          while (helperUncall < program.helperCallCount) limit 2 {
-            cursor = writeInstructionHeader(
-              output,
-              cursor,
-              OPCODE_UNCALL,
-              INSTRUCTION_FORM_UNARY
-            );
-            cursor = writeUnsignedLittleEndian(
-              output,
-              cursor,
-              /* value= */ 0,
-              ENCODING_WIDTH_U64
-            );
-            helperUncall += 1;
-            entryInstructionBase += 1;
-          }
-        }
-
-        if (program.preReverseStatementCount == 0) {
-          if (0 < program.statementCount) {
-            cursor = writeStatement(
-              output,
-              cursor,
-              program.statementOpcodes[0],
-              program.statementOperands[0],
-              program.statementSecondaryOperands[0],
-              0,
-              entryInstructionBase
-            );
-            entryInstructionBase += statementInstructionCount(program.statementOpcodes[0]);
-          }
-        }
-
-        if (program.preReverseStatementCount == 1) {
-          if (1 < program.statementCount) {
-            cursor = writeStatement(
-              output,
-              cursor,
-              program.statementOpcodes[1],
-              program.statementOperands[1],
-              program.statementSecondaryOperands[1],
-              statementLocalCount(program.statementOpcodes[0]),
-              entryInstructionBase
-            );
-            entryInstructionBase += statementInstructionCount(program.statementOpcodes[1]);
-          }
-        }
-      }
-    } else {
-      cursor = writeSequence(
-        output,
-        cursor,
-        program.statementOpcodes,
-        program.statementOperands,
-        program.statementSecondaryOperands,
-        program.statementCount,
-        0
-      );
-    }
+    cursor = writeProgramCode(output, cursor, program, helperLocalBase, resultSlotProgram);
 
     cursor = writeInstructionHeader(output, cursor, OPCODE_HALT, INSTRUCTION_FORM_NULLARY);
     if (program.proofCount == 1) {

@@ -284,12 +284,22 @@ A binary corpus accepts canonical stage-0 artifacts and rejects forged local or 
 
 The bounded compiler implementation now lives in importable `compiler/Driver.w`. `MinimalCompiler.w` is only its executable package wrapper. `compileMinimal` returns the exact verified artifact and code bounds without changing externally visible output length. A canonical module header qualifies entry and helper strings while preserving theorem names exactly as stage 0 does. It accepts up to sixty-four sorted unique direct import declarations. Malformed, duplicate, unsorted, and excess imports fail before publication. `compileMinimalWithConstantImport` and `compileMinimalWithConstantImports` link one or two exact direct scalar-constant modules into unqualified or canonical owner-qualified public root uses. Private constants may feed public exports. It evaluates and substitutes that graph before ordinary lowering, so the imported declarations add no runtime section. Any private name in the root fails before caller output changes, including a root-local collision until separate symbol tables land. Transitive imports, executable imported members, mismatched names, more than two root imports, and non-ASCII linked sources also fail closed. Colliding exports, three or more imports, unrelated qualifiers, and general multi-file linking remain outside the slice. `NativeCompilerIdentity.w` compiles into private 4,096-byte storage and hashes only the returned range. Its digest matches the stage-0 artifact, while malformed or oversized source publishes nothing. This is an artifact-producing recovery boundary, not yet a general-purpose mutable semantic editor.
 
+The native compiler now lowers the first reversible signed-result source profile. One
+zero-argument `rev long` helper may return a signed literal or evaluated constant. Its
+entry starts with one result call and may perform signed checks of that result. The
+emitter writes function flags `0xd`, adjacent Boolean and signed slot locals, identical
+`RESULT_FILL_CONSTANT` and `RETURN_RESULT_SLOT` bodies, `CALL_RESULT_SLOT`, and the
+optional generated-inverse proof. Complete artifact bytes match stage 0. Unsupported
+result forms do not get an almost-correct ABI, which is compiler jargon for a future
+incident report.
+
 This verifier covers the bounded compiler profile. It is not yet the full production verifier.
 
 Differential fixtures include these exact artifacts and lowering paths:
 
 - the 568-byte two-function `Calls` artifact.
 - the 528-byte inverse-bearing `ReversibleCalls` artifact.
+- the 824-byte reversible signed-result artifact with identical generated bodies.
 - post-call local and assertion forms.
 - the proof-bearing `Certified` artifact.
 - the 360-byte no-global `Bare` artifact.

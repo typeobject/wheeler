@@ -289,9 +289,10 @@ first is a Boolean presence tag. The second has the declared result type. Functi
 `0x8`, combined with reversible and value-result flags as `0xd`, declares the implicit
 slot and binds it to the final two callee registers.
 
-The compiler, decoder, verifier, VM, disassembler, rewind path, generated-inverse kernel,
-malformed-artifact suite, Wheeler-native verifier, and bounded Wheeler interpreter
-consume these identities together.
+The stage-0 and Wheeler-native compilers, decoder, verifier, VM, disassembler, rewind
+path, generated-inverse kernel, malformed-artifact suite, Wheeler-native verifier, and
+bounded Wheeler interpreter consume these identities together. Native lowering covers
+one constant-return signed result helper and compares the complete artifact with stage 0.
 `RESULT_FILL_CONSTANT` is self-inverse under the function direction and checks exact
 vacancy or occupancy before mutation. Existing `RETURN_VALUE` keeps its ordinary
 direct-result meaning. It has not been issued a reversible hat and told to act natural.

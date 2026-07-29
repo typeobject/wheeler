@@ -64,11 +64,14 @@ until native differential artifacts pin them down.
 
 The canonical registry also owns `CALL_RESULT_SLOT`, `UNCALL_RESULT_SLOT`,
 `RESULT_FILL_CONSTANT`, and `RETURN_RESULT_SLOT`. The Wheeler verifier accepts the first
-canonical signed result-slot descriptor and generated-inverse proof emitted by stage 0.
-Stage 0 executes `rev long minusOne() { return -1; }` forward and inverse after history
-commit. The bounded Wheeler interpreter executes both call directions against the same
-artifact. Wheeler-native compiler lowering remains open, so the recovery compiler does
-not yet claim this syntax.
+canonical signed result-slot descriptor and generated-inverse proof. The native compiler
+lowers a zero-argument `rev long` helper that returns one signed literal or evaluated
+constant. Its entry starts with one result call and may then assert that result against
+signed literals or constants. The emitted function flags, adjacent slot locals, forward
+and inverse bodies, call, return, and proof bytes match stage 0 exactly. The bounded
+Wheeler interpreter executes both call directions against the same artifact. A committed
+VM history remains irrelevant to the generated inverse, as it should unless time travel
+has acquired a debugger dependency.
 
 The narrow loop body and local constant graph are deliberate limits, not parser folklore.
 Unsupported syntax fails before output publication. Each extension must match stage 0 byte

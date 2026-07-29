@@ -67,6 +67,10 @@ classical class HelperCalls {
       return opcode == STATEMENT_LOCAL_CALL_NAMED;
     }
 
+    if (helperKind == HELPER_REVERSIBLE_SIGNED) {
+      return opcode == STATEMENT_LOCAL_CALL_NAMED;
+    }
+
     if (helperKind == HELPER_BOOLEAN) {
       return opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED;
     }

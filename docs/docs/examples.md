@@ -178,7 +178,7 @@ Files: [`NativeBootstrapModulesIdentity.w`](../../wheeler-examples/src/main/whee
 
 Covers: One through sixty-four sorted local source modules, zero through sixty-four externals, 256 total imports, unique paths, complete binding, rooted reachability, cycle rejection, bounded names and paths, lowercase source identities, exact schema bytes, SHA-256 publication, and rewind.
 
-Expected behavior: Empty-import one-module, two-external one-module, and three-, five-, nine-, and seventeen-module rooted DAG closures reproduce stage 0. A cycle, unreachable module, duplicate path, sixty-fifth module or external, unsorted external, unbound import, mismatched root, uppercase digest, traversal path, or input beyond 32,768 bytes publishes nothing. The current physical compiler closure has fifty-one modules, 209 imports, and 18,559 canonical bytes. The packaged executable reproduces its stage-0 identity in 14,891,915 transitions. Sixty-four is still deliberately smaller than the 10,000-module schema. Pretending otherwise would merely give the graph a fake moustache too.
+Expected behavior: Empty-import one-module, two-external one-module, and three-, five-, nine-, and seventeen-module rooted DAG closures reproduce stage 0. A cycle, unreachable module, duplicate path, sixty-fifth module or external, unsorted external, unbound import, mismatched root, uppercase digest, traversal path, or input beyond 32,768 bytes publishes nothing. The current physical compiler closure has fifty-two modules, 218 imports, and 19,106 canonical bytes. The packaged executable reproduces its stage-0 identity in 15,626,960 transitions. Sixty-four is still deliberately smaller than the 10,000-module schema. Pretending otherwise would merely give the graph a fake moustache too.
 
 ### `NativeCompilerLimitsIdentity.w`
 
@@ -455,9 +455,10 @@ Source: [`ReversibleResult.w`](../../wheeler-examples/src/main/wheeler/classical
 Covers: A signed `return -1;` relation, the implicit caller-owned result slot, dedicated
 call and return instructions, and one generated-inverse certificate. Core conformance
 also commits VM history between the forward and inverse call. The Wheeler-native
-interpreter executes forward and inverse call forms and checks restored vacancy against
-the Java VM. The inverse checks `Holding(-1)` instead of asking the debugger what
-happened.
+compiler emits the same constant-return helper, adjacent slot locals, generated bodies,
+and proof bytes as stage 0. The Wheeler-native interpreter executes forward and inverse
+call forms and checks restored vacancy against the Java VM. The inverse checks
+`Holding(-1)` instead of asking the debugger what happened.
 
 Expected result: `observed = -1`.
 

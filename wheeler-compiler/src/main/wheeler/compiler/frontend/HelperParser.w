@@ -95,7 +95,7 @@ classical class HelperParser {
     long helperKind
   ) {
     ProofHeader absent = new ProofHeader(entryStart, -1, 0);
-    if (helperKind == HELPER_REVERSIBLE) {} else {
+    if (reversibleHelper(helperKind)) {} else {
       return absent;
     }
 
@@ -177,7 +177,11 @@ classical class HelperParser {
         if (helperKind == HELPER_VOID) {
           helperKind = HELPER_SIGNED;
         } else {
-          return new MinimalProgramResult.Error(0);
+          if (helperKind == HELPER_REVERSIBLE) {
+            helperKind = HELPER_REVERSIBLE_SIGNED;
+          } else {
+            return new MinimalProgramResult.Error(0);
+          }
         }
       } else {
         if (helperType == TOKEN_BOOLEAN) {

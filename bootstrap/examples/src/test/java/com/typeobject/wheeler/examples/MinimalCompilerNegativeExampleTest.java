@@ -160,6 +160,39 @@ class MinimalCompilerNegativeExampleTest {
         512);
     assertTrapWithoutOutput(signedLocalAsBooleanResult, 512);
 
+    VirtualMachine reversibleBooleanResult = new VirtualMachine(
+        writerProgram,
+        ("classical class ReversibleBooleanResult { "
+                + "rev boolean ready() { return true; } entry void main() { } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertTrapWithoutOutput(reversibleBooleanResult, 512);
+
+    VirtualMachine reversibleComputedResult = new VirtualMachine(
+        writerProgram,
+        ("classical class ReversibleComputedResult { "
+                + "rev long answer() { return 1 + 2; } entry void main() { } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertTrapWithoutOutput(reversibleComputedResult, 512);
+
+    VirtualMachine reversibleResultPrelude = new VirtualMachine(
+        writerProgram,
+        ("classical class ReversibleResultPrelude { "
+                + "rev long answer() { long value = 1; return value; } "
+                + "entry void main() { long result = answer(); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertTrapWithoutOutput(reversibleResultPrelude, 512);
+
+    VirtualMachine repeatedReversibleResult = new VirtualMachine(
+        writerProgram,
+        ("classical class RepeatedReversibleResult { "
+                + "rev long answer() { return 1; } entry void main() { "
+                + "long first = answer(); long second = answer(); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        1024);
+    assertTrapWithoutOutput(repeatedReversibleResult, 1024);
   }
 
   @Test

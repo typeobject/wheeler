@@ -3,6 +3,7 @@ package com.typeobject.wheeler.examples;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
@@ -15,6 +16,22 @@ import org.junit.jupiter.api.Test;
 
 /** Differential tests for bounded scalar helper parameters and results. */
 class MinimalCompilerResultExampleTest {
+  @Test
+  void compilesReversibleSignedResultSlots() throws Exception {
+    Program writerProgram = CompilerSources.minimalCompilerProgram();
+
+    Program artifact = assertDifferentialHalt(
+        writerProgram,
+        "classical class ReversibleResult { const long RESULT = -1; "
+            + "rev long minusOne() { return RESULT; } "
+            + "theorem minusOneInverse proves inverse(minusOne); "
+            + "entry void main() { long value = minusOne(); assert(value == -1); } }");
+
+    assertTrue(artifact.function(0).implicitResultSlot());
+    assertEquals(artifact.function(0).forward(), artifact.function(0).inverse());
+    assertEquals(1, artifact.proofCertificates().size());
+  }
+
   @Test
   void compilesSignedHelperResultsAndCheckedArithmetic() throws Exception {
     Program writerProgram = CompilerSources.minimalCompilerProgram();
@@ -408,15 +425,17 @@ class MinimalCompilerResultExampleTest {
             + "entry void main() { long answer = mask(47, 58); assert(answer == 42); } }");
   }
 
-  private static void assertDifferentialHalt(Program writerProgram, String source) {
+  private static Program assertDifferentialHalt(Program writerProgram, String source) {
     VirtualMachine writer = writer(writerProgram, source);
     runWriter(writer, writerProgram);
     byte[] expected = new WheelerCompiler().compileToBytecode(source);
+    assertEquals(expected.length, writer.hostOutput().length);
     assertArrayEquals(expected, writer.hostOutput());
-
-    VirtualMachine artifact = new VirtualMachine(new BytecodeReader().read(writer.hostOutput()));
+    Program artifactProgram = new BytecodeReader().read(writer.hostOutput());
+    VirtualMachine artifact = new VirtualMachine(artifactProgram);
     artifact.run();
     assertEquals(MachineStatus.HALTED, artifact.status());
+    return artifactProgram;
   }
 
   private static void assertDifferentialTrap(Program writerProgram, String source) {

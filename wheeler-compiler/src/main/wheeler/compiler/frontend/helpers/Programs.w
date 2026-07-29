@@ -56,6 +56,30 @@ classical class HelperPrograms {
     return returnLocalPairStatement(opcode);
   }
 
+  private boolean resultSlotEntryValid(StatementSequence sequence) {
+    if (0 < sequence.count) {} else {
+      return false;
+    }
+
+    if (sequence.opcodes[0] == STATEMENT_LOCAL_CALL_NAMED) {} else {
+      return false;
+    }
+
+    long statement = 1;
+    while (statement < sequence.count) limit MAX_MINIMAL_STATEMENTS {
+      if (
+        sequence.opcodes[statement] == STATEMENT_ASSERT_LOCAL_LONG_BASE
+          + RESULT_SLOT_LOGICAL_RESULT_LOCAL
+      ) {} else {
+        return false;
+      }
+
+      statement += 1;
+    }
+
+    return true;
+  }
+
   private boolean entryCallsMatchHelper(StatementSequence sequence, long helperKind) {
     long statement = 0;
     while (statement < sequence.count) limit MAX_MINIMAL_STATEMENTS {
@@ -271,6 +295,16 @@ classical class HelperPrograms {
       }
     }
 
+    if (resultSlotHelper(helperKind)) {
+      if (helperSequence.count == 1) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+
+      if (helperSequence.opcodes[0] == STATEMENT_RETURN_LONG) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+    }
+
     long entryCount = 0;
     long preReverseCount = 0;
     if (0 < resultEntryCount) {
@@ -306,6 +340,12 @@ classical class HelperPrograms {
 
     if (HELPER_REVERSIBLE < helperKind) {
       if (entryCallsMatchHelper(entrySequence, helperKind) == false) {
+        return new MinimalProgramResult.Error(0);
+      }
+    }
+
+    if (resultSlotHelper(helperKind)) {
+      if (resultSlotEntryValid(entrySequence)) {} else {
         return new MinimalProgramResult.Error(0);
       }
     }
