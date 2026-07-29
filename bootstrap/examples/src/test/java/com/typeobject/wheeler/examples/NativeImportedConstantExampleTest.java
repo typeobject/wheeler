@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -47,6 +48,34 @@ class NativeImportedConstantExampleTest {
     VirtualMachine program = new VirtualMachine(new BytecodeReader().read(artifact));
     program.run();
     assertEquals(84, program.global("outcome"));
+  }
+
+  @Test
+  void linksTwoDistinctConstantModulesIndependentOfInputOrder() throws Exception {
+    Program compiler = program();
+    String first = "module examples.alpha; classical class Alpha { "
+        + "private const long BASE = 20; public const long LEFT = BASE + 1; }";
+    String second = "module examples.beta; classical class Beta { "
+        + "public const long RIGHT = 21; public const boolean READY = RIGHT == 21; }";
+    String root = "module examples.root; import examples.alpha; import examples.beta; "
+        + "classical class ImportedPair { state long outcome = 0; entry void main() { "
+        + "long left = examples.alpha::LEFT; long right = RIGHT; long sum = left + right; "
+        + "boolean ready = examples.beta::READY; outcome = sum; assert(ready); "
+        + "assert(outcome == 42); } }";
+
+    byte[] artifact = compileNative(compiler, List.of(first, second), root);
+    assertArrayEquals(artifact, compileNative(compiler, List.of(second, first), root));
+    Map<String, String> sources = new LinkedHashMap<>();
+    sources.put("Alpha.w", first);
+    sources.put("Beta.w", second);
+    sources.put("Root.w", root);
+    assertArrayEquals(
+        new BytecodeWriter().write(
+            new WheelerCompiler().compileModuleFiles(sources, "examples.root")),
+        artifact);
+    VirtualMachine program = new VirtualMachine(new BytecodeReader().read(artifact));
+    program.run();
+    assertEquals(42, program.global("outcome"));
   }
 
   @Test
@@ -101,6 +130,21 @@ class NativeImportedConstantExampleTest {
         "module examples.constants; classical class Constants { "
             + "public const long ANSWER = 42; }",
         root + " /* café */");
+    String firstCollision = "module examples.alpha; classical class Alpha { "
+        + "public const long VALUE = 1; }";
+    String secondCollision = "module examples.beta; classical class Beta { "
+        + "public const long VALUE = 2; }";
+    String collisionRoot = "module examples.root; import examples.alpha; "
+        + "import examples.beta; classical class Root { entry void main() { "
+        + "long first = examples.alpha::VALUE; long second = examples.beta::VALUE; } }";
+    assertNativeTrap(
+        compiler,
+        List.of(firstCollision, secondCollision),
+        collisionRoot);
+    assertNativeTrap(
+        compiler,
+        List.of(firstCollision, secondCollision, secondCollision),
+        collisionRoot);
   }
 
   private static Program program() throws Exception {
@@ -111,21 +155,40 @@ class NativeImportedConstantExampleTest {
         modules, "examples.compiler.native_module_compiler");
   }
 
-  private static byte[] frame(String imported, String root) {
-    byte[] importedBytes = imported.getBytes(StandardCharsets.UTF_8);
+  private static byte[] frame(List<String> imported, String root) {
+    List<byte[]> importedBytes = imported.stream()
+        .map(source -> source.getBytes(StandardCharsets.UTF_8))
+        .toList();
     byte[] rootBytes = root.getBytes(StandardCharsets.UTF_8);
-    byte[] frame = new byte[4 + importedBytes.length + rootBytes.length];
-    int length = importedBytes.length;
-    frame[0] = (byte) length;
-    frame[1] = (byte) (length >>> 8);
-    frame[2] = (byte) (length >>> 16);
-    frame[3] = (byte) (length >>> 24);
-    System.arraycopy(importedBytes, 0, frame, 4, importedBytes.length);
-    System.arraycopy(rootBytes, 0, frame, 4 + importedBytes.length, rootBytes.length);
+    int length = 4 + rootBytes.length;
+    for (byte[] source : importedBytes) {
+      length += 4 + source.length;
+    }
+    byte[] frame = new byte[length];
+    int cursor = writeU32(frame, 0, importedBytes.size());
+    for (byte[] source : importedBytes) {
+      cursor = writeU32(frame, cursor, source.length);
+      System.arraycopy(source, 0, frame, cursor, source.length);
+      cursor += source.length;
+    }
+    System.arraycopy(rootBytes, 0, frame, cursor, rootBytes.length);
     return frame;
   }
 
+  private static int writeU32(byte[] output, int offset, int value) {
+    output[offset] = (byte) value;
+    output[offset + 1] = (byte) (value >>> 8);
+    output[offset + 2] = (byte) (value >>> 16);
+    output[offset + 3] = (byte) (value >>> 24);
+    return offset + 4;
+  }
+
   private static byte[] compileNative(Program compiler, String imported, String root) {
+    return compileNative(compiler, List.of(imported), root);
+  }
+
+  private static byte[] compileNative(
+      Program compiler, List<String> imported, String root) {
     VirtualMachine writer = VirtualMachine.withBinaryInput(
         compiler, frame(imported, root), OUTPUT_CAPACITY);
     CompilerMachineRunner.runWithoutRewindHistory(writer);
@@ -134,6 +197,11 @@ class NativeImportedConstantExampleTest {
   }
 
   private static void assertNativeTrap(Program compiler, String imported, String root) {
+    assertNativeTrap(compiler, List.of(imported), root);
+  }
+
+  private static void assertNativeTrap(
+      Program compiler, List<String> imported, String root) {
     VirtualMachine writer = VirtualMachine.withBinaryInput(
         compiler, frame(imported, root), OUTPUT_CAPACITY);
     assertThrows(

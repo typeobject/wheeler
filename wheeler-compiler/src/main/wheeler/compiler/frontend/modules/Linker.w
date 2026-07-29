@@ -126,41 +126,59 @@ classical class ModuleLinker {
     return true;
   }
 
-  private boolean directImportRange(
-    borrow utf8 source,
-    borrow mut words tokenKinds,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    long bodyStart,
-    borrow mut words importRange
+  private boolean selectedImportRange(
+    borrow utf8 importedSource,
+    long moduleStart,
+    long moduleLength,
+    borrow utf8 rootSource,
+    borrow mut words rootKinds,
+    borrow mut words rootStarts,
+    borrow mut words rootLengths,
+    long rootBody,
+    long expectedImportCount
   ) {
     long cursor = 0;
     long importCount = 0;
-    while (cursor < bodyStart) limit MAX_COMPILER_TOKENS {
-      if (tokenHash(source, tokenStarts, tokenLengths, cursor) == TOKEN_IMPORT) {
+    long selectedCount = 0;
+    while (cursor < rootBody) limit MAX_COMPILER_TOKENS {
+      if (tokenHash(rootSource, rootStarts, rootLengths, cursor) == TOKEN_IMPORT) {
         importCount += 1;
-        if (importCount == 1) {
-          long name = cursor + 1;
-          long semicolon = name;
-          while (semicolon < bodyStart) limit MAX_QUALIFIED_NAME_TOKENS {
+        long name = cursor + 1;
+        long semicolon = name;
+        while (semicolon < rootBody) limit MAX_QUALIFIED_NAME_TOKENS {
+          if (
+            punctuationAt(rootSource, rootKinds, rootStarts, semicolon, PUNCTUATION_SEMICOLON)
+          ) {
+            long nameLength = rootStarts[semicolon] - rootStarts[name];
             if (
-              punctuationAt(source, tokenKinds, tokenStarts, semicolon, PUNCTUATION_SEMICOLON)
+              rangesEqual(
+                importedSource,
+                moduleStart,
+                moduleLength,
+                rootSource,
+                rootStarts[name],
+                nameLength
+              )
             ) {
-              set(importRange, 0, tokenStarts[name]);
-              set(importRange, 1, tokenStarts[semicolon] - tokenStarts[name]);
-              cursor = semicolon;
-              break;
+              selectedCount += 1;
             }
 
-            semicolon += 1;
+            cursor = semicolon;
+            break;
           }
+
+          semicolon += 1;
         }
       }
 
       cursor += 1;
     }
 
-    return importCount == 1;
+    if (importCount == expectedImportCount) {
+      return selectedCount == 1;
+    }
+
+    return false;
   }
 
   private boolean rangesEqual(
@@ -377,12 +395,13 @@ classical class ModuleLinker {
     return declaration == memberStart;
   }
 
-  /// Plans one direct public-constant import without mutating caller output.
-  public LinkPlan planSinglePublicConstantImport(
+  /// Plans one selected direct constant import without mutating caller output.
+  public LinkPlan planConstantImport(
     borrow utf8 importedSource,
-    borrow utf8 rootSource
+    borrow utf8 rootSource,
+    long expectedImportCount
   ) {
-    region scratch = new region(/* bytes= */ 50000, /* allocations= */ 9);
+    region scratch = new region(/* bytes= */ 50000, /* allocations= */ 8);
     words importedKinds = allocate(scratch, MAX_COMPILER_TOKENS);
     words importedStarts = allocate(scratch, MAX_COMPILER_TOKENS);
     words importedLengths = allocate(scratch, MAX_COMPILER_TOKENS);
@@ -391,7 +410,6 @@ classical class ModuleLinker {
     words rootLengths = allocate(scratch, MAX_COMPILER_TOKENS);
     words importedModule = allocate(scratch, 2);
     words rootModule = allocate(scratch, 2);
-    words rootImport = allocate(scratch, 2);
     long importedCount = scanSemanticTokens(
       importedSource,
       importedKinds,
@@ -450,24 +468,17 @@ classical class ModuleLinker {
 
             if (prefixes) {
               if (0 < importedModule[1]) {
-                boolean direct = directImportRange(
+                boolean direct = selectedImportRange(
+                  importedSource,
+                  importedModule[0],
+                  importedModule[1],
                   rootSource,
                   rootKinds,
                   rootStarts,
                   rootLengths,
                   rootBody,
-                  rootImport
+                  expectedImportCount
                 );
-                if (direct) {
-                  direct = rangesEqual(
-                    importedSource,
-                    importedModule[0],
-                    importedModule[1],
-                    rootSource,
-                    rootImport[0],
-                    rootImport[1]
-                  );
-                }
 
                 if (direct) {
                   long firstDeclaration = importedBody + 4;
@@ -554,7 +565,6 @@ classical class ModuleLinker {
       }
     }
 
-    drop(rootImport);
     drop(rootModule);
     drop(importedModule);
     drop(rootLengths);
@@ -620,7 +630,7 @@ classical class ModuleLinker {
   }
 
   /// Writes one previously validated synthetic source into exact caller storage.
-  public long writeSinglePublicConstantImport(
+  public long writeConstantImport(
     borrow utf8 importedSource,
     borrow utf8 rootSource,
     LinkPlan plan,

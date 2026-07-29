@@ -647,30 +647,79 @@ classical class CompilerDriver {
     return new Compilation(finalCursor, codeOffset);
   }
 
-  /// Compiles one root with one direct public-constant module.
-  public Compilation compileMinimalWithPublicConstantImport(
+  /// Compiles one root with one direct scalar-constant module.
+  public Compilation compileMinimalWithConstantImport(
     borrow utf8 importedSource,
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    LinkPlan plan = planSinglePublicConstantImport(importedSource, rootSource);
+    LinkPlan plan = planConstantImport(importedSource, rootSource, /* expectedImportCount= */ 1);
     if (plan.valid) {} else {
       assert(0 == 1);
     }
 
     region linkedArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
     bytes linkedBytes = allocateBytes(linkedArena, plan.linkedLength);
-    long written = writeSinglePublicConstantImport(
-      importedSource,
-      rootSource,
-      plan,
-      linkedBytes
-    );
+    long written = writeConstantImport(importedSource, rootSource, plan, linkedBytes);
     assert(written == plan.linkedLength);
     utf8 linkedSource = freezeUtf8(linkedBytes);
     Compilation compiled = compileMinimal(linkedSource, output);
     drop(linkedSource);
     drop(linkedArena);
+    return compiled;
+  }
+
+  /// Compiles one root with two distinct direct scalar-constant modules.
+  public Compilation compileMinimalWithConstantImports(
+    borrow utf8 firstImportedSource,
+    borrow utf8 secondImportedSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    LinkPlan firstPlan = planConstantImport(
+      firstImportedSource,
+      rootSource,
+      /* expectedImportCount= */ 2
+    );
+    if (firstPlan.valid) {} else {
+      assert(0 == 1);
+    }
+
+    region firstArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes firstBytes = allocateBytes(firstArena, firstPlan.linkedLength);
+    long firstWritten = writeConstantImport(
+      firstImportedSource,
+      rootSource,
+      firstPlan,
+      firstBytes
+    );
+    assert(firstWritten == firstPlan.linkedLength);
+    utf8 firstLinkedSource = freezeUtf8(firstBytes);
+
+    LinkPlan secondPlan = planConstantImport(
+      secondImportedSource,
+      firstLinkedSource,
+      /* expectedImportCount= */ 2
+    );
+    if (secondPlan.valid) {} else {
+      assert(0 == 1);
+    }
+
+    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes secondBytes = allocateBytes(secondArena, secondPlan.linkedLength);
+    long secondWritten = writeConstantImport(
+      secondImportedSource,
+      firstLinkedSource,
+      secondPlan,
+      secondBytes
+    );
+    assert(secondWritten == secondPlan.linkedLength);
+    utf8 secondLinkedSource = freezeUtf8(secondBytes);
+    Compilation compiled = compileMinimal(secondLinkedSource, output);
+    drop(secondLinkedSource);
+    drop(secondArena);
+    drop(firstLinkedSource);
+    drop(firstArena);
     return compiled;
   }
 }
