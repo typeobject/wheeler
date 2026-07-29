@@ -69,6 +69,21 @@ class ReversibleResultSlotSourceTest {
   }
 
   @Test
+  void passesOneSignedParameterBesideTheResultSlot() {
+    String source = "classical class ParameterResult { rev long answer(long ignored) { "
+        + "return -1; } entry void main() { long value = answer(42); "
+        + "assert(value == -1); } }";
+    Program program = new WheelerCompiler().compile(source);
+    VirtualMachine machine = new VirtualMachine(program);
+
+    machine.run();
+
+    assertEquals(MachineStatus.HALTED, machine.status());
+    assertEquals(1, program.function(0).parameterCount());
+    assertTrue(program.function(0).implicitResultSlot());
+  }
+
+  @Test
   void rejectsResultsOutsideTheFirstClosedProfile() {
     WheelerCompiler compiler = new WheelerCompiler();
     CompilerException booleanResult = assertThrows(
@@ -83,9 +98,14 @@ class ReversibleResultSlotSourceTest {
         CompilerException.class,
         () -> compiler.compile("classical class Bad { state long value = 0; "
             + "rev long answer() { value = 1; return -1; } entry void main() {} }"));
+    CompilerException voidParameter = assertThrows(
+        CompilerException.class,
+        () -> compiler.compile("classical class Bad { rev void step(long value) {} "
+            + "entry void main() {} }"));
 
     assertTrue(booleanResult.getMessage().contains("first reversible result-slot profile"));
     assertTrue(computedResult.getMessage().contains("return one signed constant"));
     assertTrue(erasingBody.getMessage().contains("return one signed constant"));
+    assertTrue(voidParameter.getMessage().contains("reversible void parameters"));
   }
 }

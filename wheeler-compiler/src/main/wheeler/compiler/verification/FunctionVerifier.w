@@ -245,8 +245,10 @@ classical class FunctionVerifier {
       }
 
       if (reversibleDescriptor) {
-        if (differs(parameterCount, 0)) {
-          return 0;
+        if (flags == 1) {
+          if (differs(parameterCount, 0)) {
+            return 0;
+          }
         }
 
         if (differs(inverseOffset, forwardOffset + forwardLength)) {
@@ -292,7 +294,7 @@ classical class FunctionVerifier {
       long resultSlotBody = 0;
       if (flags == 13) {
         resultSlotBody = 1;
-        if (1 < localCount) {} else {
+        if (parameterCount + 1 < localCount) {} else {
           return 0;
         }
 

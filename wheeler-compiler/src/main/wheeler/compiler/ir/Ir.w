@@ -25,6 +25,8 @@ classical class CompilerIr {
   public const long HELPER_BOOLEAN_SIGNED_TWO = 9;
   /// Names a zero-argument reversible signed result-slot helper.
   public const long HELPER_REVERSIBLE_SIGNED = 10;
+  /// Names a one-parameter reversible signed result-slot helper.
+  public const long HELPER_REVERSIBLE_SIGNED_ONE = 11;
   /// Names the canonical reversible signed-result function flags.
   public const long RESULT_SLOT_FUNCTION_FLAGS = 13;
   /// Names the adjacent result-slot tag and payload locals.
@@ -81,6 +83,10 @@ classical class CompilerIr {
       return 1;
     }
 
+    if (helperKind == HELPER_REVERSIBLE_SIGNED_ONE) {
+      return 1;
+    }
+
     if (helperKind == HELPER_SIGNED_TWO) {
       return 2;
     }
@@ -102,12 +108,20 @@ classical class CompilerIr {
       return true;
     }
 
-    return helperKind == HELPER_REVERSIBLE_SIGNED;
+    if (helperKind == HELPER_REVERSIBLE_SIGNED) {
+      return true;
+    }
+
+    return helperKind == HELPER_REVERSIBLE_SIGNED_ONE;
   }
 
   /// Checks whether one helper uses the reversible result-slot ABI.
   public boolean resultSlotHelper(long helperKind) {
-    return helperKind == HELPER_REVERSIBLE_SIGNED;
+    if (helperKind == HELPER_REVERSIBLE_SIGNED) {
+      return true;
+    }
+
+    return helperKind == HELPER_REVERSIBLE_SIGNED_ONE;
   }
 
   /// Checks whether one helper returns a Boolean value.

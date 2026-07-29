@@ -2,6 +2,7 @@
 
 module wheeler.compiler.program_codegen;
 
+import wheeler.compiler.call_forms;
 import wheeler.compiler.codegen;
 import wheeler.compiler.encoding;
 import wheeler.compiler.ir;
@@ -22,16 +23,24 @@ classical class ProgramCodegen {
   private const long RESULT_VALUE_OFFSET = 2;
   private const long RESULT_SLOT_ENTRY_LOCALS = 3;
   private const long RESULT_SLOT_ENTRY_CODE_LENGTH = 112;
-  private const long RESULT_SLOT_ENTRY_INSTRUCTIONS = 4;
   private const long RESULT_SLOT_FUNCTION = 0;
   private const long RESULT_SLOT_ARGUMENT_BASE = 0;
   private const long RESULT_SLOT_ARGUMENT_COUNT = 0;
+  private const long RESULT_SLOT_ONE_ARGUMENT_LOCALS = 5;
+  private const long RESULT_SLOT_ONE_ARGUMENT_CODE_LENGTH = 160;
   private const long MAX_HELPER_CALLS = 2;
-  private const long LOGICAL_RESULT_CALL_LOCALS = 2;
   private const long LOGICAL_ASSERTION_LOCALS = 3;
 
   private boolean resultCall(long opcode) {
-    return opcode == STATEMENT_LOCAL_CALL_NAMED;
+    if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED;
   }
 
   private long resultSlotsBeforeSource(long[64] opcodes, long statement, long source) {
@@ -44,7 +53,7 @@ classical class ProgramCodegen {
           resultSlots += 1;
         }
 
-        logicalBase += LOGICAL_RESULT_CALL_LOCALS;
+        logicalBase += statementLocalCount(opcodes[prior]);
       } else {
         logicalBase += LOGICAL_ASSERTION_LOCALS;
       }
@@ -96,8 +105,12 @@ classical class ProgramCodegen {
 
   /// Returns the local width for one result-slot entry statement.
   public long resultSlotEntryLocalCount(long opcode) {
-    if (resultCall(opcode)) {
+    if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
       return RESULT_SLOT_ENTRY_LOCALS;
+    }
+
+    if (resultCall(opcode)) {
+      return RESULT_SLOT_ONE_ARGUMENT_LOCALS;
     }
 
     return statementLocalCount(opcode);
@@ -105,8 +118,12 @@ classical class ProgramCodegen {
 
   /// Returns the encoded width for one result-slot entry statement.
   public long resultSlotEntryCodeLength(long opcode) {
-    if (resultCall(opcode)) {
+    if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
       return RESULT_SLOT_ENTRY_CODE_LENGTH;
+    }
+
+    if (resultCall(opcode)) {
+      return RESULT_SLOT_ONE_ARGUMENT_CODE_LENGTH;
     }
 
     return statementCodeLength(opcode);
@@ -115,24 +132,36 @@ classical class ProgramCodegen {
   /// Returns the instruction width for one result-slot entry statement.
   public long resultSlotEntryInstructionCount(long opcode) {
     if (resultCall(opcode)) {
-      return RESULT_SLOT_ENTRY_INSTRUCTIONS;
+      return statementInstructionCount(opcode) + 2;
     }
 
     return statementInstructionCount(opcode);
   }
 
   /// Writes one reversible constant-result body.
-  public long writeResultSlotBody(borrow mut bytes output, long cursor, long value) {
+  public long writeResultSlotBody(
+    borrow mut bytes output,
+    long cursor,
+    long resultSlot,
+    long value
+  ) {
     cursor = writeInstructionHeader(output, cursor, OPCODE_RESULT_FILL_CONSTANT, FORM_BINARY);
-    cursor = writeUnsignedLittleEndian(output, cursor, RESULT_SLOT_TAG_OFFSET, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, resultSlot, U64);
     cursor = writeSignedLittleEndian(output, cursor, value, U64);
     cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN_RESULT_SLOT, FORM_UNARY);
-    return writeUnsignedLittleEndian(output, cursor, RESULT_SLOT_TAG_OFFSET, U64);
+    return writeUnsignedLittleEndian(output, cursor, resultSlot, U64);
   }
 
   /// Writes local types for one result-slot entry statement.
   public long writeResultSlotEntryLocalTypes(borrow mut bytes output, long cursor, long opcode) {
     if (resultCall(opcode)) {
+      long argumentLocal = statementLocalCount(opcode) - 2;
+      long argumentIndex = 0;
+      while (argumentIndex < argumentLocal) limit 2 {
+        cursor = writeSignedLocalType(output, cursor);
+        argumentIndex += 1;
+      }
+
       cursor = writeBooleanLocalType(output, cursor);
       cursor = writeSignedLocalType(output, cursor);
       return writeSignedLocalType(output, cursor);
@@ -141,29 +170,66 @@ classical class ProgramCodegen {
     return writeStatementLocalTypes(output, cursor, opcode);
   }
 
-  private long writeResultCall(borrow mut bytes output, long cursor, long localBase) {
+  private long writeResultCall(
+    borrow mut bytes output,
+    long cursor,
+    long[64] opcodes,
+    long statement,
+    long opcode,
+    long operand,
+    long localBase
+  ) {
+    long argumentBase = RESULT_SLOT_ARGUMENT_BASE;
+    long argumentCount = RESULT_SLOT_ARGUMENT_COUNT;
+    long resultSlot = localBase;
+    long resultValue = localBase + RESULT_VALUE_OFFSET;
+    if (opcode == STATEMENT_LOCAL_CALL_NAMED) {} else {
+      if (oneArgumentCallNamed(opcode)) {
+        cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+        cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+        cursor = writeUnsignedLittleEndian(
+          output,
+          cursor,
+          physicalResultSlotSource(opcodes, statement, operand),
+          U64
+        );
+      } else {
+        cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
+        cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+        cursor = writeSignedLittleEndian(output, cursor, operand, U64);
+      }
+
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      argumentBase = localBase + 1;
+      argumentCount = 1;
+      resultSlot = localBase + 2;
+      resultValue = localBase + 4;
+    }
+
     cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
-    cursor = writeUnsignedLittleEndian(output, cursor, localBase + RESULT_SLOT_TAG_OFFSET, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, resultSlot + RESULT_SLOT_TAG_OFFSET, U64);
     cursor = writeSignedLittleEndian(output, cursor, /* value= */ 0, U64);
     cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
     cursor = writeUnsignedLittleEndian(
       output,
       cursor,
-      localBase + RESULT_SLOT_PAYLOAD_OFFSET,
+      resultSlot + RESULT_SLOT_PAYLOAD_OFFSET,
       U64
     );
     cursor = writeSignedLittleEndian(output, cursor, /* value= */ 0, U64);
     cursor = writeInstructionHeader(output, cursor, OPCODE_CALL_RESULT_SLOT, FORM_QUATERNARY);
     cursor = writeUnsignedLittleEndian(output, cursor, RESULT_SLOT_FUNCTION, U64);
-    cursor = writeUnsignedLittleEndian(output, cursor, RESULT_SLOT_ARGUMENT_BASE, U64);
-    cursor = writeUnsignedLittleEndian(output, cursor, RESULT_SLOT_ARGUMENT_COUNT, U64);
-    cursor = writeUnsignedLittleEndian(output, cursor, localBase + RESULT_SLOT_TAG_OFFSET, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, argumentBase, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, argumentCount, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, resultSlot, U64);
     cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-    cursor = writeUnsignedLittleEndian(output, cursor, localBase + RESULT_VALUE_OFFSET, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, resultValue, U64);
     return writeUnsignedLittleEndian(
       output,
       cursor,
-      localBase + RESULT_SLOT_PAYLOAD_OFFSET,
+      resultSlot + RESULT_SLOT_PAYLOAD_OFFSET,
       U64
     );
   }
@@ -183,7 +249,15 @@ classical class ProgramCodegen {
     while (statement < count) limit MAX_MINIMAL_STATEMENTS {
       long opcode = opcodes[statement];
       if (resultCall(opcode)) {
-        cursor = writeResultCall(output, cursor, localBase);
+        cursor = writeResultCall(
+          output,
+          cursor,
+          opcodes,
+          statement,
+          opcode,
+          operands[statement],
+          localBase
+        );
       } else {
         cursor = writeStatement(
           output,
@@ -268,8 +342,8 @@ classical class ProgramCodegen {
     boolean resultSlotProgram
   ) {
     if (resultSlotProgram) {
-      cursor = writeResultSlotBody(output, cursor, program.helperOperands[0]);
-      return writeResultSlotBody(output, cursor, program.helperOperands[0]);
+      cursor = writeResultSlotBody(output, cursor, helperLocalBase, program.helperOperands[0]);
+      return writeResultSlotBody(output, cursor, helperLocalBase, program.helperOperands[0]);
     }
 
     if (program.helperKind == HELPER_REVERSIBLE) {

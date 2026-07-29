@@ -277,7 +277,7 @@ classical class CompilerDriver {
     }
 
     if (resultSlotProgram) {
-      helperLocalCount = RESULT_SLOT_LOCAL_COUNT;
+      helperLocalCount = helperParameterCount + RESULT_SLOT_LOCAL_COUNT;
       helperForwardLength = RESULT_SLOT_BODY_LENGTH;
       helperInverseLength = RESULT_SLOT_BODY_LENGTH;
       helperInverseOffset = RESULT_SLOT_BODY_LENGTH;

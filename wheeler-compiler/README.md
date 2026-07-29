@@ -65,8 +65,8 @@ until native differential artifacts pin them down.
 The canonical registry also owns `CALL_RESULT_SLOT`, `UNCALL_RESULT_SLOT`,
 `RESULT_FILL_CONSTANT`, and `RETURN_RESULT_SLOT`. The Wheeler verifier accepts the first
 canonical signed result-slot descriptor and generated-inverse proof. The native compiler
-lowers a zero-argument `rev long` helper that returns one signed literal or evaluated
-constant. Its entry interleaves one or more result calls with signed checks against
+lowers a `rev long` helper with zero or one signed parameter that returns one signed
+literal or evaluated constant. Its entry interleaves one or more result calls with signed checks against
 literals, constants, or other results already produced. The emitted function flags, adjacent slot locals, forward
 and inverse bodies, call, return, and proof bytes match stage 0 exactly. The bounded
 Wheeler interpreter executes both call directions against the same artifact. A committed

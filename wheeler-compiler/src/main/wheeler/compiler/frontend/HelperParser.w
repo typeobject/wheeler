@@ -265,6 +265,22 @@ classical class HelperParser {
       }
     }
 
+    if (helperKind == HELPER_REVERSIBLE_SIGNED) {
+      if (tokenHash(source, tokenStarts, tokenLengths, closeParameters) == TOKEN_LONG) {
+        parameterToken = nameToken + 3;
+        if (tokenKinds[parameterToken] == 1) {} else {
+          return new MinimalProgramResult.Error(0);
+        }
+
+        if (tokenLengths[parameterToken] < 257) {} else {
+          return new MinimalProgramResult.Error(0);
+        }
+
+        closeParameters = nameToken + 4;
+        helperKind = HELPER_REVERSIBLE_SIGNED_ONE;
+      }
+    }
+
     if (helperKind == HELPER_BOOLEAN) {
       long booleanParameterType = tokenHash(source, tokenStarts, tokenLengths, closeParameters);
       boolean booleanParameter = booleanParameterType == TOKEN_BOOLEAN;

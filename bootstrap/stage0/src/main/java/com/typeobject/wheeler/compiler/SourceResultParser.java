@@ -20,8 +20,8 @@ final class SourceResultParser {
       SourceTokenCursor.fail(
           start, "coherent and unitary parameters and returns are not yet available");
     }
-    if (reversible && hasParameters) {
-      SourceTokenCursor.fail(start, "reversible parameters are not yet available");
+    if (reversible && !returnsValue && hasParameters) {
+      SourceTokenCursor.fail(start, "reversible void parameters are not yet available");
     }
     if (reversible && returnsValue && !returnType.equals("long")) {
       SourceTokenCursor.fail(start, "the first reversible result-slot profile returns long");

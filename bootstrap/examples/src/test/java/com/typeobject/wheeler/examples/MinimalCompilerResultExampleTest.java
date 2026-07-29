@@ -37,6 +37,12 @@ class MinimalCompilerResultExampleTest {
             + "entry void main() { long first = answer(); assert(first == -1); "
             + "long second = answer(); assert(second == -1); assert(first == -1); "
             + "assert(first == second); } }");
+
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class ParameterReversibleResult { rev long answer(long ignored) { "
+            + "return -1; } entry void main() { long first = answer(42); "
+            + "long second = answer(first); assert(first == second); } }");
   }
 
   @Test

@@ -4,8 +4,8 @@ classical class ReversibleResult {
 
   /// Exchanges a caller-owned vacant result slot with `Holding(-1)`.
   ///
-  /// - Inverse: Checks the held value and restores exact vacancy.
-  rev long minusOne() {
+  /// - Inverse: Preserves the signed argument, checks the held value, and restores vacancy.
+  rev long minusOne(long witness) {
     return -1;
   }
 
@@ -16,7 +16,7 @@ classical class ReversibleResult {
   ///
   /// - Effects: Publishes the returned signed value in fixture state.
   entry void main() {
-    long value = minusOne();
+    long value = minusOne(7);
     observed = value;
     assert(observed == -1);
   }
