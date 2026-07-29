@@ -4,15 +4,15 @@ packages:
   - name: "wheeler.compiler"
     version: "0.1.0"
     repository: "ee9855ff0d7866533c49b81a7eeb7d1a2cac9d7efbd300c583d29e699516efb0"
-    snapshot: "90e85132499b59387182393a8e1a7b8764c129fb6931af671f2ed9d7deed399f"
-    archive: "90c9c18b89c22f4aec657fe4e18c6e689ad76839a05a13c52d4de153e801baff"
+    snapshot: "54be94d450d2cbb5b81e98e2f3f7ea443fa550d49ea67ca8e2656fc347c389e8"
+    archive: "d2f42b3ef07a203c4f33b4bf03d64cf68121144a983c7c6098a0a60665b0559f"
     manifest: "4ec3aa8cd1b0baca555d8571edc508c022328d4fa94a3a7f23272d032729a13a"
     dependencies:
       - "wheeler.core"
   - name: "wheeler.core"
     version: "0.1.0"
     repository: "ee9855ff0d7866533c49b81a7eeb7d1a2cac9d7efbd300c583d29e699516efb0"
-    snapshot: "90e85132499b59387182393a8e1a7b8764c129fb6931af671f2ed9d7deed399f"
+    snapshot: "54be94d450d2cbb5b81e98e2f3f7ea443fa550d49ea67ca8e2656fc347c389e8"
     archive: "c76e9c671151e011d7e7e277edaa9ecac8d8eed677865a21eaec80d029791f34"
     manifest: "262c8c86b121fb4fd5ba1c1c0297ba1cd2abdb3ac7f01e2b0e914f6daff42f0c"
     dependencies: []

@@ -26,7 +26,6 @@ classical class ProgramCodegen {
   private const long RESULT_SLOT_FUNCTION = 0;
   private const long RESULT_SLOT_ARGUMENT_BASE = 0;
   private const long RESULT_SLOT_ARGUMENT_COUNT = 0;
-  private const long RESULT_SLOT_FIRST_PARAMETER = 0;
   private const long RESULT_SLOT_ONE_ARGUMENT_LOCALS = 5;
   private const long RESULT_SLOT_ONE_ARGUMENT_CODE_LENGTH = 160;
   private const long RESULT_SLOT_TWO_ARGUMENT_LOCALS = 7;
@@ -213,12 +212,13 @@ classical class ProgramCodegen {
     borrow mut bytes output,
     long cursor,
     long resultSlot,
+    long source,
     long operation,
     long immediate
   ) {
     cursor = writeInstructionHeader(output, cursor, OPCODE_RESULT_FILL_BINARY, FORM_QUATERNARY);
     cursor = writeUnsignedLittleEndian(output, cursor, resultSlot, U64);
-    cursor = writeUnsignedLittleEndian(output, cursor, RESULT_SLOT_FIRST_PARAMETER, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, source, U64);
     cursor = writeUnsignedLittleEndian(output, cursor, operation, U64);
     cursor = writeSignedLittleEndian(output, cursor, immediate, U64);
     cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN_RESULT_SLOT, FORM_UNARY);
@@ -480,6 +480,7 @@ classical class ProgramCodegen {
           output,
           cursor,
           helperLocalBase,
+          program.helperSecondaryOperands[0],
           operation,
           program.helperOperands[0]
         );
@@ -487,6 +488,7 @@ classical class ProgramCodegen {
           output,
           cursor,
           helperLocalBase,
+          program.helperSecondaryOperands[0],
           operation,
           program.helperOperands[0]
         );

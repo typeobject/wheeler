@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.examples;
 
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.OPERATION;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.SOURCE;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -85,6 +86,14 @@ class MinimalCompilerResultExampleTest {
             + "theorem computeInverse proves inverse(compute); "
             + "entry void main() { long answer = compute(34); assert(answer == 42); } }");
     assertEquals(1, computedConstant.proofCertificates().size());
+
+    Program computedSecond = assertDifferentialHalt(
+        writerProgram,
+        "classical class ComputedSecondReversibleResult { "
+            + "rev long compute(long ignored, long value) { return value + 8; } "
+            + "entry void main() { long answer = compute(1, 34); "
+            + "assert(answer == 42); } }");
+    assertEquals(1, computedSecond.function(0).forward().getFirst().operand(SOURCE));
 
     assertDifferentialHalt(
         writerProgram,

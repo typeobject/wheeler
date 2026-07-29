@@ -114,21 +114,16 @@ classical class ReturnCodegen {
         returnPairOpcode = OPCODE_LOCAL_AND;
       }
 
-      long rightParameter = 0;
-      if (localBase == 2) {
-        rightParameter = 1;
-      }
-
       long leftCopy = localBase;
       long rightCopy = localBase + 1;
       long result = localBase + 2;
 
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
       cursor = writeUnsignedLittleEndian(output, cursor, leftCopy, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, secondaryOperand, U64);
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
       cursor = writeUnsignedLittleEndian(output, cursor, rightCopy, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, rightParameter, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, operand, U64);
       cursor = writeInstructionHeader(output, cursor, returnPairOpcode, FORM_TERNARY);
       cursor = writeUnsignedLittleEndian(output, cursor, result, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, leftCopy, U64);
@@ -165,7 +160,7 @@ classical class ReturnCodegen {
 
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, secondaryOperand, U64);
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
       cursor = writeSignedLittleEndian(output, cursor, operand, U64);

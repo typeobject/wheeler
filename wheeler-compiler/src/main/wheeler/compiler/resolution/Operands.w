@@ -707,6 +707,18 @@ classical class Operands {
       return parsedSignedNumber(source, tokenStarts, tokenLengths, loopLimit);
     }
 
+    if (returnLocalBinaryStatement(sourceOpcode)) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 1,
+        true
+      );
+    }
+
     ReturnExpressionResolution returnExpression = resolveReturnExpression(
       source,
       tokenStarts,
@@ -717,7 +729,19 @@ classical class Operands {
       sourceOpcode
     );
     if (returnExpression.applies) {
-      if (returnExpression.primaryOperand) {} else {
+      if (returnExpression.primaryOperand) {
+        if (returnLocalPairStatement(sourceOpcode)) {
+          return resolvePriorDeclaration(
+            source,
+            tokenStarts,
+            tokenLengths,
+            previousStarts,
+            previousCount,
+            statementStart + 1,
+            true
+          );
+        }
+      } else {
         if (returnExpression.valid) {
           return returnExpression.rightOperand;
         }

@@ -5,7 +5,7 @@ classical class ReversibleResult {
   /// Exchanges a caller-owned vacant result slot with one checked computed value.
   ///
   /// - Inverse: Checks the held result, preserves the source, and restores exact vacancy.
-  rev long addEight(long value) {
+  rev long addEight(long ignored, long value) {
     return value + 8;
   }
 
@@ -16,7 +16,7 @@ classical class ReversibleResult {
   ///
   /// - Effects: Publishes the returned signed value in fixture state.
   entry void main() {
-    long value = addEight(34);
+    long value = addEight(1, 34);
     observed = value;
     assert(observed == 42);
   }

@@ -671,8 +671,8 @@ operand before touching the slot. Its operation is one of the existing checked s
 
 The Wheeler-native compiler now emits this complete first vertical slice. It accepts one
 `rev long` helper with up to two signed parameters returning a signed literal, evaluated
-constant, preserved signed parameter, or checked operation over the first parameter and a
-literal or evaluated constant. It accepts an optional generated-inverse theorem and entry
+constant, preserved signed parameter, or checked operation over either signed parameter and
+a literal or evaluated constant. It accepts an optional generated-inverse theorem and entry
 result calls interleaved with signed checks against constants or results already produced.
 Differential tests compare the complete artifacts with stage 0 before running them. Boolean
 results, parameter right operands, computed local preludes, and extra body statements still
@@ -749,8 +749,8 @@ diagnostic or trap, and publishes no partial result.
 
 Stage 0 now accepts typed parameters on a `rev long` function whose tail return is a
 signed literal, evaluated class constant, preserved signed parameter, or checked operation
-over the first parameter and a constant right operand. It emits the six regular result-slot
-forms, canonical `0xd` function metadata, and a generated inverse. The Wheeler-native
+over either signed parameter and a constant right operand. It emits the six regular
+result-slot forms, canonical `0xd` function metadata, and a generated inverse. The Wheeler-native
 compiler matches these forms byte for byte for helpers with up to two parameters. The VM
 executes `return -1;`, a preserved copy, and all seven checked binary operations. It commits
 all rewind history, then uncalls each relation back to vacancy. A wrong held value traps

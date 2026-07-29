@@ -391,18 +391,9 @@ classical class HelperPrograms {
       }
 
       if (returnLocalBinaryStatement(slotResultOpcode)) {
-        if (0 < parameterCount) {
-          long binaryStatement = helperStarts[parameterCount];
-          long firstParameterToken = 0 - helperStarts[0];
-          if (
-            sameTokenText(
-              source,
-              tokenStarts,
-              tokenLengths,
-              binaryStatement + 1,
-              firstParameterToken
-            )
-          ) {
+        long binarySource = helperSequence.secondaryOperands[0];
+        if (-1 < binarySource) {
+          if (binarySource < parameterCount) {
             supportedSlotResult = true;
           }
         }

@@ -131,6 +131,22 @@ class ReversibleResultSlotSourceTest {
   }
 
   @Test
+  void computesFromTheSelectedSignedParameter() {
+    String source = "classical class ComputedSecondResult { "
+        + "rev long compute(long ignored, long value) { return value + 8; } "
+        + "entry void main() { long answer = compute(1, 34); assert(answer == 42); } }";
+    Program program = new WheelerCompiler().compile(source);
+    var fill = program.function(0).forward().getFirst();
+    VirtualMachine machine = new VirtualMachine(program);
+
+    machine.run();
+
+    assertEquals(MachineStatus.HALTED, machine.status());
+    assertEquals(1, fill.operand(SOURCE));
+    assertEquals(program.function(0).forward(), program.function(0).inverse());
+  }
+
+  @Test
   void substitutesAClassConstantIntoAComputedResult() {
     String source = "classical class ComputedConstantResult { const long STEP = 8; "
         + "rev long compute(long value) { return value + STEP; } entry void main() { "
