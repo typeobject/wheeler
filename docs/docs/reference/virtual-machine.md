@@ -118,7 +118,9 @@ callee. `RETURN_RESULT_SLOT` copies both slot registers back atomically. Its his
 record stores both previous caller registers for debugger rewind. Generated language
 inversion reads none of that history. Tests commit history between forward and inverse
 calls because a result relation that works only while the debugger remembers it is not
-much of a relation.
+much of a relation. The bounded Wheeler interpreter implements the same two-register
+exchange and both call directions. Differential fixtures compare every declared global
+with the Java VM.
 
 `rewindOne` consumes the newest step record and restores the exact earlier machine state. `VmDataRewinder` restores scalar data through semantic instruction roles before the VM restores control and aggregate deltas. Execution, preflight, call binding, storage checks, and aggregate checks use the same roles. `VmPreflight` owns the complete check-before-mutation pass. The execution loop does not carry a second validator or private operand positions that can drift from the registry. `rewindOne` does not call a function inverse.
 

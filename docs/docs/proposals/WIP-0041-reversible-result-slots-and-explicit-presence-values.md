@@ -734,7 +734,9 @@ canonical `0xd` function metadata, and a generated inverse. The VM executes `ret
 commits all rewind history, then uncalls the function from exact `Holding(-1)` back to
 vacancy. A wrong held constant traps before the call stack or slot changes. The
 Wheeler-native verifier independently accepts the artifact and its generated-inverse
-certificate. Native lowering and native execution remain separate work.
+certificate. The bounded Wheeler interpreter executes both call directions and agrees
+with the Java VM on every global. Wheeler-native lowering of source remains separate
+work.
 
 - [x] `Done` and `done` parse, typecheck, encode, execute, and reject nonzero physical constants.
 - [x] Closed classical `Slot<T>`, `Vacant`, and `Holding(T)` parse, typecheck, encode, and execute.
@@ -749,7 +751,8 @@ certificate. Native lowering and native execution remain separate work.
 - [ ] Coherent encoding and padding rules execute.
 - [ ] Coherent fills, moves, and measurement execute.
 - [ ] Proof and resource metadata pass.
-- [ ] Native and interpreted traces agree.
+- [x] Wheeler verifier and bounded interpreter agree with the Java VM on the signed constant form.
+- [ ] Native lowering and interpreted traces agree.
 - [ ] Duplicate absence and history-dependent inverse paths are deleted.
 
 ## Testing and acceptance

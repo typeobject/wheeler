@@ -87,6 +87,46 @@ class ReversibleResultSlotTest {
         failure.getMessage());
   }
 
+  @Test
+  void verifierRejectsAnArgumentAliasingItsResultSlot() {
+    FunctionBody target = new FunctionBody(
+        0,
+        "aliased",
+        false,
+        1,
+        List.of(ValueType.BOOLEAN, ValueType.BOOLEAN, ValueType.SIGNED),
+        ValueType.SIGNED,
+        true,
+        List.of(
+            Instruction.of(Opcode.RESULT_FILL_CONSTANT, 1, -1),
+            Instruction.of(Opcode.RETURN_RESULT_SLOT, 1)),
+        List.of(
+            Instruction.of(Opcode.RESULT_FILL_CONSTANT, 1, -1),
+            Instruction.of(Opcode.RETURN_RESULT_SLOT, 1)));
+    FunctionBody entry = new FunctionBody(
+        1,
+        "main",
+        false,
+        0,
+        List.of(ValueType.BOOLEAN, ValueType.SIGNED),
+        null,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 0),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 0),
+            Instruction.of(Opcode.CALL_RESULT_SLOT, 0, 0, 1, 0),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+
+    BytecodeException failure = assertThrows(
+        BytecodeException.class,
+        () -> BytecodeVerifier.verify(
+            new Program("AliasedResultSlot", 1, List.of(), List.of(target, entry))));
+
+    assertEquals(
+        "main[2] CALL_RESULT_SLOT result_slot result slot call signature mismatch for aliased",
+        failure.getMessage());
+  }
+
   private static Program programWithEntry(List<Instruction> entryInstructions) {
     FunctionBody minusOne = new FunctionBody(
         0,

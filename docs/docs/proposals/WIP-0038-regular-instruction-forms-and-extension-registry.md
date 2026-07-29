@@ -290,7 +290,8 @@ first is a Boolean presence tag. The second has the declared result type. Functi
 slot and binds it to the final two callee registers.
 
 The compiler, decoder, verifier, VM, disassembler, rewind path, generated-inverse kernel,
-malformed-artifact suite, and Wheeler-native verifier consume these identities together.
+malformed-artifact suite, Wheeler-native verifier, and bounded Wheeler interpreter
+consume these identities together.
 `RESULT_FILL_CONSTANT` is self-inverse under the function direction and checks exact
 vacancy or occupancy before mutation. Existing `RETURN_VALUE` keeps its ordinary
 direct-result meaning. It has not been issued a reversible hat and told to act natural.

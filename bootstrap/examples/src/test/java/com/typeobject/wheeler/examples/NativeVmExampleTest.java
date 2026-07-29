@@ -8,6 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
+import com.typeobject.wheeler.core.bytecode.FunctionBody;
+import com.typeobject.wheeler.core.bytecode.Global;
+import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.ValueType;
@@ -19,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -36,6 +40,7 @@ class NativeVmExampleTest {
     modules.put("Interpreter.w", RuntimeSources.read("runtime/Interpreter.w"));
     modules.put("MapInterpreter.w", RuntimeSources.read("runtime/MapInterpreter.w"));
     modules.put("NativeVm.w", Files.readString(root.resolve("native/NativeVm.w")));
+    modules.put("ResultSlots.w", RuntimeSources.read("runtime/ResultSlots.w"));
     modules.put("StorageInterpreter.w", RuntimeSources.read("runtime/StorageInterpreter.w"));
     modules.put("Utf8Interpreter.w", RuntimeSources.read("runtime/Utf8Interpreter.w"));
     Program interpreter = new WheelerCompiler().compileModuleFiles(
@@ -120,6 +125,19 @@ class NativeVmExampleTest {
         Files.readString(root.resolve("classical/control/RecursiveValue.w")),
         "result",
         6);
+    assertInterpretedGlobal(
+        interpreter,
+        Files.readString(root.resolve("classical/control/ReversibleResult.w")),
+        "observed",
+        -1);
+    assertInterpretedGlobal(
+        interpreter,
+        reversibleResultRoundTrip(),
+        "observed",
+        1);
+    assertThrows(
+        VmTrap.class,
+        () -> VirtualMachine.withBinaryInput(interpreter, wrongHeldResult()).run());
     assertInterpretedTwoGlobals(
         interpreter,
         Files.readString(root.resolve("classical/control/LoopControl.w")),
@@ -347,7 +365,12 @@ class NativeVmExampleTest {
 
   private static void assertInterpretedGlobal(
       Program interpreter, String source, String global, long expected) {
-    byte[] artifact = new WheelerCompiler().compileToBytecode(source);
+    assertInterpretedGlobal(
+        interpreter, new WheelerCompiler().compileToBytecode(source), global, expected);
+  }
+
+  private static void assertInterpretedGlobal(
+      Program interpreter, byte[] artifact, String global, long expected) {
     VirtualMachine nativeMachine = VirtualMachine.withBinaryInput(interpreter, artifact);
     var initial = nativeMachine.snapshot();
     nativeMachine.run();
@@ -398,6 +421,72 @@ class NativeVmExampleTest {
       nativeMachine.rewindOne();
     }
     assertEquals(initial, nativeMachine.snapshot());
+  }
+
+  private static byte[] reversibleResultRoundTrip() {
+    FunctionBody entry = new FunctionBody(
+        1,
+        "main",
+        false,
+        0,
+        List.of(
+            ValueType.BOOLEAN,
+            ValueType.SIGNED,
+            ValueType.BOOLEAN,
+            ValueType.BOOLEAN),
+        null,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 0),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 0),
+            Instruction.of(Opcode.LOCAL_CONST, 2, 0),
+            Instruction.of(Opcode.CALL_RESULT_SLOT, 0, 0, 0, 0),
+            Instruction.of(Opcode.UNCALL_RESULT_SLOT, 0, 0, 0, 0),
+            Instruction.of(Opcode.LOCAL_EQ, 3, 0, 2),
+            Instruction.of(Opcode.EXPECT_TRUE, 3),
+            Instruction.of(Opcode.ADD_CONST, 0, 1),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    Program program = new Program(
+        "ReversibleResultRoundTrip",
+        1,
+        List.of(new Global("observed", 0)),
+        List.of(minusOneResult(), entry));
+    return new BytecodeWriter().write(program);
+  }
+
+  private static byte[] wrongHeldResult() {
+    FunctionBody entry = new FunctionBody(
+        1,
+        "main",
+        false,
+        0,
+        List.of(ValueType.BOOLEAN, ValueType.SIGNED),
+        null,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 1),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 7),
+            Instruction.of(Opcode.UNCALL_RESULT_SLOT, 0, 0, 0, 0),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    return new BytecodeWriter().write(new Program(
+        "WrongHeldResult", 1, List.of(), List.of(minusOneResult(), entry)));
+  }
+
+  private static FunctionBody minusOneResult() {
+    return new FunctionBody(
+        0,
+        "minusOne",
+        false,
+        0,
+        List.of(ValueType.BOOLEAN, ValueType.SIGNED),
+        ValueType.SIGNED,
+        true,
+        List.of(
+            Instruction.of(Opcode.RESULT_FILL_CONSTANT, 0, -1),
+            Instruction.of(Opcode.RETURN_RESULT_SLOT, 0)),
+        List.of(
+            Instruction.of(Opcode.RESULT_FILL_CONSTANT, 0, -1),
+            Instruction.of(Opcode.RETURN_RESULT_SLOT, 0)));
   }
 
   private static String wideCodeSource() {

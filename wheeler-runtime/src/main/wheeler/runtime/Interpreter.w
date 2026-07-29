@@ -7,6 +7,7 @@ import wheeler.compiler.type_codes;
 import wheeler.compiler.verifier;
 import wheeler.core.encoding.binary;
 import wheeler.runtime.aggregate_interpreter;
+import wheeler.runtime.result_slots;
 import wheeler.runtime.storage_interpreter;
 
 classical class Interpreter {
@@ -208,6 +209,33 @@ classical class Interpreter {
         return new ExecutionResult.Error(cursor);
       }
 
+      if (opcode == OPCODE_RETURN_RESULT_SLOT) {
+        if (0 < depth) {
+          long returnSlotSource = readUnsigned(artifact, cursor + 8, 8);
+          long returnSlotTag = locals[localIndex(depth, returnSlotSource)];
+          long returnSlotPayload = locals[localIndex(depth, returnSlotSource + 1)];
+          if (resultSlotCanonical(returnSlotTag, returnSlotPayload)) {} else {
+            return new ExecutionResult.Error(cursor);
+          }
+
+          depth -= 1;
+          long resultSlotDestination = returnDestinations[depth];
+          if (resultSlotDestination < 0) {
+            return new ExecutionResult.Error(cursor);
+          }
+
+          cursor = returnCursors[depth];
+          start = returnStarts[depth];
+          end = returnEnds[depth];
+          set(locals, localIndex(depth, resultSlotDestination), returnSlotTag);
+          set(locals, localIndex(depth, resultSlotDestination + 1), returnSlotPayload);
+          steps += 1;
+          continue;
+        }
+
+        return new ExecutionResult.Error(cursor);
+      }
+
       if (opcode == OPCODE_RETURN) {
         if (0 < depth) {
           depth -= 1;
@@ -261,6 +289,14 @@ classical class Interpreter {
             set(globals, xorGlobal, globals[xorGlobal] ^ readSigned(artifact, cursor + 16));
           }
 
+          if (opcode == OPCODE_RESULT_FILL_CONSTANT) {
+            long resultSlot = localIndex(depth, readUnsigned(artifact, cursor + 8, 8));
+            long resultConstant = readSigned(artifact, cursor + 16);
+            if (exchangeResultConstant(locals, resultSlot, resultConstant)) {} else {
+              return new ExecutionResult.Error(cursor);
+            }
+          }
+
           if (opcode == OPCODE_CALL) {
             long callTarget = readUnsigned(artifact, cursor + 8, 8);
             if (INTERPRETER_MAX_CALL_DEPTH < depth + 1) {
@@ -312,6 +348,101 @@ classical class Interpreter {
                 set(locals, localIndex(depth, clearUncall), 0);
                 clearUncall += 1;
               }
+            } else {
+              return new ExecutionResult.Error(cursor);
+            }
+          }
+
+          boolean resultSlotCall = opcode == OPCODE_CALL_RESULT_SLOT;
+          boolean inverseResultSlotCall = opcode == OPCODE_UNCALL_RESULT_SLOT;
+          if (resultSlotCall) {} else {
+            resultSlotCall = inverseResultSlotCall;
+          }
+
+          if (resultSlotCall) {
+            long resultTarget = readUnsigned(artifact, cursor + 8, 8);
+            long resultArgumentBase = readUnsigned(artifact, cursor + 16, 8);
+            long resultArgumentCount = readUnsigned(artifact, cursor + 24, 8);
+            long resultDestination = readUnsigned(artifact, cursor + 32, 8);
+            long callerResultTag = locals[localIndex(depth, resultDestination)];
+            long callerResultPayload = locals[localIndex(depth, resultDestination + 1)];
+            if (inverseResultSlotCall) {
+              if (callerResultTag == 1) {} else {
+                return new ExecutionResult.Error(cursor);
+              }
+            } else {
+              if (callerResultTag == 0) {
+                if (callerResultPayload == 0) {} else {
+                  return new ExecutionResult.Error(cursor);
+                }
+              } else {
+                return new ExecutionResult.Error(cursor);
+              }
+            }
+
+            if (INTERPRETER_MAX_CALL_DEPTH < depth + 1) {
+              return new ExecutionResult.Error(cursor);
+            }
+
+            if (resultTarget < functionCount) {
+              long checkedResultDescriptor = descriptorBase(functionsOffset, resultTarget);
+              if (inverseResultSlotCall) {
+                long checkedInverse = codeOffset + readUnsigned(
+                  artifact,
+                  checkedResultDescriptor + 20,
+                  4
+                );
+                long expectedResult = readSigned(artifact, checkedInverse + 16);
+                if (callerResultPayload == expectedResult) {} else {
+                  return new ExecutionResult.Error(cursor);
+                }
+              }
+
+              set(returnCursors, depth, next);
+              set(returnStarts, depth, start);
+              set(returnEnds, depth, end);
+              set(returnDestinations, depth, resultDestination);
+              depth += 1;
+              long resultDescriptor = descriptorBase(functionsOffset, resultTarget);
+              long resultBodyOffset = readUnsigned(artifact, resultDescriptor + 12, 4);
+              long resultBodyLength = readUnsigned(artifact, resultDescriptor + 16, 4);
+              if (inverseResultSlotCall) {
+                resultBodyOffset = readUnsigned(artifact, resultDescriptor + 20, 4);
+                resultBodyLength = readUnsigned(artifact, resultDescriptor + 24, 4);
+              }
+
+              cursor = codeOffset + resultBodyOffset;
+              start = cursor;
+              end = cursor + resultBodyLength;
+              long resultLocalCount = readUnsigned(artifact, resultDescriptor + 32, 4);
+              long clearResult = 0;
+              while (clearResult < resultLocalCount) limit INTERPRETER_LOCAL_WIDTH {
+                set(locals, localIndex(depth, clearResult), 0);
+                clearResult += 1;
+              }
+
+              long resultTypes = parameterTypes(
+                artifact,
+                functionsOffset,
+                functionCount,
+                resultDescriptor
+              );
+              long copyResult = 0;
+              while (copyResult < resultArgumentCount) limit INTERPRETER_LOCAL_WIDTH {
+                long resultCallerArgument = localIndex(depth - 1, resultArgumentBase + copyResult);
+                set(locals, localIndex(depth, copyResult), locals[resultCallerArgument]);
+                if (
+                  transferredType(readUnsigned(artifact, resultTypes + copyResult * 4, 4))
+                ) {
+                  set(locals, resultCallerArgument, 0);
+                }
+
+                copyResult += 1;
+              }
+
+              long calleeResultSlot = resultLocalCount - 2;
+              set(locals, localIndex(depth, calleeResultSlot), callerResultTag);
+              set(locals, localIndex(depth, calleeResultSlot + 1), callerResultPayload);
             } else {
               return new ExecutionResult.Error(cursor);
             }
@@ -831,7 +962,11 @@ classical class Interpreter {
             if (opcode == OPCODE_UNCALL) {} else {
               if (opcode == OPCODE_CALL_VALUE) {} else {
                 if (opcode == OPCODE_CALL_VOID) {} else {
-                  cursor = next;
+                  if (opcode == OPCODE_CALL_RESULT_SLOT) {} else {
+                    if (opcode == OPCODE_UNCALL_RESULT_SLOT) {} else {
+                      cursor = next;
+                    }
+                  }
                 }
               }
             }

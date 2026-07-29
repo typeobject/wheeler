@@ -454,8 +454,10 @@ Source: [`ReversibleResult.w`](../../wheeler-examples/src/main/wheeler/classical
 
 Covers: A signed `return -1;` relation, the implicit caller-owned result slot, dedicated
 call and return instructions, and one generated-inverse certificate. Core conformance
-also commits VM history between the forward and inverse call. The inverse checks
-`Holding(-1)` instead of asking the debugger what happened.
+also commits VM history between the forward and inverse call. The Wheeler-native
+interpreter executes forward and inverse call forms and checks restored vacancy against
+the Java VM. The inverse checks `Holding(-1)` instead of asking the debugger what
+happened.
 
 Expected result: `observed = -1`.
 

@@ -275,6 +275,7 @@ The launcher grants read-only source inputs and one atomic artifact destination.
   - Aggregate fixtures include nested `Records.w`, payload-free `FiniteEnums.w`, payload-carrying `Variants.w`, fixed arrays, slices, and fixed signed/Boolean arrays embedded in records and variant payloads. The native verifier rejects a forged aggregate-element array before interpretation.
   - Storage fixtures cover regions, word and byte buffers, nested mutable borrows, valid and malformed UTF-8, `FrozenUtf8.w`, signed maps, and owner-returning calls.
   - The proof-bearing `Counter.w` also executes under the Wheeler verifier and interpreter.
+  - `ReversibleResult.w` executes `CALL_RESULT_SLOT` forward and `UNCALL_RESULT_SLOT` backward through the same Wheeler verifier and interpreter. A direct artifact checks restored vacancy before publishing success. Its globals agree with the Java VM.
   - Every declared global, up to eight, must match stage 0.
   - Forged branch or call targets fail before interpretation.
   - Forged record-field, variant-tag, array-index-local, slice-index-local, word-index-local, byte-index-local, UTF-8-index-local, and map-key-local operands fail at the same boundary.

@@ -35,7 +35,8 @@ final class ResultSlotVerifier {
     int slot = verifyLocal(owner, instruction, RESULT_SLOT, pc);
     if (!target.implicitResultSlot()
         || arguments.count() != target.parameterCount()
-        || slot + 1 >= owner.localCount()) {
+        || slot + 1 >= owner.localCount()
+        || overlaps(arguments, slot)) {
       failOperand(
           owner, instruction, RESULT_SLOT, pc,
           "result slot call signature mismatch for " + target.name());
@@ -49,6 +50,15 @@ final class ResultSlotVerifier {
             "argument " + argument + " type mismatch for " + target.name());
       }
     }
+  }
+
+  private static boolean overlaps(
+      InstructionOperandVerifier.LocalWindow arguments, int slot) {
+    int argumentEnd = arguments.base() + arguments.count();
+    int slotEnd = slot + 2;
+    return arguments.count() > 0
+        && arguments.base() < slotEnd
+        && slot < argumentEnd;
   }
 
   static void verifyFill(FunctionBody owner, Instruction instruction, int pc) {

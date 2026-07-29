@@ -66,7 +66,8 @@ The canonical registry also owns `CALL_RESULT_SLOT`, `UNCALL_RESULT_SLOT`,
 `RESULT_FILL_CONSTANT`, and `RETURN_RESULT_SLOT`. The Wheeler verifier accepts the first
 canonical signed result-slot descriptor and generated-inverse proof emitted by stage 0.
 Stage 0 executes `rev long minusOne() { return -1; }` forward and inverse after history
-commit. Wheeler-native lowering and execution remain open, so the recovery compiler does
+commit. The bounded Wheeler interpreter executes both call directions against the same
+artifact. Wheeler-native compiler lowering remains open, so the recovery compiler does
 not yet claim this syntax.
 
 The narrow loop body and local constant graph are deliberate limits, not parser folklore.

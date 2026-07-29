@@ -34,6 +34,28 @@ classical class InstructionVerifier {
     return functionsOffset + 4 + function * 40;
   }
 
+  private boolean resultSlotDisjoint(long base, long count, long slot) {
+    if (count == 0) {
+      return true;
+    }
+
+    long argumentEnd = base + count;
+    if (argumentEnd < slot) {
+      return true;
+    }
+
+    if (argumentEnd == slot) {
+      return true;
+    }
+
+    long slotEnd = slot + 2;
+    if (slotEnd < base) {
+      return true;
+    }
+
+    return slotEnd == base;
+  }
+
   private boolean functionHasFlag(
     borrow byteview artifact,
     long functionsOffset,
@@ -320,6 +342,10 @@ classical class InstructionVerifier {
       long resultSlot = readUnsigned(artifact, cursor + 32, 8);
       if (first < functionCount - 1) {
         if (resultSlot + 1 < localCount) {
+          if (resultSlotDisjoint(slotArgumentBase, slotArgumentCount, resultSlot)) {} else {
+            return 0;
+          }
+
           if (functionHasFlag(artifact, functionsOffset, first, 13)) {
             if (localType(artifact, activeTypes, resultSlot) == TYPE_BOOLEAN) {
               if (
