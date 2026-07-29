@@ -352,6 +352,10 @@ classical class LocalOpcodes {
       return 3;
     }
 
+    if (returnBooleanEqualityStatement(opcode)) {
+      return 3;
+    }
+
     if (opcode == STATEMENT_RETURN_LONG) {
       return 1;
     }
@@ -651,6 +655,10 @@ classical class LocalOpcodes {
     }
 
     if (opcode == STATEMENT_RETURN_BOOLEAN_NOT_NAMED) {
+      return 96;
+    }
+
+    if (returnBooleanEqualityStatement(opcode)) {
       return 96;
     }
 

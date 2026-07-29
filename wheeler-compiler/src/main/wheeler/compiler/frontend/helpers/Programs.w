@@ -14,6 +14,10 @@ classical class HelperPrograms {
       return true;
     }
 
+    if (returnBooleanEqualityStatement(opcode)) {
+      return true;
+    }
+
     if (opcode == STATEMENT_RETURN_BOOLEAN) {
       return true;
     }
@@ -175,6 +179,10 @@ classical class HelperPrograms {
       long booleanResultOpcode = helperSequence.opcodes[booleanResultIndex];
       boolean supportedBooleanResult = booleanResultOpcode == STATEMENT_RETURN_BOOLEAN;
       if (booleanResultOpcode == STATEMENT_RETURN_BOOLEAN_NOT_NAMED) {
+        supportedBooleanResult = true;
+      }
+
+      if (returnBooleanEqualityStatement(booleanResultOpcode)) {
         supportedBooleanResult = true;
       }
 

@@ -28,6 +28,10 @@ classical class StatementForms {
       return true;
     }
 
+    if (returnBooleanEqualityStatement(opcode)) {
+      return true;
+    }
+
     if (STATEMENT_LOCAL_BOOLEAN_CALL_NAMED - 1 < opcode) {
       if (opcode < STATEMENT_RETURN_BOOLEAN + 1) {
         return true;
@@ -172,6 +176,15 @@ classical class StatementForms {
     return opcode == STATEMENT_RETURN_LOCAL_XOR_LOCAL_NAMED;
   }
 
+  /// Checks for a Boolean helper return comparing two Boolean values.
+  public boolean returnBooleanEqualityStatement(long opcode) {
+    if (opcode == STATEMENT_RETURN_BOOLEAN_EQ_LITERAL_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED;
+  }
+
   /// Checks the closed pair of Boolean literal token hashes.
   public boolean booleanTokenHash(long hash) {
     if (hash == TOKEN_TRUE) {
@@ -245,6 +258,23 @@ classical class StatementForms {
         boolean returnRightNamed = identifierStart(
           utf8Scalar(source, tokenStarts[statementStart + 3])
         );
+        if (returnOperator == PUNCTUATION_ASSIGN) {
+          long secondOperator = utf8Scalar(source, tokenStarts[statementStart + 3]);
+          if (secondOperator == PUNCTUATION_ASSIGN) {
+            long returnEqualityHash = tokenHash(
+              source,
+              tokenStarts,
+              tokenLengths,
+              statementStart + 4
+            );
+            if (booleanTokenHash(returnEqualityHash)) {
+              return STATEMENT_RETURN_BOOLEAN_EQ_LITERAL_NAMED;
+            }
+
+            return STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED;
+          }
+        }
+
         if (returnOperator == PUNCTUATION_PLUS) {
           if (returnRightNamed) {
             return STATEMENT_RETURN_LOCAL_ADD_LOCAL_NAMED;

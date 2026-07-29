@@ -327,6 +327,10 @@ classical class Tokens {
   public const long STATEMENT_RETURN_LOCAL_XOR_LOCAL_NAMED = 854;
   /// Names a Boolean helper return negating one parameter or prior local.
   public const long STATEMENT_RETURN_BOOLEAN_NOT_NAMED = 855;
+  /// Names a Boolean helper return comparing one local with a literal.
+  public const long STATEMENT_RETURN_BOOLEAN_EQ_LITERAL_NAMED = 856;
+  /// Names a Boolean helper return comparing two locals.
+  public const long STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED = 857;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.

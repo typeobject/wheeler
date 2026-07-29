@@ -66,6 +66,18 @@ classical class Operands {
       );
     }
 
+    if (returnBooleanEqualityStatement(opcode)) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 1,
+        false
+      );
+    }
+
     if (opcode == STATEMENT_RETURN_BOOLEAN_NOT_NAMED) {
       return resolvePriorDeclaration(
         source,
@@ -379,6 +391,27 @@ classical class Operands {
     long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (returnBooleanEqualityStatement(opcode)) {
+      if (opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED) {
+        return resolvePriorDeclaration(
+          source,
+          tokenStarts,
+          tokenLengths,
+          previousStarts,
+          previousCount,
+          statementStart + 4,
+          false
+        );
+      }
+
+      long equalityLiteral = tokenHash(source, tokenStarts, tokenLengths, statementStart + 4);
+      if (equalityLiteral == TOKEN_TRUE) {
+        return 1;
+      }
+
+      return 0;
+    }
+
     if (twoArgumentCallStatement(opcode)) {
       long firstWidth = 1;
       if (utf8Scalar(source, tokenStarts[statementStart + 5]) == PUNCTUATION_MINUS) {

@@ -270,6 +270,26 @@ classical class Codegen {
       return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
     }
 
+    if (returnBooleanEqualityStatement(opcode)) {
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, operand, U64);
+      long rightOpcode = OPCODE_LOCAL_CONST;
+      if (opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED) {
+        rightOpcode = OPCODE_LOCAL_MOVE;
+      }
+
+      cursor = writeInstructionHeader(output, cursor, rightOpcode, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      cursor = writeScalarOperand(output, cursor, rightOpcode, secondaryOperand);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_EQ, FORM_TERNARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN_VALUE, FORM_UNARY);
+      return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+    }
+
     if (returnLocalPairStatement(opcode)) {
       long returnPairOpcode = OPCODE_LOCAL_ADD;
       if (opcode == STATEMENT_RETURN_LOCAL_SUB_LOCAL_NAMED) {

@@ -199,6 +199,51 @@ classical class Structure {
       return -1;
     }
 
+    if (returnBooleanEqualityStatement(statementKind)) {
+      if (tokenKinds[statementStart + 1] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, PUNCTUATION_ASSIGN)
+          == false
+      ) {
+        return -1;
+      }
+
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, statementStart + 3, PUNCTUATION_ASSIGN)
+          == false
+      ) {
+        return -1;
+      }
+
+      boolean rightValid = tokenKinds[statementStart + 4] == 1;
+      if (statementKind == STATEMENT_RETURN_BOOLEAN_EQ_LITERAL_NAMED) {
+        rightValid = booleanTokenHash(
+          tokenHash(source, tokenStarts, tokenLengths, statementStart + 4)
+        );
+      }
+
+      if (rightValid == false) {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 5,
+          PUNCTUATION_SEMICOLON
+        )
+      ) {
+        return 6;
+      }
+
+      return -1;
+    }
+
     if (statementKind == STATEMENT_RETURN_LONG) {
       long returnWidth = signedNumberWidth(source, tokenKinds, tokenStarts, statementStart + 1);
       if (returnWidth < 1) {

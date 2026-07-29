@@ -170,6 +170,38 @@ classical class LocalStatements {
     long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (returnBooleanEqualityStatement(opcode)) {
+      long left = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 1,
+        false
+      );
+      if (left < 0) {
+        return -1;
+      }
+
+      if (opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED) {
+        long right = resolvePriorDeclaration(
+          source,
+          tokenStarts,
+          tokenLengths,
+          previousStarts,
+          previousCount,
+          statementStart + 4,
+          false
+        );
+        if (right < 0) {
+          return -1;
+        }
+      }
+
+      return opcode;
+    }
+
     if (opcode == STATEMENT_RETURN_LOCAL_NAMED) {
       long signedReturn = resolvePriorDeclaration(
         source,
