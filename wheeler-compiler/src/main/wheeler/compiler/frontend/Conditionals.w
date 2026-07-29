@@ -64,15 +64,18 @@ classical class Conditionals {
       }
     }
 
-    long comparisonWidth = signedNumberWidth(source, tokenKinds, tokenStarts, comparisonStart);
-    if (comparisonWidth < 1) {
-      return -1;
-    }
+    long comparisonWidth = 1;
+    if (tokenKinds[comparisonStart] == 1) {} else {
+      comparisonWidth = signedNumberWidth(source, tokenKinds, tokenStarts, comparisonStart);
+      if (comparisonWidth < 1) {
+        return -1;
+      }
 
-    if (
-      signedNumberValid(source, tokenStarts, tokenLengths, comparisonStart) == false
-    ) {
-      return -1;
+      if (
+        signedNumberValid(source, tokenStarts, tokenLengths, comparisonStart) == false
+      ) {
+        return -1;
+      }
     }
 
     long closeCondition = comparisonStart + comparisonWidth;

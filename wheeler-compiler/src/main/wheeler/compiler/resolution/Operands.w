@@ -752,6 +752,21 @@ classical class Operands {
         comparisonToken -= 1;
       }
 
+      if (loopOperandNamed(source, tokenStarts, comparisonToken)) {
+        ConstantResolution comparisonConstant = resolveClassConstant(
+          source,
+          tokenStarts,
+          tokenLengths,
+          comparisonToken,
+          true
+        );
+        if (comparisonConstant.valid) {
+          return comparisonConstant.value;
+        }
+
+        return -1;
+      }
+
       return parsedSignedNumber(source, tokenStarts, tokenLengths, comparisonToken);
     }
 

@@ -444,6 +444,24 @@ classical class LocalStatements {
         true
       );
       if (-1 < comparisonSourceLocal) {
+        long comparisonRightToken = statementStart + 5;
+        if (literalComparisonConditionalLessThan(opcode)) {
+          comparisonRightToken -= 1;
+        }
+
+        if (loopOperandNamed(source, tokenStarts, comparisonRightToken)) {
+          ConstantResolution comparisonRightConstant = resolveClassConstant(
+            source,
+            tokenStarts,
+            tokenLengths,
+            comparisonRightToken,
+            true
+          );
+          if (comparisonRightConstant.valid == false) {
+            return -1;
+          }
+        }
+
         return namedLiteralComparisonConditionalBase(opcode) + comparisonSourceLocal;
       }
 

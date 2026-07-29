@@ -193,6 +193,17 @@ class MinimalCompilerConstantExampleTest {
   }
 
   @Test
+  void substitutesConstantsIntoSignedConditionalOperands() throws Exception {
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    assertDifferentialHalt(
+        compiler,
+        "classical class ConstantConditionalOperands { state long outcome = 0; "
+            + "const long LIMIT = 40 + 2; const long UPPER = LIMIT + 1; "
+            + "entry void main() { long value = 42; if (value == LIMIT) { outcome += 1; } "
+            + "if (value < UPPER) { outcome += 1; } assert(outcome == 2); } }");
+  }
+
+  @Test
   void substitutesConstantsIntoBoundedLoopOperands() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
     assertDifferentialHalt(
@@ -324,6 +335,11 @@ class MinimalCompilerConstantExampleTest {
         "classical class WrongLoopConstant { const boolean LIMIT = true; "
             + "entry void main() { long value = 0; "
             + "while (value < LIMIT) limit LIMIT { value += 1; } } }");
+    assertNativeTrap(
+        compiler,
+        "classical class WrongConditionalConstant { state long outcome = 0; "
+            + "const boolean LIMIT = true; entry void main() { long value = 0; "
+            + "if (value < LIMIT) { outcome += 1; } } }");
     assertNativeTrap(
         compiler,
         "classical class WrongAssignmentConstant { const long VALUE = 1; "
