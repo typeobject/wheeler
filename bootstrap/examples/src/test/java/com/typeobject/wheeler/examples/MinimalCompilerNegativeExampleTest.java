@@ -464,6 +464,29 @@ class MinimalCompilerNegativeExampleTest {
         512);
     assertTrapWithoutOutput(booleanLocalAssignment, 512);
 
+    VirtualMachine unknownAssignmentTarget = new VirtualMachine(
+        writerProgram,
+        ("classical class UnknownAssignmentTarget { entry void main() { missing = 1; } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertTrapWithoutOutput(unknownAssignmentTarget, 512);
+
+    VirtualMachine signedBooleanAssignment = new VirtualMachine(
+        writerProgram,
+        ("classical class SignedBooleanAssignment { entry void main() { "
+                + "long value = 1; boolean ready = true; value = ready; } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertTrapWithoutOutput(signedBooleanAssignment, 512);
+
+    VirtualMachine booleanSignedAssignment = new VirtualMachine(
+        writerProgram,
+        ("classical class BooleanSignedAssignment { entry void main() { "
+                + "boolean value = true; long answer = 1; value = answer; } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertTrapWithoutOutput(booleanSignedAssignment, 512);
+
     VirtualMachine unknownLocalUpdate = new VirtualMachine(
         writerProgram,
         ("classical class UnknownLocalUpdate { state long result = 0; "

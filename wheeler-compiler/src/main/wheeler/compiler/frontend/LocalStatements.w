@@ -20,6 +20,106 @@ classical class LocalStatements {
     long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (localAssignmentSourceStatement(opcode)) {
+      long assignmentSignedTarget = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart,
+        true
+      );
+      long assignmentBooleanTarget = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart,
+        false
+      );
+      boolean globalAssignmentTarget = tokenHash(source, tokenStarts, tokenLengths, 4)
+        == TOKEN_STATE;
+      if (globalAssignmentTarget) {
+        globalAssignmentTarget = sameTokenText(
+          source,
+          tokenStarts,
+          tokenLengths,
+          6,
+          statementStart
+        );
+      }
+
+      boolean signedTarget = -1 < assignmentSignedTarget;
+      boolean booleanTarget = -1 < assignmentBooleanTarget;
+      if (signedTarget) {
+        if (booleanTarget) {
+          return -1;
+        }
+
+        if (globalAssignmentTarget) {
+          return -1;
+        }
+
+        if (opcode == STATEMENT_ASSIGN) {
+          return STATEMENT_LOCAL_ASSIGN_SIGNED_LITERAL_BASE + assignmentSignedTarget;
+        }
+
+        long assignmentSignedSource = resolvePriorDeclaration(
+          source,
+          tokenStarts,
+          tokenLengths,
+          previousStarts,
+          previousCount,
+          statementStart + 2,
+          true
+        );
+        if (-1 < assignmentSignedSource) {
+          return STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE + assignmentSignedTarget;
+        }
+
+        return -1;
+      }
+
+      if (booleanTarget) {
+        if (globalAssignmentTarget) {
+          return -1;
+        }
+
+        long assignmentRightHash = tokenHash(
+          source,
+          tokenStarts,
+          tokenLengths,
+          statementStart + 2
+        );
+        if (booleanTokenHash(assignmentRightHash)) {
+          return STATEMENT_LOCAL_ASSIGN_BOOLEAN_LITERAL_BASE + assignmentBooleanTarget;
+        }
+
+        long assignmentBooleanSource = resolvePriorDeclaration(
+          source,
+          tokenStarts,
+          tokenLengths,
+          previousStarts,
+          previousCount,
+          statementStart + 2,
+          false
+        );
+        if (-1 < assignmentBooleanSource) {
+          return STATEMENT_LOCAL_ASSIGN_BOOLEAN_LOCAL_BASE + assignmentBooleanTarget;
+        }
+
+        return -1;
+      }
+
+      if (globalAssignmentTarget) {
+        return opcode;
+      }
+
+      return -1;
+    }
+
     if (localUpdateSourceStatement(opcode)) {
       long updateTarget = resolvePriorDeclaration(
         source,
@@ -744,6 +844,10 @@ classical class LocalStatements {
     }
 
     if (resolvedLocalUpdateNamed(opcode)) {
+      return -1 < operand;
+    }
+
+    if (resolvedLocalAssignmentNamed(opcode)) {
       return -1 < operand;
     }
 

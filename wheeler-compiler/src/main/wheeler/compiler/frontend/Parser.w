@@ -248,6 +248,10 @@ classical class Parser {
       supported = true;
     }
 
+    if (localAssignmentSourceStatement(opcode)) {
+      supported = true;
+    }
+
     return supported;
   }
 

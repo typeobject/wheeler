@@ -185,6 +185,25 @@ classical class Codegen {
     long localBase,
     long instructionBase
   ) {
+    if (resolvedLocalAssignment(opcode)) {
+      long assignmentRightOpcode = OPCODE_LOCAL_CONST;
+      if (resolvedLocalAssignmentNamed(opcode)) {
+        assignmentRightOpcode = OPCODE_LOCAL_MOVE;
+      }
+
+      cursor = writeInstructionHeader(output, cursor, assignmentRightOpcode, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeScalarOperand(output, cursor, assignmentRightOpcode, operand);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(
+        output,
+        cursor,
+        resolvedLocalAssignmentTarget(opcode),
+        U64
+      );
+      return writeUnsignedLittleEndian(output, cursor, localBase, U64);
+    }
+
     if (resolvedLocalUpdate(opcode)) {
       long updateTarget = resolvedLocalUpdateTarget(opcode);
       long updateRightOpcode = OPCODE_LOCAL_CONST;

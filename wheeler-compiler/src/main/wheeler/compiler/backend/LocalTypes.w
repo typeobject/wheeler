@@ -28,6 +28,15 @@ classical class LocalTypes {
   /// Writes canonical local type codes for one parsed statement.
   public long writeStatementLocalTypes(borrow mut bytes output, long cursor, long opcode) {
     long count = statementLocalCount(opcode);
+    if (resolvedLocalAssignment(opcode)) {
+      long assignmentType = TYPE_SIGNED;
+      if (resolvedLocalAssignmentBoolean(opcode)) {
+        assignmentType = TYPE_BOOLEAN;
+      }
+
+      return writeUnsignedLittleEndian(output, cursor, assignmentType, 4);
+    }
+
     if (resolvedLocalUpdate(opcode)) {
       return writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
     }

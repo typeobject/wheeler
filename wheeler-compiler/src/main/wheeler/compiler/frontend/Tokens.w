@@ -393,6 +393,14 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_UPDATE_XOR_LITERAL_BASE = 17152;
   /// Starts resolved local XOR updates with prior-local right operands.
   public const long STATEMENT_LOCAL_UPDATE_XOR_LOCAL_BASE = 17408;
+  /// Starts resolved signed-local assignments from literals.
+  public const long STATEMENT_LOCAL_ASSIGN_SIGNED_LITERAL_BASE = 17664;
+  /// Starts resolved signed-local assignments from prior locals.
+  public const long STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE = 17920;
+  /// Starts resolved Boolean-local assignments from literals.
+  public const long STATEMENT_LOCAL_ASSIGN_BOOLEAN_LITERAL_BASE = 18176;
+  /// Starts resolved Boolean-local assignments from prior locals.
+  public const long STATEMENT_LOCAL_ASSIGN_BOOLEAN_LOCAL_BASE = 18432;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.

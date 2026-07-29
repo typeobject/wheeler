@@ -11,6 +11,67 @@ import wheeler.compiler.structure;
 import wheeler.compiler.tokens;
 
 classical class Statements {
+  private long localAssignmentWidth(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart,
+    long opcode
+  ) {
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, statementStart + 1, PUNCTUATION_ASSIGN)
+        == false
+    ) {
+      return -1;
+    }
+
+    if (opcode == STATEMENT_ASSIGN_LOCAL_NAMED) {
+      if (tokenKinds[statementStart + 2] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 3,
+          PUNCTUATION_SEMICOLON
+        )
+      ) {
+        return 4;
+      }
+
+      return -1;
+    }
+
+    long operandWidth = signedNumberWidth(source, tokenKinds, tokenStarts, statementStart + 2);
+    if (operandWidth < 1) {
+      return -1;
+    }
+
+    if (
+      signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 2) == false
+    ) {
+      return -1;
+    }
+
+    if (
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        statementStart + 2 + operandWidth,
+        PUNCTUATION_SEMICOLON
+      )
+    ) {
+      return 3 + operandWidth;
+    }
+
+    return -1;
+  }
+
   private long localUpdateWidth(
     borrow utf8 source,
     borrow mut words tokenKinds,
@@ -650,6 +711,17 @@ classical class Statements {
       if (
         sameTokenText(source, tokenStarts, tokenLengths, 6, statementStart) == false
       ) {
+        if (localAssignmentSourceStatement(targetOpcode)) {
+          return localAssignmentWidth(
+            source,
+            tokenKinds,
+            tokenStarts,
+            tokenLengths,
+            statementStart,
+            targetOpcode
+          );
+        }
+
         if (localUpdateSourceStatement(targetOpcode)) {
           return localUpdateWidth(
             source,

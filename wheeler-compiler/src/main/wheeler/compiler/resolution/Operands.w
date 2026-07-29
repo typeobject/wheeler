@@ -39,6 +39,10 @@ classical class Operands {
       ambiguousTypedStatement = true;
     }
 
+    if (localAssignmentSourceStatement(opcode)) {
+      ambiguousTypedStatement = true;
+    }
+
     if (ambiguousTypedStatement) {
       return sequenceStatementOpcode(
         source,
@@ -184,6 +188,27 @@ classical class Operands {
       }
 
       return -1;
+    }
+
+    if (resolvedLocalAssignmentNamed(opcode)) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 2,
+        resolvedLocalAssignmentBoolean(opcode) == false
+      );
+    }
+
+    if (resolvedLocalAssignmentBoolean(opcode)) {
+      long assignmentHash = tokenHash(source, tokenStarts, tokenLengths, statementStart + 2);
+      if (assignmentHash == TOKEN_TRUE) {
+        return 1;
+      }
+
+      return 0;
     }
 
     if (opcode == STATEMENT_ASSIGN_LOCAL_NAMED) {
