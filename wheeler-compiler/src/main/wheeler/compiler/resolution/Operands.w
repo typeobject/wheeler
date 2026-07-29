@@ -3,6 +3,7 @@
 module wheeler.compiler.operands;
 
 import wheeler.compiler.call_forms;
+import wheeler.compiler.class_constants;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
@@ -44,6 +45,22 @@ classical class Operands {
       ambiguousTypedStatement = true;
     }
 
+    if (opcode == STATEMENT_LOCAL_LONG_NAMED) {
+      ambiguousTypedStatement = true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NAMED) {
+      ambiguousTypedStatement = true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT_NAMED) {
+      ambiguousTypedStatement = true;
+    }
+
+    if (opcode == STATEMENT_RETURN_LOCAL_NAMED) {
+      ambiguousTypedStatement = true;
+    }
+
     if (opcode == STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED) {
       ambiguousTypedStatement = true;
     }
@@ -79,6 +96,79 @@ classical class Operands {
       previousStarts,
       previousCount
     );
+    long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (sourceOpcode == STATEMENT_LOCAL_LONG_NAMED) {
+      if (opcode == STATEMENT_LOCAL_LONG) {
+        ConstantResolution signedDeclarationConstant = resolveClassConstant(
+          source,
+          tokenStarts,
+          tokenLengths,
+          statementStart + 3,
+          true
+        );
+        if (signedDeclarationConstant.valid) {
+          return signedDeclarationConstant.value;
+        }
+
+        return -1;
+      }
+    }
+
+    boolean constantBooleanLocal = sourceOpcode == STATEMENT_LOCAL_BOOLEAN_NAMED;
+    if (sourceOpcode == STATEMENT_LOCAL_BOOLEAN_NOT_NAMED) {
+      constantBooleanLocal = true;
+    }
+
+    if (constantBooleanLocal) {
+      long nameToken = statementStart + 3;
+      if (sourceOpcode == STATEMENT_LOCAL_BOOLEAN_NOT_NAMED) {
+        nameToken += 1;
+      }
+
+      boolean resolvedLiteral = opcode == STATEMENT_LOCAL_BOOLEAN;
+      if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT) {
+        resolvedLiteral = true;
+      }
+
+      if (resolvedLiteral) {
+        ConstantResolution booleanDeclarationConstant = resolveClassConstant(
+          source,
+          tokenStarts,
+          tokenLengths,
+          nameToken,
+          false
+        );
+        if (booleanDeclarationConstant.valid) {
+          return booleanDeclarationConstant.value;
+        }
+
+        return -1;
+      }
+    }
+
+    if (sourceOpcode == STATEMENT_RETURN_LOCAL_NAMED) {
+      boolean constantSignedReturn = opcode == STATEMENT_RETURN_LONG;
+      boolean constantScalarReturn = constantSignedReturn;
+      if (opcode == STATEMENT_RETURN_BOOLEAN) {
+        constantScalarReturn = true;
+      }
+
+      if (constantScalarReturn) {
+        ConstantResolution returnConstant = resolveClassConstant(
+          source,
+          tokenStarts,
+          tokenLengths,
+          statementStart + 1,
+          constantSignedReturn
+        );
+        if (returnConstant.valid) {
+          return returnConstant.value;
+        }
+
+        return -1;
+      }
+    }
+
     if (resolvedLocalWhile(opcode)) {
       long whileConditionRight = whileConditionValueToken(source, tokenStarts, statementStart);
       if (resolvedLocalWhileConditionNamed(opcode)) {

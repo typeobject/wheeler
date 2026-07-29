@@ -3,6 +3,7 @@
 module wheeler.compiler.helper_parser;
 
 import wheeler.compiler.body_parser;
+import wheeler.compiler.class_constants;
 import wheeler.compiler.helper_calls;
 import wheeler.compiler.helper_programs;
 import wheeler.compiler.ir;
@@ -161,6 +162,18 @@ classical class HelperParser {
       }
     }
 
+    memberStart = classMemberStart(
+      source,
+      tokenKinds,
+      tokenStarts,
+      tokenLengths,
+      memberStart,
+      count
+    );
+    if (memberStart < 1) {
+      return new MinimalProgramResult.Error(0);
+    }
+
     long helperKind = HELPER_VOID;
     long voidToken = memberStart;
     long visibility = tokenHash(source, tokenStarts, tokenLengths, voidToken);
@@ -204,6 +217,10 @@ classical class HelperParser {
     }
 
     if (tokenLengths[nameToken] < 257) {} else {
+      return new MinimalProgramResult.Error(0);
+    }
+
+    if (classConstantNameExists(source, tokenStarts, tokenLengths, nameToken)) {
       return new MinimalProgramResult.Error(0);
     }
 

@@ -347,6 +347,7 @@ Promotion follows WIP-0007. The identity modules start with executable compiler 
 ## Progress
 
 - [x] Typed scalar `const long` and `const boolean` syntax and models exist. The compiler substitutes ordinary local constants and creates no globals or initializer.
+- [x] The Wheeler-written recovery compiler validates a prefix of up to sixty-four literal scalar constants and substitutes them into typed locals and direct helper returns. Duplicate names, type mismatches, malformed declarations, unsupported expressions, and excess declarations publish nothing. Differential fixtures prove byte parity, no hidden globals, and declaration-order independence for this native slice.
 - [x] Constant evaluation is checked, bounded, deterministic, declaration-order-independent, and cycle-safe. Scalar arithmetic, Boolean expressions, forward same-module declarations, direct imported public declarations, canonical qualification, and `rotateRight32` execute. Cycles report their canonical path before artifact emission.
 - [x] Direct public import and canonical `module::NAME` qualification are enforced. Private and ambiguous use fails closed.
 - [x] `enum` elaborates to the payload-free variant authority, and canonical case-name sorting makes source reordering artifact-stable.

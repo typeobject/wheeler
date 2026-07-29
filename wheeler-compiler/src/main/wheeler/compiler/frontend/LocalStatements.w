@@ -2,6 +2,7 @@
 
 module wheeler.compiler.local_statements;
 
+import wheeler.compiler.class_constants;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_resolution;
@@ -472,7 +473,7 @@ classical class LocalStatements {
         }
       }
 
-      return -1;
+      return classConstantReturnOpcode(source, tokenStarts, tokenLengths, statementStart + 1);
     }
 
     if (opcode == STATEMENT_ASSERT_NAMED_LONG) {
@@ -555,6 +556,12 @@ classical class LocalStatements {
       );
       if (-1 < sourceLocal) {
         return STATEMENT_LOCAL_LONG_COPY_BASE + sourceLocal;
+      }
+
+      if (
+        classConstantHasType(source, tokenStarts, tokenLengths, statementStart + 3, true)
+      ) {
+        return STATEMENT_LOCAL_LONG;
       }
 
       return -1;
@@ -833,6 +840,12 @@ classical class LocalStatements {
         return STATEMENT_LOCAL_BOOLEAN_COPY_BASE + booleanSourceLocal;
       }
 
+      if (
+        classConstantHasType(source, tokenStarts, tokenLengths, statementStart + 3, false)
+      ) {
+        return STATEMENT_LOCAL_BOOLEAN;
+      }
+
       return -1;
     }
 
@@ -848,6 +861,12 @@ classical class LocalStatements {
       );
       if (-1 < negatedSourceLocal) {
         return STATEMENT_LOCAL_BOOLEAN_NOT_BASE + negatedSourceLocal;
+      }
+
+      if (
+        classConstantHasType(source, tokenStarts, tokenLengths, statementStart + 4, false)
+      ) {
+        return STATEMENT_LOCAL_BOOLEAN_NOT;
       }
 
       return -1;

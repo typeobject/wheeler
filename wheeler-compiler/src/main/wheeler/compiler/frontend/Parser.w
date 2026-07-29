@@ -3,6 +3,7 @@
 module wheeler.compiler.parser;
 
 import wheeler.compiler.body_parser;
+import wheeler.compiler.class_constants;
 import wheeler.compiler.helper_parser;
 import wheeler.compiler.ir;
 import wheeler.compiler.scalar_opcodes;
@@ -62,10 +63,27 @@ classical class Parser {
     borrow utf8 source,
     borrow mut words tokenKinds,
     borrow mut words tokenStarts,
-    borrow mut words tokenLengths
+    borrow mut words tokenLengths,
+    long count
   ) {
     long memberStart = minimalNoGlobalMemberStart(source, tokenKinds, tokenStarts, tokenLengths);
     if (memberStart < 1) {
+      return -1;
+    }
+
+    memberStart = classMemberStart(
+      source,
+      tokenKinds,
+      tokenStarts,
+      tokenLengths,
+      memberStart,
+      count
+    );
+    if (memberStart < 1) {
+      return -1;
+    }
+
+    if (classConstantNameExists(source, tokenStarts, tokenLengths, memberStart + 2)) {
       return -1;
     }
 
@@ -267,7 +285,13 @@ classical class Parser {
     borrow mut words statementStarts,
     long count
   ) {
-    long bodyStart = minimalNoGlobalBodyStart(source, tokenKinds, tokenStarts, tokenLengths);
+    long bodyStart = minimalNoGlobalBodyStart(
+      source,
+      tokenKinds,
+      tokenStarts,
+      tokenLengths,
+      count
+    );
     if (bodyStart < 1) {
       return new MinimalProgramResult.Error(0);
     }
@@ -396,6 +420,24 @@ classical class Parser {
     if (minimalStateCountSupported(count)) {
       long entryStart = minimalEntryStart(source, tokenKinds, tokenStarts, tokenLengths);
       if (0 < entryStart) {
+        entryStart = classMemberStart(
+          source,
+          tokenKinds,
+          tokenStarts,
+          tokenLengths,
+          entryStart,
+          count
+        );
+        if (entryStart < 1) {
+          return new MinimalProgramResult.Error(0);
+        }
+
+        if (
+          classConstantNameExists(source, tokenStarts, tokenLengths, entryStart + 2)
+        ) {
+          return new MinimalProgramResult.Error(0);
+        }
+
         long bodyStart = minimalBodyStart(
           source,
           tokenKinds,
