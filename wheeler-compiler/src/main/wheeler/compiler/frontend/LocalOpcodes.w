@@ -337,6 +337,10 @@ classical class LocalOpcodes {
       return 3;
     }
 
+    if (opcode == STATEMENT_ASSERT_GLOBAL_CONSTANT) {
+      return 3;
+    }
+
     if (resolvedLocalLiteralComparison(opcode)) {
       if (resolvedLocalLiteralInequality(opcode)) {
         return 6;
@@ -688,6 +692,10 @@ classical class LocalOpcodes {
     }
 
     if (opcode == STATEMENT_ASSERT_LITERAL_EQ) {
+      return 96;
+    }
+
+    if (opcode == STATEMENT_ASSERT_GLOBAL_CONSTANT) {
       return 96;
     }
 

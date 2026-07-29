@@ -232,9 +232,10 @@ class MinimalCompilerConstantExampleTest {
         compiler,
         "classical class ConstantConditionalOperands { state long outcome = 0; "
             + "const long LIMIT = 40 + 2; const long UPPER = LIMIT + 1; "
-            + "entry void main() { long value = 42; if (value == LIMIT) { outcome += 1; } "
-            + "if (value < UPPER) { outcome += 1; } assert(value == LIMIT); "
-            + "assert(value < UPPER); assert(outcome == 2); } }");
+            + "const long EXPECTED_OUTCOME = UPPER - 41; entry void main() { long value = 42; "
+            + "if (value == LIMIT) { outcome += 1; } if (value < UPPER) { outcome += 1; } "
+            + "assert(value == LIMIT); assert(value < UPPER); "
+            + "assert(outcome == EXPECTED_OUTCOME); } }");
   }
 
   @Test
@@ -400,6 +401,10 @@ class MinimalCompilerConstantExampleTest {
         compiler,
         "classical class WrongGlobalAssignmentConstant { state long value = 0; "
             + "const boolean READY = true; entry void main() { value = READY; } }");
+    assertNativeTrap(
+        compiler,
+        "classical class WrongGlobalAssertionConstant { state long value = 0; "
+            + "const boolean EXPECTED = true; entry void main() { assert(value == EXPECTED); } }");
     assertNativeTrap(
         compiler,
         "classical class WrongStateInitializerConstant { const boolean READY = true; "

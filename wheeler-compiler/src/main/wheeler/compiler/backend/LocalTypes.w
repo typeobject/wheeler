@@ -133,6 +133,12 @@ classical class LocalTypes {
       return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
     }
 
+    if (opcode == STATEMENT_ASSERT_GLOBAL_CONSTANT) {
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+    }
+
     if (resolvedLocalLessThanAssertion(opcode)) {
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);

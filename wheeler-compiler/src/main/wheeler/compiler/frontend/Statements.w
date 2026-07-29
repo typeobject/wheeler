@@ -326,30 +326,43 @@ classical class Statements {
                   tokenStarts,
                   statementStart + 5
                 );
+                boolean assertValueValid = false;
                 if (0 < assertWidth) {
+                  assertValueValid = signedNumberValid(
+                    source,
+                    tokenStarts,
+                    tokenLengths,
+                    statementStart + 5
+                  );
+                }
+
+                if (statementKind == STATEMENT_ASSERT_EQ) {
+                  if (tokenKinds[statementStart + 5] == 1) {
+                    assertWidth = 1;
+                    assertValueValid = true;
+                  }
+                }
+
+                if (assertValueValid) {
                   if (
-                    signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 5)
+                    punctuationAt(
+                      source,
+                      tokenKinds,
+                      tokenStarts,
+                      statementStart + 5 + assertWidth,
+                      PUNCTUATION_CLOSE_PAREN
+                    )
                   ) {
                     if (
                       punctuationAt(
                         source,
                         tokenKinds,
                         tokenStarts,
-                        statementStart + 5 + assertWidth,
-                        PUNCTUATION_CLOSE_PAREN
+                        statementStart + 6 + assertWidth,
+                        PUNCTUATION_SEMICOLON
                       )
                     ) {
-                      if (
-                        punctuationAt(
-                          source,
-                          tokenKinds,
-                          tokenStarts,
-                          statementStart + 6 + assertWidth,
-                          PUNCTUATION_SEMICOLON
-                        )
-                      ) {
-                        return 7 + assertWidth;
-                      }
+                      return 7 + assertWidth;
                     }
                   }
                 }

@@ -53,6 +53,10 @@ classical class Operands {
       ambiguousTypedStatement = true;
     }
 
+    if (opcode == STATEMENT_ASSERT_EQ) {
+      ambiguousTypedStatement = true;
+    }
+
     if (opcode == STATEMENT_ASSERT_LOCAL_PAIR_NAMED) {
       ambiguousTypedStatement = true;
     }
@@ -200,6 +204,24 @@ classical class Operands {
             return -1;
           }
         }
+      }
+    }
+
+    if (sourceOpcode == STATEMENT_ASSERT_EQ) {
+      long globalAssertionRight = statementStart + 5;
+      if (loopOperandNamed(source, tokenStarts, globalAssertionRight)) {
+        ConstantResolution globalAssertionConstant = resolveClassConstant(
+          source,
+          tokenStarts,
+          tokenLengths,
+          globalAssertionRight,
+          true
+        );
+        if (globalAssertionConstant.valid) {
+          return globalAssertionConstant.value;
+        }
+
+        return -1;
       }
     }
 

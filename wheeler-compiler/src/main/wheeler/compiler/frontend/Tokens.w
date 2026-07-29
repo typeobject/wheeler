@@ -409,6 +409,8 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_ASSIGN_BOOLEAN_LOCAL_BASE = 18432;
   /// Names one bounded signed-local while loop before typed resolution.
   public const long STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED = 878;
+  /// Names one resolved global equality assertion against a class constant.
+  public const long STATEMENT_ASSERT_GLOBAL_CONSTANT = 879;
   /// Starts resolved bounded signed-local while loops.
   public const long STATEMENT_LOCAL_WHILE_BASE = 18688;
   /// Marks a while condition whose right operand names a prior local.

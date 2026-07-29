@@ -286,6 +286,24 @@ classical class LocalStatements {
       return classConstantReturnOpcode(source, tokenStarts, tokenLengths, statementStart + 1);
     }
 
+    if (opcode == STATEMENT_ASSERT_EQ) {
+      long globalAssertionRight = statementStart + 5;
+      if (loopOperandNamed(source, tokenStarts, globalAssertionRight)) {
+        ConstantResolution globalAssertionConstant = resolveClassConstant(
+          source,
+          tokenStarts,
+          tokenLengths,
+          globalAssertionRight,
+          true
+        );
+        if (globalAssertionConstant.valid) {
+          return STATEMENT_ASSERT_GLOBAL_CONSTANT;
+        }
+
+        return -1;
+      }
+    }
+
     if (opcode == STATEMENT_ASSERT_NAMED_LONG) {
       long local = resolvePriorDeclaration(
         source,

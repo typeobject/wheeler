@@ -123,6 +123,26 @@ classical class Codegen {
     return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
   }
 
+  private long writeGlobalLiteralAssertion(
+    borrow mut bytes output,
+    long cursor,
+    long rightValue,
+    long localBase
+  ) {
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_LOAD_GLOBAL, FORM_BINARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+    cursor = writeSignedLittleEndian(output, cursor, rightValue, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_EQ, FORM_TERNARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_EXPECT_TRUE, FORM_UNARY);
+    return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+  }
+
   /// Maps a parsed global update to its canonical bytecode opcode.
   public long globalOpcode(long opcode) {
     if (opcode == STATEMENT_UPDATE_ADD) {
@@ -379,6 +399,10 @@ classical class Codegen {
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
       cursor = writeInstructionHeader(output, cursor, OPCODE_EXPECT_TRUE, FORM_UNARY);
       return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+    }
+
+    if (opcode == STATEMENT_ASSERT_GLOBAL_CONSTANT) {
+      return writeGlobalLiteralAssertion(output, cursor, operand, localBase);
     }
 
     if (resolvedLocalPairAssertion(opcode)) {
