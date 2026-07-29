@@ -3,6 +3,7 @@
 module wheeler.compiler.compiler_graph_four;
 
 import wheeler.compiler.compiler_core;
+import wheeler.compiler.compiler_graph_four_mixed;
 import wheeler.compiler.module_linker;
 
 classical class CompilerGraphFour {
@@ -340,7 +341,7 @@ classical class CompilerGraphFour {
     );
   }
 
-  /// Compiles one root with four direct modules, one chain, or one three-leaf fork.
+  /// Compiles one root with a supported four-module constant tree.
   public FourGraphCompilation compileFourConstantGraph(
     borrow utf8 firstImportedSource,
     borrow utf8 secondImportedSource,
@@ -419,6 +420,18 @@ classical class CompilerGraphFour {
     );
     if (0 < chain.length) {
       return chain;
+    }
+
+    MixedFourCompilation mixed = compileFourChainAndDirect(
+      firstImportedSource,
+      secondImportedSource,
+      thirdImportedSource,
+      fourthImportedSource,
+      rootSource,
+      output
+    );
+    if (0 < mixed.length) {
+      return new FourGraphCompilation(mixed.length, mixed.codeStart);
     }
 
     FourGraphCompilation fork = compileThreeLeafFork(
