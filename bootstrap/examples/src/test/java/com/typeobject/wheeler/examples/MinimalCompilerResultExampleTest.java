@@ -167,6 +167,11 @@ class MinimalCompilerResultExampleTest {
             + "assert(index == 3); } }");
     assertDifferentialHalt(
         writerProgram,
+        "classical class BoundedLocalWhileCountdown { entry void main() { "
+            + "long value = 3; while (0 < value) limit 3 { value -= 1; } "
+            + "assert(value == 0); } }");
+    assertDifferentialHalt(
+        writerProgram,
         "classical class BoundedLocalWhileXor { entry void main() { "
             + "long value = 0; while (value < 1) limit 1 { value ^= 1; } "
             + "assert(value == 1); } }");

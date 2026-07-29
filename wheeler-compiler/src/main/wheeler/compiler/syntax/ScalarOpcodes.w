@@ -292,9 +292,14 @@ classical class ScalarOpcodes {
     return resolvedLocalWhileForm(opcode) / 2 % 2 == 1;
   }
 
+  /// Checks whether a resolved while compares zero with its target.
+  public boolean resolvedLocalWhileReversed(long opcode) {
+    return STATEMENT_LOCAL_WHILE_REVERSED_FORM - 1 < resolvedLocalWhileForm(opcode);
+  }
+
   /// Returns the update form carried by one resolved while opcode.
   public long resolvedLocalWhileUpdateForm(long opcode) {
-    return resolvedLocalWhileForm(opcode) / 4 * 4;
+    return resolvedLocalWhileForm(opcode) % STATEMENT_LOCAL_WHILE_REVERSED_FORM / 4 * 4;
   }
 
   /// Returns the target local carried by one resolved assignment opcode.

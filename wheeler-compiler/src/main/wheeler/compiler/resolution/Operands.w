@@ -80,7 +80,7 @@ classical class Operands {
       previousCount
     );
     if (resolvedLocalWhile(opcode)) {
-      long whileConditionRight = statementStart + 4;
+      long whileConditionRight = whileConditionValueToken(source, tokenStarts, statementStart);
       if (resolvedLocalWhileConditionNamed(opcode)) {
         return resolvePriorDeclaration(
           source,

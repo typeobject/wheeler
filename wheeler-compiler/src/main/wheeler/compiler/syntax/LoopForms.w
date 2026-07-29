@@ -30,6 +30,41 @@ classical class LoopForms {
     return named;
   }
 
+  /// Checks whether one loop compares zero with its target local.
+  public boolean whileReversed(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    long statementStart
+  ) {
+    return utf8Scalar(source, tokenStarts[statementStart + 2]) == SCALAR_DIGIT_ZERO;
+  }
+
+  /// Returns the token carrying one loop target local.
+  public long whileTargetToken(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    long statementStart
+  ) {
+    if (whileReversed(source, tokenStarts, statementStart)) {
+      return statementStart + 4;
+    }
+
+    return statementStart + 2;
+  }
+
+  /// Returns the token carrying the condition value beside one loop target.
+  public long whileConditionValueToken(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    long statementStart
+  ) {
+    if (whileReversed(source, tokenStarts, statementStart)) {
+      return statementStart + 2;
+    }
+
+    return statementStart + 4;
+  }
+
   /// Returns the token carrying one loop limit.
   public long whileLimitToken(
     borrow utf8 source,
@@ -97,8 +132,16 @@ classical class LoopForms {
       return -1;
     }
 
-    if (tokenKinds[statementStart + 2] == 1) {} else {
+    boolean reversed = whileReversed(source, tokenStarts, statementStart);
+    long targetToken = whileTargetToken(source, tokenStarts, statementStart);
+    if (tokenKinds[targetToken] == 1) {} else {
       return -1;
+    }
+
+    if (reversed) {
+      if (tokenLengths[statementStart + 2] == 1) {} else {
+        return -1;
+      }
     }
 
     if (
@@ -110,16 +153,18 @@ classical class LoopForms {
 
     long conditionRight = statementStart + 4;
     long conditionWidth = 1;
-    if (tokenKinds[conditionRight] == 1) {} else {
-      conditionWidth = signedNumberWidth(source, tokenKinds, tokenStarts, conditionRight);
-      if (conditionWidth < 1) {
-        return -1;
-      }
+    if (reversed) {} else {
+      if (tokenKinds[conditionRight] == 1) {} else {
+        conditionWidth = signedNumberWidth(source, tokenKinds, tokenStarts, conditionRight);
+        if (conditionWidth < 1) {
+          return -1;
+        }
 
-      if (
-        signedNumberValid(source, tokenStarts, tokenLengths, conditionRight) == false
-      ) {
-        return -1;
+        if (
+          signedNumberValid(source, tokenStarts, tokenLengths, conditionRight) == false
+        ) {
+          return -1;
+        }
       }
     }
 
@@ -163,7 +208,7 @@ classical class LoopForms {
     }
 
     if (
-      sameTokenText(source, tokenStarts, tokenLengths, statementStart + 2, updateTarget) == false
+      sameTokenText(source, tokenStarts, tokenLengths, targetToken, updateTarget) == false
     ) {
       return -1;
     }

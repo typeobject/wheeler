@@ -22,13 +22,14 @@ classical class LocalStatements {
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
     if (opcode == STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED) {
+      long whileTargetName = whileTargetToken(source, tokenStarts, statementStart);
       long whileTarget = resolvePriorDeclaration(
         source,
         tokenStarts,
         tokenLengths,
         previousStarts,
         previousCount,
-        statementStart + 2,
+        whileTargetName,
         true
       );
       if (whileTarget < 0) {
@@ -36,22 +37,26 @@ classical class LocalStatements {
       }
 
       long whileForm = 0;
-      long whileConditionRight = statementStart + 4;
-      if (loopOperandNamed(source, tokenStarts, whileConditionRight)) {
-        long whileConditionLocal = resolvePriorDeclaration(
-          source,
-          tokenStarts,
-          tokenLengths,
-          previousStarts,
-          previousCount,
-          whileConditionRight,
-          true
-        );
-        if (whileConditionLocal < 0) {
-          return -1;
-        }
+      long whileConditionRight = whileConditionValueToken(source, tokenStarts, statementStart);
+      if (whileReversed(source, tokenStarts, statementStart)) {
+        whileForm += STATEMENT_LOCAL_WHILE_REVERSED_FORM;
+      } else {
+        if (loopOperandNamed(source, tokenStarts, whileConditionRight)) {
+          long whileConditionLocal = resolvePriorDeclaration(
+            source,
+            tokenStarts,
+            tokenLengths,
+            previousStarts,
+            previousCount,
+            whileConditionRight,
+            true
+          );
+          if (whileConditionLocal < 0) {
+            return -1;
+          }
 
-        whileForm += STATEMENT_LOCAL_WHILE_CONDITION_NAMED;
+          whileForm += STATEMENT_LOCAL_WHILE_CONDITION_NAMED;
+        }
       }
 
       long whileLimit = whileLimitToken(source, tokenStarts, statementStart);

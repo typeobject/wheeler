@@ -417,8 +417,10 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_WHILE_SUB_FORM = 4;
   /// Selects bitwise XOR for a resolved while update.
   public const long STATEMENT_LOCAL_WHILE_XOR_FORM = 8;
+  /// Marks a zero-to-local less-than condition.
+  public const long STATEMENT_LOCAL_WHILE_REVERSED_FORM = 16;
   /// Bounds the closed while form column encoded beside one target local.
-  public const long STATEMENT_LOCAL_WHILE_FORM_COUNT = 12;
+  public const long STATEMENT_LOCAL_WHILE_FORM_COUNT = 24;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -426,6 +428,8 @@ classical class Tokens {
   /// Names the parser IR code for global XOR.
   public const long STATEMENT_UPDATE_XOR = 1042;
 
+  /// Names the ASCII scalar for the canonical digit `0`.
+  public const long SCALAR_DIGIT_ZERO = 48;
   /// Names the ASCII scalar for the canonical digit `1`.
   public const long SCALAR_DIGIT_ONE = 49;
   /// Names the ASCII `!` punctuation scalar.
