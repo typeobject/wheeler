@@ -10,6 +10,29 @@ import wheeler.compiler.statement_forms;
 import wheeler.compiler.tokens;
 
 classical class LocalResolution {
+  private long resolutionLocalCount(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart,
+    long opcode
+  ) {
+    if (localUpdateSourceStatement(opcode)) {
+      boolean globalUpdate = tokenHash(source, tokenStarts, tokenLengths, 4) == TOKEN_STATE;
+      if (globalUpdate) {
+        globalUpdate = sameTokenText(source, tokenStarts, tokenLengths, 6, statementStart);
+      }
+
+      if (globalUpdate) {
+        return 2;
+      }
+
+      return 1;
+    }
+
+    return statementLocalCount(opcode);
+  }
+
   private boolean declarationMatches(long opcode, boolean signed) {
     if (signed) {
       if (opcode == STATEMENT_LOCAL_LONG) {
@@ -168,7 +191,13 @@ classical class LocalResolution {
             }
           }
 
-          localBase += statementLocalCount(previousOpcode);
+          localBase += resolutionLocalCount(
+            source,
+            tokenStarts,
+            tokenLengths,
+            previousStart,
+            previousOpcode
+          );
         }
       }
 

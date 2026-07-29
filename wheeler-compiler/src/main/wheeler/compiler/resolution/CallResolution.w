@@ -3,8 +3,7 @@
 module wheeler.compiler.call_resolution;
 
 import wheeler.compiler.call_forms;
-import wheeler.compiler.class_constants;
-import wheeler.compiler.local_resolution;
+import wheeler.compiler.scalar_references;
 import wheeler.compiler.tokens;
 
 classical class CallResolution {
@@ -20,44 +19,16 @@ classical class CallResolution {
     long argumentToken,
     boolean expectedSigned
   ) {
-    long signedLocal = resolvePriorDeclaration(
+    ScalarReference reference = resolveScalarReference(
       source,
       tokenStarts,
       tokenLengths,
       previousStarts,
       previousCount,
-      argumentToken,
-      true
-    );
-    long booleanLocal = resolvePriorDeclaration(
-      source,
-      tokenStarts,
-      tokenLengths,
-      previousStarts,
-      previousCount,
-      argumentToken,
-      false
-    );
-    if (-1 < signedLocal) {
-      if (-1 < booleanLocal) {
-        return new CallArgument(false, false);
-      }
-
-      return new CallArgument(true, expectedSigned);
-    }
-
-    if (-1 < booleanLocal) {
-      return new CallArgument(true, expectedSigned == false);
-    }
-
-    ConstantResolution constant = resolveClassConstant(
-      source,
-      tokenStarts,
-      tokenLengths,
       argumentToken,
       expectedSigned
     );
-    return new CallArgument(false, constant.valid);
+    return new CallArgument(reference.local, reference.valid);
   }
 
   private long oneArgumentOpcode(boolean booleanResult, boolean signedArgument, boolean local) {

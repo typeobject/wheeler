@@ -9,6 +9,7 @@ import wheeler.compiler.conditionals;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.loop_forms;
+import wheeler.compiler.mutation_resolution;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.tokens;
@@ -87,160 +88,27 @@ classical class LocalStatements {
     }
 
     if (localAssignmentSourceStatement(opcode)) {
-      long assignmentSignedTarget = resolvePriorDeclaration(
+      return resolveAssignmentOpcode(
         source,
         tokenStarts,
         tokenLengths,
+        statementStart,
         previousStarts,
         previousCount,
-        statementStart,
-        true
+        opcode
       );
-      long assignmentBooleanTarget = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart,
-        false
-      );
-      boolean globalAssignmentTarget = tokenHash(source, tokenStarts, tokenLengths, 4)
-        == TOKEN_STATE;
-      if (globalAssignmentTarget) {
-        globalAssignmentTarget = sameTokenText(
-          source,
-          tokenStarts,
-          tokenLengths,
-          6,
-          statementStart
-        );
-      }
-
-      boolean signedTarget = -1 < assignmentSignedTarget;
-      boolean booleanTarget = -1 < assignmentBooleanTarget;
-      if (signedTarget) {
-        if (booleanTarget) {
-          return -1;
-        }
-
-        if (globalAssignmentTarget) {
-          return -1;
-        }
-
-        if (opcode == STATEMENT_ASSIGN) {
-          return STATEMENT_LOCAL_ASSIGN_SIGNED_LITERAL_BASE + assignmentSignedTarget;
-        }
-
-        long assignmentSignedSource = resolvePriorDeclaration(
-          source,
-          tokenStarts,
-          tokenLengths,
-          previousStarts,
-          previousCount,
-          statementStart + 2,
-          true
-        );
-        if (-1 < assignmentSignedSource) {
-          return STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE + assignmentSignedTarget;
-        }
-
-        return -1;
-      }
-
-      if (booleanTarget) {
-        if (globalAssignmentTarget) {
-          return -1;
-        }
-
-        long assignmentRightHash = tokenHash(
-          source,
-          tokenStarts,
-          tokenLengths,
-          statementStart + 2
-        );
-        if (booleanTokenHash(assignmentRightHash)) {
-          return STATEMENT_LOCAL_ASSIGN_BOOLEAN_LITERAL_BASE + assignmentBooleanTarget;
-        }
-
-        long assignmentBooleanSource = resolvePriorDeclaration(
-          source,
-          tokenStarts,
-          tokenLengths,
-          previousStarts,
-          previousCount,
-          statementStart + 2,
-          false
-        );
-        if (-1 < assignmentBooleanSource) {
-          return STATEMENT_LOCAL_ASSIGN_BOOLEAN_LOCAL_BASE + assignmentBooleanTarget;
-        }
-
-        return -1;
-      }
-
-      if (globalAssignmentTarget) {
-        return opcode;
-      }
-
-      return -1;
     }
 
     if (localUpdateSourceStatement(opcode)) {
-      long updateTarget = resolvePriorDeclaration(
+      return resolveUpdateOpcode(
         source,
         tokenStarts,
         tokenLengths,
+        statementStart,
         previousStarts,
         previousCount,
-        statementStart,
-        true
+        opcode
       );
-      boolean globalUpdateTarget = tokenHash(source, tokenStarts, tokenLengths, 4) == TOKEN_STATE;
-      if (globalUpdateTarget) {
-        globalUpdateTarget = sameTokenText(
-          source,
-          tokenStarts,
-          tokenLengths,
-          6,
-          statementStart
-        );
-      }
-
-      if (-1 < updateTarget) {
-        if (globalUpdateTarget) {
-          return -1;
-        }
-
-        long updateBase = STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE;
-        if (opcode == STATEMENT_UPDATE_ADD_LOCAL_NAMED) {
-          updateBase = STATEMENT_LOCAL_UPDATE_ADD_LOCAL_BASE;
-        }
-
-        if (opcode == STATEMENT_UPDATE_SUB) {
-          updateBase = STATEMENT_LOCAL_UPDATE_SUB_LITERAL_BASE;
-        }
-
-        if (opcode == STATEMENT_UPDATE_SUB_LOCAL_NAMED) {
-          updateBase = STATEMENT_LOCAL_UPDATE_SUB_LOCAL_BASE;
-        }
-
-        if (opcode == STATEMENT_UPDATE_XOR) {
-          updateBase = STATEMENT_LOCAL_UPDATE_XOR_LITERAL_BASE;
-        }
-
-        if (opcode == STATEMENT_UPDATE_XOR_LOCAL_NAMED) {
-          updateBase = STATEMENT_LOCAL_UPDATE_XOR_LOCAL_BASE;
-        }
-
-        return updateBase + updateTarget;
-      }
-
-      if (globalUpdateTarget) {
-        return opcode;
-      }
-
-      return -1;
     }
 
     if (oneArgumentCallStatement(opcode)) {

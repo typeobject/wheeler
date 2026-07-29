@@ -34,8 +34,9 @@ operations, calls, results, and narrow explicitly limited loops.
 A class may place at most sixty-four literal `const long` or `const boolean` declarations
 before its helper or entry. Public and private constants share one duplicate-name check.
 The resolver substitutes them into matching local declarations, scalar helper returns,
-and one- or two-argument scalar helper calls. Calls may mix constants with prior locals.
-The resolver rejects helper parameters or locals that reuse constant names. Constants create no global,
+scalar assignments, checked signed updates, and one- or two-argument scalar helper calls.
+Calls and mutations may mix constants with prior locals. The resolver rejects helper
+parameters or locals that reuse constant names. Constants create no global,
 initializer, lookup, or declaration-order artifact noise. Full constant expressions, imports,
 and multi-file linking remain stage-0 work
 until their native implementations pass differential artifact tests.

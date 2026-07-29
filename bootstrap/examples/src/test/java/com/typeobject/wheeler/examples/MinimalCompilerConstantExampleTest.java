@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 
 /** Differential coverage for the Wheeler-native scalar class-constant slice. */
 class MinimalCompilerConstantExampleTest {
-  private static final int OUTPUT_CAPACITY = 2_048;
+  private static final int OUTPUT_CAPACITY = 8_192;
   private static final int MAX_NATIVE_CONSTANTS = 64;
 
   @Test
@@ -95,6 +95,20 @@ class MinimalCompilerConstantExampleTest {
   }
 
   @Test
+  void substitutesConstantsIntoScalarAssignmentsAndCheckedUpdates() throws Exception {
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    assertDifferentialHalt(
+        compiler,
+        "classical class ConstantMutations { state long total = 0; "
+            + "const long STEP = 2; const long MASK = 3; const long ONE = 1; "
+            + "const long ANSWER = 42; const boolean READY = true; entry void main() { "
+            + "long value = 0; value += STEP; value ^= MASK; value -= ONE; value = ANSWER; "
+            + "boolean ready = false; ready = READY; total += STEP; total ^= MASK; "
+            + "total -= ONE; total = ANSWER; assert(value == 42); assert(ready); "
+            + "assert(total == 42); } }");
+  }
+
+  @Test
   void keepsIndependentDeclarationOrderOutOfTheArtifact() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
     String prefix = "classical class OrderedConstants { ";
@@ -152,6 +166,18 @@ class MinimalCompilerConstantExampleTest {
         "classical class WrongBooleanPairConstant { const long LEFT = 1; "
             + "const long RIGHT = 2; boolean both(boolean left, boolean right) { return left; } "
             + "entry void main() { boolean result = both(LEFT, RIGHT); } }");
+    assertNativeTrap(
+        compiler,
+        "classical class WrongUpdateConstant { const boolean STEP = true; "
+            + "entry void main() { long value = 0; value += STEP; } }");
+    assertNativeTrap(
+        compiler,
+        "classical class WrongAssignmentConstant { const long VALUE = 1; "
+            + "entry void main() { boolean ready = false; ready = VALUE; } }");
+    assertNativeTrap(
+        compiler,
+        "classical class WrongGlobalAssignmentConstant { state long value = 0; "
+            + "const boolean READY = true; entry void main() { value = READY; } }");
     assertNativeTrap(
         compiler,
         "classical class ConstantLocalCollision { const long VALUE = 1; "

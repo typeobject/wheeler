@@ -10,6 +10,7 @@ import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.local_statements;
 import wheeler.compiler.loop_forms;
+import wheeler.compiler.mutation_resolution;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.tokens;
@@ -102,6 +103,22 @@ classical class Operands {
     );
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
     if (-1 < opcode) {
+      MutationOperand mutationOperand = resolveMutationOperand(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        sourceOpcode,
+        opcode
+      );
+      if (mutationOperand.applies) {
+        if (mutationOperand.valid) {
+          return mutationOperand.value;
+        }
+
+        return -1;
+      }
+
       if (twoArgumentCallStatement(sourceOpcode)) {
         if (twoArgumentCallFirstNamed(sourceOpcode)) {
           if (twoArgumentCallFirstNamed(opcode) == false) {
