@@ -9,12 +9,14 @@ classical class NativeModuleCompiler {
   private const long SINGLE_MODULE_COUNT = 1;
   private const long PAIR_MODULE_COUNT = 2;
   private const long TRIPLE_MODULE_COUNT = 3;
+  private const long QUADRUPLE_MODULE_COUNT = 4;
   private const long MAX_FRAME_SOURCE_BYTES = 16384;
 
   state long moduleCount = 0;
   state long importedLength = 0;
   state long secondImportedLength = 0;
   state long thirdImportedLength = 0;
+  state long fourthImportedLength = 0;
   state long rootLength = 0;
   state long artifactLength = 0;
   state long published = 0;
@@ -159,7 +161,70 @@ classical class NativeModuleCompiler {
     drop(arena);
   }
 
-  /// Compiles a canonical frame containing one through three imported modules.
+  private void publishFour(borrow byteview input, borrow mut bytes output) {
+    long firstLengthOffset = FRAME_LENGTH_WIDTH;
+    long firstStart = firstLengthOffset + FRAME_LENGTH_WIDTH;
+    importedLength = framedLength(input, firstLengthOffset);
+    assert(0 < importedLength);
+    assert(importedLength < MAX_FRAME_SOURCE_BYTES + 1);
+    long secondLengthOffset = firstStart + importedLength;
+    assert(secondLengthOffset + FRAME_LENGTH_WIDTH < bufferLength(input));
+    secondImportedLength = framedLength(input, secondLengthOffset);
+    assert(0 < secondImportedLength);
+    assert(secondImportedLength < MAX_FRAME_SOURCE_BYTES + 1);
+    long secondStart = secondLengthOffset + FRAME_LENGTH_WIDTH;
+    long thirdLengthOffset = secondStart + secondImportedLength;
+    assert(thirdLengthOffset + FRAME_LENGTH_WIDTH < bufferLength(input));
+    thirdImportedLength = framedLength(input, thirdLengthOffset);
+    assert(0 < thirdImportedLength);
+    assert(thirdImportedLength < MAX_FRAME_SOURCE_BYTES + 1);
+    long thirdStart = thirdLengthOffset + FRAME_LENGTH_WIDTH;
+    long fourthLengthOffset = thirdStart + thirdImportedLength;
+    assert(fourthLengthOffset + FRAME_LENGTH_WIDTH < bufferLength(input));
+    fourthImportedLength = framedLength(input, fourthLengthOffset);
+    assert(0 < fourthImportedLength);
+    assert(fourthImportedLength < MAX_FRAME_SOURCE_BYTES + 1);
+    long fourthStart = fourthLengthOffset + FRAME_LENGTH_WIDTH;
+    long rootStart = fourthStart + fourthImportedLength;
+    assert(rootStart < bufferLength(input));
+    rootLength = bufferLength(input) - rootStart;
+    assert(rootLength < MAX_FRAME_SOURCE_BYTES + 1);
+
+    region arena = new region(/* bytes= */ 81920, /* allocations= */ 5);
+    bytes firstBytes = allocateBytes(arena, importedLength);
+    bytes secondBytes = allocateBytes(arena, secondImportedLength);
+    bytes thirdBytes = allocateBytes(arena, thirdImportedLength);
+    bytes fourthBytes = allocateBytes(arena, fourthImportedLength);
+    bytes rootBytes = allocateBytes(arena, rootLength);
+    copyFrame(input, firstStart, firstBytes);
+    copyFrame(input, secondStart, secondBytes);
+    copyFrame(input, thirdStart, thirdBytes);
+    copyFrame(input, fourthStart, fourthBytes);
+    copyFrame(input, rootStart, rootBytes);
+    utf8 firstSource = freezeUtf8(firstBytes);
+    utf8 secondSource = freezeUtf8(secondBytes);
+    utf8 thirdSource = freezeUtf8(thirdBytes);
+    utf8 fourthSource = freezeUtf8(fourthBytes);
+    utf8 rootSource = freezeUtf8(rootBytes);
+    Compilation compiled = compileMinimalWithFourConstantImports(
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      rootSource,
+      output
+    );
+    artifactLength = compiled.length;
+    published = 1;
+    drop(rootSource);
+    drop(fourthSource);
+    drop(thirdSource);
+    drop(secondSource);
+    drop(firstSource);
+    drop(arena);
+  }
+
+  /// Compiles a canonical frame containing one through four imported modules.
   ///
   /// - Effects: Mutates fixture state and caller-owned byte output.
   entry void main(borrow byteview input, borrow mut bytes output) {
@@ -174,7 +239,11 @@ classical class NativeModuleCompiler {
         if (moduleCount == TRIPLE_MODULE_COUNT) {
           publishThree(input, output);
         } else {
-          assert(published == 1);
+          if (moduleCount == QUADRUPLE_MODULE_COUNT) {
+            publishFour(input, output);
+          } else {
+            assert(published == 1);
+          }
         }
       }
     }
