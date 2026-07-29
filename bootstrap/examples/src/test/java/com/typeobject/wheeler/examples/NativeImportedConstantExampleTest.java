@@ -163,6 +163,47 @@ class NativeImportedConstantExampleTest {
   }
 
   @Test
+  void linksAChainBesideADirectConstantModule() throws Exception {
+    Program compiler = program();
+    String leaf = "module examples.alpha; classical class Alpha { "
+        + "private const long BASE = 20; public const long LEFT_BASE = BASE; }";
+    String dependent = "module examples.beta; import examples.alpha; "
+        + "classical class Beta { public const long LEFT = examples.alpha::LEFT_BASE + 1; }";
+    String direct = "module examples.gamma; classical class Gamma { "
+        + "public const long RIGHT = 21; public const boolean READY = RIGHT == 21; }";
+    String root = "module examples.root; import examples.beta; import examples.gamma; "
+        + "classical class Root { state long outcome = 0; entry void main() { "
+        + "long left = examples.beta::LEFT; long right = examples.gamma::RIGHT; "
+        + "boolean ready = READY; long sum = left + right; outcome = sum; "
+        + "assert(ready); assert(outcome == 42); } }";
+
+    byte[] artifact = compileNative(compiler, List.of(leaf, dependent, direct), root);
+    assertArrayEquals(
+        artifact,
+        compileNative(compiler, List.of(direct, leaf, dependent), root));
+    assertArrayEquals(
+        artifact,
+        compileNative(compiler, List.of(dependent, direct, leaf), root));
+    Map<String, String> sources = new LinkedHashMap<>();
+    sources.put("Alpha.w", leaf);
+    sources.put("Beta.w", dependent);
+    sources.put("Gamma.w", direct);
+    sources.put("Root.w", root);
+    assertArrayEquals(
+        new BytecodeWriter().write(
+            new WheelerCompiler().compileModuleFiles(sources, "examples.root")),
+        artifact);
+    VirtualMachine program = new VirtualMachine(new BytecodeReader().read(artifact));
+    program.run();
+    assertEquals(42, program.global("outcome"));
+
+    assertNativeTrap(
+        compiler,
+        List.of(dependent, direct, leaf),
+        root.replace("long left = examples.beta::LEFT;", "long left = BASE;"));
+  }
+
+  @Test
   void linksATwoLeafConstantForkWithoutTransitiveExports() throws Exception {
     Program compiler = program();
     String left = "module examples.alpha; classical class Alpha { "

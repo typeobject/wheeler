@@ -331,7 +331,89 @@ classical class CompilerDriver {
     return compiled;
   }
 
-  /// Compiles one root with three direct modules, a chain, or a two-leaf fork.
+  private Compilation compileMinimalWithMixedConstantsIfOrdered(
+    borrow utf8 leafSource,
+    borrow utf8 dependentSource,
+    borrow utf8 directSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    LinkPlan leafPlan = planPrivateConstantImport(
+      leafSource,
+      dependentSource,
+      /* expectedImportCount= */ 1
+    );
+    if (leafPlan.valid) {} else {
+      return new Compilation(0, 0);
+    }
+
+    region dependentArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes dependentBytes = allocateBytes(dependentArena, leafPlan.linkedLength);
+    long dependentWritten = writeConstantImport(
+      leafSource,
+      dependentSource,
+      leafPlan,
+      dependentBytes
+    );
+    assert(dependentWritten == leafPlan.linkedLength);
+    utf8 linkedDependentSource = freezeUtf8(dependentBytes);
+
+    LinkPlan dependentPlan = planResolvedConstantImport(
+      linkedDependentSource,
+      rootSource,
+      /* expectedImportCount= */ 2
+    );
+    if (dependentPlan.valid) {} else {
+      drop(linkedDependentSource);
+      drop(dependentArena);
+      return new Compilation(0, 0);
+    }
+
+    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes rootBytes = allocateBytes(rootArena, dependentPlan.linkedLength);
+    long rootWritten = writeConstantImport(
+      linkedDependentSource,
+      rootSource,
+      dependentPlan,
+      rootBytes
+    );
+    assert(rootWritten == dependentPlan.linkedLength);
+    utf8 firstLinkedRootSource = freezeUtf8(rootBytes);
+
+    LinkPlan directPlan = planConstantImport(
+      directSource,
+      firstLinkedRootSource,
+      /* expectedImportCount= */ 2
+    );
+    if (directPlan.valid) {} else {
+      drop(firstLinkedRootSource);
+      drop(rootArena);
+      drop(linkedDependentSource);
+      drop(dependentArena);
+      return new Compilation(0, 0);
+    }
+
+    region finalArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes finalBytes = allocateBytes(finalArena, directPlan.linkedLength);
+    long finalWritten = writeConstantImport(
+      directSource,
+      firstLinkedRootSource,
+      directPlan,
+      finalBytes
+    );
+    assert(finalWritten == directPlan.linkedLength);
+    utf8 linkedRootSource = freezeUtf8(finalBytes);
+    Compilation compiled = compileMinimal(linkedRootSource, output);
+    drop(linkedRootSource);
+    drop(finalArena);
+    drop(firstLinkedRootSource);
+    drop(rootArena);
+    drop(linkedDependentSource);
+    drop(dependentArena);
+    return compiled;
+  }
+
+  /// Compiles one root with a bounded three-module constant tree.
   public Compilation compileMinimalWithThreeConstantImports(
     borrow utf8 firstImportedSource,
     borrow utf8 secondImportedSource,
@@ -436,6 +518,72 @@ classical class CompilerDriver {
     );
     if (0 < fork.length) {
       return fork;
+    }
+
+    Compilation mixed = compileMinimalWithMixedConstantsIfOrdered(
+      firstImportedSource,
+      secondImportedSource,
+      thirdImportedSource,
+      rootSource,
+      output
+    );
+    if (0 < mixed.length) {
+      return mixed;
+    }
+
+    mixed = compileMinimalWithMixedConstantsIfOrdered(
+      firstImportedSource,
+      thirdImportedSource,
+      secondImportedSource,
+      rootSource,
+      output
+    );
+    if (0 < mixed.length) {
+      return mixed;
+    }
+
+    mixed = compileMinimalWithMixedConstantsIfOrdered(
+      secondImportedSource,
+      firstImportedSource,
+      thirdImportedSource,
+      rootSource,
+      output
+    );
+    if (0 < mixed.length) {
+      return mixed;
+    }
+
+    mixed = compileMinimalWithMixedConstantsIfOrdered(
+      secondImportedSource,
+      thirdImportedSource,
+      firstImportedSource,
+      rootSource,
+      output
+    );
+    if (0 < mixed.length) {
+      return mixed;
+    }
+
+    mixed = compileMinimalWithMixedConstantsIfOrdered(
+      thirdImportedSource,
+      firstImportedSource,
+      secondImportedSource,
+      rootSource,
+      output
+    );
+    if (0 < mixed.length) {
+      return mixed;
+    }
+
+    mixed = compileMinimalWithMixedConstantsIfOrdered(
+      thirdImportedSource,
+      secondImportedSource,
+      firstImportedSource,
+      rootSource,
+      output
+    );
+    if (0 < mixed.length) {
+      return mixed;
     }
 
     LinkPlan firstPlan = planConstantImport(
