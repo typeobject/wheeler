@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-/** Differential coverage for one Wheeler-native public-constant import. */
+/** Differential coverage for bounded Wheeler-native constant module graphs. */
 class NativeImportedConstantExampleTest {
   private static final Path FIXTURE = Path.of(
       "../wheeler-examples/src/main/wheeler/native/compiler/NativeModuleCompiler.w");
@@ -96,6 +96,40 @@ class NativeImportedConstantExampleTest {
   }
 
   @Test
+  void linksATransitiveConstantChainWithoutReexportingTheLeaf() throws Exception {
+    Program compiler = program();
+    String leaf = "module examples.alpha; classical class Alpha { "
+        + "private const long OFFSET = 2; public const long BASE = 40; "
+        + "public const long SUM = BASE + OFFSET; public const long ZERO = 0; "
+        + "public const boolean READY = SUM == 42; }";
+    String dependent = "module examples.beta; import examples.alpha; "
+        + "classical class Beta { public const long ANSWER = SUM + examples.alpha::ZERO; "
+        + "public const boolean VALID = READY; }";
+    String root = "module examples.root; import examples.beta; classical class Root { "
+        + "state long outcome = 0; entry void main() { outcome = ANSWER; "
+        + "boolean valid = VALID; assert(valid); assert(outcome == 42); } }";
+
+    byte[] artifact = compileNative(compiler, List.of(leaf, dependent), root);
+    assertArrayEquals(artifact, compileNative(compiler, List.of(dependent, leaf), root));
+    Map<String, String> sources = new LinkedHashMap<>();
+    sources.put("Alpha.w", leaf);
+    sources.put("Beta.w", dependent);
+    sources.put("Root.w", root);
+    assertArrayEquals(
+        new BytecodeWriter().write(
+            new WheelerCompiler().compileModuleFiles(sources, "examples.root")),
+        artifact);
+    VirtualMachine program = new VirtualMachine(new BytecodeReader().read(artifact));
+    program.run();
+    assertEquals(42, program.global("outcome"));
+
+    assertNativeTrap(
+        compiler,
+        List.of(leaf, dependent),
+        root.replace("outcome = ANSWER;", "outcome = BASE;"));
+  }
+
+  @Test
   void rejectsInaccessibleMismatchedAndNonconstantImportsBeforePublication() throws Exception {
     Program compiler = program();
     String root = "module examples.root; import examples.constants; "
@@ -162,6 +196,15 @@ class NativeImportedConstantExampleTest {
         compiler,
         List.of(firstCollision, secondCollision, secondCollision),
         collisionRoot);
+    String cyclicAlpha = "module examples.alpha; import examples.beta; "
+        + "classical class Alpha { public const long LEFT = RIGHT; }";
+    String cyclicBeta = "module examples.beta; import examples.alpha; "
+        + "classical class Beta { public const long RIGHT = LEFT; }";
+    assertNativeTrap(
+        compiler,
+        List.of(cyclicAlpha, cyclicBeta),
+        "module examples.root; import examples.alpha; classical class Root { "
+            + "entry void main() { long value = LEFT; } }");
   }
 
   private static Program program() throws Exception {

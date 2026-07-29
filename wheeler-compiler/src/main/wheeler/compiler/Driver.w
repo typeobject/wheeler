@@ -518,13 +518,94 @@ classical class CompilerDriver {
     return compiled;
   }
 
-  /// Compiles one root with two distinct direct scalar-constant modules.
+  private Compilation compileMinimalWithConstantChain(
+    borrow utf8 leafSource,
+    borrow utf8 dependentSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    LinkPlan leafPlan = planPrivateConstantImport(
+      leafSource,
+      dependentSource,
+      /* expectedImportCount= */ 1
+    );
+    if (leafPlan.valid) {} else {
+      assert(0 == 1);
+    }
+
+    region dependentArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes dependentBytes = allocateBytes(dependentArena, leafPlan.linkedLength);
+    long dependentWritten = writeConstantImport(
+      leafSource,
+      dependentSource,
+      leafPlan,
+      dependentBytes
+    );
+    assert(dependentWritten == leafPlan.linkedLength);
+    utf8 linkedDependentSource = freezeUtf8(dependentBytes);
+
+    LinkPlan rootPlan = planResolvedConstantImport(
+      linkedDependentSource,
+      rootSource,
+      /* expectedImportCount= */ 1
+    );
+    if (rootPlan.valid) {} else {
+      assert(0 == 1);
+    }
+
+    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes rootBytes = allocateBytes(rootArena, rootPlan.linkedLength);
+    long rootWritten = writeConstantImport(
+      linkedDependentSource,
+      rootSource,
+      rootPlan,
+      rootBytes
+    );
+    assert(rootWritten == rootPlan.linkedLength);
+    utf8 linkedRootSource = freezeUtf8(rootBytes);
+    Compilation compiled = compileMinimal(linkedRootSource, output);
+    drop(linkedRootSource);
+    drop(rootArena);
+    drop(linkedDependentSource);
+    drop(dependentArena);
+    return compiled;
+  }
+
+  /// Compiles one root with two direct modules or one two-edge constant chain.
   public Compilation compileMinimalWithConstantImports(
     borrow utf8 firstImportedSource,
     borrow utf8 secondImportedSource,
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
+    LinkPlan firstChain = planPrivateConstantImport(
+      firstImportedSource,
+      secondImportedSource,
+      /* expectedImportCount= */ 1
+    );
+    if (firstChain.valid) {
+      return compileMinimalWithConstantChain(
+        firstImportedSource,
+        secondImportedSource,
+        rootSource,
+        output
+      );
+    }
+
+    LinkPlan secondChain = planPrivateConstantImport(
+      secondImportedSource,
+      firstImportedSource,
+      /* expectedImportCount= */ 1
+    );
+    if (secondChain.valid) {
+      return compileMinimalWithConstantChain(
+        secondImportedSource,
+        firstImportedSource,
+        rootSource,
+        output
+      );
+    }
+
     LinkPlan firstPlan = planConstantImport(
       firstImportedSource,
       rootSource,

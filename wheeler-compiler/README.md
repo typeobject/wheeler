@@ -29,11 +29,13 @@ control.
 The bounded compiler accepts one class, zero or one signed global, one optional helper,
 and one entry. A modular source may carry up to sixty-four sorted unique direct imports.
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
-or excess imports before publication. `compileMinimalWithConstantImport` and `compileMinimalWithConstantImports` link one or two
-exact direct modules exporting public scalar constants into an ASCII root source. It permits private constants as dependencies of public exports while rejecting every private
-name in the root. Transitive imports, executable imported members, mismatched module names,
-and more than two root imports fail closed. General symbol resolution remains future work. Entry
-and helper bodies admit at most sixty-four statements. The current slice covers typed signed
+or excess imports before publication. `compileMinimalWithConstantImport` and
+`compileMinimalWithConstantImports` link one direct module, two direct modules, or one
+leaf-to-dependent-to-root scalar-constant chain. A leaf export becomes private inside its
+dependent, so a root cannot acquire transitive access by spelling the leaf name loudly.
+Executable imported members, mismatched module names, wider graphs, and more than two root
+imports fail closed. General symbol resolution remains future work. Entry and helper bodies
+admit at most sixty-four statements. The current slice covers typed signed
 and Boolean locals, assertions, assignments, checked scalar operations, calls, results, and
 narrow explicitly limited loops.
 
@@ -57,10 +59,12 @@ state-update values, and bounded
 loop conditions and limits. Calls and mutations
 may mix constants with prior locals. Helper parameters and locals cannot reuse constant names.
 Constants create no global, initializer, lookup, or declaration-order artifact noise. The
-native header path accepts direct import declarations. The first linker slice resolves one public-only scalar constant graph through unqualified or
-canonical owner-qualified uses and preserves stage-0 artifact bytes. Root collisions with imported private names, colliding exports, more than two imports, and
-general multi-file linking remain stage-0 work
-until native differential artifacts pin them down.
+native header path accepts direct import declarations. The linker resolves bounded public
+scalar constants through unqualified or canonical owner-qualified uses and preserves stage-0
+artifact bytes. It also resolves one two-edge chain while preventing the leaf from becoming a
+root export. Root collisions with imported private names, colliding exports, wider graphs,
+and general multi-file linking remain stage-0 work until native differential artifacts pin
+them down.
 
 The canonical registry also owns `CALL_RESULT_SLOT`, `UNCALL_RESULT_SLOT`,
 `RESULT_FILL_CONSTANT`, `RESULT_FILL_SOURCE`, and `RETURN_RESULT_SLOT`. The Wheeler verifier accepts the first

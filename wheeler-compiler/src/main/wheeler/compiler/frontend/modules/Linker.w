@@ -1,4 +1,4 @@
-//! Links one bounded public-constant import into a native root source.
+//! Links bounded public-constant dependencies into a native source.
 
 module wheeler.compiler.module_linker;
 
@@ -15,6 +15,8 @@ classical class ModuleLinker {
   public const long MAX_LINKED_QUALIFICATIONS = 64;
   /// Names the two-byte canonical module separator.
   public const long QUALIFICATION_SEPARATOR_BYTES = 2;
+  /// Names the byte width of the canonical private visibility token.
+  public const long PRIVATE_VISIBILITY_BYTES = 7;
 
   /// Carries byte ranges for one validated synthetic linked source.
   public record LinkPlan(
@@ -25,11 +27,13 @@ classical class ModuleLinker {
     long rootInsertion,
     long linkedLength,
     long qualificationCount,
+    long exportedCount,
+    boolean privatizeExports,
     boolean valid
   ) {}
 
   private LinkPlan invalidPlan() {
-    return new LinkPlan(0, 0, 0, 0, 0, 0, 0, false);
+    return new LinkPlan(0, 0, 0, 0, 0, 0, 0, 0, false, false);
   }
 
   private long compactTokens(
@@ -395,11 +399,12 @@ classical class ModuleLinker {
     return declaration == memberStart;
   }
 
-  /// Plans one selected direct constant import without mutating caller output.
-  public LinkPlan planConstantImport(
+  private LinkPlan planConstantImportMode(
     borrow utf8 importedSource,
     borrow utf8 rootSource,
-    long expectedImportCount
+    long expectedImportCount,
+    boolean allowResolvedImports,
+    boolean privatizeExports
   ) {
     region scratch = new region(/* bytes= */ 50000, /* allocations= */ 8);
     words importedKinds = allocate(scratch, MAX_COMPILER_TOKENS);
@@ -458,12 +463,14 @@ classical class ModuleLinker {
             }
 
             if (prefixes) {
-              prefixes = headerHasNoImports(
-                importedSource,
-                importedStarts,
-                importedLengths,
-                importedBody
-              );
+              if (allowResolvedImports) {} else {
+                prefixes = headerHasNoImports(
+                  importedSource,
+                  importedStarts,
+                  importedLengths,
+                  importedBody
+                );
+              }
             }
 
             if (prefixes) {
@@ -539,6 +546,10 @@ classical class ModuleLinker {
                               );
                               long linkedLength = bufferLength(rootSource) + importedLength
                                 - removed;
+                              if (privatizeExports) {
+                                linkedLength += exported;
+                              }
+
                               if (linkedLength < MAX_LINKED_SOURCE_BYTES + 1) {
                                 result = new LinkPlan(
                                   importedStart,
@@ -548,6 +559,8 @@ classical class ModuleLinker {
                                   rootInsertion,
                                   linkedLength,
                                   qualifications,
+                                  exported,
+                                  privatizeExports,
                                   true
                                 );
                               }
@@ -577,6 +590,39 @@ classical class ModuleLinker {
     return result;
   }
 
+  /// Plans one selected direct constant import without mutating caller output.
+  public LinkPlan planConstantImport(
+    borrow utf8 importedSource,
+    borrow utf8 rootSource,
+    long expectedImportCount
+  ) {
+    return planConstantImportMode(
+      importedSource,
+      rootSource,
+      expectedImportCount,
+      false,
+      false
+    );
+  }
+
+  /// Plans one leaf dependency whose exports become private in an importing module.
+  public LinkPlan planPrivateConstantImport(
+    borrow utf8 importedSource,
+    borrow utf8 rootSource,
+    long expectedImportCount
+  ) {
+    return planConstantImportMode(importedSource, rootSource, expectedImportCount, false, true);
+  }
+
+  /// Plans one module after every import in its header has been resolved.
+  public LinkPlan planResolvedConstantImport(
+    borrow utf8 importedSource,
+    borrow utf8 rootSource,
+    long expectedImportCount
+  ) {
+    return planConstantImportMode(importedSource, rootSource, expectedImportCount, true, false);
+  }
+
   private long copyAscii(
     borrow utf8 source,
     long start,
@@ -595,6 +641,76 @@ classical class ModuleLinker {
     }
 
     return outputStart + length;
+  }
+
+  private long copyImportedConstants(
+    borrow utf8 importedSource,
+    LinkPlan plan,
+    borrow mut bytes output,
+    long outputStart
+  ) {
+    if (plan.privatizeExports) {} else {
+      return copyAscii(
+        importedSource,
+        plan.importedStart,
+        plan.importedLength,
+        output,
+        outputStart
+      );
+    }
+
+    region scratch = new region(/* bytes= */ 25000, /* allocations= */ 3);
+    words tokenKinds = allocate(scratch, MAX_COMPILER_TOKENS);
+    words tokenStarts = allocate(scratch, MAX_COMPILER_TOKENS);
+    words tokenLengths = allocate(scratch, MAX_COMPILER_TOKENS);
+    long tokenCount = scanSemanticTokens(importedSource, tokenKinds, tokenStarts, tokenLengths);
+    long sourceCursor = plan.importedStart;
+    long importedEnd = plan.importedStart + plan.importedLength;
+    long outputCursor = outputStart;
+    long tokenCursor = 0;
+    long privatized = 0;
+    while (tokenCursor < tokenCount) limit MAX_COMPILER_TOKENS {
+      long tokenStart = tokenStarts[tokenCursor];
+      if (plan.importedStart < tokenStart + 1) {
+        if (tokenStart < importedEnd) {
+          if (
+            tokenHash(importedSource, tokenStarts, tokenLengths, tokenCursor) == TOKEN_PUBLIC
+          ) {
+            outputCursor = copyAscii(
+              importedSource,
+              sourceCursor,
+              tokenStart - sourceCursor,
+              output,
+              outputCursor
+            );
+            writeAscii(output, outputCursor, "private");
+            outputCursor += PRIVATE_VISIBILITY_BYTES;
+            sourceCursor = tokenStart + tokenLengths[tokenCursor];
+            privatized += 1;
+          }
+        }
+      }
+
+      tokenCursor += 1;
+    }
+
+    if (privatized == plan.exportedCount) {
+      outputCursor = copyAscii(
+        importedSource,
+        sourceCursor,
+        importedEnd - sourceCursor,
+        output,
+        outputCursor
+      );
+    } else {
+      outputCursor = -1;
+    }
+
+    drop(tokenLengths);
+    drop(tokenStarts);
+    drop(tokenKinds);
+    drop(scratch);
+    return outputCursor;
   }
 
   private long copyRootAscii(
@@ -668,7 +784,7 @@ classical class ModuleLinker {
       return -1;
     }
 
-    cursor = copyAscii(importedSource, plan.importedStart, plan.importedLength, output, cursor);
+    cursor = copyImportedConstants(importedSource, plan, output, cursor);
     if (cursor < 0) {
       return -1;
     }
