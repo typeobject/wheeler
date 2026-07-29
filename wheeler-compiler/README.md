@@ -44,7 +44,7 @@ type errors, malformed forms, and arithmetic traps publish nothing.
 The resolver substitutes evaluated values into matching local declarations, scalar helper
 returns, scalar assignments, checked signed updates, one- or two-argument scalar helper calls,
 right operands of signed local arithmetic, equality, inequality, and ordering expressions,
-typed scalar comparison returns, signed equality or ordering assertions and conditions, and
+signed arithmetic or typed scalar comparison returns, signed equality or ordering assertions and conditions, and
 bounded loop conditions and limits. Calls and mutations
 may mix constants with prior locals. Helper parameters and locals cannot reuse constant names.
 Constants create no global, initializer, lookup, or declaration-order artifact noise. Imported constants, qualification, `rotateRight32`, and

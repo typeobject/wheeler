@@ -398,7 +398,12 @@ classical class HelperParser {
             sameTokenText(source, tokenStarts, tokenLengths, parameterToken, returnStart + 3)
               == false
           ) {
-            return new MinimalProgramResult.Error(0);
+            if (
+              classConstantHasType(source, tokenStarts, tokenLengths, returnStart + 3, true)
+                == false
+            ) {
+              return new MinimalProgramResult.Error(0);
+            }
           }
         }
       }
@@ -433,7 +438,12 @@ classical class HelperParser {
             pairReturnStart + 3
           ) == false
         ) {
-          return new MinimalProgramResult.Error(0);
+          if (
+            classConstantHasType(source, tokenStarts, tokenLengths, pairReturnStart + 3, true)
+              == false
+          ) {
+            return new MinimalProgramResult.Error(0);
+          }
         }
       }
     }

@@ -228,7 +228,14 @@ classical class HelperPrograms {
 
       long pairResultIndex = helperSequence.count - 1;
       if (helperSequence.count == 1) {
-        if (returnLocalPairStatement(helperSequence.opcodes[pairResultIndex])) {} else {
+        boolean supportedPairReturn = returnLocalPairStatement(
+          helperSequence.opcodes[pairResultIndex]
+        );
+        if (returnLocalBinaryStatement(helperSequence.opcodes[pairResultIndex])) {
+          supportedPairReturn = true;
+        }
+
+        if (supportedPairReturn == false) {
           return new MinimalProgramResult.Error(0);
         }
       } else {

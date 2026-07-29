@@ -13,7 +13,7 @@ import wheeler.compiler.local_resolution;
 import wheeler.compiler.local_statements;
 import wheeler.compiler.loop_forms;
 import wheeler.compiler.mutation_resolution;
-import wheeler.compiler.return_comparisons;
+import wheeler.compiler.return_expressions;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.tokens;
@@ -38,6 +38,10 @@ classical class Operands {
     }
 
     if (returnComparisonLocalRight(opcode)) {
+      ambiguousTypedStatement = true;
+    }
+
+    if (returnLocalPairStatement(opcode)) {
       ambiguousTypedStatement = true;
     }
 
@@ -158,6 +162,25 @@ classical class Operands {
         }
 
         return -1;
+      }
+
+      ReturnExpressionResolution returnExpression = resolveReturnExpression(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        previousStarts,
+        previousCount,
+        sourceOpcode
+      );
+      if (returnExpression.applies) {
+        if (returnExpression.primaryOperand) {
+          if (returnExpression.valid) {
+            return returnExpression.rightOperand;
+          }
+
+          return -1;
+        }
       }
 
       if (twoArgumentCallStatement(sourceOpcode)) {
@@ -639,7 +662,7 @@ classical class Operands {
       return parsedSignedNumber(source, tokenStarts, tokenLengths, loopLimit);
     }
 
-    ReturnComparisonResolution returnComparison = resolveReturnComparison(
+    ReturnExpressionResolution returnExpression = resolveReturnExpression(
       source,
       tokenStarts,
       tokenLengths,
@@ -648,12 +671,14 @@ classical class Operands {
       previousCount,
       sourceOpcode
     );
-    if (returnComparison.applies) {
-      if (returnComparison.valid) {
-        return returnComparison.rightOperand;
-      }
+    if (returnExpression.applies) {
+      if (returnExpression.primaryOperand) {} else {
+        if (returnExpression.valid) {
+          return returnExpression.rightOperand;
+        }
 
-      return -1;
+        return -1;
+      }
     }
 
     if (-1 < opcode) {

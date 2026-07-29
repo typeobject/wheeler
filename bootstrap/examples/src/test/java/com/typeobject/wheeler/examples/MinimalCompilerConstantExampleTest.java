@@ -157,6 +157,28 @@ class MinimalCompilerConstantExampleTest {
   }
 
   @Test
+  void resolvesConstantsInSignedArithmeticReturns() throws Exception {
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    String[] operators = {"+", "-", "*", "/", "%", "^", "&"};
+    long[] expected = {42, 38, 80, 20, 0, 42, 0};
+    for (int index = 0; index < operators.length; index++) {
+      String source = "classical class ConstantArithmeticReturn { state long outcome = 0; "
+          + "const long RIGHT = 1 + 1; long calculate(long left) { return left "
+          + operators[index] + " RIGHT; } entry void main() { long result = calculate(40); "
+          + "outcome = result; } }";
+      byte[] artifact = assertDifferentialHalt(compiler, source);
+      VirtualMachine program = new VirtualMachine(new BytecodeReader().read(artifact));
+      program.run();
+      assertEquals(expected[index], program.global("outcome"));
+    }
+    assertDifferentialHalt(
+        compiler,
+        "classical class TwoParameterConstantReturn { const long RIGHT = 2; "
+            + "long calculate(long left, long ignored) { return left + RIGHT; } "
+            + "entry void main() { long result = calculate(40, 0); assert(result == 42); } }");
+  }
+
+  @Test
   void evaluatesTypedConstantExpressionsAndForwardDependencies() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
     assertDifferentialHalt(
@@ -321,6 +343,11 @@ class MinimalCompilerConstantExampleTest {
         "classical class WrongReturnComparisonConstant { const boolean LIMIT = true; "
             + "boolean ordered(long value) { return value < LIMIT; } entry void main() { "
             + "boolean result = ordered(1); } }");
+    assertNativeTrap(
+        compiler,
+        "classical class WrongArithmeticReturnConstant { const boolean RIGHT = true; "
+            + "long calculate(long left) { return left + RIGHT; } entry void main() { "
+            + "long result = calculate(1); } }");
     assertNativeTrap(
         compiler,
         "classical class WrongSignedEqualityReturnConstant { const boolean LIMIT = true; "

@@ -11,7 +11,7 @@ import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.loop_forms;
 import wheeler.compiler.mutation_resolution;
-import wheeler.compiler.return_comparisons;
+import wheeler.compiler.return_expressions;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.tokens;
@@ -235,7 +235,7 @@ classical class LocalStatements {
       );
     }
 
-    ReturnComparisonResolution returnComparison = resolveReturnComparison(
+    ReturnExpressionResolution returnExpression = resolveReturnExpression(
       source,
       tokenStarts,
       tokenLengths,
@@ -244,9 +244,9 @@ classical class LocalStatements {
       previousCount,
       opcode
     );
-    if (returnComparison.applies) {
-      if (returnComparison.valid) {
-        return returnComparison.opcode;
+    if (returnExpression.applies) {
+      if (returnExpression.valid) {
+        return returnExpression.opcode;
       }
 
       return -1;

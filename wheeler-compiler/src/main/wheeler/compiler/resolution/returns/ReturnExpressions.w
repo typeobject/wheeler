@@ -1,27 +1,28 @@
-//! Resolves typed scalar comparison returns in the bootstrap source profile.
+//! Resolves typed scalar return expressions in the bootstrap source profile.
 
-module wheeler.compiler.return_comparisons;
+module wheeler.compiler.return_expressions;
 
 import wheeler.compiler.class_constants;
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.tokens;
 
-classical class ReturnComparisons {
-  /// Carries one optional comparison return after exact typed-name resolution.
-  public record ReturnComparisonResolution(
+classical class ReturnExpressions {
+  /// Carries one optional scalar return after exact typed-name resolution.
+  public record ReturnExpressionResolution(
     long opcode,
     long rightOperand,
+    boolean primaryOperand,
     boolean applies,
     boolean valid
   ) {}
 
-  private ReturnComparisonResolution notApplicable() {
-    return new ReturnComparisonResolution(0, 0, false, true);
+  private ReturnExpressionResolution notApplicable() {
+    return new ReturnExpressionResolution(0, 0, false, false, true);
   }
 
-  private ReturnComparisonResolution invalid() {
-    return new ReturnComparisonResolution(0, 0, true, false);
+  private ReturnExpressionResolution invalid() {
+    return new ReturnExpressionResolution(0, 0, false, true, false);
   }
 
   private long comparisonRightToken(long statementStart, long opcode) {
@@ -60,7 +61,78 @@ classical class ReturnComparisons {
     return STATEMENT_RETURN_SIGNED_LT_LITERAL_NAMED;
   }
 
-  private ReturnComparisonResolution literalRight(
+  private long literalReturnOpcode(long opcode) {
+    if (opcode == STATEMENT_RETURN_LOCAL_ADD_LOCAL_NAMED) {
+      return STATEMENT_RETURN_LOCAL_ADD_NAMED;
+    }
+
+    if (opcode == STATEMENT_RETURN_LOCAL_SUB_LOCAL_NAMED) {
+      return STATEMENT_RETURN_LOCAL_SUB_NAMED;
+    }
+
+    if (opcode == STATEMENT_RETURN_LOCAL_MUL_LOCAL_NAMED) {
+      return STATEMENT_RETURN_LOCAL_MUL_NAMED;
+    }
+
+    if (opcode == STATEMENT_RETURN_LOCAL_DIV_LOCAL_NAMED) {
+      return STATEMENT_RETURN_LOCAL_DIV_NAMED;
+    }
+
+    if (opcode == STATEMENT_RETURN_LOCAL_MOD_LOCAL_NAMED) {
+      return STATEMENT_RETURN_LOCAL_MOD_NAMED;
+    }
+
+    if (opcode == STATEMENT_RETURN_LOCAL_XOR_LOCAL_NAMED) {
+      return STATEMENT_RETURN_LOCAL_XOR_NAMED;
+    }
+
+    return STATEMENT_RETURN_LOCAL_AND_NAMED;
+  }
+
+  private ReturnExpressionResolution binaryRight(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart,
+    borrow mut words previousStarts,
+    long previousCount,
+    long opcode
+  ) {
+    long rightToken = statementStart + 3;
+    long right = resolvePriorDeclaration(
+      source,
+      tokenStarts,
+      tokenLengths,
+      previousStarts,
+      previousCount,
+      rightToken,
+      true
+    );
+    if (-1 < right) {
+      return new ReturnExpressionResolution(opcode, right, true, true, true);
+    }
+
+    ConstantResolution constant = resolveClassConstant(
+      source,
+      tokenStarts,
+      tokenLengths,
+      rightToken,
+      true
+    );
+    if (constant.valid == false) {
+      return invalid();
+    }
+
+    return new ReturnExpressionResolution(
+      literalReturnOpcode(opcode),
+      constant.value,
+      true,
+      true,
+      true
+    );
+  }
+
+  private ReturnExpressionResolution literalRight(
     borrow utf8 source,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
@@ -68,9 +140,10 @@ classical class ReturnComparisons {
     long opcode
   ) {
     if (returnComparisonSigned(opcode)) {
-      return new ReturnComparisonResolution(
+      return new ReturnExpressionResolution(
         opcode,
         parsedSignedNumber(source, tokenStarts, tokenLengths, rightToken),
+        false,
         true,
         true
       );
@@ -78,14 +151,14 @@ classical class ReturnComparisons {
 
     long literal = tokenHash(source, tokenStarts, tokenLengths, rightToken);
     if (literal == TOKEN_TRUE) {
-      return new ReturnComparisonResolution(opcode, 1, true, true);
+      return new ReturnExpressionResolution(opcode, 1, false, true, true);
     }
 
-    return new ReturnComparisonResolution(opcode, 0, true, literal == TOKEN_FALSE);
+    return new ReturnExpressionResolution(opcode, 0, false, true, literal == TOKEN_FALSE);
   }
 
-  /// Resolves one scalar comparison return and its right operand.
-  public ReturnComparisonResolution resolveReturnComparison(
+  /// Resolves one signed arithmetic or typed scalar comparison return.
+  public ReturnExpressionResolution resolveReturnExpression(
     borrow utf8 source,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
@@ -94,6 +167,18 @@ classical class ReturnComparisons {
     long previousCount,
     long sourceOpcode
   ) {
+    if (returnLocalPairStatement(sourceOpcode)) {
+      return binaryRight(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        previousStarts,
+        previousCount,
+        sourceOpcode
+      );
+    }
+
     if (returnComparisonStatement(sourceOpcode) == false) {
       return notApplicable();
     }
@@ -170,7 +255,7 @@ classical class ReturnComparisons {
       signed
     );
     if (-1 < right) {
-      return new ReturnComparisonResolution(opcode, right, true, true);
+      return new ReturnExpressionResolution(opcode, right, false, true, true);
     }
 
     ConstantResolution constant = resolveClassConstant(
@@ -184,9 +269,10 @@ classical class ReturnComparisons {
       return invalid();
     }
 
-    return new ReturnComparisonResolution(
+    return new ReturnExpressionResolution(
       literalComparisonOpcode(opcode),
       constant.value,
+      false,
       true,
       true
     );
