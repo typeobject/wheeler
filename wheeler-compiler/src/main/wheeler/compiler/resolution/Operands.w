@@ -5,6 +5,7 @@ module wheeler.compiler.operands;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.conditionals;
+import wheeler.compiler.expression_operands;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_resolution;
@@ -66,6 +67,22 @@ classical class Operands {
       ambiguousTypedStatement = true;
     }
 
+    if (namedLongPair(opcode)) {
+      ambiguousTypedStatement = true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_LT_NAMED) {
+      ambiguousTypedStatement = true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_EQ_NAMED) {
+      ambiguousTypedStatement = true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NE_NAMED) {
+      ambiguousTypedStatement = true;
+    }
+
     if (opcode == STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED) {
       ambiguousTypedStatement = true;
     }
@@ -114,6 +131,24 @@ classical class Operands {
       if (mutationOperand.applies) {
         if (mutationOperand.valid) {
           return mutationOperand.value;
+        }
+
+        return -1;
+      }
+
+      ExpressionOperand expressionOperand = resolveExpressionOperand(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        sourceOpcode,
+        opcode,
+        previousStarts,
+        previousCount
+      );
+      if (expressionOperand.applies) {
+        if (expressionOperand.valid) {
+          return expressionOperand.value;
         }
 
         return -1;
@@ -487,75 +522,6 @@ classical class Operands {
       return -1;
     }
 
-    if (opcode == STATEMENT_LOCAL_LONG_LT_NAMED) {
-      return resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 5,
-        true
-      );
-    }
-
-    boolean namedLocalComparison = opcode == STATEMENT_LOCAL_BOOLEAN_EQ_NAMED;
-    if (opcode == STATEMENT_LOCAL_BOOLEAN_NE_NAMED) {
-      namedLocalComparison = true;
-    }
-
-    if (namedLocalComparison) {
-      long operandSignedLeft = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 3,
-        true
-      );
-      long operandSignedRight = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 6,
-        true
-      );
-      if (-1 < operandSignedLeft) {
-        if (-1 < operandSignedRight) {
-          return operandSignedRight;
-        }
-      }
-
-      long operandBooleanLeft = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 3,
-        false
-      );
-      long operandBooleanRight = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 6,
-        false
-      );
-      if (-1 < operandBooleanLeft) {
-        if (-1 < operandBooleanRight) {
-          return operandBooleanRight;
-        }
-      }
-
-      return -1;
-    }
-
     if (opcode == STATEMENT_LOCAL_LONG_NAMED) {
       return 0;
     }
@@ -566,18 +532,6 @@ classical class Operands {
 
     if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT_NAMED) {
       return 0;
-    }
-
-    if (namedLongPair(opcode)) {
-      return resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 5,
-        true
-      );
     }
 
     if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {

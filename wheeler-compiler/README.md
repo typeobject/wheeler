@@ -42,8 +42,8 @@ sixty-four declarations, and parentheses stop at depth thirty-two. Cycles, unkno
 type errors, malformed forms, and arithmetic traps publish nothing.
 
 The resolver substitutes evaluated values into matching local declarations, scalar helper
-returns, scalar assignments, checked signed updates, and one- or two-argument scalar helper
-calls. Calls and mutations may mix constants with prior locals. Helper parameters and locals
+returns, scalar assignments, checked signed updates, one- or two-argument scalar helper calls,
+and right operands of signed local arithmetic, equality, inequality, and ordering expressions. Calls and mutations may mix constants with prior locals. Helper parameters and locals
 cannot reuse constant names. Constants create no global, initializer, lookup, or
 declaration-order artifact noise. Imported constants, qualification, `rotateRight32`, and
 multi-file linking remain stage-0 work until native differential artifacts pin them down.

@@ -15,6 +15,86 @@ import wheeler.compiler.statement_forms;
 import wheeler.compiler.tokens;
 
 classical class LocalStatements {
+  private long namedLongLiteralBase(long opcode) {
+    if (opcode == STATEMENT_LOCAL_LONG_ADD_NAMED) {
+      return STATEMENT_LOCAL_LONG_ADD_BASE;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_ADD_LOCALS_NAMED) {
+      return STATEMENT_LOCAL_LONG_ADD_BASE;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_SUB_NAMED) {
+      return STATEMENT_LOCAL_LONG_SUB_BASE;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_SUB_LOCALS_NAMED) {
+      return STATEMENT_LOCAL_LONG_SUB_BASE;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_XOR_NAMED) {
+      return STATEMENT_LOCAL_LONG_XOR_BASE;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_XOR_LOCALS_NAMED) {
+      return STATEMENT_LOCAL_LONG_XOR_BASE;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_MUL_NAMED) {
+      return STATEMENT_LOCAL_LONG_MUL_BASE;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_MUL_LOCALS_NAMED) {
+      return STATEMENT_LOCAL_LONG_MUL_BASE;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_DIV_NAMED) {
+      return STATEMENT_LOCAL_LONG_DIV_BASE;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_DIV_LOCALS_NAMED) {
+      return STATEMENT_LOCAL_LONG_DIV_BASE;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_MOD_NAMED) {
+      return STATEMENT_LOCAL_LONG_MOD_BASE;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_MOD_LOCALS_NAMED) {
+      return STATEMENT_LOCAL_LONG_MOD_BASE;
+    }
+
+    return STATEMENT_LOCAL_LONG_AND_BASE;
+  }
+
+  private long namedLongPairBase(long opcode) {
+    if (opcode == STATEMENT_LOCAL_LONG_ADD_LOCALS_NAMED) {
+      return STATEMENT_LOCAL_LONG_ADD_LOCALS_BASE;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_SUB_LOCALS_NAMED) {
+      return STATEMENT_LOCAL_LONG_SUB_LOCALS_BASE;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_XOR_LOCALS_NAMED) {
+      return STATEMENT_LOCAL_LONG_XOR_LOCALS_BASE;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_MUL_LOCALS_NAMED) {
+      return STATEMENT_LOCAL_LONG_MUL_LOCALS_BASE;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_DIV_LOCALS_NAMED) {
+      return STATEMENT_LOCAL_LONG_DIV_LOCALS_BASE;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_MOD_LOCALS_NAMED) {
+      return STATEMENT_LOCAL_LONG_MOD_LOCALS_BASE;
+    }
+
+    return STATEMENT_LOCAL_LONG_AND_LOCALS_BASE;
+  }
+
   /// Resolves named signed operations into opcodes carrying local indices.
   public long sequenceStatementOpcode(
     borrow utf8 source,
@@ -378,32 +458,7 @@ classical class LocalStatements {
         true
       );
       if (-1 < binarySourceLocal) {
-        long base = STATEMENT_LOCAL_LONG_ADD_BASE;
-        if (opcode == STATEMENT_LOCAL_LONG_SUB_NAMED) {
-          base = STATEMENT_LOCAL_LONG_SUB_BASE;
-        }
-
-        if (opcode == STATEMENT_LOCAL_LONG_XOR_NAMED) {
-          base = STATEMENT_LOCAL_LONG_XOR_BASE;
-        }
-
-        if (opcode == STATEMENT_LOCAL_LONG_MUL_NAMED) {
-          base = STATEMENT_LOCAL_LONG_MUL_BASE;
-        }
-
-        if (opcode == STATEMENT_LOCAL_LONG_DIV_NAMED) {
-          base = STATEMENT_LOCAL_LONG_DIV_BASE;
-        }
-
-        if (opcode == STATEMENT_LOCAL_LONG_MOD_NAMED) {
-          base = STATEMENT_LOCAL_LONG_MOD_BASE;
-        }
-
-        if (opcode == STATEMENT_LOCAL_LONG_AND_NAMED) {
-          base = STATEMENT_LOCAL_LONG_AND_BASE;
-        }
-
-        return base + binarySourceLocal;
+        return namedLongLiteralBase(opcode) + binarySourceLocal;
       }
 
       return -1;
@@ -420,32 +475,30 @@ classical class LocalStatements {
         true
       );
       if (-1 < pairSourceLocal) {
-        long pairBase = STATEMENT_LOCAL_LONG_ADD_LOCALS_BASE;
-        if (opcode == STATEMENT_LOCAL_LONG_SUB_LOCALS_NAMED) {
-          pairBase = STATEMENT_LOCAL_LONG_SUB_LOCALS_BASE;
+        long rightToken = statementStart + 5;
+        long pairRightLocal = resolvePriorDeclaration(
+          source,
+          tokenStarts,
+          tokenLengths,
+          previousStarts,
+          previousCount,
+          rightToken,
+          true
+        );
+        if (-1 < pairRightLocal) {
+          return namedLongPairBase(opcode) + pairSourceLocal;
         }
 
-        if (opcode == STATEMENT_LOCAL_LONG_XOR_LOCALS_NAMED) {
-          pairBase = STATEMENT_LOCAL_LONG_XOR_LOCALS_BASE;
+        ConstantResolution pairRightConstant = resolveClassConstant(
+          source,
+          tokenStarts,
+          tokenLengths,
+          rightToken,
+          true
+        );
+        if (pairRightConstant.valid) {
+          return namedLongLiteralBase(opcode) + pairSourceLocal;
         }
-
-        if (opcode == STATEMENT_LOCAL_LONG_MUL_LOCALS_NAMED) {
-          pairBase = STATEMENT_LOCAL_LONG_MUL_LOCALS_BASE;
-        }
-
-        if (opcode == STATEMENT_LOCAL_LONG_DIV_LOCALS_NAMED) {
-          pairBase = STATEMENT_LOCAL_LONG_DIV_LOCALS_BASE;
-        }
-
-        if (opcode == STATEMENT_LOCAL_LONG_MOD_LOCALS_NAMED) {
-          pairBase = STATEMENT_LOCAL_LONG_MOD_LOCALS_BASE;
-        }
-
-        if (opcode == STATEMENT_LOCAL_LONG_AND_LOCALS_NAMED) {
-          pairBase = STATEMENT_LOCAL_LONG_AND_LOCALS_BASE;
-        }
-
-        return pairBase + pairSourceLocal;
       }
 
       return -1;
@@ -552,7 +605,30 @@ classical class LocalStatements {
         true
       );
       if (-1 < lessThanSourceLocal) {
-        return STATEMENT_LOCAL_LONG_LT_BASE + lessThanSourceLocal;
+        long lessThanRightToken = statementStart + 5;
+        long lessThanRightLocal = resolvePriorDeclaration(
+          source,
+          tokenStarts,
+          tokenLengths,
+          previousStarts,
+          previousCount,
+          lessThanRightToken,
+          true
+        );
+        if (-1 < lessThanRightLocal) {
+          return STATEMENT_LOCAL_LONG_LT_BASE + lessThanSourceLocal;
+        }
+
+        ConstantResolution lessThanRightConstant = resolveClassConstant(
+          source,
+          tokenStarts,
+          tokenLengths,
+          lessThanRightToken,
+          true
+        );
+        if (lessThanRightConstant.valid) {
+          return STATEMENT_LOCAL_LONG_LT_LITERAL_BASE + lessThanSourceLocal;
+        }
       }
 
       return -1;
@@ -577,15 +653,49 @@ classical class LocalStatements {
         statementStart + 3,
         false
       );
+      long equalityRightToken = statementStart + 6;
       if (-1 < equalitySignedLeft) {
         if (equalityBooleanLeft < 0) {
-          return STATEMENT_LOCAL_LONG_EQ_BASE + equalitySignedLeft;
+          long equalitySignedRight = resolvePriorDeclaration(
+            source,
+            tokenStarts,
+            tokenLengths,
+            previousStarts,
+            previousCount,
+            equalityRightToken,
+            true
+          );
+          if (-1 < equalitySignedRight) {
+            return STATEMENT_LOCAL_LONG_EQ_BASE + equalitySignedLeft;
+          }
+
+          ConstantResolution equalityRightConstant = resolveClassConstant(
+            source,
+            tokenStarts,
+            tokenLengths,
+            equalityRightToken,
+            true
+          );
+          if (equalityRightConstant.valid) {
+            return STATEMENT_LOCAL_LONG_EQ_LITERAL_BASE + equalitySignedLeft;
+          }
         }
       }
 
       if (-1 < equalityBooleanLeft) {
         if (equalitySignedLeft < 0) {
-          return STATEMENT_LOCAL_BOOLEAN_EQ_BASE + equalityBooleanLeft;
+          long equalityBooleanRight = resolvePriorDeclaration(
+            source,
+            tokenStarts,
+            tokenLengths,
+            previousStarts,
+            previousCount,
+            equalityRightToken,
+            false
+          );
+          if (-1 < equalityBooleanRight) {
+            return STATEMENT_LOCAL_BOOLEAN_EQ_BASE + equalityBooleanLeft;
+          }
         }
       }
 
@@ -611,15 +721,49 @@ classical class LocalStatements {
         statementStart + 3,
         false
       );
+      long inequalityRightToken = statementStart + 6;
       if (-1 < inequalitySignedLeft) {
         if (inequalityBooleanLeft < 0) {
-          return STATEMENT_LOCAL_LONG_NE_BASE + inequalitySignedLeft;
+          long inequalitySignedRight = resolvePriorDeclaration(
+            source,
+            tokenStarts,
+            tokenLengths,
+            previousStarts,
+            previousCount,
+            inequalityRightToken,
+            true
+          );
+          if (-1 < inequalitySignedRight) {
+            return STATEMENT_LOCAL_LONG_NE_BASE + inequalitySignedLeft;
+          }
+
+          ConstantResolution inequalityRightConstant = resolveClassConstant(
+            source,
+            tokenStarts,
+            tokenLengths,
+            inequalityRightToken,
+            true
+          );
+          if (inequalityRightConstant.valid) {
+            return STATEMENT_LOCAL_LONG_NE_LITERAL_BASE + inequalitySignedLeft;
+          }
         }
       }
 
       if (-1 < inequalityBooleanLeft) {
         if (inequalitySignedLeft < 0) {
-          return STATEMENT_LOCAL_BOOLEAN_NE_BASE + inequalityBooleanLeft;
+          long inequalityBooleanRight = resolvePriorDeclaration(
+            source,
+            tokenStarts,
+            tokenLengths,
+            previousStarts,
+            previousCount,
+            inequalityRightToken,
+            false
+          );
+          if (-1 < inequalityBooleanRight) {
+            return STATEMENT_LOCAL_BOOLEAN_NE_BASE + inequalityBooleanLeft;
+          }
         }
       }
 

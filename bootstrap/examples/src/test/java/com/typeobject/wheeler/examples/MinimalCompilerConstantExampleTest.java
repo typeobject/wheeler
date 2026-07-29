@@ -146,6 +146,23 @@ class MinimalCompilerConstantExampleTest {
   }
 
   @Test
+  void substitutesConstantsIntoSignedExpressionOperands() throws Exception {
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    assertDifferentialHalt(
+        compiler,
+        "classical class ConstantExpressionOperands { const long TWO = 1 + 1; "
+            + "const long THREE = TWO + 1; const long FORTY = 20 * TWO; "
+            + "entry void main() { long base = FORTY; long add = base + TWO; "
+            + "long subtract = add - TWO; long xor = base ^ THREE; long and = xor & TWO; "
+            + "long multiply = base * TWO; long divide = multiply / TWO; "
+            + "long remainder = add % FORTY; boolean equal = add == FORTY; "
+            + "boolean different = add != FORTY; boolean ordered = base < FORTY; "
+            + "boolean notEqual = !equal; boolean notOrdered = !ordered; assert(add == 42); assert(subtract == 40); assert(xor == 43); assert(and == 2); "
+            + "assert(multiply == 80); assert(divide == 40); assert(remainder == 2); "
+            + "assert(notEqual); assert(different); assert(notOrdered); } }");
+  }
+
+  @Test
   void substitutesConstantsIntoScalarAssignmentsAndCheckedUpdates() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
     assertDifferentialHalt(
@@ -237,6 +254,14 @@ class MinimalCompilerConstantExampleTest {
         compiler,
         "classical class WrongUpdateConstant { const boolean STEP = true; "
             + "entry void main() { long value = 0; value += STEP; } }");
+    assertNativeTrap(
+        compiler,
+        "classical class WrongExpressionConstant { const boolean STEP = true; "
+            + "entry void main() { long value = 1; long result = value + STEP; } }");
+    assertNativeTrap(
+        compiler,
+        "classical class WrongComparisonConstant { const boolean LIMIT = true; "
+            + "entry void main() { long value = 1; boolean result = value < LIMIT; } }");
     assertNativeTrap(
         compiler,
         "classical class WrongAssignmentConstant { const long VALUE = 1; "
