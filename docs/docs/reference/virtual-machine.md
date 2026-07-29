@@ -104,7 +104,10 @@ A reverse step restores state once. The VM never restores an earlier state and t
 
 ## Function inverse versus rewind
 
-`CALL` runs the forward body of a zero-argument void function. `UNCALL` runs its generated inverse body as new forward work.
+`CALL` runs the forward body of a zero-argument void function. `UNCALL` runs its
+generated inverse body as new forward work. Both descriptor offsets are relative to the
+code section. The inverse offset is not added to the forward offset. A two-helper
+differential fixture keeps the second inverse honest.
 
 `CALL_VALUE` moves an exact initialized argument window into the callee's parameter registers. The window may include transient verified loans. It also names one caller register whose type matches the declared result.
 

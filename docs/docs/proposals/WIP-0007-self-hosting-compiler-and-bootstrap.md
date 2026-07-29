@@ -277,7 +277,7 @@ The launcher grants read-only source inputs and one atomic artifact destination.
   - The proof-bearing `Counter.w` also executes under the Wheeler verifier and interpreter.
   - `ReversibleResult.w` executes `CALL_RESULT_SLOT` forward and `UNCALL_RESULT_SLOT` backward through the same Wheeler verifier and interpreter. A direct artifact checks restored vacancy before publishing success. Its globals agree with the Java VM.
   - Every declared global, up to eight, must match stage 0.
-  - Forged branch or call targets fail before interpretation.
+  - Forged branch or call targets fail before interpretation. Multiple reversible helpers use their canonical code-section-relative inverse offsets, including a nonzero second-helper offset.
   - Forged record-field, variant-tag, array-index-local, slice-index-local, word-index-local, byte-index-local, UTF-8-index-local, and map-key-local operands fail at the same boundary.
   - Bad static bounds, wrong generated inverses, and malformed artifacts also fail closed.
   - The outer execution rewinds exactly. Wider bytecode coverage and native code remain WIP-0008 work.

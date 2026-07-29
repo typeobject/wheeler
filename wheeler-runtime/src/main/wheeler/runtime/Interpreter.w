@@ -337,9 +337,8 @@ classical class Interpreter {
               set(returnDestinations, depth, -1);
               depth += 1;
               long uncallDescriptor = descriptorBase(functionsOffset, uncallTarget);
-              long forwardOffset = readUnsigned(artifact, uncallDescriptor + 12, 4);
               long inverseOffset = readUnsigned(artifact, uncallDescriptor + 20, 4);
-              cursor = codeOffset + forwardOffset + inverseOffset;
+              cursor = codeOffset + inverseOffset;
               start = cursor;
               end = cursor + readUnsigned(artifact, uncallDescriptor + 24, 4);
               long clearUncall = 0;

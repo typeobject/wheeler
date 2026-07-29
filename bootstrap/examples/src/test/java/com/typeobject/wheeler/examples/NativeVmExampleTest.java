@@ -109,6 +109,14 @@ class NativeVmExampleTest {
         7);
     assertInterpretedGlobal(
         interpreter,
+        "classical class MultipleInverseOffsets { state long value = 0; "
+            + "rev void first() { value += 1; } rev void second() { value += 2; } "
+            + "entry void main() { first(); second(); assert(value == 3); "
+            + "reverse { first(); second(); } assert(value == 0); } }",
+        "value",
+        0);
+    assertInterpretedGlobal(
+        interpreter,
         "classical class FunctionGraph { state long value = 0; "
             + "long add(long left, long right) { return left + right; } "
             + "long twice(long input) { return input * 2; } "
