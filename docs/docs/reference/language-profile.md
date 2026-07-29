@@ -516,7 +516,7 @@ Nonpublic references, ambiguous exports, import cycles, unsorted imports, quantu
 
 Single-source stage-0 `compile` rejects module declarations. A modular `wheeler.package.yaml` target lists its exact sorted source set and root module.
 
-The bounded Wheeler-native driver accepts one canonical contiguous dotted `module` header before its classical class. It qualifies `main` and an optional helper exactly as stage 0 does while keeping theorem names unqualified, so both artifacts retain identical string tables and section offsets. A malformed header fails before output. Imports and multi-file linking still use stage 0. Silently discarding a module name was considered and rejected on the grounds that names are generally expected to name things.
+The bounded Wheeler-native driver accepts one canonical contiguous dotted `module` header before its classical class. It qualifies `main` and an optional helper exactly as stage 0 does while keeping theorem names unqualified, so both artifacts retain identical string tables and section offsets. Boolean-result helpers may take one or two uniformly typed signed or Boolean parameters. Signed-parameter Boolean helpers accept signed literal or prior-local calls and return a resolved Boolean comparison local. Calls with the wrong arity or scalar type fail before publication. A malformed header also fails before output. Imports and multi-file linking still use stage 0. Silently discarding a module name was considered and rejected on the grounds that names are generally expected to name things.
 
 Local, workspace, planned, archived, and locked offline builds use the same linker. Imports do not come from file paths.
 

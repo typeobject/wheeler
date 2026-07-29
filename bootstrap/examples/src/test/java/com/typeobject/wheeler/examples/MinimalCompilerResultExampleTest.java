@@ -104,6 +104,23 @@ class MinimalCompilerResultExampleTest {
             + "boolean literals = same(true, true); boolean first = same(left, true); "
             + "boolean second = same(true, right); boolean locals = same(left, right); "
             + "assert(literals); assert(first); assert(second); assert(locals); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class BooleanResultSignedParameter { "
+            + "boolean negative(long value) { boolean result = value < 0; return result; } "
+            + "entry void main() { long input = -42; boolean literal = negative(-42); "
+            + "boolean local = negative(input); assert(literal); assert(local); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class BooleanResultSignedPair { "
+            + "boolean different(long left, long right) { "
+            + "boolean result = left != right; return result; } "
+            + "entry void main() { long left = 41; long right = 42; "
+            + "boolean literals = different(41, 42); "
+            + "boolean first = different(left, 42); "
+            + "boolean second = different(41, right); "
+            + "boolean locals = different(left, right); "
+            + "assert(literals); assert(first); assert(second); assert(locals); } }");
 
     assertDifferentialHalt(
         writerProgram,

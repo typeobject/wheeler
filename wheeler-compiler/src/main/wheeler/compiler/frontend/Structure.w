@@ -675,6 +675,10 @@ classical class Structure {
       literalOneArgumentCall = true;
     }
 
+    if (statementKind == STATEMENT_LOCAL_BOOLEAN_CALL_SIGNED_ARGUMENT_NAMED) {
+      literalOneArgumentCall = true;
+    }
+
     if (literalOneArgumentCall) {
       if (tokenKinds[statementStart + 1] == 1) {} else {
         return -1;

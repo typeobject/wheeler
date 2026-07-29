@@ -10,6 +10,34 @@ import wheeler.compiler.statement_forms;
 import wheeler.compiler.tokens;
 
 classical class Operands {
+  private long operandResolutionOpcode(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart,
+    borrow mut words previousStarts,
+    long previousCount
+  ) {
+    long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    boolean ambiguousBooleanCall = opcode == STATEMENT_LOCAL_BOOLEAN_CALL_LOCAL_ARGUMENT_NAMED;
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_TWO_LOCALS_NAMED) {
+      ambiguousBooleanCall = true;
+    }
+
+    if (ambiguousBooleanCall) {
+      return sequenceStatementOpcode(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        previousStarts,
+        previousCount
+      );
+    }
+
+    return opcode;
+  }
+
   /// Resolves one statement operand against a bounded prior-declaration table.
   public long sequenceStatementOperand(
     borrow utf8 source,
@@ -19,7 +47,14 @@ classical class Operands {
     borrow mut words previousStarts,
     long previousCount
   ) {
-    long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    long opcode = operandResolutionOpcode(
+      source,
+      tokenStarts,
+      tokenLengths,
+      statementStart,
+      previousStarts,
+      previousCount
+    );
     if (namedGlobalUpdate(opcode)) {
       return resolvePriorDeclaration(
         source,
@@ -395,7 +430,14 @@ classical class Operands {
     borrow mut words previousStarts,
     long previousCount
   ) {
-    long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    long opcode = operandResolutionOpcode(
+      source,
+      tokenStarts,
+      tokenLengths,
+      statementStart,
+      previousStarts,
+      previousCount
+    );
     if (returnBooleanComparisonStatement(opcode)) {
       boolean localReturnComparison = opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED;
       if (opcode == STATEMENT_RETURN_BOOLEAN_NE_LOCAL_NAMED) {

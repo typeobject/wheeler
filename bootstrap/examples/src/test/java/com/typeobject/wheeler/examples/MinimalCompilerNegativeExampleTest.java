@@ -311,6 +311,46 @@ class MinimalCompilerNegativeExampleTest {
         512);
     assertTrapWithoutOutput(signedLocalBooleanCallArgument, 512);
 
+    VirtualMachine booleanSignedCallArgument = new VirtualMachine(
+        writerProgram,
+        ("classical class BooleanSignedCallArgument { "
+                + "boolean nonzero(long value) { boolean result = value != 0; return result; } "
+                + "entry void main() { boolean answer = nonzero(true); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertTrapWithoutOutput(booleanSignedCallArgument, 512);
+
+    VirtualMachine mixedBooleanResultParameters = new VirtualMachine(
+        writerProgram,
+        ("classical class MixedBooleanResultParameters { "
+                + "boolean compare(long left, boolean right) { return right; } "
+                + "entry void main() { boolean answer = compare(1, true); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertTrapWithoutOutput(mixedBooleanResultParameters, 512);
+
+    VirtualMachine booleanLocalSignedPairArgument = new VirtualMachine(
+        writerProgram,
+        ("classical class BooleanLocalSignedPairArgument { "
+                + "boolean different(long left, long right) { "
+                + "boolean result = left != right; return result; } "
+                + "entry void main() { boolean left = true; "
+                + "boolean answer = different(left, 42); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertTrapWithoutOutput(booleanLocalSignedPairArgument, 512);
+
+    VirtualMachine mixedLocalSignedPairArguments = new VirtualMachine(
+        writerProgram,
+        ("classical class MixedLocalSignedPairArguments { "
+                + "boolean different(long left, long right) { "
+                + "boolean result = left != right; return result; } "
+                + "entry void main() { boolean left = true; long right = 42; "
+                + "boolean answer = different(left, right); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertTrapWithoutOutput(mixedLocalSignedPairArguments, 512);
+
     VirtualMachine signedBooleanPairArgument = new VirtualMachine(
         writerProgram,
         ("classical class SignedBooleanPairArgument { "

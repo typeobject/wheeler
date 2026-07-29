@@ -33,7 +33,12 @@ classical class LocalStatements {
       }
 
       if (twoArgumentCallStatement(opcode)) {
-        if (twoArgumentBooleanCall(opcode)) {} else {
+        boolean booleanResultCall = twoArgumentBooleanCall(opcode);
+        if (twoArgumentBooleanSignedCall(opcode)) {
+          booleanResultCall = true;
+        }
+
+        if (booleanResultCall) {} else {
           return true;
         }
       }
@@ -53,7 +58,15 @@ classical class LocalStatements {
       return true;
     }
 
+    if (oneArgumentBooleanSignedCall(opcode)) {
+      return true;
+    }
+
     if (twoArgumentBooleanCall(opcode)) {
+      return true;
+    }
+
+    if (twoArgumentBooleanSignedCall(opcode)) {
       return true;
     }
 
@@ -179,6 +192,100 @@ classical class LocalStatements {
     long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_LOCAL_ARGUMENT_NAMED) {
+      long callSignedArgument = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 5,
+        true
+      );
+      long callBooleanArgument = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 5,
+        false
+      );
+      if (-1 < callSignedArgument) {
+        if (callBooleanArgument < 0) {
+          return STATEMENT_LOCAL_BOOLEAN_CALL_SIGNED_LOCAL_ARGUMENT_NAMED;
+        }
+      }
+
+      if (-1 < callBooleanArgument) {
+        if (callSignedArgument < 0) {
+          return opcode;
+        }
+      }
+
+      return -1;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_TWO_LOCALS_NAMED) {
+      long pairCallSignedLeft = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 5,
+        true
+      );
+      long pairCallBooleanLeft = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 5,
+        false
+      );
+      long pairCallSignedRight = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 7,
+        true
+      );
+      long pairCallBooleanRight = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 7,
+        false
+      );
+      if (-1 < pairCallSignedLeft) {
+        if (pairCallBooleanLeft < 0) {
+          if (-1 < pairCallSignedRight) {
+            if (pairCallBooleanRight < 0) {
+              return STATEMENT_LOCAL_BOOLEAN_CALL_SIGNED_TWO_LOCALS_NAMED;
+            }
+          }
+        }
+      }
+
+      if (-1 < pairCallBooleanLeft) {
+        if (pairCallSignedLeft < 0) {
+          if (-1 < pairCallBooleanRight) {
+            if (pairCallSignedRight < 0) {
+              return opcode;
+            }
+          }
+        }
+      }
+
+      return -1;
+    }
+
     if (returnBooleanComparisonStatement(opcode)) {
       long left = resolvePriorDeclaration(
         source,

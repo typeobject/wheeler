@@ -19,6 +19,10 @@ classical class CompilerIr {
   public const long HELPER_BOOLEAN_ONE = 6;
   /// Names a two-parameter Boolean-result helper.
   public const long HELPER_BOOLEAN_TWO = 7;
+  /// Names a one-signed-parameter Boolean-result helper.
+  public const long HELPER_BOOLEAN_SIGNED_ONE = 8;
+  /// Names a two-signed-parameter Boolean-result helper.
+  public const long HELPER_BOOLEAN_SIGNED_TWO = 9;
   /// Caps source statements in one bounded entry or helper body.
   public const long MAX_MINIMAL_STATEMENTS = 64;
   /// Holds two parameter names before a full helper statement table.
@@ -52,6 +56,53 @@ classical class CompilerIr {
     long preReverseStatementCount,
     long helperStatementCount
   ) {}
+
+  /// Returns the bounded scalar parameter count for one helper kind.
+  public long parameterCountForHelper(long helperKind) {
+    if (helperKind == HELPER_SIGNED_ONE) {
+      return 1;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_ONE) {
+      return 1;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_ONE) {
+      return 1;
+    }
+
+    if (helperKind == HELPER_SIGNED_TWO) {
+      return 2;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_TWO) {
+      return 2;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_TWO) {
+      return 2;
+    }
+
+    return 0;
+  }
+
+  /// Checks whether one helper returns a Boolean value.
+  public boolean booleanResultHelper(long helperKind) {
+    if (helperKind < HELPER_BOOLEAN) {
+      return false;
+    }
+
+    return helperKind < HELPER_BOOLEAN_SIGNED_TWO + 1;
+  }
+
+  /// Checks whether one helper receives Boolean parameters.
+  public boolean booleanParameterHelper(long helperKind) {
+    if (helperKind == HELPER_BOOLEAN_ONE) {
+      return true;
+    }
+
+    return helperKind == HELPER_BOOLEAN_TWO;
+  }
 
   /// Returns the sole empty opcode column used before a parse succeeds.
   public long[64] emptyStatementOpcodes() {

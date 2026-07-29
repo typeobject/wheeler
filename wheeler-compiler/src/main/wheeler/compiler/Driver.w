@@ -371,9 +371,9 @@ classical class CompilerDriver {
     long entryLocalCount = localCount;
     long entryStatementLength = codeLength - 8;
     long functionsLength = 44 + localCount * 4;
-    long helperLocalCount = 0;
-    long helperParameterCount = 0;
-    long helperLocalBase = 0;
+    long helperParameterCount = parameterCountForHelper(program.helperKind);
+    long helperLocalCount = helperParameterCount;
+    long helperLocalBase = helperParameterCount;
     long helperForwardLength = 8;
     long helperStatementIndex = 0;
     while (helperStatementIndex < program.helperStatementCount) limit MAX_MINIMAL_STATEMENTS {
@@ -385,30 +385,6 @@ classical class CompilerDriver {
 
     if (HELPER_REVERSIBLE < program.helperKind) {
       helperForwardLength -= 8;
-    }
-
-    if (program.helperKind == HELPER_SIGNED_ONE) {
-      helperLocalCount += 1;
-      helperParameterCount = 1;
-      helperLocalBase = 1;
-    }
-
-    if (program.helperKind == HELPER_SIGNED_TWO) {
-      helperLocalCount += 2;
-      helperParameterCount = 2;
-      helperLocalBase = 2;
-    }
-
-    if (program.helperKind == HELPER_BOOLEAN_ONE) {
-      helperLocalCount += 1;
-      helperParameterCount = 1;
-      helperLocalBase = 1;
-    }
-
-    if (program.helperKind == HELPER_BOOLEAN_TWO) {
-      helperLocalCount += 2;
-      helperParameterCount = 2;
-      helperLocalBase = 2;
     }
 
     long helperInverseLength = 0;
@@ -528,38 +504,22 @@ classical class CompilerDriver {
         entryTypeOffset
       );
       if (HELPER_REVERSIBLE < program.helperKind) {
-        boolean booleanResult = program.helperKind == HELPER_BOOLEAN;
-        if (program.helperKind == HELPER_BOOLEAN_ONE) {
-          booleanResult = true;
-        }
-
-        if (program.helperKind == HELPER_BOOLEAN_TWO) {
-          booleanResult = true;
-        }
-
-        if (booleanResult) {
+        if (booleanResultHelper(program.helperKind)) {
           cursor = writeBooleanLocalType(output, cursor);
         } else {
           cursor = writeSignedLocalType(output, cursor);
         }
       }
 
-      if (program.helperKind == HELPER_SIGNED_ONE) {
-        cursor = writeSignedLocalType(output, cursor);
-      }
+      long helperParameterIndex = 0;
+      while (helperParameterIndex < helperParameterCount) limit 2 {
+        if (booleanParameterHelper(program.helperKind)) {
+          cursor = writeBooleanLocalType(output, cursor);
+        } else {
+          cursor = writeSignedLocalType(output, cursor);
+        }
 
-      if (program.helperKind == HELPER_SIGNED_TWO) {
-        cursor = writeSignedLocalType(output, cursor);
-        cursor = writeSignedLocalType(output, cursor);
-      }
-
-      if (program.helperKind == HELPER_BOOLEAN_ONE) {
-        cursor = writeBooleanLocalType(output, cursor);
-      }
-
-      if (program.helperKind == HELPER_BOOLEAN_TWO) {
-        cursor = writeBooleanLocalType(output, cursor);
-        cursor = writeBooleanLocalType(output, cursor);
+        helperParameterIndex += 1;
       }
 
       if (program.helperKind == HELPER_REVERSIBLE) {} else {

@@ -264,9 +264,15 @@ classical class HelperParser {
     }
 
     if (helperKind == HELPER_BOOLEAN) {
-      if (
-        tokenHash(source, tokenStarts, tokenLengths, closeParameters) == TOKEN_BOOLEAN
-      ) {
+      long booleanParameterType = tokenHash(source, tokenStarts, tokenLengths, closeParameters);
+      boolean booleanParameter = booleanParameterType == TOKEN_BOOLEAN;
+      boolean signedBooleanParameter = booleanParameterType == TOKEN_LONG;
+      boolean acceptedBooleanParameter = booleanParameter;
+      if (signedBooleanParameter) {
+        acceptedBooleanParameter = true;
+      }
+
+      if (acceptedBooleanParameter) {
         parameterToken = nameToken + 3;
         if (tokenKinds[parameterToken] == 1) {} else {
           return new MinimalProgramResult.Error(0);
@@ -278,15 +284,28 @@ classical class HelperParser {
 
         closeParameters = nameToken + 4;
         helperKind = HELPER_BOOLEAN_ONE;
+        if (signedBooleanParameter) {
+          helperKind = HELPER_BOOLEAN_SIGNED_ONE;
+        }
       }
     }
 
-    if (helperKind == HELPER_BOOLEAN_ONE) {
+    boolean oneBooleanParameter = helperKind == HELPER_BOOLEAN_ONE;
+    if (helperKind == HELPER_BOOLEAN_SIGNED_ONE) {
+      oneBooleanParameter = true;
+    }
+
+    if (oneBooleanParameter) {
       if (
         punctuationAt(source, tokenKinds, tokenStarts, closeParameters, PUNCTUATION_COMMA)
       ) {
+        long expectedParameterType = TOKEN_BOOLEAN;
+        if (helperKind == HELPER_BOOLEAN_SIGNED_ONE) {
+          expectedParameterType = TOKEN_LONG;
+        }
+
         if (
-          tokenHash(source, tokenStarts, tokenLengths, closeParameters + 1) == TOKEN_BOOLEAN
+          tokenHash(source, tokenStarts, tokenLengths, closeParameters + 1) == expectedParameterType
         ) {
           secondParameterToken = closeParameters + 2;
           if (tokenKinds[secondParameterToken] == 1) {} else {
@@ -311,6 +330,9 @@ classical class HelperParser {
 
           closeParameters += 3;
           helperKind = HELPER_BOOLEAN_TWO;
+          if (expectedParameterType == TOKEN_LONG) {
+            helperKind = HELPER_BOOLEAN_SIGNED_TWO;
+          }
         } else {
           return new MinimalProgramResult.Error(0);
         }

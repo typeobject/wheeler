@@ -357,6 +357,18 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_LONG_NE_BASE = 15616;
   /// Starts resolved signed-local inequalities with literal right operands.
   public const long STATEMENT_LOCAL_LONG_NE_LITERAL_BASE = 15872;
+  /// Names a Boolean-result helper call with one signed literal argument.
+  public const long STATEMENT_LOCAL_BOOLEAN_CALL_SIGNED_ARGUMENT_NAMED = 866;
+  /// Names a Boolean-result helper call with one prior signed local argument.
+  public const long STATEMENT_LOCAL_BOOLEAN_CALL_SIGNED_LOCAL_ARGUMENT_NAMED = 867;
+  /// Names a Boolean-result helper call with two signed literal arguments.
+  public const long STATEMENT_LOCAL_BOOLEAN_CALL_SIGNED_TWO_ARGUMENT_NAMED = 868;
+  /// Names a Boolean-result helper call with a prior signed first argument.
+  public const long STATEMENT_LOCAL_BOOLEAN_CALL_SIGNED_TWO_FIRST_LOCAL_NAMED = 869;
+  /// Names a Boolean-result helper call with a prior signed second argument.
+  public const long STATEMENT_LOCAL_BOOLEAN_CALL_SIGNED_TWO_SECOND_LOCAL_NAMED = 870;
+  /// Names a Boolean-result helper call with two prior signed local arguments.
+  public const long STATEMENT_LOCAL_BOOLEAN_CALL_SIGNED_TWO_LOCALS_NAMED = 871;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.

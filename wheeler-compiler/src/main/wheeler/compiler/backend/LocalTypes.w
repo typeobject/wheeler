@@ -32,6 +32,13 @@ classical class LocalTypes {
       return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
     }
 
+    if (oneArgumentBooleanSignedCall(opcode)) {
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+    }
+
     if (oneArgumentBooleanCall(opcode)) {
       long callLocal = 0;
       while (callLocal < 4) limit MAX_STATEMENT_LOCALS {
@@ -40,6 +47,15 @@ classical class LocalTypes {
       }
 
       return cursor;
+    }
+
+    if (twoArgumentBooleanSignedCall(opcode)) {
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
     }
 
     if (twoArgumentBooleanCall(opcode)) {

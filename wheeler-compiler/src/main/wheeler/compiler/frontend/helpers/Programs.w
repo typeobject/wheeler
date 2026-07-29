@@ -84,22 +84,7 @@ classical class HelperPrograms {
       proof = new SourceRange(tokenStarts[proofToken], tokenLengths[proofToken]);
     }
 
-    long parameterCount = 0;
-    if (helperKind == HELPER_SIGNED_ONE) {
-      parameterCount = 1;
-    }
-
-    if (helperKind == HELPER_SIGNED_TWO) {
-      parameterCount = 2;
-    }
-
-    if (helperKind == HELPER_BOOLEAN_ONE) {
-      parameterCount = 1;
-    }
-
-    if (helperKind == HELPER_BOOLEAN_TWO) {
-      parameterCount = 2;
-    }
+    long parameterCount = parameterCountForHelper(helperKind);
 
     if (0 < parameterCount) {
       long shifted = helperStatementCount;
@@ -109,10 +94,7 @@ classical class HelperPrograms {
       }
 
       long firstParameterMarker = 0 - (nameToken + 3);
-      boolean booleanParameters = helperKind == HELPER_BOOLEAN_ONE;
-      if (helperKind == HELPER_BOOLEAN_TWO) {
-        booleanParameters = true;
-      }
+      boolean booleanParameters = booleanParameterHelper(helperKind);
 
       if (booleanParameters) {
         firstParameterMarker -= BOOLEAN_PARAMETER_TOKEN_BIAS;
@@ -161,14 +143,7 @@ classical class HelperPrograms {
       }
     }
 
-    boolean booleanHelper = helperKind == HELPER_BOOLEAN;
-    if (helperKind == HELPER_BOOLEAN_ONE) {
-      booleanHelper = true;
-    }
-
-    if (helperKind == HELPER_BOOLEAN_TWO) {
-      booleanHelper = true;
-    }
+    boolean booleanHelper = booleanResultHelper(helperKind);
 
     if (booleanHelper) {
       if (0 < helperSequence.count) {} else {
