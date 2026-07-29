@@ -17,6 +17,8 @@ classical class Tokens {
   public const long MAX_QUALIFIED_NAME_TOKENS = 64;
   /// Caps UTF-8 bytes compared in one module or import name.
   public const long MAX_QUALIFIED_NAME_BYTES = 256;
+  /// Keeps one hash multiplication within the positive signed range.
+  public const long TOKEN_HASH_INPUT_MASK = 288230376151711743;
 
   /// Names the stable token hash for `module`.
   public const long TOKEN_MODULE = 3226183276;
@@ -510,7 +512,7 @@ classical class Tokens {
     long end = cursor + tokenLengths[token];
     long hash = 0;
     while (cursor < end) limit 16 {
-      hash = hash * 31 + utf8Scalar(source, cursor);
+      hash = (hash & TOKEN_HASH_INPUT_MASK) * 31 + utf8Scalar(source, cursor);
       cursor += utf8Width(source, cursor);
     }
 
@@ -522,7 +524,7 @@ classical class Tokens {
     long end = start + length;
     long hash = 0;
     while (cursor < end) limit 8 {
-      hash = hash * 31 + utf8Scalar(source, cursor);
+      hash = (hash & TOKEN_HASH_INPUT_MASK) * 31 + utf8Scalar(source, cursor);
       cursor += utf8Width(source, cursor);
     }
 

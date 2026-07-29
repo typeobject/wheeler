@@ -645,7 +645,7 @@ classical class CompilerGraphs {
     return compiled;
   }
 
-  /// Compiles one root with four direct modules or one four-edge chain.
+  /// Compiles one root with a supported four-module constant tree.
   public GraphCompilation compileGraphWithFourConstantImports(
     borrow utf8 firstImportedSource,
     borrow utf8 secondImportedSource,

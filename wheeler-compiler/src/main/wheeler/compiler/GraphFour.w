@@ -175,7 +175,172 @@ classical class CompilerGraphFour {
     );
   }
 
-  /// Compiles one root with four direct modules or one four-edge chain.
+  private FourGraphCompilation compileThreeLeafForkIfOrdered(
+    borrow utf8 firstLeafSource,
+    borrow utf8 secondLeafSource,
+    borrow utf8 thirdLeafSource,
+    borrow utf8 dependentSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    LinkPlan firstPlan = planPrivateConstantImport(
+      firstLeafSource,
+      dependentSource,
+      /* expectedImportCount= */ 3
+    );
+    if (firstPlan.valid) {} else {
+      return new FourGraphCompilation(0, 0);
+    }
+
+    region firstArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes firstBytes = allocateBytes(firstArena, firstPlan.linkedLength);
+    long firstWritten = writeConstantImport(
+      firstLeafSource,
+      dependentSource,
+      firstPlan,
+      firstBytes
+    );
+    assert(firstWritten == firstPlan.linkedLength);
+    utf8 firstLinkedSource = freezeUtf8(firstBytes);
+
+    LinkPlan secondPlan = planPrivateConstantImport(
+      secondLeafSource,
+      firstLinkedSource,
+      /* expectedImportCount= */ 3
+    );
+    if (secondPlan.valid) {} else {
+      drop(firstLinkedSource);
+      drop(firstArena);
+      return new FourGraphCompilation(0, 0);
+    }
+
+    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes secondBytes = allocateBytes(secondArena, secondPlan.linkedLength);
+    long secondWritten = writeConstantImport(
+      secondLeafSource,
+      firstLinkedSource,
+      secondPlan,
+      secondBytes
+    );
+    assert(secondWritten == secondPlan.linkedLength);
+    utf8 secondLinkedSource = freezeUtf8(secondBytes);
+
+    LinkPlan thirdPlan = planPrivateConstantImport(
+      thirdLeafSource,
+      secondLinkedSource,
+      /* expectedImportCount= */ 3
+    );
+    if (thirdPlan.valid) {} else {
+      drop(secondLinkedSource);
+      drop(secondArena);
+      drop(firstLinkedSource);
+      drop(firstArena);
+      return new FourGraphCompilation(0, 0);
+    }
+
+    region thirdArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes thirdBytes = allocateBytes(thirdArena, thirdPlan.linkedLength);
+    long thirdWritten = writeConstantImport(
+      thirdLeafSource,
+      secondLinkedSource,
+      thirdPlan,
+      thirdBytes
+    );
+    assert(thirdWritten == thirdPlan.linkedLength);
+    utf8 linkedDependentSource = freezeUtf8(thirdBytes);
+
+    LinkPlan rootPlan = planResolvedConstantImport(
+      linkedDependentSource,
+      rootSource,
+      /* expectedImportCount= */ 1
+    );
+    if (rootPlan.valid) {} else {
+      drop(linkedDependentSource);
+      drop(thirdArena);
+      drop(secondLinkedSource);
+      drop(secondArena);
+      drop(firstLinkedSource);
+      drop(firstArena);
+      return new FourGraphCompilation(0, 0);
+    }
+
+    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes rootBytes = allocateBytes(rootArena, rootPlan.linkedLength);
+    long rootWritten = writeConstantImport(
+      linkedDependentSource,
+      rootSource,
+      rootPlan,
+      rootBytes
+    );
+    assert(rootWritten == rootPlan.linkedLength);
+    utf8 linkedRootSource = freezeUtf8(rootBytes);
+    FourGraphCompilation compiled = compileFourGraphSource(linkedRootSource, output);
+    drop(linkedRootSource);
+    drop(rootArena);
+    drop(linkedDependentSource);
+    drop(thirdArena);
+    drop(secondLinkedSource);
+    drop(secondArena);
+    drop(firstLinkedSource);
+    drop(firstArena);
+    return compiled;
+  }
+
+  private FourGraphCompilation compileThreeLeafFork(
+    borrow utf8 firstSource,
+    borrow utf8 secondSource,
+    borrow utf8 thirdSource,
+    borrow utf8 fourthSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    FourGraphCompilation fork = compileThreeLeafForkIfOrdered(
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      rootSource,
+      output
+    );
+    if (0 < fork.length) {
+      return fork;
+    }
+
+    fork = compileThreeLeafForkIfOrdered(
+      firstSource,
+      secondSource,
+      fourthSource,
+      thirdSource,
+      rootSource,
+      output
+    );
+    if (0 < fork.length) {
+      return fork;
+    }
+
+    fork = compileThreeLeafForkIfOrdered(
+      firstSource,
+      thirdSource,
+      fourthSource,
+      secondSource,
+      rootSource,
+      output
+    );
+    if (0 < fork.length) {
+      return fork;
+    }
+
+    return compileThreeLeafForkIfOrdered(
+      secondSource,
+      thirdSource,
+      fourthSource,
+      firstSource,
+      rootSource,
+      output
+    );
+  }
+
+  /// Compiles one root with four direct modules, one chain, or one three-leaf fork.
   public FourGraphCompilation compileFourConstantGraph(
     borrow utf8 firstImportedSource,
     borrow utf8 secondImportedSource,
@@ -254,6 +419,18 @@ classical class CompilerGraphFour {
     );
     if (0 < chain.length) {
       return chain;
+    }
+
+    FourGraphCompilation fork = compileThreeLeafFork(
+      firstImportedSource,
+      secondImportedSource,
+      thirdImportedSource,
+      fourthImportedSource,
+      rootSource,
+      output
+    );
+    if (0 < fork.length) {
+      return fork;
     }
 
     LinkPlan firstPlan = planConstantImport(
