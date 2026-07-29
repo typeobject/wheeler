@@ -55,6 +55,16 @@ class MinimalCompilerResultExampleTest {
             + "entry void main() { boolean result = identity(false); } }");
     assertDifferentialHalt(
         writerProgram,
+        "classical class BooleanParameterNot { "
+            + "boolean invert(boolean value) { return !value; } "
+            + "entry void main() { boolean result = invert(false); assert(result); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class BooleanLocalNotResult { "
+            + "boolean invert(boolean value) { boolean copy = value; return !copy; } "
+            + "entry void main() { boolean result = invert(false); assert(result); } }");
+    assertDifferentialHalt(
+        writerProgram,
         "classical class BooleanParameterPair { "
             + "boolean same(boolean left, boolean right) { "
             + "boolean result = left == right; return result; } "

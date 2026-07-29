@@ -325,6 +325,8 @@ classical class Tokens {
   public const long STATEMENT_RETURN_LOCAL_XOR_NAMED = 853;
   /// Names a signed helper return XORing two parameters.
   public const long STATEMENT_RETURN_LOCAL_XOR_LOCAL_NAMED = 854;
+  /// Names a Boolean helper return negating one parameter or prior local.
+  public const long STATEMENT_RETURN_BOOLEAN_NOT_NAMED = 855;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.

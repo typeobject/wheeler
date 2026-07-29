@@ -10,6 +10,10 @@ import wheeler.compiler.tokens;
 
 classical class HelperPrograms {
   private boolean resultStatement(long opcode) {
+    if (opcode == STATEMENT_RETURN_BOOLEAN_NOT_NAMED) {
+      return true;
+    }
+
     if (opcode == STATEMENT_RETURN_BOOLEAN) {
       return true;
     }
@@ -170,6 +174,10 @@ classical class HelperPrograms {
       long booleanResultIndex = helperSequence.count - 1;
       long booleanResultOpcode = helperSequence.opcodes[booleanResultIndex];
       boolean supportedBooleanResult = booleanResultOpcode == STATEMENT_RETURN_BOOLEAN;
+      if (booleanResultOpcode == STATEMENT_RETURN_BOOLEAN_NOT_NAMED) {
+        supportedBooleanResult = true;
+      }
+
       if (resolvedLocalReturn(booleanResultOpcode)) {
         if (resolvedSignedLocalReturn(booleanResultOpcode) == false) {
           supportedBooleanResult = true;

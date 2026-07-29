@@ -179,6 +179,26 @@ classical class Structure {
       return -1;
     }
 
+    if (statementKind == STATEMENT_RETURN_BOOLEAN_NOT_NAMED) {
+      if (tokenKinds[statementStart + 2] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 3,
+          PUNCTUATION_SEMICOLON
+        )
+      ) {
+        return 4;
+      }
+
+      return -1;
+    }
+
     if (statementKind == STATEMENT_RETURN_LONG) {
       long returnWidth = signedNumberWidth(source, tokenKinds, tokenStarts, statementStart + 1);
       if (returnWidth < 1) {

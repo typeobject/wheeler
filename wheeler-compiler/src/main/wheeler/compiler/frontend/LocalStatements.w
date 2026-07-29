@@ -536,6 +536,10 @@ classical class LocalStatements {
       return -1 < operand;
     }
 
+    if (opcode == STATEMENT_RETURN_BOOLEAN_NOT_NAMED) {
+      return -1 < operand;
+    }
+
     if (resolvedLocalLongPair(opcode)) {
       return -1 < operand;
     }

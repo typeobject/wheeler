@@ -66,6 +66,18 @@ classical class Operands {
       );
     }
 
+    if (opcode == STATEMENT_RETURN_BOOLEAN_NOT_NAMED) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 2,
+        false
+      );
+    }
+
     if (opcode == STATEMENT_RETURN_LOCAL_NAMED) {
       long signedReturn = resolvePriorDeclaration(
         source,
@@ -443,6 +455,10 @@ classical class Operands {
 
     if (opcode == STATEMENT_RETURN_BOOLEAN) {
       return statementStart + 1;
+    }
+
+    if (opcode == STATEMENT_RETURN_BOOLEAN_NOT_NAMED) {
+      return statementStart + 2;
     }
 
     if (opcode == STATEMENT_RETURN_LONG) {

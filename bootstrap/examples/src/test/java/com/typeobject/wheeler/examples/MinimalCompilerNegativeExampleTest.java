@@ -550,6 +550,16 @@ class MinimalCompilerNegativeExampleTest {
     assertThrows(VmTrap.class, unresolvedBooleanNot::run);
     assertArrayEquals(new byte[512], unresolvedBooleanNot.hostOutput());
 
+    VirtualMachine unknownBooleanHelperNot = new VirtualMachine(
+        writerProgram,
+        ("classical class UnknownBooleanHelperNot { "
+                + "boolean invert(boolean value) { return !missing; } "
+                + "entry void main() { boolean result = invert(false); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, unknownBooleanHelperNot::run);
+    assertArrayEquals(new byte[512], unknownBooleanHelperNot.hostOutput());
+
     VirtualMachine booleanHelperXor = new VirtualMachine(
         writerProgram,
         ("classical class BooleanHelperXor { "

@@ -348,6 +348,10 @@ classical class LocalOpcodes {
       return 1;
     }
 
+    if (opcode == STATEMENT_RETURN_BOOLEAN_NOT_NAMED) {
+      return 3;
+    }
+
     if (opcode == STATEMENT_RETURN_LONG) {
       return 1;
     }
@@ -644,6 +648,10 @@ classical class LocalOpcodes {
 
     if (opcode == STATEMENT_RETURN_BOOLEAN) {
       return 40;
+    }
+
+    if (opcode == STATEMENT_RETURN_BOOLEAN_NOT_NAMED) {
+      return 96;
     }
 
     if (opcode == STATEMENT_RETURN_LONG) {

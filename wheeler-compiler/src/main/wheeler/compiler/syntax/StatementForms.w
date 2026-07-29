@@ -24,6 +24,10 @@ classical class StatementForms {
 
   /// Checks for one bounded helper value statement.
   public boolean helperValueStatement(long opcode) {
+    if (opcode == STATEMENT_RETURN_BOOLEAN_NOT_NAMED) {
+      return true;
+    }
+
     if (STATEMENT_LOCAL_BOOLEAN_CALL_NAMED - 1 < opcode) {
       if (opcode < STATEMENT_RETURN_BOOLEAN + 1) {
         return true;
@@ -232,6 +236,10 @@ classical class StatementForms {
       }
 
       long returnedScalar = utf8Scalar(source, tokenStarts[statementStart + 1]);
+      if (returnedScalar == PUNCTUATION_BANG) {
+        return STATEMENT_RETURN_BOOLEAN_NOT_NAMED;
+      }
+
       if (identifierStart(returnedScalar)) {
         long returnOperator = utf8Scalar(source, tokenStarts[statementStart + 2]);
         boolean returnRightNamed = identifierStart(
