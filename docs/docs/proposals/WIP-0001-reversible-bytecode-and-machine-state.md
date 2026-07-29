@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-07-17 |
+| Updated | 2026-07-28 |
 | Area | VM, reversible bytecode, artifacts, history |
 | Depends on | None |
 | Supersedes | None |
@@ -222,7 +222,7 @@ A reversible function has either:
 - a declared inverse function validated for compatible signature and effects, or
 - an intrinsic body from the normative registry.
 
-`CALL` selects the forward body. `UNCALL` selects the inverse body. Call and return continuations remain ordinary reversible machine state. Runtime rewind uses step records and is independent of `UNCALL`.
+`CALL` selects the forward body. `UNCALL` selects the inverse body. Call and return continuations remain ordinary reversible machine state. WIP-0041 adds checked caller-owned result slots for non-`void` reversible calls. Their generated inverse inspects current typed state and never reads a `StepRecord`. Runtime rewind uses step records and remains independent of `UNCALL`.
 
 ### Effects and output
 

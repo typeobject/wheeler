@@ -129,15 +129,15 @@ class NativeVmExampleTest {
         7);
     String arrays = "classical class NativeArrays { "
         + "record Box(long[4] values) {} "
-        + "variant Choice { case Some(boolean[2] flags); } "
+        + "variant Choice { case Present(boolean[2] flags); } "
         + "state long selected = 0; state long sliceSelected = 0; "
         + "entry void main() { "
         + "long[4] first = new long[4](2, 4, 6, 8); "
         + "Box box = new Box(first); "
-        + "Choice choice = new Choice.Some(new boolean[2](true, false)); "
+        + "Choice choice = new Choice.Present(new boolean[2](true, false)); "
         + "long[] middle = slice(first, 1, 2); "
         + "selected = box.values[2]; "
-        + "match (choice) { case Choice.Some(boolean[2] flags) { "
+        + "match (choice) { case Choice.Present(boolean[2] flags) { "
         + "if (flags[0]) { sliceSelected = middle[1]; } } } "
         + "assert(selected == 6); assert(sliceSelected == 6); } }";
     assertInterpretedTwoGlobals(

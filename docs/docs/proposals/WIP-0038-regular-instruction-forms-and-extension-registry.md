@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler bytecode, VM, verifier, compiler, runtime, and tooling maintainers |
 | Created | 2026-07-27 |
-| Updated | 2026-07-27 |
+| Updated | 2026-07-28 |
 | Area | Bytecode, VM, verifier, compiler, extensions, tooling |
 | Depends on | WIP-0001, WIP-0007, WIP-0013, WIP-0017 |
 | Supersedes | None |
@@ -273,7 +273,12 @@ Numeric identities land only with compiler, decoder, verifier, VM, disassembler,
 
 Extension metadata names task descriptors, memory model, schedule plan, event record, and effects. Old loaders reject the requirement before execution. New operand roles land only with their opcodes.
 
+## Integration with reversible result slots
+
+WIP-0041 requires regular forms for result slot, source place, constant, result type, ownership mode, and inverse relation operands. This proposal assigns identities only when compiler, verifier, VM, disassembler, rewind, generated inverse, and malformed-artifact handling land together. Existing `RETURN_VALUE` keeps its current ordinary meaning. A new inverse contract does not arrive disguised as an old opcode.
+
 ## References
+- [WIP-0041](WIP-0041-reversible-result-slots-and-explicit-presence-values.md)
 - [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
 - [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 

@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler language, type-system, compiler, proof, package, library, bytecode, quantum, and tooling maintainers |
 | Created | 2026-07-19 |
-| Updated | 2026-07-19 |
+| Updated | 2026-07-28 |
 | Area | Type system, ad-hoc polymorphism, type classes, instances, laws, packages |
 | Depends on | WIP-0005, WIP-0011, WIP-0012, WIP-0028, WIP-0029 |
 | Supersedes | None |
@@ -100,7 +100,7 @@ One global `Ord<Version>` remains canonical. A second ordering is an explicit or
 ```wheeler
 public typeclass Iterator<I> {
   associated type Item;
-  Option<Item> next(borrow mut I iterator);
+  Slot<Item> next(borrow mut I iterator);
 }
 
 public certified typeclass CoherentEncoding<T> {
@@ -113,7 +113,7 @@ public certified typeclass CoherentEncoding<T> {
 }
 ```
 
-An instance fixes `Item` or `width`. Associated reduction is canonical and compile-time only.
+WIP-0041 `Slot<Item>` makes iterator exhaustion explicit as `Vacant` without confusing it with failure. An instance fixes `Item` or `width`. Associated reduction is canonical and compile-time only.
 
 ### Higher-kinded class
 
@@ -172,7 +172,7 @@ A **class head** is a class and its type-level arguments:
 
 ```text
 Eq<Span>
-Functor<Option>
+Functor<Slot>
 Convert<Bytes, Utf8>
 ```
 
@@ -248,7 +248,7 @@ For a constraint, the compiler:
 
 A generic body's local constraint remains fixed when instantiated downstream. It does not switch to a more specific instance later.
 
-Recursive contexts must decrease under a fixed measure over constructor depth, unresolved variables, proved finite values, and class dependency order. `Eq<Option<T>>` requiring `Eq<T>` is the usual acceptable example. Cycles or expansion fail. There is no `UndecidableInstances` trapdoor.
+Recursive contexts must decrease under a fixed measure over constructor depth, unresolved variables, proved finite values, and class dependency order. `Eq<Slot<T>>` requiring `Eq<T>` is the usual acceptable example. Cycles or expansion fail. There is no `UndecidableInstances` trapdoor.
 
 Limits cover classes, methods, associated members, active instances, candidates, match attempts, resolution depth, normalized type size, reductions, proof obligations, diagnostics, memory, and total work. Exhaustion is a source-located error, not an excuse to choose whichever candidate remained in the iterator.
 
@@ -396,7 +396,7 @@ Rejected for privileged semantics. Tests and prose are useful, but canonical ide
 
 - For multiple principal nominal arguments, which package owns the implicit instance (owner: package and type-system maintainers. Decision point: multi-parameter support)?
 - Which first standard classes require certified instead of tested laws (owner: proof and library maintainers. Decision point: public class stabilization)?
-- Are generic heads such as `Eq<Option<T>> where T: Eq` in the first implementation or immediately after ground heads (owner: compiler maintainers. Decision point: solver implementation)?
+- Are generic heads such as `Eq<Slot<T>> where T: Eq` in the first implementation or immediately after ground heads (owner: compiler maintainers. Decision point: solver implementation)?
 - Which constructor-kinded classes validate the design without bloating the prelude (owner: library and type-system maintainers. Decision point: higher-kinded acceptance)?
 - How does package SemVer classify adding a legal but potentially conflicting instance (owner: package and compatibility maintainers. Decision point: public instance publication)?
 

@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler language, compiler, bytecode, verifier, VM, and library maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-07-18 |
+| Updated | 2026-07-28 |
 | Area | Types, functions, locals, control flow, storage, bootstrap |
 | Depends on | WIP-0001, WIP-0005, WIP-0007, WIP-0012 |
 | Supersedes | None |
@@ -161,7 +161,7 @@ Commit clears rewind records and advances the semantic horizon. Region reclamati
 
 ## Calls and recursion
 
-Static calls identify one function signature. Arguments are evaluated left to right, moved or borrowed according to type, and copied into callee parameter registers. A non-void return moves or copies into the declared caller destination. A void argument call has no synthetic result register.
+Static calls identify one function signature. Arguments are evaluated left to right, moved or borrowed according to type, and copied into callee parameter registers. An ordinary non-`void` return moves or copies into the declared caller destination. WIP-0041 replaces overwrite-style destinations with checked caller-owned `Slot<R>` state for non-`void` reversible calls. A `void` call has no synthetic result register.
 
 Recursion requires a configured call-depth ceiling and a termination measure for proof or bootstrap profiles. Tail-call lowering is permitted only when traps, effects, source traces, and rewind semantics remain equivalent.
 
@@ -202,7 +202,7 @@ A tracing collector is absent from the bootstrap and ordinary source-value model
 
 ## Exceptions and failure
 
-Recoverable failures use `Result`. Optional values use `Option`. Assertions, arithmetic violations selected by operator semantics, verified unreachable states, and exhausted hard artifact limits may trap with stable codes.
+Recoverable failures use `Result`. WIP-0041 `Slot` carries explicit presence, while IR initialization state remains separate and cannot leak as a source value. Assertions, arithmetic violations selected by operator semantics, verified unreachable states, and exhausted hard artifact limits may trap with stable codes.
 
 Stack unwinding does not run arbitrary hidden user effects. Resource cleanup follows ownership and explicit scope rules. External compensation uses explicit hybrid effect contracts.
 

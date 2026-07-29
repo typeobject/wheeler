@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler language, compiler, and quantum maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-07-27 |
+| Updated | 2026-07-28 |
 | Area | Language, hybrid execution, quantum IR, reversibility |
 | Depends on | WIP-0001 |
 | Supersedes | None |
@@ -82,7 +82,7 @@ A lifted reversible computation borrows ancillas initialized to zero, computes a
 ### Data domains
 
 - A **classical value** is ordinary copyable data represented in WIP-0001 slots or regions.
-- A **coherent value** is a finite logical value encoded in quantum basis state and possibly superposition. It is affine and cannot be copied, compared, printed, or branched on classically without measurement.
+- A **coherent value** is a finite logical value encoded in quantum basis state and possibly superposition. It is affine and cannot be copied, compared, printed, or branched on classically without measurement. WIP-0041 `qvalue<Slot<T>>` is one such value with a compiler-owned valid subspace and identity behavior on padding.
 - A **quantum resource** is a `qubit`, `qureg`, logical qubit group, or target-defined affine handle owned by one lexical or execution region.
 - A **classical parameter** is immutable classical data used to construct gates or choose compile-time region structure without becoming quantum state.
 - A **measurement result** is a classical observation with basis, shot, region, and target provenance.

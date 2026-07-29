@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler language, compiler, type-system, verifier, quantum, proof, runtime, and tooling maintainers |
 | Created | 2026-07-20 |
-| Updated | 2026-07-20 |
+| Updated | 2026-07-28 |
 | Area | Language, ownership, uncomputation, ancillas, quantum IR |
 | Depends on | WIP-0002, WIP-0005, WIP-0011, WIP-0028, WIP-0031, WIP-0033 |
 | Supersedes | None |
@@ -162,7 +162,7 @@ boolean value false
 an explicitly named finite basis value
 ```
 
-Cleanliness is a proof and ownership fact. It is not a request to erase an unknown value.
+Cleanliness is a proof and ownership fact. It is not a request to erase an unknown value. WIP-0041 uses `clean(T)` only to choose the payload bits of coherent `Slot<T>.Vacant`. Restoring an occupied slot to vacancy still requires an admitted inverse or an explicit reset effect.
 
 ### Ancilla
 

@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler language, type-system, compiler, bytecode, verifier, library, package, quantum, and proof maintainers |
 | Created | 2026-07-19 |
-| Updated | 2026-07-19 |
+| Updated | 2026-07-28 |
 | Area | Types, generics, kinds, compile-time values, specialization, bytecode |
 | Depends on | WIP-0005, WIP-0007, WIP-0011, WIP-0013, WIP-0017, WIP-0028 |
 | Supersedes | None |
@@ -35,7 +35,7 @@ Runnable `.wbc` contains no unresolved generic variable. When canonical non-exec
 The standard library and self-hosted toolchain need types such as:
 
 ```text
-Option<T>          Result<T, E>       Array<T, N>
+Slot<T>            Result<T, E>       Array<T, N>
 Slice<T>           Vec<T, R>          Map<K, V, R>
 Circuit<Shape>     Qreg<N>            Complex<T>
 Fixed<Scale, Width>
@@ -54,9 +54,9 @@ The first executable strategy is monomorphization. Concrete ownership modes, wid
 ### Algebraic values and identity
 
 ```wheeler
-public variant Option<T> {
-  case None();
-  case Some(T value);
+public variant Slot<T> {
+  case Vacant();
+  case Holding(T value);
 }
 
 public variant Result<T, E> {
@@ -180,16 +180,16 @@ Constructor kinds may be inferred when public parameter lists determine them. Th
 Examples:
 
 ```text
-Option        : Type -> Type
+Slot          : Type -> Type
 Result        : (Type, Type) -> Type
 Array         : (Type, Nat) -> Type
 Qreg          : Nat -> Type
 
-Option<long>       // valid
-Option<4>          // kind error
+Slot<long>         // valid
+Slot<4>            // kind error
 Array<long, 4>     // valid
 Array<4, long>     // kind error
-Functor<Option>    // valid once higher-kinded classes execute
+Functor<Slot>      // valid once higher-kinded classes execute
 ```
 
 A generic parameter is a type, finite value, region, shape, effect under WIP-0031, or constructor. Higher-rank impredicative values and type-level lambdas remain outside the initial profile.
@@ -351,7 +351,7 @@ Unknown kinds, malformed generic metadata, ambiguous arguments, failed constrain
 2. Add canonical argument/constraint models and definition-site checking.
 3. Add generic records, variants, and ordinary functions over ownership-safe types.
 4. Add finite const parameters and `Array<T, N>`.
-5. Replace handwritten `Option`, `Result`, and scalar collection families.
+5. Replace handwritten WIP-0041 `Slot`, `Result`, and scalar collection families.
 6. Add canonical identities, worklist, limits, and monomorph metadata.
 7. Add exact package source-link support.
 8. Add WIP-0030 class constraints and WIP-0031 callable semantics.
@@ -380,7 +380,7 @@ Unknown kinds, malformed generic metadata, ambiguous arguments, failed constrain
 
 - [ ] Generic type/function syntax parses, Tree-sitter parses, and formats canonically.
 - [ ] Bodies typecheck once under abstract constraints.
-- [ ] `Option<T>` and `Result<T, E>` derive copy/move/drop/must-consume behavior.
+- [ ] WIP-0041 `Slot<T>` and `Result<T, E>` derive copy, move, drop, and must-consume behavior.
 - [ ] Move-only and must-consume values pass through generic identity without copying.
 - [ ] `Array<T, N>` enforces finite dimensions. Overflow and false bounds fail at compile time.
 - [ ] Inference finds one result or emits stable ambiguity equations.

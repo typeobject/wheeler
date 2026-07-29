@@ -156,15 +156,15 @@ class BytecodeVerifierTest {
         List.of(), List.of(), List.of(), List.of(badConstruction), List.of());
     assertOperandFailure(malformed, Opcode.RECORD_NEW, "element_count");
 
-    VariantType option = new VariantType(
-        0, "Option", List.of(new VariantType.Case("None", List.of())));
+    VariantType selection = new VariantType(
+        0, "Selection", List.of(new VariantType.Case("Missing", List.of())));
     FunctionBody badTag = typedMain(
         List.of(ValueType.variant(0)),
         List.of(
             Instruction.of(Opcode.VARIANT_NEW, 0, 0, 1, 0, 0),
             Instruction.of(Opcode.HALT)));
     Program malformedVariant = Program.classical(
-        "MalformedVariant", 0, List.of(), List.of(), List.of(option),
+        "MalformedVariant", 0, List.of(), List.of(), List.of(selection),
         List.of(), List.of(), List.of(badTag), List.of());
     assertOperandFailure(malformedVariant, Opcode.VARIANT_NEW, "tag");
     assertEquals(ValueType.variant(3), ValueType.fromCode(ValueType.variant(3).code()));

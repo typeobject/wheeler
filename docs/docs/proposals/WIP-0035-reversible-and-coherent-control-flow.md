@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler language, compiler, type-system, verifier, reversible-runtime, quantum, proof, and tooling maintainers |
 | Created | 2026-07-20 |
-| Updated | 2026-07-20 |
+| Updated | 2026-07-28 |
 | Area | Language, control flow, reversibility, coherent control, proofs |
 | Depends on | WIP-0002, WIP-0005, WIP-0011, WIP-0013, WIP-0017, WIP-0028, WIP-0031, WIP-0033, WIP-0034 |
 | Supersedes | None |
@@ -412,7 +412,7 @@ continue
 early return
 ```
 
-Each form changes the iteration trace. Supporting it requires an explicit control witness or a stronger structural loop form.
+Each form changes the iteration trace. Supporting it requires an explicit control witness or a stronger structural loop form. WIP-0041 result slots preserve returned values and ownership, but they do not reveal which early-return path ran. Reversible early return still needs a protected predicate, explicit witness, or disjoint post-state relation.
 
 Ordinary classical methods keep WIP-0013 behavior.
 

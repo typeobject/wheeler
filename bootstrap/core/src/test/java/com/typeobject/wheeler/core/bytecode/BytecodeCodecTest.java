@@ -154,13 +154,13 @@ class BytecodeCodecTest {
         java.util.List.of(
             new RecordType.Field("x", ValueType.SIGNED),
             new RecordType.Field("visible", ValueType.BOOLEAN)));
-    VariantType option = new VariantType(
+    VariantType selection = new VariantType(
         0,
-        "Option",
+        "Selection",
         java.util.List.of(
-            new VariantType.Case("None", java.util.List.of()),
+            new VariantType.Case("Missing", java.util.List.of()),
             new VariantType.Case(
-                "Some",
+                "Found",
                 java.util.List.of(new RecordType.Field("point", ValueType.record(0))))));
     ArrayType points = new ArrayType(0, ValueType.record(0), 2);
     SliceType pointSlice = new SliceType(0, ValueType.record(0));
@@ -179,7 +179,7 @@ class BytecodeCodecTest {
         0,
         java.util.List.of(),
         java.util.List.of(point),
-        java.util.List.of(option),
+        java.util.List.of(selection),
         java.util.List.of(points),
         java.util.List.of(pointSlice),
         java.util.List.of(main),
@@ -194,12 +194,12 @@ class BytecodeCodecTest {
     Program decoded = reader.read(artifact);
 
     assertEquals(java.util.List.of(point), decoded.recordTypes());
-    assertEquals(java.util.List.of(option), decoded.variantTypes());
+    assertEquals(java.util.List.of(selection), decoded.variantTypes());
     assertEquals(java.util.List.of(points), decoded.arrayTypes());
     assertEquals(java.util.List.of(pointSlice), decoded.sliceTypes());
     assertArrayEquals(artifact, writer.write(decoded));
     String disassembly = new Disassembler().disassemble(decoded);
-    assertTrue(disassembly.contains("variant 0 Option None() Some(point:record#0)"));
+    assertTrue(disassembly.contains("variant 0 Selection Missing() Found(point:record#0)"));
     assertTrue(disassembly.contains("array 0 element=record#0 length=2"));
     assertTrue(disassembly.contains("slice 0 element=record#0"));
   }

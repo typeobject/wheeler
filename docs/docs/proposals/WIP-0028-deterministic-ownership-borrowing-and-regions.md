@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler language, compiler, verifier, VM, runtime, library, native, quantum, and proof maintainers |
 | Created | 2026-07-19 |
-| Updated | 2026-07-19 |
+| Updated | 2026-07-28 |
 | Area | Type system, ownership, borrowing, memory, regions, deterministic destruction |
 | Depends on | WIP-0001, WIP-0002, WIP-0005, WIP-0011, WIP-0012, WIP-0013 |
 | Supersedes | None |
@@ -80,7 +80,7 @@ Nodes form graphs or cycles through typed IDs. The arena owns the graph and rele
 ```wheeler
 Result<File, OpenError> opened = files.open(path);
 File file = opened.value();
-Result<void, CloseError> closed = file.close();
+Result<Done, CloseError> closed = file.close();
 
 borrow mut Qubit left = q.borrowMut(0);
 borrow mut Qubit right = q.borrowMut(1);
@@ -161,7 +161,7 @@ drop(o) =>
 
 Simultaneous exclusive loans to `p` and `q` require static proof or a checked prepublication test of `disjoint(p, q)`. A failed dynamic range test publishes neither loan.
 
-Initial loans are second-class. They cannot enter ordinary owned aggregates, persisted state, package archives, certificates, workflow events, retained FFI state, escaping closures, an unrelated task, target submission, measurement transition, or `commit`. A public return or borrowed ABI names its origin explicitly.
+Initial loans are second-class. They cannot enter ordinary owned aggregates, persisted state, package archives, certificates, workflow events, retained FFI state, escaping closures, an unrelated task, target submission, measurement transition, or `commit`. A public return or borrowed ABI names its origin explicitly. WIP-0041 result slots do not weaken this rule. A returned loan keeps its origin-bearing ABI and `Slot<borrow T>` remains invalid.
 
 WIP-0032 supplies the one suspension exception: an affine operation may own a verifier-visible loan across asynchronous suspension while the continuation cannot access the overlapping place. That loan still cannot enter persisted continuation state. Process suspension first completes, cancels and reconciles, or converts the operation to canonical owned resumable state.
 

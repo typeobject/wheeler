@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler language and compiler maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-07-18 |
+| Updated | 2026-07-28 |
 | Area | Language, compiler, ergonomics, diagnostics |
 | Depends on | WIP-0001, WIP-0002 |
 | Supersedes | None |
@@ -106,6 +106,8 @@ A `coherent rev` method is callable normally from classical code and may be refe
 A `state long` field is classical mutable state in the first bytecode format. A `qreg` field is an affine logical quantum resource. Ordinary Java-like local variables, parameters, object fields, and richer exact types are added only with bytecode and ownership support.
 
 A `rev` method has a compiler-validated inverse body. A `coherent rev` method also satisfies WIP-0002 coherent eligibility. A `unitary` method lowers to quantum region IR and receives a generated adjoint. WIP-0031 carries those distinctions into callable values and effect-polymorphic APIs. It does not merge them into a universal function type.
+
+WIP-0041 owns value-return semantics for reversible methods. `void` has no inhabitant, `Done` is the one-value generic completion type, and `Slot<T>` is explicit presence. A non-`void` reversible method elaborates to a caller-owned result slot. The surface may retain ordinary `return expression;` syntax, but no null-like literal or hidden history channel appears.
 
 `reverse method();` invokes one method inverse. A `reverse { ... }` block inverses supported calls in reverse lexical order. It is language-level inverse execution, not VM history rewind.
 

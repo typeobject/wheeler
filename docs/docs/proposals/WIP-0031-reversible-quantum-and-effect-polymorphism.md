@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler language, type-system, compiler, bytecode, verifier, quantum, proof, runtime, and library maintainers |
 | Created | 2026-07-19 |
-| Updated | 2026-07-19 |
+| Updated | 2026-07-28 |
 | Area | Effects, higher-order calls, reversibility, coherent lifting, unitary operations, generics |
 | Depends on | WIP-0001, WIP-0002, WIP-0004, WIP-0005, WIP-0011, WIP-0021, WIP-0028, WIP-0029, WIP-0030 |
 | Supersedes | None |
@@ -171,6 +171,7 @@ CallableSignature {
     generic_parameters
     parameter_types_and_modes
     result_types_and_modes
+    reversible_result_slot_descriptor
     effect_row
     trap_contract
     capture_mode
@@ -182,7 +183,7 @@ CallableSignature {
 }
 ```
 
-Unused descriptors are absent. Callable equality, if exposed, uses declaration/instance identity instead of a code pointer.
+Unused descriptors are absent. WIP-0041 makes `reversible_result_slot_descriptor` mandatory for a non-`void` reversible callable and keeps it absent from an ordinary direct-result ABI. The descriptor names the `Slot<R>` precondition, postcondition, ownership transition, and inverse relation. Callable equality, if exposed, uses declaration and instance identity instead of a code pointer.
 
 Illustrative source may use:
 

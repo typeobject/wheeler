@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler language, compiler, bytecode, and runtime maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-07-18 |
+| Updated | 2026-07-28 |
 | Area | Compiler, bootstrap, language profile, trusted computing base |
 | Depends on | WIP-0001, WIP-0005, WIP-0006, WIP-0017 |
 | Supersedes | None |
@@ -105,7 +105,7 @@ The required value set is:
 - fixed and growable bounded sequences with explicit element types.
 - value records for tokens, source spans, declarations, instructions, and diagnostics.
 - tagged variants for token, expression, statement, type, opcode, and result alternatives.
-- `Option<T>` and `Result<T, E>` instead of ambient null and host exceptions.
+- WIP-0041 `Slot<T>` for explicit presence and `Result<T, E>` for recoverable failure, with no ambient null or host exceptions.
 - deterministic insertion-ordered or sorted maps whose order is specified.
 
 Reference identity is not part of value equality unless a later ownership WIP adds it explicitly. Hash randomization cannot affect semantic iteration.

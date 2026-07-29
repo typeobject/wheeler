@@ -339,13 +339,13 @@ class VirtualMachineTest {
 
   @Test
   void taggedVariantConstructionSelectionEqualityAndRewind() {
-    VariantType option = new VariantType(
+    VariantType selection = new VariantType(
         0,
-        "Option",
+        "Selection",
         List.of(
-            new VariantType.Case("None", List.of()),
+            new VariantType.Case("Missing", List.of()),
             new VariantType.Case(
-                "Some", List.of(new RecordType.Field("value", ValueType.SIGNED)))));
+                "Found", List.of(new RecordType.Field("value", ValueType.SIGNED)))));
     FunctionBody main = new FunctionBody(
         0,
         "main",
@@ -369,7 +369,7 @@ class VirtualMachineTest {
             Instruction.of(Opcode.HALT)),
         List.of());
     Program program = Program.classical(
-        "Variants", 0, List.of(), List.of(), List.of(option),
+        "Variants", 0, List.of(), List.of(), List.of(selection),
         List.of(), List.of(), List.of(main), List.of());
     VirtualMachine machine = new VirtualMachine(program);
 

@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler language, type-system, compiler, verifier, quantum, proof, runtime, and tooling maintainers |
 | Created | 2026-07-20 |
-| Updated | 2026-07-20 |
+| Updated | 2026-07-28 |
 | Area | Language, types, coherent values, quantum IR, proofs |
 | Depends on | WIP-0002, WIP-0005, WIP-0011, WIP-0013, WIP-0017, WIP-0028, WIP-0029, WIP-0030, WIP-0031 |
 | Supersedes | None |
@@ -129,7 +129,7 @@ A predicate that reads the clock, allocates without a static cleanup plan, may t
 - Treat a predicate as a permutation merely because its domain is finite.
 - Add arbitrary amplitude encodings, analog encodings, or state-preparation algorithms.
 - Standardize QRAM or quantum-accessible heap memory.
-- Admit non-power-of-two coherent value spaces in the first profile.
+- Admit general non-power-of-two coherent value spaces. WIP-0041 owns one compiler-defined `Slot<T>` subspace with fixed padding behavior.
 - Let packages forge coherent encoding evidence through an ordinary type-class instance.
 - Expose physical qubit indices, provider registers, or target-native layouts.
 - Permit ordinary equality, hashing, printing, serialization, or cloning of a live coherent value.
@@ -142,7 +142,7 @@ A predicate that reads the clock, allocates without a static cleanup plan, may t
 
 A **finite logical type** is a closed Wheeler type with a certified finite cardinality and canonical value identity.
 
-At first, the coherent profile accepts only types whose cardinality is exactly `2^width` for one bounded nonnegative `width`. Every bit pattern then names one value. There are no invalid padding states.
+By default, the coherent profile accepts only types whose cardinality is exactly `2^width` for one bounded nonnegative `width`. Every bit pattern then names one value. WIP-0041 defines the sole first-profile exception for `Slot<T>`, including its valid subspace, clean payload basis, and identity action on padding.
 
 Examples may include:
 
@@ -313,7 +313,7 @@ Measurement validates:
 - target and job identity.
 - admitted value decoding.
 
-The first profile has no invalid bit patterns because all coherent types use a full power-of-two basis.
+Full-basis coherent types have no invalid bit patterns. WIP-0041 slot measurement additionally checks that an observation belongs to the declared valid slot subspace and rejects padding as invalid execution evidence.
 
 ### Coherent callable application
 
@@ -489,7 +489,7 @@ The exact proof may be compositional, finite exhaustive, or supplied through acc
 
 A simulator comparison or hardware sample is test or experiment evidence. It cannot replace the exact basis-action theorem.
 
-The first profile deliberately excludes invalid basis states. A later non-power-of-two proposal must define valid-subspace preservation, behavior on unused bit patterns, leakage, and complete unitary extension before such a value can cross a coherent boundary.
+General coherent values still exclude invalid basis states. WIP-0041 admits one narrow `Slot<T>` construction only after defining valid-subspace preservation, identity on unused bit patterns, leakage rejection, and complete unitary extension.
 
 ## Bytecode, persistence, and compatibility
 
@@ -631,7 +631,7 @@ Rejected. Wire identity and coherent basis identity have different compatibility
 
 ### Allow invalid padding states immediately
 
-Rejected for the first profile. A correct design needs total behavior over the full Hilbert space, valid-subspace preservation, leakage rules, and proof support.
+Rejected as a general rule. WIP-0041 is the narrow exception because it defines total behavior over the full Hilbert space, valid-subspace preservation, leakage rules, padding identity, and proof support.
 
 ### Make `qvalue<T>` an ordinary standard-library generic
 

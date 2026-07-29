@@ -639,16 +639,16 @@ Exhaustive tagged variants
 ==================
 
 classical class Variants {
-  variant Option {
-    case None();
-    case Some(long value);
+  variant LookupResult {
+    case Missing();
+    case Found(long value);
   }
   state long selected = 0;
   entry void main() {
-    Option value = new Option.Some(9);
+    LookupResult value = new LookupResult.Found(9);
     match (value) {
-      case Option.None() { selected = 0; }
-      case Option.Some(long payload) { selected = payload; }
+      case LookupResult.Missing() { selected = 0; }
+      case LookupResult.Found(long payload) { selected = payload; }
     }
   }
 }

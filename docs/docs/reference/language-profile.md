@@ -214,15 +214,15 @@ Rewind removes values created by the rewound step, and snapshots include the rec
 A variant declares a closed, ordered set of cases. Each case may have zero or more typed payload fields:
 
 ```java
-variant Option {
-  case None();
-  case Some(long value);
+variant LookupResult {
+  case Missing();
+  case Found(long value);
 }
 
-Option option = new Option.Some(9);
-match (option) {
-  case Option.None() { result = 0; }
-  case Option.Some(long value) { result = value; }
+LookupResult lookup = new LookupResult.Found(9);
+match (lookup) {
+  case LookupResult.Missing() { result = 0; }
+  case LookupResult.Found(long value) { result = value; }
 }
 ```
 

@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler runtime, compiler, platform, and release maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-07-17 |
+| Updated | 2026-07-28 |
 | Area | Runtime, native code, bootstrap, distribution, Java retirement |
 | Depends on | WIP-0001, WIP-0007 |
 | Supersedes | None |
@@ -199,7 +199,7 @@ Recovery releases are signed or content-addressed by release policy. Bootstrap s
 - [x] The accepted aggregate, storage, UTF-8, map, and transition interpreters live only in the entryless `wheeler.runtime` package, locked to `wheeler.compiler` verification and `wheeler.core` binary primitives. The examples consume its exact vendored archive. No runtime implementation remains in compiler or example source.
 - [x] `NativeVm.w` and `runtime/Interpreter.w` execute the verified bounded compiler profile inside Wheeler.
   - The profile supports up to eight signed globals, eight frames, 256 typed locals per frame, 512 instructions per function, and eight functions. Only the active function window is cleared.
-  - It executes constants, loads, stores, moves, arithmetic, comparisons, branches, bounded loops, expectations, reversible global operations, `CALL`, `UNCALL`, `CALL_VALUE`, `CALL_VOID`, `RETURN`, `RETURN_VALUE`, and `HALT`.
+  - It executes constants, loads, stores, moves, arithmetic, comparisons, branches, bounded loops, expectations, reversible global operations, `CALL`, `UNCALL`, `CALL_VALUE`, `CALL_VOID`, `RETURN`, `RETURN_VALUE`, and `HALT`. Existing `RETURN_VALUE` retains its ordinary direct-result meaning. WIP-0041 result-slot forms need separate registry identities and native parity before promotion.
   - Aggregate support covers immutable records, finite variants, fixed arrays, and slices. It includes construction, inspection, indexed or field reads, and equality.
   - Storage support covers bounded regions, mutable word and byte buffers, strict UTF-8, nested read-only and mutable loans, owner-carrying calls, and fixed-capacity signed maps.
   - A checked local and global update matches stage 0 and rewinds the outer interpreter exactly.

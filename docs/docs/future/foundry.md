@@ -177,10 +177,10 @@ proposition SmallerCorrectNetworkExists(Network network) =
 /* Decode one coherent candidate and uncompute all decoding workspace. */
 coherent rev void decodeCandidate(
   borrow BitVec<CANDIDATE_BITS> encoding,
-  inout Option<Network> network,
+  inout Slot<Network> network,
   inout DecodeScratch scratch
 )
-  requires network == Option.None()
+  requires network == Slot.Vacant()
   requires scratch.clean()
 {
   CandidateCodec.decodeCanonical(encoding, network, scratch);
@@ -193,7 +193,7 @@ unitary void markCorrectCandidate(
   QView<MODEL_CHECK_SCRATCH> workspace
 )
 {
-  Option<Network> network = Option.None();
+  Slot<Network> network = Slot.Vacant();
   DecodeScratch scratch = DecodeScratch.clean();
 
   coherent decodeCandidate(candidate, network, scratch);
@@ -212,7 +212,7 @@ unitary void markCorrectCandidate(
 
   reverse decodeCandidate(candidate, network, scratch);
 
-  assert(network == Option.None());
+  assert(network == Slot.Vacant());
   assert(scratch.clean());
 }
 
@@ -299,8 +299,8 @@ hybrid class AlgorithmFoundry {
       output.publishPackage;
     }
   {
-    Option<Network> discovered = Option.None();
-    Option<CandidateEvidence> winningEvidence = Option.None();
+    Slot<Network> discovered = Slot.Vacant();
+    Slot<CandidateEvidence> winningEvidence = Slot.Vacant();
     MinimalityPrefix noShorter = MinimalityPrefix.baseCase();
 
     for (UInt<6> length = 0;
@@ -315,7 +315,7 @@ hybrid class AlgorithmFoundry {
         record "candidate-search"
         await target.run(searchLength(length));
 
-      Option<Network> proposed =
+      Slot<Network> proposed =
         CandidateSelector.bestCanonical(evidence.samples);
 
       if (proposed.isSome()
@@ -326,7 +326,7 @@ hybrid class AlgorithmFoundry {
         ).passed())
       {
         discovered = proposed;
-        winningEvidence = new Option.Some(evidence);
+        winningEvidence = Slot.Holding(evidence);
         checkpoint("correct-candidate-found");
         break;
       }

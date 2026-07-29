@@ -182,21 +182,21 @@ class SourceProfileNegativeTest {
   void rejectsNonexhaustiveAndMismatchedVariantSelection() {
     String nonexhaustive = """
         classical class MissingCase {
-          variant Option { case None(); case Some(long value); }
+          variant LookupResult { case Missing(); case Found(long value); }
           entry void main() {
-            Option value = new Option.None();
-            match (value) { case Option.None() { } }
+            LookupResult value = new LookupResult.Missing();
+            match (value) { case LookupResult.Missing() { } }
           }
         }
         """;
     String wrongPayload = """
         classical class WrongPayload {
-          variant Option { case None(); case Some(long value); }
+          variant LookupResult { case Missing(); case Found(long value); }
           entry void main() {
-            Option value = new Option.Some(1);
+            LookupResult value = new LookupResult.Found(1);
             match (value) {
-              case Option.None() { }
-              case Option.Some(boolean payload) { }
+              case LookupResult.Missing() { }
+              case LookupResult.Found(boolean payload) { }
             }
           }
         }
@@ -206,7 +206,7 @@ class SourceProfileNegativeTest {
         CompilerException.class, () -> new WheelerCompiler().compile(nonexhaustive));
     CompilerException payload = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(wrongPayload));
-    assertTrue(missing.getMessage().contains("do not exhaust Option"));
+    assertTrue(missing.getMessage().contains("do not exhaust LookupResult"));
     assertTrue(payload.getMessage().contains("payload binding type mismatch"));
   }
 

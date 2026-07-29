@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler language, type-system, proof, compiler, bytecode, and tooling maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-07-17 |
+| Updated | 2026-07-28 |
 | Area | Language, proofs, contracts, certificates, trusted kernel |
 | Depends on | WIP-0001, WIP-0002, WIP-0005, WIP-0007 |
 | Supersedes | None |
@@ -172,7 +172,7 @@ The exact relation includes modified state, returned values, traps excluded by p
 
 Generated-inverse bytecode can discharge local opcode laws compositionally. Loops, allocation, aliasing, and calls require corresponding invariants and callee certificates. Testing an inverse over sample values remains a test, not this theorem.
 
-VM rewind has a separate transition theorem over `StepRecord`. It is not used to prove a language-level inverse.
+VM rewind has a separate transition theorem over `StepRecord`. It is not used to prove a language-level inverse. WIP-0041 result proofs include caller-owned slot state, source ownership, exact held values, coherent valid-subspace preservation, padding identity, and a no-history law. A valid certificate still passes when the VM commits all prior rewind history before the generated inverse runs.
 
 ## Quantum claims
 

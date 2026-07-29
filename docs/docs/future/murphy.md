@@ -371,7 +371,7 @@ record SafetyResult(
   boolean moneyConservedAtEveryReplica,
   boolean effectsAppliedAtMostOnce,
   boolean balancesNonnegative,
-  Option<TransferId> duplicateTransfer
+  Slot<TransferId> duplicateTransfer
 ) {
   boolean passed() {
     return moneyConservedAtEveryReplica
@@ -448,7 +448,7 @@ coherent rev void classifySchedule(
   requires violates == 0
   requires workspace.clean()
 {
-  Option<Timeline> timeline = Option.None();
+  Slot<Timeline> timeline = Slot.Vacant();
   ScheduleDecoder.decodeCanonical(
     encoding,
     budget,
@@ -497,7 +497,7 @@ coherent rev void classifySchedule(
     workspace.decodeScratch
   );
 
-  assert(timeline == Option.None());
+  assert(timeline == Slot.Vacant());
   assert(workspace.clean());
 }
 
@@ -647,7 +647,7 @@ hybrid class Murphy {
           searchLength(protocol, initial, budget, length)
         );
 
-      Option<Timeline> candidate =
+      Slot<Timeline> candidate =
         CandidateSelector.firstConfirmed(
           lastEvidence.samples,
           lambda (ScheduleEncoding encoding) {
@@ -712,7 +712,7 @@ hybrid class Murphy {
           budget,
           length
         );
-      Option<Proof<typeof(absentAtLength)>> absent =
+      Slot<Proof<typeof(absentAtLength)>> absent =
         kernel.tryVerify(
           absentAtLength,
           await certificateSearch.propose(

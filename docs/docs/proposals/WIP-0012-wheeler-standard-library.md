@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler language, library, compiler, runtime, quantum, proof, package, and documentation maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-07-17 |
+| Updated | 2026-07-28 |
 | Area | Standard library, types, collections, quantum resources, host capabilities |
 | Depends on | WIP-0002, WIP-0005, WIP-0007, WIP-0009 |
 | Supersedes | None |
@@ -64,7 +64,7 @@ The library graph is acyclic and divided by trust and capability.
 `wheeler.core` requires no allocator, filesystem, network, clock, randomness, target, or operating-system service. It contains:
 
 - scalar and machine-width types.
-- tuples, records, tagged variants, `Option`, and `Result`.
+- tuples, records, tagged variants, WIP-0041 `Slot`, `Done`, and `Result`.
 - ownership and effect traits or contracts.
 - fixed arrays, slices, ranges, iterators, and comparisons.
 - bounded formatting into caller-owned buffers.
@@ -116,7 +116,7 @@ The standard scalar set includes:
 - finite IEEE floating-point types for executable numeric work.
 - fixed-width bit vectors with explicit modular arithmetic.
 - `Never` for unreachable results.
-- a unit value.
+- WIP-0041 `Done` for generic completion without a payload.
 
 Signed checked arithmetic, unsigned modular arithmetic, and bit-vector arithmetic are distinct APIs. Source operators resolve to a declared model. Coherent lifting never guesses that checked arithmetic means modular arithmetic.
 
@@ -124,7 +124,7 @@ Floating-point APIs specify NaN, infinity, signed zero, rounding, comparison, an
 
 ### Products and variants
 
-Records have named fields and structural value semantics unless declared opaque. Tagged variants are exhaustive and carry bounded payloads. `Option<T>` replaces ambient null. `Result<T, E>` carries ordinary recoverable failure.
+Records have named fields and structural value semantics unless declared opaque. Tagged variants are exhaustive and carry bounded payloads. WIP-0041 `Slot<T>` represents explicit presence without ambient null. `Result<T, E>` carries ordinary recoverable failure. `Done` represents successful generic completion without a payload, while `void` means no value crosses a call boundary.
 
 A variant tag and record layout have canonical `.wbc` type metadata. Native layout remains derived and cannot change value equality or serialization.
 
@@ -362,7 +362,7 @@ Effects appear in function types and contracts. Reversible and proof contexts re
 
 ## Errors and diagnostics
 
-Recoverable library failure uses `Result`. Optional values use `Option`. Invariant violations at verified boundaries may trap with stable codes. Native crashes, provider failures, cancellation, timeout, malformed data, and resource exhaustion remain distinct variants.
+Recoverable library failure uses `Result`. Explicit presence uses WIP-0041 `Slot`. Invariant violations at verified boundaries may trap with stable codes. Native crashes, provider failures, cancellation, timeout, malformed data, and resource exhaustion remain distinct variants.
 
 `Diagnostic` contains stable code, severity, primary span, bounded labels, notes, and structured causes. Human rendering is derived. Canonical tests compare structured diagnostics instead of terminal color or host paths.
 
@@ -411,7 +411,7 @@ Generic native memory dumps, Java serialization, provider JSON, pointer identity
 
 Standard modules are ordinary locked Wheeler packages with reserved `wheeler.*` namespaces. The compiler may provide intrinsics for performance or primitive semantics, but every intrinsic has the same public contract and conformance tests as its library declaration.
 
-The prelude is small and explicit. It contains scalar types, `Option`, `Result`, core ownership/effect names, and essential annotations. Collections, I/O, quantum algorithms, targets, proof automation, and package APIs require imports.
+The prelude is small and explicit. It contains scalar types, WIP-0041 `Done` and `Slot`, `Result`, core ownership and effect names, and essential annotations. Collections, I/O, quantum algorithms, targets, proof automation, and package APIs require imports.
 
 Package versions and language profiles track API stability. Public type, effect, ownership, inverse, coherent, resource, encoding, and proof contracts participate in compatibility. A method changing from pure to allocating or from intrinsic to logged is a semantic compatibility change.
 
@@ -455,7 +455,7 @@ Filesystem and network libraries contribute domain types and adapters over that 
 ## Migration and deletion
 
 1. Specify ownership protocols, effect signatures, package layering, and canonical schemas.
-2. Implement scalar, `Option`, `Result`, fixed array/slice, checked arithmetic, and core encoding support.
+2. Implement scalar, WIP-0041 `Done` and `Slot`, `Result`, fixed array and slice, checked arithmetic, and core encoding support.
 3. Implement arenas, vectors, strings, bytes, deterministic maps/sets, queues, and diagnostics.
 4. Port compiler phases to these Wheeler packages and remove matching Java utility ownership phase by phase.
 5. Implement logical paths, source inputs, hashes, archive types, and package graph support.

@@ -7,9 +7,9 @@ import wheeler.core.collections.fixed_longs;
 classical class FixedArrays {
   record ArrayPair(long[2] values, boolean[2] flags) {}
 
-  variant ArrayOption {
-    case None();
-    case Some(long[2] values);
+  variant ArraySelection {
+    case Missing();
+    case Found(long[2] values);
   }
 
   state long selected = 0;
@@ -31,7 +31,7 @@ classical class FixedArrays {
     long[4] second = new long[4](2, 4, 6, 8);
     long[] middle = slice(first, 1, 2);
     ArrayPair pair = new ArrayPair(new long[2](3, 7), new boolean[2](true, false));
-    ArrayOption option = new ArrayOption.Some(new long[2](11, 13));
+    ArraySelection selection = new ArraySelection.Found(new long[2](11, 13));
     selected = middle[1];
     sum = total4(first);
     middleSum = subtotal2(middle);
@@ -43,11 +43,11 @@ classical class FixedArrays {
       recordSelected = pair.values[1];
     }
 
-    match (option) {
-      case ArrayOption.None() {
+    match (selection) {
+      case ArraySelection.Missing() {
         variantSelected = 1;
       }
-      case ArrayOption.Some(long[2] values) {
+      case ArraySelection.Found(long[2] values) {
         variantSelected = values[1];
       }
     }
