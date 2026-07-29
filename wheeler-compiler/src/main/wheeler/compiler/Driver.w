@@ -8,6 +8,7 @@ import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_types;
 import wheeler.compiler.module_headers;
+import wheeler.compiler.module_linker;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.parser;
 import wheeler.compiler.statement_forms;
@@ -644,5 +645,32 @@ classical class CompilerDriver {
     drop(tokenKinds);
     drop(arena);
     return new Compilation(finalCursor, codeOffset);
+  }
+
+  /// Compiles one root with one direct public-constant module.
+  public Compilation compileMinimalWithPublicConstantImport(
+    borrow utf8 importedSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    LinkPlan plan = planSinglePublicConstantImport(importedSource, rootSource);
+    if (plan.valid) {} else {
+      assert(0 == 1);
+    }
+
+    region linkedArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes linkedBytes = allocateBytes(linkedArena, plan.linkedLength);
+    long written = writeSinglePublicConstantImport(
+      importedSource,
+      rootSource,
+      plan,
+      linkedBytes
+    );
+    assert(written == plan.linkedLength);
+    utf8 linkedSource = freezeUtf8(linkedBytes);
+    Compilation compiled = compileMinimal(linkedSource, output);
+    drop(linkedSource);
+    drop(linkedArena);
+    return compiled;
   }
 }

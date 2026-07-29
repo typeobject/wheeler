@@ -194,6 +194,13 @@ targets:
       - "src/main/wheeler/native/packages/NativeManifestIdentity.w"
     test: false
   - kind: "deployable"
+    name: "nativemodulecompiler"
+    root: "src/main/wheeler/native/compiler/NativeModuleCompiler.w"
+    module: "examples.compiler.native_module_compiler"
+    sources:
+      - "src/main/wheeler/native/compiler/NativeModuleCompiler.w"
+    test: false
+  - kind: "deployable"
     name: "nativeplan"
     root: "src/main/wheeler/native/NativePlan.w"
     module: "examples.packages.plan_main"
