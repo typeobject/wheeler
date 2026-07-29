@@ -166,6 +166,23 @@ class ReversibleResultSlotSourceTest {
   }
 
   @Test
+  void collapsesOneComputedLocalIntoTheResultRelation() {
+    String source = "classical class ComputedPreludeResult { "
+        + "rev long compute(long left, long right) { "
+        + "long result = left + right; return result; } "
+        + "entry void main() { long answer = compute(34, 8); assert(answer == 42); } }";
+    Program program = new WheelerCompiler().compile(source);
+    var fill = program.function(0).forward().getFirst();
+    VirtualMachine machine = new VirtualMachine(program);
+
+    machine.run();
+
+    assertEquals(MachineStatus.HALTED, machine.status());
+    assertEquals(Opcode.RESULT_FILL_BINARY_SOURCES, fill.opcode());
+    assertEquals(program.function(0).forward(), program.function(0).inverse());
+  }
+
+  @Test
   void substitutesAClassConstantIntoAComputedResult() {
     String source = "classical class ComputedConstantResult { const long STEP = 8; "
         + "rev long compute(long value) { return value + STEP; } entry void main() { "
@@ -190,6 +207,11 @@ class ReversibleResultSlotSourceTest {
         CompilerException.class,
         () -> compiler.compile("classical class Bad { rev long answer() { return 1 + 2; } "
             + "entry void main() {} }"));
+    CompilerException mismatchedPrelude = assertThrows(
+        CompilerException.class,
+        () -> compiler.compile("classical class Bad { "
+            + "rev long answer(long left, long right) { "
+            + "long sum = left + right; return left; } entry void main() {} }"));
     CompilerException erasingBody = assertThrows(
         CompilerException.class,
         () -> compiler.compile("classical class Bad { state long value = 0; "
@@ -205,6 +227,7 @@ class ReversibleResultSlotSourceTest {
 
     assertTrue(booleanResult.getMessage().contains("first reversible result-slot profile"));
     assertTrue(computedResult.getMessage().contains("return a signed constant"));
+    assertTrue(mismatchedPrelude.getMessage().contains("operation over preserved"));
     assertTrue(erasingBody.getMessage().contains("return a signed constant"));
     assertTrue(voidParameter.getMessage().contains("reversible void parameters"));
     assertTrue(booleanSource.getMessage().contains("preserve one signed parameter"));

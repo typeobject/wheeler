@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.compiler;
 
+import com.typeobject.wheeler.compiler.SourceMatchValidator.MatchCase;
 import com.typeobject.wheeler.compiler.SourceModel.ArrayDefinition;
 import com.typeobject.wheeler.compiler.SourceModel.Circuit;
 import com.typeobject.wheeler.compiler.SourceModel.ConstantDefinition;
@@ -280,8 +281,9 @@ final class SourceParser extends SourceStatementParser {
       String returnType,
       int line) {
     List<Statement> body = new ArrayList<>();
-    structuredStatements = !reversible && (!entry || domain.equals("classical"));
     valueReturnsAllowed = !returnType.equals("void");
+    structuredStatements = (!reversible || valueReturnsAllowed)
+        && (!entry || domain.equals("classical"));
     temporarySequence = 0;
     labelSequence = 0;
     while (!check(Type.RIGHT_BRACE) && !check(Type.END)) {
@@ -591,7 +593,8 @@ final class SourceParser extends SourceStatementParser {
       parsed.add(new MatchCase(typeName, caseName.text(), bindings, caseBody, type.line()));
     }
     expect(Type.RIGHT_BRACE, "'}' after match cases");
-    VariantDefinition variant = validateMatch(parsed, start);
+    VariantDefinition variant = SourceMatchValidator.validate(
+        parsed, start, variants, importedVariants);
     String done = label();
     boolean joinsDone = false;
     for (int index = 0; index < parsed.size(); index++) {
@@ -631,42 +634,6 @@ final class SourceParser extends SourceStatementParser {
     if (joinsDone) {
       body.add(statement("label", start.line(), done));
     }
-  }
-
-  private VariantDefinition validateMatch(List<MatchCase> cases, SourceToken start) {
-    if (cases.isEmpty()) {
-      fail(start, "match must contain every variant case");
-    }
-    VariantDefinition variant = variants.stream()
-        .filter(candidate -> candidate.name().equals(cases.getFirst().type()))
-        .findFirst()
-        .orElseGet(() -> importedVariants.stream()
-            .filter(candidate -> candidate.name().equals(cases.getFirst().type()))
-            .findFirst()
-            .orElse(null));
-    if (variant == null) {
-      fail(start, "match case names an unknown variant type");
-    }
-    Set<String> seen = new java.util.HashSet<>();
-    for (MatchCase parsed : cases) {
-      VariantCase descriptor = variant.cases().stream()
-          .filter(candidate -> candidate.name().equals(parsed.caseName()))
-          .findFirst().orElse(null);
-      if (!parsed.type().equals(variant.name()) || descriptor == null
-          || !seen.add(parsed.caseName())
-          || descriptor.fields().size() != parsed.bindings().size()) {
-        fail(start, "match cases do not exhaust " + variant.name());
-      }
-      for (int field = 0; field < descriptor.fields().size(); field++) {
-        if (!descriptor.fields().get(field).type().equals(parsed.bindings().get(field).type())) {
-          fail(start, "variant payload binding type mismatch in " + parsed.caseName());
-        }
-      }
-    }
-    if (seen.size() != variant.cases().size()) {
-      fail(start, "match cases do not exhaust " + variant.name());
-    }
-    return variant;
   }
 
   private void parseLoopJump(List<Statement> body, SourceToken keyword) {
@@ -975,14 +942,6 @@ final class SourceParser extends SourceStatementParser {
 
   private String label() {
     return "$l" + labelSequence++;
-  }
-
-  private record MatchCase(
-      String type, String caseName, List<Parameter> bindings, List<Statement> body, int line) {
-    private MatchCase {
-      bindings = List.copyOf(bindings);
-      body = List.copyOf(body);
-    }
   }
 
   private record LoopLabels(String repeat, String done) {}

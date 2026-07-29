@@ -219,6 +219,63 @@ classical class ProgramCodegen {
     return OPCODE_LOCAL_ADD;
   }
 
+  private long resultPreludeOperation(long opcode) {
+    long operation = OPCODE_LOCAL_ADD;
+    if (resolvedLocalLongPair(opcode)) {
+      if (STATEMENT_LOCAL_LONG_SUB_LOCALS_BASE - 1 < opcode) {
+        operation = OPCODE_LOCAL_SUB;
+      }
+
+      if (STATEMENT_LOCAL_LONG_XOR_LOCALS_BASE - 1 < opcode) {
+        operation = OPCODE_LOCAL_XOR;
+      }
+
+      if (STATEMENT_LOCAL_LONG_MUL_LOCALS_BASE - 1 < opcode) {
+        operation = OPCODE_LOCAL_MUL;
+      }
+
+      if (STATEMENT_LOCAL_LONG_DIV_LOCALS_BASE - 1 < opcode) {
+        operation = OPCODE_LOCAL_DIV;
+      }
+
+      if (STATEMENT_LOCAL_LONG_MOD_LOCALS_BASE - 1 < opcode) {
+        operation = OPCODE_LOCAL_MOD;
+      }
+
+      if (STATEMENT_LOCAL_LONG_AND_LOCALS_BASE - 1 < opcode) {
+        operation = OPCODE_LOCAL_AND;
+      }
+
+      return operation;
+    }
+
+    if (STATEMENT_LOCAL_LONG_SUB_BASE - 1 < opcode) {
+      operation = OPCODE_LOCAL_SUB;
+    }
+
+    if (STATEMENT_LOCAL_LONG_XOR_BASE - 1 < opcode) {
+      operation = OPCODE_LOCAL_XOR;
+    }
+
+    if (STATEMENT_LOCAL_LONG_MUL_BASE - 1 < opcode) {
+      operation = OPCODE_LOCAL_MUL;
+    }
+
+    if (STATEMENT_LOCAL_LONG_DIV_BASE - 1 < opcode) {
+      operation = OPCODE_LOCAL_DIV;
+    }
+
+    if (STATEMENT_LOCAL_LONG_MOD_BASE - 1 < opcode) {
+      operation = OPCODE_LOCAL_MOD;
+    }
+
+    if (STATEMENT_LOCAL_LONG_AND_BASE - 1 < opcode) {
+      operation = OPCODE_LOCAL_AND;
+    }
+
+    return operation;
+  }
+
   private long writeResultSlotSourceBody(
     borrow mut bytes output,
     long cursor,
@@ -514,6 +571,46 @@ classical class ProgramCodegen {
   ) {
     if (resultSlotProgram) {
       long resultOpcode = program.helperOpcodes[0];
+      if (resolvedLocalLongPair(resultOpcode)) {
+        long preludeOperation = resultPreludeOperation(resultOpcode);
+        cursor = writeResultSlotBinarySourcesBody(
+          output,
+          cursor,
+          helperLocalBase,
+          resolvedLocalLongPairSource(resultOpcode),
+          preludeOperation,
+          program.helperOperands[0]
+        );
+        return writeResultSlotBinarySourcesBody(
+          output,
+          cursor,
+          helperLocalBase,
+          resolvedLocalLongPairSource(resultOpcode),
+          preludeOperation,
+          program.helperOperands[0]
+        );
+      }
+
+      if (resolvedLocalLongBinary(resultOpcode)) {
+        long binaryPreludeOperation = resultPreludeOperation(resultOpcode);
+        cursor = writeResultSlotBinaryBody(
+          output,
+          cursor,
+          helperLocalBase,
+          resolvedLocalLongBinarySource(resultOpcode),
+          binaryPreludeOperation,
+          program.helperOperands[0]
+        );
+        return writeResultSlotBinaryBody(
+          output,
+          cursor,
+          helperLocalBase,
+          resolvedLocalLongBinarySource(resultOpcode),
+          binaryPreludeOperation,
+          program.helperOperands[0]
+        );
+      }
+
       if (resolvedSignedLocalReturn(resultOpcode)) {
         long resultSource = resolvedLocalReturnSource(resultOpcode);
         cursor = writeResultSlotSourceBody(output, cursor, helperLocalBase, resultSource);

@@ -14,6 +14,7 @@ import wheeler.compiler.tokens;
 
 classical class HelperPrograms {
   private const long LOGICAL_ASSERTION_LOCALS = 3;
+  private const long COMPUTED_PRELUDE_RESULT_OFFSET = 3;
 
   private boolean signedResultSlotCall(long opcode) {
     if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
@@ -73,6 +74,50 @@ classical class HelperPrograms {
     }
 
     return returnLocalPairStatement(opcode);
+  }
+
+  private boolean resultSlotComputedPreludeValid(StatementSequence sequence, long parameterCount) {
+    if (sequence.count == 2) {} else {
+      return false;
+    }
+
+    long binaryOpcode = sequence.opcodes[0];
+    long leftSource = -1;
+    if (resolvedLocalLongBinary(binaryOpcode)) {
+      leftSource = resolvedLocalLongBinarySource(binaryOpcode);
+    }
+
+    if (resolvedLocalLongPair(binaryOpcode)) {
+      leftSource = resolvedLocalLongPairSource(binaryOpcode);
+      long rightSource = sequence.operands[0];
+      if (-1 < rightSource) {} else {
+        return false;
+      }
+
+      if (rightSource < parameterCount) {} else {
+        return false;
+      }
+    } else {
+      if (resolvedLocalLongBinary(binaryOpcode)) {} else {
+        return false;
+      }
+    }
+
+    if (-1 < leftSource) {} else {
+      return false;
+    }
+
+    if (leftSource < parameterCount) {} else {
+      return false;
+    }
+
+    long returnOpcode = sequence.opcodes[1];
+    if (resolvedSignedLocalReturn(returnOpcode)) {} else {
+      return false;
+    }
+
+    return resolvedLocalReturnSource(returnOpcode) == parameterCount
+      + COMPUTED_PRELUDE_RESULT_OFFSET;
   }
 
   private boolean resultSlotSourceDeclared(
@@ -377,12 +422,19 @@ classical class HelperPrograms {
     }
 
     if (resultSlotHelper(helperKind)) {
+      boolean computedPrelude = resultSlotComputedPreludeValid(helperSequence, parameterCount);
       if (helperSequence.count == 1) {} else {
-        return new MinimalProgramResult.Error(0);
+        if (computedPrelude) {} else {
+          return new MinimalProgramResult.Error(0);
+        }
       }
 
       long slotResultOpcode = helperSequence.opcodes[0];
       boolean supportedSlotResult = slotResultOpcode == STATEMENT_RETURN_LONG;
+      if (computedPrelude) {
+        supportedSlotResult = true;
+      }
+
       if (resolvedSignedLocalReturn(slotResultOpcode)) {
         long slotResultSource = resolvedLocalReturnSource(slotResultOpcode);
         if (slotResultSource < parameterCount) {

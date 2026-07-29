@@ -6,7 +6,8 @@ classical class ReversibleResult {
   ///
   /// - Inverse: Checks the held result, preserves the source, and restores exact vacancy.
   rev long add(long left, long right) {
-    return left + right;
+    long result = left + right;
+    return result;
   }
 
   /// Checks the generated computed-result inverse.

@@ -113,6 +113,26 @@ class MinimalCompilerResultExampleTest {
           computedSources.function(0).forward(), computedSources.function(0).inverse());
     }
 
+    for (String[] candidate : computedCases) {
+      assertDifferentialHalt(
+          writerProgram,
+          "classical class ComputedPreludeReversibleResult { "
+              + "rev long compute(long left, long right) { long result = left "
+              + candidate[0] + " right; return result; } "
+              + "entry void main() { long answer = compute(" + candidate[2] + ", "
+              + candidate[3] + "); assert(answer == " + candidate[4] + "); } }");
+    }
+
+    Program computedPreludeConstant = assertDifferentialHalt(
+        writerProgram,
+        "classical class ComputedPreludeConstantResult { const long STEP = 8; "
+            + "rev long compute(long value) { long result = value + STEP; "
+            + "return result; } theorem computeInverse proves inverse(compute); "
+            + "entry void main() { long answer = compute(34); assert(answer == 42); } }");
+    assertEquals(Opcode.RESULT_FILL_BINARY,
+        computedPreludeConstant.function(0).forward().getFirst().opcode());
+    assertEquals(1, computedPreludeConstant.proofCertificates().size());
+
     assertDifferentialHalt(
         writerProgram,
         "classical class PreservedSecondResult { "

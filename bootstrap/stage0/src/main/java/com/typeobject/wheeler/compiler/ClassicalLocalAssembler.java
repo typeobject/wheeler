@@ -136,19 +136,40 @@ final class ClassicalLocalAssembler implements SourceStorageLowerer.Context {
   }
 
   private boolean binaryReversibleResult(List<Statement> statements, int resultSlot) {
-    if (statements.size() != 4) {
-      return false;
+    if (statements.size() == 4) {
+      Statement binary = statements.get(2);
+      Statement returned = statements.get(3);
+      if (!returned.operation().equals("return_value")
+          || !returned.arguments().getFirst().equals(binary.arguments().getFirst())) {
+        return false;
+      }
+      return emitBinaryResult(statements.get(0), statements.get(1), binary, resultSlot);
     }
-    Statement sourceValue = statements.get(0);
-    Statement rightValue = statements.get(1);
-    Statement binary = statements.get(2);
-    Statement returned = statements.get(3);
+    if (statements.size() == 6) {
+      Statement binary = statements.get(2);
+      Statement binding = statements.get(3);
+      Statement resultValue = statements.get(4);
+      Statement returned = statements.get(5);
+      if (!binding.operation().equals("local_bind")
+          || !binding.arguments().get(1).equals(binary.arguments().getFirst())
+          || !binding.arguments().get(2).equals("long")
+          || !resultValue.operation().equals("local_read")
+          || !resultValue.arguments().get(1).equals(binding.arguments().getFirst())
+          || !returned.operation().equals("return_value")
+          || !returned.arguments().getFirst().equals(resultValue.arguments().getFirst())) {
+        return false;
+      }
+      return emitBinaryResult(statements.get(0), statements.get(1), binary, resultSlot);
+    }
+    return false;
+  }
+
+  private boolean emitBinaryResult(
+      Statement sourceValue, Statement rightValue, Statement binary, int resultSlot) {
     if (!sourceValue.operation().equals("local_read")
         || !binary.operation().equals("local_binary")
-        || !returned.operation().equals("return_value")
         || !binary.arguments().get(2).equals(sourceValue.arguments().getFirst())
-        || !binary.arguments().get(3).equals(rightValue.arguments().getFirst())
-        || !returned.arguments().getFirst().equals(binary.arguments().getFirst())) {
+        || !binary.arguments().get(3).equals(rightValue.arguments().getFirst())) {
       return false;
     }
     int source = preservedSignedParameter(sourceValue);

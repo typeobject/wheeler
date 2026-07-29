@@ -178,7 +178,7 @@ Files: [`NativeBootstrapModulesIdentity.w`](../../wheeler-examples/src/main/whee
 
 Covers: One through sixty-four sorted local source modules, zero through sixty-four externals, 256 total imports, unique paths, complete binding, rooted reachability, cycle rejection, bounded names and paths, lowercase source identities, exact schema bytes, SHA-256 publication, and rewind.
 
-Expected behavior: Empty-import one-module, two-external one-module, and three-, five-, nine-, and seventeen-module rooted DAG closures reproduce stage 0. A cycle, unreachable module, duplicate path, sixty-fifth module or external, unsorted external, unbound import, mismatched root, uppercase digest, traversal path, or input beyond 32,768 bytes publishes nothing. The current physical compiler closure has fifty-three modules, 224 imports, and 19,564 canonical bytes. The packaged executable reproduces its stage-0 identity in 16,266,852 transitions. Sixty-four is still deliberately smaller than the 10,000-module schema. Pretending otherwise would merely give the graph a fake moustache too.
+Expected behavior: Empty-import one-module, two-external one-module, and three-, five-, nine-, and seventeen-module rooted DAG closures reproduce stage 0. A cycle, unreachable module, duplicate path, sixty-fifth module or external, unsorted external, unbound import, mismatched root, uppercase digest, traversal path, or input beyond 32,768 bytes publishes nothing. The current physical compiler closure has fifty-three modules, 224 imports, and 19,564 canonical bytes. The packaged executable reproduces its stage-0 identity in 16,266,769 transitions. Sixty-four is still deliberately smaller than the 10,000-module schema. Pretending otherwise would merely give the graph a fake moustache too.
 
 ### `NativeCompilerLimitsIdentity.w`
 
@@ -452,11 +452,12 @@ Expected result: `result = 6`.
 
 Source: [`ReversibleResult.w`](../../wheeler-examples/src/main/wheeler/classical/control/ReversibleResult.w).
 
-Covers: A checked relation over two preserved signed parameters, the implicit caller-owned
-result slot, dedicated two-source binary-fill, call, and return instructions, and one generated-inverse
+Covers: A checked relation over two preserved signed parameters bound through one exact
+signed local, the implicit caller-owned result slot, dedicated two-source binary-fill, call,
+and return instructions, and one generated-inverse
 certificate. Core conformance also commits VM history between the forward and inverse
 call. The Wheeler-native compiler emits the same computed helper, adjacent slot locals,
-generated bodies, and proof bytes as stage 0. The Wheeler-native interpreter executes both
+generated bodies, computed-local collapse, and proof bytes as stage 0. The Wheeler-native interpreter executes both
 call directions and checks restored vacancy against the Java VM. The inverse recomputes
 both preserved sources for `34 + 8` instead of asking the debugger whether 42 looked familiar.
 

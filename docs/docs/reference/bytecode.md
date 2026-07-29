@@ -299,7 +299,9 @@ The bounded compiler implementation now lives in importable `compiler/Driver.w`.
 The native compiler now lowers the first reversible signed-result source profile. One
 `rev long` helper with up to two signed parameters may return a signed literal, evaluated
 constant, preserved signed parameter, checked operation over either signed parameter and a
-constant right operand, or checked operation over two signed parameters. Its entry interleaves result calls with signed checks against
+constant right operand, or checked operation over two signed parameters. One checked
+operation may bind an exact signed local before return. Its entry interleaves result calls
+with signed checks against
 constants or results already produced. The emitter writes function flags `0xd`, adjacent
 Boolean and signed slot locals, one of the four exact fill relations followed by
 `RETURN_RESULT_SLOT`, `CALL_RESULT_SLOT`, and the optional generated-inverse proof. Complete artifact bytes match stage 0. Unsupported

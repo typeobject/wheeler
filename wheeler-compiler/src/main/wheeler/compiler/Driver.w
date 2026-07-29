@@ -287,6 +287,14 @@ classical class CompilerDriver {
         helperForwardLength = RESULT_SLOT_BINARY_BODY_LENGTH;
       }
 
+      if (resolvedLocalLongBinary(program.helperOpcodes[0])) {
+        helperForwardLength = RESULT_SLOT_BINARY_BODY_LENGTH;
+      }
+
+      if (resolvedLocalLongPair(program.helperOpcodes[0])) {
+        helperForwardLength = RESULT_SLOT_BINARY_BODY_LENGTH;
+      }
+
       helperInverseLength = helperForwardLength;
       helperInverseOffset = helperForwardLength;
       entryForwardLength = 8 + entryStatementLength;
