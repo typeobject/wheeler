@@ -27,9 +27,12 @@ control.
 ## Current recovery profile
 
 The bounded compiler accepts one class, zero or one signed global, one optional helper,
-and one entry. Entry and helper bodies admit at most sixty-four statements. The current
-slice covers typed signed and Boolean locals, assertions, assignments, checked scalar
-operations, calls, results, and narrow explicitly limited loops.
+and one entry. A modular source may carry up to sixty-four sorted unique direct imports.
+The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
+or excess imports before publication. It does not resolve imported declarations yet. Entry
+and helper bodies admit at most sixty-four statements. The current slice covers typed signed
+and Boolean locals, assertions, assignments, checked scalar operations, calls, results, and
+narrow explicitly limited loops.
 
 A class may place one contiguous block of at most sixty-four `const long` or `const boolean`
 declarations around its optional signed state and before its helper or entry. Constants may
@@ -49,8 +52,10 @@ signed arithmetic or typed scalar comparison returns, signed or Boolean equality
 state-update values, and bounded
 loop conditions and limits. Calls and mutations
 may mix constants with prior locals. Helper parameters and locals cannot reuse constant names.
-Constants create no global, initializer, lookup, or declaration-order artifact noise. Imported constants, qualification, `rotateRight32`, and
-multi-file linking remain stage-0 work until native differential artifacts pin them down.
+Constants create no global, initializer, lookup, or declaration-order artifact noise. The
+native header path accepts direct import declarations, but imported constant lookup,
+qualification, `rotateRight32`, and multi-file linking remain stage-0 work until native
+differential artifacts pin them down.
 
 The narrow loop body and local constant graph are deliberate limits, not parser folklore.
 Unsupported syntax fails before output publication. Each extension must match stage 0 byte

@@ -11,9 +11,17 @@ classical class Tokens {
   public const long COMPILER_GLOBAL_NAME_TOKEN = MAX_COMPILER_TOKENS - 1;
   /// Distinguishes Boolean parameter markers from signed parameter markers.
   public const long BOOLEAN_PARAMETER_TOKEN_BIAS = MAX_COMPILER_TOKENS;
+  /// Caps direct imports in one bounded compiler source.
+  public const long MAX_MODULE_IMPORTS = 64;
+  /// Caps tokens consumed by one module or import name.
+  public const long MAX_QUALIFIED_NAME_TOKENS = 64;
+  /// Caps UTF-8 bytes compared in one module or import name.
+  public const long MAX_QUALIFIED_NAME_BYTES = 256;
 
   /// Names the stable token hash for `module`.
   public const long TOKEN_MODULE = 3226183276;
+  /// Names the stable token hash for `import`.
+  public const long TOKEN_IMPORT = 3110171557;
   /// Names the stable token hash for `public`.
   public const long TOKEN_PUBLIC = 3317543529;
   /// Names the stable token hash for `private`.

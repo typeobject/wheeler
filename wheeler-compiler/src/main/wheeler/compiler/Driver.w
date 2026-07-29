@@ -7,6 +7,7 @@ import wheeler.compiler.encoding;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_types;
+import wheeler.compiler.module_headers;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.parser;
 import wheeler.compiler.statement_forms;
@@ -49,83 +50,6 @@ classical class CompilerDriver {
     }
 
     return writeCursor;
-  }
-
-  private long moduleBodyStart(
-    borrow utf8 source,
-    borrow mut words tokenKinds,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    borrow mut words moduleRange,
-    long count
-  ) {
-    set(moduleRange, 0, 0);
-    set(moduleRange, 1, 0);
-    if (count == 0) {
-      return -1;
-    }
-
-    if (tokenHash(source, tokenStarts, tokenLengths, 0) == TOKEN_CLASSICAL) {
-      return 0;
-    }
-
-    if (tokenHash(source, tokenStarts, tokenLengths, 0) == TOKEN_MODULE) {} else {
-      return -1;
-    }
-
-    long cursor = 1;
-    long nameStart = 0;
-    long nameEnd = 0;
-    boolean expectName = true;
-    while (cursor < count) limit 64 {
-      if (expectName) {
-        if (tokenKinds[cursor] == 1) {
-          if (nameStart == 0) {
-            nameStart = tokenStarts[cursor];
-          } else {
-            if (tokenStarts[cursor] == nameEnd + 1) {} else {
-              return -1;
-            }
-          }
-
-          nameEnd = tokenStarts[cursor] + tokenLengths[cursor];
-          expectName = false;
-          cursor += 1;
-        } else {
-          return -1;
-        }
-      } else {
-        if (
-          punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_SEMICOLON)
-        ) {
-          cursor += 1;
-          if (cursor < count) {
-            if (
-              tokenHash(source, tokenStarts, tokenLengths, cursor) == TOKEN_CLASSICAL
-            ) {
-              set(moduleRange, 0, nameStart);
-              set(moduleRange, 1, nameEnd - nameStart);
-              return cursor;
-            }
-          }
-
-          return -1;
-        }
-
-        if (punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_DOT)) {
-          if (tokenStarts[cursor] == nameEnd) {} else {
-            return -1;
-          }
-
-          expectName = true;
-          cursor += 1;
-        } else {
-          return -1;
-        }
-      }
-    }
-
-    return -1;
   }
 
   private long discardLeadingTokens(
