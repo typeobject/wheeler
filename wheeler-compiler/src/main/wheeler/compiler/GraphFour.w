@@ -5,6 +5,7 @@ module wheeler.compiler.compiler_graph_four;
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.compiler_graph_four_branches;
 import wheeler.compiler.compiler_graph_four_mixed;
+import wheeler.compiler.compiler_graph_four_nested;
 import wheeler.compiler.module_linker;
 
 classical class CompilerGraphFour {
@@ -421,6 +422,30 @@ classical class CompilerGraphFour {
     );
     if (0 < chain.length) {
       return chain;
+    }
+
+    NestedFourCompilation forkThenParent = compileFourForkThenParent(
+      firstImportedSource,
+      secondImportedSource,
+      thirdImportedSource,
+      fourthImportedSource,
+      rootSource,
+      output
+    );
+    if (0 < forkThenParent.length) {
+      return new FourGraphCompilation(forkThenParent.length, forkThenParent.codeStart);
+    }
+
+    NestedFourCompilation unevenFork = compileFourUnevenFork(
+      firstImportedSource,
+      secondImportedSource,
+      thirdImportedSource,
+      fourthImportedSource,
+      rootSource,
+      output
+    );
+    if (0 < unevenFork.length) {
+      return new FourGraphCompilation(unevenFork.length, unevenFork.codeStart);
     }
 
     BranchedFourCompilation forkAndDirect = compileFourForkAndDirect(

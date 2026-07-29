@@ -24,6 +24,7 @@ The package keeps responsibilities narrow:
 - `compiler/GraphFour.w` owns four-module direct, chain, and fork forms.
 - `compiler/GraphFourBranches.w` owns root-heavy short chains.
 - `compiler/GraphFourMixed.w` owns transitive chains beside direct root imports.
+- `compiler/GraphFourNested.w` owns the two nested four-module trees.
 - `compiler/Driver.w` keeps one small stable API over the graph compilers and core.
 - `compiler/verification` owns complete check-before-publication artifact validation.
 
@@ -38,12 +39,8 @@ and one entry. A modular source may carry up to sixty-four sorted unique direct 
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
 or excess imports before publication. `compileMinimalWithConstantImport`,
 `compileMinimalWithConstantImports`, `compileMinimalWithThreeConstantImports`, and
-`compileMinimalWithFourConstantImports` link one through four direct scalar-constant modules.
-The pair, triple, and four-module APIs also link one exact two-edge, three-edge, or
-four-edge chain. Three-module graphs also cover one two-leaf fork or one two-edge chain beside a direct
-module. Four-module graphs cover a three-leaf fork, a three-edge chain beside a direct module,
-a two-edge chain beside two direct modules, two independent two-edge chains, and a two-leaf
-fork beside a direct module as well. A leaf export becomes private inside its dependent, so a root cannot acquire
+`compileMinimalWithFourConstantImports` link every rooted tree topology over one through
+four imported scalar-constant modules. A leaf export becomes private inside its dependent, so a root cannot acquire
 transitive access by spelling the leaf name loudly. Executable imported
 members, mismatched module names, wider graphs, and more than four root imports fail
 closed. General symbol resolution remains future work. Entry and helper bodies
@@ -73,9 +70,8 @@ may mix constants with prior locals. Helper parameters and locals cannot reuse c
 Constants create no global, initializer, lookup, or declaration-order artifact noise. The
 native header path accepts direct import declarations. The linker resolves bounded public
 scalar constants through unqualified or canonical owner-qualified uses and preserves stage-0
-artifact bytes. It also resolves exact chains through four edges, two- and three-leaf forks,
-two- or three-edge chains beside a direct module, a two-edge chain beside two direct
-modules, two independent two-edge chains, and a two-leaf fork beside a direct module while preventing intermediate exports from reaching the root. Root collisions with
+artifact bytes. It covers every rooted tree topology over one through four imports while
+preventing intermediate exports from reaching the root. Root collisions with
 imported private names, colliding exports, wider graphs,
 and general multi-file linking remain stage-0 work until native differential artifacts pin
 them down.
