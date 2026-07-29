@@ -610,6 +610,17 @@ classical class LocalStatements {
           if (-1 < equalityBooleanRight) {
             return STATEMENT_LOCAL_BOOLEAN_EQ_BASE + equalityBooleanLeft;
           }
+
+          ConstantResolution equalityBooleanConstant = resolveClassConstant(
+            source,
+            tokenStarts,
+            tokenLengths,
+            equalityRightToken,
+            false
+          );
+          if (equalityBooleanConstant.valid) {
+            return STATEMENT_LOCAL_BOOLEAN_EQ_LITERAL_BASE + equalityBooleanLeft;
+          }
         }
       }
 
@@ -677,6 +688,17 @@ classical class LocalStatements {
           );
           if (-1 < inequalityBooleanRight) {
             return STATEMENT_LOCAL_BOOLEAN_NE_BASE + inequalityBooleanLeft;
+          }
+
+          ConstantResolution inequalityBooleanConstant = resolveClassConstant(
+            source,
+            tokenStarts,
+            tokenLengths,
+            inequalityRightToken,
+            false
+          );
+          if (inequalityBooleanConstant.valid) {
+            return STATEMENT_LOCAL_BOOLEAN_NE_LITERAL_BASE + inequalityBooleanLeft;
           }
         }
       }

@@ -196,6 +196,10 @@ classical class LocalTypes {
       comparison = true;
     }
 
+    if (resolvedBooleanLiteralComparison(opcode)) {
+      comparison = true;
+    }
+
     if (comparison) {
       long sourceType = TYPE_BOOLEAN;
       if (resolvedLocalEqualitySigned(opcode)) {
@@ -219,6 +223,10 @@ classical class LocalTypes {
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
       boolean inequality = resolvedLocalInequality(opcode);
       if (resolvedLocalLiteralInequality(opcode)) {
+        inequality = true;
+      }
+
+      if (resolvedBooleanLiteralInequality(opcode)) {
         inequality = true;
       }
 

@@ -21,14 +21,15 @@ classical class ExpressionOperands {
     borrow utf8 source,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
-    long token
+    long token,
+    boolean signed
   ) {
     ConstantResolution value = resolveClassConstant(
       source,
       tokenStarts,
       tokenLengths,
       token,
-      true
+      signed
     );
     return new ExpressionOperand(value.value, true, value.valid);
   }
@@ -61,7 +62,7 @@ classical class ExpressionOperands {
       }
 
       if (resolvedLocalLongBinary(opcode)) {
-        return constant(source, tokenStarts, tokenLengths, rightToken);
+        return constant(source, tokenStarts, tokenLengths, rightToken, true);
       }
 
       return new ExpressionOperand(0, true, false);
@@ -70,7 +71,7 @@ classical class ExpressionOperands {
     if (sourceOpcode == STATEMENT_LOCAL_LONG_LT_NAMED) {
       long lessThanRight = statementStart + 5;
       if (resolvedLocalLiteralLessThan(opcode)) {
-        return constant(source, tokenStarts, tokenLengths, lessThanRight);
+        return constant(source, tokenStarts, tokenLengths, lessThanRight, true);
       }
 
       if (resolvedLocalLongLessThan(opcode)) {
@@ -98,7 +99,11 @@ classical class ExpressionOperands {
     if (comparison) {
       long comparisonRight = statementStart + 6;
       if (resolvedLocalLiteralComparison(opcode)) {
-        return constant(source, tokenStarts, tokenLengths, comparisonRight);
+        return constant(source, tokenStarts, tokenLengths, comparisonRight, true);
+      }
+
+      if (resolvedBooleanLiteralComparison(opcode)) {
+        return constant(source, tokenStarts, tokenLengths, comparisonRight, false);
       }
 
       boolean signed = resolvedLocalEqualitySigned(opcode);

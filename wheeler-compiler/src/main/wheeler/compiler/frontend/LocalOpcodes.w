@@ -345,6 +345,14 @@ classical class LocalOpcodes {
       return 4;
     }
 
+    if (resolvedBooleanLiteralComparison(opcode)) {
+      if (resolvedBooleanLiteralInequality(opcode)) {
+        return 6;
+      }
+
+      return 4;
+    }
+
     if (opcode == STATEMENT_LOCAL_LONG_EQ_LITERAL_NAMED) {
       return 4;
     }
@@ -685,6 +693,14 @@ classical class LocalOpcodes {
 
     if (resolvedLocalLiteralComparison(opcode)) {
       if (resolvedLocalLiteralInequality(opcode)) {
+        return 160;
+      }
+
+      return 104;
+    }
+
+    if (resolvedBooleanLiteralComparison(opcode)) {
+      if (resolvedBooleanLiteralInequality(opcode)) {
         return 160;
       }
 

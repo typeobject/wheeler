@@ -81,6 +81,42 @@ classical class ScalarOpcodes {
     return opcode - STATEMENT_LOCAL_LONG_LT_LITERAL_BASE;
   }
 
+  /// Checks whether an opcode carries Boolean equality with a literal.
+  public boolean resolvedBooleanLiteralEquality(long opcode) {
+    if (opcode < STATEMENT_LOCAL_BOOLEAN_EQ_LITERAL_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_BOOLEAN_EQ_LITERAL_BASE + 256;
+  }
+
+  /// Checks whether an opcode carries Boolean inequality with a literal.
+  public boolean resolvedBooleanLiteralInequality(long opcode) {
+    if (opcode < STATEMENT_LOCAL_BOOLEAN_NE_LITERAL_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_BOOLEAN_NE_LITERAL_BASE + 256;
+  }
+
+  /// Checks whether an opcode compares one Boolean local with a literal.
+  public boolean resolvedBooleanLiteralComparison(long opcode) {
+    if (resolvedBooleanLiteralEquality(opcode)) {
+      return true;
+    }
+
+    return resolvedBooleanLiteralInequality(opcode);
+  }
+
+  /// Returns the source local carried by a Boolean literal comparison.
+  public long resolvedBooleanLiteralComparisonSource(long opcode) {
+    if (resolvedBooleanLiteralEquality(opcode)) {
+      return opcode - STATEMENT_LOCAL_BOOLEAN_EQ_LITERAL_BASE;
+    }
+
+    return opcode - STATEMENT_LOCAL_BOOLEAN_NE_LITERAL_BASE;
+  }
+
   /// Checks whether an opcode carries one resolved signed-local identity.
   public boolean resolvedLocalLongAssertion(long opcode) {
     if (opcode < STATEMENT_ASSERT_LOCAL_LONG_BASE) {

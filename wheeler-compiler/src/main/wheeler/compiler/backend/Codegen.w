@@ -587,6 +587,19 @@ classical class Codegen {
       );
     }
 
+    if (resolvedBooleanLiteralComparison(opcode)) {
+      return writeLocalComparison(
+        output,
+        cursor,
+        resolvedBooleanLiteralComparisonSource(opcode),
+        operand,
+        localBase,
+        OPCODE_LOCAL_CONST,
+        OPCODE_LOCAL_EQ,
+        /* negated= */ resolvedBooleanLiteralInequality(opcode)
+      );
+    }
+
     if (resolvedLocalEquality(opcode)) {
       return writeLocalComparison(
         output,

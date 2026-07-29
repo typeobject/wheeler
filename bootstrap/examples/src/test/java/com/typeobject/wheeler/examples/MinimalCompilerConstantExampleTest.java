@@ -215,6 +215,17 @@ class MinimalCompilerConstantExampleTest {
   }
 
   @Test
+  void substitutesConstantsIntoBooleanComparisonOperands() throws Exception {
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    assertDifferentialHalt(
+        compiler,
+        "classical class ConstantBooleanComparisonOperands { "
+            + "const boolean EXPECTED = !false; const boolean OTHER = false; "
+            + "entry void main() { boolean value = true; boolean same = value == EXPECTED; "
+            + "boolean different = value != OTHER; assert(same); assert(different); } }");
+  }
+
+  @Test
   void substitutesConstantsIntoSignedConditionalOperands() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
     assertDifferentialHalt(
@@ -338,6 +349,11 @@ class MinimalCompilerConstantExampleTest {
         compiler,
         "classical class WrongComparisonConstant { const boolean LIMIT = true; "
             + "entry void main() { long value = 1; boolean result = value < LIMIT; } }");
+    assertNativeTrap(
+        compiler,
+        "classical class WrongBooleanComparisonConstant { const long EXPECTED = 1; "
+            + "entry void main() { boolean value = true; "
+            + "boolean result = value == EXPECTED; } }");
     assertNativeTrap(
         compiler,
         "classical class WrongReturnComparisonConstant { const boolean LIMIT = true; "

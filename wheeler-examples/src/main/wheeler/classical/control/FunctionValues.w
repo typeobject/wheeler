@@ -35,7 +35,8 @@ classical class FunctionValues {
     long base = add(ADD_LEFT, ADD_RIGHT);
     long total = triangular(base);
     boolean valid = same(total == 10, EXPECTED_VALID);
-    if (valid) {
+    boolean confirmed = valid == EXPECTED_VALID;
+    if (confirmed) {
       result = total;
     } else {
       result = 0;
