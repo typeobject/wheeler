@@ -10,6 +10,7 @@ import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.loop_forms;
 import wheeler.compiler.mutation_resolution;
+import wheeler.compiler.return_comparisons;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.tokens;
@@ -233,111 +234,21 @@ classical class LocalStatements {
       );
     }
 
-    boolean ambiguousReturnPair = opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED;
-    if (opcode == STATEMENT_RETURN_BOOLEAN_NE_LOCAL_NAMED) {
-      ambiguousReturnPair = true;
-    }
-
-    if (ambiguousReturnPair) {
-      long returnPairSignedLeft = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 1,
-        true
-      );
-      long returnPairBooleanLeft = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 1,
-        false
-      );
-      long returnPairSignedRight = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 4,
-        true
-      );
-      long returnPairBooleanRight = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 4,
-        false
-      );
-      if (-1 < returnPairSignedLeft) {
-        if (returnPairBooleanLeft < 0) {
-          if (-1 < returnPairSignedRight) {
-            if (returnPairBooleanRight < 0) {
-              if (opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED) {
-                return STATEMENT_RETURN_SIGNED_EQ_LOCAL_NAMED;
-              }
-
-              return STATEMENT_RETURN_SIGNED_NE_LOCAL_NAMED;
-            }
-          }
-        }
-      }
-
-      if (-1 < returnPairBooleanLeft) {
-        if (returnPairSignedLeft < 0) {
-          if (-1 < returnPairBooleanRight) {
-            if (returnPairSignedRight < 0) {
-              return opcode;
-            }
-          }
-        }
+    ReturnComparisonResolution returnComparison = resolveReturnComparison(
+      source,
+      tokenStarts,
+      tokenLengths,
+      statementStart,
+      previousStarts,
+      previousCount,
+      opcode
+    );
+    if (returnComparison.applies) {
+      if (returnComparison.valid) {
+        return returnComparison.opcode;
       }
 
       return -1;
-    }
-
-    if (returnComparisonStatement(opcode)) {
-      boolean signedComparison = returnComparisonSigned(opcode);
-      long comparisonLeft = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 1,
-        signedComparison
-      );
-      if (comparisonLeft < 0) {
-        return -1;
-      }
-
-      if (returnComparisonLocalRight(opcode)) {
-        long comparisonRightToken = statementStart + 4;
-        if (returnSignedLessThanStatement(opcode)) {
-          comparisonRightToken -= 1;
-        }
-
-        long comparisonRight = resolvePriorDeclaration(
-          source,
-          tokenStarts,
-          tokenLengths,
-          previousStarts,
-          previousCount,
-          comparisonRightToken,
-          signedComparison
-        );
-        if (comparisonRight < 0) {
-          return -1;
-        }
-      }
-
-      return opcode;
     }
 
     if (opcode == STATEMENT_RETURN_LOCAL_NAMED) {

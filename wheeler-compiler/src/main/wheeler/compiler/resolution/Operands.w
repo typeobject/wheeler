@@ -12,6 +12,7 @@ import wheeler.compiler.local_resolution;
 import wheeler.compiler.local_statements;
 import wheeler.compiler.loop_forms;
 import wheeler.compiler.mutation_resolution;
+import wheeler.compiler.return_comparisons;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.tokens;
@@ -35,11 +36,7 @@ classical class Operands {
       ambiguousTypedStatement = true;
     }
 
-    if (opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED) {
-      ambiguousTypedStatement = true;
-    }
-
-    if (opcode == STATEMENT_RETURN_BOOLEAN_NE_LOCAL_NAMED) {
+    if (returnComparisonLocalRight(opcode)) {
       ambiguousTypedStatement = true;
     }
 
@@ -647,6 +644,7 @@ classical class Operands {
       previousStarts,
       previousCount
     );
+    long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
     if (resolvedLocalWhile(opcode)) {
       long loopLimit = whileLimitToken(source, tokenStarts, statementStart);
       if (resolvedLocalWhileLimitNamed(opcode)) {
@@ -679,37 +677,23 @@ classical class Operands {
       return parsedSignedNumber(source, tokenStarts, tokenLengths, loopLimit);
     }
 
-    if (returnComparisonStatement(opcode)) {
-      long returnComparisonRight = statementStart + 4;
-      if (returnSignedLessThanStatement(opcode)) {
-        returnComparisonRight -= 1;
+    ReturnComparisonResolution returnComparison = resolveReturnComparison(
+      source,
+      tokenStarts,
+      tokenLengths,
+      statementStart,
+      previousStarts,
+      previousCount,
+      sourceOpcode
+    );
+    if (returnComparison.applies) {
+      if (returnComparison.valid) {
+        return returnComparison.rightOperand;
       }
 
-      if (returnComparisonLocalRight(opcode)) {
-        return resolvePriorDeclaration(
-          source,
-          tokenStarts,
-          tokenLengths,
-          previousStarts,
-          previousCount,
-          returnComparisonRight,
-          returnComparisonSigned(opcode)
-        );
-      }
-
-      if (returnComparisonSigned(opcode)) {
-        return parsedSignedNumber(source, tokenStarts, tokenLengths, returnComparisonRight);
-      }
-
-      long equalityLiteral = tokenHash(source, tokenStarts, tokenLengths, returnComparisonRight);
-      if (equalityLiteral == TOKEN_TRUE) {
-        return 1;
-      }
-
-      return 0;
+      return -1;
     }
 
-    long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
     if (-1 < opcode) {
       if (twoArgumentCallStatement(sourceOpcode)) {
         if (twoArgumentCallSecondNamed(sourceOpcode)) {

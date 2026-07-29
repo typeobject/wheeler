@@ -127,6 +127,36 @@ class MinimalCompilerConstantExampleTest {
   }
 
   @Test
+  void resolvesTypedConstantsInScalarComparisonReturns() throws Exception {
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    assertDifferentialHalt(
+        compiler,
+        "classical class ConstantEqualityReturn { const long LIMIT = BASE + 2; "
+            + "const long BASE = 40; boolean equal(long value) { return value == LIMIT; } "
+            + "entry void main() { boolean result = equal(42); assert(result); } }");
+    assertDifferentialHalt(
+        compiler,
+        "classical class ConstantInequalityReturn { const long LIMIT = 42; "
+            + "boolean different(long value) { return value != LIMIT; } entry void main() { "
+            + "boolean result = different(41); assert(result); } }");
+    assertDifferentialHalt(
+        compiler,
+        "classical class ConstantOrderingReturn { const long LIMIT = 42; "
+            + "boolean ordered(long value) { return value < LIMIT; } entry void main() { "
+            + "boolean result = ordered(41); assert(result); } }");
+    assertDifferentialHalt(
+        compiler,
+        "classical class ConstantBooleanEqualityReturn { const boolean EXPECTED = !false; "
+            + "boolean equal(boolean value) { return value == EXPECTED; } entry void main() { "
+            + "boolean result = equal(true); assert(result); } }");
+    assertDifferentialHalt(
+        compiler,
+        "classical class ConstantBooleanInequalityReturn { const boolean EXPECTED = false; "
+            + "boolean different(boolean value) { return value != EXPECTED; } "
+            + "entry void main() { boolean result = different(true); assert(result); } }");
+  }
+
+  @Test
   void evaluatesTypedConstantExpressionsAndForwardDependencies() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
     assertDifferentialHalt(
@@ -274,6 +304,21 @@ class MinimalCompilerConstantExampleTest {
         compiler,
         "classical class WrongComparisonConstant { const boolean LIMIT = true; "
             + "entry void main() { long value = 1; boolean result = value < LIMIT; } }");
+    assertNativeTrap(
+        compiler,
+        "classical class WrongReturnComparisonConstant { const boolean LIMIT = true; "
+            + "boolean ordered(long value) { return value < LIMIT; } entry void main() { "
+            + "boolean result = ordered(1); } }");
+    assertNativeTrap(
+        compiler,
+        "classical class WrongSignedEqualityReturnConstant { const boolean LIMIT = true; "
+            + "boolean equal(long value) { return value == LIMIT; } entry void main() { "
+            + "boolean result = equal(1); } }");
+    assertNativeTrap(
+        compiler,
+        "classical class WrongBooleanReturnConstant { const long EXPECTED = 1; "
+            + "boolean equal(boolean value) { return value == EXPECTED; } entry void main() { "
+            + "boolean result = equal(true); } }");
     assertNativeTrap(
         compiler,
         "classical class WrongLoopConstant { const boolean LIMIT = true; "

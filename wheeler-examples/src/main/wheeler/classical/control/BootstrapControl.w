@@ -10,6 +10,11 @@ classical class BootstrapControl {
   state long sum = INITIAL_SUM;
   state long branch = INITIAL_BRANCH;
 
+  /// Reports whether one sum reached the compile-time target.
+  boolean hasExpectedSum(long value) {
+    return value == EXPECTED_SUM;
+  }
+
   /// Runs the bounded `BootstrapControl` fixture.
   ///
   /// - Effects: Mutates only the fixture's declared state.
@@ -18,7 +23,7 @@ classical class BootstrapControl {
       sum += i;
     }
 
-    boolean complete = sum == EXPECTED_SUM;
+    boolean complete = hasExpectedSum(sum);
     if (complete) {
       branch = COMPLETE_BRANCH;
     } else {
