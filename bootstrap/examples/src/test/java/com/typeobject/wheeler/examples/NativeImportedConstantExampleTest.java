@@ -32,7 +32,9 @@ class NativeImportedConstantExampleTest {
     String root = "module examples.root; import examples.constants; "
         + "classical class ImportedConstants { state long outcome = 0; "
         + "entry void main() { long answer = ANSWER; boolean ready = READY; "
-        + "outcome = answer; assert(ready); assert(outcome == 42); } }";
+        + "long qualified = examples.constants::ANSWER; "
+        + "long second = examples.constants::ANSWER; long sum = qualified + second; "
+        + "outcome = sum; assert(answer == 42); assert(ready); assert(outcome == 84); } }";
 
     byte[] artifact = compileNative(compiler, imported, root);
     Map<String, String> sources = new LinkedHashMap<>();
@@ -44,7 +46,7 @@ class NativeImportedConstantExampleTest {
 
     VirtualMachine program = new VirtualMachine(new BytecodeReader().read(artifact));
     program.run();
-    assertEquals(42, program.global("outcome"));
+    assertEquals(84, program.global("outcome"));
   }
 
   @Test
@@ -77,6 +79,11 @@ class NativeImportedConstantExampleTest {
         "module examples.constants; classical class Constants { "
             + "public const boolean ANSWER = true; }",
         root);
+    assertNativeTrap(
+        compiler,
+        "module examples.constants; classical class Constants { "
+            + "public const long ANSWER = 42; }",
+        root.replace("ANSWER", "examples.other::ANSWER"));
     assertNativeTrap(
         compiler,
         "module examples.constants; classical class Constants { "

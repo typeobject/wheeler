@@ -11,18 +11,25 @@ import wheeler.lexer.scanner;
 classical class ModuleLinker {
   /// Caps the first native linked-source slice.
   public const long MAX_LINKED_SOURCE_BYTES = 16384;
+  /// Caps canonical qualification rewrites in one linked root.
+  public const long MAX_LINKED_QUALIFICATIONS = 64;
+  /// Names the two-byte canonical module separator.
+  public const long QUALIFICATION_SEPARATOR_BYTES = 2;
 
   /// Carries byte ranges for one validated synthetic linked source.
   public record LinkPlan(
     long importedStart,
     long importedLength,
+    long importedModuleStart,
+    long importedModuleLength,
     long rootInsertion,
     long linkedLength,
+    long qualificationCount,
     boolean valid
   ) {}
 
   private LinkPlan invalidPlan() {
-    return new LinkPlan(0, 0, 0, 0, false);
+    return new LinkPlan(0, 0, 0, 0, 0, 0, 0, false);
   }
 
   private long compactTokens(
@@ -190,6 +197,79 @@ classical class ModuleLinker {
     return true;
   }
 
+  private boolean qualificationAt(
+    borrow utf8 importedSource,
+    long moduleStart,
+    long moduleLength,
+    borrow utf8 rootSource,
+    long rootStart
+  ) {
+    if (
+      rootStart + moduleLength + QUALIFICATION_SEPARATOR_BYTES - 1 < bufferLength(rootSource)
+    ) {} else {
+      return false;
+    }
+
+    long cursor = 0;
+    while (cursor < moduleLength) limit MAX_QUALIFIED_NAME_BYTES {
+      if (utf8Width(importedSource, moduleStart + cursor) == 1) {} else {
+        return false;
+      }
+
+      if (utf8Width(rootSource, rootStart + cursor) == 1) {} else {
+        return false;
+      }
+
+      if (
+        utf8Scalar(importedSource, moduleStart + cursor) == utf8Scalar(
+          rootSource,
+          rootStart + cursor
+        )
+      ) {} else {
+        return false;
+      }
+
+      cursor += 1;
+    }
+
+    if (utf8Scalar(rootSource, rootStart + moduleLength) == PUNCTUATION_COLON) {} else {
+      return false;
+    }
+
+    return utf8Scalar(rootSource, rootStart + moduleLength + QUALIFICATION_SEPARATOR_BYTES - 1)
+      == PUNCTUATION_COLON;
+  }
+
+  private long qualificationCount(
+    borrow utf8 importedSource,
+    long moduleStart,
+    long moduleLength,
+    borrow utf8 rootSource
+  ) {
+    long rootCursor = 0;
+    long count = 0;
+    while (rootCursor < bufferLength(rootSource)) limit MAX_LINKED_SOURCE_BYTES {
+      if (utf8Width(rootSource, rootCursor) == 1) {} else {
+        return -1;
+      }
+
+      if (
+        qualificationAt(importedSource, moduleStart, moduleLength, rootSource, rootCursor)
+      ) {
+        count += 1;
+        if (MAX_LINKED_QUALIFICATIONS < count) {
+          return -1;
+        }
+
+        rootCursor += moduleLength + QUALIFICATION_SEPARATOR_BYTES;
+      } else {
+        rootCursor += 1;
+      }
+    }
+
+    return count;
+  }
+
   private boolean publicConstantBlock(
     borrow utf8 source,
     borrow mut words tokenKinds,
@@ -353,15 +433,29 @@ classical class ModuleLinker {
                           long importedStart = importedStarts[firstDeclaration];
                           long importedLength = importedStarts[memberStart] - importedStart;
                           long rootInsertion = rootStarts[rootBody + 3] + 1;
-                          long linkedLength = bufferLength(rootSource) + importedLength;
-                          if (linkedLength < MAX_LINKED_SOURCE_BYTES + 1) {
-                            result = new LinkPlan(
-                              importedStart,
-                              importedLength,
-                              rootInsertion,
-                              linkedLength,
-                              true
+                          long qualifications = qualificationCount(
+                            importedSource,
+                            importedModule[0],
+                            importedModule[1],
+                            rootSource
+                          );
+                          if (-1 < qualifications) {
+                            long removed = qualifications * (
+                              importedModule[1] + QUALIFICATION_SEPARATOR_BYTES
                             );
+                            long linkedLength = bufferLength(rootSource) + importedLength - removed;
+                            if (linkedLength < MAX_LINKED_SOURCE_BYTES + 1) {
+                              result = new LinkPlan(
+                                importedStart,
+                                importedLength,
+                                importedModule[0],
+                                importedModule[1],
+                                rootInsertion,
+                                linkedLength,
+                                qualifications,
+                                true
+                              );
+                            }
                           }
                         }
                       }
@@ -408,6 +502,38 @@ classical class ModuleLinker {
     return outputStart + length;
   }
 
+  private long copyRootAscii(
+    borrow utf8 importedSource,
+    long moduleStart,
+    long moduleLength,
+    borrow utf8 rootSource,
+    long rootStart,
+    long rootLength,
+    borrow mut bytes output,
+    long outputStart
+  ) {
+    long rootCursor = rootStart;
+    long rootEnd = rootStart + rootLength;
+    long outputCursor = outputStart;
+    while (rootCursor < rootEnd) limit MAX_LINKED_SOURCE_BYTES {
+      if (utf8Width(rootSource, rootCursor) == 1) {} else {
+        return -1;
+      }
+
+      if (
+        qualificationAt(importedSource, moduleStart, moduleLength, rootSource, rootCursor)
+      ) {
+        rootCursor += moduleLength + QUALIFICATION_SEPARATOR_BYTES;
+      } else {
+        setByte(output, outputCursor, utf8Scalar(rootSource, rootCursor));
+        rootCursor += 1;
+        outputCursor += 1;
+      }
+    }
+
+    return outputCursor;
+  }
+
   /// Writes one previously validated synthetic source into exact caller storage.
   public long writeSinglePublicConstantImport(
     borrow utf8 importedSource,
@@ -423,7 +549,26 @@ classical class ModuleLinker {
       return -1;
     }
 
-    long cursor = copyAscii(rootSource, 0, plan.rootInsertion, output, 0);
+    long qualifications = qualificationCount(
+      importedSource,
+      plan.importedModuleStart,
+      plan.importedModuleLength,
+      rootSource
+    );
+    if (qualifications == plan.qualificationCount) {} else {
+      return -1;
+    }
+
+    long cursor = copyRootAscii(
+      importedSource,
+      plan.importedModuleStart,
+      plan.importedModuleLength,
+      rootSource,
+      0,
+      plan.rootInsertion,
+      output,
+      0
+    );
     if (cursor < 0) {
       return -1;
     }
@@ -433,7 +578,10 @@ classical class ModuleLinker {
       return -1;
     }
 
-    return copyAscii(
+    return copyRootAscii(
+      importedSource,
+      plan.importedModuleStart,
+      plan.importedModuleLength,
       rootSource,
       plan.rootInsertion,
       bufferLength(rootSource) - plan.rootInsertion,

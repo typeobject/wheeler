@@ -56,10 +56,10 @@ state-update values, and bounded
 loop conditions and limits. Calls and mutations
 may mix constants with prior locals. Helper parameters and locals cannot reuse constant names.
 Constants create no global, initializer, lookup, or declaration-order artifact noise. The
-native header path accepts direct import declarations. The first linker slice resolves one
-unqualified public-only scalar constant graph and preserves stage-0 artifact bytes.
-Qualification, mixed-visibility modules, more than one import, `rotateRight32`, and general
-multi-file linking remain stage-0 work until native differential artifacts pin them down.
+native header path accepts direct import declarations. The first linker slice resolves one public-only scalar constant graph through unqualified or
+canonical owner-qualified uses and preserves stage-0 artifact bytes. Mixed-visibility modules,
+more than one import, `rotateRight32`, and general multi-file linking remain stage-0 work
+until native differential artifacts pin them down.
 
 The narrow loop body and local constant graph are deliberate limits, not parser folklore.
 Unsupported syntax fails before output publication. Each extension must match stage 0 byte

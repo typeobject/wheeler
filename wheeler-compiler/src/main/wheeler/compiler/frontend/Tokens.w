@@ -476,6 +476,8 @@ classical class Tokens {
   public const long PUNCTUATION_MINUS = 45;
   /// Names the ASCII `/` punctuation scalar.
   public const long PUNCTUATION_SLASH = 47;
+  /// Names the ASCII `:` punctuation scalar.
+  public const long PUNCTUATION_COLON = 58;
   /// Names the ASCII `;` punctuation scalar.
   public const long PUNCTUATION_SEMICOLON = 59;
   /// Names the ASCII `<` punctuation scalar.
