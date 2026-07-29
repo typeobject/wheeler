@@ -27,6 +27,7 @@ classical class ProgramCodegen {
   private const long RESULT_SLOT_ARGUMENT_BASE = 0;
   private const long RESULT_SLOT_ARGUMENT_COUNT = 0;
   private const long MAX_HELPER_CALLS = 2;
+  private const long LOGICAL_RESULT_CALL_LOCALS = 2;
 
   private boolean resultCall(long opcode) {
     return opcode == STATEMENT_LOCAL_CALL_NAMED;
@@ -34,7 +35,10 @@ classical class ProgramCodegen {
 
   private long physicalResultSlotOpcode(long opcode) {
     if (resolvedLocalLongAssertion(opcode)) {
-      return opcode - RESULT_SLOT_LOGICAL_RESULT_LOCAL + RESULT_VALUE_OFFSET;
+      long source = opcode - STATEMENT_ASSERT_LOCAL_LONG_BASE;
+      long priorResultSlots = (source + RESULT_SLOT_LOGICAL_RESULT_LOCAL)
+        / LOGICAL_RESULT_CALL_LOCALS;
+      return STATEMENT_ASSERT_LOCAL_LONG_BASE + source + priorResultSlots;
     }
 
     return opcode;

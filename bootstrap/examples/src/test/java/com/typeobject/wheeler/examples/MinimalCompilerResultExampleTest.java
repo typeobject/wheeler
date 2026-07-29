@@ -30,6 +30,12 @@ class MinimalCompilerResultExampleTest {
     assertTrue(artifact.function(0).implicitResultSlot());
     assertEquals(artifact.function(0).forward(), artifact.function(0).inverse());
     assertEquals(1, artifact.proofCertificates().size());
+
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class RepeatedReversibleResult { rev long answer() { return -1; } "
+            + "entry void main() { long first = answer(); long second = answer(); "
+            + "assert(first == -1); assert(second == -1); } }");
   }
 
   @Test

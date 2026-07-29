@@ -7,11 +7,14 @@ import wheeler.compiler.class_layouts;
 import wheeler.compiler.helper_calls;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
+import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.sequences;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.tokens;
 
 classical class HelperPrograms {
+  private const long LOGICAL_RESULT_CALL_LOCALS = 2;
+
   private boolean resultStatement(long opcode) {
     if (opcode == STATEMENT_RETURN_BOOLEAN_NOT_NAMED) {
       return true;
@@ -57,20 +60,34 @@ classical class HelperPrograms {
   }
 
   private boolean resultSlotEntryValid(StatementSequence sequence) {
-    if (0 < sequence.count) {} else {
-      return false;
-    }
-
-    if (sequence.opcodes[0] == STATEMENT_LOCAL_CALL_NAMED) {} else {
-      return false;
-    }
-
-    long statement = 1;
+    long statement = 0;
+    long callCount = 0;
     while (statement < sequence.count) limit MAX_MINIMAL_STATEMENTS {
-      if (
-        sequence.opcodes[statement] == STATEMENT_ASSERT_LOCAL_LONG_BASE
-          + RESULT_SLOT_LOGICAL_RESULT_LOCAL
-      ) {} else {
+      if (sequence.opcodes[statement] == STATEMENT_LOCAL_CALL_NAMED) {
+        callCount += 1;
+        statement += 1;
+      } else {
+        break;
+      }
+    }
+
+    if (0 < callCount) {} else {
+      return false;
+    }
+
+    long logicalCallLocals = callCount * LOGICAL_RESULT_CALL_LOCALS;
+    while (statement < sequence.count) limit MAX_MINIMAL_STATEMENTS {
+      long opcode = sequence.opcodes[statement];
+      if (resolvedLocalLongAssertion(opcode)) {} else {
+        return false;
+      }
+
+      long source = opcode - STATEMENT_ASSERT_LOCAL_LONG_BASE;
+      if (source % LOGICAL_RESULT_CALL_LOCALS == RESULT_SLOT_LOGICAL_RESULT_LOCAL) {} else {
+        return false;
+      }
+
+      if (source < logicalCallLocals) {} else {
         return false;
       }
 

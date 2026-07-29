@@ -664,11 +664,11 @@ and exact `Holding(k)` in inverse code before changing either register.
 
 The Wheeler-native compiler now emits this complete first vertical slice. It accepts one
 zero-argument `rev long` helper returning a signed literal or evaluated constant, an
-optional generated-inverse theorem, and one entry result call followed by signed checks of
-that result. Differential tests compare the complete artifact with stage 0 before running
-it. Boolean results, computed result expressions, extra body statements, and a second
-result call still fail without publication. That boundary is dull on purpose. A reversible
-ABI is a poor place to improvise jazz.
+optional generated-inverse theorem, and one or more leading entry result calls followed
+by signed checks of those results. Differential tests compare the complete artifacts with
+stage 0 before running them. Boolean results, computed result expressions, extra body
+statements, and calls after the checks still fail without publication. That boundary is
+dull on purpose. A reversible ABI is a poor place to improvise jazz.
 
 Preserved-source, move, and loan families receive identities when they execute. The
 registry does not reserve vague numbers and call that architecture. Existing
