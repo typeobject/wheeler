@@ -6,8 +6,9 @@ Java does not get a weekend cottage here.
 
 ## Package boundary
 
-`compiler/Driver.w` is the stateless compiler API. `MinimalCompiler.w` is its executable
-wrapper and publishes only the verified output range. Identity tools call the same API
+`compiler/Core.w` owns canonical lowering and artifact verification. `compiler/Driver.w`
+owns the stateless source-graph API. `MinimalCompiler.w` is its executable wrapper and
+publishes only the verified output range. Identity tools call the same API
 instead of maintaining a shadow compiler with a fake moustache.
 
 The package keeps responsibilities narrow:
@@ -18,6 +19,8 @@ The package keeps responsibilities narrow:
   constants.
 - `compiler/ir` owns opcode, instruction-form, type, and proof identities.
 - `compiler/backend` owns type tables, strings, control flow, returns, and encoding.
+- `compiler/Core.w` assembles and verifies one already linked source.
+- `compiler/Driver.w` resolves bounded module graphs before invoking the core.
 - `compiler/verification` owns complete check-before-publication artifact validation.
 
 `wheeler.package.yaml`, its exact lock, and the canonical workspace sources define the
