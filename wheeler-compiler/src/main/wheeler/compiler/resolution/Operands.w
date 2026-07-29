@@ -207,6 +207,29 @@ classical class Operands {
       }
     }
 
+    if (namedLiteralComparisonConditional(sourceOpcode)) {
+      long comparisonOperandToken = literalComparisonConditionalOperandToken(
+        source,
+        tokenStarts,
+        statementStart,
+        sourceOpcode
+      );
+      if (loopOperandNamed(source, tokenStarts, comparisonOperandToken)) {
+        ConstantResolution comparisonOperandConstant = resolveClassConstant(
+          source,
+          tokenStarts,
+          tokenLengths,
+          comparisonOperandToken,
+          true
+        );
+        if (comparisonOperandConstant.valid) {
+          return comparisonOperandConstant.value;
+        }
+
+        return -1;
+      }
+    }
+
     if (sourceOpcode == STATEMENT_ASSERT_EQ) {
       long globalAssertionRight = statementStart + 5;
       if (loopOperandNamed(source, tokenStarts, globalAssertionRight)) {
@@ -861,22 +884,12 @@ classical class Operands {
     }
 
     if (namedLiteralComparisonConditional(opcode)) {
-      long comparisonToken = statementStart + 5;
-      if (literalComparisonConditionalLessThan(opcode)) {
-        comparisonToken -= 1;
-      }
-
-      long comparisonWidth = 1;
-      if (utf8Scalar(source, tokenStarts[comparisonToken]) == PUNCTUATION_MINUS) {
-        comparisonWidth = 2;
-      }
-
-      long comparisonOperandToken = comparisonToken + comparisonWidth + 5;
-      if (literalComparisonConditionalAssignment(opcode)) {
-        comparisonOperandToken -= 1;
-      }
-
-      return comparisonOperandToken;
+      return literalComparisonConditionalOperandToken(
+        source,
+        tokenStarts,
+        statementStart,
+        opcode
+      );
     }
 
     if (namedLocalConditional(opcode)) {

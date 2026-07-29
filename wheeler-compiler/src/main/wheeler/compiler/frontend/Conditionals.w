@@ -141,13 +141,16 @@ classical class Conditionals {
       operandToken += 1;
     }
 
-    long operandWidth = signedNumberWidth(source, tokenKinds, tokenStarts, operandToken);
-    if (operandWidth < 1) {
-      return -1;
-    }
+    long operandWidth = 1;
+    if (tokenKinds[operandToken] == 1) {} else {
+      operandWidth = signedNumberWidth(source, tokenKinds, tokenStarts, operandToken);
+      if (operandWidth < 1) {
+        return -1;
+      }
 
-    if (signedNumberValid(source, tokenStarts, tokenLengths, operandToken) == false) {
-      return -1;
+      if (signedNumberValid(source, tokenStarts, tokenLengths, operandToken) == false) {
+        return -1;
+      }
     }
 
     if (
@@ -310,6 +313,31 @@ classical class Conditionals {
     }
 
     return operandToken - statementStart + operandWidth + 2;
+  }
+
+  /// Returns the global-update operand token in one signed comparison condition.
+  public long literalComparisonConditionalOperandToken(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    long statementStart,
+    long opcode
+  ) {
+    long comparisonToken = statementStart + 5;
+    if (literalComparisonConditionalLessThan(opcode)) {
+      comparisonToken -= 1;
+    }
+
+    long comparisonWidth = 1;
+    if (utf8Scalar(source, tokenStarts[comparisonToken]) == PUNCTUATION_MINUS) {
+      comparisonWidth = 2;
+    }
+
+    long operandToken = comparisonToken + comparisonWidth + 5;
+    if (literalComparisonConditionalAssignment(opcode)) {
+      operandToken -= 1;
+    }
+
+    return operandToken;
   }
 
   /// Checks for a named signed literal-comparison condition.

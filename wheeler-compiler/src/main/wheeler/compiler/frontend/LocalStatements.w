@@ -447,6 +447,25 @@ classical class LocalStatements {
           }
         }
 
+        long comparisonOperandToken = literalComparisonConditionalOperandToken(
+          source,
+          tokenStarts,
+          statementStart,
+          opcode
+        );
+        if (loopOperandNamed(source, tokenStarts, comparisonOperandToken)) {
+          ConstantResolution comparisonOperandConstant = resolveClassConstant(
+            source,
+            tokenStarts,
+            tokenLengths,
+            comparisonOperandToken,
+            true
+          );
+          if (comparisonOperandConstant.valid == false) {
+            return -1;
+          }
+        }
+
         return namedLiteralComparisonConditionalBase(opcode) + comparisonSourceLocal;
       }
 
