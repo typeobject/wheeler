@@ -59,7 +59,8 @@ final class BorrowWindowVerifier {
   private static int nextCall(List<Instruction> body, int pc) {
     for (int next = pc + 1; next < body.size(); next++) {
       Opcode opcode = body.get(next).opcode();
-      if (opcode == Opcode.CALL_VALUE || opcode == Opcode.CALL_VOID) {
+      if (opcode == Opcode.CALL_VALUE || opcode == Opcode.CALL_VOID
+          || opcode == Opcode.CALL_RESULT_SLOT || opcode == Opcode.UNCALL_RESULT_SLOT) {
         return next;
       }
       if (opcode != Opcode.LOCAL_MOVE && opcode != Opcode.OWNED_MOVE && !isBorrow(opcode)) {

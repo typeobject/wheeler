@@ -27,6 +27,14 @@ classical class ProofVerifier {
       return true;
     }
 
+    if (opcode == OPCODE_CALL_RESULT_SLOT) {
+      return true;
+    }
+
+    if (opcode == OPCODE_UNCALL_RESULT_SLOT) {
+      return true;
+    }
+
     if (opcode == OPCODE_JUMP) {
       return true;
     }
@@ -61,6 +69,10 @@ classical class ProofVerifier {
 
     if (opcode == OPCODE_EXPECT_TRUE) {
       return OPCODE_EXPECT_TRUE;
+    }
+
+    if (opcode == OPCODE_RESULT_FILL_CONSTANT) {
+      return OPCODE_RESULT_FILL_CONSTANT;
     }
 
     return -1;
@@ -125,6 +137,12 @@ classical class ProofVerifier {
   }
 
   private long verifyGeneratedInverse(borrow byteview artifact, long descriptor, long codeOffset) {
+    long flags = readUnsigned(artifact, descriptor + 8, 4);
+    long returnOpcode = OPCODE_RETURN;
+    if (flags == 13) {
+      returnOpcode = OPCODE_RETURN_RESULT_SLOT;
+    }
+
     long forwardOffset = readUnsigned(artifact, descriptor + 12, 4);
     long forwardLength = readUnsigned(artifact, descriptor + 16, 4);
     long inverseOffset = readUnsigned(artifact, descriptor + 20, 4);
@@ -137,7 +155,7 @@ classical class ProofVerifier {
     }
 
     long forwardReturn = instructionCursor(artifact, forwardStart, forwardCount - 1);
-    if (differs(readUnsigned(artifact, forwardReturn, 2), OPCODE_RETURN)) {
+    if (differs(readUnsigned(artifact, forwardReturn, 2), returnOpcode)) {
       return 0;
     }
 
@@ -163,7 +181,7 @@ classical class ProofVerifier {
       inverseIndex += 1;
     }
 
-    if (differs(readUnsigned(artifact, inverseCursor, 2), OPCODE_RETURN)) {
+    if (differs(readUnsigned(artifact, inverseCursor, 2), returnOpcode)) {
       return 0;
     }
 
@@ -254,8 +272,11 @@ classical class ProofVerifier {
 
     long descriptor = functionsOffset + 4 + subject * 40;
     if (rule == PROOF_GENERATED_INVERSE) {
-      if (differs(readUnsigned(artifact, descriptor + 8, 4), 1)) {
-        return 0;
+      long functionFlags = readUnsigned(artifact, descriptor + 8, 4);
+      if (functionFlags == 1) {} else {
+        if (functionFlags == 13) {} else {
+          return 0;
+        }
       }
 
       long argumentByte = 0;

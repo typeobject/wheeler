@@ -448,6 +448,17 @@ Covers: Recursive signed value call under frame and step ceilings.
 
 Expected result: `result = 6`.
 
+### `ReversibleResult.w`
+
+Source: [`ReversibleResult.w`](../../wheeler-examples/src/main/wheeler/classical/control/ReversibleResult.w).
+
+Covers: A signed `return -1;` relation, the implicit caller-owned result slot, dedicated
+call and return instructions, and one generated-inverse certificate. Core conformance
+also commits VM history between the forward and inverse call. The inverse checks
+`Holding(-1)` instead of asking the debugger what happened.
+
+Expected result: `observed = -1`.
+
 ### `RegionStorage.w`
 
 Source: [`RegionStorage.w`](../../wheeler-examples/src/main/wheeler/classical/ownership/RegionStorage.w).

@@ -256,9 +256,8 @@ final class SourceParser extends SourceStatementParser {
     }
     SourceTestCaseParser.validateShape(
         test, domain, returnsValue, parameters, testCases, start);
-    if ((reversible || coherent || unitary) && (returnsValue || !parameters.isEmpty())) {
-      fail(start, "parameters and return values are currently ordinary classical only");
-    }
+    SourceResultParser.validateSpecialMethodShape(
+        start, reversible, coherent, unitary, returnType, !parameters.isEmpty());
 
     if (unitary) {
       circuits.add(parseCircuit(name, start.line()));
@@ -318,6 +317,8 @@ final class SourceParser extends SourceStatementParser {
         SourceCallParser.parseVoid(this, body);
       } else if (structuredStatements && isAssignmentStart()) {
         parseStructuredAssignment(body);
+      } else if (!structuredStatements && valueReturnsAllowed && matchText("return")) {
+        SourceResultParser.parseReturn(this, body, previous(), true);
       } else if (!structuredStatements
           && (checkLocalType() || checkText("if") || checkText("while") || checkText("for")
               || checkText("match") || checkText("return") || checkText("break")

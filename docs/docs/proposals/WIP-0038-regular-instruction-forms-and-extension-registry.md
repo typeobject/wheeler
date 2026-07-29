@@ -275,7 +275,28 @@ Extension metadata names task descriptors, memory model, schedule plan, event re
 
 ## Integration with reversible result slots
 
-WIP-0041 requires regular forms for result slot, source place, constant, result type, ownership mode, and inverse relation operands. This proposal assigns identities only when compiler, verifier, VM, disassembler, rewind, generated inverse, and malformed-artifact handling land together. Existing `RETURN_VALUE` keeps its current ordinary meaning. A new inverse contract does not arrive disguised as an old opcode.
+The first WIP-0041 scalar slice assigns these base identities:
+
+| Opcode | Identity | Ordered roles |
+| --- | ---: | --- |
+| `CALL_RESULT_SLOT` | `0x0205` | function, argument base, argument count, result slot |
+| `UNCALL_RESULT_SLOT` | `0x0206` | function, argument base, argument count, result slot |
+| `RESULT_FILL_CONSTANT` | `0x0207` | result slot, immediate |
+| `RETURN_RESULT_SLOT` | `0x0208` | result slot |
+
+A result slot names two adjacent typed frame registers in this first classical ABI. The
+first is a Boolean presence tag. The second has the declared result type. Function flag
+`0x8`, combined with reversible and value-result flags as `0xd`, declares the implicit
+slot and binds it to the final two callee registers.
+
+The compiler, decoder, verifier, VM, disassembler, rewind path, generated-inverse kernel,
+malformed-artifact suite, and Wheeler-native verifier consume these identities together.
+`RESULT_FILL_CONSTANT` is self-inverse under the function direction and checks exact
+vacancy or occupancy before mutation. Existing `RETURN_VALUE` keeps its ordinary
+direct-result meaning. It has not been issued a reversible hat and told to act natural.
+
+Preserved-source, owner-move, loan, and coherent result forms remain unassigned. They land
+only with their complete operand roles and execution contract.
 
 ## References
 - [WIP-0041](WIP-0041-reversible-result-slots-and-explicit-presence-values.md)

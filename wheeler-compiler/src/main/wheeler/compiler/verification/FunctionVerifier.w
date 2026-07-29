@@ -201,7 +201,11 @@ classical class FunctionVerifier {
           if (flags == 4) {
             resultCount = 1;
           } else {
-            return 0;
+            if (flags == 13) {
+              resultCount = 1;
+            } else {
+              return 0;
+            }
           }
         }
       }
@@ -235,7 +239,12 @@ classical class FunctionVerifier {
         return 0;
       }
 
-      if (flags == 1) {
+      boolean reversibleDescriptor = flags == 1;
+      if (flags == 13) {
+        reversibleDescriptor = true;
+      }
+
+      if (reversibleDescriptor) {
         if (differs(parameterCount, 0)) {
           return 0;
         }
@@ -280,6 +289,26 @@ classical class FunctionVerifier {
       }
 
       long activeTypes = typeTable + (typeOffset + resultCount) * 4;
+      long resultSlotBody = 0;
+      if (flags == 13) {
+        resultSlotBody = 1;
+        if (1 < localCount) {} else {
+          return 0;
+        }
+
+        if (
+          readUnsigned(artifact, activeTypes + (localCount - 2) * 4, 4) == TYPE_BOOLEAN
+        ) {} else {
+          return 0;
+        }
+
+        if (
+          readUnsigned(artifact, activeTypes + (localCount - 1) * 4, 4) == resultType
+        ) {} else {
+          return 0;
+        }
+      }
+
       if (
         verifyTypeWindow(
           artifact,
@@ -316,13 +345,14 @@ classical class FunctionVerifier {
           localCount,
           activeTypes,
           resultType,
+          resultSlotBody,
           entryBody
         ) == 0
       ) {
         return 0;
       }
 
-      if (flags == 1) {
+      if (reversibleDescriptor) {
         if (
           verifyFunctionCode(
             artifact,
@@ -339,7 +369,8 @@ classical class FunctionVerifier {
             functionCount,
             localCount,
             activeTypes,
-            0,
+            resultType,
+            resultSlotBody,
             0
           ) == 0
         ) {

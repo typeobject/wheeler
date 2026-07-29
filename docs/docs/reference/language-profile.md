@@ -251,7 +251,17 @@ Slot<long> held = new Slot<long>.Holding(9);
 
 The compiler specializes each used `Slot<T>` to one closed nominal variant descriptor named by its exact payload type. `Vacant` carries no payload. `Holding` carries one `T`. Nested slots remain distinct, so `Slot<Slot<long>>.Holding(Slot<long>.Vacant())` is not outer vacancy. Equality, calls, returns, bytecode encoding, exhaustive matching, and VM rewind use the existing verified variant machinery.
 
-This initial classical slice accepts signed, Boolean, `Done`, fixed scalar array, and nested-slot payloads. It rejects nominal aggregates until their transitive ownership evidence lands. It also rejects owners, mutable storage, byte views, and nonescaping slices. Ordinary functions may return slots. Reversible result-slot ABI, affine payload derivation, constructor inference, general generic specialization, and coherent slot encoding remain WIP-0041 work. The explicit `new Slot<T>.Case(...)` spelling keeps the parser honest until those pieces land. Sugar can wait outside in the rain.
+This initial classical slice accepts signed, Boolean, `Done`, fixed scalar array, and nested-slot payloads. It rejects nominal aggregates until their transitive ownership evidence lands. It also rejects owners, mutable storage, byte views, and nonescaping slices. Ordinary functions may return slots.
+
+The first reversible result ABI accepts one zero-argument `rev long` function with one
+tail signed-literal or evaluated-constant return. The caller creates an implicit vacant
+slot. Forward execution fills it, and generated inverse execution checks the exact held
+constant before restoring vacancy. Four dedicated WIP-0038 instructions carry that
+relation. Existing ordinary direct returns remain unchanged. Parameters, computed and
+multiple returns, affine payload derivation, constructor inference, general generic
+specialization, and coherent slot encoding remain WIP-0041 work. The explicit
+`new Slot<T>.Case(...)` spelling keeps the parser honest until those pieces land. Sugar
+can wait outside in the rain.
 
 ## Fixed arrays
 

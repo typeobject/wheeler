@@ -8,6 +8,26 @@ import java.util.List;
 final class SourceResultParser {
   private SourceResultParser() {}
 
+  static void validateSpecialMethodShape(
+      SourceToken start,
+      boolean reversible,
+      boolean coherent,
+      boolean unitary,
+      String returnType,
+      boolean hasParameters) {
+    boolean returnsValue = !returnType.equals("void");
+    if ((coherent || unitary) && (returnsValue || hasParameters)) {
+      SourceTokenCursor.fail(
+          start, "coherent and unitary parameters and returns are not yet available");
+    }
+    if (reversible && hasParameters) {
+      SourceTokenCursor.fail(start, "reversible parameters are not yet available");
+    }
+    if (reversible && returnsValue && !returnType.equals("long")) {
+      SourceTokenCursor.fail(start, "the first reversible result-slot profile returns long");
+    }
+  }
+
   static void parseReturn(
       SourceParser parser,
       List<Statement> body,

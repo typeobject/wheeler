@@ -166,6 +166,7 @@ classical class InstructionVerifier {
     long activeEnd,
     long activeTypes,
     long activeResultType,
+    long activeResultSlot,
     long functionsOffset
   ) {
     if (opcode == OPCODE_HALT) {
@@ -302,6 +303,84 @@ classical class InstructionVerifier {
             voidArgumentBase,
             voidArgumentCount
           );
+        }
+      }
+
+      return 0;
+    }
+
+    boolean resultSlotCall = opcode == OPCODE_CALL_RESULT_SLOT;
+    if (opcode == OPCODE_UNCALL_RESULT_SLOT) {
+      resultSlotCall = true;
+    }
+
+    if (resultSlotCall) {
+      long slotArgumentBase = readUnsigned(artifact, cursor + 16, 8);
+      long slotArgumentCount = readUnsigned(artifact, cursor + 24, 8);
+      long resultSlot = readUnsigned(artifact, cursor + 32, 8);
+      if (first < functionCount - 1) {
+        if (resultSlot + 1 < localCount) {
+          if (functionHasFlag(artifact, functionsOffset, first, 13)) {
+            if (localType(artifact, activeTypes, resultSlot) == TYPE_BOOLEAN) {
+              if (
+                localType(artifact, activeTypes, resultSlot + 1) == functionResultType(
+                  artifact,
+                  functionsOffset,
+                  functionCount,
+                  first
+                )
+              ) {
+                return callArgumentsValid(
+                  artifact,
+                  functionsOffset,
+                  functionCount,
+                  activeTypes,
+                  localCount,
+                  first,
+                  slotArgumentBase,
+                  slotArgumentCount
+                );
+              }
+            }
+          }
+        }
+      }
+
+      return 0;
+    }
+
+    if (opcode == OPCODE_RESULT_FILL_CONSTANT) {
+      if (activeResultSlot == 1) {} else {
+        return 0;
+      }
+
+      if (1 < localCount) {
+        if (first == localCount - 2) {
+          if (localType(artifact, activeTypes, first) == TYPE_BOOLEAN) {
+            if (localType(artifact, activeTypes, first + 1) == TYPE_SIGNED) {
+              if (activeResultType == TYPE_SIGNED) {
+                return 1;
+              }
+            }
+          }
+        }
+      }
+
+      return 0;
+    }
+
+    if (opcode == OPCODE_RETURN_RESULT_SLOT) {
+      if (activeResultSlot == 1) {} else {
+        return 0;
+      }
+
+      if (1 < localCount) {
+        if (first == localCount - 2) {
+          if (localType(artifact, activeTypes, first) == TYPE_BOOLEAN) {
+            if (localType(artifact, activeTypes, first + 1) == activeResultType) {
+              return 1;
+            }
+          }
         }
       }
 
@@ -534,17 +613,35 @@ classical class InstructionVerifier {
     long localCount,
     long activeTypes,
     long resultType,
+    long resultSlotBody,
     long entryBody
   ) {
     long cursor = codeStart;
     long end = codeStart + codeLength;
     long lastOpcode = -1;
+    long instructionIndex = 0;
     while (cursor < end) limit MAX_CODE_INSTRUCTIONS {
       if (end - cursor < 8) {
         return 0;
       }
 
       long opcode = readUnsigned(artifact, cursor, 2);
+      if (resultSlotBody == 1) {
+        if (instructionIndex == 0) {
+          if (opcode == OPCODE_RESULT_FILL_CONSTANT) {} else {
+            return 0;
+          }
+        } else {
+          if (instructionIndex == 1) {
+            if (opcode == OPCODE_RETURN_RESULT_SLOT) {} else {
+              return 0;
+            }
+          } else {
+            return 0;
+          }
+        }
+      }
+
       long operandCount = readUnsigned(artifact, cursor + 2, 2);
       long expectedOperands = expectedOperandCount(opcode);
       if (expectedOperands < 0) {
@@ -583,6 +680,7 @@ classical class InstructionVerifier {
           end,
           activeTypes,
           resultType,
+          resultSlotBody,
           functionsOffset
         ) == 0
       ) {
@@ -619,12 +717,29 @@ classical class InstructionVerifier {
         }
       }
 
+      if (opcode == OPCODE_RETURN_RESULT_SLOT) {
+        if (entryBody == 0) {
+          if (resultSlotBody == 1) {} else {
+            return 0;
+          }
+        } else {
+          return 0;
+        }
+      }
+
       lastOpcode = opcode;
       cursor += instructionLength;
+      instructionIndex += 1;
     }
 
     if (differs(cursor, end)) {
       return 0;
+    }
+
+    if (resultSlotBody == 1) {
+      if (differs(instructionIndex, 2)) {
+        return 0;
+      }
     }
 
     if (entryBody == 1) {
@@ -636,8 +751,14 @@ classical class InstructionVerifier {
     }
 
     if (0 < resultType) {
-      if (lastOpcode == OPCODE_RETURN_VALUE) {
-        return 1;
+      if (resultSlotBody == 1) {
+        if (lastOpcode == OPCODE_RETURN_RESULT_SLOT) {
+          return 1;
+        }
+      } else {
+        if (lastOpcode == OPCODE_RETURN_VALUE) {
+          return 1;
+        }
       }
 
       return 0;

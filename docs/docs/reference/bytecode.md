@@ -75,7 +75,12 @@ u64 operands[operand_count]
 
 The opcode selects one named instruction form. Each form fixes an ordered semantic role list, such as destination, source, immediate, function, argument window, result, owner, index, or target. The writer derives `operand_count_form` and `byte_length` from that list. The reader checks both wire values before it constructs an instruction.
 
-Related register instructions keep destination first and sources after it. `CALL_VALUE` uses function, argument base, argument count, and result. Stable Java opcode identities live in `OpcodeIds`, while `InstructionForm` owns roles. The verifier reports the opcode and canonical role for bad local types, references, windows, descriptors, tags, indices, limits, and storage operands. One registry label serves verifier diagnostics and disassembly, so the Turkish locale cannot rename `limit` while nobody is looking. The stage-0 readability gate parses the Wheeler-native opcode and instruction-form registries. It rejects any consumed identity or operand count that differs from `OpcodeIds` and `InstructionForm`. `compiler/ir/InstructionForms.w` is the sole native operand-count owner. Wheeler-native emitters use named nullary through quinary form constants and one named operand width. Numeric arities no longer decorate emission sites like lost screws on a workbench.
+Related register instructions keep destination first and sources after it. `CALL_VALUE`
+uses function, argument base, argument count, and result. Reversible scalar results use
+`CALL_RESULT_SLOT` or `UNCALL_RESULT_SLOT` with function, argument base, argument count,
+and result slot. `RESULT_FILL_CONSTANT` carries result slot and immediate.
+`RETURN_RESULT_SLOT` carries the same slot. Stable Java opcode identities live in
+`OpcodeIds`, while `InstructionForm` owns roles. The verifier reports the opcode and canonical role for bad local types, references, windows, descriptors, tags, indices, limits, and storage operands. One registry label serves verifier diagnostics and disassembly, so the Turkish locale cannot rename `limit` while nobody is looking. The stage-0 readability gate parses the Wheeler-native opcode and instruction-form registries. It rejects any consumed identity or operand count that differs from `OpcodeIds` and `InstructionForm`. `compiler/ir/InstructionForms.w` is the sole native operand-count owner. Wheeler-native emitters use named nullary through quinary form constants and one named operand width. Numeric arities no longer decorate emission sites like lost screws on a workbench.
 
 Unknown executable opcodes always fail. A valid byte length locates the next record, but it cannot make skipped behavior safe. Wheeler has no runtime vendor-opcode registration.
 
@@ -142,6 +147,14 @@ Type code `6` is an affine, fixed-capacity signed map. `MAP_ALLOC` charges 24 by
 Type code `7` is an affine immutable UTF-8 owner. `UTF8_FREEZE` consumes mutable bytes only after full strict validation. It changes the allocation kind under logged rewind and initializes the destination. Mutation opcodes continue to accept only mutable byte storage.
 
 A function result may return any owned storage type. `RETURN_VALUE` consumes the callee local, then makes the caller destination the sole owner. Flow verification requires every other callee owner to be dead.
+
+Function flag `0x8` declares the first implicit reversible result-slot ABI. It is valid
+only with reversible flag `0x1` and value-result flag `0x4`, giving canonical flags
+`0xd`. The final two local types must be Boolean and the declared signed result type. The
+Boolean is the presence tag. Forward `RESULT_FILL_CONSTANT` requires tag and payload
+zero, then writes tag one and the exact immediate. Inverse execution requires tag one and
+that exact immediate, then restores both registers to zero. Both checks finish before
+mutation. Ordinary `RETURN_VALUE` descriptors retain their previous bytes and behavior.
 
 A returned buffer, map, or UTF-8 value must live in a caller region reached through a nonescaping region loan. A callee cannot return storage while abandoning its owning region. Slices, loans, and `byteview` values cannot be results.
 

@@ -106,7 +106,9 @@ public final class ProofKernel {
       }
       expected.add(function.forward().get(index).inverse());
     }
-    expected.add(Instruction.of(Opcode.RETURN));
+    expected.add(function.implicitResultSlot()
+        ? Instruction.of(Opcode.RETURN_RESULT_SLOT, function.resultSlotBase())
+        : Instruction.of(Opcode.RETURN));
     if (!expected.equals(function.inverse())) {
       fail(context, "inverse body does not match the finite rule");
     }

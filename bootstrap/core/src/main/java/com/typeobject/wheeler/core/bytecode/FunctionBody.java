@@ -11,6 +11,7 @@ public record FunctionBody(
     int parameterCount,
     List<ValueType> localTypes,
     ValueType resultType,
+    boolean implicitResultSlot,
     List<Instruction> forward,
     List<Instruction> inverse) {
   public FunctionBody {
@@ -24,9 +25,26 @@ public record FunctionBody(
     Objects.requireNonNull(name, "name");
     forward = List.copyOf(forward);
     inverse = List.copyOf(inverse);
+    if (implicitResultSlot
+        && (resultType == null || inverse.isEmpty() || localTypes.size() < 2
+            || !localTypes.get(localTypes.size() - 2).equals(ValueType.BOOLEAN)
+            || !localTypes.getLast().equals(resultType))) {
+      throw new IllegalArgumentException("Implicit result slot signature is invalid");
+    }
   }
 
-
+  public FunctionBody(
+      int id,
+      String name,
+      boolean coherent,
+      int parameterCount,
+      List<ValueType> localTypes,
+      ValueType resultType,
+      List<Instruction> forward,
+      List<Instruction> inverse) {
+    this(
+        id, name, coherent, parameterCount, localTypes, resultType, false, forward, inverse);
+  }
 
   public boolean returnsValue() {
     return resultType != null;
@@ -34,6 +52,13 @@ public record FunctionBody(
 
   public int localCount() {
     return localTypes.size();
+  }
+
+  public int resultSlotBase() {
+    if (!implicitResultSlot) {
+      throw new IllegalStateException("Function has no implicit result slot: " + name);
+    }
+    return localTypes.size() - 2;
   }
 
   public ValueType localType(int index) {

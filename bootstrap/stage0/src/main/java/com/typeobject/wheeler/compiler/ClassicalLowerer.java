@@ -6,6 +6,7 @@ import com.typeobject.wheeler.core.bytecode.ArrayType;
 import com.typeobject.wheeler.core.bytecode.FunctionBody;
 import com.typeobject.wheeler.core.bytecode.Global;
 import com.typeobject.wheeler.core.bytecode.Instruction;
+import com.typeobject.wheeler.core.bytecode.InstructionForm;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.RecordType;
 import com.typeobject.wheeler.core.bytecode.SliceType;
@@ -141,6 +142,7 @@ final class ClassicalLowerer {
               ? SourceTypeLowerer.resolve(
                   sourceFunction.returnType(), sourceFunction.line(), typeReferences)
               : null,
+          sourceFunction.reversible() && sourceFunction.returnsValue(),
           forward,
           inverse));
     }
@@ -322,7 +324,10 @@ final class ClassicalLowerer {
       }
       result.add(instruction.inverse());
     }
-    result.add(Instruction.of(Opcode.RETURN));
+    result.add(function.returnsValue()
+        ? Instruction.of(Opcode.RETURN_RESULT_SLOT, forward.getLast().operand(
+            InstructionForm.OperandRole.RESULT_SLOT))
+        : Instruction.of(Opcode.RETURN));
     return List.copyOf(result);
   }
 

@@ -18,6 +18,8 @@ public record StepRecord(
     long previousValue,
     int changedLocal,
     long previousLocalValue,
+    int changedSecondaryLocal,
+    long previousSecondaryLocalValue,
     int previousRecordCount,
     int previousVariantCount,
     int previousArrayCount,
@@ -44,6 +46,7 @@ public record StepRecord(
     if (previousRecordCount < 0 || previousVariantCount < 0
         || previousArrayCount < 0 || previousSliceCount < 0
         || previousRegionCount < 0 || previousBufferCount < 0
+        || changedLocal < -1 || changedSecondaryLocal < -1
         || changedRegion < -1 || changedBuffer < -1
         || previousHostOutputLength < 0) {
       throw new IllegalArgumentException("Invalid previous aggregate or ownership state");

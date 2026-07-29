@@ -75,6 +75,9 @@ final class ClassicalLocalAssembler implements SourceStorageLowerer.Context {
   }
 
   ClassicalLowerer.LoweredBody lower() {
+    if (owner.reversible() && owner.returnsValue()) {
+      return lowerReversibleConstantResult();
+    }
     for (Statement statement : owner.statements()) {
       lower(statement);
     }
@@ -92,6 +95,26 @@ final class ClassicalLocalAssembler implements SourceStorageLowerer.Context {
               ? Instruction.of(Opcode.JUMP, target)
               : Instruction.of(Opcode.JUMP_IF_ZERO, patch.conditionLocal(), target));
     }
+    return new ClassicalLowerer.LoweredBody(List.copyOf(output), List.copyOf(localTypes));
+  }
+
+  private ClassicalLowerer.LoweredBody lowerReversibleConstantResult() {
+    List<Statement> statements = owner.statements();
+    if (statements.size() != 2
+        || !statements.get(0).operation().equals("local_const")
+        || !statements.get(1).operation().equals("return_value")
+        || !statements.get(0).arguments().getFirst()
+            .equals(statements.get(1).arguments().getFirst())) {
+      throw new CompilerException(
+          owner.line(), "reversible value functions currently return one signed constant");
+    }
+    long value = SourceParser.parseInteger(
+        statements.get(0).arguments().get(1), statements.get(0).line());
+    localTypes.add(ValueType.BOOLEAN);
+    localTypes.add(ValueType.SIGNED);
+    int resultSlot = localTypes.size() - 2;
+    output.add(Instruction.of(Opcode.RESULT_FILL_CONSTANT, resultSlot, value));
+    output.add(Instruction.of(Opcode.RETURN_RESULT_SLOT, resultSlot));
     return new ClassicalLowerer.LoweredBody(List.copyOf(output), List.copyOf(localTypes));
   }
 
@@ -486,14 +509,29 @@ final class ClassicalLocalAssembler implements SourceStorageLowerer.Context {
           statement.line(), "value call signature mismatch: " + functionName);
     }
     int argumentBase = lowerCallArguments(statement, signature, 2);
-    int destination = declareInternal(
-        destinationName, statement.line(), signature.resultType());
-    output.add(Instruction.of(
-        Opcode.CALL_VALUE,
-        signature.id(),
-        argumentBase,
-        argumentCount,
-        destination));
+    if (reversibleFunctions.getOrDefault(functionName, false)) {
+      int resultSlot = declareInternal(
+          "$result" + assemblyTemporary++, statement.line(), ValueType.BOOLEAN);
+      int destination = declareInternal(
+          destinationName, statement.line(), signature.resultType());
+      output.add(Instruction.of(Opcode.LOCAL_CONST, resultSlot, 0));
+      output.add(Instruction.of(Opcode.LOCAL_CONST, destination, 0));
+      output.add(Instruction.of(
+          Opcode.CALL_RESULT_SLOT,
+          signature.id(),
+          argumentBase,
+          argumentCount,
+          resultSlot));
+    } else {
+      int destination = declareInternal(
+          destinationName, statement.line(), signature.resultType());
+      output.add(Instruction.of(
+          Opcode.CALL_VALUE,
+          signature.id(),
+          argumentBase,
+          argumentCount,
+          destination));
+    }
   }
 
   private void lowerVoidCall(Statement statement) {

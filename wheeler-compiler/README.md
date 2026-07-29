@@ -62,6 +62,13 @@ canonical owner-qualified uses and preserves stage-0 artifact bytes. Root collis
 general multi-file linking remain stage-0 work
 until native differential artifacts pin them down.
 
+The canonical registry also owns `CALL_RESULT_SLOT`, `UNCALL_RESULT_SLOT`,
+`RESULT_FILL_CONSTANT`, and `RETURN_RESULT_SLOT`. The Wheeler verifier accepts the first
+canonical signed result-slot descriptor and generated-inverse proof emitted by stage 0.
+Stage 0 executes `rev long minusOne() { return -1; }` forward and inverse after history
+commit. Wheeler-native lowering and execution remain open, so the recovery compiler does
+not yet claim this syntax.
+
 The narrow loop body and local constant graph are deliberate limits, not parser folklore.
 Unsupported syntax fails before output publication. Each extension must match stage 0 byte
 for byte before the profile claims it.

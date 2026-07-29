@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler language, type-system, compiler, bytecode, verifier, VM, quantum, proof, library, and tooling maintainers |
 | Created | 2026-07-28 |
-| Updated | 2026-07-28 |
+| Updated | 2026-07-29 |
 | Area | Language, types, return values, reversibility, ownership, quantum values |
 | Depends on | WIP-0001, WIP-0002, WIP-0005, WIP-0011, WIP-0012, WIP-0013, WIP-0028, WIP-0029, WIP-0031, WIP-0033, WIP-0034, WIP-0035, WIP-0038 |
 | Supersedes | None |
@@ -648,21 +648,24 @@ Ordinary functions may retain the direct result descriptor.
 
 ### Instructions
 
-WIP-0038 assigns exact identities and operand roles. Required semantic families are
-conceptually equivalent to:
+WIP-0038 assigns exact identities and operand roles. The first signed constant slice uses:
 
 ```text
-RESULT_FILL_CONSTANT
-RESULT_FILL_FROM
-RESULT_MOVE
-RESULT_BORROW
-RESULT_RETURN
-RESULT_UNRETURN
+0x0205 CALL_RESULT_SLOT(function, argument_base, argument_count, result_slot)
+0x0206 UNCALL_RESULT_SLOT(function, argument_base, argument_count, result_slot)
+0x0207 RESULT_FILL_CONSTANT(result_slot, immediate)
+0x0208 RETURN_RESULT_SLOT(result_slot)
 ```
 
-The registry may combine forms only when exact roles and diagnostics remain intact.
-Existing `RETURN_VALUE` artifacts keep their current meaning. The implementation does
-not smuggle a new inverse under an old opcode and hope disassemblers look away.
+One result slot names adjacent Boolean-tag and typed-payload frame registers. Function flag
+`0x8` combines with reversible and value-result flags as `0xd`. The final two callee
+registers hold the implicit slot. `RESULT_FILL_CONSTANT` checks `Vacant` in forward code
+and exact `Holding(k)` in inverse code before changing either register.
+
+Preserved-source, move, and loan families receive identities when they execute. The
+registry does not reserve vague numbers and call that architecture. Existing
+`RETURN_VALUE` artifacts keep their current meaning. The implementation does not smuggle
+a new inverse under an old opcode and hope disassemblers look away.
 
 Each transition still receives an ordinary WIP-0001 event record for rewind. Generated
 language inverses never reference that record.
@@ -725,12 +728,20 @@ diagnostic or trap, and publishes no partial result.
 
 ## Progress
 
+Stage 0 now accepts one zero-argument `rev long` function whose tail return is a signed
+literal or evaluated class constant. It emits the four regular result-slot forms,
+canonical `0xd` function metadata, and a generated inverse. The VM executes `return -1;`,
+commits all rewind history, then uncalls the function from exact `Holding(-1)` back to
+vacancy. A wrong held constant traps before the call stack or slot changes. The
+Wheeler-native verifier independently accepts the artifact and its generated-inverse
+certificate. Native lowering and native execution remain separate work.
+
 - [x] `Done` and `done` parse, typecheck, encode, execute, and reject nonzero physical constants.
 - [x] Closed classical `Slot<T>`, `Vacant`, and `Holding(T)` parse, typecheck, encode, and execute.
 - [x] Planned `Option<T>` APIs and examples use `Slot<T>` or domain-specific result names.
 - [x] Ordinary functions return `Done` and closed classical slots.
-- [ ] Reversible scalar result-slot ABI executes.
-- [ ] `return -1;` runs forward and inverse without VM history.
+- [x] Reversible scalar result-slot ABI executes.
+- [x] `return -1;` runs forward and inverse without VM history.
 - [ ] Copyable and affine-owner return forms execute.
 - [ ] Borrowed results retain exact origins.
 - [ ] Multiple return paths integrate with WIP-0035.
@@ -751,13 +762,13 @@ diagnostic or trap, and publishes no partial result.
 - [ ] Filled affine slots cannot copy and filled must-consume slots cannot drop.
 - [ ] `return -1;` is accepted for `long` and rejected for unsigned output without a valid conversion.
 - [x] Null-like literals fail with one stable source diagnostic.
-- [ ] Reversible constant return fills a vacant result and exact inverse restores vacancy.
-- [ ] The inverse succeeds after VM history commit.
-- [ ] Wrong held constants trap before mutation.
+- [x] Reversible constant return fills a vacant result and exact inverse restores vacancy.
+- [x] The inverse succeeds after VM history commit.
+- [x] Wrong held constants trap before mutation.
 - [ ] Preserved-source fill and affine move round-trip exactly.
 - [ ] Returned loans retain origin and `Slot<borrow T>` is rejected.
 - [x] Nested classical slots distinguish outer vacancy from `Holding(Vacant)`.
-- [ ] Information-losing bodies remain rejected despite a reversible return.
+- [x] Information-losing bodies remain rejected despite a reversible return.
 - [ ] Trapping return expressions leave the result vacant.
 - [ ] Multiple reversible returns require a reconstructible decision.
 - [ ] Classical matching is exhaustive and coherent matching requires control or measurement.
@@ -767,8 +778,8 @@ diagnostic or trap, and publishes no partial result.
 - [ ] Coherent move preserves affine ownership.
 - [ ] Measurement returns classical `Slot<T>` and rejects padding evidence.
 - [ ] Reset remains a reset effect rather than inverse return.
-- [ ] Existing ordinary artifacts retain their meaning.
-- [ ] Unsupported result-slot features reject before execution.
+- [x] Existing ordinary artifacts retain their meaning.
+- [x] Unsupported result-slot features reject before execution.
 - [x] Reference docs describe only the implemented classical `Done` and closed-slot slices.
 
 ## Alternatives

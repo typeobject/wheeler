@@ -263,7 +263,8 @@ public final class BytecodeWriter {
       FunctionOffsets location = offsets.get(function.id());
       int flags = (function.reversible() ? 1 : 0)
           | (function.coherent() ? 2 : 0)
-          | (function.returnsValue() ? 4 : 0);
+          | (function.returnsValue() ? 4 : 0)
+          | (function.implicitResultSlot() ? 8 : 0);
       buffer.putInt(function.id());
       buffer.putInt(strings.get(function.name()));
       buffer.putInt(flags);

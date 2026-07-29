@@ -39,6 +39,14 @@ classical class Opcodes {
   public const long OPCODE_RETURN_VALUE = 0x0203;
   /// Names the compile-time `OPCODE_CALL_VOID` value owned by this module.
   public const long OPCODE_CALL_VOID = 0x0204;
+  /// Calls one reversible value function with a vacant caller result slot.
+  public const long OPCODE_CALL_RESULT_SLOT = 0x0205;
+  /// Calls one reversible value function inverse with its occupied result slot.
+  public const long OPCODE_UNCALL_RESULT_SLOT = 0x0206;
+  /// Exchanges an implicit result slot with one exact signed constant.
+  public const long OPCODE_RESULT_FILL_CONSTANT = 0x0207;
+  /// Returns one implicit result slot to its caller.
+  public const long OPCODE_RETURN_RESULT_SLOT = 0x0208;
   /// Names the compile-time `OPCODE_EXPECT_EQ` value owned by this module.
   public const long OPCODE_EXPECT_EQ = 0x0300;
 

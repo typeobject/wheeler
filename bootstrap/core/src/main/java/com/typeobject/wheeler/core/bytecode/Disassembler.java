@@ -55,6 +55,9 @@ public final class Disassembler {
         output.append(" result=")
             .append(function.resultType().displayName());
       }
+      if (function.implicitResultSlot()) {
+        output.append(" result-slot");
+      }
       if (function.coherent()) {
         output.append(" coherent");
       }

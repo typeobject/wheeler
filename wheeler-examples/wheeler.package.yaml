@@ -308,6 +308,10 @@ targets:
     root: "src/main/wheeler/classical/ownership/RegionStorage.w"
     test: false
   - kind: "deployable"
+    name: "reversibleresult"
+    root: "src/main/wheeler/classical/control/ReversibleResult.w"
+    test: false
+  - kind: "deployable"
     name: "surfacecode"
     root: "src/main/wheeler/quantum/SurfaceCode.w"
     test: false

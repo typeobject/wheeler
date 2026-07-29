@@ -68,6 +68,7 @@ The current opcode set includes:
 - instruction-index branches and global expectations.
 - zero-argument `CALL` and `UNCALL`.
 - typed `CALL_VALUE`, `CALL_VOID`, `RETURN`, and `RETURN_VALUE`.
+- checked `CALL_RESULT_SLOT`, `UNCALL_RESULT_SLOT`, `RESULT_FILL_CONSTANT`, and `RETURN_RESULT_SLOT`.
 - `HALT`.
 
 The direct checked-update fixture matches the final global value produced by the stage-0 VM, and the outer Wheeler run rewinds exactly. The Wheeler compiler also emits the proof-bearing `Counter.w` artifact byte for byte with stage 0. The Wheeler interpreter runs its repeated forward and inverse calls, then finishes at zero.
@@ -108,6 +109,16 @@ A reverse step restores state once. The VM never restores an earlier state and t
 `CALL_VALUE` moves an exact initialized argument window into the callee's parameter registers. The window may include transient verified loans. It also names one caller register whose type matches the declared result.
 
 `RETURN_VALUE` checks the result and moves it back to the caller. Every call and return adds history, including the write to the caller's result register, so each transition can be rewound.
+
+A reversible signed result uses an adjacent Boolean tag and signed payload owned by the
+caller. `CALL_RESULT_SLOT` requires exact vacancy before pushing a frame.
+`UNCALL_RESULT_SLOT` requires `Holding` of the constant expected by the generated inverse
+before pushing a frame. `RESULT_FILL_CONSTANT` performs the checked exchange in the
+callee. `RETURN_RESULT_SLOT` copies both slot registers back atomically. Its history
+record stores both previous caller registers for debugger rewind. Generated language
+inversion reads none of that history. Tests commit history between forward and inverse
+calls because a result relation that works only while the debugger remembers it is not
+much of a relation.
 
 `rewindOne` consumes the newest step record and restores the exact earlier machine state. `VmDataRewinder` restores scalar data through semantic instruction roles before the VM restores control and aggregate deltas. Execution, preflight, call binding, storage checks, and aggregate checks use the same roles. `VmPreflight` owns the complete check-before-mutation pass. The execution loop does not carry a second validator or private operand positions that can drift from the registry. `rewindOne` does not call a function inverse.
 

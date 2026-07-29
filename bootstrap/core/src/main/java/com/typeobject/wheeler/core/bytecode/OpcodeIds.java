@@ -17,6 +17,10 @@ final class OpcodeIds {
   static final int CALL_VALUE = 0x0202;
   static final int RETURN_VALUE = 0x0203;
   static final int CALL_VOID = 0x0204;
+  static final int CALL_RESULT_SLOT = 0x0205;
+  static final int UNCALL_RESULT_SLOT = 0x0206;
+  static final int RESULT_FILL_CONSTANT = 0x0207;
+  static final int RETURN_RESULT_SLOT = 0x0208;
 
   static final int EXPECT_EQ = 0x0300;
   static final int CHECKPOINT = 0x0301;

@@ -57,7 +57,7 @@ class ClassicalExamplesTest {
     machine.run();
 
     assertEquals(MachineStatus.HALTED, machine.status());
-    if (name.equals("Counter.w")) {
+    if (name.equals("Counter.w") || name.equals("ReversibleResult.w")) {
       assertEquals(ProofRule.GENERATED_INVERSE, program.proofCertificates().getFirst().rule());
     } else if (name.equals("FunctionValues.w")) {
       assertEquals(ProofRule.STATIC_STEP_BOUND, program.proofCertificates().getFirst().rule());
@@ -107,6 +107,7 @@ class ClassicalExamplesTest {
             "wordValue", 17L, "byteValue", 65L, "scalarCount", 2L, "mapValue", 23L)),
         Arguments.of("classical/data/Records.w", Map.of("width", 5L, "equal", 1L)),
         Arguments.of("classical/control/RecursiveValue.w", Map.of("result", 6L)),
+        Arguments.of("classical/control/ReversibleResult.w", Map.of("observed", -1L)),
         Arguments.of("classical/ownership/RegionStorage.w", Map.of("first", 7L, "byteValue", 65L, "utf8Scalars", 3L, "validUtf8", 1L, "byteLength", 6L,
             "decodedScalars", 3L, "scalarSum", 8591L, "scratchValue", 19L)),
         Arguments.of(

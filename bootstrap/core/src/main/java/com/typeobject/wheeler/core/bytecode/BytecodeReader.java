@@ -417,7 +417,8 @@ public final class BytecodeReader {
       int parameters = section.getInt();
       int frameSlots = section.getInt();
       int typeOffset = section.getInt();
-      if (id < 0 || !ids.add(id) || (flags & ~7) != 0
+      if (id < 0 || !ids.add(id) || (flags & ~15) != 0
+          || ((flags & 8) != 0 && ((flags & 5) != 5))
           || parameters < 0 || frameSlots < parameters || frameSlots > 65_535
           || typeOffset != expectedTypeOffset) {
         fail("Invalid function descriptor");
@@ -489,6 +490,7 @@ public final class BytecodeReader {
           descriptor.parameterCount(),
           descriptor.localTypes(),
           resultType,
+          (descriptor.flags() & 8) != 0,
           forward,
           inverse));
     }

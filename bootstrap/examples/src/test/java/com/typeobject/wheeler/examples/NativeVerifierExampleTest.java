@@ -75,6 +75,23 @@ class NativeVerifierExampleTest {
     slotVerification.run();
     assertEquals(1, slotVerification.global("verification"));
 
+    byte[] resultSlotArtifact = compiler.compileToBytecode(
+        "classical class ReversibleResultSubject { rev long minusOne() { return -1; } "
+            + "theorem minusOneInverse proves inverse(minusOne); entry void main() { "
+            + "long value = minusOne(); assert(value == -1); } }");
+    VirtualMachine resultSlotVerification = VirtualMachine.withBinaryInput(
+        verifier, resultSlotArtifact);
+    resultSlotVerification.run();
+    assertEquals(1, resultSlotVerification.global("verification"));
+
+    byte[] malformedResultSlot = resultSlotArtifact.clone();
+    int resultTransition = instructionOffset(malformedResultSlot, 0x0207);
+    malformedResultSlot[resultTransition] = 0;
+    malformedResultSlot[resultTransition + 1] = 4;
+    VirtualMachine rejectedResultSlot = VirtualMachine.withBinaryInput(
+        verifier, malformedResultSlot);
+    assertThrows(VmTrap.class, rejectedResultSlot::run);
+
     byte[] invalidDone = doneArtifact.clone();
     int doneConstant = instructionOffset(invalidDone, 0x0400);
     invalidDone[doneConstant + 16] = 1;

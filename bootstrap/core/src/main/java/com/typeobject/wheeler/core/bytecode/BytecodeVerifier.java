@@ -22,6 +22,7 @@ import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.L
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LOCAL;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.OWNER;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT_SLOT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RIGHT_GLOBAL;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RIGHT_SOURCE;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.SOURCE;
@@ -208,6 +209,9 @@ public final class BytecodeVerifier {
             || borrowed(function.resultType())) {
           fail("Borrowed result escapes function " + function.name());
         }
+      }
+      if (function.implicitResultSlot()) {
+        ResultSlotVerifier.verifyFunction(function);
       }
       verifyBody(program, function, function.forward(), false);
       if (function.reversible()) {
@@ -447,6 +451,8 @@ public final class BytecodeVerifier {
       }
       case CALL_VALUE -> verifyArgumentCall(program, owner, instruction, pc, true);
       case CALL_VOID -> verifyArgumentCall(program, owner, instruction, pc, false);
+      case CALL_RESULT_SLOT, UNCALL_RESULT_SLOT ->
+          ResultSlotVerifier.verifyCall(program, owner, instruction, pc);
       case UNCALL -> {
         FunctionBody target = program.function(verifyReference(
             owner, instruction, FUNCTION, pc, program.functions().size(), "function"));
@@ -468,11 +474,16 @@ public final class BytecodeVerifier {
       }
       case RETURN_VALUE -> {
         int source = verifyLocal(owner, instruction, RESULT, pc);
-        if (owner.id() == program.entryFunctionId() || !owner.returnsValue()) {
+        if (owner.id() == program.entryFunctionId() || !owner.returnsValue()
+            || owner.implicitResultSlot()) {
           fail(location(owner, pc) + " invalid value RETURN");
         }
         requireType(owner, instruction, source, RESULT, owner.resultType(), pc);
       }
+      case RESULT_FILL_CONSTANT ->
+          ResultSlotVerifier.verifyFill(owner, instruction, pc);
+      case RETURN_RESULT_SLOT ->
+          ResultSlotVerifier.verifyReturn(program, owner, instruction, pc);
       case COMMIT -> {
         if (inverseBody) {
           fail(location(owner, pc) + " COMMIT cannot appear in an inverse body");
@@ -651,6 +662,9 @@ public final class BytecodeVerifier {
     BitSet[] incoming = new BitSet[body.size()];
     incoming[0] = new BitSet(owner.localCount());
     incoming[0].set(0, owner.parameterCount());
+    if (owner.implicitResultSlot()) {
+      incoming[0].set(owner.resultSlotBase(), owner.resultSlotBase() + 2);
+    }
     ArrayDeque<Integer> work = new ArrayDeque<>();
     work.add(0);
     while (!work.isEmpty()) {
@@ -677,7 +691,9 @@ public final class BytecodeVerifier {
           || instruction.opcode() == Opcode.REGION_DROP) {
         assigned.clear(Math.toIntExact(instruction.operand(LOCAL)));
       } else if (instruction.opcode() == Opcode.CALL_VALUE
-          || instruction.opcode() == Opcode.CALL_VOID) {
+          || instruction.opcode() == Opcode.CALL_VOID
+          || instruction.opcode() == Opcode.CALL_RESULT_SLOT
+          || instruction.opcode() == Opcode.UNCALL_RESULT_SLOT) {
         int base = Math.toIntExact(instruction.operand(ARGUMENT_BASE));
         int count = Math.toIntExact(instruction.operand(ARGUMENT_COUNT));
         for (int local = base; local < base + count; local++) {
@@ -734,16 +750,18 @@ public final class BytecodeVerifier {
       FunctionBody owner, Instruction instruction, int pc, BitSet assigned) {
     if (instruction.opcode() == Opcode.CALL_VALUE
         || instruction.opcode() == Opcode.CALL_VOID
+        || instruction.opcode() == Opcode.CALL_RESULT_SLOT
+        || instruction.opcode() == Opcode.UNCALL_RESULT_SLOT
         || instruction.opcode() == Opcode.RECORD_NEW
         || instruction.opcode() == Opcode.VARIANT_NEW
         || instruction.opcode() == Opcode.ARRAY_NEW) {
       InstructionForm.OperandRole baseRole = switch (instruction.opcode()) {
-        case CALL_VALUE, CALL_VOID -> ARGUMENT_BASE;
+        case CALL_VALUE, CALL_VOID, CALL_RESULT_SLOT, UNCALL_RESULT_SLOT -> ARGUMENT_BASE;
         case RECORD_NEW, VARIANT_NEW, ARRAY_NEW -> ELEMENT_BASE;
         default -> throw new IllegalStateException();
       };
       InstructionForm.OperandRole countRole = switch (instruction.opcode()) {
-        case CALL_VALUE, CALL_VOID -> ARGUMENT_COUNT;
+        case CALL_VALUE, CALL_VOID, CALL_RESULT_SLOT, UNCALL_RESULT_SLOT -> ARGUMENT_COUNT;
         case RECORD_NEW, VARIANT_NEW, ARRAY_NEW -> ELEMENT_COUNT;
         default -> throw new IllegalStateException();
       };
@@ -751,6 +769,12 @@ public final class BytecodeVerifier {
       int count = Math.toIntExact(instruction.operand(countRole));
       for (int local = base; local < base + count; local++) {
         requireAssignedLocal(owner, instruction, baseRole, pc, assigned, local);
+      }
+      if (instruction.opcode() == Opcode.CALL_RESULT_SLOT
+          || instruction.opcode() == Opcode.UNCALL_RESULT_SLOT) {
+        int slot = Math.toIntExact(instruction.operand(RESULT_SLOT));
+        requireAssignedLocal(owner, instruction, RESULT_SLOT, pc, assigned, slot);
+        requireAssignedLocal(owner, instruction, RESULT_SLOT, pc, assigned, slot + 1);
       }
       return;
     }
@@ -762,6 +786,7 @@ public final class BytecodeVerifier {
       case JUMP_IF_ZERO, EXPECT_TRUE -> List.of(CONDITION);
       case LOCAL_LOOP_CHECK -> List.of(ITERATION, LIMIT);
       case RETURN_VALUE -> List.of(RESULT);
+      case RESULT_FILL_CONSTANT, RETURN_RESULT_SLOT -> List.of(RESULT_SLOT);
       case RECORD_GET, VARIANT_TAG_EQ, VARIANT_GET -> List.of(OWNER);
       case ARRAY_GET, SLICE_GET, WORDS_GET, BYTES_GET, UTF8_SCALAR, UTF8_WIDTH ->
           List.of(OWNER, INDEX);
@@ -778,6 +803,9 @@ public final class BytecodeVerifier {
     for (InstructionForm.OperandRole role : reads) {
       int local = Math.toIntExact(instruction.operand(role));
       requireAssignedLocal(owner, instruction, role, pc, assigned, local);
+      if (role == RESULT_SLOT) {
+        requireAssignedLocal(owner, instruction, role, pc, assigned, local + 1);
+      }
     }
   }
 
@@ -829,7 +857,8 @@ public final class BytecodeVerifier {
       FunctionBody owner, List<Instruction> body, int pc, Instruction instruction) {
     if (instruction.opcode() == Opcode.HALT
         || instruction.opcode() == Opcode.RETURN
-        || instruction.opcode() == Opcode.RETURN_VALUE) {
+        || instruction.opcode() == Opcode.RETURN_VALUE
+        || instruction.opcode() == Opcode.RETURN_RESULT_SLOT) {
       return List.of();
     }
     if (instruction.opcode() == Opcode.JUMP) {
@@ -861,6 +890,7 @@ public final class BytecodeVerifier {
     int base = window.base();
     int count = window.count();
     if (target.returnsValue() != returnsValue
+        || target.implicitResultSlot()
         || count != target.parameterCount()) {
       failOperand(
           owner, instruction, ARGUMENT_COUNT, pc,

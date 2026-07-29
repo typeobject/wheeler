@@ -33,6 +33,7 @@ final class VmDataRewinder {
       case SET_LOGGED, LOCAL_STORE_GLOBAL ->
           globals[record.changedGlobal()] = record.previousValue();
       case NOP, HALT, RETURN, RETURN_VALUE, CALL, UNCALL, CALL_VALUE, CALL_VOID,
+          CALL_RESULT_SLOT, UNCALL_RESULT_SLOT, RESULT_FILL_CONSTANT, RETURN_RESULT_SLOT,
           OUTPUT_LENGTH,
           EXPECT_EQ, EXPECT_TRUE, CHECKPOINT, COMMIT,
           LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, LOCAL_ADD, LOCAL_SUB,
@@ -42,10 +43,15 @@ final class VmDataRewinder {
         // These instructions alter only control or status state.
       }
     }
-    if (record.changedLocal() == StepRecord.NO_LOCAL) {
-      return frame;
+    Frame restored = frame;
+    if (record.changedLocal() != StepRecord.NO_LOCAL) {
+      restored = restored.withLocal(record.changedLocal(), record.previousLocalValue());
     }
-    return frame.withLocal(record.changedLocal(), record.previousLocalValue());
+    if (record.changedSecondaryLocal() != StepRecord.NO_LOCAL) {
+      restored = restored.withLocal(
+          record.changedSecondaryLocal(), record.previousSecondaryLocalValue());
+    }
+    return restored;
   }
 
   private static int globalIndex(

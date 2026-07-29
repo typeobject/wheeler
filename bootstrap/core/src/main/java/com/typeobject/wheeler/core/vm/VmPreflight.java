@@ -17,6 +17,7 @@ import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.L
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LIMIT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.OWNER;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT_SLOT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RIGHT_SOURCE;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.SOURCE;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.START;
@@ -302,9 +303,36 @@ final class VmPreflight {
           if (returnsValue) {
             localIndex(instruction, RESULT);
           }
-          if (target.returnsValue() != returnsValue || target.parameterCount() != count
+          if (target.returnsValue() != returnsValue || target.implicitResultSlot()
+              || target.parameterCount() != count
               || base < 0 || count < 0 || base > frame.localCount() - count) {
             trap("Argument call signature mismatch for " + target.name());
+          }
+        }
+        case CALL_RESULT_SLOT, UNCALL_RESULT_SLOT -> {
+          requireCallCapacity();
+          FunctionBody target = program.function(Math.toIntExact(instruction.operand(FUNCTION)));
+          int base = Math.toIntExact(instruction.operand(ARGUMENT_BASE));
+          int count = Math.toIntExact(instruction.operand(ARGUMENT_COUNT));
+          int slot = localIndex(instruction, RESULT_SLOT);
+          if (!target.implicitResultSlot() || target.parameterCount() != count
+              || base < 0 || count < 0 || base > frame.localCount() - count
+              || slot >= frame.localCount() - 1) {
+            trap("Result slot call signature mismatch for " + target.name());
+          }
+          long tag = frame.local(slot);
+          long payload = frame.local(slot + 1);
+          if (instruction.opcode() == Opcode.CALL_RESULT_SLOT) {
+            if (tag != 0 || payload != 0) {
+              trap("Forward result slot is not vacant");
+            }
+          } else {
+            Instruction inverseTransition = target.inverse().getFirst();
+            if (tag != 1
+                || inverseTransition.opcode() != Opcode.RESULT_FILL_CONSTANT
+                || payload != inverseTransition.operand(IMMEDIATE)) {
+              trap("Inverse result slot does not hold the expected constant");
+            }
           }
         }
         case UNCALL -> {
@@ -312,6 +340,21 @@ final class VmPreflight {
           FunctionBody function = program.function(Math.toIntExact(instruction.operand(FUNCTION)));
           if (!function.reversible()) {
             trap("Function has no inverse: " + function.name());
+          }
+        }
+        case RESULT_FILL_CONSTANT -> {
+          int slot = localIndex(instruction, RESULT_SLOT);
+          if (slot >= frame.localCount() - 1) {
+            trap("Result slot is outside the frame");
+          }
+          long expected = instruction.operand(IMMEDIATE);
+          long tag = frame.local(slot);
+          long payload = frame.local(slot + 1);
+          if ((!frame.inverse() && (tag != 0 || payload != 0))
+              || (frame.inverse() && (tag != 1 || payload != expected))) {
+            trap(frame.inverse()
+                ? "Inverse result slot does not hold the expected constant"
+                : "Forward result slot is not vacant");
           }
         }
         case RETURN -> {
@@ -323,6 +366,19 @@ final class VmPreflight {
           localIndex(instruction, RESULT);
           if (frameDepth <= 1 || frame.returnDestination() < 0) {
             trap("Invalid value return");
+          }
+        }
+        case RETURN_RESULT_SLOT -> {
+          int slot = localIndex(instruction, RESULT_SLOT);
+          if (slot >= frame.localCount() - 1
+              || frameDepth <= 1 || frame.returnDestination() < 0) {
+            trap("Invalid result slot return");
+          }
+          long expectedTag = frame.inverse() ? 0 : 1;
+          long tag = frame.local(slot);
+          long payload = frame.local(slot + 1);
+          if (tag != expectedTag || (tag == 0 && payload != 0)) {
+            trap("Result slot return state is not canonical");
           }
         }
         case EXPECT_EQ -> VmControlChecks.requireGlobalEqual(

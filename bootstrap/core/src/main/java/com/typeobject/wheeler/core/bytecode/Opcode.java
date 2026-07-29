@@ -19,6 +19,14 @@ public enum Opcode {
   CALL_VALUE(OpcodeIds.CALL_VALUE, InstructionForm.CALL_VALUE, Reversibility.CHECKED),
   CALL_VOID(OpcodeIds.CALL_VOID, InstructionForm.CALL_VOID, Reversibility.CHECKED),
   RETURN_VALUE(OpcodeIds.RETURN_VALUE, InstructionForm.RESULT, Reversibility.CHECKED),
+  CALL_RESULT_SLOT(
+      OpcodeIds.CALL_RESULT_SLOT, InstructionForm.CALL_RESULT_SLOT, Reversibility.CHECKED),
+  UNCALL_RESULT_SLOT(
+      OpcodeIds.UNCALL_RESULT_SLOT, InstructionForm.CALL_RESULT_SLOT, Reversibility.CHECKED),
+  RESULT_FILL_CONSTANT(
+      OpcodeIds.RESULT_FILL_CONSTANT, InstructionForm.RESULT_CONSTANT, Reversibility.INTRINSIC),
+  RETURN_RESULT_SLOT(
+      OpcodeIds.RETURN_RESULT_SLOT, InstructionForm.RESULT_SLOT, Reversibility.CHECKED),
 
   EXPECT_EQ(OpcodeIds.EXPECT_EQ, InstructionForm.GLOBAL_IMMEDIATE, Reversibility.CHECKED),
   CHECKPOINT(OpcodeIds.CHECKPOINT, InstructionForm.NONE, Reversibility.INTRINSIC),
@@ -123,6 +131,9 @@ public enum Opcode {
       case XOR_CONST, SWAP, NOP, EXPECT_EQ, EXPECT_TRUE, CHECKPOINT -> this;
       case CALL -> UNCALL;
       case UNCALL -> CALL;
+      case CALL_RESULT_SLOT -> UNCALL_RESULT_SLOT;
+      case UNCALL_RESULT_SLOT -> CALL_RESULT_SLOT;
+      case RESULT_FILL_CONSTANT -> RESULT_FILL_CONSTANT;
       default -> throw new IllegalStateException(name() + " has no generated language-level inverse");
     };
   }
@@ -130,7 +141,8 @@ public enum Opcode {
   public boolean supportsGeneratedInverse() {
     return switch (this) {
       case ADD_CONST, SUB_CONST, XOR_CONST, SWAP, NOP, EXPECT_EQ, EXPECT_TRUE,
-          CHECKPOINT, CALL, UNCALL -> true;
+          CHECKPOINT, CALL, UNCALL, CALL_RESULT_SLOT, UNCALL_RESULT_SLOT,
+          RESULT_FILL_CONSTANT -> true;
       default -> false;
     };
   }

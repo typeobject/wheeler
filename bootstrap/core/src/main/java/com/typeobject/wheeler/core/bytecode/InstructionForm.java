@@ -26,6 +26,13 @@ public enum InstructionForm {
       OperandRole.ARGUMENT_COUNT,
       OperandRole.RESULT),
   CALL_VOID(OperandRole.FUNCTION, OperandRole.ARGUMENT_BASE, OperandRole.ARGUMENT_COUNT),
+  CALL_RESULT_SLOT(
+      OperandRole.FUNCTION,
+      OperandRole.ARGUMENT_BASE,
+      OperandRole.ARGUMENT_COUNT,
+      OperandRole.RESULT_SLOT),
+  RESULT_CONSTANT(OperandRole.RESULT_SLOT, OperandRole.IMMEDIATE),
+  RESULT_SLOT(OperandRole.RESULT_SLOT),
   RECORD_NEW(
       OperandRole.DESTINATION,
       OperandRole.DESCRIPTOR,
@@ -79,6 +86,7 @@ public enum InstructionForm {
   public enum OperandRole {
     FUNCTION,
     RESULT,
+    RESULT_SLOT,
     GLOBAL,
     LEFT_GLOBAL,
     RIGHT_GLOBAL,

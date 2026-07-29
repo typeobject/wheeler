@@ -22,6 +22,7 @@ import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.L
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LOCAL;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.OWNER;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT_SLOT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RIGHT_GLOBAL;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RIGHT_SOURCE;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.SOURCE;
@@ -327,6 +328,8 @@ public final class VirtualMachine {
     long previousValue = 0;
     int changedLocal = StepRecord.NO_LOCAL;
     long previousLocalValue = 0;
+    int changedSecondaryLocal = StepRecord.NO_LOCAL;
+    long previousSecondaryLocalValue = 0;
     StepRecord.ControlChange control = StepRecord.ControlChange.ADVANCE;
     AggregateStore.Counts previousCounts = aggregates.counts();
     OwnedStore.Change ownedChange = owned.mark();
@@ -623,6 +626,35 @@ public final class VirtualMachine {
         tasks.addFrame(binding.callee());
         control = StepRecord.ControlChange.CALL;
       }
+      case CALL_RESULT_SLOT, UNCALL_RESULT_SLOT -> {
+        ArgumentCallBinder.Binding binding = ArgumentCallBinder.bindResultSlot(
+            program,
+            currentFrame(),
+            instruction,
+            opcode == Opcode.UNCALL_RESULT_SLOT);
+        replaceCurrentFrame(binding.caller());
+        tasks.addFrame(binding.callee());
+        control = StepRecord.ControlChange.CALL;
+      }
+      case RESULT_FILL_CONSTANT -> {
+        int slot = localIndex(instruction, RESULT_SLOT);
+        long expected = instruction.operand(IMMEDIATE);
+        long tag = currentFrame().local(slot);
+        long payload = currentFrame().local(slot + 1);
+        if (frame.inverse()) {
+          if (tag != 1 || payload != expected) {
+            trap("Inverse result slot does not hold the expected constant");
+          }
+          replaceCurrentFrame(
+              currentFrame().withLocal(slot, 0).withLocal(slot + 1, 0).advance());
+        } else {
+          if (tag != 0 || payload != 0) {
+            trap("Forward result slot is not vacant");
+          }
+          replaceCurrentFrame(
+              currentFrame().withLocal(slot, 1).withLocal(slot + 1, expected).advance());
+        }
+      }
       case RETURN -> {
         tasks.removeLastFrame();
         control = StepRecord.ControlChange.RETURN;
@@ -634,6 +666,21 @@ public final class VirtualMachine {
         changedLocal = destination;
         previousLocalValue = currentFrame().local(destination);
         replaceCurrentFrame(currentFrame().withLocal(destination, result));
+        control = StepRecord.ControlChange.RETURN;
+      }
+      case RETURN_RESULT_SLOT -> {
+        int source = localIndex(instruction, RESULT_SLOT);
+        long tag = currentFrame().local(source);
+        long payload = currentFrame().local(source + 1);
+        int destination = frame.returnDestination();
+        tasks.removeLastFrame();
+        changedLocal = destination;
+        previousLocalValue = currentFrame().local(destination);
+        changedSecondaryLocal = destination + 1;
+        previousSecondaryLocalValue = currentFrame().local(destination + 1);
+        replaceCurrentFrame(currentFrame()
+            .withLocal(destination, tag)
+            .withLocal(destination + 1, payload));
         control = StepRecord.ControlChange.RETURN;
       }
       case EXPECT_EQ, EXPECT_TRUE, NOP, CHECKPOINT, COMMIT -> advanceCurrentFrame();
@@ -657,6 +704,8 @@ public final class VirtualMachine {
         previousValue,
         changedLocal,
         previousLocalValue,
+        changedSecondaryLocal,
+        previousSecondaryLocalValue,
         previousCounts.records(),
         previousCounts.variants(),
         previousCounts.arrays(),
