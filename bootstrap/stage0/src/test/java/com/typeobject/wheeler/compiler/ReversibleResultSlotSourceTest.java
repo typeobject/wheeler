@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.compiler;
 
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.IMMEDIATE;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.SOURCE;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -84,6 +85,21 @@ class ReversibleResultSlotSourceTest {
   }
 
   @Test
+  void preservesASignedParameterAsTheResultRelation() {
+    String source = "classical class PreservedResult { rev long identity(long value) { "
+        + "return value; } entry void main() { long answer = identity(42); "
+        + "assert(answer == 42); } }";
+    Program program = new WheelerCompiler().compile(source);
+    VirtualMachine machine = new VirtualMachine(program);
+
+    machine.run();
+
+    assertEquals(MachineStatus.HALTED, machine.status());
+    assertEquals(Opcode.RESULT_FILL_SOURCE, program.function(0).forward().getFirst().opcode());
+    assertEquals(0, program.function(0).forward().getFirst().operand(SOURCE));
+  }
+
+  @Test
   void rejectsResultsOutsideTheFirstClosedProfile() {
     WheelerCompiler compiler = new WheelerCompiler();
     CompilerException booleanResult = assertThrows(
@@ -102,10 +118,15 @@ class ReversibleResultSlotSourceTest {
         CompilerException.class,
         () -> compiler.compile("classical class Bad { rev void step(long value) {} "
             + "entry void main() {} }"));
+    CompilerException booleanSource = assertThrows(
+        CompilerException.class,
+        () -> compiler.compile("classical class Bad { rev long answer(boolean value) { "
+            + "return value; } entry void main() {} }"));
 
     assertTrue(booleanResult.getMessage().contains("first reversible result-slot profile"));
     assertTrue(computedResult.getMessage().contains("return one signed constant"));
     assertTrue(erasingBody.getMessage().contains("return one signed constant"));
     assertTrue(voidParameter.getMessage().contains("reversible void parameters"));
+    assertTrue(booleanSource.getMessage().contains("preserve one signed parameter"));
   }
 }

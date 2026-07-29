@@ -20,7 +20,7 @@ The machine owns:
 
 Raw host pointers and masked segmented addresses are not machine values.
 
-Source compilation currently writes equal limits of 4,000,000 steps and 4,000,000 retained history records. The `run()` loop traps at the step limit. Every execution path traps before it exceeds the history limit. The history budget can therefore retain every transition in one default run. The physical bootstrap closure evidence uses explicit single stepping with a 16,000,000-transition test ceiling and commits history every 10,000 records. Its complete fifty-two-module graph validation finishes in 15,723,939 transitions. The test keeps that larger evidence run bounded without quietly changing source program policy. An artifact or embedding host may choose lower verified limits.
+Source compilation currently writes equal limits of 4,000,000 steps and 4,000,000 retained history records. The `run()` loop traps at the step limit. Every execution path traps before it exceeds the history limit. The history budget can therefore retain every transition in one default run. The physical bootstrap closure evidence uses explicit single stepping with a 16,000,000-transition test ceiling and commits history every 10,000 records. Its complete fifty-two-module graph validation finishes in 15,723,883 transitions. The test keeps that larger evidence run bounded without quietly changing source program policy. An artifact or embedding host may choose lower verified limits.
 
 A classical entry may borrow one strict UTF-8 input, one immutable binary `byteview`, one mutable byte output, or one input followed by the output. VM construction requires the exact declared effects and an explicit text or binary binding API.
 
@@ -68,7 +68,7 @@ The current opcode set includes:
 - instruction-index branches and global expectations.
 - zero-argument `CALL` and `UNCALL`.
 - typed `CALL_VALUE`, `CALL_VOID`, `RETURN`, and `RETURN_VALUE`.
-- checked `CALL_RESULT_SLOT`, `UNCALL_RESULT_SLOT`, `RESULT_FILL_CONSTANT`, and `RETURN_RESULT_SLOT`.
+- checked `CALL_RESULT_SLOT`, `UNCALL_RESULT_SLOT`, `RESULT_FILL_CONSTANT`, `RESULT_FILL_SOURCE`, and `RETURN_RESULT_SLOT`.
 - `HALT`.
 
 The direct checked-update fixture matches the final global value produced by the stage-0 VM, and the outer Wheeler run rewinds exactly. The Wheeler compiler also emits the proof-bearing `Counter.w` artifact byte for byte with stage 0. The Wheeler interpreter runs its repeated forward and inverse calls, then finishes at zero.
@@ -115,9 +115,9 @@ differential fixture keeps the second inverse honest.
 
 A reversible signed result uses an adjacent Boolean tag and signed payload owned by the
 caller. `CALL_RESULT_SLOT` requires exact vacancy before pushing a frame.
-`UNCALL_RESULT_SLOT` requires `Holding` of the constant expected by the generated inverse
-before pushing a frame. `RESULT_FILL_CONSTANT` performs the checked exchange in the
-callee. `RETURN_RESULT_SLOT` copies both slot registers back atomically. Its history
+`UNCALL_RESULT_SLOT` requires `Holding` of the constant or preserved source expected by
+the generated inverse before pushing a frame. `RESULT_FILL_CONSTANT` and
+`RESULT_FILL_SOURCE` perform the checked exchanges in the callee. `RETURN_RESULT_SLOT` copies both slot registers back atomically. Its history
 record stores both previous caller registers for debugger rewind. Generated language
 inversion reads none of that history. Tests commit history between forward and inverse
 calls because a result relation that works only while the debugger remembers it is not

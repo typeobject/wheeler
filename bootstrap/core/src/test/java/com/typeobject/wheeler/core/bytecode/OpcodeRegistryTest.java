@@ -8,7 +8,9 @@ import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.I
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LEFT_SOURCE;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LIMIT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT_SLOT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RIGHT_SOURCE;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.SOURCE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -56,6 +58,7 @@ class OpcodeRegistryTest {
         List.of(FUNCTION, ARGUMENT_BASE, ARGUMENT_COUNT, RESULT),
         Opcode.CALL_VALUE.form().roles());
     assertEquals(List.of(ITERATION, LIMIT), Opcode.LOCAL_LOOP_CHECK.form().roles());
+    assertEquals(List.of(RESULT_SLOT, SOURCE), Opcode.RESULT_FILL_SOURCE.form().roles());
   }
 
   private static void assertInvalidRole(Instruction instruction, String expectedRole) {

@@ -36,6 +36,59 @@ class ReversibleResultSlotTest {
   }
 
   @Test
+  void preservesAParameterAcrossForwardAndInverseCalls() {
+    FunctionBody identity = preservedIdentity();
+    FunctionBody entry = new FunctionBody(
+        1,
+        "main",
+        false,
+        0,
+        List.of(ValueType.SIGNED, ValueType.BOOLEAN, ValueType.SIGNED),
+        null,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 42),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 0),
+            Instruction.of(Opcode.LOCAL_CONST, 2, 0),
+            Instruction.of(Opcode.CALL_RESULT_SLOT, 0, 0, 1, 1),
+            Instruction.of(Opcode.COMMIT),
+            Instruction.of(Opcode.UNCALL_RESULT_SLOT, 0, 0, 1, 1),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    VirtualMachine machine = new VirtualMachine(
+        new Program("PreservedResult", 1, List.of(), List.of(identity, entry)));
+
+    machine.run();
+
+    assertEquals(MachineStatus.HALTED, machine.status());
+    assertEquals(List.of(42L, 0L, 0L), machine.snapshot().selectedFrames().getFirst().locals());
+  }
+
+  @Test
+  void wrongHeldSourceTrapsBeforeSlotMutation() {
+    FunctionBody entry = new FunctionBody(
+        1,
+        "main",
+        false,
+        0,
+        List.of(ValueType.SIGNED, ValueType.BOOLEAN, ValueType.SIGNED),
+        null,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 42),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 1),
+            Instruction.of(Opcode.LOCAL_CONST, 2, 7),
+            Instruction.of(Opcode.UNCALL_RESULT_SLOT, 0, 0, 1, 1),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    VirtualMachine machine = new VirtualMachine(
+        new Program("WrongPreservedResult", 1, List.of(), List.of(preservedIdentity(), entry)));
+
+    VmTrap trap = assertThrows(VmTrap.class, machine::run);
+
+    assertEquals("Inverse result slot does not hold the expected source", trap.getMessage());
+    assertEquals(List.of(42L, 1L, 7L), machine.snapshot().selectedFrames().getFirst().locals());
+  }
+
+  @Test
   void wrongHeldConstantTrapsBeforeSlotMutation() {
     Program program = programWithEntry(List.of(
         Instruction.of(Opcode.LOCAL_CONST, 0, 1),
@@ -88,6 +141,77 @@ class ReversibleResultSlotTest {
   }
 
   @Test
+  void verifierRejectsAResultSourceThatIsNotAParameter() {
+    FunctionBody malformed = new FunctionBody(
+        0,
+        "malformedSource",
+        false,
+        0,
+        List.of(ValueType.BOOLEAN, ValueType.SIGNED),
+        ValueType.SIGNED,
+        true,
+        List.of(
+            Instruction.of(Opcode.RESULT_FILL_SOURCE, 0, 1),
+            Instruction.of(Opcode.RETURN_RESULT_SLOT, 0)),
+        List.of(
+            Instruction.of(Opcode.RESULT_FILL_SOURCE, 0, 1),
+            Instruction.of(Opcode.RETURN_RESULT_SLOT, 0)));
+    FunctionBody entry = new FunctionBody(
+        1,
+        "main",
+        false,
+        0,
+        List.of(),
+        null,
+        List.of(Instruction.of(Opcode.HALT)),
+        List.of());
+
+    BytecodeException failure = assertThrows(
+        BytecodeException.class,
+        () -> BytecodeVerifier.verify(
+            new Program("MalformedResultSource", 1, List.of(), List.of(malformed, entry))));
+
+    assertEquals(
+        "malformedSource[0] RESULT_FILL_SOURCE source result source is not a preserved parameter",
+        failure.getMessage());
+  }
+
+  @Test
+  void verifierRejectsDifferentForwardAndInverseResultSources() {
+    FunctionBody mismatched = new FunctionBody(
+        0,
+        "mismatchedSource",
+        false,
+        2,
+        List.of(ValueType.SIGNED, ValueType.SIGNED, ValueType.BOOLEAN, ValueType.SIGNED),
+        ValueType.SIGNED,
+        true,
+        List.of(
+            Instruction.of(Opcode.RESULT_FILL_SOURCE, 2, 0),
+            Instruction.of(Opcode.RETURN_RESULT_SLOT, 2)),
+        List.of(
+            Instruction.of(Opcode.RESULT_FILL_SOURCE, 2, 1),
+            Instruction.of(Opcode.RETURN_RESULT_SLOT, 2)));
+    FunctionBody entry = new FunctionBody(
+        1,
+        "main",
+        false,
+        0,
+        List.of(),
+        null,
+        List.of(Instruction.of(Opcode.HALT)),
+        List.of());
+
+    BytecodeException failure = assertThrows(
+        BytecodeException.class,
+        () -> BytecodeVerifier.verify(
+            new Program("MismatchedResultSource", 1, List.of(), List.of(mismatched, entry))));
+
+    assertEquals(
+        "Result slot relation has no exact inverse: mismatchedSource", failure.getMessage());
+  }
+
+  @Test
   void verifierRejectsAnArgumentAliasingItsResultSlot() {
     FunctionBody target = new FunctionBody(
         0,
@@ -125,6 +249,23 @@ class ReversibleResultSlotTest {
     assertEquals(
         "main[2] CALL_RESULT_SLOT result_slot result slot call signature mismatch for aliased",
         failure.getMessage());
+  }
+
+  private static FunctionBody preservedIdentity() {
+    return new FunctionBody(
+        0,
+        "identity",
+        false,
+        1,
+        List.of(ValueType.SIGNED, ValueType.BOOLEAN, ValueType.SIGNED),
+        ValueType.SIGNED,
+        true,
+        List.of(
+            Instruction.of(Opcode.RESULT_FILL_SOURCE, 1, 0),
+            Instruction.of(Opcode.RETURN_RESULT_SLOT, 1)),
+        List.of(
+            Instruction.of(Opcode.RESULT_FILL_SOURCE, 1, 0),
+            Instruction.of(Opcode.RETURN_RESULT_SLOT, 1)));
   }
 
   private static Program programWithEntry(List<Instruction> entryInstructions) {

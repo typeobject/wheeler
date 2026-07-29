@@ -11,6 +11,14 @@ classical class ResultSlots {
     return tag == 1;
   }
 
+  /// Exchanges exact vacancy with one preserved signed source.
+  ///
+  /// - Effects: Mutates the slot only after reading the source value.
+  public boolean exchangeResultSource(borrow mut words locals, long slot, long source) {
+    long value = locals[source];
+    return exchangeResultConstant(locals, slot, value);
+  }
+
   /// Exchanges exact vacancy with one held signed constant.
   ///
   /// - Effects: Mutates both adjacent slot registers only after complete validation.

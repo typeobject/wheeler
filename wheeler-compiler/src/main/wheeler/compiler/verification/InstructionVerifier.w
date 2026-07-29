@@ -395,6 +395,31 @@ classical class InstructionVerifier {
       return 0;
     }
 
+    if (opcode == OPCODE_RESULT_FILL_SOURCE) {
+      if (activeResultSlot == 1) {} else {
+        return 0;
+      }
+
+      long resultSource = readUnsigned(artifact, cursor + 16, 8);
+      if (1 < localCount) {
+        if (first == localCount - 2) {
+          if (resultSource < first) {
+            if (localType(artifact, activeTypes, first) == TYPE_BOOLEAN) {
+              if (localType(artifact, activeTypes, first + 1) == TYPE_SIGNED) {
+                if (localType(artifact, activeTypes, resultSource) == TYPE_SIGNED) {
+                  if (activeResultType == TYPE_SIGNED) {
+                    return 1;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return 0;
+    }
+
     if (opcode == OPCODE_RETURN_RESULT_SLOT) {
       if (activeResultSlot == 1) {} else {
         return 0;
@@ -654,7 +679,12 @@ classical class InstructionVerifier {
       long opcode = readUnsigned(artifact, cursor, 2);
       if (resultSlotBody == 1) {
         if (instructionIndex == 0) {
-          if (opcode == OPCODE_RESULT_FILL_CONSTANT) {} else {
+          boolean resultFill = opcode == OPCODE_RESULT_FILL_CONSTANT;
+          if (opcode == OPCODE_RESULT_FILL_SOURCE) {
+            resultFill = true;
+          }
+
+          if (resultFill) {} else {
             return 0;
           }
         } else {

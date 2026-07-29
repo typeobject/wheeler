@@ -2,22 +2,22 @@
 classical class ReversibleResult {
   state long observed = 0;
 
-  /// Exchanges a caller-owned vacant result slot with `Holding(-1)`.
+  /// Exchanges a caller-owned vacant result slot with the preserved signed argument.
   ///
-  /// - Inverse: Preserves the signed argument, checks the held value, and restores vacancy.
-  rev long minusOne(long witness) {
-    return -1;
+  /// - Inverse: Checks the held copy, preserves the source, and restores exact vacancy.
+  rev long preserve(long witness) {
+    return witness;
   }
 
-  /// Checks the generated result-slot inverse.
-  theorem minusOneInverse proves inverse(minusOne);
+  /// Checks the generated preserved-source inverse.
+  theorem preserveInverse proves inverse(preserve);
 
   /// Calls the reversible value relation through its implicit result slot.
   ///
   /// - Effects: Publishes the returned signed value in fixture state.
   entry void main() {
-    long value = minusOne(7);
+    long value = preserve(7);
     observed = value;
-    assert(observed == -1);
+    assert(observed == 7);
   }
 }

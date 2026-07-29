@@ -636,14 +636,18 @@ public final class VirtualMachine {
         tasks.addFrame(binding.callee());
         control = StepRecord.ControlChange.CALL;
       }
-      case RESULT_FILL_CONSTANT -> {
+      case RESULT_FILL_CONSTANT, RESULT_FILL_SOURCE -> {
         int slot = localIndex(instruction, RESULT_SLOT);
-        long expected = instruction.operand(IMMEDIATE);
+        long expected = opcode == Opcode.RESULT_FILL_CONSTANT
+            ? instruction.operand(IMMEDIATE)
+            : localValue(instruction, SOURCE);
         long tag = currentFrame().local(slot);
         long payload = currentFrame().local(slot + 1);
         if (frame.inverse()) {
           if (tag != 1 || payload != expected) {
-            trap("Inverse result slot does not hold the expected constant");
+            trap(opcode == Opcode.RESULT_FILL_CONSTANT
+                ? "Inverse result slot does not hold the expected constant"
+                : "Inverse result slot does not hold the expected source");
           }
           replaceCurrentFrame(
               currentFrame().withLocal(slot, 0).withLocal(slot + 1, 0).advance());

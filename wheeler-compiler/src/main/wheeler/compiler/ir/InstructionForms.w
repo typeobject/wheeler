@@ -59,6 +59,10 @@ classical class InstructionForms {
       return 2;
     }
 
+    if (opcode == OPCODE_RESULT_FILL_SOURCE) {
+      return 2;
+    }
+
     if (opcode == OPCODE_RETURN_RESULT_SLOT) {
       return 1;
     }

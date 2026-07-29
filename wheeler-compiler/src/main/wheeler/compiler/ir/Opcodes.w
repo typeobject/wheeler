@@ -47,6 +47,8 @@ classical class Opcodes {
   public const long OPCODE_RESULT_FILL_CONSTANT = 0x0207;
   /// Returns one implicit result slot to its caller.
   public const long OPCODE_RETURN_RESULT_SLOT = 0x0208;
+  /// Exchanges an implicit result slot with one preserved signed source local.
+  public const long OPCODE_RESULT_FILL_SOURCE = 0x0209;
   /// Names the compile-time `OPCODE_EXPECT_EQ` value owned by this module.
   public const long OPCODE_EXPECT_EQ = 0x0300;
 

@@ -648,30 +648,34 @@ Ordinary functions may retain the direct result descriptor.
 
 ### Instructions
 
-WIP-0038 assigns exact identities and operand roles. The first signed constant slice uses:
+WIP-0038 assigns exact identities and operand roles. The first signed result slices use:
 
 ```text
 0x0205 CALL_RESULT_SLOT(function, argument_base, argument_count, result_slot)
 0x0206 UNCALL_RESULT_SLOT(function, argument_base, argument_count, result_slot)
 0x0207 RESULT_FILL_CONSTANT(result_slot, immediate)
 0x0208 RETURN_RESULT_SLOT(result_slot)
+0x0209 RESULT_FILL_SOURCE(result_slot, source)
 ```
 
 One result slot names adjacent Boolean-tag and typed-payload frame registers. Function flag
 `0x8` combines with reversible and value-result flags as `0xd`. The final two callee
 registers hold the implicit slot. `RESULT_FILL_CONSTANT` checks `Vacant` in forward code
 and exact `Holding(k)` in inverse code before changing either register.
+`RESULT_FILL_SOURCE` applies the same exchange against one preserved signed parameter.
 
 The Wheeler-native compiler now emits this complete first vertical slice. It accepts one
-`rev long` helper with up to two signed parameters returning a signed literal or
-evaluated constant, an optional generated-inverse theorem, and entry result calls
-interleaved with signed checks against constants or results already produced. Differential
-tests compare the complete artifacts with stage 0 before running them. Boolean results, computed result expressions, and extra body
-statements still fail without publication. That boundary is dull on purpose. A reversible
+`rev long` helper with up to two signed parameters returning a signed literal, evaluated
+constant, or preserved signed parameter. It accepts an optional generated-inverse theorem
+and entry result calls interleaved with signed checks against constants or results already
+produced. Differential tests compare the complete artifacts with stage 0 before running
+them. Boolean results, computed result expressions, and extra body statements still fail
+without publication. That boundary is dull on purpose. A reversible
 ABI is a poor place to improvise jazz.
 
-Preserved-source, move, and loan families receive identities when they execute. The
-registry does not reserve vague numbers and call that architecture. Existing
+`RESULT_FILL_SOURCE` now owns the preserved-copy relation as `0x0209`. Move and loan
+families receive identities when they execute. The registry does not reserve vague numbers
+and call that architecture. Existing
 `RETURN_VALUE` artifacts keep their current meaning. The implementation does not smuggle
 a new inverse under an old opcode and hope disassemblers look away.
 
@@ -737,15 +741,16 @@ diagnostic or trap, and publishes no partial result.
 ## Progress
 
 Stage 0 now accepts typed parameters on a `rev long` function whose tail return is a
-signed literal or evaluated class constant. It emits the four regular result-slot forms,
-canonical `0xd` function metadata, and a generated inverse. The Wheeler-native compiler
-matches the zero-, one-, and two-parameter forms byte for byte. The VM executes `return -1;`,
-commits all rewind history, then uncalls the function from exact `Holding(-1)` back to
-vacancy. A wrong held constant traps before the call stack or slot changes. The
-Wheeler-native verifier independently accepts the artifact and its generated-inverse
-certificate. The bounded Wheeler interpreter executes both call directions and agrees
-with the Java VM on every global. Wheeler-native lowering and execution cover the same
-bounded signed constant relation.
+signed literal, evaluated class constant, or preserved signed parameter. It emits the five
+regular result-slot forms, canonical `0xd` function metadata, and a generated inverse. The
+Wheeler-native compiler matches the zero-, one-, and two-parameter forms byte for byte,
+including a preserved signed parameter. The VM executes both `return -1;` and a preserved
+copy, commits all rewind history, then uncalls each relation back to vacancy. A wrong held
+constant or source traps before the call stack or slot changes. The Wheeler-native verifier
+independently accepts both artifacts and their generated-inverse certificates. The bounded
+Wheeler interpreter executes both call directions and agrees with the Java VM on every
+global. Wheeler-native lowering and execution cover the same bounded constant and
+preserved-copy relations.
 
 - [x] `Done` and `done` parse, typecheck, encode, execute, and reject nonzero physical constants.
 - [x] Closed classical `Slot<T>`, `Vacant`, and `Holding(T)` parse, typecheck, encode, and execute.
@@ -753,7 +758,8 @@ bounded signed constant relation.
 - [x] Ordinary functions return `Done` and closed classical slots.
 - [x] Reversible scalar result-slot ABI executes.
 - [x] `return -1;` runs forward and inverse without VM history.
-- [ ] Copyable and affine-owner return forms execute.
+- [x] Preserved-copy signed return forms execute.
+- [ ] Affine-owner return forms execute.
 - [ ] Borrowed results retain exact origins.
 - [ ] Multiple return paths integrate with WIP-0035.
 - [x] Compiler-owned closed classical slots specialize to canonical variant descriptors.
@@ -777,7 +783,8 @@ bounded signed constant relation.
 - [x] Reversible constant return fills a vacant result and exact inverse restores vacancy.
 - [x] The inverse succeeds after VM history commit.
 - [x] Wrong held constants trap before mutation.
-- [ ] Preserved-source fill and affine move round-trip exactly.
+- [x] Preserved-source fill round-trips exactly.
+- [ ] Affine moves round-trip exactly.
 - [ ] Returned loans retain origin and `Slot<borrow T>` is rejected.
 - [x] Nested classical slots distinguish outer vacancy from `Holding(Vacant)`.
 - [x] Information-losing bodies remain rejected despite a reversible return.

@@ -15,6 +15,19 @@ classical class FunctionVerifier {
     return right < left;
   }
 
+  private boolean sameBytes(borrow byteview artifact, long left, long right, long length) {
+    long cursor = 0;
+    while (cursor < length) limit 16 {
+      if (artifact[left + cursor] == artifact[right + cursor]) {} else {
+        return false;
+      }
+
+      cursor += 1;
+    }
+
+    return true;
+  }
+
   private boolean borrowedType(long typeCode) {
     if (typeCode == TYPE_UTF8_BORROW) {
       return true;
@@ -308,6 +321,30 @@ classical class FunctionVerifier {
           readUnsigned(artifact, activeTypes + (localCount - 1) * 4, 4) == resultType
         ) {} else {
           return 0;
+        }
+
+        long slotForwardCursor = codeOffset + forwardOffset;
+        long slotInverseCursor = codeOffset + inverseOffset;
+        long slotForwardOpcode = readUnsigned(artifact, slotForwardCursor, 2);
+        if (slotForwardOpcode == readUnsigned(artifact, slotInverseCursor, 2)) {} else {
+          return 0;
+        }
+
+        if (sameBytes(artifact, slotForwardCursor + 8, slotInverseCursor + 8, 16)) {} else {
+          return 0;
+        }
+
+        if (slotForwardOpcode == OPCODE_RESULT_FILL_SOURCE) {
+          long preservedSource = readUnsigned(artifact, slotForwardCursor + 16, 8);
+          if (preservedSource < parameterCount) {} else {
+            return 0;
+          }
+
+          if (
+            readUnsigned(artifact, activeTypes + preservedSource * 4, 4) == resultType
+          ) {} else {
+            return 0;
+          }
         }
       }
 

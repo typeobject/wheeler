@@ -76,7 +76,7 @@ final class ClassicalLocalAssembler implements SourceStorageLowerer.Context {
 
   ClassicalLowerer.LoweredBody lower() {
     if (owner.reversible() && owner.returnsValue()) {
-      return lowerReversibleConstantResult();
+      return lowerReversibleResult();
     }
     for (Statement statement : owner.statements()) {
       lower(statement);
@@ -98,22 +98,39 @@ final class ClassicalLocalAssembler implements SourceStorageLowerer.Context {
     return new ClassicalLowerer.LoweredBody(List.copyOf(output), List.copyOf(localTypes));
   }
 
-  private ClassicalLowerer.LoweredBody lowerReversibleConstantResult() {
+  private ClassicalLowerer.LoweredBody lowerReversibleResult() {
     List<Statement> statements = owner.statements();
-    if (statements.size() != 2
-        || !statements.get(0).operation().equals("local_const")
-        || !statements.get(1).operation().equals("return_value")
-        || !statements.get(0).arguments().getFirst()
-            .equals(statements.get(1).arguments().getFirst())) {
-      throw new CompilerException(
-          owner.line(), "reversible value functions currently return one signed constant");
-    }
-    long value = SourceParser.parseInteger(
-        statements.get(0).arguments().get(1), statements.get(0).line());
     localTypes.add(ValueType.BOOLEAN);
     localTypes.add(ValueType.SIGNED);
     int resultSlot = localTypes.size() - 2;
-    output.add(Instruction.of(Opcode.RESULT_FILL_CONSTANT, resultSlot, value));
+    boolean directReturn = statements.size() == 2
+        && statements.get(1).operation().equals("return_value")
+        && statements.get(0).arguments().getFirst()
+            .equals(statements.get(1).arguments().getFirst());
+    if (!directReturn) {
+      throw new CompilerException(
+          owner.line(),
+          "reversible value functions return one signed constant or preserved parameter");
+    }
+    Statement value = statements.getFirst();
+    if (value.operation().equals("local_const")) {
+      long constant = SourceParser.parseInteger(value.arguments().get(1), value.line());
+      output.add(Instruction.of(Opcode.RESULT_FILL_CONSTANT, resultSlot, constant));
+    } else if (value.operation().equals("local_read")) {
+      String sourceName = value.arguments().get(1);
+      Integer source = locals.get(sourceName);
+      boolean parameter = owner.parameters().stream()
+          .anyMatch(candidate -> candidate.name().equals(sourceName));
+      if (source == null || !parameter || !localTypes.get(source).equals(ValueType.SIGNED)) {
+        throw new CompilerException(
+            owner.line(), "reversible value functions preserve one signed parameter");
+      }
+      output.add(Instruction.of(Opcode.RESULT_FILL_SOURCE, resultSlot, source));
+    } else {
+      throw new CompilerException(
+          owner.line(),
+          "reversible value functions return one signed constant or preserved parameter");
+    }
     output.add(Instruction.of(Opcode.RETURN_RESULT_SLOT, resultSlot));
     return new ClassicalLowerer.LoweredBody(List.copyOf(output), List.copyOf(localTypes));
   }

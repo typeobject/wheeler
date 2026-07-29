@@ -137,7 +137,7 @@ class NativeVmExampleTest {
         interpreter,
         Files.readString(root.resolve("classical/control/ReversibleResult.w")),
         "observed",
-        -1);
+        7);
     assertInterpretedGlobal(
         interpreter,
         reversibleResultRoundTrip(),

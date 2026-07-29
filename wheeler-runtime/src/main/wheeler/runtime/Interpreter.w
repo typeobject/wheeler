@@ -297,6 +297,14 @@ classical class Interpreter {
             }
           }
 
+          if (opcode == OPCODE_RESULT_FILL_SOURCE) {
+            long sourceResultSlot = localIndex(depth, readUnsigned(artifact, cursor + 8, 8));
+            long resultSource = localIndex(depth, readUnsigned(artifact, cursor + 16, 8));
+            if (exchangeResultSource(locals, sourceResultSlot, resultSource)) {} else {
+              return new ExecutionResult.Error(cursor);
+            }
+          }
+
           if (opcode == OPCODE_CALL) {
             long callTarget = readUnsigned(artifact, cursor + 8, 8);
             if (INTERPRETER_MAX_CALL_DEPTH < depth + 1) {

@@ -4,6 +4,7 @@ import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.A
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ARGUMENT_COUNT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.FUNCTION;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT_SLOT;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.SOURCE;
 import static com.typeobject.wheeler.core.bytecode.InstructionOperandVerifier.failOperand;
 import static com.typeobject.wheeler.core.bytecode.InstructionOperandVerifier.requireType;
 import static com.typeobject.wheeler.core.bytecode.InstructionOperandVerifier.verifyLocal;
@@ -24,6 +25,9 @@ final class ResultSlotVerifier {
     }
     verifyBody(function, function.forward(), "forward");
     verifyBody(function, function.inverse(), "inverse");
+    if (!function.forward().getFirst().equals(function.inverse().getFirst())) {
+      throw new BytecodeException("Result slot relation has no exact inverse: " + function.name());
+    }
   }
 
   static void verifyCall(
@@ -69,6 +73,15 @@ final class ResultSlotVerifier {
     }
   }
 
+  static void verifyFillSource(FunctionBody owner, Instruction instruction, int pc) {
+    verifyFill(owner, instruction, pc);
+    int source = verifyLocal(owner, instruction, SOURCE, pc);
+    if (source >= owner.parameterCount()) {
+      failOperand(owner, instruction, SOURCE, pc, "result source is not a preserved parameter");
+    }
+    requireType(owner, instruction, source, SOURCE, owner.resultType(), pc);
+  }
+
   static void verifyReturn(
       Program program, FunctionBody owner, Instruction instruction, int pc) {
     int slot = verifyLocal(owner, instruction, RESULT_SLOT, pc);
@@ -80,8 +93,10 @@ final class ResultSlotVerifier {
 
   private static void verifyBody(
       FunctionBody function, List<Instruction> body, String direction) {
+    Opcode transition = body.isEmpty() ? null : body.getFirst().opcode();
     if (body.size() != 2
-        || body.getFirst().opcode() != Opcode.RESULT_FILL_CONSTANT
+        || (transition != Opcode.RESULT_FILL_CONSTANT
+            && transition != Opcode.RESULT_FILL_SOURCE)
         || body.getLast().opcode() != Opcode.RETURN_RESULT_SLOT
         || body.getFirst().operand(RESULT_SLOT) != function.resultSlotBase()
         || body.getLast().operand(RESULT_SLOT) != function.resultSlotBase()) {

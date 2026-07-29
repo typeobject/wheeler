@@ -79,6 +79,7 @@ Related register instructions keep destination first and sources after it. `CALL
 uses function, argument base, argument count, and result. Reversible scalar results use
 `CALL_RESULT_SLOT` or `UNCALL_RESULT_SLOT` with function, argument base, argument count,
 and result slot. `RESULT_FILL_CONSTANT` carries result slot and immediate.
+`RESULT_FILL_SOURCE` carries result slot and preserved source local.
 `RETURN_RESULT_SLOT` carries the same slot. Stable Java opcode identities live in
 `OpcodeIds`, while `InstructionForm` owns roles. The verifier reports the opcode and canonical role for bad local types, references, windows, descriptors, tags, indices, limits, and storage operands. One registry label serves verifier diagnostics and disassembly, so the Turkish locale cannot rename `limit` while nobody is looking. The stage-0 readability gate parses the Wheeler-native opcode and instruction-form registries. It rejects any consumed identity or operand count that differs from `OpcodeIds` and `InstructionForm`. `compiler/ir/InstructionForms.w` is the sole native operand-count owner. Wheeler-native emitters use named nullary through quinary form constants and one named operand width. Numeric arities no longer decorate emission sites like lost screws on a workbench.
 
@@ -153,8 +154,10 @@ only with reversible flag `0x1` and value-result flag `0x4`, giving canonical fl
 `0xd`. The final two local types must be Boolean and the declared signed result type. The
 Boolean is the presence tag. Forward `RESULT_FILL_CONSTANT` requires tag and payload
 zero, then writes tag one and the exact immediate. Inverse execution requires tag one and
-that exact immediate, then restores both registers to zero. Both checks finish before
-mutation. Ordinary `RETURN_VALUE` descriptors retain their previous bytes and behavior.
+that exact immediate, then restores both registers to zero. `RESULT_FILL_SOURCE` performs
+the same exchange against an unchanged signed parameter. The verifier requires the source
+to stay outside the slot and requires forward and inverse bodies to name the same relation.
+All checks finish before mutation. Ordinary `RETURN_VALUE` descriptors retain their previous bytes and behavior.
 
 A returned buffer, map, or UTF-8 value must live in a caller region reached through a nonescaping region loan. A callee cannot return storage while abandoning its owning region. Slices, loans, and `byteview` values cannot be results.
 
@@ -285,11 +288,11 @@ A binary corpus accepts canonical stage-0 artifacts and rejects forged local or 
 The bounded compiler implementation now lives in importable `compiler/Driver.w`. `MinimalCompiler.w` is only its executable package wrapper. `compileMinimal` returns the exact verified artifact and code bounds without changing externally visible output length. A canonical module header qualifies entry and helper strings while preserving theorem names exactly as stage 0 does. It accepts up to sixty-four sorted unique direct import declarations. Malformed, duplicate, unsorted, and excess imports fail before publication. `compileMinimalWithConstantImport` and `compileMinimalWithConstantImports` link one or two exact direct scalar-constant modules into unqualified or canonical owner-qualified public root uses. Private constants may feed public exports. It evaluates and substitutes that graph before ordinary lowering, so the imported declarations add no runtime section. Any private name in the root fails before caller output changes, including a root-local collision until separate symbol tables land. Transitive imports, executable imported members, mismatched names, more than two root imports, and non-ASCII linked sources also fail closed. Colliding exports, three or more imports, unrelated qualifiers, and general multi-file linking remain outside the slice. `NativeCompilerIdentity.w` compiles into private 4,096-byte storage and hashes only the returned range. Its digest matches the stage-0 artifact, while malformed or oversized source publishes nothing. This is an artifact-producing recovery boundary, not yet a general-purpose mutable semantic editor.
 
 The native compiler now lowers the first reversible signed-result source profile. One
-`rev long` helper with up to two signed parameters may return a signed literal or
-evaluated constant. Its entry interleaves result calls with signed checks against constants
+`rev long` helper with up to two signed parameters may return a signed literal, evaluated
+constant, or preserved signed parameter. Its entry interleaves result calls with signed checks against constants
 or results already produced. The
 emitter writes function flags `0xd`, adjacent Boolean and signed slot locals, identical
-`RESULT_FILL_CONSTANT` and `RETURN_RESULT_SLOT` bodies, `CALL_RESULT_SLOT`, and the
+`RESULT_FILL_CONSTANT` or `RESULT_FILL_SOURCE` followed by `RETURN_RESULT_SLOT`, `CALL_RESULT_SLOT`, and the
 optional generated-inverse proof. Complete artifact bytes match stage 0. Unsupported
 result forms do not get an almost-correct ABI, which is compiler jargon for a future
 incident report.
@@ -300,7 +303,7 @@ Differential fixtures include these exact artifacts and lowering paths:
 
 - the 568-byte two-function `Calls` artifact.
 - the 528-byte inverse-bearing `ReversibleCalls` artifact.
-- the 824-byte reversible signed-result artifact with identical generated bodies.
+- reversible constant and preserved-source signed-result artifacts with identical generated bodies.
 - post-call local and assertion forms.
 - the proof-bearing `Certified` artifact.
 - the 360-byte no-global `Bare` artifact.

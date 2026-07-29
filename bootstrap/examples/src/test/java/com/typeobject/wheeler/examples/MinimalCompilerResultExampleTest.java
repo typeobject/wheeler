@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
+import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.MachineStatus;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
@@ -43,6 +44,22 @@ class MinimalCompilerResultExampleTest {
         "classical class ParameterReversibleResult { rev long answer(long ignored) { "
             + "return -1; } entry void main() { long first = answer(42); "
             + "long second = answer(first); assert(first == second); } }");
+
+    Program preserved = assertDifferentialHalt(
+        writerProgram,
+        "classical class PreservedReversibleResult { "
+            + "rev long identity(long value) { return value; } "
+            + "theorem identityInverse proves inverse(identity); "
+            + "entry void main() { long first = identity(42); "
+            + "long second = identity(first); assert(first == second); } }");
+    assertEquals(Opcode.RESULT_FILL_SOURCE, preserved.function(0).forward().getFirst().opcode());
+    assertEquals(preserved.function(0).forward(), preserved.function(0).inverse());
+
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class PreservedSecondResult { "
+            + "rev long select(long left, long right) { return right; } "
+            + "entry void main() { long value = select(1, 42); assert(value == 42); } }");
 
     assertDifferentialHalt(
         writerProgram,

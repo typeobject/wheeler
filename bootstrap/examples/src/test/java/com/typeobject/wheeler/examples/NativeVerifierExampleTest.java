@@ -92,6 +92,21 @@ class NativeVerifierExampleTest {
         verifier, malformedResultSlot);
     assertThrows(VmTrap.class, rejectedResultSlot::run);
 
+    byte[] preservedResultArtifact = compiler.compileToBytecode(
+        "classical class PreservedResultSubject { rev long identity(long source) { "
+            + "return source; } entry void main() { long value = identity(42); } }");
+    VirtualMachine preservedResultVerification = VirtualMachine.withBinaryInput(
+        verifier, preservedResultArtifact);
+    preservedResultVerification.run();
+    assertEquals(1, preservedResultVerification.global("verification"));
+
+    byte[] malformedPreservedResult = preservedResultArtifact.clone();
+    int preservedTransition = instructionOffset(malformedPreservedResult, 0x0209);
+    malformedPreservedResult[preservedTransition + 16] = 1;
+    VirtualMachine rejectedPreservedResult = VirtualMachine.withBinaryInput(
+        verifier, malformedPreservedResult);
+    assertThrows(VmTrap.class, rejectedPreservedResult::run);
+
     byte[] invalidDone = doneArtifact.clone();
     int doneConstant = instructionOffset(invalidDone, 0x0400);
     invalidDone[doneConstant + 16] = 1;

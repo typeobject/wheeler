@@ -328,10 +328,25 @@ final class VmPreflight {
             }
           } else {
             Instruction inverseTransition = target.inverse().getFirst();
-            if (tag != 1
-                || inverseTransition.opcode() != Opcode.RESULT_FILL_CONSTANT
-                || payload != inverseTransition.operand(IMMEDIATE)) {
-              trap("Inverse result slot does not hold the expected constant");
+            long expected;
+            boolean sourceRelation = false;
+            if (inverseTransition.opcode() == Opcode.RESULT_FILL_CONSTANT) {
+              expected = inverseTransition.operand(IMMEDIATE);
+            } else if (inverseTransition.opcode() == Opcode.RESULT_FILL_SOURCE) {
+              sourceRelation = true;
+              int source = Math.toIntExact(inverseTransition.operand(SOURCE));
+              if (source < 0 || source >= count) {
+                trap("Inverse result source is outside the argument window");
+              }
+              expected = frame.local(base + source);
+            } else {
+              trap("Inverse result slot has no exact fill relation");
+              return;
+            }
+            if (tag != 1 || payload != expected) {
+              trap(sourceRelation
+                  ? "Inverse result slot does not hold the expected source"
+                  : "Inverse result slot does not hold the expected constant");
             }
           }
         }
@@ -342,18 +357,22 @@ final class VmPreflight {
             trap("Function has no inverse: " + function.name());
           }
         }
-        case RESULT_FILL_CONSTANT -> {
+        case RESULT_FILL_CONSTANT, RESULT_FILL_SOURCE -> {
           int slot = localIndex(instruction, RESULT_SLOT);
           if (slot >= frame.localCount() - 1) {
             trap("Result slot is outside the frame");
           }
-          long expected = instruction.operand(IMMEDIATE);
+          long expected = instruction.opcode() == Opcode.RESULT_FILL_CONSTANT
+              ? instruction.operand(IMMEDIATE)
+              : localValue(instruction, SOURCE);
           long tag = frame.local(slot);
           long payload = frame.local(slot + 1);
           if ((!frame.inverse() && (tag != 0 || payload != 0))
               || (frame.inverse() && (tag != 1 || payload != expected))) {
             trap(frame.inverse()
-                ? "Inverse result slot does not hold the expected constant"
+                ? (instruction.opcode() == Opcode.RESULT_FILL_CONSTANT
+                    ? "Inverse result slot does not hold the expected constant"
+                    : "Inverse result slot does not hold the expected source")
                 : "Forward result slot is not vacant");
           }
         }

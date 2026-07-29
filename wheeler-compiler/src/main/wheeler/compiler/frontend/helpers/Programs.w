@@ -381,7 +381,16 @@ classical class HelperPrograms {
         return new MinimalProgramResult.Error(0);
       }
 
-      if (helperSequence.opcodes[0] == STATEMENT_RETURN_LONG) {} else {
+      long slotResultOpcode = helperSequence.opcodes[0];
+      boolean supportedSlotResult = slotResultOpcode == STATEMENT_RETURN_LONG;
+      if (resolvedSignedLocalReturn(slotResultOpcode)) {
+        long slotResultSource = resolvedLocalReturnSource(slotResultOpcode);
+        if (slotResultSource < parameterCount) {
+          supportedSlotResult = true;
+        }
+      }
+
+      if (supportedSlotResult) {} else {
         return new MinimalProgramResult.Error(0);
       }
     }

@@ -167,6 +167,19 @@ classical class ProgramCodegen {
     return writeUnsignedLittleEndian(output, cursor, resultSlot, U64);
   }
 
+  private long writeResultSlotSourceBody(
+    borrow mut bytes output,
+    long cursor,
+    long resultSlot,
+    long source
+  ) {
+    cursor = writeInstructionHeader(output, cursor, OPCODE_RESULT_FILL_SOURCE, FORM_BINARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, resultSlot, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, source, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN_RESULT_SLOT, FORM_UNARY);
+    return writeUnsignedLittleEndian(output, cursor, resultSlot, U64);
+  }
+
   /// Writes local types for one result-slot entry statement.
   public long writeResultSlotEntryLocalTypes(borrow mut bytes output, long cursor, long opcode) {
     if (resultCall(opcode)) {
@@ -409,6 +422,13 @@ classical class ProgramCodegen {
     boolean resultSlotProgram
   ) {
     if (resultSlotProgram) {
+      long resultOpcode = program.helperOpcodes[0];
+      if (resolvedSignedLocalReturn(resultOpcode)) {
+        long resultSource = resolvedLocalReturnSource(resultOpcode);
+        cursor = writeResultSlotSourceBody(output, cursor, helperLocalBase, resultSource);
+        return writeResultSlotSourceBody(output, cursor, helperLocalBase, resultSource);
+      }
+
       cursor = writeResultSlotBody(output, cursor, helperLocalBase, program.helperOperands[0]);
       return writeResultSlotBody(output, cursor, helperLocalBase, program.helperOperands[0]);
     }

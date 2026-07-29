@@ -32,6 +32,7 @@ public enum InstructionForm {
       OperandRole.ARGUMENT_COUNT,
       OperandRole.RESULT_SLOT),
   RESULT_CONSTANT(OperandRole.RESULT_SLOT, OperandRole.IMMEDIATE),
+  RESULT_SOURCE(OperandRole.RESULT_SLOT, OperandRole.SOURCE),
   RESULT_SLOT(OperandRole.RESULT_SLOT),
   RECORD_NEW(
       OperandRole.DESTINATION,

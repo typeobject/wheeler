@@ -75,6 +75,10 @@ classical class ProofVerifier {
       return OPCODE_RESULT_FILL_CONSTANT;
     }
 
+    if (opcode == OPCODE_RESULT_FILL_SOURCE) {
+      return OPCODE_RESULT_FILL_SOURCE;
+    }
+
     return -1;
   }
 
