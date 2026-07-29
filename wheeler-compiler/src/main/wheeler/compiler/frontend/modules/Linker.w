@@ -270,7 +270,7 @@ classical class ModuleLinker {
     return count;
   }
 
-  private boolean publicConstantBlock(
+  private long exportedConstantCount(
     borrow utf8 source,
     borrow mut words tokenKinds,
     borrow mut words tokenStarts,
@@ -279,14 +279,19 @@ classical class ModuleLinker {
     long memberStart
   ) {
     if (firstDeclaration < memberStart) {} else {
-      return false;
+      return -1;
     }
 
     long cursor = firstDeclaration;
-    long count = 0;
+    long exportedCount = 0;
     while (cursor < memberStart) limit MAX_CLASS_CONSTANTS {
-      if (tokenHash(source, tokenStarts, tokenLengths, cursor) == TOKEN_PUBLIC) {} else {
-        return false;
+      long visibility = tokenHash(source, tokenStarts, tokenLengths, cursor);
+      if (visibility == TOKEN_PUBLIC) {
+        exportedCount += 1;
+      } else {
+        if (visibility == TOKEN_PRIVATE) {} else {
+          return -1;
+        }
       }
 
       long next = constantDeclarationEnd(
@@ -297,14 +302,79 @@ classical class ModuleLinker {
         memberStart
       );
       if (cursor < next) {} else {
-        return false;
+        return -1;
       }
 
       cursor = next;
-      count += 1;
     }
 
-    return cursor == memberStart;
+    if (cursor == memberStart) {
+      return exportedCount;
+    }
+
+    return -1;
+  }
+
+  private boolean privateNamesHidden(
+    borrow utf8 importedSource,
+    borrow mut words importedStarts,
+    borrow mut words importedLengths,
+    long firstDeclaration,
+    long memberStart,
+    borrow utf8 rootSource,
+    borrow mut words rootKinds,
+    borrow mut words rootStarts,
+    borrow mut words rootLengths,
+    long rootBody,
+    long rootCount
+  ) {
+    long declaration = firstDeclaration;
+    while (declaration < memberStart) limit MAX_CLASS_CONSTANTS {
+      if (
+        tokenHash(importedSource, importedStarts, importedLengths, declaration) == TOKEN_PRIVATE
+      ) {
+        long name = constantNameToken(
+          importedSource,
+          importedStarts,
+          importedLengths,
+          declaration
+        );
+        long rootToken = rootBody + 4;
+        while (rootToken < rootCount) limit MAX_COMPILER_TOKENS {
+          if (rootKinds[rootToken] == 1) {
+            if (
+              rangesEqual(
+                importedSource,
+                importedStarts[name],
+                importedLengths[name],
+                rootSource,
+                rootStarts[rootToken],
+                rootLengths[rootToken]
+              )
+            ) {
+              return false;
+            }
+          }
+
+          rootToken += 1;
+        }
+      }
+
+      long next = constantDeclarationEnd(
+        importedSource,
+        importedStarts,
+        importedLengths,
+        declaration,
+        memberStart
+      );
+      if (declaration < next) {} else {
+        return false;
+      }
+
+      declaration = next;
+    }
+
+    return declaration == memberStart;
   }
 
   /// Plans one direct public-constant import without mutating caller output.
@@ -420,41 +490,56 @@ classical class ModuleLinker {
                       )
                     ) {
                       if (memberStart + 1 == importedCount) {
-                        if (
-                          publicConstantBlock(
+                        long exported = exportedConstantCount(
+                          importedSource,
+                          importedKinds,
+                          importedStarts,
+                          importedLengths,
+                          firstDeclaration,
+                          memberStart
+                        );
+                        if (0 < exported) {
+                          boolean privateHidden = privateNamesHidden(
                             importedSource,
-                            importedKinds,
                             importedStarts,
                             importedLengths,
                             firstDeclaration,
-                            memberStart
-                          )
-                        ) {
-                          long importedStart = importedStarts[firstDeclaration];
-                          long importedLength = importedStarts[memberStart] - importedStart;
-                          long rootInsertion = rootStarts[rootBody + 3] + 1;
-                          long qualifications = qualificationCount(
-                            importedSource,
-                            importedModule[0],
-                            importedModule[1],
-                            rootSource
+                            memberStart,
+                            rootSource,
+                            rootKinds,
+                            rootStarts,
+                            rootLengths,
+                            rootBody,
+                            rootCount
                           );
-                          if (-1 < qualifications) {
-                            long removed = qualifications * (
-                              importedModule[1] + QUALIFICATION_SEPARATOR_BYTES
+                          if (privateHidden) {
+                            long importedStart = importedStarts[firstDeclaration];
+                            long importedLength = importedStarts[memberStart] - importedStart;
+                            long rootInsertion = rootStarts[rootBody + 3] + 1;
+                            long qualifications = qualificationCount(
+                              importedSource,
+                              importedModule[0],
+                              importedModule[1],
+                              rootSource
                             );
-                            long linkedLength = bufferLength(rootSource) + importedLength - removed;
-                            if (linkedLength < MAX_LINKED_SOURCE_BYTES + 1) {
-                              result = new LinkPlan(
-                                importedStart,
-                                importedLength,
-                                importedModule[0],
-                                importedModule[1],
-                                rootInsertion,
-                                linkedLength,
-                                qualifications,
-                                true
+                            if (-1 < qualifications) {
+                              long removed = qualifications * (
+                                importedModule[1] + QUALIFICATION_SEPARATOR_BYTES
                               );
+                              long linkedLength = bufferLength(rootSource) + importedLength
+                                - removed;
+                              if (linkedLength < MAX_LINKED_SOURCE_BYTES + 1) {
+                                result = new LinkPlan(
+                                  importedStart,
+                                  importedLength,
+                                  importedModule[0],
+                                  importedModule[1],
+                                  rootInsertion,
+                                  linkedLength,
+                                  qualifications,
+                                  true
+                                );
+                              }
                             }
                           }
                         }

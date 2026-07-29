@@ -28,7 +28,7 @@ class NativeImportedConstantExampleTest {
     Program compiler = program();
     String imported = "module examples.constants; classical class Constants { "
         + "public const boolean READY = ANSWER == 42; "
-        + "public const long ANSWER = BASE + 2; public const long BASE = 40; }";
+        + "public const long ANSWER = BASE + 2; private const long BASE = 40; }";
     String root = "module examples.root; import examples.constants; "
         + "classical class ImportedConstants { state long outcome = 0; "
         + "entry void main() { long answer = ANSWER; boolean ready = READY; "
@@ -69,6 +69,11 @@ class NativeImportedConstantExampleTest {
         "module examples.constants; classical class Constants { "
             + "public const long ANSWER = 42; public void helper() { } }",
         root);
+    assertNativeTrap(
+        compiler,
+        "module examples.constants; classical class Constants { "
+            + "private const long HIDDEN = 40; public const long ANSWER = HIDDEN + 2; }",
+        root.replace("long value = ANSWER;", "long HIDDEN = 0; long value = ANSWER;"));
     assertNativeTrap(
         compiler,
         "module examples.constants; import examples.transitive; "
