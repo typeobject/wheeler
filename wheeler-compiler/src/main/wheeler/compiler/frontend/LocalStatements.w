@@ -2,6 +2,7 @@
 
 module wheeler.compiler.local_statements;
 
+import wheeler.compiler.call_forms;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
