@@ -307,6 +307,52 @@ class NativeImportedConstantExampleTest {
   }
 
   @Test
+  void linksATwoEdgeChainBesideTwoDirectModules() throws Exception {
+    Program compiler = program();
+    String leaf = "module examples.alpha; classical class Alpha { "
+        + "private const long HIDDEN = 9; public const long BASE = HIDDEN + 1; }";
+    String dependent = "module examples.beta; import examples.alpha; "
+        + "classical class Beta { public const long LEFT = examples.alpha::BASE + 1; }";
+    String firstDirect = "module examples.gamma; classical class Gamma { "
+        + "public const long MIDDLE = 11; public const boolean READY = MIDDLE == 11; }";
+    String secondDirect = "module examples.delta; classical class Delta { "
+        + "public const long RIGHT = 20; }";
+    String root = "module examples.root; import examples.beta; import examples.delta; "
+        + "import examples.gamma; classical class Root { state long outcome = 0; "
+        + "entry void main() { long left = examples.beta::LEFT; "
+        + "long middle = examples.gamma::MIDDLE; long right = examples.delta::RIGHT; "
+        + "long partial = left + middle; long answer = partial + right; "
+        + "boolean ready = READY; outcome = answer; assert(ready); assert(outcome == 42); } }";
+
+    byte[] artifact = compileNative(
+        compiler, List.of(leaf, dependent, firstDirect, secondDirect), root);
+    assertArrayEquals(
+        artifact,
+        compileNative(compiler, List.of(secondDirect, firstDirect, dependent, leaf), root));
+    assertArrayEquals(
+        artifact,
+        compileNative(compiler, List.of(dependent, secondDirect, leaf, firstDirect), root));
+    Map<String, String> sources = new LinkedHashMap<>();
+    sources.put("Alpha.w", leaf);
+    sources.put("Beta.w", dependent);
+    sources.put("Gamma.w", firstDirect);
+    sources.put("Delta.w", secondDirect);
+    sources.put("Root.w", root);
+    assertArrayEquals(
+        new BytecodeWriter().write(
+            new WheelerCompiler().compileModuleFiles(sources, "examples.root")),
+        artifact);
+    VirtualMachine program = new VirtualMachine(new BytecodeReader().read(artifact));
+    program.run();
+    assertEquals(42, program.global("outcome"));
+
+    assertNativeTrap(
+        compiler,
+        List.of(firstDirect, leaf, secondDirect, dependent),
+        root.replace("long left = examples.beta::LEFT;", "long left = BASE;"));
+  }
+
+  @Test
   void linksATransitiveConstantChainWithoutReexportingTheLeaf() throws Exception {
     Program compiler = program();
     String leaf = "module examples.alpha; classical class Alpha { "

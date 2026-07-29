@@ -3,6 +3,7 @@
 module wheeler.compiler.compiler_graph_four;
 
 import wheeler.compiler.compiler_core;
+import wheeler.compiler.compiler_graph_four_branches;
 import wheeler.compiler.compiler_graph_four_mixed;
 import wheeler.compiler.module_linker;
 
@@ -420,6 +421,18 @@ classical class CompilerGraphFour {
     );
     if (0 < chain.length) {
       return chain;
+    }
+
+    BranchedFourCompilation branched = compileFourChainAndTwoDirect(
+      firstImportedSource,
+      secondImportedSource,
+      thirdImportedSource,
+      fourthImportedSource,
+      rootSource,
+      output
+    );
+    if (0 < branched.length) {
+      return new FourGraphCompilation(branched.length, branched.codeStart);
     }
 
     MixedFourCompilation mixed = compileFourChainAndDirect(
