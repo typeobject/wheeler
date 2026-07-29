@@ -323,6 +323,214 @@ classical class CompilerGraphFourBranches {
     );
   }
 
+  private BranchedFourCompilation compileForkAndDirectIfOrdered(
+    borrow utf8 firstLeafSource,
+    borrow utf8 secondLeafSource,
+    borrow utf8 dependentSource,
+    borrow utf8 directSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    LinkPlan firstLeafPlan = planPrivateConstantImport(
+      firstLeafSource,
+      dependentSource,
+      /* expectedImportCount= */ 2
+    );
+    if (firstLeafPlan.valid) {} else {
+      return new BranchedFourCompilation(0, 0);
+    }
+
+    region firstArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes firstBytes = allocateBytes(firstArena, firstLeafPlan.linkedLength);
+    long firstWritten = writeConstantImport(
+      firstLeafSource,
+      dependentSource,
+      firstLeafPlan,
+      firstBytes
+    );
+    assert(firstWritten == firstLeafPlan.linkedLength);
+    utf8 firstLinkedDependentSource = freezeUtf8(firstBytes);
+
+    LinkPlan secondLeafPlan = planPrivateConstantImport(
+      secondLeafSource,
+      firstLinkedDependentSource,
+      /* expectedImportCount= */ 2
+    );
+    if (secondLeafPlan.valid) {} else {
+      drop(firstLinkedDependentSource);
+      drop(firstArena);
+      return new BranchedFourCompilation(0, 0);
+    }
+
+    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes secondBytes = allocateBytes(secondArena, secondLeafPlan.linkedLength);
+    long secondWritten = writeConstantImport(
+      secondLeafSource,
+      firstLinkedDependentSource,
+      secondLeafPlan,
+      secondBytes
+    );
+    assert(secondWritten == secondLeafPlan.linkedLength);
+    utf8 linkedDependentSource = freezeUtf8(secondBytes);
+
+    LinkPlan rootPlan = planResolvedConstantImport(
+      linkedDependentSource,
+      rootSource,
+      /* expectedImportCount= */ 2
+    );
+    if (rootPlan.valid) {} else {
+      drop(linkedDependentSource);
+      drop(secondArena);
+      drop(firstLinkedDependentSource);
+      drop(firstArena);
+      return new BranchedFourCompilation(0, 0);
+    }
+
+    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes rootBytes = allocateBytes(rootArena, rootPlan.linkedLength);
+    long rootWritten = writeConstantImport(
+      linkedDependentSource,
+      rootSource,
+      rootPlan,
+      rootBytes
+    );
+    assert(rootWritten == rootPlan.linkedLength);
+    utf8 firstLinkedRootSource = freezeUtf8(rootBytes);
+
+    LinkPlan directPlan = planConstantImport(
+      directSource,
+      firstLinkedRootSource,
+      /* expectedImportCount= */ 2
+    );
+    if (directPlan.valid) {} else {
+      drop(firstLinkedRootSource);
+      drop(rootArena);
+      drop(linkedDependentSource);
+      drop(secondArena);
+      drop(firstLinkedDependentSource);
+      drop(firstArena);
+      return new BranchedFourCompilation(0, 0);
+    }
+
+    region finalArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes finalBytes = allocateBytes(finalArena, directPlan.linkedLength);
+    long finalWritten = writeConstantImport(
+      directSource,
+      firstLinkedRootSource,
+      directPlan,
+      finalBytes
+    );
+    assert(finalWritten == directPlan.linkedLength);
+    utf8 linkedRootSource = freezeUtf8(finalBytes);
+    BranchedFourCompilation compiled = compileBranchedSource(linkedRootSource, output);
+    drop(linkedRootSource);
+    drop(finalArena);
+    drop(firstLinkedRootSource);
+    drop(rootArena);
+    drop(linkedDependentSource);
+    drop(secondArena);
+    drop(firstLinkedDependentSource);
+    drop(firstArena);
+    return compiled;
+  }
+
+  private BranchedFourCompilation compileForkForDependent(
+    borrow utf8 firstSource,
+    borrow utf8 secondSource,
+    borrow utf8 thirdSource,
+    borrow utf8 dependentSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    BranchedFourCompilation compiled = compileForkAndDirectIfOrdered(
+      firstSource,
+      secondSource,
+      dependentSource,
+      thirdSource,
+      rootSource,
+      output
+    );
+    if (0 < compiled.length) {
+      return compiled;
+    }
+
+    compiled = compileForkAndDirectIfOrdered(
+      firstSource,
+      thirdSource,
+      dependentSource,
+      secondSource,
+      rootSource,
+      output
+    );
+    if (0 < compiled.length) {
+      return compiled;
+    }
+
+    return compileForkAndDirectIfOrdered(
+      secondSource,
+      thirdSource,
+      dependentSource,
+      firstSource,
+      rootSource,
+      output
+    );
+  }
+
+  /// Compiles one two-leaf fork beside one direct root import.
+  public BranchedFourCompilation compileFourForkAndDirect(
+    borrow utf8 firstSource,
+    borrow utf8 secondSource,
+    borrow utf8 thirdSource,
+    borrow utf8 fourthSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    BranchedFourCompilation compiled = compileForkForDependent(
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      rootSource,
+      output
+    );
+    if (0 < compiled.length) {
+      return compiled;
+    }
+
+    compiled = compileForkForDependent(
+      firstSource,
+      secondSource,
+      fourthSource,
+      thirdSource,
+      rootSource,
+      output
+    );
+    if (0 < compiled.length) {
+      return compiled;
+    }
+
+    compiled = compileForkForDependent(
+      firstSource,
+      thirdSource,
+      fourthSource,
+      secondSource,
+      rootSource,
+      output
+    );
+    if (0 < compiled.length) {
+      return compiled;
+    }
+
+    return compileForkForDependent(
+      secondSource,
+      thirdSource,
+      fourthSource,
+      firstSource,
+      rootSource,
+      output
+    );
+  }
+
   /// Compiles two independent two-edge chains into one root.
   public BranchedFourCompilation compileFourTwoChains(
     borrow utf8 firstSource,
