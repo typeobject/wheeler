@@ -51,12 +51,17 @@ classical class ReturnCodegen {
       return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
     }
 
-    if (returnBooleanEqualityStatement(opcode)) {
+    if (returnBooleanComparisonStatement(opcode)) {
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, operand, U64);
       long rightOpcode = OPCODE_LOCAL_CONST;
-      if (opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED) {
+      boolean localRight = opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED;
+      if (opcode == STATEMENT_RETURN_BOOLEAN_NE_LOCAL_NAMED) {
+        localRight = true;
+      }
+
+      if (localRight) {
         rightOpcode = OPCODE_LOCAL_MOVE;
       }
 
@@ -67,8 +72,20 @@ classical class ReturnCodegen {
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      long comparisonResult = localBase + 2;
+      if (returnBooleanInequalityStatement(opcode)) {
+        cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
+        cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
+        cursor = writeSignedLittleEndian(output, cursor, /* value= */ 1, U64);
+        cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_XOR, FORM_TERNARY);
+        cursor = writeUnsignedLittleEndian(output, cursor, localBase + 4, U64);
+        cursor = writeUnsignedLittleEndian(output, cursor, comparisonResult, U64);
+        cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
+        comparisonResult = localBase + 4;
+      }
+
       cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN_VALUE, FORM_UNARY);
-      return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+      return writeUnsignedLittleEndian(output, cursor, comparisonResult, U64);
     }
 
     if (returnLocalPairStatement(opcode)) {

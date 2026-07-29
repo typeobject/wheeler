@@ -314,7 +314,7 @@ module.exports = grammar({
       field('operand', $.expression),
     )),
     binary_expression: $ => choice(
-      prec.left(1, seq($.expression, field('operator', '=='), $.expression)),
+      prec.left(1, seq($.expression, field('operator', choice('==', '!=')), $.expression)),
       prec.left(2, seq($.expression, field('operator', '<'), $.expression)),
       prec.left(3, seq($.expression, field('operator', '^'), $.expression)),
       prec.left(4, seq($.expression, field('operator', '&'), $.expression)),

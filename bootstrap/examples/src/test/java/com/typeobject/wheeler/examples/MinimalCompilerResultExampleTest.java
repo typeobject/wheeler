@@ -81,6 +81,22 @@ class MinimalCompilerResultExampleTest {
             + "entry void main() { boolean result = ready(); assert(result); } }");
     assertDifferentialHalt(
         writerProgram,
+        "classical class BooleanParameterLiteralInequality { "
+            + "boolean isTrue(boolean value) { return value != false; } "
+            + "entry void main() { boolean result = isTrue(true); assert(result); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class BooleanParameterDirectInequality { "
+            + "boolean different(boolean left, boolean right) { return left != right; } "
+            + "entry void main() { boolean result = different(true, false); assert(result); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class BooleanLocalInequalityResult { "
+            + "boolean different(boolean left, boolean right) { "
+            + "boolean result = left != right; return result; } "
+            + "entry void main() { boolean result = different(true, false); assert(result); } }");
+    assertDifferentialHalt(
+        writerProgram,
         "classical class BooleanParameterPair { "
             + "boolean same(boolean left, boolean right) { "
             + "boolean result = left == right; return result; } "

@@ -155,6 +155,15 @@ classical class LocalOpcodes {
     return opcode < STATEMENT_LOCAL_LONG_EQ_LITERAL_BASE + 256;
   }
 
+  /// Checks whether an opcode carries signed inequality with a literal.
+  public boolean resolvedLocalLiteralInequality(long opcode) {
+    if (opcode < STATEMENT_LOCAL_LONG_NE_LITERAL_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_LONG_NE_LITERAL_BASE + 256;
+  }
+
   /// Checks whether an opcode carries signed less-than with a literal.
   public boolean resolvedLocalLiteralLessThan(long opcode) {
     if (opcode < STATEMENT_LOCAL_LONG_LT_LITERAL_BASE) {
@@ -170,6 +179,10 @@ classical class LocalOpcodes {
       return true;
     }
 
+    if (resolvedLocalLiteralInequality(opcode)) {
+      return true;
+    }
+
     return resolvedLocalLiteralLessThan(opcode);
   }
 
@@ -177,6 +190,10 @@ classical class LocalOpcodes {
   public long resolvedLocalLiteralComparisonSource(long opcode) {
     if (resolvedLocalLiteralEquality(opcode)) {
       return opcode - STATEMENT_LOCAL_LONG_EQ_LITERAL_BASE;
+    }
+
+    if (resolvedLocalLiteralInequality(opcode)) {
+      return opcode - STATEMENT_LOCAL_LONG_NE_LITERAL_BASE;
     }
 
     return opcode - STATEMENT_LOCAL_LONG_LT_LITERAL_BASE;
@@ -243,6 +260,33 @@ classical class LocalOpcodes {
     }
 
     return opcode - STATEMENT_LOCAL_BOOLEAN_EQ_BASE;
+  }
+
+  /// Checks whether an opcode carries a resolved local-inequality left source.
+  public boolean resolvedLocalInequality(long opcode) {
+    if (opcode < STATEMENT_LOCAL_BOOLEAN_NE_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_LONG_NE_BASE + 256;
+  }
+
+  /// Reports whether a resolved local inequality compares signed values.
+  public boolean resolvedLocalInequalitySigned(long opcode) {
+    if (opcode < STATEMENT_LOCAL_LONG_NE_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_LONG_NE_BASE + 256;
+  }
+
+  /// Returns the left source local carried by a resolved inequality opcode.
+  public long resolvedLocalInequalitySource(long opcode) {
+    if (resolvedLocalInequalitySigned(opcode)) {
+      return opcode - STATEMENT_LOCAL_LONG_NE_BASE;
+    }
+
+    return opcode - STATEMENT_LOCAL_BOOLEAN_NE_BASE;
   }
 
   /// Checks whether an opcode carries a resolved signed less-than left source.
@@ -384,6 +428,10 @@ classical class LocalOpcodes {
       return 3;
     }
 
+    if (returnBooleanInequalityStatement(opcode)) {
+      return 5;
+    }
+
     if (opcode == STATEMENT_RETURN_LONG) {
       return 1;
     }
@@ -425,11 +473,19 @@ classical class LocalOpcodes {
     }
 
     if (resolvedLocalLiteralComparison(opcode)) {
+      if (resolvedLocalLiteralInequality(opcode)) {
+        return 6;
+      }
+
       return 4;
     }
 
     if (opcode == STATEMENT_LOCAL_LONG_EQ_LITERAL_NAMED) {
       return 4;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_NE_LITERAL_NAMED) {
+      return 6;
     }
 
     if (opcode == STATEMENT_LOCAL_LONG_LT_LITERAL_NAMED) {
@@ -484,12 +540,20 @@ classical class LocalOpcodes {
       return 4;
     }
 
+    if (resolvedLocalInequality(opcode)) {
+      return 6;
+    }
+
     if (resolvedLocalLongLessThan(opcode)) {
       return 4;
     }
 
     if (opcode == STATEMENT_LOCAL_BOOLEAN_EQ_NAMED) {
       return 4;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NE_NAMED) {
+      return 6;
     }
 
     if (opcode == STATEMENT_LOCAL_LONG_LT_NAMED) {
@@ -645,12 +709,20 @@ classical class LocalOpcodes {
       return localBase + 3;
     }
 
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NE_NAMED) {
+      return localBase + 5;
+    }
+
     if (opcode == STATEMENT_LOCAL_LONG_LT_NAMED) {
       return localBase + 3;
     }
 
     if (opcode == STATEMENT_LOCAL_LONG_EQ_LITERAL_NAMED) {
       return localBase + 3;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_NE_LITERAL_NAMED) {
+      return localBase + 5;
     }
 
     if (opcode == STATEMENT_LOCAL_LONG_LT_LITERAL_NAMED) {
@@ -690,6 +762,10 @@ classical class LocalOpcodes {
       return 96;
     }
 
+    if (returnBooleanInequalityStatement(opcode)) {
+      return 152;
+    }
+
     if (opcode == STATEMENT_RETURN_LONG) {
       return 40;
     }
@@ -715,6 +791,10 @@ classical class LocalOpcodes {
     }
 
     if (resolvedLocalLiteralComparison(opcode)) {
+      if (resolvedLocalLiteralInequality(opcode)) {
+        return 160;
+      }
+
       return 104;
     }
 
@@ -756,6 +836,10 @@ classical class LocalOpcodes {
 
     if (resolvedLocalEquality(opcode)) {
       return 104;
+    }
+
+    if (resolvedLocalInequality(opcode)) {
+      return 160;
     }
 
     if (resolvedLocalBooleanCopy(opcode)) {
@@ -854,6 +938,14 @@ classical class LocalOpcodes {
 
     if (length == 112) {
       return 5;
+    }
+
+    if (length == 152) {
+      return 6;
+    }
+
+    if (length == 160) {
+      return 6;
     }
 
     if (length == 168) {

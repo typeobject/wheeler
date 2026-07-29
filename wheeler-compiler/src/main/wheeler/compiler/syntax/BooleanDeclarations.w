@@ -16,11 +16,19 @@ classical class BooleanDeclarations {
       declaration = true;
     }
 
+    if (statementKind == STATEMENT_LOCAL_BOOLEAN_NE_NAMED) {
+      declaration = true;
+    }
+
     if (statementKind == STATEMENT_LOCAL_LONG_LT_NAMED) {
       declaration = true;
     }
 
     if (statementKind == STATEMENT_LOCAL_LONG_EQ_LITERAL_NAMED) {
+      declaration = true;
+    }
+
+    if (statementKind == STATEMENT_LOCAL_LONG_NE_LITERAL_NAMED) {
       declaration = true;
     }
 
@@ -114,7 +122,19 @@ classical class BooleanDeclarations {
           return -1;
         }
 
-        if (statementKind == STATEMENT_LOCAL_LONG_EQ_LITERAL_NAMED) {
+        boolean literalEquality = statementKind == STATEMENT_LOCAL_LONG_EQ_LITERAL_NAMED;
+        boolean literalInequality = statementKind == STATEMENT_LOCAL_LONG_NE_LITERAL_NAMED;
+        boolean literalComparison = literalEquality;
+        if (literalInequality) {
+          literalComparison = true;
+        }
+
+        if (literalComparison) {
+          long comparisonOperator = PUNCTUATION_ASSIGN;
+          if (literalInequality) {
+            comparisonOperator = PUNCTUATION_BANG;
+          }
+
           if (tokenKinds[statementStart + 3] == 1) {
             if (
               punctuationAt(
@@ -122,7 +142,7 @@ classical class BooleanDeclarations {
                 tokenKinds,
                 tokenStarts,
                 statementStart + 4,
-                PUNCTUATION_ASSIGN
+                comparisonOperator
               )
             ) {
               if (
@@ -164,7 +184,19 @@ classical class BooleanDeclarations {
           return -1;
         }
 
-        if (statementKind == STATEMENT_LOCAL_BOOLEAN_EQ_NAMED) {
+        boolean localEquality = statementKind == STATEMENT_LOCAL_BOOLEAN_EQ_NAMED;
+        boolean localInequality = statementKind == STATEMENT_LOCAL_BOOLEAN_NE_NAMED;
+        boolean localComparison = localEquality;
+        if (localInequality) {
+          localComparison = true;
+        }
+
+        if (localComparison) {
+          long localComparisonOperator = PUNCTUATION_ASSIGN;
+          if (localInequality) {
+            localComparisonOperator = PUNCTUATION_BANG;
+          }
+
           if (tokenKinds[statementStart + 3] == 1) {
             if (
               punctuationAt(
@@ -172,7 +204,7 @@ classical class BooleanDeclarations {
                 tokenKinds,
                 tokenStarts,
                 statementStart + 4,
-                PUNCTUATION_ASSIGN
+                localComparisonOperator
               )
             ) {
               if (

@@ -39,7 +39,8 @@ classical class Codegen {
     long rightLocal,
     long localBase,
     long rightOpcode,
-    long comparisonOpcode
+    long comparisonOpcode,
+    boolean negated
   ) {
     cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
@@ -56,9 +57,23 @@ classical class Codegen {
     cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+    long comparisonResult = localBase + 2;
+    long resultLocal = localBase + 3;
+    if (negated) {
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
+      cursor = writeSignedLittleEndian(output, cursor, /* value= */ 1, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_XOR, FORM_TERNARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 4, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, comparisonResult, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
+      comparisonResult = localBase + 4;
+      resultLocal = localBase + 5;
+    }
+
     cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
-    return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, resultLocal, U64);
+    return writeUnsignedLittleEndian(output, cursor, comparisonResult, U64);
   }
 
   private long writeLocalPairAssertion(
@@ -462,6 +477,10 @@ classical class Codegen {
         literalComparisonOpcode = OPCODE_LOCAL_EQ;
       }
 
+      if (resolvedLocalLiteralInequality(opcode)) {
+        literalComparisonOpcode = OPCODE_LOCAL_EQ;
+      }
+
       return writeLocalComparison(
         output,
         cursor,
@@ -469,7 +488,8 @@ classical class Codegen {
         operand,
         localBase,
         OPCODE_LOCAL_CONST,
-        literalComparisonOpcode
+        literalComparisonOpcode,
+        /* negated= */ resolvedLocalLiteralInequality(opcode)
       );
     }
 
@@ -481,7 +501,21 @@ classical class Codegen {
         operand,
         localBase,
         OPCODE_LOCAL_MOVE,
-        OPCODE_LOCAL_EQ
+        OPCODE_LOCAL_EQ,
+        /* negated= */ false
+      );
+    }
+
+    if (resolvedLocalInequality(opcode)) {
+      return writeLocalComparison(
+        output,
+        cursor,
+        resolvedLocalInequalitySource(opcode),
+        operand,
+        localBase,
+        OPCODE_LOCAL_MOVE,
+        OPCODE_LOCAL_EQ,
+        /* negated= */ true
       );
     }
 
@@ -493,7 +527,8 @@ classical class Codegen {
         operand,
         localBase,
         OPCODE_LOCAL_MOVE,
-        OPCODE_LOCAL_LT
+        OPCODE_LOCAL_LT,
+        /* negated= */ false
       );
     }
 

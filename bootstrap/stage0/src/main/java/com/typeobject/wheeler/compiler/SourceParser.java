@@ -689,8 +689,12 @@ final class SourceParser extends SourceStatementParser {
 
   private String parseEquality(List<Statement> body) {
     String left = parseComparison(body);
-    while (match(Type.EQUAL)) {
-      left = binary(body, previous(), "eq", left, parseComparison(body));
+    while (match(Type.EQUAL, Type.NOT_EQUAL)) {
+      SourceToken operator = previous();
+      left = binary(body, operator, "eq", left, parseComparison(body));
+      if (operator.type() == Type.NOT_EQUAL) {
+        left = negate(body, operator, left);
+      }
     }
     return left;
   }
@@ -753,7 +757,10 @@ final class SourceParser extends SourceStatementParser {
       return parsePrimary(body);
     }
     SourceToken operator = previous();
-    String value = parseUnary(body);
+    return negate(body, operator, parseUnary(body));
+  }
+
+  private String negate(List<Statement> body, SourceToken operator, String value) {
     String truth = temporary();
     body.add(statement("local_boolean", operator.line(), truth, "1"));
     return binary(body, operator, "xor", value, truth);

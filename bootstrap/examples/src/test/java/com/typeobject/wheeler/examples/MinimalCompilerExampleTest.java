@@ -219,6 +219,20 @@ class MinimalCompilerExampleTest {
             + "boolean same = first == second; assert(same); } }");
     assertDifferentialHalt(
         writerProgram,
+        "classical class LocalBooleanInequality { entry void main() { "
+            + "boolean first = true; boolean second = false; "
+            + "boolean different = first != second; assert(different); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class LocalSignedInequality { entry void main() { "
+            + "long first = 41; long second = 42; "
+            + "boolean different = first != second; assert(different); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class LocalSignedLiteralInequality { entry void main() { "
+            + "long first = 41; boolean different = first != 42; assert(different); } }");
+    assertDifferentialHalt(
+        writerProgram,
         "classical class AssertSignedPair { entry void main() { "
             + "long first = 41; long second = 41; assert(first == second); } }");
     assertDifferentialHalt(

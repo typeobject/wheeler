@@ -67,6 +67,16 @@ classical class LocalTypes {
       return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
     }
 
+    if (returnBooleanInequalityStatement(opcode)) {
+      long returnComparisonLocal = 0;
+      while (returnComparisonLocal < 5) limit MAX_STATEMENT_LOCALS {
+        cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+        returnComparisonLocal += 1;
+      }
+
+      return cursor;
+    }
+
     if (resolvedLocalReturn(opcode)) {
       long resultType = TYPE_BOOLEAN;
       if (resolvedSignedLocalReturn(opcode)) {
@@ -127,6 +137,10 @@ classical class LocalTypes {
     }
 
     boolean comparison = resolvedLocalEquality(opcode);
+    if (resolvedLocalInequality(opcode)) {
+      comparison = true;
+    }
+
     if (resolvedLocalLongLessThan(opcode)) {
       comparison = true;
     }
@@ -141,6 +155,10 @@ classical class LocalTypes {
         sourceType = TYPE_SIGNED;
       }
 
+      if (resolvedLocalInequalitySigned(opcode)) {
+        sourceType = TYPE_SIGNED;
+      }
+
       if (resolvedLocalLongLessThan(opcode)) {
         sourceType = TYPE_SIGNED;
       }
@@ -152,6 +170,16 @@ classical class LocalTypes {
       cursor = writeUnsignedLittleEndian(output, cursor, sourceType, 4);
       cursor = writeUnsignedLittleEndian(output, cursor, sourceType, 4);
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+      boolean inequality = resolvedLocalInequality(opcode);
+      if (resolvedLocalLiteralInequality(opcode)) {
+        inequality = true;
+      }
+
+      if (inequality) {
+        cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+        cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+      }
+
       return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
     }
 

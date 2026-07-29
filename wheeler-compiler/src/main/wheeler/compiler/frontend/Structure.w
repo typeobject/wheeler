@@ -146,6 +146,52 @@ classical class Structure {
     return -1;
   }
 
+  private long booleanReturnComparisonWidth(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart,
+    long firstOperator,
+    boolean literalRight
+  ) {
+    if (tokenKinds[statementStart + 1] == 1) {} else {
+      return -1;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, firstOperator) == false
+    ) {
+      return -1;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, statementStart + 3, PUNCTUATION_ASSIGN)
+        == false
+    ) {
+      return -1;
+    }
+
+    boolean rightValid = tokenKinds[statementStart + 4] == 1;
+    if (literalRight) {
+      rightValid = booleanTokenHash(
+        tokenHash(source, tokenStarts, tokenLengths, statementStart + 4)
+      );
+    }
+
+    if (rightValid == false) {
+      return -1;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, statementStart + 5, PUNCTUATION_SEMICOLON)
+    ) {
+      return 6;
+    }
+
+    return -1;
+  }
+
   /// Validates and sizes one bounded helper value statement.
   public long helperValueStatementWidth(
     borrow utf8 source,
@@ -199,49 +245,26 @@ classical class Structure {
       return -1;
     }
 
-    if (returnBooleanEqualityStatement(statementKind)) {
-      if (tokenKinds[statementStart + 1] == 1) {} else {
-        return -1;
+    if (returnBooleanComparisonStatement(statementKind)) {
+      long comparisonOperator = PUNCTUATION_ASSIGN;
+      boolean comparisonLiteral = statementKind == STATEMENT_RETURN_BOOLEAN_EQ_LITERAL_NAMED;
+      if (statementKind == STATEMENT_RETURN_BOOLEAN_NE_LITERAL_NAMED) {
+        comparisonLiteral = true;
       }
 
-      if (
-        punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, PUNCTUATION_ASSIGN)
-          == false
-      ) {
-        return -1;
+      if (returnBooleanInequalityStatement(statementKind)) {
+        comparisonOperator = PUNCTUATION_BANG;
       }
 
-      if (
-        punctuationAt(source, tokenKinds, tokenStarts, statementStart + 3, PUNCTUATION_ASSIGN)
-          == false
-      ) {
-        return -1;
-      }
-
-      boolean rightValid = tokenKinds[statementStart + 4] == 1;
-      if (statementKind == STATEMENT_RETURN_BOOLEAN_EQ_LITERAL_NAMED) {
-        rightValid = booleanTokenHash(
-          tokenHash(source, tokenStarts, tokenLengths, statementStart + 4)
-        );
-      }
-
-      if (rightValid == false) {
-        return -1;
-      }
-
-      if (
-        punctuationAt(
-          source,
-          tokenKinds,
-          tokenStarts,
-          statementStart + 5,
-          PUNCTUATION_SEMICOLON
-        )
-      ) {
-        return 6;
-      }
-
-      return -1;
+      return booleanReturnComparisonWidth(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        comparisonOperator,
+        comparisonLiteral
+      );
     }
 
     if (statementKind == STATEMENT_RETURN_LONG) {

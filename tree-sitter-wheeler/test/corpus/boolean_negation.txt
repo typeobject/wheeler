@@ -4,7 +4,7 @@ Boolean negation
 
 classical class Negation {
   test void accepts(boolean value) cases(false, true) {
-    assert(!value == !false);
+    assert(!value != false);
   }
 }
 
@@ -36,6 +36,4 @@ classical class Negation {
                         (expression
                           (identifier))))
                     (expression
-                      (unary_expression
-                        (expression
-                          (boolean_literal))))))))))))))
+                      (boolean_literal))))))))))))

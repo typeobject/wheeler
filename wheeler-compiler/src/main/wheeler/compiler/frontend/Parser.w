@@ -163,11 +163,19 @@ classical class Parser {
       supported = true;
     }
 
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NE_NAMED) {
+      supported = true;
+    }
+
     if (opcode == STATEMENT_LOCAL_LONG_LT_NAMED) {
       supported = true;
     }
 
     if (opcode == STATEMENT_LOCAL_LONG_EQ_LITERAL_NAMED) {
+      supported = true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_NE_LITERAL_NAMED) {
       supported = true;
     }
 

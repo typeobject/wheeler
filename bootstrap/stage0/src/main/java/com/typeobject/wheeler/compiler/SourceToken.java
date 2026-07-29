@@ -27,6 +27,7 @@ record SourceToken(Type type, String text, int line, int column, int offset) {
     SLASH,
     PERCENT,
     NOT,
+    NOT_EQUAL,
     AND,
     XOR,
     LESS,

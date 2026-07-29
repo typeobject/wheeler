@@ -76,11 +76,19 @@ classical class LocalStatements {
       return true;
     }
 
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NE_NAMED) {
+      return true;
+    }
+
     if (opcode == STATEMENT_LOCAL_LONG_LT_NAMED) {
       return true;
     }
 
     if (opcode == STATEMENT_LOCAL_LONG_EQ_LITERAL_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_NE_LITERAL_NAMED) {
       return true;
     }
 
@@ -170,7 +178,7 @@ classical class LocalStatements {
     long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
-    if (returnBooleanEqualityStatement(opcode)) {
+    if (returnBooleanComparisonStatement(opcode)) {
       long left = resolvePriorDeclaration(
         source,
         tokenStarts,
@@ -184,7 +192,12 @@ classical class LocalStatements {
         return -1;
       }
 
-      if (opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED) {
+      boolean localComparison = opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED;
+      if (opcode == STATEMENT_RETURN_BOOLEAN_NE_LOCAL_NAMED) {
+        localComparison = true;
+      }
+
+      if (localComparison) {
         long right = resolvePriorDeclaration(
           source,
           tokenStarts,
@@ -461,6 +474,23 @@ classical class LocalStatements {
       return -1;
     }
 
+    if (opcode == STATEMENT_LOCAL_LONG_NE_LITERAL_NAMED) {
+      long inequalityLiteralSource = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3,
+        true
+      );
+      if (-1 < inequalityLiteralSource) {
+        return STATEMENT_LOCAL_LONG_NE_LITERAL_BASE + inequalityLiteralSource;
+      }
+
+      return -1;
+    }
+
     if (opcode == STATEMENT_LOCAL_LONG_LT_LITERAL_NAMED) {
       long lessThanLiteralSource = resolvePriorDeclaration(
         source,
@@ -529,6 +559,40 @@ classical class LocalStatements {
       return -1;
     }
 
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_NE_NAMED) {
+      long inequalitySignedLeft = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3,
+        true
+      );
+      long inequalityBooleanLeft = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3,
+        false
+      );
+      if (-1 < inequalitySignedLeft) {
+        if (inequalityBooleanLeft < 0) {
+          return STATEMENT_LOCAL_LONG_NE_BASE + inequalitySignedLeft;
+        }
+      }
+
+      if (-1 < inequalityBooleanLeft) {
+        if (inequalitySignedLeft < 0) {
+          return STATEMENT_LOCAL_BOOLEAN_NE_BASE + inequalityBooleanLeft;
+        }
+      }
+
+      return -1;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN_NAMED) {
       long booleanSourceLocal = resolvePriorDeclaration(
         source,
@@ -585,6 +649,10 @@ classical class LocalStatements {
     }
 
     if (resolvedLocalEquality(opcode)) {
+      return -1 < operand;
+    }
+
+    if (resolvedLocalInequality(opcode)) {
       return -1 < operand;
     }
 

@@ -28,7 +28,7 @@ classical class StatementForms {
       return true;
     }
 
-    if (returnBooleanEqualityStatement(opcode)) {
+    if (returnBooleanComparisonStatement(opcode)) {
       return true;
     }
 
@@ -184,13 +184,31 @@ classical class StatementForms {
     return opcode == STATEMENT_RETURN_LOCAL_AND_LOCAL_NAMED;
   }
 
-  /// Checks for a Boolean helper return comparing two Boolean values.
+  /// Checks for a Boolean helper equality return.
   public boolean returnBooleanEqualityStatement(long opcode) {
     if (opcode == STATEMENT_RETURN_BOOLEAN_EQ_LITERAL_NAMED) {
       return true;
     }
 
     return opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED;
+  }
+
+  /// Checks for a Boolean helper inequality return.
+  public boolean returnBooleanInequalityStatement(long opcode) {
+    if (opcode == STATEMENT_RETURN_BOOLEAN_NE_LITERAL_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_RETURN_BOOLEAN_NE_LOCAL_NAMED;
+  }
+
+  /// Checks for any direct Boolean comparison helper return.
+  public boolean returnBooleanComparisonStatement(long opcode) {
+    if (returnBooleanEqualityStatement(opcode)) {
+      return true;
+    }
+
+    return returnBooleanInequalityStatement(opcode);
   }
 
   /// Checks the closed pair of Boolean literal token hashes.
@@ -280,6 +298,23 @@ classical class StatementForms {
             }
 
             return STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED;
+          }
+        }
+
+        if (returnOperator == PUNCTUATION_BANG) {
+          long inequalityOperator = utf8Scalar(source, tokenStarts[statementStart + 3]);
+          if (inequalityOperator == PUNCTUATION_ASSIGN) {
+            long returnInequalityHash = tokenHash(
+              source,
+              tokenStarts,
+              tokenLengths,
+              statementStart + 4
+            );
+            if (booleanTokenHash(returnInequalityHash)) {
+              return STATEMENT_RETURN_BOOLEAN_NE_LITERAL_NAMED;
+            }
+
+            return STATEMENT_RETURN_BOOLEAN_NE_LOCAL_NAMED;
           }
         }
 
@@ -683,6 +718,17 @@ classical class StatementForms {
           }
 
           return STATEMENT_LOCAL_LONG_EQ_LITERAL_NAMED;
+        }
+      }
+
+      if (equality == PUNCTUATION_BANG) {
+        if (utf8Scalar(source, tokenStarts[statementStart + 5]) == PUNCTUATION_ASSIGN) {
+          long inequalityRight = utf8Scalar(source, tokenStarts[statementStart + 6]);
+          if (identifierStart(inequalityRight)) {
+            return STATEMENT_LOCAL_BOOLEAN_NE_NAMED;
+          }
+
+          return STATEMENT_LOCAL_LONG_NE_LITERAL_NAMED;
         }
       }
 

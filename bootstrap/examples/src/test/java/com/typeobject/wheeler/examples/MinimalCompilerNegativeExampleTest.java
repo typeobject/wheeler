@@ -515,6 +515,14 @@ class MinimalCompilerNegativeExampleTest {
         512);
     assertTrapWithoutOutput(mixedLocalEquality, 512);
 
+    VirtualMachine mixedLocalInequality = new VirtualMachine(
+        writerProgram,
+        ("classical class MixedLocalInequality { entry void main() { "
+                + "long first = 1; boolean second = true; "
+                + "boolean different = first != second; } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertTrapWithoutOutput(mixedLocalInequality, 512);
   }
 
   @Test
@@ -551,6 +559,15 @@ class MinimalCompilerNegativeExampleTest {
             .getBytes(StandardCharsets.UTF_8),
         512);
     assertTrapWithoutOutput(unknownBooleanHelperNot, 512);
+
+    VirtualMachine unknownBooleanHelperInequality = new VirtualMachine(
+        writerProgram,
+        ("classical class UnknownBooleanHelperInequality { "
+                + "boolean different(boolean value) { return value != missing; } "
+                + "entry void main() { boolean result = different(false); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertTrapWithoutOutput(unknownBooleanHelperInequality, 512);
 
     VirtualMachine booleanHelperXor = new VirtualMachine(
         writerProgram,
