@@ -54,6 +54,10 @@ classical class FunctionVerifier {
       return true;
     }
 
+    if (typeCode == TYPE_DONE) {
+      return true;
+    }
+
     if (typeCode == TYPE_REGION) {
       return true;
     }

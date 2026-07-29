@@ -93,6 +93,7 @@ One little-endian `u32` per register stores its type:
 
 - `1`: signed 64-bit integer.
 - `2`: Boolean.
+- `14`: the one-value `Done` completion type.
 - high-nibble tag `0x1`: record reference.
 - high-nibble tag `0x2`: variant reference.
 - high-nibble tag `0x3`: fixed-array reference.
@@ -100,11 +101,11 @@ One little-endian `u32` per register stores its type:
 
 Aggregate references carry a 28-bit descriptor ID. The result-presence flag `4` means that one result type is present in the signature table.
 
-Unknown type codes, missing descriptor IDs, and noncanonical type-table lengths fail before execution. Parameter registers may carry any value, affine owner, or nonescaping loan accepted by the source profile.
+Stage 0 mechanically compares every primitive type identity with the Wheeler-native `TypeCodes.w` registry. Unknown type codes, missing descriptor IDs, and noncanonical type-table lengths fail before execution. Parameter registers may carry any value, affine owner, or nonescaping loan accepted by the source profile.
 
 ### Scalar and control instructions
 
-Local instructions include constants, state load or store, copy or affine move, checked arithmetic, bit operations, comparison, branches, loop-limit checks, calls, returns, aggregate construction, payload access, and bounded storage operations.
+Local instructions include constants, state load or store, copy or affine move, checked arithmetic, bit operations, comparison, branches, loop-limit checks, calls, returns, aggregate construction, payload access, and bounded storage operations. `LOCAL_CONST` materializes `Done` only with canonical immediate zero. The verifier rejects every other physical value before execution.
 
 Checked arithmetic covers add, subtract, multiply, divide, and remainder. `LOCAL_AND` performs signed bitwise AND. `LOCAL_ROTR32` rotates the low unsigned 32 bits and requires an amount in the exact `0..31` range.
 

@@ -60,7 +60,7 @@ class BytecodeVerifierTest {
   }
 
   @Test
-  void rejectsRegisterTypeMismatchesAndInvalidBooleanConstants() {
+  void rejectsRegisterTypeMismatchesAndInvalidScalarConstants() {
     FunctionBody signedCondition = typedMain(
         List.of(ValueType.SIGNED),
         List.of(
@@ -89,12 +89,25 @@ class BytecodeVerifierTest {
         List.of(
             Instruction.of(Opcode.LOCAL_CONST, 0, 2),
             Instruction.of(Opcode.HALT)));
+    FunctionBody invalidDone = typedMain(
+        List.of(ValueType.DONE),
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 1),
+            Instruction.of(Opcode.HALT)));
+    FunctionBody doneXor = typedMain(
+        List.of(ValueType.DONE, ValueType.DONE, ValueType.DONE),
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 0),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 0),
+            Instruction.of(Opcode.LOCAL_XOR, 2, 0, 1),
+            Instruction.of(Opcode.HALT)));
     FunctionBody unresolvedRecord = typedMain(
         List.of(ValueType.record(7)),
         List.of(
             Instruction.of(Opcode.LOCAL_CONST, 0, 0),
             Instruction.of(Opcode.HALT)));
 
+    assertEquals(ValueType.DONE, ValueType.fromCode(ValueType.DONE.code()));
     assertEquals(ValueType.record(7), ValueType.fromCode(ValueType.record(7).code()));
     assertOperandFailure(programWith(signedCondition), Opcode.JUMP_IF_ZERO, "condition");
     assertOperandFailure(programWith(signedAssertion), Opcode.EXPECT_TRUE, "condition");
@@ -102,6 +115,8 @@ class BytecodeVerifierTest {
         BytecodeException.class, () -> BytecodeVerifier.verify(programWith(uninitializedAssertion)));
     assertOperandFailure(programWith(booleanStore), Opcode.LOCAL_STORE_GLOBAL, "source");
     assertOperandFailure(programWith(invalidBoolean), Opcode.LOCAL_CONST, "immediate");
+    assertOperandFailure(programWith(invalidDone), Opcode.LOCAL_CONST, "immediate");
+    assertOperandFailure(programWith(doneXor), Opcode.LOCAL_XOR, "destination");
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(programWith(unresolvedRecord)));
   }
 

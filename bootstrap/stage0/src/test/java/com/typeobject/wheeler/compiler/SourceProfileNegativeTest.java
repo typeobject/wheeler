@@ -3,6 +3,7 @@ package com.typeobject.wheeler.compiler;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /** Conformance tests for fail-closed source grammar and semantic boundaries. */
@@ -208,6 +209,25 @@ class SourceProfileNegativeTest {
         CompilerException.class, () -> new WheelerCompiler().compile(wrongPayload));
     assertTrue(missing.getMessage().contains("do not exhaust LookupResult"));
     assertTrue(payload.getMessage().contains("payload binding type mismatch"));
+  }
+
+  @Test
+  void rejectsNullLikeValuesAndMismatchedCompletionReturns() {
+    for (String spelling : List.of("null", "nil", "none", "undefined")) {
+      CompilerException rejected = assertThrows(
+          CompilerException.class,
+          () -> new WheelerCompiler().compile(
+              "classical class NullLike { long value() { return " + spelling
+                  + "; } entry void main() { } }"));
+      assertTrue(rejected.getMessage().contains("null-like values do not exist"));
+    }
+
+    CompilerException mismatch = assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compile(
+            "classical class WrongDone { long value() { return done; } "
+                + "entry void main() { } }"));
+    assertTrue(mismatch.getMessage().contains("expected signed expression"));
   }
 
   @Test

@@ -160,7 +160,8 @@ public final class BytecodeVerifier {
       Program program, ValueType type, String owner) {
     verifyTypeReference(program, type, owner);
     ValueType element = program.arrayTypes().get(type.descriptorId()).elementType();
-    if (!element.equals(ValueType.SIGNED) && !element.equals(ValueType.BOOLEAN)) {
+    if (!element.equals(ValueType.SIGNED) && !element.equals(ValueType.BOOLEAN)
+        && !element.equals(ValueType.DONE)) {
       fail("Embedded arrays require scalar elements: " + owner);
     }
   }
@@ -309,13 +310,17 @@ public final class BytecodeVerifier {
               owner, instruction, DESTINATION, pc,
               "aggregate local requires aggregate construction");
         }
-        if (owner.localType(destination).equals(ValueType.BOOLEAN)) {
-          long value = instruction.operand(IMMEDIATE);
-          if (value != 0 && value != 1) {
-            failOperand(
-                owner, instruction, IMMEDIATE, pc,
-                "Boolean constant must be zero or one, got " + value);
-          }
+        long value = instruction.operand(IMMEDIATE);
+        if (owner.localType(destination).equals(ValueType.BOOLEAN)
+            && value != 0 && value != 1) {
+          failOperand(
+              owner, instruction, IMMEDIATE, pc,
+              "Boolean constant must be zero or one, got " + value);
+        }
+        if (owner.localType(destination).equals(ValueType.DONE) && value != 0) {
+          failOperand(
+              owner, instruction, IMMEDIATE, pc,
+              "Done constant must be zero, got " + value);
         }
       }
       case LOCAL_LOAD_GLOBAL -> {
@@ -357,14 +362,11 @@ public final class BytecodeVerifier {
             owner, instruction, destination, DESTINATION, left, LEFT_SOURCE, pc);
         requireSameType(
             owner, instruction, destination, DESTINATION, right, RIGHT_SOURCE, pc);
-        if (owner.localType(destination).kind() == ValueType.Kind.RECORD
-            || owner.localType(destination).kind() == ValueType.Kind.VARIANT
-            || owner.localType(destination).kind() == ValueType.Kind.ARRAY
-            || owner.localType(destination).kind() == ValueType.Kind.SLICE
-            || owned(owner.localType(destination))) {
+        ValueType xorType = owner.localType(destination);
+        if (!xorType.equals(ValueType.SIGNED) && !xorType.equals(ValueType.BOOLEAN)) {
           failOperand(
               owner, instruction, DESTINATION, pc,
-              "XOR does not accept aggregate or owned values");
+              "XOR requires signed or Boolean values");
         }
       }
       case LOCAL_EQ -> {

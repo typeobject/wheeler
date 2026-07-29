@@ -169,7 +169,7 @@ Files: [`NativeBootstrapModulesIdentity.w`](../../wheeler-examples/src/main/whee
 
 Covers: One through sixty-four sorted local source modules, zero through sixty-four externals, 256 total imports, unique paths, complete binding, rooted reachability, cycle rejection, bounded names and paths, lowercase source identities, exact schema bytes, SHA-256 publication, and rewind.
 
-Expected behavior: Empty-import one-module, two-external one-module, and three-, five-, nine-, and seventeen-module rooted DAG closures reproduce stage 0. A cycle, unreachable module, duplicate path, sixty-fifth module or external, unsorted external, unbound import, mismatched root, uppercase digest, traversal path, or input beyond 32,768 bytes publishes nothing. The current physical compiler closure has thirty-nine modules, 147 imports, and 13,408 canonical bytes. The packaged executable reproduces its stage-0 identity in 8,774,991 transitions. Sixty-four is still deliberately smaller than the 10,000-module schema. Pretending otherwise would merely give the graph a fake moustache too.
+Expected behavior: Empty-import one-module, two-external one-module, and three-, five-, nine-, and seventeen-module rooted DAG closures reproduce stage 0. A cycle, unreachable module, duplicate path, sixty-fifth module or external, unsorted external, unbound import, mismatched root, uppercase digest, traversal path, or input beyond 32,768 bytes publishes nothing. The current physical compiler closure has thirty-nine modules, 147 imports, and 13,408 canonical bytes. The packaged executable reproduces its stage-0 identity in 8,774,919 transitions. Sixty-four is still deliberately smaller than the 10,000-module schema. Pretending otherwise would merely give the graph a fake moustache too.
 
 ### `NativeCompilerLimitsIdentity.w`
 
@@ -463,7 +463,7 @@ Expected behavior:
 
 Source: [`Variants.w`](../../wheeler-examples/src/main/wheeler/classical/data/Variants.w).
 
-Covers: Closed tagged variants, typed construction, structural equality, and exhaustive payload selection.
+Covers: The one-value `Done` completion type, ordinary `done` returns, closed tagged variants, typed construction, structural equality, and exhaustive payload selection.
 
 Expected result: `selected = 9`, `equal = 1`.
 

@@ -28,6 +28,8 @@ final class SourceParser extends SourceStatementParser {
   private static final int MAX_BLOCK_DEPTH = 256;
   private static final Set<String> DOMAINS = Set.of("classical", "quantum", "hybrid");
   private static final Set<String> VISIBILITY = Set.of("public", "private", "protected");
+  private static final Set<String> NULL_LIKE_VALUES =
+      Set.of("null", "nil", "none", "undefined");
 
   private final List<State> states = new ArrayList<>();
   private final List<ConstantDefinition> constants = new ArrayList<>();
@@ -283,9 +285,9 @@ final class SourceParser extends SourceStatementParser {
     labelSequence = 0;
     while (!check(Type.RIGHT_BRACE) && !check(Type.END)) {
       if (structuredStatements && checkLocalType()) {
-        parseLocalDeclaration(body);
+        SourceResultParser.parseLocalDeclaration(this, body);
       } else if (structuredStatements && matchText("return")) {
-        parseReturn(body, previous());
+        SourceResultParser.parseReturn(this, body, previous(), valueReturnsAllowed);
       } else if (structuredStatements && matchText("if")) {
         parseIf(body, previous());
       } else if (structuredStatements && matchText("while")) {
@@ -352,25 +354,6 @@ final class SourceParser extends SourceStatementParser {
     return new Function(
         name, exported, entry, test, reversible, coherent, parameters, testCases,
         returnType, body, line);
-  }
-
-  private void parseReturn(List<Statement> body, SourceToken start) {
-    if (!valueReturnsAllowed) {
-      fail(start, "return value is not available in a void method");
-    }
-    String value = parseExpression(body);
-    expect(Type.SEMICOLON, "';' after return value");
-    body.add(statement("return_value", start.line(), value));
-  }
-
-  private void parseLocalDeclaration(List<Statement> body) {
-    SourceToken start = peek();
-    String type = parseValueType("local type");
-    String name = expect(Type.IDENTIFIER, "local name").text();
-    expect(Type.ASSIGN, "'=' in local declaration");
-    String value = parseExpression(body);
-    expect(Type.SEMICOLON, "';' after local declaration");
-    body.add(statement("local_bind", start.line(), name, value, type));
   }
 
   private void parseBufferSet(
@@ -445,7 +428,7 @@ final class SourceParser extends SourceStatementParser {
     if (!checkLocalType()) {
       fail(peek(), "for initializer must declare a typed local");
     }
-    parseLocalDeclaration(body);
+    SourceResultParser.parseLocalDeclaration(this, body);
     List<Statement> conditionCode = new ArrayList<>();
     String condition = parseExpression(conditionCode);
     expect(Type.SEMICOLON, "';' after for condition");
@@ -516,9 +499,9 @@ final class SourceParser extends SourceStatementParser {
       expect(Type.LEFT_BRACE, "'{' before " + owner + " body");
       while (!check(Type.RIGHT_BRACE) && !check(Type.END)) {
         if (checkLocalType()) {
-          parseLocalDeclaration(body);
+          SourceResultParser.parseLocalDeclaration(this, body);
         } else if (matchText("return")) {
-          parseReturn(body, previous());
+          SourceResultParser.parseReturn(this, body, previous(), valueReturnsAllowed);
         } else if (matchText("if")) {
           parseIf(body, previous());
         } else if (matchText("while")) {
@@ -836,6 +819,14 @@ final class SourceParser extends SourceStatementParser {
       body.add(new Statement(operation, construction, start.line()));
       return parsePostfix(body, result, start.line());
     }
+    if (matchText("done")) {
+      String result = temporary();
+      body.add(statement("local_done", start.line(), result));
+      return result;
+    }
+    if (checkTextIn(NULL_LIKE_VALUES)) {
+      fail(start, "null-like values do not exist; use an explicit presence type");
+    }
     if (checkText("true") || checkText("false")) {
       SourceToken value = advance();
       String result = temporary();
@@ -919,7 +910,7 @@ final class SourceParser extends SourceStatementParser {
     return result;
   }
 
-  private String parseValueType(String description) {
+  String parseValueType(String description) {
     return SourceValueTypeParser.parse(
         this,
         description,
@@ -942,7 +933,7 @@ final class SourceParser extends SourceStatementParser {
   }
 
   private boolean isValueType(String name) {
-    return name.equals("long") || name.equals("boolean")
+    return name.equals("long") || name.equals("boolean") || name.equals("Done")
         || name.equals("region") || name.equals("words") || name.equals("bytes")
         || name.equals("byteview") || name.equals("longmap") || name.equals("utf8")
         || records.stream().anyMatch(record -> record.name().equals(name))

@@ -725,8 +725,8 @@ diagnostic or trap, and publishes no partial result.
 
 ## Progress
 
-- [ ] Names and classical types parse and typecheck.
-- [ ] Classical `Done` and `Slot<T>` encode and execute.
+- [x] `Done` and `done` parse, typecheck, encode, execute, and reject nonzero physical constants.
+- [ ] `Slot<T>`, `Vacant`, and `Holding(T)` parse, typecheck, encode, and execute.
 - [ ] Planned `Option<T>` APIs are migrated.
 - [ ] Ordinary functions return the new values.
 - [ ] Reversible scalar result-slot ABI executes.
@@ -750,7 +750,7 @@ diagnostic or trap, and publishes no partial result.
 - [ ] Slot ownership derives from its payload.
 - [ ] Filled affine slots cannot copy and filled must-consume slots cannot drop.
 - [ ] `return -1;` is accepted for `long` and rejected for unsigned output without a valid conversion.
-- [ ] Null-like literals do not parse.
+- [x] Null-like literals fail with one stable source diagnostic.
 - [ ] Reversible constant return fills a vacant result and exact inverse restores vacancy.
 - [ ] The inverse succeeds after VM history commit.
 - [ ] Wrong held constants trap before mutation.

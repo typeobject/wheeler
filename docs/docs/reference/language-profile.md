@@ -40,7 +40,7 @@ test void signed(long value) cases(-1, 0, 1) { ... }
 entry void main() { ... }
 ```
 
-A normal classical method may take supported scalar, aggregate, slice, owner, or loan parameters. It returns a supported value or `void`.
+A normal classical method may take supported scalar, aggregate, slice, owner, or loan parameters. It returns a supported value or `void`. `Done` is the one-value completion type, and `done` is its sole value. It can cross ordinary call boundaries or enter aggregates. `void` still means that no value crosses the boundary.
 
 A `rev` method gets a compiler-checked inverse. A `coherent rev` method must also fit the exact finite subset that can become a unitary operation. A `unitary` method lowers to provider-neutral quantum region IR and gets a generated adjoint.
 

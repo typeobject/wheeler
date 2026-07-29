@@ -8,6 +8,10 @@ classical class Variants {
   state long selected = 0;
   state long equal = 0;
 
+  Done complete() {
+    return done;
+  }
+
   LookupResult choose(boolean present, long value) {
     if (present) {
       return new LookupResult.Found(value);
@@ -20,6 +24,7 @@ classical class Variants {
   ///
   /// - Effects: Mutates only the fixture's declared state.
   entry void main() {
+    Done completed = complete();
     LookupResult first = choose(true, 9);
     LookupResult second = new LookupResult.Found(9);
     if (first == second) {

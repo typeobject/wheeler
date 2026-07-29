@@ -23,6 +23,10 @@ class SourceReadabilityTest {
       "public const long OPCODE_([A-Z0-9_]+) = (0x[0-9a-f]+);");
   private static final Pattern WHEELER_FORM = Pattern.compile(
       "if \\(opcode == OPCODE_([A-Z0-9_]+)\\) \\{\\s+return ([0-9]+);");
+  private static final Pattern JAVA_TYPE = Pattern.compile(
+      "case ([A-Z0-9_]+) -> ([0-9]+);");
+  private static final Pattern WHEELER_TYPE = Pattern.compile(
+      "public const long TYPE_([A-Z0-9_]+) = ([0-9]+);");
 
   @Test
   void reportsOnlyUnlabeledAdjacentEndianLiterals() {
@@ -84,6 +88,18 @@ class SourceReadabilityTest {
   }
 
   @Test
+  void nativeScalarTypesMatchTheCanonicalRegistry() throws Exception {
+    String javaSource = Files.readString(Path.of(
+        "../bootstrap/core/src/main/java/com/typeobject/wheeler/core/bytecode/ValueType.java"));
+    String wheelerSource = Files.readString(Path.of(
+        "../wheeler-compiler/src/main/wheeler/compiler/ir/TypeCodes.w"));
+
+    assertEquals(
+        decimalIdentities(JAVA_TYPE, javaSource),
+        decimalIdentities(WHEELER_TYPE, wheelerSource));
+  }
+
+  @Test
   void nativeInstructionFormsMatchTheCanonicalRegistry() throws Exception {
     String opcodeSource = Files.readString(Path.of(
         "src/main/wheeler/compiler/ir/Opcodes.w"));
@@ -120,6 +136,19 @@ class SourceReadabilityTest {
       String name = matches.group(1);
       if (result.put(name, Integer.decode(matches.group(2))) != null) {
         throw new AssertionError("Duplicate opcode identity declaration " + name);
+      }
+    }
+    return java.util.Map.copyOf(result);
+  }
+
+  private static java.util.Map<String, Integer> decimalIdentities(
+      Pattern declaration,
+      String source) {
+    var result = new java.util.LinkedHashMap<String, Integer>();
+    var matches = declaration.matcher(source);
+    while (matches.find()) {
+      if (result.put(matches.group(1), Integer.parseInt(matches.group(2))) != null) {
+        throw new AssertionError("Duplicate scalar type " + matches.group(1));
       }
     }
     return java.util.Map.copyOf(result);

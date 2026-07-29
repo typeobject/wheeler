@@ -122,7 +122,8 @@ final class SourceNominalParser {
         SourceParser.fail(token, description + " cannot contain a nonescaping slice");
       }
       String element = type.substring(0, bracket);
-      if (!element.equals("long") && !element.equals("boolean")) {
+      if (!element.equals("long") && !element.equals("boolean")
+          && !element.equals("Done")) {
         SourceParser.fail(token, description + " arrays currently require scalar elements");
       }
     }

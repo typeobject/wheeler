@@ -6,6 +6,7 @@ import java.util.Locale;
 public record ValueType(Kind kind, int descriptorId) {
   public static final ValueType SIGNED = new ValueType(Kind.SIGNED, -1);
   public static final ValueType BOOLEAN = new ValueType(Kind.BOOLEAN, -1);
+  public static final ValueType DONE = new ValueType(Kind.DONE, -1);
   public static final ValueType REGION = new ValueType(Kind.REGION, -1);
   public static final ValueType WORDS = new ValueType(Kind.WORDS, -1);
   public static final ValueType BYTES = new ValueType(Kind.BYTES, -1);
@@ -28,7 +29,7 @@ public record ValueType(Kind kind, int descriptorId) {
         || ((kind == Kind.RECORD || kind == Kind.VARIANT
             || kind == Kind.ARRAY || kind == Kind.SLICE)
             && (descriptorId < 0 || descriptorId > 0x0fff_ffff))
-        || ((kind == Kind.SIGNED || kind == Kind.BOOLEAN
+        || ((kind == Kind.SIGNED || kind == Kind.BOOLEAN || kind == Kind.DONE
             || kind == Kind.REGION || kind == Kind.WORDS || kind == Kind.BYTES
             || kind == Kind.LONG_MAP || kind == Kind.UTF8 || kind == Kind.UTF8_BORROW || kind == Kind.LONG_MAP_BORROW || kind == Kind.WORDS_BORROW
             || kind == Kind.BYTES_BORROW || kind == Kind.REGION_BORROW
@@ -58,6 +59,7 @@ public record ValueType(Kind kind, int descriptorId) {
     return switch (kind) {
       case SIGNED -> 1;
       case BOOLEAN -> 2;
+      case DONE -> 14;
       case REGION -> 3;
       case WORDS -> 4;
       case BYTES -> 5;
@@ -82,7 +84,7 @@ public record ValueType(Kind kind, int descriptorId) {
       case VARIANT -> "variant#" + descriptorId;
       case ARRAY -> "array#" + descriptorId;
       case SLICE -> "slice#" + descriptorId;
-      case SIGNED, BOOLEAN, REGION, WORDS, BYTES, LONG_MAP, UTF8, UTF8_BORROW,
+      case SIGNED, BOOLEAN, DONE, REGION, WORDS, BYTES, LONG_MAP, UTF8, UTF8_BORROW,
           LONG_MAP_BORROW, WORDS_BORROW, BYTES_BORROW, REGION_BORROW, BYTE_VIEW ->
           kind.name().toLowerCase(Locale.ROOT);
     };
@@ -97,6 +99,9 @@ public record ValueType(Kind kind, int descriptorId) {
     }
     if (code == 3) {
       return REGION;
+    }
+    if (code == 14) {
+      return DONE;
     }
     if (code == 4) {
       return WORDS;
@@ -146,6 +151,7 @@ public record ValueType(Kind kind, int descriptorId) {
   public enum Kind {
     SIGNED,
     BOOLEAN,
+    DONE,
     REGION,
     WORDS,
     BYTES,

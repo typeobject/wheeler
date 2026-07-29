@@ -338,6 +338,12 @@ classical class InstructionVerifier {
             return 1;
           }
         }
+
+        if (destinationType == TYPE_DONE) {
+          if (readUnsigned(artifact, cursor + 16, 8) == 0) {
+            return 1;
+          }
+        }
       }
 
       return 0;

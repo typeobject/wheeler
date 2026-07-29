@@ -160,6 +160,7 @@ final class SourceTypeLowerer {
     Map<String, ValueType> result = new LinkedHashMap<>();
     result.put("long", ValueType.SIGNED);
     result.put("boolean", ValueType.BOOLEAN);
+    result.put("Done", ValueType.DONE);
     return result;
   }
 }

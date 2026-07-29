@@ -36,7 +36,11 @@ classical class Verifier {
       return true;
     }
 
-    return elementType == TYPE_BOOLEAN;
+    if (elementType == TYPE_BOOLEAN) {
+      return true;
+    }
+
+    return elementType == TYPE_DONE;
   }
 
   private boolean recordArrayFieldsValid(
@@ -234,13 +238,15 @@ classical class Verifier {
         long fieldType = readUnsigned(artifact, typeCursor + 16 + field * 8, 4);
         if (fieldType == TYPE_SIGNED) {} else {
           if (fieldType == TYPE_BOOLEAN) {} else {
-            if (isRecordType(fieldType)) {
-              if (recordTypeId(fieldType) < record) {} else {
-                return 0;
-              }
-            } else {
-              if (isArrayType(fieldType)) {} else {
-                return 0;
+            if (fieldType == TYPE_DONE) {} else {
+              if (isRecordType(fieldType)) {
+                if (recordTypeId(fieldType) < record) {} else {
+                  return 0;
+                }
+              } else {
+                if (isArrayType(fieldType)) {} else {
+                  return 0;
+                }
               }
             }
           }
@@ -269,12 +275,14 @@ classical class Verifier {
       long elementType = readUnsigned(artifact, typeCursor + 4, 4);
       if (elementType == TYPE_SIGNED) {} else {
         if (elementType == TYPE_BOOLEAN) {} else {
-          if (isRecordType(elementType)) {
-            if (recordTypeId(elementType) < recordCount) {} else {
+          if (elementType == TYPE_DONE) {} else {
+            if (isRecordType(elementType)) {
+              if (recordTypeId(elementType) < recordCount) {} else {
+                return 0;
+              }
+            } else {
               return 0;
             }
-          } else {
-            return 0;
           }
         }
       }
@@ -309,12 +317,14 @@ classical class Verifier {
       long sliceElement = readUnsigned(artifact, typeCursor + 4, 4);
       if (sliceElement == TYPE_SIGNED) {} else {
         if (sliceElement == TYPE_BOOLEAN) {} else {
-          if (isRecordType(sliceElement)) {
-            if (recordTypeId(sliceElement) < recordCount) {} else {
+          if (sliceElement == TYPE_DONE) {} else {
+            if (isRecordType(sliceElement)) {
+              if (recordTypeId(sliceElement) < recordCount) {} else {
+                return 0;
+              }
+            } else {
               return 0;
             }
-          } else {
-            return 0;
           }
         }
       }
@@ -370,15 +380,17 @@ classical class Verifier {
           long payloadType = readUnsigned(artifact, variantCursor + 4, 4);
           if (payloadType == TYPE_SIGNED) {} else {
             if (payloadType == TYPE_BOOLEAN) {} else {
-              if (isRecordType(payloadType)) {
-                if (recordTypeId(payloadType) < recordCount) {} else {
-                  return 0;
-                }
-              } else {
-                if (
-                  scalarArrayTypeValid(artifact, arrayTable, arrayCount, payloadType)
-                ) {} else {
-                  return 0;
+              if (payloadType == TYPE_DONE) {} else {
+                if (isRecordType(payloadType)) {
+                  if (recordTypeId(payloadType) < recordCount) {} else {
+                    return 0;
+                  }
+                } else {
+                  if (
+                    scalarArrayTypeValid(artifact, arrayTable, arrayCount, payloadType)
+                  ) {} else {
+                    return 0;
+                  }
                 }
               }
             }

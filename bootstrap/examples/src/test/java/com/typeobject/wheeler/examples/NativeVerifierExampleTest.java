@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
@@ -55,9 +57,38 @@ class NativeVerifierExampleTest {
     logicalNegationVerification.run();
     assertEquals(1, logicalNegationVerification.global("verification"));
 
+    byte[] doneArtifact = compiler.compileToBytecode(
+        "classical class DoneSubject { record Receipt(Done completion) {} "
+            + "Done complete() { return done; } entry void main() { "
+            + "Receipt receipt = new Receipt(complete()); } }");
+    VirtualMachine doneVerification = VirtualMachine.withBinaryInput(verifier, doneArtifact);
+    doneVerification.run();
+    assertEquals(1, doneVerification.global("verification"));
+
+    byte[] invalidDone = doneArtifact.clone();
+    int doneConstant = instructionOffset(invalidDone, 0x0400);
+    invalidDone[doneConstant + 16] = 1;
+    VirtualMachine rejectedDone = VirtualMachine.withBinaryInput(verifier, invalidDone);
+    assertThrows(VmTrap.class, rejectedDone::run);
+
     byte[] malformed = artifact.clone();
     malformed[0] = 0;
     VirtualMachine rejected = VirtualMachine.withBinaryInput(verifier, malformed);
     assertThrows(VmTrap.class, rejected::run);
+  }
+
+  private static int instructionOffset(byte[] artifact, int expectedOpcode) {
+    ByteBuffer bytes = ByteBuffer.wrap(artifact).order(ByteOrder.LITTLE_ENDIAN);
+    int directory = 40 + 5 * 32;
+    int cursor = Math.toIntExact(bytes.getLong(directory + 8));
+    int end = cursor + Math.toIntExact(bytes.getLong(directory + 16));
+    while (cursor < end) {
+      int opcode = Short.toUnsignedInt(bytes.getShort(cursor));
+      if (opcode == expectedOpcode) {
+        return cursor;
+      }
+      cursor += bytes.getInt(cursor + 4);
+    }
+    throw new AssertionError("missing opcode " + expectedOpcode);
   }
 }
