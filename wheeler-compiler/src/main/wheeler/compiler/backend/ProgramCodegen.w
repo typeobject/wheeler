@@ -28,17 +28,38 @@ classical class ProgramCodegen {
   private const long RESULT_SLOT_ARGUMENT_COUNT = 0;
   private const long MAX_HELPER_CALLS = 2;
   private const long LOGICAL_RESULT_CALL_LOCALS = 2;
+  private const long LOGICAL_ASSERTION_LOCALS = 3;
 
   private boolean resultCall(long opcode) {
     return opcode == STATEMENT_LOCAL_CALL_NAMED;
   }
 
-  private long physicalResultSlotOpcode(long opcode) {
+  private long resultSlotsBeforeSource(long[64] opcodes, long statement, long source) {
+    long prior = 0;
+    long logicalBase = 0;
+    long resultSlots = 0;
+    while (prior < statement) limit MAX_MINIMAL_STATEMENTS {
+      if (resultCall(opcodes[prior])) {
+        if (logicalBase < source) {
+          resultSlots += 1;
+        }
+
+        logicalBase += LOGICAL_RESULT_CALL_LOCALS;
+      } else {
+        logicalBase += LOGICAL_ASSERTION_LOCALS;
+      }
+
+      prior += 1;
+    }
+
+    return resultSlots;
+  }
+
+  private long physicalResultSlotOpcode(long[64] opcodes, long statement, long opcode) {
     if (resolvedLocalLongAssertion(opcode)) {
       long source = opcode - STATEMENT_ASSERT_LOCAL_LONG_BASE;
-      long priorResultSlots = (source + RESULT_SLOT_LOGICAL_RESULT_LOCAL)
-        / LOGICAL_RESULT_CALL_LOCALS;
-      return STATEMENT_ASSERT_LOCAL_LONG_BASE + source + priorResultSlots;
+      long resultSlots = resultSlotsBeforeSource(opcodes, statement, source);
+      return STATEMENT_ASSERT_LOCAL_LONG_BASE + source + resultSlots;
     }
 
     return opcode;
@@ -138,7 +159,7 @@ classical class ProgramCodegen {
         cursor = writeStatement(
           output,
           cursor,
-          physicalResultSlotOpcode(opcode),
+          physicalResultSlotOpcode(opcodes, statement, opcode),
           operands[statement],
           secondaryOperands[statement],
           localBase,

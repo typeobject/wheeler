@@ -14,6 +14,7 @@ import wheeler.compiler.tokens;
 
 classical class HelperPrograms {
   private const long LOGICAL_RESULT_CALL_LOCALS = 2;
+  private const long LOGICAL_ASSERTION_LOCALS = 3;
 
   private boolean resultStatement(long opcode) {
     if (opcode == STATEMENT_RETURN_BOOLEAN_NOT_NAMED) {
@@ -59,42 +60,53 @@ classical class HelperPrograms {
     return returnLocalPairStatement(opcode);
   }
 
+  private boolean resultSlotSourceDeclared(
+    StatementSequence sequence,
+    long statement,
+    long source
+  ) {
+    long prior = 0;
+    long logicalBase = 0;
+    while (prior < statement) limit MAX_MINIMAL_STATEMENTS {
+      long opcode = sequence.opcodes[prior];
+      if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
+        if (source == logicalBase + RESULT_SLOT_LOGICAL_RESULT_LOCAL) {
+          return true;
+        }
+
+        logicalBase += LOGICAL_RESULT_CALL_LOCALS;
+      } else {
+        logicalBase += LOGICAL_ASSERTION_LOCALS;
+      }
+
+      prior += 1;
+    }
+
+    return false;
+  }
+
   private boolean resultSlotEntryValid(StatementSequence sequence) {
     long statement = 0;
     long callCount = 0;
     while (statement < sequence.count) limit MAX_MINIMAL_STATEMENTS {
-      if (sequence.opcodes[statement] == STATEMENT_LOCAL_CALL_NAMED) {
-        callCount += 1;
-        statement += 1;
-      } else {
-        break;
-      }
-    }
-
-    if (0 < callCount) {} else {
-      return false;
-    }
-
-    long logicalCallLocals = callCount * LOGICAL_RESULT_CALL_LOCALS;
-    while (statement < sequence.count) limit MAX_MINIMAL_STATEMENTS {
       long opcode = sequence.opcodes[statement];
-      if (resolvedLocalLongAssertion(opcode)) {} else {
-        return false;
-      }
+      if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
+        callCount += 1;
+      } else {
+        if (resolvedLocalLongAssertion(opcode)) {} else {
+          return false;
+        }
 
-      long source = opcode - STATEMENT_ASSERT_LOCAL_LONG_BASE;
-      if (source % LOGICAL_RESULT_CALL_LOCALS == RESULT_SLOT_LOGICAL_RESULT_LOCAL) {} else {
-        return false;
-      }
-
-      if (source < logicalCallLocals) {} else {
-        return false;
+        long source = opcode - STATEMENT_ASSERT_LOCAL_LONG_BASE;
+        if (resultSlotSourceDeclared(sequence, statement, source)) {} else {
+          return false;
+        }
       }
 
       statement += 1;
     }
 
-    return true;
+    return 0 < callCount;
   }
 
   private boolean entryCallsMatchHelper(StatementSequence sequence, long helperKind) {

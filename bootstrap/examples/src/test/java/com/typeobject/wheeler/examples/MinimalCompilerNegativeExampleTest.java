@@ -185,14 +185,6 @@ class MinimalCompilerNegativeExampleTest {
         512);
     assertTrapWithoutOutput(reversibleResultPrelude, 512);
 
-    VirtualMachine interleavedReversibleResult = new VirtualMachine(
-        writerProgram,
-        ("classical class InterleavedReversibleResult { "
-                + "rev long answer() { return 1; } entry void main() { "
-                + "long first = answer(); assert(first == 1); long second = answer(); } }")
-            .getBytes(StandardCharsets.UTF_8),
-        1024);
-    assertTrapWithoutOutput(interleavedReversibleResult, 1024);
   }
 
   @Test

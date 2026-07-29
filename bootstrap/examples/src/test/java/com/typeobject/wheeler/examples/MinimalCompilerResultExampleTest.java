@@ -33,9 +33,9 @@ class MinimalCompilerResultExampleTest {
 
     assertDifferentialHalt(
         writerProgram,
-        "classical class RepeatedReversibleResult { rev long answer() { return -1; } "
-            + "entry void main() { long first = answer(); long second = answer(); "
-            + "assert(first == -1); assert(second == -1); } }");
+        "classical class InterleavedReversibleResult { rev long answer() { return -1; } "
+            + "entry void main() { long first = answer(); assert(first == -1); "
+            + "long second = answer(); assert(second == -1); assert(first == -1); } }");
   }
 
   @Test

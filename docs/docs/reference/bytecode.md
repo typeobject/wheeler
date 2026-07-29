@@ -286,7 +286,7 @@ The bounded compiler implementation now lives in importable `compiler/Driver.w`.
 
 The native compiler now lowers the first reversible signed-result source profile. One
 zero-argument `rev long` helper may return a signed literal or evaluated constant. Its
-entry starts with one or more result calls and may perform signed checks of those results. The
+entry interleaves one or more result calls with signed checks of results already produced. The
 emitter writes function flags `0xd`, adjacent Boolean and signed slot locals, identical
 `RESULT_FILL_CONSTANT` and `RETURN_RESULT_SLOT` bodies, `CALL_RESULT_SLOT`, and the
 optional generated-inverse proof. Complete artifact bytes match stage 0. Unsupported
