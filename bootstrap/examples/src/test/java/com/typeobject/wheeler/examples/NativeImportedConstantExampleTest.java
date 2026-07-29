@@ -96,6 +96,39 @@ class NativeImportedConstantExampleTest {
   }
 
   @Test
+  void linksThreeDirectConstantModulesIndependentOfInputOrder() throws Exception {
+    Program compiler = program();
+    String alpha = "module examples.alpha; classical class Alpha { "
+        + "private const long BASE = 20; public const long LEFT = BASE + 1; }";
+    String beta = "module examples.beta; classical class Beta { "
+        + "public const long MIDDLE = 20; public const boolean READY = MIDDLE == 20; }";
+    String gamma = "module examples.gamma; classical class Gamma { "
+        + "public const long RIGHT = 1; }";
+    String root = "module examples.root; import examples.alpha; import examples.beta; "
+        + "import examples.gamma; classical class ImportedTriple { state long outcome = 0; "
+        + "entry void main() { long left = examples.alpha::LEFT; long middle = MIDDLE; "
+        + "long right = examples.gamma::RIGHT; boolean ready = examples.beta::READY; "
+        + "long partial = left + middle; long answer = partial + right; outcome = answer; "
+        + "assert(ready); assert(outcome == 42); } }";
+
+    byte[] artifact = compileNative(compiler, List.of(alpha, beta, gamma), root);
+    assertArrayEquals(artifact, compileNative(compiler, List.of(gamma, alpha, beta), root));
+    assertArrayEquals(artifact, compileNative(compiler, List.of(beta, gamma, alpha), root));
+    Map<String, String> sources = new LinkedHashMap<>();
+    sources.put("Alpha.w", alpha);
+    sources.put("Beta.w", beta);
+    sources.put("Gamma.w", gamma);
+    sources.put("Root.w", root);
+    assertArrayEquals(
+        new BytecodeWriter().write(
+            new WheelerCompiler().compileModuleFiles(sources, "examples.root")),
+        artifact);
+    VirtualMachine program = new VirtualMachine(new BytecodeReader().read(artifact));
+    program.run();
+    assertEquals(42, program.global("outcome"));
+  }
+
+  @Test
   void linksATransitiveConstantChainWithoutReexportingTheLeaf() throws Exception {
     Program compiler = program();
     String leaf = "module examples.alpha; classical class Alpha { "
@@ -195,6 +228,20 @@ class NativeImportedConstantExampleTest {
     assertNativeTrap(
         compiler,
         List.of(firstCollision, secondCollision, secondCollision),
+        collisionRoot);
+    String thirdDistinct = "module examples.gamma; classical class Gamma { "
+        + "public const long THIRD = 3; }";
+    String tripleCollisionRoot = "module examples.root; import examples.alpha; "
+        + "import examples.beta; import examples.gamma; classical class Root { "
+        + "entry void main() { long first = examples.alpha::VALUE; "
+        + "long second = examples.beta::VALUE; long third = examples.gamma::THIRD; } }";
+    assertNativeTrap(
+        compiler,
+        List.of(firstCollision, secondCollision, thirdDistinct),
+        tripleCollisionRoot);
+    assertNativeTrap(
+        compiler,
+        List.of(firstCollision, secondCollision, firstCollision, secondCollision),
         collisionRoot);
     String cyclicAlpha = "module examples.alpha; import examples.beta; "
         + "classical class Alpha { public const long LEFT = RIGHT; }";

@@ -29,12 +29,13 @@ control.
 The bounded compiler accepts one class, zero or one signed global, one optional helper,
 and one entry. A modular source may carry up to sixty-four sorted unique direct imports.
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
-or excess imports before publication. `compileMinimalWithConstantImport` and
-`compileMinimalWithConstantImports` link one direct module, two direct modules, or one
-leaf-to-dependent-to-root scalar-constant chain. A leaf export becomes private inside its
-dependent, so a root cannot acquire transitive access by spelling the leaf name loudly.
-Executable imported members, mismatched module names, wider graphs, and more than two root
-imports fail closed. General symbol resolution remains future work. Entry and helper bodies
+or excess imports before publication. `compileMinimalWithConstantImport`,
+`compileMinimalWithConstantImports`, and `compileMinimalWithThreeConstantImports` link one,
+two, or three direct scalar-constant modules. The pair API also links one
+leaf-to-dependent-to-root chain. A leaf export becomes private inside its dependent, so a
+root cannot acquire transitive access by spelling the leaf name loudly. Executable imported
+members, mismatched module names, wider graphs, and more than three root imports fail
+closed. General symbol resolution remains future work. Entry and helper bodies
 admit at most sixty-four statements. The current slice covers typed signed
 and Boolean locals, assertions, assignments, checked scalar operations, calls, results, and
 narrow explicitly limited loops.
