@@ -24,14 +24,14 @@ import org.junit.jupiter.api.Test;
 final class NativeBootstrapModulesIdentityExampleTest {
   private static final Path ROOT = Path.of("src/main/wheeler/native/bootstrap");
   private static final String IDENTITY = "ab".repeat(32);
-  private static final long MAX_CLOSURE_TRANSITIONS = 17_000_000;
+  private static final long MAX_CLOSURE_TRANSITIONS = 18_000_000;
   private static final long MAX_LARGE_GRAPH_TRANSITIONS = 50_000_000;
 
   @Test
   void validatesThePhysicalBoundedCompilerClosure() throws Exception {
     BootstrapModuleManifest manifest = CompilerSources.bootstrapModuleManifest();
 
-    assertEquals(19_789, manifest.canonicalBytes().length);
+    assertEquals(20_061, manifest.canonicalBytes().length);
     VirtualMachine machine = vm(program(), manifest.canonicalBytes());
     long transitions = 0;
     while (machine.status() != MachineStatus.HALTED
@@ -43,13 +43,13 @@ final class NativeBootstrapModulesIdentityExampleTest {
       }
     }
 
-    assertEquals(16_610_616, transitions);
+    assertEquals(17_017_706, transitions);
     assertEquals(MachineStatus.HALTED, machine.status());
     assertArrayEquals(MessageDigest.getInstance("SHA-256").digest(manifest.canonicalBytes()),
         machine.hostOutput());
-    assertEquals(54, machine.global("moduleCount"));
+    assertEquals(55, machine.global("moduleCount"));
     assertEquals(1, machine.global("externalCount"));
-    assertEquals(225, machine.global("importCount"));
+    assertEquals(227, machine.global("importCount"));
     assertEquals(1, machine.global("published"));
   }
 

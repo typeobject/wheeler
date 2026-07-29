@@ -33,7 +33,7 @@ Expected result: `sum = 10`, `branch = 1`.
 
 ### `MinimalCompiler.w`
 
-Files: [`MinimalCompiler.w`](../../wheeler-compiler/src/main/wheeler/MinimalCompiler.w) + [`compiler/Core.w`](../../wheeler-compiler/src/main/wheeler/compiler/Core.w) + [`compiler/Driver.w`](../../wheeler-compiler/src/main/wheeler/compiler/Driver.w) + [`compiler/frontend/Parser.w`](../../wheeler-compiler/src/main/wheeler/compiler/frontend/Parser.w) + [`compiler/frontend/modules/Headers.w`](../../wheeler-compiler/src/main/wheeler/compiler/frontend/modules/Headers.w) + [`compiler/backend/StringTable.w`](../../wheeler-compiler/src/main/wheeler/compiler/backend/StringTable.w) + dedicated local-resolution, IR, token, scanner, code-generation, and encoding modules.
+Files: [`MinimalCompiler.w`](../../wheeler-compiler/src/main/wheeler/MinimalCompiler.w) + [`compiler/Core.w`](../../wheeler-compiler/src/main/wheeler/compiler/Core.w) + [`compiler/Graphs.w`](../../wheeler-compiler/src/main/wheeler/compiler/Graphs.w) + [`compiler/Driver.w`](../../wheeler-compiler/src/main/wheeler/compiler/Driver.w) + [`compiler/frontend/Parser.w`](../../wheeler-compiler/src/main/wheeler/compiler/frontend/Parser.w) + [`compiler/frontend/modules/Headers.w`](../../wheeler-compiler/src/main/wheeler/compiler/frontend/modules/Headers.w) + [`compiler/backend/StringTable.w`](../../wheeler-compiler/src/main/wheeler/compiler/backend/StringTable.w) + dedicated local-resolution, IR, token, scanner, code-generation, and encoding modules.
 
 Covers: Wheeler compilation of one bounded minimal source grammar to canonical `.wbc`.
 
@@ -178,7 +178,7 @@ Files: [`NativeBootstrapModulesIdentity.w`](../../wheeler-examples/src/main/whee
 
 Covers: One through sixty-four sorted local source modules, zero through sixty-four externals, 256 total imports, unique paths, complete binding, rooted reachability, cycle rejection, bounded names and paths, lowercase source identities, exact schema bytes, SHA-256 publication, and rewind.
 
-Expected behavior: Empty-import one-module, two-external one-module, and three-, five-, nine-, and seventeen-module rooted DAG closures reproduce stage 0. A cycle, unreachable module, duplicate path, sixty-fifth module or external, unsorted external, unbound import, mismatched root, uppercase digest, traversal path, or input beyond 32,768 bytes publishes nothing. The current physical compiler closure has fifty-four modules, 225 imports, and 19,789 canonical bytes. The packaged executable reproduces its stage-0 identity in 16,610,616 transitions. Sixty-four is still deliberately smaller than the 10,000-module schema. Pretending otherwise would merely give the graph a fake moustache too.
+Expected behavior: Empty-import one-module, two-external one-module, and three-, five-, nine-, and seventeen-module rooted DAG closures reproduce stage 0. A cycle, unreachable module, duplicate path, sixty-fifth module or external, unsorted external, unbound import, mismatched root, uppercase digest, traversal path, or input beyond 32,768 bytes publishes nothing. The current physical compiler closure has fifty-five modules, 227 imports, and 20,061 canonical bytes. The packaged executable reproduces its stage-0 identity in 17,017,706 transitions. Sixty-four is still deliberately smaller than the 10,000-module schema. Pretending otherwise would merely give the graph a fake moustache too.
 
 ### `NativeCompilerLimitsIdentity.w`
 
@@ -297,7 +297,7 @@ Expected behavior: A bounded stage-0 artifact produces its exact content identit
 
 ### `NativeCompilerIdentity.w`
 
-Files: [`NativeCompilerIdentity.w`](../../wheeler-examples/src/main/wheeler/native/compiler/NativeCompilerIdentity.w) + [`compiler/Core.w`](../../wheeler-compiler/src/main/wheeler/compiler/Core.w) + [`compiler/Driver.w`](../../wheeler-compiler/src/main/wheeler/compiler/Driver.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
+Files: [`NativeCompilerIdentity.w`](../../wheeler-examples/src/main/wheeler/native/compiler/NativeCompilerIdentity.w) + [`compiler/Core.w`](../../wheeler-compiler/src/main/wheeler/compiler/Core.w) + [`compiler/Graphs.w`](../../wheeler-compiler/src/main/wheeler/compiler/Graphs.w) + [`compiler/Driver.w`](../../wheeler-compiler/src/main/wheeler/compiler/Driver.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
 
 Covers: The importable Wheeler compiler driver, private canonical `.wbc` output, native verification, ranged SHA-256 publication, stage-0 differential compiler output identity, malformed-source rejection, and exact rewind.
 

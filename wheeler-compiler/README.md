@@ -20,7 +20,8 @@ The package keeps responsibilities narrow:
 - `compiler/ir` owns opcode, instruction-form, type, and proof identities.
 - `compiler/backend` owns type tables, strings, control flow, returns, and encoding.
 - `compiler/Core.w` assembles and verifies one already linked source.
-- `compiler/Driver.w` resolves bounded module graphs before invoking the core.
+- `compiler/Graphs.w` resolves bounded module graphs before invoking the core.
+- `compiler/Driver.w` keeps one small stable API over both implementations.
 - `compiler/verification` owns complete check-before-publication artifact validation.
 
 `wheeler.package.yaml`, its exact lock, and the canonical workspace sources define the
