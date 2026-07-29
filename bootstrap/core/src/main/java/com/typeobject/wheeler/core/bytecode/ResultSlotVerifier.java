@@ -3,6 +3,7 @@ package com.typeobject.wheeler.core.bytecode;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ARGUMENT_BASE;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ARGUMENT_COUNT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.FUNCTION;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.OPERATION;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT_SLOT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.SOURCE;
 import static com.typeobject.wheeler.core.bytecode.InstructionOperandVerifier.failOperand;
@@ -82,6 +83,13 @@ final class ResultSlotVerifier {
     requireType(owner, instruction, source, SOURCE, owner.resultType(), pc);
   }
 
+  static void verifyFillBinary(FunctionBody owner, Instruction instruction, int pc) {
+    verifyFillSource(owner, instruction, pc);
+    if (!ResultBinaryOperation.supported(instruction.operand(OPERATION))) {
+      failOperand(owner, instruction, OPERATION, pc, "unsupported result binary operation");
+    }
+  }
+
   static void verifyReturn(
       Program program, FunctionBody owner, Instruction instruction, int pc) {
     int slot = verifyLocal(owner, instruction, RESULT_SLOT, pc);
@@ -96,7 +104,8 @@ final class ResultSlotVerifier {
     Opcode transition = body.isEmpty() ? null : body.getFirst().opcode();
     if (body.size() != 2
         || (transition != Opcode.RESULT_FILL_CONSTANT
-            && transition != Opcode.RESULT_FILL_SOURCE)
+            && transition != Opcode.RESULT_FILL_SOURCE
+            && transition != Opcode.RESULT_FILL_BINARY)
         || body.getLast().opcode() != Opcode.RETURN_RESULT_SLOT
         || body.getFirst().operand(RESULT_SLOT) != function.resultSlotBase()
         || body.getLast().operand(RESULT_SLOT) != function.resultSlotBase()) {

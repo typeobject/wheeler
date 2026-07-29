@@ -35,8 +35,10 @@ classical class CompilerIr {
   public const long RESULT_SLOT_LOCAL_COUNT = 2;
   /// Names the bounded resolver's logical result local before slot expansion.
   public const long RESULT_SLOT_LOGICAL_RESULT_LOCAL = 1;
-  /// Names one fill-and-return result-slot body width.
+  /// Names one direct fill-and-return result-slot body width.
   public const long RESULT_SLOT_BODY_LENGTH = 40;
+  /// Names one binary fill-and-return result-slot body width.
+  public const long RESULT_SLOT_BINARY_BODY_LENGTH = 56;
   /// Caps source statements in one bounded entry or helper body.
   public const long MAX_MINIMAL_STATEMENTS = 64;
   /// Holds two parameter names before a full helper statement table.

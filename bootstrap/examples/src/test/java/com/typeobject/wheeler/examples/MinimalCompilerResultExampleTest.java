@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.examples;
 
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.OPERATION;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -54,6 +55,36 @@ class MinimalCompilerResultExampleTest {
             + "long second = identity(first); assert(first == second); } }");
     assertEquals(Opcode.RESULT_FILL_SOURCE, preserved.function(0).forward().getFirst().opcode());
     assertEquals(preserved.function(0).forward(), preserved.function(0).inverse());
+
+    String[][] computedCases = {
+        {"+", Long.toString(Opcode.LOCAL_ADD.code()), "34", "8", "42"},
+        {"-", Long.toString(Opcode.LOCAL_SUB.code()), "50", "8", "42"},
+        {"*", Long.toString(Opcode.LOCAL_MUL.code()), "21", "2", "42"},
+        {"/", Long.toString(Opcode.LOCAL_DIV.code()), "84", "2", "42"},
+        {"%", Long.toString(Opcode.LOCAL_MOD.code()), "44", "42", "2"},
+        {"^", Long.toString(Opcode.LOCAL_XOR.code()), "40", "2", "42"},
+        {"&", Long.toString(Opcode.LOCAL_AND.code()), "47", "42", "42"}
+    };
+    for (String[] candidate : computedCases) {
+      Program computed = assertDifferentialHalt(
+          writerProgram,
+          "classical class ComputedReversibleResult { "
+              + "rev long compute(long value) { return value " + candidate[0] + " "
+              + candidate[3] + "; } entry void main() { long answer = compute("
+              + candidate[2] + "); assert(answer == " + candidate[4] + "); } }");
+      assertEquals(Opcode.RESULT_FILL_BINARY, computed.function(0).forward().getFirst().opcode());
+      assertEquals(
+          Long.parseLong(candidate[1]),
+          computed.function(0).forward().getFirst().operand(OPERATION));
+    }
+
+    Program computedConstant = assertDifferentialHalt(
+        writerProgram,
+        "classical class ComputedConstantReversibleResult { const long STEP = 8; "
+            + "rev long compute(long value) { return value + STEP; } "
+            + "theorem computeInverse proves inverse(compute); "
+            + "entry void main() { long answer = compute(34); assert(answer == 42); } }");
+    assertEquals(1, computedConstant.proofCertificates().size());
 
     assertDifferentialHalt(
         writerProgram,

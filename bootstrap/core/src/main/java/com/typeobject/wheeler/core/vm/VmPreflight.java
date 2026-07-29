@@ -16,6 +16,7 @@ import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.L
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LENGTH;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LIMIT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.OWNER;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.OPERATION;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT_SLOT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RIGHT_SOURCE;
@@ -29,6 +30,7 @@ import com.typeobject.wheeler.core.bytecode.InstructionForm;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.RecordType;
+import com.typeobject.wheeler.core.bytecode.ResultBinaryOperation;
 import com.typeobject.wheeler.core.bytecode.ValueType;
 import java.util.ArrayList;
 import java.util.List;
@@ -329,24 +331,33 @@ final class VmPreflight {
           } else {
             Instruction inverseTransition = target.inverse().getFirst();
             long expected;
-            boolean sourceRelation = false;
+            String relation;
             if (inverseTransition.opcode() == Opcode.RESULT_FILL_CONSTANT) {
+              relation = "constant";
               expected = inverseTransition.operand(IMMEDIATE);
-            } else if (inverseTransition.opcode() == Opcode.RESULT_FILL_SOURCE) {
-              sourceRelation = true;
+            } else if (inverseTransition.opcode() == Opcode.RESULT_FILL_SOURCE
+                || inverseTransition.opcode() == Opcode.RESULT_FILL_BINARY) {
               int source = Math.toIntExact(inverseTransition.operand(SOURCE));
               if (source < 0 || source >= count) {
                 trap("Inverse result source is outside the argument window");
               }
-              expected = frame.local(base + source);
+              long sourceValue = frame.local(base + source);
+              if (inverseTransition.opcode() == Opcode.RESULT_FILL_SOURCE) {
+                relation = "source";
+                expected = sourceValue;
+              } else {
+                relation = "computed result";
+                expected = ResultBinaryOperation.apply(
+                    inverseTransition.operand(OPERATION),
+                    sourceValue,
+                    inverseTransition.operand(IMMEDIATE));
+              }
             } else {
               trap("Inverse result slot has no exact fill relation");
               return;
             }
             if (tag != 1 || payload != expected) {
-              trap(sourceRelation
-                  ? "Inverse result slot does not hold the expected source"
-                  : "Inverse result slot does not hold the expected constant");
+              trap("Inverse result slot does not hold the expected " + relation);
             }
           }
         }
@@ -357,22 +368,32 @@ final class VmPreflight {
             trap("Function has no inverse: " + function.name());
           }
         }
-        case RESULT_FILL_CONSTANT, RESULT_FILL_SOURCE -> {
+        case RESULT_FILL_CONSTANT, RESULT_FILL_SOURCE, RESULT_FILL_BINARY -> {
           int slot = localIndex(instruction, RESULT_SLOT);
           if (slot >= frame.localCount() - 1) {
             trap("Result slot is outside the frame");
           }
-          long expected = instruction.opcode() == Opcode.RESULT_FILL_CONSTANT
-              ? instruction.operand(IMMEDIATE)
-              : localValue(instruction, SOURCE);
+          long expected;
+          if (instruction.opcode() == Opcode.RESULT_FILL_CONSTANT) {
+            expected = instruction.operand(IMMEDIATE);
+          } else {
+            expected = localValue(instruction, SOURCE);
+            if (instruction.opcode() == Opcode.RESULT_FILL_BINARY) {
+              expected = ResultBinaryOperation.apply(
+                  instruction.operand(OPERATION), expected, instruction.operand(IMMEDIATE));
+            }
+          }
           long tag = frame.local(slot);
           long payload = frame.local(slot + 1);
           if ((!frame.inverse() && (tag != 0 || payload != 0))
               || (frame.inverse() && (tag != 1 || payload != expected))) {
+            String relation = instruction.opcode() == Opcode.RESULT_FILL_CONSTANT
+                ? "constant"
+                : instruction.opcode() == Opcode.RESULT_FILL_SOURCE
+                    ? "source"
+                    : "computed result";
             trap(frame.inverse()
-                ? (instruction.opcode() == Opcode.RESULT_FILL_CONSTANT
-                    ? "Inverse result slot does not hold the expected constant"
-                    : "Inverse result slot does not hold the expected source")
+                ? "Inverse result slot does not hold the expected " + relation
                 : "Forward result slot is not vacant");
           }
         }

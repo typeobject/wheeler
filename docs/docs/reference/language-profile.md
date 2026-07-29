@@ -171,12 +171,14 @@ The Wheeler-written recovery compiler implements a bounded same-class graph. It 
 The recovery compiler substitutes evaluated values into matching scalar locals, direct helper returns, scalar assignments, checked signed updates including generated reversible helper updates, one- or two-argument scalar helper calls, right operands of signed arithmetic and ordering expressions or signed and Boolean equality and inequality expressions, signed arithmetic returns, typed comparison returns over signed or Boolean operands, signed or Boolean equality assertions, signed ordering assertions, conditions and their state-update values, plus bounded loop conditions and limits. Calls and mutations may mix constants and prior locals. Helper parameters and locals cannot reuse constant names. Constants create no runtime object or source-order artifact. The native header parser accepts up to sixty-four sorted unique direct import declarations. `compileMinimalWithConstantImport` and `compileMinimalWithConstantImports` resolve one direct scalar-constant module, two direct modules, or one leaf-to-dependent-to-root chain for unqualified or canonical owner-qualified public root use. Private constants may feed public exports through the same checked graph as local constants. Leaf exports become private inside the dependent and do not leak into the root. Any private name in the root fails before caller output changes. That conservative check also rejects a root-local collision until the linker has separate symbol tables. Executable imported members, mismatched module names, wider graphs, more than two root imports, non-ASCII linked source, and a synthetic source above 16,384 bytes fail closed. Colliding exported names, three or more imported modules, unrelated qualifiers, and general multi-file linking remain outside this native slice. Calling that missing linker a minor detail would only encourage it.
 
 The Wheeler-written compiler also lowers one `rev long` helper with up to two signed
-parameters that returns a signed literal, evaluated constant, or preserved signed parameter. Its bounded entry
-interleaves result calls with signed equality checks against constants or results already
-produced. Calls may pass a literal, constant, or prior result to the parameterized forms.
-The compiler emits the canonical adjacent result slot, identical generated inverse, and
-optional proof certificate. Boolean results, three parameters, computed expressions, and
-extra helper statements fail before publication.
+parameters that returns a signed literal, evaluated constant, preserved signed parameter,
+or checked operation over the first parameter and a literal or evaluated constant. Its
+bounded entry interleaves result calls with signed equality checks against constants or
+results already produced. Calls may pass a literal, constant, or prior result to the
+parameterized forms. The compiler emits the canonical adjacent result slot, identical
+generated inverse, and optional proof certificate. Boolean results, three parameters,
+local right operands, computed preludes, and extra helper statements fail before
+publication.
 
 A finite enum is canonical shorthand for a payload-free tagged variant:
 
@@ -262,11 +264,13 @@ The compiler specializes each used `Slot<T>` to one closed nominal variant descr
 This initial classical slice accepts signed, Boolean, `Done`, fixed scalar array, and nested-slot payloads. It rejects nominal aggregates until their transitive ownership evidence lands. It also rejects owners, mutable storage, byte views, and nonescaping slices. Ordinary functions may return slots.
 
 The first reversible result ABI accepts one `rev long` function with typed parameters and
-one tail signed-literal, evaluated-constant, or preserved-parameter return. The caller creates an implicit vacant
-slot. Forward execution fills it, and generated inverse execution checks the exact held
-constant or source value before restoring vacancy. Five dedicated WIP-0038 instructions
-carry those relations. Existing ordinary direct returns remain unchanged. Computed and multiple returns, affine payload derivation, constructor inference, general generic
-specialization, and coherent slot encoding remain WIP-0041 work. The explicit
+one tail signed-literal, evaluated-constant, preserved-parameter, or checked
+source-with-constant return. The caller creates an implicit vacant slot. Forward execution
+fills it, and generated inverse execution checks the exact held constant, source, or
+computed value before restoring vacancy. Six dedicated WIP-0038 instructions carry those
+relations. Existing ordinary direct returns remain unchanged. Local-right and multiple
+returns, affine payload derivation, constructor inference, general generic specialization,
+and coherent slot encoding remain WIP-0041 work. The explicit
 `new Slot<T>.Case(...)` spelling keeps the parser honest until those pieces land. Sugar
 can wait outside in the rain.
 

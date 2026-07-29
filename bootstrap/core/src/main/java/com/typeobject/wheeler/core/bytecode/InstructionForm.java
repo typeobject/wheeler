@@ -33,6 +33,11 @@ public enum InstructionForm {
       OperandRole.RESULT_SLOT),
   RESULT_CONSTANT(OperandRole.RESULT_SLOT, OperandRole.IMMEDIATE),
   RESULT_SOURCE(OperandRole.RESULT_SLOT, OperandRole.SOURCE),
+  RESULT_BINARY(
+      OperandRole.RESULT_SLOT,
+      OperandRole.SOURCE,
+      OperandRole.OPERATION,
+      OperandRole.IMMEDIATE),
   RESULT_SLOT(OperandRole.RESULT_SLOT),
   RECORD_NEW(
       OperandRole.DESTINATION,
@@ -95,6 +100,7 @@ public enum InstructionForm {
     IMMEDIATE,
     DESTINATION,
     SOURCE,
+    OPERATION,
     LEFT_SOURCE,
     RIGHT_SOURCE,
     CONDITION,

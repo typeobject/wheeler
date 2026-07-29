@@ -4,9 +4,11 @@ import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.A
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ARGUMENT_COUNT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.DESTINATION;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.FUNCTION;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.IMMEDIATE;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ITERATION;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LEFT_SOURCE;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LIMIT;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.OPERATION;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT_SLOT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RIGHT_SOURCE;
@@ -59,6 +61,9 @@ class OpcodeRegistryTest {
         Opcode.CALL_VALUE.form().roles());
     assertEquals(List.of(ITERATION, LIMIT), Opcode.LOCAL_LOOP_CHECK.form().roles());
     assertEquals(List.of(RESULT_SLOT, SOURCE), Opcode.RESULT_FILL_SOURCE.form().roles());
+    assertEquals(
+        List.of(RESULT_SLOT, SOURCE, OPERATION, IMMEDIATE),
+        Opcode.RESULT_FILL_BINARY.form().roles());
   }
 
   private static void assertInvalidRole(Instruction instruction, String expectedRole) {

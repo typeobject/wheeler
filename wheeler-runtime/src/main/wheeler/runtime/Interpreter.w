@@ -31,24 +31,6 @@ classical class Interpreter {
     case Error(long offset);
   }
 
-  private long readSigned(borrow byteview artifact, long offset) {
-    long value = 0;
-    long multiplier = 1;
-    long cursor = 0;
-    while (cursor < 7) limit 7 {
-      value += artifact[offset + cursor] * multiplier;
-      multiplier = multiplier * 256;
-      cursor += 1;
-    }
-
-    long high = artifact[offset + 7];
-    if (127 < high) {
-      high -= 256;
-    }
-
-    return value + high * 72057594037927936;
-  }
-
   private long sectionOffset(borrow byteview artifact, long section) {
     return readUnsigned(artifact, 40 + section * 32 + 8, 8);
   }
@@ -289,18 +271,16 @@ classical class Interpreter {
             set(globals, xorGlobal, globals[xorGlobal] ^ readSigned(artifact, cursor + 16));
           }
 
-          if (opcode == OPCODE_RESULT_FILL_CONSTANT) {
-            long resultSlot = localIndex(depth, readUnsigned(artifact, cursor + 8, 8));
-            long resultConstant = readSigned(artifact, cursor + 16);
-            if (exchangeResultConstant(locals, resultSlot, resultConstant)) {} else {
-              return new ExecutionResult.Error(cursor);
-            }
-          }
-
-          if (opcode == OPCODE_RESULT_FILL_SOURCE) {
-            long sourceResultSlot = localIndex(depth, readUnsigned(artifact, cursor + 8, 8));
-            long resultSource = localIndex(depth, readUnsigned(artifact, cursor + 16, 8));
-            if (exchangeResultSource(locals, sourceResultSlot, resultSource)) {} else {
+          if (isResultFillOpcode(opcode)) {
+            if (
+              executeResultFill(
+                artifact,
+                cursor,
+                opcode,
+                locals,
+                depth * INTERPRETER_LOCAL_WIDTH
+              )
+            ) {} else {
               return new ExecutionResult.Error(cursor);
             }
           }
@@ -399,8 +379,19 @@ classical class Interpreter {
                   checkedResultDescriptor + 20,
                   4
                 );
-                long expectedResult = readSigned(artifact, checkedInverse + 16);
-                if (callerResultPayload == expectedResult) {} else {
+                ResultExpectation expectation = inverseResultExpectation(
+                  artifact,
+                  checkedInverse,
+                  locals,
+                  depth * INTERPRETER_LOCAL_WIDTH,
+                  resultArgumentBase,
+                  resultArgumentCount
+                );
+                if (expectation.valid) {} else {
+                  return new ExecutionResult.Error(cursor);
+                }
+
+                if (callerResultPayload == expectation.value) {} else {
                   return new ExecutionResult.Error(cursor);
                 }
               }

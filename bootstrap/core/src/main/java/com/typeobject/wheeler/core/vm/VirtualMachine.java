@@ -21,6 +21,7 @@ import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.L
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LIMIT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.LOCAL;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.OWNER;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.OPERATION;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT_SLOT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RIGHT_GLOBAL;
@@ -37,6 +38,7 @@ import com.typeobject.wheeler.core.bytecode.InstructionExtensions;
 import com.typeobject.wheeler.core.bytecode.InstructionForm;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.bytecode.ResultBinaryOperation;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -636,18 +638,26 @@ public final class VirtualMachine {
         tasks.addFrame(binding.callee());
         control = StepRecord.ControlChange.CALL;
       }
-      case RESULT_FILL_CONSTANT, RESULT_FILL_SOURCE -> {
+      case RESULT_FILL_CONSTANT, RESULT_FILL_SOURCE, RESULT_FILL_BINARY -> {
         int slot = localIndex(instruction, RESULT_SLOT);
-        long expected = opcode == Opcode.RESULT_FILL_CONSTANT
-            ? instruction.operand(IMMEDIATE)
-            : localValue(instruction, SOURCE);
+        long expected;
+        if (opcode == Opcode.RESULT_FILL_CONSTANT) {
+          expected = instruction.operand(IMMEDIATE);
+        } else {
+          expected = localValue(instruction, SOURCE);
+          if (opcode == Opcode.RESULT_FILL_BINARY) {
+            expected = ResultBinaryOperation.apply(
+                instruction.operand(OPERATION), expected, instruction.operand(IMMEDIATE));
+          }
+        }
         long tag = currentFrame().local(slot);
         long payload = currentFrame().local(slot + 1);
         if (frame.inverse()) {
           if (tag != 1 || payload != expected) {
-            trap(opcode == Opcode.RESULT_FILL_CONSTANT
-                ? "Inverse result slot does not hold the expected constant"
-                : "Inverse result slot does not hold the expected source");
+            String relation = opcode == Opcode.RESULT_FILL_CONSTANT
+                ? "constant"
+                : opcode == Opcode.RESULT_FILL_SOURCE ? "source" : "computed result";
+            trap("Inverse result slot does not hold the expected " + relation);
           }
           replaceCurrentFrame(
               currentFrame().withLocal(slot, 0).withLocal(slot + 1, 0).advance());

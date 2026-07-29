@@ -79,6 +79,10 @@ classical class ProofVerifier {
       return OPCODE_RESULT_FILL_SOURCE;
     }
 
+    if (opcode == OPCODE_RESULT_FILL_BINARY) {
+      return OPCODE_RESULT_FILL_BINARY;
+    }
+
     return -1;
   }
 

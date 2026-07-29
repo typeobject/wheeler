@@ -420,6 +420,36 @@ classical class InstructionVerifier {
       return 0;
     }
 
+    if (opcode == OPCODE_RESULT_FILL_BINARY) {
+      if (activeResultSlot == 1) {} else {
+        return 0;
+      }
+
+      long binarySource = readUnsigned(artifact, cursor + 16, 8);
+      long binaryOperation = readUnsigned(artifact, cursor + 24, 8);
+      if (isResultBinaryOperation(binaryOperation)) {} else {
+        return 0;
+      }
+
+      if (1 < localCount) {
+        if (first == localCount - 2) {
+          if (binarySource < first) {
+            if (localType(artifact, activeTypes, first) == TYPE_BOOLEAN) {
+              if (localType(artifact, activeTypes, first + 1) == TYPE_SIGNED) {
+                if (localType(artifact, activeTypes, binarySource) == TYPE_SIGNED) {
+                  if (activeResultType == TYPE_SIGNED) {
+                    return 1;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return 0;
+    }
+
     if (opcode == OPCODE_RETURN_RESULT_SLOT) {
       if (activeResultSlot == 1) {} else {
         return 0;
@@ -681,6 +711,10 @@ classical class InstructionVerifier {
         if (instructionIndex == 0) {
           boolean resultFill = opcode == OPCODE_RESULT_FILL_CONSTANT;
           if (opcode == OPCODE_RESULT_FILL_SOURCE) {
+            resultFill = true;
+          }
+
+          if (opcode == OPCODE_RESULT_FILL_BINARY) {
             resultFill = true;
           }
 

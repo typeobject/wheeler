@@ -103,36 +103,86 @@ final class ClassicalLocalAssembler implements SourceStorageLowerer.Context {
     localTypes.add(ValueType.BOOLEAN);
     localTypes.add(ValueType.SIGNED);
     int resultSlot = localTypes.size() - 2;
-    boolean directReturn = statements.size() == 2
-        && statements.get(1).operation().equals("return_value")
-        && statements.get(0).arguments().getFirst()
-            .equals(statements.get(1).arguments().getFirst());
-    if (!directReturn) {
-      throw new CompilerException(
-          owner.line(),
-          "reversible value functions return one signed constant or preserved parameter");
+    if (directReversibleResult(statements, resultSlot)
+        || binaryReversibleResult(statements, resultSlot)) {
+      output.add(Instruction.of(Opcode.RETURN_RESULT_SLOT, resultSlot));
+      return new ClassicalLowerer.LoweredBody(List.copyOf(output), List.copyOf(localTypes));
+    }
+    throw new CompilerException(
+        owner.line(),
+        "reversible value functions return a signed constant, preserved parameter, "
+            + "or parameter operation with a constant right operand");
+  }
+
+  private boolean directReversibleResult(List<Statement> statements, int resultSlot) {
+    if (statements.size() != 2
+        || !statements.get(1).operation().equals("return_value")
+        || !statements.get(0).arguments().getFirst()
+            .equals(statements.get(1).arguments().getFirst())) {
+      return false;
     }
     Statement value = statements.getFirst();
     if (value.operation().equals("local_const")) {
       long constant = SourceParser.parseInteger(value.arguments().get(1), value.line());
       output.add(Instruction.of(Opcode.RESULT_FILL_CONSTANT, resultSlot, constant));
-    } else if (value.operation().equals("local_read")) {
-      String sourceName = value.arguments().get(1);
-      Integer source = locals.get(sourceName);
-      boolean parameter = owner.parameters().stream()
-          .anyMatch(candidate -> candidate.name().equals(sourceName));
-      if (source == null || !parameter || !localTypes.get(source).equals(ValueType.SIGNED)) {
-        throw new CompilerException(
-            owner.line(), "reversible value functions preserve one signed parameter");
-      }
-      output.add(Instruction.of(Opcode.RESULT_FILL_SOURCE, resultSlot, source));
-    } else {
-      throw new CompilerException(
-          owner.line(),
-          "reversible value functions return one signed constant or preserved parameter");
+      return true;
     }
-    output.add(Instruction.of(Opcode.RETURN_RESULT_SLOT, resultSlot));
-    return new ClassicalLowerer.LoweredBody(List.copyOf(output), List.copyOf(localTypes));
+    if (value.operation().equals("local_read")) {
+      int source = preservedSignedParameter(value);
+      output.add(Instruction.of(Opcode.RESULT_FILL_SOURCE, resultSlot, source));
+      return true;
+    }
+    return false;
+  }
+
+  private boolean binaryReversibleResult(List<Statement> statements, int resultSlot) {
+    if (statements.size() != 4) {
+      return false;
+    }
+    Statement sourceValue = statements.get(0);
+    Statement rightValue = statements.get(1);
+    Statement binary = statements.get(2);
+    Statement returned = statements.get(3);
+    if (!sourceValue.operation().equals("local_read")
+        || !rightValue.operation().equals("local_const")
+        || !binary.operation().equals("local_binary")
+        || !returned.operation().equals("return_value")
+        || !binary.arguments().get(2).equals(sourceValue.arguments().getFirst())
+        || !binary.arguments().get(3).equals(rightValue.arguments().getFirst())
+        || !returned.arguments().getFirst().equals(binary.arguments().getFirst())) {
+      return false;
+    }
+    int source = preservedSignedParameter(sourceValue);
+    long operation = resultBinaryOperation(binary.arguments().get(1), binary.line()).code();
+    long immediate = SourceParser.parseInteger(rightValue.arguments().get(1), rightValue.line());
+    output.add(Instruction.of(
+        Opcode.RESULT_FILL_BINARY, resultSlot, source, operation, immediate));
+    return true;
+  }
+
+  private int preservedSignedParameter(Statement value) {
+    String sourceName = value.arguments().get(1);
+    Integer source = locals.get(sourceName);
+    boolean parameter = owner.parameters().stream()
+        .anyMatch(candidate -> candidate.name().equals(sourceName));
+    if (source == null || !parameter || !localTypes.get(source).equals(ValueType.SIGNED)) {
+      throw new CompilerException(
+          owner.line(), "reversible value functions preserve one signed parameter");
+    }
+    return source;
+  }
+
+  private Opcode resultBinaryOperation(String operation, int line) {
+    return switch (operation) {
+      case "add" -> Opcode.LOCAL_ADD;
+      case "sub" -> Opcode.LOCAL_SUB;
+      case "mul" -> Opcode.LOCAL_MUL;
+      case "div" -> Opcode.LOCAL_DIV;
+      case "mod" -> Opcode.LOCAL_MOD;
+      case "xor" -> Opcode.LOCAL_XOR;
+      case "and" -> Opcode.LOCAL_AND;
+      default -> throw new CompilerException(line, "unsupported reversible result operation");
+    };
   }
 
   private void lower(Statement statement) {

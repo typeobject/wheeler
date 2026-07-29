@@ -137,15 +137,23 @@ class NativeVmExampleTest {
         interpreter,
         Files.readString(root.resolve("classical/control/ReversibleResult.w")),
         "observed",
-        7);
+        42);
     assertInterpretedGlobal(
         interpreter,
         reversibleResultRoundTrip(),
         "observed",
         1);
+    assertInterpretedGlobal(
+        interpreter,
+        preservedResultRoundTrip(),
+        "observed",
+        1);
     assertThrows(
         VmTrap.class,
         () -> VirtualMachine.withBinaryInput(interpreter, wrongHeldResult()).run());
+    assertThrows(
+        VmTrap.class,
+        () -> VirtualMachine.withBinaryInput(interpreter, wrongHeldComputedResult()).run());
     assertInterpretedTwoGlobals(
         interpreter,
         Files.readString(root.resolve("classical/control/LoopControl.w")),
@@ -432,33 +440,44 @@ class NativeVmExampleTest {
   }
 
   private static byte[] reversibleResultRoundTrip() {
+    return parameterResultRoundTrip("ComputedResultRoundTrip", addEightResult(), 34);
+  }
+
+  private static byte[] preservedResultRoundTrip() {
+    return parameterResultRoundTrip("PreservedResultRoundTrip", preservedResult(), 42);
+  }
+
+  private static byte[] parameterResultRoundTrip(
+      String name, FunctionBody relation, long argument) {
     FunctionBody entry = new FunctionBody(
         1,
         "main",
         false,
         0,
         List.of(
-            ValueType.BOOLEAN,
             ValueType.SIGNED,
             ValueType.BOOLEAN,
+            ValueType.SIGNED,
+            ValueType.SIGNED,
             ValueType.BOOLEAN),
         null,
         List.of(
-            Instruction.of(Opcode.LOCAL_CONST, 0, 0),
+            Instruction.of(Opcode.LOCAL_CONST, 0, argument),
             Instruction.of(Opcode.LOCAL_CONST, 1, 0),
             Instruction.of(Opcode.LOCAL_CONST, 2, 0),
-            Instruction.of(Opcode.CALL_RESULT_SLOT, 0, 0, 0, 0),
-            Instruction.of(Opcode.UNCALL_RESULT_SLOT, 0, 0, 0, 0),
-            Instruction.of(Opcode.LOCAL_EQ, 3, 0, 2),
-            Instruction.of(Opcode.EXPECT_TRUE, 3),
+            Instruction.of(Opcode.CALL_RESULT_SLOT, 0, 0, 1, 1),
+            Instruction.of(Opcode.UNCALL_RESULT_SLOT, 0, 0, 1, 1),
+            Instruction.of(Opcode.LOCAL_CONST, 3, 0),
+            Instruction.of(Opcode.LOCAL_EQ, 4, 2, 3),
+            Instruction.of(Opcode.EXPECT_TRUE, 4),
             Instruction.of(Opcode.ADD_CONST, 0, 1),
             Instruction.of(Opcode.HALT)),
         List.of());
     Program program = new Program(
-        "ReversibleResultRoundTrip",
+        name,
         1,
         List.of(new Global("observed", 0)),
-        List.of(minusOneResult(), entry));
+        List.of(relation, entry));
     return new BytecodeWriter().write(program);
   }
 
@@ -478,6 +497,54 @@ class NativeVmExampleTest {
         List.of());
     return new BytecodeWriter().write(new Program(
         "WrongHeldResult", 1, List.of(), List.of(minusOneResult(), entry)));
+  }
+
+  private static byte[] wrongHeldComputedResult() {
+    FunctionBody entry = new FunctionBody(
+        1,
+        "main",
+        false,
+        0,
+        List.of(ValueType.SIGNED, ValueType.BOOLEAN, ValueType.SIGNED),
+        null,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 34),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 1),
+            Instruction.of(Opcode.LOCAL_CONST, 2, 41),
+            Instruction.of(Opcode.UNCALL_RESULT_SLOT, 0, 0, 1, 1),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    return new BytecodeWriter().write(new Program(
+        "WrongHeldComputedResult", 1, List.of(), List.of(addEightResult(), entry)));
+  }
+
+  private static FunctionBody addEightResult() {
+    Instruction fill = Instruction.of(
+        Opcode.RESULT_FILL_BINARY, 1, 0, Opcode.LOCAL_ADD.code(), 8);
+    return new FunctionBody(
+        0,
+        "addEight",
+        false,
+        1,
+        List.of(ValueType.SIGNED, ValueType.BOOLEAN, ValueType.SIGNED),
+        ValueType.SIGNED,
+        true,
+        List.of(fill, Instruction.of(Opcode.RETURN_RESULT_SLOT, 1)),
+        List.of(fill, Instruction.of(Opcode.RETURN_RESULT_SLOT, 1)));
+  }
+
+  private static FunctionBody preservedResult() {
+    Instruction fill = Instruction.of(Opcode.RESULT_FILL_SOURCE, 1, 0);
+    return new FunctionBody(
+        0,
+        "preserve",
+        false,
+        1,
+        List.of(ValueType.SIGNED, ValueType.BOOLEAN, ValueType.SIGNED),
+        ValueType.SIGNED,
+        true,
+        List.of(fill, Instruction.of(Opcode.RETURN_RESULT_SLOT, 1)),
+        List.of(fill, Instruction.of(Opcode.RETURN_RESULT_SLOT, 1)));
   }
 
   private static FunctionBody minusOneResult() {

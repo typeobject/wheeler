@@ -26,6 +26,7 @@ classical class ProgramCodegen {
   private const long RESULT_SLOT_FUNCTION = 0;
   private const long RESULT_SLOT_ARGUMENT_BASE = 0;
   private const long RESULT_SLOT_ARGUMENT_COUNT = 0;
+  private const long RESULT_SLOT_FIRST_PARAMETER = 0;
   private const long RESULT_SLOT_ONE_ARGUMENT_LOCALS = 5;
   private const long RESULT_SLOT_ONE_ARGUMENT_CODE_LENGTH = 160;
   private const long RESULT_SLOT_TWO_ARGUMENT_LOCALS = 7;
@@ -167,6 +168,34 @@ classical class ProgramCodegen {
     return writeUnsignedLittleEndian(output, cursor, resultSlot, U64);
   }
 
+  private long resultBinaryOperation(long opcode) {
+    if (opcode == STATEMENT_RETURN_LOCAL_SUB_NAMED) {
+      return OPCODE_LOCAL_SUB;
+    }
+
+    if (opcode == STATEMENT_RETURN_LOCAL_MUL_NAMED) {
+      return OPCODE_LOCAL_MUL;
+    }
+
+    if (opcode == STATEMENT_RETURN_LOCAL_DIV_NAMED) {
+      return OPCODE_LOCAL_DIV;
+    }
+
+    if (opcode == STATEMENT_RETURN_LOCAL_MOD_NAMED) {
+      return OPCODE_LOCAL_MOD;
+    }
+
+    if (opcode == STATEMENT_RETURN_LOCAL_XOR_NAMED) {
+      return OPCODE_LOCAL_XOR;
+    }
+
+    if (opcode == STATEMENT_RETURN_LOCAL_AND_NAMED) {
+      return OPCODE_LOCAL_AND;
+    }
+
+    return OPCODE_LOCAL_ADD;
+  }
+
   private long writeResultSlotSourceBody(
     borrow mut bytes output,
     long cursor,
@@ -176,6 +205,22 @@ classical class ProgramCodegen {
     cursor = writeInstructionHeader(output, cursor, OPCODE_RESULT_FILL_SOURCE, FORM_BINARY);
     cursor = writeUnsignedLittleEndian(output, cursor, resultSlot, U64);
     cursor = writeUnsignedLittleEndian(output, cursor, source, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN_RESULT_SLOT, FORM_UNARY);
+    return writeUnsignedLittleEndian(output, cursor, resultSlot, U64);
+  }
+
+  private long writeResultSlotBinaryBody(
+    borrow mut bytes output,
+    long cursor,
+    long resultSlot,
+    long operation,
+    long immediate
+  ) {
+    cursor = writeInstructionHeader(output, cursor, OPCODE_RESULT_FILL_BINARY, FORM_QUATERNARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, resultSlot, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, RESULT_SLOT_FIRST_PARAMETER, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, operation, U64);
+    cursor = writeSignedLittleEndian(output, cursor, immediate, U64);
     cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN_RESULT_SLOT, FORM_UNARY);
     return writeUnsignedLittleEndian(output, cursor, resultSlot, U64);
   }
@@ -427,6 +472,24 @@ classical class ProgramCodegen {
         long resultSource = resolvedLocalReturnSource(resultOpcode);
         cursor = writeResultSlotSourceBody(output, cursor, helperLocalBase, resultSource);
         return writeResultSlotSourceBody(output, cursor, helperLocalBase, resultSource);
+      }
+
+      if (returnLocalBinaryStatement(resultOpcode)) {
+        long operation = resultBinaryOperation(resultOpcode);
+        cursor = writeResultSlotBinaryBody(
+          output,
+          cursor,
+          helperLocalBase,
+          operation,
+          program.helperOperands[0]
+        );
+        return writeResultSlotBinaryBody(
+          output,
+          cursor,
+          helperLocalBase,
+          operation,
+          program.helperOperands[0]
+        );
       }
 
       cursor = writeResultSlotBody(output, cursor, helperLocalBase, program.helperOperands[0]);

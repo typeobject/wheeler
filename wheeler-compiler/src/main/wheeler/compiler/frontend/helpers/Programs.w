@@ -390,6 +390,24 @@ classical class HelperPrograms {
         }
       }
 
+      if (returnLocalBinaryStatement(slotResultOpcode)) {
+        if (0 < parameterCount) {
+          long binaryStatement = helperStarts[parameterCount];
+          long firstParameterToken = 0 - helperStarts[0];
+          if (
+            sameTokenText(
+              source,
+              tokenStarts,
+              tokenLengths,
+              binaryStatement + 1,
+              firstParameterToken
+            )
+          ) {
+            supportedSlotResult = true;
+          }
+        }
+      }
+
       if (supportedSlotResult) {} else {
         return new MinimalProgramResult.Error(0);
       }

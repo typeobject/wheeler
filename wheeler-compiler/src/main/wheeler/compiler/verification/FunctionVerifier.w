@@ -7,6 +7,8 @@ import wheeler.compiler.type_codes;
 import wheeler.core.encoding.binary;
 
 classical class FunctionVerifier {
+  private const long MAX_RESULT_RELATION_BYTES = 40;
+
   private boolean differs(long left, long right) {
     if (left < right) {
       return true;
@@ -17,7 +19,7 @@ classical class FunctionVerifier {
 
   private boolean sameBytes(borrow byteview artifact, long left, long right, long length) {
     long cursor = 0;
-    while (cursor < length) limit 16 {
+    while (cursor < length) limit MAX_RESULT_RELATION_BYTES {
       if (artifact[left + cursor] == artifact[right + cursor]) {} else {
         return false;
       }
@@ -330,11 +332,37 @@ classical class FunctionVerifier {
           return 0;
         }
 
-        if (sameBytes(artifact, slotForwardCursor + 8, slotInverseCursor + 8, 16)) {} else {
+        long slotForwardLength = readUnsigned(artifact, slotForwardCursor + 4, 4);
+        long slotInverseLength = readUnsigned(artifact, slotInverseCursor + 4, 4);
+        if (slotForwardLength == slotInverseLength) {} else {
           return 0;
         }
 
-        if (slotForwardOpcode == OPCODE_RESULT_FILL_SOURCE) {
+        if (8 < slotForwardLength) {} else {
+          return 0;
+        }
+
+        if (slotForwardLength < MAX_RESULT_RELATION_BYTES + 1) {} else {
+          return 0;
+        }
+
+        if (
+          sameBytes(
+            artifact,
+            slotForwardCursor + 8,
+            slotInverseCursor + 8,
+            slotForwardLength - 8
+          )
+        ) {} else {
+          return 0;
+        }
+
+        boolean preservedRelation = slotForwardOpcode == OPCODE_RESULT_FILL_SOURCE;
+        if (slotForwardOpcode == OPCODE_RESULT_FILL_BINARY) {
+          preservedRelation = true;
+        }
+
+        if (preservedRelation) {
           long preservedSource = readUnsigned(artifact, slotForwardCursor + 16, 8);
           if (preservedSource < parameterCount) {} else {
             return 0;

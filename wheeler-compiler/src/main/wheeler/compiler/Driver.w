@@ -279,8 +279,12 @@ classical class CompilerDriver {
     if (resultSlotProgram) {
       helperLocalCount = helperParameterCount + RESULT_SLOT_LOCAL_COUNT;
       helperForwardLength = RESULT_SLOT_BODY_LENGTH;
-      helperInverseLength = RESULT_SLOT_BODY_LENGTH;
-      helperInverseOffset = RESULT_SLOT_BODY_LENGTH;
+      if (returnLocalBinaryStatement(program.helperOpcodes[0])) {
+        helperForwardLength = RESULT_SLOT_BINARY_BODY_LENGTH;
+      }
+
+      helperInverseLength = helperForwardLength;
+      helperInverseOffset = helperForwardLength;
       entryForwardLength = 8 + entryStatementLength;
     }
 

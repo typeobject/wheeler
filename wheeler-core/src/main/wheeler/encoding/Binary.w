@@ -3,6 +3,11 @@
 module wheeler.core.encoding.binary;
 
 classical class Binary {
+  private const long SIGNED_LOW_BYTES = 7;
+  private const long SIGNED_HIGH_BIT = 127;
+  private const long OCTET_BASE = 256;
+  private const long SIGNED_HIGH_MULTIPLIER = 72057594037927936;
+
   /// Reads `unsigned` from a bounded canonical input.
   public long readUnsigned(borrow byteview source, long offset, long width) {
     long result = 0;
@@ -12,11 +17,30 @@ classical class Binary {
       result += source[offset + cursor] * multiplier;
       cursor += 1;
       if (cursor < width) {
-        multiplier = multiplier * 256;
+        multiplier = multiplier * OCTET_BASE;
       }
     }
 
     return result;
+  }
+
+  /// Reads one canonical signed 64-bit little-endian value.
+  public long readSigned(borrow byteview source, long offset) {
+    long value = 0;
+    long multiplier = 1;
+    long cursor = 0;
+    while (cursor < SIGNED_LOW_BYTES) limit SIGNED_LOW_BYTES {
+      value += source[offset + cursor] * multiplier;
+      multiplier = multiplier * OCTET_BASE;
+      cursor += 1;
+    }
+
+    long high = source[offset + SIGNED_LOW_BYTES];
+    if (SIGNED_HIGH_BIT < high) {
+      high -= OCTET_BASE;
+    }
+
+    return value + high * SIGNED_HIGH_MULTIPLIER;
   }
 
   private boolean lowercase(long value) {

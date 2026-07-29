@@ -49,6 +49,8 @@ classical class Opcodes {
   public const long OPCODE_RETURN_RESULT_SLOT = 0x0208;
   /// Exchanges an implicit result slot with one preserved signed source local.
   public const long OPCODE_RESULT_FILL_SOURCE = 0x0209;
+  /// Exchanges a result slot with one signed source and constant operation.
+  public const long OPCODE_RESULT_FILL_BINARY = 0x020a;
   /// Names the compile-time `OPCODE_EXPECT_EQ` value owned by this module.
   public const long OPCODE_EXPECT_EQ = 0x0300;
 
@@ -194,8 +196,21 @@ classical class Opcodes {
     return opcode == OPCODE_XOR_CONST;
   }
 
-  /// Reports whether an opcode applies the bounded three-local math shape.
-  public boolean isLocalMathOpcode(long opcode) {
+  /// Reports whether an opcode exchanges one implicit result slot.
+  public boolean isResultFillOpcode(long opcode) {
+    if (opcode == OPCODE_RESULT_FILL_CONSTANT) {
+      return true;
+    }
+
+    if (opcode == OPCODE_RESULT_FILL_SOURCE) {
+      return true;
+    }
+
+    return opcode == OPCODE_RESULT_FILL_BINARY;
+  }
+
+  /// Reports whether an opcode names one signed result binary operation.
+  public boolean isResultBinaryOperation(long opcode) {
     if (opcode == OPCODE_LOCAL_ADD) {
       return true;
     }
@@ -220,7 +235,12 @@ classical class Opcodes {
       return true;
     }
 
-    if (opcode == OPCODE_LOCAL_AND) {
+    return opcode == OPCODE_LOCAL_AND;
+  }
+
+  /// Reports whether an opcode applies the bounded three-local math shape.
+  public boolean isLocalMathOpcode(long opcode) {
+    if (isResultBinaryOperation(opcode)) {
       return true;
     }
 
