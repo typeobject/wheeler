@@ -356,6 +356,20 @@ classical class HelperParser {
       }
     }
 
+    if (0 < parameterToken) {
+      if (classConstantNameExists(source, tokenStarts, tokenLengths, parameterToken)) {
+        return new MinimalProgramResult.Error(0);
+      }
+    }
+
+    if (0 < secondParameterToken) {
+      if (
+        classConstantNameExists(source, tokenStarts, tokenLengths, secondParameterToken)
+      ) {
+        return new MinimalProgramResult.Error(0);
+      }
+    }
+
     if (
       punctuationAt(source, tokenKinds, tokenStarts, closeParameters, PUNCTUATION_CLOSE_PAREN)
         == false
@@ -495,14 +509,7 @@ classical class HelperParser {
 
         set(statementStarts, MAX_HELPER_RESOLUTION_STARTS + resultEntryCount, entryCursor);
         if (
-          resultCallValid(
-            source,
-            tokenStarts,
-            tokenLengths,
-            nameToken,
-            entryCursor,
-            helperKind
-          )
+          resultCallNamesHelper(source, tokenStarts, tokenLengths, nameToken, entryCursor)
         ) {
           resultCallCount += 1;
         }

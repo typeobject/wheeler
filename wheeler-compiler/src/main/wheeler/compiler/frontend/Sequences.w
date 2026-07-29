@@ -2,9 +2,12 @@
 
 module wheeler.compiler.sequences;
 
+import wheeler.compiler.class_constants;
 import wheeler.compiler.ir;
+import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_statements;
 import wheeler.compiler.operands;
+import wheeler.compiler.statement_forms;
 import wheeler.compiler.tokens;
 
 classical class StatementSequences {
@@ -96,6 +99,20 @@ classical class StatementSequences {
     }
 
     return 0;
+  }
+
+  private boolean localNameValid(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart
+  ) {
+    long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (statementResultLocal(sourceOpcode, 0) < 0) {
+      return true;
+    }
+
+    return classConstantNameExists(source, tokenStarts, tokenLengths, statementStart + 1) == false;
   }
 
   /// Resolves one ordered source sequence without publishing partial results.
@@ -318,6 +335,13 @@ classical class StatementSequences {
     long statement = 0;
     while (statement < count) limit MAX_MINIMAL_STATEMENTS {
       if (sequenceOperandValid(opcodes[statement], operands[statement]) == false) {
+        return new StatementSequence(count, opcodes, operands, secondaryOperands, false);
+      }
+
+      long resolvedIndex = resolutionPrefix(statementStarts) + statement;
+      if (
+        localNameValid(source, tokenStarts, tokenLengths, statementStarts[resolvedIndex]) == false
+      ) {
         return new StatementSequence(count, opcodes, operands, secondaryOperands, false);
       }
 

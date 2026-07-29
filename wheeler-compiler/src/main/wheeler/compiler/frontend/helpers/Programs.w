@@ -2,6 +2,8 @@
 
 module wheeler.compiler.helper_programs;
 
+import wheeler.compiler.call_forms;
+import wheeler.compiler.helper_calls;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.sequences;
@@ -51,6 +53,22 @@ classical class HelperPrograms {
     }
 
     return returnLocalPairStatement(opcode);
+  }
+
+  private boolean entryCallsMatchHelper(StatementSequence sequence, long helperKind) {
+    long statement = 0;
+    while (statement < sequence.count) limit MAX_MINIMAL_STATEMENTS {
+      long opcode = sequence.opcodes[statement];
+      if (scalarResultCallStatement(opcode)) {
+        if (resolvedResultCallValid(opcode, helperKind) == false) {
+          return false;
+        }
+      }
+
+      statement += 1;
+    }
+
+    return true;
   }
 
   /// Builds one typed helper and entry program after bounded structural parsing.
@@ -275,6 +293,12 @@ classical class HelperPrograms {
     );
     if (entrySequence.valid == false) {
       return new MinimalProgramResult.Error(0);
+    }
+
+    if (HELPER_REVERSIBLE < helperKind) {
+      if (entryCallsMatchHelper(entrySequence, helperKind) == false) {
+        return new MinimalProgramResult.Error(0);
+      }
     }
 
     MinimalProgram program = new MinimalProgram(

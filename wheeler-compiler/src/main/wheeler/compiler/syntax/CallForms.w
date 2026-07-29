@@ -5,6 +5,26 @@ module wheeler.compiler.call_forms;
 import wheeler.compiler.tokens;
 
 classical class CallForms {
+  /// Returns the first argument token in a two-argument scalar call.
+  public long twoArgumentFirstToken(long statementStart) {
+    return statementStart + 5;
+  }
+
+  /// Returns the second argument token in a two-argument scalar call.
+  public long twoArgumentSecondToken(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    long statementStart
+  ) {
+    long firstToken = twoArgumentFirstToken(statementStart);
+    long firstWidth = 1;
+    if (utf8Scalar(source, tokenStarts[firstToken]) == PUNCTUATION_MINUS) {
+      firstWidth = 2;
+    }
+
+    return firstToken + firstWidth + 1;
+  }
+
   /// Checks for a signed or Boolean one-argument helper call.
   public boolean oneArgumentCallStatement(long opcode) {
     if (opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED) {
@@ -80,6 +100,32 @@ classical class CallForms {
     }
 
     return opcode < STATEMENT_LOCAL_BOOLEAN_CALL_SIGNED_TWO_LOCALS_NAMED + 1;
+  }
+
+  /// Checks whether a two-argument call returns a signed value.
+  public boolean twoArgumentSignedResultCall(long opcode) {
+    if (opcode < STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_CALL_TWO_LOCALS_NAMED + 1;
+  }
+
+  /// Checks whether one statement initializes a local from a scalar helper.
+  public boolean scalarResultCallStatement(long opcode) {
+    if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED) {
+      return true;
+    }
+
+    if (oneArgumentCallStatement(opcode)) {
+      return true;
+    }
+
+    return twoArgumentCallStatement(opcode);
   }
 
   /// Checks whether a two-argument helper call receives and returns Booleans.

@@ -2,6 +2,8 @@
 
 module wheeler.compiler.local_statements;
 
+import wheeler.compiler.call_forms;
+import wheeler.compiler.call_resolution;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.local_opcodes;
@@ -241,114 +243,28 @@ classical class LocalStatements {
       return -1;
     }
 
-    if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
-      if (
-        classConstantHasType(source, tokenStarts, tokenLengths, statementStart + 5, true)
-      ) {
-        return STATEMENT_LOCAL_CALL_ARGUMENT_NAMED;
-      }
-
-      return opcode;
+    if (oneArgumentCallStatement(opcode)) {
+      return resolveCallOpcode(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        previousStarts,
+        previousCount,
+        opcode
+      );
     }
 
-    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_LOCAL_ARGUMENT_NAMED) {
-      long callSignedArgument = resolvePriorDeclaration(
+    if (twoArgumentCallStatement(opcode)) {
+      return resolveCallOpcode(
         source,
         tokenStarts,
         tokenLengths,
+        statementStart,
         previousStarts,
         previousCount,
-        statementStart + 5,
-        true
+        opcode
       );
-      long callBooleanArgument = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 5,
-        false
-      );
-      if (-1 < callSignedArgument) {
-        if (callBooleanArgument < 0) {
-          return STATEMENT_LOCAL_BOOLEAN_CALL_SIGNED_LOCAL_ARGUMENT_NAMED;
-        }
-      }
-
-      if (-1 < callBooleanArgument) {
-        if (callSignedArgument < 0) {
-          return opcode;
-        }
-      }
-
-      if (
-        classConstantHasType(source, tokenStarts, tokenLengths, statementStart + 5, false)
-      ) {
-        return STATEMENT_LOCAL_BOOLEAN_CALL_ARGUMENT_NAMED;
-      }
-
-      return -1;
-    }
-
-    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_TWO_LOCALS_NAMED) {
-      long pairCallSignedLeft = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 5,
-        true
-      );
-      long pairCallBooleanLeft = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 5,
-        false
-      );
-      long pairCallSignedRight = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 7,
-        true
-      );
-      long pairCallBooleanRight = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 7,
-        false
-      );
-      if (-1 < pairCallSignedLeft) {
-        if (pairCallBooleanLeft < 0) {
-          if (-1 < pairCallSignedRight) {
-            if (pairCallBooleanRight < 0) {
-              return STATEMENT_LOCAL_BOOLEAN_CALL_SIGNED_TWO_LOCALS_NAMED;
-            }
-          }
-        }
-      }
-
-      if (-1 < pairCallBooleanLeft) {
-        if (pairCallSignedLeft < 0) {
-          if (-1 < pairCallBooleanRight) {
-            if (pairCallSignedRight < 0) {
-              return opcode;
-            }
-          }
-        }
-      }
-
-      return -1;
     }
 
     boolean ambiguousReturnPair = opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED;

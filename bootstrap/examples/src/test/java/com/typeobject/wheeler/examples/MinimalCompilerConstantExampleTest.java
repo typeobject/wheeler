@@ -67,6 +67,34 @@ class MinimalCompilerConstantExampleTest {
   }
 
   @Test
+  void passesConstantsAndLocalsToTwoArgumentScalarHelpers() throws Exception {
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    assertDifferentialHalt(
+        compiler,
+        "classical class SignedConstantPair { const long LEFT = 40; const long RIGHT = 2; "
+            + "long add(long left, long right) { return left + right; } entry void main() { "
+            + "long left = 40; long right = 2; long constants = add(LEFT, RIGHT); "
+            + "long first = add(left, RIGHT); long second = add(LEFT, right); "
+            + "assert(constants == 42); assert(first == 42); assert(second == 42); } }");
+    assertDifferentialHalt(
+        compiler,
+        "classical class BooleanConstantPair { const boolean LEFT = true; "
+            + "const boolean RIGHT = false; boolean different(boolean left, boolean right) { "
+            + "return left != right; } entry void main() { boolean left = true; "
+            + "boolean right = false; boolean constants = different(LEFT, RIGHT); "
+            + "boolean first = different(left, RIGHT); boolean second = different(LEFT, right); "
+            + "assert(constants); assert(first); assert(second); } }");
+    assertDifferentialHalt(
+        compiler,
+        "classical class SignedComparisonConstants { const long LEFT = 41; "
+            + "const long RIGHT = 42; boolean ordered(long left, long right) { "
+            + "return left < right; } entry void main() { long left = 41; long right = 42; "
+            + "boolean constants = ordered(LEFT, RIGHT); boolean first = ordered(left, RIGHT); "
+            + "boolean second = ordered(LEFT, right); assert(constants); assert(first); "
+            + "assert(second); } }");
+  }
+
+  @Test
   void keepsIndependentDeclarationOrderOutOfTheArtifact() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
     String prefix = "classical class OrderedConstants { ";
@@ -114,6 +142,25 @@ class MinimalCompilerConstantExampleTest {
         "classical class WrongBooleanCallConstant { const long INPUT = 1; "
             + "boolean identity(boolean value) { return value; } entry void main() { "
             + "boolean result = identity(INPUT); } }");
+    assertNativeTrap(
+        compiler,
+        "classical class WrongSignedPairConstant { const boolean RIGHT = true; "
+            + "long add(long left, long right) { return left + right; } entry void main() { "
+            + "long result = add(1, RIGHT); } }");
+    assertNativeTrap(
+        compiler,
+        "classical class WrongBooleanPairConstant { const long LEFT = 1; "
+            + "const long RIGHT = 2; boolean both(boolean left, boolean right) { return left; } "
+            + "entry void main() { boolean result = both(LEFT, RIGHT); } }");
+    assertNativeTrap(
+        compiler,
+        "classical class ConstantLocalCollision { const long VALUE = 1; "
+            + "entry void main() { long VALUE = 2; } }");
+    assertNativeTrap(
+        compiler,
+        "classical class ConstantParameterCollision { const long VALUE = 1; "
+            + "long identity(long VALUE) { return VALUE; } entry void main() { "
+            + "long result = identity(1); } }");
     assertNativeTrap(
         compiler,
         "classical class UnsupportedConstantExpression { const long VALUE = 1 + 1; "

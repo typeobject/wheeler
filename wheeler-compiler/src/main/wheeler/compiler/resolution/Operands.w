@@ -24,12 +24,12 @@ classical class Operands {
     long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
-    boolean ambiguousTypedStatement = opcode == STATEMENT_LOCAL_BOOLEAN_CALL_LOCAL_ARGUMENT_NAMED;
-    if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+    boolean ambiguousTypedStatement = oneArgumentCallNamed(opcode);
+    if (twoArgumentCallFirstNamed(opcode)) {
       ambiguousTypedStatement = true;
     }
 
-    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_TWO_LOCALS_NAMED) {
+    if (twoArgumentCallSecondNamed(opcode)) {
       ambiguousTypedStatement = true;
     }
 
@@ -101,6 +101,27 @@ classical class Operands {
       previousCount
     );
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (-1 < opcode) {
+      if (twoArgumentCallStatement(sourceOpcode)) {
+        if (twoArgumentCallFirstNamed(sourceOpcode)) {
+          if (twoArgumentCallFirstNamed(opcode) == false) {
+            ConstantResolution firstCallConstant = resolveClassConstant(
+              source,
+              tokenStarts,
+              tokenLengths,
+              twoArgumentFirstToken(statementStart),
+              twoArgumentBooleanCall(opcode) == false
+            );
+            if (firstCallConstant.valid) {
+              return firstCallConstant.value;
+            }
+
+            return -1;
+          }
+        }
+      }
+    }
+
     if (sourceOpcode == STATEMENT_LOCAL_LONG_NAMED) {
       if (opcode == STATEMENT_LOCAL_LONG) {
         ConstantResolution signedDeclarationConstant = resolveClassConstant(
@@ -687,13 +708,30 @@ classical class Operands {
       return 0;
     }
 
-    if (twoArgumentCallStatement(opcode)) {
-      long firstWidth = 1;
-      if (utf8Scalar(source, tokenStarts[statementStart + 5]) == PUNCTUATION_MINUS) {
-        firstWidth = 2;
-      }
+    long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (-1 < opcode) {
+      if (twoArgumentCallStatement(sourceOpcode)) {
+        if (twoArgumentCallSecondNamed(sourceOpcode)) {
+          if (twoArgumentCallSecondNamed(opcode) == false) {
+            ConstantResolution secondCallConstant = resolveClassConstant(
+              source,
+              tokenStarts,
+              tokenLengths,
+              twoArgumentSecondToken(source, tokenStarts, statementStart),
+              twoArgumentBooleanCall(opcode) == false
+            );
+            if (secondCallConstant.valid) {
+              return secondCallConstant.value;
+            }
 
-      long secondToken = statementStart + 6 + firstWidth;
+            return -1;
+          }
+        }
+      }
+    }
+
+    if (twoArgumentCallStatement(opcode)) {
+      long secondToken = twoArgumentSecondToken(source, tokenStarts, statementStart);
       if (twoArgumentCallSecondNamed(opcode)) {
         boolean signedArgument = true;
         if (twoArgumentBooleanCall(opcode)) {
@@ -778,7 +816,7 @@ classical class Operands {
     }
 
     if (twoArgumentCallStatement(opcode)) {
-      return statementStart + 5;
+      return twoArgumentFirstToken(statementStart);
     }
 
     if (opcode == STATEMENT_RETURN_LOCAL_NAMED) {

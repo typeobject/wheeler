@@ -45,50 +45,58 @@ classical class HelperCalls {
     return false;
   }
 
-  /// Reports whether one statement calls the named signed-result helper form.
-  public boolean resultCallValid(
+  /// Reports whether one scalar result call names the sole bounded helper.
+  public boolean resultCallNamesHelper(
     borrow utf8 source,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
     long nameToken,
-    long callStart,
-    long helperKind
+    long callStart
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, callStart);
-    boolean expectedCall = opcode == STATEMENT_LOCAL_CALL_NAMED;
+    if (scalarResultCallStatement(opcode)) {
+      return sameTokenText(source, tokenStarts, tokenLengths, nameToken, callStart + 3);
+    }
+
+    return false;
+  }
+
+  /// Checks one resolved scalar call against the helper parameter and result types.
+  public boolean resolvedResultCallValid(long opcode, long helperKind) {
+    if (helperKind == HELPER_SIGNED) {
+      return opcode == STATEMENT_LOCAL_CALL_NAMED;
+    }
+
     if (helperKind == HELPER_BOOLEAN) {
-      expectedCall = opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED;
+      return opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED;
     }
 
     if (helperKind == HELPER_BOOLEAN_ONE) {
-      expectedCall = oneArgumentBooleanCall(opcode);
+      return oneArgumentBooleanCall(opcode);
     }
 
     if (helperKind == HELPER_BOOLEAN_TWO) {
-      expectedCall = twoArgumentBooleanCall(opcode);
+      return twoArgumentBooleanCall(opcode);
     }
 
     if (helperKind == HELPER_BOOLEAN_SIGNED_ONE) {
-      expectedCall = oneArgumentBooleanSignedCall(opcode);
+      return oneArgumentBooleanSignedCall(opcode);
     }
 
     if (helperKind == HELPER_BOOLEAN_SIGNED_TWO) {
-      expectedCall = twoArgumentBooleanSignedCall(opcode);
+      return twoArgumentBooleanSignedCall(opcode);
     }
 
     if (helperKind == HELPER_SIGNED_ONE) {
-      expectedCall = opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED;
-      if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
-        expectedCall = true;
+      if (opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED) {
+        return true;
       }
+
+      return opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED;
     }
 
     if (helperKind == HELPER_SIGNED_TWO) {
-      expectedCall = twoArgumentCallStatement(opcode);
-    }
-
-    if (expectedCall) {
-      return sameTokenText(source, tokenStarts, tokenLengths, nameToken, callStart + 3);
+      return twoArgumentSignedResultCall(opcode);
     }
 
     return false;
