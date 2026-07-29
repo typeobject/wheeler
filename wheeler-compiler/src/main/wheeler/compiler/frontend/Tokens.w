@@ -64,6 +64,14 @@ classical class Tokens {
   public const long TOKEN_TRUE = 3569038;
   /// Names the stable token hash for `false`.
   public const long TOKEN_FALSE = 97196323;
+  /// Names the byte width of `rotateRight32`.
+  public const long ROTATE_RIGHT_32_NAME_BYTES = 13;
+  /// Names the prefix width used for bounded `rotateRight32` hashing.
+  public const long ROTATE_RIGHT_32_PREFIX_BYTES = 6;
+  /// Names the stable prefix hash for `rotateRight32`.
+  public const long TOKEN_ROTATE_RIGHT_32_PREFIX = 3369786715;
+  /// Names the stable suffix hash for `rotateRight32`.
+  public const long TOKEN_ROTATE_RIGHT_32_SUFFIX = 75879696731;
   /// Names the stable token hash for `return`.
   public const long TOKEN_RETURN = 3360570672;
 
@@ -507,6 +515,41 @@ classical class Tokens {
     }
 
     return hash;
+  }
+
+  private long tokenRangeHash(borrow utf8 source, long start, long length) {
+    long cursor = start;
+    long end = start + length;
+    long hash = 0;
+    while (cursor < end) limit 8 {
+      hash = hash * 31 + utf8Scalar(source, cursor);
+      cursor += utf8Width(source, cursor);
+    }
+
+    return hash;
+  }
+
+  /// Checks one token against the exact `rotateRight32` intrinsic name.
+  public boolean rotateRight32Token(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long token
+  ) {
+    if (tokenLengths[token] == ROTATE_RIGHT_32_NAME_BYTES) {
+      long start = tokenStarts[token];
+      if (
+        tokenRangeHash(source, start, ROTATE_RIGHT_32_PREFIX_BYTES) == TOKEN_ROTATE_RIGHT_32_PREFIX
+      ) {
+        return tokenRangeHash(
+          source,
+          start + ROTATE_RIGHT_32_PREFIX_BYTES,
+          ROTATE_RIGHT_32_NAME_BYTES - ROTATE_RIGHT_32_PREFIX_BYTES
+        ) == TOKEN_ROTATE_RIGHT_32_SUFFIX;
+      }
+    }
+
+    return false;
   }
 
   /// Checks one token against an exact punctuation scalar.

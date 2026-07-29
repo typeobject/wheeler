@@ -10,6 +10,8 @@ classical class ConstantExpressions {
   public const long MAX_CONSTANT_EVALUATION_STEPS = 4096;
   /// Caps a same-class dependency path, including cycle detection.
   public const long MAX_CONSTANT_DEPENDENCY_DEPTH = 64;
+  /// Caps the checked `rotateRight32` amount.
+  public const long MAX_ROTATE_RIGHT_32_AMOUNT = 31;
 
   /// Carries one parsed expression value and its first unread token.
   public record ExpressionValue(long value, long next, boolean signed, boolean valid) {}
@@ -104,6 +106,97 @@ classical class ConstantExpressions {
     return new ExpressionResolution(0, false, false, true);
   }
 
+  private ExpressionValue parseRotateRight32(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long firstDeclaration,
+    long memberStart,
+    long cursor,
+    long end,
+    long dependencyDepth,
+    borrow mut words steps
+  ) {
+    if (cursor + 4 < end) {} else {
+      return invalidExpression(cursor);
+    }
+
+    if (
+      scalarAt(source, tokenStarts, tokenLengths, cursor + 1, PUNCTUATION_OPEN_PAREN)
+    ) {} else {
+      return invalidExpression(cursor);
+    }
+
+    ExpressionValue value = parseEquality(
+      source,
+      tokenStarts,
+      tokenLengths,
+      firstDeclaration,
+      memberStart,
+      cursor + 2,
+      end,
+      dependencyDepth,
+      steps
+    );
+    if (value.valid) {} else {
+      return value;
+    }
+
+    if (value.signed) {} else {
+      return invalidExpression(value.next);
+    }
+
+    if (value.next < end) {
+      if (scalarAt(source, tokenStarts, tokenLengths, value.next, PUNCTUATION_COMMA)) {} else {
+        return invalidExpression(value.next);
+      }
+    } else {
+      return invalidExpression(value.next);
+    }
+
+    ExpressionValue amount = parseEquality(
+      source,
+      tokenStarts,
+      tokenLengths,
+      firstDeclaration,
+      memberStart,
+      value.next + 1,
+      end,
+      dependencyDepth,
+      steps
+    );
+    if (amount.valid) {} else {
+      return amount;
+    }
+
+    if (amount.signed) {} else {
+      return invalidExpression(amount.next);
+    }
+
+    if (amount.value < 0) {
+      return invalidExpression(amount.next);
+    }
+
+    if (MAX_ROTATE_RIGHT_32_AMOUNT < amount.value) {
+      return invalidExpression(amount.next);
+    }
+
+    if (amount.next < end) {
+      if (
+        scalarAt(source, tokenStarts, tokenLengths, amount.next, PUNCTUATION_CLOSE_PAREN)
+      ) {
+        return new ExpressionValue(
+          rotateRight32(value.value, amount.value),
+          amount.next + 1,
+          true,
+          true
+        );
+      }
+    }
+
+    return invalidExpression(amount.next);
+  }
+
   private ExpressionValue parsePrimary(
     borrow utf8 source,
     borrow mut words tokenStarts,
@@ -165,6 +258,20 @@ classical class ConstantExpressions {
       }
 
       return invalidExpression(cursor);
+    }
+
+    if (rotateRight32Token(source, tokenStarts, tokenLengths, cursor)) {
+      return parseRotateRight32(
+        source,
+        tokenStarts,
+        tokenLengths,
+        firstDeclaration,
+        memberStart,
+        cursor,
+        end,
+        dependencyDepth,
+        steps
+      );
     }
 
     long hash = tokenHash(source, tokenStarts, tokenLengths, cursor);

@@ -42,8 +42,8 @@ declarations around its optional signed state and before its helper or entry. Co
 initialize that state, including a forward reference when state comes first. Splitting the
 constant block around state fails rather than creating two lookup rules. Their bounded
 expressions admit decimal, hexadecimal, and binary
-integers, Booleans, parentheses, checked arithmetic, `!`, `^`, `&`, `==`, `<`, and forward
-same-class dependencies. A lookup allows 4,096 evaluation steps, dependency paths stop at
+integers, Booleans, parentheses, checked arithmetic, `!`, `^`, `&`, `==`, `<`, checked
+`rotateRight32`, and forward same-class dependencies. A lookup allows 4,096 evaluation steps, dependency paths stop at
 sixty-four declarations, and parentheses stop at depth thirty-two. Cycles, unknown names,
 type errors, malformed forms, and arithmetic traps publish nothing.
 
@@ -57,8 +57,8 @@ loop conditions and limits. Calls and mutations
 may mix constants with prior locals. Helper parameters and locals cannot reuse constant names.
 Constants create no global, initializer, lookup, or declaration-order artifact noise. The
 native header path accepts direct import declarations. The first linker slice resolves one public-only scalar constant graph through unqualified or
-canonical owner-qualified uses and preserves stage-0 artifact bytes. Root collisions with imported private names, colliding exports, more than two imports,
-`rotateRight32`, and general multi-file linking remain stage-0 work
+canonical owner-qualified uses and preserves stage-0 artifact bytes. Root collisions with imported private names, colliding exports, more than two imports, and
+general multi-file linking remain stage-0 work
 until native differential artifacts pin them down.
 
 The narrow loop body and local constant graph are deliberate limits, not parser folklore.

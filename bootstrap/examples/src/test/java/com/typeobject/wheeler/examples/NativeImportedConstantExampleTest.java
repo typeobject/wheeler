@@ -29,7 +29,8 @@ class NativeImportedConstantExampleTest {
     Program compiler = program();
     String imported = "module examples.constants; classical class Constants { "
         + "public const boolean READY = ANSWER == 42; "
-        + "public const long ANSWER = BASE + 2; private const long BASE = 40; }";
+        + "public const long ANSWER = rotateRight32(BASE, ROTATION); "
+        + "private const long BASE = 0x2a0; private const long ROTATION = 4; }";
     String root = "module examples.root; import examples.constants; "
         + "classical class ImportedConstants { state long outcome = 0; "
         + "entry void main() { long answer = ANSWER; boolean ready = READY; "

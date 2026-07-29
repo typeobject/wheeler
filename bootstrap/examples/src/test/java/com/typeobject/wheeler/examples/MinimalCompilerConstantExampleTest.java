@@ -187,13 +187,16 @@ class MinimalCompilerConstantExampleTest {
             + "const boolean READY = ANSWER == 42; const long HALF = 20; "
             + "const long MASKED = (ANSWER ^ 3) & 63; const long QUOTIENT = 84 / 2; "
             + "const long REMAINDER = 85 % 43; const long RADIX = 0x2_8 + 0b10; "
+            + "const long ROTATION = 2 + 2; "
+            + "const long ROTATED = rotateRight32(0x2a0, ROTATION); "
             + "const boolean ORDERED = HALF < ANSWER; const boolean BLOCKED = !READY; "
             + "entry void main() { long answer = ANSWER; long masked = MASKED; "
             + "long quotient = QUOTIENT; long remainder = REMAINDER; long radix = RADIX; "
+            + "long rotated = ROTATED; "
             + "boolean ready = READY; boolean ordered = ORDERED; boolean blocked = BLOCKED; "
             + "boolean clear = !blocked; assert(answer == 42); assert(masked == 41); "
             + "assert(quotient == 42); assert(remainder == 42); assert(radix == 42); "
-            + "assert(ready); assert(ordered); "
+            + "assert(rotated == 42); assert(ready); assert(ordered); "
             + "assert(clear); } }");
   }
 
@@ -466,6 +469,20 @@ class MinimalCompilerConstantExampleTest {
     assertNativeTrap(
         compiler,
         "classical class ConstantDivisionTrap { const long VALUE = 1 / 0; "
+            + "entry void main() { long value = VALUE; } }");
+    assertNativeTrap(
+        compiler,
+        "classical class NegativeConstantRotate { "
+            + "const long VALUE = rotateRight32(1, -1); "
+            + "entry void main() { long value = VALUE; } }");
+    assertNativeTrap(
+        compiler,
+        "classical class WideConstantRotate { const long VALUE = rotateRight32(1, 32); "
+            + "entry void main() { long value = VALUE; } }");
+    assertNativeTrap(
+        compiler,
+        "classical class BooleanConstantRotate { "
+            + "const long VALUE = rotateRight32(true, 1); "
             + "entry void main() { long value = VALUE; } }");
     assertNativeTrap(
         compiler,
