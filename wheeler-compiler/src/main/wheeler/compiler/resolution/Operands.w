@@ -6,6 +6,7 @@ import wheeler.compiler.call_forms;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
+import wheeler.compiler.local_resolution;
 import wheeler.compiler.local_statements;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
