@@ -163,6 +163,51 @@ class NativeImportedConstantExampleTest {
   }
 
   @Test
+  void linksATwoLeafConstantForkWithoutTransitiveExports() throws Exception {
+    Program compiler = program();
+    String left = "module examples.alpha; classical class Alpha { "
+        + "private const long LEFT_BASE = 19; public const long LEFT = LEFT_BASE + 1; }";
+    String right = "module examples.beta; classical class Beta { "
+        + "private const long RIGHT_BASE = 21; public const long RIGHT = RIGHT_BASE + 1; }";
+    String dependent = "module examples.gamma; import examples.alpha; import examples.beta; "
+        + "classical class Gamma { public const long ANSWER = "
+        + "examples.alpha::LEFT + examples.beta::RIGHT; "
+        + "public const boolean READY = ANSWER == 42; }";
+    String root = "module examples.root; import examples.gamma; classical class Root { "
+        + "state long outcome = 0; entry void main() { outcome = examples.gamma::ANSWER; "
+        + "boolean ready = READY; assert(ready); assert(outcome == 42); } }";
+
+    byte[] artifact = compileNative(compiler, List.of(left, right, dependent), root);
+    assertArrayEquals(
+        artifact,
+        compileNative(compiler, List.of(dependent, right, left), root));
+    assertArrayEquals(
+        artifact,
+        compileNative(compiler, List.of(right, dependent, left), root));
+    Map<String, String> sources = new LinkedHashMap<>();
+    sources.put("Alpha.w", left);
+    sources.put("Beta.w", right);
+    sources.put("Gamma.w", dependent);
+    sources.put("Root.w", root);
+    assertArrayEquals(
+        new BytecodeWriter().write(
+            new WheelerCompiler().compileModuleFiles(sources, "examples.root")),
+        artifact);
+    VirtualMachine program = new VirtualMachine(new BytecodeReader().read(artifact));
+    program.run();
+    assertEquals(42, program.global("outcome"));
+
+    assertNativeTrap(
+        compiler,
+        List.of(dependent, left, right),
+        root.replace("outcome = examples.gamma::ANSWER;", "outcome = LEFT;"));
+    assertNativeTrap(
+        compiler,
+        List.of(right, dependent, left),
+        root.replace("outcome = examples.gamma::ANSWER;", "outcome = RIGHT;"));
+  }
+
+  @Test
   void linksAThreeEdgeConstantChainWithoutTransitiveExports() throws Exception {
     Program compiler = program();
     String leaf = "module examples.alpha; classical class Alpha { "

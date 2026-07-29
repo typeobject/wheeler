@@ -249,7 +249,89 @@ classical class CompilerDriver {
     return compiled;
   }
 
-  /// Compiles one root with three direct modules or one three-edge constant chain.
+  private Compilation compileMinimalWithConstantForkIfOrdered(
+    borrow utf8 firstLeafSource,
+    borrow utf8 secondLeafSource,
+    borrow utf8 dependentSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    LinkPlan firstLeafPlan = planPrivateConstantImport(
+      firstLeafSource,
+      dependentSource,
+      /* expectedImportCount= */ 2
+    );
+    if (firstLeafPlan.valid) {} else {
+      return new Compilation(0, 0);
+    }
+
+    region firstArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes firstBytes = allocateBytes(firstArena, firstLeafPlan.linkedLength);
+    long firstWritten = writeConstantImport(
+      firstLeafSource,
+      dependentSource,
+      firstLeafPlan,
+      firstBytes
+    );
+    assert(firstWritten == firstLeafPlan.linkedLength);
+    utf8 firstLinkedSource = freezeUtf8(firstBytes);
+
+    LinkPlan secondLeafPlan = planPrivateConstantImport(
+      secondLeafSource,
+      firstLinkedSource,
+      /* expectedImportCount= */ 2
+    );
+    if (secondLeafPlan.valid) {} else {
+      drop(firstLinkedSource);
+      drop(firstArena);
+      return new Compilation(0, 0);
+    }
+
+    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes secondBytes = allocateBytes(secondArena, secondLeafPlan.linkedLength);
+    long secondWritten = writeConstantImport(
+      secondLeafSource,
+      firstLinkedSource,
+      secondLeafPlan,
+      secondBytes
+    );
+    assert(secondWritten == secondLeafPlan.linkedLength);
+    utf8 linkedDependentSource = freezeUtf8(secondBytes);
+
+    LinkPlan rootPlan = planResolvedConstantImport(
+      linkedDependentSource,
+      rootSource,
+      /* expectedImportCount= */ 1
+    );
+    if (rootPlan.valid) {} else {
+      drop(linkedDependentSource);
+      drop(secondArena);
+      drop(firstLinkedSource);
+      drop(firstArena);
+      return new Compilation(0, 0);
+    }
+
+    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes rootBytes = allocateBytes(rootArena, rootPlan.linkedLength);
+    long rootWritten = writeConstantImport(
+      linkedDependentSource,
+      rootSource,
+      rootPlan,
+      rootBytes
+    );
+    assert(rootWritten == rootPlan.linkedLength);
+    utf8 linkedRootSource = freezeUtf8(rootBytes);
+    Compilation compiled = compileMinimal(linkedRootSource, output);
+    drop(linkedRootSource);
+    drop(rootArena);
+    drop(linkedDependentSource);
+    drop(secondArena);
+    drop(firstLinkedSource);
+    drop(firstArena);
+    return compiled;
+  }
+
+  /// Compiles one root with three direct modules, a chain, or a two-leaf fork.
   public Compilation compileMinimalWithThreeConstantImports(
     borrow utf8 firstImportedSource,
     borrow utf8 secondImportedSource,
@@ -321,6 +403,39 @@ classical class CompilerDriver {
     );
     if (0 < chain.length) {
       return chain;
+    }
+
+    Compilation fork = compileMinimalWithConstantForkIfOrdered(
+      firstImportedSource,
+      secondImportedSource,
+      thirdImportedSource,
+      rootSource,
+      output
+    );
+    if (0 < fork.length) {
+      return fork;
+    }
+
+    fork = compileMinimalWithConstantForkIfOrdered(
+      firstImportedSource,
+      thirdImportedSource,
+      secondImportedSource,
+      rootSource,
+      output
+    );
+    if (0 < fork.length) {
+      return fork;
+    }
+
+    fork = compileMinimalWithConstantForkIfOrdered(
+      secondImportedSource,
+      thirdImportedSource,
+      firstImportedSource,
+      rootSource,
+      output
+    );
+    if (0 < fork.length) {
+      return fork;
     }
 
     LinkPlan firstPlan = planConstantImport(
