@@ -55,14 +55,43 @@ classical class ProgramCodegen {
     return resultSlots;
   }
 
+  private long physicalResultSlotSource(long[64] opcodes, long statement, long source) {
+    return source + resultSlotsBeforeSource(opcodes, statement, source);
+  }
+
   private long physicalResultSlotOpcode(long[64] opcodes, long statement, long opcode) {
     if (resolvedLocalLongAssertion(opcode)) {
       long source = opcode - STATEMENT_ASSERT_LOCAL_LONG_BASE;
-      long resultSlots = resultSlotsBeforeSource(opcodes, statement, source);
-      return STATEMENT_ASSERT_LOCAL_LONG_BASE + source + resultSlots;
+      return STATEMENT_ASSERT_LOCAL_LONG_BASE + physicalResultSlotSource(
+        opcodes,
+        statement,
+        source
+      );
+    }
+
+    if (resolvedLocalPairAssertionSigned(opcode)) {
+      long pairSource = resolvedLocalPairAssertionSource(opcode);
+      return STATEMENT_ASSERT_LONG_PAIR_BASE + physicalResultSlotSource(
+        opcodes,
+        statement,
+        pairSource
+      );
     }
 
     return opcode;
+  }
+
+  private long physicalResultSlotOperand(
+    long[64] opcodes,
+    long statement,
+    long opcode,
+    long operand
+  ) {
+    if (resolvedLocalPairAssertionSigned(opcode)) {
+      return physicalResultSlotSource(opcodes, statement, operand);
+    }
+
+    return operand;
   }
 
   /// Returns the local width for one result-slot entry statement.
@@ -160,7 +189,7 @@ classical class ProgramCodegen {
           output,
           cursor,
           physicalResultSlotOpcode(opcodes, statement, opcode),
-          operands[statement],
+          physicalResultSlotOperand(opcodes, statement, opcode, operands[statement]),
           secondaryOperands[statement],
           localBase,
           instructionBase

@@ -93,13 +93,25 @@ classical class HelperPrograms {
       if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
         callCount += 1;
       } else {
-        if (resolvedLocalLongAssertion(opcode)) {} else {
-          return false;
-        }
+        if (resolvedLocalLongAssertion(opcode)) {
+          long source = opcode - STATEMENT_ASSERT_LOCAL_LONG_BASE;
+          if (resultSlotSourceDeclared(sequence, statement, source)) {} else {
+            return false;
+          }
+        } else {
+          if (resolvedLocalPairAssertionSigned(opcode)) {} else {
+            return false;
+          }
 
-        long source = opcode - STATEMENT_ASSERT_LOCAL_LONG_BASE;
-        if (resultSlotSourceDeclared(sequence, statement, source)) {} else {
-          return false;
+          long left = resolvedLocalPairAssertionSource(opcode);
+          long right = sequence.operands[statement];
+          if (resultSlotSourceDeclared(sequence, statement, left)) {} else {
+            return false;
+          }
+
+          if (resultSlotSourceDeclared(sequence, statement, right)) {} else {
+            return false;
+          }
         }
       }
 

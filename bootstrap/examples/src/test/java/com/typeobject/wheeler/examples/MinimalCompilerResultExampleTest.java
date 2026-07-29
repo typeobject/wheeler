@@ -35,7 +35,8 @@ class MinimalCompilerResultExampleTest {
         writerProgram,
         "classical class InterleavedReversibleResult { rev long answer() { return -1; } "
             + "entry void main() { long first = answer(); assert(first == -1); "
-            + "long second = answer(); assert(second == -1); assert(first == -1); } }");
+            + "long second = answer(); assert(second == -1); assert(first == -1); "
+            + "assert(first == second); } }");
   }
 
   @Test

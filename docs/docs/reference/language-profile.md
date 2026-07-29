@@ -172,7 +172,7 @@ The recovery compiler substitutes evaluated values into matching scalar locals, 
 
 The Wheeler-written compiler also lowers one zero-argument `rev long` helper that returns a
 signed literal or evaluated constant. Its bounded entry interleaves one or more result
-calls with signed equality checks of results already produced. The compiler emits the canonical
+calls with signed equality checks against constants or results already produced. The compiler emits the canonical
 adjacent result slot, identical generated inverse, and optional proof certificate. Boolean
 results, computed expressions, extra helper statements, and repeated result calls fail
 before publication.

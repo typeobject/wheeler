@@ -665,7 +665,7 @@ and exact `Holding(k)` in inverse code before changing either register.
 The Wheeler-native compiler now emits this complete first vertical slice. It accepts one
 zero-argument `rev long` helper returning a signed literal or evaluated constant, an
 optional generated-inverse theorem, and entry result calls interleaved with signed checks
-of results already produced. Differential tests compare the complete artifacts with stage
+against constants or results already produced. Differential tests compare the complete artifacts with stage
 0 before running them. Boolean results, computed result expressions, and extra body
 statements still fail without publication. That boundary is dull on purpose. A reversible
 ABI is a poor place to improvise jazz.
