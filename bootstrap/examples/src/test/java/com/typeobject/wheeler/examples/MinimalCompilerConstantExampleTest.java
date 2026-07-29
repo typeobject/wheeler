@@ -163,6 +163,18 @@ class MinimalCompilerConstantExampleTest {
   }
 
   @Test
+  void substitutesConstantsIntoBoundedLoopOperands() throws Exception {
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    assertDifferentialHalt(
+        compiler,
+        "classical class ConstantLoopOperands { const long STOP = HALF * 2; "
+            + "const long HALF = 2; const long LIMIT = STOP + 1; entry void main() { "
+            + "long up = 0; while (up < STOP) limit LIMIT { up += 1; } "
+            + "long down = STOP; while (0 < down) limit LIMIT { down -= 1; } "
+            + "assert(up == 4); assert(down == 0); } }");
+  }
+
+  @Test
   void substitutesConstantsIntoScalarAssignmentsAndCheckedUpdates() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
     assertDifferentialHalt(
@@ -262,6 +274,11 @@ class MinimalCompilerConstantExampleTest {
         compiler,
         "classical class WrongComparisonConstant { const boolean LIMIT = true; "
             + "entry void main() { long value = 1; boolean result = value < LIMIT; } }");
+    assertNativeTrap(
+        compiler,
+        "classical class WrongLoopConstant { const boolean LIMIT = true; "
+            + "entry void main() { long value = 0; "
+            + "while (value < LIMIT) limit LIMIT { value += 1; } } }");
     assertNativeTrap(
         compiler,
         "classical class WrongAssignmentConstant { const long VALUE = 1; "

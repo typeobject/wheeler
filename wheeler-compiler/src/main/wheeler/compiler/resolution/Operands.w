@@ -294,6 +294,21 @@ classical class Operands {
         );
       }
 
+      if (loopOperandNamed(source, tokenStarts, whileConditionRight)) {
+        ConstantResolution conditionConstant = resolveClassConstant(
+          source,
+          tokenStarts,
+          tokenLengths,
+          whileConditionRight,
+          true
+        );
+        if (conditionConstant.valid) {
+          return conditionConstant.value;
+        }
+
+        return -1;
+      }
+
       return parsedSignedNumber(source, tokenStarts, tokenLengths, whileConditionRight);
     }
 
@@ -644,6 +659,21 @@ classical class Operands {
           loopLimit,
           true
         );
+      }
+
+      if (loopOperandNamed(source, tokenStarts, loopLimit)) {
+        ConstantResolution limitConstant = resolveClassConstant(
+          source,
+          tokenStarts,
+          tokenLengths,
+          loopLimit,
+          true
+        );
+        if (limitConstant.valid) {
+          return limitConstant.value;
+        }
+
+        return -1;
       }
 
       return parsedSignedNumber(source, tokenStarts, tokenLengths, loopLimit);

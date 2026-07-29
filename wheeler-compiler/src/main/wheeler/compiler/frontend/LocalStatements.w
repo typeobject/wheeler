@@ -135,11 +135,20 @@ classical class LocalStatements {
             whileConditionRight,
             true
           );
-          if (whileConditionLocal < 0) {
-            return -1;
+          if (-1 < whileConditionLocal) {
+            whileForm += STATEMENT_LOCAL_WHILE_CONDITION_NAMED;
+          } else {
+            ConstantResolution whileConditionConstant = resolveClassConstant(
+              source,
+              tokenStarts,
+              tokenLengths,
+              whileConditionRight,
+              true
+            );
+            if (whileConditionConstant.valid == false) {
+              return -1;
+            }
           }
-
-          whileForm += STATEMENT_LOCAL_WHILE_CONDITION_NAMED;
         }
       }
 
@@ -154,11 +163,20 @@ classical class LocalStatements {
           whileLimit,
           true
         );
-        if (whileLimitLocal < 0) {
-          return -1;
+        if (-1 < whileLimitLocal) {
+          whileForm += STATEMENT_LOCAL_WHILE_LIMIT_NAMED;
+        } else {
+          ConstantResolution whileLimitConstant = resolveClassConstant(
+            source,
+            tokenStarts,
+            tokenLengths,
+            whileLimit,
+            true
+          );
+          if (whileLimitConstant.valid == false) {
+            return -1;
+          }
         }
-
-        whileForm += STATEMENT_LOCAL_WHILE_LIMIT_NAMED;
       }
 
       long whileUpdateTarget = whileUpdateTargetToken(source, tokenStarts, statementStart);

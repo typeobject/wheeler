@@ -17,6 +17,10 @@ classical class LocalResolution {
     long statementStart,
     long opcode
   ) {
+    if (opcode == STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED) {
+      return 6;
+    }
+
     if (localUpdateSourceStatement(opcode)) {
       boolean globalUpdate = 0 < tokenLengths[COMPILER_GLOBAL_NAME_TOKEN];
       if (globalUpdate) {
