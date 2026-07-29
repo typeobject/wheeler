@@ -879,7 +879,7 @@ class MinimalCompilerExampleTest {
       String source) {
     VirtualMachine writer = new VirtualMachine(
         writerProgram, source.getBytes(StandardCharsets.UTF_8), 8192);
-    writer.run();
+    CompilerMachineRunner.runWithoutRewindHistory(writer);
     assertArrayEquals(
         new WheelerCompiler().compileToBytecode(source),
         writer.hostOutput());
@@ -894,7 +894,7 @@ class MinimalCompilerExampleTest {
       String source) {
     VirtualMachine writer = new VirtualMachine(
         writerProgram, source.getBytes(StandardCharsets.UTF_8), 8192);
-    writer.run();
+    CompilerMachineRunner.runWithoutRewindHistory(writer);
     assertArrayEquals(
         new WheelerCompiler().compileToBytecode(source),
         writer.hostOutput());
@@ -911,7 +911,7 @@ class MinimalCompilerExampleTest {
     VirtualMachine writer = new VirtualMachine(
         writerProgram, source.getBytes(StandardCharsets.UTF_8), 8192);
     try {
-      writer.run();
+      CompilerMachineRunner.runWithoutRewindHistory(writer);
     } catch (VmTrap trap) {
       throw new AssertionError(
           "Wheeler compiler trapped at output cursor " + writer.global("finalCursor")

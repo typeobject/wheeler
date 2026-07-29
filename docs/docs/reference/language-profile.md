@@ -91,7 +91,7 @@ This runs `reverse second();` and then `reverse first();`.
 
 ## Local expressions and bounded control
 
-Normal classical methods support `long` and `boolean` locals. Expressions include checked `*`, `/`, `%`, `+`, and `-`. Signed or Boolean `^`. Boolean `!`. `<`, and `==`.
+Normal classical methods support `long` and `boolean` locals. Expressions include checked `*`, `/`, `%`, `+`, and `-`. Signed `&`. Signed or Boolean `^`. Boolean `!`. `<`, and `==`.
 
 Multiplication binds before addition and subtraction. Logical negation binds before multiplication and associates to the right.
 

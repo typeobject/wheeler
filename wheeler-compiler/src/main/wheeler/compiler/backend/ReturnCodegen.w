@@ -93,6 +93,10 @@ classical class ReturnCodegen {
         returnPairOpcode = OPCODE_LOCAL_XOR;
       }
 
+      if (opcode == STATEMENT_RETURN_LOCAL_AND_LOCAL_NAMED) {
+        returnPairOpcode = OPCODE_LOCAL_AND;
+      }
+
       long rightParameter = 0;
       if (localBase == 2) {
         rightParameter = 1;
@@ -136,6 +140,10 @@ classical class ReturnCodegen {
 
       if (opcode == STATEMENT_RETURN_LOCAL_XOR_NAMED) {
         returnOpcode = OPCODE_LOCAL_XOR;
+      }
+
+      if (opcode == STATEMENT_RETURN_LOCAL_AND_NAMED) {
+        returnOpcode = OPCODE_LOCAL_AND;
       }
 
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);

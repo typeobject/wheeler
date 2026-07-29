@@ -547,6 +547,10 @@ classical class Codegen {
         pairOpcode = OPCODE_LOCAL_MOD;
       }
 
+      if (STATEMENT_LOCAL_LONG_AND_LOCALS_BASE - 1 < opcode) {
+        pairOpcode = OPCODE_LOCAL_AND;
+      }
+
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, pairSourceLocal, U64);
@@ -583,6 +587,10 @@ classical class Codegen {
 
       if (STATEMENT_LOCAL_LONG_MOD_BASE - 1 < opcode) {
         binaryOpcode = OPCODE_LOCAL_MOD;
+      }
+
+      if (STATEMENT_LOCAL_LONG_AND_BASE - 1 < opcode) {
+        binaryOpcode = OPCODE_LOCAL_AND;
       }
 
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);

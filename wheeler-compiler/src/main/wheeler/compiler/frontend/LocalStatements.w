@@ -353,6 +353,10 @@ classical class LocalStatements {
           base = STATEMENT_LOCAL_LONG_MOD_BASE;
         }
 
+        if (opcode == STATEMENT_LOCAL_LONG_AND_NAMED) {
+          base = STATEMENT_LOCAL_LONG_AND_BASE;
+        }
+
         return base + binarySourceLocal;
       }
 
@@ -389,6 +393,10 @@ classical class LocalStatements {
 
         if (opcode == STATEMENT_LOCAL_LONG_MOD_LOCALS_NAMED) {
           pairBase = STATEMENT_LOCAL_LONG_MOD_LOCALS_BASE;
+        }
+
+        if (opcode == STATEMENT_LOCAL_LONG_AND_LOCALS_NAMED) {
+          pairBase = STATEMENT_LOCAL_LONG_AND_LOCALS_BASE;
         }
 
         return pairBase + pairSourceLocal;

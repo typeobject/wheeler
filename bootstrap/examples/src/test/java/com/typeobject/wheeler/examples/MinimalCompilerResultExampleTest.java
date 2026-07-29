@@ -263,6 +263,26 @@ class MinimalCompilerResultExampleTest {
         "classical class SignedParameterXorPair { "
             + "long xor(long left, long right) { return left ^ right; } "
             + "entry void main() { long answer = xor(40, 2); assert(answer == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedParameterAndLiteral { "
+            + "long mask(long value) { return value & 63; } "
+            + "entry void main() { long answer = mask(106); assert(answer == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedParameterAndPair { "
+            + "long and(long left, long right) { return left & right; } "
+            + "entry void main() { long answer = and(47, 58); assert(answer == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedLocalAndLiteral { "
+            + "long mask(long value) { long result = value & 63; return result; } "
+            + "entry void main() { long answer = mask(106); assert(answer == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedLocalAndPair { "
+            + "long mask(long left, long right) { long result = left & right; return result; } "
+            + "entry void main() { long answer = mask(47, 58); assert(answer == 42); } }");
   }
 
   private static void assertDifferentialHalt(Program writerProgram, String source) {
@@ -287,7 +307,7 @@ class MinimalCompilerResultExampleTest {
 
   private static void runWriter(VirtualMachine writer, Program writerProgram) {
     try {
-      writer.run();
+      CompilerMachineRunner.runWithoutRewindHistory(writer);
     } catch (VmTrap trap) {
       throw new AssertionError(
           "Wheeler compiler trapped at instruction "

@@ -61,7 +61,11 @@ classical class LocalOpcodes {
       return true;
     }
 
-    return opcode == STATEMENT_LOCAL_LONG_MOD_NAMED;
+    if (opcode == STATEMENT_LOCAL_LONG_MOD_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_LOCAL_LONG_AND_NAMED;
   }
 
   /// Checks for a named binary declaration over two signed locals.
@@ -86,7 +90,11 @@ classical class LocalOpcodes {
       return true;
     }
 
-    return opcode == STATEMENT_LOCAL_LONG_MOD_LOCALS_NAMED;
+    if (opcode == STATEMENT_LOCAL_LONG_MOD_LOCALS_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_LOCAL_LONG_AND_LOCALS_NAMED;
   }
 
   /// Checks whether a global update reads a prior signed local.
@@ -254,11 +262,17 @@ classical class LocalOpcodes {
       }
     }
 
-    if (opcode < STATEMENT_LOCAL_LONG_MUL_BASE) {
+    if (STATEMENT_LOCAL_LONG_MUL_BASE - 1 < opcode) {
+      if (opcode < STATEMENT_LOCAL_LONG_MOD_BASE + 256) {
+        return true;
+      }
+    }
+
+    if (opcode < STATEMENT_LOCAL_LONG_AND_BASE) {
       return false;
     }
 
-    return opcode < STATEMENT_LOCAL_LONG_MOD_BASE + 256;
+    return opcode < STATEMENT_LOCAL_LONG_AND_BASE + 256;
   }
 
   /// Returns the source local carried by a resolved signed binary opcode.
@@ -283,7 +297,11 @@ classical class LocalOpcodes {
       return opcode - STATEMENT_LOCAL_LONG_DIV_BASE;
     }
 
-    return opcode - STATEMENT_LOCAL_LONG_MOD_BASE;
+    if (opcode < STATEMENT_LOCAL_LONG_MOD_BASE + 256) {
+      return opcode - STATEMENT_LOCAL_LONG_MOD_BASE;
+    }
+
+    return opcode - STATEMENT_LOCAL_LONG_AND_BASE;
   }
 
   /// Checks whether an opcode carries the left source of a signed-local pair.
@@ -294,11 +312,17 @@ classical class LocalOpcodes {
       }
     }
 
-    if (opcode < STATEMENT_LOCAL_LONG_MUL_LOCALS_BASE) {
+    if (STATEMENT_LOCAL_LONG_MUL_LOCALS_BASE - 1 < opcode) {
+      if (opcode < STATEMENT_LOCAL_LONG_MOD_LOCALS_BASE + 256) {
+        return true;
+      }
+    }
+
+    if (opcode < STATEMENT_LOCAL_LONG_AND_LOCALS_BASE) {
       return false;
     }
 
-    return opcode < STATEMENT_LOCAL_LONG_MOD_LOCALS_BASE + 256;
+    return opcode < STATEMENT_LOCAL_LONG_AND_LOCALS_BASE + 256;
   }
 
   /// Returns the left source local carried by a resolved signed-local pair opcode.
@@ -323,7 +347,11 @@ classical class LocalOpcodes {
       return opcode - STATEMENT_LOCAL_LONG_DIV_LOCALS_BASE;
     }
 
-    return opcode - STATEMENT_LOCAL_LONG_MOD_LOCALS_BASE;
+    if (opcode < STATEMENT_LOCAL_LONG_MOD_LOCALS_BASE + 256) {
+      return opcode - STATEMENT_LOCAL_LONG_MOD_LOCALS_BASE;
+    }
+
+    return opcode - STATEMENT_LOCAL_LONG_AND_LOCALS_BASE;
   }
 
   /// Returns the typed-local width required by one parsed statement.

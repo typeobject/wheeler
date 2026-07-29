@@ -69,7 +69,11 @@ classical class StatementForms {
       }
     }
 
-    return opcode == STATEMENT_RETURN_LOCAL_XOR_NAMED;
+    if (opcode == STATEMENT_RETURN_LOCAL_XOR_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_RETURN_LOCAL_AND_NAMED;
   }
 
   /// Checks for a signed or Boolean one-argument helper call.
@@ -173,7 +177,11 @@ classical class StatementForms {
       }
     }
 
-    return opcode == STATEMENT_RETURN_LOCAL_XOR_LOCAL_NAMED;
+    if (opcode == STATEMENT_RETURN_LOCAL_XOR_LOCAL_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_RETURN_LOCAL_AND_LOCAL_NAMED;
   }
 
   /// Checks for a Boolean helper return comparing two Boolean values.
@@ -321,6 +329,14 @@ classical class StatementForms {
           }
 
           return STATEMENT_RETURN_LOCAL_XOR_NAMED;
+        }
+
+        if (returnOperator == PUNCTUATION_AMPERSAND) {
+          if (returnRightNamed) {
+            return STATEMENT_RETURN_LOCAL_AND_LOCAL_NAMED;
+          }
+
+          return STATEMENT_RETURN_LOCAL_AND_NAMED;
         }
 
         return STATEMENT_RETURN_LOCAL_NAMED;
@@ -536,6 +552,14 @@ classical class StatementForms {
           }
 
           return STATEMENT_LOCAL_LONG_XOR_NAMED;
+        }
+
+        if (initializerOperator == PUNCTUATION_AMPERSAND) {
+          if (rightNamed) {
+            return STATEMENT_LOCAL_LONG_AND_LOCALS_NAMED;
+          }
+
+          return STATEMENT_LOCAL_LONG_AND_NAMED;
         }
 
         if (initializerOperator == PUNCTUATION_STAR) {

@@ -22,8 +22,7 @@ class MinimalCompilerNegativeExampleTest {
             + "entry void main() { alpha += 0; } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, duplicate::run);
-    assertArrayEquals(new byte[512], duplicate.hostOutput());
+    assertTrapWithoutOutput(duplicate, 512);
 
     VirtualMachine duplicateHelperVisibility = new VirtualMachine(
         writerProgram,
@@ -32,8 +31,7 @@ class MinimalCompilerNegativeExampleTest {
             + "entry void main() { setup(); } }")
             .getBytes(StandardCharsets.UTF_8),
         1024);
-    assertThrows(VmTrap.class, duplicateHelperVisibility::run);
-    assertArrayEquals(new byte[1024], duplicateHelperVisibility.hostOutput());
+    assertTrapWithoutOutput(duplicateHelperVisibility, 1024);
     VirtualMachine duplicatePrivateVisibility = new VirtualMachine(
         writerProgram,
         ("classical class DuplicatePrivateVisibility { state long value = 0; "
@@ -41,8 +39,7 @@ class MinimalCompilerNegativeExampleTest {
             + "entry void main() { setup(); } }")
             .getBytes(StandardCharsets.UTF_8),
         1024);
-    assertThrows(VmTrap.class, duplicatePrivateVisibility::run);
-    assertArrayEquals(new byte[1024], duplicatePrivateVisibility.hostOutput());
+    assertTrapWithoutOutput(duplicatePrivateVisibility, 1024);
 
     VirtualMachine irreversibleHelper = new VirtualMachine(
         writerProgram,
@@ -51,8 +48,7 @@ class MinimalCompilerNegativeExampleTest {
             + "entry void main() { set(); reverse { set(); } } }")
             .getBytes(StandardCharsets.UTF_8),
         1024);
-    assertThrows(VmTrap.class, irreversibleHelper::run);
-    assertArrayEquals(new byte[1024], irreversibleHelper.hostOutput());
+    assertTrapWithoutOutput(irreversibleHelper, 1024);
 
     VirtualMachine signedOverflow = new VirtualMachine(
         writerProgram,
@@ -61,8 +57,7 @@ class MinimalCompilerNegativeExampleTest {
             + "entry void main() { } }")
             .getBytes(StandardCharsets.UTF_8),
         1024);
-    assertThrows(VmTrap.class, signedOverflow::run);
-    assertArrayEquals(new byte[1024], signedOverflow.hostOutput());
+    assertTrapWithoutOutput(signedOverflow, 1024);
 
     VirtualMachine invalid = new VirtualMachine(
         writerProgram,
@@ -70,8 +65,7 @@ class MinimalCompilerNegativeExampleTest {
             + "entry void main() { value += 5; } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, invalid::run);
-    assertArrayEquals(new byte[512], invalid.hostOutput());
+    assertTrapWithoutOutput(invalid, 512);
 
     VirtualMachine bareAssertion = new VirtualMachine(
         writerProgram,
@@ -79,41 +73,41 @@ class MinimalCompilerNegativeExampleTest {
             + "entry void main() { assert value == 1; } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, bareAssertion::run);
-    assertArrayEquals(new byte[512], bareAssertion.hostOutput());
+    assertTrapWithoutOutput(bareAssertion, 512);
 
     VirtualMachine malformedLiteralAssertion = new VirtualMachine(
         writerProgram,
         "classical class BadLiteralAssert { entry void main() { assert(0 = 0); } }"
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, malformedLiteralAssertion::run);
-    assertArrayEquals(new byte[512], malformedLiteralAssertion.hostOutput());
+    assertTrapWithoutOutput(malformedLiteralAssertion, 512);
 
     VirtualMachine invalidBoolean = new VirtualMachine(
         writerProgram,
         "classical class BadBoolean { entry void main() { boolean flag = 1; } }"
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, invalidBoolean::run);
-    assertArrayEquals(new byte[512], invalidBoolean.hostOutput());
+    assertTrapWithoutOutput(invalidBoolean, 512);
 
     VirtualMachine doubleNegation = new VirtualMachine(
         writerProgram,
         "classical class DoubleNot { entry void main() { boolean flag = !!false; } }"
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, doubleNegation::run);
-    assertArrayEquals(new byte[512], doubleNegation.hostOutput());
+    assertTrapWithoutOutput(doubleNegation, 512);
 
+  }
+
+  @Test
+  void rejectsInvalidHelperResultsWithoutPublishingOutput() throws Exception {
+    Program writerProgram = CompilerSources.minimalCompilerProgram();
     VirtualMachine missingResult = new VirtualMachine(
         writerProgram,
         ("classical class MissingResult { long answer() { } "
                 + "entry void main() { long value = answer(); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, missingResult::run);
-    assertArrayEquals(new byte[512], missingResult.hostOutput());
+    assertTrapWithoutOutput(missingResult, 512);
 
     VirtualMachine earlyResult = new VirtualMachine(
         writerProgram,
@@ -121,8 +115,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { long value = answer(); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, earlyResult::run);
-    assertArrayEquals(new byte[512], earlyResult.hostOutput());
+    assertTrapWithoutOutput(earlyResult, 512);
 
     VirtualMachine missingResultLocal = new VirtualMachine(
         writerProgram,
@@ -131,8 +124,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { long result = answer(); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, missingResultLocal::run);
-    assertArrayEquals(new byte[512], missingResultLocal.hostOutput());
+    assertTrapWithoutOutput(missingResultLocal, 512);
 
     VirtualMachine booleanResultLocal = new VirtualMachine(
         writerProgram,
@@ -141,8 +133,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { long result = answer(); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, booleanResultLocal::run);
-    assertArrayEquals(new byte[512], booleanResultLocal.hostOutput());
+    assertTrapWithoutOutput(booleanResultLocal, 512);
 
     VirtualMachine booleanResultAsSigned = new VirtualMachine(
         writerProgram,
@@ -150,8 +141,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { long result = ready(); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, booleanResultAsSigned::run);
-    assertArrayEquals(new byte[512], booleanResultAsSigned.hostOutput());
+    assertTrapWithoutOutput(booleanResultAsSigned, 512);
 
     VirtualMachine signedResultAsBoolean = new VirtualMachine(
         writerProgram,
@@ -159,8 +149,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { boolean result = answer(); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, signedResultAsBoolean::run);
-    assertArrayEquals(new byte[512], signedResultAsBoolean.hostOutput());
+    assertTrapWithoutOutput(signedResultAsBoolean, 512);
 
     VirtualMachine signedLocalAsBooleanResult = new VirtualMachine(
         writerProgram,
@@ -169,9 +158,13 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { boolean result = ready(); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, signedLocalAsBooleanResult::run);
-    assertArrayEquals(new byte[512], signedLocalAsBooleanResult.hostOutput());
+    assertTrapWithoutOutput(signedLocalAsBooleanResult, 512);
 
+  }
+
+  @Test
+  void rejectsInvalidHelperParametersWithoutPublishingOutput() throws Exception {
+    Program writerProgram = CompilerSources.minimalCompilerProgram();
     VirtualMachine wrongReturnedParameter = new VirtualMachine(
         writerProgram,
         ("classical class WrongReturnedParameter { "
@@ -179,8 +172,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { long answer = identity(42); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, wrongReturnedParameter::run);
-    assertArrayEquals(new byte[512], wrongReturnedParameter.hostOutput());
+    assertTrapWithoutOutput(wrongReturnedParameter, 512);
 
     VirtualMachine missingParameterPreludeSource = new VirtualMachine(
         writerProgram,
@@ -189,8 +181,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { long answer = increment(41); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, missingParameterPreludeSource::run);
-    assertArrayEquals(new byte[512], missingParameterPreludeSource.hostOutput());
+    assertTrapWithoutOutput(missingParameterPreludeSource, 512);
 
     VirtualMachine duplicateParameterLocal = new VirtualMachine(
         writerProgram,
@@ -199,8 +190,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { long answer = increment(41); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, duplicateParameterLocal::run);
-    assertArrayEquals(new byte[512], duplicateParameterLocal.hostOutput());
+    assertTrapWithoutOutput(duplicateParameterLocal, 512);
 
     VirtualMachine wrongReturnRightParameter = new VirtualMachine(
         writerProgram,
@@ -209,8 +199,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { long answer = identity(42); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, wrongReturnRightParameter::run);
-    assertArrayEquals(new byte[512], wrongReturnRightParameter.hostOutput());
+    assertTrapWithoutOutput(wrongReturnRightParameter, 512);
 
     VirtualMachine duplicateParameters = new VirtualMachine(
         writerProgram,
@@ -219,8 +208,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { long answer = add(20, 22); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, duplicateParameters::run);
-    assertArrayEquals(new byte[512], duplicateParameters.hostOutput());
+    assertTrapWithoutOutput(duplicateParameters, 512);
 
     VirtualMachine reversedParameters = new VirtualMachine(
         writerProgram,
@@ -229,8 +217,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { long answer = subtract(64, 22); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, reversedParameters::run);
-    assertArrayEquals(new byte[512], reversedParameters.hostOutput());
+    assertTrapWithoutOutput(reversedParameters, 512);
 
     VirtualMachine missingPairPreludeSource = new VirtualMachine(
         writerProgram,
@@ -240,9 +227,13 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { long answer = add(20, 22); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, missingPairPreludeSource::run);
-    assertArrayEquals(new byte[512], missingPairPreludeSource.hostOutput());
+    assertTrapWithoutOutput(missingPairPreludeSource, 512);
 
+  }
+
+  @Test
+  void rejectsAnOversizedResultEntryWithoutPublishingOutput() throws Exception {
+    Program writerProgram = CompilerSources.minimalCompilerProgram();
     StringBuilder oversizedResultEntry = new StringBuilder(
         "classical class OversizedResultEntry { long value() { return 1; } entry void main() { ");
     for (int statement = 0; statement < MAX_RESULT_ENTRY_STATEMENTS; statement++) {
@@ -254,17 +245,20 @@ class MinimalCompilerNegativeExampleTest {
         writerProgram,
         oversizedResultEntry.toString().getBytes(StandardCharsets.UTF_8),
         4096);
-    assertThrows(VmTrap.class, oversizedResultEntryMachine::run);
-    assertArrayEquals(new byte[4096], oversizedResultEntryMachine.hostOutput());
+    assertTrapWithoutOutput(oversizedResultEntryMachine, 4096);
 
+  }
+
+  @Test
+  void rejectsInvalidHelperCallsWithoutPublishingOutput() throws Exception {
+    Program writerProgram = CompilerSources.minimalCompilerProgram();
     VirtualMachine missingResultCall = new VirtualMachine(
         writerProgram,
         ("classical class MissingResultCall { long value() { return 1; } "
                 + "entry void main() { long ignored = 0; } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, missingResultCall::run);
-    assertArrayEquals(new byte[512], missingResultCall.hostOutput());
+    assertTrapWithoutOutput(missingResultCall, 512);
 
     VirtualMachine missingCallArgument = new VirtualMachine(
         writerProgram,
@@ -272,8 +266,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { long answer = identity(); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, missingCallArgument::run);
-    assertArrayEquals(new byte[512], missingCallArgument.hostOutput());
+    assertTrapWithoutOutput(missingCallArgument, 512);
 
     VirtualMachine unexpectedCallArgument = new VirtualMachine(
         writerProgram,
@@ -281,8 +274,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { long value = answer(1); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, unexpectedCallArgument::run);
-    assertArrayEquals(new byte[512], unexpectedCallArgument.hostOutput());
+    assertTrapWithoutOutput(unexpectedCallArgument, 512);
 
     VirtualMachine missingLocalCallArgument = new VirtualMachine(
         writerProgram,
@@ -291,8 +283,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { long answer = identity(missing); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, missingLocalCallArgument::run);
-    assertArrayEquals(new byte[512], missingLocalCallArgument.hostOutput());
+    assertTrapWithoutOutput(missingLocalCallArgument, 512);
 
     VirtualMachine booleanCallArgument = new VirtualMachine(
         writerProgram,
@@ -300,8 +291,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { boolean flag = true; long answer = identity(flag); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, booleanCallArgument::run);
-    assertArrayEquals(new byte[512], booleanCallArgument.hostOutput());
+    assertTrapWithoutOutput(booleanCallArgument, 512);
 
     VirtualMachine signedBooleanCallArgument = new VirtualMachine(
         writerProgram,
@@ -310,8 +300,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { boolean answer = identity(1); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, signedBooleanCallArgument::run);
-    assertArrayEquals(new byte[512], signedBooleanCallArgument.hostOutput());
+    assertTrapWithoutOutput(signedBooleanCallArgument, 512);
 
     VirtualMachine signedLocalBooleanCallArgument = new VirtualMachine(
         writerProgram,
@@ -320,8 +309,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { long value = 1; boolean answer = identity(value); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, signedLocalBooleanCallArgument::run);
-    assertArrayEquals(new byte[512], signedLocalBooleanCallArgument.hostOutput());
+    assertTrapWithoutOutput(signedLocalBooleanCallArgument, 512);
 
     VirtualMachine signedBooleanPairArgument = new VirtualMachine(
         writerProgram,
@@ -330,8 +318,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { boolean answer = same(true, 1); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, signedBooleanPairArgument::run);
-    assertArrayEquals(new byte[512], signedBooleanPairArgument.hostOutput());
+    assertTrapWithoutOutput(signedBooleanPairArgument, 512);
 
     VirtualMachine missingBooleanPairArgument = new VirtualMachine(
         writerProgram,
@@ -340,8 +327,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { boolean answer = same(true); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, missingBooleanPairArgument::run);
-    assertArrayEquals(new byte[512], missingBooleanPairArgument.hostOutput());
+    assertTrapWithoutOutput(missingBooleanPairArgument, 512);
 
     VirtualMachine duplicateBooleanParameters = new VirtualMachine(
         writerProgram,
@@ -350,8 +336,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { boolean answer = same(true, true); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, duplicateBooleanParameters::run);
-    assertArrayEquals(new byte[512], duplicateBooleanParameters.hostOutput());
+    assertTrapWithoutOutput(duplicateBooleanParameters, 512);
 
     VirtualMachine booleanTwoArgument = new VirtualMachine(
         writerProgram,
@@ -360,8 +345,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { boolean flag = true; long answer = add(flag, 1); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, booleanTwoArgument::run);
-    assertArrayEquals(new byte[512], booleanTwoArgument.hostOutput());
+    assertTrapWithoutOutput(booleanTwoArgument, 512);
 
     VirtualMachine wrongResultHelper = new VirtualMachine(
         writerProgram,
@@ -369,8 +353,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { long value = other(); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, wrongResultHelper::run);
-    assertArrayEquals(new byte[512], wrongResultHelper.hostOutput());
+    assertTrapWithoutOutput(wrongResultHelper, 512);
 
     VirtualMachine valueFromVoid = new VirtualMachine(
         writerProgram,
@@ -378,9 +361,13 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { answer(); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, valueFromVoid::run);
-    assertArrayEquals(new byte[512], valueFromVoid.hostOutput());
+    assertTrapWithoutOutput(valueFromVoid, 512);
 
+  }
+
+  @Test
+  void rejectsStatementAndResolutionOverflowWithoutPublishingOutput() throws Exception {
+    Program writerProgram = CompilerSources.minimalCompilerProgram();
     VirtualMachine sixtyFifthHelperStatement = new VirtualMachine(
         writerProgram,
         ("classical class SixtyFiveHelperStatements { state long value = 0; "
@@ -389,8 +376,7 @@ class MinimalCompilerNegativeExampleTest {
             + "} entry void main() { setup(); } }")
             .getBytes(StandardCharsets.UTF_8),
         8192);
-    assertThrows(VmTrap.class, sixtyFifthHelperStatement::run);
-    assertArrayEquals(new byte[8192], sixtyFifthHelperStatement.hostOutput());
+    assertTrapWithoutOutput(sixtyFifthHelperStatement, 8192);
 
     VirtualMachine sixtyFifthStatement = new VirtualMachine(
         writerProgram,
@@ -399,17 +385,20 @@ class MinimalCompilerNegativeExampleTest {
             + "} }")
             .getBytes(StandardCharsets.UTF_8),
         8192);
-    assertThrows(VmTrap.class, sixtyFifthStatement::run);
-    assertArrayEquals(new byte[8192], sixtyFifthStatement.hostOutput());
+    assertTrapWithoutOutput(sixtyFifthStatement, 8192);
 
+  }
+
+  @Test
+  void rejectsInvalidLocalStateUpdatesWithoutPublishingOutput() throws Exception {
+    Program writerProgram = CompilerSources.minimalCompilerProgram();
     VirtualMachine unknownLocalCondition = new VirtualMachine(
         writerProgram,
         ("classical class UnknownLocalCondition { state long result = 0; "
                 + "entry void main() { if (missing) { result += 1; } } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, unknownLocalCondition::run);
-    assertArrayEquals(new byte[512], unknownLocalCondition.hostOutput());
+    assertTrapWithoutOutput(unknownLocalCondition, 512);
 
     VirtualMachine unknownNegatedLocalCondition = new VirtualMachine(
         writerProgram,
@@ -417,8 +406,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { if (!missing) { result += 1; } } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, unknownNegatedLocalCondition::run);
-    assertArrayEquals(new byte[512], unknownNegatedLocalCondition.hostOutput());
+    assertTrapWithoutOutput(unknownNegatedLocalCondition, 512);
 
     VirtualMachine unknownLocalAssignment = new VirtualMachine(
         writerProgram,
@@ -426,8 +414,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { result = missing; } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, unknownLocalAssignment::run);
-    assertArrayEquals(new byte[512], unknownLocalAssignment.hostOutput());
+    assertTrapWithoutOutput(unknownLocalAssignment, 512);
 
     VirtualMachine booleanLocalAssignment = new VirtualMachine(
         writerProgram,
@@ -435,8 +422,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { boolean answer = true; result = answer; } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, booleanLocalAssignment::run);
-    assertArrayEquals(new byte[512], booleanLocalAssignment.hostOutput());
+    assertTrapWithoutOutput(booleanLocalAssignment, 512);
 
     VirtualMachine unknownLocalUpdate = new VirtualMachine(
         writerProgram,
@@ -444,8 +430,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { result += missing; } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, unknownLocalUpdate::run);
-    assertArrayEquals(new byte[512], unknownLocalUpdate.hostOutput());
+    assertTrapWithoutOutput(unknownLocalUpdate, 512);
 
     VirtualMachine booleanLocalUpdate = new VirtualMachine(
         writerProgram,
@@ -453,8 +438,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { boolean delta = true; result += delta; } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, booleanLocalUpdate::run);
-    assertArrayEquals(new byte[512], booleanLocalUpdate.hostOutput());
+    assertTrapWithoutOutput(booleanLocalUpdate, 512);
 
     VirtualMachine unknownGuardedLocalUpdate = new VirtualMachine(
         writerProgram,
@@ -463,8 +447,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "if (ready) { result += missing; } } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, unknownGuardedLocalUpdate::run);
-    assertArrayEquals(new byte[512], unknownGuardedLocalUpdate.hostOutput());
+    assertTrapWithoutOutput(unknownGuardedLocalUpdate, 512);
 
     VirtualMachine booleanGuardedLocalUpdate = new VirtualMachine(
         writerProgram,
@@ -473,9 +456,13 @@ class MinimalCompilerNegativeExampleTest {
                 + "if (ready) { result += delta; } } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, booleanGuardedLocalUpdate::run);
-    assertArrayEquals(new byte[512], booleanGuardedLocalUpdate.hostOutput());
+    assertTrapWithoutOutput(booleanGuardedLocalUpdate, 512);
 
+  }
+
+  @Test
+  void rejectsInvalidTypedExpressionsWithoutPublishingOutput() throws Exception {
+    Program writerProgram = CompilerSources.minimalCompilerProgram();
     VirtualMachine booleanLessThanCondition = new VirtualMachine(
         writerProgram,
         ("classical class BooleanLessThanCondition { state long result = 0; "
@@ -483,8 +470,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "if (answer < 1) { result += 1; } } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, booleanLessThanCondition::run);
-    assertArrayEquals(new byte[512], booleanLessThanCondition.hostOutput());
+    assertTrapWithoutOutput(booleanLessThanCondition, 512);
 
     VirtualMachine booleanEqualityCondition = new VirtualMachine(
         writerProgram,
@@ -493,8 +479,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "if (answer == 1) { result += 1; } } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, booleanEqualityCondition::run);
-    assertArrayEquals(new byte[512], booleanEqualityCondition.hostOutput());
+    assertTrapWithoutOutput(booleanEqualityCondition, 512);
 
     VirtualMachine booleanLiteralEquality = new VirtualMachine(
         writerProgram,
@@ -502,8 +487,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "boolean answer = true; boolean same = answer == 1; } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, booleanLiteralEquality::run);
-    assertArrayEquals(new byte[512], booleanLiteralEquality.hostOutput());
+    assertTrapWithoutOutput(booleanLiteralEquality, 512);
 
     VirtualMachine booleanLiteralLessThan = new VirtualMachine(
         writerProgram,
@@ -511,8 +495,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "boolean answer = true; boolean less = answer < 1; } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, booleanLiteralLessThan::run);
-    assertArrayEquals(new byte[512], booleanLiteralLessThan.hostOutput());
+    assertTrapWithoutOutput(booleanLiteralLessThan, 512);
 
     VirtualMachine booleanLessThan = new VirtualMachine(
         writerProgram,
@@ -521,8 +504,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "boolean less = first < second; } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, booleanLessThan::run);
-    assertArrayEquals(new byte[512], booleanLessThan.hostOutput());
+    assertTrapWithoutOutput(booleanLessThan, 512);
 
     VirtualMachine mixedLocalEquality = new VirtualMachine(
         writerProgram,
@@ -531,24 +513,26 @@ class MinimalCompilerNegativeExampleTest {
                 + "boolean same = first == second; } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, mixedLocalEquality::run);
-    assertArrayEquals(new byte[512], mixedLocalEquality.hostOutput());
+    assertTrapWithoutOutput(mixedLocalEquality, 512);
 
+  }
+
+  @Test
+  void rejectsUnresolvedLocalsWithoutPublishingOutput() throws Exception {
+    Program writerProgram = CompilerSources.minimalCompilerProgram();
     VirtualMachine unresolvedBooleanCopy = new VirtualMachine(
         writerProgram,
         "classical class UnknownBooleanCopy { entry void main() { boolean result = missing; } }"
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, unresolvedBooleanCopy::run);
-    assertArrayEquals(new byte[512], unresolvedBooleanCopy.hostOutput());
+    assertTrapWithoutOutput(unresolvedBooleanCopy, 512);
 
     VirtualMachine unresolvedBooleanNot = new VirtualMachine(
         writerProgram,
         "classical class UnknownBooleanNot { entry void main() { boolean result = !missing; } }"
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, unresolvedBooleanNot::run);
-    assertArrayEquals(new byte[512], unresolvedBooleanNot.hostOutput());
+    assertTrapWithoutOutput(unresolvedBooleanNot, 512);
 
     VirtualMachine signedBooleanHelperEquality = new VirtualMachine(
         writerProgram,
@@ -557,8 +541,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { boolean result = invalid(); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, signedBooleanHelperEquality::run);
-    assertArrayEquals(new byte[512], signedBooleanHelperEquality.hostOutput());
+    assertTrapWithoutOutput(signedBooleanHelperEquality, 512);
 
     VirtualMachine unknownBooleanHelperNot = new VirtualMachine(
         writerProgram,
@@ -567,8 +550,7 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { boolean result = invert(false); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, unknownBooleanHelperNot::run);
-    assertArrayEquals(new byte[512], unknownBooleanHelperNot.hostOutput());
+    assertTrapWithoutOutput(unknownBooleanHelperNot, 512);
 
     VirtualMachine booleanHelperXor = new VirtualMachine(
         writerProgram,
@@ -577,24 +559,30 @@ class MinimalCompilerNegativeExampleTest {
                 + "entry void main() { long result = mask(1); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, booleanHelperXor::run);
-    assertArrayEquals(new byte[512], booleanHelperXor.hostOutput());
+    assertTrapWithoutOutput(booleanHelperXor, 512);
+
+    VirtualMachine booleanHelperAnd = new VirtualMachine(
+        writerProgram,
+        ("classical class BooleanHelperAnd { "
+                + "long mask(long value) { return value & true; } "
+                + "entry void main() { long result = mask(1); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertTrapWithoutOutput(booleanHelperAnd, 512);
 
     VirtualMachine unresolvedSignedCopy = new VirtualMachine(
         writerProgram,
         "classical class UnknownSignedCopy { entry void main() { long result = missing; } }"
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, unresolvedSignedCopy::run);
-    assertArrayEquals(new byte[512], unresolvedSignedCopy.hostOutput());
+    assertTrapWithoutOutput(unresolvedSignedCopy, 512);
 
     VirtualMachine unresolvedSignedAdd = new VirtualMachine(
         writerProgram,
         "classical class UnknownSignedAdd { entry void main() { long result = missing + 1; } }"
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, unresolvedSignedAdd::run);
-    assertArrayEquals(new byte[512], unresolvedSignedAdd.hostOutput());
+    assertTrapWithoutOutput(unresolvedSignedAdd, 512);
 
     VirtualMachine unresolvedSignedPair = new VirtualMachine(
         writerProgram,
@@ -602,16 +590,14 @@ class MinimalCompilerNegativeExampleTest {
                 + "long first = 1; long result = first + missing; } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, unresolvedSignedPair::run);
-    assertArrayEquals(new byte[512], unresolvedSignedPair.hostOutput());
+    assertTrapWithoutOutput(unresolvedSignedPair, 512);
 
     VirtualMachine unresolvedLocal = new VirtualMachine(
         writerProgram,
         "classical class UnknownLocal { entry void main() { assert(missing); } }"
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, unresolvedLocal::run);
-    assertArrayEquals(new byte[512], unresolvedLocal.hostOutput());
+    assertTrapWithoutOutput(unresolvedLocal, 512);
 
     VirtualMachine unresolvedHelperLocal = new VirtualMachine(
         writerProgram,
@@ -619,8 +605,13 @@ class MinimalCompilerNegativeExampleTest {
             + "void setup() { assert(missing); } entry void main() { setup(); } }")
             .getBytes(StandardCharsets.UTF_8),
         512);
-    assertThrows(VmTrap.class, unresolvedHelperLocal::run);
-    assertArrayEquals(new byte[512], unresolvedHelperLocal.hostOutput());
+    assertTrapWithoutOutput(unresolvedHelperLocal, 512);
+  }
+
+  private static void assertTrapWithoutOutput(VirtualMachine machine, int outputCapacity) {
+    assertThrows(
+        VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
+    assertArrayEquals(new byte[outputCapacity], machine.hostOutput());
   }
 
   private static String booleanDeclarations(int count) {

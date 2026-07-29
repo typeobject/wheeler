@@ -331,6 +331,18 @@ classical class Tokens {
   public const long STATEMENT_RETURN_BOOLEAN_EQ_LITERAL_NAMED = 856;
   /// Names a Boolean helper return comparing two locals.
   public const long STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED = 857;
+  /// Names an unresolved signed-local AND declaration.
+  public const long STATEMENT_LOCAL_LONG_AND_NAMED = 858;
+  /// Names an unresolved AND declaration over two signed locals.
+  public const long STATEMENT_LOCAL_LONG_AND_LOCALS_NAMED = 859;
+  /// Names a signed helper return ANDing one local with a literal.
+  public const long STATEMENT_RETURN_LOCAL_AND_NAMED = 860;
+  /// Names a signed helper return ANDing two locals.
+  public const long STATEMENT_RETURN_LOCAL_AND_LOCAL_NAMED = 861;
+  /// Starts resolved signed-local AND declarations with literal right operands.
+  public const long STATEMENT_LOCAL_LONG_AND_BASE = 14848;
+  /// Starts resolved signed-local AND declarations over two prior locals.
+  public const long STATEMENT_LOCAL_LONG_AND_LOCALS_BASE = 15104;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -342,6 +354,8 @@ classical class Tokens {
   public const long PUNCTUATION_BANG = 33;
   /// Names the ASCII `%` punctuation scalar.
   public const long PUNCTUATION_PERCENT = 37;
+  /// Names the ASCII `&` punctuation scalar.
+  public const long PUNCTUATION_AMPERSAND = 38;
   /// Names the ASCII `(` punctuation scalar.
   public const long PUNCTUATION_OPEN_PAREN = 40;
   /// Names the ASCII `)` punctuation scalar.

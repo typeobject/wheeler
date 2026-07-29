@@ -321,6 +321,10 @@ classical class Structure {
         pairOperator = PUNCTUATION_CARET;
       }
 
+      if (statementKind == STATEMENT_RETURN_LOCAL_AND_LOCAL_NAMED) {
+        pairOperator = PUNCTUATION_AMPERSAND;
+      }
+
       if (
         punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, pairOperator) == false
       ) {
@@ -366,6 +370,10 @@ classical class Structure {
 
       if (statementKind == STATEMENT_RETURN_LOCAL_XOR_NAMED) {
         returnOperator = PUNCTUATION_CARET;
+      }
+
+      if (statementKind == STATEMENT_RETURN_LOCAL_AND_NAMED) {
+        returnOperator = PUNCTUATION_AMPERSAND;
       }
 
       if (

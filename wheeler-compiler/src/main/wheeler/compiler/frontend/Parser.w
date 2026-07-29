@@ -111,6 +111,14 @@ classical class Parser {
       supported = true;
     }
 
+    if (opcode == STATEMENT_LOCAL_LONG_AND_NAMED) {
+      supported = true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_LONG_AND_LOCALS_NAMED) {
+      supported = true;
+    }
+
     if (opcode == STATEMENT_LOCAL_LONG_MUL_NAMED) {
       supported = true;
     }
