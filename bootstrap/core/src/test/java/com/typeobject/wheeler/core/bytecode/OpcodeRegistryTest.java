@@ -64,6 +64,9 @@ class OpcodeRegistryTest {
     assertEquals(
         List.of(RESULT_SLOT, SOURCE, OPERATION, IMMEDIATE),
         Opcode.RESULT_FILL_BINARY.form().roles());
+    assertEquals(
+        List.of(RESULT_SLOT, SOURCE, OPERATION, RIGHT_SOURCE),
+        Opcode.RESULT_FILL_BINARY_SOURCES.form().roles());
   }
 
   private static void assertInvalidRole(Instruction instruction, String expectedRole) {

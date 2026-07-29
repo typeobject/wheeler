@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.examples;
 
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.OPERATION;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RIGHT_SOURCE;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.SOURCE;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -94,6 +95,23 @@ class MinimalCompilerResultExampleTest {
             + "entry void main() { long answer = compute(1, 34); "
             + "assert(answer == 42); } }");
     assertEquals(1, computedSecond.function(0).forward().getFirst().operand(SOURCE));
+
+    for (String[] candidate : computedCases) {
+      Program computedSources = assertDifferentialHalt(
+          writerProgram,
+          "classical class ComputedSourceReversibleResult { "
+              + "rev long compute(long left, long right) { return left " + candidate[0]
+              + " right; } theorem computeInverse proves inverse(compute); "
+              + "entry void main() { long answer = compute(" + candidate[2] + ", "
+              + candidate[3] + "); assert(answer == " + candidate[4] + "); } }");
+      var sourceFill = computedSources.function(0).forward().getFirst();
+      assertEquals(Opcode.RESULT_FILL_BINARY_SOURCES, sourceFill.opcode());
+      assertEquals(Long.parseLong(candidate[1]), sourceFill.operand(OPERATION));
+      assertEquals(0, sourceFill.operand(SOURCE));
+      assertEquals(1, sourceFill.operand(RIGHT_SOURCE));
+      assertEquals(
+          computedSources.function(0).forward(), computedSources.function(0).inverse());
+    }
 
     assertDifferentialHalt(
         writerProgram,

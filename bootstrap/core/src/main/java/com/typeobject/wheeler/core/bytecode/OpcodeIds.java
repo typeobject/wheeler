@@ -23,6 +23,7 @@ final class OpcodeIds {
   static final int RETURN_RESULT_SLOT = 0x0208;
   static final int RESULT_FILL_SOURCE = 0x0209;
   static final int RESULT_FILL_BINARY = 0x020a;
+  static final int RESULT_FILL_BINARY_SOURCES = 0x020b;
 
   static final int EXPECT_EQ = 0x0300;
   static final int CHECKPOINT = 0x0301;

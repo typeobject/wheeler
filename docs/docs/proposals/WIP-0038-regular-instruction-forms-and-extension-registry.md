@@ -285,6 +285,7 @@ The first WIP-0041 scalar slice assigns these base identities:
 | `RETURN_RESULT_SLOT` | `0x0208` | result slot |
 | `RESULT_FILL_SOURCE` | `0x0209` | result slot, source local |
 | `RESULT_FILL_BINARY` | `0x020a` | result slot, source local, operation, immediate |
+| `RESULT_FILL_BINARY_SOURCES` | `0x020b` | result slot, left source, operation, right source |
 
 A result slot names two adjacent typed frame registers in this first classical ABI. The
 first is a Boolean presence tag. The second has the declared result type. Function flag
@@ -294,10 +295,10 @@ slot and binds it to the final two callee registers.
 The stage-0 and Wheeler-native compilers, decoder, verifier, VM, disassembler, rewind
 path, generated-inverse kernel, malformed-artifact suite, Wheeler-native verifier, and
 bounded Wheeler interpreter consume these identities together. Native lowering covers
-constant, preserved-source, and checked source-with-constant signed result helpers and
-compares complete artifacts with stage 0. `RESULT_FILL_BINARY` accepts only the existing
-signed `LOCAL_ADD`, `LOCAL_SUB`, `LOCAL_MUL`, `LOCAL_DIV`, `LOCAL_MOD`, `LOCAL_XOR`, or
-`LOCAL_AND` identity as its operation. All three fill instructions are self-inverse under
+constant, preserved-source, source-with-constant, and two-source signed result helpers and
+compares complete artifacts with stage 0. Both binary forms accept only the existing signed
+`LOCAL_ADD`, `LOCAL_SUB`, `LOCAL_MUL`, `LOCAL_DIV`, `LOCAL_MOD`, `LOCAL_XOR`, or
+`LOCAL_AND` identity as their operation. All four fill instructions are self-inverse under
 the function direction and check exact vacancy or occupancy before mutation. Existing `RETURN_VALUE` keeps its ordinary
 direct-result meaning. It has not been issued a reversible hat and told to act natural.
 

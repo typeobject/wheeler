@@ -172,13 +172,12 @@ The recovery compiler substitutes evaluated values into matching scalar locals, 
 
 The Wheeler-written compiler also lowers one `rev long` helper with up to two signed
 parameters that returns a signed literal, evaluated constant, preserved signed parameter,
-or checked operation over either signed parameter and a literal or evaluated constant. Its
-bounded entry interleaves result calls with signed equality checks against constants or
+checked operation over either signed parameter and a literal or evaluated constant, or
+checked operation over two signed parameters. Its bounded entry interleaves result calls with signed equality checks against constants or
 results already produced. Calls may pass a literal, constant, or prior result to the
 parameterized forms. The compiler emits the canonical adjacent result slot, identical
 generated inverse, and optional proof certificate. Boolean results, three parameters,
-local right operands, computed preludes, and extra helper statements fail before
-publication.
+computed preludes, and extra helper statements fail before publication.
 
 A finite enum is canonical shorthand for a payload-free tagged variant:
 

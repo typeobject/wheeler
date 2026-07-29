@@ -51,6 +51,8 @@ classical class Opcodes {
   public const long OPCODE_RESULT_FILL_SOURCE = 0x0209;
   /// Exchanges a result slot with one signed source and constant operation.
   public const long OPCODE_RESULT_FILL_BINARY = 0x020a;
+  /// Exchanges a result slot with one operation over two signed sources.
+  public const long OPCODE_RESULT_FILL_BINARY_SOURCES = 0x020b;
   /// Names the compile-time `OPCODE_EXPECT_EQ` value owned by this module.
   public const long OPCODE_EXPECT_EQ = 0x0300;
 
@@ -206,7 +208,11 @@ classical class Opcodes {
       return true;
     }
 
-    return opcode == OPCODE_RESULT_FILL_BINARY;
+    if (opcode == OPCODE_RESULT_FILL_BINARY) {
+      return true;
+    }
+
+    return opcode == OPCODE_RESULT_FILL_BINARY_SOURCES;
   }
 
   /// Reports whether an opcode names one signed result binary operation.

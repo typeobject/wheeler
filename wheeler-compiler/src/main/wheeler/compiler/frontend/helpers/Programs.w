@@ -399,6 +399,20 @@ classical class HelperPrograms {
         }
       }
 
+      if (returnLocalPairStatement(slotResultOpcode)) {
+        long leftSource = helperSequence.secondaryOperands[0];
+        long rightSource = helperSequence.operands[0];
+        if (-1 < leftSource) {
+          if (leftSource < parameterCount) {
+            if (-1 < rightSource) {
+              if (rightSource < parameterCount) {
+                supportedSlotResult = true;
+              }
+            }
+          }
+        }
+      }
+
       if (supportedSlotResult) {} else {
         return new MinimalProgramResult.Error(0);
       }

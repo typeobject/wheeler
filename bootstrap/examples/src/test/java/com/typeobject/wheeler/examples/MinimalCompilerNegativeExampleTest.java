@@ -176,15 +176,6 @@ class MinimalCompilerNegativeExampleTest {
         512);
     assertTrapWithoutOutput(reversibleComputedResult, 512);
 
-    VirtualMachine reversibleLocalRightResult = new VirtualMachine(
-        writerProgram,
-        ("classical class ReversibleLocalRightResult { "
-                + "rev long combine(long left, long right) { return left + right; } "
-                + "entry void main() { } }")
-            .getBytes(StandardCharsets.UTF_8),
-        512);
-    assertTrapWithoutOutput(reversibleLocalRightResult, 512);
-
     VirtualMachine reversibleResultPrelude = new VirtualMachine(
         writerProgram,
         ("classical class ReversibleResultPrelude { "

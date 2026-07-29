@@ -10,7 +10,7 @@ classical class ResultSlots {
   private const long RESULT_SLOT_OFFSET = 8;
   private const long RELATION_VALUE_OFFSET = 16;
   private const long OPERATION_OFFSET = 24;
-  private const long IMMEDIATE_OFFSET = 32;
+  private const long RIGHT_VALUE_OFFSET = 32;
 
   /// Carries one checked inverse-call expectation.
   public record ResultExpectation(long value, boolean valid) {}
@@ -40,7 +40,9 @@ classical class ResultSlots {
 
     if (opcode == OPCODE_RESULT_FILL_SOURCE) {} else {
       if (opcode == OPCODE_RESULT_FILL_BINARY) {} else {
-        return new ResultExpectation(0, false);
+        if (opcode == OPCODE_RESULT_FILL_BINARY_SOURCES) {} else {
+          return new ResultExpectation(0, false);
+        }
       }
     }
 
@@ -59,7 +61,25 @@ classical class ResultSlots {
       value = resultBinaryValue(
         value,
         operation,
-        readSigned(artifact, relation + IMMEDIATE_OFFSET)
+        readSigned(artifact, relation + RIGHT_VALUE_OFFSET)
+      );
+    }
+
+    if (opcode == OPCODE_RESULT_FILL_BINARY_SOURCES) {
+      long sourceOperation = readUnsigned(artifact, relation + OPERATION_OFFSET, OPERAND_WIDTH);
+      if (isResultBinaryOperation(sourceOperation)) {} else {
+        return new ResultExpectation(0, false);
+      }
+
+      long rightSource = readUnsigned(artifact, relation + RIGHT_VALUE_OFFSET, OPERAND_WIDTH);
+      if (rightSource < argumentCount) {} else {
+        return new ResultExpectation(0, false);
+      }
+
+      value = resultBinaryValue(
+        value,
+        sourceOperation,
+        locals[localBase + argumentBase + rightSource]
       );
     }
 
@@ -94,12 +114,27 @@ classical class ResultSlots {
       return exchangeResultSource(locals, slot, source);
     }
 
+    if (opcode == OPCODE_RESULT_FILL_BINARY_SOURCES) {
+      long rightSource = localBase + readUnsigned(
+        artifact,
+        cursor + RIGHT_VALUE_OFFSET,
+        OPERAND_WIDTH
+      );
+      return exchangeResultBinary(
+        locals,
+        slot,
+        source,
+        readUnsigned(artifact, cursor + OPERATION_OFFSET, OPERAND_WIDTH),
+        locals[rightSource]
+      );
+    }
+
     return exchangeResultBinary(
       locals,
       slot,
       source,
       readUnsigned(artifact, cursor + OPERATION_OFFSET, OPERAND_WIDTH),
-      readSigned(artifact, cursor + IMMEDIATE_OFFSET)
+      readSigned(artifact, cursor + RIGHT_VALUE_OFFSET)
     );
   }
 

@@ -638,7 +638,8 @@ public final class VirtualMachine {
         tasks.addFrame(binding.callee());
         control = StepRecord.ControlChange.CALL;
       }
-      case RESULT_FILL_CONSTANT, RESULT_FILL_SOURCE, RESULT_FILL_BINARY -> {
+      case RESULT_FILL_CONSTANT, RESULT_FILL_SOURCE, RESULT_FILL_BINARY,
+          RESULT_FILL_BINARY_SOURCES -> {
         int slot = localIndex(instruction, RESULT_SLOT);
         long expected;
         if (opcode == Opcode.RESULT_FILL_CONSTANT) {
@@ -648,6 +649,12 @@ public final class VirtualMachine {
           if (opcode == Opcode.RESULT_FILL_BINARY) {
             expected = ResultBinaryOperation.apply(
                 instruction.operand(OPERATION), expected, instruction.operand(IMMEDIATE));
+          }
+          if (opcode == Opcode.RESULT_FILL_BINARY_SOURCES) {
+            expected = ResultBinaryOperation.apply(
+                instruction.operand(OPERATION),
+                expected,
+                localValue(instruction, RIGHT_SOURCE));
           }
         }
         long tag = currentFrame().local(slot);

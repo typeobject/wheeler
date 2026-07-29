@@ -111,7 +111,7 @@ final class ClassicalLocalAssembler implements SourceStorageLowerer.Context {
     throw new CompilerException(
         owner.line(),
         "reversible value functions return a signed constant, preserved parameter, "
-            + "or parameter operation with a constant right operand");
+            + "or operation over preserved parameters and constants");
   }
 
   private boolean directReversibleResult(List<Statement> statements, int resultSlot) {
@@ -144,7 +144,6 @@ final class ClassicalLocalAssembler implements SourceStorageLowerer.Context {
     Statement binary = statements.get(2);
     Statement returned = statements.get(3);
     if (!sourceValue.operation().equals("local_read")
-        || !rightValue.operation().equals("local_const")
         || !binary.operation().equals("local_binary")
         || !returned.operation().equals("return_value")
         || !binary.arguments().get(2).equals(sourceValue.arguments().getFirst())
@@ -154,10 +153,20 @@ final class ClassicalLocalAssembler implements SourceStorageLowerer.Context {
     }
     int source = preservedSignedParameter(sourceValue);
     long operation = resultBinaryOperation(binary.arguments().get(1), binary.line()).code();
-    long immediate = SourceParser.parseInteger(rightValue.arguments().get(1), rightValue.line());
-    output.add(Instruction.of(
-        Opcode.RESULT_FILL_BINARY, resultSlot, source, operation, immediate));
-    return true;
+    if (rightValue.operation().equals("local_const")) {
+      long immediate = SourceParser.parseInteger(
+          rightValue.arguments().get(1), rightValue.line());
+      output.add(Instruction.of(
+          Opcode.RESULT_FILL_BINARY, resultSlot, source, operation, immediate));
+      return true;
+    }
+    if (rightValue.operation().equals("local_read")) {
+      int right = preservedSignedParameter(rightValue);
+      output.add(Instruction.of(
+          Opcode.RESULT_FILL_BINARY_SOURCES, resultSlot, source, operation, right));
+      return true;
+    }
+    return false;
   }
 
   private int preservedSignedParameter(Statement value) {

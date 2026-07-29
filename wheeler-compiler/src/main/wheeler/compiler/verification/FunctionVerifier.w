@@ -362,6 +362,10 @@ classical class FunctionVerifier {
           preservedRelation = true;
         }
 
+        if (slotForwardOpcode == OPCODE_RESULT_FILL_BINARY_SOURCES) {
+          preservedRelation = true;
+        }
+
         if (preservedRelation) {
           long preservedSource = readUnsigned(artifact, slotForwardCursor + 16, 8);
           if (preservedSource < parameterCount) {} else {
@@ -372,6 +376,17 @@ classical class FunctionVerifier {
             readUnsigned(artifact, activeTypes + preservedSource * 4, 4) == resultType
           ) {} else {
             return 0;
+          }
+
+          if (slotForwardOpcode == OPCODE_RESULT_FILL_BINARY_SOURCES) {
+            long rightSource = readUnsigned(artifact, slotForwardCursor + 32, 8);
+            if (rightSource < parameterCount) {} else {
+              return 0;
+            }
+
+            if (readUnsigned(artifact, activeTypes + rightSource * 4, 4) == resultType) {} else {
+              return 0;
+            }
           }
         }
       }

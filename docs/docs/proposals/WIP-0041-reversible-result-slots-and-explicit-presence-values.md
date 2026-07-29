@@ -657,6 +657,7 @@ WIP-0038 assigns exact identities and operand roles. The first signed result sli
 0x0208 RETURN_RESULT_SLOT(result_slot)
 0x0209 RESULT_FILL_SOURCE(result_slot, source)
 0x020a RESULT_FILL_BINARY(result_slot, source, operation, immediate)
+0x020b RESULT_FILL_BINARY_SOURCES(result_slot, source, operation, right_source)
 ```
 
 One result slot names adjacent Boolean-tag and typed-payload frame registers. Function flag
@@ -665,22 +666,24 @@ registers hold the implicit slot. `RESULT_FILL_CONSTANT` checks `Vacant` in forw
 and exact `Holding(k)` in inverse code before changing either register.
 `RESULT_FILL_SOURCE` applies the same exchange against one preserved signed parameter.
 `RESULT_FILL_BINARY` computes the payload from that parameter and one constant right
-operand before touching the slot. Its operation is one of the existing checked signed
+operand before touching the slot. `RESULT_FILL_BINARY_SOURCES` applies the same rule to two
+preserved signed parameters. Their operation is one of the existing checked signed
 `LOCAL_ADD`, `LOCAL_SUB`, `LOCAL_MUL`, `LOCAL_DIV`, `LOCAL_MOD`, `LOCAL_XOR`, or
 `LOCAL_AND` identities.
 
 The Wheeler-native compiler now emits this complete first vertical slice. It accepts one
 `rev long` helper with up to two signed parameters returning a signed literal, evaluated
-constant, preserved signed parameter, or checked operation over either signed parameter and
-a literal or evaluated constant. It accepts an optional generated-inverse theorem and entry
+constant, preserved signed parameter, checked operation over either parameter and a literal
+or evaluated constant, or checked operation over two preserved parameters. It accepts an
+optional generated-inverse theorem and entry
 result calls interleaved with signed checks against constants or results already produced.
 Differential tests compare the complete artifacts with stage 0 before running them. Boolean
-results, parameter right operands, computed local preludes, and extra body statements still
-fail without publication. That boundary is dull on purpose. A reversible
+results, computed local preludes, and extra body statements still fail without publication. That boundary is dull on purpose. A reversible
 ABI is a poor place to improvise jazz.
 
 `RESULT_FILL_SOURCE` owns the preserved-copy relation as `0x0209`.
-`RESULT_FILL_BINARY` owns the first checked computed relation as `0x020a`. Move and loan
+`RESULT_FILL_BINARY` owns the first checked computed relation as `0x020a`.
+`RESULT_FILL_BINARY_SOURCES` owns the two-source relation as `0x020b`. Move and loan
 families receive identities when they execute. The registry does not reserve vague numbers
 and call that architecture. Existing
 `RETURN_VALUE` artifacts keep their current meaning. The implementation does not smuggle
@@ -735,7 +738,7 @@ diagnostic or trap, and publishes no partial result.
 4. Add ordinary returns of `Done` and `Slot<T>`.
 5. Add implicit result-slot metadata for one closed scalar reversible function.
 6. Execute constant fill and prove `return -1;` without retained history.
-7. Add preserved-copy and checked source-with-constant result forms.
+7. Add preserved-copy, source-with-constant, and two-source checked result forms.
 8. Add affine-move and origin-bearing returned-loan descriptors without `Slot<borrow T>`.
 9. Add aggregate, array, variant, and closed generic results.
 10. Integrate WIP-0035 multiple and early return witnesses.
@@ -749,10 +752,12 @@ diagnostic or trap, and publishes no partial result.
 
 Stage 0 now accepts typed parameters on a `rev long` function whose tail return is a
 signed literal, evaluated class constant, preserved signed parameter, or checked operation
-over either signed parameter and a constant right operand. It emits the six regular
-result-slot forms, canonical `0xd` function metadata, and a generated inverse. The Wheeler-native
+over either signed parameter and a constant right operand, or a checked operation over two
+preserved signed parameters. It emits the seven regular result-slot forms, canonical `0xd`
+function metadata, and a generated inverse. The Wheeler-native
 compiler matches these forms byte for byte for helpers with up to two parameters. The VM
-executes `return -1;`, a preserved copy, and all seven checked binary operations. It commits
+executes `return -1;`, a preserved copy, and all seven checked binary operations in both
+constant-right and two-source relations. It commits
 all rewind history, then uncalls each relation back to vacancy. A wrong held value traps
 before slot mutation. Arithmetic traps also leave caller and callee slots vacant. The
 Wheeler-native verifier independently accepts the artifacts and their generated-inverse
@@ -765,7 +770,7 @@ the Java VM on every global.
 - [x] Ordinary functions return `Done` and closed classical slots.
 - [x] Reversible scalar result-slot ABI executes.
 - [x] `return -1;` runs forward and inverse without VM history.
-- [x] Preserved-copy and checked source-with-constant signed return forms execute.
+- [x] Preserved-copy, source-with-constant, and two-source signed return forms execute.
 - [ ] Affine-owner return forms execute.
 - [ ] Borrowed results retain exact origins.
 - [ ] Multiple return paths integrate with WIP-0035.
@@ -790,7 +795,7 @@ the Java VM on every global.
 - [x] Reversible constant return fills a vacant result and exact inverse restores vacancy.
 - [x] The inverse succeeds after VM history commit.
 - [x] Wrong held constants, sources, and computed values trap before mutation.
-- [x] Preserved-source and checked source-with-constant fills round-trip exactly.
+- [x] Preserved-source, source-with-constant, and two-source fills round-trip exactly.
 - [ ] Affine moves round-trip exactly.
 - [ ] Returned loans retain origin and `Slot<borrow T>` is rejected.
 - [x] Nested classical slots distinguish outer vacancy from `Holding(Vacant)`.
@@ -874,8 +879,6 @@ bad call states would hide caller mistakes and add little besides meetings.
 - Should all diagnostics say `result slot` despite VM frame-register terminology. **Owner:** language and tooling maintainers. **Decide by:** before Review.
 - May packages define domain-specific option-like variants without prelude aliases. **Owner:** library maintainers. **Decide by:** before library stabilization.
 - Which explicit source slot operations ship beyond compiler-lowered return. **Owner:** language and library maintainers. **Decide by:** before parser implementation.
-- Does the first reversible result profile allow only tail return. **Owner:** reversible-control maintainers. **Decide by:** before implementation.
-- Which instruction forms minimize registry surface without weakening diagnostics. **Owner:** bytecode and VM maintainers. **Decide by:** before WIP-0038 allocation.
 - Must coherent slots always reuse the payload clean basis. **Owner:** quantum type and proof maintainers. **Decide by:** before descriptor freeze.
 - Is padding identity permanent or merely the first extension profile. **Owner:** quantum semantics maintainers. **Decide by:** before this WIP leaves Draft.
 - How should callable documentation render the implicit stateful result relation. **Owner:** WIP-0031 and documentation maintainers. **Decide by:** before callable docs.

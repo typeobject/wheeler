@@ -125,6 +125,24 @@ class NativeVerifierExampleTest {
         verifier, malformedComputedResult);
     assertThrows(VmTrap.class, rejectedComputedResult::run);
 
+    byte[] computedSourcesArtifact = compiler.compileToBytecode(
+        "classical class ComputedSourcesSubject { "
+            + "rev long add(long left, long right) { return left + right; } "
+            + "entry void main() { long value = add(34, 8); assert(value == 42); } }");
+    VirtualMachine computedSourcesVerification = VirtualMachine.withBinaryInput(
+        verifier, computedSourcesArtifact);
+    computedSourcesVerification.run();
+    assertEquals(1, computedSourcesVerification.global("verification"));
+
+    byte[] malformedComputedSources = computedSourcesArtifact.clone();
+    int computedSourcesTransition = instructionOffset(malformedComputedSources, 0x020b);
+    ByteBuffer.wrap(malformedComputedSources)
+        .order(ByteOrder.LITTLE_ENDIAN)
+        .putLong(computedSourcesTransition + 32, 2);
+    VirtualMachine rejectedComputedSources = VirtualMachine.withBinaryInput(
+        verifier, malformedComputedSources);
+    assertThrows(VmTrap.class, rejectedComputedSources::run);
+
     byte[] invalidDone = doneArtifact.clone();
     int doneConstant = instructionOffset(invalidDone, 0x0400);
     invalidDone[doneConstant + 16] = 1;

@@ -486,6 +486,8 @@ public final class BytecodeVerifier {
           ResultSlotVerifier.verifyFillSource(owner, instruction, pc);
       case RESULT_FILL_BINARY ->
           ResultSlotVerifier.verifyFillBinary(owner, instruction, pc);
+      case RESULT_FILL_BINARY_SOURCES ->
+          ResultSlotVerifier.verifyFillBinarySources(owner, instruction, pc);
       case RETURN_RESULT_SLOT ->
           ResultSlotVerifier.verifyReturn(program, owner, instruction, pc);
       case COMMIT -> {
@@ -792,6 +794,7 @@ public final class BytecodeVerifier {
       case RETURN_VALUE -> List.of(RESULT);
       case RESULT_FILL_CONSTANT, RETURN_RESULT_SLOT -> List.of(RESULT_SLOT);
       case RESULT_FILL_SOURCE, RESULT_FILL_BINARY -> List.of(RESULT_SLOT, SOURCE);
+      case RESULT_FILL_BINARY_SOURCES -> List.of(RESULT_SLOT, SOURCE, RIGHT_SOURCE);
       case RECORD_GET, VARIANT_TAG_EQ, VARIANT_GET -> List.of(OWNER);
       case ARRAY_GET, SLICE_GET, WORDS_GET, BYTES_GET, UTF8_SCALAR, UTF8_WIDTH ->
           List.of(OWNER, INDEX);

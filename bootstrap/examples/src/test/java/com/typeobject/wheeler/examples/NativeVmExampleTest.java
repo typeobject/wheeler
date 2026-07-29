@@ -148,6 +148,11 @@ class NativeVmExampleTest {
         preservedResultRoundTrip(),
         "observed",
         1);
+    assertInterpretedGlobal(
+        interpreter,
+        computedSourcesRoundTrip(),
+        "observed",
+        1);
     assertThrows(
         VmTrap.class,
         () -> VirtualMachine.withBinaryInput(interpreter, wrongHeldResult()).run());
@@ -447,6 +452,41 @@ class NativeVmExampleTest {
     return parameterResultRoundTrip("PreservedResultRoundTrip", preservedResult(), 42);
   }
 
+  private static byte[] computedSourcesRoundTrip() {
+    FunctionBody entry = new FunctionBody(
+        1,
+        "main",
+        false,
+        0,
+        List.of(
+            ValueType.SIGNED,
+            ValueType.SIGNED,
+            ValueType.BOOLEAN,
+            ValueType.SIGNED,
+            ValueType.SIGNED,
+            ValueType.BOOLEAN),
+        null,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 34),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 8),
+            Instruction.of(Opcode.LOCAL_CONST, 2, 0),
+            Instruction.of(Opcode.LOCAL_CONST, 3, 0),
+            Instruction.of(Opcode.CALL_RESULT_SLOT, 0, 0, 2, 2),
+            Instruction.of(Opcode.UNCALL_RESULT_SLOT, 0, 0, 2, 2),
+            Instruction.of(Opcode.LOCAL_CONST, 4, 0),
+            Instruction.of(Opcode.LOCAL_EQ, 5, 3, 4),
+            Instruction.of(Opcode.EXPECT_TRUE, 5),
+            Instruction.of(Opcode.ADD_CONST, 0, 1),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    Program program = new Program(
+        "ComputedSourcesRoundTrip",
+        1,
+        List.of(new Global("observed", 0)),
+        List.of(computedSourcesResult(), entry));
+    return new BytecodeWriter().write(program);
+  }
+
   private static byte[] parameterResultRoundTrip(
       String name, FunctionBody relation, long argument) {
     FunctionBody entry = new FunctionBody(
@@ -531,6 +571,21 @@ class NativeVmExampleTest {
         true,
         List.of(fill, Instruction.of(Opcode.RETURN_RESULT_SLOT, 1)),
         List.of(fill, Instruction.of(Opcode.RETURN_RESULT_SLOT, 1)));
+  }
+
+  private static FunctionBody computedSourcesResult() {
+    Instruction fill = Instruction.of(
+        Opcode.RESULT_FILL_BINARY_SOURCES, 2, 0, Opcode.LOCAL_ADD.code(), 1);
+    return new FunctionBody(
+        0,
+        "add",
+        false,
+        2,
+        List.of(ValueType.SIGNED, ValueType.SIGNED, ValueType.BOOLEAN, ValueType.SIGNED),
+        ValueType.SIGNED,
+        true,
+        List.of(fill, Instruction.of(Opcode.RETURN_RESULT_SLOT, 2)),
+        List.of(fill, Instruction.of(Opcode.RETURN_RESULT_SLOT, 2)));
   }
 
   private static FunctionBody preservedResult() {

@@ -38,6 +38,11 @@ public enum InstructionForm {
       OperandRole.SOURCE,
       OperandRole.OPERATION,
       OperandRole.IMMEDIATE),
+  RESULT_BINARY_SOURCES(
+      OperandRole.RESULT_SLOT,
+      OperandRole.SOURCE,
+      OperandRole.OPERATION,
+      OperandRole.RIGHT_SOURCE),
   RESULT_SLOT(OperandRole.RESULT_SLOT),
   RECORD_NEW(
       OperandRole.DESTINATION,

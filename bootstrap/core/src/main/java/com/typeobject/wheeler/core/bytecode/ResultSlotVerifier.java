@@ -5,6 +5,7 @@ import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.A
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.FUNCTION;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.OPERATION;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT_SLOT;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RIGHT_SOURCE;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.SOURCE;
 import static com.typeobject.wheeler.core.bytecode.InstructionOperandVerifier.failOperand;
 import static com.typeobject.wheeler.core.bytecode.InstructionOperandVerifier.requireType;
@@ -85,6 +86,23 @@ final class ResultSlotVerifier {
 
   static void verifyFillBinary(FunctionBody owner, Instruction instruction, int pc) {
     verifyFillSource(owner, instruction, pc);
+    verifyBinaryOperation(owner, instruction, pc);
+  }
+
+  static void verifyFillBinarySources(FunctionBody owner, Instruction instruction, int pc) {
+    verifyFillSource(owner, instruction, pc);
+    int right = verifyLocal(owner, instruction, RIGHT_SOURCE, pc);
+    if (right >= owner.parameterCount()) {
+      failOperand(
+          owner, instruction, RIGHT_SOURCE, pc,
+          "right result source is not a preserved parameter");
+    }
+    requireType(owner, instruction, right, RIGHT_SOURCE, owner.resultType(), pc);
+    verifyBinaryOperation(owner, instruction, pc);
+  }
+
+  private static void verifyBinaryOperation(
+      FunctionBody owner, Instruction instruction, int pc) {
     if (!ResultBinaryOperation.supported(instruction.operand(OPERATION))) {
       failOperand(owner, instruction, OPERATION, pc, "unsupported result binary operation");
     }
@@ -105,7 +123,8 @@ final class ResultSlotVerifier {
     if (body.size() != 2
         || (transition != Opcode.RESULT_FILL_CONSTANT
             && transition != Opcode.RESULT_FILL_SOURCE
-            && transition != Opcode.RESULT_FILL_BINARY)
+            && transition != Opcode.RESULT_FILL_BINARY
+            && transition != Opcode.RESULT_FILL_BINARY_SOURCES)
         || body.getLast().opcode() != Opcode.RETURN_RESULT_SLOT
         || body.getFirst().operand(RESULT_SLOT) != function.resultSlotBase()
         || body.getLast().operand(RESULT_SLOT) != function.resultSlotBase()) {

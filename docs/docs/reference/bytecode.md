@@ -81,8 +81,12 @@ uses function, argument base, argument count, and result. Reversible scalar resu
 and result slot. `RESULT_FILL_CONSTANT` carries result slot and immediate.
 `RESULT_FILL_SOURCE` carries result slot and preserved source local.
 `RESULT_FILL_BINARY` adds a signed operation identity and constant immediate.
+`RESULT_FILL_BINARY_SOURCES` replaces that immediate with a second preserved source.
 `RETURN_RESULT_SLOT` carries the same slot. Stable Java opcode identities live in
-`OpcodeIds`, while `InstructionForm` owns roles. The verifier reports the opcode and canonical role for bad local types, references, windows, descriptors, tags, indices, limits, and storage operands. One registry label serves verifier diagnostics and disassembly, so the Turkish locale cannot rename `limit` while nobody is looking. The stage-0 readability gate parses the Wheeler-native opcode and instruction-form registries. It rejects any consumed identity or operand count that differs from `OpcodeIds` and `InstructionForm`. `compiler/ir/InstructionForms.w` is the sole native operand-count owner. Wheeler-native emitters use named nullary through quinary form constants and one named operand width. Numeric arities no longer decorate emission sites like lost screws on a workbench.
+`OpcodeIds`, while `InstructionForm` owns roles. The verifier reports the opcode and canonical role for bad local types, references, windows, descriptors, tags, indices, limits, and storage operands. One registry label serves verifier diagnostics and disassembly, so the Turkish locale cannot rename `limit` while nobody is looking. The stage-0 readability gate parses the Wheeler-native opcode and instruction-form registries. It rejects any consumed identity or operand count that differs from `OpcodeIds` and `InstructionForm`. `compiler/ir/InstructionForms.w` is the sole native operand-count owner.
+`compiler/verification/ResultSlotVerifier.w` owns native slot-transition operand checks.
+The general instruction verifier already has enough dishes in the sink. Wheeler-native
+emitters use named nullary through quinary form constants and one named operand width. Numeric arities no longer decorate emission sites like lost screws on a workbench.
 
 Unknown executable opcodes always fail. A valid byte length locates the next record, but it cannot make skipped behavior safe. Wheeler has no runtime vendor-opcode registration.
 
@@ -158,8 +162,9 @@ zero, then writes tag one and the exact immediate. Inverse execution requires ta
 that exact immediate, then restores both registers to zero. `RESULT_FILL_SOURCE` performs
 the same exchange against an unchanged signed parameter. `RESULT_FILL_BINARY` computes
 one checked signed operation over that parameter and a constant right operand before the
-exchange. Its operation must name `LOCAL_ADD`, `LOCAL_SUB`, `LOCAL_MUL`, `LOCAL_DIV`,
-`LOCAL_MOD`, `LOCAL_XOR`, or `LOCAL_AND`. The verifier requires the source to stay outside
+exchange. `RESULT_FILL_BINARY_SOURCES` computes over two unchanged signed parameters.
+Each operation must name `LOCAL_ADD`, `LOCAL_SUB`, `LOCAL_MUL`, `LOCAL_DIV`,
+`LOCAL_MOD`, `LOCAL_XOR`, or `LOCAL_AND`. The verifier requires every source to stay outside
 the slot and requires forward and inverse bodies to name the same complete relation.
 All checks finish before mutation. Ordinary `RETURN_VALUE` descriptors retain their previous bytes and behavior.
 
@@ -293,10 +298,10 @@ The bounded compiler implementation now lives in importable `compiler/Driver.w`.
 
 The native compiler now lowers the first reversible signed-result source profile. One
 `rev long` helper with up to two signed parameters may return a signed literal, evaluated
-constant, preserved signed parameter, or checked operation over either signed parameter and
-a constant right operand. Its entry interleaves result calls with signed checks against
+constant, preserved signed parameter, checked operation over either signed parameter and a
+constant right operand, or checked operation over two signed parameters. Its entry interleaves result calls with signed checks against
 constants or results already produced. The emitter writes function flags `0xd`, adjacent
-Boolean and signed slot locals, one of the three exact fill relations followed by
+Boolean and signed slot locals, one of the four exact fill relations followed by
 `RETURN_RESULT_SLOT`, `CALL_RESULT_SLOT`, and the optional generated-inverse proof. Complete artifact bytes match stage 0. Unsupported
 result forms do not get an almost-correct ABI, which is compiler jargon for a future
 incident report.

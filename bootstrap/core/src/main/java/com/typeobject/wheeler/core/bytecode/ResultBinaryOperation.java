@@ -1,6 +1,6 @@
 package com.typeobject.wheeler.core.bytecode;
 
-/** Closed signed operation set carried by {@link Opcode#RESULT_FILL_BINARY}. */
+/** Closed signed operation set carried by computed result-slot relations. */
 public final class ResultBinaryOperation {
   private ResultBinaryOperation() {}
 

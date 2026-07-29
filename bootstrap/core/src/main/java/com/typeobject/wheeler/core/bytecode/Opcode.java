@@ -29,6 +29,10 @@ public enum Opcode {
       OpcodeIds.RESULT_FILL_SOURCE, InstructionForm.RESULT_SOURCE, Reversibility.INTRINSIC),
   RESULT_FILL_BINARY(
       OpcodeIds.RESULT_FILL_BINARY, InstructionForm.RESULT_BINARY, Reversibility.INTRINSIC),
+  RESULT_FILL_BINARY_SOURCES(
+      OpcodeIds.RESULT_FILL_BINARY_SOURCES,
+      InstructionForm.RESULT_BINARY_SOURCES,
+      Reversibility.INTRINSIC),
   RETURN_RESULT_SLOT(
       OpcodeIds.RETURN_RESULT_SLOT, InstructionForm.RESULT_SLOT, Reversibility.CHECKED),
 
@@ -140,6 +144,7 @@ public enum Opcode {
       case RESULT_FILL_CONSTANT -> RESULT_FILL_CONSTANT;
       case RESULT_FILL_SOURCE -> RESULT_FILL_SOURCE;
       case RESULT_FILL_BINARY -> RESULT_FILL_BINARY;
+      case RESULT_FILL_BINARY_SOURCES -> RESULT_FILL_BINARY_SOURCES;
       default -> throw new IllegalStateException(name() + " has no generated language-level inverse");
     };
   }
@@ -148,7 +153,8 @@ public enum Opcode {
     return switch (this) {
       case ADD_CONST, SUB_CONST, XOR_CONST, SWAP, NOP, EXPECT_EQ, EXPECT_TRUE,
           CHECKPOINT, CALL, UNCALL, CALL_RESULT_SLOT, UNCALL_RESULT_SLOT,
-          RESULT_FILL_CONSTANT, RESULT_FILL_SOURCE, RESULT_FILL_BINARY -> true;
+          RESULT_FILL_CONSTANT, RESULT_FILL_SOURCE, RESULT_FILL_BINARY,
+          RESULT_FILL_BINARY_SOURCES -> true;
       default -> false;
     };
   }

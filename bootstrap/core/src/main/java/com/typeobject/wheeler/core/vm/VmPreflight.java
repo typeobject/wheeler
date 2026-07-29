@@ -336,7 +336,8 @@ final class VmPreflight {
               relation = "constant";
               expected = inverseTransition.operand(IMMEDIATE);
             } else if (inverseTransition.opcode() == Opcode.RESULT_FILL_SOURCE
-                || inverseTransition.opcode() == Opcode.RESULT_FILL_BINARY) {
+                || inverseTransition.opcode() == Opcode.RESULT_FILL_BINARY
+                || inverseTransition.opcode() == Opcode.RESULT_FILL_BINARY_SOURCES) {
               int source = Math.toIntExact(inverseTransition.operand(SOURCE));
               if (source < 0 || source >= count) {
                 trap("Inverse result source is outside the argument window");
@@ -347,10 +348,11 @@ final class VmPreflight {
                 expected = sourceValue;
               } else {
                 relation = "computed result";
+                long right = inverseTransition.opcode() == Opcode.RESULT_FILL_BINARY
+                    ? inverseTransition.operand(IMMEDIATE)
+                    : resultArgument(base, count, inverseTransition, RIGHT_SOURCE);
                 expected = ResultBinaryOperation.apply(
-                    inverseTransition.operand(OPERATION),
-                    sourceValue,
-                    inverseTransition.operand(IMMEDIATE));
+                    inverseTransition.operand(OPERATION), sourceValue, right);
               }
             } else {
               trap("Inverse result slot has no exact fill relation");
@@ -368,7 +370,8 @@ final class VmPreflight {
             trap("Function has no inverse: " + function.name());
           }
         }
-        case RESULT_FILL_CONSTANT, RESULT_FILL_SOURCE, RESULT_FILL_BINARY -> {
+        case RESULT_FILL_CONSTANT, RESULT_FILL_SOURCE, RESULT_FILL_BINARY,
+            RESULT_FILL_BINARY_SOURCES -> {
           int slot = localIndex(instruction, RESULT_SLOT);
           if (slot >= frame.localCount() - 1) {
             trap("Result slot is outside the frame");
@@ -381,6 +384,12 @@ final class VmPreflight {
             if (instruction.opcode() == Opcode.RESULT_FILL_BINARY) {
               expected = ResultBinaryOperation.apply(
                   instruction.operand(OPERATION), expected, instruction.operand(IMMEDIATE));
+            }
+            if (instruction.opcode() == Opcode.RESULT_FILL_BINARY_SOURCES) {
+              expected = ResultBinaryOperation.apply(
+                  instruction.operand(OPERATION),
+                  expected,
+                  localValue(instruction, RIGHT_SOURCE));
             }
           }
           long tag = frame.local(slot);
@@ -452,6 +461,18 @@ final class VmPreflight {
   private long localValue(
       Instruction instruction, InstructionForm.OperandRole role) {
     return frame.local(localIndex(instruction, role));
+  }
+
+  private long resultArgument(
+      int base,
+      int count,
+      Instruction instruction,
+      InstructionForm.OperandRole role) {
+    int source = Math.toIntExact(instruction.operand(role));
+    if (source < 0 || source >= count) {
+      trap("Inverse result source is outside the argument window");
+    }
+    return frame.local(base + source);
   }
 
   private void requireCallCapacity() {

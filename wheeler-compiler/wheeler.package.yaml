@@ -20,6 +20,7 @@ targets:
       - "src/main/wheeler/compiler/verification/FunctionVerifier.w"
       - "src/main/wheeler/compiler/verification/InstructionVerifier.w"
       - "src/main/wheeler/compiler/verification/ProofVerifier.w"
+      - "src/main/wheeler/compiler/verification/ResultSlotVerifier.w"
       - "src/main/wheeler/compiler/verification/StorageVerifier.w"
       - "src/main/wheeler/compiler/verification/Verifier.w"
       - "src/main/wheeler/lexer"
