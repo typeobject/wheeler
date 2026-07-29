@@ -423,6 +423,18 @@ classical class CompilerGraphFour {
       return chain;
     }
 
+    BranchedFourCompilation paired = compileFourTwoChains(
+      firstImportedSource,
+      secondImportedSource,
+      thirdImportedSource,
+      fourthImportedSource,
+      rootSource,
+      output
+    );
+    if (0 < paired.length) {
+      return new FourGraphCompilation(paired.length, paired.codeStart);
+    }
+
     BranchedFourCompilation branched = compileFourChainAndTwoDirect(
       firstImportedSource,
       secondImportedSource,
