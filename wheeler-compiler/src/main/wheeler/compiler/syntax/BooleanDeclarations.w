@@ -1,0 +1,264 @@
+//! Validates bounded Boolean and signed-comparison local declarations.
+
+module wheeler.compiler.boolean_declarations;
+
+import wheeler.compiler.tokens;
+
+classical class BooleanDeclarations {
+  /// Reports whether one parser opcode declares a Boolean local without negation.
+  public boolean booleanDeclarationStatement(long statementKind) {
+    boolean declaration = statementKind == STATEMENT_LOCAL_BOOLEAN;
+    if (statementKind == STATEMENT_LOCAL_BOOLEAN_NAMED) {
+      declaration = true;
+    }
+
+    if (statementKind == STATEMENT_LOCAL_BOOLEAN_EQ_NAMED) {
+      declaration = true;
+    }
+
+    if (statementKind == STATEMENT_LOCAL_LONG_LT_NAMED) {
+      declaration = true;
+    }
+
+    if (statementKind == STATEMENT_LOCAL_LONG_EQ_LITERAL_NAMED) {
+      declaration = true;
+    }
+
+    if (statementKind == STATEMENT_LOCAL_LONG_LT_LITERAL_NAMED) {
+      declaration = true;
+    }
+
+    return declaration;
+  }
+
+  /// Returns the token width of one nonnegated Boolean local declaration.
+  public long booleanDeclarationWidth(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart,
+    long statementKind
+  ) {
+    if (tokenKinds[statementStart + 1] == 1) {
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, PUNCTUATION_ASSIGN)
+      ) {
+        if (statementKind == STATEMENT_LOCAL_LONG_LT_LITERAL_NAMED) {
+          if (tokenKinds[statementStart + 3] == 1) {
+            if (
+              punctuationAt(
+                source,
+                tokenKinds,
+                tokenStarts,
+                statementStart + 4,
+                PUNCTUATION_LESS_THAN
+              )
+            ) {
+              long lessThanWidth = signedNumberWidth(
+                source,
+                tokenKinds,
+                tokenStarts,
+                statementStart + 5
+              );
+              if (0 < lessThanWidth) {
+                if (
+                  signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 5)
+                ) {
+                  if (
+                    punctuationAt(
+                      source,
+                      tokenKinds,
+                      tokenStarts,
+                      statementStart + 5 + lessThanWidth,
+                      PUNCTUATION_SEMICOLON
+                    )
+                  ) {
+                    return 6 + lessThanWidth;
+                  }
+                }
+              }
+            }
+          }
+
+          return -1;
+        }
+
+        if (statementKind == STATEMENT_LOCAL_LONG_LT_NAMED) {
+          if (tokenKinds[statementStart + 3] == 1) {
+            if (
+              punctuationAt(
+                source,
+                tokenKinds,
+                tokenStarts,
+                statementStart + 4,
+                PUNCTUATION_LESS_THAN
+              )
+            ) {
+              if (tokenKinds[statementStart + 5] == 1) {
+                if (
+                  punctuationAt(
+                    source,
+                    tokenKinds,
+                    tokenStarts,
+                    statementStart + 6,
+                    PUNCTUATION_SEMICOLON
+                  )
+                ) {
+                  return 7;
+                }
+              }
+            }
+          }
+
+          return -1;
+        }
+
+        if (statementKind == STATEMENT_LOCAL_LONG_EQ_LITERAL_NAMED) {
+          if (tokenKinds[statementStart + 3] == 1) {
+            if (
+              punctuationAt(
+                source,
+                tokenKinds,
+                tokenStarts,
+                statementStart + 4,
+                PUNCTUATION_ASSIGN
+              )
+            ) {
+              if (
+                punctuationAt(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  statementStart + 5,
+                  PUNCTUATION_ASSIGN
+                )
+              ) {
+                long equalityWidth = signedNumberWidth(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  statementStart + 6
+                );
+                if (0 < equalityWidth) {
+                  if (
+                    signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 6)
+                  ) {
+                    if (
+                      punctuationAt(
+                        source,
+                        tokenKinds,
+                        tokenStarts,
+                        statementStart + 6 + equalityWidth,
+                        PUNCTUATION_SEMICOLON
+                      )
+                    ) {
+                      return 7 + equalityWidth;
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          return -1;
+        }
+
+        if (statementKind == STATEMENT_LOCAL_BOOLEAN_EQ_NAMED) {
+          if (tokenKinds[statementStart + 3] == 1) {
+            if (
+              punctuationAt(
+                source,
+                tokenKinds,
+                tokenStarts,
+                statementStart + 4,
+                PUNCTUATION_ASSIGN
+              )
+            ) {
+              if (
+                punctuationAt(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  statementStart + 5,
+                  PUNCTUATION_ASSIGN
+                )
+              ) {
+                if (tokenKinds[statementStart + 6] == 1) {
+                  if (
+                    punctuationAt(
+                      source,
+                      tokenKinds,
+                      tokenStarts,
+                      statementStart + 7,
+                      PUNCTUATION_SEMICOLON
+                    )
+                  ) {
+                    return 8;
+                  }
+                }
+              }
+            }
+          }
+
+          return -1;
+        }
+
+        if (statementKind == STATEMENT_LOCAL_BOOLEAN_NAMED) {
+          if (tokenKinds[statementStart + 3] == 1) {
+            if (
+              punctuationAt(
+                source,
+                tokenKinds,
+                tokenStarts,
+                statementStart + 4,
+                PUNCTUATION_SEMICOLON
+              )
+            ) {
+              return 5;
+            }
+          }
+
+          return -1;
+        }
+
+        // `true` and `false` use the same stable token hash as every keyword.
+        long booleanLiteralHash = tokenHash(
+          source,
+          tokenStarts,
+          tokenLengths,
+          statementStart + 3
+        );
+        if (booleanLiteralHash == TOKEN_TRUE) {
+          if (
+            punctuationAt(
+              source,
+              tokenKinds,
+              tokenStarts,
+              statementStart + 4,
+              PUNCTUATION_SEMICOLON
+            )
+          ) {
+            return 5;
+          }
+        }
+
+        if (booleanLiteralHash == TOKEN_FALSE) {
+          if (
+            punctuationAt(
+              source,
+              tokenKinds,
+              tokenStarts,
+              statementStart + 4,
+              PUNCTUATION_SEMICOLON
+            )
+          ) {
+            return 5;
+          }
+        }
+      }
+    }
+
+    return -1;
+  }
+}
