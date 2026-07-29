@@ -42,6 +42,10 @@ classical class Tokens {
   public const long TOKEN_ASSERT = 2886759238;
   /// Names the stable token hash for `if`.
   public const long TOKEN_IF = 3357;
+  /// Names the stable token hash for `while`.
+  public const long TOKEN_WHILE = 113101617;
+  /// Names the stable token hash for `limit`.
+  public const long TOKEN_LIMIT = 102976443;
   /// Names the stable token hash for `long`.
   public const long TOKEN_LONG = 3327612;
   /// Names the stable token hash for `boolean`.
@@ -401,6 +405,20 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_ASSIGN_BOOLEAN_LITERAL_BASE = 18176;
   /// Starts resolved Boolean-local assignments from prior locals.
   public const long STATEMENT_LOCAL_ASSIGN_BOOLEAN_LOCAL_BASE = 18432;
+  /// Names one bounded signed-local while loop before typed resolution.
+  public const long STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED = 878;
+  /// Starts resolved bounded signed-local while loops.
+  public const long STATEMENT_LOCAL_WHILE_BASE = 18688;
+  /// Marks a while condition whose right operand names a prior local.
+  public const long STATEMENT_LOCAL_WHILE_CONDITION_NAMED = 1;
+  /// Marks a while limit that names a prior local.
+  public const long STATEMENT_LOCAL_WHILE_LIMIT_NAMED = 2;
+  /// Selects checked subtraction for a resolved while update.
+  public const long STATEMENT_LOCAL_WHILE_SUB_FORM = 4;
+  /// Selects bitwise XOR for a resolved while update.
+  public const long STATEMENT_LOCAL_WHILE_XOR_FORM = 8;
+  /// Bounds the closed while form column encoded beside one target local.
+  public const long STATEMENT_LOCAL_WHILE_FORM_COUNT = 12;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.
@@ -408,6 +426,8 @@ classical class Tokens {
   /// Names the parser IR code for global XOR.
   public const long STATEMENT_UPDATE_XOR = 1042;
 
+  /// Names the ASCII scalar for the canonical digit `1`.
+  public const long SCALAR_DIGIT_ONE = 49;
   /// Names the ASCII `!` punctuation scalar.
   public const long PUNCTUATION_BANG = 33;
   /// Names the ASCII `%` punctuation scalar.

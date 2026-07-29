@@ -156,6 +156,27 @@ class MinimalCompilerResultExampleTest {
 
     assertDifferentialHalt(
         writerProgram,
+        "classical class BoundedLocalWhileLiterals { entry void main() { "
+            + "long index = 0; while (index < 3) limit 3 { index += 1; } "
+            + "assert(index == 3); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class BoundedLocalWhileNamed { entry void main() { "
+            + "long index = 0; long count = 3; long bound = 3; "
+            + "while (index < count) limit bound { index += 1; } "
+            + "assert(index == 3); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class BoundedLocalWhileXor { entry void main() { "
+            + "long value = 0; while (value < 1) limit 1 { value ^= 1; } "
+            + "assert(value == 1); } }");
+    assertDifferentialTrap(
+        writerProgram,
+        "classical class BoundedLocalWhileSubtract { entry void main() { "
+            + "long value = 0; while (value < 1) limit 2 { value -= 1; } } }");
+
+    assertDifferentialHalt(
+        writerProgram,
         "classical class SignedLocalAssignments { entry void main() { "
             + "long value = 1; long answer = 42; value = 41; value = answer; "
             + "assert(value == 42); } }");

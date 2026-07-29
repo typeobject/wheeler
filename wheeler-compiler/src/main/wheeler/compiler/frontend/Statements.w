@@ -5,6 +5,7 @@ module wheeler.compiler.statements;
 import wheeler.compiler.boolean_declarations;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.local_opcodes;
+import wheeler.compiler.loop_forms;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.structure;
@@ -142,6 +143,10 @@ classical class Statements {
     long statementStart
   ) {
     long statementKind = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (statementKind == STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED) {
+      return whileStatementWidth(source, tokenKinds, tokenStarts, tokenLengths, statementStart);
+    }
+
     if (helperValueStatement(statementKind)) {
       return helperValueStatementWidth(
         source,

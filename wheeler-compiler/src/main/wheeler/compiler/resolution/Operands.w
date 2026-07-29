@@ -8,6 +8,7 @@ import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.local_statements;
+import wheeler.compiler.loop_forms;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.tokens;
@@ -43,6 +44,10 @@ classical class Operands {
       ambiguousTypedStatement = true;
     }
 
+    if (opcode == STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED) {
+      ambiguousTypedStatement = true;
+    }
+
     if (ambiguousTypedStatement) {
       return sequenceStatementOpcode(
         source,
@@ -74,6 +79,23 @@ classical class Operands {
       previousStarts,
       previousCount
     );
+    if (resolvedLocalWhile(opcode)) {
+      long whileConditionRight = statementStart + 4;
+      if (resolvedLocalWhileConditionNamed(opcode)) {
+        return resolvePriorDeclaration(
+          source,
+          tokenStarts,
+          tokenLengths,
+          previousStarts,
+          previousCount,
+          whileConditionRight,
+          true
+        );
+      }
+
+      return parsedSignedNumber(source, tokenStarts, tokenLengths, whileConditionRight);
+    }
+
     if (namedGlobalUpdate(opcode)) {
       return resolvePriorDeclaration(
         source,
@@ -490,6 +512,23 @@ classical class Operands {
       previousStarts,
       previousCount
     );
+    if (resolvedLocalWhile(opcode)) {
+      long loopLimit = whileLimitToken(source, tokenStarts, statementStart);
+      if (resolvedLocalWhileLimitNamed(opcode)) {
+        return resolvePriorDeclaration(
+          source,
+          tokenStarts,
+          tokenLengths,
+          previousStarts,
+          previousCount,
+          loopLimit,
+          true
+        );
+      }
+
+      return parsedSignedNumber(source, tokenStarts, tokenLengths, loopLimit);
+    }
+
     if (returnComparisonStatement(opcode)) {
       long returnComparisonRight = statementStart + 4;
       if (returnSignedLessThanStatement(opcode)) {

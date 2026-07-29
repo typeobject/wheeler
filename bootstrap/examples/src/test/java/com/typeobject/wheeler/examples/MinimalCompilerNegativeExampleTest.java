@@ -526,6 +526,47 @@ class MinimalCompilerNegativeExampleTest {
         512);
     assertTrapWithoutOutput(booleanLocalUpdateOperand, 512);
 
+    VirtualMachine unknownWhileTarget = new VirtualMachine(
+        writerProgram,
+        ("classical class UnknownWhileTarget { entry void main() { "
+                + "while (missing < 1) limit 1 { missing += 1; } } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertTrapWithoutOutput(unknownWhileTarget, 512);
+
+    VirtualMachine booleanWhileTarget = new VirtualMachine(
+        writerProgram,
+        ("classical class BooleanWhileTarget { entry void main() { boolean value = false; "
+                + "while (value < 1) limit 1 { value += 1; } } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertTrapWithoutOutput(booleanWhileTarget, 512);
+
+    VirtualMachine unknownWhileLimit = new VirtualMachine(
+        writerProgram,
+        ("classical class UnknownWhileLimit { entry void main() { long value = 0; "
+                + "while (value < 1) limit missing { value += 1; } } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertTrapWithoutOutput(unknownWhileLimit, 512);
+
+    VirtualMachine mismatchedWhileTarget = new VirtualMachine(
+        writerProgram,
+        ("classical class MismatchedWhileTarget { entry void main() { "
+                + "long first = 0; long second = 0; "
+                + "while (first < 1) limit 1 { second += 1; } } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertTrapWithoutOutput(mismatchedWhileTarget, 512);
+
+    VirtualMachine wideWhileUpdate = new VirtualMachine(
+        writerProgram,
+        ("classical class WideWhileUpdate { entry void main() { long value = 0; "
+                + "while (value < 2) limit 1 { value += 2; } } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertTrapWithoutOutput(wideWhileUpdate, 512);
+
     VirtualMachine unknownGuardedLocalUpdate = new VirtualMachine(
         writerProgram,
         ("classical class UnknownGuardedLocalUpdate { state long result = 0; "

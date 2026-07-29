@@ -223,6 +223,10 @@ classical class StatementForms {
     long statementStart
   ) {
     long keyword = tokenHash(source, tokenStarts, tokenLengths, statementStart);
+    if (keyword == TOKEN_WHILE) {
+      return STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED;
+    }
+
     if (keyword == TOKEN_ASSERT) {
       long assertExpression = statementStart + 2;
       long assertHash = tokenHash(source, tokenStarts, tokenLengths, assertExpression);

@@ -5,6 +5,7 @@ module wheeler.compiler.local_statements;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_resolution;
+import wheeler.compiler.loop_forms;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.tokens;
@@ -20,6 +21,63 @@ classical class LocalStatements {
     long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (opcode == STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED) {
+      long whileTarget = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 2,
+        true
+      );
+      if (whileTarget < 0) {
+        return -1;
+      }
+
+      long whileForm = 0;
+      long whileConditionRight = statementStart + 4;
+      if (loopOperandNamed(source, tokenStarts, whileConditionRight)) {
+        long whileConditionLocal = resolvePriorDeclaration(
+          source,
+          tokenStarts,
+          tokenLengths,
+          previousStarts,
+          previousCount,
+          whileConditionRight,
+          true
+        );
+        if (whileConditionLocal < 0) {
+          return -1;
+        }
+
+        whileForm += STATEMENT_LOCAL_WHILE_CONDITION_NAMED;
+      }
+
+      long whileLimit = whileLimitToken(source, tokenStarts, statementStart);
+      if (loopOperandNamed(source, tokenStarts, whileLimit)) {
+        long whileLimitLocal = resolvePriorDeclaration(
+          source,
+          tokenStarts,
+          tokenLengths,
+          previousStarts,
+          previousCount,
+          whileLimit,
+          true
+        );
+        if (whileLimitLocal < 0) {
+          return -1;
+        }
+
+        whileForm += STATEMENT_LOCAL_WHILE_LIMIT_NAMED;
+      }
+
+      long whileUpdateTarget = whileUpdateTargetToken(source, tokenStarts, statementStart);
+      whileForm += whileUpdateForm(source, tokenStarts, whileUpdateTarget);
+      return STATEMENT_LOCAL_WHILE_BASE + whileTarget * STATEMENT_LOCAL_WHILE_FORM_COUNT
+        + whileForm;
+    }
+
     if (localAssignmentSourceStatement(opcode)) {
       long assignmentSignedTarget = resolvePriorDeclaration(
         source,

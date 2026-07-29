@@ -252,6 +252,10 @@ classical class Parser {
       supported = true;
     }
 
+    if (opcode == STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED) {
+      supported = true;
+    }
+
     return supported;
   }
 

@@ -263,6 +263,40 @@ classical class ScalarOpcodes {
     return opcode < STATEMENT_LOCAL_ASSIGN_BOOLEAN_LOCAL_BASE + 256;
   }
 
+  /// Checks whether an opcode carries one resolved bounded while loop.
+  public boolean resolvedLocalWhile(long opcode) {
+    if (opcode < STATEMENT_LOCAL_WHILE_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_WHILE_BASE + 256 * STATEMENT_LOCAL_WHILE_FORM_COUNT;
+  }
+
+  /// Returns the target local carried by one resolved while opcode.
+  public long resolvedLocalWhileTarget(long opcode) {
+    return(opcode - STATEMENT_LOCAL_WHILE_BASE) / STATEMENT_LOCAL_WHILE_FORM_COUNT;
+  }
+
+  /// Returns the form bits carried by one resolved while opcode.
+  public long resolvedLocalWhileForm(long opcode) {
+    return(opcode - STATEMENT_LOCAL_WHILE_BASE) % STATEMENT_LOCAL_WHILE_FORM_COUNT;
+  }
+
+  /// Checks whether a resolved while condition reads a prior local.
+  public boolean resolvedLocalWhileConditionNamed(long opcode) {
+    return resolvedLocalWhileForm(opcode) % 2 == STATEMENT_LOCAL_WHILE_CONDITION_NAMED;
+  }
+
+  /// Checks whether a resolved while limit reads a prior local.
+  public boolean resolvedLocalWhileLimitNamed(long opcode) {
+    return resolvedLocalWhileForm(opcode) / 2 % 2 == 1;
+  }
+
+  /// Returns the update form carried by one resolved while opcode.
+  public long resolvedLocalWhileUpdateForm(long opcode) {
+    return resolvedLocalWhileForm(opcode) / 4 * 4;
+  }
+
   /// Returns the target local carried by one resolved assignment opcode.
   public long resolvedLocalAssignmentTarget(long opcode) {
     if (opcode < STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE) {

@@ -185,6 +185,60 @@ classical class Codegen {
     long localBase,
     long instructionBase
   ) {
+    if (resolvedLocalWhile(opcode)) {
+      long whileTarget = resolvedLocalWhileTarget(opcode);
+      long whileLimitOpcode = OPCODE_LOCAL_CONST;
+      if (resolvedLocalWhileLimitNamed(opcode)) {
+        whileLimitOpcode = OPCODE_LOCAL_MOVE;
+      }
+
+      cursor = writeInstructionHeader(output, cursor, whileLimitOpcode, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeScalarOperand(output, cursor, whileLimitOpcode, secondaryOperand);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      cursor = writeSignedLittleEndian(output, cursor, /* value= */ 0, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, whileTarget, U64);
+      long whileConditionOpcode = OPCODE_LOCAL_CONST;
+      if (resolvedLocalWhileConditionNamed(opcode)) {
+        whileConditionOpcode = OPCODE_LOCAL_MOVE;
+      }
+
+      cursor = writeInstructionHeader(output, cursor, whileConditionOpcode, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
+      cursor = writeScalarOperand(output, cursor, whileConditionOpcode, operand);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_LT, FORM_TERNARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 4, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_JUMP_IF_ZERO, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 4, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, instructionBase + 10, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_LOOP_CHECK, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 5, U64);
+      cursor = writeSignedLittleEndian(output, cursor, /* value= */ 1, U64);
+      long whileUpdateOpcode = OPCODE_LOCAL_ADD;
+      if (resolvedLocalWhileUpdateForm(opcode) == STATEMENT_LOCAL_WHILE_SUB_FORM) {
+        whileUpdateOpcode = OPCODE_LOCAL_SUB;
+      }
+
+      if (resolvedLocalWhileUpdateForm(opcode) == STATEMENT_LOCAL_WHILE_XOR_FORM) {
+        whileUpdateOpcode = OPCODE_LOCAL_XOR;
+      }
+
+      cursor = writeInstructionHeader(output, cursor, whileUpdateOpcode, FORM_TERNARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, whileTarget, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, whileTarget, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 5, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_JUMP, FORM_UNARY);
+      return writeUnsignedLittleEndian(output, cursor, instructionBase + 2, U64);
+    }
+
     if (resolvedLocalAssignment(opcode)) {
       long assignmentRightOpcode = OPCODE_LOCAL_CONST;
       if (resolvedLocalAssignmentNamed(opcode)) {
