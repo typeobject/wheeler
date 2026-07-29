@@ -1,10 +1,10 @@
 //! Typed locals, checked expressions, branches, and a source-bounded loop.
 classical class BootstrapControl {
-  const long LOOP_BOUND = 5;
   const long LOOP_STEP = 1;
-  const long EXPECTED_SUM = 10;
-  const long COMPLETE_BRANCH = 1;
-  const long INCOMPLETE_BRANCH = 2;
+  const long LOOP_BOUND = LOOP_STEP * 5;
+  const long EXPECTED_SUM = LOOP_BOUND * (LOOP_BOUND - LOOP_STEP) / 2;
+  const long COMPLETE_BRANCH = LOOP_STEP;
+  const long INCOMPLETE_BRANCH = COMPLETE_BRANCH + LOOP_STEP;
   state long sum = 0;
   state long branch = 0;
 

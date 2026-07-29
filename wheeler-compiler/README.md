@@ -31,19 +31,23 @@ and one entry. Entry and helper bodies admit at most sixty-four statements. The 
 slice covers typed signed and Boolean locals, assertions, assignments, checked scalar
 operations, calls, results, and narrow explicitly limited loops.
 
-A class may place at most sixty-four literal `const long` or `const boolean` declarations
-before its helper or entry. Public and private constants share one duplicate-name check.
-The resolver substitutes them into matching local declarations, scalar helper returns,
-scalar assignments, checked signed updates, and one- or two-argument scalar helper calls.
-Calls and mutations may mix constants with prior locals. The resolver rejects helper
-parameters or locals that reuse constant names. Constants create no global,
-initializer, lookup, or declaration-order artifact noise. Full constant expressions, imports,
-and multi-file linking remain stage-0 work
-until their native implementations pass differential artifact tests.
+A class may place at most sixty-four `const long` or `const boolean` declarations before
+its helper or entry. Their bounded expressions admit decimal, hexadecimal, and binary
+integers, Booleans, parentheses, checked arithmetic, `!`, `^`, `&`, `==`, `<`, and forward
+same-class dependencies. A lookup allows 4,096 evaluation steps, dependency paths stop at
+sixty-four declarations, and parentheses stop at depth thirty-two. Cycles, unknown names,
+type errors, malformed forms, and arithmetic traps publish nothing.
 
-The narrow loop body and literal-only constant prefix are deliberate limits, not parser
-folklore. Unsupported syntax fails before output publication. Each extension must match
-stage 0 byte for byte before the profile claims it.
+The resolver substitutes evaluated values into matching local declarations, scalar helper
+returns, scalar assignments, checked signed updates, and one- or two-argument scalar helper
+calls. Calls and mutations may mix constants with prior locals. Helper parameters and locals
+cannot reuse constant names. Constants create no global, initializer, lookup, or
+declaration-order artifact noise. Imported constants, qualification, `rotateRight32`, and
+multi-file linking remain stage-0 work until native differential artifacts pin them down.
+
+The narrow loop body and local constant graph are deliberate limits, not parser folklore.
+Unsupported syntax fails before output publication. Each extension must match stage 0 byte
+for byte before the profile claims it.
 
 ## Promotion
 

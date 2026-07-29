@@ -82,33 +82,86 @@ classical class Scanner {
       return nextKind == 2;
     }
 
+    if (kind == 2) {
+      return nextKind == 1;
+    }
+
     return false;
   }
 
-  /// Parses `number` from a bounded canonical input.
-  public long parseNumber(borrow utf8 source, long start, long end) {
-    long value = 0;
-    long cursor = start;
-    while (cursor < end) limit 19 {
-      long digit = utf8Scalar(source, cursor) - 48;
-      if (value < 922337203685477580) {
-        value = value * 10 + digit;
-      } else {
-        if (value == 922337203685477580) {
-          if (digit < 8) {
-            value = value * 10 + digit;
-          } else {
-            return -1;
-          }
-        } else {
-          return -1;
-        }
+  private long numberDigit(long scalar) {
+    if (47 < scalar) {
+      if (scalar < 58) {
+        return scalar - 48;
       }
-
-      cursor += utf8Width(source, cursor);
     }
 
-    return value;
+    if (64 < scalar) {
+      if (scalar < 71) {
+        return scalar - 55;
+      }
+    }
+
+    if (96 < scalar) {
+      if (scalar < 103) {
+        return scalar - 87;
+      }
+    }
+
+    return -1;
+  }
+
+  /// Parses one bounded decimal, hexadecimal, or binary integer token.
+  public long parseNumber(borrow utf8 source, long start, long end) {
+    long radix = 10;
+    long cursor = start;
+    if (cursor + 1 < end) {
+      if (utf8Scalar(source, cursor) == 48) {
+        long marker = utf8Scalar(source, cursor + 1);
+        if (marker == 120) {
+          radix = 16;
+          cursor += 2;
+        } else {
+          if (marker == 98) {
+            radix = 2;
+            cursor += 2;
+          }
+        }
+      }
+    }
+
+    long value = 0;
+    long digits = 0;
+    while (cursor < end) limit 64 {
+      long scalar = utf8Scalar(source, cursor);
+      if (scalar == 95) {
+        cursor += utf8Width(source, cursor);
+      } else {
+        long digit = numberDigit(scalar);
+        if (digit < 0) {
+          return -1;
+        }
+
+        if (digit < radix) {} else {
+          return -1;
+        }
+
+        long limitValue = (9223372036854775807 - digit) / radix;
+        if (limitValue < value) {
+          return -1;
+        }
+
+        value = value * radix + digit;
+        digits += 1;
+        cursor += utf8Width(source, cursor);
+      }
+    }
+
+    if (0 < digits) {
+      return value;
+    }
+
+    return -1;
   }
 
   /// Classifies the comment beginning at one checked source offset.

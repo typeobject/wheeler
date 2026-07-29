@@ -432,6 +432,8 @@ classical class Tokens {
   public const long SCALAR_DIGIT_ZERO = 48;
   /// Names the ASCII scalar for the canonical digit `1`.
   public const long SCALAR_DIGIT_ONE = 49;
+  /// Names the ASCII scalar for the canonical digit `9`.
+  public const long SCALAR_DIGIT_NINE = 57;
   /// Names the ASCII `!` punctuation scalar.
   public const long PUNCTUATION_BANG = 33;
   /// Names the ASCII `%` punctuation scalar.

@@ -22,8 +22,9 @@ class MinimalCompilerConstantExampleTest {
   void substitutesSignedAndBooleanConstantsWithoutRuntimeState() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
     String source = "classical class ScalarConstants { "
-        + "public const long ANSWER = -42; private const boolean READY = true; "
-        + "entry void main() { long answer = ANSWER; boolean ready = READY; "
+        + "public const long ANSWER = BASE - 2; private const boolean READY = ANSWER < 0; "
+        + "const long BASE = -40; entry void main() { long answer = ANSWER; "
+        + "boolean ready = READY; "
         + "boolean blocked = !READY; assert(answer == -42); assert(ready); } }";
 
     byte[] artifact = assertDifferentialHalt(compiler, source);
@@ -41,13 +42,13 @@ class MinimalCompilerConstantExampleTest {
             + "value += answer; assert(value == 42); } }");
     assertDifferentialHalt(
         compiler,
-        "classical class ConstantResults { const long ANSWER = -42; "
-            + "long answer() { return ANSWER; } entry void main() { "
+        "classical class ConstantResults { const long ANSWER = BASE - 2; "
+            + "const long BASE = -40; long answer() { return ANSWER; } entry void main() { "
             + "long result = answer(); assert(result == -42); } }");
     assertDifferentialHalt(
         compiler,
-        "classical class ConstantBooleanResults { const boolean READY = true; "
-            + "boolean ready() { return READY; } entry void main() { "
+        "classical class ConstantBooleanResults { const boolean READY = VALUE == 1; "
+            + "const long VALUE = 1; boolean ready() { return READY; } entry void main() { "
             + "boolean result = ready(); assert(result); } }");
   }
 
@@ -56,12 +57,14 @@ class MinimalCompilerConstantExampleTest {
     Program compiler = CompilerSources.minimalCompilerProgram();
     assertDifferentialHalt(
         compiler,
-        "classical class SignedConstantArgument { const long INPUT = -42; "
+        "classical class SignedConstantArgument { const long INPUT = BASE - 2; "
+            + "const long BASE = -40; "
             + "long identity(long value) { return value; } entry void main() { "
             + "long result = identity(INPUT); assert(result == -42); } }");
     assertDifferentialHalt(
         compiler,
-        "classical class BooleanConstantArgument { const boolean INPUT = true; "
+        "classical class BooleanConstantArgument { const boolean INPUT = VALUE < 2; "
+            + "const long VALUE = 1; "
             + "boolean identity(boolean value) { return value; } entry void main() { "
             + "boolean result = identity(INPUT); assert(result); } }");
   }
@@ -71,14 +74,15 @@ class MinimalCompilerConstantExampleTest {
     Program compiler = CompilerSources.minimalCompilerProgram();
     assertDifferentialHalt(
         compiler,
-        "classical class SignedConstantPair { const long LEFT = 40; const long RIGHT = 2; "
+        "classical class SignedConstantPair { const long LEFT = 20 * 2; "
+            + "const long RIGHT = LEFT - 38; "
             + "long add(long left, long right) { return left + right; } entry void main() { "
             + "long left = 40; long right = 2; long constants = add(LEFT, RIGHT); "
             + "long first = add(left, RIGHT); long second = add(LEFT, right); "
             + "assert(constants == 42); assert(first == 42); assert(second == 42); } }");
     assertDifferentialHalt(
         compiler,
-        "classical class BooleanConstantPair { const boolean LEFT = true; "
+        "classical class BooleanConstantPair { const boolean LEFT = !RIGHT; "
             + "const boolean RIGHT = false; boolean different(boolean left, boolean right) { "
             + "return left != right; } entry void main() { boolean left = true; "
             + "boolean right = false; boolean constants = different(LEFT, RIGHT); "
@@ -95,32 +99,67 @@ class MinimalCompilerConstantExampleTest {
   }
 
   @Test
+  void evaluatesTypedConstantExpressionsAndForwardDependencies() throws Exception {
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    assertDifferentialHalt(
+        compiler,
+        "classical class ConstantExpressions { const long ANSWER = HALF * 2 + 2; "
+            + "const boolean READY = ANSWER == 42; const long HALF = 20; "
+            + "const long MASKED = (ANSWER ^ 3) & 63; const long QUOTIENT = 84 / 2; "
+            + "const long REMAINDER = 85 % 43; const long RADIX = 0x2_8 + 0b10; "
+            + "const boolean ORDERED = HALF < ANSWER; const boolean BLOCKED = !READY; "
+            + "entry void main() { long answer = ANSWER; long masked = MASKED; "
+            + "long quotient = QUOTIENT; long remainder = REMAINDER; long radix = RADIX; "
+            + "boolean ready = READY; boolean ordered = ORDERED; boolean blocked = BLOCKED; "
+            + "boolean clear = !blocked; assert(answer == 42); assert(masked == 41); "
+            + "assert(quotient == 42); assert(remainder == 42); assert(radix == 42); "
+            + "assert(ready); assert(ordered); "
+            + "assert(clear); } }");
+  }
+
+  @Test
   void substitutesConstantsIntoScalarAssignmentsAndCheckedUpdates() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
     assertDifferentialHalt(
         compiler,
         "classical class ConstantMutations { state long total = 0; "
-            + "const long STEP = 2; const long MASK = 3; const long ONE = 1; "
-            + "const long ANSWER = 42; const boolean READY = true; entry void main() { "
-            + "long value = 0; value += STEP; value ^= MASK; value -= ONE; value = ANSWER; "
-            + "boolean ready = false; ready = READY; total += STEP; total ^= MASK; "
-            + "total -= ONE; total = ANSWER; assert(value == 42); assert(ready); "
-            + "assert(total == 42); } }");
+            + "const long STEP = 1 + 1; const long MASK = STEP + 1; const long ONE = MASK - 2; "
+            + "const long ANSWER = 40 + STEP; const boolean READY = ANSWER == 42; "
+            + "entry void main() { long value = 0; value += STEP; value ^= MASK; "
+            + "value -= ONE; value = ANSWER; boolean ready = false; ready = READY; "
+            + "total += STEP; total ^= MASK; total -= ONE; total = ANSWER; "
+            + "assert(value == 42); assert(ready); assert(total == 42); } }");
   }
 
   @Test
-  void keepsIndependentDeclarationOrderOutOfTheArtifact() throws Exception {
+  void keepsDependencyOrderOutOfTheArtifact() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
     String prefix = "classical class OrderedConstants { ";
     String body = "entry void main() { long answer = ANSWER; boolean ready = READY; "
         + "assert(answer == 42); assert(ready); } }";
-    String first = prefix + "const long ANSWER = 42; const boolean READY = true; " + body;
-    String second = prefix + "const boolean READY = true; const long ANSWER = 42; " + body;
+    String first = prefix + "const long BASE = 40; const long ANSWER = BASE + 2; "
+        + "const boolean READY = ANSWER == 42; " + body;
+    String second = prefix + "const boolean READY = ANSWER == 42; "
+        + "const long ANSWER = BASE + 2; const long BASE = 40; " + body;
 
     assertArrayEquals(compileNative(compiler, first), compileNative(compiler, second));
     assertArrayEquals(
         new WheelerCompiler().compileToBytecode(first),
         new WheelerCompiler().compileToBytecode(second));
+  }
+
+  @Test
+  void evaluatesTheMaximumBoundedForwardDependencyPath() throws Exception {
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    StringBuilder source = new StringBuilder("classical class BoundedDependencyPath { ");
+    for (int index = 0; index < MAX_NATIVE_CONSTANTS - 1; index++) {
+      source.append("const long VALUE_").append(index).append(" = VALUE_")
+          .append(index + 1).append("; ");
+    }
+    source.append("const long VALUE_63 = 42; entry void main() { long value = VALUE_0; ")
+        .append("assert(value == 42); } }");
+
+    assertDifferentialHalt(compiler, source.toString());
   }
 
   @Test
@@ -189,7 +228,36 @@ class MinimalCompilerConstantExampleTest {
             + "long result = identity(1); } }");
     assertNativeTrap(
         compiler,
-        "classical class UnsupportedConstantExpression { const long VALUE = 1 + 1; "
+        "classical class MalformedConstantExpression { const long VALUE = 1 + ; "
+            + "entry void main() { long value = VALUE; } }");
+    assertNativeTrap(
+        compiler,
+        "classical class InvalidRadixConstant { const long VALUE = 0xnope; "
+            + "entry void main() { long value = VALUE; } }");
+    String nested = "(".repeat(33) + "1" + ")".repeat(33);
+    assertNativeTrap(
+        compiler,
+        "classical class DeepConstantExpression { const long VALUE = " + nested
+            + "; entry void main() { long value = VALUE; } }");
+    assertNativeTrap(
+        compiler,
+        "classical class ConstantCycle { const long FIRST = SECOND + 1; "
+            + "const long SECOND = FIRST + 1; entry void main() { long value = FIRST; } }");
+    assertNativeTrap(
+        compiler,
+        "classical class UnknownConstantDependency { const long VALUE = MISSING + 1; "
+            + "entry void main() { long value = VALUE; } }");
+    assertNativeTrap(
+        compiler,
+        "classical class WrongConstantExpressionType { const long VALUE = true; "
+            + "entry void main() { long value = VALUE; } }");
+    assertNativeTrap(
+        compiler,
+        "classical class ConstantDivisionTrap { const long VALUE = 1 / 0; "
+            + "entry void main() { long value = VALUE; } }");
+    assertNativeTrap(
+        compiler,
+        "classical class ConstantOverflow { const long VALUE = 9223372036854775807 + 1; "
             + "entry void main() { long value = VALUE; } }");
     assertNativeTrap(
         compiler,
