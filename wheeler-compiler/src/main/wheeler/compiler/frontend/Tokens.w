@@ -431,6 +431,8 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_BOOLEAN_EQ_LITERAL_BASE = 25088;
   /// Starts resolved Boolean-local inequality declarations against literals.
   public const long STATEMENT_LOCAL_BOOLEAN_NE_LITERAL_BASE = 25344;
+  /// Starts resolved Boolean-local equality assertions against literals.
+  public const long STATEMENT_ASSERT_BOOLEAN_LITERAL_BASE = 25600;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.

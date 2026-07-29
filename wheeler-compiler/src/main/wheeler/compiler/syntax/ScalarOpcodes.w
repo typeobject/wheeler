@@ -117,6 +117,20 @@ classical class ScalarOpcodes {
     return opcode - STATEMENT_LOCAL_BOOLEAN_NE_LITERAL_BASE;
   }
 
+  /// Checks whether an opcode asserts Boolean equality against a literal.
+  public boolean resolvedBooleanLiteralAssertion(long opcode) {
+    if (opcode < STATEMENT_ASSERT_BOOLEAN_LITERAL_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_ASSERT_BOOLEAN_LITERAL_BASE + 256;
+  }
+
+  /// Returns the source local carried by a Boolean literal assertion.
+  public long resolvedBooleanLiteralAssertionSource(long opcode) {
+    return opcode - STATEMENT_ASSERT_BOOLEAN_LITERAL_BASE;
+  }
+
   /// Checks whether an opcode carries one resolved signed-local identity.
   public boolean resolvedLocalLongAssertion(long opcode) {
     if (opcode < STATEMENT_ASSERT_LOCAL_LONG_BASE) {

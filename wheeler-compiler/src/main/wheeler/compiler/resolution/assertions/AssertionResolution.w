@@ -77,11 +77,27 @@ classical class AssertionResolution {
       rightToken,
       false
     );
-    if (right < 0) {
-      return invalid();
+    if (-1 < right) {
+      return new ResolvedAssertion(STATEMENT_ASSERT_BOOLEAN_PAIR_BASE + left, right, true, true);
     }
 
-    return new ResolvedAssertion(STATEMENT_ASSERT_BOOLEAN_PAIR_BASE + left, right, true, true);
+    ConstantResolution constant = resolveClassConstant(
+      source,
+      tokenStarts,
+      tokenLengths,
+      rightToken,
+      false
+    );
+    if (constant.valid) {
+      return new ResolvedAssertion(
+        STATEMENT_ASSERT_BOOLEAN_LITERAL_BASE + left,
+        constant.value,
+        true,
+        true
+      );
+    }
+
+    return invalid();
   }
 
   private ResolvedAssertion equality(

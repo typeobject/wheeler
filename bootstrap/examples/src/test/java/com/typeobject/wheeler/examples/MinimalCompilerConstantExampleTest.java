@@ -222,7 +222,8 @@ class MinimalCompilerConstantExampleTest {
         "classical class ConstantBooleanComparisonOperands { "
             + "const boolean EXPECTED = !false; const boolean OTHER = false; "
             + "entry void main() { boolean value = true; boolean same = value == EXPECTED; "
-            + "boolean different = value != OTHER; assert(same); assert(different); } }");
+            + "boolean different = value != OTHER; assert(value == EXPECTED); "
+            + "assert(same); assert(different); } }");
   }
 
   @Test
@@ -357,6 +358,10 @@ class MinimalCompilerConstantExampleTest {
         "classical class WrongBooleanComparisonConstant { const long EXPECTED = 1; "
             + "entry void main() { boolean value = true; "
             + "boolean result = value == EXPECTED; } }");
+    assertNativeTrap(
+        compiler,
+        "classical class WrongBooleanAssertionConstant { const long EXPECTED = 1; "
+            + "entry void main() { boolean value = true; assert(value == EXPECTED); } }");
     assertNativeTrap(
         compiler,
         "classical class WrongReturnComparisonConstant { const boolean LIMIT = true; "

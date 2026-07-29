@@ -405,6 +405,17 @@ classical class Codegen {
       return writeGlobalLiteralAssertion(output, cursor, operand, localBase);
     }
 
+    if (resolvedBooleanLiteralAssertion(opcode)) {
+      return writeLocalLiteralAssertion(
+        output,
+        cursor,
+        resolvedBooleanLiteralAssertionSource(opcode),
+        operand,
+        localBase,
+        OPCODE_LOCAL_EQ
+      );
+    }
+
     if (resolvedLocalPairAssertion(opcode)) {
       return writeLocalPairAssertion(
         output,
