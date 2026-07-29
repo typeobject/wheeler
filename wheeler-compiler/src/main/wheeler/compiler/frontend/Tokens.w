@@ -423,6 +423,8 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_WHILE_REVERSED_FORM = 16;
   /// Bounds the closed while form column encoded beside one target local.
   public const long STATEMENT_LOCAL_WHILE_FORM_COUNT = 24;
+  /// Starts resolved signed-local less-than assertions against literals.
+  public const long STATEMENT_ASSERT_LONG_LT_LITERAL_BASE = 24832;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.

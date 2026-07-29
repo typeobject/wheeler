@@ -2,6 +2,7 @@
 
 module wheeler.compiler.local_statements;
 
+import wheeler.compiler.assertion_resolution;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.call_resolution;
 import wheeler.compiler.class_constants;
@@ -302,52 +303,18 @@ classical class LocalStatements {
       return -1;
     }
 
-    if (opcode == STATEMENT_ASSERT_LONG_LT_NAMED) {
-      long lessThanAssertionLeft = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 2,
-        true
-      );
-      if (-1 < lessThanAssertionLeft) {
-        return STATEMENT_ASSERT_LONG_LT_BASE + lessThanAssertionLeft;
-      }
-
-      return -1;
-    }
-
-    if (opcode == STATEMENT_ASSERT_LOCAL_PAIR_NAMED) {
-      long pairAssertionSignedLeft = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 2,
-        true
-      );
-      long pairAssertionBooleanLeft = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 2,
-        false
-      );
-      if (-1 < pairAssertionSignedLeft) {
-        if (pairAssertionBooleanLeft < 0) {
-          return STATEMENT_ASSERT_LONG_PAIR_BASE + pairAssertionSignedLeft;
-        }
-      }
-
-      if (-1 < pairAssertionBooleanLeft) {
-        if (pairAssertionSignedLeft < 0) {
-          return STATEMENT_ASSERT_BOOLEAN_PAIR_BASE + pairAssertionBooleanLeft;
-        }
+    ResolvedAssertion assertion = resolveAssertion(
+      source,
+      tokenStarts,
+      tokenLengths,
+      statementStart,
+      previousStarts,
+      previousCount,
+      opcode
+    );
+    if (assertion.applies) {
+      if (assertion.valid) {
+        return assertion.opcode;
       }
 
       return -1;

@@ -101,6 +101,28 @@ classical class Codegen {
     return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
   }
 
+  private long writeLocalLiteralAssertion(
+    borrow mut bytes output,
+    long cursor,
+    long leftLocal,
+    long rightValue,
+    long localBase,
+    long comparisonOpcode
+  ) {
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, leftLocal, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+    cursor = writeSignedLittleEndian(output, cursor, rightValue, U64);
+    cursor = writeInstructionHeader(output, cursor, comparisonOpcode, FORM_TERNARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_EXPECT_TRUE, FORM_UNARY);
+    return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+  }
+
   /// Maps a parsed global update to its canonical bytecode opcode.
   public long globalOpcode(long opcode) {
     if (opcode == STATEMENT_UPDATE_ADD) {
@@ -375,6 +397,17 @@ classical class Codegen {
         output,
         cursor,
         opcode - STATEMENT_ASSERT_LONG_LT_BASE,
+        operand,
+        localBase,
+        OPCODE_LOCAL_LT
+      );
+    }
+
+    if (resolvedLiteralLessThanAssertion(opcode)) {
+      return writeLocalLiteralAssertion(
+        output,
+        cursor,
+        resolvedLiteralLessThanAssertionSource(opcode),
         operand,
         localBase,
         OPCODE_LOCAL_LT
@@ -715,19 +748,14 @@ classical class Codegen {
     }
 
     if (resolvedLocalLongAssertion(opcode)) {
-      long assertedLocal = opcode - STATEMENT_ASSERT_LOCAL_LONG_BASE;
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, assertedLocal, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      cursor = writeSignedLittleEndian(output, cursor, operand, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_EQ, FORM_TERNARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_EXPECT_TRUE, FORM_UNARY);
-      return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+      return writeLocalLiteralAssertion(
+        output,
+        cursor,
+        opcode - STATEMENT_ASSERT_LOCAL_LONG_BASE,
+        operand,
+        localBase,
+        OPCODE_LOCAL_EQ
+      );
     }
 
     if (opcode == STATEMENT_ASSIGN_LOCAL_NAMED) {

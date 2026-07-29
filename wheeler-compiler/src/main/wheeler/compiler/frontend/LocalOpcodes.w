@@ -361,6 +361,10 @@ classical class LocalOpcodes {
       return 3;
     }
 
+    if (resolvedLiteralLessThanAssertion(opcode)) {
+      return 3;
+    }
+
     if (opcode == STATEMENT_ASSERT_LONG_LT_NAMED) {
       return 3;
     }
@@ -688,6 +692,10 @@ classical class LocalOpcodes {
     }
 
     if (resolvedLocalLessThanAssertion(opcode)) {
+      return 96;
+    }
+
+    if (resolvedLiteralLessThanAssertion(opcode)) {
       return 96;
     }
 

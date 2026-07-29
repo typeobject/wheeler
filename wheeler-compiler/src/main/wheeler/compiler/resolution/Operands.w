@@ -2,6 +2,7 @@
 
 module wheeler.compiler.operands;
 
+import wheeler.compiler.assertion_resolution;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.conditionals;
@@ -45,6 +46,14 @@ classical class Operands {
     }
 
     if (localAssignmentSourceStatement(opcode)) {
+      ambiguousTypedStatement = true;
+    }
+
+    if (opcode == STATEMENT_ASSERT_LOCAL_PAIR_NAMED) {
+      ambiguousTypedStatement = true;
+    }
+
+    if (opcode == STATEMENT_ASSERT_LONG_LT_NAMED) {
       ambiguousTypedStatement = true;
     }
 
@@ -470,65 +479,18 @@ classical class Operands {
       );
     }
 
-    if (opcode == STATEMENT_ASSERT_LONG_LT_NAMED) {
-      return resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 4,
-        true
-      );
-    }
-
-    if (opcode == STATEMENT_ASSERT_LOCAL_PAIR_NAMED) {
-      long assertionSignedLeft = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 2,
-        true
-      );
-      long assertionSignedRight = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 5,
-        true
-      );
-      if (-1 < assertionSignedLeft) {
-        if (-1 < assertionSignedRight) {
-          return assertionSignedRight;
-        }
-      }
-
-      long assertionBooleanLeft = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 2,
-        false
-      );
-      long assertionBooleanRight = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 5,
-        false
-      );
-      if (-1 < assertionBooleanLeft) {
-        if (-1 < assertionBooleanRight) {
-          return assertionBooleanRight;
-        }
+    ResolvedAssertion assertion = resolveAssertion(
+      source,
+      tokenStarts,
+      tokenLengths,
+      statementStart,
+      previousStarts,
+      previousCount,
+      sourceOpcode
+    );
+    if (assertion.applies) {
+      if (assertion.valid) {
+        return assertion.operand;
       }
 
       return -1;

@@ -139,6 +139,12 @@ classical class LocalTypes {
       return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
     }
 
+    if (resolvedLiteralLessThanAssertion(opcode)) {
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+    }
+
     if (resolvedLocalPairAssertion(opcode)) {
       long assertedType = TYPE_BOOLEAN;
       if (resolvedLocalPairAssertionSigned(opcode)) {
