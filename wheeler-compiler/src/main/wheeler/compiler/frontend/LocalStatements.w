@@ -193,6 +193,63 @@ classical class LocalStatements {
     long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (localUpdateSourceStatement(opcode)) {
+      long updateTarget = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart,
+        true
+      );
+      boolean globalUpdateTarget = tokenHash(source, tokenStarts, tokenLengths, 4) == TOKEN_STATE;
+      if (globalUpdateTarget) {
+        globalUpdateTarget = sameTokenText(
+          source,
+          tokenStarts,
+          tokenLengths,
+          6,
+          statementStart
+        );
+      }
+
+      if (-1 < updateTarget) {
+        if (globalUpdateTarget) {
+          return -1;
+        }
+
+        long updateBase = STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE;
+        if (opcode == STATEMENT_UPDATE_ADD_LOCAL_NAMED) {
+          updateBase = STATEMENT_LOCAL_UPDATE_ADD_LOCAL_BASE;
+        }
+
+        if (opcode == STATEMENT_UPDATE_SUB) {
+          updateBase = STATEMENT_LOCAL_UPDATE_SUB_LITERAL_BASE;
+        }
+
+        if (opcode == STATEMENT_UPDATE_SUB_LOCAL_NAMED) {
+          updateBase = STATEMENT_LOCAL_UPDATE_SUB_LOCAL_BASE;
+        }
+
+        if (opcode == STATEMENT_UPDATE_XOR) {
+          updateBase = STATEMENT_LOCAL_UPDATE_XOR_LITERAL_BASE;
+        }
+
+        if (opcode == STATEMENT_UPDATE_XOR_LOCAL_NAMED) {
+          updateBase = STATEMENT_LOCAL_UPDATE_XOR_LOCAL_BASE;
+        }
+
+        return updateBase + updateTarget;
+      }
+
+      if (globalUpdateTarget) {
+        return opcode;
+      }
+
+      return -1;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_LOCAL_ARGUMENT_NAMED) {
       long callSignedArgument = resolvePriorDeclaration(
         source,
@@ -856,6 +913,10 @@ classical class LocalStatements {
     }
 
     if (namedGlobalUpdate(opcode)) {
+      return -1 < operand;
+    }
+
+    if (resolvedLocalUpdateNamed(opcode)) {
       return -1 < operand;
     }
 

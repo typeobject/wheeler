@@ -7,6 +7,7 @@ import wheeler.compiler.conditionals;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_statements;
+import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.tokens;
 
@@ -30,6 +31,10 @@ classical class Operands {
     }
 
     if (opcode == STATEMENT_RETURN_BOOLEAN_NE_LOCAL_NAMED) {
+      ambiguousTypedStatement = true;
+    }
+
+    if (localUpdateSourceStatement(opcode)) {
       ambiguousTypedStatement = true;
     }
 
@@ -65,6 +70,18 @@ classical class Operands {
       previousCount
     );
     if (namedGlobalUpdate(opcode)) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3,
+        true
+      );
+    }
+
+    if (resolvedLocalUpdateNamed(opcode)) {
       return resolvePriorDeclaration(
         source,
         tokenStarts,

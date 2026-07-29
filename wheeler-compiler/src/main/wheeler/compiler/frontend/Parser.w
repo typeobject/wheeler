@@ -5,6 +5,7 @@ module wheeler.compiler.parser;
 import wheeler.compiler.body_parser;
 import wheeler.compiler.helper_parser;
 import wheeler.compiler.ir;
+import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.sequences;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.statements;
@@ -240,6 +241,10 @@ classical class Parser {
     }
 
     if (opcode == STATEMENT_ASSERT_LONG_LT_NAMED) {
+      supported = true;
+    }
+
+    if (localUpdateSourceStatement(opcode)) {
       supported = true;
     }
 

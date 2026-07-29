@@ -156,6 +156,22 @@ class MinimalCompilerResultExampleTest {
 
     assertDifferentialHalt(
         writerProgram,
+        "classical class SignedLocalLiteralUpdates { entry void main() { "
+            + "long value = 40; value += 2; value -= 1; value ^= 1; "
+            + "assert(value == 40); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedLocalNamedUpdates { entry void main() { "
+            + "long value = 40; long two = 2; long one = 1; "
+            + "value += two; value -= one; value ^= one; assert(value == 40); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedParameterUpdates { "
+            + "long adjust(long value) { value += 2; value -= 1; value ^= 1; return value; } "
+            + "entry void main() { long answer = adjust(40); assert(answer == 40); } }");
+
+    assertDifferentialHalt(
+        writerProgram,
         "classical class SignedResultHelper { long answer() { return -42; } "
             + "entry void main() { long value = answer(); assert(value == -42); } }");
     assertDifferentialHalt(

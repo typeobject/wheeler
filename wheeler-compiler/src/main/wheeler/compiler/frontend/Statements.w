@@ -5,11 +5,73 @@ module wheeler.compiler.statements;
 import wheeler.compiler.boolean_declarations;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.local_opcodes;
+import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.structure;
 import wheeler.compiler.tokens;
 
 classical class Statements {
+  private long localUpdateWidth(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart,
+    long opcode
+  ) {
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, PUNCTUATION_ASSIGN)
+        == false
+    ) {
+      return -1;
+    }
+
+    if (namedGlobalUpdate(opcode)) {
+      if (tokenKinds[statementStart + 3] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 4,
+          PUNCTUATION_SEMICOLON
+        )
+      ) {
+        return 5;
+      }
+
+      return -1;
+    }
+
+    long operandWidth = signedNumberWidth(source, tokenKinds, tokenStarts, statementStart + 3);
+    if (operandWidth < 1) {
+      return -1;
+    }
+
+    if (
+      signedNumberValid(source, tokenStarts, tokenLengths, statementStart + 3) == false
+    ) {
+      return -1;
+    }
+
+    if (
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        statementStart + 3 + operandWidth,
+        PUNCTUATION_SEMICOLON
+      )
+    ) {
+      return 4 + operandWidth;
+    }
+
+    return -1;
+  }
+
   /// Returns the token width of one bounded source statement.
   public long statementWidth(
     borrow utf8 source,
@@ -584,8 +646,24 @@ classical class Statements {
     }
 
     if (tokenKinds[statementStart] == 1) {
+      long targetOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+      if (
+        sameTokenText(source, tokenStarts, tokenLengths, 6, statementStart) == false
+      ) {
+        if (localUpdateSourceStatement(targetOpcode)) {
+          return localUpdateWidth(
+            source,
+            tokenKinds,
+            tokenStarts,
+            tokenLengths,
+            statementStart,
+            targetOpcode
+          );
+        }
+      }
+
       if (sameTokenText(source, tokenStarts, tokenLengths, 6, statementStart)) {
-        long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+        long opcode = targetOpcode;
         if (opcode == STATEMENT_ASSIGN_LOCAL_NAMED) {
           if (tokenKinds[statementStart + 2] == 1) {
             if (

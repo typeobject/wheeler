@@ -241,6 +241,10 @@ classical class LocalOpcodes {
 
   /// Returns the typed-local width required by one parsed statement.
   public long statementLocalCount(long opcode) {
+    if (resolvedLocalUpdate(opcode)) {
+      return 1;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED) {
       return 2;
     }
@@ -587,6 +591,10 @@ classical class LocalOpcodes {
 
   /// Returns the encoded byte width of one parsed statement.
   public long statementCodeLength(long opcode) {
+    if (resolvedLocalUpdate(opcode)) {
+      return 56;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED) {
       return 64;
     }
@@ -776,6 +784,10 @@ classical class LocalOpcodes {
 
   /// Returns the instruction count emitted by one parsed statement.
   public long statementInstructionCount(long opcode) {
+    if (resolvedLocalUpdate(opcode)) {
+      return 2;
+    }
+
     if (oneArgumentCallStatement(opcode)) {
       return 4;
     }

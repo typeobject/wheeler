@@ -381,6 +381,18 @@ classical class Tokens {
   public const long STATEMENT_RETURN_SIGNED_LT_LITERAL_NAMED = 876;
   /// Names a signed less-than return with a local right operand.
   public const long STATEMENT_RETURN_SIGNED_LT_LOCAL_NAMED = 877;
+  /// Starts resolved local additions with literal right operands.
+  public const long STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE = 16128;
+  /// Starts resolved local additions with prior-local right operands.
+  public const long STATEMENT_LOCAL_UPDATE_ADD_LOCAL_BASE = 16384;
+  /// Starts resolved local subtractions with literal right operands.
+  public const long STATEMENT_LOCAL_UPDATE_SUB_LITERAL_BASE = 16640;
+  /// Starts resolved local subtractions with prior-local right operands.
+  public const long STATEMENT_LOCAL_UPDATE_SUB_LOCAL_BASE = 16896;
+  /// Starts resolved local XOR updates with literal right operands.
+  public const long STATEMENT_LOCAL_UPDATE_XOR_LITERAL_BASE = 17152;
+  /// Starts resolved local XOR updates with prior-local right operands.
+  public const long STATEMENT_LOCAL_UPDATE_XOR_LOCAL_BASE = 17408;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.

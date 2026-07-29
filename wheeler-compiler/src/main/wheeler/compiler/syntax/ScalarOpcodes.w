@@ -166,4 +166,84 @@ classical class ScalarOpcodes {
     return opcode < STATEMENT_LOCAL_LONG_LT_BASE + 256;
   }
 
+  /// Checks for one unresolved checked scalar update statement.
+  public boolean localUpdateSourceStatement(long opcode) {
+    if (opcode == STATEMENT_UPDATE_ADD) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_UPDATE_ADD_LOCAL_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_UPDATE_SUB) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_UPDATE_SUB_LOCAL_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_UPDATE_XOR) {
+      return true;
+    }
+
+    return opcode == STATEMENT_UPDATE_XOR_LOCAL_NAMED;
+  }
+
+  /// Checks whether an opcode carries one resolved local-update target.
+  public boolean resolvedLocalUpdate(long opcode) {
+    if (opcode < STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_UPDATE_XOR_LOCAL_BASE + 256;
+  }
+
+  /// Checks whether a resolved local update reads a prior local.
+  public boolean resolvedLocalUpdateNamed(long opcode) {
+    if (STATEMENT_LOCAL_UPDATE_ADD_LOCAL_BASE - 1 < opcode) {
+      if (opcode < STATEMENT_LOCAL_UPDATE_ADD_LOCAL_BASE + 256) {
+        return true;
+      }
+    }
+
+    if (STATEMENT_LOCAL_UPDATE_SUB_LOCAL_BASE - 1 < opcode) {
+      if (opcode < STATEMENT_LOCAL_UPDATE_SUB_LOCAL_BASE + 256) {
+        return true;
+      }
+    }
+
+    if (opcode < STATEMENT_LOCAL_UPDATE_XOR_LOCAL_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_UPDATE_XOR_LOCAL_BASE + 256;
+  }
+
+  /// Returns the target local carried by one resolved update opcode.
+  public long resolvedLocalUpdateTarget(long opcode) {
+    if (opcode < STATEMENT_LOCAL_UPDATE_ADD_LOCAL_BASE) {
+      return opcode - STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE;
+    }
+
+    if (opcode < STATEMENT_LOCAL_UPDATE_SUB_LITERAL_BASE) {
+      return opcode - STATEMENT_LOCAL_UPDATE_ADD_LOCAL_BASE;
+    }
+
+    if (opcode < STATEMENT_LOCAL_UPDATE_SUB_LOCAL_BASE) {
+      return opcode - STATEMENT_LOCAL_UPDATE_SUB_LITERAL_BASE;
+    }
+
+    if (opcode < STATEMENT_LOCAL_UPDATE_XOR_LITERAL_BASE) {
+      return opcode - STATEMENT_LOCAL_UPDATE_SUB_LOCAL_BASE;
+    }
+
+    if (opcode < STATEMENT_LOCAL_UPDATE_XOR_LOCAL_BASE) {
+      return opcode - STATEMENT_LOCAL_UPDATE_XOR_LITERAL_BASE;
+    }
+
+    return opcode - STATEMENT_LOCAL_UPDATE_XOR_LOCAL_BASE;
+  }
+
 }
