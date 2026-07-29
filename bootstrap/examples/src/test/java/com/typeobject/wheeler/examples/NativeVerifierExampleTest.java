@@ -65,6 +65,16 @@ class NativeVerifierExampleTest {
     doneVerification.run();
     assertEquals(1, doneVerification.global("verification"));
 
+    byte[] slotArtifact = compiler.compileToBytecode(
+        "classical class SlotSubject { Slot<Slot<long>> nested() { "
+            + "return new Slot<Slot<long>>.Holding(new Slot<long>.Vacant()); } "
+            + "Slot<long[2]> pair() { return new Slot<long[2]>.Holding("
+            + "new long[2](2, 3)); } entry void main() { "
+            + "Slot<Slot<long>> value = nested(); Slot<long[2]> values = pair(); } }");
+    VirtualMachine slotVerification = VirtualMachine.withBinaryInput(verifier, slotArtifact);
+    slotVerification.run();
+    assertEquals(1, slotVerification.global("verification"));
+
     byte[] invalidDone = doneArtifact.clone();
     int doneConstant = instructionOffset(invalidDone, 0x0400);
     invalidDone[doneConstant + 16] = 1;

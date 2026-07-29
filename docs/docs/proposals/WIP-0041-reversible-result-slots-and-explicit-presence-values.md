@@ -726,15 +726,15 @@ diagnostic or trap, and publishes no partial result.
 ## Progress
 
 - [x] `Done` and `done` parse, typecheck, encode, execute, and reject nonzero physical constants.
-- [ ] `Slot<T>`, `Vacant`, and `Holding(T)` parse, typecheck, encode, and execute.
-- [ ] Planned `Option<T>` APIs are migrated.
-- [ ] Ordinary functions return the new values.
+- [x] Closed classical `Slot<T>`, `Vacant`, and `Holding(T)` parse, typecheck, encode, and execute.
+- [x] Planned `Option<T>` APIs and examples use `Slot<T>` or domain-specific result names.
+- [x] Ordinary functions return `Done` and closed classical slots.
 - [ ] Reversible scalar result-slot ABI executes.
 - [ ] `return -1;` runs forward and inverse without VM history.
 - [ ] Copyable and affine-owner return forms execute.
 - [ ] Borrowed results retain exact origins.
 - [ ] Multiple return paths integrate with WIP-0035.
-- [ ] Closed generic slots specialize.
+- [x] Compiler-owned closed classical slots specialize to canonical variant descriptors.
 - [ ] Coherent encoding and padding rules execute.
 - [ ] Coherent fills, moves, and measurement execute.
 - [ ] Proof and resource metadata pass.
@@ -746,7 +746,7 @@ diagnostic or trap, and publishes no partial result.
 - [ ] `void` has no value and is invalid as a generic argument.
 - [ ] `Done` has one value and coherent width zero.
 - [ ] `Slot<Done>` has two logical states and coherent width one.
-- [ ] `Vacant` and `Holding(value)` compare and encode canonically.
+- [x] Classical `Vacant` and `Holding(value)` compare and encode canonically.
 - [ ] Slot ownership derives from its payload.
 - [ ] Filled affine slots cannot copy and filled must-consume slots cannot drop.
 - [ ] `return -1;` is accepted for `long` and rejected for unsigned output without a valid conversion.
@@ -756,7 +756,7 @@ diagnostic or trap, and publishes no partial result.
 - [ ] Wrong held constants trap before mutation.
 - [ ] Preserved-source fill and affine move round-trip exactly.
 - [ ] Returned loans retain origin and `Slot<borrow T>` is rejected.
-- [ ] Nested slots distinguish outer vacancy from `Holding(Vacant)`.
+- [x] Nested classical slots distinguish outer vacancy from `Holding(Vacant)`.
 - [ ] Information-losing bodies remain rejected despite a reversible return.
 - [ ] Trapping return expressions leave the result vacant.
 - [ ] Multiple reversible returns require a reconstructible decision.
@@ -769,7 +769,7 @@ diagnostic or trap, and publishes no partial result.
 - [ ] Reset remains a reset effect rather than inverse return.
 - [ ] Existing ordinary artifacts retain their meaning.
 - [ ] Unsupported result-slot features reject before execution.
-- [ ] Reference docs describe the feature only after implementation.
+- [x] Reference docs describe only the implemented classical `Done` and closed-slot slices.
 
 ## Alternatives
 

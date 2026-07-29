@@ -12,7 +12,7 @@ final class SourceScalarMemberParser {
 
   static State parseState(SourceParser parser, SourceToken start) {
     parser.expectText("long");
-    String name = parser.expect(Type.IDENTIFIER, "state name").text();
+    String name = SourceNames.binding(parser.expect(Type.IDENTIFIER, "state name"));
     parser.expect(Type.ASSIGN, "'=' in state declaration");
     ConstantValue value = SourceConstantParser.parseValue(
         parser, parser::resolveRequiredConstant);
@@ -25,7 +25,8 @@ final class SourceScalarMemberParser {
 
   static QuantumRegisterSource parseQuantumRegister(
       SourceParser parser, SourceToken start) {
-    String name = parser.expect(Type.IDENTIFIER, "quantum register name").text();
+    String name = SourceNames.binding(
+        parser.expect(Type.IDENTIFIER, "quantum register name"));
     parser.expect(Type.ASSIGN, "'=' in qreg declaration");
     parser.expectText("new");
     parser.expectText("qreg");

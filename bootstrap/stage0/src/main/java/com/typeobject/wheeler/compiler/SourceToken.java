@@ -31,6 +31,7 @@ record SourceToken(Type type, String text, int line, int column, int offset) {
     AND,
     XOR,
     LESS,
+    GREATER,
     END
   }
 }

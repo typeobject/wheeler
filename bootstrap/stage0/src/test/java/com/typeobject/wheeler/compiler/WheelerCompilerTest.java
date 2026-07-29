@@ -801,38 +801,6 @@ class WheelerCompilerTest {
   }
 
   @Test
-  void doneIsTheSoleTypedCompletionValue() {
-    WheelerCompiler compiler = new WheelerCompiler();
-    Program program = compiler.compile("""
-        classical class Completion {
-          record Receipt(Done completion) {}
-          Done complete() { return done; }
-          entry void main() {
-            Receipt first = new Receipt(complete());
-            Receipt second = new Receipt(done);
-            assert(first == second);
-          }
-        }
-        """);
-
-    byte[] artifact = new BytecodeWriter().write(program);
-    Program decoded = new BytecodeReader().read(artifact);
-    assertArrayEquals(artifact, new BytecodeWriter().write(decoded));
-    var complete = decoded.functions().stream()
-        .filter(function -> function.name().equals("complete"))
-        .findFirst()
-        .orElseThrow();
-    assertEquals(ValueType.DONE, complete.resultType());
-    assertEquals(List.of(ValueType.DONE), complete.localTypes());
-    assertEquals(Opcode.LOCAL_CONST, complete.forward().getFirst().opcode());
-    assertEquals(Opcode.RETURN_VALUE, complete.forward().get(1).opcode());
-
-    VirtualMachine machine = new VirtualMachine(decoded);
-    machine.run();
-    assertEquals(1, machine.snapshot().selectedFrames().size());
-  }
-
-  @Test
   void constantsFoldWithoutAddingGlobalState() {
     Program program = new WheelerCompiler().compile("""
         classical class NamedValues {

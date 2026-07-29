@@ -41,6 +41,7 @@ public final class SourceFormatter {
     private final StringBuilder result = new StringBuilder();
     private int indent;
     private int parenthesisDepth;
+    private int genericDepth;
     private boolean lineStart = true;
     private boolean pendingBlank;
     private String previousToken;
@@ -138,6 +139,8 @@ public final class SourceFormatter {
         case "[" -> appendTight(text);
         case "]" -> appendTight(text);
         case ".", "::" -> appendTight(text);
+        case "<" -> openGenericOrOperator();
+        case ">" -> closeGenericOrOperator();
         default -> {
           if (OPERATORS.contains(text)) {
             operator(text);
@@ -147,6 +150,24 @@ public final class SourceFormatter {
         }
       }
       previousToken = text;
+    }
+
+    private void openGenericOrOperator() {
+      if ("Slot".equals(previousToken)) {
+        appendTight("<");
+        genericDepth++;
+      } else {
+        operator("<");
+      }
+    }
+
+    private void closeGenericOrOperator() {
+      if (0 < genericDepth) {
+        appendTight(">");
+        genericDepth--;
+      } else {
+        operator(">");
+      }
     }
 
     private void openBrace(int index) {

@@ -147,6 +147,7 @@ final class SourceParser extends SourceStatementParser {
           moduleName,
           records,
           this::isValueType,
+          variants,
           arrays,
           slices));
       return;
@@ -158,6 +159,7 @@ final class SourceParser extends SourceStatementParser {
           exported,
           moduleName,
           this::isValueType,
+          variants,
           arrays,
           slices));
       return;
@@ -216,7 +218,7 @@ final class SourceParser extends SourceStatementParser {
         ? "void"
         : parseValueType("method return type");
     boolean returnsValue = !returnType.equals("void");
-    String name = expect(Type.IDENTIFIER, "method name").text();
+    String name = SourceNames.binding(expect(Type.IDENTIFIER, "method name"));
     if (name.equals("slice")) {
       fail(start, "slice is a reserved value constructor");
     }
@@ -229,7 +231,7 @@ final class SourceParser extends SourceStatementParser {
         String type = parseValueType("parameter type");
         SourceParameterParser.validate(type, mode, parameterStart);
         parameters.add(new Parameter(
-            expect(Type.IDENTIFIER, "parameter name").text(), type, mode));
+            SourceNames.binding(expect(Type.IDENTIFIER, "parameter name")), type, mode));
       } while (match(Type.COMMA));
     }
     expect(Type.RIGHT_PAREN, "')' after parameters");
@@ -549,8 +551,14 @@ final class SourceParser extends SourceStatementParser {
     while (!check(Type.RIGHT_BRACE) && !check(Type.END)) {
       expectText("case");
       SourceToken type = peek();
-      String typeName = SourceValueTypeParser.parseNominalReference(
-          this, "variant type in case");
+      String typeName = SourceValueTypeParser.parse(
+          this,
+          "variant type in case",
+          moduleName != null,
+          this::isValueType,
+          variants,
+          arrays,
+          slices);
       expect(Type.DOT, "'.' before variant case");
       SourceToken caseName = expect(Type.IDENTIFIER, "variant case name");
       expect(Type.LEFT_PAREN, "'(' after variant case");
@@ -562,10 +570,11 @@ final class SourceParser extends SourceStatementParser {
               "payload binding type",
               moduleName != null,
               this::isValueType,
+              variants,
               arrays,
               slices);
           bindings.add(new Parameter(
-              expect(Type.IDENTIFIER, "payload binding name").text(),
+              SourceNames.binding(expect(Type.IDENTIFIER, "payload binding name")),
               bindingType,
               ParameterMode.VALUE));
         } while (match(Type.COMMA));
@@ -916,13 +925,14 @@ final class SourceParser extends SourceStatementParser {
         description,
         moduleName != null,
         this::isValueType,
+        variants,
         arrays,
         slices);
   }
 
   private boolean checkLocalType() {
     return check(Type.IDENTIFIER)
-        && (isValueType(peek().text())
+        && (peek().text().equals("Slot") || isValueType(peek().text())
             || (moduleName != null
                 && (isNominalName(peek().text())
                     || SourceValueTypeParser.isQualifiedLocalDeclaration(this))));

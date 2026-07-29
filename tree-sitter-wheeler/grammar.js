@@ -176,11 +176,18 @@ module.exports = grammar({
     ),
     value_type: $ => seq(
       choice(
-        'long', 'boolean', 'region', 'words', 'bytes', 'byteview', 'longmap', 'utf8',
+        'long', 'boolean', 'Done', 'region', 'words', 'bytes', 'byteview', 'longmap', 'utf8',
+        $.slot_type,
         alias($.identifier, $.type_identifier),
         $.qualified_type,
       ),
       optional($.array_extent),
+    ),
+    slot_type: $ => seq(
+      'Slot',
+      '<',
+      field('payload', $.value_type),
+      '>',
     ),
     array_extent: $ => seq('[', optional(field('length', $.integer_literal)), ']'),
     parameter: $ => seq(
@@ -218,7 +225,7 @@ module.exports = grammar({
     ),
     match_case: $ => seq(
       'case',
-      field('type', choice($.identifier, $.qualified_type)),
+      field('type', $.value_type),
       '.',
       field('case', $.identifier),
       field('bindings', $.parameter_list),
@@ -296,6 +303,7 @@ module.exports = grammar({
 
     expression: $ => choice(
       $.boolean_literal,
+      'done',
       $.integer_literal,
       $.number_literal,
       $.ascii_literal,

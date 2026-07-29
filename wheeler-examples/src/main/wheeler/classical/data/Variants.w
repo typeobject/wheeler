@@ -7,9 +7,18 @@ classical class Variants {
 
   state long selected = 0;
   state long equal = 0;
+  state long presence = 0;
 
   Done complete() {
     return done;
+  }
+
+  Slot<long> makeSlot(boolean available, long value) {
+    if (available) {
+      return new Slot<long>.Holding(value);
+    }
+
+    return new Slot<long>.Vacant();
   }
 
   LookupResult choose(boolean present, long value) {
@@ -27,6 +36,7 @@ classical class Variants {
     Done completed = complete();
     LookupResult first = choose(true, 9);
     LookupResult second = new LookupResult.Found(9);
+    Slot<long> slot = makeSlot(true, 11);
     if (first == second) {
       equal = 1;
     }
@@ -40,7 +50,17 @@ classical class Variants {
       }
     }
 
+    match (slot) {
+      case Slot<long>.Vacant() {
+        presence = -1;
+      }
+      case Slot<long>.Holding(long presentValue) {
+        presence = presentValue;
+      }
+    }
+
     assert(selected == 9);
     assert(equal == 1);
+    assert(presence == 11);
   }
 }

@@ -15,6 +15,7 @@ final class SourceConstantParser {
       SourceTokenCursor.fail(type, "constant type must be long or boolean");
     }
     SourceToken name = parser.expect(Type.IDENTIFIER, "constant name");
+    SourceNames.binding(name);
     parser.expect(Type.ASSIGN, "'=' in constant declaration");
     ConstantValue value = parseExpression(parser, parser::resolveRequiredConstant);
     parser.expect(Type.SEMICOLON, "';' after constant declaration");

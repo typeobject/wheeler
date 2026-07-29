@@ -24,7 +24,7 @@ final class SourceResultParser {
   static void parseLocalDeclaration(SourceParser parser, List<Statement> body) {
     SourceToken start = parser.peek();
     String type = parser.parseValueType("local type");
-    String name = parser.expect(Type.IDENTIFIER, "local name").text();
+    String name = SourceNames.binding(parser.expect(Type.IDENTIFIER, "local name"));
     parser.expect(Type.ASSIGN, "'=' in local declaration");
     String value = parser.parseExpression(body);
     parser.expect(Type.SEMICOLON, "';' after local declaration");

@@ -56,7 +56,9 @@ The required variant section has canonical nominal IDs and ordered, nonempty cas
 
 An array descriptor stores a canonical ID, element type, and a length from 1 through 65,535. A slice descriptor stores a canonical ID and element type. Slices cannot escape, appear as function results, or become aggregate elements.
 
-Every descriptor ID must equal its table position. Record fields may refer only to earlier record descriptors. Variant payloads may refer to records or earlier variants. Both may also embed a later fixed-array descriptor when its element type is signed or Boolean. Both the stage-0 and Wheeler-native verifiers reject slice fields, aggregate-element arrays, and recursive array layouts.
+Every descriptor ID must equal its table position. Record fields may refer only to earlier record descriptors. Variant payloads may refer to records or earlier variants. Both may also embed a later fixed-array descriptor when its element type is signed, Boolean, or `Done`. Both the stage-0 and Wheeler-native verifiers reject slice fields, aggregate-element arrays, and recursive array layouts.
+
+A closed classical WIP-0041 `Slot<T>` uses this existing variant section. Its exact specialization name is `Slot<T>`. Ordered tag zero is payload-free `Vacant`, and ordered tag one is `Holding` with one field named `value`. Nested slots point only to an earlier closed slot descriptor. No new ambient-null type code or payload bytes sneak into vacancy.
 
 This layout cannot represent recursive, cyclic, or forward inline values. Duplicate names, fields, cases, or IDs fail closed. The decoder also rejects forward references, unknown string IDs, unknown type tags, truncation, and trailing bytes.
 

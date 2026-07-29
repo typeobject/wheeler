@@ -13,7 +13,8 @@ class SourceLexerTest {
   @Test
   void recordsLocationsAndUsesLongestOperatorMatch() {
     List<SourceToken> tokens =
-        new SourceLexer("// heading\ncount += 0x1f * 2; dep::call(); ready != false; !ready;")
+        new SourceLexer(
+            "// heading\ncount += 0x1f * 2; dep::call(); ready != false; !ready; Slot<long>;")
             .lex();
 
     assertEquals("count", tokens.get(0).text());
@@ -25,6 +26,8 @@ class SourceLexerTest {
     assertTrue(tokens.stream().anyMatch(token -> token.type() == Type.DOUBLE_COLON));
     assertTrue(tokens.stream().anyMatch(token -> token.type() == Type.NOT_EQUAL));
     assertTrue(tokens.stream().anyMatch(token -> token.type() == Type.NOT));
+    assertTrue(tokens.stream().anyMatch(token -> token.type() == Type.LESS));
+    assertTrue(tokens.stream().anyMatch(token -> token.type() == Type.GREATER));
   }
 
   @Test

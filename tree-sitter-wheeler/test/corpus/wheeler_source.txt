@@ -700,7 +700,8 @@ classical class Variants {
                 (expression
                   (identifier))
                 (match_case
-                  (identifier)
+                  (value_type
+                    (type_identifier))
                   (identifier)
                   (parameter_list)
                   (block
@@ -710,7 +711,8 @@ classical class Variants {
                         (expression
                           (integer_literal))))))
                 (match_case
-                  (identifier)
+                  (value_type
+                    (type_identifier))
                   (identifier)
                   (parameter_list
                     (parameter

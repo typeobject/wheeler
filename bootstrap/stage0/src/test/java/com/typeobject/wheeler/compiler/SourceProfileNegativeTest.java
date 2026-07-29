@@ -220,7 +220,18 @@ class SourceProfileNegativeTest {
               "classical class NullLike { long value() { return " + spelling
                   + "; } entry void main() { } }"));
       assertTrue(rejected.getMessage().contains("null-like values do not exist"));
+      CompilerException binding = assertThrows(
+          CompilerException.class,
+          () -> new WheelerCompiler().compile(
+              "classical class Reserved { entry void main() { long " + spelling
+                  + " = 1; } }"));
+      assertTrue(binding.getMessage().contains("reserved value name"));
     }
+    CompilerException doneBinding = assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compile(
+            "classical class ReservedDone { entry void main() { Done done = done; } }"));
+    assertTrue(doneBinding.getMessage().contains("reserved value name: done"));
 
     CompilerException mismatch = assertThrows(
         CompilerException.class,
@@ -228,6 +239,55 @@ class SourceProfileNegativeTest {
             "classical class WrongDone { long value() { return done; } "
                 + "entry void main() { } }"));
     assertTrue(mismatch.getMessage().contains("expected signed expression"));
+  }
+
+  @Test
+  void rejectsMalformedOrOwnershipBearingSlots() {
+    CompilerException bare = assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compile(
+            "classical class BareSlot { Slot value() { return done; } "
+                + "entry void main() { } }"));
+    CompilerException owner = assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compile(
+            "classical class OwnerSlot { Slot<bytes> value(borrow mut bytes output) { "
+                + "return new Slot<bytes>.Vacant(); } entry void main() { } }"));
+    CompilerException loan = assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compile(
+            "classical class LoanSlot { Slot<long[]> value(long[] input) { "
+                + "return new Slot<long[]>.Vacant(); } entry void main() { } }"));
+    CompilerException unknown = assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compile(
+            "classical class UnknownSlot { Slot<Missing> value() { "
+                + "return new Slot<Missing>.Vacant(); } entry void main() { } }"));
+    CompilerException nominal = assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compile(
+            "classical class NominalSlot { record Token(long value) {} "
+                + "Slot<Token> value() { return new Slot<Token>.Vacant(); } "
+                + "entry void main() { } }"));
+    CompilerException mismatch = assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compile(
+            "classical class WrongSlot { Slot<long> value() { "
+                + "return new Slot<long>.Holding(true); } entry void main() { } }"));
+    String deepType = "Slot<".repeat(258) + "long" + ">".repeat(258);
+    CompilerException deep = assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compile(
+            "classical class DeepSlot { " + deepType + " value() { return done; } "
+                + "entry void main() { } }"));
+
+    assertTrue(bare.getMessage().contains("expected declared method return type"));
+    assertTrue(owner.getMessage().contains("Slot payload cannot be an owner or loan"));
+    assertTrue(loan.getMessage().contains("Slot payload cannot be an owner or loan"));
+    assertTrue(unknown.getMessage().contains("expected declared Slot payload type"));
+    assertTrue(nominal.getMessage().contains("Slot payload must be a scalar"));
+    assertTrue(mismatch.getMessage().contains("expected signed expression"));
+    assertTrue(deep.getMessage().contains("Slot nesting exceeds 256 payload types"));
   }
 
   @Test

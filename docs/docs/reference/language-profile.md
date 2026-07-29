@@ -236,6 +236,19 @@ Variants may be parameters and results. `==` uses nominal structural equality.
 
 The VM interns variants in their own table with a 65,535-value limit. Snapshots and rewind include that table. A payload read with the wrong expected tag traps before mutation.
 
+## Explicit presence slots
+
+The first compiler-owned closed generic is `Slot<T>`. It has exactly two canonical cases:
+
+```wheeler
+Slot<long> vacant = new Slot<long>.Vacant();
+Slot<long> held = new Slot<long>.Holding(9);
+```
+
+The compiler specializes each used `Slot<T>` to one closed nominal variant descriptor named by its exact payload type. `Vacant` carries no payload. `Holding` carries one `T`. Nested slots remain distinct, so `Slot<Slot<long>>.Holding(Slot<long>.Vacant())` is not outer vacancy. Equality, calls, returns, bytecode encoding, exhaustive matching, and VM rewind use the existing verified variant machinery.
+
+This initial classical slice accepts signed, Boolean, `Done`, fixed scalar array, and nested-slot payloads. It rejects nominal aggregates until their transitive ownership evidence lands. It also rejects owners, mutable storage, byte views, and nonescaping slices. Ordinary functions may return slots. Reversible result-slot ABI, affine payload derivation, constructor inference, general generic specialization, and coherent slot encoding remain WIP-0041 work. The explicit `new Slot<T>.Case(...)` spelling keeps the parser honest until those pieces land. Sugar can wait outside in the rain.
+
 ## Fixed arrays
 
 A fixed array owns an immutable, homogeneous sequence. Its length is part of the type:
@@ -245,7 +258,7 @@ long[4] values = new long[4](2, 4, 6, 8);
 long selected = values[2];
 ```
 
-Construction requires exactly the declared number of values and checks each type from left to right. Arrays may be locals, parameters, results, record fields, and variant payloads. Aggregate fields currently admit only signed or Boolean array elements. This keeps descriptor graphs acyclic while allowing compiler IR to carry bounded columns directly.
+Construction requires exactly the declared number of values and checks each type from left to right. Arrays may be locals, parameters, results, record fields, and variant payloads. Aggregate fields currently admit signed, Boolean, or `Done` array elements. This keeps descriptor graphs acyclic while allowing compiler IR to carry bounded columns directly.
 
 An index is a signed value. A negative index or one at least as large as the array length traps before mutation.
 

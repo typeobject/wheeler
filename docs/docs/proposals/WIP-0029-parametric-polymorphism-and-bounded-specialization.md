@@ -362,6 +362,7 @@ Unknown kinds, malformed generic metadata, ambiguous arguments, failed constrain
 
 ## Progress
 
+- [x] WIP-0041 closed `Slot<T>` uses one compiler-owned specialization path over canonical variant metadata. General generic declarations remain outside this slice.
 - [ ] Kind and generic parameter model is accepted.
 - [ ] Generic records and variants execute.
 - [ ] Generic ordinary functions execute.

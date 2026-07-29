@@ -186,6 +186,7 @@ final class SourceLexer {
       case '&' -> Type.AND;
       case '^' -> match('=') ? Type.XOR_ASSIGN : Type.XOR;
       case '<' -> Type.LESS;
+      case '>' -> Type.GREATER;
       case '=' -> match('=') ? Type.EQUAL : Type.ASSIGN;
       default -> throw new CompilerException(startLine, "unexpected character: " + value);
     };

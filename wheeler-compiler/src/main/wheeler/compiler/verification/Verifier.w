@@ -386,10 +386,16 @@ classical class Verifier {
                     return 0;
                   }
                 } else {
-                  if (
-                    scalarArrayTypeValid(artifact, arrayTable, arrayCount, payloadType)
-                  ) {} else {
-                    return 0;
+                  if (isVariantType(payloadType)) {
+                    if (variantTypeId(payloadType) < variant) {} else {
+                      return 0;
+                    }
+                  } else {
+                    if (
+                      scalarArrayTypeValid(artifact, arrayTable, arrayCount, payloadType)
+                    ) {} else {
+                      return 0;
+                    }
                   }
                 }
               }

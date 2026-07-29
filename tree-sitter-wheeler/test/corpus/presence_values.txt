@@ -1,0 +1,104 @@
+==================
+Closed presence values
+==================
+
+classical class Presence {
+  Slot<Slot<long>> nested() {
+    return new Slot<Slot<long>>.Holding(new Slot<long>.Vacant());
+  }
+
+  entry void main() {
+    Slot<Slot<long>> value = nested();
+    match (value) {
+      case Slot<Slot<long>>.Vacant() { assert(false); }
+      case Slot<Slot<long>>.Holding(Slot<long> inner) { assert(true); }
+    }
+  }
+}
+
+---
+
+(source_file
+  (class_declaration
+    (computation_domain)
+    (identifier)
+    (class_body
+      (member_declaration
+        (method_declaration
+          (value_type
+            (slot_type
+              (value_type
+                (slot_type
+                  (value_type)))))
+          (identifier)
+          (parameter_list)
+          (block
+            (statement
+              (return_statement
+                (expression
+                  (record_creation
+                    (value_type
+                      (slot_type
+                        (value_type
+                          (slot_type
+                            (value_type)))))
+                    (identifier)
+                    (argument_list
+                      (expression
+                        (record_creation
+                          (value_type
+                            (slot_type
+                              (value_type)))
+                          (identifier)))))))))))
+      (member_declaration
+        (method_declaration
+          (method_modifier)
+          (identifier)
+          (parameter_list)
+          (block
+            (statement
+              (local_declaration
+                (value_type
+                  (slot_type
+                    (value_type
+                      (slot_type
+                        (value_type)))))
+                (identifier)
+                (expression
+                  (call_expression
+                    (identifier)))))
+            (statement
+              (match_statement
+                (expression
+                  (identifier))
+                (match_case
+                  (value_type
+                    (slot_type
+                      (value_type
+                        (slot_type
+                          (value_type)))))
+                  (identifier)
+                  (parameter_list)
+                  (block
+                    (statement
+                      (assert_statement
+                        (expression
+                          (boolean_literal))))))
+                (match_case
+                  (value_type
+                    (slot_type
+                      (value_type
+                        (slot_type
+                          (value_type)))))
+                  (identifier)
+                  (parameter_list
+                    (parameter
+                      (value_type
+                        (slot_type
+                          (value_type)))
+                      (identifier)))
+                  (block
+                    (statement
+                      (assert_statement
+                        (expression
+                          (boolean_literal))))))))))))))

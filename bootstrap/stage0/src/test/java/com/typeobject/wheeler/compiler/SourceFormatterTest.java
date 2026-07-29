@@ -22,7 +22,7 @@ class SourceFormatterTest {
         + "///\n"
         + "///- Effects: Mutates `value`.\n"
         + "entry void main(){long value=-2;if(value<0){value+=1;}else{value=0;}"
-        + "long done=value;}}";
+        + "long finished=value;}}";
     String expected = """
         //! Summary
         classical class Demo {
@@ -37,7 +37,7 @@ class SourceFormatterTest {
               value = 0;
             }
 
-            long done = value;
+            long finished = value;
           }
         }
         """;
@@ -47,6 +47,23 @@ class SourceFormatterTest {
     assertEquals(expected, formatted);
     assertEquals(formatted, SourceFormatter.format(formatted));
     assertEquals(tokens(compact), tokens(formatted));
+    assertArrayEquals(
+        new WheelerCompiler().compileToBytecode(compact),
+        new WheelerCompiler().compileToBytecode(formatted));
+  }
+
+  @Test
+  void keepsClosedSlotArgumentsTightAndComparisonsSpaced() {
+    String compact = "classical class Presence{Slot<Slot<long>> wrap(){"
+        + "return new Slot<Slot<long>>.Holding(new Slot<long>.Vacant());}"
+        + "entry void main(){assert(1<2);}}";
+
+    String formatted = SourceFormatter.format(compact);
+
+    assertTrue(formatted.contains("Slot<Slot<long>> wrap()"));
+    assertTrue(formatted.contains("new Slot<Slot<long>>.Holding("));
+    assertTrue(formatted.contains("assert(1 < 2);"));
+    assertEquals(formatted, SourceFormatter.format(formatted));
     assertArrayEquals(
         new WheelerCompiler().compileToBytecode(compact),
         new WheelerCompiler().compileToBytecode(formatted));

@@ -3,7 +3,7 @@
 (block_comment) @comment
 
 ["classical" "quantum" "hybrid" "module" "import" "class" "record" "variant" "enum" "const" "case" "match" "theorem" "proves" "inverse" "adjoint" "equivalent" "steps" "state" "qreg" "new" "void"] @keyword
-["long" "boolean" "region" "words" "bytes" "byteview" "longmap" "utf8"] @type.builtin
+["long" "boolean" "region" "words" "bytes" "byteview" "longmap" "utf8" "Done" "Slot"] @type.builtin
 ["entry" "rev" "coherent" "unitary" "reverse" "assert" "if" "else" "while" "for" "limit" "break" "continue" "return"] @keyword.control
 (parameter_ownership) @keyword.modifier
 (visibility_modifier) @keyword.modifier
@@ -13,7 +13,7 @@
 (record_declaration name: (identifier) @type)
 (variant_declaration name: (identifier) @type)
 (enum_declaration name: (identifier) @type)
-(match_case type: (identifier) @type)
+(match_case type: (value_type) @type)
 (type_identifier) @type
 (qualified_type) @type
 (method_declaration name: (identifier) @function.method)
@@ -34,6 +34,7 @@
 (qreg_declaration name: (identifier) @variable.member)
 
 (boolean_literal) @constant.builtin.boolean
+"done" @constant.builtin
 (integer_literal) @number
 (number_literal) @number
 (ascii_literal) @string

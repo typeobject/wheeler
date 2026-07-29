@@ -24,10 +24,11 @@ final class SourceNominalParser {
       String moduleName,
       List<RecordDefinition> records,
       Predicate<String> valueType,
+      List<VariantDefinition> variants,
       List<ArrayDefinition> arrays,
       List<SliceDefinition> slices) {
     String name = parser.expect(Type.IDENTIFIER, "record name").text();
-    if (!nominalName(name) || valueType.test(name)
+    if (!nominalName(name) || name.equals("Slot") || valueType.test(name)
         || records.stream().anyMatch(record -> record.name().equals(name))) {
       SourceParser.fail(start, "duplicate or reserved record type: " + name);
     }
@@ -42,6 +43,7 @@ final class SourceNominalParser {
             "record field type",
             moduleName != null,
             valueType,
+            variants,
             arrays,
             slices);
         requireBoundedAggregateElement(typeStart, type, "record field");
@@ -67,10 +69,11 @@ final class SourceNominalParser {
       boolean exported,
       String moduleName,
       Predicate<String> valueType,
+      List<VariantDefinition> variants,
       List<ArrayDefinition> arrays,
       List<SliceDefinition> slices) {
     String name = parser.expect(Type.IDENTIFIER, "variant name").text();
-    if (valueType.test(name)) {
+    if (name.equals("Slot") || valueType.test(name)) {
       SourceParser.fail(start, "duplicate or reserved variant type: " + name);
     }
     parser.expect(Type.LEFT_BRACE, "'{' in variant declaration");
@@ -93,6 +96,7 @@ final class SourceNominalParser {
               "variant payload type",
               moduleName != null,
               valueType,
+              variants,
               arrays,
               slices);
           requireBoundedAggregateElement(typeStart, type, "variant payload");
