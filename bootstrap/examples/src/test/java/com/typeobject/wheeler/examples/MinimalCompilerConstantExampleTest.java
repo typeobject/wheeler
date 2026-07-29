@@ -52,6 +52,21 @@ class MinimalCompilerConstantExampleTest {
   }
 
   @Test
+  void passesTypedConstantsToScalarHelpers() throws Exception {
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    assertDifferentialHalt(
+        compiler,
+        "classical class SignedConstantArgument { const long INPUT = -42; "
+            + "long identity(long value) { return value; } entry void main() { "
+            + "long result = identity(INPUT); assert(result == -42); } }");
+    assertDifferentialHalt(
+        compiler,
+        "classical class BooleanConstantArgument { const boolean INPUT = true; "
+            + "boolean identity(boolean value) { return value; } entry void main() { "
+            + "boolean result = identity(INPUT); assert(result); } }");
+  }
+
+  @Test
   void keepsIndependentDeclarationOrderOutOfTheArtifact() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
     String prefix = "classical class OrderedConstants { ";
@@ -89,6 +104,16 @@ class MinimalCompilerConstantExampleTest {
         compiler,
         "classical class WrongConstantType { const boolean READY = true; "
             + "entry void main() { long value = READY; } }");
+    assertNativeTrap(
+        compiler,
+        "classical class WrongSignedCallConstant { const boolean INPUT = true; "
+            + "long identity(long value) { return value; } entry void main() { "
+            + "long result = identity(INPUT); } }");
+    assertNativeTrap(
+        compiler,
+        "classical class WrongBooleanCallConstant { const long INPUT = 1; "
+            + "boolean identity(boolean value) { return value; } entry void main() { "
+            + "boolean result = identity(INPUT); } }");
     assertNativeTrap(
         compiler,
         "classical class UnsupportedConstantExpression { const long VALUE = 1 + 1; "

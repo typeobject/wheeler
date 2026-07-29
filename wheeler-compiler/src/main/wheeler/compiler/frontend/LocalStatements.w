@@ -241,6 +241,16 @@ classical class LocalStatements {
       return -1;
     }
 
+    if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+      if (
+        classConstantHasType(source, tokenStarts, tokenLengths, statementStart + 5, true)
+      ) {
+        return STATEMENT_LOCAL_CALL_ARGUMENT_NAMED;
+      }
+
+      return opcode;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_LOCAL_ARGUMENT_NAMED) {
       long callSignedArgument = resolvePriorDeclaration(
         source,
@@ -270,6 +280,12 @@ classical class LocalStatements {
         if (callSignedArgument < 0) {
           return opcode;
         }
+      }
+
+      if (
+        classConstantHasType(source, tokenStarts, tokenLengths, statementStart + 5, false)
+      ) {
+        return STATEMENT_LOCAL_BOOLEAN_CALL_ARGUMENT_NAMED;
       }
 
       return -1;
@@ -886,6 +902,19 @@ classical class LocalStatements {
     }
 
     if (opcode == STATEMENT_RETURN_BOOLEAN_NOT_NAMED) {
+      return -1 < operand;
+    }
+
+    boolean namedCallArgument = opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED;
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_LOCAL_ARGUMENT_NAMED) {
+      namedCallArgument = true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_SIGNED_LOCAL_ARGUMENT_NAMED) {
+      namedCallArgument = true;
+    }
+
+    if (namedCallArgument) {
       return -1 < operand;
     }
 

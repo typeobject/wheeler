@@ -166,7 +166,7 @@ Arithmetic follows VM trap rules. The compiler evaluates the bounded dependency 
 
 Constant expressions may appear in scalar constants, signed state initializers, qreg sizes, static theorem step bounds, and normal local expressions. Private, missing, ambiguous, duplicate, effectful, or type-mismatched references fail before artifact output.
 
-The Wheeler-written recovery compiler implements the first deliberately smaller cut. It accepts up to sixty-four literal `const long` and `const boolean` members before the helper or entry, then substitutes them into matching scalar locals and direct helper returns. It rejects duplicate names, mismatched uses, malformed declarations, unsupported expressions, and a sixty-fifth declaration without publishing output. This limit describes bootstrap reach, not the language. Calling it the full evaluator would only make the dependency graph laugh.
+The Wheeler-written recovery compiler implements the first deliberately smaller cut. It accepts up to sixty-four literal `const long` and `const boolean` members before the helper or entry, then substitutes them into matching scalar locals, direct helper returns, and same-type one-argument helper calls. It rejects duplicate names, mismatched uses, malformed declarations, unsupported expressions, and a sixty-fifth declaration without publishing output. This limit describes bootstrap reach, not the language. Calling it the full evaluator would only make the dependency graph laugh.
 
 A finite enum is canonical shorthand for a payload-free tagged variant:
 

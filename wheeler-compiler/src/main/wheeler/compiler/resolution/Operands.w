@@ -25,6 +25,10 @@ classical class Operands {
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
     boolean ambiguousTypedStatement = opcode == STATEMENT_LOCAL_BOOLEAN_CALL_LOCAL_ARGUMENT_NAMED;
+    if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+      ambiguousTypedStatement = true;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_TWO_LOCALS_NAMED) {
       ambiguousTypedStatement = true;
     }
@@ -140,6 +144,40 @@ classical class Operands {
         );
         if (booleanDeclarationConstant.valid) {
           return booleanDeclarationConstant.value;
+        }
+
+        return -1;
+      }
+    }
+
+    if (sourceOpcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+      if (opcode == STATEMENT_LOCAL_CALL_ARGUMENT_NAMED) {
+        ConstantResolution signedCallConstant = resolveClassConstant(
+          source,
+          tokenStarts,
+          tokenLengths,
+          statementStart + 5,
+          true
+        );
+        if (signedCallConstant.valid) {
+          return signedCallConstant.value;
+        }
+
+        return -1;
+      }
+    }
+
+    if (sourceOpcode == STATEMENT_LOCAL_BOOLEAN_CALL_LOCAL_ARGUMENT_NAMED) {
+      if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_ARGUMENT_NAMED) {
+        ConstantResolution booleanCallConstant = resolveClassConstant(
+          source,
+          tokenStarts,
+          tokenLengths,
+          statementStart + 5,
+          false
+        );
+        if (booleanCallConstant.valid) {
+          return booleanCallConstant.value;
         }
 
         return -1;
