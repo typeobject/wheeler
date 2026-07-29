@@ -14,6 +14,7 @@ targets:
       - "src/main/wheeler/compiler/Driver.w"
       - "src/main/wheeler/compiler/GraphFour.w"
       - "src/main/wheeler/compiler/GraphFourBranches.w"
+      - "src/main/wheeler/compiler/GraphFourDag.w"
       - "src/main/wheeler/compiler/GraphFourMixed.w"
       - "src/main/wheeler/compiler/GraphFourNested.w"
       - "src/main/wheeler/compiler/Graphs.w"

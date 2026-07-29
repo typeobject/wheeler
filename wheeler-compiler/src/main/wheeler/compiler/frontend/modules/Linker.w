@@ -5,6 +5,7 @@ module wheeler.compiler.module_linker;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.constant_declarations;
 import wheeler.compiler.module_headers;
+import wheeler.compiler.shared_declarations;
 import wheeler.compiler.tokens;
 import wheeler.lexer.scanner;
 
@@ -404,7 +405,8 @@ classical class ModuleLinker {
     borrow utf8 rootSource,
     long expectedImportCount,
     boolean allowResolvedImports,
-    boolean privatizeExports
+    boolean privatizeExports,
+    boolean deduplicateSharedPrefix
   ) {
     region scratch = new region(/* bytes= */ 50000, /* allocations= */ 8);
     words importedKinds = allocate(scratch, MAX_COMPILER_TOKENS);
@@ -497,6 +499,30 @@ classical class ModuleLinker {
                     firstDeclaration,
                     importedCount
                   );
+                  if (deduplicateSharedPrefix) {
+                    long rootFirstDeclaration = rootBody + 4;
+                    long rootMemberStart = rootCount - 1;
+                    long sharedEnd = sharedPrivatePrefixEnd(
+                      importedSource,
+                      importedKinds,
+                      importedStarts,
+                      importedLengths,
+                      firstDeclaration,
+                      memberStart,
+                      rootSource,
+                      rootKinds,
+                      rootStarts,
+                      rootLengths,
+                      rootFirstDeclaration,
+                      rootMemberStart
+                    );
+                    if (-1 < sharedEnd) {
+                      firstDeclaration = sharedEnd;
+                    } else {
+                      firstDeclaration = memberStart;
+                    }
+                  }
+
                   if (firstDeclaration < memberStart) {
                     if (
                       punctuationAt(
@@ -601,6 +627,7 @@ classical class ModuleLinker {
       rootSource,
       expectedImportCount,
       false,
+      false,
       false
     );
   }
@@ -611,7 +638,14 @@ classical class ModuleLinker {
     borrow utf8 rootSource,
     long expectedImportCount
   ) {
-    return planConstantImportMode(importedSource, rootSource, expectedImportCount, false, true);
+    return planConstantImportMode(
+      importedSource,
+      rootSource,
+      expectedImportCount,
+      false,
+      true,
+      false
+    );
   }
 
   /// Plans one resolved dependency whose exports become private in its importer.
@@ -620,7 +654,30 @@ classical class ModuleLinker {
     borrow utf8 rootSource,
     long expectedImportCount
   ) {
-    return planConstantImportMode(importedSource, rootSource, expectedImportCount, true, true);
+    return planConstantImportMode(
+      importedSource,
+      rootSource,
+      expectedImportCount,
+      true,
+      true,
+      false
+    );
+  }
+
+  /// Plans one shared dependency after dropping an identical private declaration prefix.
+  public LinkPlan planSharedResolvedConstantImport(
+    borrow utf8 importedSource,
+    borrow utf8 rootSource,
+    long expectedImportCount
+  ) {
+    return planConstantImportMode(
+      importedSource,
+      rootSource,
+      expectedImportCount,
+      true,
+      true,
+      true
+    );
   }
 
   /// Plans one module after every import in its header has been resolved.
@@ -629,7 +686,14 @@ classical class ModuleLinker {
     borrow utf8 rootSource,
     long expectedImportCount
   ) {
-    return planConstantImportMode(importedSource, rootSource, expectedImportCount, true, false);
+    return planConstantImportMode(
+      importedSource,
+      rootSource,
+      expectedImportCount,
+      true,
+      false,
+      false
+    );
   }
 
   private long copyAscii(

@@ -4,6 +4,7 @@ module wheeler.compiler.compiler_graph_four;
 
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.compiler_graph_four_branches;
+import wheeler.compiler.compiler_graph_four_dag;
 import wheeler.compiler.compiler_graph_four_mixed;
 import wheeler.compiler.compiler_graph_four_nested;
 import wheeler.compiler.module_linker;
@@ -343,7 +344,7 @@ classical class CompilerGraphFour {
     );
   }
 
-  /// Compiles one root with a supported four-module constant tree.
+  /// Compiles one root with a supported four-module constant graph.
   public FourGraphCompilation compileFourConstantGraph(
     borrow utf8 firstImportedSource,
     borrow utf8 secondImportedSource,
@@ -352,6 +353,18 @@ classical class CompilerGraphFour {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
+    FourDagCompilation diamond = compileFourConstantDiamond(
+      firstImportedSource,
+      secondImportedSource,
+      thirdImportedSource,
+      fourthImportedSource,
+      rootSource,
+      output
+    );
+    if (0 < diamond.length) {
+      return new FourGraphCompilation(diamond.length, diamond.codeStart);
+    }
+
     FourGraphCompilation chain = compileFourChainFromPairIfOrdered(
       firstImportedSource,
       secondImportedSource,

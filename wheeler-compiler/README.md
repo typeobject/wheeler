@@ -23,6 +23,7 @@ The package keeps responsibilities narrow:
 - `compiler/Graphs.w` resolves one- through three-module graphs before invoking the core.
 - `compiler/GraphFour.w` owns four-module direct, chain, and fork forms.
 - `compiler/GraphFourBranches.w` owns root-heavy short chains.
+- `compiler/GraphFourDag.w` owns shared-dependency four-module DAGs.
 - `compiler/GraphFourMixed.w` owns transitive chains beside direct root imports.
 - `compiler/GraphFourNested.w` owns the two nested four-module trees.
 - `compiler/Driver.w` keeps one small stable API over the graph compilers and core.
@@ -40,7 +41,7 @@ The header parser validates exact dotted names and rejects malformed, duplicate,
 or excess imports before publication. `compileMinimalWithConstantImport`,
 `compileMinimalWithConstantImports`, `compileMinimalWithThreeConstantImports`, and
 `compileMinimalWithFourConstantImports` link every rooted tree topology over one through
-four imported scalar-constant modules. A leaf export becomes private inside its dependent, so a root cannot acquire
+four imported scalar-constant modules plus one shared-dependency diamond. A leaf export becomes private inside its dependent, so a root cannot acquire
 transitive access by spelling the leaf name loudly. Executable imported
 members, mismatched module names, wider graphs, and more than four root imports fail
 closed. General symbol resolution remains future work. Entry and helper bodies
@@ -70,8 +71,10 @@ may mix constants with prior locals. Helper parameters and locals cannot reuse c
 Constants create no global, initializer, lookup, or declaration-order artifact noise. The
 native header path accepts direct import declarations. The linker resolves bounded public
 scalar constants through unqualified or canonical owner-qualified uses and preserves stage-0
-artifact bytes. It covers every rooted tree topology over one through four imports while
-preventing intermediate exports from reaching the root. Root collisions with
+artifact bytes. It covers every rooted tree topology over one through four imports and one
+shared-dependency diamond while preventing intermediate exports from reaching the root.
+Repeated dependency declarations are deduplicated only when their private token sequences
+match exactly. Sharing a name and a hopeful expression does not count. Root collisions with
 imported private names, colliding exports, wider graphs,
 and general multi-file linking remain stage-0 work until native differential artifacts pin
 them down.
