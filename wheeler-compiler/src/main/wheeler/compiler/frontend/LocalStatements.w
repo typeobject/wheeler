@@ -287,8 +287,22 @@ classical class LocalStatements {
       return -1;
     }
 
-    if (returnBooleanComparisonStatement(opcode)) {
-      long left = resolvePriorDeclaration(
+    boolean ambiguousReturnPair = opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED;
+    if (opcode == STATEMENT_RETURN_BOOLEAN_NE_LOCAL_NAMED) {
+      ambiguousReturnPair = true;
+    }
+
+    if (ambiguousReturnPair) {
+      long returnPairSignedLeft = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 1,
+        true
+      );
+      long returnPairBooleanLeft = resolvePriorDeclaration(
         source,
         tokenStarts,
         tokenLengths,
@@ -297,26 +311,82 @@ classical class LocalStatements {
         statementStart + 1,
         false
       );
-      if (left < 0) {
+      long returnPairSignedRight = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 4,
+        true
+      );
+      long returnPairBooleanRight = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 4,
+        false
+      );
+      if (-1 < returnPairSignedLeft) {
+        if (returnPairBooleanLeft < 0) {
+          if (-1 < returnPairSignedRight) {
+            if (returnPairBooleanRight < 0) {
+              if (opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED) {
+                return STATEMENT_RETURN_SIGNED_EQ_LOCAL_NAMED;
+              }
+
+              return STATEMENT_RETURN_SIGNED_NE_LOCAL_NAMED;
+            }
+          }
+        }
+      }
+
+      if (-1 < returnPairBooleanLeft) {
+        if (returnPairSignedLeft < 0) {
+          if (-1 < returnPairBooleanRight) {
+            if (returnPairSignedRight < 0) {
+              return opcode;
+            }
+          }
+        }
+      }
+
+      return -1;
+    }
+
+    if (returnComparisonStatement(opcode)) {
+      boolean signedComparison = returnComparisonSigned(opcode);
+      long comparisonLeft = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 1,
+        signedComparison
+      );
+      if (comparisonLeft < 0) {
         return -1;
       }
 
-      boolean localComparison = opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED;
-      if (opcode == STATEMENT_RETURN_BOOLEAN_NE_LOCAL_NAMED) {
-        localComparison = true;
-      }
+      if (returnComparisonLocalRight(opcode)) {
+        long comparisonRightToken = statementStart + 4;
+        if (returnSignedLessThanStatement(opcode)) {
+          comparisonRightToken -= 1;
+        }
 
-      if (localComparison) {
-        long right = resolvePriorDeclaration(
+        long comparisonRight = resolvePriorDeclaration(
           source,
           tokenStarts,
           tokenLengths,
           previousStarts,
           previousCount,
-          statementStart + 4,
-          false
+          comparisonRightToken,
+          signedComparison
         );
-        if (right < 0) {
+        if (comparisonRight < 0) {
           return -1;
         }
       }

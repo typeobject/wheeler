@@ -121,6 +121,38 @@ class MinimalCompilerResultExampleTest {
             + "boolean second = different(41, right); "
             + "boolean locals = different(left, right); "
             + "assert(literals); assert(first); assert(second); assert(locals); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedParameterDirectEquality { "
+            + "boolean answer(long value) { return value == 42; } "
+            + "entry void main() { boolean result = answer(42); assert(result); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedParameterDirectInequality { "
+            + "boolean different(long value) { return value != 42; } "
+            + "entry void main() { boolean result = different(41); assert(result); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedParameterDirectLessThan { "
+            + "boolean negative(long value) { return value < 0; } "
+            + "entry void main() { boolean result = negative(-42); assert(result); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedPairDirectComparisons { "
+            + "boolean ordered(long left, long right) { return left < right; } "
+            + "entry void main() { long left = 41; long right = 42; "
+            + "boolean literals = ordered(41, 42); "
+            + "boolean locals = ordered(left, right); assert(literals); assert(locals); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedPairDirectEquality { "
+            + "boolean same(long left, long right) { return left == right; } "
+            + "entry void main() { boolean result = same(42, 42); assert(result); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedPairDirectInequality { "
+            + "boolean different(long left, long right) { return left != right; } "
+            + "entry void main() { boolean result = different(41, 42); assert(result); } }");
 
     assertDifferentialHalt(
         writerProgram,

@@ -14,7 +14,7 @@ classical class HelperPrograms {
       return true;
     }
 
-    if (returnBooleanComparisonStatement(opcode)) {
+    if (returnComparisonStatement(opcode)) {
       return true;
     }
 
@@ -157,7 +157,7 @@ classical class HelperPrograms {
         supportedBooleanResult = true;
       }
 
-      if (returnBooleanComparisonStatement(booleanResultOpcode)) {
+      if (returnComparisonStatement(booleanResultOpcode)) {
         supportedBooleanResult = true;
       }
 

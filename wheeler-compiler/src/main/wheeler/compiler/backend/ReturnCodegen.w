@@ -51,29 +51,29 @@ classical class ReturnCodegen {
       return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
     }
 
-    if (returnBooleanComparisonStatement(opcode)) {
+    if (returnComparisonStatement(opcode)) {
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, operand, U64);
       long rightOpcode = OPCODE_LOCAL_CONST;
-      boolean localRight = opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED;
-      if (opcode == STATEMENT_RETURN_BOOLEAN_NE_LOCAL_NAMED) {
-        localRight = true;
-      }
-
-      if (localRight) {
+      if (returnComparisonLocalRight(opcode)) {
         rightOpcode = OPCODE_LOCAL_MOVE;
       }
 
       cursor = writeInstructionHeader(output, cursor, rightOpcode, FORM_BINARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
       cursor = writeReturnScalarOperand(output, cursor, rightOpcode, secondaryOperand);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_EQ, FORM_TERNARY);
+      long comparisonOpcode = OPCODE_LOCAL_EQ;
+      if (returnSignedLessThanStatement(opcode)) {
+        comparisonOpcode = OPCODE_LOCAL_LT;
+      }
+
+      cursor = writeInstructionHeader(output, cursor, comparisonOpcode, FORM_TERNARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
       long comparisonResult = localBase + 2;
-      if (returnBooleanInequalityStatement(opcode)) {
+      if (returnInequalityStatement(opcode)) {
         cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
         cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
         cursor = writeSignedLittleEndian(output, cursor, /* value= */ 1, U64);

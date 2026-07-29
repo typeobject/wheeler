@@ -369,6 +369,18 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_BOOLEAN_CALL_SIGNED_TWO_SECOND_LOCAL_NAMED = 870;
   /// Names a Boolean-result helper call with two prior signed local arguments.
   public const long STATEMENT_LOCAL_BOOLEAN_CALL_SIGNED_TWO_LOCALS_NAMED = 871;
+  /// Names a signed equality return with a literal right operand.
+  public const long STATEMENT_RETURN_SIGNED_EQ_LITERAL_NAMED = 872;
+  /// Names a signed equality return with a local right operand.
+  public const long STATEMENT_RETURN_SIGNED_EQ_LOCAL_NAMED = 873;
+  /// Names a signed inequality return with a literal right operand.
+  public const long STATEMENT_RETURN_SIGNED_NE_LITERAL_NAMED = 874;
+  /// Names a signed inequality return with a local right operand.
+  public const long STATEMENT_RETURN_SIGNED_NE_LOCAL_NAMED = 875;
+  /// Names a signed less-than return with a literal right operand.
+  public const long STATEMENT_RETURN_SIGNED_LT_LITERAL_NAMED = 876;
+  /// Names a signed less-than return with a local right operand.
+  public const long STATEMENT_RETURN_SIGNED_LT_LOCAL_NAMED = 877;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.

@@ -269,7 +269,19 @@ classical class LocalOpcodes {
       return 3;
     }
 
+    if (returnSignedEqualityStatement(opcode)) {
+      return 3;
+    }
+
+    if (returnSignedLessThanStatement(opcode)) {
+      return 3;
+    }
+
     if (returnBooleanInequalityStatement(opcode)) {
+      return 5;
+    }
+
+    if (returnSignedInequalityStatement(opcode)) {
       return 5;
     }
 
@@ -603,7 +615,19 @@ classical class LocalOpcodes {
       return 96;
     }
 
+    if (returnSignedEqualityStatement(opcode)) {
+      return 96;
+    }
+
+    if (returnSignedLessThanStatement(opcode)) {
+      return 96;
+    }
+
     if (returnBooleanInequalityStatement(opcode)) {
+      return 152;
+    }
+
+    if (returnSignedInequalityStatement(opcode)) {
       return 152;
     }
 

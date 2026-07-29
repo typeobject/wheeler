@@ -147,17 +147,29 @@ classical class Structure {
     return -1;
   }
 
-  private long booleanReturnComparisonWidth(
+  private long returnComparisonWidth(
     borrow utf8 source,
     borrow mut words tokenKinds,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
     long statementStart,
-    long firstOperator,
-    boolean literalRight
+    long statementKind
   ) {
     if (tokenKinds[statementStart + 1] == 1) {} else {
       return -1;
+    }
+
+    long firstOperator = PUNCTUATION_ASSIGN;
+    if (returnBooleanInequalityStatement(statementKind)) {
+      firstOperator = PUNCTUATION_BANG;
+    }
+
+    if (returnSignedInequalityStatement(statementKind)) {
+      firstOperator = PUNCTUATION_BANG;
+    }
+
+    if (returnSignedLessThanStatement(statementKind)) {
+      firstOperator = PUNCTUATION_LESS_THAN;
     }
 
     if (
@@ -166,28 +178,46 @@ classical class Structure {
       return -1;
     }
 
+    long rightToken = statementStart + 4;
+    if (returnSignedLessThanStatement(statementKind)) {
+      rightToken -= 1;
+    } else {
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, statementStart + 3, PUNCTUATION_ASSIGN)
+          == false
+      ) {
+        return -1;
+      }
+    }
+
+    long rightWidth = 1;
+    if (returnComparisonLocalRight(statementKind)) {
+      if (tokenKinds[rightToken] == 1) {} else {
+        return -1;
+      }
+    } else {
+      if (returnComparisonSigned(statementKind)) {
+        rightWidth = signedNumberWidth(source, tokenKinds, tokenStarts, rightToken);
+        if (rightWidth < 1) {
+          return -1;
+        }
+
+        if (signedNumberValid(source, tokenStarts, tokenLengths, rightToken) == false) {
+          return -1;
+        }
+      } else {
+        long rightHash = tokenHash(source, tokenStarts, tokenLengths, rightToken);
+        if (booleanTokenHash(rightHash) == false) {
+          return -1;
+        }
+      }
+    }
+
+    long semicolonToken = rightToken + rightWidth;
     if (
-      punctuationAt(source, tokenKinds, tokenStarts, statementStart + 3, PUNCTUATION_ASSIGN)
-        == false
+      punctuationAt(source, tokenKinds, tokenStarts, semicolonToken, PUNCTUATION_SEMICOLON)
     ) {
-      return -1;
-    }
-
-    boolean rightValid = tokenKinds[statementStart + 4] == 1;
-    if (literalRight) {
-      rightValid = booleanTokenHash(
-        tokenHash(source, tokenStarts, tokenLengths, statementStart + 4)
-      );
-    }
-
-    if (rightValid == false) {
-      return -1;
-    }
-
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, statementStart + 5, PUNCTUATION_SEMICOLON)
-    ) {
-      return 6;
+      return semicolonToken - statementStart + 1;
     }
 
     return -1;
@@ -246,25 +276,14 @@ classical class Structure {
       return -1;
     }
 
-    if (returnBooleanComparisonStatement(statementKind)) {
-      long comparisonOperator = PUNCTUATION_ASSIGN;
-      boolean comparisonLiteral = statementKind == STATEMENT_RETURN_BOOLEAN_EQ_LITERAL_NAMED;
-      if (statementKind == STATEMENT_RETURN_BOOLEAN_NE_LITERAL_NAMED) {
-        comparisonLiteral = true;
-      }
-
-      if (returnBooleanInequalityStatement(statementKind)) {
-        comparisonOperator = PUNCTUATION_BANG;
-      }
-
-      return booleanReturnComparisonWidth(
+    if (returnComparisonStatement(statementKind)) {
+      return returnComparisonWidth(
         source,
         tokenKinds,
         tokenStarts,
         tokenLengths,
         statementStart,
-        comparisonOperator,
-        comparisonLiteral
+        statementKind
       );
     }
 

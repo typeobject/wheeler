@@ -20,12 +20,20 @@ classical class Operands {
     long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
-    boolean ambiguousBooleanCall = opcode == STATEMENT_LOCAL_BOOLEAN_CALL_LOCAL_ARGUMENT_NAMED;
+    boolean ambiguousTypedStatement = opcode == STATEMENT_LOCAL_BOOLEAN_CALL_LOCAL_ARGUMENT_NAMED;
     if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_TWO_LOCALS_NAMED) {
-      ambiguousBooleanCall = true;
+      ambiguousTypedStatement = true;
     }
 
-    if (ambiguousBooleanCall) {
+    if (opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED) {
+      ambiguousTypedStatement = true;
+    }
+
+    if (opcode == STATEMENT_RETURN_BOOLEAN_NE_LOCAL_NAMED) {
+      ambiguousTypedStatement = true;
+    }
+
+    if (ambiguousTypedStatement) {
       return sequenceStatementOpcode(
         source,
         tokenStarts,
@@ -102,7 +110,7 @@ classical class Operands {
       );
     }
 
-    if (returnBooleanComparisonStatement(opcode)) {
+    if (returnComparisonStatement(opcode)) {
       return resolvePriorDeclaration(
         source,
         tokenStarts,
@@ -110,7 +118,7 @@ classical class Operands {
         previousStarts,
         previousCount,
         statementStart + 1,
-        false
+        returnComparisonSigned(opcode)
       );
     }
 
@@ -439,25 +447,29 @@ classical class Operands {
       previousStarts,
       previousCount
     );
-    if (returnBooleanComparisonStatement(opcode)) {
-      boolean localReturnComparison = opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED;
-      if (opcode == STATEMENT_RETURN_BOOLEAN_NE_LOCAL_NAMED) {
-        localReturnComparison = true;
+    if (returnComparisonStatement(opcode)) {
+      long returnComparisonRight = statementStart + 4;
+      if (returnSignedLessThanStatement(opcode)) {
+        returnComparisonRight -= 1;
       }
 
-      if (localReturnComparison) {
+      if (returnComparisonLocalRight(opcode)) {
         return resolvePriorDeclaration(
           source,
           tokenStarts,
           tokenLengths,
           previousStarts,
           previousCount,
-          statementStart + 4,
-          false
+          returnComparisonRight,
+          returnComparisonSigned(opcode)
         );
       }
 
-      long equalityLiteral = tokenHash(source, tokenStarts, tokenLengths, statementStart + 4);
+      if (returnComparisonSigned(opcode)) {
+        return parsedSignedNumber(source, tokenStarts, tokenLengths, returnComparisonRight);
+      }
+
+      long equalityLiteral = tokenHash(source, tokenStarts, tokenLengths, returnComparisonRight);
       if (equalityLiteral == TOKEN_TRUE) {
         return 1;
       }

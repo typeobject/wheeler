@@ -29,7 +29,7 @@ classical class StatementForms {
       return true;
     }
 
-    if (returnBooleanComparisonStatement(opcode)) {
+    if (returnComparisonStatement(opcode)) {
       return true;
     }
 
@@ -119,6 +119,93 @@ classical class StatementForms {
     return returnBooleanInequalityStatement(opcode);
   }
 
+  /// Checks for a direct signed equality helper return.
+  public boolean returnSignedEqualityStatement(long opcode) {
+    if (opcode == STATEMENT_RETURN_SIGNED_EQ_LITERAL_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_RETURN_SIGNED_EQ_LOCAL_NAMED;
+  }
+
+  /// Checks for a direct signed inequality helper return.
+  public boolean returnSignedInequalityStatement(long opcode) {
+    if (opcode == STATEMENT_RETURN_SIGNED_NE_LITERAL_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_RETURN_SIGNED_NE_LOCAL_NAMED;
+  }
+
+  /// Checks for a direct signed less-than helper return.
+  public boolean returnSignedLessThanStatement(long opcode) {
+    if (opcode == STATEMENT_RETURN_SIGNED_LT_LITERAL_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_RETURN_SIGNED_LT_LOCAL_NAMED;
+  }
+
+  /// Checks for any direct typed comparison helper return.
+  public boolean returnComparisonStatement(long opcode) {
+    if (returnBooleanComparisonStatement(opcode)) {
+      return true;
+    }
+
+    if (returnSignedEqualityStatement(opcode)) {
+      return true;
+    }
+
+    if (returnSignedInequalityStatement(opcode)) {
+      return true;
+    }
+
+    return returnSignedLessThanStatement(opcode);
+  }
+
+  /// Checks for any direct typed inequality helper return.
+  public boolean returnInequalityStatement(long opcode) {
+    if (returnBooleanInequalityStatement(opcode)) {
+      return true;
+    }
+
+    return returnSignedInequalityStatement(opcode);
+  }
+
+  /// Checks whether one direct comparison receives signed values.
+  public boolean returnComparisonSigned(long opcode) {
+    if (returnSignedEqualityStatement(opcode)) {
+      return true;
+    }
+
+    if (returnSignedInequalityStatement(opcode)) {
+      return true;
+    }
+
+    return returnSignedLessThanStatement(opcode);
+  }
+
+  /// Checks whether one direct comparison reads a prior right local.
+  public boolean returnComparisonLocalRight(long opcode) {
+    if (opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_RETURN_BOOLEAN_NE_LOCAL_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_RETURN_SIGNED_EQ_LOCAL_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_RETURN_SIGNED_NE_LOCAL_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_RETURN_SIGNED_LT_LOCAL_NAMED;
+  }
+
   /// Checks the closed pair of Boolean literal token hashes.
   public boolean booleanTokenHash(long hash) {
     if (hash == TOKEN_TRUE) {
@@ -205,7 +292,12 @@ classical class StatementForms {
               return STATEMENT_RETURN_BOOLEAN_EQ_LITERAL_NAMED;
             }
 
-            return STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED;
+            long returnEqualityRight = utf8Scalar(source, tokenStarts[statementStart + 4]);
+            if (identifierStart(returnEqualityRight)) {
+              return STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED;
+            }
+
+            return STATEMENT_RETURN_SIGNED_EQ_LITERAL_NAMED;
           }
         }
 
@@ -222,8 +314,21 @@ classical class StatementForms {
               return STATEMENT_RETURN_BOOLEAN_NE_LITERAL_NAMED;
             }
 
-            return STATEMENT_RETURN_BOOLEAN_NE_LOCAL_NAMED;
+            long returnInequalityRight = utf8Scalar(source, tokenStarts[statementStart + 4]);
+            if (identifierStart(returnInequalityRight)) {
+              return STATEMENT_RETURN_BOOLEAN_NE_LOCAL_NAMED;
+            }
+
+            return STATEMENT_RETURN_SIGNED_NE_LITERAL_NAMED;
           }
+        }
+
+        if (returnOperator == PUNCTUATION_LESS_THAN) {
+          if (returnRightNamed) {
+            return STATEMENT_RETURN_SIGNED_LT_LOCAL_NAMED;
+          }
+
+          return STATEMENT_RETURN_SIGNED_LT_LITERAL_NAMED;
         }
 
         if (returnOperator == PUNCTUATION_PLUS) {

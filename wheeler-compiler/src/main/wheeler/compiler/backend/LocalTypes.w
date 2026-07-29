@@ -79,17 +79,18 @@ classical class LocalTypes {
       return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
     }
 
-    if (returnBooleanEqualityStatement(opcode)) {
-      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
-      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
-      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
-    }
+    if (returnComparisonStatement(opcode)) {
+      long returnSourceType = TYPE_BOOLEAN;
+      if (returnComparisonSigned(opcode)) {
+        returnSourceType = TYPE_SIGNED;
+      }
 
-    if (returnBooleanInequalityStatement(opcode)) {
-      long returnComparisonLocal = 0;
-      while (returnComparisonLocal < 5) limit MAX_STATEMENT_LOCALS {
+      cursor = writeUnsignedLittleEndian(output, cursor, returnSourceType, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, returnSourceType, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+      if (returnInequalityStatement(opcode)) {
         cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
-        returnComparisonLocal += 1;
+        cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
       }
 
       return cursor;

@@ -591,6 +591,24 @@ class MinimalCompilerNegativeExampleTest {
         512);
     assertTrapWithoutOutput(signedBooleanHelperEquality, 512);
 
+    VirtualMachine booleanSignedHelperLessThan = new VirtualMachine(
+        writerProgram,
+        ("classical class BooleanSignedHelperLessThan { "
+                + "boolean invalid(boolean value) { return value < 1; } "
+                + "entry void main() { boolean result = invalid(false); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertTrapWithoutOutput(booleanSignedHelperLessThan, 512);
+
+    VirtualMachine unknownSignedHelperComparison = new VirtualMachine(
+        writerProgram,
+        ("classical class UnknownSignedHelperComparison { "
+                + "boolean invalid(long value) { return value < missing; } "
+                + "entry void main() { boolean result = invalid(1); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertTrapWithoutOutput(unknownSignedHelperComparison, 512);
+
     VirtualMachine unknownBooleanHelperNot = new VirtualMachine(
         writerProgram,
         ("classical class UnknownBooleanHelperNot { "
