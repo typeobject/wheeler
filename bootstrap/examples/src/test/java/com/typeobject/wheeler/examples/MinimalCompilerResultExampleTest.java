@@ -222,6 +222,21 @@ class MinimalCompilerResultExampleTest {
         "classical class SignedParameterOverflow { "
             + "long increment(long value) { return value + 1; } "
             + "entry void main() { long answer = increment(9223372036854775807); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedParameterXorLiteral { "
+            + "long mask(long value) { return value ^ 3; } "
+            + "entry void main() { long answer = mask(41); assert(answer == 42); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedParameterXorItself { "
+            + "long clear(long value) { return value ^ value; } "
+            + "entry void main() { long answer = clear(42); assert(answer == 0); } }");
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class SignedParameterXorPair { "
+            + "long xor(long left, long right) { return left ^ right; } "
+            + "entry void main() { long answer = xor(40, 2); assert(answer == 42); } }");
   }
 
   private static void assertDifferentialHalt(Program writerProgram, String source) {

@@ -38,6 +38,10 @@ classical class StatementForms {
       return true;
     }
 
+    if (returnLocalBinaryStatement(opcode)) {
+      return true;
+    }
+
     if (returnLocalPairStatement(opcode)) {
       return true;
     }
@@ -51,11 +55,13 @@ classical class StatementForms {
 
   /// Checks for a signed helper return with a literal right operand.
   public boolean returnLocalBinaryStatement(long opcode) {
-    if (opcode < STATEMENT_RETURN_LOCAL_ADD_NAMED) {
-      return false;
+    if (STATEMENT_RETURN_LOCAL_ADD_NAMED - 1 < opcode) {
+      if (opcode < STATEMENT_RETURN_LOCAL_MOD_NAMED + 1) {
+        return true;
+      }
     }
 
-    return opcode < STATEMENT_RETURN_LOCAL_MOD_NAMED + 1;
+    return opcode == STATEMENT_RETURN_LOCAL_XOR_NAMED;
   }
 
   /// Checks for a signed or Boolean one-argument helper call.
@@ -151,13 +157,15 @@ classical class StatementForms {
     return opcode == STATEMENT_LOCAL_BOOLEAN_CALL_TWO_LOCALS_NAMED;
   }
 
-  /// Checks for a signed helper return using its parameter twice.
+  /// Checks for a signed helper return using two parameter locals.
   public boolean returnLocalPairStatement(long opcode) {
-    if (opcode < STATEMENT_RETURN_LOCAL_ADD_LOCAL_NAMED) {
-      return false;
+    if (STATEMENT_RETURN_LOCAL_ADD_LOCAL_NAMED - 1 < opcode) {
+      if (opcode < STATEMENT_RETURN_LOCAL_MOD_LOCAL_NAMED + 1) {
+        return true;
+      }
     }
 
-    return opcode < STATEMENT_RETURN_LOCAL_MOD_LOCAL_NAMED + 1;
+    return opcode == STATEMENT_RETURN_LOCAL_XOR_LOCAL_NAMED;
   }
 
   /// Checks the closed pair of Boolean literal token hashes.
@@ -267,6 +275,14 @@ classical class StatementForms {
           }
 
           return STATEMENT_RETURN_LOCAL_MOD_NAMED;
+        }
+
+        if (returnOperator == PUNCTUATION_CARET) {
+          if (returnRightNamed) {
+            return STATEMENT_RETURN_LOCAL_XOR_LOCAL_NAMED;
+          }
+
+          return STATEMENT_RETURN_LOCAL_XOR_NAMED;
         }
 
         return STATEMENT_RETURN_LOCAL_NAMED;

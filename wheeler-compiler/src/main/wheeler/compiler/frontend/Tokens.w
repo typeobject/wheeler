@@ -321,6 +321,10 @@ classical class Tokens {
   public const long STATEMENT_LOCAL_BOOLEAN_CALL_TWO_SECOND_LOCAL_NAMED = 851;
   /// Names a Boolean result call with two prior-local arguments.
   public const long STATEMENT_LOCAL_BOOLEAN_CALL_TWO_LOCALS_NAMED = 852;
+  /// Names a signed helper return XORing its parameter with a literal.
+  public const long STATEMENT_RETURN_LOCAL_XOR_NAMED = 853;
+  /// Names a signed helper return XORing two parameters.
+  public const long STATEMENT_RETURN_LOCAL_XOR_LOCAL_NAMED = 854;
   /// Names the parser IR code for checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Names the parser IR code for checked global subtraction.

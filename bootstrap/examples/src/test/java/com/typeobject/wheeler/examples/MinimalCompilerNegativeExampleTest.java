@@ -550,6 +550,16 @@ class MinimalCompilerNegativeExampleTest {
     assertThrows(VmTrap.class, unresolvedBooleanNot::run);
     assertArrayEquals(new byte[512], unresolvedBooleanNot.hostOutput());
 
+    VirtualMachine booleanHelperXor = new VirtualMachine(
+        writerProgram,
+        ("classical class BooleanHelperXor { "
+                + "long mask(long value) { return value ^ true; } "
+                + "entry void main() { long result = mask(1); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        512);
+    assertThrows(VmTrap.class, booleanHelperXor::run);
+    assertArrayEquals(new byte[512], booleanHelperXor.hostOutput());
+
     VirtualMachine unresolvedSignedCopy = new VirtualMachine(
         writerProgram,
         "classical class UnknownSignedCopy { entry void main() { long result = missing; } }"
