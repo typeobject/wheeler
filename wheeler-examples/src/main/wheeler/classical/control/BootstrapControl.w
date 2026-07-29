@@ -5,8 +5,10 @@ classical class BootstrapControl {
   const long EXPECTED_SUM = LOOP_BOUND * (LOOP_BOUND - LOOP_STEP) / 2;
   const long COMPLETE_BRANCH = LOOP_STEP;
   const long INCOMPLETE_BRANCH = COMPLETE_BRANCH + LOOP_STEP;
-  state long sum = 0;
-  state long branch = 0;
+  const long INITIAL_SUM = LOOP_STEP - LOOP_STEP;
+  const long INITIAL_BRANCH = INITIAL_SUM;
+  state long sum = INITIAL_SUM;
+  state long branch = INITIAL_BRANCH;
 
   /// Runs the bounded `BootstrapControl` fixture.
   ///

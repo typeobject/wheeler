@@ -42,12 +42,6 @@ classical class ClassConstants {
     long tokenCount
   ) {
     long assertedName = constantNameToken(source, tokenStarts, tokenLengths, declarationStart);
-    if (4 < firstDeclaration) {
-      if (sameTokenText(source, tokenStarts, tokenLengths, 6, assertedName)) {
-        return true;
-      }
-    }
-
     long prior = firstDeclaration;
     while (prior < declarationStart) limit MAX_CLASS_CONSTANTS {
       if (

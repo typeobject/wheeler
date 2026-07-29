@@ -19,8 +19,14 @@ classical class MutationResolution {
     borrow mut words tokenLengths,
     long statementStart
   ) {
-    if (tokenHash(source, tokenStarts, tokenLengths, 4) == TOKEN_STATE) {
-      return sameTokenText(source, tokenStarts, tokenLengths, 6, statementStart);
+    if (0 < tokenLengths[COMPILER_GLOBAL_NAME_TOKEN]) {
+      return sameTokenText(
+        source,
+        tokenStarts,
+        tokenLengths,
+        COMPILER_GLOBAL_NAME_TOKEN,
+        statementStart
+      );
     }
 
     return false;

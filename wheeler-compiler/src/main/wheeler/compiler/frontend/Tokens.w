@@ -7,6 +7,8 @@ import wheeler.lexer.scanner;
 classical class Tokens {
   /// Caps compiler token metadata before comment compaction.
   public const long MAX_COMPILER_TOKENS = 1024;
+  /// Reserves the unused final token cell for the resolved global name.
+  public const long COMPILER_GLOBAL_NAME_TOKEN = MAX_COMPILER_TOKENS - 1;
   /// Distinguishes Boolean parameter markers from signed parameter markers.
   public const long BOOLEAN_PARAMETER_TOKEN_BIAS = MAX_COMPILER_TOKENS;
 

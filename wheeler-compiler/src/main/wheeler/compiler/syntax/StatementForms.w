@@ -249,8 +249,16 @@ classical class StatementForms {
         return STATEMENT_ASSERT_LOCAL_BOOLEAN;
       }
 
-      if (tokenHash(source, tokenStarts, tokenLengths, 5) == TOKEN_LONG) {
-        if (sameTokenText(source, tokenStarts, tokenLengths, 6, assertExpression)) {
+      if (0 < tokenLengths[COMPILER_GLOBAL_NAME_TOKEN]) {
+        if (
+          sameTokenText(
+            source,
+            tokenStarts,
+            tokenLengths,
+            COMPILER_GLOBAL_NAME_TOKEN,
+            assertExpression
+          )
+        ) {
           return STATEMENT_ASSERT_EQ;
         }
       }

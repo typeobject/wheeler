@@ -18,9 +18,15 @@ classical class LocalResolution {
     long opcode
   ) {
     if (localUpdateSourceStatement(opcode)) {
-      boolean globalUpdate = tokenHash(source, tokenStarts, tokenLengths, 4) == TOKEN_STATE;
+      boolean globalUpdate = 0 < tokenLengths[COMPILER_GLOBAL_NAME_TOKEN];
       if (globalUpdate) {
-        globalUpdate = sameTokenText(source, tokenStarts, tokenLengths, 6, statementStart);
+        globalUpdate = sameTokenText(
+          source,
+          tokenStarts,
+          tokenLengths,
+          COMPILER_GLOBAL_NAME_TOKEN,
+          statementStart
+        );
       }
 
       if (globalUpdate) {

@@ -53,6 +53,34 @@ class MinimalCompilerConstantExampleTest {
   }
 
   @Test
+  void resolvesConstantStateInitializersOnEitherSideOfState() throws Exception {
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    String prefix = "classical class ConstantStateInitializer { ";
+    String body = "entry void main() { value += 0; assert(value == 42); } }";
+    String constantsFirst = prefix + "const long INITIAL = BASE + 2; const long BASE = 40; "
+        + "state long value = INITIAL; " + body;
+    String stateFirst = prefix + "state long value = INITIAL; const long BASE = 40; "
+        + "const long INITIAL = BASE + 2; " + body;
+
+    assertArrayEquals(compileNative(compiler, constantsFirst), compileNative(compiler, stateFirst));
+    assertArrayEquals(
+        new WheelerCompiler().compileToBytecode(constantsFirst),
+        new WheelerCompiler().compileToBytecode(stateFirst));
+    assertDifferentialHalt(compiler, constantsFirst);
+  }
+
+  @Test
+  void resolvesConstantsBeforeStatefulHelpers() throws Exception {
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    assertDifferentialHalt(
+        compiler,
+        "classical class ConstantBeforeStatefulHelper { const long INITIAL = 40 + 2; "
+            + "const long INPUT = INITIAL; state long value = INITIAL; "
+            + "long identity(long input) { return input; } entry void main() { "
+            + "long result = identity(INPUT); assert(value == 42); assert(result == 42); } }");
+  }
+
+  @Test
   void passesTypedConstantsToScalarHelpers() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
     assertDifferentialHalt(
@@ -217,6 +245,18 @@ class MinimalCompilerConstantExampleTest {
         compiler,
         "classical class WrongGlobalAssignmentConstant { state long value = 0; "
             + "const boolean READY = true; entry void main() { value = READY; } }");
+    assertNativeTrap(
+        compiler,
+        "classical class WrongStateInitializerConstant { const boolean READY = true; "
+            + "state long value = READY; entry void main() { } }");
+    assertNativeTrap(
+        compiler,
+        "classical class MissingStateInitializerConstant { state long value = MISSING; "
+            + "entry void main() { } }");
+    assertNativeTrap(
+        compiler,
+        "classical class SplitConstantBlocks { const long FIRST = 1; state long value = FIRST; "
+            + "const long SECOND = 2; entry void main() { } }");
     assertNativeTrap(
         compiler,
         "classical class ConstantLocalCollision { const long VALUE = 1; "

@@ -3,6 +3,7 @@
 module wheeler.compiler.helper_programs;
 
 import wheeler.compiler.call_forms;
+import wheeler.compiler.class_layouts;
 import wheeler.compiler.helper_calls;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
@@ -76,7 +77,7 @@ classical class HelperPrograms {
     borrow utf8 source,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
-    long globalCount,
+    ClassLayout layout,
     long nameToken,
     long helperKind,
     long proofToken,
@@ -90,10 +91,11 @@ classical class HelperPrograms {
   ) {
     SourceRange name = new SourceRange(tokenStarts[2], tokenLengths[2]);
     SourceRange global = new SourceRange(0, 0);
-    long initial = 0;
-    if (globalCount == 1) {
-      global = new SourceRange(tokenStarts[6], tokenLengths[6]);
-      initial = parsedSignedNumber(source, tokenStarts, tokenLengths, 8);
+    if (layout.globalCount == 1) {
+      global = new SourceRange(
+        tokenStarts[layout.globalNameToken],
+        tokenLengths[layout.globalNameToken]
+      );
     }
 
     SourceRange helper = new SourceRange(tokenStarts[nameToken], tokenLengths[nameToken]);
@@ -304,8 +306,8 @@ classical class HelperPrograms {
     MinimalProgram program = new MinimalProgram(
       name,
       global,
-      globalCount,
-      initial,
+      layout.globalCount,
+      layout.initialValue,
       entrySequence.count,
       entrySequence.opcodes,
       entrySequence.operands,

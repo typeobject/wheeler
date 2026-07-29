@@ -224,7 +224,13 @@ classical class Statements {
           }
 
           if (
-            sameTokenText(source, tokenStarts, tokenLengths, 6, statementStart + 2)
+            sameTokenText(
+              source,
+              tokenStarts,
+              tokenLengths,
+              COMPILER_GLOBAL_NAME_TOKEN,
+              statementStart + 2
+            )
           ) {
             acceptedName = true;
           }
@@ -714,7 +720,13 @@ classical class Statements {
     if (tokenKinds[statementStart] == 1) {
       long targetOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
       if (
-        sameTokenText(source, tokenStarts, tokenLengths, 6, statementStart) == false
+        sameTokenText(
+          source,
+          tokenStarts,
+          tokenLengths,
+          COMPILER_GLOBAL_NAME_TOKEN,
+          statementStart
+        ) == false
       ) {
         if (localAssignmentSourceStatement(targetOpcode)) {
           return localAssignmentWidth(
@@ -739,7 +751,15 @@ classical class Statements {
         }
       }
 
-      if (sameTokenText(source, tokenStarts, tokenLengths, 6, statementStart)) {
+      if (
+        sameTokenText(
+          source,
+          tokenStarts,
+          tokenLengths,
+          COMPILER_GLOBAL_NAME_TOKEN,
+          statementStart
+        )
+      ) {
         long opcode = targetOpcode;
         if (opcode == STATEMENT_ASSIGN_LOCAL_NAMED) {
           if (tokenKinds[statementStart + 2] == 1) {

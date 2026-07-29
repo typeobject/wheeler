@@ -4,6 +4,7 @@ module wheeler.compiler.parser;
 
 import wheeler.compiler.body_parser;
 import wheeler.compiler.class_constants;
+import wheeler.compiler.class_layouts;
 import wheeler.compiler.helper_parser;
 import wheeler.compiler.ir;
 import wheeler.compiler.scalar_opcodes;
@@ -16,11 +17,10 @@ import wheeler.compiler.tokens;
 classical class Parser {
 
   private MinimalProgramResult minimalProgramValue(
-    borrow utf8 source,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
     StatementSequence statements,
-    long globalCount
+    ClassLayout layout
   ) {
     if (statements.valid == false) {
       return new MinimalProgramResult.Error(0);
@@ -28,18 +28,19 @@ classical class Parser {
 
     SourceRange name = new SourceRange(tokenStarts[2], tokenLengths[2]);
     SourceRange global = new SourceRange(0, 0);
-    long initial = 0;
-    if (globalCount == 1) {
-      global = new SourceRange(tokenStarts[6], tokenLengths[6]);
-      initial = parsedSignedNumber(source, tokenStarts, tokenLengths, 8);
+    if (layout.globalCount == 1) {
+      global = new SourceRange(
+        tokenStarts[layout.globalNameToken],
+        tokenLengths[layout.globalNameToken]
+      );
     }
 
     SourceRange helper = new SourceRange(0, 0);
     MinimalProgram program = new MinimalProgram(
       name,
       global,
-      globalCount,
-      initial,
+      layout.globalCount,
+      layout.initialValue,
       statements.count,
       statements.opcodes,
       statements.operands,
@@ -57,37 +58,6 @@ classical class Parser {
       0
     );
     return new MinimalProgramResult.Value(program);
-  }
-
-  private long minimalNoGlobalBodyStart(
-    borrow utf8 source,
-    borrow mut words tokenKinds,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    long count
-  ) {
-    long memberStart = minimalNoGlobalMemberStart(source, tokenKinds, tokenStarts, tokenLengths);
-    if (memberStart < 1) {
-      return -1;
-    }
-
-    memberStart = classMemberStart(
-      source,
-      tokenKinds,
-      tokenStarts,
-      tokenLengths,
-      memberStart,
-      count
-    );
-    if (memberStart < 1) {
-      return -1;
-    }
-
-    if (classConstantNameExists(source, tokenStarts, tokenLengths, memberStart + 2)) {
-      return -1;
-    }
-
-    return minimalBodyStart(source, tokenKinds, tokenStarts, tokenLengths, memberStart);
   }
 
   private boolean noGlobalStatementSupported(
@@ -277,20 +247,27 @@ classical class Parser {
     return supported;
   }
 
-  private MinimalProgramResult minimalNoGlobalProgram(
+  private MinimalProgramResult minimalEntryProgram(
     borrow utf8 source,
     borrow mut words tokenKinds,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
     borrow mut words statementStarts,
-    long count
+    long count,
+    ClassLayout layout
   ) {
-    long bodyStart = minimalNoGlobalBodyStart(
+    if (
+      classConstantNameExists(source, tokenStarts, tokenLengths, layout.memberStart + 2)
+    ) {
+      return new MinimalProgramResult.Error(0);
+    }
+
+    long bodyStart = minimalBodyStart(
       source,
       tokenKinds,
       tokenStarts,
       tokenLengths,
-      count
+      layout.memberStart
     );
     if (bodyStart < 1) {
       return new MinimalProgramResult.Error(0);
@@ -314,20 +291,22 @@ classical class Parser {
       return new MinimalProgramResult.Error(0);
     }
 
-    long statement = 0;
-    while (statement < statements.count) limit MAX_MINIMAL_STATEMENTS {
-      if (
-        noGlobalStatementSupported(
-          source,
-          tokenStarts,
-          tokenLengths,
-          statementStarts[statement]
-        ) == false
-      ) {
-        return new MinimalProgramResult.Error(0);
-      }
+    if (layout.globalCount == 0) {
+      long statement = 0;
+      while (statement < statements.count) limit MAX_MINIMAL_STATEMENTS {
+        if (
+          noGlobalStatementSupported(
+            source,
+            tokenStarts,
+            tokenLengths,
+            statementStarts[statement]
+          ) == false
+        ) {
+          return new MinimalProgramResult.Error(0);
+        }
 
-      statement += 1;
+        statement += 1;
+      }
     }
 
     StatementSequence sequence = parseStatementSequence(
@@ -337,7 +316,7 @@ classical class Parser {
       statementStarts,
       statements.count
     );
-    return minimalProgramValue(source, tokenStarts, tokenLengths, sequence, 0);
+    return minimalProgramValue(tokenStarts, tokenLengths, sequence, layout);
   }
 
   private boolean bodyClosesAt(
@@ -366,14 +345,6 @@ classical class Parser {
     return false;
   }
 
-  private boolean minimalStateCountSupported(long count) {
-    if (17 < count) {
-      return count < MAX_COMPILER_TOKENS;
-    }
-
-    return false;
-  }
-
   /// Parses `minimalProgram` from a bounded canonical input.
   public MinimalProgramResult parseMinimalProgram(
     borrow utf8 source,
@@ -385,86 +356,44 @@ classical class Parser {
   ) {
     if (10 < count) {
       if (count < MAX_COMPILER_TOKENS) {
-        MinimalProgramResult noGlobal = minimalNoGlobalProgram(
+        ClassLayout layout = resolveClassLayout(
           source,
           tokenKinds,
           tokenStarts,
           tokenLengths,
-          statementStarts,
           count
         );
-        match (noGlobal) {
-          case MinimalProgramResult.Value(MinimalProgram candidate) {
-            return new MinimalProgramResult.Value(candidate);
-          }
-          case MinimalProgramResult.Error(long noGlobalOffset) {}
-        }
-
-        MinimalProgramResult helper = parseHelperProgram(
-          source,
-          tokenKinds,
-          tokenStarts,
-          tokenLengths,
-          statementStarts,
-          count
-        );
-        match (helper) {
-          case MinimalProgramResult.Value(MinimalProgram helperCandidate) {
-            return new MinimalProgramResult.Value(helperCandidate);
-          }
-          case MinimalProgramResult.Error(long helperOffset) {}
-        }
-      }
-    }
-
-    if (minimalStateCountSupported(count)) {
-      long entryStart = minimalEntryStart(source, tokenKinds, tokenStarts, tokenLengths);
-      if (0 < entryStart) {
-        entryStart = classMemberStart(
-          source,
-          tokenKinds,
-          tokenStarts,
-          tokenLengths,
-          entryStart,
-          count
-        );
-        if (entryStart < 1) {
-          return new MinimalProgramResult.Error(0);
-        }
-
-        if (
-          classConstantNameExists(source, tokenStarts, tokenLengths, entryStart + 2)
-        ) {
-          return new MinimalProgramResult.Error(0);
-        }
-
-        long bodyStart = minimalBodyStart(
-          source,
-          tokenKinds,
-          tokenStarts,
-          tokenLengths,
-          entryStart
-        );
-        if (0 < bodyStart) {
-          BodyScan statements = scanBody(
+        if (layout.valid) {
+          MinimalProgramResult entry = minimalEntryProgram(
             source,
             tokenKinds,
             tokenStarts,
             tokenLengths,
             statementStarts,
-            bodyStart
+            count,
+            layout
           );
-          if (statements.valid) {
-            if (bodyClosesAt(source, tokenKinds, tokenStarts, statements.end, count)) {
-              StatementSequence sequence = parseStatementSequence(
-                source,
-                tokenStarts,
-                tokenLengths,
-                statementStarts,
-                statements.count
-              );
-              return minimalProgramValue(source, tokenStarts, tokenLengths, sequence, 1);
+          match (entry) {
+            case MinimalProgramResult.Value(MinimalProgram candidate) {
+              return new MinimalProgramResult.Value(candidate);
             }
+            case MinimalProgramResult.Error(long entryOffset) {}
+          }
+
+          MinimalProgramResult helper = parseHelperProgram(
+            source,
+            tokenKinds,
+            tokenStarts,
+            tokenLengths,
+            statementStarts,
+            count,
+            layout
+          );
+          match (helper) {
+            case MinimalProgramResult.Value(MinimalProgram helperCandidate) {
+              return new MinimalProgramResult.Value(helperCandidate);
+            }
+            case MinimalProgramResult.Error(long helperOffset) {}
           }
         }
       }

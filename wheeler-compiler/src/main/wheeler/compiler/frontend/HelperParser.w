@@ -4,6 +4,7 @@ module wheeler.compiler.helper_parser;
 
 import wheeler.compiler.body_parser;
 import wheeler.compiler.class_constants;
+import wheeler.compiler.class_layouts;
 import wheeler.compiler.helper_calls;
 import wheeler.compiler.helper_programs;
 import wheeler.compiler.ir;
@@ -20,7 +21,7 @@ classical class HelperParser {
     borrow mut words tokenLengths,
     long count,
     long closeStart,
-    long globalCount,
+    ClassLayout layout,
     long nameToken,
     long helperKind,
     long proofToken,
@@ -63,7 +64,7 @@ classical class HelperParser {
             source,
             tokenStarts,
             tokenLengths,
-            globalCount,
+            layout,
             nameToken,
             helperKind,
             proofToken,
@@ -150,30 +151,10 @@ classical class HelperParser {
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
     borrow mut words statementStarts,
-    long count
+    long count,
+    ClassLayout layout
   ) {
-    long globalCount = 1;
-    long memberStart = minimalEntryStart(source, tokenKinds, tokenStarts, tokenLengths);
-    if (memberStart < 1) {
-      globalCount = 0;
-      memberStart = minimalNoGlobalMemberStart(source, tokenKinds, tokenStarts, tokenLengths);
-      if (memberStart < 1) {
-        return new MinimalProgramResult.Error(0);
-      }
-    }
-
-    memberStart = classMemberStart(
-      source,
-      tokenKinds,
-      tokenStarts,
-      tokenLengths,
-      memberStart,
-      count
-    );
-    if (memberStart < 1) {
-      return new MinimalProgramResult.Error(0);
-    }
-
+    long memberStart = layout.memberStart;
     long helperKind = HELPER_VOID;
     long voidToken = memberStart;
     long visibility = tokenHash(source, tokenStarts, tokenLengths, voidToken);
@@ -548,7 +529,7 @@ classical class HelperParser {
         source,
         tokenStarts,
         tokenLengths,
-        globalCount,
+        layout,
         nameToken,
         helperKind,
         proof.token,
@@ -605,7 +586,7 @@ classical class HelperParser {
         tokenLengths,
         count,
         afterCalls,
-        globalCount,
+        layout,
         nameToken,
         helperKind,
         proof.token,
@@ -659,7 +640,7 @@ classical class HelperParser {
       tokenLengths,
       count,
       reverseEnd + 1,
-      globalCount,
+      layout,
       nameToken,
       helperKind,
       proof.token,

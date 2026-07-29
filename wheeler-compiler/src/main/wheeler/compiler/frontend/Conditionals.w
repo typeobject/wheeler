@@ -96,7 +96,13 @@ classical class Conditionals {
     }
 
     if (
-      sameTokenText(source, tokenStarts, tokenLengths, 6, closeCondition + 2) == false
+      sameTokenText(
+        source,
+        tokenStarts,
+        tokenLengths,
+        COMPILER_GLOBAL_NAME_TOKEN,
+        closeCondition + 2
+      ) == false
     ) {
       return -1;
     }
@@ -235,7 +241,13 @@ classical class Conditionals {
     }
 
     if (
-      sameTokenText(source, tokenStarts, tokenLengths, 6, statementStart + 5 + bodyShift) == false
+      sameTokenText(
+        source,
+        tokenStarts,
+        tokenLengths,
+        COMPILER_GLOBAL_NAME_TOKEN,
+        statementStart + 5 + bodyShift
+      ) == false
     ) {
       return -1;
     }

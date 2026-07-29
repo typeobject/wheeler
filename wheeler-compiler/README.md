@@ -31,8 +31,11 @@ and one entry. Entry and helper bodies admit at most sixty-four statements. The 
 slice covers typed signed and Boolean locals, assertions, assignments, checked scalar
 operations, calls, results, and narrow explicitly limited loops.
 
-A class may place at most sixty-four `const long` or `const boolean` declarations before
-its helper or entry. Their bounded expressions admit decimal, hexadecimal, and binary
+A class may place one contiguous block of at most sixty-four `const long` or `const boolean`
+declarations around its optional signed state and before its helper or entry. Constants may
+initialize that state, including a forward reference when state comes first. Splitting the
+constant block around state fails rather than creating two lookup rules. Their bounded
+expressions admit decimal, hexadecimal, and binary
 integers, Booleans, parentheses, checked arithmetic, `!`, `^`, `&`, `==`, `<`, and forward
 same-class dependencies. A lookup allows 4,096 evaluation steps, dependency paths stop at
 sixty-four declarations, and parentheses stop at depth thirty-two. Cycles, unknown names,
