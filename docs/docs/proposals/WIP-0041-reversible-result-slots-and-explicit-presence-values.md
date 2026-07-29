@@ -663,7 +663,7 @@ registers hold the implicit slot. `RESULT_FILL_CONSTANT` checks `Vacant` in forw
 and exact `Holding(k)` in inverse code before changing either register.
 
 The Wheeler-native compiler now emits this complete first vertical slice. It accepts one
-`rev long` helper with zero or one signed parameter returning a signed literal or
+`rev long` helper with up to two signed parameters returning a signed literal or
 evaluated constant, an optional generated-inverse theorem, and entry result calls
 interleaved with signed checks against constants or results already produced. Differential
 tests compare the complete artifacts with stage 0 before running them. Boolean results, computed result expressions, and extra body
@@ -739,7 +739,7 @@ diagnostic or trap, and publishes no partial result.
 Stage 0 now accepts typed parameters on a `rev long` function whose tail return is a
 signed literal or evaluated class constant. It emits the four regular result-slot forms,
 canonical `0xd` function metadata, and a generated inverse. The Wheeler-native compiler
-matches the zero- and one-parameter forms byte for byte. The VM executes `return -1;`,
+matches the zero-, one-, and two-parameter forms byte for byte. The VM executes `return -1;`,
 commits all rewind history, then uncalls the function from exact `Holding(-1)` back to
 vacancy. A wrong held constant traps before the call stack or slot changes. The
 Wheeler-native verifier independently accepts the artifact and its generated-inverse

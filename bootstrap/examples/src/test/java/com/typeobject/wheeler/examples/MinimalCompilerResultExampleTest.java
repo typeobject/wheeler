@@ -43,6 +43,14 @@ class MinimalCompilerResultExampleTest {
         "classical class ParameterReversibleResult { rev long answer(long ignored) { "
             + "return -1; } entry void main() { long first = answer(42); "
             + "long second = answer(first); assert(first == second); } }");
+
+    assertDifferentialHalt(
+        writerProgram,
+        "classical class TwoParameterReversibleResult { "
+            + "rev long answer(long left, long right) { return -1; } "
+            + "entry void main() { long first = answer(1, 2); "
+            + "long second = answer(first, 3); long third = answer(4, second); "
+            + "long fourth = answer(first, third); assert(first == fourth); } }");
   }
 
   @Test

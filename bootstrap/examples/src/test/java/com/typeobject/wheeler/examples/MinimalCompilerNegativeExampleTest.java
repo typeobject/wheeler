@@ -185,14 +185,14 @@ class MinimalCompilerNegativeExampleTest {
         512);
     assertTrapWithoutOutput(reversibleResultPrelude, 512);
 
-    VirtualMachine twoParameterReversibleResult = new VirtualMachine(
+    VirtualMachine threeParameterReversibleResult = new VirtualMachine(
         writerProgram,
-        ("classical class TwoParameterReversibleResult { "
-                + "rev long answer(long left, long right) { return -1; } "
-                + "entry void main() { long value = answer(1, 2); } }")
+        ("classical class ThreeParameterReversibleResult { "
+                + "rev long answer(long left, long middle, long right) { return -1; } "
+                + "entry void main() { long value = answer(1, 2, 3); } }")
             .getBytes(StandardCharsets.UTF_8),
         1024);
-    assertTrapWithoutOutput(twoParameterReversibleResult, 1024);
+    assertTrapWithoutOutput(threeParameterReversibleResult, 1024);
   }
 
   @Test

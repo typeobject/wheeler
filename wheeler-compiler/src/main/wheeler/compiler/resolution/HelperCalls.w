@@ -79,6 +79,10 @@ classical class HelperCalls {
       return opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED;
     }
 
+    if (helperKind == HELPER_REVERSIBLE_SIGNED_TWO) {
+      return twoArgumentSignedResultCall(opcode);
+    }
+
     if (helperKind == HELPER_BOOLEAN) {
       return opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED;
     }

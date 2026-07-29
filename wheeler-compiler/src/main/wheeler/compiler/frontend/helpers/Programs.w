@@ -24,7 +24,11 @@ classical class HelperPrograms {
       return true;
     }
 
-    return opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED;
+    if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+      return true;
+    }
+
+    return twoArgumentSignedResultCall(opcode);
   }
 
   private boolean resultStatement(long opcode) {
@@ -106,6 +110,22 @@ classical class HelperPrograms {
         if (oneArgumentCallNamed(opcode)) {
           if (
             resultSlotSourceDeclared(sequence, statement, sequence.operands[statement])
+          ) {} else {
+            return false;
+          }
+        }
+
+        if (twoArgumentCallFirstNamed(opcode)) {
+          if (
+            resultSlotSourceDeclared(sequence, statement, sequence.operands[statement])
+          ) {} else {
+            return false;
+          }
+        }
+
+        if (twoArgumentCallSecondNamed(opcode)) {
+          if (
+            resultSlotSourceDeclared(sequence, statement, sequence.secondaryOperands[statement])
           ) {} else {
             return false;
           }

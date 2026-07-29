@@ -170,13 +170,13 @@ The Wheeler-written recovery compiler implements a bounded same-class graph. It 
 
 The recovery compiler substitutes evaluated values into matching scalar locals, direct helper returns, scalar assignments, checked signed updates including generated reversible helper updates, one- or two-argument scalar helper calls, right operands of signed arithmetic and ordering expressions or signed and Boolean equality and inequality expressions, signed arithmetic returns, typed comparison returns over signed or Boolean operands, signed or Boolean equality assertions, signed ordering assertions, conditions and their state-update values, plus bounded loop conditions and limits. Calls and mutations may mix constants and prior locals. Helper parameters and locals cannot reuse constant names. Constants create no runtime object or source-order artifact. The native header parser accepts up to sixty-four sorted unique direct import declarations. `compileMinimalWithConstantImport` and `compileMinimalWithConstantImports` resolve one or two exact direct scalar-constant modules for unqualified or canonical owner-qualified public root use. Private constants may feed public exports through the same checked graph as local constants. Any private name in the root fails before caller output changes. That conservative check also rejects a root-local collision until the linker has separate symbol tables. Transitive imports, executable imported members, mismatched module names, more than two root imports, non-ASCII linked source, and a synthetic source above 16,384 bytes fail closed. Colliding exported names, three or more imported modules, unrelated qualifiers, and general multi-file linking remain outside this native slice. Calling that missing linker a minor detail would only encourage it.
 
-The Wheeler-written compiler also lowers one `rev long` helper with zero or one signed
-parameter that returns a signed literal or evaluated constant. Its bounded entry
+The Wheeler-written compiler also lowers one `rev long` helper with up to two signed
+parameters that returns a signed literal or evaluated constant. Its bounded entry
 interleaves result calls with signed equality checks against constants or results already
-produced. Calls may pass a literal, constant, or prior result to the one-parameter form.
+produced. Calls may pass a literal, constant, or prior result to the parameterized forms.
 The compiler emits the canonical adjacent result slot, identical generated inverse, and
-optional proof certificate. Boolean results, two parameters, computed expressions, and
-extra helper statements fail before publication.
+optional proof certificate. Boolean results, three parameters, computed expressions, and extra helper statements
+fail before publication.
 
 A finite enum is canonical shorthand for a payload-free tagged variant:
 

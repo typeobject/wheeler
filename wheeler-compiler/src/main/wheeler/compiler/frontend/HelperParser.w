@@ -278,6 +278,37 @@ classical class HelperParser {
 
         closeParameters = nameToken + 4;
         helperKind = HELPER_REVERSIBLE_SIGNED_ONE;
+        if (
+          punctuationAt(source, tokenKinds, tokenStarts, closeParameters, PUNCTUATION_COMMA)
+        ) {
+          if (
+            tokenHash(source, tokenStarts, tokenLengths, closeParameters + 1) == TOKEN_LONG
+          ) {
+            secondParameterToken = closeParameters + 2;
+            if (tokenKinds[secondParameterToken] == 1) {} else {
+              return new MinimalProgramResult.Error(0);
+            }
+
+            if (tokenLengths[secondParameterToken] < 257) {} else {
+              return new MinimalProgramResult.Error(0);
+            }
+
+            if (
+              sameTokenText(
+                source,
+                tokenStarts,
+                tokenLengths,
+                parameterToken,
+                secondParameterToken
+              )
+            ) {
+              return new MinimalProgramResult.Error(0);
+            }
+
+            closeParameters += 3;
+            helperKind = HELPER_REVERSIBLE_SIGNED_TWO;
+          }
+        }
       }
     }
 
