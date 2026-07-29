@@ -3,6 +3,7 @@
 module wheeler.compiler.compiler_graphs;
 
 import wheeler.compiler.compiler_core;
+import wheeler.compiler.compiler_graph_five;
 import wheeler.compiler.compiler_graph_four;
 import wheeler.compiler.module_linker;
 
@@ -645,7 +646,29 @@ classical class CompilerGraphs {
     return compiled;
   }
 
-  /// Compiles one root with a supported four-module constant tree.
+  /// Compiles five direct scalar-constant modules and their root.
+  public GraphCompilation compileGraphWithFiveConstantImports(
+    borrow utf8 firstImportedSource,
+    borrow utf8 secondImportedSource,
+    borrow utf8 thirdImportedSource,
+    borrow utf8 fourthImportedSource,
+    borrow utf8 fifthImportedSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    FiveGraphCompilation compiled = compileFiveDirectConstants(
+      firstImportedSource,
+      secondImportedSource,
+      thirdImportedSource,
+      fourthImportedSource,
+      fifthImportedSource,
+      rootSource,
+      output
+    );
+    return new GraphCompilation(compiled.length, compiled.codeStart);
+  }
+
+  /// Compiles one root with a supported four-module constant graph.
   public GraphCompilation compileGraphWithFourConstantImports(
     borrow utf8 firstImportedSource,
     borrow utf8 secondImportedSource,

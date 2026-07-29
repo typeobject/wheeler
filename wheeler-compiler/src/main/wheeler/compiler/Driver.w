@@ -64,7 +64,7 @@ classical class CompilerDriver {
     );
   }
 
-  /// Compiles four direct constant modules and their root.
+  /// Compiles a supported four-module constant graph and its root.
   public Compilation compileMinimalWithFourConstantImports(
     borrow utf8 firstImportedSource,
     borrow utf8 secondImportedSource,
@@ -79,6 +79,29 @@ classical class CompilerDriver {
         secondImportedSource,
         thirdImportedSource,
         fourthImportedSource,
+        rootSource,
+        output
+      )
+    );
+  }
+
+  /// Compiles five direct constant modules and their root.
+  public Compilation compileMinimalWithFiveConstantImports(
+    borrow utf8 firstImportedSource,
+    borrow utf8 secondImportedSource,
+    borrow utf8 thirdImportedSource,
+    borrow utf8 fourthImportedSource,
+    borrow utf8 fifthImportedSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    return publicCompilation(
+      compileGraphWithFiveConstantImports(
+        firstImportedSource,
+        secondImportedSource,
+        thirdImportedSource,
+        fourthImportedSource,
+        fifthImportedSource,
         rootSource,
         output
       )

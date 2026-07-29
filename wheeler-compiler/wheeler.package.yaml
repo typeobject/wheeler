@@ -17,6 +17,7 @@ targets:
       - "src/main/wheeler/compiler/GraphFourDag.w"
       - "src/main/wheeler/compiler/GraphFourMixed.w"
       - "src/main/wheeler/compiler/GraphFourNested.w"
+      - "src/main/wheeler/compiler/GraphFive.w"
       - "src/main/wheeler/compiler/Graphs.w"
       - "src/main/wheeler/compiler/backend"
       - "src/main/wheeler/compiler/frontend"
