@@ -3,6 +3,7 @@
 module wheeler.compiler.compiler_graphs;
 
 import wheeler.compiler.compiler_core;
+import wheeler.compiler.compiler_graph_four;
 import wheeler.compiler.module_linker;
 
 classical class CompilerGraphs {
@@ -644,7 +645,7 @@ classical class CompilerGraphs {
     return compiled;
   }
 
-  /// Compiles one root with four direct scalar-constant modules.
+  /// Compiles one root with four direct modules or one four-edge chain.
   public GraphCompilation compileGraphWithFourConstantImports(
     borrow utf8 firstImportedSource,
     borrow utf8 secondImportedSource,
@@ -653,94 +654,14 @@ classical class CompilerGraphs {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    LinkPlan firstPlan = planConstantImport(
+    FourGraphCompilation compiled = compileFourConstantGraph(
       firstImportedSource,
-      rootSource,
-      /* expectedImportCount= */ 4
-    );
-    if (firstPlan.valid) {} else {
-      assert(0 == 1);
-    }
-
-    region firstArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
-    bytes firstBytes = allocateBytes(firstArena, firstPlan.linkedLength);
-    long firstWritten = writeConstantImport(
-      firstImportedSource,
-      rootSource,
-      firstPlan,
-      firstBytes
-    );
-    assert(firstWritten == firstPlan.linkedLength);
-    utf8 firstLinkedSource = freezeUtf8(firstBytes);
-
-    LinkPlan secondPlan = planConstantImport(
       secondImportedSource,
-      firstLinkedSource,
-      /* expectedImportCount= */ 4
-    );
-    if (secondPlan.valid) {} else {
-      assert(0 == 1);
-    }
-
-    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
-    bytes secondBytes = allocateBytes(secondArena, secondPlan.linkedLength);
-    long secondWritten = writeConstantImport(
-      secondImportedSource,
-      firstLinkedSource,
-      secondPlan,
-      secondBytes
-    );
-    assert(secondWritten == secondPlan.linkedLength);
-    utf8 secondLinkedSource = freezeUtf8(secondBytes);
-
-    LinkPlan thirdPlan = planConstantImport(
       thirdImportedSource,
-      secondLinkedSource,
-      /* expectedImportCount= */ 4
-    );
-    if (thirdPlan.valid) {} else {
-      assert(0 == 1);
-    }
-
-    region thirdArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
-    bytes thirdBytes = allocateBytes(thirdArena, thirdPlan.linkedLength);
-    long thirdWritten = writeConstantImport(
-      thirdImportedSource,
-      secondLinkedSource,
-      thirdPlan,
-      thirdBytes
-    );
-    assert(thirdWritten == thirdPlan.linkedLength);
-    utf8 thirdLinkedSource = freezeUtf8(thirdBytes);
-
-    LinkPlan fourthPlan = planConstantImport(
       fourthImportedSource,
-      thirdLinkedSource,
-      /* expectedImportCount= */ 4
+      rootSource,
+      output
     );
-    if (fourthPlan.valid) {} else {
-      assert(0 == 1);
-    }
-
-    region fourthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
-    bytes fourthBytes = allocateBytes(fourthArena, fourthPlan.linkedLength);
-    long fourthWritten = writeConstantImport(
-      fourthImportedSource,
-      thirdLinkedSource,
-      fourthPlan,
-      fourthBytes
-    );
-    assert(fourthWritten == fourthPlan.linkedLength);
-    utf8 fourthLinkedSource = freezeUtf8(fourthBytes);
-    GraphCompilation compiled = compileGraphSource(fourthLinkedSource, output);
-    drop(fourthLinkedSource);
-    drop(fourthArena);
-    drop(thirdLinkedSource);
-    drop(thirdArena);
-    drop(secondLinkedSource);
-    drop(secondArena);
-    drop(firstLinkedSource);
-    drop(firstArena);
-    return compiled;
+    return new GraphCompilation(compiled.length, compiled.codeStart);
   }
 }

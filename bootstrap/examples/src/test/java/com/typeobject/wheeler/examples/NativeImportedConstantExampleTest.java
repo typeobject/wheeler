@@ -167,6 +167,50 @@ class NativeImportedConstantExampleTest {
   }
 
   @Test
+  void linksAFourEdgeConstantChainIndependentOfInputOrder() throws Exception {
+    Program compiler = program();
+    String leaf = "module examples.alpha; classical class Alpha { "
+        + "private const long HIDDEN = 38; public const long BASE = HIDDEN + 1; }";
+    String middle = "module examples.beta; import examples.alpha; "
+        + "classical class Beta { public const long FIRST = examples.alpha::BASE + 1; }";
+    String firstDependent = "module examples.gamma; import examples.beta; "
+        + "classical class Gamma { public const long SECOND = examples.beta::FIRST + 1; }";
+    String secondDependent = "module examples.delta; import examples.gamma; "
+        + "classical class Delta { public const long ANSWER = examples.gamma::SECOND + 1; "
+        + "public const boolean READY = ANSWER == 42; }";
+    String root = "module examples.root; import examples.delta; classical class Root { "
+        + "state long outcome = 0; entry void main() { outcome = examples.delta::ANSWER; "
+        + "boolean ready = READY; assert(ready); assert(outcome == 42); } }";
+
+    byte[] artifact = compileNative(
+        compiler, List.of(leaf, middle, firstDependent, secondDependent), root);
+    assertArrayEquals(
+        artifact,
+        compileNative(
+            compiler,
+            List.of(secondDependent, middle, leaf, firstDependent),
+            root));
+    Map<String, String> sources = new LinkedHashMap<>();
+    sources.put("Alpha.w", leaf);
+    sources.put("Beta.w", middle);
+    sources.put("Gamma.w", firstDependent);
+    sources.put("Delta.w", secondDependent);
+    sources.put("Root.w", root);
+    assertArrayEquals(
+        new BytecodeWriter().write(
+            new WheelerCompiler().compileModuleFiles(sources, "examples.root")),
+        artifact);
+    VirtualMachine program = new VirtualMachine(new BytecodeReader().read(artifact));
+    program.run();
+    assertEquals(42, program.global("outcome"));
+
+    assertNativeTrap(
+        compiler,
+        List.of(middle, secondDependent, firstDependent, leaf),
+        root.replace("outcome = examples.delta::ANSWER;", "outcome = BASE;"));
+  }
+
+  @Test
   void linksATransitiveConstantChainWithoutReexportingTheLeaf() throws Exception {
     Program compiler = program();
     String leaf = "module examples.alpha; classical class Alpha { "

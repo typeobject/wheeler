@@ -12,6 +12,7 @@ targets:
       - "src/main/wheeler/MinimalCompiler.w"
       - "src/main/wheeler/compiler/Core.w"
       - "src/main/wheeler/compiler/Driver.w"
+      - "src/main/wheeler/compiler/GraphFour.w"
       - "src/main/wheeler/compiler/Graphs.w"
       - "src/main/wheeler/compiler/backend"
       - "src/main/wheeler/compiler/frontend"

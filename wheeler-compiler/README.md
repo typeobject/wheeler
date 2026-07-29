@@ -20,8 +20,9 @@ The package keeps responsibilities narrow:
 - `compiler/ir` owns opcode, instruction-form, type, and proof identities.
 - `compiler/backend` owns type tables, strings, control flow, returns, and encoding.
 - `compiler/Core.w` assembles and verifies one already linked source.
-- `compiler/Graphs.w` resolves bounded module graphs before invoking the core.
-- `compiler/Driver.w` keeps one small stable API over both implementations.
+- `compiler/Graphs.w` resolves one- through three-module graphs before invoking the core.
+- `compiler/GraphFour.w` owns four-module direct and chain forms.
+- `compiler/Driver.w` keeps one small stable API over the graph compilers and core.
 - `compiler/verification` owns complete check-before-publication artifact validation.
 
 `wheeler.package.yaml`, its exact lock, and the canonical workspace sources define the
@@ -36,9 +37,10 @@ The header parser validates exact dotted names and rejects malformed, duplicate,
 or excess imports before publication. `compileMinimalWithConstantImport`,
 `compileMinimalWithConstantImports`, `compileMinimalWithThreeConstantImports`, and
 `compileMinimalWithFourConstantImports` link one through four direct scalar-constant modules.
-The pair and triple APIs also link one exact
-two-edge or three-edge chain, one two-leaf fork, or one chain beside a direct module. A leaf export becomes private inside its dependent, so a
-root cannot acquire transitive access by spelling the leaf name loudly. Executable imported
+The pair, triple, and four-module APIs also link one exact two-edge, three-edge, or
+four-edge chain. Three-module graphs also cover one two-leaf fork or one chain beside a
+direct module. A leaf export becomes private inside its dependent, so a root cannot acquire
+transitive access by spelling the leaf name loudly. Executable imported
 members, mismatched module names, wider graphs, and more than four root imports fail
 closed. General symbol resolution remains future work. Entry and helper bodies
 admit at most sixty-four statements. The current slice covers typed signed
@@ -67,8 +69,8 @@ may mix constants with prior locals. Helper parameters and locals cannot reuse c
 Constants create no global, initializer, lookup, or declaration-order artifact noise. The
 native header path accepts direct import declarations. The linker resolves bounded public
 scalar constants through unqualified or canonical owner-qualified uses and preserves stage-0
-artifact bytes. It also resolves one exact two-edge or three-edge chain and one two-leaf
-fork, and one chain beside a direct module while preventing intermediate exports from reaching the root. Root collisions with imported private names, colliding exports, wider graphs,
+artifact bytes. It also resolves exact chains through four edges, one two-leaf fork, and one
+chain beside a direct module while preventing intermediate exports from reaching the root. Root collisions with imported private names, colliding exports, wider graphs,
 and general multi-file linking remain stage-0 work until native differential artifacts pin
 them down.
 
