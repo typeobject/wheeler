@@ -17,6 +17,8 @@ classical class CompilerGraphPlans {
   public const long FIVE_PLAN_CHAIN_AND_DIRECTS = 5;
   /// Names a two-leaf fork beside two direct root imports.
   public const long FIVE_PLAN_FORK_AND_TWO_DIRECTS = 6;
+  /// Names two independent edges beside one direct root import.
+  public const long FIVE_PLAN_PAIRS_AND_DIRECT = 7;
 
   private const long SINGLE_IMPORT = 1;
   private const long TWO_IMPORTS = 2;
@@ -266,6 +268,10 @@ classical class CompilerGraphPlans {
         rootSource,
         THREE_IMPORTS
       );
+      if (pairedDirects == SINGLE_IMPORT) {
+        return new FiveGraphPlan(FIVE_PLAN_PAIRS_AND_DIRECT, true);
+      }
+
       if (0 < pairedDirects) {
         return new FiveGraphPlan(0, false);
       }
