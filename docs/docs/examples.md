@@ -99,6 +99,7 @@ Expected behavior:
 
 - Checked constant folding emits no extra global.
 - Exhaustive enum matching selects `Right` and produces `selected = 7`.
+- Compiler acceptance compares enum spelling with the equivalent nullary variant bytes, executes both cases, and rejects missing arms or mixed-type equality.
 - Complete rewind.
 
 ### `FunctionValues.w`

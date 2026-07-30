@@ -190,6 +190,15 @@ class SourceProfileNegativeTest {
           }
         }
         """;
+    String nonexhaustiveEnum = """
+        classical class MissingEnumCase {
+          enum Direction { case Left; case Right; }
+          entry void main() {
+            Direction value = new Direction.Left();
+            match (value) { case Direction.Left() { } }
+          }
+        }
+        """;
     String wrongPayload = """
         classical class WrongPayload {
           variant LookupResult { case Missing(); case Found(long value); }
@@ -205,9 +214,12 @@ class SourceProfileNegativeTest {
 
     CompilerException missing = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(nonexhaustive));
+    CompilerException missingEnum = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(nonexhaustiveEnum));
     CompilerException payload = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(wrongPayload));
     assertTrue(missing.getMessage().contains("do not exhaust LookupResult"));
+    assertTrue(missingEnum.getMessage().contains("do not exhaust Direction"));
     assertTrue(payload.getMessage().contains("payload binding type mismatch"));
   }
 
@@ -328,6 +340,39 @@ class SourceProfileNegativeTest {
     assertTrue(deepConstant.getMessage().contains("depth exceeds 256"));
     assertTrue(emptyEnum.getMessage().contains("at least one case"));
     assertTrue(duplicateCase.getMessage().contains("duplicate enum case"));
+  }
+
+  @Test
+  void rejectsImplicitEnumConversionsAndCrossEnumComparison() {
+    String integerComparison = """
+        classical class IntegerComparison {
+          enum Direction { case Left; case Right; }
+          entry void main() {
+            Direction direction = new Direction.Left();
+            if (direction == 0) { }
+          }
+        }
+        """;
+    String crossEnumComparison = """
+        classical class CrossEnumComparison {
+          enum Direction { case Left; case Right; }
+          enum Result { case Good; case Bad; }
+          entry void main() {
+            Direction direction = new Direction.Left();
+            Result result = new Result.Good();
+            if (direction == result) { }
+          }
+        }
+        """;
+
+    CompilerException integer = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(integerComparison));
+    CompilerException crossEnum = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(crossEnumComparison));
+    assertTrue(
+        integer.getMessage().contains("expression type mismatch"), integer.getMessage());
+    assertTrue(
+        crossEnum.getMessage().contains("expression type mismatch"), crossEnum.getMessage());
   }
 
   @Test

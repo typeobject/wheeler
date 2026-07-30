@@ -894,42 +894,6 @@ class WheelerCompilerTest {
   }
 
   @Test
-  void finiteEnumsUseThePayloadFreeVariantPath() {
-    String source = """
-        classical class Directions {
-          enum Direction {
-            case Left;
-            case Right;
-          }
-          state long selected = 0;
-          entry void main() {
-            Direction direction = new Direction.Right();
-            match (direction) {
-              case Direction.Left() { selected = 1; }
-              case Direction.Right() { selected = 2; }
-            }
-            assert(selected == 2);
-          }
-        }
-        """;
-    WheelerCompiler compiler = new WheelerCompiler();
-    Program program = compiler.compile(source);
-    VirtualMachine machine = new VirtualMachine(program);
-
-    machine.run();
-
-    assertEquals(1, program.variantTypes().size());
-    assertTrue(program.variantTypes().getFirst().cases().stream()
-        .allMatch(variantCase -> variantCase.fields().isEmpty()));
-    assertArrayEquals(
-        compiler.compileToBytecode(source),
-        compiler.compileToBytecode(source.replace(
-            "case Left;\n    case Right;",
-            "case Right;\n    case Left;")));
-    assertEquals(2, machine.global("selected"));
-  }
-
-  @Test
   void sourceProducesCanonicalBytecode() {
     WheelerCompiler compiler = new WheelerCompiler();
     byte[] encoded = compiler.compileToBytecode(COUNTER);

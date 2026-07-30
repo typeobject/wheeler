@@ -193,7 +193,7 @@ match (direction) {
 }
 ```
 
-Construction, nominal equality, exhaustive matching, artifact metadata, VM values, and rewind use the existing variant path.
+Construction, nominal equality, exhaustive matching, artifact metadata, VM values, and rewind use the existing variant path. Equivalent enum and nullary-variant declarations emit identical bytes. Acceptance fixtures execute each member and reject omitted match arms, integer comparison, and comparison across enum types.
 
 Enum cases have no integer ordinal or wire value. The compiler sorts cases by name for semantic output, so source reordering does not change `.wbc`.
 

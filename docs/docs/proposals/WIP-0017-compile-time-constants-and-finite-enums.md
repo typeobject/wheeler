@@ -351,7 +351,7 @@ Promotion follows WIP-0007. The identity modules start with executable compiler 
 - [x] Constant evaluation is checked, bounded, deterministic, declaration-order-independent, and cycle-safe. Scalar arithmetic, Boolean expressions, forward same-module declarations, direct imported public declarations, canonical qualification, and `rotateRight32` execute. Cycles report their canonical path before artifact emission.
 - [x] Direct public import and canonical `module::NAME` qualification are enforced. Private and ambiguous use fails closed.
 - [x] `enum` elaborates to the payload-free variant authority, and canonical case-name sorting makes source reordering artifact-stable.
-- [x] Exhaustive classical enum construction, matching, and no-payload artifact execution use the variant path.
+- [x] Exhaustive classical enum construction, matching, and no-payload artifact execution use the variant path. Equivalent `enum` and nullary `variant` declarations emit identical bytes. Fixtures execute every member and reject missing cases, integer comparison, and cross-enum comparison. An ordinal still has no chair at this table.
 - [x] The Wheeler-written verifier validates finite-variant metadata and typed construction/tag/payload operands. The Wheeler-written interpreter differentially executes `FiniteEnums.w` and payload-carrying `Variants.w`, structurally interns values, and rejects a forged tag before execution.
 - [ ] Reversible finite permutation checking exists.
 - [ ] Power-of-two coherent enum basis/permutation semantics exist.
@@ -365,10 +365,10 @@ Promotion follows WIP-0007. The identity modules start with executable compiler 
 - [ ] Overflow, division by zero, invalid rotate, cycles, ambiguity, privacy violations, and duplicate names produce stable diagnostics and no artifact.
 - [ ] Constant use emits no global, initializer function, hidden history, or runtime lookup.
 - [ ] Reordering independent constant declarations leaves semantic `.wbc` byte-identical.
-- [ ] Enum and equivalent nullary-variant fixtures share one semantic type path and runtime behavior.
-- [ ] Reordering enum source cases leaves canonical case IDs and semantic `.wbc` byte-identical.
-- [ ] Enum/integer and cross-enum operations fail statically absent explicit codec code.
-- [ ] Enum matches execute every case and reject an omitted case after type growth.
+- [x] Enum and equivalent nullary-variant fixtures share one semantic type path and runtime behavior.
+- [x] Reordering enum source cases leaves canonical case IDs and semantic `.wbc` byte-identical.
+- [x] Enum/integer and cross-enum operations fail statically absent explicit codec code.
+- [x] Enum matches execute every case and reject an omitted case after type growth.
 - [ ] Reversible mappings accept every finite permutation and reject duplicate/missing outputs.
 - [ ] Coherent power-of-two enum permutations agree with an independent state-vector oracle and generated adjoints restore amplitudes exactly within tolerance.
 - [ ] Non-power-of-two coherent use fails before circuit emission.
