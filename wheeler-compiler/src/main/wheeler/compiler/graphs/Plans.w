@@ -11,8 +11,11 @@ classical class CompilerGraphPlans {
   public const long FIVE_PLAN_CHAIN = 2;
   /// Names the five-module four-leaf-fork plan.
   public const long FIVE_PLAN_FORK = 3;
+  /// Names a three-leaf fork beside one direct root import.
+  public const long FIVE_PLAN_FORK_AND_DIRECT = 4;
 
   private const long SINGLE_IMPORT = 1;
+  private const long THREE_IMPORTS = 3;
   private const long FOUR_IMPORTS = 4;
   private const long FIVE_IMPORTS = 5;
 
@@ -168,6 +171,19 @@ classical class CompilerGraphPlans {
       hasEdge(firstSource, secondSource, thirdSource, fourthSource, fifthSource, FOUR_IMPORTS)
     ) {
       return new FiveGraphPlan(FIVE_PLAN_FORK, true);
+    }
+
+    if (
+      hasEdge(
+        firstSource,
+        secondSource,
+        thirdSource,
+        fourthSource,
+        fifthSource,
+        THREE_IMPORTS
+      )
+    ) {
+      return new FiveGraphPlan(FIVE_PLAN_FORK_AND_DIRECT, true);
     }
 
     if (

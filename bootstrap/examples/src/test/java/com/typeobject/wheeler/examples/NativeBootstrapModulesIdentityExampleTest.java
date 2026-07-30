@@ -24,14 +24,14 @@ import org.junit.jupiter.api.Test;
 final class NativeBootstrapModulesIdentityExampleTest {
   private static final Path ROOT = Path.of("src/main/wheeler/native/bootstrap");
   private static final String IDENTITY = "ab".repeat(32);
-  private static final long MAX_CLOSURE_TRANSITIONS = 22_500_000;
+  private static final long MAX_CLOSURE_TRANSITIONS = 23_500_000;
   private static final long MAX_LARGE_GRAPH_TRANSITIONS = 50_000_000;
 
   @Test
   void validatesThePhysicalBoundedCompilerClosure() throws Exception {
     BootstrapModuleManifest manifest = CompilerSources.bootstrapModuleManifest();
 
-    assertEquals(23_069, manifest.canonicalBytes().length);
+    assertEquals(23_405, manifest.canonicalBytes().length);
     VirtualMachine machine = vm(program(), manifest.canonicalBytes());
     long transitions = 0;
     while (machine.status() != MachineStatus.HALTED
@@ -43,13 +43,13 @@ final class NativeBootstrapModulesIdentityExampleTest {
       }
     }
 
-    assertEquals(21_922_141, transitions);
+    assertEquals(22_508_597, transitions);
     assertEquals(MachineStatus.HALTED, machine.status());
     assertArrayEquals(MessageDigest.getInstance("SHA-256").digest(manifest.canonicalBytes()),
         machine.hostOutput());
-    assertEquals(64, machine.global("moduleCount"));
+    assertEquals(65, machine.global("moduleCount"));
     assertEquals(1, machine.global("externalCount"));
-    assertEquals(254, machine.global("importCount"));
+    assertEquals(257, machine.global("importCount"));
     assertEquals(1, machine.global("published"));
   }
 
@@ -127,6 +127,10 @@ final class NativeBootstrapModulesIdentityExampleTest {
     assertLargeIdentity(program, thirtyThreeModules, 33, 0, 32);
     BootstrapModuleManifest sixtyFourModules = generatedGraph(64);
     assertLargeIdentity(program, sixtyFourModules, 64, 0, 63);
+    BootstrapModuleManifest sixtyFiveModules = generatedGraph(65);
+    assertLargeIdentity(program, sixtyFiveModules, 65, 0, 64);
+    BootstrapModuleManifest excessModuleImports = generatedGraph(66);
+    assertLargeNoIdentity(program, excessModuleImports.canonicalBytes());
     BootstrapModuleManifest ninetySixModules = generatedChainGraph(96);
     assertLargeIdentity(program, ninetySixModules, 96, 0, 95);
     BootstrapModuleManifest ninetySevenModules = generatedChainGraph(97);

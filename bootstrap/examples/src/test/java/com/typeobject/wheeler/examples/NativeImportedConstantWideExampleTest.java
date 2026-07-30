@@ -94,6 +94,31 @@ class NativeImportedConstantWideExampleTest {
   }
 
   @Test
+  void linksAThreeLeafForkBesideADirectModuleIndependentOfInputOrder() throws Exception {
+    String alpha = "module examples.alpha; classical class Alpha { "
+        + "public const long ALPHA = 2; }";
+    String beta = "module examples.beta; classical class Beta { "
+        + "public const long BETA = 3; }";
+    String gamma = "module examples.gamma; classical class Gamma { "
+        + "public const long GAMMA = 5; }";
+    String delta = "module examples.delta; import examples.alpha; import examples.beta; "
+        + "import examples.gamma; classical class Delta { "
+        + "private const long LEFT = ALPHA + BETA; "
+        + "public const long ANSWER = LEFT + GAMMA; }";
+    String epsilon = "module examples.epsilon; classical class Epsilon { "
+        + "public const long DIRECT = 7; }";
+    String root = "module examples.root; import examples.delta; import examples.epsilon; "
+        + "classical class Root { state long outcome = 0; entry void main() { "
+        + "outcome += ANSWER; outcome += DIRECT; } }";
+    List<String> imported = List.of(alpha, beta, gamma, delta, epsilon);
+
+    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    VirtualMachine machine = new VirtualMachine(artifact);
+    machine.run();
+    assertEquals(17, machine.global("outcome"));
+  }
+
+  @Test
   void rejectsAnUnsupportedFiveModuleGraphBeforePublication() throws Exception {
     String alpha = "module examples.alpha; classical class Alpha { "
         + "public const long ALPHA = 2; }";
