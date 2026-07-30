@@ -21,6 +21,8 @@ classical class CompilerGraphPlans {
   public const long FIVE_PLAN_PAIRS_AND_DIRECT = 7;
   /// Names a three-module chain beside two direct root imports.
   public const long FIVE_PLAN_LONG_CHAIN_AND_DIRECTS = 8;
+  /// Names a four-module chain beside one direct root import.
+  public const long FIVE_PLAN_DEEP_CHAIN_AND_DIRECT = 9;
 
   private const long SINGLE_IMPORT = 1;
   private const long TWO_IMPORTS = 2;
@@ -235,7 +237,20 @@ classical class CompilerGraphPlans {
     if (
       hasEdge(firstSource, secondSource, thirdSource, fourthSource, fifthSource, TWO_IMPORTS)
     ) {
-      return new FiveGraphPlan(FIVE_PLAN_FORK_AND_TWO_DIRECTS, true);
+      long forkDirects = directCount(
+        firstSource,
+        secondSource,
+        thirdSource,
+        fourthSource,
+        fifthSource,
+        rootSource,
+        THREE_IMPORTS
+      );
+      if (forkDirects == TWO_IMPORTS) {
+        return new FiveGraphPlan(FIVE_PLAN_FORK_AND_TWO_DIRECTS, true);
+      }
+
+      return new FiveGraphPlan(0, false);
     }
 
     if (
@@ -291,6 +306,10 @@ classical class CompilerGraphPlans {
         rootSource,
         TWO_IMPORTS
       );
+      if (singleDirect == SINGLE_IMPORT) {
+        return new FiveGraphPlan(FIVE_PLAN_DEEP_CHAIN_AND_DIRECT, true);
+      }
+
       if (0 < singleDirect) {
         return new FiveGraphPlan(0, false);
       }

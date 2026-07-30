@@ -34,6 +34,7 @@ The package keeps responsibilities narrow:
 - `compiler/graphs/FiveForkMixed.w` owns a two-leaf fork beside two direct imports.
 - `compiler/graphs/FivePairs.w` owns two independent chains beside a direct import.
 - `compiler/graphs/FiveLongMixed.w` owns a three-module chain beside two direct imports.
+- `compiler/graphs/FiveDeepMixed.w` owns a four-module chain beside one direct import.
 - The five-module chain path links one validated directed edge before trying six bounded tails.
 - `compiler/Driver.w` keeps one small stable API over the graph compilers and core.
 - `compiler/verification` owns complete check-before-publication artifact validation.
@@ -52,7 +53,7 @@ or excess imports before publication. `compileMinimalWithConstantImport`,
 `compileMinimalWithFourConstantImports` link every rooted tree topology over one through
 four imported scalar-constant modules plus one shared-dependency diamond.
 `compileMinimalWithFiveConstantImports` first builds a closed topology plan, then links
-the five-module direct star, chain, four-leaf fork, three-leaf fork beside a direct import, one chain edge beside three direct imports, a two-leaf fork beside two direct imports, two independent chains beside a direct import, or a three-module chain beside two direct imports. Differential fixtures exhaust all 120 input orders for each graph. A leaf
+the five-module direct star, chain, four-leaf fork, three-leaf fork beside a direct import, one chain edge beside three direct imports, a two-leaf fork beside two direct imports, two independent chains beside a direct import, a three-module chain beside two direct imports, or a four-module chain beside a direct import. Differential fixtures exhaust all 120 input orders for each graph. A leaf
 export becomes private inside its dependent, so a root cannot acquire transitive access by
 spelling the leaf name loudly. Executable imported
 members, mismatched module names, other five-module graphs, and more than five root imports
@@ -84,7 +85,7 @@ Constants create no global, initializer, lookup, or declaration-order artifact n
 native header path accepts direct import declarations. The linker resolves bounded public
 scalar constants through unqualified or canonical owner-qualified uses and preserves stage-0
 artifact bytes. It covers every rooted tree topology over one through four imports, one
-shared-dependency diamond, and the five-module direct star, chain, four-leaf fork, three-leaf fork beside a direct import, one chain edge beside three direct imports, a two-leaf fork beside two direct imports, two independent chains beside a direct import, and a three-module chain beside two direct imports while preventing intermediate
+shared-dependency diamond, and the five-module direct star, chain, four-leaf fork, three-leaf fork beside a direct import, one chain edge beside three direct imports, a two-leaf fork beside two direct imports, two independent chains beside a direct import, a three-module chain beside two direct imports, and a four-module chain beside a direct import while preventing intermediate
 exports from reaching the root.
 Repeated dependency declarations are deduplicated only when their private token sequences
 match exactly. Sharing a name and a hopeful expression does not count. Root collisions with

@@ -212,7 +212,7 @@ class NativeImportedConstantWideExampleTest {
   }
 
   @Test
-  void rejectsAnUnsupportedFiveModuleGraphBeforePublication() throws Exception {
+  void linksAFourModuleChainBesideADirectModuleIndependentOfInputOrder() throws Exception {
     String alpha = "module examples.alpha; classical class Alpha { "
         + "public const long ALPHA = 2; }";
     String beta = "module examples.beta; import examples.alpha; classical class Beta { "
@@ -221,6 +221,29 @@ class NativeImportedConstantWideExampleTest {
         + "public const long GAMMA = BETA + 2; }";
     String delta = "module examples.delta; import examples.gamma; classical class Delta { "
         + "public const long DELTA = GAMMA + 2; }";
+    String epsilon = "module examples.epsilon; classical class Epsilon { "
+        + "public const long EPSILON = 11; }";
+    String root = "module examples.root; import examples.delta; import examples.epsilon; "
+        + "classical class Root { state long outcome = 0; entry void main() { "
+        + "outcome += DELTA; outcome += EPSILON; } }";
+    List<String> imported = List.of(alpha, beta, gamma, delta, epsilon);
+
+    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    VirtualMachine machine = new VirtualMachine(artifact);
+    machine.run();
+    assertEquals(18, machine.global("outcome"));
+  }
+
+  @Test
+  void rejectsAnUnsupportedFiveModuleGraphBeforePublication() throws Exception {
+    String alpha = "module examples.alpha; classical class Alpha { "
+        + "public const long ALPHA = 2; }";
+    String beta = "module examples.beta; classical class Beta { "
+        + "public const long BETA = 3; }";
+    String gamma = "module examples.gamma; import examples.alpha; import examples.beta; "
+        + "classical class Gamma { public const long GAMMA = ALPHA + BETA; }";
+    String delta = "module examples.delta; import examples.gamma; classical class Delta { "
+        + "public const long DELTA = GAMMA + 7; }";
     String epsilon = "module examples.epsilon; classical class Epsilon { "
         + "public const long EPSILON = 11; }";
     String root = "module examples.root; import examples.delta; import examples.epsilon; "
