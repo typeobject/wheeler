@@ -94,6 +94,24 @@ class NativeImportedConstantWideExampleTest {
   }
 
   @Test
+  void rejectsAnUnsupportedFiveModuleGraphBeforePublication() throws Exception {
+    String alpha = "module examples.alpha; classical class Alpha { "
+        + "public const long ALPHA = 2; }";
+    String beta = "module examples.beta; import examples.alpha; classical class Beta { "
+        + "public const long BETA = ALPHA + 1; }";
+    String delta = "module examples.delta; classical class Delta { "
+        + "public const long DELTA = 5; }";
+    String epsilon = "module examples.epsilon; classical class Epsilon { "
+        + "public const long EPSILON = 7; }";
+    String gamma = "module examples.gamma; classical class Gamma { "
+        + "public const long GAMMA = 11; }";
+    String root = "module examples.root; import examples.beta; import examples.delta; "
+        + "import examples.epsilon; import examples.gamma; classical class Root { "
+        + "entry void main() { long value = BETA; } }";
+    assertTrap(program(), List.of(alpha, beta, delta, epsilon, gamma), root);
+  }
+
+  @Test
   void rejectsSixImportedConstantModulesBeforePublication() throws Exception {
     List<String> imported = List.of(
         "module examples.two; classical class Two { public const long TWO = 2; }",

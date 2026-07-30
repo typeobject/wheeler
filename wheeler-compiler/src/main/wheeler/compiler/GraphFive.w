@@ -4,6 +4,7 @@ module wheeler.compiler.compiler_graph_five;
 
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.graphs.five_fork;
+import wheeler.compiler.graphs.plans;
 import wheeler.compiler.module_linker;
 
 classical class CompilerGraphFive {
@@ -367,8 +368,7 @@ classical class CompilerGraphFive {
     return new FiveGraphCompilation(compiled.length, compiled.codeStart);
   }
 
-  /// Compiles one root with a supported five-module constant graph.
-  public FiveGraphCompilation compileFiveConstantGraph(
+  private FiveGraphCompilation compileFiveChain(
     borrow utf8 firstSource,
     borrow utf8 secondSource,
     borrow utf8 thirdSource,
@@ -377,19 +377,6 @@ classical class CompilerGraphFive {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    FiveForkCompilation fork = compileFourLeafConstantFork(
-      firstSource,
-      secondSource,
-      thirdSource,
-      fourthSource,
-      fifthSource,
-      rootSource,
-      output
-    );
-    if (0 < fork.length) {
-      return new FiveGraphCompilation(fork.length, fork.codeStart);
-    }
-
     FiveGraphCompilation compiled = compileFiveChainFromPair(
       firstSource,
       secondSource,
@@ -520,14 +507,78 @@ classical class CompilerGraphFive {
       return compiled;
     }
 
-    return compileFiveDirectConstants(
+    return new FiveGraphCompilation(0, 0);
+  }
+
+  /// Compiles one root through one validated five-module graph plan.
+  public FiveGraphCompilation compileFiveConstantGraph(
+    borrow utf8 firstSource,
+    borrow utf8 secondSource,
+    borrow utf8 thirdSource,
+    borrow utf8 fourthSource,
+    borrow utf8 fifthSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    FiveGraphPlan plan = planFiveConstantGraph(
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
-      rootSource,
-      output
+      rootSource
     );
+    if (plan.valid) {} else {
+      assert(INVALID_COMPILATION_LENGTH == VALID_COMPILATION_LENGTH);
+    }
+
+    if (plan.topology == FIVE_PLAN_DIRECT) {
+      return compileFiveDirectConstants(
+        firstSource,
+        secondSource,
+        thirdSource,
+        fourthSource,
+        fifthSource,
+        rootSource,
+        output
+      );
+    }
+
+    if (plan.topology == FIVE_PLAN_FORK) {
+      FiveForkCompilation fork = compileFourLeafConstantFork(
+        firstSource,
+        secondSource,
+        thirdSource,
+        fourthSource,
+        fifthSource,
+        rootSource,
+        output
+      );
+      if (0 < fork.length) {} else {
+        assert(INVALID_COMPILATION_LENGTH == VALID_COMPILATION_LENGTH);
+      }
+
+      return new FiveGraphCompilation(fork.length, fork.codeStart);
+    }
+
+    if (plan.topology == FIVE_PLAN_CHAIN) {
+      FiveGraphCompilation chain = compileFiveChain(
+        firstSource,
+        secondSource,
+        thirdSource,
+        fourthSource,
+        fifthSource,
+        rootSource,
+        output
+      );
+      if (0 < chain.length) {} else {
+        assert(INVALID_COMPILATION_LENGTH == VALID_COMPILATION_LENGTH);
+      }
+
+      return chain;
+    }
+
+    assert(INVALID_COMPILATION_LENGTH == VALID_COMPILATION_LENGTH);
+    return new FiveGraphCompilation(0, 0);
   }
 }

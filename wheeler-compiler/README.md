@@ -27,6 +27,7 @@ The package keeps responsibilities narrow:
 - `compiler/GraphFourMixed.w` owns transitive chains beside direct root imports.
 - `compiler/GraphFourNested.w` owns the two nested four-module trees.
 - `compiler/GraphFive.w` coordinates bounded five-module forms.
+- `compiler/graphs/Plans.w` classifies supported five-module topology before linking.
 - `compiler/graphs/FiveFork.w` owns the five-module four-leaf fork.
 - The five-module chain path links one validated directed edge before trying six bounded tails.
 - `compiler/Driver.w` keeps one small stable API over the graph compilers and core.
@@ -45,8 +46,8 @@ or excess imports before publication. `compileMinimalWithConstantImport`,
 `compileMinimalWithConstantImports`, `compileMinimalWithThreeConstantImports`, and
 `compileMinimalWithFourConstantImports` link every rooted tree topology over one through
 four imported scalar-constant modules plus one shared-dependency diamond.
-`compileMinimalWithFiveConstantImports` links the five-module direct star, chain, and
-four-leaf fork. Differential fixtures exhaust all 120 input orders for each graph. A leaf
+`compileMinimalWithFiveConstantImports` first builds a closed topology plan, then links
+the five-module direct star, chain, or four-leaf fork. Differential fixtures exhaust all 120 input orders for each graph. A leaf
 export becomes private inside its dependent, so a root cannot acquire transitive access by
 spelling the leaf name loudly. Executable imported
 members, mismatched module names, other five-module graphs, and more than five root imports
