@@ -647,7 +647,7 @@ classical class CompilerGraphs {
     return compiled;
   }
 
-  /// Compiles one root with six direct scalar-constant modules.
+  /// Compiles one supported six-module scalar-constant graph and its root.
   public GraphCompilation compileGraphWithSixConstantImports(
     borrow utf8 firstImportedSource,
     borrow utf8 secondImportedSource,
@@ -658,7 +658,7 @@ classical class CompilerGraphs {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    SixGraphCompilation compiled = compileSixDirectConstants(
+    SixGraphCompilation compiled = compileSixConstantGraph(
       firstImportedSource,
       secondImportedSource,
       thirdImportedSource,

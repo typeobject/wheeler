@@ -85,7 +85,7 @@ classical class CompilerDriver {
     );
   }
 
-  /// Compiles one root with six direct scalar-constant modules.
+  /// Compiles one supported six-module scalar-constant graph and its root.
   public Compilation compileMinimalWithSixConstantImports(
     borrow utf8 firstImportedSource,
     borrow utf8 secondImportedSource,

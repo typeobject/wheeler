@@ -3,6 +3,7 @@
 module wheeler.compiler.compiler_graph_six;
 
 import wheeler.compiler.compiler_core;
+import wheeler.compiler.graphs.six.chain;
 import wheeler.compiler.module_linker;
 
 classical class CompilerGraphSix {
@@ -11,8 +12,48 @@ classical class CompilerGraphSix {
   /// Carries private six-module compilation bounds.
   public record SixGraphCompilation(long length, long codeStart) {}
 
-  /// Compiles one root with six direct scalar-constant modules.
-  public SixGraphCompilation compileSixDirectConstants(
+  private boolean directSource(borrow utf8 source, borrow utf8 rootSource) {
+    LinkPlan plan = planConstantImport(
+      source,
+      rootSource,
+      /* expectedImportCount= */ SIX_IMPORTS
+    );
+    return plan.valid;
+  }
+
+  private boolean allDirect(
+    borrow utf8 firstSource,
+    borrow utf8 secondSource,
+    borrow utf8 thirdSource,
+    borrow utf8 fourthSource,
+    borrow utf8 fifthSource,
+    borrow utf8 sixthSource,
+    borrow utf8 rootSource
+  ) {
+    if (directSource(firstSource, rootSource)) {} else {
+      return false;
+    }
+
+    if (directSource(secondSource, rootSource)) {} else {
+      return false;
+    }
+
+    if (directSource(thirdSource, rootSource)) {} else {
+      return false;
+    }
+
+    if (directSource(fourthSource, rootSource)) {} else {
+      return false;
+    }
+
+    if (directSource(fifthSource, rootSource)) {} else {
+      return false;
+    }
+
+    return directSource(sixthSource, rootSource);
+  }
+
+  private SixGraphCompilation compileSixDirectConstants(
     borrow utf8 firstImportedSource,
     borrow utf8 secondImportedSource,
     borrow utf8 thirdImportedSource,
@@ -138,5 +179,57 @@ classical class CompilerGraphSix {
     drop(firstLinkedSource);
     drop(firstArena);
     return new SixGraphCompilation(compiled.length, compiled.codeStart);
+  }
+
+  /// Compiles one supported six-module scalar-constant graph.
+  public SixGraphCompilation compileSixConstantGraph(
+    borrow utf8 firstSource,
+    borrow utf8 secondSource,
+    borrow utf8 thirdSource,
+    borrow utf8 fourthSource,
+    borrow utf8 fifthSource,
+    borrow utf8 sixthSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    if (
+      allDirect(
+        firstSource,
+        secondSource,
+        thirdSource,
+        fourthSource,
+        fifthSource,
+        sixthSource,
+        rootSource
+      )
+    ) {
+      return compileSixDirectConstants(
+        firstSource,
+        secondSource,
+        thirdSource,
+        fourthSource,
+        fifthSource,
+        sixthSource,
+        rootSource,
+        output
+      );
+    }
+
+    SixChainCompilation chain = compileSixConstantChain(
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      sixthSource,
+      rootSource,
+      output
+    );
+    if (0 < chain.length) {
+      return new SixGraphCompilation(chain.length, chain.codeStart);
+    }
+
+    assert(0 == 1);
+    return new SixGraphCompilation(0, 0);
   }
 }

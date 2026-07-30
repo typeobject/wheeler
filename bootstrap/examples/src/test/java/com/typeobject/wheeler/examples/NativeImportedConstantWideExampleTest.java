@@ -342,7 +342,32 @@ class NativeImportedConstantWideExampleTest {
   }
 
   @Test
-  void rejectsANonDirectSixModuleGraphBeforePublication() throws Exception {
+  void linksASixModuleConstantChainIndependentOfInputOrder() throws Exception {
+    String alpha = "module examples.alpha; classical class Alpha { "
+        + "private const long HIDDEN = 1; public const long BASE = HIDDEN + 1; }";
+    String beta = "module examples.beta; import examples.alpha; classical class Beta { "
+        + "public const long BETA = BASE + 3; }";
+    String gamma = "module examples.gamma; import examples.beta; classical class Gamma { "
+        + "public const long GAMMA = BETA * 2; }";
+    String delta = "module examples.delta; import examples.gamma; classical class Delta { "
+        + "public const long DELTA = GAMMA + 1; }";
+    String epsilon = "module examples.epsilon; import examples.delta; "
+        + "classical class Epsilon { public const long EPSILON = DELTA + 10; }";
+    String zeta = "module examples.zeta; import examples.epsilon; classical class Zeta { "
+        + "public const long ANSWER = EPSILON + 21; }";
+    String root = "module examples.root; import examples.zeta; classical class Root { "
+        + "state long outcome = 0; entry void main() { outcome += ANSWER; } }";
+    List<String> imported = List.of(alpha, beta, gamma, delta, epsilon, zeta);
+
+    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    VirtualMachine machine = new VirtualMachine(artifact);
+    machine.run();
+    assertEquals(42, machine.global("outcome"));
+    assertTrap(program(), imported, root.replace("outcome += ANSWER", "outcome += BASE"));
+  }
+
+  @Test
+  void rejectsAMixedSixModuleGraphBeforePublication() throws Exception {
     String alpha = "module examples.alpha; classical class Alpha { "
         + "public const long ALPHA = 2; }";
     String beta = "module examples.beta; import examples.alpha; classical class Beta { "
