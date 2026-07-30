@@ -367,6 +367,33 @@ class NativeImportedConstantWideExampleTest {
   }
 
   @Test
+  void linksAFiveLeafForkIndependentOfInputOrder() throws Exception {
+    String alpha = "module examples.alpha; classical class Alpha { "
+        + "public const long ALPHA = 2; }";
+    String beta = "module examples.beta; classical class Beta { "
+        + "public const long BETA = 3; }";
+    String gamma = "module examples.gamma; classical class Gamma { "
+        + "public const long GAMMA = 5; }";
+    String delta = "module examples.delta; classical class Delta { "
+        + "public const long DELTA = 7; }";
+    String epsilon = "module examples.epsilon; classical class Epsilon { "
+        + "public const long EPSILON = 11; }";
+    String zeta = "module examples.zeta; import examples.alpha; import examples.beta; "
+        + "import examples.delta; import examples.epsilon; import examples.gamma; "
+        + "classical class Zeta { private const long LEFT = ALPHA + BETA; "
+        + "private const long MIDDLE = GAMMA + DELTA; "
+        + "public const long ANSWER = LEFT + MIDDLE + EPSILON; }";
+    String root = "module examples.root; import examples.zeta; classical class Root { "
+        + "state long outcome = 0; entry void main() { outcome += ANSWER; } }";
+    List<String> imported = List.of(alpha, beta, gamma, delta, epsilon, zeta);
+
+    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    VirtualMachine machine = new VirtualMachine(artifact);
+    machine.run();
+    assertEquals(28, machine.global("outcome"));
+  }
+
+  @Test
   void rejectsAMixedSixModuleGraphBeforePublication() throws Exception {
     String alpha = "module examples.alpha; classical class Alpha { "
         + "public const long ALPHA = 2; }";

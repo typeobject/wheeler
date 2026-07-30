@@ -4,6 +4,7 @@ module wheeler.compiler.compiler_graph_six;
 
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.graphs.six.chain;
+import wheeler.compiler.graphs.six.fork;
 import wheeler.compiler.module_linker;
 
 classical class CompilerGraphSix {
@@ -227,6 +228,20 @@ classical class CompilerGraphSix {
     );
     if (0 < chain.length) {
       return new SixGraphCompilation(chain.length, chain.codeStart);
+    }
+
+    SixForkCompilation fork = compileSixConstantFork(
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      sixthSource,
+      rootSource,
+      output
+    );
+    if (0 < fork.length) {
+      return new SixGraphCompilation(fork.length, fork.codeStart);
     }
 
     assert(0 == 1);
