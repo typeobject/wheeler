@@ -14,38 +14,20 @@ classical class CompilerGraphFive {
   /// Carries private five-module compilation bounds.
   public record FiveGraphCompilation(long length, long codeStart) {}
 
-  private FiveGraphCompilation compileFiveChainIfOrdered(
-    borrow utf8 leafSource,
-    borrow utf8 secondSource,
+  private FiveGraphCompilation compileFiveChainTailIfOrdered(
+    borrow utf8 linkedSecondSource,
     borrow utf8 thirdSource,
     borrow utf8 fourthSource,
     borrow utf8 fifthSource,
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    LinkPlan secondPlan = planPrivateConstantImport(
-      leafSource,
-      secondSource,
-      /* expectedImportCount= */ 1
-    );
-    if (secondPlan.valid) {} else {
-      return new FiveGraphCompilation(0, 0);
-    }
-
-    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
-    bytes secondBytes = allocateBytes(secondArena, secondPlan.linkedLength);
-    long secondWritten = writeConstantImport(leafSource, secondSource, secondPlan, secondBytes);
-    assert(secondWritten == secondPlan.linkedLength);
-    utf8 linkedSecondSource = freezeUtf8(secondBytes);
-
     LinkPlan thirdPlan = planPrivateResolvedConstantImport(
       linkedSecondSource,
       thirdSource,
       /* expectedImportCount= */ 1
     );
     if (thirdPlan.valid) {} else {
-      drop(linkedSecondSource);
-      drop(secondArena);
       return new FiveGraphCompilation(0, 0);
     }
 
@@ -68,8 +50,6 @@ classical class CompilerGraphFive {
     if (fourthPlan.valid) {} else {
       drop(linkedThirdSource);
       drop(thirdArena);
-      drop(linkedSecondSource);
-      drop(secondArena);
       return new FiveGraphCompilation(0, 0);
     }
 
@@ -94,8 +74,6 @@ classical class CompilerGraphFive {
       drop(fourthArena);
       drop(linkedThirdSource);
       drop(thirdArena);
-      drop(linkedSecondSource);
-      drop(secondArena);
       return new FiveGraphCompilation(0, 0);
     }
 
@@ -122,8 +100,6 @@ classical class CompilerGraphFive {
       drop(fourthArena);
       drop(linkedThirdSource);
       drop(thirdArena);
-      drop(linkedSecondSource);
-      drop(secondArena);
       return new FiveGraphCompilation(0, 0);
     }
 
@@ -141,8 +117,6 @@ classical class CompilerGraphFive {
     drop(fourthArena);
     drop(linkedThirdSource);
     drop(thirdArena);
-    drop(linkedSecondSource);
-    drop(secondArena);
     return new FiveGraphCompilation(compiled.length, compiled.codeStart);
   }
 
@@ -155,80 +129,87 @@ classical class CompilerGraphFive {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    FiveGraphCompilation compiled = compileFiveChainIfOrdered(
+    LinkPlan secondPlan = planPrivateConstantImport(
       leafSource,
       secondSource,
-      firstRemainingSource,
-      secondRemainingSource,
-      thirdRemainingSource,
-      rootSource,
-      output
+      /* expectedImportCount= */ 1
     );
-    if (0 < compiled.length) {
-      return compiled;
+    if (secondPlan.valid) {} else {
+      return new FiveGraphCompilation(0, 0);
     }
 
-    compiled = compileFiveChainIfOrdered(
-      leafSource,
-      secondSource,
+    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes secondBytes = allocateBytes(secondArena, secondPlan.linkedLength);
+    long secondWritten = writeConstantImport(leafSource, secondSource, secondPlan, secondBytes);
+    assert(secondWritten == secondPlan.linkedLength);
+    utf8 linkedSecondSource = freezeUtf8(secondBytes);
+
+    FiveGraphCompilation compiled = compileFiveChainTailIfOrdered(
+      linkedSecondSource,
       firstRemainingSource,
-      thirdRemainingSource,
       secondRemainingSource,
+      thirdRemainingSource,
       rootSource,
       output
     );
-    if (0 < compiled.length) {
-      return compiled;
+    if (0 < compiled.length) {} else {
+      compiled = compileFiveChainTailIfOrdered(
+        linkedSecondSource,
+        firstRemainingSource,
+        thirdRemainingSource,
+        secondRemainingSource,
+        rootSource,
+        output
+      );
     }
 
-    compiled = compileFiveChainIfOrdered(
-      leafSource,
-      secondSource,
-      secondRemainingSource,
-      firstRemainingSource,
-      thirdRemainingSource,
-      rootSource,
-      output
-    );
-    if (0 < compiled.length) {
-      return compiled;
+    if (0 < compiled.length) {} else {
+      compiled = compileFiveChainTailIfOrdered(
+        linkedSecondSource,
+        secondRemainingSource,
+        firstRemainingSource,
+        thirdRemainingSource,
+        rootSource,
+        output
+      );
     }
 
-    compiled = compileFiveChainIfOrdered(
-      leafSource,
-      secondSource,
-      secondRemainingSource,
-      thirdRemainingSource,
-      firstRemainingSource,
-      rootSource,
-      output
-    );
-    if (0 < compiled.length) {
-      return compiled;
+    if (0 < compiled.length) {} else {
+      compiled = compileFiveChainTailIfOrdered(
+        linkedSecondSource,
+        secondRemainingSource,
+        thirdRemainingSource,
+        firstRemainingSource,
+        rootSource,
+        output
+      );
     }
 
-    compiled = compileFiveChainIfOrdered(
-      leafSource,
-      secondSource,
-      thirdRemainingSource,
-      firstRemainingSource,
-      secondRemainingSource,
-      rootSource,
-      output
-    );
-    if (0 < compiled.length) {
-      return compiled;
+    if (0 < compiled.length) {} else {
+      compiled = compileFiveChainTailIfOrdered(
+        linkedSecondSource,
+        thirdRemainingSource,
+        firstRemainingSource,
+        secondRemainingSource,
+        rootSource,
+        output
+      );
     }
 
-    return compileFiveChainIfOrdered(
-      leafSource,
-      secondSource,
-      thirdRemainingSource,
-      secondRemainingSource,
-      firstRemainingSource,
-      rootSource,
-      output
-    );
+    if (0 < compiled.length) {} else {
+      compiled = compileFiveChainTailIfOrdered(
+        linkedSecondSource,
+        thirdRemainingSource,
+        secondRemainingSource,
+        firstRemainingSource,
+        rootSource,
+        output
+      );
+    }
+
+    drop(linkedSecondSource);
+    drop(secondArena);
+    return compiled;
   }
 
   private FiveGraphCompilation compileFiveChainFromPair(

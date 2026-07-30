@@ -28,6 +28,7 @@ The package keeps responsibilities narrow:
 - `compiler/GraphFourNested.w` owns the two nested four-module trees.
 - `compiler/GraphFive.w` coordinates bounded five-module forms.
 - `compiler/graphs/FiveFork.w` owns the five-module four-leaf fork.
+- The five-module chain path links one validated directed edge before trying six bounded tails.
 - `compiler/Driver.w` keeps one small stable API over the graph compilers and core.
 - `compiler/verification` owns complete check-before-publication artifact validation.
 

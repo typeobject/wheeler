@@ -43,7 +43,7 @@ final class NativeBootstrapModulesIdentityExampleTest {
       }
     }
 
-    assertEquals(21_487_912, transitions);
+    assertEquals(21_487_944, transitions);
     assertEquals(MachineStatus.HALTED, machine.status());
     assertArrayEquals(MessageDigest.getInstance("SHA-256").digest(manifest.canonicalBytes()),
         machine.hostOutput());
