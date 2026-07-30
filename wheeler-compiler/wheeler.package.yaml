@@ -20,6 +20,7 @@ targets:
       - "src/main/wheeler/compiler/GraphFive.w"
       - "src/main/wheeler/compiler/Graphs.w"
       - "src/main/wheeler/compiler/backend"
+      - "src/main/wheeler/compiler/graphs"
       - "src/main/wheeler/compiler/frontend"
       - "src/main/wheeler/compiler/ir"
       - "src/main/wheeler/compiler/resolution"

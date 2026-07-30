@@ -26,7 +26,8 @@ The package keeps responsibilities narrow:
 - `compiler/GraphFourDag.w` owns shared-dependency four-module DAGs.
 - `compiler/GraphFourMixed.w` owns transitive chains beside direct root imports.
 - `compiler/GraphFourNested.w` owns the two nested four-module trees.
-- `compiler/GraphFive.w` owns the bounded five-module direct star, chain, and fork.
+- `compiler/GraphFive.w` coordinates bounded five-module forms.
+- `compiler/graphs/FiveFork.w` owns the five-module four-leaf fork.
 - `compiler/Driver.w` keeps one small stable API over the graph compilers and core.
 - `compiler/verification` owns complete check-before-publication artifact validation.
 
