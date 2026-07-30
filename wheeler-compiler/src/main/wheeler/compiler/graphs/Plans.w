@@ -25,6 +25,8 @@ classical class CompilerGraphPlans {
   public const long FIVE_PLAN_DEEP_CHAIN_AND_DIRECT = 9;
   /// Names a two-leaf fork through one dependent beside a direct import.
   public const long FIVE_PLAN_NESTED_FORK_AND_DIRECT = 10;
+  /// Names one two-leaf fork through a second two-input dependent.
+  public const long FIVE_PLAN_NESTED_FORK = 11;
 
   private const long SINGLE_IMPORT = 1;
   private const long TWO_IMPORTS = 2;
@@ -265,7 +267,7 @@ classical class CompilerGraphPlans {
         return new FiveGraphPlan(FIVE_PLAN_NESTED_FORK_AND_DIRECT, true);
       }
 
-      return new FiveGraphPlan(0, false);
+      return new FiveGraphPlan(FIVE_PLAN_NESTED_FORK, true);
     }
 
     if (

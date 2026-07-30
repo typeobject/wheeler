@@ -258,7 +258,7 @@ class NativeImportedConstantWideExampleTest {
   }
 
   @Test
-  void rejectsAnUnsupportedFiveModuleGraphBeforePublication() throws Exception {
+  void linksTwoNestedForkLevelsIndependentOfInputOrder() throws Exception {
     String alpha = "module examples.alpha; classical class Alpha { "
         + "public const long ALPHA = 2; }";
     String beta = "module examples.beta; classical class Beta { "
@@ -269,6 +269,30 @@ class NativeImportedConstantWideExampleTest {
         + "public const long DELTA = 7; }";
     String epsilon = "module examples.epsilon; import examples.delta; import examples.gamma; "
         + "classical class Epsilon { public const long ANSWER = DELTA + GAMMA; }";
+    String root = "module examples.root; import examples.epsilon; classical class Root { "
+        + "state long outcome = 0; entry void main() { outcome += ANSWER; } }";
+    List<String> imported = List.of(alpha, beta, gamma, delta, epsilon);
+
+    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    VirtualMachine machine = new VirtualMachine(artifact);
+    machine.run();
+    assertEquals(12, machine.global("outcome"));
+  }
+
+  @Test
+  void rejectsAnUnsupportedFiveModuleGraphBeforePublication() throws Exception {
+    String alpha = "module examples.alpha; classical class Alpha { "
+        + "public const long ALPHA = 2; }";
+    String beta = "module examples.beta; import examples.alpha; classical class Beta { "
+        + "public const long BETA = ALPHA + 1; }";
+    String gamma = "module examples.gamma; import examples.alpha; classical class Gamma { "
+        + "public const long GAMMA = ALPHA + 2; }";
+    String delta = "module examples.delta; classical class Delta { "
+        + "public const long DELTA = 7; }";
+    String epsilon = "module examples.epsilon; import examples.beta; import examples.delta; "
+        + "import examples.gamma; classical class Epsilon { "
+        + "private const long LEFT = BETA + GAMMA; "
+        + "public const long ANSWER = LEFT + DELTA; }";
     String root = "module examples.root; import examples.epsilon; classical class Root { "
         + "state long outcome = 0; entry void main() { outcome += ANSWER; } }";
     assertTrap(program(), List.of(alpha, beta, gamma, delta, epsilon), root);
