@@ -69,6 +69,31 @@ class NativeImportedConstantWideExampleTest {
   }
 
   @Test
+  void linksAFourLeafConstantForkIndependentOfInputOrder() throws Exception {
+    String alpha = "module examples.alpha; classical class Alpha { "
+        + "public const long ALPHA = 2; }";
+    String beta = "module examples.beta; classical class Beta { "
+        + "public const long BETA = 3; }";
+    String gamma = "module examples.gamma; classical class Gamma { "
+        + "public const long GAMMA = 5; }";
+    String delta = "module examples.delta; classical class Delta { "
+        + "public const long DELTA = 7; }";
+    String epsilon = "module examples.epsilon; import examples.alpha; import examples.beta; "
+        + "import examples.delta; import examples.gamma; classical class Epsilon { "
+        + "private const long LEFT = ALPHA + BETA; "
+        + "private const long RIGHT = GAMMA + DELTA; "
+        + "public const long ANSWER = LEFT + RIGHT; }";
+    String root = "module examples.root; import examples.epsilon; classical class Root { "
+        + "state long outcome = 0; entry void main() { outcome += ANSWER; } }";
+    List<String> imported = List.of(alpha, beta, gamma, delta, epsilon);
+
+    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    VirtualMachine machine = new VirtualMachine(artifact);
+    machine.run();
+    assertEquals(17, machine.global("outcome"));
+  }
+
+  @Test
   void rejectsSixImportedConstantModulesBeforePublication() throws Exception {
     List<String> imported = List.of(
         "module examples.two; classical class Two { public const long TWO = 2; }",

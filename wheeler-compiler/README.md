@@ -26,7 +26,7 @@ The package keeps responsibilities narrow:
 - `compiler/GraphFourDag.w` owns shared-dependency four-module DAGs.
 - `compiler/GraphFourMixed.w` owns transitive chains beside direct root imports.
 - `compiler/GraphFourNested.w` owns the two nested four-module trees.
-- `compiler/GraphFive.w` owns the bounded five-module direct star and chain.
+- `compiler/GraphFive.w` owns the bounded five-module direct star, chain, and fork.
 - `compiler/Driver.w` keeps one small stable API over the graph compilers and core.
 - `compiler/verification` owns complete check-before-publication artifact validation.
 
@@ -43,9 +43,10 @@ or excess imports before publication. `compileMinimalWithConstantImport`,
 `compileMinimalWithConstantImports`, `compileMinimalWithThreeConstantImports`, and
 `compileMinimalWithFourConstantImports` link every rooted tree topology over one through
 four imported scalar-constant modules plus one shared-dependency diamond.
-`compileMinimalWithFiveConstantImports` links five direct modules or one five-module
-chain. Differential fixtures exhaust all 120 input orders for each graph. A leaf export becomes private inside its dependent, so a
-root cannot acquire transitive access by spelling the leaf name loudly. Executable imported
+`compileMinimalWithFiveConstantImports` links the five-module direct star, chain, and
+four-leaf fork. Differential fixtures exhaust all 120 input orders for each graph. A leaf
+export becomes private inside its dependent, so a root cannot acquire transitive access by
+spelling the leaf name loudly. Executable imported
 members, mismatched module names, other five-module graphs, and more than five root imports
 fail closed. General symbol resolution remains future work. Entry and helper bodies
 admit at most sixty-four statements. The current slice covers typed signed
@@ -75,7 +76,7 @@ Constants create no global, initializer, lookup, or declaration-order artifact n
 native header path accepts direct import declarations. The linker resolves bounded public
 scalar constants through unqualified or canonical owner-qualified uses and preserves stage-0
 artifact bytes. It covers every rooted tree topology over one through four imports, one
-shared-dependency diamond, and the five-module direct star and chain while preventing intermediate
+shared-dependency diamond, and the five-module direct star, chain, and four-leaf fork while preventing intermediate
 exports from reaching the root.
 Repeated dependency declarations are deduplicated only when their private token sequences
 match exactly. Sharing a name and a hopeful expression does not count. Root collisions with
