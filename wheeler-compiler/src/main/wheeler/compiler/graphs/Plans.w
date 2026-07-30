@@ -13,6 +13,8 @@ classical class CompilerGraphPlans {
   public const long FIVE_PLAN_FORK = 3;
   /// Names a three-leaf fork beside one direct root import.
   public const long FIVE_PLAN_FORK_AND_DIRECT = 4;
+  /// Names one chain edge beside three direct root imports.
+  public const long FIVE_PLAN_CHAIN_AND_DIRECTS = 5;
 
   private const long SINGLE_IMPORT = 1;
   private const long THREE_IMPORTS = 3;
@@ -22,8 +24,12 @@ classical class CompilerGraphPlans {
   /// Carries one validated five-module topology selection.
   public record FiveGraphPlan(long topology, boolean valid) {}
 
-  private boolean directSource(borrow utf8 source, borrow utf8 rootSource) {
-    LinkPlan plan = planConstantImport(source, rootSource, FIVE_IMPORTS);
+  private boolean directSource(
+    borrow utf8 source,
+    borrow utf8 rootSource,
+    long expectedImportCount
+  ) {
+    LinkPlan plan = planConstantImport(source, rootSource, expectedImportCount);
     return plan.valid;
   }
 
@@ -133,23 +139,56 @@ classical class CompilerGraphPlans {
     borrow utf8 fifthSource,
     borrow utf8 rootSource
   ) {
-    if (directSource(firstSource, rootSource)) {} else {
+    if (directSource(firstSource, rootSource, FIVE_IMPORTS)) {} else {
       return false;
     }
 
-    if (directSource(secondSource, rootSource)) {} else {
+    if (directSource(secondSource, rootSource, FIVE_IMPORTS)) {} else {
       return false;
     }
 
-    if (directSource(thirdSource, rootSource)) {} else {
+    if (directSource(thirdSource, rootSource, FIVE_IMPORTS)) {} else {
       return false;
     }
 
-    if (directSource(fourthSource, rootSource)) {} else {
+    if (directSource(fourthSource, rootSource, FIVE_IMPORTS)) {} else {
       return false;
     }
 
-    return directSource(fifthSource, rootSource);
+    return directSource(fifthSource, rootSource, FIVE_IMPORTS);
+  }
+
+  private long directCount(
+    borrow utf8 firstSource,
+    borrow utf8 secondSource,
+    borrow utf8 thirdSource,
+    borrow utf8 fourthSource,
+    borrow utf8 fifthSource,
+    borrow utf8 rootSource,
+    long expectedImportCount
+  ) {
+    long count = 0;
+    if (directSource(firstSource, rootSource, expectedImportCount)) {
+      count += 1;
+    }
+
+    if (directSource(secondSource, rootSource, expectedImportCount)) {
+      count += 1;
+    }
+
+    if (directSource(thirdSource, rootSource, expectedImportCount)) {
+      count += 1;
+    }
+
+    if (directSource(fourthSource, rootSource, expectedImportCount)) {
+      count += 1;
+    }
+
+    if (directSource(fifthSource, rootSource, expectedImportCount)) {
+      count += 1;
+    }
+
+    return count;
   }
 
   /// Selects one supported five-module topology independent of source order.
@@ -196,6 +235,19 @@ classical class CompilerGraphPlans {
         SINGLE_IMPORT
       )
     ) {
+      long rootImports = directCount(
+        firstSource,
+        secondSource,
+        thirdSource,
+        fourthSource,
+        fifthSource,
+        rootSource,
+        FOUR_IMPORTS
+      );
+      if (rootImports == THREE_IMPORTS) {
+        return new FiveGraphPlan(FIVE_PLAN_CHAIN_AND_DIRECTS, true);
+      }
+
       return new FiveGraphPlan(FIVE_PLAN_CHAIN, true);
     }
 

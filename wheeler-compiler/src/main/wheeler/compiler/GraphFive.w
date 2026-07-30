@@ -5,6 +5,7 @@ module wheeler.compiler.compiler_graph_five;
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.graphs.five_branches;
 import wheeler.compiler.graphs.five_fork;
+import wheeler.compiler.graphs.five_mixed;
 import wheeler.compiler.graphs.plans;
 import wheeler.compiler.module_linker;
 
@@ -577,6 +578,23 @@ classical class CompilerGraphFive {
       }
 
       return new FiveGraphCompilation(branch.length, branch.codeStart);
+    }
+
+    if (plan.topology == FIVE_PLAN_CHAIN_AND_DIRECTS) {
+      FiveMixedCompilation mixed = compileFiveChainAndDirects(
+        firstSource,
+        secondSource,
+        thirdSource,
+        fourthSource,
+        fifthSource,
+        rootSource,
+        output
+      );
+      if (0 < mixed.length) {} else {
+        assert(INVALID_COMPILATION_LENGTH == VALID_COMPILATION_LENGTH);
+      }
+
+      return new FiveGraphCompilation(mixed.length, mixed.codeStart);
     }
 
     if (plan.topology == FIVE_PLAN_CHAIN) {
