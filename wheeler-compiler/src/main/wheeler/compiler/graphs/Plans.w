@@ -23,6 +23,8 @@ classical class CompilerGraphPlans {
   public const long FIVE_PLAN_LONG_CHAIN_AND_DIRECTS = 8;
   /// Names a four-module chain beside one direct root import.
   public const long FIVE_PLAN_DEEP_CHAIN_AND_DIRECT = 9;
+  /// Names a two-leaf fork through one dependent beside a direct import.
+  public const long FIVE_PLAN_NESTED_FORK_AND_DIRECT = 10;
 
   private const long SINGLE_IMPORT = 1;
   private const long TWO_IMPORTS = 2;
@@ -248,6 +250,19 @@ classical class CompilerGraphPlans {
       );
       if (forkDirects == TWO_IMPORTS) {
         return new FiveGraphPlan(FIVE_PLAN_FORK_AND_TWO_DIRECTS, true);
+      }
+
+      long nestedDirect = directCount(
+        firstSource,
+        secondSource,
+        thirdSource,
+        fourthSource,
+        fifthSource,
+        rootSource,
+        TWO_IMPORTS
+      );
+      if (nestedDirect == SINGLE_IMPORT) {
+        return new FiveGraphPlan(FIVE_PLAN_NESTED_FORK_AND_DIRECT, true);
       }
 
       return new FiveGraphPlan(0, false);

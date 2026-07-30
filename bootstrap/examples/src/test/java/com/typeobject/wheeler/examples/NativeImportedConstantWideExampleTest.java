@@ -235,7 +235,7 @@ class NativeImportedConstantWideExampleTest {
   }
 
   @Test
-  void rejectsAnUnsupportedFiveModuleGraphBeforePublication() throws Exception {
+  void linksANestedForkBesideADirectModuleIndependentOfInputOrder() throws Exception {
     String alpha = "module examples.alpha; classical class Alpha { "
         + "public const long ALPHA = 2; }";
     String beta = "module examples.beta; classical class Beta { "
@@ -249,6 +249,28 @@ class NativeImportedConstantWideExampleTest {
     String root = "module examples.root; import examples.delta; import examples.epsilon; "
         + "classical class Root { state long outcome = 0; entry void main() { "
         + "outcome += DELTA; outcome += EPSILON; } }";
+    List<String> imported = List.of(alpha, beta, gamma, delta, epsilon);
+
+    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    VirtualMachine machine = new VirtualMachine(artifact);
+    machine.run();
+    assertEquals(23, machine.global("outcome"));
+  }
+
+  @Test
+  void rejectsAnUnsupportedFiveModuleGraphBeforePublication() throws Exception {
+    String alpha = "module examples.alpha; classical class Alpha { "
+        + "public const long ALPHA = 2; }";
+    String beta = "module examples.beta; classical class Beta { "
+        + "public const long BETA = 3; }";
+    String gamma = "module examples.gamma; import examples.alpha; import examples.beta; "
+        + "classical class Gamma { public const long GAMMA = ALPHA + BETA; }";
+    String delta = "module examples.delta; classical class Delta { "
+        + "public const long DELTA = 7; }";
+    String epsilon = "module examples.epsilon; import examples.delta; import examples.gamma; "
+        + "classical class Epsilon { public const long ANSWER = DELTA + GAMMA; }";
+    String root = "module examples.root; import examples.epsilon; classical class Root { "
+        + "state long outcome = 0; entry void main() { outcome += ANSWER; } }";
     assertTrap(program(), List.of(alpha, beta, gamma, delta, epsilon), root);
   }
 
