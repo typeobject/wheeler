@@ -27,6 +27,8 @@ classical class CompilerGraphPlans {
   public const long FIVE_PLAN_NESTED_FORK_AND_DIRECT = 10;
   /// Names one two-leaf fork through a second two-input dependent.
   public const long FIVE_PLAN_NESTED_FORK = 11;
+  /// Names a shared diamond with one side leaf at its join.
+  public const long FIVE_PLAN_SHARED_DIAMOND = 12;
 
   private const long SINGLE_IMPORT = 1;
   private const long TWO_IMPORTS = 2;
@@ -144,6 +146,97 @@ classical class CompilerGraphPlans {
     );
   }
 
+  private long outgoingCount(
+    borrow utf8 source,
+    borrow utf8 firstCandidate,
+    borrow utf8 secondCandidate,
+    borrow utf8 thirdCandidate,
+    borrow utf8 fourthCandidate
+  ) {
+    long count = 0;
+    if (edge(source, firstCandidate, SINGLE_IMPORT)) {
+      count += 1;
+    }
+
+    if (edge(source, secondCandidate, SINGLE_IMPORT)) {
+      count += 1;
+    }
+
+    if (edge(source, thirdCandidate, SINGLE_IMPORT)) {
+      count += 1;
+    }
+
+    if (edge(source, fourthCandidate, SINGLE_IMPORT)) {
+      count += 1;
+    }
+
+    return count;
+  }
+
+  private boolean hasSharedLeaf(
+    borrow utf8 firstSource,
+    borrow utf8 secondSource,
+    borrow utf8 thirdSource,
+    borrow utf8 fourthSource,
+    borrow utf8 fifthSource
+  ) {
+    if (
+      SINGLE_IMPORT < outgoingCount(
+        firstSource,
+        secondSource,
+        thirdSource,
+        fourthSource,
+        fifthSource
+      )
+    ) {
+      return true;
+    }
+
+    if (
+      SINGLE_IMPORT < outgoingCount(
+        secondSource,
+        firstSource,
+        thirdSource,
+        fourthSource,
+        fifthSource
+      )
+    ) {
+      return true;
+    }
+
+    if (
+      SINGLE_IMPORT < outgoingCount(
+        thirdSource,
+        firstSource,
+        secondSource,
+        fourthSource,
+        fifthSource
+      )
+    ) {
+      return true;
+    }
+
+    if (
+      SINGLE_IMPORT < outgoingCount(
+        fourthSource,
+        firstSource,
+        secondSource,
+        thirdSource,
+        fifthSource
+      )
+    ) {
+      return true;
+    }
+
+    return SINGLE_IMPORT < outgoingCount(
+      fifthSource,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource
+    );
+  }
+
   private boolean allDirect(
     borrow utf8 firstSource,
     borrow utf8 secondSource,
@@ -217,6 +310,12 @@ classical class CompilerGraphPlans {
       allDirect(firstSource, secondSource, thirdSource, fourthSource, fifthSource, rootSource)
     ) {
       return new FiveGraphPlan(FIVE_PLAN_DIRECT, true);
+    }
+
+    if (
+      hasSharedLeaf(firstSource, secondSource, thirdSource, fourthSource, fifthSource)
+    ) {
+      return new FiveGraphPlan(FIVE_PLAN_SHARED_DIAMOND, true);
     }
 
     if (
