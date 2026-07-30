@@ -28,15 +28,15 @@ The package keeps responsibilities narrow:
 - `compiler/GraphFourNested.w` owns the two nested four-module trees.
 - `compiler/GraphFive.w` coordinates bounded five-module forms.
 - `compiler/graphs/Plans.w` classifies supported five-module topology before linking.
-- `compiler/graphs/FiveFork.w` owns the five-module four-leaf fork.
-- `compiler/graphs/FiveBranches.w` owns a three-leaf fork beside a direct import.
-- `compiler/graphs/FiveMixed.w` owns one chain edge beside three direct imports.
-- `compiler/graphs/FiveForkMixed.w` owns a two-leaf fork beside two direct imports.
-- `compiler/graphs/FivePairs.w` owns two independent chains beside a direct import.
-- `compiler/graphs/FiveLongMixed.w` owns a three-module chain beside two direct imports.
-- `compiler/graphs/FiveDeepMixed.w` owns a four-module chain beside one direct import.
-- `compiler/graphs/FiveNestedMixed.w` owns a nested two-leaf fork beside a direct import.
-- `compiler/graphs/FiveNestedFork.w` owns two nested fork levels.
+- `compiler/graphs/five/FiveFork.w` owns the five-module four-leaf fork.
+- `compiler/graphs/five/FiveBranches.w` owns a three-leaf fork beside a direct import.
+- `compiler/graphs/five/FiveMixed.w` owns one chain edge beside three direct imports.
+- `compiler/graphs/five/FiveForkMixed.w` owns a two-leaf fork beside two direct imports.
+- `compiler/graphs/five/FivePairs.w` owns two independent chains beside a direct import.
+- `compiler/graphs/five/FiveLongMixed.w` owns a three-module chain beside two direct imports.
+- `compiler/graphs/five/FiveDeepMixed.w` owns a four-module chain beside one direct import.
+- `compiler/graphs/five/FiveNestedMixed.w` owns a nested two-leaf fork beside a direct import.
+- `compiler/graphs/five/FiveNestedFork.w` owns two nested fork levels.
 - The five-module chain path links one validated directed edge before trying six bounded tails.
 - `compiler/Driver.w` keeps one small stable API over the graph compilers and core.
 - `compiler/verification` owns complete check-before-publication artifact validation.
