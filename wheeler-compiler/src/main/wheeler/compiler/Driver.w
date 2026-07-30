@@ -85,6 +85,31 @@ classical class CompilerDriver {
     );
   }
 
+  /// Compiles one root with six direct scalar-constant modules.
+  public Compilation compileMinimalWithSixConstantImports(
+    borrow utf8 firstImportedSource,
+    borrow utf8 secondImportedSource,
+    borrow utf8 thirdImportedSource,
+    borrow utf8 fourthImportedSource,
+    borrow utf8 fifthImportedSource,
+    borrow utf8 sixthImportedSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    return publicCompilation(
+      compileGraphWithSixConstantImports(
+        firstImportedSource,
+        secondImportedSource,
+        thirdImportedSource,
+        fourthImportedSource,
+        fifthImportedSource,
+        sixthImportedSource,
+        rootSource,
+        output
+      )
+    );
+  }
+
   /// Compiles one supported five-module constant graph and its root.
   public Compilation compileMinimalWithFiveConstantImports(
     borrow utf8 firstImportedSource,

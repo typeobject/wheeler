@@ -56,11 +56,10 @@ or excess imports before publication. `compileMinimalWithConstantImport`,
 `compileMinimalWithFourConstantImports` link every rooted tree topology over one through
 four imported scalar-constant modules plus one shared-dependency diamond.
 `compileMinimalWithFiveConstantImports` first builds a closed topology plan, then links
-the five-module direct star, chain, four-leaf fork, three-leaf fork beside a direct import, one chain edge beside three direct imports, a two-leaf fork beside two direct imports, two independent chains beside a direct import, a three-module chain beside two direct imports, a four-module chain beside a direct import, a nested two-leaf fork beside a direct import, two nested fork levels, or a shared diamond with a side leaf. Differential fixtures exhaust all 120 input orders for each graph. A leaf
+the five-module direct star, chain, four-leaf fork, three-leaf fork beside a direct import, one chain edge beside three direct imports, a two-leaf fork beside two direct imports, two independent chains beside a direct import, a three-module chain beside two direct imports, a four-module chain beside a direct import, a nested two-leaf fork beside a direct import, two nested fork levels, or a shared diamond with a side leaf. `compileMinimalWithSixConstantImports` links the six-module direct star. Differential fixtures exhaust all 120 five-module orders and all 720 six-module orders. A leaf
 export becomes private inside its dependent, so a root cannot acquire transitive access by
 spelling the leaf name loudly. Executable imported
-members, mismatched module names, other five-module graphs, and more than five root imports
-fail closed. General symbol resolution remains future work. Entry and helper bodies
+members, mismatched module names, other five-module graphs, non-direct six-module graphs, and seven or more root imports fail closed. General symbol resolution remains future work. Entry and helper bodies
 admit at most sixty-four statements. The current slice covers typed signed
 and Boolean locals, assertions, assignments, checked scalar operations, calls, results, and
 narrow explicitly limited loops.
@@ -88,12 +87,11 @@ Constants create no global, initializer, lookup, or declaration-order artifact n
 native header path accepts direct import declarations. The linker resolves bounded public
 scalar constants through unqualified or canonical owner-qualified uses and preserves stage-0
 artifact bytes. It covers every rooted tree topology over one through four imports, one
-shared-dependency diamond, and the five-module direct star, chain, four-leaf fork, three-leaf fork beside a direct import, one chain edge beside three direct imports, a two-leaf fork beside two direct imports, two independent chains beside a direct import, a three-module chain beside two direct imports, a four-module chain beside a direct import, a nested two-leaf fork beside a direct import, two nested fork levels, and a shared diamond with a side leaf while preventing intermediate
+shared-dependency diamond, the five-module direct star, chain, four-leaf fork, three-leaf fork beside a direct import, one chain edge beside three direct imports, a two-leaf fork beside two direct imports, two independent chains beside a direct import, a three-module chain beside two direct imports, a four-module chain beside a direct import, a nested two-leaf fork beside a direct import, two nested fork levels, and a shared diamond with a side leaf, plus the six-module direct star, while preventing intermediate
 exports from reaching the root.
 Repeated dependency declarations are deduplicated only when their private token sequences
 match exactly. Sharing a name and a hopeful expression does not count. Root collisions with
-imported private names, colliding exports, other five-module graphs, graphs with six or more
-imports, and general multi-file linking remain stage-0 work until native differential artifacts pin
+imported private names, colliding exports, other five-module graphs, non-direct six-module graphs, graphs with seven or more imports, and general multi-file linking remain stage-0 work until native differential artifacts pin
 them down.
 
 The canonical registry also owns `CALL_RESULT_SLOT`, `UNCALL_RESULT_SLOT`,

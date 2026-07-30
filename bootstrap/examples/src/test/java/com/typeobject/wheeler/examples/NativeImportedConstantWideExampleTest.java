@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test;
 
 /** Differential coverage for wider Wheeler-native constant module graphs. */
 class NativeImportedConstantWideExampleTest {
-  private static final int FIVE_MODULE_PERMUTATIONS = 120;
 
   @Test
   void linksFiveDirectConstantModulesIndependentOfInputOrder() throws Exception {
@@ -321,7 +320,7 @@ class NativeImportedConstantWideExampleTest {
   }
 
   @Test
-  void rejectsSixImportedConstantModulesBeforePublication() throws Exception {
+  void linksSixDirectConstantModulesIndependentOfInputOrder() throws Exception {
     List<String> imported = List.of(
         "module examples.two; classical class Two { public const long TWO = 2; }",
         "module examples.three; classical class Three { public const long THREE = 3; }",
@@ -332,7 +331,52 @@ class NativeImportedConstantWideExampleTest {
             + "public const long THIRTEEN = 13; }");
     String root = "module examples.root; import examples.eleven; import examples.five; "
         + "import examples.seven; import examples.thirteen; import examples.three; "
-        + "import examples.two; classical class Root { entry void main() {} }";
+        + "import examples.two; classical class Root { state long outcome = 0; "
+        + "entry void main() { outcome += TWO; outcome += THREE; outcome += FIVE; "
+        + "outcome += SEVEN; outcome += ELEVEN; outcome += THIRTEEN; } }";
+
+    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    VirtualMachine machine = new VirtualMachine(artifact);
+    machine.run();
+    assertEquals(41, machine.global("outcome"));
+  }
+
+  @Test
+  void rejectsANonDirectSixModuleGraphBeforePublication() throws Exception {
+    String alpha = "module examples.alpha; classical class Alpha { "
+        + "public const long ALPHA = 2; }";
+    String beta = "module examples.beta; import examples.alpha; classical class Beta { "
+        + "public const long BETA = ALPHA + 1; }";
+    List<String> imported = List.of(
+        alpha,
+        beta,
+        "module examples.five; classical class Five { public const long FIVE = 5; }",
+        "module examples.seven; classical class Seven { public const long SEVEN = 7; }",
+        "module examples.eleven; classical class Eleven { public const long ELEVEN = 11; }",
+        "module examples.thirteen; classical class Thirteen { "
+            + "public const long THIRTEEN = 13; }");
+    String root = "module examples.root; import examples.beta; import examples.eleven; "
+        + "import examples.five; import examples.seven; import examples.thirteen; "
+        + "classical class Root { entry void main() {} }";
+    assertTrap(program(), imported, root);
+  }
+
+  @Test
+  void rejectsSevenImportedModulesBeforePublication() throws Exception {
+    List<String> imported = List.of(
+        "module examples.two; classical class Two { public const long TWO = 2; }",
+        "module examples.three; classical class Three { public const long THREE = 3; }",
+        "module examples.five; classical class Five { public const long FIVE = 5; }",
+        "module examples.seven; classical class Seven { public const long SEVEN = 7; }",
+        "module examples.eleven; classical class Eleven { public const long ELEVEN = 11; }",
+        "module examples.thirteen; classical class Thirteen { "
+            + "public const long THIRTEEN = 13; }",
+        "module examples.seventeen; classical class Seventeen { "
+            + "public const long SEVENTEEN = 17; }");
+    String root = "module examples.root; import examples.eleven; import examples.five; "
+        + "import examples.seven; import examples.seventeen; import examples.thirteen; "
+        + "import examples.three; import examples.two; classical class Root { "
+        + "entry void main() {} }";
     assertTrap(program(), imported, root);
   }
 
@@ -348,11 +392,19 @@ class NativeImportedConstantWideExampleTest {
 
     Program compiler = program();
     List<List<String>> orders = permutations(imported);
-    assertEquals(FIVE_MODULE_PERMUTATIONS, orders.size());
+    assertEquals(factorial(imported.size()), orders.size());
     for (List<String> order : orders) {
       assertArrayEquals(expected, compile(compiler, order, root));
     }
     return expected;
+  }
+
+  private static int factorial(int value) {
+    int result = 1;
+    for (int factor = 2; factor <= value; factor++) {
+      result *= factor;
+    }
+    return result;
   }
 
   private static List<List<String>> permutations(List<String> values) {

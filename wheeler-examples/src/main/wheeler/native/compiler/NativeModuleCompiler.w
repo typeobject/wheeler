@@ -11,6 +11,7 @@ classical class NativeModuleCompiler {
   private const long TRIPLE_MODULE_COUNT = 3;
   private const long QUADRUPLE_MODULE_COUNT = 4;
   private const long QUINTUPLE_MODULE_COUNT = 5;
+  private const long SEXTUPLE_MODULE_COUNT = 6;
   private const long MAX_FRAME_SOURCE_BYTES = 16384;
 
   state long moduleCount = 0;
@@ -19,6 +20,7 @@ classical class NativeModuleCompiler {
   state long thirdImportedLength = 0;
   state long fourthImportedLength = 0;
   state long fifthImportedLength = 0;
+  state long sixthImportedLength = 0;
   state long rootLength = 0;
   state long artifactLength = 0;
   state long published = 0;
@@ -300,7 +302,92 @@ classical class NativeModuleCompiler {
     drop(arena);
   }
 
-  /// Compiles a canonical frame containing one through five imported modules.
+  private void publishSix(borrow byteview input, borrow mut bytes output) {
+    long firstLengthOffset = FRAME_LENGTH_WIDTH;
+    long firstStart = firstLengthOffset + FRAME_LENGTH_WIDTH;
+    importedLength = framedLength(input, firstLengthOffset);
+    assert(0 < importedLength);
+    assert(importedLength < MAX_FRAME_SOURCE_BYTES + 1);
+    long secondLengthOffset = firstStart + importedLength;
+    assert(secondLengthOffset + FRAME_LENGTH_WIDTH < bufferLength(input));
+    secondImportedLength = framedLength(input, secondLengthOffset);
+    assert(0 < secondImportedLength);
+    assert(secondImportedLength < MAX_FRAME_SOURCE_BYTES + 1);
+    long secondStart = secondLengthOffset + FRAME_LENGTH_WIDTH;
+    long thirdLengthOffset = secondStart + secondImportedLength;
+    assert(thirdLengthOffset + FRAME_LENGTH_WIDTH < bufferLength(input));
+    thirdImportedLength = framedLength(input, thirdLengthOffset);
+    assert(0 < thirdImportedLength);
+    assert(thirdImportedLength < MAX_FRAME_SOURCE_BYTES + 1);
+    long thirdStart = thirdLengthOffset + FRAME_LENGTH_WIDTH;
+    long fourthLengthOffset = thirdStart + thirdImportedLength;
+    assert(fourthLengthOffset + FRAME_LENGTH_WIDTH < bufferLength(input));
+    fourthImportedLength = framedLength(input, fourthLengthOffset);
+    assert(0 < fourthImportedLength);
+    assert(fourthImportedLength < MAX_FRAME_SOURCE_BYTES + 1);
+    long fourthStart = fourthLengthOffset + FRAME_LENGTH_WIDTH;
+    long fifthLengthOffset = fourthStart + fourthImportedLength;
+    assert(fifthLengthOffset + FRAME_LENGTH_WIDTH < bufferLength(input));
+    fifthImportedLength = framedLength(input, fifthLengthOffset);
+    assert(0 < fifthImportedLength);
+    assert(fifthImportedLength < MAX_FRAME_SOURCE_BYTES + 1);
+    long fifthStart = fifthLengthOffset + FRAME_LENGTH_WIDTH;
+    long sixthLengthOffset = fifthStart + fifthImportedLength;
+    assert(sixthLengthOffset + FRAME_LENGTH_WIDTH < bufferLength(input));
+    sixthImportedLength = framedLength(input, sixthLengthOffset);
+    assert(0 < sixthImportedLength);
+    assert(sixthImportedLength < MAX_FRAME_SOURCE_BYTES + 1);
+    long sixthStart = sixthLengthOffset + FRAME_LENGTH_WIDTH;
+    long rootStart = sixthStart + sixthImportedLength;
+    assert(rootStart < bufferLength(input));
+    rootLength = bufferLength(input) - rootStart;
+    assert(rootLength < MAX_FRAME_SOURCE_BYTES + 1);
+
+    region arena = new region(/* bytes= */ 114688, /* allocations= */ 7);
+    bytes firstBytes = allocateBytes(arena, importedLength);
+    bytes secondBytes = allocateBytes(arena, secondImportedLength);
+    bytes thirdBytes = allocateBytes(arena, thirdImportedLength);
+    bytes fourthBytes = allocateBytes(arena, fourthImportedLength);
+    bytes fifthBytes = allocateBytes(arena, fifthImportedLength);
+    bytes sixthBytes = allocateBytes(arena, sixthImportedLength);
+    bytes rootBytes = allocateBytes(arena, rootLength);
+    copyFrame(input, firstStart, firstBytes);
+    copyFrame(input, secondStart, secondBytes);
+    copyFrame(input, thirdStart, thirdBytes);
+    copyFrame(input, fourthStart, fourthBytes);
+    copyFrame(input, fifthStart, fifthBytes);
+    copyFrame(input, sixthStart, sixthBytes);
+    copyFrame(input, rootStart, rootBytes);
+    utf8 firstSource = freezeUtf8(firstBytes);
+    utf8 secondSource = freezeUtf8(secondBytes);
+    utf8 thirdSource = freezeUtf8(thirdBytes);
+    utf8 fourthSource = freezeUtf8(fourthBytes);
+    utf8 fifthSource = freezeUtf8(fifthBytes);
+    utf8 sixthSource = freezeUtf8(sixthBytes);
+    utf8 rootSource = freezeUtf8(rootBytes);
+    Compilation compiled = compileMinimalWithSixConstantImports(
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      sixthSource,
+      rootSource,
+      output
+    );
+    artifactLength = compiled.length;
+    published = 1;
+    drop(rootSource);
+    drop(sixthSource);
+    drop(fifthSource);
+    drop(fourthSource);
+    drop(thirdSource);
+    drop(secondSource);
+    drop(firstSource);
+    drop(arena);
+  }
+
+  /// Compiles a canonical frame containing one through six imported modules.
   ///
   /// - Effects: Mutates fixture state and caller-owned byte output.
   entry void main(borrow byteview input, borrow mut bytes output) {
@@ -321,7 +408,11 @@ classical class NativeModuleCompiler {
             if (moduleCount == QUINTUPLE_MODULE_COUNT) {
               publishFive(input, output);
             } else {
-              assert(published == 1);
+              if (moduleCount == SEXTUPLE_MODULE_COUNT) {
+                publishSix(input, output);
+              } else {
+                assert(published == 1);
+              }
             }
           }
         }
