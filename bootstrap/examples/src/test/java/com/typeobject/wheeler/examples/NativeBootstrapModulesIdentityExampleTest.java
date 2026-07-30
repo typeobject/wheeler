@@ -127,8 +127,10 @@ final class NativeBootstrapModulesIdentityExampleTest {
     assertLargeIdentity(program, thirtyThreeModules, 33, 0, 32);
     BootstrapModuleManifest sixtyFourModules = generatedGraph(64);
     assertLargeIdentity(program, sixtyFourModules, 64, 0, 63);
-    BootstrapModuleManifest sixtyFiveModules = generatedGraph(65);
-    assertLargeNoIdentity(program, sixtyFiveModules.canonicalBytes());
+    BootstrapModuleManifest ninetySixModules = generatedChainGraph(96);
+    assertLargeIdentity(program, ninetySixModules, 96, 0, 95);
+    BootstrapModuleManifest ninetySevenModules = generatedChainGraph(97);
+    assertLargeNoIdentity(program, ninetySevenModules.canonicalBytes());
     BootstrapModuleManifest sixtyFourExternals = generatedExternalGraph(64);
     assertLargeIdentity(program, sixtyFourExternals, 1, 64, 0);
     BootstrapModuleManifest sixtyFiveExternals = generatedExternalGraph(65);
@@ -211,6 +213,22 @@ final class NativeBootstrapModulesIdentityExampleTest {
         externals,
         List.of(new Module(
             "bootstrap.root", "src/Root.w", IDENTITY, List.of())));
+  }
+
+  private static BootstrapModuleManifest generatedChainGraph(int count) {
+    List<Module> rows = new ArrayList<>();
+    for (int index = 0; index < count; index++) {
+      List<String> imports = index + 1 < count
+          ? List.of("bootstrap.m" + (index + 1))
+          : List.of();
+      rows.add(new Module(
+          "bootstrap.m" + index,
+          "src/M" + index + ".w",
+          "%02x".formatted(32 + index).repeat(32),
+          imports));
+    }
+    return new BootstrapModuleManifest(
+        "bootstrap-1", "bootstrap.m0", List.of(), rows);
   }
 
   private static BootstrapModuleManifest generatedGraph(int count) {
