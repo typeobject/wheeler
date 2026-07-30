@@ -85,7 +85,7 @@ classical class CompilerDriver {
     );
   }
 
-  /// Compiles five direct constant modules and their root.
+  /// Compiles one supported five-module constant graph and its root.
   public Compilation compileMinimalWithFiveConstantImports(
     borrow utf8 firstImportedSource,
     borrow utf8 secondImportedSource,

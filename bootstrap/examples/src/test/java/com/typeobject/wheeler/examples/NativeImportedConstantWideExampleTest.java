@@ -39,25 +39,33 @@ class NativeImportedConstantWideExampleTest {
         + "outcome += ELEVEN; } }";
     List<String> imported = List.of(two, three, five, seven, eleven);
 
-    Map<String, String> sources = new LinkedHashMap<>();
-    for (int index = 0; index < imported.size(); index++) {
-      sources.put("Imported" + index + ".w", imported.get(index));
-    }
-    sources.put("Root.w", root);
-    byte[] expected = new BytecodeWriter().write(
-        new WheelerCompiler().compileModuleFiles(sources, "examples.root"));
-
-    Program compiler = program();
-    List<List<String>> orders = permutations(imported);
-    assertEquals(FIVE_MODULE_PERMUTATIONS, orders.size());
-    for (List<String> order : orders) {
-      assertArrayEquals(expected, compile(compiler, order, root));
-    }
-
-    Program artifact = new BytecodeReader().read(expected);
+    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(28, machine.global("outcome"));
+  }
+
+  @Test
+  void linksAFiveModuleConstantChainIndependentOfInputOrder() throws Exception {
+    String alpha = "module examples.alpha; classical class Alpha { "
+        + "private const long HIDDEN = 1; public const long BASE = HIDDEN + 1; }";
+    String beta = "module examples.beta; import examples.alpha; classical class Beta { "
+        + "public const long BETA = BASE + 3; }";
+    String gamma = "module examples.gamma; import examples.beta; classical class Gamma { "
+        + "public const long GAMMA = BETA * 2; }";
+    String delta = "module examples.delta; import examples.gamma; classical class Delta { "
+        + "public const long DELTA = GAMMA + 1; }";
+    String epsilon = "module examples.epsilon; import examples.delta; "
+        + "classical class Epsilon { public const long ANSWER = DELTA + 31; }";
+    String root = "module examples.root; import examples.epsilon; classical class Root { "
+        + "state long outcome = 0; entry void main() { outcome += ANSWER; } }";
+    List<String> imported = List.of(alpha, beta, gamma, delta, epsilon);
+
+    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    VirtualMachine machine = new VirtualMachine(artifact);
+    machine.run();
+    assertEquals(42, machine.global("outcome"));
+    assertTrap(program(), imported, root.replace("outcome += ANSWER", "outcome += BASE"));
   }
 
   @Test
@@ -74,6 +82,25 @@ class NativeImportedConstantWideExampleTest {
         + "import examples.seven; import examples.thirteen; import examples.three; "
         + "import examples.two; classical class Root { entry void main() {} }";
     assertTrap(program(), imported, root);
+  }
+
+  private static byte[] assertEveryOrderMatchesStageZero(
+      List<String> imported, String root) throws Exception {
+    Map<String, String> sources = new LinkedHashMap<>();
+    for (int index = 0; index < imported.size(); index++) {
+      sources.put("Imported" + index + ".w", imported.get(index));
+    }
+    sources.put("Root.w", root);
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileModuleFiles(sources, "examples.root"));
+
+    Program compiler = program();
+    List<List<String>> orders = permutations(imported);
+    assertEquals(FIVE_MODULE_PERMUTATIONS, orders.size());
+    for (List<String> order : orders) {
+      assertArrayEquals(expected, compile(compiler, order, root));
+    }
+    return expected;
   }
 
   private static List<List<String>> permutations(List<String> values) {
