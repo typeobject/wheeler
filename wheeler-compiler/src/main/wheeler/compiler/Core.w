@@ -105,6 +105,7 @@ classical class CompilerCore {
           0,
           0,
           0,
+          0,
           0
         );
       }
@@ -158,6 +159,7 @@ classical class CompilerCore {
               emptyStatementOperands(),
               0,
               parseGlobal,
+              0,
               0,
               0,
               0,
@@ -278,19 +280,20 @@ classical class CompilerCore {
     if (resultSlotProgram) {
       helperLocalCount = helperParameterCount + RESULT_SLOT_LOCAL_COUNT;
       helperForwardLength = RESULT_SLOT_BODY_LENGTH;
-      if (returnLocalBinaryStatement(program.helperOpcodes[0])) {
+      long helperResultOpcode = program.helperOpcodes[program.helperResultStatement];
+      if (returnLocalBinaryStatement(helperResultOpcode)) {
         helperForwardLength = RESULT_SLOT_BINARY_BODY_LENGTH;
       }
 
-      if (returnLocalPairStatement(program.helperOpcodes[0])) {
+      if (returnLocalPairStatement(helperResultOpcode)) {
         helperForwardLength = RESULT_SLOT_BINARY_BODY_LENGTH;
       }
 
-      if (resolvedLocalLongBinary(program.helperOpcodes[0])) {
+      if (resolvedLocalLongBinary(helperResultOpcode)) {
         helperForwardLength = RESULT_SLOT_BINARY_BODY_LENGTH;
       }
 
-      if (resolvedLocalLongPair(program.helperOpcodes[0])) {
+      if (resolvedLocalLongPair(helperResultOpcode)) {
         helperForwardLength = RESULT_SLOT_BINARY_BODY_LENGTH;
       }
 

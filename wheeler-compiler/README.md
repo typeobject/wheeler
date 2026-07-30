@@ -102,8 +102,7 @@ The canonical registry also owns `CALL_RESULT_SLOT`, `UNCALL_RESULT_SLOT`,
 descriptor and generated-inverse proof. The native compiler lowers a `rev long` helper with
 up to two signed parameters that returns one signed literal, evaluated constant, preserved
 signed parameter, checked operation over either signed parameter and a constant, or checked
-operation over two signed parameters. A checked operation may pass through one exact signed
-local before return. Its entry interleaves one or more result calls with signed checks against literals,
+operation over two signed parameters. Independent checked operations may bind signed locals before the tail return selects one exact relation. Its entry interleaves one or more result calls with signed checks against literals,
 constants, or other results already produced. The emitted function flags, adjacent slot locals, forward
 and inverse bodies, call, return, and proof bytes match stage 0 exactly. The bounded
 Wheeler interpreter executes both call directions against the same artifact. A committed

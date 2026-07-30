@@ -143,29 +143,52 @@ final class ClassicalLocalAssembler implements SourceStorageLowerer.Context {
           || !returned.arguments().getFirst().equals(binary.arguments().getFirst())) {
         return false;
       }
-      return emitBinaryResult(statements.get(0), statements.get(1), binary, resultSlot);
+      return binaryResult(statements.get(0), statements.get(1), binary, resultSlot, true);
     }
-    if (statements.size() == 6) {
-      Statement binary = statements.get(2);
-      Statement binding = statements.get(3);
-      Statement resultValue = statements.get(4);
-      Statement returned = statements.get(5);
+    if (statements.size() < 6 || (statements.size() - 2) % 4 != 0) {
+      return false;
+    }
+
+    Statement resultValue = statements.get(statements.size() - 2);
+    Statement returned = statements.getLast();
+    if (!resultValue.operation().equals("local_read")
+        || !returned.operation().equals("return_value")
+        || !returned.arguments().getFirst().equals(resultValue.arguments().getFirst())) {
+      return false;
+    }
+
+    int selected = -1;
+    for (int start = 0; start < statements.size() - 2; start += 4) {
+      Statement binary = statements.get(start + 2);
+      Statement binding = statements.get(start + 3);
       if (!binding.operation().equals("local_bind")
           || !binding.arguments().get(1).equals(binary.arguments().getFirst())
           || !binding.arguments().get(2).equals("long")
-          || !resultValue.operation().equals("local_read")
-          || !resultValue.arguments().get(1).equals(binding.arguments().getFirst())
-          || !returned.operation().equals("return_value")
-          || !returned.arguments().getFirst().equals(resultValue.arguments().getFirst())) {
+          || !binaryResult(
+              statements.get(start), statements.get(start + 1), binary, resultSlot, false)) {
         return false;
       }
-      return emitBinaryResult(statements.get(0), statements.get(1), binary, resultSlot);
+      if (resultValue.arguments().get(1).equals(binding.arguments().getFirst())) {
+        selected = start;
+      }
     }
-    return false;
+    if (selected < 0) {
+      return false;
+    }
+    return binaryResult(
+        statements.get(selected),
+        statements.get(selected + 1),
+        statements.get(selected + 2),
+        resultSlot,
+        true);
   }
 
-  private boolean emitBinaryResult(
-      Statement sourceValue, Statement rightValue, Statement binary, int resultSlot) {
+  private boolean binaryResult(
+      Statement sourceValue,
+      Statement rightValue,
+      Statement binary,
+      int resultSlot,
+      boolean publish) {
     if (!sourceValue.operation().equals("local_read")
         || !binary.operation().equals("local_binary")
         || !binary.arguments().get(2).equals(sourceValue.arguments().getFirst())
@@ -177,14 +200,18 @@ final class ClassicalLocalAssembler implements SourceStorageLowerer.Context {
     if (rightValue.operation().equals("local_const")) {
       long immediate = SourceParser.parseInteger(
           rightValue.arguments().get(1), rightValue.line());
-      output.add(Instruction.of(
-          Opcode.RESULT_FILL_BINARY, resultSlot, source, operation, immediate));
+      if (publish) {
+        output.add(Instruction.of(
+            Opcode.RESULT_FILL_BINARY, resultSlot, source, operation, immediate));
+      }
       return true;
     }
     if (rightValue.operation().equals("local_read")) {
       int right = preservedSignedParameter(rightValue);
-      output.add(Instruction.of(
-          Opcode.RESULT_FILL_BINARY_SOURCES, resultSlot, source, operation, right));
+      if (publish) {
+        output.add(Instruction.of(
+            Opcode.RESULT_FILL_BINARY_SOURCES, resultSlot, source, operation, right));
+      }
       return true;
     }
     return false;

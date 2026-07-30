@@ -178,7 +178,7 @@ Files: [`NativeBootstrapModulesIdentity.w`](../../wheeler-examples/src/main/whee
 
 Covers: One through ninety-six sorted local source modules, zero through sixty-four externals, 320 total imports, unique paths, complete binding, rooted reachability, cycle rejection, bounded names and paths, lowercase source identities, exact schema bytes, SHA-256 publication, and rewind.
 
-Expected behavior: Empty-import one-module, two-external one-module, and three-, five-, nine-, and seventeen-module rooted DAG closures plus a seventy-three-module star and ninety-six-module chain reproduce stage 0. A seventy-three-module star exceeds the per-module import bound. A cycle, unreachable module, duplicate path, ninety-seventh local module, sixty-fifth external, unsorted external, unbound import, mismatched root, uppercase digest, traversal path, or input beyond 32,768 bytes publishes nothing. The current physical compiler closure has seventy-three modules, 281 imports, and 26,144 canonical bytes. The packaged executable reproduces its stage-0 identity in 27,575,539 transitions. Ninety-six is still deliberately smaller than the 10,000-module schema. Pretending otherwise would merely give the graph a fake moustache too.
+Expected behavior: Empty-import one-module, two-external one-module, and three-, five-, nine-, and seventeen-module rooted DAG closures plus a seventy-three-module star and ninety-six-module chain reproduce stage 0. A seventy-three-module star exceeds the per-module import bound. A cycle, unreachable module, duplicate path, ninety-seventh local module, sixty-fifth external, unsorted external, unbound import, mismatched root, uppercase digest, traversal path, or input beyond 32,768 bytes publishes nothing. The current physical compiler closure has seventy-three modules, 281 imports, and 26,144 canonical bytes. The packaged executable reproduces its stage-0 identity in 27,575,633 transitions. Ninety-six is still deliberately smaller than the 10,000-module schema. Pretending otherwise would merely give the graph a fake moustache too.
 
 ### `NativeCompilerLimitsIdentity.w`
 
@@ -457,7 +457,7 @@ signed local, the implicit caller-owned result slot, dedicated two-source binary
 and return instructions, and one generated-inverse
 certificate. Core conformance also commits VM history between the forward and inverse
 call. The Wheeler-native compiler emits the same computed helper, adjacent slot locals,
-generated bodies, computed-local collapse, and proof bytes as stage 0. The Wheeler-native interpreter executes both
+generated bodies, computed-local collapse, and proof bytes as stage 0. Differential fixtures also select the first or second independent prelude without emitting discarded local state. The Wheeler-native interpreter executes both
 call directions and checks restored vacancy against the Java VM. The inverse recomputes
 both preserved sources for `34 + 8` instead of asking the debugger whether 42 looked familiar.
 

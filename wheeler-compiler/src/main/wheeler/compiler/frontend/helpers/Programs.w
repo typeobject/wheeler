@@ -15,6 +15,7 @@ import wheeler.compiler.tokens;
 classical class HelperPrograms {
   private const long LOGICAL_ASSERTION_LOCALS = 3;
   private const long COMPUTED_PRELUDE_RESULT_OFFSET = 3;
+  private const long COMPUTED_PRELUDE_LOCAL_WIDTH = 4;
 
   private boolean signedResultSlotCall(long opcode) {
     if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
@@ -76,48 +77,68 @@ classical class HelperPrograms {
     return returnLocalPairStatement(opcode);
   }
 
-  private boolean resultSlotComputedPreludeValid(StatementSequence sequence, long parameterCount) {
-    if (sequence.count == 2) {} else {
-      return false;
+  private long resultSlotComputedPreludeIndex(StatementSequence sequence, long parameterCount) {
+    if (1 < sequence.count) {} else {
+      return -1;
     }
 
-    long binaryOpcode = sequence.opcodes[0];
-    long leftSource = -1;
-    if (resolvedLocalLongBinary(binaryOpcode)) {
-      leftSource = resolvedLocalLongBinarySource(binaryOpcode);
-    }
-
-    if (resolvedLocalLongPair(binaryOpcode)) {
-      leftSource = resolvedLocalLongPairSource(binaryOpcode);
-      long rightSource = sequence.operands[0];
-      if (-1 < rightSource) {} else {
-        return false;
-      }
-
-      if (rightSource < parameterCount) {} else {
-        return false;
-      }
-    } else {
-      if (resolvedLocalLongBinary(binaryOpcode)) {} else {
-        return false;
-      }
-    }
-
-    if (-1 < leftSource) {} else {
-      return false;
-    }
-
-    if (leftSource < parameterCount) {} else {
-      return false;
-    }
-
-    long returnOpcode = sequence.opcodes[1];
+    long resultIndex = sequence.count - 1;
+    long returnOpcode = sequence.opcodes[resultIndex];
     if (resolvedSignedLocalReturn(returnOpcode)) {} else {
-      return false;
+      return -1;
     }
 
-    return resolvedLocalReturnSource(returnOpcode) == parameterCount
-      + COMPUTED_PRELUDE_RESULT_OFFSET;
+    long targetOffset = resolvedLocalReturnSource(returnOpcode) - parameterCount
+      - COMPUTED_PRELUDE_RESULT_OFFSET;
+    if (-1 < targetOffset) {} else {
+      return -1;
+    }
+
+    if (targetOffset % COMPUTED_PRELUDE_LOCAL_WIDTH == 0) {} else {
+      return -1;
+    }
+
+    long target = targetOffset / COMPUTED_PRELUDE_LOCAL_WIDTH;
+    if (target < resultIndex) {} else {
+      return -1;
+    }
+
+    long statement = 0;
+    while (statement < resultIndex) limit MAX_MINIMAL_STATEMENTS {
+      long binaryOpcode = sequence.opcodes[statement];
+      long leftSource = -1;
+      if (resolvedLocalLongBinary(binaryOpcode)) {
+        leftSource = resolvedLocalLongBinarySource(binaryOpcode);
+      }
+
+      if (resolvedLocalLongPair(binaryOpcode)) {
+        leftSource = resolvedLocalLongPairSource(binaryOpcode);
+        long rightSource = sequence.operands[statement];
+        if (-1 < rightSource) {} else {
+          return -1;
+        }
+
+        if (rightSource < parameterCount) {} else {
+          return -1;
+        }
+      } else {
+        if (resolvedLocalLongBinary(binaryOpcode)) {} else {
+          return -1;
+        }
+      }
+
+      if (-1 < leftSource) {} else {
+        return -1;
+      }
+
+      if (leftSource < parameterCount) {} else {
+        return -1;
+      }
+
+      statement += 1;
+    }
+
+    return target;
   }
 
   private boolean resultSlotSourceDeclared(
@@ -421,15 +442,21 @@ classical class HelperPrograms {
       }
     }
 
+    long helperResultStatement = 0;
     if (resultSlotHelper(helperKind)) {
-      boolean computedPrelude = resultSlotComputedPreludeValid(helperSequence, parameterCount);
+      long computedPreludeIndex = resultSlotComputedPreludeIndex(helperSequence, parameterCount);
+      boolean computedPrelude = -1 < computedPreludeIndex;
       if (helperSequence.count == 1) {} else {
         if (computedPrelude) {} else {
           return new MinimalProgramResult.Error(0);
         }
       }
 
-      long slotResultOpcode = helperSequence.opcodes[0];
+      if (computedPrelude) {
+        helperResultStatement = computedPreludeIndex;
+      }
+
+      long slotResultOpcode = helperSequence.opcodes[helperResultStatement];
       boolean supportedSlotResult = slotResultOpcode == STATEMENT_RETURN_LONG;
       if (computedPrelude) {
         supportedSlotResult = true;
@@ -534,7 +561,8 @@ classical class HelperPrograms {
       proofCount,
       helperCallCount,
       preReverseCount,
-      helperSequence.count
+      helperSequence.count,
+      helperResultStatement
     );
     return new MinimalProgramResult.Value(program);
   }

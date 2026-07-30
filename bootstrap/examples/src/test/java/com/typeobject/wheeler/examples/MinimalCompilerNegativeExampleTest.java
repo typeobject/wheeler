@@ -195,6 +195,16 @@ class MinimalCompilerNegativeExampleTest {
         1024);
     assertTrapWithoutOutput(mismatchedResultPrelude, 1024);
 
+    VirtualMachine chainedResultPrelude = new VirtualMachine(
+        writerProgram,
+        ("classical class ChainedResultPrelude { "
+                + "rev long answer(long left, long right) { "
+                + "long sum = left + right; long result = sum + right; return result; } "
+                + "entry void main() { long value = answer(20, 22); } }")
+            .getBytes(StandardCharsets.UTF_8),
+        1024);
+    assertTrapWithoutOutput(chainedResultPrelude, 1024);
+
     VirtualMachine threeParameterReversibleResult = new VirtualMachine(
         writerProgram,
         ("classical class ThreeParameterReversibleResult { "

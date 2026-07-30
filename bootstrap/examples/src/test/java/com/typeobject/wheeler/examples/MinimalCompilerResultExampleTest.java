@@ -133,6 +133,26 @@ class MinimalCompilerResultExampleTest {
         computedPreludeConstant.function(0).forward().getFirst().opcode());
     assertEquals(1, computedPreludeConstant.proofCertificates().size());
 
+    Program selectedSecondPrelude = assertDifferentialHalt(
+        writerProgram,
+        "classical class SelectedSecondPreludeResult { "
+            + "rev long compute(long left, long right) { "
+            + "long ignored = left - right; long result = left + right; return result; } "
+            + "entry void main() { long answer = compute(20, 22); assert(answer == 42); } }");
+    assertEquals(Opcode.RESULT_FILL_BINARY_SOURCES,
+        selectedSecondPrelude.function(0).forward().getFirst().opcode());
+    assertEquals(Opcode.LOCAL_ADD.code(),
+        selectedSecondPrelude.function(0).forward().getFirst().operand(OPERATION));
+
+    Program selectedFirstPrelude = assertDifferentialHalt(
+        writerProgram,
+        "classical class SelectedFirstPreludeResult { "
+            + "rev long compute(long left, long right) { "
+            + "long result = left + right; long ignored = left - right; return result; } "
+            + "entry void main() { long answer = compute(20, 22); assert(answer == 42); } }");
+    assertEquals(Opcode.LOCAL_ADD.code(),
+        selectedFirstPrelude.function(0).forward().getFirst().operand(OPERATION));
+
     assertDifferentialHalt(
         writerProgram,
         "classical class PreservedSecondResult { "
