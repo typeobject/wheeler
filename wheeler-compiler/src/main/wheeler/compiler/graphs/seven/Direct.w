@@ -1,0 +1,75 @@
+//! Resolves one seven-module direct constant star before canonical lowering.
+
+module wheeler.compiler.compiler_graph_seven;
+
+import wheeler.compiler.compiler_core;
+import wheeler.compiler.module_linker;
+
+classical class CompilerGraphSeven {
+  private const long SEVEN_IMPORTS = 7;
+
+  /// Carries private seven-module compilation bounds.
+  public record SevenGraphCompilation(long length, long codeStart) {}
+
+  private utf8 linkDirect(
+    borrow utf8 importedSource,
+    borrow utf8 rootSource,
+    borrow mut region arena
+  ) {
+    LinkPlan plan = planConstantImport(
+      importedSource,
+      rootSource,
+      /* expectedImportCount= */ SEVEN_IMPORTS
+    );
+    assert(plan.valid);
+    bytes linkedBytes = allocateBytes(arena, plan.linkedLength);
+    long written = writeConstantImport(importedSource, rootSource, plan, linkedBytes);
+    assert(written == plan.linkedLength);
+    return freezeUtf8(linkedBytes);
+  }
+
+  /// Compiles seven direct scalar-constant imports in caller-supplied source order.
+  public SevenGraphCompilation compileSevenDirectConstants(
+    borrow utf8 firstImportedSource,
+    borrow utf8 secondImportedSource,
+    borrow utf8 thirdImportedSource,
+    borrow utf8 fourthImportedSource,
+    borrow utf8 fifthImportedSource,
+    borrow utf8 sixthImportedSource,
+    borrow utf8 seventhImportedSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    region firstArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 firstLinkedSource = linkDirect(firstImportedSource, rootSource, firstArena);
+    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 secondLinkedSource = linkDirect(secondImportedSource, firstLinkedSource, secondArena);
+    region thirdArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 thirdLinkedSource = linkDirect(thirdImportedSource, secondLinkedSource, thirdArena);
+    region fourthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 fourthLinkedSource = linkDirect(fourthImportedSource, thirdLinkedSource, fourthArena);
+    region fifthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 fifthLinkedSource = linkDirect(fifthImportedSource, fourthLinkedSource, fifthArena);
+    region sixthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 sixthLinkedSource = linkDirect(sixthImportedSource, fifthLinkedSource, sixthArena);
+    region seventhArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 seventhLinkedSource = linkDirect(seventhImportedSource, sixthLinkedSource, seventhArena);
+
+    CoreCompilation compiled = compileMinimalCore(seventhLinkedSource, output);
+    drop(seventhLinkedSource);
+    drop(seventhArena);
+    drop(sixthLinkedSource);
+    drop(sixthArena);
+    drop(fifthLinkedSource);
+    drop(fifthArena);
+    drop(fourthLinkedSource);
+    drop(fourthArena);
+    drop(thirdLinkedSource);
+    drop(thirdArena);
+    drop(secondLinkedSource);
+    drop(secondArena);
+    drop(firstLinkedSource);
+    drop(firstArena);
+    return new SevenGraphCompilation(compiled.length, compiled.codeStart);
+  }
+}

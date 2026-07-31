@@ -431,7 +431,7 @@ class NativeImportedConstantWideExampleTest {
   }
 
   @Test
-  void rejectsSevenImportedModulesBeforePublication() throws Exception {
+  void linksSevenDirectConstantModulesAcrossEveryInputPosition() throws Exception {
     List<String> imported = List.of(
         "module examples.two; classical class Two { public const long TWO = 2; }",
         "module examples.three; classical class Three { public const long THREE = 3; }",
@@ -445,12 +445,56 @@ class NativeImportedConstantWideExampleTest {
     String root = "module examples.root; import examples.eleven; import examples.five; "
         + "import examples.seven; import examples.seventeen; import examples.thirteen; "
         + "import examples.three; import examples.two; classical class Root { "
-        + "entry void main() {} }";
+        + "state long outcome = 0; entry void main() { outcome += TWO; outcome += THREE; "
+        + "outcome += FIVE; outcome += SEVEN; outcome += ELEVEN; outcome += THIRTEEN; "
+        + "outcome += SEVENTEEN; } }";
+
+    byte[] expected = assertOrdersMatchStageZero(imported, root, rotationsAndReversals(imported));
+    VirtualMachine machine = new VirtualMachine(new BytecodeReader().read(expected));
+    machine.run();
+    assertEquals(58, machine.global("outcome"));
+
+    List<String> nonStar = new ArrayList<>(imported);
+    nonStar.set(
+        1,
+        "module examples.three; import examples.two; classical class Three { "
+            + "public const long THREE = TWO + 1; }");
+    String nonStarRoot = root
+        .replace("import examples.two; ", "")
+        .replace("outcome += TWO; ", "");
+    assertTrap(program(), nonStar, nonStarRoot);
+  }
+
+  @Test
+  void rejectsEightImportedModulesBeforePublication() throws Exception {
+    List<String> imported = List.of(
+        "module examples.two; classical class Two { public const long TWO = 2; }",
+        "module examples.three; classical class Three { public const long THREE = 3; }",
+        "module examples.five; classical class Five { public const long FIVE = 5; }",
+        "module examples.seven; classical class Seven { public const long SEVEN = 7; }",
+        "module examples.eleven; classical class Eleven { public const long ELEVEN = 11; }",
+        "module examples.thirteen; classical class Thirteen { "
+            + "public const long THIRTEEN = 13; }",
+        "module examples.seventeen; classical class Seventeen { "
+            + "public const long SEVENTEEN = 17; }",
+        "module examples.nineteen; classical class Nineteen { "
+            + "public const long NINETEEN = 19; }");
+    String root = "module examples.root; import examples.eleven; import examples.five; "
+        + "import examples.nineteen; import examples.seven; import examples.seventeen; "
+        + "import examples.thirteen; import examples.three; import examples.two; "
+        + "classical class Root { entry void main() {} }";
     assertTrap(program(), imported, root);
   }
 
   private static byte[] assertEveryOrderMatchesStageZero(
       List<String> imported, String root) throws Exception {
+    List<List<String>> orders = permutations(imported);
+    assertEquals(factorial(imported.size()), orders.size());
+    return assertOrdersMatchStageZero(imported, root, orders);
+  }
+
+  private static byte[] assertOrdersMatchStageZero(
+      List<String> imported, String root, List<List<String>> orders) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     for (int index = 0; index < imported.size(); index++) {
       sources.put("Imported" + index + ".w", imported.get(index));
@@ -460,12 +504,23 @@ class NativeImportedConstantWideExampleTest {
         new WheelerCompiler().compileModuleFiles(sources, "examples.root"));
 
     Program compiler = program();
-    List<List<String>> orders = permutations(imported);
-    assertEquals(factorial(imported.size()), orders.size());
     for (List<String> order : orders) {
       assertArrayEquals(expected, compile(compiler, order, root));
     }
     return expected;
+  }
+
+  private static List<List<String>> rotationsAndReversals(List<String> values) {
+    List<List<String>> orders = new ArrayList<>();
+    List<String> forward = new ArrayList<>(values);
+    List<String> reverse = new ArrayList<>(values.reversed());
+    for (int offset = 0; offset < values.size(); offset++) {
+      orders.add(List.copyOf(forward));
+      orders.add(List.copyOf(reverse));
+      forward.add(forward.remove(0));
+      reverse.add(reverse.remove(0));
+    }
+    return List.copyOf(orders);
   }
 
   private static int factorial(int value) {
