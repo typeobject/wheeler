@@ -8,36 +8,32 @@ import wheeler.compiler.module_linker;
 classical class CompilerGraphPlans {
   /// Names the five-module direct-star plan.
   public const long FIVE_PLAN_DIRECT = 1;
-  /// Names the five-module chain plan.
+  /// Names the five-module full-chain plan.
   public const long FIVE_PLAN_CHAIN = 2;
   /// Names the five-module four-leaf-fork plan.
   public const long FIVE_PLAN_FORK = 3;
-  /// Names a three-leaf fork beside one direct root import.
+  /// Names a three-leaf fork beside one direct import.
   public const long FIVE_PLAN_FORK_AND_DIRECT = 4;
-  /// Names one chain edge beside three direct root imports.
+  /// Names one chain edge beside three direct imports.
   public const long FIVE_PLAN_CHAIN_AND_DIRECTS = 5;
-  /// Names a two-leaf fork beside two direct root imports.
+  /// Names a two-leaf fork beside two direct imports.
   public const long FIVE_PLAN_FORK_AND_TWO_DIRECTS = 6;
-  /// Names two independent edges beside one direct root import.
+  /// Names two independent edges beside one direct import.
   public const long FIVE_PLAN_PAIRS_AND_DIRECT = 7;
-  /// Names a three-module chain beside two direct root imports.
+  /// Names a three-module chain beside two direct imports.
   public const long FIVE_PLAN_LONG_CHAIN_AND_DIRECTS = 8;
-  /// Names a four-module chain beside one direct root import.
+  /// Names a four-module chain beside one direct import.
   public const long FIVE_PLAN_DEEP_CHAIN_AND_DIRECT = 9;
-  /// Names a two-leaf fork through one dependent beside a direct import.
+  /// Names a nested fork beside one direct import.
   public const long FIVE_PLAN_NESTED_FORK_AND_DIRECT = 10;
-  /// Names one two-leaf fork through a second two-input dependent.
+  /// Names two nested fork levels.
   public const long FIVE_PLAN_NESTED_FORK = 11;
-  /// Names a shared diamond with one side leaf at its join.
+  /// Names a shared diamond with one side leaf.
   public const long FIVE_PLAN_SHARED_DIAMOND = 12;
 
-  private const long SINGLE_IMPORT = 1;
-  private const long TWO_IMPORTS = 2;
-  private const long THREE_IMPORTS = 3;
-  private const long FOUR_IMPORTS = 4;
   private const long FIVE_IMPORTS = 5;
 
-  /// Carries one validated topology and optional leaf-to-root source order.
+  /// Carries one validated topology and deterministic leaf-first source order.
   public record FiveGraphPlan(
     long topology,
     long first,
@@ -47,10 +43,6 @@ classical class CompilerGraphPlans {
     long fifth,
     boolean valid
   ) {}
-
-  private FiveGraphPlan topologyPlan(long topology) {
-    return new FiveGraphPlan(topology, 0, 0, 0, 0, 0, true);
-  }
 
   private FiveGraphPlan invalidPlan() {
     return new FiveGraphPlan(0, 0, 0, 0, 0, 0, false);
@@ -68,202 +60,9 @@ classical class CompilerGraphPlans {
     );
   }
 
-  private boolean directSource(
-    borrow utf8 source,
-    borrow utf8 rootSource,
-    long expectedImportCount
-  ) {
-    LinkPlan plan = planConstantImport(source, rootSource, expectedImportCount);
+  private boolean directSource(borrow utf8 source, borrow utf8 rootSource) {
+    LinkPlan plan = planConstantImport(source, rootSource, FIVE_IMPORTS);
     return plan.valid;
-  }
-
-  private boolean edge(borrow utf8 source, borrow utf8 dependentSource, long expectedImportCount) {
-    LinkPlan plan = planPrivateConstantImport(source, dependentSource, expectedImportCount);
-    return plan.valid;
-  }
-
-  private boolean edgeFrom(
-    borrow utf8 source,
-    borrow utf8 firstCandidate,
-    borrow utf8 secondCandidate,
-    borrow utf8 thirdCandidate,
-    borrow utf8 fourthCandidate,
-    long expectedImportCount
-  ) {
-    if (edge(source, firstCandidate, expectedImportCount)) {
-      return true;
-    }
-
-    if (edge(source, secondCandidate, expectedImportCount)) {
-      return true;
-    }
-
-    if (edge(source, thirdCandidate, expectedImportCount)) {
-      return true;
-    }
-
-    return edge(source, fourthCandidate, expectedImportCount);
-  }
-
-  private boolean hasEdge(
-    borrow utf8 firstSource,
-    borrow utf8 secondSource,
-    borrow utf8 thirdSource,
-    borrow utf8 fourthSource,
-    borrow utf8 fifthSource,
-    long expectedImportCount
-  ) {
-    if (
-      edgeFrom(
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        fifthSource,
-        expectedImportCount
-      )
-    ) {
-      return true;
-    }
-
-    if (
-      edgeFrom(
-        secondSource,
-        firstSource,
-        thirdSource,
-        fourthSource,
-        fifthSource,
-        expectedImportCount
-      )
-    ) {
-      return true;
-    }
-
-    if (
-      edgeFrom(
-        thirdSource,
-        firstSource,
-        secondSource,
-        fourthSource,
-        fifthSource,
-        expectedImportCount
-      )
-    ) {
-      return true;
-    }
-
-    if (
-      edgeFrom(
-        fourthSource,
-        firstSource,
-        secondSource,
-        thirdSource,
-        fifthSource,
-        expectedImportCount
-      )
-    ) {
-      return true;
-    }
-
-    return edgeFrom(
-      fifthSource,
-      firstSource,
-      secondSource,
-      thirdSource,
-      fourthSource,
-      expectedImportCount
-    );
-  }
-
-  private long outgoingCount(
-    borrow utf8 source,
-    borrow utf8 firstCandidate,
-    borrow utf8 secondCandidate,
-    borrow utf8 thirdCandidate,
-    borrow utf8 fourthCandidate
-  ) {
-    long count = 0;
-    if (edge(source, firstCandidate, SINGLE_IMPORT)) {
-      count += 1;
-    }
-
-    if (edge(source, secondCandidate, SINGLE_IMPORT)) {
-      count += 1;
-    }
-
-    if (edge(source, thirdCandidate, SINGLE_IMPORT)) {
-      count += 1;
-    }
-
-    if (edge(source, fourthCandidate, SINGLE_IMPORT)) {
-      count += 1;
-    }
-
-    return count;
-  }
-
-  private boolean hasSharedLeaf(
-    borrow utf8 firstSource,
-    borrow utf8 secondSource,
-    borrow utf8 thirdSource,
-    borrow utf8 fourthSource,
-    borrow utf8 fifthSource
-  ) {
-    if (
-      SINGLE_IMPORT < outgoingCount(
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        fifthSource
-      )
-    ) {
-      return true;
-    }
-
-    if (
-      SINGLE_IMPORT < outgoingCount(
-        secondSource,
-        firstSource,
-        thirdSource,
-        fourthSource,
-        fifthSource
-      )
-    ) {
-      return true;
-    }
-
-    if (
-      SINGLE_IMPORT < outgoingCount(
-        thirdSource,
-        firstSource,
-        secondSource,
-        fourthSource,
-        fifthSource
-      )
-    ) {
-      return true;
-    }
-
-    if (
-      SINGLE_IMPORT < outgoingCount(
-        fourthSource,
-        firstSource,
-        secondSource,
-        thirdSource,
-        fifthSource
-      )
-    ) {
-      return true;
-    }
-
-    return SINGLE_IMPORT < outgoingCount(
-      fifthSource,
-      firstSource,
-      secondSource,
-      thirdSource,
-      fourthSource
-    );
   }
 
   private boolean allDirect(
@@ -274,56 +73,71 @@ classical class CompilerGraphPlans {
     borrow utf8 fifthSource,
     borrow utf8 rootSource
   ) {
-    if (directSource(firstSource, rootSource, FIVE_IMPORTS)) {} else {
+    if (directSource(firstSource, rootSource)) {} else {
       return false;
     }
 
-    if (directSource(secondSource, rootSource, FIVE_IMPORTS)) {} else {
+    if (directSource(secondSource, rootSource)) {} else {
       return false;
     }
 
-    if (directSource(thirdSource, rootSource, FIVE_IMPORTS)) {} else {
+    if (directSource(thirdSource, rootSource)) {} else {
       return false;
     }
 
-    if (directSource(fourthSource, rootSource, FIVE_IMPORTS)) {} else {
+    if (directSource(fourthSource, rootSource)) {} else {
       return false;
     }
 
-    return directSource(fifthSource, rootSource, FIVE_IMPORTS);
+    return directSource(fifthSource, rootSource);
   }
 
-  private long directCount(
-    borrow utf8 firstSource,
-    borrow utf8 secondSource,
-    borrow utf8 thirdSource,
-    borrow utf8 fourthSource,
-    borrow utf8 fifthSource,
-    borrow utf8 rootSource,
-    long expectedImportCount
-  ) {
-    long count = 0;
-    if (directSource(firstSource, rootSource, expectedImportCount)) {
-      count += 1;
+  private long publicTopology(long structure) {
+    if (structure == FIVE_STRUCTURE_CHAIN) {
+      return FIVE_PLAN_CHAIN;
     }
 
-    if (directSource(secondSource, rootSource, expectedImportCount)) {
-      count += 1;
+    if (structure == FIVE_STRUCTURE_FORK) {
+      return FIVE_PLAN_FORK;
     }
 
-    if (directSource(thirdSource, rootSource, expectedImportCount)) {
-      count += 1;
+    if (structure == FIVE_STRUCTURE_FORK_AND_DIRECT) {
+      return FIVE_PLAN_FORK_AND_DIRECT;
     }
 
-    if (directSource(fourthSource, rootSource, expectedImportCount)) {
-      count += 1;
+    if (structure == FIVE_STRUCTURE_CHAIN_AND_DIRECTS) {
+      return FIVE_PLAN_CHAIN_AND_DIRECTS;
     }
 
-    if (directSource(fifthSource, rootSource, expectedImportCount)) {
-      count += 1;
+    if (structure == FIVE_STRUCTURE_FORK_AND_TWO_DIRECTS) {
+      return FIVE_PLAN_FORK_AND_TWO_DIRECTS;
     }
 
-    return count;
+    if (structure == FIVE_STRUCTURE_PAIRS_AND_DIRECT) {
+      return FIVE_PLAN_PAIRS_AND_DIRECT;
+    }
+
+    if (structure == FIVE_STRUCTURE_LONG_CHAIN_AND_DIRECTS) {
+      return FIVE_PLAN_LONG_CHAIN_AND_DIRECTS;
+    }
+
+    if (structure == FIVE_STRUCTURE_DEEP_CHAIN_AND_DIRECT) {
+      return FIVE_PLAN_DEEP_CHAIN_AND_DIRECT;
+    }
+
+    if (structure == FIVE_STRUCTURE_NESTED_FORK_AND_DIRECT) {
+      return FIVE_PLAN_NESTED_FORK_AND_DIRECT;
+    }
+
+    if (structure == FIVE_STRUCTURE_NESTED_FORK) {
+      return FIVE_PLAN_NESTED_FORK;
+    }
+
+    if (structure == FIVE_STRUCTURE_SHARED_DIAMOND) {
+      return FIVE_PLAN_SHARED_DIAMOND;
+    }
+
+    return 0;
   }
 
   /// Selects one supported five-module topology independent of source order.
@@ -338,7 +152,7 @@ classical class CompilerGraphPlans {
     if (
       allDirect(firstSource, secondSource, thirdSource, fourthSource, fifthSource, rootSource)
     ) {
-      return topologyPlan(FIVE_PLAN_DIRECT);
+      return new FiveGraphPlan(FIVE_PLAN_DIRECT, 0, 1, 2, 3, 4, true);
     }
 
     FiveGraphStructure structure = planFiveStructure(
@@ -350,128 +164,10 @@ classical class CompilerGraphPlans {
       rootSource
     );
     if (structure.valid) {
-      if (structure.topology == FIVE_STRUCTURE_CHAIN) {
-        return orderedPlan(FIVE_PLAN_CHAIN, structure);
+      long topology = publicTopology(structure.topology);
+      if (0 < topology) {
+        return orderedPlan(topology, structure);
       }
-
-      if (structure.topology == FIVE_STRUCTURE_FORK) {
-        return orderedPlan(FIVE_PLAN_FORK, structure);
-      }
-    }
-
-    if (
-      hasSharedLeaf(firstSource, secondSource, thirdSource, fourthSource, fifthSource)
-    ) {
-      return topologyPlan(FIVE_PLAN_SHARED_DIAMOND);
-    }
-
-    if (
-      hasEdge(
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        fifthSource,
-        THREE_IMPORTS
-      )
-    ) {
-      return topologyPlan(FIVE_PLAN_FORK_AND_DIRECT);
-    }
-
-    if (
-      hasEdge(firstSource, secondSource, thirdSource, fourthSource, fifthSource, TWO_IMPORTS)
-    ) {
-      long forkDirects = directCount(
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        fifthSource,
-        rootSource,
-        THREE_IMPORTS
-      );
-      if (forkDirects == TWO_IMPORTS) {
-        return topologyPlan(FIVE_PLAN_FORK_AND_TWO_DIRECTS);
-      }
-
-      long nestedDirect = directCount(
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        fifthSource,
-        rootSource,
-        TWO_IMPORTS
-      );
-      if (nestedDirect == SINGLE_IMPORT) {
-        return topologyPlan(FIVE_PLAN_NESTED_FORK_AND_DIRECT);
-      }
-
-      return topologyPlan(FIVE_PLAN_NESTED_FORK);
-    }
-
-    if (
-      hasEdge(
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        fifthSource,
-        SINGLE_IMPORT
-      )
-    ) {
-      long rootImports = directCount(
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        fifthSource,
-        rootSource,
-        FOUR_IMPORTS
-      );
-      if (rootImports == THREE_IMPORTS) {
-        return topologyPlan(FIVE_PLAN_CHAIN_AND_DIRECTS);
-      }
-
-      long pairedDirects = directCount(
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        fifthSource,
-        rootSource,
-        THREE_IMPORTS
-      );
-      if (pairedDirects == TWO_IMPORTS) {
-        return topologyPlan(FIVE_PLAN_LONG_CHAIN_AND_DIRECTS);
-      }
-
-      if (pairedDirects == SINGLE_IMPORT) {
-        return topologyPlan(FIVE_PLAN_PAIRS_AND_DIRECT);
-      }
-
-      if (0 < pairedDirects) {
-        return invalidPlan();
-      }
-
-      long singleDirect = directCount(
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        fifthSource,
-        rootSource,
-        TWO_IMPORTS
-      );
-      if (singleDirect == SINGLE_IMPORT) {
-        return topologyPlan(FIVE_PLAN_DEEP_CHAIN_AND_DIRECT);
-      }
-
-      if (0 < singleDirect) {
-        return invalidPlan();
-      }
-
-      return invalidPlan();
     }
 
     return invalidPlan();

@@ -40,6 +40,86 @@ classical class BoundedGraphMatrix {
     return true;
   }
 
+  /// Writes one deterministic leaf-first order and proves every node reaches the root.
+  public boolean writeRootedTopologicalOrder(
+    borrow mut words graph,
+    borrow mut words rootDirect,
+    long nodeCount,
+    borrow mut words order,
+    borrow mut words reachable
+  ) {
+    if (0 < nodeCount) {} else {
+      return false;
+    }
+
+    if (nodeCount < MAX_GRAPH_NODES + 1) {} else {
+      return false;
+    }
+
+    long position = 0;
+    while (position < nodeCount) limit MAX_GRAPH_NODES {
+      long selected = -1;
+      long node = 0;
+      while (node < nodeCount) limit MAX_GRAPH_NODES {
+        if (unused(order, position, node)) {
+          boolean ready = true;
+          long dependency = 0;
+          while (dependency < nodeCount) limit MAX_GRAPH_NODES {
+            if (unused(order, position, dependency)) {
+              if (graph[dependency * nodeCount + node] == 1) {
+                ready = false;
+              }
+            }
+
+            dependency += 1;
+          }
+
+          if (ready) {
+            if (selected < 0) {
+              selected = node;
+            }
+          }
+        }
+
+        node += 1;
+      }
+
+      if (selected < 0) {
+        return false;
+      }
+
+      set(order, position, selected);
+      position += 1;
+    }
+
+    long reverseCursor = 0;
+    while (reverseCursor < nodeCount) limit MAX_GRAPH_NODES {
+      long reversePosition = nodeCount - reverseCursor - 1;
+      long reverseNode = order[reversePosition];
+      boolean reaches = rootDirect[reverseNode] == 1;
+      long dependent = 0;
+      while (dependent < nodeCount) limit MAX_GRAPH_NODES {
+        if (graph[reverseNode * nodeCount + dependent] == 1) {
+          if (reachable[dependent] == 1) {
+            reaches = true;
+          }
+        }
+
+        dependent += 1;
+      }
+
+      if (reaches) {
+        set(reachable, reverseNode, 1);
+      } else {
+        return false;
+      }
+
+      reverseCursor += 1;
+    }
+
+    return true;
+  }
+
   /// Writes leaves followed by the root-visible dependent for one complete fork.
   public boolean writeForkOrder(
     borrow mut words graph,

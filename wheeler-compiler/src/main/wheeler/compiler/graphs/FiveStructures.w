@@ -1,4 +1,4 @@
-//! Builds exact chain and fork orders for five-module constant graphs.
+//! Builds exact rooted plans for five-module constant graphs.
 
 module wheeler.compiler.graphs.five_structures;
 
@@ -6,16 +6,34 @@ import wheeler.compiler.graphs.matrix;
 import wheeler.compiler.module_headers;
 
 classical class FiveGraphStructures {
-  /// Names one exact five-module chain structure.
+  /// Names one five-module full chain.
   public const long FIVE_STRUCTURE_CHAIN = 1;
-  /// Names one exact five-module four-leaf fork structure.
+  /// Names one five-module four-leaf fork.
   public const long FIVE_STRUCTURE_FORK = 2;
+  /// Names one three-leaf fork beside a direct import.
+  public const long FIVE_STRUCTURE_FORK_AND_DIRECT = 3;
+  /// Names one chain edge beside three direct imports.
+  public const long FIVE_STRUCTURE_CHAIN_AND_DIRECTS = 4;
+  /// Names one two-leaf fork beside two direct imports.
+  public const long FIVE_STRUCTURE_FORK_AND_TWO_DIRECTS = 5;
+  /// Names two independent edges beside one direct import.
+  public const long FIVE_STRUCTURE_PAIRS_AND_DIRECT = 6;
+  /// Names one three-module chain beside two direct imports.
+  public const long FIVE_STRUCTURE_LONG_CHAIN_AND_DIRECTS = 7;
+  /// Names one four-module chain beside a direct import.
+  public const long FIVE_STRUCTURE_DEEP_CHAIN_AND_DIRECT = 8;
+  /// Names one nested fork beside a direct import.
+  public const long FIVE_STRUCTURE_NESTED_FORK_AND_DIRECT = 9;
+  /// Names two nested fork levels.
+  public const long FIVE_STRUCTURE_NESTED_FORK = 10;
+  /// Names one shared diamond with a side leaf.
+  public const long FIVE_STRUCTURE_SHARED_DIAMOND = 11;
 
   private const long MODULE_COUNT = 5;
   private const long SINGLE_IMPORT = 1;
-  private const long FOUR_EDGES = 4;
+  private const long FOUR_IMPORTS = 4;
 
-  /// Carries one exact topology and its leaf-to-root source order.
+  /// Carries one exact topology and its deterministic leaf-first source order.
   public record FiveGraphStructure(
     long topology,
     long first,
@@ -32,15 +50,15 @@ classical class FiveGraphStructures {
       return false;
     }
 
-    if (dependency.importCount == SINGLE_IMPORT) {
-      return dependency.importsCandidate;
+    if (0 < dependency.importCount) {} else {
+      return false;
     }
 
-    if (dependency.importCount == FOUR_EDGES) {
-      return dependency.importsCandidate;
+    if (dependency.importCount < FOUR_IMPORTS + 1) {} else {
+      return false;
     }
 
-    return false;
+    return dependency.importsCandidate;
   }
 
   private boolean rootEdge(borrow utf8 source, borrow utf8 rootSource) {
@@ -49,7 +67,11 @@ classical class FiveGraphStructures {
       return false;
     }
 
-    if (dependency.importCount == SINGLE_IMPORT) {} else {
+    if (0 < dependency.importCount) {} else {
+      return false;
+    }
+
+    if (dependency.importCount < MODULE_COUNT + 1) {} else {
       return false;
     }
 
@@ -106,7 +128,231 @@ classical class FiveGraphStructures {
     return 0;
   }
 
-  /// Selects one exact five-module chain or fork before source rewriting.
+  private long incomingCount(borrow mut words graph, long node) {
+    long count = 0;
+    long other = 0;
+    while (other < MODULE_COUNT) limit MODULE_COUNT {
+      count += graph[other * MODULE_COUNT + node];
+      other += 1;
+    }
+
+    return count;
+  }
+
+  private long outgoingCount(borrow mut words graph, long node) {
+    long count = 0;
+    long other = 0;
+    while (other < MODULE_COUNT) limit MODULE_COUNT {
+      count += graph[node * MODULE_COUNT + other];
+      other += 1;
+    }
+
+    return count;
+  }
+
+  private long maximumIncoming(borrow mut words graph) {
+    long maximum = 0;
+    long node = 0;
+    while (node < MODULE_COUNT) limit MODULE_COUNT {
+      long count = incomingCount(graph, node);
+      if (maximum < count) {
+        maximum = count;
+      }
+
+      node += 1;
+    }
+
+    return maximum;
+  }
+
+  private long maximumOutgoing(borrow mut words graph) {
+    long maximum = 0;
+    long node = 0;
+    while (node < MODULE_COUNT) limit MODULE_COUNT {
+      long count = outgoingCount(graph, node);
+      if (maximum < count) {
+        maximum = count;
+      }
+
+      node += 1;
+    }
+
+    return maximum;
+  }
+
+  private long incomingDegreeCount(borrow mut words graph, long degree) {
+    long count = 0;
+    long node = 0;
+    while (node < MODULE_COUNT) limit MODULE_COUNT {
+      if (incomingCount(graph, node) == degree) {
+        count += 1;
+      }
+
+      node += 1;
+    }
+
+    return count;
+  }
+
+  private long outgoingDegreeCount(borrow mut words graph, long degree) {
+    long count = 0;
+    long node = 0;
+    while (node < MODULE_COUNT) limit MODULE_COUNT {
+      if (outgoingCount(graph, node) == degree) {
+        count += 1;
+      }
+
+      node += 1;
+    }
+
+    return count;
+  }
+
+  private long longestPath(
+    borrow mut words graph,
+    borrow mut words order,
+    borrow mut words distances
+  ) {
+    long longest = 0;
+    long position = 0;
+    while (position < MODULE_COUNT) limit MODULE_COUNT {
+      long source = order[position];
+      long dependent = 0;
+      while (dependent < MODULE_COUNT) limit MODULE_COUNT {
+        if (graph[source * MODULE_COUNT + dependent] == 1) {
+          long distance = distances[source] + 1;
+          if (distances[dependent] < distance) {
+            set(distances, dependent, distance);
+          }
+
+          if (longest < distance) {
+            longest = distance;
+          }
+        }
+
+        dependent += 1;
+      }
+
+      position += 1;
+    }
+
+    return longest;
+  }
+
+  private boolean rootsAreSinks(borrow mut words graph, borrow mut words rootDirect) {
+    long node = 0;
+    while (node < MODULE_COUNT) limit MODULE_COUNT {
+      if (rootDirect[node] == 1) {
+        if (outgoingCount(graph, node) == 0) {} else {
+          return false;
+        }
+      }
+
+      node += 1;
+    }
+
+    return true;
+  }
+
+  private long topology(borrow mut words graph, long edgeCount, long rootCount, long longest) {
+    long maximumIncoming = maximumIncoming(graph);
+    long maximumOutgoing = maximumOutgoing(graph);
+    if (edgeCount == 1) {
+      if (rootCount == 4) {
+        return FIVE_STRUCTURE_CHAIN_AND_DIRECTS;
+      }
+    }
+
+    if (edgeCount == 2) {
+      if (rootCount == 3) {
+        if (maximumIncoming == 2) {
+          return FIVE_STRUCTURE_FORK_AND_TWO_DIRECTS;
+        }
+
+        if (maximumIncoming == 1) {
+          if (maximumOutgoing == 1) {
+            if (longest == 2) {
+              return FIVE_STRUCTURE_LONG_CHAIN_AND_DIRECTS;
+            }
+
+            if (longest == 1) {
+              return FIVE_STRUCTURE_PAIRS_AND_DIRECT;
+            }
+          }
+        }
+      }
+    }
+
+    if (edgeCount == 3) {
+      if (rootCount == 2) {
+        if (maximumIncoming == 3) {
+          if (longest == 1) {
+            return FIVE_STRUCTURE_FORK_AND_DIRECT;
+          }
+        }
+
+        if (maximumIncoming == 2) {
+          if (incomingDegreeCount(graph, 2) == 1) {
+            if (longest == 2) {
+              return FIVE_STRUCTURE_NESTED_FORK_AND_DIRECT;
+            }
+          }
+        }
+
+        if (maximumIncoming == 1) {
+          if (maximumOutgoing == 1) {
+            if (longest == 3) {
+              return FIVE_STRUCTURE_DEEP_CHAIN_AND_DIRECT;
+            }
+          }
+        }
+      }
+    }
+
+    if (edgeCount == 4) {
+      if (rootCount == 1) {
+        if (maximumIncoming == 4) {
+          if (longest == 1) {
+            return FIVE_STRUCTURE_FORK;
+          }
+        }
+
+        if (maximumIncoming == 2) {
+          if (incomingDegreeCount(graph, 2) == 2) {
+            if (longest == 2) {
+              return FIVE_STRUCTURE_NESTED_FORK;
+            }
+          }
+        }
+
+        if (maximumIncoming == 1) {
+          if (maximumOutgoing == 1) {
+            if (longest == 4) {
+              return FIVE_STRUCTURE_CHAIN;
+            }
+          }
+        }
+      }
+    }
+
+    if (edgeCount == 5) {
+      if (rootCount == 1) {
+        if (maximumIncoming == 3) {
+          if (maximumOutgoing == 2) {
+            if (outgoingDegreeCount(graph, 2) == 1) {
+              if (longest == 2) {
+                return FIVE_STRUCTURE_SHARED_DIAMOND;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return 0;
+  }
+
+  /// Selects one exact rooted five-module topology before source rewriting.
   public FiveGraphStructure planFiveStructure(
     borrow utf8 firstSource,
     borrow utf8 secondSource,
@@ -115,10 +361,12 @@ classical class FiveGraphStructures {
     borrow utf8 fifthSource,
     borrow utf8 rootSource
   ) {
-    region arena = new region(/* bytes= */ 280, /* allocations= */ 3);
+    region arena = new region(/* bytes= */ 360, /* allocations= */ 5);
     words graph = allocate(arena, 25);
     words rootDirect = allocate(arena, MODULE_COUNT);
     words order = allocate(arena, MODULE_COUNT);
+    words reachable = allocate(arena, MODULE_COUNT);
+    words distances = allocate(arena, MODULE_COUNT);
     long edgeCount = recordDirectedEdges(
       graph,
       firstSource,
@@ -133,40 +381,40 @@ classical class FiveGraphStructures {
     rootCount += recordRoot(rootDirect, 2, rootEdge(thirdSource, rootSource));
     rootCount += recordRoot(rootDirect, 3, rootEdge(fourthSource, rootSource));
     rootCount += recordRoot(rootDirect, 4, rootEdge(fifthSource, rootSource));
-    boolean valid = edgeCount == FOUR_EDGES;
-    if (valid) {
+    boolean valid = edgeCount + rootCount == MODULE_COUNT;
+    if (edgeCount == MODULE_COUNT) {
       valid = rootCount == SINGLE_IMPORT;
+    }
+
+    if (valid) {
+      valid = rootsAreSinks(graph, rootDirect);
+    }
+
+    if (valid) {
+      valid = writeRootedTopologicalOrder(graph, rootDirect, MODULE_COUNT, order, reachable);
+    }
+
+    long selected = 0;
+    if (valid) {
+      selected = topology(graph, edgeCount, rootCount, longestPath(graph, order, distances));
+      valid = 0 < selected;
     }
 
     FiveGraphStructure result = new FiveGraphStructure(0, 0, 0, 0, 0, 0, false);
     if (valid) {
-      boolean chain = writeChainOrder(graph, rootDirect, MODULE_COUNT, order);
-      if (chain) {
-        result = new FiveGraphStructure(
-          FIVE_STRUCTURE_CHAIN,
-          order[0],
-          order[1],
-          order[2],
-          order[3],
-          order[4],
-          true
-        );
-      } else {
-        boolean fork = writeForkOrder(graph, rootDirect, MODULE_COUNT, order);
-        if (fork) {
-          result = new FiveGraphStructure(
-            FIVE_STRUCTURE_FORK,
-            order[0],
-            order[1],
-            order[2],
-            order[3],
-            order[4],
-            true
-          );
-        }
-      }
+      result = new FiveGraphStructure(
+        selected,
+        order[0],
+        order[1],
+        order[2],
+        order[3],
+        order[4],
+        true
+      );
     }
 
+    drop(distances);
+    drop(reachable);
     drop(order);
     drop(rootDirect);
     drop(graph);
