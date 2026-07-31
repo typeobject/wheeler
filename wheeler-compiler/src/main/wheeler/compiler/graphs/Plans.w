@@ -2,6 +2,7 @@
 
 module wheeler.compiler.graphs.plans;
 
+import wheeler.compiler.graphs.five_structures;
 import wheeler.compiler.module_linker;
 
 classical class CompilerGraphPlans {
@@ -36,8 +37,36 @@ classical class CompilerGraphPlans {
   private const long FOUR_IMPORTS = 4;
   private const long FIVE_IMPORTS = 5;
 
-  /// Carries one validated five-module topology selection.
-  public record FiveGraphPlan(long topology, boolean valid) {}
+  /// Carries one validated topology and optional leaf-to-root source order.
+  public record FiveGraphPlan(
+    long topology,
+    long first,
+    long second,
+    long third,
+    long fourth,
+    long fifth,
+    boolean valid
+  ) {}
+
+  private FiveGraphPlan topologyPlan(long topology) {
+    return new FiveGraphPlan(topology, 0, 0, 0, 0, 0, true);
+  }
+
+  private FiveGraphPlan invalidPlan() {
+    return new FiveGraphPlan(0, 0, 0, 0, 0, 0, false);
+  }
+
+  private FiveGraphPlan orderedPlan(long topology, FiveGraphStructure structure) {
+    return new FiveGraphPlan(
+      topology,
+      structure.first,
+      structure.second,
+      structure.third,
+      structure.fourth,
+      structure.fifth,
+      true
+    );
+  }
 
   private boolean directSource(
     borrow utf8 source,
@@ -309,19 +338,31 @@ classical class CompilerGraphPlans {
     if (
       allDirect(firstSource, secondSource, thirdSource, fourthSource, fifthSource, rootSource)
     ) {
-      return new FiveGraphPlan(FIVE_PLAN_DIRECT, true);
+      return topologyPlan(FIVE_PLAN_DIRECT);
+    }
+
+    FiveGraphStructure structure = planFiveStructure(
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      rootSource
+    );
+    if (structure.valid) {
+      if (structure.topology == FIVE_STRUCTURE_CHAIN) {
+        return orderedPlan(FIVE_PLAN_CHAIN, structure);
+      }
+
+      if (structure.topology == FIVE_STRUCTURE_FORK) {
+        return orderedPlan(FIVE_PLAN_FORK, structure);
+      }
     }
 
     if (
       hasSharedLeaf(firstSource, secondSource, thirdSource, fourthSource, fifthSource)
     ) {
-      return new FiveGraphPlan(FIVE_PLAN_SHARED_DIAMOND, true);
-    }
-
-    if (
-      hasEdge(firstSource, secondSource, thirdSource, fourthSource, fifthSource, FOUR_IMPORTS)
-    ) {
-      return new FiveGraphPlan(FIVE_PLAN_FORK, true);
+      return topologyPlan(FIVE_PLAN_SHARED_DIAMOND);
     }
 
     if (
@@ -334,7 +375,7 @@ classical class CompilerGraphPlans {
         THREE_IMPORTS
       )
     ) {
-      return new FiveGraphPlan(FIVE_PLAN_FORK_AND_DIRECT, true);
+      return topologyPlan(FIVE_PLAN_FORK_AND_DIRECT);
     }
 
     if (
@@ -350,7 +391,7 @@ classical class CompilerGraphPlans {
         THREE_IMPORTS
       );
       if (forkDirects == TWO_IMPORTS) {
-        return new FiveGraphPlan(FIVE_PLAN_FORK_AND_TWO_DIRECTS, true);
+        return topologyPlan(FIVE_PLAN_FORK_AND_TWO_DIRECTS);
       }
 
       long nestedDirect = directCount(
@@ -363,10 +404,10 @@ classical class CompilerGraphPlans {
         TWO_IMPORTS
       );
       if (nestedDirect == SINGLE_IMPORT) {
-        return new FiveGraphPlan(FIVE_PLAN_NESTED_FORK_AND_DIRECT, true);
+        return topologyPlan(FIVE_PLAN_NESTED_FORK_AND_DIRECT);
       }
 
-      return new FiveGraphPlan(FIVE_PLAN_NESTED_FORK, true);
+      return topologyPlan(FIVE_PLAN_NESTED_FORK);
     }
 
     if (
@@ -389,7 +430,7 @@ classical class CompilerGraphPlans {
         FOUR_IMPORTS
       );
       if (rootImports == THREE_IMPORTS) {
-        return new FiveGraphPlan(FIVE_PLAN_CHAIN_AND_DIRECTS, true);
+        return topologyPlan(FIVE_PLAN_CHAIN_AND_DIRECTS);
       }
 
       long pairedDirects = directCount(
@@ -402,15 +443,15 @@ classical class CompilerGraphPlans {
         THREE_IMPORTS
       );
       if (pairedDirects == TWO_IMPORTS) {
-        return new FiveGraphPlan(FIVE_PLAN_LONG_CHAIN_AND_DIRECTS, true);
+        return topologyPlan(FIVE_PLAN_LONG_CHAIN_AND_DIRECTS);
       }
 
       if (pairedDirects == SINGLE_IMPORT) {
-        return new FiveGraphPlan(FIVE_PLAN_PAIRS_AND_DIRECT, true);
+        return topologyPlan(FIVE_PLAN_PAIRS_AND_DIRECT);
       }
 
       if (0 < pairedDirects) {
-        return new FiveGraphPlan(0, false);
+        return invalidPlan();
       }
 
       long singleDirect = directCount(
@@ -423,16 +464,16 @@ classical class CompilerGraphPlans {
         TWO_IMPORTS
       );
       if (singleDirect == SINGLE_IMPORT) {
-        return new FiveGraphPlan(FIVE_PLAN_DEEP_CHAIN_AND_DIRECT, true);
+        return topologyPlan(FIVE_PLAN_DEEP_CHAIN_AND_DIRECT);
       }
 
       if (0 < singleDirect) {
-        return new FiveGraphPlan(0, false);
+        return invalidPlan();
       }
 
-      return new FiveGraphPlan(FIVE_PLAN_CHAIN, true);
+      return invalidPlan();
     }
 
-    return new FiveGraphPlan(0, false);
+    return invalidPlan();
   }
 }
