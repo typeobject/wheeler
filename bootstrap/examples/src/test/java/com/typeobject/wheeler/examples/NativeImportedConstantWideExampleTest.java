@@ -462,7 +462,53 @@ class NativeImportedConstantWideExampleTest {
     String nonStarRoot = root
         .replace("import examples.two; ", "")
         .replace("outcome += TWO; ", "");
-    assertTrap(program(), nonStar, nonStarRoot);
+    Program compiler = program();
+    assertTrap(compiler, nonStar, nonStarRoot);
+
+    List<String> disconnectedCycle = List.of(
+        "module examples.alpha; import examples.beta; classical class Alpha { "
+            + "public const long ALPHA = BETA + 1; }",
+        "module examples.beta; import examples.alpha; classical class Beta { "
+            + "public const long BETA = ALPHA + 1; }",
+        "module examples.gamma; classical class Gamma { public const long GAMMA = 2; }",
+        "module examples.delta; import examples.gamma; classical class Delta { "
+            + "public const long DELTA = GAMMA + 1; }",
+        "module examples.epsilon; import examples.delta; classical class Epsilon { "
+            + "public const long EPSILON = DELTA + 1; }",
+        "module examples.zeta; import examples.epsilon; classical class Zeta { "
+            + "public const long ZETA = EPSILON + 1; }",
+        "module examples.eta; import examples.zeta; classical class Eta { "
+            + "public const long ETA = ZETA + 1; }");
+    String cycleRoot = "module examples.root; import examples.eta; classical class Root { "
+        + "entry void main() {} }";
+    assertTrap(compiler, disconnectedCycle, cycleRoot);
+  }
+
+  @Test
+  void linksASevenModuleConstantChainAcrossEveryInputPosition() throws Exception {
+    String alpha = "module examples.alpha; classical class Alpha { "
+        + "private const long HIDDEN = 1; public const long BASE = HIDDEN + 1; }";
+    String beta = "module examples.beta; import examples.alpha; classical class Beta { "
+        + "public const long BETA = BASE + 3; }";
+    String gamma = "module examples.gamma; import examples.beta; classical class Gamma { "
+        + "public const long GAMMA = BETA * 2; }";
+    String delta = "module examples.delta; import examples.gamma; classical class Delta { "
+        + "public const long DELTA = GAMMA + 1; }";
+    String epsilon = "module examples.epsilon; import examples.delta; "
+        + "classical class Epsilon { public const long EPSILON = DELTA + 5; }";
+    String zeta = "module examples.zeta; import examples.epsilon; classical class Zeta { "
+        + "public const long ZETA = EPSILON + 5; }";
+    String eta = "module examples.eta; import examples.zeta; classical class Eta { "
+        + "public const long ANSWER = ZETA + 21; }";
+    String root = "module examples.root; import examples.eta; classical class Root { "
+        + "state long outcome = 0; entry void main() { outcome += ANSWER; } }";
+    List<String> imported = List.of(alpha, beta, gamma, delta, epsilon, zeta, eta);
+
+    byte[] expected = assertOrdersMatchStageZero(imported, root, rotationsAndReversals(imported));
+    VirtualMachine machine = new VirtualMachine(new BytecodeReader().read(expected));
+    machine.run();
+    assertEquals(42, machine.global("outcome"));
+    assertTrap(program(), imported, root.replace("outcome += ANSWER", "outcome += BASE"));
   }
 
   @Test

@@ -3,6 +3,8 @@
 module wheeler.compiler.compiler_graph_seven;
 
 import wheeler.compiler.compiler_core;
+import wheeler.compiler.graphs.seven.chain;
+import wheeler.compiler.graphs.seven.plans;
 import wheeler.compiler.module_linker;
 
 classical class CompilerGraphSeven {
@@ -29,7 +31,7 @@ classical class CompilerGraphSeven {
   }
 
   /// Compiles seven direct scalar-constant imports in caller-supplied source order.
-  public SevenGraphCompilation compileSevenDirectConstants(
+  private SevenGraphCompilation compileSevenDirectConstants(
     borrow utf8 firstImportedSource,
     borrow utf8 secondImportedSource,
     borrow utf8 thirdImportedSource,
@@ -71,5 +73,62 @@ classical class CompilerGraphSeven {
     drop(firstLinkedSource);
     drop(firstArena);
     return new SevenGraphCompilation(compiled.length, compiled.codeStart);
+  }
+
+  /// Compiles one supported seven-module scalar-constant graph.
+  public SevenGraphCompilation compileSevenConstantGraph(
+    borrow utf8 firstImportedSource,
+    borrow utf8 secondImportedSource,
+    borrow utf8 thirdImportedSource,
+    borrow utf8 fourthImportedSource,
+    borrow utf8 fifthImportedSource,
+    borrow utf8 sixthImportedSource,
+    borrow utf8 seventhImportedSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    SevenGraphPlan plan = planSevenConstantGraph(
+      firstImportedSource,
+      secondImportedSource,
+      thirdImportedSource,
+      fourthImportedSource,
+      fifthImportedSource,
+      sixthImportedSource,
+      seventhImportedSource,
+      rootSource
+    );
+    assert(plan.valid);
+    if (plan.topology == SEVEN_PLAN_DIRECT) {
+      return compileSevenDirectConstants(
+        firstImportedSource,
+        secondImportedSource,
+        thirdImportedSource,
+        fourthImportedSource,
+        fifthImportedSource,
+        sixthImportedSource,
+        seventhImportedSource,
+        rootSource,
+        output
+      );
+    }
+
+    if (plan.topology == SEVEN_PLAN_CHAIN) {
+      SevenChainCompilation chain = compileSevenConstantChain(
+        plan,
+        firstImportedSource,
+        secondImportedSource,
+        thirdImportedSource,
+        fourthImportedSource,
+        fifthImportedSource,
+        sixthImportedSource,
+        seventhImportedSource,
+        rootSource,
+        output
+      );
+      return new SevenGraphCompilation(chain.length, chain.codeStart);
+    }
+
+    assert(plan.topology == SEVEN_PLAN_DIRECT);
+    return new SevenGraphCompilation(0, 0);
   }
 }

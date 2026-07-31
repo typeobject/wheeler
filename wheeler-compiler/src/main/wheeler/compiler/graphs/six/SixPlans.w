@@ -2,6 +2,7 @@
 
 module wheeler.compiler.graphs.six.plans;
 
+import wheeler.compiler.graphs.matrix;
 import wheeler.compiler.module_headers;
 import wheeler.compiler.module_linker;
 
@@ -262,55 +263,6 @@ classical class SixGraphPlans {
     return count;
   }
 
-  private boolean chainDegrees(borrow mut words graph) {
-    long node = 0;
-    while (node < MODULE_COUNT) limit MODULE_COUNT {
-      long incoming = 0;
-      long outgoing = 0;
-      long other = 0;
-      while (other < MODULE_COUNT) limit MODULE_COUNT {
-        outgoing += graph[node * MODULE_COUNT + other];
-        incoming += graph[other * MODULE_COUNT + node];
-        other += 1;
-      }
-
-      if (outgoing < 2) {} else {
-        return false;
-      }
-
-      if (incoming < 2) {} else {
-        return false;
-      }
-
-      node += 1;
-    }
-
-    return true;
-  }
-
-  private void closeReachability(borrow mut words graph) {
-    long middle = 0;
-    while (middle < MODULE_COUNT) limit MODULE_COUNT {
-      long source = 0;
-      while (source < MODULE_COUNT) limit MODULE_COUNT {
-        long dependent = 0;
-        while (dependent < MODULE_COUNT) limit MODULE_COUNT {
-          if (graph[source * MODULE_COUNT + middle] == 1) {
-            if (graph[middle * MODULE_COUNT + dependent] == 1) {
-              set(graph, source * MODULE_COUNT + dependent, 1);
-            }
-          }
-
-          dependent += 1;
-        }
-
-        source += 1;
-      }
-
-      middle += 1;
-    }
-  }
-
   private long recordRoot(borrow mut words rootDirect, long source, boolean present) {
     if (present) {
       set(rootDirect, source, 1);
@@ -318,38 +270,6 @@ classical class SixGraphPlans {
     }
 
     return 0;
-  }
-
-  private boolean reachesRoot(borrow mut words graph, borrow mut words rootDirect) {
-    long rootOwner = -1;
-    long rootCount = 0;
-    long node = 0;
-    while (node < MODULE_COUNT) limit MODULE_COUNT {
-      if (rootDirect[node] == 1) {
-        rootOwner = node;
-        rootCount += 1;
-      }
-
-      node += 1;
-    }
-
-    if (rootCount == 1) {} else {
-      return false;
-    }
-
-    closeReachability(graph);
-    node = 0;
-    while (node < MODULE_COUNT) limit MODULE_COUNT {
-      if (node == rootOwner) {} else {
-        if (graph[node * MODULE_COUNT + rootOwner] == 1) {} else {
-          return false;
-        }
-      }
-
-      node += 1;
-    }
-
-    return true;
   }
 
   private boolean fullChain(
@@ -361,9 +281,10 @@ classical class SixGraphPlans {
     borrow utf8 sixthSource,
     borrow utf8 rootSource
   ) {
-    region arena = new region(/* bytes= */ 336, /* allocations= */ 2);
+    region arena = new region(/* bytes= */ 384, /* allocations= */ 3);
     words graph = allocate(arena, 36);
     words rootDirect = allocate(arena, MODULE_COUNT);
+    words order = allocate(arena, MODULE_COUNT);
     long edgeCount = recordDirectedEdges(
       graph,
       firstSource,
@@ -386,13 +307,10 @@ classical class SixGraphPlans {
     }
 
     if (valid) {
-      valid = chainDegrees(graph);
+      valid = writeChainOrder(graph, rootDirect, MODULE_COUNT, order);
     }
 
-    if (valid) {
-      valid = reachesRoot(graph, rootDirect);
-    }
-
+    drop(order);
     drop(rootDirect);
     drop(graph);
     drop(arena);

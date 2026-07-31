@@ -672,7 +672,7 @@ classical class CompilerGraphs {
     return new GraphCompilation(compiled.length, compiled.codeStart);
   }
 
-  /// Compiles seven direct scalar-constant modules and their root.
+  /// Compiles one supported seven-module scalar-constant graph and its root.
   public GraphCompilation compileGraphWithSevenConstantImports(
     borrow utf8 firstImportedSource,
     borrow utf8 secondImportedSource,
@@ -684,7 +684,7 @@ classical class CompilerGraphs {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    SevenGraphCompilation compiled = compileSevenDirectConstants(
+    SevenGraphCompilation compiled = compileSevenConstantGraph(
       firstImportedSource,
       secondImportedSource,
       thirdImportedSource,

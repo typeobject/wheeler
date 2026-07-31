@@ -110,7 +110,7 @@ classical class CompilerDriver {
     );
   }
 
-  /// Compiles seven direct scalar-constant modules and their root.
+  /// Compiles one supported seven-module scalar-constant graph and its root.
   public Compilation compileMinimalWithSevenConstantImports(
     borrow utf8 firstImportedSource,
     borrow utf8 secondImportedSource,
