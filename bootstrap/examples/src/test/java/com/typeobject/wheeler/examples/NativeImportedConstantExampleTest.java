@@ -864,5 +864,19 @@ class NativeImportedConstantExampleTest {
         List.of(cyclicAlpha, cyclicBeta),
         "module examples.root; import examples.alpha; classical class Root { "
             + "entry void main() { long value = LEFT; } }");
+    String shortcutAlpha = "module examples.alpha; classical class Alpha { "
+        + "public const long ALPHA = 1; }";
+    String shortcutBeta = "module examples.beta; import examples.alpha; "
+        + "classical class Beta { public const long BETA = ALPHA + 1; }";
+    String shortcutGamma = "module examples.gamma; import examples.alpha; "
+        + "import examples.beta; classical class Gamma { "
+        + "public const long GAMMA = ALPHA + BETA; }";
+    String shortcutDelta = "module examples.delta; import examples.gamma; "
+        + "classical class Delta { public const long DELTA = GAMMA + 1; }";
+    assertTrap(
+        compiler,
+        List.of(shortcutGamma, shortcutAlpha, shortcutDelta, shortcutBeta),
+        "module examples.root; import examples.delta; classical class Root { "
+            + "entry void main() { long value = DELTA; } }");
   }
 }

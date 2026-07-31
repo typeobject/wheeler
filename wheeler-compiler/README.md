@@ -26,8 +26,10 @@ The package keeps responsibilities narrow:
 - `compiler/GraphFourDag.w` owns shared-dependency four-module DAGs.
 - `compiler/GraphFourMixed.w` owns transitive chains beside direct root imports.
 - `compiler/GraphFourNested.w` owns the two nested four-module trees.
+- `compiler/graphs/FourStructures.w` classifies every admitted four-module topology.
 - `compiler/GraphFive.w` coordinates bounded five-module forms.
-- `compiler/graphs/Plans.w` classifies supported five-module topology before linking.
+- `compiler/graphs/FiveStructures.w` records exact five-module structure and source order.
+- `compiler/graphs/Plans.w` maps exact five-module structure to executor identities.
 - `compiler/graphs/five/FiveFork.w` owns the five-module four-leaf fork.
 - `compiler/graphs/five/FiveBranches.w` owns a three-leaf fork beside a direct import.
 - `compiler/graphs/five/FiveMixed.w` owns one chain edge beside three direct imports.
@@ -38,7 +40,7 @@ The package keeps responsibilities narrow:
 - `compiler/graphs/five/FiveNestedMixed.w` owns a nested two-leaf fork beside a direct import.
 - `compiler/graphs/five/FiveNestedFork.w` owns two nested fork levels.
 - `compiler/graphs/five/FiveDag.w` owns a shared diamond with one side leaf.
-- The five-module chain path links one validated directed edge before trying six bounded tails.
+- `compiler/graphs/FiveChain.w` executes the exact planned five-module chain order.
 - `compiler/Driver.w` keeps one small stable API over the graph compilers and core.
 - `compiler/verification` owns complete check-before-publication artifact validation.
 
@@ -56,10 +58,10 @@ or excess imports before publication. `compileMinimalWithConstantImport`,
 `compileMinimalWithFourConstantImports` link every rooted tree topology over one through
 four imported scalar-constant modules plus one shared-dependency diamond.
 `compileMinimalWithFiveConstantImports` first builds a closed topology plan, then links
-the five-module direct star, chain, four-leaf fork, three-leaf fork beside a direct import, one chain edge beside three direct imports, a two-leaf fork beside two direct imports, two independent chains beside a direct import, a three-module chain beside two direct imports, a four-module chain beside a direct import, a nested two-leaf fork beside a direct import, two nested fork levels, or a shared diamond with a side leaf. `compileMinimalWithSixConstantImports` links the six-module direct star, full chain, and five-leaf fork. `compileMinimalWithSevenConstantImports` links a seven-module direct star, full chain, or six-leaf fork. Differential fixtures exhaust all 120 five-module orders and all 720 orders of each six-module graph. Fourteen orders of each seven-module graph put every source in every frame position in forward and reverse rings. The five-module planner validates every admitted topology from exact header edges, root imports, and one deterministic topological order. Five- through seven-module chain and fork executors consume their canonical source order before rewriting. A leaf
+the five-module direct star, chain, four-leaf fork, three-leaf fork beside a direct import, one chain edge beside three direct imports, a two-leaf fork beside two direct imports, two independent chains beside a direct import, a three-module chain beside two direct imports, a four-module chain beside a direct import, a nested two-leaf fork beside a direct import, two nested fork levels, or a shared diamond with a side leaf. `compileMinimalWithSixConstantImports` links the six-module direct star, full chain, and five-leaf fork. `compileMinimalWithSevenConstantImports` links a seven-module direct star, full chain, or six-leaf fork. Differential fixtures exhaust all 120 five-module orders and all 720 orders of each six-module graph. Fourteen orders of each seven-module graph put every source in every frame position in forward and reverse rings. The four- and five-module planners validate every admitted topology from exact header edges, root imports, and one deterministic topological order. Four- through seven-module chain and fork executors consume their canonical source order before rewriting. A leaf
 export becomes private inside its dependent, so a root cannot acquire transitive access by
 spelling the leaf name loudly. Executable imported
-members, mismatched module names, other five-module and six-module graphs, other seven-module graphs, and eight or more root imports fail closed. General symbol resolution remains future work. Entry and helper bodies
+members, mismatched module names, unsupported four-module DAGs, unsupported five-module graphs, other six- and seven-module graphs, and eight or more root imports fail closed. General symbol resolution remains future work. Entry and helper bodies
 admit at most sixty-four statements. The current slice covers typed signed
 and Boolean locals, assertions, assignments, checked scalar operations, calls, results, and
 narrow explicitly limited loops.
@@ -91,7 +93,7 @@ shared-dependency diamond, the five-module direct star, chain, four-leaf fork, t
 exports from reaching the root.
 Repeated dependency declarations are deduplicated only when their private token sequences
 match exactly. Sharing a name and a hopeful expression does not count. Root collisions with
-imported private names, colliding exports, other five-module and six-module graphs, other seven-module graphs, graphs with eight or more imports, and general multi-file linking remain stage-0 work until native differential artifacts pin
+imported private names, colliding exports, unsupported four-module DAGs, unsupported five-module graphs, other six- and seven-module graphs, graphs with eight or more imports, and general multi-file linking remain stage-0 work until native differential artifacts pin
 them down.
 
 The canonical registry also owns `CALL_RESULT_SLOT`, `UNCALL_RESULT_SLOT`,
