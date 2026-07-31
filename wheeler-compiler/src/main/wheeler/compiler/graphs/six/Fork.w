@@ -1,191 +1,56 @@
-//! Resolves one six-module five-leaf scalar-constant fork.
+//! Resolves one planned six-module five-leaf scalar-constant fork.
 
 module wheeler.compiler.graphs.six.fork;
 
 import wheeler.compiler.compiler_core;
+import wheeler.compiler.graphs.six.plans;
+import wheeler.compiler.graphs.sources;
 import wheeler.compiler.module_linker;
 
 classical class SixConstantFork {
-  /// Carries one attempted six-module fork compilation.
+  private const long SINGLE_IMPORT = 1;
+  private const long FIVE_IMPORTS = 5;
+
+  /// Carries one six-module fork compilation.
   public record SixForkCompilation(long length, long codeStart) {}
 
-  private SixForkCompilation compileFiveLeafForkIfOrdered(
-    borrow utf8 firstLeafSource,
-    borrow utf8 secondLeafSource,
-    borrow utf8 thirdLeafSource,
-    borrow utf8 fourthLeafSource,
-    borrow utf8 fifthLeafSource,
+  private utf8 linkLeaf(
+    borrow utf8 leafSource,
     borrow utf8 dependentSource,
-    borrow utf8 rootSource,
-    borrow mut bytes output
+    borrow mut region arena
   ) {
-    LinkPlan firstPlan = planPrivateConstantImport(
-      firstLeafSource,
+    LinkPlan plan = planPrivateConstantImport(
+      leafSource,
       dependentSource,
-      /* expectedImportCount= */ 5
+      /* expectedImportCount= */ FIVE_IMPORTS
     );
-    if (firstPlan.valid) {} else {
-      return new SixForkCompilation(0, 0);
-    }
-
-    region firstArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
-    bytes firstBytes = allocateBytes(firstArena, firstPlan.linkedLength);
-    long firstWritten = writeConstantImport(
-      firstLeafSource,
-      dependentSource,
-      firstPlan,
-      firstBytes
-    );
-    assert(firstWritten == firstPlan.linkedLength);
-    utf8 firstLinkedSource = freezeUtf8(firstBytes);
-
-    LinkPlan secondPlan = planPrivateConstantImport(
-      secondLeafSource,
-      firstLinkedSource,
-      /* expectedImportCount= */ 5
-    );
-    if (secondPlan.valid) {} else {
-      drop(firstLinkedSource);
-      drop(firstArena);
-      return new SixForkCompilation(0, 0);
-    }
-
-    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
-    bytes secondBytes = allocateBytes(secondArena, secondPlan.linkedLength);
-    long secondWritten = writeConstantImport(
-      secondLeafSource,
-      firstLinkedSource,
-      secondPlan,
-      secondBytes
-    );
-    assert(secondWritten == secondPlan.linkedLength);
-    utf8 secondLinkedSource = freezeUtf8(secondBytes);
-
-    LinkPlan thirdPlan = planPrivateConstantImport(
-      thirdLeafSource,
-      secondLinkedSource,
-      /* expectedImportCount= */ 5
-    );
-    if (thirdPlan.valid) {} else {
-      drop(secondLinkedSource);
-      drop(secondArena);
-      drop(firstLinkedSource);
-      drop(firstArena);
-      return new SixForkCompilation(0, 0);
-    }
-
-    region thirdArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
-    bytes thirdBytes = allocateBytes(thirdArena, thirdPlan.linkedLength);
-    long thirdWritten = writeConstantImport(
-      thirdLeafSource,
-      secondLinkedSource,
-      thirdPlan,
-      thirdBytes
-    );
-    assert(thirdWritten == thirdPlan.linkedLength);
-    utf8 thirdLinkedSource = freezeUtf8(thirdBytes);
-
-    LinkPlan fourthPlan = planPrivateConstantImport(
-      fourthLeafSource,
-      thirdLinkedSource,
-      /* expectedImportCount= */ 5
-    );
-    if (fourthPlan.valid) {} else {
-      drop(thirdLinkedSource);
-      drop(thirdArena);
-      drop(secondLinkedSource);
-      drop(secondArena);
-      drop(firstLinkedSource);
-      drop(firstArena);
-      return new SixForkCompilation(0, 0);
-    }
-
-    region fourthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
-    bytes fourthBytes = allocateBytes(fourthArena, fourthPlan.linkedLength);
-    long fourthWritten = writeConstantImport(
-      fourthLeafSource,
-      thirdLinkedSource,
-      fourthPlan,
-      fourthBytes
-    );
-    assert(fourthWritten == fourthPlan.linkedLength);
-    utf8 fourthLinkedSource = freezeUtf8(fourthBytes);
-
-    LinkPlan fifthPlan = planPrivateConstantImport(
-      fifthLeafSource,
-      fourthLinkedSource,
-      /* expectedImportCount= */ 5
-    );
-    if (fifthPlan.valid) {} else {
-      drop(fourthLinkedSource);
-      drop(fourthArena);
-      drop(thirdLinkedSource);
-      drop(thirdArena);
-      drop(secondLinkedSource);
-      drop(secondArena);
-      drop(firstLinkedSource);
-      drop(firstArena);
-      return new SixForkCompilation(0, 0);
-    }
-
-    region fifthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
-    bytes fifthBytes = allocateBytes(fifthArena, fifthPlan.linkedLength);
-    long fifthWritten = writeConstantImport(
-      fifthLeafSource,
-      fourthLinkedSource,
-      fifthPlan,
-      fifthBytes
-    );
-    assert(fifthWritten == fifthPlan.linkedLength);
-    utf8 linkedDependentSource = freezeUtf8(fifthBytes);
-
-    LinkPlan rootPlan = planResolvedConstantImport(
-      linkedDependentSource,
-      rootSource,
-      /* expectedImportCount= */ 1
-    );
-    if (rootPlan.valid) {} else {
-      drop(linkedDependentSource);
-      drop(fifthArena);
-      drop(fourthLinkedSource);
-      drop(fourthArena);
-      drop(thirdLinkedSource);
-      drop(thirdArena);
-      drop(secondLinkedSource);
-      drop(secondArena);
-      drop(firstLinkedSource);
-      drop(firstArena);
-      return new SixForkCompilation(0, 0);
-    }
-
-    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
-    bytes rootBytes = allocateBytes(rootArena, rootPlan.linkedLength);
-    long rootWritten = writeConstantImport(
-      linkedDependentSource,
-      rootSource,
-      rootPlan,
-      rootBytes
-    );
-    assert(rootWritten == rootPlan.linkedLength);
-    utf8 linkedRootSource = freezeUtf8(rootBytes);
-    CoreCompilation compiled = compileMinimalCore(linkedRootSource, output);
-    drop(linkedRootSource);
-    drop(rootArena);
-    drop(linkedDependentSource);
-    drop(fifthArena);
-    drop(fourthLinkedSource);
-    drop(fourthArena);
-    drop(thirdLinkedSource);
-    drop(thirdArena);
-    drop(secondLinkedSource);
-    drop(secondArena);
-    drop(firstLinkedSource);
-    drop(firstArena);
-    return new SixForkCompilation(compiled.length, compiled.codeStart);
+    assert(plan.valid);
+    bytes linkedBytes = allocateBytes(arena, plan.linkedLength);
+    long written = writeConstantImport(leafSource, dependentSource, plan, linkedBytes);
+    assert(written == plan.linkedLength);
+    return freezeUtf8(linkedBytes);
   }
 
-  /// Compiles five leaves through one root-visible dependent independent of source order.
+  private utf8 linkRoot(
+    borrow utf8 linkedSource,
+    borrow utf8 rootSource,
+    borrow mut region arena
+  ) {
+    LinkPlan plan = planResolvedConstantImport(
+      linkedSource,
+      rootSource,
+      /* expectedImportCount= */ SINGLE_IMPORT
+    );
+    assert(plan.valid);
+    bytes linkedBytes = allocateBytes(arena, plan.linkedLength);
+    long written = writeConstantImport(linkedSource, rootSource, plan, linkedBytes);
+    assert(written == plan.linkedLength);
+    return freezeUtf8(linkedBytes);
+  }
+
+  /// Compiles five planned leaves through one root-visible dependent.
   public SixForkCompilation compileSixConstantFork(
+    SixGraphPlan plan,
     borrow utf8 firstSource,
     borrow utf8 secondSource,
     borrow utf8 thirdSource,
@@ -195,85 +60,117 @@ classical class SixConstantFork {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    SixForkCompilation compiled = compileFiveLeafForkIfOrdered(
-      secondSource,
-      thirdSource,
-      fourthSource,
-      fifthSource,
-      sixthSource,
-      firstSource,
-      rootSource,
-      output
-    );
-    if (0 < compiled.length) {
-      return compiled;
-    }
+    assert(plan.valid);
+    assert(plan.topology == SIX_PLAN_FORK);
 
-    compiled = compileFiveLeafForkIfOrdered(
+    region dependentArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 dependentSource = copySelectedSixSource(
+      plan.sixth,
       firstSource,
+      secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
       sixthSource,
-      secondSource,
-      rootSource,
-      output
+      dependentArena
     );
-    if (0 < compiled.length) {
-      return compiled;
-    }
+    region firstLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 firstLeafSource = copySelectedSixSource(
+      plan.first,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      sixthSource,
+      firstLeafArena
+    );
+    region firstLinkedArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 firstLinkedSource = linkLeaf(firstLeafSource, dependentSource, firstLinkedArena);
+    drop(firstLeafSource);
+    drop(firstLeafArena);
+    drop(dependentSource);
+    drop(dependentArena);
 
-    compiled = compileFiveLeafForkIfOrdered(
+    region secondLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 secondLeafSource = copySelectedSixSource(
+      plan.second,
       firstSource,
       secondSource,
+      thirdSource,
       fourthSource,
       fifthSource,
       sixthSource,
-      thirdSource,
-      rootSource,
-      output
+      secondLeafArena
     );
-    if (0 < compiled.length) {
-      return compiled;
-    }
+    region secondLinkedArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 secondLinkedSource = linkLeaf(secondLeafSource, firstLinkedSource, secondLinkedArena);
+    drop(secondLeafSource);
+    drop(secondLeafArena);
+    drop(firstLinkedSource);
+    drop(firstLinkedArena);
 
-    compiled = compileFiveLeafForkIfOrdered(
+    region thirdLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 thirdLeafSource = copySelectedSixSource(
+      plan.third,
       firstSource,
       secondSource,
       thirdSource,
+      fourthSource,
       fifthSource,
       sixthSource,
-      fourthSource,
-      rootSource,
-      output
+      thirdLeafArena
     );
-    if (0 < compiled.length) {
-      return compiled;
-    }
+    region thirdLinkedArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 thirdLinkedSource = linkLeaf(thirdLeafSource, secondLinkedSource, thirdLinkedArena);
+    drop(thirdLeafSource);
+    drop(thirdLeafArena);
+    drop(secondLinkedSource);
+    drop(secondLinkedArena);
 
-    compiled = compileFiveLeafForkIfOrdered(
+    region fourthLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 fourthLeafSource = copySelectedSixSource(
+      plan.fourth,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
-      sixthSource,
       fifthSource,
-      rootSource,
-      output
+      sixthSource,
+      fourthLeafArena
     );
-    if (0 < compiled.length) {
-      return compiled;
-    }
+    region fourthLinkedArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 fourthLinkedSource = linkLeaf(fourthLeafSource, thirdLinkedSource, fourthLinkedArena);
+    drop(fourthLeafSource);
+    drop(fourthLeafArena);
+    drop(thirdLinkedSource);
+    drop(thirdLinkedArena);
 
-    return compileFiveLeafForkIfOrdered(
+    region fifthLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 fifthLeafSource = copySelectedSixSource(
+      plan.fifth,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
       sixthSource,
-      rootSource,
-      output
+      fifthLeafArena
     );
+    region fifthLinkedArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 fifthLinkedSource = linkLeaf(fifthLeafSource, fourthLinkedSource, fifthLinkedArena);
+    drop(fifthLeafSource);
+    drop(fifthLeafArena);
+    drop(fourthLinkedSource);
+    drop(fourthLinkedArena);
+
+    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 linkedRootSource = linkRoot(fifthLinkedSource, rootSource, rootArena);
+    CoreCompilation compiled = compileMinimalCore(linkedRootSource, output);
+    drop(linkedRootSource);
+    drop(rootArena);
+    drop(fifthLinkedSource);
+    drop(fifthLinkedArena);
+    return new SixForkCompilation(compiled.length, compiled.codeStart);
   }
 }

@@ -181,6 +181,7 @@ classical class CompilerGraphSix {
 
     if (plan.topology == SIX_PLAN_CHAIN) {
       SixChainCompilation chain = compileSixConstantChain(
+        plan,
         firstSource,
         secondSource,
         thirdSource,
@@ -199,6 +200,7 @@ classical class CompilerGraphSix {
 
     if (plan.topology == SIX_PLAN_FORK) {
       SixForkCompilation fork = compileSixConstantFork(
+        plan,
         firstSource,
         secondSource,
         thirdSource,

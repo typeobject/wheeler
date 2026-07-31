@@ -4,7 +4,7 @@ module wheeler.compiler.graphs.seven.fork;
 
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.graphs.seven.plans;
-import wheeler.compiler.graphs.seven.sources;
+import wheeler.compiler.graphs.sources;
 import wheeler.compiler.module_linker;
 
 classical class SevenConstantFork {
@@ -65,7 +65,7 @@ classical class SevenConstantFork {
     assert(plan.topology == SEVEN_PLAN_FORK);
 
     region dependentArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
-    utf8 dependentSource = copySelectedSource(
+    utf8 dependentSource = copySelectedSevenSource(
       plan.seventh,
       firstSource,
       secondSource,
@@ -77,7 +77,7 @@ classical class SevenConstantFork {
       dependentArena
     );
     region firstLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
-    utf8 firstLeafSource = copySelectedSource(
+    utf8 firstLeafSource = copySelectedSevenSource(
       plan.first,
       firstSource,
       secondSource,
@@ -96,7 +96,7 @@ classical class SevenConstantFork {
     drop(dependentArena);
 
     region secondLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
-    utf8 secondLeafSource = copySelectedSource(
+    utf8 secondLeafSource = copySelectedSevenSource(
       plan.second,
       firstSource,
       secondSource,
@@ -115,7 +115,7 @@ classical class SevenConstantFork {
     drop(firstLinkedArena);
 
     region thirdLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
-    utf8 thirdLeafSource = copySelectedSource(
+    utf8 thirdLeafSource = copySelectedSevenSource(
       plan.third,
       firstSource,
       secondSource,
@@ -134,7 +134,7 @@ classical class SevenConstantFork {
     drop(secondLinkedArena);
 
     region fourthLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
-    utf8 fourthLeafSource = copySelectedSource(
+    utf8 fourthLeafSource = copySelectedSevenSource(
       plan.fourth,
       firstSource,
       secondSource,
@@ -153,7 +153,7 @@ classical class SevenConstantFork {
     drop(thirdLinkedArena);
 
     region fifthLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
-    utf8 fifthLeafSource = copySelectedSource(
+    utf8 fifthLeafSource = copySelectedSevenSource(
       plan.fifth,
       firstSource,
       secondSource,
@@ -172,7 +172,7 @@ classical class SevenConstantFork {
     drop(fourthLinkedArena);
 
     region sixthLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
-    utf8 sixthLeafSource = copySelectedSource(
+    utf8 sixthLeafSource = copySelectedSevenSource(
       plan.sixth,
       firstSource,
       secondSource,
