@@ -512,6 +512,38 @@ class NativeImportedConstantWideExampleTest {
   }
 
   @Test
+  void linksASixLeafForkAcrossEveryInputPosition() throws Exception {
+    String alpha = "module examples.alpha; classical class Alpha { "
+        + "public const long ALPHA = 2; }";
+    String beta = "module examples.beta; classical class Beta { "
+        + "public const long BETA = 3; }";
+    String gamma = "module examples.gamma; classical class Gamma { "
+        + "public const long GAMMA = 5; }";
+    String delta = "module examples.delta; classical class Delta { "
+        + "public const long DELTA = 7; }";
+    String epsilon = "module examples.epsilon; classical class Epsilon { "
+        + "public const long EPSILON = 11; }";
+    String zeta = "module examples.zeta; classical class Zeta { "
+        + "public const long ZETA = 13; }";
+    String eta = "module examples.eta; import examples.alpha; import examples.beta; "
+        + "import examples.delta; import examples.epsilon; import examples.gamma; "
+        + "import examples.zeta; classical class Eta { "
+        + "private const long LEFT = ALPHA + BETA; "
+        + "private const long MIDDLE = GAMMA + DELTA; "
+        + "private const long RIGHT = EPSILON + ZETA; "
+        + "private const long PARTIAL = LEFT + MIDDLE; "
+        + "public const long ANSWER = PARTIAL + RIGHT; }";
+    String root = "module examples.root; import examples.eta; classical class Root { "
+        + "state long outcome = 0; entry void main() { outcome += ANSWER; } }";
+    List<String> imported = List.of(alpha, beta, gamma, delta, epsilon, zeta, eta);
+
+    byte[] expected = assertOrdersMatchStageZero(imported, root, rotationsAndReversals(imported));
+    VirtualMachine machine = new VirtualMachine(new BytecodeReader().read(expected));
+    machine.run();
+    assertEquals(41, machine.global("outcome"));
+  }
+
+  @Test
   void rejectsEightImportedModulesBeforePublication() throws Exception {
     List<String> imported = List.of(
         "module examples.two; classical class Two { public const long TWO = 2; }",

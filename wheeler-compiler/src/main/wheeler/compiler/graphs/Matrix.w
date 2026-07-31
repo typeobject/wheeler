@@ -40,6 +40,74 @@ classical class BoundedGraphMatrix {
     return true;
   }
 
+  /// Writes leaves followed by the root-visible dependent for one complete fork.
+  public boolean writeForkOrder(
+    borrow mut words graph,
+    borrow mut words rootDirect,
+    long nodeCount,
+    borrow mut words order
+  ) {
+    if (2 < nodeCount) {} else {
+      return false;
+    }
+
+    if (nodeCount < MAX_GRAPH_NODES + 1) {} else {
+      return false;
+    }
+
+    long dependent = -1;
+    long dependentCount = 0;
+    long node = 0;
+    while (node < nodeCount) limit MAX_GRAPH_NODES {
+      long incoming = incomingCount(graph, nodeCount, node);
+      long outgoing = outgoingCount(graph, nodeCount, node);
+      if (rootDirect[node] == 1) {
+        if (incoming == nodeCount - 1) {
+          if (outgoing == 0) {
+            dependent = node;
+            dependentCount += 1;
+          }
+        }
+      }
+
+      node += 1;
+    }
+
+    if (dependentCount == 1) {} else {
+      return false;
+    }
+
+    long position = 0;
+    node = 0;
+    while (node < nodeCount) limit MAX_GRAPH_NODES {
+      if (node == dependent) {} else {
+        if (rootDirect[node] == 0) {} else {
+          return false;
+        }
+
+        if (incomingCount(graph, nodeCount, node) == 0) {} else {
+          return false;
+        }
+
+        if (outgoingCount(graph, nodeCount, node) == 1) {} else {
+          return false;
+        }
+
+        if (graph[node * nodeCount + dependent] == 1) {} else {
+          return false;
+        }
+
+        set(order, position, node);
+        position += 1;
+      }
+
+      node += 1;
+    }
+
+    set(order, nodeCount - 1, dependent);
+    return position == nodeCount - 1;
+  }
+
   /// Writes the unique leaf-to-root order for one complete directed chain.
   public boolean writeChainOrder(
     borrow mut words graph,

@@ -11,6 +11,8 @@ classical class SevenGraphPlans {
   public const long SEVEN_PLAN_DIRECT = 1;
   /// Names the seven-module full-chain plan.
   public const long SEVEN_PLAN_CHAIN = 2;
+  /// Names the seven-module six-leaf-fork plan.
+  public const long SEVEN_PLAN_FORK = 3;
 
   private const long MODULE_COUNT = 7;
   private const long SINGLE_IMPORT = 1;
@@ -76,8 +78,25 @@ classical class SevenGraphPlans {
     return directSource(seventhSource, rootSource);
   }
 
-  private boolean headerEdge(borrow utf8 source, borrow utf8 dependentSource) {
+  private boolean graphEdge(borrow utf8 source, borrow utf8 dependentSource) {
     HeaderDependency dependency = moduleDependency(source, dependentSource);
+    if (dependency.valid) {} else {
+      return false;
+    }
+
+    if (dependency.importCount == SINGLE_IMPORT) {
+      return dependency.importsCandidate;
+    }
+
+    if (dependency.importCount == SIX_EDGES) {
+      return dependency.importsCandidate;
+    }
+
+    return false;
+  }
+
+  private boolean rootEdge(borrow utf8 source, borrow utf8 rootSource) {
+    HeaderDependency dependency = moduleDependency(source, rootSource);
     if (dependency.valid) {} else {
       return false;
     }
@@ -109,48 +128,48 @@ classical class SevenGraphPlans {
     borrow utf8 seventhSource
   ) {
     long count = 0;
-    count += recordEdge(graph, 0, 1, headerEdge(firstSource, secondSource));
-    count += recordEdge(graph, 0, 2, headerEdge(firstSource, thirdSource));
-    count += recordEdge(graph, 0, 3, headerEdge(firstSource, fourthSource));
-    count += recordEdge(graph, 0, 4, headerEdge(firstSource, fifthSource));
-    count += recordEdge(graph, 0, 5, headerEdge(firstSource, sixthSource));
-    count += recordEdge(graph, 0, 6, headerEdge(firstSource, seventhSource));
-    count += recordEdge(graph, 1, 0, headerEdge(secondSource, firstSource));
-    count += recordEdge(graph, 1, 2, headerEdge(secondSource, thirdSource));
-    count += recordEdge(graph, 1, 3, headerEdge(secondSource, fourthSource));
-    count += recordEdge(graph, 1, 4, headerEdge(secondSource, fifthSource));
-    count += recordEdge(graph, 1, 5, headerEdge(secondSource, sixthSource));
-    count += recordEdge(graph, 1, 6, headerEdge(secondSource, seventhSource));
-    count += recordEdge(graph, 2, 0, headerEdge(thirdSource, firstSource));
-    count += recordEdge(graph, 2, 1, headerEdge(thirdSource, secondSource));
-    count += recordEdge(graph, 2, 3, headerEdge(thirdSource, fourthSource));
-    count += recordEdge(graph, 2, 4, headerEdge(thirdSource, fifthSource));
-    count += recordEdge(graph, 2, 5, headerEdge(thirdSource, sixthSource));
-    count += recordEdge(graph, 2, 6, headerEdge(thirdSource, seventhSource));
-    count += recordEdge(graph, 3, 0, headerEdge(fourthSource, firstSource));
-    count += recordEdge(graph, 3, 1, headerEdge(fourthSource, secondSource));
-    count += recordEdge(graph, 3, 2, headerEdge(fourthSource, thirdSource));
-    count += recordEdge(graph, 3, 4, headerEdge(fourthSource, fifthSource));
-    count += recordEdge(graph, 3, 5, headerEdge(fourthSource, sixthSource));
-    count += recordEdge(graph, 3, 6, headerEdge(fourthSource, seventhSource));
-    count += recordEdge(graph, 4, 0, headerEdge(fifthSource, firstSource));
-    count += recordEdge(graph, 4, 1, headerEdge(fifthSource, secondSource));
-    count += recordEdge(graph, 4, 2, headerEdge(fifthSource, thirdSource));
-    count += recordEdge(graph, 4, 3, headerEdge(fifthSource, fourthSource));
-    count += recordEdge(graph, 4, 5, headerEdge(fifthSource, sixthSource));
-    count += recordEdge(graph, 4, 6, headerEdge(fifthSource, seventhSource));
-    count += recordEdge(graph, 5, 0, headerEdge(sixthSource, firstSource));
-    count += recordEdge(graph, 5, 1, headerEdge(sixthSource, secondSource));
-    count += recordEdge(graph, 5, 2, headerEdge(sixthSource, thirdSource));
-    count += recordEdge(graph, 5, 3, headerEdge(sixthSource, fourthSource));
-    count += recordEdge(graph, 5, 4, headerEdge(sixthSource, fifthSource));
-    count += recordEdge(graph, 5, 6, headerEdge(sixthSource, seventhSource));
-    count += recordEdge(graph, 6, 0, headerEdge(seventhSource, firstSource));
-    count += recordEdge(graph, 6, 1, headerEdge(seventhSource, secondSource));
-    count += recordEdge(graph, 6, 2, headerEdge(seventhSource, thirdSource));
-    count += recordEdge(graph, 6, 3, headerEdge(seventhSource, fourthSource));
-    count += recordEdge(graph, 6, 4, headerEdge(seventhSource, fifthSource));
-    count += recordEdge(graph, 6, 5, headerEdge(seventhSource, sixthSource));
+    count += recordEdge(graph, 0, 1, graphEdge(firstSource, secondSource));
+    count += recordEdge(graph, 0, 2, graphEdge(firstSource, thirdSource));
+    count += recordEdge(graph, 0, 3, graphEdge(firstSource, fourthSource));
+    count += recordEdge(graph, 0, 4, graphEdge(firstSource, fifthSource));
+    count += recordEdge(graph, 0, 5, graphEdge(firstSource, sixthSource));
+    count += recordEdge(graph, 0, 6, graphEdge(firstSource, seventhSource));
+    count += recordEdge(graph, 1, 0, graphEdge(secondSource, firstSource));
+    count += recordEdge(graph, 1, 2, graphEdge(secondSource, thirdSource));
+    count += recordEdge(graph, 1, 3, graphEdge(secondSource, fourthSource));
+    count += recordEdge(graph, 1, 4, graphEdge(secondSource, fifthSource));
+    count += recordEdge(graph, 1, 5, graphEdge(secondSource, sixthSource));
+    count += recordEdge(graph, 1, 6, graphEdge(secondSource, seventhSource));
+    count += recordEdge(graph, 2, 0, graphEdge(thirdSource, firstSource));
+    count += recordEdge(graph, 2, 1, graphEdge(thirdSource, secondSource));
+    count += recordEdge(graph, 2, 3, graphEdge(thirdSource, fourthSource));
+    count += recordEdge(graph, 2, 4, graphEdge(thirdSource, fifthSource));
+    count += recordEdge(graph, 2, 5, graphEdge(thirdSource, sixthSource));
+    count += recordEdge(graph, 2, 6, graphEdge(thirdSource, seventhSource));
+    count += recordEdge(graph, 3, 0, graphEdge(fourthSource, firstSource));
+    count += recordEdge(graph, 3, 1, graphEdge(fourthSource, secondSource));
+    count += recordEdge(graph, 3, 2, graphEdge(fourthSource, thirdSource));
+    count += recordEdge(graph, 3, 4, graphEdge(fourthSource, fifthSource));
+    count += recordEdge(graph, 3, 5, graphEdge(fourthSource, sixthSource));
+    count += recordEdge(graph, 3, 6, graphEdge(fourthSource, seventhSource));
+    count += recordEdge(graph, 4, 0, graphEdge(fifthSource, firstSource));
+    count += recordEdge(graph, 4, 1, graphEdge(fifthSource, secondSource));
+    count += recordEdge(graph, 4, 2, graphEdge(fifthSource, thirdSource));
+    count += recordEdge(graph, 4, 3, graphEdge(fifthSource, fourthSource));
+    count += recordEdge(graph, 4, 5, graphEdge(fifthSource, sixthSource));
+    count += recordEdge(graph, 4, 6, graphEdge(fifthSource, seventhSource));
+    count += recordEdge(graph, 5, 0, graphEdge(sixthSource, firstSource));
+    count += recordEdge(graph, 5, 1, graphEdge(sixthSource, secondSource));
+    count += recordEdge(graph, 5, 2, graphEdge(sixthSource, thirdSource));
+    count += recordEdge(graph, 5, 3, graphEdge(sixthSource, fourthSource));
+    count += recordEdge(graph, 5, 4, graphEdge(sixthSource, fifthSource));
+    count += recordEdge(graph, 5, 6, graphEdge(sixthSource, seventhSource));
+    count += recordEdge(graph, 6, 0, graphEdge(seventhSource, firstSource));
+    count += recordEdge(graph, 6, 1, graphEdge(seventhSource, secondSource));
+    count += recordEdge(graph, 6, 2, graphEdge(seventhSource, thirdSource));
+    count += recordEdge(graph, 6, 3, graphEdge(seventhSource, fourthSource));
+    count += recordEdge(graph, 6, 4, graphEdge(seventhSource, fifthSource));
+    count += recordEdge(graph, 6, 5, graphEdge(seventhSource, sixthSource));
     return count;
   }
 
@@ -163,7 +182,7 @@ classical class SevenGraphPlans {
     return 0;
   }
 
-  private SevenGraphPlan fullChain(
+  private SevenGraphPlan structuredGraph(
     borrow utf8 firstSource,
     borrow utf8 secondSource,
     borrow utf8 thirdSource,
@@ -188,35 +207,49 @@ classical class SevenGraphPlans {
       seventhSource
     );
     long rootCount = 0;
-    rootCount += recordRoot(rootDirect, 0, headerEdge(firstSource, rootSource));
-    rootCount += recordRoot(rootDirect, 1, headerEdge(secondSource, rootSource));
-    rootCount += recordRoot(rootDirect, 2, headerEdge(thirdSource, rootSource));
-    rootCount += recordRoot(rootDirect, 3, headerEdge(fourthSource, rootSource));
-    rootCount += recordRoot(rootDirect, 4, headerEdge(fifthSource, rootSource));
-    rootCount += recordRoot(rootDirect, 5, headerEdge(sixthSource, rootSource));
-    rootCount += recordRoot(rootDirect, 6, headerEdge(seventhSource, rootSource));
+    rootCount += recordRoot(rootDirect, 0, rootEdge(firstSource, rootSource));
+    rootCount += recordRoot(rootDirect, 1, rootEdge(secondSource, rootSource));
+    rootCount += recordRoot(rootDirect, 2, rootEdge(thirdSource, rootSource));
+    rootCount += recordRoot(rootDirect, 3, rootEdge(fourthSource, rootSource));
+    rootCount += recordRoot(rootDirect, 4, rootEdge(fifthSource, rootSource));
+    rootCount += recordRoot(rootDirect, 5, rootEdge(sixthSource, rootSource));
+    rootCount += recordRoot(rootDirect, 6, rootEdge(seventhSource, rootSource));
     boolean valid = edgeCount == SIX_EDGES;
     if (valid) {
       valid = rootCount == SINGLE_IMPORT;
     }
 
-    if (valid) {
-      valid = writeChainOrder(graph, rootDirect, MODULE_COUNT, order);
-    }
-
     SevenGraphPlan result = invalidPlan();
     if (valid) {
-      result = new SevenGraphPlan(
-        SEVEN_PLAN_CHAIN,
-        order[0],
-        order[1],
-        order[2],
-        order[3],
-        order[4],
-        order[5],
-        order[6],
-        true
-      );
+      boolean chain = writeChainOrder(graph, rootDirect, MODULE_COUNT, order);
+      if (chain) {
+        result = new SevenGraphPlan(
+          SEVEN_PLAN_CHAIN,
+          order[0],
+          order[1],
+          order[2],
+          order[3],
+          order[4],
+          order[5],
+          order[6],
+          true
+        );
+      } else {
+        boolean fork = writeForkOrder(graph, rootDirect, MODULE_COUNT, order);
+        if (fork) {
+          result = new SevenGraphPlan(
+            SEVEN_PLAN_FORK,
+            order[0],
+            order[1],
+            order[2],
+            order[3],
+            order[4],
+            order[5],
+            order[6],
+            true
+          );
+        }
+      }
     }
 
     drop(order);
@@ -252,7 +285,7 @@ classical class SevenGraphPlans {
       return new SevenGraphPlan(SEVEN_PLAN_DIRECT, 0, 1, 2, 3, 4, 5, 6, true);
     }
 
-    return fullChain(
+    return structuredGraph(
       firstSource,
       secondSource,
       thirdSource,
