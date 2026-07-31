@@ -410,7 +410,24 @@ class NativeImportedConstantWideExampleTest {
     String root = "module examples.root; import examples.beta; import examples.eleven; "
         + "import examples.five; import examples.seven; import examples.thirteen; "
         + "classical class Root { entry void main() {} }";
-    assertTrap(program(), imported, root);
+    Program compiler = program();
+    assertTrap(compiler, imported, root);
+
+    List<String> disconnectedCycle = List.of(
+        "module examples.alpha; import examples.beta; classical class Alpha { "
+            + "public const long ALPHA = BETA + 1; }",
+        "module examples.beta; import examples.alpha; classical class Beta { "
+            + "public const long BETA = ALPHA + 1; }",
+        "module examples.gamma; classical class Gamma { public const long GAMMA = 2; }",
+        "module examples.delta; import examples.gamma; classical class Delta { "
+            + "public const long DELTA = GAMMA + 1; }",
+        "module examples.epsilon; import examples.delta; classical class Epsilon { "
+            + "public const long EPSILON = DELTA + 1; }",
+        "module examples.zeta; import examples.epsilon; classical class Zeta { "
+            + "public const long ZETA = EPSILON + 1; }");
+    String cycleRoot = "module examples.root; import examples.zeta; classical class Root { "
+        + "entry void main() {} }";
+    assertTrap(compiler, disconnectedCycle, cycleRoot);
   }
 
   @Test

@@ -76,7 +76,7 @@ final class CompilerSources {
   static Map<String, String> minimalCompilerModules() throws IOException {
     Map<String, String> modules = new LinkedHashMap<>();
     for (String logicalPath : minimalPaths()) {
-      modules.put(Path.of(logicalPath).getFileName().toString(), read(logicalPath));
+      modules.put(logicalPath, read(logicalPath));
     }
     return modules;
   }
@@ -89,7 +89,7 @@ final class CompilerSources {
       SourceModuleInspection.Header header = SourceModuleInspection.inspect(
           source.getBytes(StandardCharsets.UTF_8));
       ModuleSource previous = byName.put(header.name(), new ModuleSource(
-          Path.of(logicalPath).getFileName().toString(), source, header.imports()));
+          logicalPath, source, header.imports()));
       if (previous != null) {
         throw new IOException("Compiler library repeats module " + header.name());
       }
@@ -108,13 +108,13 @@ final class CompilerSources {
       Map<String, ModuleSource> byName,
       Map<String, String> closure) {
     ModuleSource module = byName.get(name);
-    if (module == null || closure.containsKey(module.fileName())) {
+    if (module == null || closure.containsKey(module.logicalPath())) {
       return;
     }
     for (String imported : module.imports()) {
       collectModule(imported, byName, closure);
     }
-    closure.put(module.fileName(), module.source());
+    closure.put(module.logicalPath(), module.source());
   }
 
   /** Derives the rooted module evidence for the physical bounded compiler closure. */
@@ -152,7 +152,7 @@ final class CompilerSources {
         modules);
   }
 
-  private record ModuleSource(String fileName, String source, List<String> imports) {}
+  private record ModuleSource(String logicalPath, String source, List<String> imports) {}
 
   /** Compiles the complete bounded self-hosting compiler fixture. */
   static Program minimalCompilerProgram() throws IOException {

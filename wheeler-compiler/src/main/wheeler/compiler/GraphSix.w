@@ -5,6 +5,7 @@ module wheeler.compiler.compiler_graph_six;
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.graphs.six.chain;
 import wheeler.compiler.graphs.six.fork;
+import wheeler.compiler.graphs.six.plans;
 import wheeler.compiler.module_linker;
 
 classical class CompilerGraphSix {
@@ -12,47 +13,6 @@ classical class CompilerGraphSix {
 
   /// Carries private six-module compilation bounds.
   public record SixGraphCompilation(long length, long codeStart) {}
-
-  private boolean directSource(borrow utf8 source, borrow utf8 rootSource) {
-    LinkPlan plan = planConstantImport(
-      source,
-      rootSource,
-      /* expectedImportCount= */ SIX_IMPORTS
-    );
-    return plan.valid;
-  }
-
-  private boolean allDirect(
-    borrow utf8 firstSource,
-    borrow utf8 secondSource,
-    borrow utf8 thirdSource,
-    borrow utf8 fourthSource,
-    borrow utf8 fifthSource,
-    borrow utf8 sixthSource,
-    borrow utf8 rootSource
-  ) {
-    if (directSource(firstSource, rootSource)) {} else {
-      return false;
-    }
-
-    if (directSource(secondSource, rootSource)) {} else {
-      return false;
-    }
-
-    if (directSource(thirdSource, rootSource)) {} else {
-      return false;
-    }
-
-    if (directSource(fourthSource, rootSource)) {} else {
-      return false;
-    }
-
-    if (directSource(fifthSource, rootSource)) {} else {
-      return false;
-    }
-
-    return directSource(sixthSource, rootSource);
-  }
 
   private SixGraphCompilation compileSixDirectConstants(
     borrow utf8 firstImportedSource,
@@ -193,17 +153,20 @@ classical class CompilerGraphSix {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    if (
-      allDirect(
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        fifthSource,
-        sixthSource,
-        rootSource
-      )
-    ) {
+    SixGraphPlan plan = planSixConstantGraph(
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      sixthSource,
+      rootSource
+    );
+    if (plan.valid) {} else {
+      assert(0 == 1);
+    }
+
+    if (plan.topology == SIX_PLAN_DIRECT) {
       return compileSixDirectConstants(
         firstSource,
         secondSource,
@@ -216,31 +179,39 @@ classical class CompilerGraphSix {
       );
     }
 
-    SixChainCompilation chain = compileSixConstantChain(
-      firstSource,
-      secondSource,
-      thirdSource,
-      fourthSource,
-      fifthSource,
-      sixthSource,
-      rootSource,
-      output
-    );
-    if (0 < chain.length) {
+    if (plan.topology == SIX_PLAN_CHAIN) {
+      SixChainCompilation chain = compileSixConstantChain(
+        firstSource,
+        secondSource,
+        thirdSource,
+        fourthSource,
+        fifthSource,
+        sixthSource,
+        rootSource,
+        output
+      );
+      if (0 < chain.length) {} else {
+        assert(0 == 1);
+      }
+
       return new SixGraphCompilation(chain.length, chain.codeStart);
     }
 
-    SixForkCompilation fork = compileSixConstantFork(
-      firstSource,
-      secondSource,
-      thirdSource,
-      fourthSource,
-      fifthSource,
-      sixthSource,
-      rootSource,
-      output
-    );
-    if (0 < fork.length) {
+    if (plan.topology == SIX_PLAN_FORK) {
+      SixForkCompilation fork = compileSixConstantFork(
+        firstSource,
+        secondSource,
+        thirdSource,
+        fourthSource,
+        fifthSource,
+        sixthSource,
+        rootSource,
+        output
+      );
+      if (0 < fork.length) {} else {
+        assert(0 == 1);
+      }
+
       return new SixGraphCompilation(fork.length, fork.codeStart);
     }
 
