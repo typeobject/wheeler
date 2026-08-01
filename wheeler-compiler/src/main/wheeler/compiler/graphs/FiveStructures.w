@@ -28,6 +28,8 @@ classical class FiveGraphStructures {
   public const long FIVE_STRUCTURE_NESTED_FORK = 10;
   /// Names one shared diamond with a side leaf.
   public const long FIVE_STRUCTURE_SHARED_DIAMOND = 11;
+  /// Names five direct root imports.
+  public const long FIVE_STRUCTURE_DIRECT = 12;
 
   private const long MODULE_COUNT = 5;
   private const long SINGLE_IMPORT = 1;
@@ -257,6 +259,12 @@ classical class FiveGraphStructures {
   private long topology(borrow mut words graph, long edgeCount, long rootCount, long longest) {
     long maximumIncoming = maximumIncoming(graph);
     long maximumOutgoing = maximumOutgoing(graph);
+    if (edgeCount == 0) {
+      if (rootCount == MODULE_COUNT) {
+        return FIVE_STRUCTURE_DIRECT;
+      }
+    }
+
     if (edgeCount == 1) {
       if (rootCount == 4) {
         return FIVE_STRUCTURE_CHAIN_AND_DIRECTS;
@@ -850,7 +858,14 @@ classical class FiveGraphStructures {
     }
 
     if (valid) {
-      valid = writeRootedTopologicalOrder(graph, rootDirect, MODULE_COUNT, order, reachable);
+      BoundedGraphPlan graphPlan = planBoundedGraph(
+        graph,
+        rootDirect,
+        MODULE_COUNT,
+        order,
+        reachable
+      );
+      valid = graphPlan.valid;
     }
 
     long selected = 0;

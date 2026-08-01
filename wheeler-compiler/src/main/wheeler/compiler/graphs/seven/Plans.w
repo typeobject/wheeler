@@ -4,7 +4,6 @@ module wheeler.compiler.graphs.seven.plans;
 
 import wheeler.compiler.graphs.matrix;
 import wheeler.compiler.module_headers;
-import wheeler.compiler.module_linker;
 
 classical class SevenGraphPlans {
   /// Names the seven-module direct-star plan.
@@ -36,48 +35,6 @@ classical class SevenGraphPlans {
     return new SevenGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, false);
   }
 
-  private boolean directSource(borrow utf8 source, borrow utf8 rootSource) {
-    LinkPlan plan = planConstantImport(source, rootSource, SEVEN_IMPORTS);
-    return plan.valid;
-  }
-
-  private boolean allDirect(
-    borrow utf8 firstSource,
-    borrow utf8 secondSource,
-    borrow utf8 thirdSource,
-    borrow utf8 fourthSource,
-    borrow utf8 fifthSource,
-    borrow utf8 sixthSource,
-    borrow utf8 seventhSource,
-    borrow utf8 rootSource
-  ) {
-    if (directSource(firstSource, rootSource)) {} else {
-      return false;
-    }
-
-    if (directSource(secondSource, rootSource)) {} else {
-      return false;
-    }
-
-    if (directSource(thirdSource, rootSource)) {} else {
-      return false;
-    }
-
-    if (directSource(fourthSource, rootSource)) {} else {
-      return false;
-    }
-
-    if (directSource(fifthSource, rootSource)) {} else {
-      return false;
-    }
-
-    if (directSource(sixthSource, rootSource)) {} else {
-      return false;
-    }
-
-    return directSource(seventhSource, rootSource);
-  }
-
   private boolean graphEdge(borrow utf8 source, borrow utf8 dependentSource) {
     HeaderDependency dependency = moduleDependency(source, dependentSource);
     if (dependency.valid) {} else {
@@ -101,11 +58,15 @@ classical class SevenGraphPlans {
       return false;
     }
 
-    if (dependency.importCount == SINGLE_IMPORT) {} else {
-      return false;
+    if (dependency.importCount == SINGLE_IMPORT) {
+      return dependency.importsCandidate;
     }
 
-    return dependency.importsCandidate;
+    if (dependency.importCount == SEVEN_IMPORTS) {
+      return dependency.importsCandidate;
+    }
+
+    return false;
   }
 
   private long recordEdge(borrow mut words graph, long source, long dependent, boolean present) {
@@ -192,10 +153,11 @@ classical class SevenGraphPlans {
     borrow utf8 seventhSource,
     borrow utf8 rootSource
   ) {
-    region arena = new region(/* bytes= */ 504, /* allocations= */ 3);
+    region arena = new region(/* bytes= */ 560, /* allocations= */ 4);
     words graph = allocate(arena, 49);
     words rootDirect = allocate(arena, MODULE_COUNT);
     words order = allocate(arena, MODULE_COUNT);
+    words reachable = allocate(arena, MODULE_COUNT);
     long edgeCount = recordDirectedEdges(
       graph,
       firstSource,
@@ -214,17 +176,37 @@ classical class SevenGraphPlans {
     rootCount += recordRoot(rootDirect, 4, rootEdge(fifthSource, rootSource));
     rootCount += recordRoot(rootDirect, 5, rootEdge(sixthSource, rootSource));
     rootCount += recordRoot(rootDirect, 6, rootEdge(seventhSource, rootSource));
-    boolean valid = edgeCount == SIX_EDGES;
+    boolean direct = false;
+    if (edgeCount == 0) {
+      direct = rootCount == SEVEN_IMPORTS;
+    }
+
+    boolean structured = false;
+    if (edgeCount == SIX_EDGES) {
+      structured = rootCount == SINGLE_IMPORT;
+    }
+
+    boolean valid = direct;
+    if (structured) {
+      valid = true;
+    }
+
     if (valid) {
-      valid = rootCount == SINGLE_IMPORT;
+      BoundedGraphPlan graphPlan = planBoundedGraph(
+        graph,
+        rootDirect,
+        MODULE_COUNT,
+        order,
+        reachable
+      );
+      valid = graphPlan.valid;
     }
 
     SevenGraphPlan result = invalidPlan();
     if (valid) {
-      boolean chain = writeChainOrder(graph, rootDirect, MODULE_COUNT, order);
-      if (chain) {
+      if (direct) {
         result = new SevenGraphPlan(
-          SEVEN_PLAN_CHAIN,
+          SEVEN_PLAN_DIRECT,
           order[0],
           order[1],
           order[2],
@@ -235,10 +217,10 @@ classical class SevenGraphPlans {
           true
         );
       } else {
-        boolean fork = writeForkOrder(graph, rootDirect, MODULE_COUNT, order);
-        if (fork) {
+        boolean chain = writeChainOrder(graph, rootDirect, MODULE_COUNT, order);
+        if (chain) {
           result = new SevenGraphPlan(
-            SEVEN_PLAN_FORK,
+            SEVEN_PLAN_CHAIN,
             order[0],
             order[1],
             order[2],
@@ -248,10 +230,26 @@ classical class SevenGraphPlans {
             order[6],
             true
           );
+        } else {
+          boolean fork = writeForkOrder(graph, rootDirect, MODULE_COUNT, order);
+          if (fork) {
+            result = new SevenGraphPlan(
+              SEVEN_PLAN_FORK,
+              order[0],
+              order[1],
+              order[2],
+              order[3],
+              order[4],
+              order[5],
+              order[6],
+              true
+            );
+          }
         }
       }
     }
 
+    drop(reachable);
     drop(order);
     drop(rootDirect);
     drop(graph);
@@ -270,21 +268,6 @@ classical class SevenGraphPlans {
     borrow utf8 seventhSource,
     borrow utf8 rootSource
   ) {
-    if (
-      allDirect(
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        fifthSource,
-        sixthSource,
-        seventhSource,
-        rootSource
-      )
-    ) {
-      return new SevenGraphPlan(SEVEN_PLAN_DIRECT, 0, 1, 2, 3, 4, 5, 6, true);
-    }
-
     return structuredGraph(
       firstSource,
       secondSource,

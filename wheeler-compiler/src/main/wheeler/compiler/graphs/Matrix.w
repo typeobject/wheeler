@@ -4,6 +4,21 @@ module wheeler.compiler.graphs.matrix;
 
 classical class BoundedGraphMatrix {
   private const long MAX_GRAPH_NODES = 7;
+  private const long ORDER_RADIX = 8;
+  private const long MAX_GRAPH_BITS = 49;
+
+  /// Carries canonical bounded graph facts after complete rooted validation.
+  public record BoundedGraphPlan(
+    long nodeCount,
+    long edgeCount,
+    long rootCount,
+    long edgeBits,
+    long rootBits,
+    long orderCode,
+    long privateBits,
+    long sharedBits,
+    boolean valid
+  ) {}
 
   private long incomingCount(borrow mut words graph, long nodeCount, long node) {
     long count = 0;
@@ -118,6 +133,95 @@ classical class BoundedGraphMatrix {
     }
 
     return true;
+  }
+
+  private long powerOfTwo(long exponent) {
+    long power = 1;
+    long cursor = 0;
+    while (cursor < exponent) limit MAX_GRAPH_BITS {
+      power = power * 2;
+      cursor += 1;
+    }
+
+    return power;
+  }
+
+  /// Records exact edges, root visibility, role order, privacy, and shared dependencies.
+  public BoundedGraphPlan planBoundedGraph(
+    borrow mut words graph,
+    borrow mut words rootDirect,
+    long nodeCount,
+    borrow mut words order,
+    borrow mut words reachable
+  ) {
+    if (0 < nodeCount) {} else {
+      return new BoundedGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, false);
+    }
+
+    if (nodeCount < MAX_GRAPH_NODES + 1) {} else {
+      return new BoundedGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, false);
+    }
+
+    if (writeRootedTopologicalOrder(graph, rootDirect, nodeCount, order, reachable)) {} else {
+      return new BoundedGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, false);
+    }
+
+    long edgeCount = 0;
+    long rootCount = 0;
+    long edgeBits = 0;
+    long rootBits = 0;
+    long orderCode = 0;
+    long privateBits = 0;
+    long sharedBits = 0;
+    long source = 0;
+    while (source < nodeCount) limit MAX_GRAPH_NODES {
+      long sourcePower = powerOfTwo(source);
+      if (rootDirect[source] == 1) {
+        rootBits += sourcePower;
+        rootCount += 1;
+      } else {
+        privateBits += sourcePower;
+      }
+
+      long outgoing = 0;
+      long dependent = 0;
+      while (dependent < nodeCount) limit MAX_GRAPH_NODES {
+        if (graph[source * nodeCount + dependent] == 1) {
+          long edge = source * nodeCount + dependent;
+          edgeBits += powerOfTwo(edge);
+          edgeCount += 1;
+          outgoing += 1;
+        }
+
+        dependent += 1;
+      }
+
+      if (1 < outgoing) {
+        sharedBits += sourcePower;
+      }
+
+      long orderPower = 1;
+      long position = 0;
+      while (position < source) limit MAX_GRAPH_NODES {
+        orderPower = orderPower * ORDER_RADIX;
+        position += 1;
+      }
+
+      orderCode += order[source] * orderPower;
+      source += 1;
+    }
+
+    return new BoundedGraphPlan(
+      nodeCount,
+      edgeCount,
+      rootCount,
+      edgeBits,
+      rootBits,
+      orderCode,
+      privateBits,
+      sharedBits,
+      true
+    );
   }
 
   /// Writes leaves followed by the root-visible dependent for one complete fork.

@@ -644,7 +644,14 @@ classical class FourGraphStructures {
     }
 
     if (valid) {
-      valid = writeRootedTopologicalOrder(graph, rootDirect, MODULE_COUNT, order, reachable);
+      BoundedGraphPlan graphPlan = planBoundedGraph(
+        graph,
+        rootDirect,
+        MODULE_COUNT,
+        order,
+        reachable
+      );
+      valid = graphPlan.valid;
     }
 
     long selected = 0;

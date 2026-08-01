@@ -184,7 +184,14 @@ classical class SmallGraphStructures {
     }
 
     if (valid) {
-      valid = writeRootedTopologicalOrder(graph, rootDirect, TWO_MODULES, order, reachable);
+      BoundedGraphPlan graphPlan = planBoundedGraph(
+        graph,
+        rootDirect,
+        TWO_MODULES,
+        order,
+        reachable
+      );
+      valid = graphPlan.valid;
     }
 
     SmallGraphStructure result = new SmallGraphStructure(0, 0, 0, 0, false);
@@ -360,7 +367,14 @@ classical class SmallGraphStructures {
     }
 
     if (valid) {
-      valid = writeRootedTopologicalOrder(graph, rootDirect, THREE_MODULES, order, reachable);
+      BoundedGraphPlan graphPlan = planBoundedGraph(
+        graph,
+        rootDirect,
+        THREE_MODULES,
+        order,
+        reachable
+      );
+      valid = graphPlan.valid;
     }
 
     SmallGraphStructure result = new SmallGraphStructure(0, 0, 0, 0, false);

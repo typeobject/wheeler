@@ -3,7 +3,6 @@
 module wheeler.compiler.graphs.plans;
 
 import wheeler.compiler.graphs.five_structures;
-import wheeler.compiler.module_linker;
 
 classical class CompilerGraphPlans {
   /// Names the five-module direct-star plan.
@@ -30,8 +29,6 @@ classical class CompilerGraphPlans {
   public const long FIVE_PLAN_NESTED_FORK = 11;
   /// Names a shared diamond with one side leaf.
   public const long FIVE_PLAN_SHARED_DIAMOND = 12;
-
-  private const long FIVE_IMPORTS = 5;
 
   /// Carries one validated topology and deterministic leaf-first source order.
   public record FiveGraphPlan(
@@ -60,39 +57,11 @@ classical class CompilerGraphPlans {
     );
   }
 
-  private boolean directSource(borrow utf8 source, borrow utf8 rootSource) {
-    LinkPlan plan = planConstantImport(source, rootSource, FIVE_IMPORTS);
-    return plan.valid;
-  }
-
-  private boolean allDirect(
-    borrow utf8 firstSource,
-    borrow utf8 secondSource,
-    borrow utf8 thirdSource,
-    borrow utf8 fourthSource,
-    borrow utf8 fifthSource,
-    borrow utf8 rootSource
-  ) {
-    if (directSource(firstSource, rootSource)) {} else {
-      return false;
-    }
-
-    if (directSource(secondSource, rootSource)) {} else {
-      return false;
-    }
-
-    if (directSource(thirdSource, rootSource)) {} else {
-      return false;
-    }
-
-    if (directSource(fourthSource, rootSource)) {} else {
-      return false;
-    }
-
-    return directSource(fifthSource, rootSource);
-  }
-
   private long publicTopology(long structure) {
+    if (structure == FIVE_STRUCTURE_DIRECT) {
+      return FIVE_PLAN_DIRECT;
+    }
+
     if (structure == FIVE_STRUCTURE_CHAIN) {
       return FIVE_PLAN_CHAIN;
     }
@@ -149,12 +118,6 @@ classical class CompilerGraphPlans {
     borrow utf8 fifthSource,
     borrow utf8 rootSource
   ) {
-    if (
-      allDirect(firstSource, secondSource, thirdSource, fourthSource, fifthSource, rootSource)
-    ) {
-      return new FiveGraphPlan(FIVE_PLAN_DIRECT, 0, 1, 2, 3, 4, true);
-    }
-
     FiveGraphStructure structure = planFiveStructure(
       firstSource,
       secondSource,
