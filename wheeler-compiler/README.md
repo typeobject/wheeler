@@ -46,6 +46,8 @@ The package keeps responsibilities narrow:
 - `compiler/GraphSix.w` coordinates bounded six-module forms.
 - `compiler/graphs/six/Mixed.w` owns one chain edge beside four direct imports, one two-leaf fork beside three direct imports, one three-module chain beside three direct imports, and one four-module chain beside two direct imports.
 - `compiler/graphs/six/Pairs.w` owns two independent chains beside two direct imports.
+- `compiler/graphs/six/SixPlans.w` extracts and validates the rooted six-module graph.
+- `compiler/graphs/six/Structures.w` owns exact six-module classification and role order.
 - `compiler/Driver.w` keeps one small stable API over the graph compilers and core.
 - `compiler/verification` owns complete check-before-publication artifact validation.
 

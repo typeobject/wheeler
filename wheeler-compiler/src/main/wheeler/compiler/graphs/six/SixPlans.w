@@ -3,6 +3,7 @@
 module wheeler.compiler.graphs.six.plans;
 
 import wheeler.compiler.graphs.matrix;
+import wheeler.compiler.graphs.six.structures;
 import wheeler.compiler.module_headers;
 
 classical class SixGraphPlans {
@@ -28,7 +29,7 @@ classical class SixGraphPlans {
   private const long TWO_IMPORTS = 2;
   private const long THREE_IMPORTS = 3;
   private const long FOUR_IMPORTS = 4;
-  private const long FIVE_EDGES = 5;
+  private const long FIVE_IMPORTS = 5;
   private const long SIX_IMPORTS = 6;
 
   /// Carries one validated topology and its leaf-to-root source order.
@@ -47,6 +48,55 @@ classical class SixGraphPlans {
     return new SixGraphPlan(0, 0, 0, 0, 0, 0, 0, false);
   }
 
+  private SixGraphPlan orderedPlan(long topology, SixGraphStructure structure) {
+    return new SixGraphPlan(
+      topology,
+      structure.first,
+      structure.second,
+      structure.third,
+      structure.fourth,
+      structure.fifth,
+      structure.sixth,
+      true
+    );
+  }
+
+  private long publicTopology(long structure) {
+    if (structure == SIX_STRUCTURE_DIRECT) {
+      return SIX_PLAN_DIRECT;
+    }
+
+    if (structure == SIX_STRUCTURE_CHAIN) {
+      return SIX_PLAN_CHAIN;
+    }
+
+    if (structure == SIX_STRUCTURE_FORK) {
+      return SIX_PLAN_FORK;
+    }
+
+    if (structure == SIX_STRUCTURE_CHAIN_AND_DIRECTS) {
+      return SIX_PLAN_CHAIN_AND_DIRECTS;
+    }
+
+    if (structure == SIX_STRUCTURE_FORK_AND_DIRECTS) {
+      return SIX_PLAN_FORK_AND_DIRECTS;
+    }
+
+    if (structure == SIX_STRUCTURE_PAIRS_AND_DIRECTS) {
+      return SIX_PLAN_PAIRS_AND_DIRECTS;
+    }
+
+    if (structure == SIX_STRUCTURE_LONG_CHAIN_AND_DIRECTS) {
+      return SIX_PLAN_LONG_CHAIN_AND_DIRECTS;
+    }
+
+    if (structure == SIX_STRUCTURE_DEEP_CHAIN_AND_DIRECTS) {
+      return SIX_PLAN_DEEP_CHAIN_AND_DIRECTS;
+    }
+
+    return 0;
+  }
+
   private boolean graphEdge(borrow utf8 source, borrow utf8 dependentSource) {
     HeaderDependency dependency = moduleDependency(source, dependentSource);
     if (dependency.valid) {} else {
@@ -61,7 +111,7 @@ classical class SixGraphPlans {
       return dependency.importsCandidate;
     }
 
-    if (dependency.importCount == FIVE_EDGES) {
+    if (dependency.importCount == FIVE_IMPORTS) {
       return dependency.importsCandidate;
     }
 
@@ -78,11 +128,7 @@ classical class SixGraphPlans {
       return dependency.importsCandidate;
     }
 
-    if (dependency.importCount == SIX_IMPORTS) {
-      return dependency.importsCandidate;
-    }
-
-    if (dependency.importCount == FIVE_EDGES) {
+    if (dependency.importCount == THREE_IMPORTS) {
       return dependency.importsCandidate;
     }
 
@@ -90,23 +136,24 @@ classical class SixGraphPlans {
       return dependency.importsCandidate;
     }
 
-    if (dependency.importCount == THREE_IMPORTS) {
+    if (dependency.importCount == FIVE_IMPORTS) {
+      return dependency.importsCandidate;
+    }
+
+    if (dependency.importCount == SIX_IMPORTS) {
       return dependency.importsCandidate;
     }
 
     return false;
   }
 
-  private long recordEdge(borrow mut words graph, long source, long dependent, boolean present) {
+  private void recordEdge(borrow mut words graph, long source, long dependent, boolean present) {
     if (present) {
       set(graph, source * MODULE_COUNT + dependent, 1);
-      return 1;
     }
-
-    return 0;
   }
 
-  private long recordDirectedEdges(
+  private void recordDirectedEdges(
     borrow mut words graph,
     borrow utf8 firstSource,
     borrow utf8 secondSource,
@@ -115,414 +162,46 @@ classical class SixGraphPlans {
     borrow utf8 fifthSource,
     borrow utf8 sixthSource
   ) {
-    long count = 0;
-    count += recordEdge(graph, 0, 1, graphEdge(firstSource, secondSource));
-    count += recordEdge(graph, 0, 2, graphEdge(firstSource, thirdSource));
-    count += recordEdge(graph, 0, 3, graphEdge(firstSource, fourthSource));
-    count += recordEdge(graph, 0, 4, graphEdge(firstSource, fifthSource));
-    count += recordEdge(graph, 0, 5, graphEdge(firstSource, sixthSource));
-    count += recordEdge(graph, 1, 0, graphEdge(secondSource, firstSource));
-    count += recordEdge(graph, 1, 2, graphEdge(secondSource, thirdSource));
-    count += recordEdge(graph, 1, 3, graphEdge(secondSource, fourthSource));
-    count += recordEdge(graph, 1, 4, graphEdge(secondSource, fifthSource));
-    count += recordEdge(graph, 1, 5, graphEdge(secondSource, sixthSource));
-    count += recordEdge(graph, 2, 0, graphEdge(thirdSource, firstSource));
-    count += recordEdge(graph, 2, 1, graphEdge(thirdSource, secondSource));
-    count += recordEdge(graph, 2, 3, graphEdge(thirdSource, fourthSource));
-    count += recordEdge(graph, 2, 4, graphEdge(thirdSource, fifthSource));
-    count += recordEdge(graph, 2, 5, graphEdge(thirdSource, sixthSource));
-    count += recordEdge(graph, 3, 0, graphEdge(fourthSource, firstSource));
-    count += recordEdge(graph, 3, 1, graphEdge(fourthSource, secondSource));
-    count += recordEdge(graph, 3, 2, graphEdge(fourthSource, thirdSource));
-    count += recordEdge(graph, 3, 4, graphEdge(fourthSource, fifthSource));
-    count += recordEdge(graph, 3, 5, graphEdge(fourthSource, sixthSource));
-    count += recordEdge(graph, 4, 0, graphEdge(fifthSource, firstSource));
-    count += recordEdge(graph, 4, 1, graphEdge(fifthSource, secondSource));
-    count += recordEdge(graph, 4, 2, graphEdge(fifthSource, thirdSource));
-    count += recordEdge(graph, 4, 3, graphEdge(fifthSource, fourthSource));
-    count += recordEdge(graph, 4, 5, graphEdge(fifthSource, sixthSource));
-    count += recordEdge(graph, 5, 0, graphEdge(sixthSource, firstSource));
-    count += recordEdge(graph, 5, 1, graphEdge(sixthSource, secondSource));
-    count += recordEdge(graph, 5, 2, graphEdge(sixthSource, thirdSource));
-    count += recordEdge(graph, 5, 3, graphEdge(sixthSource, fourthSource));
-    count += recordEdge(graph, 5, 4, graphEdge(sixthSource, fifthSource));
-    return count;
+    recordEdge(graph, 0, 1, graphEdge(firstSource, secondSource));
+    recordEdge(graph, 0, 2, graphEdge(firstSource, thirdSource));
+    recordEdge(graph, 0, 3, graphEdge(firstSource, fourthSource));
+    recordEdge(graph, 0, 4, graphEdge(firstSource, fifthSource));
+    recordEdge(graph, 0, 5, graphEdge(firstSource, sixthSource));
+    recordEdge(graph, 1, 0, graphEdge(secondSource, firstSource));
+    recordEdge(graph, 1, 2, graphEdge(secondSource, thirdSource));
+    recordEdge(graph, 1, 3, graphEdge(secondSource, fourthSource));
+    recordEdge(graph, 1, 4, graphEdge(secondSource, fifthSource));
+    recordEdge(graph, 1, 5, graphEdge(secondSource, sixthSource));
+    recordEdge(graph, 2, 0, graphEdge(thirdSource, firstSource));
+    recordEdge(graph, 2, 1, graphEdge(thirdSource, secondSource));
+    recordEdge(graph, 2, 3, graphEdge(thirdSource, fourthSource));
+    recordEdge(graph, 2, 4, graphEdge(thirdSource, fifthSource));
+    recordEdge(graph, 2, 5, graphEdge(thirdSource, sixthSource));
+    recordEdge(graph, 3, 0, graphEdge(fourthSource, firstSource));
+    recordEdge(graph, 3, 1, graphEdge(fourthSource, secondSource));
+    recordEdge(graph, 3, 2, graphEdge(fourthSource, thirdSource));
+    recordEdge(graph, 3, 4, graphEdge(fourthSource, fifthSource));
+    recordEdge(graph, 3, 5, graphEdge(fourthSource, sixthSource));
+    recordEdge(graph, 4, 0, graphEdge(fifthSource, firstSource));
+    recordEdge(graph, 4, 1, graphEdge(fifthSource, secondSource));
+    recordEdge(graph, 4, 2, graphEdge(fifthSource, thirdSource));
+    recordEdge(graph, 4, 3, graphEdge(fifthSource, fourthSource));
+    recordEdge(graph, 4, 5, graphEdge(fifthSource, sixthSource));
+    recordEdge(graph, 5, 0, graphEdge(sixthSource, firstSource));
+    recordEdge(graph, 5, 1, graphEdge(sixthSource, secondSource));
+    recordEdge(graph, 5, 2, graphEdge(sixthSource, thirdSource));
+    recordEdge(graph, 5, 3, graphEdge(sixthSource, fourthSource));
+    recordEdge(graph, 5, 4, graphEdge(sixthSource, fifthSource));
   }
 
-  private long recordRoot(borrow mut words rootDirect, long source, boolean present) {
+  private void recordRoot(borrow mut words rootDirect, long source, boolean present) {
     if (present) {
       set(rootDirect, source, 1);
-      return 1;
     }
-
-    return 0;
   }
 
-  private SixGraphPlan mixedGraphPlan(borrow mut words graph, borrow mut words rootDirect) {
-    long leaf = -1;
-    long dependent = -1;
-    long firstDirect = -1;
-    long secondDirect = -1;
-    long thirdDirect = -1;
-    long fourthDirect = -1;
-    long source = 0;
-    while (source < MODULE_COUNT) limit MODULE_COUNT {
-      long candidate = 0;
-      while (candidate < MODULE_COUNT) limit MODULE_COUNT {
-        if (graph[source * MODULE_COUNT + candidate] == 1) {
-          leaf = source;
-          dependent = candidate;
-        }
-
-        candidate += 1;
-      }
-
-      source += 1;
-    }
-
-    source = 0;
-    while (source < MODULE_COUNT) limit MODULE_COUNT {
-      if (rootDirect[source] == 1) {
-        if (source == dependent) {} else {
-          if (firstDirect < 0) {
-            firstDirect = source;
-          } else {
-            if (secondDirect < 0) {
-              secondDirect = source;
-            } else {
-              if (thirdDirect < 0) {
-                thirdDirect = source;
-              } else {
-                fourthDirect = source;
-              }
-            }
-          }
-        }
-      }
-
-      source += 1;
-    }
-
-    return new SixGraphPlan(
-      SIX_PLAN_CHAIN_AND_DIRECTS,
-      leaf,
-      dependent,
-      firstDirect,
-      secondDirect,
-      thirdDirect,
-      fourthDirect,
-      true
-    );
-  }
-
-  private long incomingCount(borrow mut words graph, long candidate) {
-    long incoming = 0;
-    long source = 0;
-    while (source < MODULE_COUNT) limit MODULE_COUNT {
-      incoming += graph[source * MODULE_COUNT + candidate];
-      source += 1;
-    }
-
-    return incoming;
-  }
-
-  private long outgoingCount(borrow mut words graph, long candidate) {
-    long outgoing = 0;
-    long dependent = 0;
-    while (dependent < MODULE_COUNT) limit MODULE_COUNT {
-      outgoing += graph[candidate * MODULE_COUNT + dependent];
-      dependent += 1;
-    }
-
-    return outgoing;
-  }
-
-  private long maximumIncoming(borrow mut words graph) {
-    long maximum = 0;
-    long candidate = 0;
-    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
-      long incoming = incomingCount(graph, candidate);
-      if (maximum < incoming) {
-        maximum = incoming;
-      }
-
-      candidate += 1;
-    }
-
-    return maximum;
-  }
-
-  private long maximumOutgoing(borrow mut words graph) {
-    long maximum = 0;
-    long candidate = 0;
-    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
-      long outgoing = outgoingCount(graph, candidate);
-      if (maximum < outgoing) {
-        maximum = outgoing;
-      }
-
-      candidate += 1;
-    }
-
-    return maximum;
-  }
-
-  private long interiorNodeCount(borrow mut words graph) {
-    long count = 0;
-    long candidate = 0;
-    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
-      if (0 < incomingCount(graph, candidate)) {
-        if (0 < outgoingCount(graph, candidate)) {
-          count += 1;
-        }
-      }
-
-      candidate += 1;
-    }
-
-    return count;
-  }
-
-  private SixGraphPlan deepChainAndDirectsPlan(
-    borrow mut words graph,
-    borrow mut words rootDirect
-  ) {
-    long leaf = -1;
-    long second = -1;
-    long third = -1;
-    long dependent = -1;
-    long firstDirect = -1;
-    long secondDirect = -1;
-    long candidate = 0;
-    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
-      if (incomingCount(graph, candidate) == 0) {
-        if (outgoingCount(graph, candidate) == 1) {
-          long next = 0;
-          while (next < MODULE_COUNT) limit MODULE_COUNT {
-            if (graph[candidate * MODULE_COUNT + next] == 1) {
-              if (outgoingCount(graph, next) == 1) {
-                leaf = candidate;
-                second = next;
-              }
-            }
-
-            next += 1;
-          }
-        }
-      }
-
-      candidate += 1;
-    }
-
-    candidate = 0;
-    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
-      if (graph[second * MODULE_COUNT + candidate] == 1) {
-        third = candidate;
-      }
-
-      candidate += 1;
-    }
-
-    candidate = 0;
-    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
-      if (graph[third * MODULE_COUNT + candidate] == 1) {
-        dependent = candidate;
-      }
-
-      if (rootDirect[candidate] == 1) {
-        if (incomingCount(graph, candidate) == 0) {
-          if (firstDirect < 0) {
-            firstDirect = candidate;
-          } else {
-            secondDirect = candidate;
-          }
-        }
-      }
-
-      candidate += 1;
-    }
-
-    return new SixGraphPlan(
-      SIX_PLAN_DEEP_CHAIN_AND_DIRECTS,
-      leaf,
-      second,
-      third,
-      dependent,
-      firstDirect,
-      secondDirect,
-      true
-    );
-  }
-
-  private SixGraphPlan longChainAndDirectsPlan(
-    borrow mut words graph,
-    borrow mut words rootDirect
-  ) {
-    long leaf = -1;
-    long middle = -1;
-    long dependent = -1;
-    long firstDirect = -1;
-    long secondDirect = -1;
-    long thirdDirect = -1;
-    long candidate = 0;
-    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
-      if (0 < incomingCount(graph, candidate)) {
-        if (0 < outgoingCount(graph, candidate)) {
-          middle = candidate;
-        }
-      }
-
-      candidate += 1;
-    }
-
-    candidate = 0;
-    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
-      if (graph[candidate * MODULE_COUNT + middle] == 1) {
-        leaf = candidate;
-      }
-
-      if (graph[middle * MODULE_COUNT + candidate] == 1) {
-        dependent = candidate;
-      }
-
-      if (rootDirect[candidate] == 1) {
-        if (incomingCount(graph, candidate) == 0) {
-          if (firstDirect < 0) {
-            firstDirect = candidate;
-          } else {
-            if (secondDirect < 0) {
-              secondDirect = candidate;
-            } else {
-              thirdDirect = candidate;
-            }
-          }
-        }
-      }
-
-      candidate += 1;
-    }
-
-    return new SixGraphPlan(
-      SIX_PLAN_LONG_CHAIN_AND_DIRECTS,
-      leaf,
-      middle,
-      dependent,
-      firstDirect,
-      secondDirect,
-      thirdDirect,
-      true
-    );
-  }
-
-  private SixGraphPlan pairsAndDirectsPlan(borrow mut words graph, borrow mut words rootDirect) {
-    long firstLeaf = -1;
-    long firstDependent = -1;
-    long secondLeaf = -1;
-    long secondDependent = -1;
-    long firstDirect = -1;
-    long secondDirect = -1;
-    long candidate = 0;
-    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
-      long incoming = incomingCount(graph, candidate);
-      if (incoming == 1) {
-        long source = 0;
-        while (source < MODULE_COUNT) limit MODULE_COUNT {
-          if (graph[source * MODULE_COUNT + candidate] == 1) {
-            if (firstDependent < 0) {
-              firstLeaf = source;
-              firstDependent = candidate;
-            } else {
-              secondLeaf = source;
-              secondDependent = candidate;
-            }
-          }
-
-          source += 1;
-        }
-      }
-
-      if (rootDirect[candidate] == 1) {
-        if (incoming == 0) {
-          if (firstDirect < 0) {
-            firstDirect = candidate;
-          } else {
-            secondDirect = candidate;
-          }
-        }
-      }
-
-      candidate += 1;
-    }
-
-    return new SixGraphPlan(
-      SIX_PLAN_PAIRS_AND_DIRECTS,
-      firstLeaf,
-      firstDependent,
-      secondLeaf,
-      secondDependent,
-      firstDirect,
-      secondDirect,
-      true
-    );
-  }
-
-  private SixGraphPlan forkAndDirectsPlan(borrow mut words graph, borrow mut words rootDirect) {
-    long dependent = -1;
-    long firstLeaf = -1;
-    long secondLeaf = -1;
-    long firstDirect = -1;
-    long secondDirect = -1;
-    long thirdDirect = -1;
-    long candidate = 0;
-    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
-      long incoming = incomingCount(graph, candidate);
-      if (incoming == 2) {
-        dependent = candidate;
-      }
-
-      candidate += 1;
-    }
-
-    candidate = 0;
-    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
-      if (graph[candidate * MODULE_COUNT + dependent] == 1) {
-        if (firstLeaf < 0) {
-          firstLeaf = candidate;
-        } else {
-          secondLeaf = candidate;
-        }
-      }
-
-      if (rootDirect[candidate] == 1) {
-        if (candidate == dependent) {} else {
-          if (firstDirect < 0) {
-            firstDirect = candidate;
-          } else {
-            if (secondDirect < 0) {
-              secondDirect = candidate;
-            } else {
-              thirdDirect = candidate;
-            }
-          }
-        }
-      }
-
-      candidate += 1;
-    }
-
-    return new SixGraphPlan(
-      SIX_PLAN_FORK_AND_DIRECTS,
-      firstLeaf,
-      secondLeaf,
-      dependent,
-      firstDirect,
-      secondDirect,
-      thirdDirect,
-      true
-    );
-  }
-
-  private SixGraphPlan structuredGraph(
+  /// Selects one supported six-module topology independent of source order.
+  public SixGraphPlan planSixConstantGraph(
     borrow utf8 firstSource,
     borrow utf8 secondSource,
     borrow utf8 thirdSource,
@@ -536,7 +215,7 @@ classical class SixGraphPlans {
     words rootDirect = allocate(arena, MODULE_COUNT);
     words order = allocate(arena, MODULE_COUNT);
     words reachable = allocate(arena, MODULE_COUNT);
-    long edgeCount = recordDirectedEdges(
+    recordDirectedEdges(
       graph,
       firstSource,
       secondSource,
@@ -545,150 +224,32 @@ classical class SixGraphPlans {
       fifthSource,
       sixthSource
     );
-    long rootCount = 0;
-    rootCount += recordRoot(rootDirect, 0, rootEdge(firstSource, rootSource));
-    rootCount += recordRoot(rootDirect, 1, rootEdge(secondSource, rootSource));
-    rootCount += recordRoot(rootDirect, 2, rootEdge(thirdSource, rootSource));
-    rootCount += recordRoot(rootDirect, 3, rootEdge(fourthSource, rootSource));
-    rootCount += recordRoot(rootDirect, 4, rootEdge(fifthSource, rootSource));
-    rootCount += recordRoot(rootDirect, 5, rootEdge(sixthSource, rootSource));
-    boolean direct = false;
-    if (edgeCount == 0) {
-      direct = rootCount == SIX_IMPORTS;
-    }
-
-    boolean structured = false;
-    if (edgeCount == FIVE_EDGES) {
-      structured = rootCount == SINGLE_IMPORT;
-    }
-
-    boolean mixed = false;
-    if (edgeCount == SINGLE_IMPORT) {
-      mixed = rootCount == FIVE_EDGES;
-    }
-
-    boolean forkAndDirects = false;
-    boolean pairsAndDirects = false;
-    boolean longChainAndDirects = false;
-    if (edgeCount == 2) {
-      if (rootCount == FOUR_IMPORTS) {
-        long maximum = maximumIncoming(graph);
-        forkAndDirects = maximum == 2;
-        if (maximum == 1) {
-          long interiorCount = interiorNodeCount(graph);
-          pairsAndDirects = interiorCount == 0;
-          longChainAndDirects = interiorCount == 1;
-        }
-      }
-    }
-
-    boolean deepChainAndDirects = false;
-    if (edgeCount == THREE_IMPORTS) {
-      if (rootCount == THREE_IMPORTS) {
-        if (maximumIncoming(graph) == 1) {
-          if (maximumOutgoing(graph) == 1) {
-            deepChainAndDirects = interiorNodeCount(graph) == 2;
-          }
-        }
-      }
-    }
-
-    boolean valid = direct;
-    if (structured) {
-      valid = true;
-    }
-
-    if (mixed) {
-      valid = true;
-    }
-
-    if (forkAndDirects) {
-      valid = true;
-    }
-
-    if (pairsAndDirects) {
-      valid = true;
-    }
-
-    if (longChainAndDirects) {
-      valid = true;
-    }
-
-    if (deepChainAndDirects) {
-      valid = true;
-    }
-
-    if (valid) {
-      BoundedGraphPlan graphPlan = planBoundedGraph(
+    recordRoot(rootDirect, 0, rootEdge(firstSource, rootSource));
+    recordRoot(rootDirect, 1, rootEdge(secondSource, rootSource));
+    recordRoot(rootDirect, 2, rootEdge(thirdSource, rootSource));
+    recordRoot(rootDirect, 3, rootEdge(fourthSource, rootSource));
+    recordRoot(rootDirect, 4, rootEdge(fifthSource, rootSource));
+    recordRoot(rootDirect, 5, rootEdge(sixthSource, rootSource));
+    BoundedGraphPlan graphPlan = planBoundedGraph(
+      graph,
+      rootDirect,
+      MODULE_COUNT,
+      order,
+      reachable
+    );
+    SixGraphPlan result = invalidPlan();
+    if (graphPlan.valid) {
+      SixGraphStructure structure = selectSixGraphStructure(
         graph,
         rootDirect,
-        MODULE_COUNT,
-        order,
-        reachable
+        graphPlan.edgeCount,
+        graphPlan.rootCount,
+        order
       );
-      valid = graphPlan.valid;
-    }
-
-    SixGraphPlan result = invalidPlan();
-    if (valid) {
-      if (deepChainAndDirects) {
-        result = deepChainAndDirectsPlan(graph, rootDirect);
-      } else {
-        if (longChainAndDirects) {
-          result = longChainAndDirectsPlan(graph, rootDirect);
-        } else {
-          if (pairsAndDirects) {
-            result = pairsAndDirectsPlan(graph, rootDirect);
-          } else {
-            if (forkAndDirects) {
-              result = forkAndDirectsPlan(graph, rootDirect);
-            } else {
-              if (mixed) {
-                result = mixedGraphPlan(graph, rootDirect);
-              } else {
-                if (direct) {
-                  result = new SixGraphPlan(
-                    SIX_PLAN_DIRECT,
-                    order[0],
-                    order[1],
-                    order[2],
-                    order[3],
-                    order[4],
-                    order[5],
-                    true
-                  );
-                } else {
-                  boolean chain = writeChainOrder(graph, rootDirect, MODULE_COUNT, order);
-                  if (chain) {
-                    result = new SixGraphPlan(
-                      SIX_PLAN_CHAIN,
-                      order[0],
-                      order[1],
-                      order[2],
-                      order[3],
-                      order[4],
-                      order[5],
-                      true
-                    );
-                  } else {
-                    boolean fork = writeForkOrder(graph, rootDirect, MODULE_COUNT, order);
-                    if (fork) {
-                      result = new SixGraphPlan(
-                        SIX_PLAN_FORK,
-                        order[0],
-                        order[1],
-                        order[2],
-                        order[3],
-                        order[4],
-                        order[5],
-                        true
-                      );
-                    }
-                  }
-                }
-              }
-            }
-          }
+      if (structure.valid) {
+        long topology = publicTopology(structure.topology);
+        if (0 < topology) {
+          result = orderedPlan(topology, structure);
         }
       }
     }
@@ -699,26 +260,5 @@ classical class SixGraphPlans {
     drop(graph);
     drop(arena);
     return result;
-  }
-
-  /// Selects one supported six-module topology independent of source order.
-  public SixGraphPlan planSixConstantGraph(
-    borrow utf8 firstSource,
-    borrow utf8 secondSource,
-    borrow utf8 thirdSource,
-    borrow utf8 fourthSource,
-    borrow utf8 fifthSource,
-    borrow utf8 sixthSource,
-    borrow utf8 rootSource
-  ) {
-    return structuredGraph(
-      firstSource,
-      secondSource,
-      thirdSource,
-      fourthSource,
-      fifthSource,
-      sixthSource,
-      rootSource
-    );
   }
 }
