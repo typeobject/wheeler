@@ -352,6 +352,465 @@ classical class FiveGraphStructures {
     return 0;
   }
 
+  private long sourceOf(borrow mut words graph, long dependent) {
+    long source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[source * MODULE_COUNT + dependent] == 1) {
+        return source;
+      }
+
+      source += 1;
+    }
+
+    return -1;
+  }
+
+  private long rootWithIncoming(borrow mut words graph, borrow mut words rootDirect, long degree) {
+    long node = 0;
+    while (node < MODULE_COUNT) limit MODULE_COUNT {
+      if (rootDirect[node] == 1) {
+        if (incomingCount(graph, node) == degree) {
+          return node;
+        }
+      }
+
+      node += 1;
+    }
+
+    return -1;
+  }
+
+  private FiveGraphStructure orderForkAndDirect(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long dependent = rootWithIncoming(graph, rootDirect, 3);
+    long firstLeaf = -1;
+    long secondLeaf = -1;
+    long thirdLeaf = -1;
+    long direct = -1;
+    long node = 0;
+    while (node < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[node * MODULE_COUNT + dependent] == 1) {
+        if (firstLeaf < 0) {
+          firstLeaf = node;
+        } else {
+          if (secondLeaf < 0) {
+            secondLeaf = node;
+          } else {
+            thirdLeaf = node;
+          }
+        }
+      }
+
+      if (rootDirect[node] == 1) {
+        if (node == dependent) {} else {
+          direct = node;
+        }
+      }
+
+      node += 1;
+    }
+
+    return new FiveGraphStructure(
+      FIVE_STRUCTURE_FORK_AND_DIRECT,
+      firstLeaf,
+      secondLeaf,
+      thirdLeaf,
+      dependent,
+      direct,
+      true
+    );
+  }
+
+  private FiveGraphStructure orderChainAndDirects(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long dependent = rootWithIncoming(graph, rootDirect, 1);
+    long leaf = sourceOf(graph, dependent);
+    long firstDirect = -1;
+    long secondDirect = -1;
+    long thirdDirect = -1;
+    long node = 0;
+    while (node < MODULE_COUNT) limit MODULE_COUNT {
+      if (rootDirect[node] == 1) {
+        if (node == dependent) {} else {
+          if (firstDirect < 0) {
+            firstDirect = node;
+          } else {
+            if (secondDirect < 0) {
+              secondDirect = node;
+            } else {
+              thirdDirect = node;
+            }
+          }
+        }
+      }
+
+      node += 1;
+    }
+
+    return new FiveGraphStructure(
+      FIVE_STRUCTURE_CHAIN_AND_DIRECTS,
+      leaf,
+      dependent,
+      firstDirect,
+      secondDirect,
+      thirdDirect,
+      true
+    );
+  }
+
+  private FiveGraphStructure orderForkAndTwoDirects(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long dependent = rootWithIncoming(graph, rootDirect, 2);
+    long firstLeaf = -1;
+    long secondLeaf = -1;
+    long firstDirect = -1;
+    long secondDirect = -1;
+    long node = 0;
+    while (node < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[node * MODULE_COUNT + dependent] == 1) {
+        if (firstLeaf < 0) {
+          firstLeaf = node;
+        } else {
+          secondLeaf = node;
+        }
+      }
+
+      if (rootDirect[node] == 1) {
+        if (node == dependent) {} else {
+          if (firstDirect < 0) {
+            firstDirect = node;
+          } else {
+            secondDirect = node;
+          }
+        }
+      }
+
+      node += 1;
+    }
+
+    return new FiveGraphStructure(
+      FIVE_STRUCTURE_FORK_AND_TWO_DIRECTS,
+      firstLeaf,
+      secondLeaf,
+      dependent,
+      firstDirect,
+      secondDirect,
+      true
+    );
+  }
+
+  private FiveGraphStructure orderPairsAndDirect(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long firstDependent = -1;
+    long secondDependent = -1;
+    long direct = -1;
+    long node = 0;
+    while (node < MODULE_COUNT) limit MODULE_COUNT {
+      if (rootDirect[node] == 1) {
+        if (incomingCount(graph, node) == 1) {
+          if (firstDependent < 0) {
+            firstDependent = node;
+          } else {
+            secondDependent = node;
+          }
+        } else {
+          direct = node;
+        }
+      }
+
+      node += 1;
+    }
+
+    long firstLeaf = sourceOf(graph, firstDependent);
+    long secondLeaf = sourceOf(graph, secondDependent);
+    return new FiveGraphStructure(
+      FIVE_STRUCTURE_PAIRS_AND_DIRECT,
+      firstLeaf,
+      firstDependent,
+      secondLeaf,
+      secondDependent,
+      direct,
+      true
+    );
+  }
+
+  private FiveGraphStructure orderLongChainAndDirects(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long dependent = rootWithIncoming(graph, rootDirect, 1);
+    long middle = sourceOf(graph, dependent);
+    long leaf = sourceOf(graph, middle);
+    long firstDirect = -1;
+    long secondDirect = -1;
+    long node = 0;
+    while (node < MODULE_COUNT) limit MODULE_COUNT {
+      if (rootDirect[node] == 1) {
+        if (node == dependent) {} else {
+          if (firstDirect < 0) {
+            firstDirect = node;
+          } else {
+            secondDirect = node;
+          }
+        }
+      }
+
+      node += 1;
+    }
+
+    return new FiveGraphStructure(
+      FIVE_STRUCTURE_LONG_CHAIN_AND_DIRECTS,
+      leaf,
+      middle,
+      dependent,
+      firstDirect,
+      secondDirect,
+      true
+    );
+  }
+
+  private FiveGraphStructure orderDeepChainAndDirect(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long dependent = rootWithIncoming(graph, rootDirect, 1);
+    long third = sourceOf(graph, dependent);
+    long second = sourceOf(graph, third);
+    long leaf = sourceOf(graph, second);
+    long direct = -1;
+    long node = 0;
+    while (node < MODULE_COUNT) limit MODULE_COUNT {
+      if (rootDirect[node] == 1) {
+        if (node == dependent) {} else {
+          direct = node;
+        }
+      }
+
+      node += 1;
+    }
+
+    return new FiveGraphStructure(
+      FIVE_STRUCTURE_DEEP_CHAIN_AND_DIRECT,
+      leaf,
+      second,
+      third,
+      dependent,
+      direct,
+      true
+    );
+  }
+
+  private FiveGraphStructure orderNestedForkAndDirect(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long middle = -1;
+    long node = 0;
+    while (node < MODULE_COUNT) limit MODULE_COUNT {
+      if (rootDirect[node] == 0) {
+        if (incomingCount(graph, node) == 2) {
+          middle = node;
+        }
+      }
+
+      node += 1;
+    }
+
+    long dependent = -1;
+    long direct = -1;
+    node = 0;
+    while (node < MODULE_COUNT) limit MODULE_COUNT {
+      if (rootDirect[node] == 1) {
+        if (graph[middle * MODULE_COUNT + node] == 1) {
+          dependent = node;
+        } else {
+          direct = node;
+        }
+      }
+
+      node += 1;
+    }
+
+    long firstLeaf = -1;
+    long secondLeaf = -1;
+    node = 0;
+    while (node < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[node * MODULE_COUNT + middle] == 1) {
+        if (firstLeaf < 0) {
+          firstLeaf = node;
+        } else {
+          secondLeaf = node;
+        }
+      }
+
+      node += 1;
+    }
+
+    return new FiveGraphStructure(
+      FIVE_STRUCTURE_NESTED_FORK_AND_DIRECT,
+      firstLeaf,
+      secondLeaf,
+      middle,
+      dependent,
+      direct,
+      true
+    );
+  }
+
+  private FiveGraphStructure orderNestedFork(borrow mut words graph, borrow mut words rootDirect) {
+    long dependent = rootWithIncoming(graph, rootDirect, 2);
+    long middle = -1;
+    long sideLeaf = -1;
+    long node = 0;
+    while (node < MODULE_COUNT) limit MODULE_COUNT {
+      if (node == dependent) {} else {
+        if (incomingCount(graph, node) == 2) {
+          middle = node;
+        }
+      }
+
+      node += 1;
+    }
+
+    node = 0;
+    while (node < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[node * MODULE_COUNT + dependent] == 1) {
+        if (node == middle) {} else {
+          sideLeaf = node;
+        }
+      }
+
+      node += 1;
+    }
+
+    long firstLeaf = -1;
+    long secondLeaf = -1;
+    node = 0;
+    while (node < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[node * MODULE_COUNT + middle] == 1) {
+        if (firstLeaf < 0) {
+          firstLeaf = node;
+        } else {
+          secondLeaf = node;
+        }
+      }
+
+      node += 1;
+    }
+
+    return new FiveGraphStructure(
+      FIVE_STRUCTURE_NESTED_FORK,
+      firstLeaf,
+      secondLeaf,
+      middle,
+      sideLeaf,
+      dependent,
+      true
+    );
+  }
+
+  private FiveGraphStructure orderSharedDiamond(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long sharedLeaf = -1;
+    long join = rootWithIncoming(graph, rootDirect, 3);
+    long firstDependent = -1;
+    long secondDependent = -1;
+    long sideLeaf = -1;
+    long node = 0;
+    while (node < MODULE_COUNT) limit MODULE_COUNT {
+      if (outgoingCount(graph, node) == 2) {
+        sharedLeaf = node;
+      }
+
+      if (graph[node * MODULE_COUNT + join] == 1) {
+        if (incomingCount(graph, node) == 1) {
+          if (firstDependent < 0) {
+            firstDependent = node;
+          } else {
+            secondDependent = node;
+          }
+        } else {
+          sideLeaf = node;
+        }
+      }
+
+      node += 1;
+    }
+
+    return new FiveGraphStructure(
+      FIVE_STRUCTURE_SHARED_DIAMOND,
+      sharedLeaf,
+      firstDependent,
+      secondDependent,
+      join,
+      sideLeaf,
+      true
+    );
+  }
+
+  private FiveGraphStructure executionOrder(
+    long selected,
+    borrow mut words graph,
+    borrow mut words rootDirect,
+    borrow mut words order
+  ) {
+    if (selected == FIVE_STRUCTURE_FORK_AND_DIRECT) {
+      return orderForkAndDirect(graph, rootDirect);
+    }
+
+    if (selected == FIVE_STRUCTURE_CHAIN_AND_DIRECTS) {
+      return orderChainAndDirects(graph, rootDirect);
+    }
+
+    if (selected == FIVE_STRUCTURE_FORK_AND_TWO_DIRECTS) {
+      return orderForkAndTwoDirects(graph, rootDirect);
+    }
+
+    if (selected == FIVE_STRUCTURE_PAIRS_AND_DIRECT) {
+      return orderPairsAndDirect(graph, rootDirect);
+    }
+
+    if (selected == FIVE_STRUCTURE_LONG_CHAIN_AND_DIRECTS) {
+      return orderLongChainAndDirects(graph, rootDirect);
+    }
+
+    if (selected == FIVE_STRUCTURE_DEEP_CHAIN_AND_DIRECT) {
+      return orderDeepChainAndDirect(graph, rootDirect);
+    }
+
+    if (selected == FIVE_STRUCTURE_NESTED_FORK_AND_DIRECT) {
+      return orderNestedForkAndDirect(graph, rootDirect);
+    }
+
+    if (selected == FIVE_STRUCTURE_NESTED_FORK) {
+      return orderNestedFork(graph, rootDirect);
+    }
+
+    if (selected == FIVE_STRUCTURE_SHARED_DIAMOND) {
+      return orderSharedDiamond(graph, rootDirect);
+    }
+
+    return new FiveGraphStructure(
+      selected,
+      order[0],
+      order[1],
+      order[2],
+      order[3],
+      order[4],
+      true
+    );
+  }
+
   /// Selects one exact rooted five-module topology before source rewriting.
   public FiveGraphStructure planFiveStructure(
     borrow utf8 firstSource,
@@ -402,15 +861,7 @@ classical class FiveGraphStructures {
 
     FiveGraphStructure result = new FiveGraphStructure(0, 0, 0, 0, 0, 0, false);
     if (valid) {
-      result = new FiveGraphStructure(
-        selected,
-        order[0],
-        order[1],
-        order[2],
-        order[3],
-        order[4],
-        true
-      );
+      result = executionOrder(selected, graph, rootDirect, order);
     }
 
     drop(distances);
