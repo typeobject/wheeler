@@ -221,16 +221,33 @@ classical class CompilerGraphSix {
       sixthSource,
       sixthArena
     );
-    SixMixedCompilation mixed = compileSixChainAndDirectsIfOrdered(
-      plannedFirst,
-      plannedSecond,
-      plannedThird,
-      plannedFourth,
-      plannedFifth,
-      plannedSixth,
-      rootSource,
-      output
-    );
+    SixMixedCompilation mixed = new SixMixedCompilation(0, 0);
+    if (plan.topology == SIX_PLAN_CHAIN_AND_DIRECTS) {
+      mixed = compileSixChainAndDirectsIfOrdered(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        plannedFourth,
+        plannedFifth,
+        plannedSixth,
+        rootSource,
+        output
+      );
+    }
+
+    if (plan.topology == SIX_PLAN_FORK_AND_DIRECTS) {
+      mixed = compileSixForkAndDirectsIfOrdered(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        plannedFourth,
+        plannedFifth,
+        plannedSixth,
+        rootSource,
+        output
+      );
+    }
+
     drop(plannedSixth);
     drop(sixthArena);
     drop(plannedFifth);
@@ -285,6 +302,20 @@ classical class CompilerGraphSix {
     }
 
     if (plan.topology == SIX_PLAN_CHAIN_AND_DIRECTS) {
+      return compilePlannedSixMixed(
+        plan,
+        firstSource,
+        secondSource,
+        thirdSource,
+        fourthSource,
+        fifthSource,
+        sixthSource,
+        rootSource,
+        output
+      );
+    }
+
+    if (plan.topology == SIX_PLAN_FORK_AND_DIRECTS) {
       return compilePlannedSixMixed(
         plan,
         firstSource,
