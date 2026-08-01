@@ -20,12 +20,13 @@ The package keeps responsibilities narrow:
 - `compiler/ir` owns opcode, instruction-form, type, and proof identities.
 - `compiler/backend` owns type tables, strings, control flow, returns, and encoding.
 - `compiler/Core.w` assembles and verifies one already linked source.
-- `compiler/Graphs.w` resolves one- through three-module graphs before invoking the core.
+- `compiler/Graphs.w` executes one- through three-module graph plans before invoking the core.
 - `compiler/GraphFour.w` owns four-module direct, chain, and fork forms.
 - `compiler/GraphFourBranches.w` owns root-heavy short chains.
 - `compiler/GraphFourDag.w` owns shared-dependency four-module DAGs.
 - `compiler/GraphFourMixed.w` owns transitive chains beside direct root imports.
 - `compiler/GraphFourNested.w` owns the two nested four-module trees.
+- `compiler/graphs/SmallStructures.w` classifies every admitted two- and three-module topology.
 - `compiler/graphs/FourStructures.w` classifies every admitted four-module topology.
 - `compiler/GraphFive.w` coordinates bounded five-module forms.
 - `compiler/graphs/FiveStructures.w` records exact five-module structure and source order.
@@ -58,7 +59,7 @@ or excess imports before publication. `compileMinimalWithConstantImport`,
 `compileMinimalWithFourConstantImports` link every rooted tree topology over one through
 four imported scalar-constant modules plus one shared-dependency diamond.
 `compileMinimalWithFiveConstantImports` first builds a closed topology plan, then links
-the five-module direct star, chain, four-leaf fork, three-leaf fork beside a direct import, one chain edge beside three direct imports, a two-leaf fork beside two direct imports, two independent chains beside a direct import, a three-module chain beside two direct imports, a four-module chain beside a direct import, a nested two-leaf fork beside a direct import, two nested fork levels, or a shared diamond with a side leaf. `compileMinimalWithSixConstantImports` links the six-module direct star, full chain, and five-leaf fork. `compileMinimalWithSevenConstantImports` links a seven-module direct star, full chain, or six-leaf fork. Differential fixtures exhaust all 120 five-module orders and all 720 orders of each six-module graph. Fourteen orders of each seven-module graph put every source in every frame position in forward and reverse rings. The four- and five-module planners validate every admitted topology from exact header edges, root imports, and one deterministic topological order. Four- through seven-module chain and fork executors consume their canonical source order before rewriting. A leaf
+the five-module direct star, chain, four-leaf fork, three-leaf fork beside a direct import, one chain edge beside three direct imports, a two-leaf fork beside two direct imports, two independent chains beside a direct import, a three-module chain beside two direct imports, a four-module chain beside a direct import, a nested two-leaf fork beside a direct import, two nested fork levels, or a shared diamond with a side leaf. `compileMinimalWithSixConstantImports` links the six-module direct star, full chain, and five-leaf fork. `compileMinimalWithSevenConstantImports` links a seven-module direct star, full chain, or six-leaf fork. Differential fixtures exhaust all 120 five-module orders and all 720 orders of each six-module graph. Fourteen orders of each seven-module graph put every source in every frame position in forward and reverse rings. The two- through five-module planners validate every admitted topology from exact header edges, root imports, and one deterministic topological order. Two- through seven-module chain and fork executors consume their canonical source order before rewriting. A leaf
 export becomes private inside its dependent, so a root cannot acquire transitive access by
 spelling the leaf name loudly. Executable imported
 members, mismatched module names, unsupported four-module DAGs, unsupported five-module graphs, other six- and seven-module graphs, and eight or more root imports fail closed. General symbol resolution remains future work. Entry and helper bodies

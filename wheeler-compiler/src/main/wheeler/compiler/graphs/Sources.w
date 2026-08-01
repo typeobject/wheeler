@@ -19,6 +19,49 @@ classical class BoundedGraphSources {
     return freezeUtf8(copied);
   }
 
+  /// Copies one of two selected sources into caller-owned bounded storage.
+  public utf8 copySelectedTwoSource(
+    long index,
+    borrow utf8 firstSource,
+    borrow utf8 secondSource,
+    borrow mut region arena
+  ) {
+    if (index == 0) {
+      return copySource(firstSource, arena);
+    }
+
+    if (index == 1) {
+      return copySource(secondSource, arena);
+    }
+
+    assert(index == 0);
+    return copySource(firstSource, arena);
+  }
+
+  /// Copies one of three selected sources into caller-owned bounded storage.
+  public utf8 copySelectedThreeSource(
+    long index,
+    borrow utf8 firstSource,
+    borrow utf8 secondSource,
+    borrow utf8 thirdSource,
+    borrow mut region arena
+  ) {
+    if (index == 0) {
+      return copySource(firstSource, arena);
+    }
+
+    if (index == 1) {
+      return copySource(secondSource, arena);
+    }
+
+    if (index == 2) {
+      return copySource(thirdSource, arena);
+    }
+
+    assert(index == 0);
+    return copySource(firstSource, arena);
+  }
+
   /// Copies one of four selected sources into caller-owned bounded storage.
   public utf8 copySelectedFourSource(
     long index,
