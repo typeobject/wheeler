@@ -5,7 +5,9 @@ module wheeler.compiler.compiler_graph_six;
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.graphs.six.chain;
 import wheeler.compiler.graphs.six.fork;
+import wheeler.compiler.graphs.six.mixed;
 import wheeler.compiler.graphs.six.plans;
+import wheeler.compiler.graphs.sources;
 import wheeler.compiler.module_linker;
 
 classical class CompilerGraphSix {
@@ -142,6 +144,109 @@ classical class CompilerGraphSix {
     return new SixGraphCompilation(compiled.length, compiled.codeStart);
   }
 
+  private SixGraphCompilation compilePlannedSixMixed(
+    SixGraphPlan plan,
+    borrow utf8 firstSource,
+    borrow utf8 secondSource,
+    borrow utf8 thirdSource,
+    borrow utf8 fourthSource,
+    borrow utf8 fifthSource,
+    borrow utf8 sixthSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    region firstArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 plannedFirst = copySelectedSixSource(
+      plan.first,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      sixthSource,
+      firstArena
+    );
+    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 plannedSecond = copySelectedSixSource(
+      plan.second,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      sixthSource,
+      secondArena
+    );
+    region thirdArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 plannedThird = copySelectedSixSource(
+      plan.third,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      sixthSource,
+      thirdArena
+    );
+    region fourthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 plannedFourth = copySelectedSixSource(
+      plan.fourth,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      sixthSource,
+      fourthArena
+    );
+    region fifthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 plannedFifth = copySelectedSixSource(
+      plan.fifth,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      sixthSource,
+      fifthArena
+    );
+    region sixthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    utf8 plannedSixth = copySelectedSixSource(
+      plan.sixth,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      sixthSource,
+      sixthArena
+    );
+    SixMixedCompilation mixed = compileSixChainAndDirectsIfOrdered(
+      plannedFirst,
+      plannedSecond,
+      plannedThird,
+      plannedFourth,
+      plannedFifth,
+      plannedSixth,
+      rootSource,
+      output
+    );
+    drop(plannedSixth);
+    drop(sixthArena);
+    drop(plannedFifth);
+    drop(fifthArena);
+    drop(plannedFourth);
+    drop(fourthArena);
+    drop(plannedThird);
+    drop(thirdArena);
+    drop(plannedSecond);
+    drop(secondArena);
+    drop(plannedFirst);
+    drop(firstArena);
+    assert(0 < mixed.length);
+    return new SixGraphCompilation(mixed.length, mixed.codeStart);
+  }
+
   /// Compiles one supported six-module scalar-constant graph.
   public SixGraphCompilation compileSixConstantGraph(
     borrow utf8 firstSource,
@@ -168,6 +273,20 @@ classical class CompilerGraphSix {
 
     if (plan.topology == SIX_PLAN_DIRECT) {
       return compileSixDirectConstants(
+        firstSource,
+        secondSource,
+        thirdSource,
+        fourthSource,
+        fifthSource,
+        sixthSource,
+        rootSource,
+        output
+      );
+    }
+
+    if (plan.topology == SIX_PLAN_CHAIN_AND_DIRECTS) {
+      return compilePlannedSixMixed(
+        plan,
         firstSource,
         secondSource,
         thirdSource,

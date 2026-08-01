@@ -394,7 +394,7 @@ class NativeImportedConstantWideExampleTest {
   }
 
   @Test
-  void rejectsAMixedSixModuleGraphBeforePublication() throws Exception {
+  void linksAChainBesideFourDirectModulesAndRejectsDisconnectedCycles() throws Exception {
     String alpha = "module examples.alpha; classical class Alpha { "
         + "public const long ALPHA = 2; }";
     String beta = "module examples.beta; import examples.alpha; classical class Beta { "
@@ -409,10 +409,15 @@ class NativeImportedConstantWideExampleTest {
             + "public const long THIRTEEN = 13; }");
     String root = "module examples.root; import examples.beta; import examples.eleven; "
         + "import examples.five; import examples.seven; import examples.thirteen; "
-        + "classical class Root { entry void main() {} }";
-    Program compiler = program();
-    assertTrap(compiler, imported, root);
+        + "classical class Root { state long outcome = 0; entry void main() { "
+        + "outcome += BETA; outcome += FIVE; outcome += SEVEN; outcome += ELEVEN; "
+        + "outcome += THIRTEEN; } }";
+    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    VirtualMachine mixedMachine = new VirtualMachine(artifact);
+    mixedMachine.run();
+    assertEquals(39, mixedMachine.global("outcome"));
 
+    Program compiler = program();
     List<String> disconnectedCycle = List.of(
         "module examples.alpha; import examples.beta; classical class Alpha { "
             + "public const long ALPHA = BETA + 1; }",
