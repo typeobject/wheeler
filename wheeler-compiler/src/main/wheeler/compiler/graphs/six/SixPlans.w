@@ -20,10 +20,13 @@ classical class SixGraphPlans {
   public const long SIX_PLAN_PAIRS_AND_DIRECTS = 6;
   /// Names one three-module chain beside three direct root imports.
   public const long SIX_PLAN_LONG_CHAIN_AND_DIRECTS = 7;
+  /// Names one four-module chain beside two direct root imports.
+  public const long SIX_PLAN_DEEP_CHAIN_AND_DIRECTS = 8;
 
   private const long MODULE_COUNT = 6;
   private const long SINGLE_IMPORT = 1;
   private const long TWO_IMPORTS = 2;
+  private const long THREE_IMPORTS = 3;
   private const long FOUR_IMPORTS = 4;
   private const long FIVE_EDGES = 5;
   private const long SIX_IMPORTS = 6;
@@ -84,6 +87,10 @@ classical class SixGraphPlans {
     }
 
     if (dependency.importCount == FOUR_IMPORTS) {
+      return dependency.importsCandidate;
+    }
+
+    if (dependency.importCount == THREE_IMPORTS) {
       return dependency.importsCandidate;
     }
 
@@ -245,19 +252,106 @@ classical class SixGraphPlans {
     return maximum;
   }
 
-  private boolean hasInteriorNode(borrow mut words graph) {
+  private long maximumOutgoing(borrow mut words graph) {
+    long maximum = 0;
+    long candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      long outgoing = outgoingCount(graph, candidate);
+      if (maximum < outgoing) {
+        maximum = outgoing;
+      }
+
+      candidate += 1;
+    }
+
+    return maximum;
+  }
+
+  private long interiorNodeCount(borrow mut words graph) {
+    long count = 0;
     long candidate = 0;
     while (candidate < MODULE_COUNT) limit MODULE_COUNT {
       if (0 < incomingCount(graph, candidate)) {
         if (0 < outgoingCount(graph, candidate)) {
-          return true;
+          count += 1;
         }
       }
 
       candidate += 1;
     }
 
-    return false;
+    return count;
+  }
+
+  private SixGraphPlan deepChainAndDirectsPlan(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long leaf = -1;
+    long second = -1;
+    long third = -1;
+    long dependent = -1;
+    long firstDirect = -1;
+    long secondDirect = -1;
+    long candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (incomingCount(graph, candidate) == 0) {
+        if (outgoingCount(graph, candidate) == 1) {
+          long next = 0;
+          while (next < MODULE_COUNT) limit MODULE_COUNT {
+            if (graph[candidate * MODULE_COUNT + next] == 1) {
+              if (outgoingCount(graph, next) == 1) {
+                leaf = candidate;
+                second = next;
+              }
+            }
+
+            next += 1;
+          }
+        }
+      }
+
+      candidate += 1;
+    }
+
+    candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[second * MODULE_COUNT + candidate] == 1) {
+        third = candidate;
+      }
+
+      candidate += 1;
+    }
+
+    candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[third * MODULE_COUNT + candidate] == 1) {
+        dependent = candidate;
+      }
+
+      if (rootDirect[candidate] == 1) {
+        if (incomingCount(graph, candidate) == 0) {
+          if (firstDirect < 0) {
+            firstDirect = candidate;
+          } else {
+            secondDirect = candidate;
+          }
+        }
+      }
+
+      candidate += 1;
+    }
+
+    return new SixGraphPlan(
+      SIX_PLAN_DEEP_CHAIN_AND_DIRECTS,
+      leaf,
+      second,
+      third,
+      dependent,
+      firstDirect,
+      secondDirect,
+      true
+    );
   }
 
   private SixGraphPlan longChainAndDirectsPlan(
@@ -481,9 +575,20 @@ classical class SixGraphPlans {
         long maximum = maximumIncoming(graph);
         forkAndDirects = maximum == 2;
         if (maximum == 1) {
-          boolean hasInterior = hasInteriorNode(graph);
-          pairsAndDirects = !hasInterior;
-          longChainAndDirects = hasInterior;
+          long interiorCount = interiorNodeCount(graph);
+          pairsAndDirects = interiorCount == 0;
+          longChainAndDirects = interiorCount == 1;
+        }
+      }
+    }
+
+    boolean deepChainAndDirects = false;
+    if (edgeCount == THREE_IMPORTS) {
+      if (rootCount == THREE_IMPORTS) {
+        if (maximumIncoming(graph) == 1) {
+          if (maximumOutgoing(graph) == 1) {
+            deepChainAndDirects = interiorNodeCount(graph) == 2;
+          }
         }
       }
     }
@@ -509,6 +614,10 @@ classical class SixGraphPlans {
       valid = true;
     }
 
+    if (deepChainAndDirects) {
+      valid = true;
+    }
+
     if (valid) {
       BoundedGraphPlan graphPlan = planBoundedGraph(
         graph,
@@ -522,34 +631,24 @@ classical class SixGraphPlans {
 
     SixGraphPlan result = invalidPlan();
     if (valid) {
-      if (longChainAndDirects) {
-        result = longChainAndDirectsPlan(graph, rootDirect);
+      if (deepChainAndDirects) {
+        result = deepChainAndDirectsPlan(graph, rootDirect);
       } else {
-        if (pairsAndDirects) {
-          result = pairsAndDirectsPlan(graph, rootDirect);
+        if (longChainAndDirects) {
+          result = longChainAndDirectsPlan(graph, rootDirect);
         } else {
-          if (forkAndDirects) {
-            result = forkAndDirectsPlan(graph, rootDirect);
+          if (pairsAndDirects) {
+            result = pairsAndDirectsPlan(graph, rootDirect);
           } else {
-            if (mixed) {
-              result = mixedGraphPlan(graph, rootDirect);
+            if (forkAndDirects) {
+              result = forkAndDirectsPlan(graph, rootDirect);
             } else {
-              if (direct) {
-                result = new SixGraphPlan(
-                  SIX_PLAN_DIRECT,
-                  order[0],
-                  order[1],
-                  order[2],
-                  order[3],
-                  order[4],
-                  order[5],
-                  true
-                );
+              if (mixed) {
+                result = mixedGraphPlan(graph, rootDirect);
               } else {
-                boolean chain = writeChainOrder(graph, rootDirect, MODULE_COUNT, order);
-                if (chain) {
+                if (direct) {
                   result = new SixGraphPlan(
-                    SIX_PLAN_CHAIN,
+                    SIX_PLAN_DIRECT,
                     order[0],
                     order[1],
                     order[2],
@@ -559,10 +658,10 @@ classical class SixGraphPlans {
                     true
                   );
                 } else {
-                  boolean fork = writeForkOrder(graph, rootDirect, MODULE_COUNT, order);
-                  if (fork) {
+                  boolean chain = writeChainOrder(graph, rootDirect, MODULE_COUNT, order);
+                  if (chain) {
                     result = new SixGraphPlan(
-                      SIX_PLAN_FORK,
+                      SIX_PLAN_CHAIN,
                       order[0],
                       order[1],
                       order[2],
@@ -571,6 +670,20 @@ classical class SixGraphPlans {
                       order[5],
                       true
                     );
+                  } else {
+                    boolean fork = writeForkOrder(graph, rootDirect, MODULE_COUNT, order);
+                    if (fork) {
+                      result = new SixGraphPlan(
+                        SIX_PLAN_FORK,
+                        order[0],
+                        order[1],
+                        order[2],
+                        order[3],
+                        order[4],
+                        order[5],
+                        true
+                      );
+                    }
                   }
                 }
               }
