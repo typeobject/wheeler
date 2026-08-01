@@ -232,7 +232,7 @@ classical class CompilerGraphFour {
     return compiled;
   }
 
-  private FourGraphCompilation compilePlannedFourChain(
+  private FourGraphCompilation compilePlannedFourStructure(
     FourGraphStructure structure,
     borrow utf8 firstSource,
     borrow utf8 secondSource,
@@ -277,78 +277,124 @@ classical class CompilerGraphFour {
       fourthSource,
       fourthArena
     );
-    FourGraphCompilation compiled = compileFourChainFromEdgeIfOrdered(
-      plannedFirst,
-      plannedSecond,
-      plannedThird,
-      plannedFourth,
-      rootSource,
-      output
-    );
-    drop(plannedFourth);
-    drop(fourthArena);
-    drop(plannedThird);
-    drop(thirdArena);
-    drop(plannedSecond);
-    drop(secondArena);
-    drop(plannedFirst);
-    drop(firstArena);
-    return compiled;
-  }
+    FourGraphCompilation compiled = new FourGraphCompilation(0, 0);
+    if (structure.topology == FOUR_STRUCTURE_DIRECT) {
+      compiled = compileFourDirect(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        plannedFourth,
+        rootSource,
+        output
+      );
+    }
 
-  private FourGraphCompilation compilePlannedThreeLeafFork(
-    FourGraphStructure structure,
-    borrow utf8 firstSource,
-    borrow utf8 secondSource,
-    borrow utf8 thirdSource,
-    borrow utf8 fourthSource,
-    borrow utf8 rootSource,
-    borrow mut bytes output
-  ) {
-    region firstArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
-    utf8 plannedFirst = copySelectedFourSource(
-      structure.first,
-      firstSource,
-      secondSource,
-      thirdSource,
-      fourthSource,
-      firstArena
-    );
-    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
-    utf8 plannedSecond = copySelectedFourSource(
-      structure.second,
-      firstSource,
-      secondSource,
-      thirdSource,
-      fourthSource,
-      secondArena
-    );
-    region thirdArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
-    utf8 plannedThird = copySelectedFourSource(
-      structure.third,
-      firstSource,
-      secondSource,
-      thirdSource,
-      fourthSource,
-      thirdArena
-    );
-    region fourthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
-    utf8 plannedFourth = copySelectedFourSource(
-      structure.fourth,
-      firstSource,
-      secondSource,
-      thirdSource,
-      fourthSource,
-      fourthArena
-    );
-    FourGraphCompilation compiled = compileThreeLeafForkIfOrdered(
-      plannedFirst,
-      plannedSecond,
-      plannedThird,
-      plannedFourth,
-      rootSource,
-      output
-    );
+    if (structure.topology == FOUR_STRUCTURE_CHAIN) {
+      compiled = compileFourChainFromEdgeIfOrdered(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        plannedFourth,
+        rootSource,
+        output
+      );
+    }
+
+    if (structure.topology == FOUR_STRUCTURE_FORK) {
+      compiled = compileThreeLeafForkIfOrdered(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        plannedFourth,
+        rootSource,
+        output
+      );
+    }
+
+    if (structure.topology == FOUR_STRUCTURE_FORK_THEN_PARENT) {
+      NestedFourCompilation nestedParent = compileForkThenParentIfOrdered(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        plannedFourth,
+        rootSource,
+        output
+      );
+      compiled = new FourGraphCompilation(nestedParent.length, nestedParent.codeStart);
+    }
+
+    if (structure.topology == FOUR_STRUCTURE_UNEVEN_FORK) {
+      NestedFourCompilation nestedUneven = compileUnevenForkIfOrdered(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        plannedFourth,
+        rootSource,
+        output
+      );
+      compiled = new FourGraphCompilation(nestedUneven.length, nestedUneven.codeStart);
+    }
+
+    if (structure.topology == FOUR_STRUCTURE_FORK_AND_DIRECT) {
+      BranchedFourCompilation branchedFork = compileForkAndDirectIfOrdered(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        plannedFourth,
+        rootSource,
+        output
+      );
+      compiled = new FourGraphCompilation(branchedFork.length, branchedFork.codeStart);
+    }
+
+    if (structure.topology == FOUR_STRUCTURE_TWO_CHAINS) {
+      BranchedFourCompilation branchedPairs = compileTwoChainsIfOrdered(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        plannedFourth,
+        rootSource,
+        output
+      );
+      compiled = new FourGraphCompilation(branchedPairs.length, branchedPairs.codeStart);
+    }
+
+    if (structure.topology == FOUR_STRUCTURE_CHAIN_AND_DIRECT) {
+      MixedFourCompilation mixedChain = compileChainAndDirectIfOrdered(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        plannedFourth,
+        rootSource,
+        output
+      );
+      compiled = new FourGraphCompilation(mixedChain.length, mixedChain.codeStart);
+    }
+
+    if (structure.topology == FOUR_STRUCTURE_CHAIN_AND_DIRECTS) {
+      BranchedFourCompilation branchedChain = compileChainAndTwoDirectIfOrdered(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        plannedFourth,
+        rootSource,
+        output
+      );
+      compiled = new FourGraphCompilation(branchedChain.length, branchedChain.codeStart);
+    }
+
+    if (structure.topology == FOUR_STRUCTURE_SHARED_DIAMOND) {
+      FourDagCompilation sharedDiamond = compileDiamondIfOrdered(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        plannedFourth,
+        rootSource,
+        output
+      );
+      compiled = new FourGraphCompilation(sharedDiamond.length, sharedDiamond.codeStart);
+    }
+
     drop(plannedFourth);
     drop(fourthArena);
     drop(plannedThird);
@@ -357,6 +403,7 @@ classical class CompilerGraphFour {
     drop(secondArena);
     drop(plannedFirst);
     drop(firstArena);
+    assert(0 < compiled.length);
     return compiled;
   }
 
@@ -479,127 +526,8 @@ classical class CompilerGraphFour {
       assert(0 == 1);
     }
 
-    if (structure.topology == FOUR_STRUCTURE_SHARED_DIAMOND) {
-      FourDagCompilation diamond = compileFourConstantDiamond(
-        firstImportedSource,
-        secondImportedSource,
-        thirdImportedSource,
-        fourthImportedSource,
-        rootSource,
-        output
-      );
-      assert(0 < diamond.length);
-      return new FourGraphCompilation(diamond.length, diamond.codeStart);
-    }
-
-    if (structure.topology == FOUR_STRUCTURE_CHAIN) {
-      FourGraphCompilation chain = compilePlannedFourChain(
-        structure,
-        firstImportedSource,
-        secondImportedSource,
-        thirdImportedSource,
-        fourthImportedSource,
-        rootSource,
-        output
-      );
-      assert(0 < chain.length);
-      return chain;
-    }
-
-    if (structure.topology == FOUR_STRUCTURE_FORK_THEN_PARENT) {
-      NestedFourCompilation forkThenParent = compileFourForkThenParent(
-        firstImportedSource,
-        secondImportedSource,
-        thirdImportedSource,
-        fourthImportedSource,
-        rootSource,
-        output
-      );
-      assert(0 < forkThenParent.length);
-      return new FourGraphCompilation(forkThenParent.length, forkThenParent.codeStart);
-    }
-
-    if (structure.topology == FOUR_STRUCTURE_UNEVEN_FORK) {
-      NestedFourCompilation unevenFork = compileFourUnevenFork(
-        firstImportedSource,
-        secondImportedSource,
-        thirdImportedSource,
-        fourthImportedSource,
-        rootSource,
-        output
-      );
-      assert(0 < unevenFork.length);
-      return new FourGraphCompilation(unevenFork.length, unevenFork.codeStart);
-    }
-
-    if (structure.topology == FOUR_STRUCTURE_FORK_AND_DIRECT) {
-      BranchedFourCompilation forkAndDirect = compileFourForkAndDirect(
-        firstImportedSource,
-        secondImportedSource,
-        thirdImportedSource,
-        fourthImportedSource,
-        rootSource,
-        output
-      );
-      assert(0 < forkAndDirect.length);
-      return new FourGraphCompilation(forkAndDirect.length, forkAndDirect.codeStart);
-    }
-
-    if (structure.topology == FOUR_STRUCTURE_TWO_CHAINS) {
-      BranchedFourCompilation paired = compileFourTwoChains(
-        firstImportedSource,
-        secondImportedSource,
-        thirdImportedSource,
-        fourthImportedSource,
-        rootSource,
-        output
-      );
-      assert(0 < paired.length);
-      return new FourGraphCompilation(paired.length, paired.codeStart);
-    }
-
-    if (structure.topology == FOUR_STRUCTURE_CHAIN_AND_DIRECTS) {
-      BranchedFourCompilation branched = compileFourChainAndTwoDirect(
-        firstImportedSource,
-        secondImportedSource,
-        thirdImportedSource,
-        fourthImportedSource,
-        rootSource,
-        output
-      );
-      assert(0 < branched.length);
-      return new FourGraphCompilation(branched.length, branched.codeStart);
-    }
-
-    if (structure.topology == FOUR_STRUCTURE_CHAIN_AND_DIRECT) {
-      MixedFourCompilation mixed = compileFourChainAndDirect(
-        firstImportedSource,
-        secondImportedSource,
-        thirdImportedSource,
-        fourthImportedSource,
-        rootSource,
-        output
-      );
-      assert(0 < mixed.length);
-      return new FourGraphCompilation(mixed.length, mixed.codeStart);
-    }
-
-    if (structure.topology == FOUR_STRUCTURE_FORK) {
-      FourGraphCompilation fork = compilePlannedThreeLeafFork(
-        structure,
-        firstImportedSource,
-        secondImportedSource,
-        thirdImportedSource,
-        fourthImportedSource,
-        rootSource,
-        output
-      );
-      assert(0 < fork.length);
-      return fork;
-    }
-
-    assert(structure.topology == FOUR_STRUCTURE_DIRECT);
-    return compileFourDirect(
+    return compilePlannedFourStructure(
+      structure,
       firstImportedSource,
       secondImportedSource,
       thirdImportedSource,

@@ -14,7 +14,8 @@ classical class CompilerGraphFourDag {
     return new FourDagCompilation(compiled.length, compiled.codeStart);
   }
 
-  private FourDagCompilation compileDiamondIfOrdered(
+  /// Compiles one exact planned diamond role order.
+  public FourDagCompilation compileDiamondIfOrdered(
     borrow utf8 leafSource,
     borrow utf8 firstDependentSource,
     borrow utf8 secondDependentSource,
@@ -150,112 +151,4 @@ classical class CompilerGraphFourDag {
     return compiled;
   }
 
-  private FourDagCompilation compileDiamondFromPair(
-    borrow utf8 firstSource,
-    borrow utf8 secondSource,
-    borrow utf8 firstRemainingSource,
-    borrow utf8 secondRemainingSource,
-    borrow utf8 rootSource,
-    borrow mut bytes output
-  ) {
-    FourDagCompilation compiled = compileDiamondIfOrdered(
-      firstSource,
-      firstRemainingSource,
-      secondRemainingSource,
-      secondSource,
-      rootSource,
-      output
-    );
-    if (0 < compiled.length) {
-      return compiled;
-    }
-
-    return compileDiamondIfOrdered(
-      secondSource,
-      firstRemainingSource,
-      secondRemainingSource,
-      firstSource,
-      rootSource,
-      output
-    );
-  }
-
-  /// Compiles one leaf shared by two dependents that feed one root-visible join.
-  public FourDagCompilation compileFourConstantDiamond(
-    borrow utf8 firstSource,
-    borrow utf8 secondSource,
-    borrow utf8 thirdSource,
-    borrow utf8 fourthSource,
-    borrow utf8 rootSource,
-    borrow mut bytes output
-  ) {
-    FourDagCompilation compiled = compileDiamondFromPair(
-      firstSource,
-      secondSource,
-      thirdSource,
-      fourthSource,
-      rootSource,
-      output
-    );
-    if (0 < compiled.length) {
-      return compiled;
-    }
-
-    compiled = compileDiamondFromPair(
-      firstSource,
-      thirdSource,
-      secondSource,
-      fourthSource,
-      rootSource,
-      output
-    );
-    if (0 < compiled.length) {
-      return compiled;
-    }
-
-    compiled = compileDiamondFromPair(
-      firstSource,
-      fourthSource,
-      secondSource,
-      thirdSource,
-      rootSource,
-      output
-    );
-    if (0 < compiled.length) {
-      return compiled;
-    }
-
-    compiled = compileDiamondFromPair(
-      secondSource,
-      thirdSource,
-      firstSource,
-      fourthSource,
-      rootSource,
-      output
-    );
-    if (0 < compiled.length) {
-      return compiled;
-    }
-
-    compiled = compileDiamondFromPair(
-      secondSource,
-      fourthSource,
-      firstSource,
-      thirdSource,
-      rootSource,
-      output
-    );
-    if (0 < compiled.length) {
-      return compiled;
-    }
-
-    return compileDiamondFromPair(
-      thirdSource,
-      fourthSource,
-      firstSource,
-      secondSource,
-      rootSource,
-      output
-    );
-  }
 }
