@@ -263,6 +263,19 @@ classical class CompilerGraphSix {
       mixed = new SixMixedCompilation(pairs.length, pairs.codeStart);
     }
 
+    if (plan.topology == SIX_PLAN_LONG_CHAIN_AND_DIRECTS) {
+      mixed = compileSixLongChainAndDirectsIfOrdered(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        plannedFourth,
+        plannedFifth,
+        plannedSixth,
+        rootSource,
+        output
+      );
+    }
+
     drop(plannedSixth);
     drop(sixthArena);
     drop(plannedFifth);
@@ -345,6 +358,20 @@ classical class CompilerGraphSix {
     }
 
     if (plan.topology == SIX_PLAN_PAIRS_AND_DIRECTS) {
+      return compilePlannedSixRootBranches(
+        plan,
+        firstSource,
+        secondSource,
+        thirdSource,
+        fourthSource,
+        fifthSource,
+        sixthSource,
+        rootSource,
+        output
+      );
+    }
+
+    if (plan.topology == SIX_PLAN_LONG_CHAIN_AND_DIRECTS) {
       return compilePlannedSixRootBranches(
         plan,
         firstSource,

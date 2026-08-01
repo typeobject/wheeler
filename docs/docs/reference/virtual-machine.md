@@ -20,7 +20,7 @@ The machine owns:
 
 Raw host pointers and masked segmented addresses are not machine values.
 
-Source compilation currently writes equal limits of 4,000,000 steps and 4,000,000 retained history records. The `run()` loop traps at the step limit. Every execution path traps before it exceeds the history limit. The history budget can therefore retain every transition in one default run. The physical bootstrap closure evidence uses explicit single stepping with a 40,500,000-transition test ceiling and commits history every 10,000 records. Its complete eighty-nine-module graph validation finishes in 39,221,457 transitions. The test keeps that larger evidence run bounded without quietly changing source program policy. An artifact or embedding host may choose lower verified limits.
+Source compilation currently writes equal limits of 4,000,000 steps and 4,000,000 retained history records. The `run()` loop traps at the step limit. Every execution path traps before it exceeds the history limit. The history budget can therefore retain every transition in one default run. The physical bootstrap closure evidence uses explicit single stepping with a 40,500,000-transition test ceiling and commits history every 10,000 records. Its complete eighty-nine-module graph validation finishes in 39,221,505 transitions. The test keeps that larger evidence run bounded without quietly changing source program policy. An artifact or embedding host may choose lower verified limits.
 
 A classical entry may borrow one strict UTF-8 input, one immutable binary `byteview`, one mutable byte output, or one input followed by the output. VM construction requires the exact declared effects and an explicit text or binary binding API.
 
