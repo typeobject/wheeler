@@ -462,6 +462,32 @@ class NativeImportedConstantWideExampleTest {
   }
 
   @Test
+  void linksTwoChainsBesideTwoDirectModulesIndependentOfInputOrder() throws Exception {
+    String alpha = "module examples.alpha; classical class Alpha { "
+        + "public const long ALPHA = 2; }";
+    String beta = "module examples.beta; import examples.alpha; classical class Beta { "
+        + "public const long FIRST = ALPHA + 2; }";
+    String gamma = "module examples.gamma; classical class Gamma { "
+        + "public const long GAMMA = 3; }";
+    String delta = "module examples.delta; import examples.gamma; classical class Delta { "
+        + "public const long SECOND = GAMMA + 4; }";
+    String epsilon = "module examples.epsilon; classical class Epsilon { "
+        + "public const long EPSILON = 5; }";
+    String zeta = "module examples.zeta; classical class Zeta { "
+        + "public const long ZETA = 11; }";
+    String root = "module examples.root; import examples.beta; import examples.delta; "
+        + "import examples.epsilon; import examples.zeta; classical class Root { "
+        + "state long outcome = 0; entry void main() { outcome += FIRST; "
+        + "outcome += SECOND; outcome += EPSILON; outcome += ZETA; } }";
+    List<String> imported = List.of(alpha, beta, gamma, delta, epsilon, zeta);
+
+    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    VirtualMachine machine = new VirtualMachine(artifact);
+    machine.run();
+    assertEquals(27, machine.global("outcome"));
+  }
+
+  @Test
   void linksSevenDirectConstantModulesAcrossEveryInputPosition() throws Exception {
     List<String> imported = List.of(
         "module examples.two; classical class Two { public const long TWO = 2; }",

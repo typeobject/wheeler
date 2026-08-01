@@ -6,6 +6,7 @@ import wheeler.compiler.compiler_core;
 import wheeler.compiler.graphs.six.chain;
 import wheeler.compiler.graphs.six.fork;
 import wheeler.compiler.graphs.six.mixed;
+import wheeler.compiler.graphs.six.pairs;
 import wheeler.compiler.graphs.six.plans;
 import wheeler.compiler.graphs.sources;
 import wheeler.compiler.module_linker;
@@ -144,7 +145,7 @@ classical class CompilerGraphSix {
     return new SixGraphCompilation(compiled.length, compiled.codeStart);
   }
 
-  private SixGraphCompilation compilePlannedSixMixed(
+  private SixGraphCompilation compilePlannedSixRootBranches(
     SixGraphPlan plan,
     borrow utf8 firstSource,
     borrow utf8 secondSource,
@@ -248,6 +249,20 @@ classical class CompilerGraphSix {
       );
     }
 
+    if (plan.topology == SIX_PLAN_PAIRS_AND_DIRECTS) {
+      SixPairCompilation pairs = compileSixPairsAndDirectsIfOrdered(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        plannedFourth,
+        plannedFifth,
+        plannedSixth,
+        rootSource,
+        output
+      );
+      mixed = new SixMixedCompilation(pairs.length, pairs.codeStart);
+    }
+
     drop(plannedSixth);
     drop(sixthArena);
     drop(plannedFifth);
@@ -302,7 +317,7 @@ classical class CompilerGraphSix {
     }
 
     if (plan.topology == SIX_PLAN_CHAIN_AND_DIRECTS) {
-      return compilePlannedSixMixed(
+      return compilePlannedSixRootBranches(
         plan,
         firstSource,
         secondSource,
@@ -316,7 +331,21 @@ classical class CompilerGraphSix {
     }
 
     if (plan.topology == SIX_PLAN_FORK_AND_DIRECTS) {
-      return compilePlannedSixMixed(
+      return compilePlannedSixRootBranches(
+        plan,
+        firstSource,
+        secondSource,
+        thirdSource,
+        fourthSource,
+        fifthSource,
+        sixthSource,
+        rootSource,
+        output
+      );
+    }
+
+    if (plan.topology == SIX_PLAN_PAIRS_AND_DIRECTS) {
+      return compilePlannedSixRootBranches(
         plan,
         firstSource,
         secondSource,
