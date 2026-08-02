@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler documentation, compiler, package, tools, website, and stage-0 Java maintainers |
 | Created | 2026-07-18 |
-| Updated | 2026-07-18 |
+| Updated | 2026-08-02 |
 | Area | Wheeler API docs, Markdown manuals, Javadoc ingestion, fixed static rendering, links, search, publication |
 | Depends on | WIP-0006, WIP-0007, WIP-0009, WIP-0011, WIP-0016, WIP-0018 |
 | Supersedes | None |
@@ -15,7 +15,7 @@
 
 Wheeler builds one documentation graph from three named source types: authored Markdown manuals, attached Wheeler `//!` and `///` docs, and temporary Java API docs read through a pinned Javadoc doclet. A deterministic generator checks ownership, links, examples, proof references, package identities, and navigation. It then emits a renderer-neutral bundle.
 
-The fixed `wheeler site` renderer verifies that bundle again and writes static HTML and CSS. It uses no configuration, plugins, scripts, package manager, or network access.
+The fixed `wheeler site` renderer verifies that bundle again and writes static HTML, CSS, and one local copy-control script. It uses no configuration, plugins, package manager, or network access. Documentation content cannot add scripts or event handlers.
 
 Each source type keeps its authority. Markdown owns narrative manuals. Wheeler declarations and verified IR descriptors own Wheeler API reference. Java source owns only stage-0 Java implementation reference. Generated pages may link these parts, but prose cannot turn a forward call into `rev`, a provider circuit into unitary evidence, or an absent method into a real declaration. Generated reference pages also cannot define a second meaning for `CALL_VALUE`.
 
@@ -69,7 +69,7 @@ A generic API generator does not own Wheeler's module graph, package model, theo
 - Execute documentation scripts, remote embeds, Mermaid servers, or network-fetched examples during a trusted build.
 - Copy source documentation into hand-maintained API Markdown.
 - Publish private declarations unless a package policy explicitly includes an internal site.
-- Permit scripts, raw HTML, runtime themes, or host-dependent output in the trusted site.
+- Permit content-supplied scripts, raw HTML, runtime themes, or host-dependent output in the trusted site.
 - Require Java in the final self-hosted toolchain.
 - Turn every code block into a test. Examples opt into a declared language, target, and expectation profile.
 - Treat a successful doctest or sampled quantum run as a theorem.
@@ -98,7 +98,7 @@ assets/*
 
 JSON objects use canonical key order, integers, strict UTF-8 strings, and no floating-point values. Paths are normalized logical paths. The bundle manifest binds every file digest, generator/compiler identity, package lock, documentation profile, example-result identity, and source identity.
 
-A **rendering adapter** converts one valid bundle to presentation output. The website adapter is the fixed `wheeler.doc-site/1` safe static renderer. Terminal symbol help and offline package docs may use other explicitly identified adapters.
+A **rendering adapter** converts one valid bundle to presentation output. The website adapter is the fixed `wheeler.doc-site/2` safe static renderer. Terminal symbol help and offline package docs may use other explicitly identified adapters.
 
 A **semantic build** produces and validates the graph and bundle. A **render build** consumes a bundle. Render retry cannot mutate semantic results.
 
@@ -188,11 +188,13 @@ Private/internal nodes are removed before search generation. A search index isn'
 
 ## Fixed Wheeler website renderer
 
-`wheeler site -o <directory>` discovers the repository's canonical manual and Wheeler source roots. It accepts no theme, plugin, source-root, script, or network configuration. It builds profile-2 graph data in private staging, verifies exact paths and every digest at the rendering boundary, and then renders the fixed safe Markdown subset.
+`wheeler site -o <directory>` discovers the repository's canonical manual and Wheeler source roots. It accepts no theme, plugin, source-root, script, or network configuration. It builds profile-3 graph data in private staging, verifies exact paths and every digest at the rendering boundary, and then renders the fixed safe Markdown and MDX subset.
 
-The renderer consumes the accepted scalar MDX-style front matter as metadata and never renders the delimiters or fields as page prose. Front-matter title must agree with the page heading. Sidebar positions are bounded. Executable MDX/JSX remains unsupported inert text and is escaped instead of evaluated.
+The renderer consumes accepted scalar MDX-style front matter as metadata and never renders the delimiters or fields as page prose. Front-matter title must agree with the page heading. Sidebar positions are bounded. `index.md` and `index.mdx` own directory routes. Scalar `sidebar` and `sidebar_children` fields select navigation without removing routes, search entries, or sitemap pages. Executable MDX and JSX remain unsupported inert text and the renderer escapes them instead of evaluating them.
 
-The renderer escapes unsupported markup and emits no JavaScript. It installs a restrictive content-security policy, rewrites verified manual links to static routes, and maps source links to exact repository paths. One sidebar follows the fixed Manual, Reference, Proposals, Future order. Introduction and overview pages lead their sections. WIPs sort by identity, and the authoring template stays linkable but does not appear in navigation. The site uses one fixed stylesheet and a standard `sitemap.xml`. That sitemap includes a deterministic digest over sorted page paths and bytes, so content changes update it without a clock or Git timestamp. Output size is bounded, and publication uses one atomic directory move.
+The renderer escapes unsupported markup. One fixed local script copies code only after a reader presses the button attached to that code block. The content security policy permits that exact local asset while rejecting inline, remote, and content-supplied scripts. The renderer rewrites verified manual links to static routes and maps source links to exact repository paths.
+
+The proposals index hides its WIP children, and the future index hides its complete section for now. The authoring template stays linkable but does not appear in navigation. The site uses one fixed stylesheet, one fixed copy script, and a standard `sitemap.xml`. That sitemap includes a deterministic digest over sorted page paths and bytes, so content changes update it without a clock or Git timestamp. Output size is bounded, and publication uses one atomic directory move.
 
 `publication-manifest.json` binds the semantic bundle identity, renderer class identity, site profile, and digest of every emitted file. Existing destinations, malformed bundles, raw special files, unclosed fences/admonitions, and output overflow fail before publication. A renderer needing new semantic source fields changes the bundle or site profile. It does not acquire a configuration file in the night.
 
@@ -259,7 +261,7 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
 3. Implement manual parsing, link validation, navigation, search, and deterministic bundle emission.
 4. Implement the pinned Javadoc doclet and explicit stage-0 namespace.
 5. Route executable examples through WIP-0018 and proof references through WIP-0011.
-6. Render the verified bundle through the fixed no-script Wheeler site profile and delete the generic renderer stack.
+6. Render the verified bundle through the fixed Wheeler site profile and delete the generic renderer stack.
 7. Generate bytecode, package, diagnostic, and proof-rule reference tables. Delete hand-copied tables.
 8. Publish versioned package documentation and offline bundles.
 9. Port graph construction and bundle emission to Wheeler and compare bundle bytes with stage 0.
@@ -268,16 +270,17 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
 ## Progress
 
 - [x] The stage-0 concrete-syntax boundary exports parser-owned module identity, file summary, selected public/semantic declaration kind, name, source position, modifiers, summary, and ordered facets. Bundle generators no longer need a separate website parser to rediscover Wheeler declarations or invent a second anchor scheme.
-- [x] `wheeler docs` walks explicit physical manual and Wheeler roots with strict UTF-8 and bounded counts. It validates Wheeler documentation and emits canonically ordered manual, heading, and API nodes. Explicit `manual:` and `wheeler:` links, plus root-contained relative page and heading links, become sorted `links-to` edges. The command builds navigation and search indexes, copies inert manual pages, binds every output digest in `manifest.json`, and publishes a renderer-neutral profile-2 bundle atomically.
+- [x] `wheeler docs` walks explicit physical manual and Wheeler roots with strict UTF-8 and bounded counts. It validates Wheeler documentation and emits canonically ordered manual, heading, and API nodes. Explicit `manual:` and `wheeler:` links, plus root-contained relative page and heading links, become sorted `links-to` edges. The command builds navigation and search indexes, copies inert `.md` and `.mdx` manual pages, binds every output digest in `manifest.json`, and publishes a renderer-neutral profile-3 bundle atomically. Index pages own directory routes and bounded scalar front matter selects sidebar visibility.
 - [ ] Documentation graph, identity, link, and bundle contracts are accepted.
 - [ ] One manual page, Wheeler API declaration, Java stage-0 declaration, and executable example produce one validated bundle.
 - [x] The zero-configuration `wheeler site` command builds canonical roots and rechecks the full semantic bundle.
   - It reads bounded MDX-style front matter without rendering it.
   - The renderer handles headings, prose, links, code, lists, tables, quotes, and admonitions safely.
-  - It emits one Manual, Reference, Proposals, Future sidebar, hides the proposal template, and includes no scripts or header slogan.
+  - It emits selected Manual, Reference, and Proposals groups, hides proposal children and the Future group through index metadata, and includes no header slogan.
+  - Every code block receives one accessible copy button backed by the fixed local `copy.js` asset.
   - `sitemap.xml` contains every HTML route plus a digest of exact page content.
   - `publication-manifest.json` binds the bundle, renderer, and every output file before atomic publication.
-  - The current local build emits 47 linked HTML pages.
+  - The current local build emits 58 linked HTML pages plus the root introduction route.
   - The old renderer package graph, duplicate deployment-test workflow, and generic website configuration are deleted.
   - Hosted run `29670968033` built and deployed the navigation and front-matter slice at commit `2dea61e`.
   - Hosted evidence remains tied to that commit and does not inherit later renderer identities.

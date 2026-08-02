@@ -21,9 +21,10 @@ class DocumentationBundleReaderTest {
   void rejectsDigestProfileAndExactFileSetViolations() throws Exception {
     Path manuals = temporary.resolve("manuals");
     Path sources = temporary.resolve("sources");
-    Files.createDirectories(manuals);
+    Files.createDirectories(manuals.resolve("guide"));
     Files.createDirectories(sources);
     Files.writeString(manuals.resolve("intro.md"), "# Introduction\n\nBounded prose.\n");
+    Files.writeString(manuals.resolve("guide/index.mdx"), "# Guide\n\nBounded MDX prose.\n");
     Files.writeString(sources.resolve("Api.w"), """
         //! Documents one public fixture.
         module fixture.api;
@@ -40,7 +41,7 @@ class DocumentationBundleReaderTest {
         },
         new PrintStream(new ByteArrayOutputStream()),
         new PrintStream(new ByteArrayOutputStream())));
-    assertEquals(1, DocumentationBundleReader.read(bundle).pages().size());
+    assertEquals(2, DocumentationBundleReader.read(bundle).pages().size());
 
     Path page = bundle.resolve("pages/intro.md");
     String originalPage = Files.readString(page);
@@ -57,7 +58,7 @@ class DocumentationBundleReaderTest {
     String originalManifest = Files.readString(manifest, StandardCharsets.UTF_8);
     Files.writeString(
         manifest,
-        originalManifest.replace("wheeler-doc-bundle-2", "wheeler-doc-bundle-1"),
+        originalManifest.replace("wheeler-doc-bundle-3", "wheeler-doc-bundle-2"),
         StandardCharsets.UTF_8);
     assertThrows(PackageFormatException.class, () -> DocumentationBundleReader.read(bundle));
   }

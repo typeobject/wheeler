@@ -98,7 +98,7 @@ final class ProposalIndexTest {
   }
 
   private static Map<String, IndexEntry> loadIndex() throws IOException {
-    String source = Files.readString(ROOT.resolve("README.md"));
+    String source = Files.readString(ROOT.resolve("index.mdx"));
     Matcher row = INDEX_ROW.matcher(source);
     Map<String, IndexEntry> indexed = new LinkedHashMap<>();
     String previous = null;

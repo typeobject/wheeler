@@ -68,7 +68,7 @@ class DocumentationBundleCommandTest {
     assertTrue(edges.contains(
         "\"source\":\"manual:guide\",\"target\":\"wheeler:demo.api#twice\""));
     String manifest = Files.readString(first.resolve("manifest.json"));
-    assertTrue(manifest.contains("\"profile\":\"wheeler-doc-bundle-2\""));
+    assertTrue(manifest.contains("\"profile\":\"wheeler-doc-bundle-3\""));
     assertTrue(output.toString(StandardCharsets.UTF_8).contains("documented 4 nodes"));
     assertThrows(IOException.class, () -> execute(
         manuals, sources, first, new ByteArrayOutputStream()));
@@ -92,9 +92,9 @@ class DocumentationBundleCommandTest {
     Files.writeString(manuals.resolve("guide.md"), """
         # Guide
 
-        Read [the answer](nested/answer.md#the-answer).
+        Read [the answer](nested/index.mdx#the-answer).
         """);
-    Files.writeString(manuals.resolve("nested/answer.md"), """
+    Files.writeString(manuals.resolve("nested/index.mdx"), """
         # Answer
 
         ## The answer
@@ -107,7 +107,8 @@ class DocumentationBundleCommandTest {
     String edges = Files.readString(output.resolve("edges.json"));
     assertTrue(edges.contains(
         "\"source\":\"manual:guide\",\"target\":"
-            + "\"manual:nested/answer#the-answer\""));
+            + "\"manual:nested/index#the-answer\""));
+    assertTrue(Files.isRegularFile(output.resolve("pages/nested/index.mdx")));
 
     Files.writeString(manuals.resolve("guide.md"), "# Guide\n\n[Bad](../escape.md).\n");
     PackageFormatException escape = assertThrows(
@@ -118,6 +119,30 @@ class DocumentationBundleCommandTest {
             temporary.resolve("escape-bundle"),
             new ByteArrayOutputStream()));
     assertTrue(escape.getMessage().contains("escapes the manual root"));
+  }
+
+  @Test
+  void indexMetadataOwnsTheSemanticSidebarSelection() throws Exception {
+    Path manuals = temporary.resolve("navigation-manuals");
+    Path sources = temporary.resolve("navigation-sources");
+    Files.createDirectories(manuals.resolve("proposals"));
+    Files.createDirectories(sources);
+    Files.writeString(manuals.resolve("intro.md"), "# Introduction\n");
+    Files.writeString(manuals.resolve("proposals/index.mdx"), """
+        ---
+        sidebar_children: false
+        ---
+        # Proposals
+        """);
+    Files.writeString(manuals.resolve("proposals/WIP-0001-first.md"), "# First proposal\n");
+    Path output = temporary.resolve("navigation-bundle");
+
+    assertEquals(0, execute(manuals, sources, output, new ByteArrayOutputStream()));
+    String navigation = Files.readString(output.resolve("navigation.json"));
+    assertTrue(navigation.contains("manual:proposals/index"));
+    assertFalse(navigation.contains("manual:proposals/WIP-0001-first"));
+    String nodes = Files.readString(output.resolve("nodes.json"));
+    assertTrue(nodes.contains("manual:proposals/WIP-0001-first"));
   }
 
   @Test

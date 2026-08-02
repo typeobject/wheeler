@@ -40,23 +40,23 @@ The command does not read configuration, use the network, or create placeholder 
 
 `wheeler docs <manual-dir> --wheeler <source-dir>... -o <bundle-dir>` builds a renderer-neutral stage-0 bundle from explicit physical roots. Inputs must be strict UTF-8, nonsymlink files chosen in logical-path order.
 
-The command validates Wheeler `//!` and `///` documentation through the compiler export. It then emits sorted manual, heading, and Wheeler API nodes. Explicit `manual:` and `wheeler:` links, along with root-contained relative Markdown links, become canonical edges.
+The command validates Wheeler `//!` and `///` documentation through the compiler export. It then emits sorted manual, heading, and Wheeler API nodes. Explicit `manual:` and `wheeler:` links, along with root-contained relative manual links, become canonical edges.
 
-The bundle includes navigation and search indexes, inert Markdown under `pages/`, and a digest for every emitted file in `manifest.json`. Publication creates a new directory with one required atomic move.
+The bundle includes navigation and search indexes, inert `.md` and `.mdx` manual sources under `pages/`, and a digest for every emitted file in `manifest.json`. Publication creates a new directory with one required atomic move.
 
-Existing destinations, malformed source, missing manual titles, duplicate node identities, links in the input tree, and nonphysical parents all fail before publication.
+Existing destinations, malformed source, missing manual titles, duplicate node or route identities, links in the input tree, and nonphysical parents all fail before publication.
 
-The current profile is `wheeler-doc-bundle-2`. Profile 2 adds semantic heading nodes and relative page or heading edges. It does not change profile 1 in place.
+The current profile is `wheeler-doc-bundle-3`. Profile 3 adds `.mdx` manual input, `index.md` and `index.mdx` routes, and semantic sidebar selection. It replaces profile 2 rather than changing that profile in place.
 
-Manual IDs come from logical paths. Heading text produces canonical heading IDs with deterministic suffixes for duplicates. Wheeler IDs use module or source identity plus the declaration name.
+Manual IDs come from logical paths without the `.md` or `.mdx` suffix. Heading text produces canonical heading IDs with deterministic suffixes for duplicates. Wheeler IDs use module or source identity plus the declaration name.
 
-Relative links to `.md` pages and canonical `#heading` anchors resolve only within the manual root. Escapes, missing targets, and noncanonical anchors fail. Repository source links remain normal site links instead of semantic manual edges.
+Relative links to `.md` or `.mdx` pages and canonical `#heading` anchors resolve only within the manual root. Escapes, missing targets, and noncanonical anchors fail. Repository source links remain normal site links instead of semantic manual edges.
 
-`wheeler site -o <directory>` is the only website command. It finds the fixed repository roots and builds the semantic bundle in private staging. Next, it verifies the exact profile, path, and digest closure. It renders the inert Markdown subset as static HTML and CSS under `wheeler.doc-site/1`.
+`wheeler site -o <directory>` is the only website command. It finds the fixed repository roots and builds the semantic bundle in private staging. Next, it verifies the exact profile, path, and digest closure. It renders the inert Markdown and MDX subset as static HTML and CSS under `wheeler.doc-site/2`. One fixed local script adds a copy button to each code block. Documentation content cannot add scripts or handlers.
 
-Scalar MDX-style front matter becomes bounded metadata and is never printed as page text. The renderer does not execute MDX or JSX.
+Scalar MDX-style front matter becomes bounded metadata and is never printed as page text. `index.md` and `index.mdx` map to their directory route. An index may set `sidebar_children: false` to keep descendants routable and searchable while omitting them from navigation. Any page may set `sidebar: false` to omit itself. The renderer does not execute MDX or JSX.
 
-Navigation uses one fixed order: Manual, Reference, Proposals, then Future. Overview pages come first, and the proposal template stays out of the sidebar. The profile has one stylesheet, no scripts, no themes, no plugins, a restrictive content security policy, bounded output, and one atomic publication step.
+Navigation uses one fixed order: Manual, Reference, Proposals, then any later visible group. Overview pages come first, and the proposal template stays out of the sidebar. The proposals index hides its child WIPs, while the future index hides its complete section for now. The profile has one stylesheet, one fixed local copy script, no themes, no plugins, a restrictive content security policy, bounded output, and one atomic publication step.
 
 `sitemap.xml` comes from every generated HTML route and includes a deterministic content-set digest. A page edit changes the sitemap without adding build time to the semantic inputs.
 
@@ -88,7 +88,7 @@ Bounded-loop headers and the remaining syntax-owned break rules are still WIP-00
 
 ## Design workflow
 
-Cross-cutting semantic changes start as a [Wheeler Improvement Proposal](../proposals/README.md). Reference pages describe behavior that exists now. A WIP becomes Implemented only after its tests, documentation, migration, and required cleanup are complete.
+Cross-cutting semantic changes start as a [Wheeler Improvement Proposal](../proposals/index.mdx). Reference pages describe behavior that exists now. A WIP becomes Implemented only after its tests, documentation, migration, and required cleanup are complete.
 
 ## Maintenance rules
 

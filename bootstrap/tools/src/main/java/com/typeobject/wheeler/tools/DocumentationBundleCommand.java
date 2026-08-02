@@ -42,10 +42,10 @@ final class DocumentationBundleCommand {
     if (parsed == null) {
       return 2;
     }
-    List<Input> manuals = collect(parsed.manualRoot(), ".md");
+    List<Input> manuals = collect(parsed.manualRoot(), Set.of(".md", ".mdx"));
     List<Input> wheeler = new ArrayList<>();
     for (Path root : parsed.wheelerRoots()) {
-      wheeler.addAll(collect(root, ".w"));
+      wheeler.addAll(collect(root, Set.of(".w")));
     }
     wheeler.sort(Comparator.comparing(Input::logicalPath));
     rejectDuplicateLogicalPaths(wheeler, "Wheeler");
@@ -60,7 +60,7 @@ final class DocumentationBundleCommand {
     List<Node> nodes = new ArrayList<>();
     Map<String, String> pages = new LinkedHashMap<>();
     for (Input manual : manuals) {
-      String page = stripSuffix(manual.logicalPath(), ".md");
+      String page = DocumentationMarkdown.manualPage(manual.logicalPath());
       String title = title(manual.text(), manual.logicalPath());
       String id = "manual:" + page;
       nodes.add(new Node(id, "manual", title, manual.logicalPath(), summary(manual.text())));
@@ -72,7 +72,7 @@ final class DocumentationBundleCommand {
             manual.logicalPath() + ":" + heading.line(),
             ""));
       }
-      pages.put("pages/" + manual.logicalPath(), manual.text());
+      pages.put(manual.logicalPath(), manual.text());
     }
     for (Input source : wheeler) {
       List<SourceDocumentation.Diagnostic> diagnostics = SourceDocumentation.checkFile(source.text());
@@ -98,17 +98,18 @@ final class DocumentationBundleCommand {
     rejectDuplicateNodes(nodes);
 
     Map<String, String> files = new LinkedHashMap<>();
+    DocumentationMarkdown markdown = new DocumentationMarkdown(pages);
     files.put("nodes.json", nodesJson(nodes));
     files.put("edges.json", edgesJson(documentationEdges(manuals, nodes)));
-    files.put("navigation.json", navigationJson(nodes));
+    files.put("navigation.json", navigationJson(markdown.navigationPages()));
     files.put("search.json", searchJson(nodes));
-    pages.forEach(files::put);
+    pages.forEach((path, text) -> files.put("pages/" + path, text));
     String manifest = manifestJson(files, manuals, wheeler);
     files.put("manifest.json", manifest);
     return new Bundle(Map.copyOf(files), nodes.size(), sha256(manifest.getBytes(StandardCharsets.UTF_8)));
   }
 
-  private static List<Input> collect(Path root, String suffix) throws IOException {
+  private static List<Input> collect(Path root, Set<String> suffixes) throws IOException {
     Path normalized = root.toAbsolutePath().normalize();
     if (!Files.isDirectory(normalized, LinkOption.NOFOLLOW_LINKS)
         || Files.isSymbolicLink(normalized)) {
@@ -131,7 +132,8 @@ final class DocumentationBundleCommand {
       if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)) {
         throw new IOException("Documentation input is not a regular file: " + path);
       }
-      if (!path.getFileName().toString().endsWith(suffix)) {
+      String filename = path.getFileName().toString();
+      if (suffixes.stream().noneMatch(filename::endsWith)) {
         continue;
       }
       if (result.size() == MAX_FILES) {
@@ -227,7 +229,7 @@ final class DocumentationBundleCommand {
     Set<Edge> edges = new TreeSet<>(Comparator.comparing(Edge::source)
         .thenComparing(Edge::target));
     for (Input manual : manuals) {
-      String source = "manual:" + stripSuffix(manual.logicalPath(), ".md");
+      String source = "manual:" + DocumentationMarkdown.manualPage(manual.logicalPath());
       Matcher matcher = MARKDOWN_LINK.matcher(manual.text());
       while (matcher.find()) {
         String link = matcher.group(1);
@@ -257,7 +259,8 @@ final class DocumentationBundleCommand {
     int separator = link.indexOf('#');
     String path = separator < 0 ? link : link.substring(0, separator);
     String anchor = separator < 0 ? "" : link.substring(separator + 1);
-    if ((!path.isEmpty() && !path.endsWith(".md")) || link.indexOf('#', separator + 1) >= 0) {
+    if ((!path.isEmpty() && !DocumentationMarkdown.isManualSource(path))
+        || link.indexOf('#', separator + 1) >= 0) {
       return null;
     }
     Path source = Path.of(sourcePath);
@@ -270,7 +273,7 @@ final class DocumentationBundleCommand {
       throw new PackageFormatException(
           "Relative documentation link escapes the manual root: " + link + " from " + sourcePath);
     }
-    String target = "manual:" + stripSuffix(logical, ".md");
+    String target = "manual:" + DocumentationMarkdown.manualPage(logical);
     if (!anchor.isEmpty()) {
       if (!anchor.equals(DocumentationAnchors.canonical(anchor))) {
         throw new PackageFormatException(
@@ -295,10 +298,10 @@ final class DocumentationBundleCommand {
     return json.append("]}\n").toString();
   }
 
-  private static String navigationJson(List<Node> nodes) {
-    return "{\"nodes\":[" + nodes.stream().filter(node -> node.kind().equals("manual"))
-        .map(node -> quote(node.id())).reduce((left, right) -> left + "," + right).orElse("")
-        + "]}\n";
+  private static String navigationJson(List<DocumentationMarkdown.Page> pages) {
+    return "{\"nodes\":[" + pages.stream()
+        .map(page -> quote("manual:" + DocumentationMarkdown.manualPage(page.source())))
+        .reduce((left, right) -> left + "," + right).orElse("") + "]}\n";
   }
 
   private static String searchJson(List<Node> nodes) {
@@ -331,7 +334,7 @@ final class DocumentationBundleCommand {
               file.getValue().getBytes(StandardCharsets.UTF_8)))).append('}');
     }
     json.append("],\"manualSources\":").append(manuals.size())
-        .append(",\"profile\":\"wheeler-doc-bundle-2\",\"wheelerSources\":")
+        .append(",\"profile\":\"wheeler-doc-bundle-3\",\"wheelerSources\":")
         .append(wheeler.size()).append("}\n");
     return json.toString();
   }

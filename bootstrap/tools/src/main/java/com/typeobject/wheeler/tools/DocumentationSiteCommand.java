@@ -22,7 +22,7 @@ import java.util.Map;
 
 /** Zero-configuration Wheeler documentation bundle and static-site publication command. */
 final class DocumentationSiteCommand {
-  private static final String SITE_PROFILE = "wheeler.doc-site/1";
+  private static final String SITE_PROFILE = "wheeler.doc-site/2";
   private static final String SITE_ORIGIN = "https://wheeler.typeobject.com/";
   private static final List<String> WHEELER_ROOTS = List.of(
       "wheeler-compiler/src/main/wheeler",
@@ -104,13 +104,15 @@ final class DocumentationSiteCommand {
     }
     byte[] index = markdown.render(introduction).getBytes(StandardCharsets.UTF_8);
     byte[] style = STYLE.getBytes(StandardCharsets.UTF_8);
+    byte[] copyScript = COPY_SCRIPT.getBytes(StandardCharsets.UTF_8);
     files.put("index.html", index);
     files.put("style.css", style);
+    files.put("copy.js", copyScript);
     files.put(".nojekyll", new byte[0]);
     byte[] sitemap = sitemap(files).getBytes(StandardCharsets.UTF_8);
     files.put("sitemap.xml", sitemap);
-    bytes = Math.addExact(bytes, Math.addExact(
-        index.length, Math.addExact(style.length, sitemap.length)));
+    bytes = Math.addExact(bytes, Math.addExact(index.length,
+        Math.addExact(style.length, Math.addExact(copyScript.length, sitemap.length))));
     if (bytes > MAX_SITE_BYTES) {
       throw new IOException("Documentation site exceeds the 64 MiB output limit");
     }
@@ -287,7 +289,13 @@ final class DocumentationSiteCommand {
       a { color: var(--accent); }
       pre, code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; background: var(--code); }
       code { padding: .12rem .3rem; border-radius: .25rem; }
-      pre { overflow: auto; padding: 1rem; border: 1px solid var(--line); border-radius: .45rem; }
+      .code-block { position: relative; margin: 1rem 0; }
+      .code-block pre { margin: 0; }
+      .copy-code { position: absolute; top: .45rem; right: .45rem; z-index: 1; padding: .2rem .5rem;
+        color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: .3rem;
+        font: inherit; font-size: .75rem; cursor: pointer; }
+      .copy-code:hover, .copy-code:focus-visible { color: var(--accent); border-color: var(--accent); }
+      pre { overflow: auto; padding: 2.35rem 1rem 1rem; border: 1px solid var(--line); border-radius: .45rem; }
       pre code { padding: 0; }
       table { display: block; overflow-x: auto; width: 100%; border-collapse: collapse; margin: 1rem 0; }
       th, td { padding: .45rem .65rem; border: 1px solid var(--line); text-align: left; vertical-align: top; }
@@ -296,5 +304,41 @@ final class DocumentationSiteCommand {
       footer { border-top: 1px solid var(--line); padding: 2rem; text-align: center; }
       @media (max-width: 800px) { .layout { display: block; } nav { position: static; max-height: none;
         columns: 2; margin-bottom: 3rem; } }
+      """;
+
+  private static final String COPY_SCRIPT = """
+      // Copies one inert rendered code block after an explicit reader action.
+      async function copyText(text) {
+        if (navigator.clipboard !== undefined && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          return;
+        }
+        const temporary = document.createElement("textarea");
+        temporary.value = text;
+        temporary.setAttribute("readonly", "");
+        temporary.style.position = "fixed";
+        temporary.style.opacity = "0";
+        document.body.appendChild(temporary);
+        temporary.select();
+        try {
+          if (!document.execCommand("copy")) throw new Error("copy rejected");
+        } finally {
+          temporary.remove();
+        }
+      }
+      document.addEventListener("click", async (event) => {
+        const button = event.target.closest(".copy-code");
+        if (button === null) return;
+        const code = button.parentElement.querySelector("code");
+        if (code === null) return;
+        const previous = button.textContent;
+        try {
+          await copyText(code.textContent);
+          button.textContent = "Copied";
+        } catch (_error) {
+          button.textContent = "Copy failed";
+        }
+        window.setTimeout(() => { button.textContent = previous; }, 1200);
+      });
       """;
 }

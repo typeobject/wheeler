@@ -370,7 +370,7 @@ WIP-0040 source inverse remains new forward execution over explicit witnesses. I
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
 - [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
 - [WIP-0038](WIP-0038-regular-instruction-forms-and-extension-registry.md)
-- [Proposal process](README.md)
+- [Proposal process](index.mdx)
 - [Bytecode reference](../reference/bytecode.md)
 - [Virtual-machine reference](../reference/virtual-machine.md)
 - [`Instruction`](../../../bootstrap/core/src/main/java/com/typeobject/wheeler/core/bytecode/Instruction.java)

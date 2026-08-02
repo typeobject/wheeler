@@ -16,7 +16,10 @@ final class DocumentationMarkdown {
   private static final Pattern HEADING = Pattern.compile("^(#{1,6})[ \\t]+(.+?)[ \\t]*#*$");
   private static final Pattern ORDERED = Pattern.compile("^[0-9]+\\.[ \\t]+(.+)$");
   private static final Pattern INLINE = Pattern.compile(
-      "`([^`]+)`|\\[([^]\\n]+)]\\(([^)\\s]+)\\)|\\*\\*([^*\\n]+)\\*\\*|\\*([^*\\n]+)\\*");
+      "`([^`]+)`|\\[([^]\\n]+)]\\(([^)\\s]+)\\)|"
+          + "\\*\\*\\*([^*\\n]+)\\*\\*\\*|(?<![A-Za-z0-9])___([^_\\n]+)___(?![A-Za-z0-9])|"
+          + "\\*\\*([^*\\n]+)\\*\\*|(?<![A-Za-z0-9])__([^_\\n]+)__(?![A-Za-z0-9])|"
+          + "\\*([^*\\n]+)\\*|(?<![A-Za-z0-9])_([^_\\n]+)_(?![A-Za-z0-9])");
   private static final Pattern TABLE_SEPARATOR = Pattern.compile(
       "^\\|?[ \\t]*:?-{3,}:?[ \\t]*(?:\\|[ \\t]*:?-{3,}:?[ \\t]*)+\\|?$");
   private static final Pattern FRONT_MATTER_FIELD = Pattern.compile(
@@ -25,25 +28,56 @@ final class DocumentationMarkdown {
 
   private final List<Page> pages;
   private final Map<String, String> routes;
+  private final Map<String, String> manualRoutes;
 
   DocumentationMarkdown(Map<String, String> sources) {
     List<Page> ordered = new ArrayList<>();
     Map<String, String> routeMap = new LinkedHashMap<>();
+    Map<String, String> outputRoutes = new LinkedHashMap<>();
+    Map<String, String> manualRouteMap = new LinkedHashMap<>();
     sources.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
-      String output = outputPath(entry.getKey());
-      if (routeMap.put(entry.getKey(), output) != null) {
-        throw new PackageFormatException("Duplicate documentation page " + entry.getKey());
+      String source = entry.getKey();
+      String output = outputPath(source);
+      if (routeMap.put(source, output) != null) {
+        throw new PackageFormatException("Duplicate documentation page " + source);
       }
-      Document document = document(entry.getValue(), entry.getKey());
-      ordered.add(new Page(entry.getKey(), title(document.markdown(), entry.getKey()), output,
-          document.markdown(), document.sidebarPosition()));
+      String previousSource = outputRoutes.put(output, source);
+      if (previousSource != null) {
+        throw new PackageFormatException(
+            "Documentation pages share route " + output + ": " + previousSource + " and " + source);
+      }
+      String page = manualPage(source);
+      if (manualRouteMap.put(page, output) != null) {
+        throw new PackageFormatException("Duplicate documentation page identity manual:" + page);
+      }
+      Document document = document(entry.getValue(), source);
+      ordered.add(new Page(source, title(document.markdown(), source), output,
+          document.markdown(), document.sidebarPosition(), document.sidebar(),
+          document.sidebarChildren()));
     });
     pages = List.copyOf(ordered);
     routes = Map.copyOf(routeMap);
+    manualRoutes = Map.copyOf(manualRouteMap);
   }
 
   List<Page> pages() {
     return pages;
+  }
+
+  List<Page> navigationPages() {
+    List<Page> controllingIndexes = pages.stream()
+        .filter(page -> !page.sidebarChildren())
+        .toList();
+    return pages.stream()
+        .filter(Page::sidebar)
+        .filter(page -> !page.source().equals("proposals/TEMPLATE.md"))
+        .filter(page -> controllingIndexes.stream().noneMatch(index ->
+            page.source().startsWith(indexPrefix(index.source()))
+                && !page.source().equals(index.source())))
+        .sorted(Comparator.comparingInt(DocumentationMarkdown::groupOrder)
+            .thenComparingInt(DocumentationMarkdown::pageOrder)
+            .thenComparing(Page::source))
+        .toList();
   }
 
   /** Renders one complete page with fixed navigation and no executable payload. */
@@ -53,33 +87,29 @@ final class DocumentationMarkdown {
         .append("<meta charset=\"utf-8\">\n")
         .append("<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n")
         .append("<meta http-equiv=\"Content-Security-Policy\" content=\"")
-        .append("default-src 'none'; style-src 'self'; img-src 'self' data:; ")
-        .append("base-uri 'none'; form-action 'none'\">\n")
+        .append("default-src 'none'; style-src 'self'; script-src 'self'; ")
+        .append("img-src 'self' data:; base-uri 'none'; form-action 'none'\">\n")
         .append("<title>").append(escape(page.title())).append(" · Wheeler</title>\n")
         .append("<link rel=\"stylesheet\" href=\"")
         .append(escapeAttribute(relative(page.output(), "style.css")))
-        .append("\">\n</head><body>\n<header><a class=\"brand\" href=\"")
+        .append("\">\n<script src=\"")
+        .append(escapeAttribute(relative(page.output(), "copy.js")))
+        .append("\" defer></script>\n</head><body>\n<header><a class=\"brand\" href=\"")
         .append(escapeAttribute(relative(page.output(), "index.html")))
         .append("\">Wheeler</a></header>\n")
         .append("<div class=\"layout\"><nav aria-label=\"Documentation\">\n")
         .append(navigation(page))
         .append("</nav><main>\n")
         .append(body(page))
-        .append("</main></div>\n<footer>Generated from the verified Wheeler documentation graph. ")
-        .append("No JavaScript was injured.</footer>\n</body></html>\n");
+        .append("</main></div>\n<footer>Generated from the verified Wheeler documentation graph.</footer>\n")
+        .append("</body></html>\n");
     return html.toString();
   }
 
   private String navigation(Page current) {
     StringBuilder html = new StringBuilder();
     String group = null;
-    List<Page> navigation = pages.stream()
-        .filter(page -> !page.source().equals("proposals/TEMPLATE.md"))
-        .sorted(Comparator.comparingInt(DocumentationMarkdown::groupOrder)
-            .thenComparingInt(DocumentationMarkdown::pageOrder)
-            .thenComparing(Page::source))
-        .toList();
-    for (Page page : navigation) {
+    for (Page page : navigationPages()) {
       String nextGroup = group(page);
       if (!nextGroup.equals(group)) {
         if (group != null) {
@@ -124,7 +154,7 @@ final class DocumentationMarkdown {
     if (page.source().equals("examples.md")) {
       return 10;
     }
-    if (page.source().equals("proposals/README.md")) {
+    if (isIndexSource(page.source()) && group(page).equals("proposals")) {
       return 0;
     }
     if (page.source().startsWith("proposals/WIP-")) {
@@ -163,11 +193,12 @@ final class DocumentationMarkdown {
         unordered = closeList(html, unordered, "ul");
         ordered = closeList(html, ordered, "ol");
         if (code) {
-          html.append("</code></pre>\n");
+          html.append("</code></pre></div>\n");
           code = false;
         } else {
           String language = trimmed.substring(3).replaceAll("[^A-Za-z0-9_-]", "");
-          html.append("<pre><code")
+          html.append("<div class=\"code-block\"><button class=\"copy-code\" type=\"button\"")
+              .append(" aria-label=\"Copy code to clipboard\">Copy</button><pre><code")
               .append(language.isEmpty() ? "" : " class=\"language-" + language + "\"")
               .append('>');
           code = true;
@@ -302,10 +333,15 @@ final class DocumentationMarkdown {
       } else if (matcher.group(2) != null) {
         html.append("<a href=\"").append(escapeAttribute(href(page, matcher.group(3))))
             .append("\">").append(escape(matcher.group(2))).append("</a>");
-      } else if (matcher.group(4) != null) {
-        html.append("<strong>").append(escape(matcher.group(4))).append("</strong>");
+      } else if (matcher.group(4) != null || matcher.group(5) != null) {
+        String value = matcher.group(4) != null ? matcher.group(4) : matcher.group(5);
+        html.append("<strong><em>").append(escape(value)).append("</em></strong>");
+      } else if (matcher.group(6) != null || matcher.group(7) != null) {
+        String value = matcher.group(6) != null ? matcher.group(6) : matcher.group(7);
+        html.append("<strong>").append(escape(value)).append("</strong>");
       } else {
-        html.append("<em>").append(escape(matcher.group(5))).append("</em>");
+        String value = matcher.group(8) != null ? matcher.group(8) : matcher.group(9);
+        html.append("<em>").append(escape(value)).append("</em>");
       }
       cursor = matcher.end();
     }
@@ -320,8 +356,8 @@ final class DocumentationMarkdown {
     if (target.startsWith("manual:")) {
       String manual = target.substring("manual:".length());
       int hash = manual.indexOf('#');
-      String source = (hash < 0 ? manual : manual.substring(0, hash)) + ".md";
-      String route = routes.get(source);
+      String identity = hash < 0 ? manual : manual.substring(0, hash);
+      String route = manualRoutes.get(identity);
       if (route == null) {
         throw new PackageFormatException("Unknown manual link " + target);
       }
@@ -334,7 +370,7 @@ final class DocumentationMarkdown {
     int hash = target.indexOf('#');
     String path = hash < 0 ? target : target.substring(0, hash);
     String fragment = hash < 0 ? "" : target.substring(hash);
-    if (path.endsWith(".md")) {
+    if (isManualSource(path)) {
       Path source = Path.of(page.source());
       Path resolved = (source.getParent() == null ? Path.of(path) : source.getParent().resolve(path))
           .normalize();
@@ -373,16 +409,17 @@ final class DocumentationMarkdown {
   }
 
   private static String outputPath(String source) {
-    if (source.equals("README.md")) {
-      return "manual/index.html";
+    if (!isManualSource(source)) {
+      throw new PackageFormatException("Documentation page is not Markdown or MDX: " + source);
     }
-    if (source.endsWith("/README.md")) {
-      return source.substring(0, source.length() - "README.md".length()) + "index.html";
+    Path path = Path.of(source);
+    String filename = path.getFileName().toString();
+    if (filename.equals("README.md") || filename.equals("index.md")
+        || filename.equals("index.mdx")) {
+      Path parent = path.getParent();
+      return parent == null ? "manual/index.html" : logical(parent.resolve("index.html"));
     }
-    if (!source.endsWith(".md")) {
-      throw new PackageFormatException("Documentation page is not Markdown: " + source);
-    }
-    return source.substring(0, source.length() - 3) + ".html";
+    return source.substring(0, source.length() - manualSuffix(source).length()) + ".html";
   }
 
   static String relative(String from, String to) {
@@ -396,7 +433,7 @@ final class DocumentationMarkdown {
   private static Document document(String sourceText, String source) {
     String[] lines = sourceText.split("\\R", -1);
     if (lines.length == 0 || !lines[0].equals("---")) {
-      return new Document(sourceText, NO_SIDEBAR_POSITION);
+      return new Document(sourceText, NO_SIDEBAR_POSITION, true, true);
     }
     int closing = 1;
     while (closing < lines.length && !lines[closing].equals("---")) {
@@ -423,6 +460,22 @@ final class DocumentationMarkdown {
         throw new PackageFormatException("Invalid sidebar_position in " + source);
       }
     }
+    boolean sidebar = booleanField(fields, "sidebar", true, source);
+    boolean sidebarChildren = true;
+    if (fields.containsKey("sidebar_children")) {
+      if (!isIndexSource(source)) {
+        throw new PackageFormatException(
+            "sidebar_children is valid only on index.md or index.mdx: " + source);
+      }
+      String value = frontMatterScalar(fields.get("sidebar_children"));
+      if (value.equals("true")) {
+        sidebarChildren = true;
+      } else if (value.equals("false")) {
+        sidebarChildren = false;
+      } else {
+        throw new PackageFormatException("Invalid sidebar_children in " + source);
+      }
+    }
     String markdown = String.join("\n", java.util.Arrays.copyOfRange(
         lines, Math.min(closing + 1, lines.length), lines.length));
     String headingTitle = title(markdown, source);
@@ -431,7 +484,54 @@ final class DocumentationMarkdown {
       throw new PackageFormatException("Markdown front-matter title disagrees with heading in "
           + source);
     }
-    return new Document(markdown, sidebarPosition);
+    return new Document(markdown, sidebarPosition, sidebar, sidebarChildren);
+  }
+
+  private static boolean booleanField(
+      Map<String, String> fields, String field, boolean defaultValue, String source) {
+    if (!fields.containsKey(field)) {
+      return defaultValue;
+    }
+    String value = frontMatterScalar(fields.get(field));
+    if (value.equals("true")) {
+      return true;
+    }
+    if (value.equals("false")) {
+      return false;
+    }
+    throw new PackageFormatException("Invalid " + field + " in " + source);
+  }
+
+  static boolean isManualSource(String source) {
+    return source.endsWith(".md") || source.endsWith(".mdx");
+  }
+
+  static boolean isIndexSource(String source) {
+    String filename = Path.of(source).getFileName().toString();
+    return filename.equals("index.md") || filename.equals("index.mdx");
+  }
+
+  static String manualPage(String source) {
+    return source.substring(0, source.length() - manualSuffix(source).length());
+  }
+
+  private static String manualSuffix(String source) {
+    if (source.endsWith(".mdx")) {
+      return ".mdx";
+    }
+    if (source.endsWith(".md")) {
+      return ".md";
+    }
+    throw new PackageFormatException("Documentation page is not Markdown or MDX: " + source);
+  }
+
+  private static String indexPrefix(String source) {
+    if (!isIndexSource(source)) {
+      throw new PackageFormatException(
+          "sidebar_children is valid only on index.md or index.mdx: " + source);
+    }
+    Path parent = Path.of(source).getParent();
+    return parent == null ? "" : logical(parent) + "/";
   }
 
   private static String frontMatterScalar(String value) {
@@ -463,8 +563,15 @@ final class DocumentationMarkdown {
     return path.toString().replace(path.getFileSystem().getSeparator(), "/");
   }
 
-  private record Document(String markdown, int sidebarPosition) {}
+  private record Document(
+      String markdown, int sidebarPosition, boolean sidebar, boolean sidebarChildren) {}
 
   record Page(
-      String source, String title, String output, String markdown, int sidebarPosition) {}
+      String source,
+      String title,
+      String output,
+      String markdown,
+      int sidebarPosition,
+      boolean sidebar,
+      boolean sidebarChildren) {}
 }

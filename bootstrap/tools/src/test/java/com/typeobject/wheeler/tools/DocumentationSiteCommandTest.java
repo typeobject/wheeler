@@ -38,7 +38,7 @@ class DocumentationSiteCommandTest {
 
     String publication = Files.readString(first.resolve("publication-manifest.json"));
     assertEquals(publication, Files.readString(second.resolve("publication-manifest.json")));
-    assertTrue(publication.contains("\"profile\":\"wheeler.doc-site/1\""));
+    assertTrue(publication.contains("\"profile\":\"wheeler.doc-site/2\""));
     assertTrue(publication.contains("\"bundleIdentity\":"));
     assertTrue(publication.contains("\"rendererIdentity\":"));
     assertTrue(Files.isRegularFile(first.resolve("index.html")));
@@ -46,6 +46,8 @@ class DocumentationSiteCommandTest {
     assertTrue(Files.isRegularFile(first.resolve("reference/bytecode.html")));
     assertTrue(Files.isRegularFile(first.resolve("sitemap.xml")));
     assertTrue(publication.contains("\"path\":\"sitemap.xml\""));
+    assertTrue(publication.contains("\"path\":\"copy.js\""));
+    assertTrue(Files.readString(first.resolve("copy.js")).contains("navigator.clipboard.writeText"));
     String sitemap = Files.readString(first.resolve("sitemap.xml"));
     assertTrue(sitemap.startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
     assertTrue(sitemap.contains("Wheeler content-set-sha256:"));
@@ -56,21 +58,29 @@ class DocumentationSiteCommandTest {
     assertTrue(index.startsWith("<!doctype html>"));
     assertTrue(index.contains("Content-Security-Policy"));
     assertTrue(index.contains("Generated from the verified Wheeler documentation graph"));
-    assertFalse(index.contains("<script"));
+    assertTrue(index.contains("<script src=\"copy.js\" defer></script>"));
+    assertTrue(index.contains("class=\"copy-code\""));
+    assertFalse(index.contains("<script>"));
     assertFalse(index.contains("sidebar_position:"));
     assertFalse(index.contains("description: Wheeler"));
     assertFalse(index.contains("reversible classical/quantum systems"));
     int manual = index.indexOf("<section><h2>manual</h2>");
     int reference = index.indexOf("<section><h2>reference</h2>");
     int proposals = index.indexOf("<section><h2>proposals</h2>");
-    int future = index.indexOf("<section><h2>future</h2>");
-    assertTrue(manual >= 0 && manual < reference && reference < proposals && proposals < future);
+    assertTrue(manual >= 0 && manual < reference && reference < proposals);
+    assertFalse(index.contains("<section><h2>future</h2>"));
+    assertFalse(index.contains(">WIP-0042: First-principles reversible and quantum computing tutorials</a>"));
     assertTrue(index.indexOf(">What Is Wheeler?</a>")
         < index.indexOf(">Executable examples</a>"));
     assertFalse(index.contains("WIP-XXXX: Short decision title"));
     assertTrue(Files.isRegularFile(first.resolve(
         "proposals/WIP-0037-hierarchical-semantic-routine-graphs.html")));
-    assertEquals(Files.readString(first.resolve("proposals/index.html")),
+    assertTrue(Files.isRegularFile(first.resolve("future/index.html")));
+    assertTrue(Files.isRegularFile(first.resolve("future/foundry.html")));
+    String proposalsIndex = Files.readString(first.resolve("proposals/index.html"));
+    assertFalse(proposalsIndex.contains(">WIP-0037: Hierarchical semantic routine graphs and verified transformations</a>"));
+    assertFalse(proposalsIndex.contains("<section><h2>future</h2>"));
+    assertEquals(proposalsIndex,
         Files.readString(second.resolve("proposals/index.html")));
     assertTrue(output.toString(StandardCharsets.UTF_8)
         .contains("published Wheeler documentation site"));

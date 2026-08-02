@@ -314,6 +314,6 @@ When software crosses classical, reversible, quantum, and external-effect bounda
 - [Quantum targets](reference/quantum-targets.md)
 - [Hybrid runs, history, and replay](reference/hybrid-runs.md)
 - [Packages, locks, archives, and offline builds](reference/packages.md)
-- [WIP index](proposals/README.md)
+- [WIP index](proposals/index.mdx)
 - [Wheeler repository](https://github.com/typeobject/wheeler)
 - [Published documentation](https://wheeler.typeobject.com/)

@@ -29,7 +29,7 @@ final class DocumentationBundleReader {
   private static final Pattern ENTRY = Pattern.compile(
       "\\{\"path\":\"([A-Za-z0-9._/-]+)\",\"sha256\":\"([0-9a-f]{64})\"}");
   private static final Pattern TRAILER = Pattern.compile(
-      "\\],\"manualSources\":[0-9]+,\"profile\":\"wheeler-doc-bundle-2\","
+      "\\],\"manualSources\":[0-9]+,\"profile\":\"wheeler-doc-bundle-3\","
           + "\"wheelerSources\":[0-9]+}\\n");
 
   private DocumentationBundleReader() {}
@@ -64,7 +64,8 @@ final class DocumentationBundleReader {
         throw new PackageFormatException(
             "Documentation bundle digest mismatch: " + entry.path());
       }
-      if (entry.path().startsWith("pages/") && entry.path().endsWith(".md")) {
+      if (entry.path().startsWith("pages/")
+          && DocumentationMarkdown.isManualSource(entry.path())) {
         pages.put(entry.path().substring("pages/".length()), decode(bytes, entry.path()));
       }
     }

@@ -713,8 +713,8 @@ The generated series supports keyboard navigation, heading structure, visible fo
 high-contrast diagrams. Tables have row and column headers. Circuit meaning does not depend on wire color.
 
 Every command and source asset works offline after the source checkout and toolchain setup. The site contains no remote fonts,
-scripts, analytics, video requirement, or provider embed. A printable reading order retains code, output, captions, evidence
-labels, and bridge questions.
+content-supplied scripts, analytics, video requirement, or provider embed. One fixed local helper copies a code block after an
+explicit reader action. A printable reading order retains code, output, captions, evidence labels, and bridge questions.
 
 ## Reversibility and history
 
