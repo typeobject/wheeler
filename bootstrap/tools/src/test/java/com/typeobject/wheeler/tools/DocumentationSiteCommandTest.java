@@ -48,6 +48,10 @@ class DocumentationSiteCommandTest {
     assertTrue(publication.contains("\"path\":\"sitemap.xml\""));
     assertTrue(publication.contains("\"path\":\"copy.js\""));
     assertTrue(Files.readString(first.resolve("copy.js")).contains("navigator.clipboard.writeText"));
+    String style = Files.readString(first.resolve("style.css"));
+    assertTrue(style.contains("pre { overflow: auto; padding: 1rem;"));
+    assertTrue(style.contains("pre code { display: block; padding: 0 6rem 0 0; }"));
+    assertFalse(style.contains("padding: 2.35rem 1rem 1rem"));
     String sitemap = Files.readString(first.resolve("sitemap.xml"));
     assertTrue(sitemap.startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
     assertTrue(sitemap.contains("Wheeler content-set-sha256:"));

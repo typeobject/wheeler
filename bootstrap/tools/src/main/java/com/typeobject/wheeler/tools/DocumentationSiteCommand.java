@@ -295,8 +295,8 @@ final class DocumentationSiteCommand {
         color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: .3rem;
         font: inherit; font-size: .75rem; cursor: pointer; }
       .copy-code:hover, .copy-code:focus-visible { color: var(--accent); border-color: var(--accent); }
-      pre { overflow: auto; padding: 2.35rem 1rem 1rem; border: 1px solid var(--line); border-radius: .45rem; }
-      pre code { padding: 0; }
+      pre { overflow: auto; padding: 1rem; border: 1px solid var(--line); border-radius: .45rem; }
+      pre code { display: block; padding: 0 6rem 0 0; }
       table { display: block; overflow-x: auto; width: 100%; border-collapse: collapse; margin: 1rem 0; }
       th, td { padding: .45rem .65rem; border: 1px solid var(--line); text-align: left; vertical-align: top; }
       blockquote, .admonition { margin: 1rem 0; padding: .6rem 1rem; border-left: 4px solid var(--accent);
