@@ -1,0 +1,992 @@
+# WIP-0042: First-principles reversible and quantum computing tutorials
+
+| Field | Value |
+| --- | --- |
+| Status | Draft |
+| Owners | Wheeler documentation, language, compiler, runtime, quantum, tooling, and example maintainers |
+| Created | 2026-08-02 |
+| Updated | 2026-08-02 |
+| Area | Tutorials, pedagogy, executable examples, reversible computing, quantum computing |
+| Depends on | WIP-0001, WIP-0002, WIP-0003, WIP-0004, WIP-0005, WIP-0006, WIP-0009, WIP-0018, WIP-0019 |
+| Supersedes | None |
+| Superseded by | None |
+
+## Summary
+
+Wheeler will publish one first-principles tutorial series that starts with running a tiny ordinary program and reaches reversible
+computing, amplitudes, interference, qubits, entanglement, small quantum algorithms, target execution, and hybrid replay. The
+series assumes that a reader has heard the word quantum but knows no quantum mechanics, reversible computing, binary arithmetic,
+probability, complex numbers, or linear algebra. It assumes only that the reader can follow instructions to edit a text file and
+run a terminal command.
+
+The series uses short experiments rather than broad survey chapters. One tutorial asks one central question, introduces at most
+one new conceptual dependency, runs or inspects one bounded experiment, and ends with the question that motivates the next
+tutorial. New Wheeler syntax carries an already familiar idea. New physics uses already familiar syntax. The series introduces
+mathematical notation only after an experiment creates a need for it.
+
+This WIP takes curriculum ownership if maintainers accept it. WIP-0006 will continue to own concrete syntax and editor tooling.
+WIP-0010 will continue to own application conformance. This WIP will own lesson order, reader prerequisites, tutorial fixtures,
+explanatory standards, and the boundary between implemented lessons and planned work. After the first complete foundation through
+entanglement track lands, the tutorial index will replace the compact `Teaching path` list in the language reference. The
+executable example catalog will remain a catalog rather than a second tutorial sequence.
+
+## Motivation
+
+The current documentation explains Wheeler's design and records its executable surface. It does not yet teach that surface to a
+complete quantum beginner.
+
+The introduction moves across reversible state, coherent reuse, QFT, target workflows, proofs, and systems programming in one
+survey. The language profile serves as a dense reference. The examples page catalogs large conformance fixtures. The compact
+teaching path correctly orders major areas, but one row may still contain several unfamiliar language, mathematical, and physical
+ideas.
+
+A reader who does not know quantum computing encounters hidden prerequisites long before `QFT.w`:
+
+- what a program state is.
+- what a bit is.
+- what a mapping or truth table says.
+- how an overwrite loses information.
+- what an inverse means.
+- why inverse execution differs from debugger rewind.
+- what one trial and one outcome mean.
+- how repeated trials form a distribution.
+- why amplitudes are not probabilities.
+- how signs and phases create interference.
+- what preparation and measurement do.
+- why a qubit state differs from one measured bit.
+- how two-system state spaces combine.
+- why correlation alone does not define entanglement.
+
+A tutorial that explains `H`, amplitudes, the Born rule, measurement, and interference on one page still assumes quantum
+knowledge. A tutorial that explains `rev`, generated inverses, VM history, and commit on one page still assumes
+reversible-computing knowledge.
+
+Wheeler needs a slower path because its central contribution crosses both subjects. A reader should understand ordinary
+information loss before Wheeler asks them to value `rev`. They should understand finite reversible permutations before Wheeler
+lifts one coherently. They should observe interference before Wheeler introduces a complex phase. They should understand a
+generated adjoint before QFT uses one.
+
+The repository also needs one executable teaching authority. Hand-copied snippets, unchecked shell transcripts, speculative `.w`
+files, and broad examples that happen to look educational will drift. Tutorial code must compile, parse, run, and report its
+current limits through the same compiler, bytecode, verifier, runtime, target, package, and documentation paths as other Wheeler
+code.
+
+## Use cases
+
+### Reader with no quantum background
+
+A reader starts with one classical state field and one assertion. Over several short lessons, the reader draws a two-state
+machine, observes an overwrite, learns why the old input cannot be recovered, and writes a reversible XOR flip. The word qubit
+does not carry any unexplained work.
+
+Later, the reader prepares and measures basis states before using `H`. They gather a bounded seeded histogram before the text
+defines probability amplitudes. They run `H` twice before the text names interference. Each new term answers a question created by
+an experiment they already performed.
+
+### Experienced programmer with no physics background
+
+An experienced programmer may move quickly through Wheeler syntax while still following the same conceptual order. Checkpoint
+pages provide compact review exercises. Optional "programmer route" links may group already completed syntax lessons, but they do
+not skip information, probability, amplitude, measurement, or multi-system foundations.
+
+### Reader using only a source checkout
+
+A reader builds the existing stage-0 launcher once, copies or downloads one complete lesson source, and uses ordinary `wheeler
+compile`, `wheeler run`, `wheeler disassemble`, or `wheeler qasm` commands. The tutorial requires no network, provider
+credentials, notebook service, browser execution, or paid target.
+
+Every exact experiment records its expected result. Every sampled experiment records an explicit simulator, seed, shot count, and
+acceptance explanation. Repeating the documented command produces the documented semantic result or one explicitly described
+bounded sample.
+
+### Lesson whose desired feature does not exist
+
+A planned lesson needs structured ancilla cleanup. The current compiler cannot execute that source. The tutorial navigation omits
+the lesson and the repository contains no aspirational `.w` file. The curriculum map records the dependency on WIP-0034. Current
+pages may explain the boundary in prose, but they do not present future syntax as usable.
+
+### Reader comparing evidence
+
+A reader runs a circuit followed by its generated adjoint and observes basis-state restoration. The lesson calls this an
+executable check. A later lesson inspects a finite `GENERATED_ADJOINT` certificate and calls it structural evidence. Neither
+lesson calls a sampled run a theorem or claims that the current proof kernel proves the full mathematical correctness of QFT.
+
+## Goals
+
+- Teach Wheeler, reversible computing, and quantum computing from an explicit zero-knowledge reader baseline.
+- Use short, cumulative experiments whose code and output remain small enough to inspect by hand.
+- Introduce one central conceptual dependency per tutorial.
+- Separate syntax acquisition, computational reasoning, physical interpretation, and mathematical formalization.
+- Derive later questions from earlier observations instead of presenting a glossary before a need exists.
+- Keep inverse, rewind, uncompute, adjoint, measurement, replay, retry, cancellation, compensation, and proof distinct from their first appearances.
+- Give every executable lesson compiler, Tree-sitter, bytecode, verifier, runtime or target, and documentation validation.
+- Give every sampled lesson explicit seed, shot, target, ordering, and evidence contracts.
+- Keep every conceptual analogy paired with a precise statement of where it stops.
+- Provide static, accessible diagrams that remain useful in the generated site, source Markdown, and a printed or offline reading order.
+- Publish complete parts rather than navigation full of placeholders.
+- Replace the compact language-reference teaching path after the foundation through entanglement track becomes complete.
+- Keep the executable examples page as a capability catalog and WIP-0010 as the application portfolio.
+- Let future language and target work add lessons without changing the foundations already taught.
+
+## Non-goals
+
+- Teach all of computer science, classical programming, physics, or linear algebra before the first Wheeler program.
+- Assume that a reader has used Java because Wheeler syntax looks familiar.
+- Present Wheeler as Java with quantum keywords.
+- Turn the language reference, proposal index, or executable example catalog into a second copy of the tutorial.
+- Require one lesson to contain every caveat about a subject. Later lessons may refine an earlier bounded model without contradicting it.
+- Use "both zero and one," "quantum parallelism tries every answer," or similar phrases as substitutes for amplitude semantics.
+- Claim quantum speedup from fixture-sized examples.
+- Claim that reversible logic consumes no energy or that Landauer's bound predicts total device power.
+- Claim that measurement reveals a basis value that always existed before measurement.
+- Treat simulator state-vector diagnostics as portable hardware observations.
+- Treat repeated experimental success as proof.
+- Add speculative source syntax so the curriculum can mention a desired topic early.
+- Add a browser runtime, JavaScript playground, theme system, or network dependency to the trusted documentation build.
+- Freeze every final lesson title before reader testing. Stable lesson identities, prerequisites, and claims matter more than titles.
+
+## Terms and semantic model
+
+### Reader baseline
+
+The **reader baseline** assumes that a reader can:
+
+- read plain English.
+- create or edit a text file by following instructions.
+- copy a terminal command and inspect its output.
+- perform ordinary whole-number arithmetic with guidance.
+
+The baseline does not assume programming vocabulary, binary notation, truth tables, probability, waves, complex numbers, vectors,
+matrices, physics, reversible computing, or quantum computing.
+
+The opening pages may offer a faster route for readers who already know variables, methods, bits, and probability. The canonical
+dependency order remains the same. A fast route changes how many explanations a reader chooses to review. It does not change what
+a later lesson may assume.
+
+### Tutorial part
+
+A **tutorial part** is one complete sequence around a broad dependency boundary, such as ordinary state, information loss,
+probability, one qubit, or two qubits. Navigation publishes a part only when every required lesson in that part passes its
+acceptance gate.
+
+### Tutorial step
+
+A **tutorial step** is the smallest published lesson. It has one stable ID, one central question, a closed prerequisite set, one
+new conceptual dependency, one bounded activity, and one bridge question.
+
+A step may add a few tokens that form one source construct. For example, `reverse flip();` adds a keyword and one call form while
+teaching one idea, inverse invocation. A step must not also introduce VM rewind, commit, and quantum adjoints.
+
+### Experiment
+
+An **experiment** is one bounded action whose result the reader can inspect. It may be:
+
+- compilation and execution of one complete Wheeler program.
+- expected rejection of one complete malformed or semantically invalid Wheeler program.
+- deterministic disassembly or OpenQASM emission.
+- bounded seeded simulation with an explicit shot count.
+- ideal state-vector inspection under a simulator-only diagnostic profile.
+- hand reduction of one truth table, state map, histogram, amplitude table, or circuit.
+
+An experiment does not need to mutate Wheeler state. A conceptual step may reuse the previous program and inspect one new
+representation of its result.
+
+### Tiny program
+
+A **tiny program** is a complete Wheeler source that a learner can inspect without scrolling through unrelated declarations. The
+default target is at most 30 nonblank, noncomment source lines. A lesson that exceeds the target must split its idea or explain
+why syntax required for the one concept cannot fit.
+
+Mandatory repository API documentation does not consume this teaching budget when the lesson source comes from an independently
+checked documentation fence. A source-backed lesson that displays an authored `.w` file must explain or hide no semantic line.
+
+### Conceptual interlude
+
+A **conceptual interlude** introduces no Wheeler syntax. It uses an already familiar program result, diagram, table, or bounded
+physical model. Probability and interference need several interludes before the first Hadamard experiment receives a mathematical
+explanation.
+
+An interlude never uses invented source as decoration. If a page shows a complete Wheeler program, the documentation gate compiles
+it or checks its declared rejection.
+
+### Bridge question
+
+A **bridge question** names the unresolved issue that the next step answers. The current step may not require the next answer for
+its own explanation.
+
+Examples include:
+
+- "If both inputs become zero, where could an inverse find the old bit?"
+- "Probabilities only add. What kind of quantity could cancel?"
+- "The phase changed, but measurement did not. How could we make phase observable?"
+- "CNOT correlated the outcomes. Does that mean it copied the first qubit?"
+
+### Current boundary
+
+A **current boundary** states the last behavior that the repository implements. It names the owning reference page or WIP for
+unfinished work. It does not show future source as a runnable listing.
+
+### Evidence label
+
+Every quantum or proof result carries one visible **evidence label**:
+
+- exact classical execution.
+- ideal state-vector simulation under the named numerical profile.
+- seeded sampled simulation.
+- recorded hardware evidence.
+- finite structural certificate.
+- formal theorem certificate.
+- planned or conceptual behavior.
+
+The label follows the result in the page and generated index. Presentation cannot promote one label to another.
+
+## Ownership and boundaries
+
+This WIP owns:
+
+- the reader baseline.
+- tutorial-step identities and prerequisite order.
+- the page contract and pacing rules.
+- the first-principles curriculum map.
+- tutorial-specific source and result metadata.
+- the lesson publication and replacement gates.
+- reader-facing distinctions among kinds of evidence.
+
+WIP-0005 owns source-language meaning. A tutorial cannot simplify a construct into a new semantic rule.
+
+WIP-0006 owns concrete syntax, compiler locations, Tree-sitter nodes, and editor grammar. This WIP replaces only its compact
+curriculum ownership after acceptance. It does not replace its parser or tooling decisions.
+
+WIP-0001 owns reversible VM state, inverse calls, step history, rewind, and commit horizons. Tutorial traces consume those
+meanings without redefining them.
+
+WIP-0002 owns coherent and quantum semantics. WIP-0003 owns simulator and target contracts. WIP-0004 owns hybrid jobs, replay,
+retry, and transaction phases.
+
+WIP-0010 owns the executable application portfolio. Its examples may become destinations or capstones. This WIP owns the smaller
+steps that prepare a reader for them.
+
+WIP-0018 owns executable test cases and semantic reports. WIP-0019 owns documentation nodes, fenced-example validation, static
+rendering, navigation, downloadable assets, and publication.
+
+The language reference owns concise current contracts. It links to the tutorial after the replacement gate. It does not retain a
+competing ordered curriculum.
+
+The executable examples page owns current fixture discovery, expected results, and scope boundaries. It may state which tutorial
+arrives at an example. It does not explain every prerequisite again.
+
+Hosts own terminal, files, process launch, and optional hardware credentials. The core series uses no ambient network,
+home-directory state, live provider, or credential.
+
+## Design
+
+### Pacing law
+
+Each tutorial step has one central conceptual dependency. Reviewers apply these checks:
+
+1. The page states every prerequisite in ordinary language.
+2. The page introduces one new idea needed to answer its central question.
+3. Any new syntax expresses that one idea or routine mechanics already taught.
+4. The page uses no unexplained mathematical symbol.
+5. The experiment fits on one screen at the default site width when practical.
+6. The reader predicts a result before seeing it.
+7. The page explains one observed result before generalizing it.
+8. The page states one important nonclaim when a common misconception is nearby.
+9. The bridge question needs no concept that the current page silently assumed.
+
+A page that fails these checks splits into more steps. Page count is not a reason to merge prerequisites.
+
+### Page contract
+
+Every executable tutorial page contains these sections in this order unless a conceptual interlude marks an inapplicable section:
+
+1. **Question** states one concrete problem.
+2. **What you already know** links no more than the required earlier steps.
+3. **Predict** asks for one outcome before execution.
+4. **Program** shows one complete tiny program or exact source-backed listing.
+5. **Run it** gives one ordinary bounded command.
+6. **What happened** shows the checked result.
+7. **Walk through it** explains only relevant lines and state transitions.
+8. **Name the idea** introduces one precise term.
+9. **Try one change** asks for one local modification and prediction.
+10. **What this does not mean** blocks the nearest likely misconception.
+11. **Check yourself** asks one answerable question without hidden vocabulary.
+12. **Next question** supplies the bridge.
+
+A conceptual interlude replaces **Program** and **Run it** with **Activity**. The activity must still produce an inspectable
+table, diagram, count, or deduction.
+
+Checkpoint pages appear after each part. A checkpoint contains no new concepts. It asks readers to predict, run, trace, and
+explain a small combination of completed steps.
+
+### Narrative voice
+
+Tutorial prose follows the repository documentation style and adds these rules:
+
+- Address the reader as `you` during actions.
+- Prefer concrete state transitions to metaphors.
+- Define a term after the reader has observed the need for it.
+- Use short paragraphs around code and diagrams.
+- Put optional derivations in clearly marked math sidebars.
+- Keep historical notes separate from the causal explanation.
+- State target, simulator, and proof limits next to the result they qualify.
+- Avoid claims about consciousness, many worlds, quantum mysticism, or philosophical interpretation unless a later nonsemantic appendix compares interpretations carefully.
+
+Dry humor may reduce tension. It may not carry a semantic distinction.
+
+### Analogy discipline
+
+Every analogy has three parts:
+
+1. the feature it models.
+2. the exact rule the lesson uses.
+3. the point where the analogy stops.
+
+A coin may illustrate repeated binary outcomes. It does not model amplitude cancellation. A water wave may illustrate
+reinforcement and cancellation. It does not model an affine quantum resource. Two correlated envelopes may illustrate classical
+correlation. They do not establish entanglement.
+
+The tutorial introduces precise state and operation tables before an analogy begins to hide more than it reveals.
+
+### Mathematical progression
+
+The series introduces mathematics in this order:
+
+1. named values and state transitions.
+2. finite tables and arrows.
+3. functions as input-output mappings.
+4. one-to-one finite permutations.
+5. counts, frequencies, and probabilities.
+6. signed real contributions.
+7. amplitude magnitude and normalization.
+8. basis notation such as `|0>` and `|1>`.
+9. vectors as amplitude tables.
+10. simple real matrices as operation tables.
+11. relative phase.
+12. complex numbers as planar arrows.
+13. tensor products as the rule for combining independent systems.
+14. nonfactorable joint states.
+15. unitary operations and adjoints.
+
+The main path never requires a mathematical operation before a worked example. Optional math sidebars may formalize the same idea
+more deeply, but later required steps cannot depend on an optional sidebar without promoting it into the main path.
+
+### Source and documentation authority
+
+A self-contained lesson uses one complete primary `wheeler` fence in its Markdown page. The page metadata identifies that fence as
+one of:
+
+- exact execution.
+- expected compiler rejection.
+- ideal state-vector simulation under a named numerical profile.
+- seeded sampled simulation.
+- source display only for a conceptual trace.
+
+The documentation generator treats the primary fence as authored Wheeler source. It extracts the exact bytes, runs the compiler
+and Tree-sitter grammar, verifies canonical bytecode when compilation should succeed, executes the declared mode, and checks the
+bounded expectation. The generated site publishes the exact source as a downloadable `.w` asset.
+
+This model gives the lesson one source authority. It does not require a copied file under `wheeler-examples`. A reader may save
+the displayed bytes and run the same commands.
+
+A source-backed capstone may instead identify one checked-in `.w` file and package target. The generator reads that exact source
+through the package graph. A copied complete listing must match the named source bytes or a specified deterministic display
+projection. The first profile should prefer a link plus generated complete listing over manually copied fragments.
+
+Invalid teaching source lives only in an expected-rejection fence or compiler test input. It never enters an ordinary package
+source set where every `.w` file must compile.
+
+Each tutorial page receives bounded scalar front-matter metadata under a new documentation profile. The profile includes at least:
+
+```text
+tutorial_id
+tutorial_part
+tutorial_order
+tutorial_kind
+tutorial_source
+tutorial_expectation
+tutorial_evidence
+```
+
+WIP-0019 owns the exact bundle encoding. Unknown required tutorial kinds fail before site publication.
+
+### Command contract
+
+The main path uses ordinary Wheeler commands. A source-checkout setup page may define one short local launcher for the rest of the
+session, but it may not hide a second compiler or runtime.
+
+The baseline command set is:
+
+```text
+wheeler compile
+wheeler run
+wheeler disassemble
+wheeler qasm
+wheeler test
+```
+
+Several lessons need better observation than the current CLI exposes:
+
+- bounded fixed-seed shot sampling with a histogram.
+- bounded ideal state-vector amplitude inspection before measurement.
+- a readable circuit or workflow view.
+- a bounded transition view that distinguishes forward, language inverse, rewind-forward, and rewind-inverse observations.
+- a bounded hybrid-event view that distinguishes submission, result application, replay, and retry.
+
+This WIP specifies teaching requirements for those views, not a second execution model. The owning runtime, target, coverage, and
+documentation WIPs must accept the final command contracts. A dependent lesson does not publish until the view exists and its
+output passes conformance tests.
+
+Shot sampling always names a positive bounded shot count and explicit seed. Each shot prepares a fresh state and executes a
+complete submission. Repeating one measured state is not a substitute.
+
+Amplitude inspection is an ideal-simulator diagnostic. It rejects unsupported dynamic workflows and artifacts outside its declared
+qubit and output bounds. It never appears as a portable hardware result or a source-visible coherent read.
+
+Transition and event views observe immutable records after successful semantic transitions. They cannot mutate program state, add
+bytecode counters, alter scheduling, or erase attempted execution.
+
+### Static visual language
+
+The tutorial uses one fixed visual vocabulary:
+
+- boxes for classical state locations.
+- arrows for finite mappings.
+- rows for truth tables and amplitude tables.
+- left-to-right wires for circuits.
+- filled measurement markers for classical observations.
+- separate styles for inverse calls, VM rewind, adjoints, and replay.
+
+Every diagram includes text labels and a plain-text explanation. Meaning cannot depend on color alone. Source Markdown retains a
+useful table or ASCII form when the site renders a derived static SVG.
+
+Generated diagrams bind their source artifact or table identity. A decorative circuit image cannot become circuit authority.
+
+### Curriculum map
+
+The curriculum uses stable step IDs. Titles may improve after reader review. The first accepted map contains about ninety short
+steps. Maintainers may split a step without renumbering later semantic identities by adding a lowercase suffix. They may merge
+only steps that introduce no separate conceptual dependency.
+
+#### Opening: The destination
+
+- `T00` shows a small Bell-pair Wheeler program as an unexplained destination. It labels every unfamiliar line as something the series will build. It makes no claim that the reader understands the output.
+
+The series then puts that program aside until `T57`.
+
+#### Part 1: What a program does
+
+- `T01` creates one Wheeler source file.
+- `T02` runs one program and reads the completion line.
+- `T03` introduces one named `state` value.
+- `T04` changes that value with one assignment.
+- `T05` observes that statements run in source order.
+- `T06` checks one expected result with `assert`.
+- `T07` gives a known sequence of statements one method name and calls it.
+
+The checkpoint changes one literal, predicts the final state, and explains one failed assertion. It introduces no bit or
+reversible terminology.
+
+#### Part 2: Bits and finite state
+
+- `T08` restricts one example value to two allowed states.
+- `T09` names those states `0` and `1` without assuming binary arithmetic.
+- `T10` lists every possible input in a two-row table.
+- `T11` introduces the identity operation.
+- `T12` introduces the flip operation as two arrows.
+- `T13` applies the flip twice and restores the initial state.
+
+The checkpoint asks the reader to draw and execute a two-state map. It does not yet call the map reversible.
+
+#### Part 3: Information loss and reversible computation
+
+- `T14` overwrites both possible inputs with zero.
+- `T15` notices that two input arrows collide at one output.
+- `T16` asks why the output cannot identify the earlier input.
+- `T17` saves the earlier value as explicit history and accounts for the extra information.
+- `T18` defines an inverse as a new operation that reconstructs the exact input from the current state.
+- `T19` places an overwrite inside `rev` and reads the compiler rejection.
+- `T20` writes the first reversible XOR flip.
+- `T21` invokes `reverse flip();` as new forward work.
+- `T22` composes two known reversible operations and derives reverse execution order.
+- `T23` commits VM history, then runs a generated inverse to distinguish inverse execution from rewind.
+
+A following conceptual note introduces finite permutations. A separate bounded sidebar introduces Landauer's principle and states
+its thermodynamic assumptions and nonclaims.
+
+The checkpoint classifies tiny operations as one-to-one, information-losing, history backed, or rejected from `rev`.
+
+#### Part 4: Trials, outcomes, and probability
+
+- `T24` distinguishes one trial from its one observed outcome.
+- `T25` repeats a preparation to create fresh trials.
+- `T26` counts outcomes without interpreting the counts.
+- `T27` draws a histogram.
+- `T28` compares frequency with a stated probability model.
+- `T29` explains why one outcome does not reveal a distribution.
+
+These steps may use a fixed recorded binary data set before quantum syntax appears. The fixed data teaches counting, not
+randomness. A later quantum experiment supplies its own fresh seeded trials.
+
+The checkpoint reads two histograms and rejects conclusions that the sample cannot support.
+
+#### Part 5: Paths, signed contributions, and interference
+
+- `T30` draws two alternative paths to one destination.
+- `T31` assigns one real contribution to each path.
+- `T32` adds contributions with the same sign.
+- `T33` cancels equal contributions with opposite signs.
+- `T34` names relative sign as the first simple phase distinction.
+- `T35` explains why ordinary probabilities cannot model this cancellation.
+
+These steps introduce no qubit. They prepare the calculation rule that the Hadamard experiments will need.
+
+The checkpoint computes four two-path sums and only then squares their magnitudes.
+
+#### Part 6: One qubit
+
+- `T36` introduces a physical system with two distinguished measurement outcomes.
+- `T37` names one computational basis `|0>` and `|1>`.
+- `T38` declares one Wheeler `qreg` without applying a gate.
+- `T39` prepares the known basis state `|0>`.
+- `T40` measures the prepared state and records one classical outcome.
+- `T41` repeats fresh preparation and measurement with an explicit shot count.
+- `T42` applies `X` and compares it with the familiar classical flip on basis states.
+- `T43` applies `H` and inspects a seeded histogram before explaining it.
+- `T44` separates the premeasurement state from one measured outcome.
+- `T45` writes the first two-row amplitude table.
+- `T46` introduces normalization and the amplitude-magnitude-squared probability rule.
+- `T47` applies `H` twice and uses path addition to explain the deterministic return.
+- `T48` applies `Z`, observes no basis-probability change, then uses `H`, `Z`, `H` to reveal relative phase.
+- `T49` distinguishes global phase from relative phase through observable predictions.
+- `T50` introduces general phase angles and complex numbers as planar arrows.
+
+`T43` does not say that the qubit is a hidden coin. `T46` does not say that measurement merely reads a value that always existed.
+`T50` does not make complex-number fluency a prerequisite for the earlier real-amplitude path.
+
+The checkpoint predicts exact outcomes for `X`, `H H`, and `H Z H`, then explains one sampled `H` histogram.
+
+#### Part 7: Two qubits and entanglement
+
+- `T51` lists the four two-qubit basis labels.
+- `T52` connects basis labels to Wheeler's canonical little-endian measurement integers.
+- `T53` builds a product-state amplitude table from two independent one-qubit tables.
+- `T54` samples two independently prepared superpositions and sees all four outcomes.
+- `T55` evaluates CNOT on all four basis inputs.
+- `T56` explains why coherent control is not an ordinary measured `if` statement.
+- `T57` returns to the opening Bell circuit and executes it.
+- `T58` samples the Bell circuit and sees only correlated outcomes `00` and `11`.
+- `T59` compares the Bell histogram with an ordinary classically correlated data set.
+- `T60` shows that the Bell amplitude table cannot factor into two independent one-qubit tables and names entanglement.
+- `T61` explains why CNOT copies a known basis bit in one case but cannot clone an arbitrary qubit state.
+- `T62` runs the Bell circuit's generated adjoint and restores the prepared basis state.
+
+The checkpoint distinguishes independence, classical correlation, and entanglement using state and preparation facts rather than
+histogram shape alone.
+
+#### Part 8: Wheeler's reversible-to-coherent bridge
+
+- `T63` revisits the classical XOR flip and its finite permutation table.
+- `T64` requires coherent eligibility with `coherent rev`.
+- `T65` applies the same function to a quantum basis state.
+- `T66` applies the permutation to a superposition and tracks amplitudes without measurement.
+- `T67` tests rejected coherent bodies containing overwrite, measurement, I/O, or unsupported arithmetic.
+- `T68` introduces uncomputation and the current clean-ancilla boundary without presenting WIP-0034 syntax as implemented.
+
+The checkpoint explains, in words and a table, why exact finite permutations lift while information-losing functions do not.
+
+#### Part 9: Interference as an algorithmic tool
+
+- `T69` prepares the target state used for phase kickback.
+- `T70` runs one controlled operation and converts kicked-back phase into a basis outcome.
+- `T71` introduces an oracle as an operation with an exact input-output contract rather than a magical black box.
+- `T72` builds the constant case of Deutsch's problem.
+- `T73` builds the balanced case.
+- `T74` compares the two circuits and identifies the one-call distinction.
+- `T75` prepares an equal four-state superposition for two-qubit search.
+- `T76` marks one basis state with phase.
+- `T77` constructs the diffusion step from already known gates.
+- `T78` runs the complete four-state Grover experiment and states why the tiny fixture proves no practical speedup.
+- `T79` identifies the one-qubit Fourier transform with `H`.
+- `T80` constructs a two-qubit QFT one gate at a time.
+- `T81` reaches the checked-in three-qubit `QFT.w` after every gate and angle role is familiar.
+- `T82` runs the generated adjoint and inspects the finite structural certificate.
+
+The checkpoint distinguishes algorithm, oracle contract, implementation, sampled result, and proof claim.
+
+Broader arithmetic oracles, reusable lookup, structured workspace, phase estimation, and amplitude estimation remain gated on
+WIP-0010 and WIP-0033 through WIP-0036.
+
+#### Part 10: Quantum programs in the world
+
+- `T83` distinguishes an ideal semantic simulator from a physical target.
+- `T84` separates exact amplitudes, seeded samples, hardware samples, and statistical claims.
+- `T85` emits OpenQASM and identifies it as derived target text rather than Wheeler semantics.
+- `T86` inspects target capabilities and one pre-submission rejection.
+- `T87` follows one asynchronous quantum job even when the local target completes immediately.
+- `T88` treats measurement as a classical observation rather than an inverse-bearing mutation.
+- `T89` replays one recorded observation without target execution.
+- `T90` retries the same preparation as a new physical lineage.
+- `T91` introduces noise and decoherence as physical behavior outside the ideal state-vector model.
+- `T92` uses `SurfaceCode.w` to separate its static correction kernel from unfinished dynamic syndrome feedback.
+- `T93` compares executable tests, sampled evidence, finite structural certificates, and future general theorem certificates.
+
+The final checkpoint asks the reader to classify inverse, rewind, uncompute, adjoint, measurement, replay, and retry across one
+complete hybrid story.
+
+### Curriculum release units
+
+The documentation publishes the map through complete release units:
+
+1. **Foundations** contains `T01` through `T23`.
+2. **Amplitudes** contains `T24` through `T50`.
+3. **Entanglement and coherent reuse** contains `T51` through `T68`.
+4. **Algorithms** contains `T69` through `T82`.
+5. **Targets and evidence** contains `T83` through `T93`.
+
+`T00` publishes with the first unit and links forward only to published units.
+
+A release unit has no placeholder pages. The tutorial index may show later unit titles as a roadmap, but roadmap rows carry no
+links and make no implementation claim.
+
+### Replacement of the current teaching path
+
+The current `Wheeler source language profile` contains a compact `Teaching path`. It remains useful until this WIP supplies a
+complete beginner path.
+
+The replacement gate requires:
+
+- release units 1 through 3 are published.
+- every step from `T00` through `T68` passes the documentation and execution contracts.
+- setup works from a clean source checkout.
+- fixed-seed sampling and bounded ideal amplitude inspection support the required lessons.
+- navigation, previous and next links, checkpoints, downloadable source, and evidence labels are complete.
+- at least one editorial review follows the zero-knowledge reader baseline from `T00` through `T68` without relying on draft pages.
+
+At that gate, the implementation patch:
+
+1. replaces the compact `Teaching path` list with a short link to the tutorial index and a link to the executable example catalog.
+2. updates WIP-0006 to identify this WIP as curriculum owner without changing WIP-0006 syntax decisions.
+3. updates WIP-0010 to identify its teaching applications as capstone fixtures rather than the ordered beginner path.
+4. keeps no second lesson-order list in the reference or examples page.
+
+Later release units extend the tutorial index in place. They do not restore the old list.
+
+### Reader testing
+
+Mechanical tests cannot establish good pacing. Each release unit receives structured reader review from people who did not design
+the relevant language or quantum feature. Review notes record:
+
+- the first unexplained term each reader reports.
+- predictions that fail because the page omitted a prerequisite.
+- command or setup friction.
+- diagrams that require oral explanation.
+- phrases that create a false physical model.
+- steps that introduce more than one central idea.
+- bridge questions that do not follow from the experiment.
+
+The author resolves or explicitly defers every finding before publication. Reader review never replaces semantic tests. It checks
+pedagogy, not compiler correctness.
+
+### Current and future feature gates
+
+The curriculum tracks implementation state per step:
+
+| Area | Current base | Additional gate before publication |
+| --- | --- | --- |
+| Ordinary Wheeler syntax | Classes, state, methods, assertions, bounded control | Beginner setup and fenced-source extraction |
+| Reversible foundations | Generated inverses, reverse calls and blocks, commit, VM rewind semantics | Bounded readable transition presentation for the rewind comparison |
+| Probability | Deterministic test and target seeds exist internally | Reader-facing bounded shot command and histogram |
+| One-qubit gates | `X`, `H`, `Z`, `Phase`, preparation, and measurement exist | Bounded ideal amplitude diagnostic and lesson fixtures |
+| Two-qubit gates | CNOT, CZ, controlled phase, swap, and generated adjoints exist | Bell sampling and static diagrams |
+| Coherent reuse | Exact XOR lifting exists | Superposition diagnostic and focused rejection lessons |
+| Static algorithms | Baseline gates can express fixed Deutsch, Grover, and QFT circuits | End-to-end tiny fixtures and checked explanations |
+| Hybrid workflow | Jobs, events, replay, retry, and commit exist in bounded slices | Reader-facing bounded event inspection |
+| Dynamic correction | Static kernel and capability vocabulary exist | Dynamic measurement, reset, and target-resident control remain unfinished |
+| General proofs | Four finite structural rules exist | General quantum propositions and resource proofs remain unfinished |
+
+A page may mention a future gate only as a current boundary. It cannot inherit executable status from a proposal checklist.
+
+### Accessibility and offline use
+
+The generated series supports keyboard navigation, heading structure, visible focus, textual equations, alt text, and
+high-contrast diagrams. Tables have row and column headers. Circuit meaning does not depend on wire color.
+
+Every command and source asset works offline after the source checkout and toolchain setup. The site contains no remote fonts,
+scripts, analytics, video requirement, or provider embed. A printable reading order retains code, output, captions, evidence
+labels, and bridge questions.
+
+## Reversibility and history
+
+Tutorial generation and rendering are bounded deterministic transformations until output publication. They have no language
+inverse. Publication follows WIP-0019 atomic staging and makes no durability claim beyond its accepted host boundary.
+
+Lesson experiments preserve Wheeler's existing distinctions:
+
+- A language inverse executes new inverse instructions.
+- VM rewind consumes retained step records.
+- Uncomputation applies coherent inverse work to clean temporary state.
+- An adjoint reverses a unitary operation.
+- Replay consumes a recorded observation without target execution.
+- Retry creates a fresh target lineage.
+
+The documentation runner records experiment execution outside program state. Rewinding a VM does not delete the lesson result or
+documentation event. Replaying a hybrid result does not rerun the target. Regenerating a sampled lesson with another seed creates
+new sample evidence and must update the page expectation identity.
+
+Expected-rejection lessons make no partial output authoritative. A failed lesson build publishes no tutorial bundle or site.
+
+## Concurrency and determinism
+
+Tutorial steps have one canonical order from stable IDs and explicit prerequisites. Filesystem order and worker completion cannot
+change navigation.
+
+Documentation generation may compile and run independent lessons concurrently. Final results sort by tutorial ID, experiment
+identity, and diagnostic location. Serial and parallel generation must produce identical semantic bundle bytes for exact lessons.
+
+Seeded simulation names its seed and shot count. Hardware results never enter the core release gate. Operational duration, worker
+name, CPU count, and job completion order do not enter tutorial result identity.
+
+A hybrid lesson follows WIP-0004 event order. A target job may complete concurrently, but submission identity and continuation
+order select its result. The prose does not explain arrival order as semantic program order.
+
+## Quantum and proof implications
+
+The series treats quantum state as a typed physical and mathematical model, not a metaphor for ordinary uncertainty.
+
+The required explanation rules include:
+
+- A qubit state assigns amplitudes to basis outcomes. It is not merely a hidden classical bit.
+- Measurement produces one classical observation under the declared basis and result model.
+- Repeating a measurement experiment requires fresh preparation unless a target contract says otherwise.
+- CNOT can copy known computational-basis information into a clean target. It does not clone an arbitrary state.
+- Correlated measurement counts alone do not prove entanglement. The lesson also identifies the preparation and nonfactorable ideal state.
+- A generated adjoint is another physical computation when sent to a target. It is not VM rewind.
+- State-vector amplitudes are simulator diagnostics. Hardware does not return them as ordinary measurement data.
+- A sampled result is evidence about one declared run. It is not a universal claim.
+- A finite structural certificate proves only its named rule over its exact artifact subjects.
+- Current `QFTProof.w` remains an executable inverse law until a trusted theorem certificate proves a stronger proposition.
+
+The tutorial proof labels consume WIP-0011 rules. They do not enlarge the trusted kernel. A future proof lesson enters the current
+path only after its proposition, assumptions, certificate, and kernel profile execute end to end.
+
+## Bytecode, persistence, and compatibility
+
+This WIP adds no Wheeler source syntax, opcode, bytecode section, or runtime persistence format.
+
+Each successful executable lesson still lowers to canonical `.wbc` and completes a byte-identical decode and re-encode check. A
+tutorial expectation binds source, compiler, artifact, execution mode, target profile, seed and shots when present, output, and
+evidence label through WIP-0018 and WIP-0019 identities.
+
+Tutorial metadata changes the documentation bundle profile, not `.wbc` semantics. Older documentation readers reject unknown
+required tutorial node or experiment kinds. Ordinary Wheeler runtimes ignore documentation bundles.
+
+Lesson IDs remain stable after Review. A title or prose correction may keep the ID. A semantic experiment change updates source
+and result identities. A lesson split adds a stable suffix or new ID without silently retargeting incoming links.
+
+Downloaded `.w` assets are derived from exact checked tutorial source fences. They are convenience files, not another package or
+artifact authority.
+
+## Safety, limits, and failures
+
+The documentation gate bounds:
+
+- tutorial parts and steps.
+- prerequisite edges and depth.
+- source bytes, tokens, and diagnostics.
+- compilation and execution steps.
+- history records and trace rows.
+- qreg size and displayed basis rows.
+- shots, outcomes, histogram rows, and sample bytes.
+- circuit operations and diagram nodes.
+- output bytes and line width.
+- links, assets, equations, and generated pages.
+- total documentation work.
+
+A tutorial prerequisite graph must be acyclic and rooted at `T00` or the first setup step. Every required prior term resolves to
+an earlier published step. Duplicate IDs, missing steps, order disagreement, or a link into an unpublished release unit fails
+generation.
+
+Exact experiments fail on output drift. Sampled experiments fail on malformed results, wrong target or seed identity, wrong shot
+count, impossible outcomes, or a declared statistical acceptance failure. They never retry silently with another seed.
+
+Amplitude diagnostics reject nonfinite values, unsupported workflows, excess qubits, excess output, and unknown operations before
+publication. Formatting may round for presentation only when the page retains the exact diagnostic identity and states its
+rounding rule.
+
+The site escapes tutorial source and output as inert text. A code block cannot add raw HTML, scripts, provider credentials, host
+paths, environment contents, or remote assets.
+
+A conceptual error found after publication receives a normal correction with a clear note when it changes a physical or
+mathematical claim. The project does not preserve a false explanation for page-link compatibility.
+
+## Migration and deletion
+
+1. Accept the reader baseline, pacing law, page contract, evidence labels, and curriculum ownership.
+2. Add tutorial page metadata, prerequisite graph validation, and stable navigation to the WIP-0019 documentation model.
+3. Add extraction, Tree-sitter parsing, compilation, canonical bytecode checks, execution, expected rejection, and downloadable source for primary Wheeler fences.
+4. Establish one short source-checkout setup path and verify it on a clean machine profile.
+5. Implement release unit 1, `T00` through `T23`, with exact classical and reversible fixtures.
+6. Add the bounded shot and ideal-amplitude observation contracts under WIP-0003 and the stage-0 tools.
+7. Implement release unit 2, `T24` through `T50`, with probability, interference, and one-qubit fixtures.
+8. Add static circuit diagrams and complete Bell-state sampling support.
+9. Implement release unit 3, `T51` through `T68`, with two-qubit and coherent-reuse fixtures.
+10. Run the replacement gate and replace the language profile's compact `Teaching path` with the tutorial and example links.
+11. Update WIP-0006 and WIP-0010 ownership text. Delete duplicate ordered teaching lists.
+12. Implement release unit 4, `T69` through `T82`, only from accepted static source and target behavior.
+13. Add bounded hybrid-event inspection and implement release unit 5, `T83` through `T93`, through the current dynamic boundary.
+14. Port tutorial generation and experiment reduction to Wheeler under WIP-0019. Require byte-identical bundle output before deleting the Java stage-0 path.
+15. Delete temporary tutorial scripts, copied source mirrors, unchecked transcripts, and any navigation assembled outside the documentation graph.
+
+## Progress
+
+- [ ] Reader baseline and pacing law receive review.
+- [ ] Stable tutorial IDs and prerequisite graph receive review.
+- [ ] Tutorial metadata and documentation nodes are implemented.
+- [ ] Primary fenced Wheeler source compiles and runs through the documentation gate.
+- [ ] Expected-rejection fences check stable diagnostics.
+- [ ] Downloadable `.w` assets reproduce exact fenced source.
+- [ ] Release unit 1 is complete.
+- [ ] Fixed-seed shot histograms are available to tutorial experiments.
+- [ ] Bounded ideal amplitude diagnostics are available to tutorial experiments.
+- [ ] Release unit 2 is complete.
+- [ ] Static circuit diagrams pass accessibility and identity checks.
+- [ ] Release unit 3 is complete.
+- [ ] The language-reference teaching path is replaced.
+- [ ] WIP-0006 and WIP-0010 identify the new curriculum owner.
+- [ ] Release unit 4 is complete.
+- [ ] Bounded hybrid event presentation is available.
+- [ ] Release unit 5 is complete through the implemented dynamic boundary.
+- [ ] Reader-review findings are resolved for every release unit.
+- [ ] A Wheeler-written generator reproduces the tutorial bundle.
+- [ ] Duplicate curriculum and unchecked example paths are deleted.
+
+## Testing and acceptance
+
+- [ ] A clean checkout follows the documented setup and runs the first lesson without ambient dependencies.
+- [ ] Every lesson ID is unique, stable, ordered, and reachable through an acyclic prerequisite graph.
+- [ ] Every page introduces no unexplained required term or notation according to its declared prerequisite inventory.
+- [ ] Every exact primary fence parses with Tree-sitter, compiles, verifies, round-trips canonically, and produces its expected result.
+- [ ] Every expected-rejection fence fails with its named stable diagnostic and publishes no artifact.
+- [ ] Every sampled experiment names target, seed, shots, outcome width, and acceptance rule.
+- [ ] Repeating the full seeded sample suite produces the same canonical semantic reports.
+- [ ] Every amplitude experiment stays within the ideal diagnostic profile and labels the result simulator-only.
+- [ ] Every quantum page distinguishes state, one outcome, repeated outcomes, and proof claims correctly.
+- [ ] Every reversible page distinguishes inverse execution from VM rewind.
+- [ ] Every hybrid page distinguishes measurement, replay, and retry.
+- [ ] Bell-state pages distinguish correlation from entanglement and reject cloning language.
+- [ ] Landauer text states the bound and its assumptions without claiming zero-energy computation.
+- [ ] QFT pages identify executable restoration and finite certificates without claiming a missing general theorem.
+- [ ] Static targets reject lessons that require unavailable dynamic behavior before submission.
+- [ ] Every diagram has a text equivalent and does not depend on color.
+- [ ] Source Markdown, static HTML, downloadable source, and printable order contain the same lesson graph.
+- [ ] Serial and parallel documentation builds produce byte-identical semantic bundles.
+- [ ] A failed lesson compile, run, sample, link, or render leaves the previous publication unchanged.
+- [ ] Release units contain no linked placeholder pages.
+- [ ] Structured reader review covers the zero-knowledge path through `T68` before the replacement gate.
+- [ ] The compact language-reference teaching list is deleted after replacement, not maintained in parallel.
+- [ ] Current reference pages describe only implemented behavior and link to the tutorial without depending on draft lessons.
+
+## Alternatives
+
+### Keep the current compact teaching path
+
+Rejected as the complete beginner curriculum. Its dependency order is sound, but each row contains too many hidden prerequisites
+for a reader who only knows the word quantum. It remains useful until release units 1 through 3 pass the replacement gate.
+
+### Start with qubits and explain classical reversibility later
+
+Rejected. Quantum gates then look like arbitrary restrictions. Starting with information loss, inverses, and finite permutations
+gives coherent lifting a reason rather than a keyword.
+
+### Start with linear algebra
+
+Rejected as the required path. Vectors and matrices provide the precise model, but a full formal introduction front-loads notation
+before the reader has an experiment to explain. The chosen path introduces amplitude tables first and matrices after operation
+tables are familiar. Optional math sidebars may go deeper.
+
+### Explain each major topic in one chapter
+
+Rejected. A chapter that introduces Hadamard, superposition, amplitudes, probability, measurement, and interference still assumes
+the conceptual model it claims to teach. The tutorial step remains the publication unit even when a printed edition groups several
+steps into one chapter.
+
+### Use only the existing executable examples
+
+Rejected. Existing examples prove broad implementation slices and contain several ideas at once. They remain valuable capstones
+and conformance fixtures. They do not become tiny merely because a page explains them slowly.
+
+### Maintain separate prose snippets and source files
+
+Rejected. Two editable code authorities will drift. Self-contained lessons own one checked primary fence. Source-backed capstones
+identify one exact package source and use generated listings or checked projections.
+
+### Add a browser playground first
+
+Rejected as a prerequisite. A browser runtime would add scripts, another execution host, publication policy, and accessibility
+work before the curriculum exists. Offline terminal experiments and static diagrams provide the first complete path.
+
+### Use live hardware to make the physics real
+
+Rejected for the core path. Credentials, queue state, cost, noise, and provider drift make poor beginner dependencies. The ideal
+simulator teaches semantic rules. Later pages label optional hardware runs as sampled evidence under explicit target and budget
+identities.
+
+### Use one broad quantum metaphor
+
+Rejected. Coins, waves, arrows, and parallel worlds each hide a different rule. The series uses local analogies with explicit
+stopping points, then moves to amplitude tables and unitary operations.
+
+### Publish placeholder pages for the full roadmap
+
+Rejected. Placeholder navigation turns planned syntax into apparent product surface and leads beginners into dead ends. The index
+may show unlinked release-unit names as a roadmap.
+
+## Open questions
+
+- Which final command surface should expose fixed-seed shots and histograms. **Owner:** runtime, target, and tools maintainers. **Decide by:** before release unit 2 implementation.
+- Which bounded numeric and presentation profile should expose ideal amplitudes without making floating formatting semantic Wheeler output. **Owner:** quantum runtime and documentation maintainers. **Decide by:** before `T45` implementation.
+- Should primary tutorial fences use page front matter alone or one additional fenced-block attribute to declare execution mode. **Owner:** WIP-0019 maintainers. **Decide by:** before tutorial metadata acceptance.
+- Which deterministic display projection may omit source-attached `//!` and `///` documentation from a source-backed capstone listing. **Owner:** compiler and documentation maintainers. **Decide by:** before the first source-backed capstone.
+- Which static circuit representation should generate both accessible HTML and useful source Markdown. **Owner:** quantum tooling and documentation maintainers. **Decide by:** before release unit 3.
+- How many independent zero-knowledge reader reviews are required for a release unit. **Owner:** documentation maintainers. **Decide by:** before release unit 1 publication.
+- Should a printed edition group tutorial steps under chapter numbers that remain outside stable tutorial identity. **Owner:** documentation and publication maintainers. **Decide by:** before printable bundle work.
+
+## References
+
+### Wheeler proposals
+
+- [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
+- [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md)
+- [WIP-0003](WIP-0003-quantum-target-and-qiskit-backend.md)
+- [WIP-0004](WIP-0004-hybrid-jobs-history-and-replay.md)
+- [WIP-0005](WIP-0005-wheeler-source-language.md)
+- [WIP-0006](WIP-0006-concrete-syntax-tooling-and-teaching.md)
+- [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
+- [WIP-0010](WIP-0010-executable-application-portfolio.md)
+- [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
+- [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
+- [WIP-0019](WIP-0019-integrated-documentation-publication.md)
+- [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md)
+- [WIP-0033](WIP-0033-typed-coherent-values-and-reversible-embeddings.md)
+- [WIP-0034](WIP-0034-structured-uncomputation-and-clean-ancilla-scopes.md)
+- [WIP-0035](WIP-0035-reversible-and-coherent-control-flow.md)
+- [WIP-0036](WIP-0036-symbolic-resource-contracts-and-compositional-cost-evidence.md)
+- [WIP-0037](WIP-0037-hierarchical-semantic-routine-graphs.md)
+
+### Current documentation
+
+- [What is Wheeler?](../intro.md)
+- [Wheeler source language profile](../reference/language-profile.md)
+- [Executable examples](../examples.md)
+- [Quantum targets](../reference/quantum-targets.md)
+- [Hybrid runs and replay](../reference/hybrid-runs.md)
+- [Reversible virtual machine](../reference/virtual-machine.md)
+
+### Teaching and subject references
+
+- Richard P. Feynman, *Feynman Lectures on Computation*.
+- David A. Patterson and John L. Hennessy, *Computer Organization and Design*, for finite-state and information foundations.
+- N. David Mermin, *Quantum Computer Science: An Introduction*.
+- Michael A. Nielsen and Isaac L. Chuang, *Quantum Computation and Quantum Information*.
+- Rolf Landauer, "Irreversibility and Heat Generation in the Computing Process," 1961.
