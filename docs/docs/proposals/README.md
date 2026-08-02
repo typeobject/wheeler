@@ -134,3 +134,4 @@ Source syntax, generic specialization, class evidence, tests, proofs, packages, 
 | [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md) | Draft | Deterministic structured task machine and global rewind | VM, structured tasks, scheduling, atomics, rewind |
 | [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md) | Draft | Explicit schedule witnesses for reversible task scopes | Language inverse, task witnesses, shared atomics |
 | [WIP-0041](WIP-0041-reversible-result-slots-and-explicit-presence-values.md) | Draft | Reversible result slots and explicit presence values | Language, returns, ownership, coherent values |
+| [WIP-0042](WIP-0042-first-principles-reversible-and-quantum-tutorials.md) | Draft | First-principles reversible and quantum computing tutorials | Tutorials, pedagogy, executable examples, quantum foundations |
