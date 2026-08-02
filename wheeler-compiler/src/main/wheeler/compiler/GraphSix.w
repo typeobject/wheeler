@@ -9,6 +9,7 @@ import wheeler.compiler.graphs.six.mixed;
 import wheeler.compiler.graphs.six.nested;
 import wheeler.compiler.graphs.six.pairs;
 import wheeler.compiler.graphs.six.plans;
+import wheeler.compiler.graphs.six.uneven;
 import wheeler.compiler.graphs.sources;
 import wheeler.compiler.module_linker;
 
@@ -317,6 +318,20 @@ classical class CompilerGraphSix {
       mixed = new SixMixedCompilation(nested.length, nested.codeStart);
     }
 
+    if (plan.topology == SIX_PLAN_UNEVEN_TREE_AND_DIRECTS) {
+      SixUnevenCompilation uneven = compileSixUnevenTreeAndDirectsIfOrdered(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        plannedFourth,
+        plannedFifth,
+        plannedSixth,
+        rootSource,
+        output
+      );
+      mixed = new SixMixedCompilation(uneven.length, uneven.codeStart);
+    }
+
     drop(plannedSixth);
     drop(sixthArena);
     drop(plannedFifth);
@@ -370,102 +385,20 @@ classical class CompilerGraphSix {
       );
     }
 
-    if (plan.topology == SIX_PLAN_CHAIN_AND_DIRECTS) {
-      return compilePlannedSixRootBranches(
-        plan,
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        fifthSource,
-        sixthSource,
-        rootSource,
-        output
-      );
-    }
-
-    if (plan.topology == SIX_PLAN_FORK_AND_DIRECTS) {
-      return compilePlannedSixRootBranches(
-        plan,
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        fifthSource,
-        sixthSource,
-        rootSource,
-        output
-      );
-    }
-
-    if (plan.topology == SIX_PLAN_PAIRS_AND_DIRECTS) {
-      return compilePlannedSixRootBranches(
-        plan,
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        fifthSource,
-        sixthSource,
-        rootSource,
-        output
-      );
-    }
-
-    if (plan.topology == SIX_PLAN_LONG_CHAIN_AND_DIRECTS) {
-      return compilePlannedSixRootBranches(
-        plan,
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        fifthSource,
-        sixthSource,
-        rootSource,
-        output
-      );
-    }
-
-    if (plan.topology == SIX_PLAN_DEEP_CHAIN_AND_DIRECTS) {
-      return compilePlannedSixRootBranches(
-        plan,
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        fifthSource,
-        sixthSource,
-        rootSource,
-        output
-      );
-    }
-
-    if (plan.topology == SIX_PLAN_THREE_LEAF_FORK_AND_DIRECTS) {
-      return compilePlannedSixRootBranches(
-        plan,
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        fifthSource,
-        sixthSource,
-        rootSource,
-        output
-      );
-    }
-
-    if (plan.topology == SIX_PLAN_NESTED_FORK_AND_DIRECTS) {
-      return compilePlannedSixRootBranches(
-        plan,
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        fifthSource,
-        sixthSource,
-        rootSource,
-        output
-      );
+    if (SIX_PLAN_FORK < plan.topology) {
+      if (plan.topology < SIX_ROOT_BRANCH_PLAN_LIMIT) {
+        return compilePlannedSixRootBranches(
+          plan,
+          firstSource,
+          secondSource,
+          thirdSource,
+          fourthSource,
+          fifthSource,
+          sixthSource,
+          rootSource,
+          output
+        );
+      }
     }
 
     if (plan.topology == SIX_PLAN_CHAIN) {

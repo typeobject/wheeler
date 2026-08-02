@@ -25,6 +25,8 @@ classical class SixGraphStructures {
   public const long SIX_STRUCTURE_THREE_LEAF_FORK_AND_DIRECTS = 9;
   /// Names one nested two-leaf fork beside two direct root imports.
   public const long SIX_STRUCTURE_NESTED_FORK_AND_DIRECTS = 10;
+  /// Names one uneven two-branch tree beside two direct root imports.
+  public const long SIX_STRUCTURE_UNEVEN_TREE_AND_DIRECTS = 11;
 
   private const long MODULE_COUNT = 6;
   private const long SINGLE_EDGE = 1;
@@ -353,6 +355,73 @@ classical class SixGraphStructures {
     );
   }
 
+  private SixGraphStructure unevenTreeAndDirectsPlan(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long leaf = -1;
+    long middle = -1;
+    long secondLeaf = -1;
+    long dependent = -1;
+    long firstDirect = -1;
+    long secondDirect = -1;
+    long candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (incomingCount(graph, candidate) == SINGLE_EDGE) {
+        if (outgoingCount(graph, candidate) == SINGLE_EDGE) {
+          middle = candidate;
+        }
+      }
+
+      candidate += 1;
+    }
+
+    candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[candidate * MODULE_COUNT + middle] == 1) {
+        leaf = candidate;
+      }
+
+      if (graph[middle * MODULE_COUNT + candidate] == 1) {
+        dependent = candidate;
+      }
+
+      candidate += 1;
+    }
+
+    candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[candidate * MODULE_COUNT + dependent] == 1) {
+        if (candidate == middle) {} else {
+          secondLeaf = candidate;
+        }
+      }
+
+      if (rootDirect[candidate] == 1) {
+        if (incomingCount(graph, candidate) == 0) {
+          if (firstDirect < 0) {
+            firstDirect = candidate;
+          } else {
+            secondDirect = candidate;
+          }
+        }
+      }
+
+      candidate += 1;
+    }
+
+    return new SixGraphStructure(
+      SIX_STRUCTURE_UNEVEN_TREE_AND_DIRECTS,
+      leaf,
+      middle,
+      secondLeaf,
+      dependent,
+      firstDirect,
+      secondDirect,
+      true
+    );
+  }
+
   private SixGraphStructure nestedForkAndDirectsPlan(
     borrow mut words graph,
     borrow mut words rootDirect
@@ -646,6 +715,10 @@ classical class SixGraphStructures {
             }
 
             candidate += 1;
+          }
+
+          if (interiorNodeCount(graph) == SINGLE_EDGE) {
+            return unevenTreeAndDirectsPlan(graph, rootDirect);
           }
         }
 

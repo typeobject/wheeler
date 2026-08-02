@@ -448,6 +448,32 @@ class NativeImportedConstantWideExampleTest {
   }
 
   @Test
+  void linksAnUnevenTreeBesideTwoDirectModulesIndependentOfInputOrder() throws Exception {
+    String alpha = "module examples.alpha; classical class Alpha { "
+        + "public const long ALPHA = 2; }";
+    String beta = "module examples.beta; import examples.alpha; classical class Beta { "
+        + "public const long MIDDLE = ALPHA + 3; }";
+    String gamma = "module examples.gamma; classical class Gamma { "
+        + "public const long GAMMA = 7; }";
+    String delta = "module examples.delta; import examples.beta; import examples.gamma; "
+        + "classical class Delta { public const long ANSWER = MIDDLE + GAMMA; }";
+    String epsilon = "module examples.epsilon; classical class Epsilon { "
+        + "public const long EPSILON = 11; }";
+    String zeta = "module examples.zeta; classical class Zeta { "
+        + "public const long ZETA = 13; }";
+    String root = "module examples.root; import examples.delta; import examples.epsilon; "
+        + "import examples.zeta; classical class Root { state long outcome = 0; "
+        + "entry void main() { outcome += ANSWER; outcome += EPSILON; "
+        + "outcome += ZETA; } }";
+    List<String> imported = List.of(alpha, beta, gamma, delta, epsilon, zeta);
+
+    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    VirtualMachine machine = new VirtualMachine(artifact);
+    machine.run();
+    assertEquals(36, machine.global("outcome"));
+  }
+
+  @Test
   void linksAChainBesideFourDirectModulesAndRejectsDisconnectedCycles() throws Exception {
     String alpha = "module examples.alpha; classical class Alpha { "
         + "public const long ALPHA = 2; }";
