@@ -474,6 +474,81 @@ class NativeImportedConstantWideExampleTest {
   }
 
   @Test
+  void linksAForkChainAndDirectModuleIndependentOfInputOrder() throws Exception {
+    String alpha = "module examples.alpha; classical class Alpha { "
+        + "public const long ALPHA = 2; }";
+    String beta = "module examples.beta; classical class Beta { "
+        + "public const long BETA = 3; }";
+    String gamma = "module examples.gamma; import examples.alpha; import examples.beta; "
+        + "classical class Gamma { public const long FORK = ALPHA + BETA; }";
+    String delta = "module examples.delta; classical class Delta { "
+        + "public const long DELTA = 7; }";
+    String epsilon = "module examples.epsilon; import examples.delta; "
+        + "classical class Epsilon { public const long CHAIN = DELTA + 4; }";
+    String zeta = "module examples.zeta; classical class Zeta { "
+        + "public const long ZETA = 13; }";
+    String root = "module examples.root; import examples.epsilon; import examples.gamma; "
+        + "import examples.zeta; classical class Root { state long outcome = 0; "
+        + "entry void main() { outcome += FORK; outcome += CHAIN; outcome += ZETA; } }";
+    List<String> imported = List.of(alpha, beta, gamma, delta, epsilon, zeta);
+
+    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    VirtualMachine machine = new VirtualMachine(artifact);
+    machine.run();
+    assertEquals(29, machine.global("outcome"));
+  }
+
+  @Test
+  void linksThreeIndependentChainsRegardlessOfInputOrder() throws Exception {
+    String alpha = "module examples.alpha; classical class Alpha { "
+        + "public const long ALPHA = 2; }";
+    String beta = "module examples.beta; import examples.alpha; classical class Beta { "
+        + "public const long FIRST = ALPHA + 1; }";
+    String gamma = "module examples.gamma; classical class Gamma { "
+        + "public const long GAMMA = 5; }";
+    String delta = "module examples.delta; import examples.gamma; classical class Delta { "
+        + "public const long SECOND = GAMMA + 2; }";
+    String epsilon = "module examples.epsilon; classical class Epsilon { "
+        + "public const long EPSILON = 11; }";
+    String zeta = "module examples.zeta; import examples.epsilon; classical class Zeta { "
+        + "public const long THIRD = EPSILON + 2; }";
+    String root = "module examples.root; import examples.beta; import examples.delta; "
+        + "import examples.zeta; classical class Root { state long outcome = 0; "
+        + "entry void main() { outcome += FIRST; outcome += SECOND; outcome += THIRD; } }";
+    List<String> imported = List.of(alpha, beta, gamma, delta, epsilon, zeta);
+
+    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    VirtualMachine machine = new VirtualMachine(artifact);
+    machine.run();
+    assertEquals(23, machine.global("outcome"));
+  }
+
+  @Test
+  void linksLongAndShortChainsBesideADirectModuleIndependentOfInputOrder() throws Exception {
+    String alpha = "module examples.alpha; classical class Alpha { "
+        + "public const long ALPHA = 2; }";
+    String beta = "module examples.beta; import examples.alpha; classical class Beta { "
+        + "public const long MIDDLE = ALPHA + 3; }";
+    String gamma = "module examples.gamma; import examples.beta; classical class Gamma { "
+        + "public const long LONG = MIDDLE + 2; }";
+    String delta = "module examples.delta; classical class Delta { "
+        + "public const long DELTA = 11; }";
+    String epsilon = "module examples.epsilon; import examples.delta; "
+        + "classical class Epsilon { public const long SHORT = DELTA + 3; }";
+    String zeta = "module examples.zeta; classical class Zeta { "
+        + "public const long ZETA = 17; }";
+    String root = "module examples.root; import examples.epsilon; import examples.gamma; "
+        + "import examples.zeta; classical class Root { state long outcome = 0; "
+        + "entry void main() { outcome += LONG; outcome += SHORT; outcome += ZETA; } }";
+    List<String> imported = List.of(alpha, beta, gamma, delta, epsilon, zeta);
+
+    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    VirtualMachine machine = new VirtualMachine(artifact);
+    machine.run();
+    assertEquals(38, machine.global("outcome"));
+  }
+
+  @Test
   void linksAChainBesideFourDirectModulesAndRejectsDisconnectedCycles() throws Exception {
     String alpha = "module examples.alpha; classical class Alpha { "
         + "public const long ALPHA = 2; }";

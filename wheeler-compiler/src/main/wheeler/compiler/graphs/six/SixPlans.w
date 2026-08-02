@@ -29,8 +29,14 @@ classical class SixGraphPlans {
   public const long SIX_PLAN_NESTED_FORK_AND_DIRECTS = 10;
   /// Names one uneven two-branch tree beside two direct root imports.
   public const long SIX_PLAN_UNEVEN_TREE_AND_DIRECTS = 11;
+  /// Names one fork beside one chain and one direct root import.
+  public const long SIX_PLAN_FORK_CHAIN_AND_DIRECT = 12;
+  /// Names three independent chains imported directly by the root.
+  public const long SIX_PLAN_THREE_CHAINS = 13;
+  /// Names one long chain beside one short chain and one direct root import.
+  public const long SIX_PLAN_LONG_AND_SHORT_CHAINS = 14;
   /// Bounds the contiguous root-branch plan range without naming another plan.
-  public const long SIX_ROOT_BRANCH_PLAN_LIMIT = 12;
+  public const long SIX_ROOT_BRANCH_PLAN_LIMIT = 15;
 
   private const long MODULE_COUNT = 6;
   private const long SINGLE_IMPORT = 1;
@@ -112,6 +118,18 @@ classical class SixGraphPlans {
 
     if (structure == SIX_STRUCTURE_UNEVEN_TREE_AND_DIRECTS) {
       return SIX_PLAN_UNEVEN_TREE_AND_DIRECTS;
+    }
+
+    if (structure == SIX_STRUCTURE_FORK_CHAIN_AND_DIRECT) {
+      return SIX_PLAN_FORK_CHAIN_AND_DIRECT;
+    }
+
+    if (structure == SIX_STRUCTURE_THREE_CHAINS) {
+      return SIX_PLAN_THREE_CHAINS;
+    }
+
+    if (structure == SIX_STRUCTURE_LONG_AND_SHORT_CHAINS) {
+      return SIX_PLAN_LONG_AND_SHORT_CHAINS;
     }
 
     return 0;

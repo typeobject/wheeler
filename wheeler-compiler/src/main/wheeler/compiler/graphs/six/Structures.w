@@ -27,6 +27,12 @@ classical class SixGraphStructures {
   public const long SIX_STRUCTURE_NESTED_FORK_AND_DIRECTS = 10;
   /// Names one uneven two-branch tree beside two direct root imports.
   public const long SIX_STRUCTURE_UNEVEN_TREE_AND_DIRECTS = 11;
+  /// Names one fork beside one chain and one direct root import.
+  public const long SIX_STRUCTURE_FORK_CHAIN_AND_DIRECT = 12;
+  /// Names three independent chains imported directly by the root.
+  public const long SIX_STRUCTURE_THREE_CHAINS = 13;
+  /// Names one long chain beside one short chain and one direct root import.
+  public const long SIX_STRUCTURE_LONG_AND_SHORT_CHAINS = 14;
 
   private const long MODULE_COUNT = 6;
   private const long SINGLE_EDGE = 1;
@@ -74,6 +80,20 @@ classical class SixGraphStructures {
     }
 
     return outgoing;
+  }
+
+  private long soleSource(borrow mut words graph, long dependent) {
+    long found = -1;
+    long source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[source * MODULE_COUNT + dependent] == 1) {
+        found = source;
+      }
+
+      source += 1;
+    }
+
+    return found;
   }
 
   private long maximumIncoming(borrow mut words graph) {
@@ -351,6 +371,162 @@ classical class SixGraphStructures {
       firstDirect,
       secondDirect,
       thirdDirect,
+      true
+    );
+  }
+
+  private SixGraphStructure forkChainAndDirectPlan(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long firstForkLeaf = -1;
+    long secondForkLeaf = -1;
+    long forkDependent = -1;
+    long chainLeaf = -1;
+    long chainDependent = -1;
+    long direct = -1;
+    long candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      long incoming = incomingCount(graph, candidate);
+      if (incoming == TWO_EDGES) {
+        forkDependent = candidate;
+      }
+
+      if (incoming == SINGLE_EDGE) {
+        if (rootDirect[candidate] == 1) {
+          chainLeaf = soleSource(graph, candidate);
+          chainDependent = candidate;
+        }
+      }
+
+      if (incoming == 0) {
+        if (rootDirect[candidate] == 1) {
+          direct = candidate;
+        }
+      }
+
+      candidate += 1;
+    }
+
+    candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[candidate * MODULE_COUNT + forkDependent] == 1) {
+        if (firstForkLeaf < 0) {
+          firstForkLeaf = candidate;
+        } else {
+          secondForkLeaf = candidate;
+        }
+      }
+
+      candidate += 1;
+    }
+
+    return new SixGraphStructure(
+      SIX_STRUCTURE_FORK_CHAIN_AND_DIRECT,
+      firstForkLeaf,
+      secondForkLeaf,
+      forkDependent,
+      chainLeaf,
+      chainDependent,
+      direct,
+      true
+    );
+  }
+
+  private SixGraphStructure threeChainsPlan(borrow mut words graph, borrow mut words rootDirect) {
+    long firstLeaf = -1;
+    long firstDependent = -1;
+    long secondLeaf = -1;
+    long secondDependent = -1;
+    long thirdLeaf = -1;
+    long thirdDependent = -1;
+    long candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (incomingCount(graph, candidate) == SINGLE_EDGE) {
+        if (rootDirect[candidate] == 1) {
+          if (firstDependent < 0) {
+            firstLeaf = soleSource(graph, candidate);
+            firstDependent = candidate;
+          } else {
+            if (secondDependent < 0) {
+              secondLeaf = soleSource(graph, candidate);
+              secondDependent = candidate;
+            } else {
+              thirdLeaf = soleSource(graph, candidate);
+              thirdDependent = candidate;
+            }
+          }
+        }
+      }
+
+      candidate += 1;
+    }
+
+    return new SixGraphStructure(
+      SIX_STRUCTURE_THREE_CHAINS,
+      firstLeaf,
+      firstDependent,
+      secondLeaf,
+      secondDependent,
+      thirdLeaf,
+      thirdDependent,
+      true
+    );
+  }
+
+  private SixGraphStructure longAndShortChainsPlan(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long longLeaf = -1;
+    long middle = -1;
+    long longDependent = -1;
+    long shortLeaf = -1;
+    long shortDependent = -1;
+    long direct = -1;
+    long candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (incomingCount(graph, candidate) == SINGLE_EDGE) {
+        if (outgoingCount(graph, candidate) == SINGLE_EDGE) {
+          middle = candidate;
+        }
+      }
+
+      candidate += 1;
+    }
+
+    longLeaf = soleSource(graph, middle);
+    candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[middle * MODULE_COUNT + candidate] == 1) {
+        longDependent = candidate;
+      }
+
+      if (rootDirect[candidate] == 1) {
+        long incoming = incomingCount(graph, candidate);
+        if (incoming == 0) {
+          direct = candidate;
+        }
+
+        if (incoming == SINGLE_EDGE) {
+          if (candidate == longDependent) {} else {
+            shortLeaf = soleSource(graph, candidate);
+            shortDependent = candidate;
+          }
+        }
+      }
+
+      candidate += 1;
+    }
+
+    return new SixGraphStructure(
+      SIX_STRUCTURE_LONG_AND_SHORT_CHAINS,
+      longLeaf,
+      middle,
+      longDependent,
+      shortLeaf,
+      shortDependent,
+      direct,
       true
     );
   }
@@ -717,15 +893,29 @@ classical class SixGraphStructures {
             candidate += 1;
           }
 
-          if (interiorNodeCount(graph) == SINGLE_EDGE) {
+          long twoEdgeInteriorCount = interiorNodeCount(graph);
+          if (twoEdgeInteriorCount == SINGLE_EDGE) {
             return unevenTreeAndDirectsPlan(graph, rootDirect);
+          }
+
+          if (twoEdgeInteriorCount == 0) {
+            return forkChainAndDirectPlan(graph, rootDirect);
           }
         }
 
         if (threeEdgeMaximum == SINGLE_EDGE) {
           if (maximumOutgoing(graph) == SINGLE_EDGE) {
-            if (interiorNodeCount(graph) == TWO_EDGES) {
+            long oneEdgeInteriorCount = interiorNodeCount(graph);
+            if (oneEdgeInteriorCount == TWO_EDGES) {
               return deepChainAndDirectsPlan(graph, rootDirect);
+            }
+
+            if (oneEdgeInteriorCount == SINGLE_EDGE) {
+              return longAndShortChainsPlan(graph, rootDirect);
+            }
+
+            if (oneEdgeInteriorCount == 0) {
+              return threeChainsPlan(graph, rootDirect);
             }
           }
         }

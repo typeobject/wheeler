@@ -9,6 +9,7 @@ import wheeler.compiler.graphs.six.mixed;
 import wheeler.compiler.graphs.six.nested;
 import wheeler.compiler.graphs.six.pairs;
 import wheeler.compiler.graphs.six.plans;
+import wheeler.compiler.graphs.six.separate;
 import wheeler.compiler.graphs.six.uneven;
 import wheeler.compiler.graphs.sources;
 import wheeler.compiler.module_linker;
@@ -330,6 +331,48 @@ classical class CompilerGraphSix {
         output
       );
       mixed = new SixMixedCompilation(uneven.length, uneven.codeStart);
+    }
+
+    if (plan.topology == SIX_PLAN_FORK_CHAIN_AND_DIRECT) {
+      SixSeparateCompilation forkChain = compileSixForkChainAndDirectIfOrdered(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        plannedFourth,
+        plannedFifth,
+        plannedSixth,
+        rootSource,
+        output
+      );
+      mixed = new SixMixedCompilation(forkChain.length, forkChain.codeStart);
+    }
+
+    if (plan.topology == SIX_PLAN_THREE_CHAINS) {
+      SixSeparateCompilation threeChains = compileSixThreeChainsIfOrdered(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        plannedFourth,
+        plannedFifth,
+        plannedSixth,
+        rootSource,
+        output
+      );
+      mixed = new SixMixedCompilation(threeChains.length, threeChains.codeStart);
+    }
+
+    if (plan.topology == SIX_PLAN_LONG_AND_SHORT_CHAINS) {
+      SixSeparateCompilation longShort = compileSixLongAndShortChainsIfOrdered(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        plannedFourth,
+        plannedFifth,
+        plannedSixth,
+        rootSource,
+        output
+      );
+      mixed = new SixMixedCompilation(longShort.length, longShort.codeStart);
     }
 
     drop(plannedSixth);
