@@ -141,7 +141,7 @@ final class NativeBootstrapModulesIdentityExampleTest {
     assertLargeNoIdentity(program, sixtyFiveExternals.canonicalBytes());
 
     String text = imported.canonicalText();
-    assertNoIdentity(program, new byte[32_769]);
+    assertNoIdentity(program, new byte[65_537]);
     assertNoIdentity(program, text.replace(
         "  - \"wheeler.core\"\n  - \"wheeler.runtime\"",
         "  - \"wheeler.runtime\"\n  - \"wheeler.core\"")
