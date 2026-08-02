@@ -6,6 +6,7 @@ import wheeler.compiler.compiler_core;
 import wheeler.compiler.graphs.six.chain;
 import wheeler.compiler.graphs.six.fork;
 import wheeler.compiler.graphs.six.mixed;
+import wheeler.compiler.graphs.six.nested;
 import wheeler.compiler.graphs.six.pairs;
 import wheeler.compiler.graphs.six.plans;
 import wheeler.compiler.graphs.sources;
@@ -302,6 +303,20 @@ classical class CompilerGraphSix {
       );
     }
 
+    if (plan.topology == SIX_PLAN_NESTED_FORK_AND_DIRECTS) {
+      SixNestedCompilation nested = compileSixNestedForkAndDirectsIfOrdered(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        plannedFourth,
+        plannedFifth,
+        plannedSixth,
+        rootSource,
+        output
+      );
+      mixed = new SixMixedCompilation(nested.length, nested.codeStart);
+    }
+
     drop(plannedSixth);
     drop(sixthArena);
     drop(plannedFifth);
@@ -426,6 +441,20 @@ classical class CompilerGraphSix {
     }
 
     if (plan.topology == SIX_PLAN_THREE_LEAF_FORK_AND_DIRECTS) {
+      return compilePlannedSixRootBranches(
+        plan,
+        firstSource,
+        secondSource,
+        thirdSource,
+        fourthSource,
+        fifthSource,
+        sixthSource,
+        rootSource,
+        output
+      );
+    }
+
+    if (plan.topology == SIX_PLAN_NESTED_FORK_AND_DIRECTS) {
       return compilePlannedSixRootBranches(
         plan,
         firstSource,

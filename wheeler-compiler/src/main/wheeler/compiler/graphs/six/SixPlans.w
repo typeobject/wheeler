@@ -25,6 +25,8 @@ classical class SixGraphPlans {
   public const long SIX_PLAN_DEEP_CHAIN_AND_DIRECTS = 8;
   /// Names one three-leaf fork beside two direct root imports.
   public const long SIX_PLAN_THREE_LEAF_FORK_AND_DIRECTS = 9;
+  /// Names one nested two-leaf fork beside two direct root imports.
+  public const long SIX_PLAN_NESTED_FORK_AND_DIRECTS = 10;
 
   private const long MODULE_COUNT = 6;
   private const long SINGLE_IMPORT = 1;
@@ -98,6 +100,10 @@ classical class SixGraphPlans {
 
     if (structure == SIX_STRUCTURE_THREE_LEAF_FORK_AND_DIRECTS) {
       return SIX_PLAN_THREE_LEAF_FORK_AND_DIRECTS;
+    }
+
+    if (structure == SIX_STRUCTURE_NESTED_FORK_AND_DIRECTS) {
+      return SIX_PLAN_NESTED_FORK_AND_DIRECTS;
     }
 
     return 0;
