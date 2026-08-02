@@ -289,6 +289,19 @@ classical class CompilerGraphSix {
       );
     }
 
+    if (plan.topology == SIX_PLAN_THREE_LEAF_FORK_AND_DIRECTS) {
+      mixed = compileSixThreeLeafForkAndDirectsIfOrdered(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        plannedFourth,
+        plannedFifth,
+        plannedSixth,
+        rootSource,
+        output
+      );
+    }
+
     drop(plannedSixth);
     drop(sixthArena);
     drop(plannedFifth);
@@ -399,6 +412,20 @@ classical class CompilerGraphSix {
     }
 
     if (plan.topology == SIX_PLAN_DEEP_CHAIN_AND_DIRECTS) {
+      return compilePlannedSixRootBranches(
+        plan,
+        firstSource,
+        secondSource,
+        thirdSource,
+        fourthSource,
+        fifthSource,
+        sixthSource,
+        rootSource,
+        output
+      );
+    }
+
+    if (plan.topology == SIX_PLAN_THREE_LEAF_FORK_AND_DIRECTS) {
       return compilePlannedSixRootBranches(
         plan,
         firstSource,

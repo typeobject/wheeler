@@ -23,6 +23,8 @@ classical class SixGraphPlans {
   public const long SIX_PLAN_LONG_CHAIN_AND_DIRECTS = 7;
   /// Names one four-module chain beside two direct root imports.
   public const long SIX_PLAN_DEEP_CHAIN_AND_DIRECTS = 8;
+  /// Names one three-leaf fork beside two direct root imports.
+  public const long SIX_PLAN_THREE_LEAF_FORK_AND_DIRECTS = 9;
 
   private const long MODULE_COUNT = 6;
   private const long SINGLE_IMPORT = 1;
@@ -94,6 +96,10 @@ classical class SixGraphPlans {
       return SIX_PLAN_DEEP_CHAIN_AND_DIRECTS;
     }
 
+    if (structure == SIX_STRUCTURE_THREE_LEAF_FORK_AND_DIRECTS) {
+      return SIX_PLAN_THREE_LEAF_FORK_AND_DIRECTS;
+    }
+
     return 0;
   }
 
@@ -108,6 +114,10 @@ classical class SixGraphPlans {
     }
 
     if (dependency.importCount == TWO_IMPORTS) {
+      return dependency.importsCandidate;
+    }
+
+    if (dependency.importCount == THREE_IMPORTS) {
       return dependency.importsCandidate;
     }
 

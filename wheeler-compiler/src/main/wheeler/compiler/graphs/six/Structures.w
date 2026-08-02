@@ -21,6 +21,8 @@ classical class SixGraphStructures {
   public const long SIX_STRUCTURE_LONG_CHAIN_AND_DIRECTS = 7;
   /// Names one four-module chain beside two direct root imports.
   public const long SIX_STRUCTURE_DEEP_CHAIN_AND_DIRECTS = 8;
+  /// Names one three-leaf fork beside two direct root imports.
+  public const long SIX_STRUCTURE_THREE_LEAF_FORK_AND_DIRECTS = 9;
 
   private const long MODULE_COUNT = 6;
   private const long SINGLE_EDGE = 1;
@@ -349,6 +351,64 @@ classical class SixGraphStructures {
     );
   }
 
+  private SixGraphStructure threeLeafForkAndDirectsPlan(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long dependent = -1;
+    long firstLeaf = -1;
+    long secondLeaf = -1;
+    long thirdLeaf = -1;
+    long firstDirect = -1;
+    long secondDirect = -1;
+    long candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (incomingCount(graph, candidate) == THREE_EDGES) {
+        dependent = candidate;
+      }
+
+      candidate += 1;
+    }
+
+    candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[candidate * MODULE_COUNT + dependent] == 1) {
+        if (firstLeaf < 0) {
+          firstLeaf = candidate;
+        } else {
+          if (secondLeaf < 0) {
+            secondLeaf = candidate;
+          } else {
+            thirdLeaf = candidate;
+          }
+        }
+      }
+
+      if (rootDirect[candidate] == 1) {
+        if (candidate == dependent) {} else {
+          if (firstDirect < 0) {
+            firstDirect = candidate;
+          } else {
+            secondDirect = candidate;
+          }
+        }
+      }
+
+      candidate += 1;
+    }
+
+    return new SixGraphStructure(
+      SIX_STRUCTURE_THREE_LEAF_FORK_AND_DIRECTS,
+      firstLeaf,
+      secondLeaf,
+      thirdLeaf,
+      dependent,
+      firstDirect,
+      secondDirect,
+      true
+    );
+  }
+
   private SixGraphStructure deepChainAndDirectsPlan(
     borrow mut words graph,
     borrow mut words rootDirect
@@ -509,7 +569,12 @@ classical class SixGraphStructures {
 
     if (edgeCount == THREE_EDGES) {
       if (rootCount == THREE_EDGES) {
-        if (maximumIncoming(graph) == SINGLE_EDGE) {
+        long threeEdgeMaximum = maximumIncoming(graph);
+        if (threeEdgeMaximum == THREE_EDGES) {
+          return threeLeafForkAndDirectsPlan(graph, rootDirect);
+        }
+
+        if (threeEdgeMaximum == SINGLE_EDGE) {
           if (maximumOutgoing(graph) == SINGLE_EDGE) {
             if (interiorNodeCount(graph) == TWO_EDGES) {
               return deepChainAndDirectsPlan(graph, rootDirect);

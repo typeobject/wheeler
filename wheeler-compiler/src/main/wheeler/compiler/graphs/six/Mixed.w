@@ -594,4 +594,135 @@ classical class SixMixedGraph {
     drop(secondArena);
     return compiled;
   }
+
+  /// Compiles one exact planned three-leaf fork beside two direct imports.
+  public SixMixedCompilation compileSixThreeLeafForkAndDirectsIfOrdered(
+    borrow utf8 firstLeafSource,
+    borrow utf8 secondLeafSource,
+    borrow utf8 thirdLeafSource,
+    borrow utf8 dependentSource,
+    borrow utf8 firstDirectSource,
+    borrow utf8 secondDirectSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    LinkPlan firstLeafPlan = planPrivateConstantImport(
+      firstLeafSource,
+      dependentSource,
+      /* expectedImportCount= */ THREE_IMPORTS
+    );
+    if (firstLeafPlan.valid) {} else {
+      return new SixMixedCompilation(0, 0);
+    }
+
+    region firstLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes firstLeafBytes = allocateBytes(firstLeafArena, firstLeafPlan.linkedLength);
+    long firstLeafWritten = writeConstantImport(
+      firstLeafSource,
+      dependentSource,
+      firstLeafPlan,
+      firstLeafBytes
+    );
+    assert(firstLeafWritten == firstLeafPlan.linkedLength);
+    utf8 firstLinkedDependentSource = freezeUtf8(firstLeafBytes);
+
+    LinkPlan secondLeafPlan = planPrivateConstantImport(
+      secondLeafSource,
+      firstLinkedDependentSource,
+      /* expectedImportCount= */ THREE_IMPORTS
+    );
+    assert(secondLeafPlan.valid);
+    region secondLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes secondLeafBytes = allocateBytes(secondLeafArena, secondLeafPlan.linkedLength);
+    long secondLeafWritten = writeConstantImport(
+      secondLeafSource,
+      firstLinkedDependentSource,
+      secondLeafPlan,
+      secondLeafBytes
+    );
+    assert(secondLeafWritten == secondLeafPlan.linkedLength);
+    utf8 secondLinkedDependentSource = freezeUtf8(secondLeafBytes);
+
+    LinkPlan thirdLeafPlan = planPrivateConstantImport(
+      thirdLeafSource,
+      secondLinkedDependentSource,
+      /* expectedImportCount= */ THREE_IMPORTS
+    );
+    assert(thirdLeafPlan.valid);
+    region thirdLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes thirdLeafBytes = allocateBytes(thirdLeafArena, thirdLeafPlan.linkedLength);
+    long thirdLeafWritten = writeConstantImport(
+      thirdLeafSource,
+      secondLinkedDependentSource,
+      thirdLeafPlan,
+      thirdLeafBytes
+    );
+    assert(thirdLeafWritten == thirdLeafPlan.linkedLength);
+    utf8 linkedDependentSource = freezeUtf8(thirdLeafBytes);
+
+    LinkPlan rootPlan = planResolvedConstantImport(
+      linkedDependentSource,
+      rootSource,
+      /* expectedImportCount= */ THREE_IMPORTS
+    );
+    assert(rootPlan.valid);
+    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes rootBytes = allocateBytes(rootArena, rootPlan.linkedLength);
+    long rootWritten = writeConstantImport(
+      linkedDependentSource,
+      rootSource,
+      rootPlan,
+      rootBytes
+    );
+    assert(rootWritten == rootPlan.linkedLength);
+    utf8 firstLinkedRootSource = freezeUtf8(rootBytes);
+
+    LinkPlan firstDirectPlan = planConstantImport(
+      firstDirectSource,
+      firstLinkedRootSource,
+      /* expectedImportCount= */ THREE_IMPORTS
+    );
+    assert(firstDirectPlan.valid);
+    region firstDirectArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes firstDirectBytes = allocateBytes(firstDirectArena, firstDirectPlan.linkedLength);
+    long firstDirectWritten = writeConstantImport(
+      firstDirectSource,
+      firstLinkedRootSource,
+      firstDirectPlan,
+      firstDirectBytes
+    );
+    assert(firstDirectWritten == firstDirectPlan.linkedLength);
+    utf8 secondLinkedRootSource = freezeUtf8(firstDirectBytes);
+
+    LinkPlan secondDirectPlan = planConstantImport(
+      secondDirectSource,
+      secondLinkedRootSource,
+      /* expectedImportCount= */ THREE_IMPORTS
+    );
+    assert(secondDirectPlan.valid);
+    region finalArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes finalBytes = allocateBytes(finalArena, secondDirectPlan.linkedLength);
+    long finalWritten = writeConstantImport(
+      secondDirectSource,
+      secondLinkedRootSource,
+      secondDirectPlan,
+      finalBytes
+    );
+    assert(finalWritten == secondDirectPlan.linkedLength);
+    utf8 linkedRootSource = freezeUtf8(finalBytes);
+    CoreCompilation compiled = compileMinimalCore(linkedRootSource, output);
+    drop(linkedRootSource);
+    drop(finalArena);
+    drop(secondLinkedRootSource);
+    drop(firstDirectArena);
+    drop(firstLinkedRootSource);
+    drop(rootArena);
+    drop(linkedDependentSource);
+    drop(thirdLeafArena);
+    drop(secondLinkedDependentSource);
+    drop(secondLeafArena);
+    drop(firstLinkedDependentSource);
+    drop(firstLeafArena);
+    return new SixMixedCompilation(compiled.length, compiled.codeStart);
+  }
 }
