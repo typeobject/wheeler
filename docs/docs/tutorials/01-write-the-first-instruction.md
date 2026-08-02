@@ -1,36 +1,43 @@
 ---
 sidebar_position: 2
-title: Write the first instruction
-description: Create a complete Wheeler source file and compile it into an artifact.
-tutorial_id: T01
+title: Departure
+description: An empty program grows into the checked state transition that releases Vela from her berth.
+tutorial_id: CH01
+tutorial_steps: T01,T02,T03,T04,T05,T06,T07
 tutorial_part: ordinary-state
 tutorial_order: 1
-tutorial_kind: exact-compilation
-tutorial_source: primary-fence
-tutorial_expectation: compile-success
-tutorial_evidence: exact-classical-compilation
+tutorial_kind: exact-execution-sequence
+tutorial_source: primary-fences
+tutorial_expectation: departure-state
+tutorial_evidence: exact-classical-execution
 ---
 
-# Write the first instruction
+# Departure
 
-Thirty-seven days before the failed return, the *Vela* waited in its construction berth. It had no mysterious result, no damaged
-lineage, and no reason to know the apprentice's name.
+Thirty-seven days before the failed return, *Vela* waited in her construction berth with most of her hull closed and several
+important disagreements still exposed.
 
-The book displayed three lines of punctuation and called them a complete program.
+Mara met Tala at the service lock. The pilot's welcome consisted of a pressure check and a brisk inventory of exits, after which
+she introduced the ship in the order she expected to need it: attitude, drive, navigation, power, air. Coffee entered the list
+between power and air, then moved upward when Tala asked whether the galley unit worked.
 
-## Question
+By profession Tala was a systems analyst. She had spent seven years tracing failures through municipal transit software, where
+vehicles remained on the ground and most state could be copied without consulting the laws of physics. The far-instrument mission
+had hired her for that experience, not because it was sufficient, and Osei made the distinction during their first conversation.
 
-Can ordinary text become something the Wheeler machine accepts?
+He was waiting in the machine room beside an open rack. Instead of a greeting, he handed her a field manual bound in gray cloth.
 
-That is a smaller question than what a program means. We will first give the compiler a complete source file and ask whether the
-file follows the language's current structural rules.
+"Read the annotations before the printed text," he said. "The text was approved."
 
-## What you already know
+On the oldest title page, no author appeared. Sana had attached a provenance slip containing eight probable owners, three
+impossible dates, and a note that the binding adhesive matched a repair shop on Selene. Beneath the slip, a handwritten
+instruction survived in faded blue ink.
 
-You can create a text file and run a terminal command. You do not need to know what a class, method, entry point, or artifact is.
-Those words can wait until the machinery gives them work to do.
+```text
+Begin with a program that has nowhere to go.
+```
 
-Run commands from the root of your Wheeler source checkout. Configure JDK 26 once in the terminal session:
+Tala configured the checked-out Wheeler toolchain at the terminal built into the rack.
 
 ```bash
 export JAVA_HOME="$(brew --prefix openjdk)/libexec/openjdk.jdk/Contents/Home"
@@ -38,21 +45,8 @@ export PATH="$JAVA_HOME/bin:$PATH"
 mkdir -p build/tutorial
 ```
 
-The [development guide](../reference/development.md) explains the complete local setup.
-
-## Predict
-
-A Wheeler source file is ordinary UTF-8 text. Before you compile it, predict which of these things the text editor has created:
-
-1. a running process.
-2. a quantum state.
-3. a source file containing characters.
-
-Only the third has happened. Writing instructions and carrying them out are different events.
-
-## Program
-
-Save this complete text as `build/tutorial/Wake.w`:
+For the first exercise, the manual supplied `build/tutorial/Wake.w` and a complete source small enough to look less like a program
+than the space reserved for one.
 
 ```java
 classical class Wake {
@@ -61,105 +55,182 @@ classical class Wake {
 }
 ```
 
-Do not improve it. Its emptiness is useful. When an experiment contains almost nothing, almost nothing can hide the result.
+Authored text came first. In Wheeler, as in the transit systems Tala knew, a **source file** described the program before a compiler
+translated it into an executable artifact. The distinction mattered because changing the source did not reach backward through
+time and alter an artifact already produced from earlier bytes.
 
-## Compile it
-
-Run this command from the repository root:
+She invoked the compiler from the repository root.
 
 ```bash
 ./bootstrap/gradlew -p bootstrap -q :tools:wheeler \
   --args="compile $PWD/build/tutorial/Wake.w -o $PWD/build/tutorial/Wake.wbc"
 ```
 
-The command prints a line like this after any host Java warnings:
+After the host warnings, the compiler reported its output.
 
 ```text
 wrote .../build/tutorial/Wake.wbc (360 bytes)
 ```
 
-The leading path depends on the location of your checkout. The filename and byte count belong to this exact source and current
-compiler profile.
+Inside `Wake.wbc`, canonical Wheeler bytecode formed the **artifact**. Compilation had checked the source rules and translated the
+program. It had not executed the empty body, a point the manual emphasized with a margin note written by someone who pressed hard
+enough to score the next three leaves.
 
-## What happened
-
-The compiler read `Wake.w`, accepted its structure, and wrote `Wake.wbc`.
-
-The two files are not interchangeable.
-
-- `Wake.w` contains source text intended for people and the compiler.
-- `Wake.wbc` contains canonical Wheeler bytecode intended for the Wheeler verifier and runtime.
-
-The compiler did not run the program. It produced an artifact that another command can verify and execute.
-
-Mara called this paperwork. Osei called it the first point at which the ship could reject a bad instruction before trusting it.
-They were describing the same event at different scales.
-
-## Walk through it
-
-`classical class Wake` gives the program a class named `Wake` and marks it as classical rather than quantum or hybrid.
-
-`entry void main()` marks the place where execution will begin. The braces contain its instructions.
-
-There are no instructions between the inner braces. Empty is not missing. The program has a declared beginning and nothing to do
-after it begins.
-
-The punctuation belongs to Wheeler syntax. You do not need to memorize the full grammar. You will reuse this shape while changing
-one small part at a time.
-
-## Name the idea
-
-A **source file** is authored text in a programming language. It describes a program before the compiler translates that text into
-an executable artifact.
-
-To **compile** is to perform that translation and check the rules required at the compiler boundary.
-
-Compilation success means the compiler accepted this source under its current profile. It does not mean the program has run, does
-what its author intended, or proves a claim about every input.
-
-## Try one change
-
-Change the first line to this:
-
-```java
-classical class Woken {
+```text
+A compiled promise remains a promise.
 ```
 
-Compile the file again to the same `Wake.wbc` path. Predict which name the runtime will later report, `Wake` or `Woken`.
+Execution required another boundary and another command.
 
-Then restore the original source and compile it once more. Later lessons assume the exact `Wake` program shown above.
+```bash
+./bootstrap/gradlew -p bootstrap -q :tools:wheeler \
+  --args="run $PWD/build/tutorial/Wake.wbc"
+```
 
-## What this does not mean
+After verifying the artifact, the runtime entered `main`, found no body instruction, and halted.
 
-The word `classical` does not mean old-fashioned, approximate, or unimportant. It selects Wheeler's ordinary classical execution
-model. The series will earn the contrast with `quantum` after the required ideas exist.
+```text
+Wake (classical) halted after 1 steps
+```
 
-A `.wbc` file is not native machine code and is not a hidden copy of the source text. It is Wheeler's canonical bytecode artifact.
-The bytecode reference will matter later. Right now, the artifact gives the runtime something exact to inspect.
+One entry transition. No declared state. No value to report. The run had done almost nothing, which left little room to disagree
+about what it had done.
 
-## Check yourself
+Sana arrived while Tala was comparing the source and artifact digests. She requested both for the mission record, along with the
+compiler profile and run report. When Tala asked whether an empty program deserved so much lineage, Sana looked through the rack
+toward the unfinished ship.
 
-Which event has happened so far?
+"The inexpensive records establish whether the expensive ones can be trusted."
 
-- The text editor created source.
-- The compiler translated source into an artifact.
-- The runtime executed the artifact.
+Beneath that note, the next annotation added a state declaration.
 
-The first two happened. The third has not.
+```java
+classical class FirstSignal {
+  state long lamp = 0;
 
-## Next question
+  entry void main() {
+  }
+}
+```
 
-The artifact exists. Does it do anything?
+Here `lamp` named a **state value** owned by the program, while `0` supplied its initial value. The empty entry changed nothing, so
+an exact run ended where the declaration began.
 
-Continue with [Ask the machine to act](02-ask-the-machine-to-act.md).
+```text
+FirstSignal (classical) halted after 1 steps
+lamp = 0
+```
 
-## Language ledger
+At that moment Mara entered the machine room carrying a physical readiness lamp removed from the flight deck. Its lens was dark.
+She set it beside the terminal, where it acquired more presence than the number on the screen.
 
-**Words earned:** source file, compile, artifact.
+"Zero is accurate," Tala said.
 
-**Words sharpened:** program. It can refer to authored instructions without implying that execution has occurred.
+"Accuracy has stages," Mara replied. "Make it ready."
 
-**Phrases retired:** "the program ran" when only compilation succeeded.
+An assignment inside `main` replaced the current program value. Tala renamed the small experiment and kept every other change
+visible in one complete source.
 
-**Evidence label:** exact classical compilation. The source shown above compiles into the stated canonical artifact under the
-current stage-0 profile.
+```java
+classical class CabinLamp {
+  state long lamp = 0;
+
+  entry void main() {
+    lamp = 1;
+  }
+}
+```
+
+Now the state path had direction: `0 -> 1`. The single `=` changed a value rather than comparing two values, and the runtime's
+final report reflected the transition.
+
+```text
+CabinLamp (classical) halted after 3 steps
+lamp = 1
+```
+
+Mara reinstalled the physical lamp without suggesting that the Wheeler value had touched it. The program modeled one condition.
+The hardware remained a larger system with power, wiring, control logic, and a lens that had collected a crescent of dust along its
+lower edge.
+
+Osei took her place at the console. One transition, he said, concealed the question that mattered to him. He added a second
+assignment to a state named `signal`.
+
+```java
+signal = 1;
+signal = 2;
+```
+
+From an initial `0`, execution followed `0 -> 1 -> 2`. Reversing the two source lines produced `0 -> 2 -> 1`. The statements were
+not an unordered collection of intentions. **Source order** selected a path, even when only the endpoint appeared in the final
+state report.
+
+Sana, reading over his shoulder, objected to the path existing only in their explanation. A later edit could change the assignment
+while leaving the explanation intact, a form of durability the archive profession had learned to distrust. She placed an
+executable expectation after the transition.
+
+```java
+assert(signal == 2);
+```
+
+Unlike the assignment's single `=`, the doubled `==` compared the current value with `2`. `assert` required that comparison to
+hold at that position in the run. If it held, execution continued. If it failed, the runtime trapped instead of publishing an
+ordinary successful halt.
+
+A passing assertion did not prove the program correct for every input, artifact, or target. It supported a smaller claim about one
+specified point in one execution. Its modesty appealed to Sana more than a broad promise would have.
+
+By the end of the shift, the examples had converged on the departure interlock Mara actually needed reviewed. Tala gave the known
+sequence a method name, `depart`, then called that method from `main`. A method collected instructions into a named body. A method
+call transferred control into that body and resumed after the call when the body finished.
+
+In the manual's margin, the word *return* appeared beside its first correction.
+
+```text
+Control returns to the caller.
+State has not thereby returned to an earlier value.
+```
+
+One screen held the complete program.
+
+```java
+classical class FirstWatch {
+  state long berth = 1;
+  state long drive = 0;
+
+  void depart() {
+    berth = 0;
+    drive = 1;
+  }
+
+  entry void main() {
+    depart();
+    assert(berth == 0);
+    assert(drive == 1);
+  }
+}
+```
+
+Before execution, Tala traced both values. `berth` would follow `1 -> 0`. `drive` would follow `0 -> 1`. The call would finish
+before either assertion examined the state.
+
+She compiled the displayed source into a 640-byte artifact and ran it.
+
+```text
+FirstWatch (classical) halted after 9 steps
+drive = 1
+berth = 0
+```
+
+Canonical output order placed `drive` before `berth`, though the names preserved which value belonged to which location. Both
+assertions had succeeded. The run therefore supported the bounded claim Sana attached to the departure record: this artifact,
+under this runtime profile, finished with the modeled berth released and drive enabled.
+
+Mara waited for the record identity and Osei's review before enabling the physical sequence. She did not mistake caution for doubt.
+A pilot trusted systems by knowing the limits of what they had established.
+
+Without ceremony, the clamps opened. Metal that had carried *Vela*'s weight for nine months withdrew into the berth, and the ship
+moved under attitude control into the dark between structures. Tala watched the yard rotate out of the forward windows. On the
+communications panel, the station reduced their departure to a pair of values repeated in alternation.
+
+Its next chapter bore the same spare title: [Two Signals](02-ask-the-machine-to-act.md).

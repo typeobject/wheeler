@@ -24,11 +24,12 @@ one new conceptual dependency, runs or inspects one bounded experiment, and ends
 tutorial. New Wheeler syntax carries an already familiar idea. New physics uses already familiar syntax. The series introduces
 mathematical notation only after an experiment creates a need for it.
 
-The tutorial carries one original science-fiction return voyage under the working title **Instructions for Returning**. The
-reader joins the courier *Vela* as an apprentice who can follow sealed procedures but cannot yet explain them. An embedded book
-creates one experiment at a time while the crew crosses habitats with different incomplete ideas about memory, evidence, and
-quantum work. The prose earns its vocabulary in the same order as the reader. It describes an observation first, discovers where
-an ordinary word fails, and only then introduces the accepted technical term.
+The tutorial carries one original science-fiction return voyage under the working title **Instructions for Returning**. Tala, an
+adult systems analyst aboard the courier *Vela*, understands ordinary software but lacks precise models for reversible and quantum
+work. A human-authored field manual preserves experiments and disputes from earlier engineers while the crew crosses habitats
+with different incomplete ideas about memory and evidence. Close third-person prose earns its vocabulary in the same order as
+Tala. It describes an observation first, discovers where an ordinary word fails, and only then introduces the accepted technical
+term.
 
 This WIP takes curriculum ownership if maintainers accept it. WIP-0006 will continue to own concrete syntax and editor tooling.
 WIP-0010 will continue to own application conformance. This WIP will own lesson order, reader prerequisites, tutorial fixtures,
@@ -175,13 +176,18 @@ A **tutorial part** is one complete sequence around a broad dependency boundary,
 probability, one qubit, or two qubits. Navigation publishes a part only when every required lesson in that part passes its
 acceptance gate.
 
-### Tutorial step
+### Tutorial chapter and step
 
-A **tutorial step** is the smallest published lesson. It has one stable ID, one central question, a closed prerequisite set, one
-new conceptual dependency, one bounded activity, and one bridge question.
+A **tutorial chapter** is one continuous story scene and the navigation publication unit. It may contain several ordered tutorial
+steps when the scene gives those steps one causal arc.
+
+A **tutorial step** is the smallest conceptual unit. It has one stable ID, one central question, a closed prerequisite set, one new
+conceptual dependency, one bounded activity, and one bridge into the next step. Chapter metadata lists every contained step in
+order and binds each step to its experiment, terminology, and evidence.
 
 A step may add a few tokens that form one source construct. For example, `reverse flip();` adds a keyword and one call form while
-teaching one idea, inverse invocation. A step must not also introduce VM rewind, commit, and quantum adjoints.
+teaching one idea, inverse invocation. A step must not also introduce VM rewind, commit, and quantum adjoints. Grouping steps into
+one chapter changes narrative pacing, not the dependency graph.
 
 ### Experiment
 
@@ -289,28 +295,28 @@ home-directory state, live provider, or credential.
 ### Narrative frame
 
 **Instructions for Returning** opens in the middle of the voyage. The *Vela* has reached home coordinates, but its return check
-reports that temporary workspace remains unrestored and the mission result has incomplete lineage. The crew uses *return* for
-location, value restoration, inverse execution, history rewind, cleanup, replay, and physical repetition. The reader cannot yet
-decide which meaning the report requires.
+reports unrestored workspace and incomplete result lineage. Mara reads position, Osei reads state restoration, Sana reads evidence,
+and Tala notices that *return* has accumulated incompatible meanings across old software layers.
 
-The book then returns to the apprentice's first day and begins with an empty Wheeler program. The outward and homeward voyage
-supplies bounded settings for the technical progression. An archive mistakes complete history for reversibility. Uncertain signals
-create the need for trials and distributions. Interfering signals create the need for amplitudes and phase. Paired instruments
-create the temptation to infer entanglement from correlation. An ideal simulator offers complete inspection but cannot substitute
-for a physical target. A contract machine answers only the question its oracle encodes. The return passage introduces target
-limits, measurement, noise, replay, retry, and evidence lineage.
+The narrative then moves to the construction berth, where Tala joins the crew as an experienced classical systems analyst. An
+unofficial field manual contains small checked programs and annotations from earlier engineers. It does not speak, reveal pages,
+judge answers, or supply semantic authority. Tala and the crew run its experiments because the programs expose disagreements that
+the mission will later make operational.
 
-The reader remains the protagonist. They grow from procedure follower to experiment designer and evidence auditor. Crew members
-hold reasonable but incomplete models and change their language after experiments contradict those models. No character remains
-the designated novice, skeptic, or source of truth.
+The voyage supplies the technical pressure. An archive demonstrates the power and limit of retained history. Uncertain signals
+create the need for trials and distributions. Interfering contributions create the need for amplitudes and phase. Paired
+instruments tempt the crew to infer entanglement from correlation. An ideal simulator offers complete inspection without becoming
+a physical target. A contract machine answers only the question its oracle encodes. The return passage introduces measurement,
+noise, replay, retry, and evidence lineage.
 
-The final return does not erase the journey. The reader must preserve the useful result, restore only the state covered by an
-accepted return contract, account for observations and records that remain, and state what the evidence proves. The apprentice
-publishes the checked open edition of the book that the reader has just completed.
+Tala remains the viewpoint character. She begins with real competence, revises that competence when new evidence demands narrower
+language, and eventually becomes capable of auditing the failed return. Mara, Osei, and Sana have different responsibilities,
+private histories, and reasonable incomplete models. Action and disagreement introduce them. No paragraph pauses to give a crew
+member a tutorial role or biography.
 
-Fiction appears at part openings, selected setbacks, checkpoints, and payoffs. Technical sections remain direct. A character's
-claim may motivate a prediction but cannot establish Wheeler or quantum semantics. The ship never travels along multiple physical
-routes at once. Quantum operations provide no faster than light communication, conscious measurement, or magic propulsion.
+The final return does not erase the journey. Tala must preserve the useful result, restore only the state covered by an accepted
+contract, account for records and observations that remain, and state what the evidence proves. Her verified amendments become the
+next open edition of the field manual.
 
 ### Earned lexicon
 
@@ -325,82 +331,65 @@ The series begins with broad operational words that hide distinctions:
 | random | unknown, sampled, probabilistic, seeded, noisy |
 | proof | exact execution, sampled evidence, structural certificate, theorem |
 
-A required term enters the main path through five steps:
+A required term enters the story through five beats:
 
-1. The reader observes a concrete result without needing the term.
-2. Existing vocabulary produces an ambiguity, failed prediction, or impossible explanation.
-3. The page states the exact distinction that the old word cannot express.
-4. **Name the idea** introduces the accepted technical term and its nearest nonexample.
-5. A prediction, local change, or checkpoint requires the reader to use the term precisely.
+1. An event produces a concrete observation without requiring the term.
+2. Existing vocabulary creates an ambiguity, failed prediction, or conflict between characters.
+3. A program, table, or record exposes the exact distinction that the old word cannot express.
+4. Narration or dialogue introduces the accepted technical term and its nearest nonexample.
+5. Later action requires the crew to use the distinction correctly.
 
-Later prose uses the accepted term normally. It does not preserve an invented story synonym that competes with quantum vocabulary.
-Early prose may remain concrete or mark a term as not yet earned. It cannot teach a false statement for a later chapter to repair.
-
-Selected pages end with a **Language ledger** containing **Words earned**, **Words sharpened**, and **Phrases retired**. A word
-enters **Words earned** only after its defining observation and contrast. A common word may enter **Words sharpened** when it
-remains useful within a narrower scope. **Phrases retired** records language that would preserve a misconception, such as treating
-one measurement as a distribution or replay as another target run.
-
-Tutorial metadata records required and introduced terms as stable glossary identities. The prerequisite graph rejects a page that
-declares a required term before an earlier published page introduces it. Mechanical validation checks declared identities and
-links. Editorial and reader review still catch undeclared natural-language assumptions.
+The narrative vocabulary changes permanently after that point. It does not retain an invented story synonym that competes with an
+accepted quantum or Wheeler term, and it never teaches a false statement merely to repair it later. Stable metadata records each
+step's required and introduced glossary identities. Mechanical validation checks those declared identities and links, while
+editorial and reader review catch undeclared assumptions in natural language.
 
 ### Pacing law
 
-Each tutorial step has one central conceptual dependency. Reviewers apply these checks:
+Each tutorial step retains one central conceptual dependency even when several steps share a chapter. Reviewers apply these checks:
 
-1. The page states every prerequisite in ordinary language.
-2. The page introduces one new idea needed to answer its central question.
-3. Any new syntax expresses that one idea or routine mechanics already taught.
-4. The page uses no unexplained mathematical symbol.
-5. The experiment fits on one screen at the default site width when practical.
-6. The reader predicts a result before seeing it.
-7. The page explains one observed result before generalizing it.
-8. The page states one important nonclaim when a common misconception is nearby.
-9. The bridge question needs no concept that the current page silently assumed.
+1. Earlier chapter steps establish every prerequisite used by the current beat.
+2. New syntax expresses one new idea or routine mechanics already established in the story.
+3. No mathematical symbol appears before an experiment or table gives it work.
+4. Each bounded source listing or activity remains small enough to inspect.
+5. A character commits to a prediction or claim before the result appears.
+6. The story explains the observed result before it generalizes.
+7. A nearby nonclaim blocks the most tempting misconception without stopping the scene.
+8. The consequence of the result creates the next conceptual question.
 
-A page that fails these checks splits into more steps. Page count is not a reason to merge prerequisites.
+A beat that fails these checks splits into more steps. A scene that cannot connect its steps causally splits into more chapters.
 
-### Page contract
+### Chapter contract
 
-Every executable tutorial page contains these sections in this order unless a conceptual interlude marks an inapplicable section:
+A tutorial chapter reads as continuous close third-person fiction. It uses no visible lesson template and never addresses the
+reader, announces the curriculum, asks for homework, or refers to a page as a tutorial. Code, commands, tables, diagrams, and
+checked output appear as objects the characters create, run, inspect, and preserve.
 
-1. **Question** states one concrete problem.
-2. **What you already know** links no more than the required earlier steps.
-3. **Predict** asks for one outcome before execution.
-4. **Program** shows one complete tiny program or exact source-backed listing.
-5. **Run it** gives one ordinary bounded command.
-6. **What happened** shows the checked result.
-7. **Walk through it** explains only relevant lines and state transitions.
-8. **Name the idea** introduces one precise term.
-9. **Try one change** asks for one local modification and prediction.
-10. **What this does not mean** blocks the nearest likely misconception.
-11. **Check yourself** asks one answerable question without hidden vocabulary.
-12. **Next question** supplies the bridge.
-13. **Language ledger** records the term earned or sharpened and the nearest phrase the lesson can now retire.
+Every executable step still contains one complete primary source listing or an exact source-backed listing, one bounded command,
+one checked result, and enough surrounding action to establish the prediction, explanation, nearest nonclaim, and consequence.
+Conceptual steps produce an inspectable table, diagram, count, or deduction inside the scene.
 
-A conceptual interlude replaces **Program** and **Run it** with **Activity**. The activity must still produce an inspectable
-table, diagram, count, or deduction.
-
-Checkpoint pages appear after each part. A checkpoint contains no new concepts. It asks readers to predict, run, trace, and
-explain a small combination of completed steps.
+Chapter transitions follow causes in the story. A failed claim, unresolved result, operational constraint, or changed relationship
+opens the next question. Links may appear in diegetic records or chapter references, but navigation does not require a character to
+announce the next lesson.
 
 ### Narrative voice
 
 Tutorial prose follows the repository documentation style and adds these rules:
 
-- Address the reader as `you` during actions.
-- Prefer concrete state transitions to metaphors.
-- Define a term after the reader has observed the need for it.
-- Use short paragraphs around code and diagrams.
-- Put optional derivations in clearly marked math sidebars.
-- Keep historical notes separate from the causal explanation.
-- State target, simulator, and proof limits next to the result they qualify.
+- Use close third person through Tala except where a bounded record supplies another voice.
+- Vary sentence length and clause structure according to thought and pressure rather than alternating simple declarations.
+- Let long sentences accumulate system history or ambiguity, then use short sentences for decisions and failures.
+- Begin paragraphs with time, condition, image, consequence, or action instead of repeatedly naming the speaker first.
+- Introduce characters through choices, attention, and conflict rather than role descriptions.
+- Keep dialogue sparse. No character exists to ask obvious questions or deliver uninterrupted exposition.
+- Prefer concrete state transitions to metaphors and define a term only after the scene creates its need.
+- State target, simulator, and proof limits beside the result they qualify.
+- Use dry humor as pressure relief, not as the mandatory last sentence of each paragraph.
 - Avoid claims about consciousness, many worlds, quantum mysticism, or philosophical interpretation unless a later nonsemantic appendix compares interpretations carefully.
 
-Dry humor may reduce tension. It may not carry a semantic distinction. Precise vocabulary should reveal the reader's and
-characters' growth without making the narrator clever at their expense. Fictional excerpts remain short enough that a reader can
-return to the experiment without reconstructing the scene. Every recurring report, disagreement, image, or question receives a
+Each paragraph must arise from the image, action, claim, or unresolved detail before it. Paragraph endings create pressure or space
+for what follows instead of supplying a repeated aphorism. Every recurring report, disagreement, image, or question receives a
 payoff at a named later step.
 
 ### Analogy discipline
@@ -442,8 +431,8 @@ more deeply, but later required steps cannot depend on an optional sidebar witho
 
 ### Source and documentation authority
 
-A self-contained lesson uses one complete primary `wheeler` fence in its Markdown page. The page metadata identifies that fence as
-one of:
+A self-contained executable step uses one complete primary `wheeler` fence in its chapter. Chapter metadata identifies the step
+and fence as one of:
 
 - exact execution.
 - expected compiler rejection.
@@ -541,8 +530,8 @@ only steps that introduce no separate conceptual dependency.
 
 - `T00` opens aboard the *Vela* after a failed return check, then shows the mission's small Bell-pair Wheeler program as an unexplained destination. It labels every unfamiliar line as something the series will earn. It asks what the crew can claim from one recorded output and makes no claim that the reader understands the quantum result.
 
-The series then returns to the apprentice's first day. It puts the Bell program aside until `T57` and closes the return report at
-`T93`.
+The series then returns to Tala's first day aboard *Vela*. It puts the Bell program aside until `T57` and closes the return report
+at `T93`.
 
 #### Part 1: What a program does
 
@@ -897,7 +886,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 ## Migration and deletion
 
 1. Accept the reader baseline, pacing law, page contract, evidence labels, and curriculum ownership.
-2. Add tutorial page metadata, prerequisite graph validation, and stable navigation to the WIP-0019 documentation model.
+2. Add tutorial chapter and step metadata, prerequisite graph validation, and stable navigation to the WIP-0019 documentation model.
 3. Add extraction, Tree-sitter parsing, compilation, canonical bytecode checks, execution, expected rejection, and downloadable source for primary Wheeler fences.
 4. Establish one short source-checkout setup path and verify it on a clean machine profile.
 5. Implement release unit 1, `T00` through `T23`, with exact classical and reversible fixtures.
@@ -915,7 +904,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 ## Progress
 
 - [ ] Reader baseline, narrative frame, earned lexicon, and pacing law receive review.
-- [x] The tutorial index and pilot pages `T00` through `T03` have a complete first prose draft.
+- [x] The first four continuous-story chapters cover the foundation steps `T00` through `T23` in a complete first prose draft.
 - [ ] Stable tutorial IDs and prerequisite graph receive review.
 - [ ] Tutorial metadata and documentation nodes are implemented.
 - [ ] Primary fenced Wheeler source compiles and runs through the documentation gate.
@@ -987,8 +976,8 @@ tables are familiar. Optional math sidebars may go deeper.
 ### Explain each major topic in one chapter
 
 Rejected. A chapter that introduces Hadamard, superposition, amplitudes, probability, measurement, and interference still assumes
-the conceptual model it claims to teach. The tutorial step remains the publication unit even when a printed edition groups several
-steps into one chapter.
+the conceptual model it claims to teach. The tutorial step remains the conceptual and validation unit, while the chapter remains
+the navigation and story publication unit.
 
 ### Use only the existing executable examples
 
@@ -1029,7 +1018,7 @@ may show unlinked release-unit names as a roadmap.
 - Which deterministic display projection may omit source-attached `//!` and `///` documentation from a source-backed capstone listing. **Owner:** compiler and documentation maintainers. **Decide by:** before the first source-backed capstone.
 - Which static circuit representation should generate both accessible HTML and useful source Markdown. **Owner:** quantum tooling and documentation maintainers. **Decide by:** before release unit 3.
 - How many independent zero-knowledge reader reviews are required for a release unit. **Owner:** documentation maintainers. **Decide by:** before release unit 1 publication.
-- Should a printed edition group tutorial steps under chapter numbers that remain outside stable tutorial identity. **Owner:** documentation and publication maintainers. **Decide by:** before printable bundle work.
+- Which chapter and anchor metadata binds several stable tutorial steps to one continuous story page without creating a second ordering authority. **Owner:** documentation and publication maintainers. **Decide by:** before tutorial metadata acceptance.
 - Which crew names and fictional settings survive zero-knowledge reader testing, and should **Instructions for Returning** remain the public series title. **Owner:** documentation maintainers. **Decide by:** before release unit 1 publication.
 - Which glossary identity and front-matter fields encode required, introduced, sharpened, and retired language. **Owner:** documentation and language maintainers. **Decide by:** before tutorial metadata acceptance.
 

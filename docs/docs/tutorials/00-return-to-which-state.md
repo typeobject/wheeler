@@ -1,8 +1,9 @@
 ---
 sidebar_position: 1
-title: Return to which state?
-description: The destination appears before the vocabulary needed to explain it.
+title: Home
+description: One failed return check exposes several operations hidden inside an ordinary word.
 tutorial_id: T00
+tutorial_steps: T00
 tutorial_part: opening
 tutorial_order: 0
 tutorial_kind: conceptual
@@ -11,60 +12,52 @@ tutorial_expectation: none
 tutorial_evidence: exact-source-display
 ---
 
-# Return to which state?
+# Home
 
-The *Vela* was eleven minutes from its braking burn when the flight computer refused to go home.
+Home arrived by subtraction.
+
+For six days the forward windows had held nothing but stars, hard and innumerable. Then traffic lights appeared among them,
+followed by the pale geometry of the orbital yards, until the constellations were no longer the largest structures in view. Mara
+reduced the remaining distance to a column of burns and corrections. Osei began closing systems that had been open since departure.
+Sana requested the final mission lineage.
+
+With eleven minutes left before braking, *Vela* laid an amber sentence across the navigation plot.
 
 ```text
 RETURN CHECK FAILED
+```
+
+Mara's hand remained inside the burn cage. Nothing in her posture changed, but the countdown stopped.
+
+Osei was already inside the restoration map, opening branches faster than the display could arrange them. Sana did not touch her
+console. She watched the others instead, waiting to learn which event they would later claim had happened.
+
+Tala expanded the report.
+
+```text
 navigation       home
 workspace        not restored
 mission result   present
 result lineage   incomplete
 ```
 
-Mara read the first two lines and said that the report contradicted itself. She flew the ship. To her, *home* was a place with
-coordinates, weather, and a docking controller that disliked surprises.
+The contradiction lasted only as long as it took each of them to choose a different line.
 
-Osei read the middle lines and said that the ship could reach home without returning home. He maintained the systems that were
-supposed to put every temporary register back as they found it.
+To Mara, return meant position: mass, velocity, approach corridor, the clean arithmetic of not striking the station. Osei saw state
+that had failed to restore. Sana saw an observation detached from the sequence that had produced it. Tala, who had spent the
+voyage learning their vocabularies without yet possessing any of them, saw one ordinary word carrying more machinery than it could
+bear.
 
-Sana read the last line twice. She kept the mission records. A result without a lineage was a rumor wearing a number.
+*Vela* had been rebuilt often enough that nobody knew which subsystem was oldest. Hardware disappeared. Interfaces changed. Names
+remained. *Return* meant the value produced by a function in one layer, inverse execution in another, the consumption of retained
+history in a third, and physical arrival in the navigation code, where the word predated everyone aboard.
 
-The apprentice at the fourth console had been aboard for thirty-seven days. That was long enough to know that three senior crew
-members could disagree without any of them being foolish. It was not long enough to know which meaning of *return* the computer
-wanted.
+Routine voyages had never required those meanings to agree.
 
-The ship's manual offered this:
+This one had.
 
-```text
-RETURN
-To cause a system, operation, vessel, request, state, record, or person to return.
-```
-
-The manual had achieved the rare technical feat of using the mystery inside its own definition.
-
-You are the apprentice.
-
-## Question
-
-What would you need to know before you could decide whether the *Vela* had returned?
-
-Do not reach for a quantum explanation yet. The report has already given us a smaller problem. One ordinary word has hidden several
-questions.
-
-- Did the vessel reach its earlier location?
-- Did the program recover an earlier value?
-- Did it reconstruct an exact earlier state?
-- Did it use saved records or execute an inverse operation?
-- Did the mission repeat an experiment or reuse an old observation?
-- Did the crew preserve the result while cleaning temporary work?
-
-The word *return* answers none of them by itself.
-
-## The sealed program
-
-The failed report names one mission program. It is valid Wheeler source from much later in this series.
+Sana opened the result record. Near its end sat a small quantum program whose grammar Tala recognized before its purpose came into
+focus.
 
 ```java
 quantum class Bell {
@@ -84,7 +77,8 @@ quantum class Bell {
 }
 ```
 
-One local ideal-simulator run ended with this report:
+Two registers. A preparation. An operation called `H`. A controlled gate. Measurement. The terms marked a route through a subject
+Tala did not know, but the record beneath them was plain enough.
 
 ```text
 Bell (quantum) halted after 4 steps
@@ -92,62 +86,33 @@ measured = 3
 measurements = [3]
 ```
 
-You are not expected to understand the source. The words `quantum`, `qreg`, `unitary`, `H`, `CNOT`, `prepare`, and `measure` have
-not earned explanations yet. The number `3` will later connect to a two-bit reading. For now, it is one recorded observation from
-one run.
+"Three," Mara said. "At least something came back."
 
-## What can you say?
+"Something was recorded," Sana replied.
 
-You can say that the displayed run halted and recorded `3`.
+The distinction irritated Mara, which did not make it less important. "Can the recorded something get us through the burn?"
 
-You cannot yet say that every run records `3`. You cannot infer a distribution from one observation. You cannot infer entanglement
-from the number alone. You cannot say that the program returned its quantum state, because this version measures the register and
-does not apply an adjoint.
+Osei enlarged the amber region of the restoration map. "Not while its workspace is still out there."
 
-This is the first habit of the voyage: say the strongest thing the evidence supports, then stop.
+Tala looked again at the number. One ideal-simulator run had halted and recorded `3`. Nothing in the record established what a
+second run would produce. A distribution required repeated trials. Entanglement required more than matching digits. Restoration
+required an operation absent after the measurement. The smallness of the number had no relation to the size of the missing
+explanation.
 
-Sana entered that sentence into the mission record. The return warning remained.
+"It is an observation," she said. "Not yet an answer."
 
-## Predict
+Sana's attention shifted from the record to Tala. During the outward voyage, that pause had often preceded a correction. This time
+she entered the sentence unchanged.
 
-Suppose the crew runs the program again. Which prediction can you defend now?
+At nine minutes, the station requested their braking commitment. Mara answered with a delay code and no apology. Osei isolated the
+unrestored branch to a computation executed at the far instrument, but its retained history ended at a commit boundary. Rewinding
+through that boundary was unavailable. The source still had a generated adjoint somewhere in its artifact, though measurement had
+made the original quantum state another matter entirely.
 
-1. It must record `3`.
-2. It must record `0`.
-3. It will record either `0` or `3` equally often.
-4. The displayed evidence does not yet justify any of those claims.
+Six meanings of *return* now occupied the room, each precise enough to rule out one bad solution.
 
-The fourth answer is the careful one. Later experiments will give you the preparation, state model, simulator contract, seed, and
-shot count needed to make a stronger prediction.
+Tala reached for the field manual strapped beneath her console. Its cover had softened during the voyage, and Sana's evidence tags
+protruded from the binding at irregular intervals. Between them lay the first programs Tala had written aboard *Vela*, beginning
+with an empty class in the construction berth and ending with the distinction that might yet bring them through the burn.
 
-## The book opens
-
-A panel slid from the ship's manual. It contained a second book, although no one remembered installing one.
-
-Its first page held a single line.
-
-```text
-Before you can return a computation, you must make one go somewhere.
-```
-
-Then the page supplied a filename.
-
-```text
-Wake.w
-```
-
-No definition of *computation* followed. The book preferred demonstrations to declarations and had enough confidence to be
-annoying about it.
-
-Continue with [Write the first instruction](01-write-the-first-instruction.md).
-
-## Language ledger
-
-**Words earned:** none. You have observed a problem before naming its machinery.
-
-**Words sharpened:** return. It now requires an object, an earlier condition, and a mechanism.
-
-**Phrases retired:** "the quantum program worked." The current evidence supports a recorded output, not that broad claim.
-
-**Evidence label:** exact current source display and one local ideal-simulator observation. The observation is an opening artifact,
-not a distribution or proof.
+The relevant record began thirty-seven days earlier, under the heading [Departure](01-write-the-first-instruction.md).

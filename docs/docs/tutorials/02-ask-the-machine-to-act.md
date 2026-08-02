@@ -1,148 +1,148 @@
 ---
 sidebar_position: 3
-title: Ask the machine to act
-description: Execute the first Wheeler artifact and read its bounded report.
-tutorial_id: T02
-tutorial_part: ordinary-state
+title: Two Signals
+description: A departure handshake reduces a larger physical system to two values and two complete operations.
+tutorial_id: CH02
+tutorial_steps: T08,T09,T10,T11,T12,T13
+tutorial_part: finite-state
 tutorial_order: 2
-tutorial_kind: exact-execution
-tutorial_source: previous-step
-tutorial_expectation: run-success
+tutorial_kind: exact-and-conceptual-sequence
+tutorial_source: primary-fence
+tutorial_expectation: two-state-transition
 tutorial_evidence: exact-classical-execution
 ---
 
-# Ask the machine to act
+# Two Signals
 
-The book inspected `Wake.wbc` and displayed a new sentence.
+Behind them, the station spoke to departing vessels in pulses of microwave light. Each pulse crossed the widening distance in
+vacuum, reached *Vela*'s receiver as an analog disturbance, and passed through enough hardware to become a number on Mara's
+console.
+
+For the departure handshake, only two numbers were admitted.
 
 ```text
-An instruction that never executes has made a very tidy promise.
+0  request absent
+1  request present
 ```
 
-Osei approved of tidy promises. Mara pointed out that the *Vela* would remain in its berth if everyone stopped there.
+Calling the signal two-state did not reduce the receiver to two physical conditions. Its antenna warmed. Amplifiers introduced
+noise. Threshold circuits occupied voltages between their nominal levels. The protocol ignored those details after they had done
+their work, preserving one distinction needed by the next layer.
 
-## Question
+Mara waited for `1`, acknowledged it, then watched the station return to `0`. The exchange was routine, though the manual had
+marked the two values as unfinished business.
 
-What changes when you run a compiled Wheeler artifact?
-
-The source already exists. The artifact already exists. This step asks the runtime to begin at the declared entry and carry out the
-artifact's instructions.
-
-## What you already know
-
-[The previous step](01-write-the-first-instruction.md) created this source:
+Tala opened the accompanying source.
 
 ```java
-classical class Wake {
+classical class OneBit {
+  state long bit = 0;
+
   entry void main() {
+    assert(bit == 0);
+    bit = 1;
+    assert(bit == 1);
   }
 }
 ```
 
-It compiled the source into `build/tutorial/Wake.wbc`. Restore and compile that exact version before continuing if you changed it.
+Although the underlying `long` type could represent many whole numbers, this model admitted only `{0, 1}`, with assertions guarding
+the two points visited during the run. That narrower contract, not the storage capacity of `long`, made the location a **bit**.
 
-## Predict
-
-The entry body contains no instructions. What should a successful run report?
-
-It should not invent useful work merely because we asked politely. It should begin, find no body instruction to execute, and halt.
-
-## Program
-
-This experiment executes the exact `Wake.wbc` artifact from the previous step. It does not compile the source again. That
-separation lets us ask one question about one boundary.
-
-## Run it
-
-From the repository root, run:
-
-```bash
-./bootstrap/gradlew -p bootstrap -q :tools:wheeler \
-  --args="run $PWD/build/tutorial/Wake.wbc"
-```
-
-After any host Java warnings, the Wheeler runtime prints:
+Tala compiled the source and executed its artifact.
 
 ```text
-Wake (classical) halted after 1 steps
+wrote .../build/tutorial/OneBit.wbc (480 bytes)
+OneBit (classical) halted after 5 steps
+bit = 1
 ```
 
-The runtime counts the entry transition as one bounded step. The empty body contributes no additional instruction.
+One path, `0 -> 1`, followed from the report. Sana accepted the run and rejected Tala's first summary of it.
 
-## What happened
+"The bit can change from zero to one," Tala had written.
 
-The runtime verified and executed the artifact. Execution reached the end of `main`, then halted successfully.
+"This bit did," Sana said. "A claim about the operation needs every allowed input."
 
-Nothing visible changed inside the program because the program declared no state. That is still an execution result. The runtime
-started the program, followed its control structure, and stopped within a known number of steps.
+There were only two, which made completeness possible without statistics or faith. Tala wrote them as rows.
 
-The *Vela* had millions of state locations and a schedule full of work. The book began with none because scale is good at hiding
-causes. One empty room makes it easy to notice the door.
-
-## Walk through it
-
-The report contains four useful pieces:
-
-| Text | Meaning in this experiment |
+| Input | Output |
 | --- | --- |
-| `Wake` | The class whose entry executed |
-| `classical` | The execution model declared by the class |
-| `halted` | Execution reached a successful stopping point |
-| `after 1 steps` | The bounded runtime recorded one entry transition |
+| `0` | `1` |
+| `1` | unknown |
 
-The report does not contain a program state value. `Wake` did not declare one.
+Without the missing row, the table did not describe an operation over the complete two-state set, only one
+observed transition. Had the input begun at `1`, an assignment to `1` would have produced `1 -> 1`, not the complementary change
+Mara associated with a signal flip.
 
-## Name the idea
+Osei joined them at the chart table while the station receded into the traffic behind. He drew two dots, labeled them `0` and `1`,
+and asked for the least eventful operation possible. Tala connected each dot to itself.
 
-To **execute** a program is to carry out its accepted instructions under a runtime.
+| Input | Output |
+| --- | --- |
+| `0` | `0` |
+| `1` | `1` |
 
-A **run** is one bounded execution attempt with one artifact and runtime configuration.
+Under the **identity operation**, either allowed input remained itself. Deliberately doing nothing to the bit still defined a
+complete mapping, which mattered because an unchanged endpoint did not prove that no surrounding work had occurred.
 
-A successful halt describes this run. It does not establish what another artifact, another input, or an edited source file would
-do.
+Mara added a second table from the departure protocol.
 
-The distinction seems fussy when the program is empty. Fussy distinctions are cheapest when nothing is on fire.
+| Input | Output |
+| --- | --- |
+| `0` | `1` |
+| `1` | `0` |
 
-## Try one change
+This was the **flip operation**: not a single assignment to `1`, but a rule that exchanged both allowed states. Every input had one
+output, and the two output rows remained distinct.
 
-Run the same `Wake.wbc` artifact again without recompiling it.
+Tala drew the same rule as arrows.
 
-Predict the report first. Both runs should report the same class, execution model, halt status, and step count. This program has no
-input, mutable state, target, or sampling operation that could vary between runs.
+```text
+0 -> 1
+1 -> 0
+```
 
-## What this does not mean
+Tables and arrows described one finite mapping in different forms. The table made completeness easy to inspect. The arrows made
+composition easier to follow.
 
-Deterministic output from `Wake` does not show that every Wheeler program has one fixed result. Later programs will accept inputs,
-change state, sample quantum measurements, and communicate with targets.
+Osei covered the labels and asked Tala to apply the flip twice. She traced the first input through both copies of the operation,
+then repeated the work for the second.
 
-It also does not show that rerunning and replaying are the same. You ran the artifact again. A later replay lesson will consume a
-recorded observation without repeating its target event.
+| Input | After first flip | After second flip |
+| --- | --- | --- |
+| `0` | `1` | `0` |
+| `1` | `0` | `1` |
 
-## Check yourself
+Both inputs returned to their starting values. The composed map matched identity, although each individual flip had changed the
+state.
 
-Put these events in order:
+Mara regarded the result with the suspicion pilots reserve for facts that appear obvious only after someone has written them down.
+"So it goes there and back."
 
-1. execute the artifact.
-2. write the source file.
-3. compile the source.
+"For both states in this model," Sana said.
 
-The order is source, compilation, execution.
+Sana's qualification stayed. Two cases were enough because the allowed set contained exactly two cases. A larger set would require
+more rows, and an unbounded set would need a different kind of argument.
 
-If you edit `Wake.w` after compilation and run the old `Wake.wbc`, which one does the runtime execute? It executes the artifact.
-The source edit has no effect until another compilation publishes a replacement artifact.
+Tala wrote *reversible* in the margin, then hesitated. The manual's earlier owners had crossed out the same word in three inks.
+Beside it, the most recent hand had left a warning.
 
-## Next question
+```text
+Restoring one chosen input is a demonstration.
+Defining one output for every input is an operation.
+Recovering every input from its output will earn the next word.
+```
 
-A program can run and stop without remembering anything. What must it declare before its report can include a value?
+By then the flip seemed ready to pass that test. Nothing in the chapter had yet shown what failure looked like, and a distinction
+learned only from its successful example tends to become praise rather than a rule.
 
-Continue with [Give the machine one thing to remember](03-one-thing-to-remember.md).
+At the edge of the traffic field, *Vela* aligned for the Archive transfer corridor. The habitat identified itself with a stream of
+checksummed records and a statement engraved into every public protocol it emitted.
 
-## Language ledger
+```text
+WHAT IS REMEMBERED CAN BE RETURNED
+```
 
-**Words earned:** execute, run, halt.
+Sana read the line without expression. Osei read it twice.
 
-**Words sharpened:** result. Here it means the bounded report from one exact execution, not every possible behavior of the source.
-
-**Phrases retired:** "compile and run" as if translation and execution were one event.
-
-**Evidence label:** exact classical execution. The stated artifact halts after one runtime step under the current stage-0 profile.
+From that claim, the field manual had taken the title of its next chapter: [The Archive](03-one-thing-to-remember.md).

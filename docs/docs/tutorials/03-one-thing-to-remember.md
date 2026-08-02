@@ -1,203 +1,282 @@
 ---
 sidebar_position: 4
-title: Give the machine one thing to remember
-description: Add one named state value and observe it in the execution report.
-tutorial_id: T03
-tutorial_part: ordinary-state
+title: The Archive
+description: A habitat that records every transition reveals why history, rewind, and inverse execution remain different.
+tutorial_id: CH03
+tutorial_steps: T14,T15,T16,T17,T18,T19,T20,T21,T22,T23
+tutorial_part: reversible-foundations
 tutorial_order: 3
-tutorial_kind: exact-execution
-tutorial_source: primary-fence
-tutorial_expectation: state-value-zero
+tutorial_kind: exact-and-rejection-sequence
+tutorial_source: primary-fences
+tutorial_expectation: reversible-foundation
 tutorial_evidence: exact-classical-execution
 ---
 
-# Give the machine one thing to remember
+# The Archive
 
-Before launch, every compartment on the *Vela* carried a small status lamp. Green meant ready. Dark meant one of fourteen things,
-all of which the maintenance manual described as *not ready*.
+From a distance, the Archive resembled a wheel assembled around an error in the stars. Its inhabited rim shone softly. The central
+vault did not shine at all, because heat and light were facts about the present, while the vault had been built to preserve the
+past.
 
-The book selected one imaginary lamp and removed the other thirteen possibilities.
+Every vessel entering the transfer corridor received a storage allotment before it received docking instructions. *Vela* acquired
+forty-eight terabytes for approach telemetry, six for ship state, and one narrow directory in which the port authority invited the
+crew to record anything they might later regret losing.
+
+Mara declined the invitation. Osei doubled the telemetry checks. Sana stood at the forward lock before the pressure equalized,
+watching the inner door as if she knew who would be waiting behind it.
+
+Edrin Saye wore the gray seal of an Archive custodian. Age had narrowed him without making him look fragile. When the door opened,
+he greeted Sana first and used the formal version of her name.
+
+"You still keep records," he said.
+
+"I keep distinctions. Records are one way."
+
+His glance moved to the evidence tags on her case. Whatever answer he had expected, that one belonged to an older conversation.
+
+Memory had earned its authority there. A century earlier, during an evacuation, an automated repair system had overwritten the
+only state from which its pressure model could be reconstructed. The habitat survived. Twelve workers in a sealed section did not.
+Afterward, the custodians recorded every accepted transition in critical systems and built a culture around the proposition that a
+retained past could not become an inaccessible one.
+
+Nearly true propositions made dangerous foundations, especially when a culture had built upward from them.
+
+Edrin led the crew through a gallery where old machine states moved behind glass in synchronized reconstruction. Broken pumps
+unfailed. Valves closed before leaks. A guidance computer backed away from the arithmetic fault that had sent an ore carrier
+through a docking mast. Each exhibit consumed stored records in reverse order until the selected earlier state reappeared.
+
+"What is remembered can be returned," Edrin said.
+
+Osei studied the reconstruction controls. "Rewound."
+
+With that single word, a hairline fracture crossed the Archive motto. Edrin heard it and chose not to answer until they reached the
+verification room.
+
+Tala found a two-state example waiting on the terminal. Its operation differed from the flip by one row.
+
+| Input | Output |
+| --- | --- |
+| `0` | `0` |
+| `1` | `0` |
+
+Both arrows met at the same output.
 
 ```text
-lamp = 0
+0 -> 0 <- 1
 ```
 
-It had reduced a starship to one named number. This was unfair to the starship and helpful to the apprentice.
+If the current state contained only `0`, nothing in that state identified whether the earlier input had been `0` or `1`. An
+operation claiming to reconstruct the input would need to choose between two compatible pasts, and either choice would be wrong
+for one row.
 
-## Question
+Zero was not special. Any mapping that merged two allowed inputs into one output discarded the
+distinction between them from its declared current state.
 
-How can a Wheeler program carry one value from its beginning to its final report?
-
-`Wake` had structure but no declared state. We will add one named location with one starting value and change nothing else.
-
-## What you already know
-
-You can save Wheeler source, compile it into a `.wbc` artifact, and execute that artifact. You know that compilation and execution
-are separate events.
-
-You do not need to know how the value changes yet. This lesson leaves it alone.
-
-## Predict
-
-The new program declares `lamp = 0` and contains no instruction that changes `lamp`.
-
-What value should the final report show?
-
-Write down the answer before you run the program. A prediction turns output into a test of your explanation rather than a surprise
-you explain afterward.
-
-## Program
-
-Save this complete source as `build/tutorial/FirstSignal.w`:
+Tala entered the operation as an ordinary assignment.
 
 ```java
-classical class FirstSignal {
-  state long lamp = 0;
+classical class EraseBit {
+  state long bit = 1;
 
   entry void main() {
+    bit = 0;
+    assert(bit == 0);
   }
 }
 ```
 
-The empty line separates the state declaration from the entry. It changes nothing about execution.
+Execution succeeded. That success meant the assignment had produced its stated endpoint, not that the endpoint retained enough
+information to recover what came before it. Mara would have called the operation complete. Osei would have called it unfinished.
+Both descriptions depended on the task.
 
-## Run it
+Edrin opened the Archive trace. Beside the current `bit = 0`, the system had retained the earlier value `1`. What the program state
+alone could not distinguish, the larger history record still could.
 
-Compile the source:
+For the two possible inputs, that record prevented the rows from colliding completely.
 
-```bash
-./bootstrap/gradlew -p bootstrap -q :tools:wheeler \
-  --args="compile $PWD/build/tutorial/FirstSignal.w -o $PWD/build/tutorial/FirstSignal.wbc"
-```
+| Input | Current bit | Retained earlier bit |
+| --- | --- | --- |
+| `0` | `0` | `0` |
+| `1` | `0` | `1` |
 
-The current compiler reports:
+A rewind could consume the retained record and restore the earlier program state. The method worked because the Archive had kept
+extra information outside the current state, not because `bit = 0` contained a hidden answer.
 
-```text
-wrote .../build/tutorial/FirstSignal.wbc (392 bytes)
-```
+Sana touched the second column. "If the record is unavailable?"
 
-Now execute the artifact:
+"Then the state cannot be reconstructed from this transition," Edrin said.
 
-```bash
-./bootstrap/gradlew -p bootstrap -q :tools:wheeler \
-  --args="run $PWD/build/tutorial/FirstSignal.wbc"
-```
+He offered the concession without defensiveness. The Archive motto described an operational policy, not a mathematical property,
+and perhaps he had spent the years since Sana's departure learning the value of saying so.
 
-The runtime reports:
+For the field manual, **inverse** named a different object: an operation that, given the output state covered by its contract,
+reconstructed the exact corresponding input. No private log from the earlier execution could be assumed. A finite mapping could
+have such an inverse only when distinct inputs remained distinct at the output.
 
-```text
-FirstSignal (classical) halted after 1 steps
-lamp = 0
-```
-
-## What happened
-
-The program began with `lamp` equal to `0`. Its entry body did nothing. The program halted with `lamp` still equal to `0`.
-
-The output matches the prediction. This result is not impressive, which makes it valuable. Before studying change, we need a case
-in which nothing changes.
-
-Mara called it a lamp that never turned on. Osei called it a stable initial condition. Sana recorded both phrases and the exact
-value, because prose has never prevented a maintenance dispute as reliably as a number with a name.
-
-## Walk through it
-
-The new line has four parts:
+By that test, the overwrite failed. Tala asked the Wheeler compiler to treat it as reversible anyway.
 
 ```java
-state long lamp = 0;
+classical class RejectedErase {
+  state long bit = 1;
+
+  rev void erase() {
+    bit = 0;
+  }
+
+  entry void main() {
+    erase();
+  }
+}
 ```
 
-`state` says that the class owns a value that the runtime will track.
-
-`long` selects the current signed whole-number type used by this example.
-
-`lamp` gives the state location a name.
-
-`= 0` gives that location its initial value.
-
-The final semicolon ends the declaration. It belongs to syntax and does not introduce another idea.
-
-The runtime prints `lamp = 0` because `lamp` is declared program state. It does not print every temporary detail used inside the
-runtime.
-
-## Name the idea
-
-A **state value** is a named value that belongs to the program at a particular point in its execution.
-
-The **initial value** is the value assigned when that program state begins.
-
-For this run, the state begins as:
+In source, the `rev` modifier requested a generated inverse. Compilation stopped at the assignment.
 
 ```text
-lamp = 0
+wheeler: line 4: reversible function contains SET_LOGGED, which has no generated inverse
 ```
 
-It ends as:
+Ordinary execution could log the destructive assignment. A `rev` body could not borrow that log and pretend the assignment had an
+inverse. The rejection preserved the distinction Edrin's gallery had made visible: history-backed rewind and inverse execution
+might reach the same earlier value in one demonstration, but they obtained it through different information.
 
-```text
-lamp = 0
-```
+Tala returned to the two-state flip. Its complete table had no collision.
 
-Those equal lines tell us that the named value is equal at the two points. They do not yet tell us what would happen after a change
-or whether the complete machine returned to an earlier state.
+| Input | Output |
+| --- | --- |
+| `0` | `1` |
+| `1` | `0` |
 
-## Try one change
+Each output identified one input, so the inverse table existed. In this case it happened to equal the forward table. Flipping
+again restored either starting value.
 
-Change the declaration to:
+Wheeler expressed that operation with XOR by one. Over the allowed two-state set, `bit ^= 1` exchanged `0` and `1` without merging
+them.
 
 ```java
-state long lamp = 1;
+classical class ReversibleFlip {
+  state long bit = 0;
+
+  rev void flip() {
+    bit ^= 1;
+  }
+
+  entry void main() {
+    flip();
+    assert(bit == 1);
+    reverse flip();
+    assert(bit == 0);
+  }
+}
 ```
 
-Before compilation, predict the final line. Then compile and run the edited program.
-
-You should see:
+The compiler found enough information in the `rev` body to generate its inverse. The command `reverse flip();` did not restore a
+snapshot. It executed new work selected from the inverse of `flip`.
 
 ```text
-lamp = 1
+wrote .../build/tutorial/ReversibleFlip.wbc (584 bytes)
+ReversibleFlip (classical) halted after 9 steps
+bit = 0
 ```
 
-Restore `lamp = 0` afterward. The next lesson will change the value during execution rather than changing its initial declaration.
+At the final zero, the route remained invisible. Source and artifact supplied the missing account: forward flip, checked state
+one, inverse flip, checked state zero.
 
-## What this does not mean
+Mara, who had tolerated the gallery with the restlessness of someone surrounded by events traveling in the wrong direction, asked
+what happened when a reversible method contained several operations. Osei replaced the one-bit example with two methods whose
+order mattered.
 
-A state value is not the complete state of the host computer, runtime process, or physical ship. It belongs to the declared
-Wheeler program model.
+```java
+classical class ReverseOrder {
+  state long value = 0;
 
-An unchanged final value also does not prove that no intermediate work occurred. This program has no body instruction, so we know
-that from its structure. Later programs may change a value and change it back. Equal endpoints alone do not reveal the path.
+  rev void rise() {
+    value += 2;
+  }
 
-That distinction will matter when the crew tries to decide whether the *Vela* returned or merely arrived with a familiar number on
-the console.
+  rev void mask() {
+    value ^= 7;
+  }
 
-## Check yourself
+  entry void main() {
+    rise();
+    mask();
+    assert(value == 5);
 
-If `lamp` starts at `7` and the entry contains no instructions, what final value should the runtime report?
+    reverse {
+      rise();
+      mask();
+    }
 
-It should report `7`.
+    assert(value == 0);
+  }
+}
+```
 
-What supports that answer?
+Forward execution added two, then applied the XOR mask: `0 -> 2 -> 5`. To return, Wheeler inverted the last operation first. The
+mask carried `5 -> 2`, after which the inverse of `rise` carried `2 -> 0`. Reversing each operation without reversing their order
+would have described a different path.
 
-- the declaration supplies the initial value.
-- the entry contains no instruction that changes it.
-- execution reaches a successful halt.
+```text
+wrote .../build/tutorial/ReverseOrder.wbc (728 bytes)
+ReverseOrder (classical) halted after 15 steps
+value = 0
+```
 
-## Next question
+Composition made the rule unavoidable. If forward work crossed doors A and B in that order, exact return crossed B before A. No
+mysticism was involved. The second operation had received the state produced by the first, so its inverse had to surrender that
+state before the first inverse could accept it.
 
-How does a program change a state value while it runs?
+Edrin brought up the transfer record *Vela* had come to collect. Its lineage was complete, its digest matched the far-instrument
+request, and Archive policy required a commit before release. Commit would establish a horizon in the retained VM history. Earlier
+steps would no longer remain available for ordinary rewind through that boundary.
 
-The next draft lesson will add one assignment. The tutorial does not link that page until its source, output, explanation, and
-language ledger are complete.
+"If commit prevents return," Mara said, "we are back where we began."
 
-## Language ledger
+"It prevents one kind," Tala said.
 
-**Words earned:** state value, initial value.
+For the final distinction, the manual offered another program.
 
-**Words sharpened:** same. The initial and final values are equal. We have not claimed that every part of the machine followed an
-inverse path.
+```java
+classical class CommittedInverse {
+  state long bit = 0;
 
-**Phrases retired:** "nothing happened" when the more precise claim is "the declared state value did not change."
+  rev void flip() {
+    bit ^= 1;
+  }
 
-**Evidence label:** exact classical execution. The displayed source halts after one step with `lamp = 0` under the current stage-0
-profile.
+  entry void main() {
+    flip();
+    assert(bit == 1);
+    commit();
+    reverse flip();
+    assert(bit == 0);
+  }
+}
+```
+
+Before the reverse call, commit ended the rewindable history. The generated inverse remained an operation in the artifact, so the
+later call could execute as new work.
+
+```text
+wrote .../build/tutorial/CommittedInverse.wbc (592 bytes)
+CommittedInverse (classical) halted after 10 steps
+bit = 0
+```
+
+Three routes now stood apart. An overwrite could return through retained history while that history survived. A reversible
+operation could execute its inverse from the current state. A commit could close the first route without deleting the second.
+Equal endpoints did not make the mechanisms interchangeable.
+
+Sana reviewed the transfer lineage beside Edrin. Their disagreement had narrowed from doctrine to fields in a record: which state
+was current, which history remained available, which inverse belonged to the artifact, and where commit had established the
+horizon. Precision had not made them agree about the Archive. It had made their remaining disagreement small enough to preserve.
+
+Edrin authorized the transfer.
+
+At departure, the habitat streamed *Vela*'s approach history back to the ship as a courtesy. Osei retained the verified digest and
+declined the bulk record. Mara waited until the corridor cleared, then moved the Archive behind them with one sustained burn.
+
+Twelve hours later, another signal arrived from beyond the range where a single observation could be mistaken for a pattern. It
+contained a sequence of zeros and ones, irregular enough to invite a story and too short to justify one.
+
+Beyond it, the field manual's next signature remained sealed under the title `CONTRIBUTIONS THAT CANCEL`.
