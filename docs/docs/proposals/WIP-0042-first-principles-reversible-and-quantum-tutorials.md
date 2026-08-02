@@ -24,6 +24,12 @@ one new conceptual dependency, runs or inspects one bounded experiment, and ends
 tutorial. New Wheeler syntax carries an already familiar idea. New physics uses already familiar syntax. The series introduces
 mathematical notation only after an experiment creates a need for it.
 
+The tutorial carries one original science-fiction return voyage under the working title **Instructions for Returning**. The
+reader joins the courier *Vela* as an apprentice who can follow sealed procedures but cannot yet explain them. An embedded book
+creates one experiment at a time while the crew crosses habitats with different incomplete ideas about memory, evidence, and
+quantum work. The prose earns its vocabulary in the same order as the reader. It describes an observation first, discovers where
+an ordinary word fails, and only then introduces the accepted technical term.
+
 This WIP takes curriculum ownership if maintainers accept it. WIP-0006 will continue to own concrete syntax and editor tooling.
 WIP-0010 will continue to own application conformance. This WIP will own lesson order, reader prerequisites, tutorial fixtures,
 explanatory standards, and the boundary between implemented lessons and planned work. After the first complete foundation through
@@ -280,6 +286,65 @@ home-directory state, live provider, or credential.
 
 ## Design
 
+### Narrative frame
+
+**Instructions for Returning** opens in the middle of the voyage. The *Vela* has reached home coordinates, but its return check
+reports that temporary workspace remains unrestored and the mission result has incomplete lineage. The crew uses *return* for
+location, value restoration, inverse execution, history rewind, cleanup, replay, and physical repetition. The reader cannot yet
+decide which meaning the report requires.
+
+The book then returns to the apprentice's first day and begins with an empty Wheeler program. The outward and homeward voyage
+supplies bounded settings for the technical progression. An archive mistakes complete history for reversibility. Uncertain signals
+create the need for trials and distributions. Interfering signals create the need for amplitudes and phase. Paired instruments
+create the temptation to infer entanglement from correlation. An ideal simulator offers complete inspection but cannot substitute
+for a physical target. A contract machine answers only the question its oracle encodes. The return passage introduces target
+limits, measurement, noise, replay, retry, and evidence lineage.
+
+The reader remains the protagonist. They grow from procedure follower to experiment designer and evidence auditor. Crew members
+hold reasonable but incomplete models and change their language after experiments contradict those models. No character remains
+the designated novice, skeptic, or source of truth.
+
+The final return does not erase the journey. The reader must preserve the useful result, restore only the state covered by an
+accepted return contract, account for observations and records that remain, and state what the evidence proves. The apprentice
+publishes the checked open edition of the book that the reader has just completed.
+
+Fiction appears at part openings, selected setbacks, checkpoints, and payoffs. Technical sections remain direct. A character's
+claim may motivate a prediction but cannot establish Wheeler or quantum semantics. The ship never travels along multiple physical
+routes at once. Quantum operations provide no faster than light communication, conscious measurement, or magic propulsion.
+
+### Earned lexicon
+
+The series begins with broad operational words that hide distinctions:
+
+| Early word | Terms that later experiments separate |
+| --- | --- |
+| return | inverse, rewind, uncompute, adjoint, replay, retry |
+| result | state, outcome, observation, sample, distribution, evidence |
+| same | equal value, restored state, repeated preparation, replayed record |
+| linked | dependent, correlated, product state, entangled |
+| random | unknown, sampled, probabilistic, seeded, noisy |
+| proof | exact execution, sampled evidence, structural certificate, theorem |
+
+A required term enters the main path through five steps:
+
+1. The reader observes a concrete result without needing the term.
+2. Existing vocabulary produces an ambiguity, failed prediction, or impossible explanation.
+3. The page states the exact distinction that the old word cannot express.
+4. **Name the idea** introduces the accepted technical term and its nearest nonexample.
+5. A prediction, local change, or checkpoint requires the reader to use the term precisely.
+
+Later prose uses the accepted term normally. It does not preserve an invented story synonym that competes with quantum vocabulary.
+Early prose may remain concrete or mark a term as not yet earned. It cannot teach a false statement for a later chapter to repair.
+
+Selected pages end with a **Language ledger** containing **Words earned**, **Words sharpened**, and **Phrases retired**. A word
+enters **Words earned** only after its defining observation and contrast. A common word may enter **Words sharpened** when it
+remains useful within a narrower scope. **Phrases retired** records language that would preserve a misconception, such as treating
+one measurement as a distribution or replay as another target run.
+
+Tutorial metadata records required and introduced terms as stable glossary identities. The prerequisite graph rejects a page that
+declares a required term before an earlier published page introduces it. Mechanical validation checks declared identities and
+links. Editorial and reader review still catch undeclared natural-language assumptions.
+
 ### Pacing law
 
 Each tutorial step has one central conceptual dependency. Reviewers apply these checks:
@@ -312,6 +377,7 @@ Every executable tutorial page contains these sections in this order unless a co
 10. **What this does not mean** blocks the nearest likely misconception.
 11. **Check yourself** asks one answerable question without hidden vocabulary.
 12. **Next question** supplies the bridge.
+13. **Language ledger** records the term earned or sharpened and the nearest phrase the lesson can now retire.
 
 A conceptual interlude replaces **Program** and **Run it** with **Activity**. The activity must still produce an inspectable
 table, diagram, count, or deduction.
@@ -332,7 +398,10 @@ Tutorial prose follows the repository documentation style and adds these rules:
 - State target, simulator, and proof limits next to the result they qualify.
 - Avoid claims about consciousness, many worlds, quantum mysticism, or philosophical interpretation unless a later nonsemantic appendix compares interpretations carefully.
 
-Dry humor may reduce tension. It may not carry a semantic distinction.
+Dry humor may reduce tension. It may not carry a semantic distinction. Precise vocabulary should reveal the reader's and
+characters' growth without making the narrator clever at their expense. Fictional excerpts remain short enough that a reader can
+return to the experiment without reconstructing the scene. Every recurring report, disagreement, image, or question receives a
+payoff at a named later step.
 
 ### Analogy discipline
 
@@ -470,9 +539,10 @@ only steps that introduce no separate conceptual dependency.
 
 #### Opening: The destination
 
-- `T00` shows a small Bell-pair Wheeler program as an unexplained destination. It labels every unfamiliar line as something the series will build. It makes no claim that the reader understands the output.
+- `T00` opens aboard the *Vela* after a failed return check, then shows the mission's small Bell-pair Wheeler program as an unexplained destination. It labels every unfamiliar line as something the series will earn. It asks what the crew can claim from one recorded output and makes no claim that the reader understands the quantum result.
 
-The series then puts that program aside until `T57`.
+The series then returns to the apprentice's first day. It puts the Bell program aside until `T57` and closes the return report at
+`T93`.
 
 #### Part 1: What a program does
 
@@ -684,6 +754,10 @@ the relevant language or quantum feature. Review notes record:
 - phrases that create a false physical model.
 - steps that introduce more than one central idea.
 - bridge questions that do not follow from the experiment.
+- fictional passages that delay the experiment, make a character permanently foolish, or imply false quantum behavior.
+- technical words that appear before their defining observation, contrast, and declared prerequisite.
+- language-ledger entries that rename a term without improving the reader's prediction or explanation.
+- opening reports, character disagreements, and voyage questions that never receive an earned payoff.
 
 The author resolves or explicitly defers every finding before publication. Reader review never replaces semantic tests. It checks
 pedagogy, not compiler correctness.
@@ -840,7 +914,8 @@ mathematical claim. The project does not preserve a false explanation for page-l
 
 ## Progress
 
-- [ ] Reader baseline and pacing law receive review.
+- [ ] Reader baseline, narrative frame, earned lexicon, and pacing law receive review.
+- [x] The tutorial index and pilot pages `T00` through `T03` have a complete first prose draft.
 - [ ] Stable tutorial IDs and prerequisite graph receive review.
 - [ ] Tutorial metadata and documentation nodes are implemented.
 - [ ] Primary fenced Wheeler source compiles and runs through the documentation gate.
@@ -865,6 +940,10 @@ mathematical claim. The project does not preserve a false explanation for page-l
 
 - [ ] A clean checkout follows the documented setup and runs the first lesson without ambient dependencies.
 - [ ] Every lesson ID is unique, stable, ordered, and reachable through an acyclic prerequisite graph.
+- [ ] Every declared required term resolves to an earlier published introduction in the stable glossary graph.
+- [ ] Every introduced term follows an observation, states its nearest contrast, and supports a later prediction or explanation.
+- [ ] Fictional scenes remain removable without removing the only technical definition or evidence boundary.
+- [ ] The failed return report and Bell artifact from `T00` receive explicit payoffs at `T57`, `T62`, and `T93`.
 - [ ] Every page introduces no unexplained required term or notation according to its declared prerequisite inventory.
 - [ ] Every exact primary fence parses with Tree-sitter, compiles, verifies, round-trips canonically, and produces its expected result.
 - [ ] Every expected-rejection fence fails with its named stable diagnostic and publishes no artifact.
@@ -951,6 +1030,8 @@ may show unlinked release-unit names as a roadmap.
 - Which static circuit representation should generate both accessible HTML and useful source Markdown. **Owner:** quantum tooling and documentation maintainers. **Decide by:** before release unit 3.
 - How many independent zero-knowledge reader reviews are required for a release unit. **Owner:** documentation maintainers. **Decide by:** before release unit 1 publication.
 - Should a printed edition group tutorial steps under chapter numbers that remain outside stable tutorial identity. **Owner:** documentation and publication maintainers. **Decide by:** before printable bundle work.
+- Which crew names and fictional settings survive zero-knowledge reader testing, and should **Instructions for Returning** remain the public series title. **Owner:** documentation maintainers. **Decide by:** before release unit 1 publication.
+- Which glossary identity and front-matter fields encode required, introduced, sharpened, and retired language. **Owner:** documentation and language maintainers. **Decide by:** before tutorial metadata acceptance.
 
 ## References
 

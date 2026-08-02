@@ -132,10 +132,11 @@ final class DocumentationMarkdown {
   private static int groupOrder(Page page) {
     return switch (group(page)) {
       case "manual" -> 0;
-      case "reference" -> 1;
-      case "proposals" -> 2;
-      case "future" -> 3;
-      default -> 4;
+      case "tutorials" -> 1;
+      case "reference" -> 2;
+      case "proposals" -> 3;
+      case "future" -> 4;
+      default -> 5;
     };
   }
 

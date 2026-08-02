@@ -308,6 +308,7 @@ When software crosses classical, reversible, quantum, and external-effect bounda
 
 ## Further reading
 
+- [First-principles tutorials](tutorials/index.mdx)
 - [Language profile](reference/language-profile.md)
 - [Executable examples](examples.md)
 - [Bytecode format](reference/bytecode.md) and [virtual machine](reference/virtual-machine.md)

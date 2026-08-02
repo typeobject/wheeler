@@ -99,7 +99,8 @@ class DocumentationMarkdownTest {
         "proposals/TEMPLATE.md", "# WIP-XXXX: Short decision title\n",
         "proposals/WIP-0001-first.md", "# WIP-0001: First\n",
         "reference/bytecode.md", "# Wheeler bytecode format\n",
-        "reference/language-profile.md", "# Wheeler source language profile\n"));
+        "reference/language-profile.md", "# Wheeler source language profile\n",
+        "tutorials/index.mdx", "# Instructions for Returning\n"));
 
     DocumentationMarkdown.Page introduction = renderer.pages().stream()
         .filter(page -> page.source().equals("intro.md"))
@@ -107,9 +108,11 @@ class DocumentationMarkdownTest {
     String html = renderer.render(introduction);
 
     int manual = html.indexOf("<section><h2>manual</h2>");
+    int tutorials = html.indexOf("<section><h2>tutorials</h2>");
     int reference = html.indexOf("<section><h2>reference</h2>");
     int proposals = html.indexOf("<section><h2>proposals</h2>");
-    assertTrue(manual >= 0 && manual < reference && reference < proposals);
+    assertTrue(manual >= 0 && manual < tutorials && tutorials < reference
+        && reference < proposals);
     assertEqualsOnce(html, "<section><h2>manual</h2>");
     assertTrue(html.indexOf(">What Is Wheeler?</a>")
         < html.indexOf(">Executable examples</a>"));
