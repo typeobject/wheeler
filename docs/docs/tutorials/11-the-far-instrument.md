@@ -77,6 +77,13 @@ history and discovered that Iona had resolved it eighteen months earlier without
 
 "Then you were motivated to check it."
 
+They had written the first version while sharing quarters on Sable and trading target watch between them. When Osei accepted a
+year-long refit at Catenary, Iona asked him not to promise a return date he did not control. The year became a succession of jobs
+he chose. Iona chose not to keep his place empty.
+
+They had loved each other. Nothing that followed made that false, and nothing about its truth required Iona to have waited. Their
+source had continued to accept revisions from both locations because source possessed an update procedure. A shared life did not.
+
 The current body contained neither comment.
 
 ```java

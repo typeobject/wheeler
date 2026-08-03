@@ -29,6 +29,9 @@ spin gravity and transparent inspection panels underfoot. Sable filled the view 
 impact shelves, and black hollows that had kept sunlight out for geological time. Cables ran beside the handrail in labeled bundles,
 carrying ordinary power and classical control between systems whose quantum regions remained isolated at either end.
 
+Near the midpoint, Iona tested a handrail weld stamped with Osei's old inspection mark. He had made it on his last shift at Sable.
+The weld still carried its load. Neither of them treated that fact as an argument about where he should have lived afterward.
+
 Halfway across, Osei stopped to watch a service cart traverse the outside rail. "One definition on both sides," he said. "That is
 what I want."
 

@@ -37,8 +37,17 @@ their work, preserving one distinction needed by the next layer.
 
 Mara waited for `1`, acknowledged it, then watched the station return to `0`. The exchange was routine. It granted no wisdom to
 either endpoint and carried none of the farewell messages still arriving on the private channels. Tala had two from former
-colleagues, Osei one from a machine cooperative that addressed him as a delinquent member, and Mara nine from food vendors asking
-her to settle accounts before relativistic delay became an excuse.
+colleagues. Mara had nine from food vendors asking her to settle accounts before relativistic delay became an excuse.
+
+Osei had one from the Sable Instrument Cooperative. It addressed him as a delinquent member and contained a private line beneath
+the maintenance vote.
+
+```text
+The west bearing outlasted your estimate.
+Iona
+```
+
+He marked the message retained without answering it.
 
 The manual had marked the two traffic values as unfinished business.
 

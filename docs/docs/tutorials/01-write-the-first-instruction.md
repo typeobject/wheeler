@@ -30,7 +30,15 @@ between power and air, then moved upward when Tala asked whether the galley unit
 By profession Tala was a systems analyst. She had spent seven years tracing failures through municipal transit software, where
 vehicles remained on the ground and most state could be copied without consulting the laws of physics. Her last network had once
 reported itself restored while fourteen passenger cars waited between stations under manual power. The copied control state was
-perfect. It was also six minutes old. Tala had delayed the public reopening, embarrassed a director, and acquired the kind of
+perfect. It was also six minutes old.
+
+Neris Venn, the transit director, had two platforms approaching their air limit and a crowd beginning to test locked doors. She
+ordered the network reopened from the green control state. Tala invoked the safety veto because the fourteen cars existed outside
+that copy. Neither woman had mistaken the pressure on the other. Venn needed movement before the platforms became dangerous. Tala
+needed the movement to account for vehicles the dashboard had forgotten.
+
+The cars came back under local control. The public report called the service restored and attributed the additional delay to Tala's
+veto, both statements narrowly true. She embarrassed Venn, kept the report in her private records, and acquired the kind of
 reputation that becomes expertise only after another employer needs it.
 
 The far-instrument mission had hired her for that experience, not because it was sufficient, and Osei made the distinction during

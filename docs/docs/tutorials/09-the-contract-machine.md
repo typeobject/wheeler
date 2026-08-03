@@ -165,9 +165,16 @@ water wall. Small working things exposed assumptions that large working things c
 Sana recorded five distinct objects: the promised problem, the oracle contract, the oracle implementation, the circuit that made
 one call, and the final basis outcome. Calling all five "the algorithm" would have made later evidence impossible to scope.
 
-A delayed status update arrived from Catenary while she worked. The particle front had accelerated within the forecast range.
-Traffic control moved its retuning deadline forward by forty-three minutes. No one aboard the far instrument could make light cross
-the reach faster. They could only finish the calibration without creating a reason for it to be rejected at the other end.
+A delayed status update arrived from Catenary while she worked. Neris Venn had signed it in her new office as director of traffic
+continuity. The particle front had accelerated within the forecast range, and Venn moved the retuning deadline forward by
+forty-three minutes.
+
+The acceptance request named the physical sample, application identity, and complete lineage separately. Six years earlier, Venn
+had trusted one green transit state because the larger system had hidden fourteen cars from her. Tala could not tell whether this
+new precision came from that failure or from an unrelated policy review. Either origin would have to survive the same checks.
+
+No one aboard the far instrument could make light cross the reach faster. They could only finish the calibration without creating a
+reason for it to be rejected at the other end.
 
 After both cases passed, the contract machine unlocked its next module. Behind the panel lay a four-state search space and one
 marked basis value, small enough to inspect completely and large enough to demonstrate amplification.

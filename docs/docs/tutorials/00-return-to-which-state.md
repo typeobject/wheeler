@@ -123,8 +123,14 @@ Sana's attention shifted from the record to Tala. During the outward voyage, tha
 she entered the sentence unchanged.
 
 At nine minutes, Catenary requested their braking commitment. Mara answered with a delay code and no apology. In the station's
-traffic grammar the code meant *technical hold, crew in control*. It bought ninety seconds and placed a human controller on their
-channel. It could be used once.
+traffic grammar the code meant *technical hold, crew in control*. It bought ninety seconds and placed Neris Venn, director of
+traffic continuity, on their channel. Tala knew the voice before the display supplied the name.
+
+"State the unsafe claim," Venn said.
+
+"Working," Tala replied.
+
+The hold could be used once.
 
 Osei isolated the unrestored branch to a computation executed at the far instrument, but its retained history ended at a commit
 boundary. Rewinding through that boundary was unavailable. The source still had a generated adjoint somewhere in its artifact,

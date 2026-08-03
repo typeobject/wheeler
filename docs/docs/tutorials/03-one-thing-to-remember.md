@@ -69,9 +69,24 @@ reactor simulation withdrew from a fault it had taken less than a second to ente
 Osei studied the reconstruction controls. "Rewound."
 
 With that single word, a hairline fracture crossed the Archive motto. Edrin heard it and chose not to answer until they reached the
-verification room.
+evacuation exhibit.
 
-Tala found a two-state example waiting on the terminal. Its operation differed from the flip by one row.
+Behind its glass, the failed pressure system approached the old emergency, stopped, and began consuming its retained transitions in
+reverse. Warnings cleared. The damaged section reopened. Twelve names remained fixed across the glass while the machinery withdrew
+from the event that had killed them.
+
+Sana looked at Edrin. "That overlay was not here."
+
+"No."
+
+"When?"
+
+"After you left. Before I learned how to tell you."
+
+The change did not repair their argument or return the dead. It prevented the reconstruction from carrying the people backward
+with the machine state. Sana read every name. Edrin waited without asking what the revision had earned.
+
+In the verification room, Tala found a two-state example waiting on the terminal. Its operation differed from the flip by one row.
 
 | Input | Output |
 | --- | --- |

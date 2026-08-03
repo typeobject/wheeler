@@ -239,9 +239,20 @@ Catenary's acknowledgment reached Sable during undocking. Traffic control had ac
 provisional beacon retuning before the particle front. Final acceptance still required the full evidence package aboard *Vela*.
 The message contained no praise, only an application identity and the next expected contact. Mara read it twice anyway.
 
-Iona remained at the inner lock while *Vela* withdrew. Behind her, the station's five residents had already returned to pump work,
-meal rotation, and the bearing they had deferred into the next risk budget. The instrument contracted into a black line against
-Sable. Its result traveled inward with the ship. The place and people that produced it stayed where they were.
+Iona remained at the inner lock while *Vela* withdrew. She returned the empty sensor case to Osei and kept his blue cup in the
+common rack.
+
+"I do not have a return date," he said.
+
+"Good."
+
+"I can write before the next failure."
+
+"Write about something that works."
+
+Behind her, the station's five residents had already returned to pump work, meal rotation, and the bearing they had deferred into
+the next risk budget. The instrument contracted into a black line against Sable. Its result traveled inward with the ship. The
+place and people that produced it stayed where they were.
 
 Their departure from the far instrument began the homeward half of the voyage.
 
@@ -265,9 +276,20 @@ mission result   present
 result lineage   incomplete
 ```
 
-This time Tala could read the failure rather than merely divide it among the crew. Catenary's controller had granted one technical
-hold. The burn cage showed eight minutes, fifty-eight seconds and continued counting. Mara kept her hand inside it, ready to commit
-or abort, and waited for Tala's nouns.
+This time Tala could read the failure rather than merely divide it among the crew. Neris Venn had granted one technical hold. The
+burn cage showed eight minutes, fifty-eight seconds and continued counting. Mara kept her hand inside it, ready to commit or abort,
+and waited for Tala's nouns.
+
+"The result bytes match the manifest," Venn said. "I can carry the provisional profile for one cycle if you attest the result now
+and repair its lineage after docking."
+
+The offer was not reckless. It separated immediate traffic from later records, just as reopening the transit platforms had once
+separated crowd safety from fourteen cars outside the copied state. The dangerous word was *result*. Its bytes matched. Its claim
+did not yet possess the history required for acceptance.
+
+"I can attest the bytes," Tala said. "I cannot attest the result. Keep the hold."
+
+Venn took one breath. "You have it."
 
 One undifferentiated return policy had covered two experiments. In the unmeasured Bell restoration test, the generated adjoint had
 returned coherent workspace to `|00>`. In the sampled hardware experiment, measurement had intentionally
@@ -312,8 +334,10 @@ Osei ran the checker.
 RETURN CONTRACT SATISFIED
 ```
 
-Sana transmitted the repaired full lineage. Catenary's controller bound it to the provisional application and accepted the
-calibration before the old beacon profile could return.
+Sana transmitted the repaired full lineage. Tala sent the explicit contracts beside it. Venn read far enough to separate the
+recorded observation from the state nobody claimed to restore, then bound the lineage to the provisional application.
+
+"Calibration accepted," she said. "Proceed to burn."
 
 Mara looked once at Tala. On their first day she had trusted a departure interlock because its claim was small enough to inspect.
 Now she trusted a larger decision for the same reason. She resumed the countdown at eight minutes, forty-one seconds. The braking
@@ -339,7 +363,7 @@ with every surviving result able to explain how it arrived.
 ```
 
 Outside the hull, Catenary took *Vela*'s weight. Mara placed the Archive bird on the console. In the yard's spin it tipped forward,
-as if pointing into the ship rather than toward anything they had left behind. Osei opened the first maintenance report. Sana
-watched the mission record propagate into three independent stores.
+as if pointing into the ship rather than toward anything they had left behind. Osei opened a delayed Sable message that contained
+no fault report and began a reply. Sana watched the mission record propagate into three independent stores.
 
 Nothing moved backward. The doors opened anyway.

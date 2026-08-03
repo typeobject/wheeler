@@ -40,6 +40,16 @@ A slight change in Iona's expression suggested that the answer restored an older
 a corrupted parts manifest had left her with three thousand fasteners of the wrong alloy and a beautifully signed explanation.
 She had corresponded with Sana ever since, mostly by attaching increasingly specific questions to rejected records.
 
+Only then did she look at Osei. He opened a padded case and offered two bearing sensors, one built for the mounting he remembered and
+one for the revision installed after he left. Carrying both had cost *Vela* mass Mara could have sold to cargo.
+
+Iona selected the revised part. "You checked."
+
+"Eventually."
+
+Her thumb remained against the sealed case for a moment before she passed it to a technician. No embrace would have told Tala as
+much about the years between them.
+
 Iona led them down a corridor whose local down shifted as the station turned. Frost feathered one wall behind a warning grid. At
 the laboratory entrance they exchanged ship clothing for clean layers and passed through two fields that removed the dust Sable
 lifted even in vacuum. One shielded device occupied the center of an otherwise empty room.
@@ -161,9 +171,13 @@ approached equal frequencies, yet nothing in a single outcome identified the sta
 qubit a hidden coin would reproduce the counts and fail the next experiment.
 
 During a cooling pause, Iona took them to the station galley. Five place settings had become nine by borrowing dishes from the
-machine shop. Sable rolled across the ceiling window, its surface black except where old prospecting charges had exposed pale
-veins. The residents asked about Catenary's gardens and whether the Archive still served the impossible broth. Nobody asked whether
-the experiment had worked. At the instrument, that question was considered too broad for a meal.
+machine shop. Osei opened one cabinet without asking and found spare filters where cups had once been. Iona pointed to the opposite
+wall. His chipped blue cup remained in the common rack, worn by use rather than preserved. She filled it and set it at the place
+beside hers.
+
+Sable rolled across the ceiling window, its surface black except where old prospecting charges had exposed pale veins. The residents
+asked about Catenary's gardens and whether the Archive still served the impossible broth. Nobody asked whether the experiment had
+worked. At the instrument, that question was considered too broad for a meal.
 
 Only the ideal simulator could expose its mathematical state before measurement. That diagnostic belonged to the simulator, not
 to an ordinary hardware observation.

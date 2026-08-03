@@ -139,6 +139,9 @@ If the sums surprised you, keep them.
 You will need them more than the pictures.
 ```
 
+Osei read the note before Tala finished checking its identity. He knew Iona's habit of putting the instruction where a greeting
+might have gone. Six years had not altered that economy. His hand rested over the unanswered bearing message, then moved away.
+
 For the first time, the manual printed the word it had withheld.
 
 ```text

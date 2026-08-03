@@ -421,6 +421,24 @@ Worldbuilding cannot grant semantic authority. A culture may hold an incomplete 
 language, and a station may preserve a misleading motto, but Wheeler behavior still follows the accepted language, runtime,
 target, and proof contracts. Fictional history creates pressure to discover a distinction. It never changes the distinction.
 
+### Secondary plot discipline
+
+A secondary storyline remains only when it changes a decision, relationship, artifact, or payoff in the return voyage. It cannot
+exist solely to supply genre incident, and it cannot carry the only statement of a technical rule.
+
+The accepted relational threads reinforce the main action:
+
+- Tala's earlier conflict with Neris Venn turns the final acceptance deadline into a renewed choice between a convenient current
+  value and the larger system that value fails to account for.
+- Sana and Edrin's unresolved Archive argument produces the fixed memorial overlay, the pre-commit manifest practice, and the
+  lineage repair that closes the mission.
+- Osei and Iona's mature love story distinguishes a true shared past from a shared life that neither person can restore. Their next
+  contact must be new work freely chosen from the present, not an inverse of their separation.
+
+These threads enter through action, maintenance, records, and bounded dialogue. No romance turns consent into a technical analogy.
+No death, hidden culprit, or investigation manufactures urgency that the voyage and its evidence contracts already provide. A
+subplot that delays its chapter's experiment without changing the final return is removed.
+
 ### Analogy discipline
 
 Every analogy has three parts:
@@ -962,6 +980,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 - [ ] Every introduced term follows an observation, states its nearest contrast, and supports a later prediction or explanation.
 - [ ] Fictional scenes remain removable without removing the only technical definition or evidence boundary.
 - [ ] Every chapter advances setting through a material constraint, institution, recurring object, or consequential character choice without making fictional worldbuilding semantic authority.
+- [ ] Every secondary plot changes a main-story decision, relationship, artifact, or payoff and contains no scene retained only for genre decoration.
 - [ ] The failed return report and Bell artifact from `T00` receive explicit payoffs at `T57`, `T62`, and `T93`.
 - [ ] Every page introduces no unexplained required term or notation according to its declared prerequisite inventory.
 - [ ] Every exact primary fence parses with Tree-sitter, compiles, verifies, round-trips canonically, and produces its expected result.
