@@ -280,7 +280,7 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
   - Every code block receives one accessible copy button backed by the fixed local `copy.js` asset.
   - `sitemap.xml` contains every HTML route plus a digest of exact page content.
   - `publication-manifest.json` binds the bundle, renderer, and every output file before atomic publication.
-  - The current local build emits 63 linked HTML pages plus the root introduction route.
+  - The current local build emits 72 linked HTML pages plus the root introduction route.
   - The old renderer package graph, duplicate deployment-test workflow, and generic website configuration are deleted.
   - Hosted run `29670968033` built and deployed the navigation and front-matter slice at commit `2dea61e`.
   - Hosted evidence remains tied to that commit and does not inherit later renderer identities.

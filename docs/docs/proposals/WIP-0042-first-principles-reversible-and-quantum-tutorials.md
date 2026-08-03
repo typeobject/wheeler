@@ -258,7 +258,7 @@ This WIP owns:
 
 - the reader baseline.
 - tutorial-step identities and prerequisite order.
-- the page contract and pacing rules.
+- the chapter contract and pacing rules.
 - the first-principles curriculum map.
 - tutorial-specific source and result metadata.
 - the lesson publication and replacement gates.
@@ -317,6 +317,10 @@ member a tutorial role or biography.
 The final return does not erase the journey. Tala must preserve the useful result, restore only the state covered by an accepted
 contract, account for records and observations that remain, and state what the evidence proves. Her verified amendments become the
 next open edition of the field manual.
+
+The story assumes the complete accepted Wheeler language, compiler, runtime, target, workflow, correction, and proof system. It
+never interrupts a scene with repository implementation status or presents a feature as future work. Separate publication gates
+still require every displayed program, result, target event, and certificate to execute before the chapter becomes authoritative.
 
 ### Earned lexicon
 
@@ -650,7 +654,7 @@ histogram shape alone.
 - `T65` applies the same function to a quantum basis state.
 - `T66` applies the permutation to a superposition and tracks amplitudes without measurement.
 - `T67` tests rejected coherent bodies containing overwrite, measurement, I/O, or unsupported arithmetic.
-- `T68` introduces uncomputation and the current clean-ancilla boundary without presenting WIP-0034 syntax as implemented.
+- `T68` introduces paired compute and use regions, clean ancillas, and exact generated uncomputation.
 
 The checkpoint explains, in words and a table, why exact finite permutations lift while information-losing functions do not.
 
@@ -687,8 +691,8 @@ WIP-0010 and WIP-0033 through WIP-0036.
 - `T89` replays one recorded observation without target execution.
 - `T90` retries the same preparation as a new physical lineage.
 - `T91` introduces noise and decoherence as physical behavior outside the ideal state-vector model.
-- `T92` uses `SurfaceCode.w` to separate its static correction kernel from unfinished dynamic syndrome feedback.
-- `T93` compares executable tests, sampled evidence, finite structural certificates, and future general theorem certificates.
+- `T92` runs `SurfaceCode.w` through bounded dynamic syndrome measurement, reset, decoding, and target-resident correction.
+- `T93` compares executable tests, sampled evidence, finite structural certificates, and general theorem certificates.
 
 The final checkpoint asks the reader to classify inverse, rewind, uncompute, adjoint, measurement, replay, and retry across one
 complete hybrid story.
@@ -745,7 +749,7 @@ the relevant language or quantum feature. Review notes record:
 - bridge questions that do not follow from the experiment.
 - fictional passages that delay the experiment, make a character permanently foolish, or imply false quantum behavior.
 - technical words that appear before their defining observation, contrast, and declared prerequisite.
-- language-ledger entries that rename a term without improving the reader's prediction or explanation.
+- term introductions that rename an observation without improving the reader's prediction or explanation.
 - opening reports, character disagreements, and voyage questions that never receive an earned payoff.
 
 The author resolves or explicitly defers every finding before publication. Reader review never replaces semantic tests. It checks
@@ -885,7 +889,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 
 ## Migration and deletion
 
-1. Accept the reader baseline, pacing law, page contract, evidence labels, and curriculum ownership.
+1. Accept the reader baseline, pacing law, chapter contract, evidence labels, and curriculum ownership.
 2. Add tutorial chapter and step metadata, prerequisite graph validation, and stable navigation to the WIP-0019 documentation model.
 3. Add extraction, Tree-sitter parsing, compilation, canonical bytecode checks, execution, expected rejection, and downloadable source for primary Wheeler fences.
 4. Establish one short source-checkout setup path and verify it on a clean machine profile.
@@ -904,7 +908,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 ## Progress
 
 - [ ] Reader baseline, narrative frame, earned lexicon, and pacing law receive review.
-- [x] The first four continuous-story chapters cover the foundation steps `T00` through `T23` in a complete first prose draft.
+- [x] Thirteen continuous-story chapters cover every step from `T00` through `T93` in a complete first prose draft.
 - [ ] Stable tutorial IDs and prerequisite graph receive review.
 - [ ] Tutorial metadata and documentation nodes are implemented.
 - [ ] Primary fenced Wheeler source compiles and runs through the documentation gate.

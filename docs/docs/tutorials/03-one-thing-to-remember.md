@@ -173,7 +173,6 @@ The compiler found enough information in the `rev` body to generate its inverse.
 snapshot. It executed new work selected from the inverse of `flip`.
 
 ```text
-wrote .../build/tutorial/ReversibleFlip.wbc (584 bytes)
 ReversibleFlip (classical) halted after 9 steps
 bit = 0
 ```
@@ -217,7 +216,6 @@ mask carried `5 -> 2`, after which the inverse of `rise` carried `2 -> 0`. Rever
 would have described a different path.
 
 ```text
-wrote .../build/tutorial/ReverseOrder.wbc (728 bytes)
 ReverseOrder (classical) halted after 15 steps
 value = 0
 ```
@@ -258,7 +256,6 @@ Before the reverse call, commit ended the rewindable history. The generated inve
 later call could execute as new work.
 
 ```text
-wrote .../build/tutorial/CommittedInverse.wbc (592 bytes)
 CommittedInverse (classical) halted after 10 steps
 bit = 0
 ```
@@ -279,4 +276,4 @@ declined the bulk record. Mara waited until the corridor cleared, then moved the
 Twelve hours later, another signal arrived from beyond the range where a single observation could be mistaken for a pattern. It
 contained a sequence of zeros and ones, irregular enough to invite a story and too short to justify one.
 
-Beyond it, the field manual's next signature remained sealed under the title `CONTRIBUTIONS THAT CANCEL`.
+The field manual opened at [The Long Count](04-the-long-count.md).

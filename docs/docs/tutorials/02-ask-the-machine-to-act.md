@@ -52,7 +52,6 @@ the two points visited during the run. That narrower contract, not the storage c
 Tala compiled the source and executed its artifact.
 
 ```text
-wrote .../build/tutorial/OneBit.wbc (480 bytes)
 OneBit (classical) halted after 5 steps
 bit = 1
 ```

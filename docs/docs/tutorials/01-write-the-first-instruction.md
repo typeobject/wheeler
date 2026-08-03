@@ -37,15 +37,13 @@ instruction survived in faded blue ink.
 Begin with a program that has nowhere to go.
 ```
 
-Tala configured the checked-out Wheeler toolchain at the terminal built into the rack.
+Tala opened the Wheeler workspace at the terminal built into the rack and created a directory for the manual's programs.
 
 ```bash
-export JAVA_HOME="$(brew --prefix openjdk)/libexec/openjdk.jdk/Contents/Home"
-export PATH="$JAVA_HOME/bin:$PATH"
-mkdir -p build/tutorial
+mkdir -p tutorial
 ```
 
-For the first exercise, the manual supplied `build/tutorial/Wake.w` and a complete source small enough to look less like a program
+For the first exercise, the manual supplied `tutorial/Wake.w` and a complete source small enough to look less like a program
 than the space reserved for one.
 
 ```java
@@ -62,14 +60,13 @@ time and alter an artifact already produced from earlier bytes.
 She invoked the compiler from the repository root.
 
 ```bash
-./bootstrap/gradlew -p bootstrap -q :tools:wheeler \
-  --args="compile $PWD/build/tutorial/Wake.w -o $PWD/build/tutorial/Wake.wbc"
+wheeler compile tutorial/Wake.w -o tutorial/Wake.wbc
 ```
 
-After the host warnings, the compiler reported its output.
+The compiler reported its output.
 
 ```text
-wrote .../build/tutorial/Wake.wbc (360 bytes)
+wrote tutorial/Wake.wbc
 ```
 
 Inside `Wake.wbc`, canonical Wheeler bytecode formed the **artifact**. Compilation had checked the source rules and translated the
@@ -83,8 +80,7 @@ A compiled promise remains a promise.
 Execution required another boundary and another command.
 
 ```bash
-./bootstrap/gradlew -p bootstrap -q :tools:wheeler \
-  --args="run $PWD/build/tutorial/Wake.wbc"
+wheeler run tutorial/Wake.wbc
 ```
 
 After verifying the artifact, the runtime entered `main`, found no body instruction, and halted.
@@ -214,7 +210,7 @@ classical class FirstWatch {
 Before execution, Tala traced both values. `berth` would follow `1 -> 0`. `drive` would follow `0 -> 1`. The call would finish
 before either assertion examined the state.
 
-She compiled the displayed source into a 640-byte artifact and ran it.
+She compiled the displayed source into its canonical artifact and ran it.
 
 ```text
 FirstWatch (classical) halted after 9 steps
