@@ -126,10 +126,14 @@ Here the distinction mattered. The diagram was a calculation over alternatives i
 traveled along one hidden route, split into physical copies, or sent messages between paths. A later quantum experiment would
 specify the preparation and operation that made the sum predictive.
 
-At the edge of sensor range, Sable appeared as an absence against the dust-bright plane of the system. The far instrument opened
-its receiving aperture. Towers emerged one at a time from the moon's darkness, not illuminated but visible where they concealed
-stars. A habitation signal followed: water reserve, pressure status, five persons aboard, one visitor berth available, no
-uncontained illness.
+At the edge of sensor range, Sable appeared as an absence against the dust-bright plane of the system. The first settlers had come
+to anchor navigation clocks, then remained because every clock needed a comparison and every comparison needed maintenance. Their
+surface camps migrated underground after radiation storms erased three years of exposed work. The modern station inherited those
+tunnels, the meeting language, and a suspicion of any component advertised as permanent.
+
+The far instrument opened its receiving aperture. Towers emerged one at a time from the moon's darkness, not illuminated but
+visible where they concealed stars. A habitation signal followed: water reserve, pressure status, five persons aboard, one visitor
+berth available, no uncontained illness.
 
 Its identification packet declared a physical system with two distinguished measurement outcomes and a controlled interface for
 preparing it. A note from Iona Vale, the instrument's current keeper, accompanied the declaration.

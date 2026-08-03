@@ -756,8 +756,8 @@ The documentation publishes the map through complete release units:
 
 `T00` publishes with the first unit and links forward only to published units.
 
-A release unit has no placeholder pages. The tutorial index may show later unit titles as a roadmap, but roadmap rows carry no
-links and make no implementation claim.
+A release unit has no placeholder pages. This proposal may name later release units as a roadmap. The public story landing does not
+list them or expose their chapter titles.
 
 ### Replacement of the current teaching path
 
@@ -780,7 +780,8 @@ At that gate, the implementation patch:
 3. updates WIP-0010 to identify its teaching applications as capstone fixtures rather than the ordered beginner path.
 4. keeps no second lesson-order list in the reference or examples page.
 
-Later release units extend the tutorial index in place. They do not restore the old list.
+Later release units extend the sequential chapter chain in place. They do not turn the story landing into a chapter list or restore
+the old reference list.
 
 ### Reader testing
 
@@ -1061,8 +1062,8 @@ stopping points, then moves to amplitude tables and unitary operations.
 
 ### Publish placeholder pages for the full roadmap
 
-Rejected. Placeholder navigation turns planned syntax into apparent product surface and leads beginners into dead ends. The index
-may show unlinked release-unit names as a roadmap.
+Rejected. Placeholder navigation turns planned syntax into apparent product surface and leads beginners into dead ends. The
+proposal may retain an unlinked release-unit roadmap, while the public story landing exposes only its first chapter.
 
 ## Open questions
 

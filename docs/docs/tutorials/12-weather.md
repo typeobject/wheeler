@@ -261,6 +261,15 @@ noise floors rose, beacon clocks drifted, and Catenary's newly calibrated networ
 became visible as a pale aurora along the magnetic field of the world below home. The crew slept, worked, and argued inside a hull
 that reduced the event to allowable exposure.
 
+Catenary's public reports described another scale of the same weather. The old wheels closed their widest windows. Garden districts
+shifted lamps to protect their power reserve. Markets moved from exposed spokes into school corridors, where children treated the
+emergency stalls as a festival until their parents ran out of patience. Under the provisional beacon profile, traffic continued at
+reduced separation rather than stopping altogether.
+
+On the second day inward, Osei began a message to Iona with the radiator valve he had repaired before breakfast. He described why
+the old part had failed, what the replacement did, and the sound it made when flow returned. He did not explain his departure or
+promise his arrival. Sana recorded the transmission identity without asking to read the private body.
+
 Tala read the field manual from the beginning. In the outward margin she found her own early notes too broad, corrected them, and
 left enough of the old ink visible to show why. Sana received a message from Edrin accepting the evacuation-exhibit amendment.
 He had added two words: *losses remembered*. She did not answer immediately.
@@ -290,6 +299,10 @@ did not yet possess the history required for acceptance.
 "I can attest the bytes," Tala said. "I cannot attest the result. Keep the hold."
 
 Venn took one breath. "You have it."
+
+The crew did not serialize the problem. Sana opened the sealed manifest while Osei isolated the reversible branch. Tala split the
+checker into claims small enough to accept or reject. Mara kept the burn solution current as every unused second changed it. Their
+work could proceed together because each person knew which state and record the others were allowed to touch.
 
 One undifferentiated return policy had covered two experiments. In the unmeasured Bell restoration test, the generated adjoint had
 returned coherent workspace to `|00>`. In the sampled hardware experiment, measurement had intentionally
@@ -340,7 +353,7 @@ recorded observation from the state nobody claimed to restore, then bound the li
 "Calibration accepted," she said. "Proceed to burn."
 
 Mara looked once at Tala. On their first day she had trusted a departure interlock because its claim was small enough to inspect.
-Now she trusted a larger decision for the same reason. She resumed the countdown at eight minutes, forty-one seconds. The braking
+Now she trusted a larger decision for the same reason. She resumed the countdown at seven minutes, thirty-one seconds. The braking
 burn arrived as acceleration through the deck, a physical fact no replay could reproduce for them later. Beyond the windows, the orbital yards stopped growing and began to hold
 their position.
 

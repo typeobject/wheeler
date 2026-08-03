@@ -15,8 +15,13 @@ tutorial_evidence: exact-ideal-execution
 # The Search
 
 The next module had four calibration channels, each connected to a timing cavity mounted along the station's outer truss. Engineers
-had named them for the four survey camps that once occupied Sable's equator, although no trace of those camps remained except a
-collapsed antenna field and several debts inherited by the instrument cooperative.
+had named them Dawn, Cross, Evening, and Deep for the four survey camps that once occupied Sable's equator. Dawn had followed the
+sunward terminator. Evening had chased it. Cross marked the only surface route between them. Deep stopped moving after its crews
+found a lava tube with enough shielding to survive.
+
+No inhabited camp remained. Their names persisted in maintenance speech, along with a collapsed antenna field and several debts
+inherited by the instrument cooperative. Saying that channel Deep had drifted required no resident to remember the people who had
+once carried clocks there, but the name kept their labor attached to the machine.
 
 Exactly one channel in the training record had been marked as faulty, and its identity was available only through a phase oracle.
 
@@ -40,7 +45,8 @@ With four squared magnitudes of `1/2` summing to one, the preparation was normal
 ```
 
 By changing only phase, the oracle marked state `3`. Iona chose the state before the run and sealed the choice with Sana, so nobody
-could move the answer afterward to flatter the circuit.
+could move the answer afterward to flatter the circuit. Tala wrote `3` in the prediction field before seeing the state trace. The
+act felt less like confidence than removing a place where memory could later improve her reasoning.
 
 | State | Before oracle | After oracle |
 | ---: | ---: | ---: |
@@ -117,9 +123,17 @@ after diffusion    [ 0.0,  0.0,  0.0, -1.0]
 measurement        3
 ```
 
-One global minus separated the gate sequence from the hand reflection, changing no measurement prediction. This
-four-state run demonstrated one complete Grover iteration. It did not establish practical speedup. The fixture was small,
-the oracle implementation was known, target overhead dominated, and a classical inspection could identify the marked channel
+One global minus separated the gate sequence from the hand reflection, changing no measurement prediction. Tala uncovered her
+prediction. The value matched, but the earlier ink mattered more than the satisfaction.
+
+Mara then accepted the diagnostic probe from Osei and inspected the four physical channels. All four were healthy. State `3` had
+been marked in the training oracle, not discovered as damage in the corresponding timing cavity. Calling the row *faulty* had
+specified the search problem. It had not changed Sable's hardware.
+
+The distinction disappointed nobody once it was stated, which suggested that stating it had been necessary.
+
+This four-state run demonstrated one complete Grover iteration. It did not establish practical speedup. The fixture was small, the
+oracle implementation was known, target overhead dominated, and a classical inspection could identify an actual failed channel
 without difficulty.
 
 Any scalable claim required a family of search spaces, an oracle cost model, a number of iterations proportional to the square

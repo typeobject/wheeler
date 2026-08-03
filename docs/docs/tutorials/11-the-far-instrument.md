@@ -24,6 +24,14 @@ classical method. It existed because the target, transform, and evidence chain w
 same hardware joined larger experiments. Catenary needed that certification to trust which part of the approaching beacon drift
 belonged to its clocks and which part belonged to physical weather.
 
+Every reference pulse reaching Sable described Catenary hours earlier. The local array compared that received pattern with clocks
+that had continued moving during the crossing. Neither the target nor the transform reached into the sender's past. The calibration
+accounted for emission time, travel, local preparation, and observation so that distance did not become an unexplained offset.
+
+Sable's residents organized their watches around those arrivals. A pulse could wake the target crew, postpone a meal, and reserve
+the machine shop before anyone knew whether its data would survive validation. The sky supplied the schedule. The record supplied
+the order.
+
 For one qubit, the required transform was already familiar. The quantum Fourier transform over two basis states mapped
 
 ```text
@@ -55,6 +63,10 @@ one. The final swap placed the transformed bits in canonical order.
 Tala traced each basis input through an amplitude table. Equal magnitudes appeared in all four rows. What changed from input to
 input was the sequence of phases. The quarter turns that had looked ornamental when first drawn as complex arrows now distinguished
 rows she could predict.
+
+Around her, nobody watched the same machine. One resident tracked the vane temperatures. Another watched clock discipline. Iona
+held the target plan, Osei the resource report, and Sana the identities that would connect them. The transform had one mathematical
+body and many physical dependencies, none made less real by the small register.
 
 | Input integer | Output phase steps around four basis rows |
 | ---: | --- |

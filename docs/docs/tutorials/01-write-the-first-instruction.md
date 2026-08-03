@@ -41,6 +41,8 @@ The cars came back under local control. The public report called the service res
 veto, both statements narrowly true. She embarrassed Venn, kept the report in her private records, and acquired the kind of
 reputation that becomes expertise only after another employer needs it.
 
+Venn's reference contained no apology for the report and no criticism of Tala's veto. It stated that Tala would stop an operational
+system when its current state failed to account for the physical one, then listed the cost of employing someone willing to do so.
 The far-instrument mission had hired her for that experience, not because it was sufficient, and Osei made the distinction during
 their first conversation.
 

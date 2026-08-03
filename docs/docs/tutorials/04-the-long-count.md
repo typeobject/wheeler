@@ -19,6 +19,11 @@ were measured in weeks and a ship's discarded heat was the brightest nearby obje
 in four-hour intervals, Osei listened to pumps during meals, and Sana opened a fresh mission ledger each morning even though no
 external event had occurred overnight.
 
+Privacy became a scheduling convention rather than a place. Tala learned which floor panel creaked outside Sana's bunk, how long
+Mara could remain silent before silence became concern, and that Osei dismantled harmless equipment when he missed work he could
+not reach. They ate from magnetic trays around the chart table because the galley had enough seats or enough working displays, but
+not both. The field manual traveled with the person on watch.
+
 The far instrument circled Sable, a captured moon so dark that early surveyors had mistaken its shadow for missing data. Its first
 signal arrived as thirty-two binary observations and no explanation.
 
@@ -104,9 +109,9 @@ that could be put on a schedule. "How many settle it?"
 
 Sana looked at the source claim attached to the model. "Settle what?"
 
-The question had the force of a hand closing over an unsafe control. Sana's question restored the missing scope. A larger sample could estimate frequencies more tightly under stated assumptions. It
-could not transform an unstated preparation into a known one, establish independence that the procedure had not guaranteed, or
-turn agreement with one model into proof that no other model fit.
+The question had the force of a hand closing over an unsafe control. Sana's question restored the missing scope. A larger sample
+could estimate frequencies more tightly under stated assumptions. It could not transform an unstated preparation into a known one,
+establish independence that the procedure had not guaranteed, or turn agreement with one model into proof that no other model fit.
 
 To make the operational boundary visible, Osei requested another thirty-two preparations from the recorded simulator profile. He
 named the target, shot count, and seed before execution. The request entered the mission ledger before anyone knew whether its bars
@@ -129,6 +134,18 @@ A second sample produced a different sequence and a nearby histogram.
 Same procedure. Same model. Different observed counts. Because the seed belonged to the execution identity, repeating that exact
 command reproduced the same sample. Changing the seed created another deterministic simulator experiment rather than revealing
 what unseeded hardware must do.
+
+The arrival protocol required Mara to acknowledge the greeting before the instrument would reserve their close approach. Waiting
+for a larger transmitted sample would cost six hours and still would not establish facts the preparation record had failed to
+state. Proceeding without scope would turn schedule pressure into an invented conclusion.
+
+"What can I sign?" she asked.
+
+Tala read the record again. "That these thirty-two instrument trials produced these counts. That the attached model assigns equal
+probability. Not that one proves the other."
+
+Mara entered those claims separately, accepted the close approach, and kept the contingency fuel she would need if later packets
+contradicted the declared preparation. Uncertainty had narrowed the decision. It had not made action impossible.
 
 Tala placed the first outcome, the first sample, and the model side by side.
 

@@ -170,12 +170,18 @@ and the point after which the compiler could reuse its physical allocation. He h
 as a housekeeping concern. Here an uncleared temporary could change later interference while leaving every visible result field
 plausible.
 
+At Sable, the report also became an ordinary work order. Width affected target allocation. Circuit depth affected the cooling
+window. A resource becoming reusable did not refund the time or energy already spent, and uncomputation did not make the physical
+work disappear. It established the quantum state contract under which later work could safely use that allocation again.
+
 For the first time, the phrase *workspace restored* named a contract precise enough to check.
 
 Iona transferred the cleaned oracle into the instrument's algorithm rack. The station scheduler reserved a calibration window and
-began moving heat, personnel, and lower-priority work away from the target chamber. On Sable, computation had a weather forecast of
-its own. The rack accepted no prose about what the function was
-supposed to know. It accepted an operation with an exact input-output contract and a coherent implementation.
+began moving heat, personnel, and lower-priority work away from the target chamber. The machine shop surrendered one coolant loop.
+The mushroom room dimmed its growth lamps. Two personal transmissions moved to the following watch. On Sable, computation had a
+weather forecast and a civic cost of its own.
+
+The rack accepted no prose about what the function was supposed to know. It accepted an operation with an exact input-output contract and a coherent implementation.
 
 Behind the interface sat no face, voice, or judgment. The machine answered one kind of query and nothing else. Its front plate did
 not glow with intelligence. A cooling status changed from amber to green.

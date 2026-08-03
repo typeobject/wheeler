@@ -24,6 +24,14 @@ Passenger needles changed velocity with the impatience of people who charged by 
 slowly that their gardens had grown toward a different sun by the time they cleared the yards. Traffic control reduced them all to
 the same narrow acknowledgments.
 
+One flotilla vessel carried a white thorn painted across its radiator spine. Mara magnified it until individual repair patches
+became visible. She had grown up among the Thorn Families, whose addresses named a vessel, a pressure section, and the next three
+planned transfers. In that childhood, home had never meant a fixed place. It meant that the pilot had matched velocity well enough
+for two locks to meet.
+
+Catenary was the first address Mara had held that remained valid while she traveled. She watched the thorn recede without opening a
+private channel, then restored the traffic plot to its useful scale.
+
 For the departure handshake, only two numbers were admitted.
 
 ```text

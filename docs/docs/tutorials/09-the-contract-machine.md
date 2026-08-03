@@ -29,15 +29,21 @@ implementation had been, or whether the function described anything useful.
 
 "An oracle," Mara said, with the disappointment of someone shown a very small cabinet after hearing a very large word.
 
-The first Sable crews had used *oracle* for forecasting software that predicted thermal fractures in the moon. When one forecast
-failed, the word acquired the suspicion usually reserved for gambling. The quantum engineers kept it only after engraving the
-callable mapping where nobody could mistake a bounded operation for prophecy.
+The first Sable crews had used *oracle* for forecasting software that predicted thermal fractures in the moon. Its vendor exposed a
+risk color but not the mapping, assumptions, or geology profile behind that color. When one forecast failed, the vendor explained
+that Sable's captured-rock strata had fallen outside the service boundary. The boundary had not appeared on the camp display.
+
+Afterward, the cooperative required every machine promise to fit on a plate that could remain when its vendor, housing, and
+marketing name were gone. The quantum engineers kept *oracle* only after engraving the callable mapping where nobody could mistake
+a bounded operation for prophecy.
 
 An **oracle** was exactly that cabinet's contract: a callable operation exposing a declared input-output mapping. It possessed no
 wisdom and volunteered no explanation. An algorithm that required a difficult oracle still required someone to implement the
 difficult oracle.
 
-Iona loaded one of four possible one-bit functions.
+Iona loaded one of four possible one-bit functions behind an opaque maintenance screen. Sana recorded the implementation digest and
+sealed it before anyone made a prediction. The crew lacked the answer, but the mission record did not. Surprise and missing lineage
+were different experimental conditions.
 
 | Function | `f(0)` | `f(1)` | Class |
 | --- | ---: | ---: | --- |
