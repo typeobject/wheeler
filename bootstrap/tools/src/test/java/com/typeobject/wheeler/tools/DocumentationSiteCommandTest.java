@@ -69,9 +69,22 @@ class DocumentationSiteCommandTest {
     assertFalse(index.contains("description: Wheeler"));
     assertFalse(index.contains("reversible classical/quantum systems"));
     int manual = index.indexOf("<section><h2>manual</h2>");
+    int tutorials = index.indexOf("<section><h2>tutorials</h2>");
     int reference = index.indexOf("<section><h2>reference</h2>");
     int proposals = index.indexOf("<section><h2>proposals</h2>");
-    assertTrue(manual >= 0 && manual < reference && reference < proposals);
+    assertTrue(manual >= 0 && manual < tutorials && tutorials < reference
+        && reference < proposals);
+    int tutorialsEnd = index.indexOf("</section>", tutorials);
+    String tutorialSidebar = index.substring(tutorials, tutorialsEnd);
+    assertTrue(tutorialSidebar.contains(
+        "<a href=\"tutorials/index.html\">Instructions for Returning</a>"));
+    assertFalse(tutorialSidebar.contains("tutorials/00-return-to-which-state.html"));
+    assertFalse(tutorialSidebar.contains("tutorials/12-weather.html"));
+    assertTrue(Files.isRegularFile(first.resolve("tutorials/00-return-to-which-state.html")));
+    assertTrue(Files.isRegularFile(first.resolve("tutorials/12-weather.html")));
+    String tutorialIndex = Files.readString(first.resolve("tutorials/index.html"));
+    assertTrue(tutorialIndex.contains("href=\"00-return-to-which-state.html\""));
+    assertTrue(tutorialIndex.contains("href=\"12-weather.html\""));
     assertFalse(index.contains("<section><h2>future</h2>"));
     assertFalse(index.contains(">WIP-0042: First-principles reversible and quantum computing tutorials</a>"));
     assertTrue(index.indexOf(">What Is Wheeler?</a>")
