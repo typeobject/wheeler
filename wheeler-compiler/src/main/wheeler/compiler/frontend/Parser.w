@@ -20,7 +20,8 @@ classical class Parser {
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
     StatementSequence statements,
-    ClassLayout layout
+    ClassLayout layout,
+    boolean library
   ) {
     if (statements.valid == false) {
       return new MinimalProgramResult.Error(0);
@@ -56,7 +57,8 @@ classical class Parser {
       0,
       0,
       0,
-      0
+      0,
+      library
     );
     return new MinimalProgramResult.Value(program);
   }
@@ -317,7 +319,45 @@ classical class Parser {
       statementStarts,
       statements.count
     );
-    return minimalProgramValue(tokenStarts, tokenLengths, sequence, layout);
+    return minimalProgramValue(tokenStarts, tokenLengths, sequence, layout, false);
+  }
+
+  private MinimalProgramResult constantOnlyLibrary(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long count,
+    ClassLayout layout
+  ) {
+    if (layout.globalCount == 0) {} else {
+      return new MinimalProgramResult.Error(0);
+    }
+
+    if (layout.memberStart + 1 == count) {} else {
+      return new MinimalProgramResult.Error(0);
+    }
+
+    if (
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        layout.memberStart,
+        PUNCTUATION_CLOSE_BRACE
+      )
+    ) {} else {
+      return new MinimalProgramResult.Error(0);
+    }
+
+    StatementSequence empty = new StatementSequence(
+      0,
+      emptyStatementOpcodes(),
+      emptyStatementOperands(),
+      emptyStatementOperands(),
+      true
+    );
+    return minimalProgramValue(tokenStarts, tokenLengths, empty, layout, true);
   }
 
   private boolean bodyClosesAt(
@@ -365,6 +405,21 @@ classical class Parser {
           count
         );
         if (layout.valid) {
+          MinimalProgramResult library = constantOnlyLibrary(
+            source,
+            tokenKinds,
+            tokenStarts,
+            tokenLengths,
+            count,
+            layout
+          );
+          match (library) {
+            case MinimalProgramResult.Value(MinimalProgram libraryCandidate) {
+              return new MinimalProgramResult.Value(libraryCandidate);
+            }
+            case MinimalProgramResult.Error(long libraryOffset) {}
+          }
+
           MinimalProgramResult entry = minimalEntryProgram(
             source,
             tokenKinds,

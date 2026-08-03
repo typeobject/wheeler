@@ -71,7 +71,8 @@ classical class CompilerIr {
     long helperCallCount,
     long preReverseStatementCount,
     long helperStatementCount,
-    long helperResultStatement
+    long helperResultStatement,
+    boolean library
   ) {}
 
   /// Returns the bounded scalar parameter count for one helper kind.

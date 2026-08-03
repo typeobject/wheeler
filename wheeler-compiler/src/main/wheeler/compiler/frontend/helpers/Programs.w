@@ -562,7 +562,8 @@ classical class HelperPrograms {
       helperCallCount,
       preReverseCount,
       helperSequence.count,
-      helperResultStatement
+      helperResultStatement,
+      false
     );
     return new MinimalProgramResult.Value(program);
   }

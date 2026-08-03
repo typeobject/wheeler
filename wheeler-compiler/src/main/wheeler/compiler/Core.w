@@ -106,7 +106,8 @@ classical class CompilerCore {
           0,
           0,
           0,
-          0
+          0,
+          false
         );
       }
       case ScanResult.Value(long count) {
@@ -163,7 +164,8 @@ classical class CompilerCore {
               0,
               0,
               0,
-              0
+              0,
+              false
             );
           }
           case MinimalProgramResult.Value(MinimalProgram program) {

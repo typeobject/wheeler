@@ -6,18 +6,68 @@ import wheeler.compiler.encoding;
 import wheeler.compiler.ir;
 
 classical class StringTable {
-  private long entryScalar(borrow utf8 source, SourceRange moduleName, long index) {
-    if (index < moduleName.length) {
-      return utf8Scalar(source, moduleName.start + index);
+  private long entrySuffixLength(boolean library) {
+    if (library) {
+      return 8;
     }
 
-    long suffix = index - moduleName.length;
-    if (0 < moduleName.length) {
-      if (suffix < 2) {
-        return 58;
+    return 4;
+  }
+
+  private long entryScalar(
+    borrow utf8 source,
+    SourceRange moduleName,
+    boolean library,
+    long index
+  ) {
+    if (library == false) {
+      if (index < moduleName.length) {
+        return utf8Scalar(source, moduleName.start + index);
+      }
+    }
+
+    long suffix = index;
+    if (library == false) {
+      suffix -= moduleName.length;
+      if (0 < moduleName.length) {
+        if (suffix < 2) {
+          return 58;
+        }
+
+        suffix -= 2;
+      }
+    }
+
+    if (library) {
+      if (suffix == 0) {
+        return 36;
       }
 
-      suffix -= 2;
+      if (suffix == 1) {
+        return 108;
+      }
+
+      if (suffix == 2) {
+        return 105;
+      }
+
+      if (suffix == 3) {
+        return 98;
+      }
+
+      if (suffix == 4) {
+        return 114;
+      }
+
+      if (suffix == 5) {
+        return 97;
+      }
+
+      if (suffix == 6) {
+        return 114;
+      }
+
+      return 121;
     }
 
     if (suffix == 0) {
@@ -39,11 +89,14 @@ classical class StringTable {
     borrow utf8 source,
     long start,
     long length,
-    SourceRange moduleName
+    SourceRange moduleName,
+    boolean library
   ) {
-    long entryLength = 4;
-    if (0 < moduleName.length) {
-      entryLength += moduleName.length + 2;
+    long entryLength = entrySuffixLength(library);
+    if (library == false) {
+      if (0 < moduleName.length) {
+        entryLength += moduleName.length + 2;
+      }
     }
 
     long limit = length;
@@ -56,6 +109,7 @@ classical class StringTable {
       long difference = utf8Scalar(source, start + cursor) - entryScalar(
         source,
         moduleName,
+        library,
         cursor
       );
       if (difference == 0) {
@@ -128,13 +182,16 @@ classical class StringTable {
   private long compareHelperToEntry(
     borrow utf8 source,
     SourceRange moduleName,
-    SourceRange helperName
+    SourceRange helperName,
+    boolean library
   ) {
     long helperLength = helperName.length;
-    long entryLength = 4;
+    long entryLength = entrySuffixLength(library);
     if (0 < moduleName.length) {
       helperLength += moduleName.length + 2;
-      entryLength += moduleName.length + 2;
+      if (library == false) {
+        entryLength += moduleName.length + 2;
+      }
     }
 
     long limit = helperLength;
@@ -147,6 +204,7 @@ classical class StringTable {
       long difference = helperScalar(source, moduleName, helperName, cursor) - entryScalar(
         source,
         moduleName,
+        library,
         cursor
       );
       if (difference == 0) {
@@ -186,7 +244,12 @@ classical class StringTable {
       moduleName,
       program.helperName
     );
-    long helperMainOrder = compareHelperToEntry(source, moduleName, program.helperName);
+    long helperMainOrder = compareHelperToEntry(
+      source,
+      moduleName,
+      program.helperName,
+      program.library
+    );
     long valid = 1;
     if (nameMainOrder == 0) {
       valid = 0;
@@ -244,7 +307,8 @@ classical class StringTable {
         source,
         program.proofName.start,
         proofLength,
-        moduleName
+        moduleName,
+        program.library
       );
       if (nameProofOrder == 0) {
         valid = 0;
@@ -285,6 +349,11 @@ classical class StringTable {
       modulePrefixLength = moduleName.length + 2;
     }
 
+    long entrySuffixExtra = 0;
+    if (program.library) {
+      entrySuffixExtra = 4;
+    }
+
     return new StringTablePlan(
       nameIndex,
       0,
@@ -292,7 +361,7 @@ classical class StringTable {
       proofIndex,
       mainIndex,
       stringCount,
-      20 + nameLength + helperLength + modulePrefixLength * 2 + proofExtra,
+      20 + nameLength + helperLength + modulePrefixLength * 2 + proofExtra + entrySuffixExtra,
       valid
     );
   }
@@ -311,7 +380,8 @@ classical class StringTable {
       source,
       program.name.start,
       nameLength,
-      moduleName
+      moduleName,
+      program.library
     );
     long valid = 1;
     if (nameMainOrder == 0) {
@@ -333,8 +403,12 @@ classical class StringTable {
 
     long stringCount = 2;
     long entryExtra = 0;
-    if (0 < moduleName.length) {
-      entryExtra = moduleName.length + 2;
+    if (program.library) {
+      entryExtra = 4;
+    } else {
+      if (0 < moduleName.length) {
+        entryExtra = moduleName.length + 2;
+      }
     }
 
     long encodedLength = 16 + nameLength + entryExtra;
@@ -363,7 +437,8 @@ classical class StringTable {
         source,
         program.global.start,
         globalLength,
-        moduleName
+        moduleName,
+        program.library
       );
       if (baseNameGlobalOrder == 0) {
         valid = 0;
@@ -416,7 +491,8 @@ classical class StringTable {
         source,
         program.global.start,
         globalLength,
-        moduleName
+        moduleName,
+        program.library
       );
       long nameHelperOrder = compareAsciiSliceToHelper(
         source,
@@ -432,7 +508,12 @@ classical class StringTable {
         moduleName,
         program.helperName
       );
-      long helperMainOrder = compareHelperToEntry(source, moduleName, program.helperName);
+      long helperMainOrder = compareHelperToEntry(
+        source,
+        moduleName,
+        program.helperName,
+        program.library
+      );
       if (nameGlobalOrder == 0) {
         valid = 0;
       }
@@ -538,7 +619,8 @@ classical class StringTable {
         source,
         program.proofName.start,
         proofLength,
-        moduleName
+        moduleName,
+        program.library
       );
       if (proofNameOrder == 0) {
         valid = 0;
@@ -680,21 +762,36 @@ classical class StringTable {
       }
 
       if (stringIndex == plan.mainIndex) {
-        long entryLength = 4;
-        if (0 < moduleName.length) {
-          entryLength += moduleName.length + 2;
+        long entryLength = entrySuffixLength(program.library);
+        if (program.library == false) {
+          if (0 < moduleName.length) {
+            entryLength += moduleName.length + 2;
+          }
         }
 
         cursor = writeUnsignedLittleEndian(output, cursor, entryLength, 4);
         if (0 < moduleName.length) {
-          cursor = writeAsciiSlice(output, cursor, source, moduleName.start, moduleName.length);
-          setByte(output, cursor, 58);
-          setByte(output, cursor + 1, 58);
-          cursor += 2;
+          if (program.library == false) {
+            cursor = writeAsciiSlice(
+              output,
+              cursor,
+              source,
+              moduleName.start,
+              moduleName.length
+            );
+            setByte(output, cursor, 58);
+            setByte(output, cursor + 1, 58);
+            cursor += 2;
+          }
         }
 
-        writeAscii(output, cursor, "main");
-        cursor += 4;
+        if (program.library) {
+          writeAscii(output, cursor, "$library");
+          cursor += 8;
+        } else {
+          writeAscii(output, cursor, "main");
+          cursor += 4;
+        }
       }
 
       stringIndex += 1;
