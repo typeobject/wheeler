@@ -6,6 +6,7 @@ import wheeler.compiler.function_verifier;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.proof_verifier;
 import wheeler.compiler.type_codes;
+import wheeler.compiler.type_kinds;
 
 classical class Verifier {
   private boolean differs(long left, long right) {

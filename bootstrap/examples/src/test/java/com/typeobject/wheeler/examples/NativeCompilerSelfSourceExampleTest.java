@@ -21,18 +21,39 @@ final class NativeCompilerSelfSourceExampleTest {
 
   @Test
   void compilesTheCanonicalProofRuleOwnerByteForByte() throws Exception {
-    Program compiler = CompilerSources.minimalCompilerProgram();
-    String source = CompilerSources.read("compiler/ir/ProofRules.w");
-    VirtualMachine writer = new VirtualMachine(
-        compiler,
-        source.getBytes(StandardCharsets.UTF_8),
-        OUTPUT_CAPACITY);
+    assertConstantOnlyCompilerLibrary(
+        "compiler/ir/ProofRules.w",
+        "wheeler.compiler.proof_rules");
+  }
 
+  @Test
+  void compilesTheCanonicalTypeCodeOwnerByteForByte() throws Exception {
+    assertConstantOnlyCompilerLibrary(
+        "compiler/ir/TypeCodes.w",
+        "wheeler.compiler.type_codes");
+  }
+
+  @Test
+  void rejectsFunctionBearingSelfSourceUntilMultipleHelpersLand() throws Exception {
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    String source = CompilerSources.read("compiler/ir/TypeKinds.w");
+    VirtualMachine writer = nativeWriter(compiler, source);
+
+    assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(writer));
+    assertArrayEquals(new byte[OUTPUT_CAPACITY], writer.hostOutput());
+  }
+
+  private static void assertConstantOnlyCompilerLibrary(
+      String logicalPath,
+      String moduleName) throws Exception {
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    String source = CompilerSources.read(logicalPath);
+    VirtualMachine writer = nativeWriter(compiler, source);
     CompilerMachineRunner.runWithoutRewindHistory(writer);
 
     Program expected = new WheelerCompiler().compileLibraryModuleFiles(
-        Map.of("ProofRules.w", source),
-        "wheeler.compiler.proof_rules");
+        Map.of(logicalPath, source),
+        moduleName);
     byte[] artifact = writer.hostOutput();
     assertArrayEquals(new BytecodeWriter().write(expected), artifact);
     Program decoded = new BytecodeReader().read(artifact);
@@ -42,16 +63,10 @@ final class NativeCompilerSelfSourceExampleTest {
     assertEquals(MachineStatus.HALTED, library.status());
   }
 
-  @Test
-  void rejectsFunctionBearingSelfSourceUntilMultipleHelpersLand() throws Exception {
-    Program compiler = CompilerSources.minimalCompilerProgram();
-    String source = CompilerSources.read("compiler/ir/TypeCodes.w");
-    VirtualMachine writer = new VirtualMachine(
+  private static VirtualMachine nativeWriter(Program compiler, String source) {
+    return new VirtualMachine(
         compiler,
         source.getBytes(StandardCharsets.UTF_8),
         OUTPUT_CAPACITY);
-
-    assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(writer));
-    assertArrayEquals(new byte[OUTPUT_CAPACITY], writer.hostOutput());
   }
 }

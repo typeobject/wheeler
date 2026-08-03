@@ -4,6 +4,7 @@ module wheeler.compiler.function_verifier;
 import wheeler.compiler.instruction_verifier;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.type_codes;
+import wheeler.compiler.type_kinds;
 import wheeler.core.encoding.binary;
 
 classical class FunctionVerifier {
