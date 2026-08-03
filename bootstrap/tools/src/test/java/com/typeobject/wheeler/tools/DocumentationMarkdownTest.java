@@ -23,7 +23,7 @@ class DocumentationMarkdownTest {
             ---
             # Guide
 
-            Read [details](reference/details.md#answer), **pay attention**, and *read carefully*.
+            Read [**important details**](reference/details.md#answer), **pay attention**, and *read carefully*.
             This is __strong too__, _italic too_, and ***both together***, but snake_case stays plain.
 
             <script>alert('no')</script>
@@ -49,7 +49,8 @@ class DocumentationMarkdownTest {
         .findFirst().orElseThrow();
     String html = renderer.render(guide);
 
-    assertTrue(html.contains("href=\"reference/details.html#answer\""));
+    assertTrue(html.contains("<a href=\"reference/details.html#answer\">"
+        + "<strong>important details</strong></a>"));
     assertTrue(html.contains("<strong>pay attention</strong>"));
     assertTrue(html.contains("<em>read carefully</em>"));
     assertTrue(html.contains("<strong>strong too</strong>"));

@@ -333,7 +333,7 @@ final class DocumentationMarkdown {
         html.append("<code>").append(escape(matcher.group(1))).append("</code>");
       } else if (matcher.group(2) != null) {
         html.append("<a href=\"").append(escapeAttribute(href(page, matcher.group(3))))
-            .append("\">").append(escape(matcher.group(2))).append("</a>");
+            .append("\">").append(inline(matcher.group(2), page)).append("</a>");
       } else if (matcher.group(4) != null || matcher.group(5) != null) {
         String value = matcher.group(4) != null ? matcher.group(4) : matcher.group(5);
         html.append("<strong><em>").append(escape(value)).append("</em></strong>");
