@@ -377,6 +377,10 @@ Chapter transitions follow causes in the story. A failed claim, unresolved resul
 opens the next question. Links may appear in diegetic records or chapter references, but navigation does not require a character to
 announce the next lesson.
 
+The public story landing links only to `T00`. It does not list or name later chapters. Each nonfinal chapter reveals its single successor
+after the closing consequence creates that next question. The sidebar exposes only the story landing, while direct chapter routes,
+search records, and sitemap entries remain available for stable references and returning readers.
+
 ### Narrative voice
 
 Tutorial prose follows the repository documentation style and adds these rules:
@@ -976,6 +980,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 
 - [ ] A clean checkout follows the documented setup and runs the first lesson without ambient dependencies.
 - [ ] Every lesson ID is unique, stable, ordered, and reachable through an acyclic prerequisite graph.
+- [ ] The story landing and sidebar expose only the `T00` entrance, while every chapter reveals exactly its intended successor and remains directly routable.
 - [ ] Every declared required term resolves to an earlier published introduction in the stable glossary graph.
 - [ ] Every introduced term follows an observation, states its nearest contrast, and supports a later prediction or explanation.
 - [ ] Fictional scenes remain removable without removing the only technical definition or evidence boundary.

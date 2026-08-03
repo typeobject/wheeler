@@ -84,7 +84,8 @@ class DocumentationSiteCommandTest {
     assertTrue(Files.isRegularFile(first.resolve("tutorials/12-weather.html")));
     String tutorialIndex = Files.readString(first.resolve("tutorials/index.html"));
     assertTrue(tutorialIndex.contains("href=\"00-return-to-which-state.html\""));
-    assertTrue(tutorialIndex.contains("href=\"12-weather.html\""));
+    assertFalse(tutorialIndex.contains("href=\"01-write-the-first-instruction.html\""));
+    assertFalse(tutorialIndex.contains("href=\"12-weather.html\""));
     assertFalse(index.contains("<section><h2>future</h2>"));
     assertFalse(index.contains(">WIP-0042: First-principles reversible and quantum computing tutorials</a>"));
     assertTrue(index.indexOf(">What Is Wheeler?</a>")
