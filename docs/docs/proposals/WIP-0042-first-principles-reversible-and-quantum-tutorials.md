@@ -24,7 +24,7 @@ one new conceptual dependency, runs or inspects one bounded experiment, and ends
 tutorial. New Wheeler syntax carries an already familiar idea. New physics uses already familiar syntax. The series introduces
 mathematical notation only after an experiment creates a need for it.
 
-The tutorial carries one original science-fiction return voyage under the working title **Instructions for Returning**. Tala, an
+The tutorial carries one original science-fiction return voyage titled **Instructions for Returning**. Tala, an
 adult systems analyst aboard the courier *Vela*, understands ordinary software but lacks precise models for reversible and quantum
 work. A human-authored field manual preserves experiments and disputes from earlier engineers while the crew crosses habitats
 with different incomplete ideas about memory and evidence. Close third-person prose earns its vocabulary in the same order as
@@ -395,6 +395,31 @@ Tutorial prose follows the repository documentation style and adds these rules:
 Each paragraph must arise from the image, action, claim, or unresolved detail before it. Paragraph endings create pressure or space
 for what follows instead of supplying a repeated aphorism. Every recurring report, disagreement, image, or question receives a
 payoff at a named later step.
+
+### Worldbuilding discipline
+
+The setting develops through material constraints, institutions, and choices rather than detachable encyclopedia paragraphs.
+Every chapter advances at least one element of the inhabited world while preserving the pace of its technical experiment:
+
+- Catenary establishes home as a changing network of habitats, yards, civic rules, traffic deadlines, and physical arrival rather
+  than a static destination.
+- The cold reach makes delay, bandwidth, heat, water, maintenance, and local authority operational facts rather than generic space
+  decoration.
+- The Archive turns retained history into inheritance, economy, public ritual, and political disagreement without treating memory
+  as inverse execution.
+- Sable and the far instrument show how isolation, repair, target calibration, environmental limits, and light-delay shape a small
+  technical community.
+- The particle front and beacon deadline connect the calibration result to ordinary civic infrastructure without claiming mystical
+  quantum prediction or fixture-sized speedup.
+
+Recurring objects and practices carry setting across chapter boundaries. The field manual accumulates accountable amendments. The
+Archive bird changes orientation with local gravity. Pre-commit manifests move from institutional argument to mission policy and
+finally resolve the broken return lineage. Food, tools, pressure boundaries, risk budgets, and maintenance shifts reveal how people
+live around the machines.
+
+Worldbuilding cannot grant semantic authority. A culture may hold an incomplete belief about records, a pilot may use inherited
+language, and a station may preserve a misleading motto, but Wheeler behavior still follows the accepted language, runtime,
+target, and proof contracts. Fictional history creates pressure to discover a distinction. It never changes the distinction.
 
 ### Analogy discipline
 
@@ -908,7 +933,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 ## Progress
 
 - [ ] Reader baseline, narrative frame, earned lexicon, and pacing law receive review.
-- [x] Thirteen continuous-story chapters cover every step from `T00` through `T93` in a complete first prose draft.
+- [x] Thirteen continuous-story chapters cover every step from `T00` through `T93` in a complete developmental prose revision with sustained setting, character conflict, mission stakes, and causal payoff.
 - [ ] Stable tutorial IDs and prerequisite graph receive review.
 - [ ] Tutorial metadata and documentation nodes are implemented.
 - [ ] Primary fenced Wheeler source compiles and runs through the documentation gate.
@@ -936,6 +961,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 - [ ] Every declared required term resolves to an earlier published introduction in the stable glossary graph.
 - [ ] Every introduced term follows an observation, states its nearest contrast, and supports a later prediction or explanation.
 - [ ] Fictional scenes remain removable without removing the only technical definition or evidence boundary.
+- [ ] Every chapter advances setting through a material constraint, institution, recurring object, or consequential character choice without making fictional worldbuilding semantic authority.
 - [ ] The failed return report and Bell artifact from `T00` receive explicit payoffs at `T57`, `T62`, and `T93`.
 - [ ] Every page introduces no unexplained required term or notation according to its declared prerequisite inventory.
 - [ ] Every exact primary fence parses with Tree-sitter, compiles, verifies, round-trips canonically, and produces its expected result.

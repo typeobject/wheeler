@@ -14,12 +14,15 @@ tutorial_evidence: exact-ideal-execution
 
 # The Search
 
-Four calibration channels appeared in the module. Exactly one had been marked as faulty, and its identity was available only through
-a phase oracle.
+The next module had four calibration channels, each connected to a timing cavity mounted along the station's outer truss. Engineers
+had named them for the four survey camps that once occupied Sable's equator, although no trace of those camps remained except a
+collapsed antenna field and several debts inherited by the instrument cooperative.
 
-Mara read the number of channels and offered to inspect them directly. Iona agreed that this would be faster than constructing a
-quantum circuit. The point of the module was not to improve four-item maintenance. It was to expose the mechanism while every
-amplitude still fit in one table.
+Exactly one channel in the training record had been marked as faulty, and its identity was available only through a phase oracle.
+
+Mara read the number of channels and offered to inspect them directly. Osei had already reached for a diagnostic probe. Iona agreed
+that either approach would be faster than constructing a quantum circuit. The point of the module was not to improve four-item
+maintenance. It was to expose the mechanism while every amplitude still fit in one table.
 
 Two qubits supplied four basis states. Hadamard on both prepared equal amplitudes.
 
@@ -36,7 +39,8 @@ With four squared magnitudes of `1/2` summing to one, the preparation was normal
 4 * (1/2)^2 = 1
 ```
 
-By changing only phase, the oracle marked state `3`.
+By changing only phase, the oracle marked state `3`. Iona chose the state before the run and sealed the choice with Sana, so nobody
+could move the answer afterward to flatter the circuit.
 
 | State | Before oracle | After oracle |
 | ---: | ---: | ---: |
@@ -47,6 +51,9 @@ By changing only phase, the oracle marked state `3`.
 
 Immediate measurement would still assign probability `1/4` to every state. A phase mark became useful only when another operation
 made the sign difference interfere.
+
+They worked the next operation on the back of an obsolete maintenance card. Tala summed the four signed entries. Osei checked her
+arithmetic, then turned the card ninety degrees and checked it again as if orientation might expose a different mistake.
 
 For these four amplitudes, the average after marking was `1/4`.
 
@@ -64,7 +71,8 @@ marked:   2*(1/4) - (-1/2) = 1
 
 Three amplitudes fell to zero. The marked amplitude rose to one. Phase had become outcome probability through interference.
 
-Tala assembled the known gates.
+For the first time since the algorithm racks opened, Mara looked pleased. The marked answer had not been read secretly and copied
+into an output field. Its sign had changed how all four alternatives combined. Tala assembled the known gates.
 
 ```java
 quantum class GroverFour {
@@ -99,7 +107,8 @@ quantum class GroverFour {
 }
 ```
 
-The state-vector trace matched the hand table row for row.
+The scheduler granted them one ideal execution before the physical chamber entered its cooling reservation. As the run advanced,
+the four channels on the front plate remained visually identical. The state-vector trace matched the hand table row for row.
 
 ```text
 after preparation  [+0.5, +0.5, +0.5, +0.5]
@@ -117,11 +126,19 @@ Any scalable claim required a family of search spaces, an oracle cost model, a n
 root of the space size, and evidence that state preparation and error correction did not erase the advantage. None of those claims
 followed from a successful two-qubit run.
 
+Sable's residents had little patience for demonstrations promoted into industries. The moon's abandoned equatorial camps contained
+machines sold on extrapolations from cleaner tests. Their pressure shells had failed slowly, according to the salvage reports, while
+their financing failed all at once.
+
 Sana preserved the narrower statement. One phase oracle call marked a state in a four-item ideal model. One diffusion step converted
 that mark into a certain basis outcome. The source, state trace, and assertion agreed.
 
 Beyond the search module, the instrument's main calibration array waited for a transform over phase patterns. Its smallest case was
 Hadamard. Its next case needed controlled phase. Its operational case occupied three qubits and already existed in the ship's source
 catalog.
+
+Through the rack-room window, control shutters began covering the outer truss. One after another, the named calibration channels
+vanished behind shielding until only the central array remained exposed to Sable's sky. The station was preparing to do the work
+for which its inhabitants had accepted years of distance.
 
 Iona opened the final algorithm chapter: [The Far Instrument](11-the-far-instrument.md).

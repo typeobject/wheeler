@@ -14,24 +14,42 @@ tutorial_evidence: exact-classical-execution
 
 # Departure
 
-Thirty-seven days before the failed return, *Vela* waited in her construction berth with most of her hull closed and several
-important disagreements still exposed.
+Thirty-seven days before the failed return, *Vela* waited in Yard Nine with most of her hull closed and several important
+disagreements still exposed.
+
+Construction berths occupied Catenary's least fashionable wheel. Their spin gravity varied by corridor, the air tasted faintly of
+cut alloy, and every public surface carried two sets of numbers: the architect's intended load and the mass that residents had
+actually attached. Welders crossed the open vault on articulated lines. Below them, if *below* could be trusted in a wheel, *Vela*
+rested inside a web of fuel, data, and cooling umbilicals. One half of her hull reflected the berth lights. The other half wore the
+black residue of earlier voyages.
 
 Mara met Tala at the service lock. The pilot's welcome consisted of a pressure check and a brisk inventory of exits, after which
 she introduced the ship in the order she expected to need it: attitude, drive, navigation, power, air. Coffee entered the list
 between power and air, then moved upward when Tala asked whether the galley unit worked.
 
 By profession Tala was a systems analyst. She had spent seven years tracing failures through municipal transit software, where
-vehicles remained on the ground and most state could be copied without consulting the laws of physics. The far-instrument mission
-had hired her for that experience, not because it was sufficient, and Osei made the distinction during their first conversation.
+vehicles remained on the ground and most state could be copied without consulting the laws of physics. Her last network had once
+reported itself restored while fourteen passenger cars waited between stations under manual power. The copied control state was
+perfect. It was also six minutes old. Tala had delayed the public reopening, embarrassed a director, and acquired the kind of
+reputation that becomes expertise only after another employer needs it.
+
+The far-instrument mission had hired her for that experience, not because it was sufficient, and Osei made the distinction during
+their first conversation.
+
+"Here," he said, looking at the folded reference from the transit authority, "six minutes can be farther away than another
+planet."
 
 He was waiting in the machine room beside an open rack. Instead of a greeting, he handed her a field manual bound in gray cloth.
 
 "Read the annotations before the printed text," he said. "The text was approved."
 
 On the oldest title page, no author appeared. Sana had attached a provenance slip containing eight probable owners, three
-impossible dates, and a note that the binding adhesive matched a repair shop on Selene. Beneath the slip, a handwritten
-instruction survived in faded blue ink.
+impossible dates, and a note that the binding adhesive matched a repair shop on Selene. One owner had calculated propellant in the
+margins. Another had corrected the calculations but preserved the mistake. A third had used the blank leaves to record the names
+of six pressure doors that no longer existed on any registered vessel. The book carried engineering forward without pretending
+that engineering had one uncontested author.
+
+Beneath the slip, a handwritten instruction survived in faded blue ink.
 
 ```text
 Begin with a program that has nowhere to go.
@@ -93,8 +111,11 @@ One entry transition. No declared state. No value to report. The run had done al
 about what it had done.
 
 Sana arrived while Tala was comparing the source and artifact digests. She requested both for the mission record, along with the
-compiler profile and run report. When Tala asked whether an empty program deserved so much lineage, Sana looked through the rack
-toward the unfinished ship.
+compiler profile and run report. A thin Archive seal hung at her throat, turned inward so its inscription faced her shirt. On
+Catenary, where people advertised former institutions as readily as present loyalties, the choice was conspicuous.
+
+When Tala asked whether an empty program deserved so much lineage, Sana looked through the rack toward the unfinished ship. A
+worker outside struck the pressure hull three times, listened, and marked the panel with chalk.
 
 "The inexpensive records establish whether the expensive ones can be trusted."
 
@@ -176,9 +197,13 @@ ordinary successful halt.
 A passing assertion did not prove the program correct for every input, artifact, or target. It supported a smaller claim about one
 specified point in one execution. Its modesty appealed to Sana more than a broad promise would have.
 
-By the end of the shift, the examples had converged on the departure interlock Mara actually needed reviewed. Tala gave the known
-sequence a method name, `depart`, then called that method from `main`. A method collected instructions into a named body. A method
-call transferred control into that body and resumed after the call when the body finished.
+By the end of the shift, station night had dimmed the berth lights, although Yard Nine itself never stopped. The restaurants along
+the inner rim served breakfast to one shift and fermented broth to the next. Families gathered at pressure windows to watch ships
+depart, and freight crews painted temporary constellations on hull plates before selling the plates for scrap. Inside *Vela*, the
+examples had converged on the departure interlock Mara actually needed reviewed.
+
+Tala gave the known sequence a method name, `depart`, then called that method from `main`. A method collected instructions into a
+named body. A method call transferred control into that body and resumed after the call when the body finished.
 
 In the manual's margin, the word *return* appeared beside its first correction.
 
@@ -226,7 +251,14 @@ Mara waited for the record identity and Osei's review before enabling the physic
 A pilot trusted systems by knowing the limits of what they had established.
 
 Without ceremony, the clamps opened. Metal that had carried *Vela*'s weight for nine months withdrew into the berth, and the ship
-moved under attitude control into the dark between structures. Tala watched the yard rotate out of the forward windows. On the
-communications panel, the station reduced their departure to a pair of values repeated in alternation.
+moved under attitude control into the dark between structures. Weight left Tala's feet as the yard's spin released them. A loose
+washer, missed by three inventories, rose from the deck and crossed the bridge with stately confidence until Osei trapped it under
+his palm.
+
+Catenary turned outside the forward windows: greenhouse bands, repair lights, a funeral lantern released from one of the old
+wheels, and then the bright line of Yard Nine rotating away. Tala had expected departure to feel like a line crossed. Instead the
+station remained visible, merely becoming an object she could cover with one hand.
+
+On the communications panel, traffic control reduced their departure to a pair of values repeated in alternation.
 
 Its next chapter bore the same spare title: [Two Signals](02-ask-the-machine-to-act.md).

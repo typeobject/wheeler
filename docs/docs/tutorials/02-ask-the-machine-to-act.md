@@ -14,9 +14,15 @@ tutorial_evidence: exact-classical-execution
 
 # Two Signals
 
-Behind them, the station spoke to departing vessels in pulses of microwave light. Each pulse crossed the widening distance in
+Behind them, Catenary spoke to departing vessels in pulses of microwave light. The station had six official languages and several
+hundred neighborhood dialects, but traffic control trusted none of them with separation distance. Each pulse crossed the widening
 vacuum, reached *Vela*'s receiver as an analog disturbance, and passed through enough hardware to become a number on Mara's
 console.
+
+Around the ship, departure traffic unfolded at several scales. Ore carriers began braking days before their assigned berths.
+Passenger needles changed velocity with the impatience of people who charged by the minute. A flotilla of family habitats moved so
+slowly that their gardens had grown toward a different sun by the time they cleared the yards. Traffic control reduced them all to
+the same narrow acknowledgments.
 
 For the departure handshake, only two numbers were admitted.
 
@@ -29,8 +35,12 @@ Calling the signal two-state did not reduce the receiver to two physical conditi
 noise. Threshold circuits occupied voltages between their nominal levels. The protocol ignored those details after they had done
 their work, preserving one distinction needed by the next layer.
 
-Mara waited for `1`, acknowledged it, then watched the station return to `0`. The exchange was routine, though the manual had
-marked the two values as unfinished business.
+Mara waited for `1`, acknowledged it, then watched the station return to `0`. The exchange was routine. It granted no wisdom to
+either endpoint and carried none of the farewell messages still arriving on the private channels. Tala had two from former
+colleagues, Osei one from a machine cooperative that addressed him as a delinquent member, and Mara nine from food vendors asking
+her to settle accounts before relativistic delay became an excuse.
+
+The manual had marked the two traffic values as unfinished business.
 
 Tala opened the accompanying source.
 
@@ -73,8 +83,11 @@ Without the missing row, the table did not describe an operation over the comple
 observed transition. Had the input begun at `1`, an assignment to `1` would have produced `1 -> 1`, not the complementary change
 Mara associated with a signal flip.
 
-Osei joined them at the chart table while the station receded into the traffic behind. He drew two dots, labeled them `0` and `1`,
-and asked for the least eventful operation possible. Tala connected each dot to itself.
+Osei joined them at the chart table while the station receded into the traffic behind. He had already opened the first maintenance
+watch, and a fan impeller the size of his hand lay disassembled beside the navigation plot. On *Vela*, abstract discussion took
+place wherever physical work had left enough horizontal surface.
+
+He drew two dots, labeled them `0` and `1`, and asked for the least eventful operation possible. Tala connected each dot to itself.
 
 | Input | Output |
 | --- | --- |
@@ -120,6 +133,12 @@ Mara regarded the result with the suspicion pilots reserve for facts that appear
 
 "For both states in this model," Sana said.
 
+"You invoice by the qualification?"
+
+"Only when it prevents salvage."
+
+Mara looked at the repaired impeller, then at the thinning lights of home, and let the answer stand.
+
 Sana's qualification stayed. Two cases were enough because the allowed set contained exactly two cases. A larger set would require
 more rows, and an unbounded set would need a different kind of argument.
 
@@ -135,13 +154,19 @@ Recovering every input from its output will earn the next word.
 By then the flip seemed ready to pass that test. Nothing in the chapter had yet shown what failure looked like, and a distinction
 learned only from its successful example tends to become praise rather than a rule.
 
-At the edge of the traffic field, *Vela* aligned for the Archive transfer corridor. The habitat identified itself with a stream of
-checksummed records and a statement engraved into every public protocol it emitted.
+At the edge of the traffic field, *Vela* aligned for the Archive transfer corridor. The route was older than Catenary. Supply
+ships had followed it when the outer settlements were still pressure tents and a message could arrive before the sender's legal
+identity. Now autonomous buoys kept the lane clear, each one storing a local copy of every navigational correction in case the
+others forgot.
+
+The Archive appeared on the long-range plot as an administrative boundary hours before it appeared as light. It identified itself
+with a stream of checksummed records and a statement engraved into every public protocol it emitted.
 
 ```text
 WHAT IS REMEMBERED CAN BE RETURNED
 ```
 
-Sana read the line without expression. Osei read it twice.
+Sana read the line without expression. Her thumb found the inward-facing seal at her throat, held it for one breath, and moved
+away. Osei read the motto twice.
 
 From that claim, the field manual had taken the title of its next chapter: [The Archive](03-one-thing-to-remember.md).

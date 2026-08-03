@@ -14,8 +14,13 @@ tutorial_evidence: exact-recorded-observations
 
 # The Long Count
 
-Twelve hours beyond the Archive, the first signal from the far instrument arrived as thirty-two binary observations and no
-explanation.
+Twelve hours beyond the Archive, traffic disappeared. *Vela* entered the cold reach between inhabited orbits, where rescue plans
+were measured in weeks and a ship's discarded heat was the brightest nearby object. The crew changed to passage time. Mara slept
+in four-hour intervals, Osei listened to pumps during meals, and Sana opened a fresh mission ledger each morning even though no
+external event had occurred overnight.
+
+The far instrument circled Sable, a captured moon so dark that early surveyors had mistaken its shadow for missing data. Its first
+signal arrived as thirty-two binary observations and no explanation.
 
 ```text
 0 1 1 0 0 1 0 0
@@ -24,9 +29,13 @@ explanation.
 1 0 0 1 0 1 0 0
 ```
 
-Mara put the sequence on the navigation display, where it resembled a route chosen by a nervous machine. Osei searched for a
-protocol header. Sana checked the transmission identity and found that each digit belonged to a separate preparation at the same
-remote source.
+Mara put the sequence on the navigation display, where it resembled a route chosen by a nervous machine. Pilots had once crossed
+the reach by reading pulsar fixes through charged dust. A few still kept old binary ephemerides above their bunks, and Mara's first
+instinct was to see direction in any ordered lights. She traced the first eight digits with one finger before stopping herself.
+
+Osei searched for a protocol header. Sana checked the transmission identity and found that each digit belonged to a separate
+preparation at the same remote source. The packet was not a navigation instruction. It was the instrument's calibration greeting,
+designed to reveal what a receiving crew assumed before the actual data arrived.
 
 That distinction altered the record. Thirty-two readings from one object changing over time would have described a history.
 Thirty-two readings from thirty-two fresh preparations described repeated trials.
@@ -43,6 +52,11 @@ Mara selected the first `0`. "What does this tell us about the source?"
 
 "Ended in one."
 
+"I had hoped distance would improve your conversation."
+
+Tala had hoped the same. On Catenary she could soften a bounded answer with context supplied by a thousand nearby systems. Out
+here, an unsupported story would cross the reach faster than its correction.
+
 Such answers sounded deliberately unhelpful because the questions were asking individual outcomes to describe a pattern. Sana
 copied the complete sequence into a new record and called the collection a **sample**. Only then did Tala count.
 
@@ -52,8 +66,11 @@ outcome 1: 14
 total:     32
 ```
 
-Nothing in the count changed any recorded digit. Counting reduced the sample to two totals and discarded order. To preserve the
-shape of those totals, the manual drew one mark per trial.
+Nothing in the count changed any recorded digit. Counting reduced the sample to two totals and discarded order. Sana kept the
+original sequence in view while Tala worked, an old Archive habit that made every reduction answerable to what it had left out.
+Above the console, Mara's ceramic bird pointed its beak toward the deck under thrust and drifted sideways when the engines rested.
+
+To preserve the shape of those totals, the manual drew one mark per trial.
 
 ```text
 0 | ################## 18
@@ -82,16 +99,18 @@ A **probability model** assigned expected long-run weights to the possible outco
 not promise sixteen zeros and sixteen ones in every block of thirty-two. The observed frequencies could differ from `0.5` without
 contradicting the model, just as a small sample could happen to match `0.5` without proving the model.
 
-Mara enlarged the two bars. "How many trials settle it?"
+Mara enlarged the two bars. The first calibration deadline was approaching, and a number of trials sounded like the kind of answer
+that could be put on a schedule. "How many settle it?"
 
 Sana looked at the source claim attached to the model. "Settle what?"
 
-Sana's question restored the missing scope. A larger sample could estimate frequencies more tightly under stated assumptions. It
+The question had the force of a hand closing over an unsafe control. Sana's question restored the missing scope. A larger sample could estimate frequencies more tightly under stated assumptions. It
 could not transform an unstated preparation into a known one, establish independence that the procedure had not guaranteed, or
 turn agreement with one model into proof that no other model fit.
 
 To make the operational boundary visible, Osei requested another thirty-two preparations from the recorded simulator profile. He
-named the target, shot count, and seed before execution.
+named the target, shot count, and seed before execution. The request entered the mission ledger before anyone knew whether its bars
+would look persuasive.
 
 ```bash
 wheeler run tutorial/BinaryTrials.wbc \
@@ -122,10 +141,12 @@ Tala placed the first outcome, the first sample, and the model side by side.
 With those names in place, three common substitutions became visible. One outcome was not a distribution. A histogram was not its
 generating model. A probability was not a promise about the next trial.
 
-Outside the ship, the far instrument continued to transmit. The new packets contained no binary outcomes. Instead, they described
-two routes by which one calibration signal reached the same detector, together with signed entries that ordinary probabilities
-could not accommodate.
+Outside the ship, the reach remained empty enough that the far instrument's carrier tone felt like company. New packets crossed
+the hours between Sable and *Vela*. They contained no binary outcomes. Instead, they described two routes by which one calibration
+signal reached the same detector, together with signed entries that ordinary probabilities could not accommodate.
 
 Mara watched one pair add and another disappear. "Counts do not cancel."
+
+The cabin lights had entered artificial evening. For the first time since Catenary vanished, nobody moved to end the watch.
 
 They did not. The manual turned to [Contributions That Cancel](05-contributions-that-cancel.md).

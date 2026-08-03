@@ -14,9 +14,18 @@ tutorial_evidence: ideal-state-and-seeded-samples
 
 # One Qubit
 
-Below *Vela*, the far instrument rotated like a piece of dark glass set into the orbit of a minor moon. No habitation ring softened
-its outline. The station existed to prepare small physical systems, transform them under controlled fields, and measure what
-survived the encounter.
+Below *Vela*, the far instrument rotated like a piece of dark glass set into the orbit of Sable. The moon turned irregularly
+beneath it, a captured stone that had never settled into the courteous motion expected of native satellites. No habitation ring
+softened the station's outline. Its spin section was buried in the shadow of its own shield. Its laboratories extended on trusses
+far enough apart that one refrigeration failure would not warm the others.
+
+Five people lived there. They grew mushrooms in the warm return lines, voted monthly on which delayed broadcasts to download, and
+measured a bad year by how many replacement parts had to be machined from something else. Every personal message shared bandwidth
+with target telemetry. Every cup of water crossed the same accounting boundary as the vacuum pumps.
+
+The station existed to prepare small physical systems, transform them under controlled fields, and measure what survived the
+encounter. Its current calibration would let Catenary's traffic network separate beacon phase drift from the charged-particle
+weather approaching the inner orbits. That result, rather than the elegance of the machine, was why *Vela* had crossed the reach.
 
 Iona met the crew at the inner lock. She wore no uniform, only a gray work coat with conductive thread bright at the cuffs, and
 looked first at the evidence case in Sana's hand.
@@ -25,8 +34,15 @@ looked first at the evidence case in Sana's hand.
 
 "The Archive recorded it," Sana said.
 
-A slight change in Iona's expression suggested that the answer restored an older confidence. She led them to a laboratory where
-one shielded device occupied the center of an otherwise empty room.
+"Better. Signatures make them sentimental."
+
+A slight change in Iona's expression suggested that the answer restored an older confidence. During the instrument's first winter,
+a corrupted parts manifest had left her with three thousand fasteners of the wrong alloy and a beautifully signed explanation.
+She had corresponded with Sana ever since, mostly by attaching increasingly specific questions to rejected records.
+
+Iona led them down a corridor whose local down shifted as the station turned. Frost feathered one wall behind a warning grid. At
+the laboratory entrance they exchanged ship clothing for clean layers and passed through two fields that removed the dust Sable
+lifted even in vacuum. One shielded device occupied the center of an otherwise empty room.
 
 Its controlled system had two distinguished measurement outcomes. The instrument labeled them `0` and `1`. Those labels formed the
 **computational basis**, written `|0>` and `|1>` when they named quantum states rather than classical integers.
@@ -58,9 +74,12 @@ measured = 0
 measurements = [0]
 ```
 
-A single run established one outcome. Target interfaces called one complete preparation, operation, and measurement trial a
-**shot**. Iona requested 256 shots, each of which created fresh state and a complete execution. Measuring the already measured
-system 256 times would not have been the same experiment.
+A single run established one outcome. The device made no celebratory sound. A green boundary appeared around the record, and the
+refrigeration plant continued its low structural hum.
+
+Target interfaces called one complete preparation, operation, and measurement trial a **shot**. Iona requested 256 shots, each of
+which created fresh state and a complete execution. Measuring the already measured system 256 times would not have been the same
+experiment.
 
 ```bash
 wheeler run tutorial/KnownZero.wbc \
@@ -119,7 +138,11 @@ quantum class HadamardSample {
 }
 ```
 
-Tala ran 1,024 fresh shots with a declared seed.
+Before the next run, Iona asked for predictions. Mara expected the two bars to balance exactly because the target was ideal. Osei
+expected both outcomes but would not name counts. Sana wrote only the scope of the record they were about to create. Tala, still
+remembering the long count, predicted variation around equal frequencies.
+
+She ran 1,024 fresh shots with a declared seed.
 
 ```bash
 wheeler run tutorial/HadamardSample.wbc \
@@ -133,9 +156,14 @@ wheeler run tutorial/HadamardSample.wbc \
 1 | #################################################### 515
 ```
 
-Every shot still ended in one classical outcome. The histogram approached equal frequencies, yet nothing in a single outcome
-identified the state that existed before measurement. Calling the qubit a hidden coin would reproduce the counts and fail the next
-experiment.
+Mara conceded the six-count imbalance without complaint. Every shot still ended in one classical outcome. The histogram
+approached equal frequencies, yet nothing in a single outcome identified the state that existed before measurement. Calling the
+qubit a hidden coin would reproduce the counts and fail the next experiment.
+
+During a cooling pause, Iona took them to the station galley. Five place settings had become nine by borrowing dishes from the
+machine shop. Sable rolled across the ceiling window, its surface black except where old prospecting charges had exposed pale
+veins. The residents asked about Catenary's gardens and whether the Archive still served the impossible broth. Nobody asked whether
+the experiment had worked. At the instrument, that question was considered too broad for a meal.
 
 Only the ideal simulator could expose its mathematical state before measurement. That diagnostic belonged to the simulator, not
 to an ordinary hardware observation.
@@ -211,6 +239,7 @@ Osei studied the zero amplitude. "The route disappeared."
 
 "The route was never an outcome," Iona said. "Its contribution canceled at that destination."
 
+He rubbed the bridge of his nose, an admission he offered more readily than agreement. Then he amended the diagnostic note himself.
 Such a distinction mattered whenever a diagram tempted someone to assign a classical private history to each quantum path.
 
 A second gate made phase visible. `Z` preserved `|0>` and negated the amplitude of `|1>`.
@@ -245,8 +274,13 @@ Negating both amplitudes instead would have produced `(-,-)`, a **global phase**
 no interference experiment on the isolated state could reveal the difference. Negating only one row changed **relative phase**,
 which later operations could convert into different outcome probabilities.
 
-Beyond two signs lay every other possible phase. Wheeler's `Phase` operation could rotate an amplitude through any declared angle.
-At a quarter turn, the real number line became a plane.
+Beyond two signs lay every other possible phase. The far instrument existed because such angles could carry structure worth
+measuring. Its oldest clock array still used mechanical shutters cut during the settlement years. Its newest target controlled
+fields by instructions whose timing would have been meaningless to those builders. Both systems depended on comparing where one
+cycle stood relative to another.
+
+Wheeler's `Phase` operation could rotate an amplitude through any declared angle. At a quarter turn, the real number line became a
+plane.
 
 ```text
 1       points right
@@ -268,8 +302,12 @@ Tala drew one final state table.
 Nothing in the table made complex numbers mysterious. One arrow pointed right, another up, both had equal length, and a later
 operation could bring their angular difference into interference.
 
-When the calibration ended, Iona opened the adjacent shield. A second qubit waited inside, coupled to the first by a controlled
-operation. On Sana's evidence case, the old Bell record from the homeward failure changed status from inscrutable source to a
-question they could finally approach.
+When the calibration ended, station night had come without darkness. The lab lights dimmed while Sable's horizon continued its
+uneven passage beyond the shield cameras. Iona opened the adjacent enclosure. A second qubit waited inside, coupled to the first by
+a controlled operation.
+
+On Sana's evidence case, the old Bell record changed status from inscrutable source to a question they could finally approach. The
+program had been included in the mission package as a target diagnostic. Its lone result, `3`, had seemed almost childishly small
+beside the distance required to produce it. Now Tala could see how much state that integer concealed.
 
 Iona had already opened the next chapter, [Two Systems](07-two-systems.md).

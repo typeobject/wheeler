@@ -22,6 +22,11 @@ Every vessel entering the transfer corridor received a storage allotment before 
 forty-eight terabytes for approach telemetry, six for ship state, and one narrow directory in which the port authority invited the
 crew to record anything they might later regret losing.
 
+Archive citizens inherited no land. They inherited retention obligations. A family might be responsible for three generations of
+water-allocation votes, the maintenance history of a pressure wall, and one ancestor's unedited correspondence. Public schools
+taught compression beside handwriting. Weddings merged storage trusts. Funerals began only after the deceased person's keys had
+been distributed or destroyed according to a witnessed plan.
+
 Mara declined the invitation. Osei doubled the telemetry checks. Sana stood at the forward lock before the pressure equalized,
 watching the inner door as if she knew who would be waiting behind it.
 
@@ -32,18 +37,32 @@ he greeted Sana first and used the formal version of her name.
 
 "I keep distinctions. Records are one way."
 
-His glance moved to the evidence tags on her case. Whatever answer he had expected, that one belonged to an older conversation.
+His glance moved to the evidence tags on her case. He had trained her to bind a claim to its source before she was old enough to
+enter the central vault. She had left after discovering that a perfect source could still support a dishonest sentence when its
+scope was trimmed carefully enough. For nine years their messages had remained courteous, complete, and infrequent.
+
+Whatever answer he had expected, hers belonged to that older conversation.
 
 Memory had earned its authority there. A century earlier, during an evacuation, an automated repair system had overwritten the
 only state from which its pressure model could be reconstructed. The habitat survived. Twelve workers in a sealed section did not.
 Afterward, the custodians recorded every accepted transition in critical systems and built a culture around the proposition that a
 retained past could not become an inaccessible one.
 
+Sana had cataloged the evacuation while apprenticed to Edrin. The accepted public history said the damaged section had been
+*returned to service*. The phrase was operationally correct and, beside the twelve names, morally grotesque. Edrin had defended
+the record because no byte in it was false. Sana had argued that accuracy at the wrong boundary was another way to lose the event.
+She left before either of them learned how to retreat.
+
 Nearly true propositions made dangerous foundations, especially when a culture had built upward from them.
 
 Edrin led the crew through a gallery where old machine states moved behind glass in synchronized reconstruction. Broken pumps
 unfailed. Valves closed before leaks. A guidance computer backed away from the arithmetic fault that had sent an ore carrier
 through a docking mast. Each exhibit consumed stored records in reverse order until the selected earlier state reappeared.
+
+The gallery served as museum, civic shrine, and market. Children sold ceramic orientation birds whose weighted beaks pointed along
+the habitat's local gravity. A noodle counter advertised the oldest continuously preserved broth in human space, a claim Sana
+could disprove from three meters away. Mara bought one of the birds and refused the broth. Around them, visitors applauded as a
+reactor simulation withdrew from a fault it had taken less than a second to enter.
 
 "What is remembered can be returned," Edrin said.
 
@@ -268,10 +287,26 @@ Sana reviewed the transfer lineage beside Edrin. Their disagreement had narrowed
 was current, which history remained available, which inverse belonged to the artifact, and where commit had established the
 horizon. Precision had not made them agree about the Archive. It had made their remaining disagreement small enough to preserve.
 
+Before the final signature, Edrin showed her a newer retention practice. Routine event logs could be compacted after commit, but a
+sealed pre-commit manifest preserved the identities and edges from which the compact record had been derived. The bulk history
+could close without leaving a summary unable to explain its parents.
+
+"An expensive qualification," he said.
+
+"Only when it prevents salvage."
+
+Mara, hearing her own phrase returned, looked wounded for half a second and then laughed. Edrin did not, but the severity around
+his eyes eased. Sana copied the manifest pattern into *Vela*'s mission policy.
+
 Edrin authorized the transfer.
 
 At departure, the habitat streamed *Vela*'s approach history back to the ship as a courtesy. Osei retained the verified digest and
-declined the bulk record. Mara waited until the corridor cleared, then moved the Archive behind them with one sustained burn.
+declined the bulk record. Sana sent Edrin one amendment to the evacuation exhibit: *machine state restored, losses unchanged*. He
+accepted it into review without a message.
+
+Mara fixed the ceramic bird above her console with removable adhesive, waited until the corridor cleared, then moved the Archive
+behind them with one sustained burn. The habitat's dark vault crossed the sun and vanished. For several minutes afterward its
+record beacons remained visible, each pulse insisting that an event could outlast the place that emitted it.
 
 Twelve hours later, another signal arrived from beyond the range where a single observation could be mistaken for a pattern. It
 contained a sequence of zeros and ones, irregular enough to invite a story and too short to justify one.
