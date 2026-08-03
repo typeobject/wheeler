@@ -350,8 +350,10 @@ classical class StringTable {
     }
 
     long entrySuffixExtra = 0;
+    long qualifiedPrefixLength = modulePrefixLength * 2;
     if (program.library) {
       entrySuffixExtra = 4;
+      qualifiedPrefixLength = modulePrefixLength;
     }
 
     return new StringTablePlan(
@@ -361,7 +363,7 @@ classical class StringTable {
       proofIndex,
       mainIndex,
       stringCount,
-      20 + nameLength + helperLength + modulePrefixLength * 2 + proofExtra + entrySuffixExtra,
+      20 + nameLength + helperLength + qualifiedPrefixLength + proofExtra + entrySuffixExtra,
       valid
     );
   }

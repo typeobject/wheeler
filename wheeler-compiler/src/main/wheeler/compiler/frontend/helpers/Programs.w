@@ -258,7 +258,8 @@ classical class HelperPrograms {
     long preReverseStatement,
     long resultEntryCount,
     borrow mut words helperStarts,
-    long helperStatementCount
+    long helperStatementCount,
+    boolean library
   ) {
     SourceRange name = new SourceRange(tokenStarts[2], tokenLengths[2]);
     SourceRange global = new SourceRange(0, 0);
@@ -563,7 +564,7 @@ classical class HelperPrograms {
       preReverseCount,
       helperSequence.count,
       helperResultStatement,
-      false
+      library
     );
     return new MinimalProgramResult.Value(program);
   }

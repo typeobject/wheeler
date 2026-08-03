@@ -164,13 +164,13 @@ classical class AggregateVerifier {
     if (destination < localCount) {
       if (getSource < localCount) {
         long getSourceType = localType(artifact, activeTypes, getSource);
-        if (isRecordType(getSourceType)) {
+        if ((getSourceType & TYPE_KIND_MASK) == TYPE_RECORD) {
           long getDescriptor = recordDescriptor(
             artifact,
             typesOffset,
             globalCount,
             recordCount,
-            recordTypeId(getSourceType)
+            typeDescriptor(getSourceType)
           );
           if (0 < getDescriptor) {
             if (getField < readUnsigned(artifact, getDescriptor + 8, 4)) {
@@ -255,12 +255,12 @@ classical class AggregateVerifier {
     if (destination < localCount) {
       if (getSource < localCount) {
         long getSourceType = localType(artifact, activeTypes, getSource);
-        if (isVariantType(getSourceType)) {
+        if ((getSourceType & TYPE_KIND_MASK) == TYPE_VARIANT) {
           long getDescriptor = variantDescriptor(
             artifact,
             variantsOffset,
             variantCount,
-            variantTypeId(getSourceType)
+            typeDescriptor(getSourceType)
           );
           long getTag = readUnsigned(artifact, cursor + 24, 8);
           long getCase = variantCaseDescriptor(artifact, getDescriptor, getTag);
@@ -389,14 +389,14 @@ classical class AggregateVerifier {
       if (source < localCount) {
         if (indexLocal < localCount) {
           long sourceType = localType(artifact, activeTypes, source);
-          if (isArrayType(sourceType)) {
+          if ((sourceType & TYPE_KIND_MASK) == TYPE_ARRAY) {
             long getDescriptor = arrayDescriptor(
               artifact,
               typesOffset,
               globalCount,
               recordCount,
               arrayCount,
-              arrayTypeId(sourceType)
+              typeDescriptor(sourceType)
             );
             if (0 < getDescriptor) {
               if (localType(artifact, activeTypes, indexLocal) == TYPE_SIGNED) {
@@ -470,14 +470,14 @@ classical class AggregateVerifier {
           if (startLocal < localCount) {
             if (lengthLocal < localCount) {
               long sourceType = localType(artifact, activeTypes, sourceArray);
-              if (isArrayType(sourceType)) {
+              if ((sourceType & TYPE_KIND_MASK) == TYPE_ARRAY) {
                 long arrayInfo = arrayDescriptor(
                   artifact,
                   typesOffset,
                   globalCount,
                   recordCount,
                   arrayCount,
-                  arrayTypeId(sourceType)
+                  typeDescriptor(sourceType)
                 );
                 long sliceInfo = sliceDescriptor(
                   artifact,
@@ -526,7 +526,7 @@ classical class AggregateVerifier {
       if (sourceSlice < localCount) {
         if (indexLocal < localCount) {
           long getSourceType = localType(artifact, activeTypes, sourceSlice);
-          if (isSliceType(getSourceType)) {
+          if ((getSourceType & TYPE_KIND_MASK) == TYPE_SLICE) {
             long getInfo = sliceDescriptor(
               artifact,
               typesOffset,
@@ -534,7 +534,7 @@ classical class AggregateVerifier {
               recordCount,
               arrayCount,
               sliceCount,
-              sliceTypeId(getSourceType)
+              typeDescriptor(getSourceType)
             );
             if (0 < getInfo) {
               if (localType(artifact, activeTypes, indexLocal) == TYPE_SIGNED) {

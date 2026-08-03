@@ -118,20 +118,20 @@ classical class FunctionVerifier {
       return true;
     }
 
-    if (isRecordType(typeCode)) {
-      return recordTypeId(typeCode) < recordCount;
+    if ((typeCode & TYPE_KIND_MASK) == TYPE_RECORD) {
+      return typeDescriptor(typeCode) < recordCount;
     }
 
-    if (isVariantType(typeCode)) {
-      return variantTypeId(typeCode) < variantCount;
+    if ((typeCode & TYPE_KIND_MASK) == TYPE_VARIANT) {
+      return typeDescriptor(typeCode) < variantCount;
     }
 
-    if (isArrayType(typeCode)) {
-      return arrayTypeId(typeCode) < arrayCount;
+    if ((typeCode & TYPE_KIND_MASK) == TYPE_ARRAY) {
+      return typeDescriptor(typeCode) < arrayCount;
     }
 
-    if (isSliceType(typeCode)) {
-      return sliceTypeId(typeCode) < sliceCount;
+    if ((typeCode & TYPE_KIND_MASK) == TYPE_SLICE) {
+      return typeDescriptor(typeCode) < sliceCount;
     }
 
     return false;
@@ -301,7 +301,7 @@ classical class FunctionVerifier {
           return 0;
         }
 
-        if (isSliceType(resultType)) {
+        if ((resultType & TYPE_KIND_MASK) == TYPE_SLICE) {
           return 0;
         }
       }

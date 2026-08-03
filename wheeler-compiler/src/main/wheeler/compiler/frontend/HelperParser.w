@@ -74,7 +74,8 @@ classical class HelperParser {
             preReverseStatement,
             0,
             helperStarts,
-            helperStatementCount
+            helperStatementCount,
+            false
           );
         }
       }
@@ -515,6 +516,32 @@ classical class HelperParser {
       nameToken,
       helperKind
     );
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, proof.entryStart, PUNCTUATION_CLOSE_BRACE)
+    ) {
+      if (count == proof.entryStart + 1) {
+        if (resultSlotHelper(helperKind)) {} else {
+          return helperProgram(
+            source,
+            tokenStarts,
+            tokenLengths,
+            layout,
+            nameToken,
+            helperKind,
+            proof.token,
+            proof.count,
+            -1,
+            0,
+            -1,
+            0,
+            statementStarts,
+            statements.count,
+            true
+          );
+        }
+      }
+    }
+
     long entryBody = minimalBodyStart(
       source,
       tokenKinds,
@@ -600,7 +627,8 @@ classical class HelperParser {
         -1,
         resultEntryCount,
         statementStarts,
-        statements.count
+        statements.count,
+        false
       );
     }
 

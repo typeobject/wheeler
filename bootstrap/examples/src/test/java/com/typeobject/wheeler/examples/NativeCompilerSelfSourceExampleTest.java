@@ -34,9 +34,63 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
-  void rejectsFunctionBearingSelfSourceUntilMultipleHelpersLand() throws Exception {
+  void compilesOneEntrylessHelperByteForByte() throws Exception {
+    String source = """
+        module examples.native_helper;
+        classical class NativeHelper {
+          public long identity(long value) {
+            return value;
+          }
+        }
+        """;
     Program compiler = CompilerSources.minimalCompilerProgram();
-    String source = CompilerSources.read("compiler/ir/TypeKinds.w");
+    VirtualMachine writer = nativeWriter(compiler, source);
+    CompilerMachineRunner.runWithoutRewindHistory(writer);
+
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("NativeHelper.w", source),
+        "examples.native_helper");
+    assertArrayEquals(new BytecodeWriter().write(expected), writer.hostOutput());
+  }
+
+  @Test
+  void compilesTheCanonicalTypeKindHelperByteForByte() throws Exception {
+    Program compiler = NativeModuleCompilerHarness.program();
+    String dependency = CompilerSources.read("compiler/ir/TypeCodes.w");
+    String root = CompilerSources.read("compiler/ir/TypeKinds.w");
+
+    byte[] artifact = NativeModuleCompilerHarness.compile(compiler, dependency, root);
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of(
+            "compiler/ir/TypeCodes.w", dependency,
+            "compiler/ir/TypeKinds.w", root),
+        "wheeler.compiler.type_kinds");
+    assertArrayEquals(new BytecodeWriter().write(expected), artifact);
+    Program decoded = new BytecodeReader().read(artifact);
+    assertEquals(
+        "wheeler.compiler.type_kinds::typeDescriptor",
+        decoded.functions().getFirst().name());
+    assertEquals("$library", decoded.functions().getLast().name());
+    VirtualMachine library = new VirtualMachine(decoded);
+    library.run();
+    assertEquals(MachineStatus.HALTED, library.status());
+  }
+
+  @Test
+  void rejectsMultipleHelpersBeforePublication() throws Exception {
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    String source = """
+        module examples.two_helpers;
+        classical class TwoHelpers {
+          public long first(long value) {
+            return value;
+          }
+
+          public long second(long value) {
+            return value;
+          }
+        }
+        """;
     VirtualMachine writer = nativeWriter(compiler, source);
 
     assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(writer));

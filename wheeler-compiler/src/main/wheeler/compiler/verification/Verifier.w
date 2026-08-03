@@ -23,11 +23,11 @@ classical class Verifier {
     long arrayCount,
     long typeCode
   ) {
-    if (isArrayType(typeCode)) {} else {
+    if ((typeCode & TYPE_KIND_MASK) == TYPE_ARRAY) {} else {
       return false;
     }
 
-    long arrayId = arrayTypeId(typeCode);
+    long arrayId = typeDescriptor(typeCode);
     if (arrayId < arrayCount) {} else {
       return false;
     }
@@ -58,7 +58,7 @@ classical class Verifier {
       long field = 0;
       while (field < fieldCount) limit INTERPRETER_LOCAL_WIDTH {
         long fieldType = readUnsigned(artifact, cursor + 16 + field * 8, 4);
-        if (isArrayType(fieldType)) {
+        if ((fieldType & TYPE_KIND_MASK) == TYPE_ARRAY) {
           if (scalarArrayTypeValid(artifact, arrayTable, arrayCount, fieldType)) {} else {
             return false;
           }
@@ -240,12 +240,12 @@ classical class Verifier {
         if (fieldType == TYPE_SIGNED) {} else {
           if (fieldType == TYPE_BOOLEAN) {} else {
             if (fieldType == TYPE_DONE) {} else {
-              if (isRecordType(fieldType)) {
-                if (recordTypeId(fieldType) < record) {} else {
+              if ((fieldType & TYPE_KIND_MASK) == TYPE_RECORD) {
+                if (typeDescriptor(fieldType) < record) {} else {
                   return 0;
                 }
               } else {
-                if (isArrayType(fieldType)) {} else {
+                if ((fieldType & TYPE_KIND_MASK) == TYPE_ARRAY) {} else {
                   return 0;
                 }
               }
@@ -277,8 +277,8 @@ classical class Verifier {
       if (elementType == TYPE_SIGNED) {} else {
         if (elementType == TYPE_BOOLEAN) {} else {
           if (elementType == TYPE_DONE) {} else {
-            if (isRecordType(elementType)) {
-              if (recordTypeId(elementType) < recordCount) {} else {
+            if ((elementType & TYPE_KIND_MASK) == TYPE_RECORD) {
+              if (typeDescriptor(elementType) < recordCount) {} else {
                 return 0;
               }
             } else {
@@ -319,8 +319,8 @@ classical class Verifier {
       if (sliceElement == TYPE_SIGNED) {} else {
         if (sliceElement == TYPE_BOOLEAN) {} else {
           if (sliceElement == TYPE_DONE) {} else {
-            if (isRecordType(sliceElement)) {
-              if (recordTypeId(sliceElement) < recordCount) {} else {
+            if ((sliceElement & TYPE_KIND_MASK) == TYPE_RECORD) {
+              if (typeDescriptor(sliceElement) < recordCount) {} else {
                 return 0;
               }
             } else {
@@ -382,13 +382,13 @@ classical class Verifier {
           if (payloadType == TYPE_SIGNED) {} else {
             if (payloadType == TYPE_BOOLEAN) {} else {
               if (payloadType == TYPE_DONE) {} else {
-                if (isRecordType(payloadType)) {
-                  if (recordTypeId(payloadType) < recordCount) {} else {
+                if ((payloadType & TYPE_KIND_MASK) == TYPE_RECORD) {
+                  if (typeDescriptor(payloadType) < recordCount) {} else {
                     return 0;
                   }
                 } else {
-                  if (isVariantType(payloadType)) {
-                    if (variantTypeId(payloadType) < variant) {} else {
+                  if ((payloadType & TYPE_KIND_MASK) == TYPE_VARIANT) {
+                    if (typeDescriptor(payloadType) < variant) {} else {
                       return 0;
                     }
                   } else {
