@@ -20,7 +20,7 @@ The machine owns:
 
 Raw host pointers and masked segmented addresses are not machine values.
 
-Source compilation currently writes equal limits of 4,000,000 steps and 4,000,000 retained history records. The `run()` loop traps at the step limit. Every execution path traps before it exceeds the history limit. The history budget can therefore retain every transition in one default run. The physical bootstrap closure evidence uses explicit single stepping with a 44,000,000-transition test ceiling and commits history every 10,000 records. Its complete ninety-four-module graph validation finishes in 42,981,802 transitions. The test keeps that larger evidence run bounded without quietly changing source program policy. An artifact or embedding host may choose lower verified limits.
+Source compilation currently writes equal limits of 4,000,000 steps and 4,000,000 retained history records. The `run()` loop traps at the step limit. Every execution path traps before it exceeds the history limit. The history budget can therefore retain every transition in one default run. The physical bootstrap closure evidence uses `stepWithoutRewindHistory()` with a 44,000,000-transition test ceiling. That mode refuses a retained rewind tail and establishes an immediate rewind horizon after each successful transition. It is suitable for artifact comparisons that never rewind, not a cheaper spelling of reversible execution and not a durability claim. The complete ninety-four-module graph validation finishes in 42,981,802 transitions. The test keeps that larger evidence run bounded without quietly changing source program policy. An artifact or embedding host may choose lower verified limits.
 
 A classical entry may borrow one strict UTF-8 input, one immutable binary `byteview`, one mutable byte output, or one input followed by the output. VM construction requires the exact declared effects and an explicit text or binary binding API.
 
@@ -132,7 +132,7 @@ with the Java VM.
 
 ## Commit horizons
 
-`COMMIT` advances successfully, then clears older step records. The VM cannot rewind before that point, even when an implementation still holds unrelated cached bytes.
+`COMMIT` advances successfully, then clears older step records. The VM cannot rewind before that point, even when an implementation still holds unrelated cached bytes. Hosts that need no rewind evidence may call `stepWithoutRewindHistory()` only at an empty history boundary. Each such step has the same irreversible retention consequence without pretending that provider output became durable.
 
 A future persistence layer will make checkpoint and replay availability explicit.
 

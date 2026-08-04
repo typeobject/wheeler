@@ -138,7 +138,7 @@ final class OwnedStore {
       throw new VmTrap("Region allocation limit exceeded");
     }
     int regionIndex = region.id();
-    Change updated = change.region(regionIndex, region);
+    Change updated = change == null ? null : change.region(regionIndex, region);
     regions.set(regionIndex, new RegionValue(
         region.id(), region.maxBytes(), region.maxObjects(),
         region.usedBytes() + bytes, region.liveObjects() + 1, false));
@@ -170,11 +170,10 @@ final class OwnedStore {
     if (!buffer.kind().accepts(value)) {
       throw new VmTrap("Buffer value is outside its element range: " + value);
     }
-    List<Long> elements = new ArrayList<>(buffer.elements());
-    elements.set(index, value);
+    List<Long> elements = PersistentLongList.with(buffer.elements(), index, value);
     buffers.set(buffer.id(), new BufferValue(
         buffer.id(), buffer.regionId(), buffer.kind(), buffer.length(), elements, false));
-    return change.buffer(buffer.id(), buffer);
+    return change == null ? null : change.buffer(buffer.id(), buffer);
   }
 
   Change dropBuffer(long bufferHandle, Change change) {
@@ -182,7 +181,9 @@ final class OwnedStore {
     RegionValue region = requireLiveRegion(buffer.regionId() + 1L);
     long bytes = Math.multiplyExact(
         (long) buffer.length(), buffer.kind().elementBytes());
-    Change updated = change.region(region.id(), region).buffer(buffer.id(), buffer);
+    Change updated = change == null
+        ? null
+        : change.region(region.id(), region).buffer(buffer.id(), buffer);
     buffers.set(buffer.id(), new BufferValue(
         buffer.id(), buffer.regionId(), buffer.kind(), buffer.length(), List.of(), true));
     regions.set(region.id(), new RegionValue(
@@ -198,7 +199,7 @@ final class OwnedStore {
     }
     regions.set(region.id(), new RegionValue(
         region.id(), region.maxBytes(), region.maxObjects(), 0, 0, true));
-    return change.region(region.id(), region);
+    return change == null ? null : change.region(region.id(), region);
   }
 
   void validateRegionLimits(long maxBytes, int maxObjects) {
@@ -254,14 +255,12 @@ final class OwnedStore {
   Change mapPut(long handle, long key, long value, Change change) {
     BufferValue map = requireMap(handle);
     int slot = mapSlot(map, key, true);
-    List<Long> elements = new ArrayList<>(map.elements());
     int base = slot * 3;
-    elements.set(base, 1L);
-    elements.set(base + 1, key);
-    elements.set(base + 2, value);
+    List<Long> elements = PersistentLongList.withThree(
+        map.elements(), base, 1, key, value);
     buffers.set(map.id(), new BufferValue(
         map.id(), map.regionId(), map.kind(), map.length(), elements, false));
-    return change.buffer(map.id(), map);
+    return change == null ? null : change.buffer(map.id(), map);
   }
 
   long mapGet(long handle, long key) {
@@ -320,7 +319,7 @@ final class OwnedStore {
         buffer.elements(),
         false);
     buffers.set(buffer.id(), frozen);
-    return change.buffer(buffer.id(), buffer);
+    return change == null ? null : change.buffer(buffer.id(), buffer);
   }
 
   void validateUtf8Bytes(long bufferHandle) {

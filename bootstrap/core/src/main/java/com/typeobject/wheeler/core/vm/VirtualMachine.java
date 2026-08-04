@@ -129,6 +129,18 @@ public final class VirtualMachine {
   }
 
   public void step() {
+    step(true);
+  }
+
+  /** Executes one transition without retaining rewind state. */
+  public void stepWithoutRewindHistory() {
+    if (!history.isEmpty()) {
+      throw new VmTrap("Cannot discard rewind state while retained history exists");
+    }
+    step(false);
+  }
+
+  private void step(boolean retainHistory) {
     if (status == MachineStatus.HALTED) {
       throw new VmTrap("Cannot step a halted machine");
     }
@@ -146,7 +158,8 @@ public final class VirtualMachine {
       frame = currentFrame();
       instruction = fetch(frame);
       validateBeforeMutation(instruction);
-      if (instruction.opcode() != Opcode.COMMIT
+      if (retainHistory
+          && instruction.opcode() != Opcode.COMMIT
           && history.size() >= program.maxHistoryRecords()) {
         trap("History record limit exceeded");
       }
@@ -165,11 +178,12 @@ public final class VirtualMachine {
         previousStatus,
         previousSelectedTask,
         previousSchedulerCursor,
-        previousTaskStatus);
+        previousTaskStatus,
+        retainHistory);
     sequence = Math.addExact(sequence, 1);
     if (instruction.opcode() == Opcode.COMMIT) {
       history.clear();
-    } else {
+    } else if (retainHistory) {
       history.push(record);
     }
     tasks.setSelectedStatus(
@@ -324,7 +338,8 @@ public final class VirtualMachine {
       MachineStatus previousStatus,
       TaskId previousSelectedTask,
       TaskId previousSchedulerCursor,
-      TaskStatus previousTaskStatus) {
+      TaskStatus previousTaskStatus,
+      boolean retainHistory) {
     Opcode opcode = instruction.opcode();
     int changedGlobal = StepRecord.NO_GLOBAL;
     long previousValue = 0;
@@ -333,8 +348,8 @@ public final class VirtualMachine {
     int changedSecondaryLocal = StepRecord.NO_LOCAL;
     long previousSecondaryLocalValue = 0;
     StepRecord.ControlChange control = StepRecord.ControlChange.ADVANCE;
-    AggregateStore.Counts previousCounts = aggregates.counts();
-    OwnedStore.Change ownedChange = owned.mark();
+    AggregateStore.Counts previousCounts = retainHistory ? aggregates.counts() : null;
+    OwnedStore.Change ownedChange = retainHistory ? owned.mark() : null;
     int previousHostOutputLength = hostOutputLength;
 
     switch (opcode) {
@@ -709,6 +724,10 @@ public final class VirtualMachine {
         advanceCurrentFrame();
         status = MachineStatus.HALTED;
       }
+    }
+
+    if (!retainHistory) {
+      return null;
     }
 
     return new StepRecord(

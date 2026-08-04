@@ -55,6 +55,30 @@ class VirtualMachineTest {
   }
 
   @Test
+  void committedStepsRetainNoRewindState() {
+    VirtualMachine machine = new VirtualMachine(ProgramFixtures.counter());
+
+    while (machine.status() != MachineStatus.HALTED) {
+      machine.stepWithoutRewindHistory();
+    }
+
+    assertEquals(0, machine.global("count"));
+    assertEquals(0, machine.historySize());
+    assertThrows(VmTrap.class, machine::rewindOne);
+  }
+
+  @Test
+  void committedStepsRejectAnExistingRewindTail() {
+    VirtualMachine machine = new VirtualMachine(ProgramFixtures.counter());
+    machine.step();
+
+    assertThrows(VmTrap.class, machine::stepWithoutRewindHistory);
+    machine.commitHistory();
+    machine.stepWithoutRewindHistory();
+    assertEquals(0, machine.historySize());
+  }
+
+  @Test
   void loggedWriteRestoresDestroyedValue() {
     Program program = singleFunction(
         List.of(

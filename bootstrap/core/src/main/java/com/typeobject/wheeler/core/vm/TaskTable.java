@@ -11,6 +11,11 @@ import java.util.TreeSet;
 
 /** Bounded canonical owner of semantic tasks and their frame stacks. */
 final class TaskTable {
+  private static final NavigableSet<TaskId> ROOT_RUNNABLE =
+      Collections.unmodifiableNavigableSet(new TreeSet<>(List.of(TaskId.ROOT)));
+  private static final NavigableSet<TaskId> NO_RUNNABLE_TASKS =
+      Collections.emptyNavigableSet();
+
   private final TreeMap<TaskId, ArrayList<Frame>> frames = new TreeMap<>();
   private final TreeMap<TaskId, TaskStatus> statuses = new TreeMap<>();
   private TaskId selected = TaskId.ROOT;
@@ -25,13 +30,9 @@ final class TaskTable {
   }
 
   NavigableSet<TaskId> runnableTaskIds() {
-    TreeSet<TaskId> runnable = new TreeSet<>();
-    statuses.forEach((task, status) -> {
-      if (status == TaskStatus.RUNNABLE) {
-        runnable.add(task);
-      }
-    });
-    return Collections.unmodifiableNavigableSet(runnable);
+    return statuses.get(TaskId.ROOT) == TaskStatus.RUNNABLE
+        ? ROOT_RUNNABLE
+        : NO_RUNNABLE_TASKS;
   }
 
   void select(TaskId taskId) {

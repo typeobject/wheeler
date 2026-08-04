@@ -17,6 +17,6 @@ public record BufferValue(
         || (dropped && !elements.isEmpty())) {
       throw new IllegalArgumentException("Invalid buffer value");
     }
-    elements = List.copyOf(elements);
+    elements = dropped ? List.of() : PersistentLongList.copyOf(elements);
   }
 }
