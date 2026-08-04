@@ -72,6 +72,13 @@ classical class CompilerIr {
     long preReverseStatementCount,
     long helperStatementCount,
     long helperResultStatement,
+    SourceRange secondHelperName,
+    long[64] secondHelperOpcodes,
+    long[64] secondHelperOperands,
+    long[64] secondHelperSecondaryOperands,
+    long secondHelperKind,
+    long secondHelperStatementCount,
+    long secondHelperResultStatement,
     boolean library
   ) {}
 

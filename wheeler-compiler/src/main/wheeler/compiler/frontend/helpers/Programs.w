@@ -564,6 +564,13 @@ classical class HelperPrograms {
       preReverseCount,
       helperSequence.count,
       helperResultStatement,
+      new SourceRange(0, 0),
+      emptyStatementOpcodes(),
+      emptyStatementOperands(),
+      emptyStatementOperands(),
+      0,
+      0,
+      0,
       library
     );
     return new MinimalProgramResult.Value(program);

@@ -4,6 +4,7 @@ module wheeler.compiler.compiler_core;
 
 import wheeler.compiler.encoding;
 import wheeler.compiler.ir;
+import wheeler.compiler.library_strings;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_types;
 import wheeler.compiler.module_headers;
@@ -107,6 +108,13 @@ classical class CompilerCore {
           0,
           0,
           0,
+          scanGlobal,
+          emptyStatementOpcodes(),
+          emptyStatementOperands(),
+          emptyStatementOperands(),
+          0,
+          0,
+          0,
           false
         );
       }
@@ -165,6 +173,13 @@ classical class CompilerCore {
               0,
               0,
               0,
+              parseGlobal,
+              emptyStatementOpcodes(),
+              emptyStatementOperands(),
+              emptyStatementOperands(),
+              0,
+              0,
+              0,
               false
             );
           }
@@ -209,16 +224,32 @@ classical class CompilerCore {
     );
     SourceRange moduleName = new SourceRange(moduleRange[0], moduleRange[1]);
     StringTablePlan strings = planStringTable(source, program, moduleName);
-    if (strings.valid == 0) {
-      assert(0 == 1);
+    TwoHelperStringPlan twoHelperStrings = planTwoHelperStrings(source, program, moduleName);
+    if (program.helperCount == 2) {
+      if (twoHelperStrings.valid == 0) {
+        assert(0 == 1);
+      }
+    } else {
+      if (strings.valid == 0) {
+        assert(0 == 1);
+      }
     }
 
     long nameIndex = strings.nameIndex;
     long globalIndex = strings.globalIndex;
     long helperIndex = strings.helperIndex;
+    long secondHelperIndex = 0;
     long proofIndex = strings.proofIndex;
     long mainIndex = strings.mainIndex;
     long stringsLength = strings.encodedLength;
+    if (program.helperCount == 2) {
+      nameIndex = twoHelperStrings.nameIndex;
+      helperIndex = twoHelperStrings.firstHelperIndex;
+      secondHelperIndex = twoHelperStrings.secondHelperIndex;
+      mainIndex = twoHelperStrings.entryIndex;
+      stringsLength = twoHelperStrings.encodedLength;
+    }
+
     long typesLength = 16;
     if (program.globalCount == 1) {
       typesLength = 32;
@@ -305,6 +336,10 @@ classical class CompilerCore {
     }
 
     long entryTypeOffset = helperLocalCount;
+    long secondHelperParameterCount = 0;
+    long secondHelperLocalCount = 0;
+    long secondHelperForwardLength = 0;
+    long secondHelperTypeOffset = 0;
     if (program.helperCount == 1) {
       localCount = helperLocalCount;
       functionsLength = 84 + helperLocalCount * 4 + entryLocalCount * 4;
@@ -314,6 +349,28 @@ classical class CompilerCore {
       }
 
       codeLength = helperForwardLength + helperInverseLength + entryForwardLength;
+    }
+
+    if (program.helperCount == 2) {
+      secondHelperParameterCount = parameterCountForHelper(program.secondHelperKind);
+      secondHelperLocalCount = secondHelperParameterCount;
+      secondHelperForwardLength = 8;
+      long secondStatement = 0;
+      while (secondStatement < program.secondHelperStatementCount) limit MAX_MINIMAL_STATEMENTS {
+        long secondOpcode = program.secondHelperOpcodes[secondStatement];
+        secondHelperLocalCount += statementLocalCount(secondOpcode);
+        secondHelperForwardLength += statementCodeLength(secondOpcode);
+        secondStatement += 1;
+      }
+
+      if (HELPER_REVERSIBLE < program.secondHelperKind) {
+        secondHelperForwardLength -= 8;
+      }
+
+      secondHelperTypeOffset = helperLocalCount + 1;
+      entryTypeOffset = secondHelperTypeOffset + secondHelperLocalCount + 1;
+      functionsLength = 124 + entryTypeOffset * 4 + entryLocalCount * 4;
+      codeLength = helperForwardLength + secondHelperForwardLength + entryForwardLength;
     }
 
     long codeOffset = align8(functionsOffset + functionsLength);
@@ -353,7 +410,19 @@ classical class CompilerCore {
     cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, ENCODING_WIDTH_U32);
     cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 4000000, ENCODING_WIDTH_U64);
 
-    cursor = writeStringTable(output, cursor, source, program, moduleName, strings);
+    if (program.helperCount == 2) {
+      cursor = writeTwoHelperStrings(
+        output,
+        cursor,
+        source,
+        program,
+        moduleName,
+        twoHelperStrings
+      );
+    } else {
+      cursor = writeStringTable(output, cursor, source, program, moduleName, strings);
+    }
+
     cursor = align8(cursor);
 
     cursor = writeUnsignedLittleEndian(output, cursor, program.globalCount, ENCODING_WIDTH_U32);
@@ -375,16 +444,7 @@ classical class CompilerCore {
       1 + program.helperCount,
       ENCODING_WIDTH_U32
     );
-    if (program.helperCount == 1) {
-      long helperFlags = program.helperKind;
-      if (HELPER_REVERSIBLE < program.helperKind) {
-        helperFlags = 4;
-      }
-
-      if (resultSlotProgram) {
-        helperFlags = RESULT_SLOT_FUNCTION_FLAGS;
-      }
-
+    if (program.helperCount == 2) {
       cursor = writeFunctionDescriptor(
         output,
         cursor,
@@ -392,9 +452,9 @@ classical class CompilerCore {
         helperIndex,
         0,
         helperForwardLength,
-        helperFlags,
-        helperInverseOffset,
-        helperInverseLength,
+        /* flags= */ 4,
+        4294967295,
+        0,
         helperParameterCount,
         helperLocalCount,
         0
@@ -403,8 +463,22 @@ classical class CompilerCore {
         output,
         cursor,
         1,
+        secondHelperIndex,
+        helperForwardLength,
+        secondHelperForwardLength,
+        /* flags= */ 4,
+        4294967295,
+        0,
+        secondHelperParameterCount,
+        secondHelperLocalCount,
+        secondHelperTypeOffset
+      );
+      cursor = writeFunctionDescriptor(
+        output,
+        cursor,
+        2,
         mainIndex,
-        helperForwardLength + helperInverseLength,
+        helperForwardLength + secondHelperForwardLength,
         entryForwardLength,
         0,
         4294967295,
@@ -413,71 +487,31 @@ classical class CompilerCore {
         entryLocalCount,
         entryTypeOffset
       );
-      if (HELPER_REVERSIBLE < program.helperKind) {
-        if (booleanResultHelper(program.helperKind)) {
-          cursor = writeBooleanLocalType(output, cursor);
-        } else {
-          cursor = writeSignedLocalType(output, cursor);
-        }
+      cursor = writeSignedLocalType(output, cursor);
+      long firstParameterType = 0;
+      while (firstParameterType < helperParameterCount) limit 2 {
+        cursor = writeSignedLocalType(output, cursor);
+        firstParameterType += 1;
       }
 
-      long helperParameterIndex = 0;
-      while (helperParameterIndex < helperParameterCount) limit 2 {
-        if (booleanParameterHelper(program.helperKind)) {
-          cursor = writeBooleanLocalType(output, cursor);
-        } else {
-          cursor = writeSignedLocalType(output, cursor);
-        }
-
-        helperParameterIndex += 1;
-      }
-
-      if (program.helperKind == HELPER_REVERSIBLE) {} else {
-        if (resultSlotProgram) {
-          cursor = writeBooleanLocalType(output, cursor);
-          cursor = writeSignedLocalType(output, cursor);
-        } else {
-          cursor = writeSequenceLocalTypes(
-            output,
-            cursor,
-            program.helperOpcodes,
-            program.helperStatementCount
-          );
-        }
-      }
-
-      if (resultSlotProgram) {
-        long resultEntryType = 0;
-        while (resultEntryType < program.statementCount) limit MAX_MINIMAL_STATEMENTS {
-          cursor = writeResultSlotEntryLocalTypes(
-            output,
-            cursor,
-            program.statementOpcodes[resultEntryType]
-          );
-          resultEntryType += 1;
-        }
-      } else {
-        cursor = writeSequenceLocalTypes(
-          output,
-          cursor,
-          program.statementOpcodes,
-          program.statementCount
-        );
-      }
-    } else {
-      cursor = writeFunctionDescriptor(
+      cursor = writeSequenceLocalTypes(
         output,
         cursor,
-        0,
-        mainIndex,
-        0,
-        codeLength,
-        0,
-        4294967295,
-        0,
-        0,
-        localCount,
-        0
+        program.helperOpcodes,
+        program.helperStatementCount
+      );
+      cursor = writeSignedLocalType(output, cursor);
+      long secondParameterType = 0;
+      while (secondParameterType < secondHelperParameterCount) limit 2 {
+        cursor = writeSignedLocalType(output, cursor);
+        secondParameterType += 1;
+      }
+
+      cursor = writeSequenceLocalTypes(
+        output,
+        cursor,
+        program.secondHelperOpcodes,
+        program.secondHelperStatementCount
       );
       cursor = writeSequenceLocalTypes(
         output,
@@ -485,6 +519,118 @@ classical class CompilerCore {
         program.statementOpcodes,
         program.statementCount
       );
+    } else {
+      if (program.helperCount == 1) {
+        long helperFlags = program.helperKind;
+        if (HELPER_REVERSIBLE < program.helperKind) {
+          helperFlags = 4;
+        }
+
+        if (resultSlotProgram) {
+          helperFlags = RESULT_SLOT_FUNCTION_FLAGS;
+        }
+
+        cursor = writeFunctionDescriptor(
+          output,
+          cursor,
+          0,
+          helperIndex,
+          0,
+          helperForwardLength,
+          helperFlags,
+          helperInverseOffset,
+          helperInverseLength,
+          helperParameterCount,
+          helperLocalCount,
+          0
+        );
+        cursor = writeFunctionDescriptor(
+          output,
+          cursor,
+          1,
+          mainIndex,
+          helperForwardLength + helperInverseLength,
+          entryForwardLength,
+          0,
+          4294967295,
+          0,
+          0,
+          entryLocalCount,
+          entryTypeOffset
+        );
+        if (HELPER_REVERSIBLE < program.helperKind) {
+          if (booleanResultHelper(program.helperKind)) {
+            cursor = writeBooleanLocalType(output, cursor);
+          } else {
+            cursor = writeSignedLocalType(output, cursor);
+          }
+        }
+
+        long helperParameterIndex = 0;
+        while (helperParameterIndex < helperParameterCount) limit 2 {
+          if (booleanParameterHelper(program.helperKind)) {
+            cursor = writeBooleanLocalType(output, cursor);
+          } else {
+            cursor = writeSignedLocalType(output, cursor);
+          }
+
+          helperParameterIndex += 1;
+        }
+
+        if (program.helperKind == HELPER_REVERSIBLE) {} else {
+          if (resultSlotProgram) {
+            cursor = writeBooleanLocalType(output, cursor);
+            cursor = writeSignedLocalType(output, cursor);
+          } else {
+            cursor = writeSequenceLocalTypes(
+              output,
+              cursor,
+              program.helperOpcodes,
+              program.helperStatementCount
+            );
+          }
+        }
+
+        if (resultSlotProgram) {
+          long resultEntryType = 0;
+          while (resultEntryType < program.statementCount) limit MAX_MINIMAL_STATEMENTS {
+            cursor = writeResultSlotEntryLocalTypes(
+              output,
+              cursor,
+              program.statementOpcodes[resultEntryType]
+            );
+            resultEntryType += 1;
+          }
+        } else {
+          cursor = writeSequenceLocalTypes(
+            output,
+            cursor,
+            program.statementOpcodes,
+            program.statementCount
+          );
+        }
+      } else {
+        cursor = writeFunctionDescriptor(
+          output,
+          cursor,
+          0,
+          mainIndex,
+          0,
+          codeLength,
+          0,
+          4294967295,
+          0,
+          0,
+          localCount,
+          0
+        );
+        cursor = writeSequenceLocalTypes(
+          output,
+          cursor,
+          program.statementOpcodes,
+          program.statementCount
+        );
+      }
     }
 
     cursor = align8(cursor);

@@ -13,6 +13,7 @@ import wheeler.compiler.statement_forms;
 import wheeler.compiler.statements;
 import wheeler.compiler.structure;
 import wheeler.compiler.tokens;
+import wheeler.compiler.two_helper_libraries;
 
 classical class Parser {
 
@@ -55,6 +56,13 @@ classical class Parser {
       helper,
       0,
       0,
+      0,
+      0,
+      0,
+      helper,
+      emptyStatementOpcodes(),
+      emptyStatementOperands(),
+      emptyStatementOperands(),
       0,
       0,
       0,
@@ -418,6 +426,22 @@ classical class Parser {
               return new MinimalProgramResult.Value(libraryCandidate);
             }
             case MinimalProgramResult.Error(long libraryOffset) {}
+          }
+
+          MinimalProgramResult twoHelpers = parseTwoHelperLibrary(
+            source,
+            tokenKinds,
+            tokenStarts,
+            tokenLengths,
+            statementStarts,
+            count,
+            layout
+          );
+          match (twoHelpers) {
+            case MinimalProgramResult.Value(MinimalProgram twoHelperCandidate) {
+              return new MinimalProgramResult.Value(twoHelperCandidate);
+            }
+            case MinimalProgramResult.Error(long twoHelperOffset) {}
           }
 
           MinimalProgramResult entry = minimalEntryProgram(

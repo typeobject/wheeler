@@ -797,6 +797,18 @@ classical class ProgramCodegen {
     }
 
     cursor = writeHelperBody(output, cursor, program, helperLocalBase, resultSlotProgram);
+    if (program.helperCount == 2) {
+      return writeSequence(
+        output,
+        cursor,
+        program.secondHelperOpcodes,
+        program.secondHelperOperands,
+        program.secondHelperSecondaryOperands,
+        program.secondHelperStatementCount,
+        parameterCountForHelper(program.secondHelperKind)
+      );
+    }
+
     if (resultSlotProgram) {
       return writeResultSlotEntrySequence(
         output,

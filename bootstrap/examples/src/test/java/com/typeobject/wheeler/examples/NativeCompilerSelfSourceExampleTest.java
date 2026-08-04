@@ -114,11 +114,9 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
-  void rejectsMultipleHelpersBeforePublication() throws Exception {
+  void compilesTwoEntrylessHelpersByteForByte() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
-    String source = """
-        module examples.two_helpers;
-        classical class TwoHelpers {
+    String source = twoHelperSource("""
           public long first(long value) {
             return value;
           }
@@ -126,12 +124,58 @@ final class NativeCompilerSelfSourceExampleTest {
           public long second(long value) {
             return value;
           }
-        }
-        """;
+        """);
     VirtualMachine writer = nativeWriter(compiler, source);
+    CompilerMachineRunner.runWithoutRewindHistory(writer);
 
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("TwoHelpers.w", source),
+        "examples.two_helpers");
+    byte[] artifact = writer.hostOutput();
+    assertArrayEquals(new BytecodeWriter().write(expected), artifact);
+    Program decoded = new BytecodeReader().read(artifact);
+    assertEquals("examples.two_helpers::first", decoded.functions().get(0).name());
+    assertEquals("examples.two_helpers::second", decoded.functions().get(1).name());
+    assertEquals("$library", decoded.functions().get(2).name());
+  }
+
+  @Test
+  void rejectsUnsortedOrExcessEntrylessHelpersBeforePublication() throws Exception {
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    String source = twoHelperSource("""
+          public long first(long value) {
+            return value;
+          }
+
+          public long second(long value) {
+            return value;
+          }
+
+          public long third(long value) {
+            return value;
+          }
+        """);
+    assertNoPublication(compiler, source);
+    assertNoPublication(compiler, twoHelperSource("""
+          public long second(long value) {
+            return value;
+          }
+
+          public long first(long value) {
+            return value;
+          }
+        """));
+  }
+
+  private static void assertNoPublication(Program compiler, String source) {
+    VirtualMachine writer = nativeWriter(compiler, source);
     assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(writer));
     assertArrayEquals(new byte[OUTPUT_CAPACITY], writer.hostOutput());
+  }
+
+  private static String twoHelperSource(String members) {
+    return "module examples.two_helpers;\nclassical class TwoHelpers {\n"
+        + members + "}\n";
   }
 
   private static void assertConstantOnlyCompilerLibrary(
