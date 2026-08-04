@@ -36,14 +36,11 @@ final class NativeBootstrapModulesIdentityExampleTest {
     long transitions = 0;
     while (machine.status() != MachineStatus.HALTED
         && transitions < MAX_CLOSURE_TRANSITIONS) {
-      machine.step();
+      machine.stepWithoutRewindHistory();
       transitions += 1;
-      if (10_000 <= machine.historySize()) {
-        machine.commitHistory();
-      }
     }
 
-    assertEquals(44_508_255, transitions);
+    assertEquals(42_673_018, transitions);
     assertEquals(MachineStatus.HALTED, machine.status());
     assertArrayEquals(MessageDigest.getInstance("SHA-256").digest(manifest.canonicalBytes()),
         machine.hostOutput());
@@ -131,10 +128,10 @@ final class NativeBootstrapModulesIdentityExampleTest {
     assertLargeIdentity(program, sixtyFiveModules, 65, 0, 64);
     BootstrapModuleManifest excessModuleImports = generatedGraph(66);
     assertLargeNoIdentity(program, excessModuleImports.canonicalBytes());
-    BootstrapModuleManifest ninetySixModules = generatedChainGraph(96);
-    assertLargeIdentity(program, ninetySixModules, 96, 0, 95);
-    BootstrapModuleManifest ninetySevenModules = generatedChainGraph(97);
-    assertLargeNoIdentity(program, ninetySevenModules.canonicalBytes());
+    BootstrapModuleManifest oneHundredTwentyEightModules = generatedChainGraph(128);
+    assertLargeIdentity(program, oneHundredTwentyEightModules, 128, 0, 127);
+    BootstrapModuleManifest oneHundredTwentyNineModules = generatedChainGraph(129);
+    assertLargeNoIdentity(program, oneHundredTwentyNineModules.canonicalBytes());
     BootstrapModuleManifest sixtyFourExternals = generatedExternalGraph(64);
     assertLargeIdentity(program, sixtyFourExternals, 1, 64, 0);
     BootstrapModuleManifest sixtyFiveExternals = generatedExternalGraph(65);
@@ -168,11 +165,8 @@ final class NativeBootstrapModulesIdentityExampleTest {
     long transitions = 0;
     while (machine.status() != MachineStatus.HALTED
         && transitions < MAX_LARGE_GRAPH_TRANSITIONS) {
-      machine.step();
+      machine.stepWithoutRewindHistory();
       transitions += 1;
-      if (10_000 <= machine.historySize()) {
-        machine.commitHistory();
-      }
     }
 
     assertEquals(MachineStatus.HALTED, machine.status());
@@ -191,14 +185,11 @@ final class NativeBootstrapModulesIdentityExampleTest {
         && machine.status() != MachineStatus.TRAPPED
         && transitions < MAX_LARGE_GRAPH_TRANSITIONS) {
       try {
-        machine.step();
+        machine.stepWithoutRewindHistory();
       } catch (VmTrap expected) {
         // The first rejected transition sets the fail-closed machine state.
       }
       transitions += 1;
-      if (10_000 <= machine.historySize()) {
-        machine.commitHistory();
-      }
     }
 
     assertEquals(MachineStatus.TRAPPED, machine.status());

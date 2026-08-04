@@ -6,7 +6,7 @@ import examples.bootstrap.syntax;
 import wheeler.crypto.content_identity;
 
 classical class NativeBootstrapModulesIdentity {
-  private const long MAX_LOCAL_MODULES = 96;
+  private const long MAX_LOCAL_MODULES = 128;
   private const long MAX_EXTERNAL_MODULES = 64;
   private const long MAX_IMPORTS_PER_MODULE = 64;
   private const long MAX_IMPORTS = 384;
@@ -251,13 +251,13 @@ classical class NativeBootstrapModulesIdentity {
     return found;
   }
 
-  /// Publishes SHA-256 for up to ninety-six rooted modules and sixty-four externals.
+  /// Publishes SHA-256 for up to 128 rooted modules and sixty-four externals.
   ///
   /// - Effects: Mutates fixture state and caller-owned identity output.
   entry void main(borrow byteview source, borrow mut bytes identity) {
     requireMetadata(bufferLength(source) < MAX_MANIFEST_BYTES + 1, source);
     requireMetadata(31 < bufferLength(identity), source);
-    region arena = new region(/* bytes= */ 114688, /* allocations= */ 20);
+    region arena = new region(/* bytes= */ 196608, /* allocations= */ 23);
     bytes expected = allocateBytes(arena, /* length= */ 256);
     words externalStarts = allocate(arena, MAX_EXTERNAL_MODULES);
     words externalLengths = allocate(arena, MAX_EXTERNAL_MODULES);
@@ -269,6 +269,9 @@ classical class NativeBootstrapModulesIdentity {
     words edgeStarts = allocate(arena, MAX_IMPORTS);
     words edgeLengths = allocate(arena, MAX_IMPORTS);
     words adjacency = allocate(arena, MAX_LOCAL_MODULES * MAX_LOCAL_MODULES);
+    words incoming = allocate(arena, MAX_LOCAL_MODULES);
+    words removed = allocate(arena, MAX_LOCAL_MODULES);
+    words reachable = allocate(arena, MAX_LOCAL_MODULES);
 
     writeAscii(expected, 0, "schema: 1");
     setByte(expected, 9, 10);
@@ -524,40 +527,54 @@ classical class NativeBootstrapModulesIdentity {
       requireMetadata(resolved, source);
       if (-1 < localTarget) {
         requireMetadata((localTarget == edgeOwners[edge]) == false, source);
-        set(adjacency, edgeOwners[edge] * MAX_LOCAL_MODULES + localTarget, 1);
+        long adjacencyIndex = edgeOwners[edge] * MAX_LOCAL_MODULES + localTarget;
+        if (adjacency[adjacencyIndex] == 0) {
+          set(adjacency, adjacencyIndex, 1);
+          set(incoming, localTarget, incoming[localTarget] + 1);
+        }
       }
 
       edge += 1;
     }
 
-    long bridge = 0;
-    while (bridge < parsedModules) limit MAX_LOCAL_MODULES {
-      long fromModule = 0;
-      while (fromModule < parsedModules) limit MAX_LOCAL_MODULES {
-        if (adjacency[fromModule * MAX_LOCAL_MODULES + bridge] == 1) {
-          long toModule = 0;
-          while (toModule < parsedModules) limit MAX_LOCAL_MODULES {
-            if (adjacency[bridge * MAX_LOCAL_MODULES + toModule] == 1) {
-              set(adjacency, fromModule * MAX_LOCAL_MODULES + toModule, 1);
+    set(reachable, rootModule, 1);
+    long processed = 0;
+    while (processed < parsedModules) limit MAX_LOCAL_MODULES {
+      long candidate = -1;
+      long module = 0;
+      while (module < parsedModules) limit MAX_LOCAL_MODULES {
+        if (removed[module] == 0) {
+          if (incoming[module] == 0) {
+            if (candidate < 0) {
+              candidate = module;
             }
-
-            toModule += 1;
           }
         }
 
-        fromModule += 1;
+        module += 1;
+
       }
 
-      bridge += 1;
+      requireMetadata(-1 < candidate, source);
+      set(removed, candidate, 1);
+      long dependency = 0;
+      while (dependency < parsedModules) limit MAX_LOCAL_MODULES {
+        if (adjacency[candidate * MAX_LOCAL_MODULES + dependency] == 1) {
+          set(incoming, dependency, incoming[dependency] - 1);
+          if (reachable[candidate] == 1) {
+            set(reachable, dependency, 1);
+          }
+        }
+
+        dependency += 1;
+      }
+
+      processed += 1;
     }
 
     long reached = 0;
     while (reached < parsedModules) limit MAX_LOCAL_MODULES {
-      requireMetadata(adjacency[reached * MAX_LOCAL_MODULES + reached] == 0, source);
-      if ((reached == rootModule) == false) {
-        requireMetadata(adjacency[rootModule * MAX_LOCAL_MODULES + reached] == 1, source);
-      }
-
+      requireMetadata(reachable[reached] == 1, source);
       reached += 1;
     }
 
@@ -568,6 +585,9 @@ classical class NativeBootstrapModulesIdentity {
     importCount = parsedImports;
     published = 1;
     setOutputLength(identity, 32);
+    drop(reachable);
+    drop(removed);
+    drop(incoming);
     drop(adjacency);
     drop(edgeLengths);
     drop(edgeStarts);
