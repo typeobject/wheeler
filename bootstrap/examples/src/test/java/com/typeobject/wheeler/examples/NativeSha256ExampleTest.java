@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 
 /** Conformance tests for the provider-free Wheeler SHA-256 implementation. */
 class NativeSha256ExampleTest {
-  private static final long MAX_PHYSICAL_MANIFEST_TRANSITIONS = 8_400_000;
+  private static final long MAX_PHYSICAL_MANIFEST_TRANSITIONS = 8_800_000;
 
   @Test
   void hashesThePhysicalBoundedCompilerManifest() throws Exception {
@@ -29,7 +29,7 @@ class NativeSha256ExampleTest {
       transitions += 1;
     }
 
-    assertEquals(8_169_048, transitions);
+    assertEquals(8_487_117, transitions);
     assertEquals(MachineStatus.HALTED, machine.status());
     assertArrayEquals(MessageDigest.getInstance("SHA-256").digest(input), machine.hostOutput());
   }

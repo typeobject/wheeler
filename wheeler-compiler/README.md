@@ -70,11 +70,13 @@ helper fails before publication. The checked-in `compiler/ir/Opcodes.w`,
 `compiler/ir/StatementKinds.w`, `compiler/ir/StorageOpcodes.w`, `compiler/ir/TypeCodes.w`,
 imported-constant `compiler/ir/OpcodeKinds.w`, imported-constant `compiler/ir/TypeKinds.w`,
 imported-constant `compiler/ir/InstructionForms.w`, imported-constant
-`compiler/syntax/BooleanDeclarationKinds.w`, and imported-constant
-`compiler/syntax/OneArgumentCalls.w` modules compile byte for byte with stage 0.
+`compiler/syntax/BooleanDeclarationKinds.w`, imported-constant
+`compiler/syntax/calls/CallArgumentSources.w`, imported-constant
+`compiler/syntax/calls/OneArgumentCalls.w`, and imported-constant
+`compiler/syntax/calls/TwoArgumentCallKinds.w` modules compile byte for byte with stage 0.
 `StatementKinds.w` owns 128 unresolved and form identities. `ResolvedStatements.w` owns seventy-two
 resolved columns. `Tokens.w` now sticks to lexical work instead of running a parser-IR registry from
-the back room. Eleven real self-source modules beat ten motivational slides. The bar has retained
+the back room. Thirteen real self-source modules beat twelve motivational slides. The bar has retained
 counsel. A modular source may carry up to sixty-four sorted unique direct imports.
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
 or excess imports before publication. `compileMinimalWithConstantImport`,

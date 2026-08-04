@@ -2,6 +2,7 @@
 
 module wheeler.compiler.program_codegen;
 
+import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.codegen;
 import wheeler.compiler.encoding;
@@ -14,6 +15,7 @@ import wheeler.compiler.resolved_statements;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
+import wheeler.compiler.two_argument_call_kinds;
 
 classical class ProgramCodegen {
   private const long FORM_UNARY = INSTRUCTION_FORM_UNARY;

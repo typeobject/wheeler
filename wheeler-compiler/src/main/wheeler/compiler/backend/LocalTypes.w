@@ -11,6 +11,7 @@ import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
+import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.type_codes;
 
 classical class LocalTypes {

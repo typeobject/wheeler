@@ -2,6 +2,7 @@
 
 module wheeler.compiler.helper_programs;
 
+import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.class_layouts;
 import wheeler.compiler.helper_calls;
@@ -14,6 +15,7 @@ import wheeler.compiler.sequences;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
+import wheeler.compiler.two_argument_call_kinds;
 
 classical class HelperPrograms {
   private const long LOGICAL_ASSERTION_LOCALS = 3;

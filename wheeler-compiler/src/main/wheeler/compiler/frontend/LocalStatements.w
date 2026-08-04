@@ -17,6 +17,7 @@ import wheeler.compiler.return_expressions;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
+import wheeler.compiler.two_argument_call_kinds;
 
 classical class LocalStatements {
   private long namedLongLiteralBase(long opcode) {

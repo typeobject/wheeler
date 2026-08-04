@@ -9,6 +9,7 @@ import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statements;
 import wheeler.compiler.tokens;
+import wheeler.compiler.two_argument_call_kinds;
 
 classical class HelperCalls {
   /// Reports whether one statement is a zero-argument call to the named helper.

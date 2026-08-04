@@ -3,6 +3,7 @@
 module wheeler.compiler.operands;
 
 import wheeler.compiler.assertion_resolution;
+import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.conditionals;
@@ -21,6 +22,7 @@ import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
+import wheeler.compiler.two_argument_call_kinds;
 
 classical class Operands {
   private long operandResolutionOpcode(

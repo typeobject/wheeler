@@ -285,18 +285,62 @@ final class NativeCompilerSelfSourceExampleTest {
   void compilesCanonicalOneArgumentCallKindsByteForByte() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
     String dependency = CompilerSources.read("compiler/ir/StatementKinds.w");
-    String root = CompilerSources.read("compiler/syntax/OneArgumentCalls.w");
+    String root = CompilerSources.read("compiler/syntax/calls/OneArgumentCalls.w");
 
     byte[] artifact = NativeModuleCompilerHarness.compile(compiler, dependency, root);
     Program expected = new WheelerCompiler().compileLibraryModuleFiles(
         Map.of(
             "compiler/ir/StatementKinds.w", dependency,
-            "compiler/syntax/OneArgumentCalls.w", root),
+            "compiler/syntax/calls/OneArgumentCalls.w", root),
         "wheeler.compiler.one_argument_calls");
     assertArrayEquals(new BytecodeWriter().write(expected), artifact);
     Program decoded = new BytecodeReader().read(artifact);
     assertEquals(
         "wheeler.compiler.one_argument_calls::oneArgumentCallStatement",
+        decoded.functions().getFirst().name());
+    assertEquals(24, decoded.functions().getFirst().localCount());
+    assertEquals(39, decoded.functions().getFirst().forward().size());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
+  void compilesCanonicalTwoArgumentCallKindsByteForByte() throws Exception {
+    Program compiler = NativeModuleCompilerHarness.program();
+    String dependency = CompilerSources.read("compiler/ir/StatementKinds.w");
+    String root = CompilerSources.read("compiler/syntax/calls/TwoArgumentCallKinds.w");
+
+    byte[] artifact = NativeModuleCompilerHarness.compile(compiler, dependency, root);
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of(
+            "compiler/ir/StatementKinds.w", dependency,
+            "compiler/syntax/calls/TwoArgumentCallKinds.w", root),
+        "wheeler.compiler.two_argument_call_kinds");
+    assertArrayEquals(new BytecodeWriter().write(expected), artifact);
+    Program decoded = new BytecodeReader().read(artifact);
+    assertEquals(
+        "wheeler.compiler.two_argument_call_kinds::twoArgumentCallStatement",
+        decoded.functions().getFirst().name());
+    assertEquals(48, decoded.functions().getFirst().localCount());
+    assertEquals(81, decoded.functions().getFirst().forward().size());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
+  void compilesCanonicalCallArgumentSourcesByteForByte() throws Exception {
+    Program compiler = NativeModuleCompilerHarness.program();
+    String dependency = CompilerSources.read("compiler/ir/StatementKinds.w");
+    String root = CompilerSources.read("compiler/syntax/calls/CallArgumentSources.w");
+
+    byte[] artifact = NativeModuleCompilerHarness.compile(compiler, dependency, root);
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of(
+            "compiler/ir/StatementKinds.w", dependency,
+            "compiler/syntax/calls/CallArgumentSources.w", root),
+        "wheeler.compiler.call_argument_sources");
+    assertArrayEquals(new BytecodeWriter().write(expected), artifact);
+    Program decoded = new BytecodeReader().read(artifact);
+    assertEquals(
+        "wheeler.compiler.call_argument_sources::twoArgumentCallFirstNamed",
         decoded.functions().getFirst().name());
     assertEquals(24, decoded.functions().getFirst().localCount());
     assertEquals(39, decoded.functions().getFirst().forward().size());
