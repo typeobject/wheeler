@@ -20,7 +20,7 @@ The machine owns:
 
 Raw host pointers and masked segmented addresses are not machine values.
 
-Source compilation currently writes equal limits of 4,000,000 steps and 4,000,000 retained history records. The `run()` loop traps at the step limit. Every execution path traps before it exceeds the history limit. The history budget can therefore retain every transition in one default run. The physical bootstrap closure evidence uses `stepWithoutRewindHistory()` with a 44,000,000-transition test ceiling. That mode refuses a retained rewind tail and establishes an immediate rewind horizon after each successful transition. It is suitable for artifact comparisons that never rewind, not a cheaper spelling of reversible execution and not a durability claim. The complete ninety-four-module graph validation finishes in 42,981,802 transitions. The test keeps that larger evidence run bounded without quietly changing source program policy. An artifact or embedding host may choose lower verified limits.
+Source compilation currently writes equal limits of 4,000,000 steps and 4,000,000 retained history records. The `run()` loop traps at the step limit. Every execution path traps before it exceeds the history limit. The history budget can therefore retain every transition in one default run. The physical bootstrap closure evidence uses `stepWithoutRewindHistory()` with a 45,000,000-transition test ceiling. That mode refuses a retained rewind tail and establishes an immediate rewind horizon after each successful transition. It is suitable for artifact comparisons that never rewind, not a cheaper spelling of reversible execution and not a durability claim. The complete ninety-five-module graph validation finishes in 43,812,251 transitions. The test keeps that larger evidence run bounded without quietly changing source program policy. An artifact or embedding host may choose lower verified limits.
 
 A classical entry may borrow one strict UTF-8 input, one immutable binary `byteview`, one mutable byte output, or one input followed by the output. VM construction requires the exact declared effects and an explicit text or binary binding API.
 
@@ -47,7 +47,7 @@ The interpreter supports:
 - 256 typed locals per frame.
 - up to 512 instructions per function.
 
-Only the active function's local window is cleared. `compiler/ir/Opcodes.w`, `compiler/ir/TypeCodes.w`, and `compiler/ir/ProofRules.w` define the names used at this boundary.
+Only the active function's local window is cleared. `compiler/ir/Opcodes.w`, `compiler/ir/StorageOpcodes.w`, `compiler/ir/TypeCodes.w`, and `compiler/ir/ProofRules.w` define the names used at this boundary.
 
 `compiler/verification/FunctionVerifier.w` checks descriptor, type, and code windows. `compiler/verification/AggregateVerifier.w` checks immutable aggregate metadata. `compiler/verification/StorageVerifier.w` checks regions, buffers, maps, loans, and UTF-8 operands. `compiler/verification/ProofVerifier.w` verifies generated-inverse records and straight-line step bounds.
 

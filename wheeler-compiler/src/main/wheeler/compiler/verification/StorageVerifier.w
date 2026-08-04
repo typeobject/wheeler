@@ -2,6 +2,7 @@
 module wheeler.compiler.storage_verifier;
 
 import wheeler.compiler.opcodes;
+import wheeler.compiler.storage_opcodes;
 import wheeler.compiler.type_codes;
 import wheeler.core.encoding.binary;
 

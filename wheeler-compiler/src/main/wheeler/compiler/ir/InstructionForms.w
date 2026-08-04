@@ -3,6 +3,7 @@
 module wheeler.compiler.instruction_forms;
 
 import wheeler.compiler.opcodes;
+import wheeler.compiler.storage_opcodes;
 
 classical class InstructionForms {
   /// Returns the canonical operand count or minus one for an unknown opcode.

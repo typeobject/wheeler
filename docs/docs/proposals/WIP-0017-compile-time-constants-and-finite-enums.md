@@ -356,7 +356,7 @@ Promotion follows WIP-0007. The identity modules start with executable compiler 
 - [ ] Reversible finite permutation checking exists.
 - [ ] Power-of-two coherent enum basis/permutation semantics exist.
 - [x] Tree-sitter nodes, highlighting, corpus fixtures, and the fixed formatter contract cover both declarations.
-- [x] `compiler/ir/Opcodes.w`, `compiler/ir/TypeCodes.w`, and `compiler/ir/ProofRules.w` own opcode, type, and proof identities. They also own interpreter limits and membership checks. The bounded Wheeler verifier and interpreter no longer dispatch on raw numeric literals.
+- [x] `compiler/ir/Opcodes.w`, `compiler/ir/StorageOpcodes.w`, `compiler/ir/TypeCodes.w`, and `compiler/ir/ProofRules.w` own opcode, type, and proof identities. They also own interpreter limits and membership checks. The bounded Wheeler verifier and interpreter no longer dispatch on raw numeric literals.
 - [ ] Duplicate stage-0 tables and migration shims are deleted at compiler promotion/cutover.
 
 ## Testing and acceptance

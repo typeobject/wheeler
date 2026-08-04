@@ -34,6 +34,13 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesTheCanonicalStorageOpcodeOwnerByteForByte() throws Exception {
+    assertConstantOnlyCompilerLibrary(
+        "compiler/ir/StorageOpcodes.w",
+        "wheeler.compiler.storage_opcodes");
+  }
+
+  @Test
   void compilesOneEntrylessHelperByteForByte() throws Exception {
     String source = """
         module examples.native_helper;

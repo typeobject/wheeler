@@ -78,7 +78,9 @@ class SourceReadabilityTest {
     String javaSource = Files.readString(Path.of(
         "../bootstrap/core/src/main/java/com/typeobject/wheeler/core/bytecode/OpcodeIds.java"));
     String wheelerSource = Files.readString(Path.of(
-        "../wheeler-compiler/src/main/wheeler/compiler/ir/Opcodes.w"));
+        "../wheeler-compiler/src/main/wheeler/compiler/ir/Opcodes.w"))
+        + Files.readString(Path.of(
+            "../wheeler-compiler/src/main/wheeler/compiler/ir/StorageOpcodes.w"));
     var javaOpcodes = opcodeIdentities(JAVA_OPCODE, javaSource);
     var wheelerOpcodes = opcodeIdentities(WHEELER_OPCODE, wheelerSource);
 
@@ -102,7 +104,9 @@ class SourceReadabilityTest {
   @Test
   void nativeInstructionFormsMatchTheCanonicalRegistry() throws Exception {
     String opcodeSource = Files.readString(Path.of(
-        "src/main/wheeler/compiler/ir/Opcodes.w"));
+        "src/main/wheeler/compiler/ir/Opcodes.w"))
+        + Files.readString(Path.of(
+            "src/main/wheeler/compiler/ir/StorageOpcodes.w"));
     String formSource = Files.readString(Path.of(
         "src/main/wheeler/compiler/ir/InstructionForms.w"));
     var nativeOpcodes = opcodeIdentities(WHEELER_OPCODE, opcodeSource);

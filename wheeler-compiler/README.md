@@ -62,10 +62,10 @@ control.
 
 The bounded compiler accepts one class, zero or one signed global, one optional helper,
 and one entry. It also accepts an entryless library with zero or one helper and emits the
-canonical unqualified `$library` halt entry. The checked-in `compiler/ir/ProofRules.w`,
-`compiler/ir/TypeCodes.w`, and imported-constant `compiler/ir/TypeKinds.w` modules compile
-byte for byte with stage 0. Three real self-source modules beat three motivational slides,
-though the bar remains under judicial review.
+canonical unqualified `$library` halt entry. The checked-in `compiler/ir/ProofRules.w`, `compiler/ir/TypeCodes.w`,
+`compiler/ir/StorageOpcodes.w`, and imported-constant `compiler/ir/TypeKinds.w` modules
+compile byte for byte with stage 0. Four real self-source modules beat four motivational
+slides, though the bar remains under judicial review.
 A modular source may carry up to sixty-four sorted unique direct imports.
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
 or excess imports before publication. `compileMinimalWithConstantImport`,

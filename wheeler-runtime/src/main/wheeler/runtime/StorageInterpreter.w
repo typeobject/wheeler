@@ -2,6 +2,7 @@
 module wheeler.runtime.storage_interpreter;
 
 import wheeler.compiler.opcodes;
+import wheeler.compiler.storage_opcodes;
 import wheeler.core.encoding.binary;
 import wheeler.runtime.map_interpreter;
 import wheeler.runtime.utf8_interpreter;

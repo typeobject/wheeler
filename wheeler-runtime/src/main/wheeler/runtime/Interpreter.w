@@ -3,6 +3,7 @@
 module wheeler.runtime.interpreter;
 
 import wheeler.compiler.opcodes;
+import wheeler.compiler.storage_opcodes;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.verifier;
 import wheeler.core.encoding.binary;
