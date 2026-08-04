@@ -140,18 +140,60 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesFourEntrylessHelpersByteForByte() throws Exception {
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    String source = twoHelperSource("""
+          public long alpha(long value) {
+            return value;
+          }
+
+          public long beta(long value) {
+            return value;
+          }
+
+          public long gamma(long value) {
+            return value;
+          }
+
+          public long omega(long value) {
+            return value;
+          }
+        """);
+    VirtualMachine writer = nativeWriter(compiler, source);
+    CompilerMachineRunner.runWithoutRewindHistory(writer);
+
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("FourHelpers.w", source),
+        "examples.two_helpers");
+    byte[] artifact = writer.hostOutput();
+    assertArrayEquals(new BytecodeWriter().write(expected), artifact);
+    Program decoded = new BytecodeReader().read(artifact);
+    assertEquals("examples.two_helpers::alpha", decoded.functions().get(0).name());
+    assertEquals("examples.two_helpers::omega", decoded.functions().get(3).name());
+    assertEquals("$library", decoded.functions().get(4).name());
+  }
+
+  @Test
   void rejectsUnsortedOrExcessEntrylessHelpersBeforePublication() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
     String source = twoHelperSource("""
-          public long first(long value) {
+          public long alpha(long value) {
             return value;
           }
 
-          public long second(long value) {
+          public long beta(long value) {
             return value;
           }
 
-          public long third(long value) {
+          public long gamma(long value) {
+            return value;
+          }
+
+          public long omega(long value) {
+            return value;
+          }
+
+          public long zeta(long value) {
             return value;
           }
         """);

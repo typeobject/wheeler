@@ -7,13 +7,13 @@ import wheeler.compiler.class_constants;
 import wheeler.compiler.class_layouts;
 import wheeler.compiler.helper_parser;
 import wheeler.compiler.ir;
+import wheeler.compiler.scalar_helper_libraries;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.sequences;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.statements;
 import wheeler.compiler.structure;
 import wheeler.compiler.tokens;
-import wheeler.compiler.two_helper_libraries;
 
 classical class Parser {
 
@@ -47,22 +47,12 @@ classical class Parser {
       statements.opcodes,
       statements.operands,
       statements.secondaryOperands,
+      0,
+      emptyHelperBody(),
+      emptyHelperBody(),
+      emptyHelperBody(),
+      emptyHelperBody(),
       helper,
-      0,
-      emptyStatementOpcodes(),
-      emptyStatementOperands(),
-      emptyStatementOperands(),
-      0,
-      helper,
-      0,
-      0,
-      0,
-      0,
-      0,
-      helper,
-      emptyStatementOpcodes(),
-      emptyStatementOperands(),
-      emptyStatementOperands(),
       0,
       0,
       0,
@@ -428,7 +418,7 @@ classical class Parser {
             case MinimalProgramResult.Error(long libraryOffset) {}
           }
 
-          MinimalProgramResult twoHelpers = parseTwoHelperLibrary(
+          MinimalProgramResult scalarHelpers = parseScalarHelperLibrary(
             source,
             tokenKinds,
             tokenStarts,
@@ -437,11 +427,11 @@ classical class Parser {
             count,
             layout
           );
-          match (twoHelpers) {
-            case MinimalProgramResult.Value(MinimalProgram twoHelperCandidate) {
-              return new MinimalProgramResult.Value(twoHelperCandidate);
+          match (scalarHelpers) {
+            case MinimalProgramResult.Value(MinimalProgram scalarHelperCandidate) {
+              return new MinimalProgramResult.Value(scalarHelperCandidate);
             }
-            case MinimalProgramResult.Error(long twoHelperOffset) {}
+            case MinimalProgramResult.Error(long scalarHelperOffset) {}
           }
 
           MinimalProgramResult entry = minimalEntryProgram(

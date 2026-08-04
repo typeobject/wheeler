@@ -50,6 +50,17 @@ classical class CompilerIr {
   /// Defines immutable `SourceRange` values for this module.
   public record SourceRange(long start, long length) {}
 
+  /// Defines one bounded helper body and its resolved scalar signature.
+  public record HelperBody(
+    SourceRange name,
+    long[64] opcodes,
+    long[64] operands,
+    long[64] secondaryOperands,
+    long kind,
+    long statementCount,
+    long resultStatement
+  ) {}
+
   /// Defines immutable `MinimalProgram` values for this module.
   public record MinimalProgram(
     SourceRange name,
@@ -60,27 +71,48 @@ classical class CompilerIr {
     long[64] statementOpcodes,
     long[64] statementOperands,
     long[64] statementSecondaryOperands,
-    SourceRange helperName,
     long helperCount,
-    long[64] helperOpcodes,
-    long[64] helperOperands,
-    long[64] helperSecondaryOperands,
-    long helperKind,
+    HelperBody firstHelper,
+    HelperBody secondHelper,
+    HelperBody thirdHelper,
+    HelperBody fourthHelper,
     SourceRange proofName,
     long proofCount,
     long helperCallCount,
     long preReverseStatementCount,
-    long helperStatementCount,
-    long helperResultStatement,
-    SourceRange secondHelperName,
-    long[64] secondHelperOpcodes,
-    long[64] secondHelperOperands,
-    long[64] secondHelperSecondaryOperands,
-    long secondHelperKind,
-    long secondHelperStatementCount,
-    long secondHelperResultStatement,
     boolean library
   ) {}
+
+  /// Selects one helper from a validated bounded function table.
+  public HelperBody helperAt(MinimalProgram program, long index) {
+    if (index == 0) {
+      return program.firstHelper;
+    }
+
+    if (index == 1) {
+      return program.secondHelper;
+    }
+
+    if (index == 2) {
+      return program.thirdHelper;
+    }
+
+    assert(index == 3);
+    return program.fourthHelper;
+  }
+
+  /// Returns one absent helper used to fill a bounded helper table.
+  public HelperBody emptyHelperBody() {
+    return new HelperBody(
+      new SourceRange(0, 0),
+      emptyStatementOpcodes(),
+      emptyStatementOperands(),
+      emptyStatementOperands(),
+      HELPER_VOID,
+      0,
+      0
+    );
+  }
 
   /// Returns the bounded scalar parameter count for one helper kind.
   public long parameterCountForHelper(long helperKind) {

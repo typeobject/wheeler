@@ -570,8 +570,8 @@ classical class ProgramCodegen {
     boolean resultSlotProgram
   ) {
     if (resultSlotProgram) {
-      long resultStatement = program.helperResultStatement;
-      long resultOpcode = program.helperOpcodes[resultStatement];
+      long resultStatement = helperAt(program, 0).resultStatement;
+      long resultOpcode = helperAt(program, 0).opcodes[resultStatement];
       if (resolvedLocalLongPair(resultOpcode)) {
         long preludeOperation = resultPreludeOperation(resultOpcode);
         cursor = writeResultSlotBinarySourcesBody(
@@ -580,7 +580,7 @@ classical class ProgramCodegen {
           helperLocalBase,
           resolvedLocalLongPairSource(resultOpcode),
           preludeOperation,
-          program.helperOperands[resultStatement]
+          helperAt(program, 0).operands[resultStatement]
         );
         return writeResultSlotBinarySourcesBody(
           output,
@@ -588,7 +588,7 @@ classical class ProgramCodegen {
           helperLocalBase,
           resolvedLocalLongPairSource(resultOpcode),
           preludeOperation,
-          program.helperOperands[resultStatement]
+          helperAt(program, 0).operands[resultStatement]
         );
       }
 
@@ -600,7 +600,7 @@ classical class ProgramCodegen {
           helperLocalBase,
           resolvedLocalLongBinarySource(resultOpcode),
           binaryPreludeOperation,
-          program.helperOperands[resultStatement]
+          helperAt(program, 0).operands[resultStatement]
         );
         return writeResultSlotBinaryBody(
           output,
@@ -608,7 +608,7 @@ classical class ProgramCodegen {
           helperLocalBase,
           resolvedLocalLongBinarySource(resultOpcode),
           binaryPreludeOperation,
-          program.helperOperands[resultStatement]
+          helperAt(program, 0).operands[resultStatement]
         );
       }
 
@@ -624,17 +624,17 @@ classical class ProgramCodegen {
           output,
           cursor,
           helperLocalBase,
-          program.helperSecondaryOperands[resultStatement],
+          helperAt(program, 0).secondaryOperands[resultStatement],
           sourceOperation,
-          program.helperOperands[resultStatement]
+          helperAt(program, 0).operands[resultStatement]
         );
         return writeResultSlotBinarySourcesBody(
           output,
           cursor,
           helperLocalBase,
-          program.helperSecondaryOperands[resultStatement],
+          helperAt(program, 0).secondaryOperands[resultStatement],
           sourceOperation,
-          program.helperOperands[resultStatement]
+          helperAt(program, 0).operands[resultStatement]
         );
       }
 
@@ -644,17 +644,17 @@ classical class ProgramCodegen {
           output,
           cursor,
           helperLocalBase,
-          program.helperSecondaryOperands[resultStatement],
+          helperAt(program, 0).secondaryOperands[resultStatement],
           operation,
-          program.helperOperands[resultStatement]
+          helperAt(program, 0).operands[resultStatement]
         );
         return writeResultSlotBinaryBody(
           output,
           cursor,
           helperLocalBase,
-          program.helperSecondaryOperands[resultStatement],
+          helperAt(program, 0).secondaryOperands[resultStatement],
           operation,
-          program.helperOperands[resultStatement]
+          helperAt(program, 0).operands[resultStatement]
         );
       }
 
@@ -662,32 +662,32 @@ classical class ProgramCodegen {
         output,
         cursor,
         helperLocalBase,
-        program.helperOperands[resultStatement]
+        helperAt(program, 0).operands[resultStatement]
       );
       return writeResultSlotBody(
         output,
         cursor,
         helperLocalBase,
-        program.helperOperands[resultStatement]
+        helperAt(program, 0).operands[resultStatement]
       );
     }
 
-    if (program.helperKind == HELPER_REVERSIBLE) {
+    if (helperAt(program, 0).kind == HELPER_REVERSIBLE) {
       cursor = writeReversibleSequence(
         output,
         cursor,
-        program.helperOpcodes,
-        program.helperOperands,
-        program.helperStatementCount,
+        helperAt(program, 0).opcodes,
+        helperAt(program, 0).operands,
+        helperAt(program, 0).statementCount,
         false
       );
       cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN, INSTRUCTION_FORM_NULLARY);
       cursor = writeReversibleSequence(
         output,
         cursor,
-        program.helperOpcodes,
-        program.helperOperands,
-        program.helperStatementCount,
+        helperAt(program, 0).opcodes,
+        helperAt(program, 0).operands,
+        helperAt(program, 0).statementCount,
         true
       );
       return writeInstructionHeader(output, cursor, OPCODE_RETURN, INSTRUCTION_FORM_NULLARY);
@@ -696,13 +696,13 @@ classical class ProgramCodegen {
     cursor = writeSequence(
       output,
       cursor,
-      program.helperOpcodes,
-      program.helperOperands,
-      program.helperSecondaryOperands,
-      program.helperStatementCount,
+      helperAt(program, 0).opcodes,
+      helperAt(program, 0).operands,
+      helperAt(program, 0).secondaryOperands,
+      helperAt(program, 0).statementCount,
       helperLocalBase
     );
-    if (HELPER_REVERSIBLE < program.helperKind) {
+    if (HELPER_REVERSIBLE < helperAt(program, 0).kind) {
       return cursor;
     }
 
@@ -732,7 +732,7 @@ classical class ProgramCodegen {
       instructionBase += statementInstructionCount(program.statementOpcodes[0]);
     }
 
-    if (program.helperKind == HELPER_REVERSIBLE) {
+    if (helperAt(program, 0).kind == HELPER_REVERSIBLE) {
       long helperUncall = 0;
       while (helperUncall < program.helperCallCount) limit MAX_HELPER_CALLS {
         cursor = writeInstructionHeader(output, cursor, OPCODE_UNCALL, INSTRUCTION_FORM_UNARY);
@@ -797,16 +797,23 @@ classical class ProgramCodegen {
     }
 
     cursor = writeHelperBody(output, cursor, program, helperLocalBase, resultSlotProgram);
-    if (program.helperCount == 2) {
-      return writeSequence(
-        output,
-        cursor,
-        program.secondHelperOpcodes,
-        program.secondHelperOperands,
-        program.secondHelperSecondaryOperands,
-        program.secondHelperStatementCount,
-        parameterCountForHelper(program.secondHelperKind)
-      );
+    if (1 < program.helperCount) {
+      long helper = 1;
+      while (helper < program.helperCount) limit 4 {
+        HelperBody body = helperAt(program, helper);
+        cursor = writeSequence(
+          output,
+          cursor,
+          body.opcodes,
+          body.operands,
+          body.secondaryOperands,
+          body.statementCount,
+          parameterCountForHelper(body.kind)
+        );
+        helper += 1;
+      }
+
+      return cursor;
     }
 
     if (resultSlotProgram) {
@@ -820,7 +827,7 @@ classical class ProgramCodegen {
       );
     }
 
-    if (HELPER_REVERSIBLE < program.helperKind) {
+    if (HELPER_REVERSIBLE < helperAt(program, 0).kind) {
       return writeSequence(
         output,
         cursor,

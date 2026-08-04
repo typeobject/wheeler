@@ -1,6 +1,6 @@
 //! Parses the first bounded entryless library with two scalar helpers.
 
-module wheeler.compiler.two_helper_libraries;
+module wheeler.compiler.scalar_helper_libraries;
 
 import wheeler.compiler.class_constants;
 import wheeler.compiler.class_layouts;
@@ -11,7 +11,7 @@ import wheeler.compiler.sequences;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.tokens;
 
-classical class TwoHelperLibraries {
+classical class ScalarHelperLibraries {
   /// Defines one closed one-parameter scalar helper header.
   private record ScalarHelperHeader(
     long nameToken,
@@ -135,8 +135,61 @@ classical class TwoHelperLibraries {
     return parseStatementSequence(source, tokenStarts, tokenLengths, statementStarts, 1);
   }
 
-  /// Parses two sorted public scalar identity helpers and a synthetic library entry.
-  public MinimalProgramResult parseTwoHelperLibrary(
+  private boolean orderedHelpers(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    ScalarHelperHeader left,
+    ScalarHelperHeader right
+  ) {
+    return compareAsciiSlices(
+      source,
+      tokenStarts[left.nameToken],
+      tokenLengths[left.nameToken],
+      tokenStarts[right.nameToken],
+      tokenLengths[right.nameToken]
+    ) < 0;
+  }
+
+  private HelperBody scalarIdentityBody(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    borrow mut words statementStarts,
+    ScalarHelperHeader header
+  ) {
+    StatementSequence sequence = scalarIdentitySequence(
+      source,
+      tokenStarts,
+      tokenLengths,
+      statementStarts,
+      header
+    );
+    if (sequence.valid) {} else {
+      return emptyHelperBody();
+    }
+
+    if (resolvedSignedLocalReturn(sequence.opcodes[0])) {} else {
+      return emptyHelperBody();
+    }
+
+    if (resolvedLocalReturnSource(sequence.opcodes[0]) == 0) {} else {
+      return emptyHelperBody();
+    }
+
+    return new HelperBody(
+      new SourceRange(tokenStarts[header.nameToken], tokenLengths[header.nameToken]),
+      sequence.opcodes,
+      sequence.operands,
+      sequence.secondaryOperands,
+      HELPER_SIGNED_ONE,
+      1,
+      0
+    );
+  }
+
+  /// Parses two through four sorted public scalar identity helpers.
+  public MinimalProgramResult parseScalarHelperLibrary(
     borrow utf8 source,
     borrow mut words tokenKinds,
     borrow mut words tokenStarts,
@@ -171,63 +224,107 @@ classical class TwoHelperLibraries {
       return new MinimalProgramResult.Error(0);
     }
 
+    long helperCount = 2;
+    long classClose = second.nextToken;
+    ScalarHelperHeader third = invalidHeader();
+    ScalarHelperHeader fourth = invalidHeader();
     if (
-      punctuationAt(source, tokenKinds, tokenStarts, second.nextToken, PUNCTUATION_CLOSE_BRACE)
+      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
+    ) {
+      third = scalarIdentityHeader(source, tokenKinds, tokenStarts, tokenLengths, classClose);
+      if (third.valid) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+
+      helperCount = 3;
+      classClose = third.nextToken;
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
+      ) {
+        fourth = scalarIdentityHeader(
+          source,
+          tokenKinds,
+          tokenStarts,
+          tokenLengths,
+          classClose
+        );
+        if (fourth.valid) {} else {
+          return new MinimalProgramResult.Error(0);
+        }
+
+        helperCount = 4;
+        classClose = fourth.nextToken;
+      }
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE)
     ) {} else {
       return new MinimalProgramResult.Error(0);
     }
 
-    if (count == second.nextToken + 1) {} else {
+    if (count == classClose + 1) {} else {
       return new MinimalProgramResult.Error(0);
     }
 
-    long helperOrder = compareAsciiSlices(
-      source,
-      tokenStarts[first.nameToken],
-      tokenLengths[first.nameToken],
-      tokenStarts[second.nameToken],
-      tokenLengths[second.nameToken]
-    );
-    if (helperOrder < 0) {} else {
+    if (orderedHelpers(source, tokenStarts, tokenLengths, first, second)) {} else {
       return new MinimalProgramResult.Error(0);
     }
 
-    StatementSequence firstSequence = scalarIdentitySequence(
+    if (2 < helperCount) {
+      if (orderedHelpers(source, tokenStarts, tokenLengths, second, third)) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+    }
+
+    if (3 < helperCount) {
+      if (orderedHelpers(source, tokenStarts, tokenLengths, third, fourth)) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+    }
+
+    HelperBody firstBody = scalarIdentityBody(
       source,
       tokenStarts,
       tokenLengths,
       statementStarts,
       first
     );
-    if (firstSequence.valid) {} else {
-      return new MinimalProgramResult.Error(0);
-    }
-
-    StatementSequence secondSequence = scalarIdentitySequence(
+    HelperBody secondBody = scalarIdentityBody(
       source,
       tokenStarts,
       tokenLengths,
       statementStarts,
       second
     );
-    if (secondSequence.valid) {} else {
+    if (firstBody.statementCount == 1) {} else {
       return new MinimalProgramResult.Error(0);
     }
 
-    if (resolvedSignedLocalReturn(firstSequence.opcodes[0])) {} else {
+    if (secondBody.statementCount == 1) {} else {
       return new MinimalProgramResult.Error(0);
     }
 
-    if (resolvedLocalReturnSource(firstSequence.opcodes[0]) == 0) {} else {
-      return new MinimalProgramResult.Error(0);
+    HelperBody thirdBody = emptyHelperBody();
+    HelperBody fourthBody = emptyHelperBody();
+    if (2 < helperCount) {
+      thirdBody = scalarIdentityBody(source, tokenStarts, tokenLengths, statementStarts, third);
+      if (thirdBody.statementCount == 1) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
     }
 
-    if (resolvedSignedLocalReturn(secondSequence.opcodes[0])) {} else {
-      return new MinimalProgramResult.Error(0);
-    }
-
-    if (resolvedLocalReturnSource(secondSequence.opcodes[0]) == 0) {} else {
-      return new MinimalProgramResult.Error(0);
+    if (3 < helperCount) {
+      fourthBody = scalarIdentityBody(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStarts,
+        fourth
+      );
+      if (fourthBody.statementCount == 1) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
     }
 
     SourceRange name = new SourceRange(tokenStarts[2], tokenLengths[2]);
@@ -241,24 +338,14 @@ classical class TwoHelperLibraries {
       emptyStatementOpcodes(),
       emptyStatementOperands(),
       emptyStatementOperands(),
-      new SourceRange(tokenStarts[first.nameToken], tokenLengths[first.nameToken]),
-      2,
-      firstSequence.opcodes,
-      firstSequence.operands,
-      firstSequence.secondaryOperands,
-      HELPER_SIGNED_ONE,
+      helperCount,
+      firstBody,
+      secondBody,
+      thirdBody,
+      fourthBody,
       absent,
       0,
       0,
-      0,
-      1,
-      0,
-      new SourceRange(tokenStarts[second.nameToken], tokenLengths[second.nameToken]),
-      secondSequence.opcodes,
-      secondSequence.operands,
-      secondSequence.secondaryOperands,
-      HELPER_SIGNED_ONE,
-      1,
       0,
       true
     );

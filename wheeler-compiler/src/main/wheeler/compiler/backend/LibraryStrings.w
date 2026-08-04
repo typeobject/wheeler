@@ -1,4 +1,4 @@
-//! Plans the canonical string table for a bounded two-helper library.
+//! Plans canonical string tables for bounded multi-helper libraries.
 
 module wheeler.compiler.library_strings;
 
@@ -8,16 +8,15 @@ import wheeler.compiler.ir;
 classical class LibraryStrings {
   private const long CLASS_NAME = 0;
   private const long FIRST_HELPER = 1;
-  private const long SECOND_HELPER = 2;
-  private const long LIBRARY_ENTRY = 3;
-  private const long STRING_COUNT = 4;
+  private const long MAX_HELPERS = 4;
+  private const long MAX_STRING_COUNT = MAX_HELPERS + 2;
 
-  /// Defines immutable two-helper string-table plans.
-  public record TwoHelperStringPlan(
+  /// Defines immutable bounded library string-table plans.
+  public record LibraryStringPlan(
     long nameIndex,
-    long firstHelperIndex,
-    long secondHelperIndex,
+    long[4] helperIndices,
     long entryIndex,
+    long stringCount,
     long encodedLength,
     long valid
   ) {}
@@ -54,12 +53,12 @@ classical class LibraryStrings {
     return 121;
   }
 
-  private SourceRange helperName(MinimalProgram program, long candidate) {
-    if (candidate == FIRST_HELPER) {
-      return program.helperName;
-    }
+  private long entryCandidate(MinimalProgram program) {
+    return program.helperCount + 1;
+  }
 
-    return program.secondHelperName;
+  private HelperBody candidateHelper(MinimalProgram program, long candidate) {
+    return helperAt(program, candidate - FIRST_HELPER);
   }
 
   private long candidateLength(MinimalProgram program, SourceRange moduleName, long candidate) {
@@ -67,12 +66,12 @@ classical class LibraryStrings {
       return program.name.length;
     }
 
-    if (candidate == LIBRARY_ENTRY) {
+    if (candidate == entryCandidate(program)) {
       return 8;
     }
 
-    SourceRange helper = helperName(program, candidate);
-    long length = helper.length;
+    HelperBody helper = candidateHelper(program, candidate);
+    long length = helper.name.length;
     if (0 < moduleName.length) {
       length += moduleName.length + 2;
     }
@@ -91,7 +90,7 @@ classical class LibraryStrings {
       return utf8Scalar(source, program.name.start + index);
     }
 
-    if (candidate == LIBRARY_ENTRY) {
+    if (candidate == entryCandidate(program)) {
       return libraryScalar(index);
     }
 
@@ -109,8 +108,8 @@ classical class LibraryStrings {
       helperIndex -= 2;
     }
 
-    SourceRange helper = helperName(program, candidate);
-    return utf8Scalar(source, helper.start + helperIndex);
+    HelperBody helper = candidateHelper(program, candidate);
+    return utf8Scalar(source, helper.name.start + helperIndex);
   }
 
   private long compareCandidates(
@@ -150,11 +149,12 @@ classical class LibraryStrings {
     borrow utf8 source,
     MinimalProgram program,
     SourceRange moduleName,
-    long candidate
+    long candidate,
+    long stringCount
   ) {
     long index = 0;
     long other = 0;
-    while (other < STRING_COUNT) limit STRING_COUNT {
+    while (other < stringCount) limit MAX_STRING_COUNT {
       if (other == candidate) {} else {
         if (compareCandidates(source, program, moduleName, other, candidate) < 0) {
           index += 1;
@@ -167,17 +167,28 @@ classical class LibraryStrings {
     return index;
   }
 
-  /// Computes canonical indices and encoded width for two helper names and `$library`.
-  public TwoHelperStringPlan planTwoHelperStrings(
+  /// Computes canonical indices and encoded width for two through four helpers.
+  public LibraryStringPlan planLibraryStrings(
     borrow utf8 source,
     MinimalProgram program,
     SourceRange moduleName
   ) {
+    long stringCount = program.helperCount + 2;
     long valid = 1;
+    if (2 < program.helperCount) {} else {
+      if (program.helperCount == 2) {} else {
+        valid = 0;
+      }
+    }
+
+    if (program.helperCount < MAX_HELPERS + 1) {} else {
+      valid = 0;
+    }
+
     long left = 0;
-    while (left < STRING_COUNT) limit STRING_COUNT {
+    while (left < stringCount) limit MAX_STRING_COUNT {
       long right = left + 1;
-      while (right < STRING_COUNT) limit STRING_COUNT {
+      while (right < stringCount) limit MAX_STRING_COUNT {
         if (compareCandidates(source, program, moduleName, left, right) == 0) {
           valid = 0;
         }
@@ -188,52 +199,76 @@ classical class LibraryStrings {
       left += 1;
     }
 
-    long encodedLength = 4 + STRING_COUNT * 4;
+    long encodedLength = 4 + stringCount * 4;
     long candidate = 0;
-    while (candidate < STRING_COUNT) limit STRING_COUNT {
+    while (candidate < stringCount) limit MAX_STRING_COUNT {
       encodedLength += candidateLength(program, moduleName, candidate);
       candidate += 1;
     }
 
-    return new TwoHelperStringPlan(
-      candidateIndex(source, program, moduleName, CLASS_NAME),
-      candidateIndex(source, program, moduleName, FIRST_HELPER),
-      candidateIndex(source, program, moduleName, SECOND_HELPER),
-      candidateIndex(source, program, moduleName, LIBRARY_ENTRY),
+    long firstIndex = candidateIndex(source, program, moduleName, FIRST_HELPER, stringCount);
+    long secondIndex = candidateIndex(
+      source,
+      program,
+      moduleName,
+      FIRST_HELPER + 1,
+      stringCount
+    );
+    long thirdIndex = 0;
+    long fourthIndex = 0;
+    if (2 < program.helperCount) {
+      thirdIndex = candidateIndex(source, program, moduleName, FIRST_HELPER + 2, stringCount);
+    }
+
+    if (3 < program.helperCount) {
+      fourthIndex = candidateIndex(source, program, moduleName, FIRST_HELPER + 3, stringCount);
+    }
+
+    long[4] helperIndices = new long[4](firstIndex, secondIndex, thirdIndex, fourthIndex);
+    return new LibraryStringPlan(
+      candidateIndex(source, program, moduleName, CLASS_NAME, stringCount),
+      helperIndices,
+      candidateIndex(source, program, moduleName, entryCandidate(program), stringCount),
+      stringCount,
       encodedLength,
       valid
     );
   }
 
-  private long candidateForIndex(TwoHelperStringPlan plan, long stringIndex) {
+  private long candidateForIndex(
+    MinimalProgram program,
+    LibraryStringPlan plan,
+    long stringIndex
+  ) {
     if (stringIndex == plan.nameIndex) {
       return CLASS_NAME;
     }
 
-    if (stringIndex == plan.firstHelperIndex) {
-      return FIRST_HELPER;
+    long helper = 0;
+    while (helper < program.helperCount) limit MAX_HELPERS {
+      if (stringIndex == plan.helperIndices[helper]) {
+        return helper + FIRST_HELPER;
+      }
+
+      helper += 1;
     }
 
-    if (stringIndex == plan.secondHelperIndex) {
-      return SECOND_HELPER;
-    }
-
-    return LIBRARY_ENTRY;
+    return entryCandidate(program);
   }
 
-  /// Writes one planned canonical two-helper string table.
-  public long writeTwoHelperStrings(
+  /// Writes one planned canonical bounded library string table.
+  public long writeLibraryStrings(
     borrow mut bytes output,
     long cursor,
     borrow utf8 source,
     MinimalProgram program,
     SourceRange moduleName,
-    TwoHelperStringPlan plan
+    LibraryStringPlan plan
   ) {
-    cursor = writeUnsignedLittleEndian(output, cursor, STRING_COUNT, 4);
+    cursor = writeUnsignedLittleEndian(output, cursor, plan.stringCount, 4);
     long stringIndex = 0;
-    while (stringIndex < STRING_COUNT) limit STRING_COUNT {
-      long candidate = candidateForIndex(plan, stringIndex);
+    while (stringIndex < plan.stringCount) limit MAX_STRING_COUNT {
+      long candidate = candidateForIndex(program, plan, stringIndex);
       long length = candidateLength(program, moduleName, candidate);
       cursor = writeUnsignedLittleEndian(output, cursor, length, 4);
       long scalar = 0;

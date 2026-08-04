@@ -242,12 +242,12 @@ classical class StringTable {
       program.name.start,
       nameLength,
       moduleName,
-      program.helperName
+      helperAt(program, 0).name
     );
     long helperMainOrder = compareHelperToEntry(
       source,
       moduleName,
-      program.helperName,
+      helperAt(program, 0).name,
       program.library
     );
     long valid = 1;
@@ -301,7 +301,7 @@ classical class StringTable {
         program.proofName.start,
         proofLength,
         moduleName,
-        program.helperName
+        helperAt(program, 0).name
       );
       long proofMainOrder = compareAsciiSliceToEntry(
         source,
@@ -376,7 +376,7 @@ classical class StringTable {
   ) {
     long nameLength = program.name.length;
     long globalLength = program.global.length;
-    long helperLength = program.helperName.length;
+    long helperLength = helperAt(program, 0).name.length;
     long proofLength = program.proofName.length;
     long nameMainOrder = compareAsciiSliceToEntry(
       source,
@@ -501,19 +501,19 @@ classical class StringTable {
         program.name.start,
         nameLength,
         moduleName,
-        program.helperName
+        helperAt(program, 0).name
       );
       long globalHelperOrder = compareAsciiSliceToHelper(
         source,
         program.global.start,
         globalLength,
         moduleName,
-        program.helperName
+        helperAt(program, 0).name
       );
       long helperMainOrder = compareHelperToEntry(
         source,
         moduleName,
-        program.helperName,
+        helperAt(program, 0).name,
         program.library
       );
       if (nameGlobalOrder == 0) {
@@ -615,7 +615,7 @@ classical class StringTable {
         program.proofName.start,
         proofLength,
         moduleName,
-        program.helperName
+        helperAt(program, 0).name
       );
       long proofMainOrder = compareAsciiSliceToEntry(
         source,
@@ -721,7 +721,7 @@ classical class StringTable {
 
       if (program.helperCount == 1) {
         if (stringIndex == plan.helperIndex) {
-          long helperOutputLength = program.helperName.length;
+          long helperOutputLength = helperAt(program, 0).name.length;
           if (0 < moduleName.length) {
             helperOutputLength += moduleName.length + 2;
           }
@@ -744,8 +744,8 @@ classical class StringTable {
             output,
             cursor,
             source,
-            program.helperName.start,
-            program.helperName.length
+            helperAt(program, 0).name.start,
+            helperAt(program, 0).name.length
           );
         }
       }

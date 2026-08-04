@@ -96,22 +96,12 @@ classical class CompilerCore {
           emptyStatementOpcodes(),
           emptyStatementOperands(),
           emptyStatementOperands(),
+          0,
+          emptyHelperBody(),
+          emptyHelperBody(),
+          emptyHelperBody(),
+          emptyHelperBody(),
           scanGlobal,
-          0,
-          emptyStatementOpcodes(),
-          emptyStatementOperands(),
-          emptyStatementOperands(),
-          0,
-          scanGlobal,
-          0,
-          0,
-          0,
-          0,
-          0,
-          scanGlobal,
-          emptyStatementOpcodes(),
-          emptyStatementOperands(),
-          emptyStatementOperands(),
           0,
           0,
           0,
@@ -161,22 +151,12 @@ classical class CompilerCore {
               emptyStatementOpcodes(),
               emptyStatementOperands(),
               emptyStatementOperands(),
+              0,
+              emptyHelperBody(),
+              emptyHelperBody(),
+              emptyHelperBody(),
+              emptyHelperBody(),
               parseGlobal,
-              0,
-              emptyStatementOpcodes(),
-              emptyStatementOperands(),
-              emptyStatementOperands(),
-              0,
-              parseGlobal,
-              0,
-              0,
-              0,
-              0,
-              0,
-              parseGlobal,
-              emptyStatementOpcodes(),
-              emptyStatementOperands(),
-              emptyStatementOperands(),
               0,
               0,
               0,
@@ -206,6 +186,43 @@ classical class CompilerCore {
     return cursor;
   }
 
+  private long boundedHelperLocalCount(HelperBody body) {
+    long count = parameterCountForHelper(body.kind);
+    long statement = 0;
+    while (statement < body.statementCount) limit MAX_MINIMAL_STATEMENTS {
+      count += statementLocalCount(body.opcodes[statement]);
+      statement += 1;
+    }
+
+    return count;
+  }
+
+  private long boundedHelperForwardLength(HelperBody body) {
+    long length = 8;
+    long statement = 0;
+    while (statement < body.statementCount) limit MAX_MINIMAL_STATEMENTS {
+      length += statementCodeLength(body.opcodes[statement]);
+      statement += 1;
+    }
+
+    if (HELPER_REVERSIBLE < body.kind) {
+      length -= 8;
+    }
+
+    return length;
+  }
+
+  private long boundedHelperTypeOffset(MinimalProgram program, long index) {
+    long offset = 0;
+    long helper = 0;
+    while (helper < index) limit 4 {
+      offset += boundedHelperLocalCount(helperAt(program, helper)) + 1;
+      helper += 1;
+    }
+
+    return offset;
+  }
+
   /// Compiles one bounded bootstrap source into caller-owned artifact storage.
   public CoreCompilation compileMinimalCore(borrow utf8 source, borrow mut bytes output) {
     region arena = new region(/* bytes= */ 25632, /* allocations= */ 5);
@@ -224,9 +241,9 @@ classical class CompilerCore {
     );
     SourceRange moduleName = new SourceRange(moduleRange[0], moduleRange[1]);
     StringTablePlan strings = planStringTable(source, program, moduleName);
-    TwoHelperStringPlan twoHelperStrings = planTwoHelperStrings(source, program, moduleName);
-    if (program.helperCount == 2) {
-      if (twoHelperStrings.valid == 0) {
+    LibraryStringPlan libraryStrings = planLibraryStrings(source, program, moduleName);
+    if (1 < program.helperCount) {
+      if (libraryStrings.valid == 0) {
         assert(0 == 1);
       }
     } else {
@@ -238,16 +255,14 @@ classical class CompilerCore {
     long nameIndex = strings.nameIndex;
     long globalIndex = strings.globalIndex;
     long helperIndex = strings.helperIndex;
-    long secondHelperIndex = 0;
     long proofIndex = strings.proofIndex;
     long mainIndex = strings.mainIndex;
     long stringsLength = strings.encodedLength;
-    if (program.helperCount == 2) {
-      nameIndex = twoHelperStrings.nameIndex;
-      helperIndex = twoHelperStrings.firstHelperIndex;
-      secondHelperIndex = twoHelperStrings.secondHelperIndex;
-      mainIndex = twoHelperStrings.entryIndex;
-      stringsLength = twoHelperStrings.encodedLength;
+    if (1 < program.helperCount) {
+      nameIndex = libraryStrings.nameIndex;
+      helperIndex = libraryStrings.helperIndices[0];
+      mainIndex = libraryStrings.entryIndex;
+      stringsLength = libraryStrings.encodedLength;
     }
 
     long typesLength = 16;
@@ -261,7 +276,7 @@ classical class CompilerCore {
     long typesOffset = align8(stringsOffset + stringsLength);
     long variantsOffset = align8(typesOffset + typesLength);
     long functionsOffset = align8(variantsOffset + 4);
-    boolean resultSlotProgram = resultSlotHelper(program.helperKind);
+    boolean resultSlotProgram = resultSlotHelper(helperAt(program, 0).kind);
     long localCount = 0;
     long codeLength = 8;
     long statementIndex = 0;
@@ -281,19 +296,20 @@ classical class CompilerCore {
     long entryLocalCount = localCount;
     long entryStatementLength = codeLength - 8;
     long functionsLength = 44 + localCount * 4;
-    long helperParameterCount = parameterCountForHelper(program.helperKind);
+    long helperParameterCount = parameterCountForHelper(helperAt(program, 0).kind);
     long helperLocalCount = helperParameterCount;
     long helperLocalBase = helperParameterCount;
     long helperForwardLength = 8;
     long helperStatementIndex = 0;
-    while (helperStatementIndex < program.helperStatementCount) limit MAX_MINIMAL_STATEMENTS {
-      long helperOpcode = program.helperOpcodes[helperStatementIndex];
+    while (helperStatementIndex
+      < helperAt(program, 0).statementCount) limit MAX_MINIMAL_STATEMENTS {
+      long helperOpcode = helperAt(program, 0).opcodes[helperStatementIndex];
       helperLocalCount += statementLocalCount(helperOpcode);
       helperForwardLength += statementCodeLength(helperOpcode);
       helperStatementIndex += 1;
     }
 
-    if (HELPER_REVERSIBLE < program.helperKind) {
+    if (HELPER_REVERSIBLE < helperAt(program, 0).kind) {
       if (resultSlotProgram) {} else {
         helperForwardLength -= 8;
       }
@@ -302,9 +318,9 @@ classical class CompilerCore {
     long helperInverseLength = 0;
     long helperInverseOffset = 4294967295;
     long entryForwardLength = 8 + program.helperCallCount * 16 + entryStatementLength;
-    if (program.helperKind == HELPER_REVERSIBLE) {
+    if (helperAt(program, 0).kind == HELPER_REVERSIBLE) {
       helperLocalCount = 0;
-      helperForwardLength = 8 + program.helperStatementCount * 24;
+      helperForwardLength = 8 + helperAt(program, 0).statementCount * 24;
       helperInverseLength = helperForwardLength;
       helperInverseOffset = helperForwardLength;
       entryForwardLength = 8 + program.helperCallCount * 32 + entryStatementLength;
@@ -313,7 +329,7 @@ classical class CompilerCore {
     if (resultSlotProgram) {
       helperLocalCount = helperParameterCount + RESULT_SLOT_LOCAL_COUNT;
       helperForwardLength = RESULT_SLOT_BODY_LENGTH;
-      long helperResultOpcode = program.helperOpcodes[program.helperResultStatement];
+      long helperResultOpcode = helperAt(program, 0).opcodes[helperAt(program, 0).resultStatement];
       if (returnLocalBinaryStatement(helperResultOpcode)) {
         helperForwardLength = RESULT_SLOT_BINARY_BODY_LENGTH;
       }
@@ -336,14 +352,10 @@ classical class CompilerCore {
     }
 
     long entryTypeOffset = helperLocalCount;
-    long secondHelperParameterCount = 0;
-    long secondHelperLocalCount = 0;
-    long secondHelperForwardLength = 0;
-    long secondHelperTypeOffset = 0;
     if (program.helperCount == 1) {
       localCount = helperLocalCount;
       functionsLength = 84 + helperLocalCount * 4 + entryLocalCount * 4;
-      if (HELPER_REVERSIBLE < program.helperKind) {
+      if (HELPER_REVERSIBLE < helperAt(program, 0).kind) {
         functionsLength += 4;
         entryTypeOffset += 1;
       }
@@ -351,26 +363,19 @@ classical class CompilerCore {
       codeLength = helperForwardLength + helperInverseLength + entryForwardLength;
     }
 
-    if (program.helperCount == 2) {
-      secondHelperParameterCount = parameterCountForHelper(program.secondHelperKind);
-      secondHelperLocalCount = secondHelperParameterCount;
-      secondHelperForwardLength = 8;
-      long secondStatement = 0;
-      while (secondStatement < program.secondHelperStatementCount) limit MAX_MINIMAL_STATEMENTS {
-        long secondOpcode = program.secondHelperOpcodes[secondStatement];
-        secondHelperLocalCount += statementLocalCount(secondOpcode);
-        secondHelperForwardLength += statementCodeLength(secondOpcode);
-        secondStatement += 1;
+    if (1 < program.helperCount) {
+      codeLength = entryForwardLength;
+      entryTypeOffset = 0;
+      long helper = 0;
+      while (helper < program.helperCount) limit 4 {
+        HelperBody body = helperAt(program, helper);
+        entryTypeOffset += boundedHelperLocalCount(body) + 1;
+        codeLength += boundedHelperForwardLength(body);
+        helper += 1;
       }
 
-      if (HELPER_REVERSIBLE < program.secondHelperKind) {
-        secondHelperForwardLength -= 8;
-      }
-
-      secondHelperTypeOffset = helperLocalCount + 1;
-      entryTypeOffset = secondHelperTypeOffset + secondHelperLocalCount + 1;
-      functionsLength = 124 + entryTypeOffset * 4 + entryLocalCount * 4;
-      codeLength = helperForwardLength + secondHelperForwardLength + entryForwardLength;
+      functionsLength = 4 + (program.helperCount + 1) * 40;
+      functionsLength += (entryTypeOffset + entryLocalCount) * 4;
     }
 
     long codeOffset = align8(functionsOffset + functionsLength);
@@ -410,14 +415,14 @@ classical class CompilerCore {
     cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, ENCODING_WIDTH_U32);
     cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 4000000, ENCODING_WIDTH_U64);
 
-    if (program.helperCount == 2) {
-      cursor = writeTwoHelperStrings(
+    if (1 < program.helperCount) {
+      cursor = writeLibraryStrings(
         output,
         cursor,
         source,
         program,
         moduleName,
-        twoHelperStrings
+        libraryStrings
       );
     } else {
       cursor = writeStringTable(output, cursor, source, program, moduleName, strings);
@@ -444,41 +449,35 @@ classical class CompilerCore {
       1 + program.helperCount,
       ENCODING_WIDTH_U32
     );
-    if (program.helperCount == 2) {
+    if (1 < program.helperCount) {
+      long helperCodeOffset = 0;
+      long descriptorHelper = 0;
+      while (descriptorHelper < program.helperCount) limit 4 {
+        HelperBody descriptorBody = helperAt(program, descriptorHelper);
+        cursor = writeFunctionDescriptor(
+          output,
+          cursor,
+          descriptorHelper,
+          libraryStrings.helperIndices[descriptorHelper],
+          helperCodeOffset,
+          boundedHelperForwardLength(descriptorBody),
+          /* flags= */ 4,
+          4294967295,
+          0,
+          parameterCountForHelper(descriptorBody.kind),
+          boundedHelperLocalCount(descriptorBody),
+          boundedHelperTypeOffset(program, descriptorHelper)
+        );
+        helperCodeOffset += boundedHelperForwardLength(descriptorBody);
+        descriptorHelper += 1;
+      }
+
       cursor = writeFunctionDescriptor(
         output,
         cursor,
-        0,
-        helperIndex,
-        0,
-        helperForwardLength,
-        /* flags= */ 4,
-        4294967295,
-        0,
-        helperParameterCount,
-        helperLocalCount,
-        0
-      );
-      cursor = writeFunctionDescriptor(
-        output,
-        cursor,
-        1,
-        secondHelperIndex,
-        helperForwardLength,
-        secondHelperForwardLength,
-        /* flags= */ 4,
-        4294967295,
-        0,
-        secondHelperParameterCount,
-        secondHelperLocalCount,
-        secondHelperTypeOffset
-      );
-      cursor = writeFunctionDescriptor(
-        output,
-        cursor,
-        2,
+        program.helperCount,
         mainIndex,
-        helperForwardLength + secondHelperForwardLength,
+        helperCodeOffset,
         entryForwardLength,
         0,
         4294967295,
@@ -487,32 +486,35 @@ classical class CompilerCore {
         entryLocalCount,
         entryTypeOffset
       );
-      cursor = writeSignedLocalType(output, cursor);
-      long firstParameterType = 0;
-      while (firstParameterType < helperParameterCount) limit 2 {
-        cursor = writeSignedLocalType(output, cursor);
-        firstParameterType += 1;
+      long typedHelper = 0;
+      while (typedHelper < program.helperCount) limit 4 {
+        HelperBody typedBody = helperAt(program, typedHelper);
+        if (booleanResultHelper(typedBody.kind)) {
+          cursor = writeBooleanLocalType(output, cursor);
+        } else {
+          cursor = writeSignedLocalType(output, cursor);
+        }
+
+        long parameterType = 0;
+        while (parameterType < parameterCountForHelper(typedBody.kind)) limit 2 {
+          if (booleanParameterHelper(typedBody.kind)) {
+            cursor = writeBooleanLocalType(output, cursor);
+          } else {
+            cursor = writeSignedLocalType(output, cursor);
+          }
+
+          parameterType += 1;
+        }
+
+        cursor = writeSequenceLocalTypes(
+          output,
+          cursor,
+          typedBody.opcodes,
+          typedBody.statementCount
+        );
+        typedHelper += 1;
       }
 
-      cursor = writeSequenceLocalTypes(
-        output,
-        cursor,
-        program.helperOpcodes,
-        program.helperStatementCount
-      );
-      cursor = writeSignedLocalType(output, cursor);
-      long secondParameterType = 0;
-      while (secondParameterType < secondHelperParameterCount) limit 2 {
-        cursor = writeSignedLocalType(output, cursor);
-        secondParameterType += 1;
-      }
-
-      cursor = writeSequenceLocalTypes(
-        output,
-        cursor,
-        program.secondHelperOpcodes,
-        program.secondHelperStatementCount
-      );
       cursor = writeSequenceLocalTypes(
         output,
         cursor,
@@ -521,8 +523,8 @@ classical class CompilerCore {
       );
     } else {
       if (program.helperCount == 1) {
-        long helperFlags = program.helperKind;
-        if (HELPER_REVERSIBLE < program.helperKind) {
+        long helperFlags = helperAt(program, 0).kind;
+        if (HELPER_REVERSIBLE < helperAt(program, 0).kind) {
           helperFlags = 4;
         }
 
@@ -558,8 +560,8 @@ classical class CompilerCore {
           entryLocalCount,
           entryTypeOffset
         );
-        if (HELPER_REVERSIBLE < program.helperKind) {
-          if (booleanResultHelper(program.helperKind)) {
+        if (HELPER_REVERSIBLE < helperAt(program, 0).kind) {
+          if (booleanResultHelper(helperAt(program, 0).kind)) {
             cursor = writeBooleanLocalType(output, cursor);
           } else {
             cursor = writeSignedLocalType(output, cursor);
@@ -568,7 +570,7 @@ classical class CompilerCore {
 
         long helperParameterIndex = 0;
         while (helperParameterIndex < helperParameterCount) limit 2 {
-          if (booleanParameterHelper(program.helperKind)) {
+          if (booleanParameterHelper(helperAt(program, 0).kind)) {
             cursor = writeBooleanLocalType(output, cursor);
           } else {
             cursor = writeSignedLocalType(output, cursor);
@@ -577,7 +579,7 @@ classical class CompilerCore {
           helperParameterIndex += 1;
         }
 
-        if (program.helperKind == HELPER_REVERSIBLE) {} else {
+        if (helperAt(program, 0).kind == HELPER_REVERSIBLE) {} else {
           if (resultSlotProgram) {
             cursor = writeBooleanLocalType(output, cursor);
             cursor = writeSignedLocalType(output, cursor);
@@ -585,8 +587,8 @@ classical class CompilerCore {
             cursor = writeSequenceLocalTypes(
               output,
               cursor,
-              program.helperOpcodes,
-              program.helperStatementCount
+              helperAt(program, 0).opcodes,
+              helperAt(program, 0).statementCount
             );
           }
         }

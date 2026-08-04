@@ -62,8 +62,8 @@ control.
 
 The bounded compiler accepts one class, zero or one signed global, one optional helper,
 and one entry. It also emits the canonical unqualified `$library` halt entry for an
-entryless library. That path accepts zero or one general helper, or two sorted public
-one-parameter signed identity helpers. A third helper fails before publication. The checked-in `compiler/ir/Opcodes.w`, `compiler/ir/ProofRules.w`,
+entryless library. That path accepts zero or one general helper, or two through four sorted public
+one-parameter signed identity helpers. A fifth helper fails before publication. The checked-in `compiler/ir/Opcodes.w`, `compiler/ir/ProofRules.w`,
 `compiler/ir/StorageOpcodes.w`, `compiler/ir/TypeCodes.w`, and imported-constant
 `compiler/ir/TypeKinds.w` modules compile byte for byte with stage 0. Five real self-source
 modules beat five motivational slides, though the bar remains under judicial review.
