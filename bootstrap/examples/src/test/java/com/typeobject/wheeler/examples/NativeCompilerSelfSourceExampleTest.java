@@ -234,6 +234,28 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalBooleanDeclarationKindsByteForByte() throws Exception {
+    Program compiler = NativeModuleCompilerHarness.program();
+    String dependency = CompilerSources.read("compiler/ir/StatementKinds.w");
+    String root = CompilerSources.read("compiler/syntax/BooleanDeclarationKinds.w");
+
+    byte[] artifact = NativeModuleCompilerHarness.compile(compiler, dependency, root);
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of(
+            "compiler/ir/StatementKinds.w", dependency,
+            "compiler/syntax/BooleanDeclarationKinds.w", root),
+        "wheeler.compiler.boolean_declaration_kinds");
+    assertArrayEquals(new BytecodeWriter().write(expected), artifact);
+    Program decoded = new BytecodeReader().read(artifact);
+    assertEquals(
+        "wheeler.compiler.boolean_declaration_kinds::booleanDeclarationStatement",
+        decoded.functions().getFirst().name());
+    assertEquals(32, decoded.functions().getFirst().localCount());
+    assertEquals(53, decoded.functions().getFirst().forward().size());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesCanonicalInstructionFormsByteForByte() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
     String opcodes = CompilerSources.read("compiler/ir/Opcodes.w");

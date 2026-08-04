@@ -1,45 +1,11 @@
-//! Validates bounded Boolean and signed-comparison local declarations.
+//! Validates bounded Boolean and signed-comparison local declaration widths.
 
-module wheeler.compiler.boolean_declarations;
+module wheeler.compiler.boolean_declaration_widths;
 
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
 
-classical class BooleanDeclarations {
-  /// Reports whether one parser opcode declares a Boolean local without negation.
-  public boolean booleanDeclarationStatement(long statementKind) {
-    boolean declaration = statementKind == STATEMENT_LOCAL_BOOLEAN;
-    if (statementKind == STATEMENT_LOCAL_BOOLEAN_NAMED) {
-      declaration = true;
-    }
-
-    if (statementKind == STATEMENT_LOCAL_BOOLEAN_EQ_NAMED) {
-      declaration = true;
-    }
-
-    if (statementKind == STATEMENT_LOCAL_BOOLEAN_NE_NAMED) {
-      declaration = true;
-    }
-
-    if (statementKind == STATEMENT_LOCAL_LONG_LT_NAMED) {
-      declaration = true;
-    }
-
-    if (statementKind == STATEMENT_LOCAL_LONG_EQ_LITERAL_NAMED) {
-      declaration = true;
-    }
-
-    if (statementKind == STATEMENT_LOCAL_LONG_NE_LITERAL_NAMED) {
-      declaration = true;
-    }
-
-    if (statementKind == STATEMENT_LOCAL_LONG_LT_LITERAL_NAMED) {
-      declaration = true;
-    }
-
-    return declaration;
-  }
-
+classical class BooleanDeclarationWidths {
   /// Returns the token width of one nonnegated Boolean local declaration.
   public long booleanDeclarationWidth(
     borrow utf8 source,

@@ -3,67 +3,67 @@
 module wheeler.compiler.statement_kinds;
 
 classical class StatementKinds {
-  /// Selects direct assignment.
+  /// Direct assignment.
   public const long STATEMENT_ASSIGN = 0;
-  /// Selects a signed equality assertion.
+  /// A signed equality assertion.
   public const long STATEMENT_ASSERT_EQ = 768;
-  /// Selects a signed local declaration.
+  /// A signed local declaration.
   public const long STATEMENT_LOCAL_LONG = 769;
-  /// Selects a Boolean literal declaration.
+  /// A Boolean literal declaration.
   public const long STATEMENT_LOCAL_BOOLEAN = 770;
-  /// Selects a negated Boolean literal declaration.
+  /// A negated Boolean literal declaration.
   public const long STATEMENT_LOCAL_BOOLEAN_NOT = 771;
-  /// Selects a Boolean literal assertion.
+  /// A Boolean literal assertion.
   public const long STATEMENT_ASSERT_BOOLEAN = 772;
-  /// Selects a negated Boolean literal assertion.
+  /// A negated Boolean literal assertion.
   public const long STATEMENT_ASSERT_BOOLEAN_NOT = 773;
-  /// Selects an assertion over a prior Boolean local.
+  /// An assertion over a prior Boolean local.
   public const long STATEMENT_ASSERT_LOCAL_BOOLEAN = 774;
-  /// Unresolved equality assertion over a signed name.
+  /// Equality assertion over a signed name.
   public const long STATEMENT_ASSERT_NAMED_LONG = 775;
-  /// Unresolved signed declaration initialized from a prior local.
+  /// Signed declaration initialized from a prior local.
   public const long STATEMENT_LOCAL_LONG_NAMED = 776;
-  /// Unresolved checked signed-local addition declaration.
+  /// Checked signed-local addition declaration.
   public const long STATEMENT_LOCAL_LONG_ADD_NAMED = 777;
-  /// Unresolved checked signed-local subtraction declaration.
+  /// Checked signed-local subtraction declaration.
   public const long STATEMENT_LOCAL_LONG_SUB_NAMED = 778;
-  /// Unresolved checked signed-local XOR declaration.
+  /// Checked signed-local XOR declaration.
   public const long STATEMENT_LOCAL_LONG_XOR_NAMED = 779;
-  /// Unresolved checked addition of two prior signed locals.
+  /// Checked addition of two prior signed locals.
   public const long STATEMENT_LOCAL_LONG_ADD_LOCALS_NAMED = 780;
-  /// Unresolved checked subtraction of two prior signed locals.
+  /// Checked subtraction of two prior signed locals.
   public const long STATEMENT_LOCAL_LONG_SUB_LOCALS_NAMED = 781;
-  /// Unresolved checked XOR of two prior signed locals.
+  /// Checked XOR of two prior signed locals.
   public const long STATEMENT_LOCAL_LONG_XOR_LOCALS_NAMED = 782;
-  /// Unresolved Boolean declaration initialized from a prior local.
+  /// Boolean declaration initialized from a prior local.
   public const long STATEMENT_LOCAL_BOOLEAN_NAMED = 783;
-  /// Unresolved negated prior-Boolean declaration.
+  /// Negated prior-Boolean declaration.
   public const long STATEMENT_LOCAL_BOOLEAN_NOT_NAMED = 784;
-  /// Unresolved equality declaration over two prior locals.
+  /// Equality declaration over two prior locals.
   public const long STATEMENT_LOCAL_BOOLEAN_EQ_NAMED = 785;
-  /// Unresolved less-than declaration over two prior signed locals.
+  /// Less-than declaration over two prior signed locals.
   public const long STATEMENT_LOCAL_LONG_LT_NAMED = 786;
-  /// Unresolved one-arm local conditions guarding global updates.
+  /// One-arm local conditions guarding global updates.
   public const long STATEMENT_IF_LOCAL_ADD_NAMED = 787;
-  /// Unresolved one-arm local condition guarding subtraction.
+  /// One-arm local condition guarding subtraction.
   public const long STATEMENT_IF_LOCAL_SUB_NAMED = 788;
-  /// Unresolved one-arm local condition guarding XOR.
+  /// One-arm local condition guarding XOR.
   public const long STATEMENT_IF_LOCAL_XOR_NAMED = 789;
-  /// Unresolved multiplication, division, and remainder declarations.
+  /// Multiplication, division, and remainder declarations.
   public const long STATEMENT_LOCAL_LONG_MUL_NAMED = 790;
-  /// Unresolved division declaration with a literal right operand.
+  /// Division declaration with a literal right operand.
   public const long STATEMENT_LOCAL_LONG_DIV_NAMED = 791;
-  /// Unresolved remainder declaration with a literal right operand.
+  /// Remainder declaration with a literal right operand.
   public const long STATEMENT_LOCAL_LONG_MOD_NAMED = 792;
-  /// Unresolved two-local multiplication, division, and remainder declarations.
+  /// Two-local multiplication, division, and remainder declarations.
   public const long STATEMENT_LOCAL_LONG_MUL_LOCALS_NAMED = 793;
-  /// Unresolved division declaration over two prior locals.
+  /// Division declaration over two prior locals.
   public const long STATEMENT_LOCAL_LONG_DIV_LOCALS_NAMED = 794;
-  /// Unresolved remainder declaration over two prior locals.
+  /// Remainder declaration over two prior locals.
   public const long STATEMENT_LOCAL_LONG_MOD_LOCALS_NAMED = 795;
-  /// Unresolved equality assertion over two prior locals.
+  /// Equality assertion over two prior locals.
   public const long STATEMENT_ASSERT_LOCAL_PAIR_NAMED = 796;
-  /// Unresolved less-than assertion over prior signed locals.
+  /// Less-than assertion over prior signed locals.
   public const long STATEMENT_ASSERT_LONG_LT_NAMED = 797;
   /// Negated local condition guarding global addition.
   public const long STATEMENT_IF_NOT_LOCAL_ADD_NAMED = 798;
@@ -185,17 +185,17 @@ classical class StatementKinds {
   public const long STATEMENT_RETURN_BOOLEAN_EQ_LITERAL_NAMED = 856;
   /// Boolean helper return comparing two locals.
   public const long STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED = 857;
-  /// Unresolved signed-local AND declaration.
+  /// Signed-local AND declaration.
   public const long STATEMENT_LOCAL_LONG_AND_NAMED = 858;
-  /// Unresolved AND declaration over two signed locals.
+  /// AND declaration over two signed locals.
   public const long STATEMENT_LOCAL_LONG_AND_LOCALS_NAMED = 859;
   /// Signed helper return ANDing one local with a literal.
   public const long STATEMENT_RETURN_LOCAL_AND_NAMED = 860;
   /// Signed helper return ANDing two locals.
   public const long STATEMENT_RETURN_LOCAL_AND_LOCAL_NAMED = 861;
-  /// Unresolved inequality declaration over two prior locals.
+  /// Inequality declaration over two prior locals.
   public const long STATEMENT_LOCAL_BOOLEAN_NE_NAMED = 862;
-  /// Unresolved signed-local inequality with a literal right operand.
+  /// Signed-local inequality with a literal right operand.
   public const long STATEMENT_LOCAL_LONG_NE_LITERAL_NAMED = 863;
   /// Boolean helper inequality return with a literal right operand.
   public const long STATEMENT_RETURN_BOOLEAN_NE_LITERAL_NAMED = 864;
@@ -245,18 +245,18 @@ classical class StatementKinds {
   public const long STATEMENT_LOCAL_WHILE_CONDITION_NAMED = 1;
   /// Marks while limit that names a prior local.
   public const long STATEMENT_LOCAL_WHILE_LIMIT_NAMED = 2;
-  /// Selects checked subtraction for a resolved while update.
+  /// Checked subtraction for a resolved while update.
   public const long STATEMENT_LOCAL_WHILE_SUB_FORM = 4;
-  /// Selects bitwise XOR for a resolved while update.
+  /// Bitwise XOR for a resolved while update.
   public const long STATEMENT_LOCAL_WHILE_XOR_FORM = 8;
   /// Marks zero-to-local less-than condition.
   public const long STATEMENT_LOCAL_WHILE_REVERSED_FORM = 16;
   /// Bounds the closed while form column encoded beside one target local.
   public const long STATEMENT_LOCAL_WHILE_FORM_COUNT = 24;
-  /// Selects checked global addition.
+  /// Checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
-  /// Selects checked global subtraction.
+  /// Checked global subtraction.
   public const long STATEMENT_UPDATE_SUB = 1041;
-  /// Selects global XOR.
+  /// Global XOR.
   public const long STATEMENT_UPDATE_XOR = 1042;
 }

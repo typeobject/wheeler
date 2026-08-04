@@ -68,11 +68,12 @@ contain bounded equality guards or one same-module Boolean call with typed early
 helper fails before publication. The checked-in `compiler/ir/Opcodes.w`,
 `compiler/ir/ProofRules.w`, `compiler/ir/ResolvedStatements.w`,
 `compiler/ir/StatementKinds.w`, `compiler/ir/StorageOpcodes.w`, `compiler/ir/TypeCodes.w`,
-imported-constant `compiler/ir/OpcodeKinds.w`, imported-constant `compiler/ir/TypeKinds.w`, and
-imported-constant `compiler/ir/InstructionForms.w` modules compile byte for byte with stage 0.
+imported-constant `compiler/ir/OpcodeKinds.w`, imported-constant `compiler/ir/TypeKinds.w`,
+imported-constant `compiler/ir/InstructionForms.w`, and imported-constant
+`compiler/syntax/BooleanDeclarationKinds.w` modules compile byte for byte with stage 0.
 `StatementKinds.w` owns 128 unresolved and form identities. `ResolvedStatements.w` owns seventy-two
 resolved columns. `Tokens.w` now sticks to lexical work instead of running a parser-IR registry from
-the back room. Nine real self-source modules beat eight motivational slides. The bar has retained
+the back room. Ten real self-source modules beat nine motivational slides. The bar has retained
 counsel. A modular source may carry up to sixty-four sorted unique direct imports.
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
 or excess imports before publication. `compileMinimalWithConstantImport`,
