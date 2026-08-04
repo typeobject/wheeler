@@ -5,6 +5,7 @@ module wheeler.compiler.local_opcodes;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_return_opcodes;
+import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;

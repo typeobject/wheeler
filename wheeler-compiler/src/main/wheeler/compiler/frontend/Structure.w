@@ -3,6 +3,7 @@
 module wheeler.compiler.structure;
 
 import wheeler.compiler.call_forms;
+import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;

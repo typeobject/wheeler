@@ -11,6 +11,7 @@ import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.loop_forms;
 import wheeler.compiler.mutation_resolution;
+import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.return_expressions;
 import wheeler.compiler.scalar_opcodes;
