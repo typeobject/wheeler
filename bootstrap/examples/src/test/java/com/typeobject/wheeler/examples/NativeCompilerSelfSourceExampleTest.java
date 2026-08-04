@@ -12,6 +12,7 @@ import com.typeobject.wheeler.core.vm.MachineStatus;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -127,6 +128,58 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesEarlySignedReturnsByteForByte() throws Exception {
+    String source = """
+        module examples.early_signed;
+        classical class EarlySigned {
+          public const long THREE = 3;
+
+          public long direct(long opcode) {
+            if (opcode == 1) {
+              return THREE;
+            }
+
+            return -1;
+          }
+
+          private boolean known(long opcode) {
+            return opcode == 2;
+          }
+
+          public long combined(long opcode) {
+            if (known(opcode)) {
+              return -3;
+            }
+
+            return -1;
+          }
+        }
+        """;
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    VirtualMachine writer = nativeWriter(compiler, source);
+    CompilerMachineRunner.runWithoutRewindHistory(writer);
+
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("EarlySigned.w", source),
+        "examples.early_signed");
+    byte[] artifact = writer.hostOutput();
+    assertArrayEquals(new BytecodeWriter().write(expected), artifact);
+    Program decoded = new BytecodeReader().read(artifact);
+    assertEquals("examples.early_signed::direct", decoded.functions().getFirst().name());
+    assertEquals("examples.early_signed::known", decoded.functions().get(1).name());
+    assertEquals("examples.early_signed::combined", decoded.functions().get(2).name());
+
+    String wrongBoolean = source.replace("private boolean known(long opcode) {\n    return opcode == 2;\n  }",
+        "private boolean known(long opcode) {\n"
+            + "    if (opcode == 2) { return 1; }\n"
+            + "    return false;\n  }");
+    assertNoPublication(compiler, wrongBoolean);
+    String wrongSigned = source.replace("return THREE;", "return true;");
+    assertNoPublication(compiler, wrongSigned);
+    assertNoPublication(compiler, source.replace("opcode == 1", "opcode < 1"));
+  }
+
+  @Test
   void compilesOneEntrylessHelperByteForByte() throws Exception {
     String source = """
         module examples.native_helper;
@@ -163,6 +216,38 @@ final class NativeCompilerSelfSourceExampleTest {
     assertEquals(5, decoded.functions().size());
     assertEquals("wheeler.compiler.opcode_kinds::isLocalMathOpcode",
         decoded.functions().get(3).name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
+  void compilesCanonicalInstructionFormsByteForByte() throws Exception {
+    Program compiler = NativeModuleCompilerHarness.program();
+    String opcodes = CompilerSources.read("compiler/ir/Opcodes.w");
+    String storageOpcodes = CompilerSources.read("compiler/ir/StorageOpcodes.w");
+    String root = CompilerSources.read("compiler/ir/InstructionForms.w");
+
+    byte[] artifact = NativeModuleCompilerHarness.compile(
+        compiler,
+        List.of(opcodes, storageOpcodes),
+        root);
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of(
+            "compiler/ir/InstructionForms.w", root,
+            "compiler/ir/Opcodes.w", opcodes,
+            "compiler/ir/StorageOpcodes.w", storageOpcodes),
+        "wheeler.compiler.instruction_forms");
+    assertArrayEquals(new BytecodeWriter().write(expected), artifact);
+    Program decoded = new BytecodeReader().read(artifact);
+    assertEquals(
+        "wheeler.compiler.instruction_forms::expectedOperandCount",
+        decoded.functions().getFirst().name());
+    assertEquals(214, decoded.functions().getFirst().localCount());
+    assertEquals(373, decoded.functions().getFirst().forward().size());
+    assertEquals(
+        "wheeler.compiler.instruction_forms::threeOperandStorageOpcode",
+        decoded.functions().get(1).name());
+    assertEquals(68, decoded.functions().get(1).localCount());
+    assertEquals(116, decoded.functions().get(1).forward().size());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 

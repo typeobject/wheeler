@@ -62,12 +62,14 @@ control.
 
 The bounded compiler accepts one class, zero or one signed global, one optional helper,
 and one entry. It also emits the canonical unqualified `$library` halt entry for an
-entryless library. That path accepts zero or one general helper, or two through four public
-one-parameter scalar helpers. Signed-parameter Boolean helpers may contain bounded equality
-guards or one same-module scalar call with literal early returns. A fifth helper fails before publication. The checked-in `compiler/ir/Opcodes.w`, `compiler/ir/ProofRules.w`,
-`compiler/ir/StorageOpcodes.w`, `compiler/ir/TypeCodes.w`, imported-constant
-`compiler/ir/OpcodeKinds.w`, and imported-constant `compiler/ir/TypeKinds.w` modules compile byte for byte with stage 0. Six real self-source
-modules beat five motivational slides, though the bar remains under judicial review.
+entryless library. That path accepts zero or one general helper, or two through four explicitly
+public or private one-parameter scalar helpers. Signed-parameter Boolean and signed helpers may
+contain bounded equality guards or one same-module Boolean call with typed early returns. A fifth
+helper fails before publication. The checked-in `compiler/ir/Opcodes.w`,
+`compiler/ir/ProofRules.w`, `compiler/ir/StorageOpcodes.w`, `compiler/ir/TypeCodes.w`,
+imported-constant `compiler/ir/OpcodeKinds.w`, imported-constant `compiler/ir/TypeKinds.w`, and
+imported-constant `compiler/ir/InstructionForms.w` modules compile byte for byte with stage 0.
+Seven real self-source modules beat six motivational slides. The bar has filed an appeal.
 A modular source may carry up to sixty-four sorted unique direct imports.
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
 or excess imports before publication. `compileMinimalWithConstantImport`,
@@ -79,11 +81,12 @@ the five-module direct star, chain, four-leaf fork, three-leaf fork beside a dir
 export becomes private inside its dependent, so a root cannot acquire transitive access by
 spelling the leaf name loudly. Executable imported
 members, mismatched module names, unsupported four-module DAGs, unsupported five-module graphs, other six- and seven-module graphs, and eight or more root imports fail closed. General symbol resolution remains future work. Entry and helper bodies
-admit at most sixty-four statements. The current slice covers typed signed
-and Boolean locals, assertions, assignments, checked scalar operations, calls, results, and
-narrow explicitly limited loops.
+admit at most sixty-four statements. Scanner metadata admits 2,048 tokens across a 16,384-byte
+physical or linked source window. The current slice covers typed signed and Boolean locals,
+assertions, assignments, checked scalar operations, calls, results, and narrow explicitly limited
+loops.
 
-A class may place one contiguous block of at most sixty-four `const long` or `const boolean`
+A class may place one contiguous block of at most 128 `const long` or `const boolean`
 declarations around its optional signed state and before its helper or entry. Constants may
 initialize that state, including a forward reference when state comes first. Splitting the
 constant block around state fails rather than creating two lookup rules. Their bounded

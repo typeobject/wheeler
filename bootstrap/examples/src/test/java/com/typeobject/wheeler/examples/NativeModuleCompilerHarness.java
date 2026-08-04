@@ -18,7 +18,7 @@ import java.util.Map;
 final class NativeModuleCompilerHarness {
   private static final Path FIXTURE = Path.of(
       "../wheeler-examples/src/main/wheeler/native/compiler/NativeModuleCompiler.w");
-  private static final int OUTPUT_CAPACITY = 8_192;
+  private static final int OUTPUT_CAPACITY = 32_768;
 
   private NativeModuleCompilerHarness() {}
 

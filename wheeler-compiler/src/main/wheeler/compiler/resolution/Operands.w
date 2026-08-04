@@ -6,6 +6,7 @@ import wheeler.compiler.assertion_resolution;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.conditionals;
+import wheeler.compiler.early_return_opcodes;
 import wheeler.compiler.early_return_operands;
 import wheeler.compiler.expression_operands;
 import wheeler.compiler.ir;
@@ -30,19 +31,7 @@ classical class Operands {
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
     boolean ambiguousTypedStatement = oneArgumentCallNamed(opcode);
-    if (opcode == STATEMENT_IF_HELPER_CALL_RETURN_TRUE_NAMED) {
-      ambiguousTypedStatement = true;
-    }
-
-    if (opcode == STATEMENT_IF_HELPER_CALL_RETURN_FALSE_NAMED) {
-      ambiguousTypedStatement = true;
-    }
-
-    if (opcode == STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED) {
-      ambiguousTypedStatement = true;
-    }
-
-    if (opcode == STATEMENT_IF_SIGNED_EQ_RETURN_FALSE_NAMED) {
+    if (earlyReturnStatement(opcode)) {
       ambiguousTypedStatement = true;
     }
 

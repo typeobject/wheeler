@@ -421,6 +421,8 @@ classical class StatementForms {
         if (helperCallReturned == TOKEN_FALSE) {
           return STATEMENT_IF_HELPER_CALL_RETURN_FALSE_NAMED;
         }
+
+        return STATEMENT_IF_HELPER_CALL_RETURN_LONG_NAMED;
       }
 
       long comparisonLiteralToken = -1;
@@ -445,14 +447,18 @@ classical class StatementForms {
         }
 
         long bodyStart = comparisonLiteralToken + 2 + comparisonWidth;
-        if (tokenHash(source, tokenStarts, tokenLengths, bodyStart) == TOKEN_RETURN) {
-          long returned = tokenHash(source, tokenStarts, tokenLengths, bodyStart + 1);
-          if (returned == TOKEN_TRUE) {
-            return STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED;
-          }
+        if (lessThanComparison == false) {
+          if (tokenHash(source, tokenStarts, tokenLengths, bodyStart) == TOKEN_RETURN) {
+            long returned = tokenHash(source, tokenStarts, tokenLengths, bodyStart + 1);
+            if (returned == TOKEN_TRUE) {
+              return STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED;
+            }
 
-          if (returned == TOKEN_FALSE) {
-            return STATEMENT_IF_SIGNED_EQ_RETURN_FALSE_NAMED;
+            if (returned == TOKEN_FALSE) {
+              return STATEMENT_IF_SIGNED_EQ_RETURN_FALSE_NAMED;
+            }
+
+            return STATEMENT_IF_SIGNED_EQ_RETURN_LONG_NAMED;
           }
         }
 

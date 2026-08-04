@@ -4,6 +4,7 @@ module wheeler.compiler.local_types;
 
 import wheeler.compiler.call_forms;
 import wheeler.compiler.conditionals;
+import wheeler.compiler.early_return_opcodes;
 import wheeler.compiler.encoding;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.scalar_opcodes;
@@ -32,14 +33,24 @@ classical class LocalTypes {
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
-      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+      long helperResultType = TYPE_BOOLEAN;
+      if (resolvedEarlySignedReturn(opcode)) {
+        helperResultType = TYPE_SIGNED;
+      }
+
+      return writeUnsignedLittleEndian(output, cursor, helperResultType, 4);
     }
 
-    if (resolvedEarlyBooleanReturn(opcode)) {
+    if (resolvedEarlyEqualityReturn(opcode)) {
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
-      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+      long equalityResultType = TYPE_BOOLEAN;
+      if (resolvedEarlySignedReturn(opcode)) {
+        equalityResultType = TYPE_SIGNED;
+      }
+
+      return writeUnsignedLittleEndian(output, cursor, equalityResultType, 4);
     }
 
     if (resolvedLocalWhile(opcode)) {

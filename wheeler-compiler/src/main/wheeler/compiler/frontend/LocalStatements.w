@@ -112,6 +112,10 @@ classical class LocalStatements {
       earlyHelperReturn = true;
     }
 
+    if (opcode == STATEMENT_IF_HELPER_CALL_RETURN_LONG_NAMED) {
+      earlyHelperReturn = true;
+    }
+
     if (earlyHelperReturn) {
       long earlyArgumentLocal = resolvePriorDeclaration(
         source,
@@ -123,18 +127,27 @@ classical class LocalStatements {
         true
       );
       if (-1 < earlyArgumentLocal) {
-        return STATEMENT_IF_HELPER_CALL_RETURN_BASE + earlyArgumentLocal;
+        long helperReturnBase = STATEMENT_IF_HELPER_CALL_RETURN_BASE;
+        if (opcode == STATEMENT_IF_HELPER_CALL_RETURN_LONG_NAMED) {
+          helperReturnBase = STATEMENT_IF_HELPER_CALL_RETURN_LONG_BASE;
+        }
+
+        return helperReturnBase + earlyArgumentLocal;
       }
 
       return -1;
     }
 
-    boolean earlyBooleanReturn = opcode == STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED;
+    boolean earlyEqualityReturn = opcode == STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED;
     if (opcode == STATEMENT_IF_SIGNED_EQ_RETURN_FALSE_NAMED) {
-      earlyBooleanReturn = true;
+      earlyEqualityReturn = true;
     }
 
-    if (earlyBooleanReturn) {
+    if (opcode == STATEMENT_IF_SIGNED_EQ_RETURN_LONG_NAMED) {
+      earlyEqualityReturn = true;
+    }
+
+    if (earlyEqualityReturn) {
       long earlySourceLocal = resolvePriorDeclaration(
         source,
         tokenStarts,
@@ -145,7 +158,12 @@ classical class LocalStatements {
         true
       );
       if (-1 < earlySourceLocal) {
-        return STATEMENT_IF_SIGNED_EQ_RETURN_BASE + earlySourceLocal;
+        long equalityReturnBase = STATEMENT_IF_SIGNED_EQ_RETURN_BASE;
+        if (opcode == STATEMENT_IF_SIGNED_EQ_RETURN_LONG_NAMED) {
+          equalityReturnBase = STATEMENT_IF_SIGNED_EQ_RETURN_LONG_BASE;
+        }
+
+        return equalityReturnBase + earlySourceLocal;
       }
 
       return -1;

@@ -156,16 +156,12 @@ classical class InstructionForms {
       return 4;
     }
 
-    if (opcode == OPCODE_RECORD_GET) {
+    if (threeOperandStorageOpcode(opcode)) {
       return 3;
     }
 
     if (opcode == OPCODE_VARIANT_NEW) {
       return 5;
-    }
-
-    if (opcode == OPCODE_VARIANT_TAG_EQ) {
-      return 3;
     }
 
     if (opcode == OPCODE_VARIANT_GET) {
@@ -176,36 +172,12 @@ classical class InstructionForms {
       return 4;
     }
 
-    if (opcode == OPCODE_ARRAY_GET) {
-      return 3;
-    }
-
     if (opcode == OPCODE_SLICE_NEW) {
       return 5;
     }
 
-    if (opcode == OPCODE_SLICE_GET) {
-      return 3;
-    }
-
     if (opcode == OPCODE_OWNED_MOVE) {
       return 2;
-    }
-
-    if (opcode == OPCODE_REGION_NEW) {
-      return 3;
-    }
-
-    if (opcode == OPCODE_WORDS_ALLOC) {
-      return 3;
-    }
-
-    if (opcode == OPCODE_WORDS_GET) {
-      return 3;
-    }
-
-    if (opcode == OPCODE_WORDS_SET) {
-      return 3;
     }
 
     if (opcode == OPCODE_BUFFER_DROP) {
@@ -214,18 +186,6 @@ classical class InstructionForms {
 
     if (opcode == OPCODE_REGION_DROP) {
       return 1;
-    }
-
-    if (opcode == OPCODE_BYTES_ALLOC) {
-      return 3;
-    }
-
-    if (opcode == OPCODE_BYTES_GET) {
-      return 3;
-    }
-
-    if (opcode == OPCODE_BYTES_SET) {
-      return 3;
     }
 
     if (opcode == OPCODE_UTF8_VALID) {
@@ -238,30 +198,6 @@ classical class InstructionForms {
 
     if (opcode == OPCODE_BUFFER_LENGTH) {
       return 2;
-    }
-
-    if (opcode == OPCODE_UTF8_SCALAR) {
-      return 3;
-    }
-
-    if (opcode == OPCODE_UTF8_WIDTH) {
-      return 3;
-    }
-
-    if (opcode == OPCODE_MAP_ALLOC) {
-      return 3;
-    }
-
-    if (opcode == OPCODE_MAP_PUT) {
-      return 3;
-    }
-
-    if (opcode == OPCODE_MAP_GET) {
-      return 3;
-    }
-
-    if (opcode == OPCODE_MAP_HAS) {
-      return 3;
     }
 
     if (opcode == OPCODE_UTF8_FREEZE) {
@@ -287,4 +223,72 @@ classical class InstructionForms {
     return -1;
   }
 
+  /// Reports whether one storage opcode uses three operands.
+  private boolean threeOperandStorageOpcode(long opcode) {
+    if (opcode == OPCODE_RECORD_GET) {
+      return true;
+    }
+
+    if (opcode == OPCODE_VARIANT_TAG_EQ) {
+      return true;
+    }
+
+    if (opcode == OPCODE_ARRAY_GET) {
+      return true;
+    }
+
+    if (opcode == OPCODE_SLICE_GET) {
+      return true;
+    }
+
+    if (opcode == OPCODE_REGION_NEW) {
+      return true;
+    }
+
+    if (opcode == OPCODE_WORDS_ALLOC) {
+      return true;
+    }
+
+    if (opcode == OPCODE_WORDS_GET) {
+      return true;
+    }
+
+    if (opcode == OPCODE_WORDS_SET) {
+      return true;
+    }
+
+    if (opcode == OPCODE_BYTES_ALLOC) {
+      return true;
+    }
+
+    if (opcode == OPCODE_BYTES_GET) {
+      return true;
+    }
+
+    if (opcode == OPCODE_BYTES_SET) {
+      return true;
+    }
+
+    if (opcode == OPCODE_UTF8_SCALAR) {
+      return true;
+    }
+
+    if (opcode == OPCODE_UTF8_WIDTH) {
+      return true;
+    }
+
+    if (opcode == OPCODE_MAP_ALLOC) {
+      return true;
+    }
+
+    if (opcode == OPCODE_MAP_PUT) {
+      return true;
+    }
+
+    if (opcode == OPCODE_MAP_GET) {
+      return true;
+    }
+
+    return opcode == OPCODE_MAP_HAS;
+  }
 }

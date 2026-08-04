@@ -6,7 +6,7 @@ import wheeler.lexer.scanner;
 
 classical class Tokens {
   /// Caps compiler token metadata before comment compaction.
-  public const long MAX_COMPILER_TOKENS = 1024;
+  public const long MAX_COMPILER_TOKENS = 2048;
   /// Reserves the unused final token cell for the resolved global name.
   public const long COMPILER_GLOBAL_NAME_TOKEN = MAX_COMPILER_TOKENS - 1;
   /// Distinguishes Boolean parameter markers from signed parameter markers.
@@ -443,6 +443,14 @@ classical class Tokens {
   public const long STATEMENT_IF_HELPER_CALL_RETURN_FALSE_NAMED = 883;
   /// Starts resolved scalar helper-call guards returning a Boolean.
   public const long STATEMENT_IF_HELPER_CALL_RETURN_BASE = 26112;
+  /// Names a parameter equality guard returning a signed literal.
+  public const long STATEMENT_IF_SIGNED_EQ_RETURN_LONG_NAMED = 884;
+  /// Names a scalar helper-call guard returning a signed literal.
+  public const long STATEMENT_IF_HELPER_CALL_RETURN_LONG_NAMED = 885;
+  /// Starts resolved parameter equality guards returning a signed literal.
+  public const long STATEMENT_IF_SIGNED_EQ_RETURN_LONG_BASE = 26368;
+  /// Starts resolved helper-call guards returning a signed literal.
+  public const long STATEMENT_IF_HELPER_CALL_RETURN_LONG_BASE = 26624;
   /// Starts resolved bounded signed-local while loops.
   public const long STATEMENT_LOCAL_WHILE_BASE = 18688;
   /// Marks a while condition whose right operand names a prior local.

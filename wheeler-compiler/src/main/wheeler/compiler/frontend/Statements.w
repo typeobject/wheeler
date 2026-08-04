@@ -5,6 +5,7 @@ module wheeler.compiler.statements;
 import wheeler.compiler.boolean_declarations;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_return_forms;
+import wheeler.compiler.early_return_opcodes;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.loop_forms;
 import wheeler.compiler.scalar_opcodes;
@@ -144,17 +145,16 @@ classical class Statements {
     long statementStart
   ) {
     long statementKind = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
-    if (statementKind == STATEMENT_IF_HELPER_CALL_RETURN_TRUE_NAMED) {
-      return earlyHelperReturnWidth(
-        source,
-        tokenKinds,
-        tokenStarts,
-        tokenLengths,
-        statementStart
-      );
-    }
-
+    boolean helperGuard = statementKind == STATEMENT_IF_HELPER_CALL_RETURN_TRUE_NAMED;
     if (statementKind == STATEMENT_IF_HELPER_CALL_RETURN_FALSE_NAMED) {
+      helperGuard = true;
+    }
+
+    if (statementKind == STATEMENT_IF_HELPER_CALL_RETURN_LONG_NAMED) {
+      helperGuard = true;
+    }
+
+    if (helperGuard) {
       return earlyHelperReturnWidth(
         source,
         tokenKinds,
@@ -164,18 +164,8 @@ classical class Statements {
       );
     }
 
-    if (statementKind == STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED) {
-      return earlyBooleanReturnWidth(
-        source,
-        tokenKinds,
-        tokenStarts,
-        tokenLengths,
-        statementStart
-      );
-    }
-
-    if (statementKind == STATEMENT_IF_SIGNED_EQ_RETURN_FALSE_NAMED) {
-      return earlyBooleanReturnWidth(
+    if (earlyReturnStatement(statementKind)) {
+      return earlyEqualityReturnWidth(
         source,
         tokenKinds,
         tokenStarts,

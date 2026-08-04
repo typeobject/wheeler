@@ -3,7 +3,7 @@
 module wheeler.compiler.early_return_operands;
 
 import wheeler.compiler.class_constants;
-import wheeler.compiler.local_opcodes;
+import wheeler.compiler.early_return_opcodes;
 import wheeler.compiler.loop_forms;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.tokens;
@@ -11,6 +11,30 @@ import wheeler.compiler.tokens;
 classical class EarlyReturnOperands {
   /// Carries one optional early-return operand resolution.
   public record EarlyReturnOperand(long value, boolean applies, boolean valid) {}
+
+  private EarlyReturnOperand signedReturnOperand(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long returnToken
+  ) {
+    if (loopOperandNamed(source, tokenStarts, returnToken)) {
+      ConstantResolution constant = resolveClassConstant(
+        source,
+        tokenStarts,
+        tokenLengths,
+        returnToken,
+        true
+      );
+      return new EarlyReturnOperand(constant.value, true, constant.valid);
+    }
+
+    return new EarlyReturnOperand(
+      parsedSignedNumber(source, tokenStarts, tokenLengths, returnToken),
+      true,
+      true
+    );
+  }
 
   /// Resolves the primary scalar operand for one early-return guard.
   public EarlyReturnOperand resolveEarlyReturnOperand(
@@ -24,7 +48,7 @@ classical class EarlyReturnOperands {
       return new EarlyReturnOperand(0, true, true);
     }
 
-    if (resolvedEarlyBooleanReturn(opcode)) {
+    if (resolvedEarlyEqualityReturn(opcode)) {
       long comparisonToken = statementStart + 5;
       if (loopOperandNamed(source, tokenStarts, comparisonToken)) {
         ConstantResolution comparisonConstant = resolveClassConstant(
@@ -47,7 +71,7 @@ classical class EarlyReturnOperands {
     return new EarlyReturnOperand(0, false, false);
   }
 
-  /// Resolves the Boolean literal returned by one early guard.
+  /// Resolves the scalar literal returned by one early guard.
   public EarlyReturnOperand resolveEarlyReturnSecondaryOperand(
     borrow utf8 source,
     borrow mut words tokenStarts,
@@ -56,6 +80,23 @@ classical class EarlyReturnOperands {
     long opcode
   ) {
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (resolvedEarlySignedReturn(opcode)) {
+      long returnToken = statementStart + 9;
+      if (resolvedEarlyEqualityReturn(opcode)) {
+        long comparisonToken = statementStart + 5;
+        long comparisonWidth = 1;
+        if (loopOperandNamed(source, tokenStarts, comparisonToken) == false) {
+          if (utf8Scalar(source, tokenStarts[comparisonToken]) == PUNCTUATION_MINUS) {
+            comparisonWidth = 2;
+          }
+        }
+
+        returnToken = statementStart + 8 + comparisonWidth;
+      }
+
+      return signedReturnOperand(source, tokenStarts, tokenLengths, returnToken);
+    }
+
     if (resolvedEarlyHelperReturn(opcode)) {
       if (sourceOpcode == STATEMENT_IF_HELPER_CALL_RETURN_TRUE_NAMED) {
         return new EarlyReturnOperand(1, true, true);
@@ -64,7 +105,7 @@ classical class EarlyReturnOperands {
       return new EarlyReturnOperand(0, true, true);
     }
 
-    if (resolvedEarlyBooleanReturn(opcode)) {
+    if (resolvedEarlyEqualityReturn(opcode)) {
       if (sourceOpcode == STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED) {
         return new EarlyReturnOperand(1, true, true);
       }

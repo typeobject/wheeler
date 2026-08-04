@@ -17,7 +17,8 @@ import org.junit.jupiter.api.Test;
 /** Differential coverage for the Wheeler-native scalar class-constant slice. */
 class MinimalCompilerConstantExampleTest {
   private static final int OUTPUT_CAPACITY = 8_192;
-  private static final int MAX_NATIVE_CONSTANTS = 64;
+  private static final int MAX_NATIVE_CONSTANTS = 128;
+  private static final int MAX_NATIVE_DEPENDENCY_DEPTH = 64;
 
   @Test
   void substitutesSignedAndBooleanConstantsWithoutRuntimeState() throws Exception {
@@ -303,12 +304,26 @@ class MinimalCompilerConstantExampleTest {
   void evaluatesTheMaximumBoundedForwardDependencyPath() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
     StringBuilder source = new StringBuilder("classical class BoundedDependencyPath { ");
-    for (int index = 0; index < MAX_NATIVE_CONSTANTS - 1; index++) {
+    for (int index = 0; index < MAX_NATIVE_DEPENDENCY_DEPTH - 1; index++) {
       source.append("const long VALUE_").append(index).append(" = VALUE_")
           .append(index + 1).append("; ");
     }
     source.append("const long VALUE_63 = 42; entry void main() { long value = VALUE_0; ")
         .append("assert(value == 42); } }");
+
+    assertDifferentialHalt(compiler, source.toString());
+  }
+
+  @Test
+  void evaluatesTheMaximumBoundedConstantTable() throws Exception {
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    StringBuilder source = new StringBuilder("classical class BoundedConstantTable { ");
+    for (int index = 0; index < MAX_NATIVE_CONSTANTS; index++) {
+      source.append("const long VALUE_").append(index).append(" = ")
+          .append(index).append("; ");
+    }
+    source.append("entry void main() { long value = VALUE_127; ")
+        .append("assert(value == 127); } }");
 
     assertDifferentialHalt(compiler, source.toString());
   }

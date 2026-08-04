@@ -23,6 +23,8 @@ class SourceReadabilityTest {
       "public const long OPCODE_([A-Z0-9_]+) = (0x[0-9a-f]+);");
   private static final Pattern WHEELER_FORM = Pattern.compile(
       "if \\(opcode == OPCODE_([A-Z0-9_]+)\\) \\{\\s+return ([0-9]+);");
+  private static final Pattern WHEELER_OPCODE_TEST = Pattern.compile(
+      "opcode == OPCODE_([A-Z0-9_]+)");
   private static final Pattern JAVA_TYPE = Pattern.compile(
       "case ([A-Z0-9_]+) -> ([0-9]+);");
   private static final Pattern WHEELER_TYPE = Pattern.compile(
@@ -167,7 +169,47 @@ class SourceReadabilityTest {
         throw new AssertionError("Duplicate native instruction form " + name);
       }
     }
+    collectBooleanInstructionForm(source, result, "threeOperandStorageOpcode", 3);
     return java.util.Map.copyOf(result);
+  }
+
+  private static void collectBooleanInstructionForm(
+      String source,
+      java.util.Map<String, Integer> result,
+      String method,
+      int operandCount) {
+    String dispatch = "if (" + method + "(opcode)) {\n      return " + operandCount + ";\n    }";
+    if (source.contains(dispatch) == false) {
+      throw new AssertionError("Missing native instruction form dispatch " + method);
+    }
+
+    int declaration = source.indexOf("private boolean " + method + "(");
+    if (declaration < 0) {
+      throw new AssertionError("Missing native instruction form classifier " + method);
+    }
+    int open = source.indexOf('{', declaration);
+    int cursor = open + 1;
+    int depth = 1;
+    while (cursor < source.length() && depth > 0) {
+      char scalar = source.charAt(cursor);
+      if (scalar == '{') {
+        depth++;
+      } else if (scalar == '}') {
+        depth--;
+      }
+      cursor++;
+    }
+    if (depth != 0) {
+      throw new AssertionError("Unclosed native instruction form classifier " + method);
+    }
+
+    var matches = WHEELER_OPCODE_TEST.matcher(source.substring(open, cursor));
+    while (matches.find()) {
+      String name = matches.group(1);
+      if (result.put(name, operandCount) != null) {
+        throw new AssertionError("Duplicate native instruction form " + name);
+      }
+    }
   }
 
   private static void check(Path source, String text, List<String> diagnostics) {

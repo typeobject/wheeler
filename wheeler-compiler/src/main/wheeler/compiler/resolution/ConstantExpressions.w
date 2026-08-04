@@ -67,8 +67,7 @@ classical class ConstantExpressions {
     }
 
     long cursor = firstDeclaration;
-    long count = 0;
-    while (cursor < memberStart) limit MAX_CONSTANT_DEPENDENCY_DEPTH {
+    while (cursor < memberStart) limit MAX_CLASS_CONSTANTS {
       if (consumeStep(steps) == false) {
         return new ExpressionResolution(0, false, false, false);
       }
@@ -100,7 +99,6 @@ classical class ConstantExpressions {
       }
 
       cursor = next;
-      count += 1;
     }
 
     return new ExpressionResolution(0, false, false, true);

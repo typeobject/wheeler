@@ -5,6 +5,8 @@ module wheeler.compiler.constant_declarations;
 import wheeler.compiler.tokens;
 
 classical class ConstantDeclarations {
+  /// Caps scalar constants before the first executable class member.
+  public const long MAX_CLASS_CONSTANTS = 128;
   /// Caps expression parentheses in the recovery compiler profile.
   public const long MAX_CONSTANT_EXPRESSION_DEPTH = 32;
   private const long TOKEN_CONST = 94844771;

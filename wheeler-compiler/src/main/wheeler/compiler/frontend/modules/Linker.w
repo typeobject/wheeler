@@ -408,7 +408,7 @@ classical class ModuleLinker {
     boolean privatizeExports,
     boolean deduplicateSharedPrefix
   ) {
-    region scratch = new region(/* bytes= */ 50000, /* allocations= */ 8);
+    region scratch = new region(/* bytes= */ 98336, /* allocations= */ 8);
     words importedKinds = allocate(scratch, MAX_COMPILER_TOKENS);
     words importedStarts = allocate(scratch, MAX_COMPILER_TOKENS);
     words importedLengths = allocate(scratch, MAX_COMPILER_TOKENS);
@@ -732,7 +732,7 @@ classical class ModuleLinker {
       );
     }
 
-    region scratch = new region(/* bytes= */ 25000, /* allocations= */ 3);
+    region scratch = new region(/* bytes= */ 49152, /* allocations= */ 3);
     words tokenKinds = allocate(scratch, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(scratch, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(scratch, MAX_COMPILER_TOKENS);

@@ -4,6 +4,7 @@ module wheeler.compiler.local_opcodes;
 
 import wheeler.compiler.call_forms;
 import wheeler.compiler.conditionals;
+import wheeler.compiler.early_return_opcodes;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.tokens;
@@ -13,34 +14,6 @@ classical class LocalOpcodes {
   public const long STATEMENT_RETURN_SIGNED_LOCAL_BASE = 14336;
   /// Starts resolved Boolean-local return opcodes.
   public const long STATEMENT_RETURN_BOOLEAN_LOCAL_BASE = 14592;
-
-  /// Checks whether an opcode guards one helper-call Boolean return.
-  public boolean resolvedEarlyHelperReturn(long opcode) {
-    if (opcode < STATEMENT_IF_HELPER_CALL_RETURN_BASE) {
-      return false;
-    }
-
-    return opcode < STATEMENT_IF_HELPER_CALL_RETURN_BASE + 256;
-  }
-
-  /// Returns the argument source for one helper-call Boolean return.
-  public long earlyHelperReturnSource(long opcode) {
-    return opcode - STATEMENT_IF_HELPER_CALL_RETURN_BASE;
-  }
-
-  /// Checks whether an opcode guards one early Boolean return.
-  public boolean resolvedEarlyBooleanReturn(long opcode) {
-    if (opcode < STATEMENT_IF_SIGNED_EQ_RETURN_BASE) {
-      return false;
-    }
-
-    return opcode < STATEMENT_IF_SIGNED_EQ_RETURN_BASE + 256;
-  }
-
-  /// Returns the signed source local for one early Boolean return.
-  public long earlyBooleanReturnSource(long opcode) {
-    return opcode - STATEMENT_IF_SIGNED_EQ_RETURN_BASE;
-  }
 
   /// Checks whether an opcode returns one resolved local.
   public boolean resolvedLocalReturn(long opcode) {
@@ -273,7 +246,7 @@ classical class LocalOpcodes {
       return 4;
     }
 
-    if (resolvedEarlyBooleanReturn(opcode)) {
+    if (resolvedEarlyEqualityReturn(opcode)) {
       return 4;
     }
 
@@ -659,7 +632,7 @@ classical class LocalOpcodes {
       return 168;
     }
 
-    if (resolvedEarlyBooleanReturn(opcode)) {
+    if (resolvedEarlyEqualityReturn(opcode)) {
       return 160;
     }
 
@@ -888,7 +861,7 @@ classical class LocalOpcodes {
       return 7;
     }
 
-    if (resolvedEarlyBooleanReturn(opcode)) {
+    if (resolvedEarlyEqualityReturn(opcode)) {
       return 7;
     }
 

@@ -7,9 +7,6 @@ import wheeler.compiler.constant_expressions;
 import wheeler.compiler.tokens;
 
 classical class ClassConstants {
-  /// Caps scalar constants before the first executable class member.
-  public const long MAX_CLASS_CONSTANTS = 64;
-
   /// Describes one typed lookup without reserving a scalar sentinel.
   public record ConstantResolution(long value, boolean found, boolean valid) {}
 

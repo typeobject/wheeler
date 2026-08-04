@@ -1,4 +1,4 @@
-//! Validates bounded scalar guards that return one Boolean literal.
+//! Validates bounded scalar guards with one literal return.
 
 module wheeler.compiler.early_return_forms;
 
@@ -8,7 +8,54 @@ import wheeler.compiler.statement_forms;
 import wheeler.compiler.tokens;
 
 classical class EarlyReturnForms {
-  /// Returns the exact width of one helper-call guard and Boolean return.
+  private long scalarReturnWidth(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long returnToken,
+    boolean signedResult
+  ) {
+    if (signedResult) {
+      if (loopOperandNamed(source, tokenStarts, returnToken)) {
+        if (
+          classConstantHasType(source, tokenStarts, tokenLengths, returnToken, true)
+        ) {
+          return 1;
+        }
+
+        return -1;
+      }
+
+      long width = signedNumberWidth(source, tokenKinds, tokenStarts, returnToken);
+      if (width < 1) {
+        return -1;
+      }
+
+      if (signedNumberValid(source, tokenStarts, tokenLengths, returnToken)) {
+        return width;
+      }
+
+      return -1;
+    }
+
+    long returned = tokenHash(source, tokenStarts, tokenLengths, returnToken);
+    if (booleanTokenHash(returned)) {
+      return 1;
+    }
+
+    return -1;
+  }
+
+  private boolean helperGuardResultSigned(long sourceOpcode) {
+    return sourceOpcode == STATEMENT_IF_HELPER_CALL_RETURN_LONG_NAMED;
+  }
+
+  private boolean equalityGuardResultSigned(long sourceOpcode) {
+    return sourceOpcode == STATEMENT_IF_SIGNED_EQ_RETURN_LONG_NAMED;
+  }
+
+  /// Returns the exact width of one helper-call guard and scalar return.
   public long earlyHelperReturnWidth(
     borrow utf8 source,
     borrow mut words tokenKinds,
@@ -90,8 +137,29 @@ classical class EarlyReturnForms {
       return -1;
     }
 
-    long returned = tokenHash(source, tokenStarts, tokenLengths, statementStart + 9);
-    if (booleanTokenHash(returned)) {} else {
+    long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    boolean knownForm = sourceOpcode == STATEMENT_IF_HELPER_CALL_RETURN_TRUE_NAMED;
+    if (sourceOpcode == STATEMENT_IF_HELPER_CALL_RETURN_FALSE_NAMED) {
+      knownForm = true;
+    }
+
+    if (helperGuardResultSigned(sourceOpcode)) {
+      knownForm = true;
+    }
+
+    if (knownForm) {} else {
+      return -1;
+    }
+
+    long returnWidth = scalarReturnWidth(
+      source,
+      tokenKinds,
+      tokenStarts,
+      tokenLengths,
+      statementStart + 9,
+      helperGuardResultSigned(sourceOpcode)
+    );
+    if (returnWidth < 1) {
       return -1;
     }
 
@@ -100,7 +168,7 @@ classical class EarlyReturnForms {
         source,
         tokenKinds,
         tokenStarts,
-        statementStart + 10,
+        statementStart + 9 + returnWidth,
         PUNCTUATION_SEMICOLON
       )
     ) {} else {
@@ -112,18 +180,18 @@ classical class EarlyReturnForms {
         source,
         tokenKinds,
         tokenStarts,
-        statementStart + 11,
+        statementStart + 10 + returnWidth,
         PUNCTUATION_CLOSE_BRACE
       )
     ) {
-      return 12;
+      return 11 + returnWidth;
     }
 
     return -1;
   }
 
-  /// Returns the exact width of one scalar equality guard and Boolean return.
-  public long earlyBooleanReturnWidth(
+  /// Returns the exact width of one scalar equality guard and scalar return.
+  public long earlyEqualityReturnWidth(
     borrow utf8 source,
     borrow mut words tokenKinds,
     borrow mut words tokenStarts,
@@ -210,13 +278,30 @@ classical class EarlyReturnForms {
       return -1;
     }
 
-    long returned = tokenHash(
+    long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    boolean knownForm = sourceOpcode == STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED;
+    if (sourceOpcode == STATEMENT_IF_SIGNED_EQ_RETURN_FALSE_NAMED) {
+      knownForm = true;
+    }
+
+    if (equalityGuardResultSigned(sourceOpcode)) {
+      knownForm = true;
+    }
+
+    if (knownForm) {} else {
+      return -1;
+    }
+
+    long returnedToken = statementStart + 8 + comparisonWidth;
+    long returnWidth = scalarReturnWidth(
       source,
+      tokenKinds,
       tokenStarts,
       tokenLengths,
-      statementStart + 8 + comparisonWidth
+      returnedToken,
+      equalityGuardResultSigned(sourceOpcode)
     );
-    if (booleanTokenHash(returned)) {} else {
+    if (returnWidth < 1) {
       return -1;
     }
 
@@ -225,7 +310,7 @@ classical class EarlyReturnForms {
         source,
         tokenKinds,
         tokenStarts,
-        statementStart + 9 + comparisonWidth,
+        returnedToken + returnWidth,
         PUNCTUATION_SEMICOLON
       )
     ) {} else {
@@ -237,11 +322,11 @@ classical class EarlyReturnForms {
         source,
         tokenKinds,
         tokenStarts,
-        statementStart + 10 + comparisonWidth,
+        returnedToken + returnWidth + 1,
         PUNCTUATION_CLOSE_BRACE
       )
     ) {
-      return 11 + comparisonWidth;
+      return returnedToken + returnWidth + 2 - statementStart;
     }
 
     return -1;

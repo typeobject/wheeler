@@ -2,6 +2,7 @@
 
 module wheeler.compiler.return_codegen;
 
+import wheeler.compiler.early_return_opcodes;
 import wheeler.compiler.encoding;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.opcodes;
@@ -64,10 +65,15 @@ classical class ReturnCodegen {
       return writeUnsignedLittleEndian(output, cursor, instructionBase + 7, U64);
     }
 
-    if (resolvedEarlyBooleanReturn(opcode)) {
+    if (resolvedEarlyEqualityReturn(opcode)) {
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, earlyBooleanReturnSource(opcode), U64);
+      cursor = writeUnsignedLittleEndian(
+        output,
+        cursor,
+        earlyEqualityReturnSource(opcode),
+        U64
+      );
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
       cursor = writeSignedLittleEndian(output, cursor, operand, U64);

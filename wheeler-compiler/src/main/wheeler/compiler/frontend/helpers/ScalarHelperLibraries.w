@@ -5,6 +5,7 @@ module wheeler.compiler.scalar_helper_libraries;
 import wheeler.compiler.body_parser;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.class_layouts;
+import wheeler.compiler.early_return_opcodes;
 import wheeler.compiler.encoding;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
@@ -73,13 +74,25 @@ classical class ScalarHelperLibraries {
 
     long statement = 0;
     while (statement < result) limit MAX_MINIMAL_STATEMENTS {
-      boolean earlyReturn = resolvedEarlyBooleanReturn(sequence.opcodes[statement]);
-      if (resolvedEarlyHelperReturn(sequence.opcodes[statement])) {
+      long earlyOpcode = sequence.opcodes[statement];
+      boolean earlyReturn = resolvedEarlyEqualityReturn(earlyOpcode);
+      if (resolvedEarlyHelperReturn(earlyOpcode)) {
         earlyReturn = true;
       }
 
       if (earlyReturn) {} else {
         return false;
+      }
+
+      boolean signedEarlyReturn = resolvedEarlySignedReturn(earlyOpcode);
+      if (kind == HELPER_BOOLEAN_SIGNED_ONE) {
+        if (signedEarlyReturn) {
+          return false;
+        }
+      } else {
+        if (signedEarlyReturn == false) {
+          return false;
+        }
       }
 
       statement += 1;
@@ -96,8 +109,11 @@ classical class ScalarHelperLibraries {
     borrow mut words statementStarts,
     long start
   ) {
-    if (tokenHash(source, tokenStarts, tokenLengths, start) == TOKEN_PUBLIC) {} else {
-      return invalidHelper();
+    long visibility = tokenHash(source, tokenStarts, tokenLengths, start);
+    if (visibility == TOKEN_PUBLIC) {} else {
+      if (visibility == TOKEN_PRIVATE) {} else {
+        return invalidHelper();
+      }
     }
 
     long returnType = tokenHash(source, tokenStarts, tokenLengths, start + 1);
@@ -188,6 +204,10 @@ classical class ScalarHelperLibraries {
       );
       boolean helperCall = sourceOpcode == STATEMENT_IF_HELPER_CALL_RETURN_TRUE_NAMED;
       if (sourceOpcode == STATEMENT_IF_HELPER_CALL_RETURN_FALSE_NAMED) {
+        helperCall = true;
+      }
+
+      if (sourceOpcode == STATEMENT_IF_HELPER_CALL_RETURN_LONG_NAMED) {
         helperCall = true;
       }
 

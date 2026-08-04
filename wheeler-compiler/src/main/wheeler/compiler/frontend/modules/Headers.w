@@ -261,7 +261,7 @@ classical class ModuleHeaders {
     borrow utf8 candidateSource,
     borrow utf8 dependentSource
   ) {
-    region arena = new region(/* bytes= */ 49184, /* allocations= */ 8);
+    region arena = new region(/* bytes= */ 98336, /* allocations= */ 8);
     words candidateKinds = allocate(arena, MAX_COMPILER_TOKENS);
     words candidateStarts = allocate(arena, MAX_COMPILER_TOKENS);
     words candidateLengths = allocate(arena, MAX_COMPILER_TOKENS);

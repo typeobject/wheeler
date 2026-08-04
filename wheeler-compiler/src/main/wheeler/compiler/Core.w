@@ -225,7 +225,7 @@ classical class CompilerCore {
 
   /// Compiles one bounded bootstrap source into caller-owned artifact storage.
   public CoreCompilation compileMinimalCore(borrow utf8 source, borrow mut bytes output) {
-    region arena = new region(/* bytes= */ 25632, /* allocations= */ 5);
+    region arena = new region(/* bytes= */ 50208, /* allocations= */ 5);
     words tokenKinds = allocate(arena, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(arena, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(arena, MAX_COMPILER_TOKENS);
