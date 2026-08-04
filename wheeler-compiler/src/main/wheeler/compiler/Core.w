@@ -62,7 +62,7 @@ classical class CompilerCore {
   ) {
     long readCursor = bodyStart;
     long writeCursor = 0;
-    while (readCursor < count) limit 512 {
+    while (readCursor < count) limit MAX_COMPILER_TOKENS {
       set(tokenKinds, writeCursor, tokenKinds[readCursor]);
       set(tokenStarts, writeCursor, tokenStarts[readCursor]);
       set(tokenLengths, writeCursor, tokenLengths[readCursor]);

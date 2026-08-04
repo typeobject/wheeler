@@ -407,6 +407,22 @@ classical class StatementForms {
 
     if (keyword == TOKEN_IF) {
       long conditionOperator = utf8Scalar(source, tokenStarts[statementStart + 3]);
+      if (conditionOperator == PUNCTUATION_OPEN_PAREN) {
+        long helperCallReturned = tokenHash(
+          source,
+          tokenStarts,
+          tokenLengths,
+          statementStart + 9
+        );
+        if (helperCallReturned == TOKEN_TRUE) {
+          return STATEMENT_IF_HELPER_CALL_RETURN_TRUE_NAMED;
+        }
+
+        if (helperCallReturned == TOKEN_FALSE) {
+          return STATEMENT_IF_HELPER_CALL_RETURN_FALSE_NAMED;
+        }
+      }
+
       long comparisonLiteralToken = -1;
       boolean lessThanComparison = conditionOperator == PUNCTUATION_LESS_THAN;
       if (lessThanComparison) {

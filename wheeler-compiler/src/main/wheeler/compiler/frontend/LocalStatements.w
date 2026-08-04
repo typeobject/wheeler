@@ -107,6 +107,28 @@ classical class LocalStatements {
     long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    boolean earlyHelperReturn = opcode == STATEMENT_IF_HELPER_CALL_RETURN_TRUE_NAMED;
+    if (opcode == STATEMENT_IF_HELPER_CALL_RETURN_FALSE_NAMED) {
+      earlyHelperReturn = true;
+    }
+
+    if (earlyHelperReturn) {
+      long earlyArgumentLocal = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 4,
+        true
+      );
+      if (-1 < earlyArgumentLocal) {
+        return STATEMENT_IF_HELPER_CALL_RETURN_BASE + earlyArgumentLocal;
+      }
+
+      return -1;
+    }
+
     boolean earlyBooleanReturn = opcode == STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED;
     if (opcode == STATEMENT_IF_SIGNED_EQ_RETURN_FALSE_NAMED) {
       earlyBooleanReturn = true;

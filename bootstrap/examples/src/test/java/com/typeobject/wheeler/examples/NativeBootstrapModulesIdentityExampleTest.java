@@ -25,13 +25,13 @@ final class NativeBootstrapModulesIdentityExampleTest {
   private static final Path ROOT = Path.of("src/main/wheeler/native/bootstrap");
   private static final String IDENTITY = "ab".repeat(32);
   private static final long MAX_CLOSURE_TRANSITIONS = 48_000_000;
-  private static final long MAX_LARGE_GRAPH_TRANSITIONS = 50_000_000;
+  private static final long MAX_LARGE_GRAPH_TRANSITIONS = 80_000_000;
 
   @Test
   void validatesThePhysicalBoundedCompilerClosure() throws Exception {
     BootstrapModuleManifest manifest = CompilerSources.bootstrapModuleManifest();
 
-    assertEquals(35_422, manifest.canonicalBytes().length);
+    assertEquals(35_981, manifest.canonicalBytes().length);
     VirtualMachine machine = vm(program(), manifest.canonicalBytes());
     long transitions = 0;
     while (machine.status() != MachineStatus.HALTED
@@ -40,13 +40,13 @@ final class NativeBootstrapModulesIdentityExampleTest {
       transitions += 1;
     }
 
-    assertEquals(45_607_871, transitions);
+    assertEquals(46_923_869, transitions);
     assertEquals(MachineStatus.HALTED, machine.status());
     assertArrayEquals(MessageDigest.getInstance("SHA-256").digest(manifest.canonicalBytes()),
         machine.hostOutput());
-    assertEquals(99, machine.global("moduleCount"));
+    assertEquals(100, machine.global("moduleCount"));
     assertEquals(1, machine.global("externalCount"));
-    assertEquals(377, machine.global("importCount"));
+    assertEquals(385, machine.global("importCount"));
     assertEquals(1, machine.global("published"));
   }
 
@@ -132,6 +132,8 @@ final class NativeBootstrapModulesIdentityExampleTest {
     assertLargeIdentity(program, oneHundredTwentyEightModules, 128, 0, 127);
     BootstrapModuleManifest oneHundredTwentyNineModules = generatedChainGraph(129);
     assertLargeNoIdentity(program, oneHundredTwentyNineModules.canonicalBytes());
+    BootstrapModuleManifest fiveHundredTwelveImports = generatedDenseGraph(512);
+    assertLargeIdentity(program, fiveHundredTwelveImports, 9, 64, 512);
     BootstrapModuleManifest sixtyFourExternals = generatedExternalGraph(64);
     assertLargeIdentity(program, sixtyFourExternals, 1, 64, 0);
     BootstrapModuleManifest sixtyFiveExternals = generatedExternalGraph(65);
@@ -195,6 +197,36 @@ final class NativeBootstrapModulesIdentityExampleTest {
     assertEquals(MachineStatus.TRAPPED, machine.status());
     assertArrayEquals(new byte[32], machine.hostOutput());
     assertEquals(0, machine.global("published"));
+  }
+
+  private static BootstrapModuleManifest generatedDenseGraph(int edgeLimit) {
+    List<String> externals = new ArrayList<>();
+    for (int external = 0; external < 64; external++) {
+      externals.add("e.x%02d".formatted(external));
+    }
+
+    List<Module> rows = new ArrayList<>();
+    List<String> rootImports = new ArrayList<>();
+    for (int module = 1; module < 9; module++) {
+      rootImports.add("b.m%02d".formatted(module));
+    }
+    rows.add(new Module("b.m00", "s/M00.w", "20".repeat(32), rootImports));
+
+    int edges = rootImports.size();
+    for (int owner = 1; owner < 9; owner++) {
+      List<String> imports = new ArrayList<>();
+      int ownerLimit = owner == 8 ? 64 : 63;
+      for (int external = 0; external < ownerLimit && edges < edgeLimit; external++) {
+        imports.add("e.x%02d".formatted(external));
+        edges += 1;
+      }
+      rows.add(new Module(
+          "b.m%02d".formatted(owner),
+          "s/M%02d.w".formatted(owner),
+          "%02x".formatted(32 + owner).repeat(32),
+          imports));
+    }
+    return new BootstrapModuleManifest("bootstrap-1", "b.m00", externals, rows);
   }
 
   private static BootstrapModuleManifest generatedExternalGraph(int count) {

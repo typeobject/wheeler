@@ -73,7 +73,12 @@ classical class ScalarHelperLibraries {
 
     long statement = 0;
     while (statement < result) limit MAX_MINIMAL_STATEMENTS {
-      if (resolvedEarlyBooleanReturn(sequence.opcodes[statement])) {} else {
+      boolean earlyReturn = resolvedEarlyBooleanReturn(sequence.opcodes[statement]);
+      if (resolvedEarlyHelperReturn(sequence.opcodes[statement])) {
+        earlyReturn = true;
+      }
+
+      if (earlyReturn) {} else {
         return false;
       }
 
@@ -171,6 +176,34 @@ classical class ScalarHelperLibraries {
       return invalidHelper();
     }
 
+    SourceRange callTarget = new SourceRange(0, 0);
+    long callCount = 0;
+    long sourceStatement = 0;
+    while (sourceStatement < statements.count) limit MAX_MINIMAL_STATEMENTS {
+      long sourceOpcode = statementOpcode(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStarts[sourceStatement]
+      );
+      boolean helperCall = sourceOpcode == STATEMENT_IF_HELPER_CALL_RETURN_TRUE_NAMED;
+      if (sourceOpcode == STATEMENT_IF_HELPER_CALL_RETURN_FALSE_NAMED) {
+        helperCall = true;
+      }
+
+      if (helperCall) {
+        long targetToken = statementStarts[sourceStatement] + 2;
+        callTarget = new SourceRange(tokenStarts[targetToken], tokenLengths[targetToken]);
+        callCount += 1;
+      }
+
+      sourceStatement += 1;
+    }
+
+    if (callCount < 2) {} else {
+      return invalidHelper();
+    }
+
     long shifted = statements.count;
     while (0 < shifted) limit MAX_MINIMAL_STATEMENTS {
       set(statementStarts, shifted, statementStarts[shifted - 1]);
@@ -196,7 +229,9 @@ classical class ScalarHelperLibraries {
       sequence.secondaryOperands,
       kind,
       sequence.count,
-      sequence.count - 1
+      sequence.count - 1,
+      callTarget,
+      -1
     );
     return new ParsedScalarHelper(body, statements.end + 1, true);
   }
@@ -208,6 +243,78 @@ classical class ScalarHelperLibraries {
       left.name.length,
       right.name.start,
       right.name.length
+    );
+  }
+
+  private HelperBody selectedBody(
+    HelperBody first,
+    HelperBody second,
+    HelperBody third,
+    HelperBody fourth,
+    long index
+  ) {
+    if (index == 0) {
+      return first;
+    }
+
+    if (index == 1) {
+      return second;
+    }
+
+    if (index == 2) {
+      return third;
+    }
+
+    return fourth;
+  }
+
+  private long resolveCallFunction(
+    borrow utf8 source,
+    HelperBody caller,
+    HelperBody first,
+    HelperBody second,
+    HelperBody third,
+    HelperBody fourth,
+    long helperCount
+  ) {
+    if (caller.callTargetName.length == 0) {
+      return -1;
+    }
+
+    long found = -1;
+    long helper = 0;
+    while (helper < helperCount) limit 4 {
+      HelperBody candidate = selectedBody(first, second, third, fourth, helper);
+      long order = compareAsciiSlices(
+        source,
+        caller.callTargetName.start,
+        caller.callTargetName.length,
+        candidate.name.start,
+        candidate.name.length
+      );
+      if (order == 0) {
+        if (candidate.kind == HELPER_BOOLEAN_SIGNED_ONE) {
+          found = helper;
+        }
+      }
+
+      helper += 1;
+    }
+
+    return found;
+  }
+
+  private HelperBody withCallFunction(HelperBody body, long callFunction) {
+    return new HelperBody(
+      body.name,
+      body.opcodes,
+      body.operands,
+      body.secondaryOperands,
+      body.kind,
+      body.statementCount,
+      body.resultStatement,
+      body.callTargetName,
+      callFunction
     );
   }
 
@@ -331,6 +438,75 @@ classical class ScalarHelperLibraries {
         return new MinimalProgramResult.Error(0);
       }
     }
+
+    long firstCallFunction = resolveCallFunction(
+      source,
+      firstBody,
+      firstBody,
+      secondBody,
+      thirdBody,
+      fourthBody,
+      helperCount
+    );
+    long secondCallFunction = resolveCallFunction(
+      source,
+      secondBody,
+      firstBody,
+      secondBody,
+      thirdBody,
+      fourthBody,
+      helperCount
+    );
+    long thirdCallFunction = resolveCallFunction(
+      source,
+      thirdBody,
+      firstBody,
+      secondBody,
+      thirdBody,
+      fourthBody,
+      helperCount
+    );
+    long fourthCallFunction = resolveCallFunction(
+      source,
+      fourthBody,
+      firstBody,
+      secondBody,
+      thirdBody,
+      fourthBody,
+      helperCount
+    );
+    if (0 < firstBody.callTargetName.length) {
+      if (-1 < firstCallFunction) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+    }
+
+    if (0 < secondBody.callTargetName.length) {
+      if (-1 < secondCallFunction) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+    }
+
+    if (2 < helperCount) {
+      if (0 < thirdBody.callTargetName.length) {
+        if (-1 < thirdCallFunction) {} else {
+          return new MinimalProgramResult.Error(0);
+        }
+      }
+    }
+
+    if (3 < helperCount) {
+      if (0 < fourthBody.callTargetName.length) {
+        if (-1 < fourthCallFunction) {} else {
+          return new MinimalProgramResult.Error(0);
+        }
+      }
+    }
+
+    firstBody = withCallFunction(firstBody, firstCallFunction);
+    secondBody = withCallFunction(secondBody, secondCallFunction);
+    thirdBody = withCallFunction(thirdBody, thirdCallFunction);
+    fourthBody = withCallFunction(fourthBody, fourthCallFunction);
 
     SourceRange name = new SourceRange(tokenStarts[2], tokenLengths[2]);
     SourceRange absent = new SourceRange(0, 0);

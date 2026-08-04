@@ -560,7 +560,9 @@ classical class HelperPrograms {
         helperSequence.secondaryOperands,
         helperKind,
         helperSequence.count,
-        helperResultStatement
+        helperResultStatement,
+        new SourceRange(0, 0),
+        -1
       ),
       emptyHelperBody(),
       emptyHelperBody(),

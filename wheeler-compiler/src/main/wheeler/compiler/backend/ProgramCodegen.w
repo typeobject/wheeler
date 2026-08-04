@@ -494,7 +494,8 @@ classical class ProgramCodegen {
           physicalResultSlotOperand(opcodes, statement, opcode, operands[statement]),
           secondaryOperands[statement],
           localBase,
-          instructionBase
+          instructionBase,
+          -1
         );
       }
 
@@ -513,7 +514,8 @@ classical class ProgramCodegen {
     long[64] operands,
     long[64] secondaryOperands,
     long count,
-    long localBase
+    long localBase,
+    long callFunction
   ) {
     long index = 0;
     long instructionBase = 0;
@@ -525,7 +527,8 @@ classical class ProgramCodegen {
         operands[index],
         secondaryOperands[index],
         localBase,
-        instructionBase
+        instructionBase,
+        callFunction
       );
       localBase += statementLocalCount(opcodes[index]);
       instructionBase += statementInstructionCount(opcodes[index]);
@@ -700,7 +703,8 @@ classical class ProgramCodegen {
       helperAt(program, 0).operands,
       helperAt(program, 0).secondaryOperands,
       helperAt(program, 0).statementCount,
-      helperLocalBase
+      helperLocalBase,
+      helperAt(program, 0).callFunction
     );
     if (HELPER_REVERSIBLE < helperAt(program, 0).kind) {
       return cursor;
@@ -727,7 +731,8 @@ classical class ProgramCodegen {
         program.statementOperands[0],
         program.statementSecondaryOperands[0],
         0,
-        instructionBase
+        instructionBase,
+        -1
       );
       instructionBase += statementInstructionCount(program.statementOpcodes[0]);
     }
@@ -756,7 +761,8 @@ classical class ProgramCodegen {
           program.statementOperands[0],
           program.statementSecondaryOperands[0],
           0,
-          instructionBase
+          instructionBase,
+          -1
         );
       }
     } else {
@@ -768,7 +774,8 @@ classical class ProgramCodegen {
           program.statementOperands[1],
           program.statementSecondaryOperands[1],
           statementLocalCount(program.statementOpcodes[0]),
-          instructionBase
+          instructionBase,
+          -1
         );
       }
     }
@@ -792,7 +799,8 @@ classical class ProgramCodegen {
         program.statementOperands,
         program.statementSecondaryOperands,
         program.statementCount,
-        0
+        0,
+        -1
       );
     }
 
@@ -808,7 +816,8 @@ classical class ProgramCodegen {
           body.operands,
           body.secondaryOperands,
           body.statementCount,
-          parameterCountForHelper(body.kind)
+          parameterCountForHelper(body.kind),
+          body.callFunction
         );
         helper += 1;
       }
@@ -835,7 +844,8 @@ classical class ProgramCodegen {
         program.statementOperands,
         program.statementSecondaryOperands,
         program.statementCount,
-        0
+        0,
+        -1
       );
     }
 

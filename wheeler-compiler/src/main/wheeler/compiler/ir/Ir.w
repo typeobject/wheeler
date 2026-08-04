@@ -58,7 +58,9 @@ classical class CompilerIr {
     long[64] secondaryOperands,
     long kind,
     long statementCount,
-    long resultStatement
+    long resultStatement,
+    SourceRange callTargetName,
+    long callFunction
   ) {}
 
   /// Defines immutable `MinimalProgram` values for this module.
@@ -110,7 +112,9 @@ classical class CompilerIr {
       emptyStatementOperands(),
       HELPER_VOID,
       0,
-      0
+      0,
+      new SourceRange(0, 0),
+      -1
     );
   }
 

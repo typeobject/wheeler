@@ -226,7 +226,8 @@ classical class Codegen {
     long operand,
     long secondaryOperand,
     long localBase,
-    long instructionBase
+    long instructionBase,
+    long callFunction
   ) {
     if (resolvedLocalWhile(opcode)) {
       return writeLocalWhile(
@@ -381,7 +382,8 @@ classical class Codegen {
       operand,
       secondaryOperand,
       localBase,
-      instructionBase
+      instructionBase,
+      callFunction
     );
     if (-1 < returnCursor) {
       return returnCursor;

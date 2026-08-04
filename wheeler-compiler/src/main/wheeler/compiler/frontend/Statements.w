@@ -144,6 +144,26 @@ classical class Statements {
     long statementStart
   ) {
     long statementKind = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (statementKind == STATEMENT_IF_HELPER_CALL_RETURN_TRUE_NAMED) {
+      return earlyHelperReturnWidth(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        statementStart
+      );
+    }
+
+    if (statementKind == STATEMENT_IF_HELPER_CALL_RETURN_FALSE_NAMED) {
+      return earlyHelperReturnWidth(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        statementStart
+      );
+    }
+
     if (statementKind == STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED) {
       return earlyBooleanReturnWidth(
         source,

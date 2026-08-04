@@ -99,6 +99,34 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesAnEarlySameModuleCallByteForByte() throws Exception {
+    String source = """
+        module examples.early_call;
+        classical class EarlyCall {
+          public boolean base(long opcode) {
+            return opcode == 1;
+          }
+
+          public boolean combined(long opcode) {
+            if (base(opcode)) {
+              return true;
+            }
+
+            return opcode == 2;
+          }
+        }
+        """;
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    VirtualMachine writer = nativeWriter(compiler, source);
+    CompilerMachineRunner.runWithoutRewindHistory(writer);
+
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("EarlyCall.w", source),
+        "examples.early_call");
+    assertArrayEquals(new BytecodeWriter().write(expected), writer.hostOutput());
+  }
+
+  @Test
   void compilesOneEntrylessHelperByteForByte() throws Exception {
     String source = """
         module examples.native_helper;
@@ -116,6 +144,26 @@ final class NativeCompilerSelfSourceExampleTest {
         Map.of("NativeHelper.w", source),
         "examples.native_helper");
     assertArrayEquals(new BytecodeWriter().write(expected), writer.hostOutput());
+  }
+
+  @Test
+  void compilesTheCanonicalOpcodeClassifiersByteForByte() throws Exception {
+    Program compiler = NativeModuleCompilerHarness.program();
+    String dependency = CompilerSources.read("compiler/ir/Opcodes.w");
+    String root = CompilerSources.read("compiler/ir/OpcodeKinds.w");
+
+    byte[] artifact = NativeModuleCompilerHarness.compile(compiler, dependency, root);
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of(
+            "compiler/ir/Opcodes.w", dependency,
+            "compiler/ir/OpcodeKinds.w", root),
+        "wheeler.compiler.opcode_kinds");
+    assertArrayEquals(new BytecodeWriter().write(expected), artifact);
+    Program decoded = new BytecodeReader().read(artifact);
+    assertEquals(5, decoded.functions().size());
+    assertEquals("wheeler.compiler.opcode_kinds::isLocalMathOpcode",
+        decoded.functions().get(3).name());
+    assertEquals("$library", decoded.functions().getLast().name());
   }
 
   @Test

@@ -437,6 +437,12 @@ classical class Tokens {
   public const long STATEMENT_IF_SIGNED_EQ_RETURN_FALSE_NAMED = 881;
   /// Starts resolved parameter equality guards returning a Boolean.
   public const long STATEMENT_IF_SIGNED_EQ_RETURN_BASE = 25856;
+  /// Names a scalar helper-call guard returning true.
+  public const long STATEMENT_IF_HELPER_CALL_RETURN_TRUE_NAMED = 882;
+  /// Names a scalar helper-call guard returning false.
+  public const long STATEMENT_IF_HELPER_CALL_RETURN_FALSE_NAMED = 883;
+  /// Starts resolved scalar helper-call guards returning a Boolean.
+  public const long STATEMENT_IF_HELPER_CALL_RETURN_BASE = 26112;
   /// Starts resolved bounded signed-local while loops.
   public const long STATEMENT_LOCAL_WHILE_BASE = 18688;
   /// Marks a while condition whose right operand names a prior local.

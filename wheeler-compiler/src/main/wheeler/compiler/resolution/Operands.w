@@ -6,6 +6,7 @@ import wheeler.compiler.assertion_resolution;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.conditionals;
+import wheeler.compiler.early_return_operands;
 import wheeler.compiler.expression_operands;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
@@ -29,6 +30,14 @@ classical class Operands {
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
     boolean ambiguousTypedStatement = oneArgumentCallNamed(opcode);
+    if (opcode == STATEMENT_IF_HELPER_CALL_RETURN_TRUE_NAMED) {
+      ambiguousTypedStatement = true;
+    }
+
+    if (opcode == STATEMENT_IF_HELPER_CALL_RETURN_FALSE_NAMED) {
+      ambiguousTypedStatement = true;
+    }
+
     if (opcode == STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED) {
       ambiguousTypedStatement = true;
     }
@@ -141,24 +150,19 @@ classical class Operands {
       previousCount
     );
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
-    if (resolvedEarlyBooleanReturn(opcode)) {
-      long comparisonToken = statementStart + 5;
-      if (loopOperandNamed(source, tokenStarts, comparisonToken)) {
-        ConstantResolution comparisonConstant = resolveClassConstant(
-          source,
-          tokenStarts,
-          tokenLengths,
-          comparisonToken,
-          true
-        );
-        if (comparisonConstant.valid) {
-          return comparisonConstant.value;
-        }
-
-        return -1;
+    EarlyReturnOperand earlyReturn = resolveEarlyReturnOperand(
+      source,
+      tokenStarts,
+      tokenLengths,
+      statementStart,
+      opcode
+    );
+    if (earlyReturn.applies) {
+      if (earlyReturn.valid) {
+        return earlyReturn.value;
       }
 
-      return parsedSignedNumber(source, tokenStarts, tokenLengths, comparisonToken);
+      return -1;
     }
 
     if (-1 < opcode) {
@@ -703,12 +707,15 @@ classical class Operands {
       previousCount
     );
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
-    if (resolvedEarlyBooleanReturn(opcode)) {
-      if (sourceOpcode == STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED) {
-        return 1;
-      }
-
-      return 0;
+    EarlyReturnOperand earlyReturn = resolveEarlyReturnSecondaryOperand(
+      source,
+      tokenStarts,
+      tokenLengths,
+      statementStart,
+      opcode
+    );
+    if (earlyReturn.applies) {
+      return earlyReturn.value;
     }
 
     if (resolvedLocalWhile(opcode)) {

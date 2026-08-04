@@ -64,9 +64,9 @@ The bounded compiler accepts one class, zero or one signed global, one optional 
 and one entry. It also emits the canonical unqualified `$library` halt entry for an
 entryless library. That path accepts zero or one general helper, or two through four public
 one-parameter scalar helpers. Signed-parameter Boolean helpers may contain bounded equality
-guards with literal early returns. A fifth helper fails before publication. The checked-in `compiler/ir/Opcodes.w`, `compiler/ir/ProofRules.w`,
-`compiler/ir/StorageOpcodes.w`, `compiler/ir/TypeCodes.w`, and imported-constant
-`compiler/ir/TypeKinds.w` modules compile byte for byte with stage 0. Five real self-source
+guards or one same-module scalar call with literal early returns. A fifth helper fails before publication. The checked-in `compiler/ir/Opcodes.w`, `compiler/ir/ProofRules.w`,
+`compiler/ir/StorageOpcodes.w`, `compiler/ir/TypeCodes.w`, imported-constant
+`compiler/ir/OpcodeKinds.w`, and imported-constant `compiler/ir/TypeKinds.w` modules compile byte for byte with stage 0. Six real self-source
 modules beat five motivational slides, though the bar remains under judicial review.
 A modular source may carry up to sixty-four sorted unique direct imports.
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
