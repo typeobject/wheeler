@@ -29,6 +29,14 @@ classical class Operands {
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
     boolean ambiguousTypedStatement = oneArgumentCallNamed(opcode);
+    if (opcode == STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED) {
+      ambiguousTypedStatement = true;
+    }
+
+    if (opcode == STATEMENT_IF_SIGNED_EQ_RETURN_FALSE_NAMED) {
+      ambiguousTypedStatement = true;
+    }
+
     if (twoArgumentCallFirstNamed(opcode)) {
       ambiguousTypedStatement = true;
     }
@@ -133,6 +141,26 @@ classical class Operands {
       previousCount
     );
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (resolvedEarlyBooleanReturn(opcode)) {
+      long comparisonToken = statementStart + 5;
+      if (loopOperandNamed(source, tokenStarts, comparisonToken)) {
+        ConstantResolution comparisonConstant = resolveClassConstant(
+          source,
+          tokenStarts,
+          tokenLengths,
+          comparisonToken,
+          true
+        );
+        if (comparisonConstant.valid) {
+          return comparisonConstant.value;
+        }
+
+        return -1;
+      }
+
+      return parsedSignedNumber(source, tokenStarts, tokenLengths, comparisonToken);
+    }
+
     if (-1 < opcode) {
       MutationOperand mutationOperand = resolveMutationOperand(
         source,
@@ -675,6 +703,14 @@ classical class Operands {
       previousCount
     );
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (resolvedEarlyBooleanReturn(opcode)) {
+      if (sourceOpcode == STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED) {
+        return 1;
+      }
+
+      return 0;
+    }
+
     if (resolvedLocalWhile(opcode)) {
       long loopLimit = whileLimitToken(source, tokenStarts, statementStart);
       if (resolvedLocalWhileLimitNamed(opcode)) {

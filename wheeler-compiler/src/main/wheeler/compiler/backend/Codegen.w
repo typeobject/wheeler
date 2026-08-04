@@ -380,7 +380,8 @@ classical class Codegen {
       opcode,
       operand,
       secondaryOperand,
-      localBase
+      localBase,
+      instructionBase
     );
     if (-1 < returnCursor) {
       return returnCursor;

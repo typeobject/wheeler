@@ -14,6 +14,20 @@ classical class LocalOpcodes {
   /// Starts resolved Boolean-local return opcodes.
   public const long STATEMENT_RETURN_BOOLEAN_LOCAL_BASE = 14592;
 
+  /// Checks whether an opcode guards one early Boolean return.
+  public boolean resolvedEarlyBooleanReturn(long opcode) {
+    if (opcode < STATEMENT_IF_SIGNED_EQ_RETURN_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_IF_SIGNED_EQ_RETURN_BASE + 256;
+  }
+
+  /// Returns the signed source local for one early Boolean return.
+  public long earlyBooleanReturnSource(long opcode) {
+    return opcode - STATEMENT_IF_SIGNED_EQ_RETURN_BASE;
+  }
+
   /// Checks whether an opcode returns one resolved local.
   public boolean resolvedLocalReturn(long opcode) {
     if (opcode < STATEMENT_RETURN_SIGNED_LOCAL_BASE) {
@@ -241,6 +255,10 @@ classical class LocalOpcodes {
 
   /// Returns the typed-local width required by one parsed statement.
   public long statementLocalCount(long opcode) {
+    if (resolvedEarlyBooleanReturn(opcode)) {
+      return 4;
+    }
+
     if (resolvedLocalWhile(opcode)) {
       return 6;
     }
@@ -619,6 +637,10 @@ classical class LocalOpcodes {
 
   /// Returns the encoded byte width of one parsed statement.
   public long statementCodeLength(long opcode) {
+    if (resolvedEarlyBooleanReturn(opcode)) {
+      return 160;
+    }
+
     if (resolvedLocalWhile(opcode)) {
       return 248;
     }
@@ -840,6 +862,10 @@ classical class LocalOpcodes {
 
   /// Returns the instruction count emitted by one parsed statement.
   public long statementInstructionCount(long opcode) {
+    if (resolvedEarlyBooleanReturn(opcode)) {
+      return 7;
+    }
+
     if (resolvedLocalWhile(opcode)) {
       return 10;
     }

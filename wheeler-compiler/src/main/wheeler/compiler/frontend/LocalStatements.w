@@ -107,6 +107,28 @@ classical class LocalStatements {
     long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    boolean earlyBooleanReturn = opcode == STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED;
+    if (opcode == STATEMENT_IF_SIGNED_EQ_RETURN_FALSE_NAMED) {
+      earlyBooleanReturn = true;
+    }
+
+    if (earlyBooleanReturn) {
+      long earlySourceLocal = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 2,
+        true
+      );
+      if (-1 < earlySourceLocal) {
+        return STATEMENT_IF_SIGNED_EQ_RETURN_BASE + earlySourceLocal;
+      }
+
+      return -1;
+    }
+
     if (opcode == STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED) {
       long whileTargetName = whileTargetToken(source, tokenStarts, statementStart);
       long whileTarget = resolvePriorDeclaration(

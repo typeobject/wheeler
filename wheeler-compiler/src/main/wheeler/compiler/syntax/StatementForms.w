@@ -428,6 +428,18 @@ classical class StatementForms {
           comparisonWidth = 2;
         }
 
+        long bodyStart = comparisonLiteralToken + 2 + comparisonWidth;
+        if (tokenHash(source, tokenStarts, tokenLengths, bodyStart) == TOKEN_RETURN) {
+          long returned = tokenHash(source, tokenStarts, tokenLengths, bodyStart + 1);
+          if (returned == TOKEN_TRUE) {
+            return STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED;
+          }
+
+          if (returned == TOKEN_FALSE) {
+            return STATEMENT_IF_SIGNED_EQ_RETURN_FALSE_NAMED;
+          }
+        }
+
         long comparisonBodyOperator = utf8Scalar(
           source,
           tokenStarts[comparisonLiteralToken + 3 + comparisonWidth]

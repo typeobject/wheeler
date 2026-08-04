@@ -71,6 +71,34 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesEarlyBooleanReturnsByteForByte() throws Exception {
+    String source = """
+        module examples.early_return;
+        classical class EarlyReturn {
+          public boolean known(long opcode) {
+            if (opcode == 1) {
+              return true;
+            }
+
+            if (opcode == 2) {
+              return false;
+            }
+
+            return opcode == 3;
+          }
+        }
+        """;
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    VirtualMachine writer = nativeWriter(compiler, source);
+    CompilerMachineRunner.runWithoutRewindHistory(writer);
+
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("EarlyReturn.w", source),
+        "examples.early_return");
+    assertArrayEquals(new BytecodeWriter().write(expected), writer.hostOutput());
+  }
+
+  @Test
   void compilesOneEntrylessHelperByteForByte() throws Exception {
     String source = """
         module examples.native_helper;
@@ -171,10 +199,41 @@ final class NativeCompilerSelfSourceExampleTest {
     assertEquals("examples.two_helpers::alpha", decoded.functions().get(0).name());
     assertEquals("examples.two_helpers::omega", decoded.functions().get(3).name());
     assertEquals("$library", decoded.functions().get(4).name());
+
+    String reordered = twoHelperSource("""
+          public long omega(long value) {
+            return value;
+          }
+
+          public long alpha(long value) {
+            return value;
+          }
+
+          public long gamma(long value) {
+            return value;
+          }
+
+          public long beta(long value) {
+            return value;
+          }
+        """);
+    VirtualMachine reorderedWriter = nativeWriter(compiler, reordered);
+    CompilerMachineRunner.runWithoutRewindHistory(reorderedWriter);
+    Program reorderedExpected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("FourHelpers.w", reordered),
+        "examples.two_helpers");
+    Program reorderedDecoded = new BytecodeReader().read(reorderedWriter.hostOutput());
+    assertEquals("examples.two_helpers::omega", reorderedDecoded.functions().get(0).name());
+    assertEquals("examples.two_helpers::alpha", reorderedDecoded.functions().get(1).name());
+    assertEquals("examples.two_helpers::gamma", reorderedDecoded.functions().get(2).name());
+    assertEquals("examples.two_helpers::beta", reorderedDecoded.functions().get(3).name());
+    assertArrayEquals(
+        new BytecodeWriter().write(reorderedExpected),
+        reorderedWriter.hostOutput());
   }
 
   @Test
-  void rejectsUnsortedOrExcessEntrylessHelpersBeforePublication() throws Exception {
+  void rejectsExcessEntrylessHelpersBeforePublication() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
     String source = twoHelperSource("""
           public long alpha(long value) {
@@ -198,15 +257,6 @@ final class NativeCompilerSelfSourceExampleTest {
           }
         """);
     assertNoPublication(compiler, source);
-    assertNoPublication(compiler, twoHelperSource("""
-          public long second(long value) {
-            return value;
-          }
-
-          public long first(long value) {
-            return value;
-          }
-        """));
   }
 
   private static void assertNoPublication(Program compiler, String source) {

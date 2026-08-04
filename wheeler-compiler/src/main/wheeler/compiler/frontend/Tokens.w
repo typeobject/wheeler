@@ -431,6 +431,12 @@ classical class Tokens {
   public const long STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED = 878;
   /// Names one resolved global equality assertion against a class constant.
   public const long STATEMENT_ASSERT_GLOBAL_CONSTANT = 879;
+  /// Names a parameter equality guard returning true.
+  public const long STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED = 880;
+  /// Names a parameter equality guard returning false.
+  public const long STATEMENT_IF_SIGNED_EQ_RETURN_FALSE_NAMED = 881;
+  /// Starts resolved parameter equality guards returning a Boolean.
+  public const long STATEMENT_IF_SIGNED_EQ_RETURN_BASE = 25856;
   /// Starts resolved bounded signed-local while loops.
   public const long STATEMENT_LOCAL_WHILE_BASE = 18688;
   /// Marks a while condition whose right operand names a prior local.
