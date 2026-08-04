@@ -2,6 +2,7 @@
 
 module wheeler.runtime.interpreter;
 
+import wheeler.compiler.opcode_kinds;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.storage_opcodes;
 import wheeler.compiler.type_codes;

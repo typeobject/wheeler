@@ -1,6 +1,7 @@
 //! Executes the bounded scalar result-slot primitives used by the native interpreter.
 module wheeler.runtime.result_slots;
 
+import wheeler.compiler.opcode_kinds;
 import wheeler.compiler.opcodes;
 import wheeler.core.encoding.binary;
 

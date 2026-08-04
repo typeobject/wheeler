@@ -3,6 +3,7 @@ module wheeler.compiler.instruction_verifier;
 
 import wheeler.compiler.aggregate_verifier;
 import wheeler.compiler.instruction_forms;
+import wheeler.compiler.opcode_kinds;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.result_slot_verifier;
 import wheeler.compiler.storage_opcodes;

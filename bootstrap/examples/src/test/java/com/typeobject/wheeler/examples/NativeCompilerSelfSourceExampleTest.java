@@ -34,10 +34,40 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesTheCanonicalCoreOpcodeOwnerByteForByte() throws Exception {
+    assertConstantOnlyCompilerLibrary(
+        "compiler/ir/Opcodes.w",
+        "wheeler.compiler.opcodes");
+  }
+
+  @Test
   void compilesTheCanonicalStorageOpcodeOwnerByteForByte() throws Exception {
     assertConstantOnlyCompilerLibrary(
         "compiler/ir/StorageOpcodes.w",
         "wheeler.compiler.storage_opcodes");
+  }
+
+  @Test
+  void hashesTheCompleteBoundedIdentifier() throws Exception {
+    String acceptedName = "A".repeat(256);
+    String source = "module examples.long_name; classical class LongName { "
+        + "public const long " + acceptedName + " = 40; "
+        + "public const long VALUE = " + acceptedName + " + 2; }";
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    VirtualMachine writer = nativeWriter(compiler, source);
+    CompilerMachineRunner.runWithoutRewindHistory(writer);
+
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("LongName.w", source),
+        "examples.long_name");
+    assertArrayEquals(new BytecodeWriter().write(expected), writer.hostOutput());
+
+    String rejected = source.replace(acceptedName, acceptedName + "A");
+    VirtualMachine rejectedWriter = nativeWriter(compiler, rejected);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(rejectedWriter));
+    assertArrayEquals(new byte[OUTPUT_CAPACITY], rejectedWriter.hostOutput());
   }
 
   @Test

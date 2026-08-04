@@ -1,6 +1,7 @@
 //! Verifies bounded scalar result-slot transition operands.
 module wheeler.compiler.result_slot_verifier;
 
+import wheeler.compiler.opcode_kinds;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.type_codes;
 import wheeler.core.encoding.binary;
