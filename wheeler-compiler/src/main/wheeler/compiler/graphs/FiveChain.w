@@ -78,7 +78,7 @@ classical class CompilerFiveChain {
     assert(plan.valid);
     assert(plan.topology == FIVE_PLAN_CHAIN);
 
-    region leafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region leafArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 leafSource = copySelectedFiveSource(
       plan.first,
       firstSource,
@@ -88,7 +88,7 @@ classical class CompilerFiveChain {
       fifthSource,
       leafArena
     );
-    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 orderedSecondSource = copySelectedFiveSource(
       plan.second,
       firstSource,
@@ -98,14 +98,17 @@ classical class CompilerFiveChain {
       fifthSource,
       secondArena
     );
-    region linkedSecondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region linkedSecondArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 linkedSecondSource = linkPrivateLeaf(leafSource, orderedSecondSource, linkedSecondArena);
     drop(orderedSecondSource);
     drop(secondArena);
     drop(leafSource);
     drop(leafArena);
 
-    region thirdArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 orderedThirdSource = copySelectedFiveSource(
       plan.third,
       firstSource,
@@ -115,7 +118,10 @@ classical class CompilerFiveChain {
       fifthSource,
       thirdArena
     );
-    region linkedThirdArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region linkedThirdArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 linkedThirdSource = linkPrivateResolved(
       linkedSecondSource,
       orderedThirdSource,
@@ -126,7 +132,7 @@ classical class CompilerFiveChain {
     drop(linkedSecondSource);
     drop(linkedSecondArena);
 
-    region fourthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 orderedFourthSource = copySelectedFiveSource(
       plan.fourth,
       firstSource,
@@ -136,7 +142,10 @@ classical class CompilerFiveChain {
       fifthSource,
       fourthArena
     );
-    region linkedFourthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region linkedFourthArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 linkedFourthSource = linkPrivateResolved(
       linkedThirdSource,
       orderedFourthSource,
@@ -147,7 +156,7 @@ classical class CompilerFiveChain {
     drop(linkedThirdSource);
     drop(linkedThirdArena);
 
-    region fifthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region fifthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 orderedFifthSource = copySelectedFiveSource(
       plan.fifth,
       firstSource,
@@ -157,7 +166,10 @@ classical class CompilerFiveChain {
       fifthSource,
       fifthArena
     );
-    region linkedFifthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region linkedFifthArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 linkedFifthSource = linkPrivateResolved(
       linkedFourthSource,
       orderedFifthSource,
@@ -168,7 +180,7 @@ classical class CompilerFiveChain {
     drop(linkedFourthSource);
     drop(linkedFourthArena);
 
-    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region rootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 linkedRootSource = linkRoot(linkedFifthSource, rootSource, rootArena);
     CoreCompilation compiled = compileMinimalCore(linkedRootSource, output);
     drop(linkedRootSource);

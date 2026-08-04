@@ -62,7 +62,7 @@ classical class CompilerFiveFork {
     assert(plan.valid);
     assert(plan.topology == FIVE_PLAN_FORK);
 
-    region dependentArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region dependentArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 dependentSource = copySelectedFiveSource(
       plan.fifth,
       firstSource,
@@ -72,7 +72,7 @@ classical class CompilerFiveFork {
       fifthSource,
       dependentArena
     );
-    region firstLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstLeafArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 firstLeafSource = copySelectedFiveSource(
       plan.first,
       firstSource,
@@ -82,14 +82,20 @@ classical class CompilerFiveFork {
       fifthSource,
       firstLeafArena
     );
-    region firstLinkedArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstLinkedArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 firstLinkedSource = linkLeaf(firstLeafSource, dependentSource, firstLinkedArena);
     drop(firstLeafSource);
     drop(firstLeafArena);
     drop(dependentSource);
     drop(dependentArena);
 
-    region secondLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondLeafArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 secondLeafSource = copySelectedFiveSource(
       plan.second,
       firstSource,
@@ -99,14 +105,17 @@ classical class CompilerFiveFork {
       fifthSource,
       secondLeafArena
     );
-    region secondLinkedArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondLinkedArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 secondLinkedSource = linkLeaf(secondLeafSource, firstLinkedSource, secondLinkedArena);
     drop(secondLeafSource);
     drop(secondLeafArena);
     drop(firstLinkedSource);
     drop(firstLinkedArena);
 
-    region thirdLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region thirdLeafArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 thirdLeafSource = copySelectedFiveSource(
       plan.third,
       firstSource,
@@ -116,14 +125,20 @@ classical class CompilerFiveFork {
       fifthSource,
       thirdLeafArena
     );
-    region thirdLinkedArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region thirdLinkedArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 thirdLinkedSource = linkLeaf(thirdLeafSource, secondLinkedSource, thirdLinkedArena);
     drop(thirdLeafSource);
     drop(thirdLeafArena);
     drop(secondLinkedSource);
     drop(secondLinkedArena);
 
-    region fourthLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region fourthLeafArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 fourthLeafSource = copySelectedFiveSource(
       plan.fourth,
       firstSource,
@@ -133,14 +148,17 @@ classical class CompilerFiveFork {
       fifthSource,
       fourthLeafArena
     );
-    region fourthLinkedArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region fourthLinkedArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 fourthLinkedSource = linkLeaf(fourthLeafSource, thirdLinkedSource, fourthLinkedArena);
     drop(fourthLeafSource);
     drop(fourthLeafArena);
     drop(thirdLinkedSource);
     drop(thirdLinkedArena);
 
-    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region rootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 linkedRootSource = linkRoot(fourthLinkedSource, rootSource, rootArena);
     CoreCompilation compiled = compileMinimalCore(linkedRootSource, output);
     drop(linkedRootSource);

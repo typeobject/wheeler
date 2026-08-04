@@ -32,7 +32,7 @@ classical class CompilerGraphFourNested {
       return new NestedFourCompilation(0, 0);
     }
 
-    region firstArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes firstBytes = allocateBytes(firstArena, firstLeafPlan.linkedLength);
     long firstWritten = writeConstantImport(
       firstLeafSource,
@@ -54,7 +54,7 @@ classical class CompilerGraphFourNested {
       return new NestedFourCompilation(0, 0);
     }
 
-    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes secondBytes = allocateBytes(secondArena, secondLeafPlan.linkedLength);
     long secondWritten = writeConstantImport(
       secondLeafSource,
@@ -78,7 +78,7 @@ classical class CompilerGraphFourNested {
       return new NestedFourCompilation(0, 0);
     }
 
-    region parentArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region parentArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes parentBytes = allocateBytes(parentArena, parentPlan.linkedLength);
     long parentWritten = writeConstantImport(
       linkedForkSource,
@@ -104,7 +104,7 @@ classical class CompilerGraphFourNested {
       return new NestedFourCompilation(0, 0);
     }
 
-    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region rootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes rootBytes = allocateBytes(rootArena, rootPlan.linkedLength);
     long rootWritten = writeConstantImport(linkedParentSource, rootSource, rootPlan, rootBytes);
     assert(rootWritten == rootPlan.linkedLength);
@@ -139,7 +139,7 @@ classical class CompilerGraphFourNested {
       return new NestedFourCompilation(0, 0);
     }
 
-    region middleArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region middleArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes middleBytes = allocateBytes(middleArena, leafPlan.linkedLength);
     long middleWritten = writeConstantImport(leafSource, middleSource, leafPlan, middleBytes);
     assert(middleWritten == leafPlan.linkedLength);
@@ -156,7 +156,7 @@ classical class CompilerGraphFourNested {
       return new NestedFourCompilation(0, 0);
     }
 
-    region dependentArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region dependentArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes dependentBytes = allocateBytes(dependentArena, middlePlan.linkedLength);
     long dependentWritten = writeConstantImport(
       linkedMiddleSource,
@@ -180,7 +180,7 @@ classical class CompilerGraphFourNested {
       return new NestedFourCompilation(0, 0);
     }
 
-    region otherArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region otherArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes otherBytes = allocateBytes(otherArena, otherLeafPlan.linkedLength);
     long otherWritten = writeConstantImport(
       otherLeafSource,
@@ -206,7 +206,7 @@ classical class CompilerGraphFourNested {
       return new NestedFourCompilation(0, 0);
     }
 
-    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region rootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes rootBytes = allocateBytes(rootArena, rootPlan.linkedLength);
     long rootWritten = writeConstantImport(
       linkedDependentSource,

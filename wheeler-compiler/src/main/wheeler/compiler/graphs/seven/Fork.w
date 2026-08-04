@@ -64,7 +64,7 @@ classical class SevenConstantFork {
     assert(plan.valid);
     assert(plan.topology == SEVEN_PLAN_FORK);
 
-    region dependentArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region dependentArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 dependentSource = copySelectedSevenSource(
       plan.seventh,
       firstSource,
@@ -76,7 +76,7 @@ classical class SevenConstantFork {
       seventhSource,
       dependentArena
     );
-    region firstLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstLeafArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 firstLeafSource = copySelectedSevenSource(
       plan.first,
       firstSource,
@@ -88,14 +88,20 @@ classical class SevenConstantFork {
       seventhSource,
       firstLeafArena
     );
-    region firstLinkedArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstLinkedArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 firstLinkedSource = linkLeaf(firstLeafSource, dependentSource, firstLinkedArena);
     drop(firstLeafSource);
     drop(firstLeafArena);
     drop(dependentSource);
     drop(dependentArena);
 
-    region secondLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondLeafArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 secondLeafSource = copySelectedSevenSource(
       plan.second,
       firstSource,
@@ -107,14 +113,17 @@ classical class SevenConstantFork {
       seventhSource,
       secondLeafArena
     );
-    region secondLinkedArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondLinkedArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 secondLinkedSource = linkLeaf(secondLeafSource, firstLinkedSource, secondLinkedArena);
     drop(secondLeafSource);
     drop(secondLeafArena);
     drop(firstLinkedSource);
     drop(firstLinkedArena);
 
-    region thirdLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region thirdLeafArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 thirdLeafSource = copySelectedSevenSource(
       plan.third,
       firstSource,
@@ -126,14 +135,20 @@ classical class SevenConstantFork {
       seventhSource,
       thirdLeafArena
     );
-    region thirdLinkedArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region thirdLinkedArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 thirdLinkedSource = linkLeaf(thirdLeafSource, secondLinkedSource, thirdLinkedArena);
     drop(thirdLeafSource);
     drop(thirdLeafArena);
     drop(secondLinkedSource);
     drop(secondLinkedArena);
 
-    region fourthLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region fourthLeafArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 fourthLeafSource = copySelectedSevenSource(
       plan.fourth,
       firstSource,
@@ -145,14 +160,17 @@ classical class SevenConstantFork {
       seventhSource,
       fourthLeafArena
     );
-    region fourthLinkedArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region fourthLinkedArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 fourthLinkedSource = linkLeaf(fourthLeafSource, thirdLinkedSource, fourthLinkedArena);
     drop(fourthLeafSource);
     drop(fourthLeafArena);
     drop(thirdLinkedSource);
     drop(thirdLinkedArena);
 
-    region fifthLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region fifthLeafArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 fifthLeafSource = copySelectedSevenSource(
       plan.fifth,
       firstSource,
@@ -164,14 +182,17 @@ classical class SevenConstantFork {
       seventhSource,
       fifthLeafArena
     );
-    region fifthLinkedArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region fifthLinkedArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 fifthLinkedSource = linkLeaf(fifthLeafSource, fourthLinkedSource, fifthLinkedArena);
     drop(fifthLeafSource);
     drop(fifthLeafArena);
     drop(fourthLinkedSource);
     drop(fourthLinkedArena);
 
-    region sixthLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region sixthLeafArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 sixthLeafSource = copySelectedSevenSource(
       plan.sixth,
       firstSource,
@@ -183,14 +204,17 @@ classical class SevenConstantFork {
       seventhSource,
       sixthLeafArena
     );
-    region sixthLinkedArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region sixthLinkedArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 linkedDependentSource = linkLeaf(sixthLeafSource, fifthLinkedSource, sixthLinkedArena);
     drop(sixthLeafSource);
     drop(sixthLeafArena);
     drop(fifthLinkedSource);
     drop(fifthLinkedArena);
 
-    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region rootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 linkedRootSource = linkRoot(linkedDependentSource, rootSource, rootArena);
     CoreCompilation compiled = compileMinimalCore(linkedRootSource, output);
     drop(linkedRootSource);

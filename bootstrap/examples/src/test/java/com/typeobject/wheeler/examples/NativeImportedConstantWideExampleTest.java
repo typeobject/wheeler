@@ -5,6 +5,7 @@ import static com.typeobject.wheeler.examples.NativeModuleCompilerHarness.compil
 import static com.typeobject.wheeler.examples.NativeModuleCompilerHarness.program;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
@@ -828,6 +829,25 @@ class NativeImportedConstantWideExampleTest {
         + "import examples.thirteen; import examples.three; import examples.two; "
         + "classical class Root { entry void main() {} }";
     assertTrap(program(), imported, root);
+  }
+
+  @Test
+  void rejectsLinkedSourceBeyondThirtyTwoKiB() throws Exception {
+    String importedPadding = "x".repeat(14_000);
+    String rootPadding = "r".repeat(5_000);
+    String alpha = "module examples.alpha; classical class Alpha { "
+        + "public const long ALPHA = 1; /*" + importedPadding + "*/ }";
+    String beta = "module examples.beta; classical class Beta { "
+        + "public const long BETA = 2; /*" + importedPadding + "*/ }";
+    String root = "module examples.root; import examples.alpha; import examples.beta; "
+        + "classical class Root { public const long ANSWER = ALPHA + BETA; /*"
+        + rootPadding + "*/ }";
+
+    assertTrue(alpha.length() < 16_385);
+    assertTrue(beta.length() < 16_385);
+    assertTrue(root.length() < 16_385);
+    assertTrue(alpha.length() + beta.length() + root.length() > 32_768);
+    assertTrap(program(), List.of(alpha, beta), root);
   }
 
   private static byte[] assertEveryOrderMatchesStageZero(

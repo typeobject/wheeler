@@ -35,7 +35,7 @@ classical class CompilerGraphFourBranches {
       return new BranchedFourCompilation(0, 0);
     }
 
-    region dependentArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region dependentArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes dependentBytes = allocateBytes(dependentArena, leafPlan.linkedLength);
     long dependentWritten = writeConstantImport(
       leafSource,
@@ -57,7 +57,7 @@ classical class CompilerGraphFourBranches {
       return new BranchedFourCompilation(0, 0);
     }
 
-    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region rootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes rootBytes = allocateBytes(rootArena, rootPlan.linkedLength);
     long rootWritten = writeConstantImport(
       linkedDependentSource,
@@ -81,7 +81,10 @@ classical class CompilerGraphFourBranches {
       return new BranchedFourCompilation(0, 0);
     }
 
-    region firstDirectArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstDirectArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     bytes firstDirectBytes = allocateBytes(firstDirectArena, firstDirectPlan.linkedLength);
     long firstDirectWritten = writeConstantImport(
       firstDirectSource,
@@ -107,7 +110,7 @@ classical class CompilerGraphFourBranches {
       return new BranchedFourCompilation(0, 0);
     }
 
-    region finalArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region finalArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes finalBytes = allocateBytes(finalArena, secondDirectPlan.linkedLength);
     long finalWritten = writeConstantImport(
       secondDirectSource,
@@ -147,7 +150,10 @@ classical class CompilerGraphFourBranches {
       return new BranchedFourCompilation(0, 0);
     }
 
-    region firstDependentArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstDependentArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     bytes firstDependentBytes = allocateBytes(firstDependentArena, firstLeafPlan.linkedLength);
     long firstDependentWritten = writeConstantImport(
       firstLeafSource,
@@ -169,7 +175,10 @@ classical class CompilerGraphFourBranches {
       return new BranchedFourCompilation(0, 0);
     }
 
-    region secondDependentArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondDependentArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     bytes secondDependentBytes = allocateBytes(secondDependentArena, secondLeafPlan.linkedLength);
     long secondDependentWritten = writeConstantImport(
       secondLeafSource,
@@ -193,7 +202,7 @@ classical class CompilerGraphFourBranches {
       return new BranchedFourCompilation(0, 0);
     }
 
-    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region rootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes rootBytes = allocateBytes(rootArena, firstRootPlan.linkedLength);
     long firstRootWritten = writeConstantImport(
       linkedFirstDependentSource,
@@ -219,7 +228,7 @@ classical class CompilerGraphFourBranches {
       return new BranchedFourCompilation(0, 0);
     }
 
-    region finalArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region finalArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes finalBytes = allocateBytes(finalArena, secondRootPlan.linkedLength);
     long finalWritten = writeConstantImport(
       linkedSecondDependentSource,
@@ -259,7 +268,7 @@ classical class CompilerGraphFourBranches {
       return new BranchedFourCompilation(0, 0);
     }
 
-    region firstArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes firstBytes = allocateBytes(firstArena, firstLeafPlan.linkedLength);
     long firstWritten = writeConstantImport(
       firstLeafSource,
@@ -281,7 +290,7 @@ classical class CompilerGraphFourBranches {
       return new BranchedFourCompilation(0, 0);
     }
 
-    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes secondBytes = allocateBytes(secondArena, secondLeafPlan.linkedLength);
     long secondWritten = writeConstantImport(
       secondLeafSource,
@@ -305,7 +314,7 @@ classical class CompilerGraphFourBranches {
       return new BranchedFourCompilation(0, 0);
     }
 
-    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region rootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes rootBytes = allocateBytes(rootArena, rootPlan.linkedLength);
     long rootWritten = writeConstantImport(
       linkedDependentSource,
@@ -331,7 +340,7 @@ classical class CompilerGraphFourBranches {
       return new BranchedFourCompilation(0, 0);
     }
 
-    region finalArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region finalArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes finalBytes = allocateBytes(finalArena, directPlan.linkedLength);
     long finalWritten = writeConstantImport(
       directSource,

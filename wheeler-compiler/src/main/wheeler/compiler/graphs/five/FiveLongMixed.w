@@ -28,7 +28,7 @@ classical class CompilerFiveLongMixed {
       return new FiveLongMixedCompilation(0, 0);
     }
 
-    region dependentArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region dependentArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes dependentBytes = allocateBytes(dependentArena, dependentPlan.linkedLength);
     long dependentWritten = writeConstantImport(
       linkedMiddleSource,
@@ -50,7 +50,7 @@ classical class CompilerFiveLongMixed {
       return new FiveLongMixedCompilation(0, 0);
     }
 
-    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region rootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes rootBytes = allocateBytes(rootArena, rootPlan.linkedLength);
     long rootWritten = writeConstantImport(
       linkedDependentSource,
@@ -74,7 +74,10 @@ classical class CompilerFiveLongMixed {
       return new FiveLongMixedCompilation(0, 0);
     }
 
-    region firstDirectArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstDirectArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     bytes firstDirectBytes = allocateBytes(firstDirectArena, firstDirectPlan.linkedLength);
     long firstDirectWritten = writeConstantImport(
       firstDirectSource,
@@ -100,7 +103,7 @@ classical class CompilerFiveLongMixed {
       return new FiveLongMixedCompilation(0, 0);
     }
 
-    region finalArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region finalArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes finalBytes = allocateBytes(finalArena, secondDirectPlan.linkedLength);
     long finalWritten = writeConstantImport(
       secondDirectSource,
@@ -141,7 +144,7 @@ classical class CompilerFiveLongMixed {
       return new FiveLongMixedCompilation(0, 0);
     }
 
-    region middleArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region middleArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes middleBytes = allocateBytes(middleArena, middlePlan.linkedLength);
     long middleWritten = writeConstantImport(leafSource, middleSource, middlePlan, middleBytes);
     assert(middleWritten == middlePlan.linkedLength);

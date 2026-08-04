@@ -4,7 +4,7 @@ module wheeler.lexer.scanner;
 
 classical class Scanner {
   /// Caps one physical or linked compiler source window.
-  private const long MAX_SCANNER_SOURCE_BYTES = 16384;
+  private const long MAX_SCANNER_SOURCE_BYTES = 32768;
 
   /// Defines immutable `ScanDiagnostic` values for this module.
   public record ScanDiagnostic(long code, long offset, long line, long column) {}

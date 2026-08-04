@@ -32,7 +32,7 @@ classical class CompilerGraphFourMixed {
       return new MixedFourCompilation(0, 0);
     }
 
-    region middleArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region middleArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes middleBytes = allocateBytes(middleArena, leafPlan.linkedLength);
     long middleWritten = writeConstantImport(leafSource, middleSource, leafPlan, middleBytes);
     assert(middleWritten == leafPlan.linkedLength);
@@ -49,7 +49,7 @@ classical class CompilerGraphFourMixed {
       return new MixedFourCompilation(0, 0);
     }
 
-    region dependentArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region dependentArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes dependentBytes = allocateBytes(dependentArena, dependentPlan.linkedLength);
     long dependentWritten = writeConstantImport(
       linkedMiddleSource,
@@ -73,7 +73,7 @@ classical class CompilerGraphFourMixed {
       return new MixedFourCompilation(0, 0);
     }
 
-    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region rootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes rootBytes = allocateBytes(rootArena, rootPlan.linkedLength);
     long rootWritten = writeConstantImport(
       linkedDependentSource,
@@ -99,7 +99,7 @@ classical class CompilerGraphFourMixed {
       return new MixedFourCompilation(0, 0);
     }
 
-    region finalArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region finalArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes finalBytes = allocateBytes(finalArena, directPlan.linkedLength);
     long finalWritten = writeConstantImport(
       directSource,

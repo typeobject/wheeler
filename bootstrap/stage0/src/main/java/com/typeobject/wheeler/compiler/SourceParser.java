@@ -748,9 +748,9 @@ final class SourceParser extends SourceStatementParser {
     if (matchText("new")) {
       if (matchText("region")) {
         expect(Type.LEFT_PAREN, "'(' after region");
-        String maxBytes = signedNumber();
+        String maxBytes = regionLimit();
         expect(Type.COMMA, "',' after region byte limit");
-        String maxObjects = signedNumber();
+        String maxObjects = regionLimit();
         expect(Type.RIGHT_PAREN, "')' after region limits");
         String result = temporary();
         body.add(statement("region_new", start.line(), result, maxBytes, maxObjects));
@@ -857,6 +857,19 @@ final class SourceParser extends SourceStatementParser {
       value = result;
     }
     return value;
+  }
+
+  private String regionLimit() {
+    if (check(Type.IDENTIFIER)) {
+      SourceToken name = advance();
+      ConstantDefinition definition = resolveRequiredConstant(name.text(), name);
+      if (!definition.type().equals("long")) {
+        fail(name, "region limit requires a signed constant");
+      }
+      return Long.toString(definition.value());
+    }
+
+    return signedNumber();
   }
 
   String constant(List<Statement> body, SourceToken source, String value) {

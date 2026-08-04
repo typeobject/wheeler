@@ -31,7 +31,10 @@ classical class SixPairGraph {
       return new SixPairCompilation(0, 0);
     }
 
-    region firstDependentArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstDependentArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     bytes firstDependentBytes = allocateBytes(firstDependentArena, firstLeafPlan.linkedLength);
     long firstDependentWritten = writeConstantImport(
       firstLeafSource,
@@ -53,7 +56,10 @@ classical class SixPairGraph {
       return new SixPairCompilation(0, 0);
     }
 
-    region secondDependentArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondDependentArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     bytes secondDependentBytes = allocateBytes(secondDependentArena, secondLeafPlan.linkedLength);
     long secondDependentWritten = writeConstantImport(
       secondLeafSource,
@@ -77,7 +83,7 @@ classical class SixPairGraph {
       return new SixPairCompilation(0, 0);
     }
 
-    region firstRootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstRootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes firstRootBytes = allocateBytes(firstRootArena, firstRootPlan.linkedLength);
     long firstRootWritten = writeConstantImport(
       linkedFirstDependentSource,
@@ -103,7 +109,10 @@ classical class SixPairGraph {
       return new SixPairCompilation(0, 0);
     }
 
-    region secondRootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondRootArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     bytes secondRootBytes = allocateBytes(secondRootArena, secondRootPlan.linkedLength);
     long secondRootWritten = writeConstantImport(
       linkedSecondDependentSource,
@@ -131,7 +140,10 @@ classical class SixPairGraph {
       return new SixPairCompilation(0, 0);
     }
 
-    region firstDirectArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstDirectArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     bytes firstDirectBytes = allocateBytes(firstDirectArena, firstDirectPlan.linkedLength);
     long firstDirectWritten = writeConstantImport(
       firstDirectSource,
@@ -161,7 +173,7 @@ classical class SixPairGraph {
       return new SixPairCompilation(0, 0);
     }
 
-    region finalArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region finalArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes finalBytes = allocateBytes(finalArena, secondDirectPlan.linkedLength);
     long finalWritten = writeConstantImport(
       secondDirectSource,

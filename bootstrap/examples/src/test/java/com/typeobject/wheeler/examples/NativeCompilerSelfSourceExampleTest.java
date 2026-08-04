@@ -3,6 +3,7 @@ package com.typeobject.wheeler.examples;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
@@ -256,6 +257,31 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesAWideLinkedHelperTableByteForByte() throws Exception {
+    Program compiler = NativeModuleCompilerHarness.program();
+    String dependency = CompilerSources.read("compiler/ir/StatementKinds.w");
+    String root = "module examples.wide_link;\n"
+        + "import wheeler.compiler.statement_kinds;\n"
+        + "classical class WideLink {\n"
+        + wideBooleanHelper("alpha")
+        + wideBooleanHelper("beta")
+        + wideBooleanHelper("gamma")
+        + wideBooleanHelper("omega")
+        + "}\n";
+    assertTrue(dependency.length() + root.length() > 16_384);
+
+    byte[] artifact = NativeModuleCompilerHarness.compile(compiler, dependency, root);
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("StatementKinds.w", dependency, "WideLink.w", root),
+        "examples.wide_link");
+    assertArrayEquals(new BytecodeWriter().write(expected), artifact);
+    Program decoded = new BytecodeReader().read(artifact);
+    assertEquals("examples.wide_link::alpha", decoded.functions().getFirst().name());
+    assertEquals("examples.wide_link::omega", decoded.functions().get(3).name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesCanonicalInstructionFormsByteForByte() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
     String opcodes = CompilerSources.read("compiler/ir/Opcodes.w");
@@ -432,6 +458,22 @@ final class NativeCompilerSelfSourceExampleTest {
     VirtualMachine writer = nativeWriter(compiler, source);
     assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(writer));
     assertArrayEquals(new byte[OUTPUT_CAPACITY], writer.hostOutput());
+  }
+
+  private static String wideBooleanHelper(String name) {
+    return """
+          public boolean %s(long kind) {
+            if (kind == STATEMENT_ASSIGN) { return true; }
+            if (kind == STATEMENT_ASSERT_EQ) { return false; }
+            if (kind == STATEMENT_LOCAL_LONG) { return true; }
+            if (kind == STATEMENT_LOCAL_BOOLEAN) { return false; }
+            if (kind == STATEMENT_LOCAL_BOOLEAN_NOT) { return true; }
+            if (kind == STATEMENT_ASSERT_BOOLEAN) { return false; }
+            if (kind == STATEMENT_ASSERT_BOOLEAN_NOT) { return true; }
+            return kind == STATEMENT_ASSERT_LOCAL_BOOLEAN;
+          }
+
+        """.formatted(name);
   }
 
   private static String twoHelperSource(String members) {

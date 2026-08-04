@@ -44,7 +44,7 @@ classical class CompilerGraphFive {
       assert(INVALID_COMPILATION_LENGTH == VALID_COMPILATION_LENGTH);
     }
 
-    region firstArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes firstBytes = allocateBytes(firstArena, firstPlan.linkedLength);
     long firstWritten = writeConstantImport(
       firstImportedSource,
@@ -64,7 +64,7 @@ classical class CompilerGraphFive {
       assert(INVALID_COMPILATION_LENGTH == VALID_COMPILATION_LENGTH);
     }
 
-    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes secondBytes = allocateBytes(secondArena, secondPlan.linkedLength);
     long secondWritten = writeConstantImport(
       secondImportedSource,
@@ -84,7 +84,7 @@ classical class CompilerGraphFive {
       assert(INVALID_COMPILATION_LENGTH == VALID_COMPILATION_LENGTH);
     }
 
-    region thirdArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes thirdBytes = allocateBytes(thirdArena, thirdPlan.linkedLength);
     long thirdWritten = writeConstantImport(
       thirdImportedSource,
@@ -104,7 +104,7 @@ classical class CompilerGraphFive {
       assert(INVALID_COMPILATION_LENGTH == VALID_COMPILATION_LENGTH);
     }
 
-    region fourthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes fourthBytes = allocateBytes(fourthArena, fourthPlan.linkedLength);
     long fourthWritten = writeConstantImport(
       fourthImportedSource,
@@ -124,7 +124,7 @@ classical class CompilerGraphFive {
       assert(INVALID_COMPILATION_LENGTH == VALID_COMPILATION_LENGTH);
     }
 
-    region fifthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region fifthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes fifthBytes = allocateBytes(fifthArena, fifthPlan.linkedLength);
     long fifthWritten = writeConstantImport(
       fifthImportedSource,
@@ -158,7 +158,7 @@ classical class CompilerGraphFive {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    region firstArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedFirst = copySelectedFiveSource(
       plan.first,
       firstSource,
@@ -168,7 +168,7 @@ classical class CompilerGraphFive {
       fifthSource,
       firstArena
     );
-    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedSecond = copySelectedFiveSource(
       plan.second,
       firstSource,
@@ -178,7 +178,7 @@ classical class CompilerGraphFive {
       fifthSource,
       secondArena
     );
-    region thirdArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedThird = copySelectedFiveSource(
       plan.third,
       firstSource,
@@ -188,7 +188,7 @@ classical class CompilerGraphFive {
       fifthSource,
       thirdArena
     );
-    region fourthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedFourth = copySelectedFiveSource(
       plan.fourth,
       firstSource,
@@ -198,7 +198,7 @@ classical class CompilerGraphFive {
       fifthSource,
       fourthArena
     );
-    region fifthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region fifthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedFifth = copySelectedFiveSource(
       plan.fifth,
       firstSource,

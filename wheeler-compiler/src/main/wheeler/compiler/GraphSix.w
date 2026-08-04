@@ -36,7 +36,7 @@ classical class CompilerGraphSix {
       /* expectedImportCount= */ SIX_IMPORTS
     );
     assert(firstPlan.valid);
-    region firstArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes firstBytes = allocateBytes(firstArena, firstPlan.linkedLength);
     long firstWritten = writeConstantImport(
       firstImportedSource,
@@ -53,7 +53,7 @@ classical class CompilerGraphSix {
       /* expectedImportCount= */ SIX_IMPORTS
     );
     assert(secondPlan.valid);
-    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes secondBytes = allocateBytes(secondArena, secondPlan.linkedLength);
     long secondWritten = writeConstantImport(
       secondImportedSource,
@@ -70,7 +70,7 @@ classical class CompilerGraphSix {
       /* expectedImportCount= */ SIX_IMPORTS
     );
     assert(thirdPlan.valid);
-    region thirdArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes thirdBytes = allocateBytes(thirdArena, thirdPlan.linkedLength);
     long thirdWritten = writeConstantImport(
       thirdImportedSource,
@@ -87,7 +87,7 @@ classical class CompilerGraphSix {
       /* expectedImportCount= */ SIX_IMPORTS
     );
     assert(fourthPlan.valid);
-    region fourthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes fourthBytes = allocateBytes(fourthArena, fourthPlan.linkedLength);
     long fourthWritten = writeConstantImport(
       fourthImportedSource,
@@ -104,7 +104,7 @@ classical class CompilerGraphSix {
       /* expectedImportCount= */ SIX_IMPORTS
     );
     assert(fifthPlan.valid);
-    region fifthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region fifthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes fifthBytes = allocateBytes(fifthArena, fifthPlan.linkedLength);
     long fifthWritten = writeConstantImport(
       fifthImportedSource,
@@ -121,7 +121,7 @@ classical class CompilerGraphSix {
       /* expectedImportCount= */ SIX_IMPORTS
     );
     assert(sixthPlan.valid);
-    region sixthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region sixthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes sixthBytes = allocateBytes(sixthArena, sixthPlan.linkedLength);
     long sixthWritten = writeConstantImport(
       sixthImportedSource,
@@ -159,7 +159,7 @@ classical class CompilerGraphSix {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    region firstArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedFirst = copySelectedSixSource(
       plan.first,
       firstSource,
@@ -170,7 +170,7 @@ classical class CompilerGraphSix {
       sixthSource,
       firstArena
     );
-    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedSecond = copySelectedSixSource(
       plan.second,
       firstSource,
@@ -181,7 +181,7 @@ classical class CompilerGraphSix {
       sixthSource,
       secondArena
     );
-    region thirdArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedThird = copySelectedSixSource(
       plan.third,
       firstSource,
@@ -192,7 +192,7 @@ classical class CompilerGraphSix {
       sixthSource,
       thirdArena
     );
-    region fourthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedFourth = copySelectedSixSource(
       plan.fourth,
       firstSource,
@@ -203,7 +203,7 @@ classical class CompilerGraphSix {
       sixthSource,
       fourthArena
     );
-    region fifthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region fifthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedFifth = copySelectedSixSource(
       plan.fifth,
       firstSource,
@@ -214,7 +214,7 @@ classical class CompilerGraphSix {
       sixthSource,
       fifthArena
     );
-    region sixthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region sixthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedSixth = copySelectedSixSource(
       plan.sixth,
       firstSource,

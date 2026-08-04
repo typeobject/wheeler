@@ -32,7 +32,7 @@ classical class SixUnevenGraph {
       return new SixUnevenCompilation(0, 0);
     }
 
-    region leafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region leafArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes leafBytes = allocateBytes(leafArena, leafPlan.linkedLength);
     long leafWritten = writeConstantImport(leafSource, middleSource, leafPlan, leafBytes);
     assert(leafWritten == leafPlan.linkedLength);
@@ -49,7 +49,7 @@ classical class SixUnevenGraph {
       return new SixUnevenCompilation(0, 0);
     }
 
-    region middleArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region middleArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes middleBytes = allocateBytes(middleArena, middlePlan.linkedLength);
     long middleWritten = writeConstantImport(
       linkedMiddleSource,
@@ -73,7 +73,10 @@ classical class SixUnevenGraph {
       return new SixUnevenCompilation(0, 0);
     }
 
-    region secondLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondLeafArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     bytes secondLeafBytes = allocateBytes(secondLeafArena, secondLeafPlan.linkedLength);
     long secondLeafWritten = writeConstantImport(
       secondLeafSource,
@@ -99,7 +102,7 @@ classical class SixUnevenGraph {
       return new SixUnevenCompilation(0, 0);
     }
 
-    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region rootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes rootBytes = allocateBytes(rootArena, rootPlan.linkedLength);
     long rootWritten = writeConstantImport(
       linkedDependentSource,
@@ -127,7 +130,10 @@ classical class SixUnevenGraph {
       return new SixUnevenCompilation(0, 0);
     }
 
-    region firstDirectArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstDirectArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     bytes firstDirectBytes = allocateBytes(firstDirectArena, firstDirectPlan.linkedLength);
     long firstDirectWritten = writeConstantImport(
       firstDirectSource,
@@ -157,7 +163,7 @@ classical class SixUnevenGraph {
       return new SixUnevenCompilation(0, 0);
     }
 
-    region finalArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region finalArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes finalBytes = allocateBytes(finalArena, secondDirectPlan.linkedLength);
     long finalWritten = writeConstantImport(
       secondDirectSource,

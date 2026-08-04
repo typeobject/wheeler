@@ -31,7 +31,7 @@ classical class CompilerGraphs {
       assert(0 == 1);
     }
 
-    region linkedArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region linkedArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes linkedBytes = allocateBytes(linkedArena, plan.linkedLength);
     long written = writeConstantImport(importedSource, rootSource, plan, linkedBytes);
     assert(written == plan.linkedLength);
@@ -57,7 +57,7 @@ classical class CompilerGraphs {
       assert(0 == 1);
     }
 
-    region dependentArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region dependentArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes dependentBytes = allocateBytes(dependentArena, leafPlan.linkedLength);
     long dependentWritten = writeConstantImport(
       leafSource,
@@ -77,7 +77,7 @@ classical class CompilerGraphs {
       assert(0 == 1);
     }
 
-    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region rootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes rootBytes = allocateBytes(rootArena, rootPlan.linkedLength);
     long rootWritten = writeConstantImport(
       linkedDependentSource,
@@ -102,14 +102,14 @@ classical class CompilerGraphs {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    region firstArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedFirst = copySelectedTwoSource(
       structure.first,
       firstSource,
       secondSource,
       firstArena
     );
-    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedSecond = copySelectedTwoSource(
       structure.second,
       firstSource,
@@ -165,7 +165,7 @@ classical class CompilerGraphs {
       assert(0 == 1);
     }
 
-    region firstArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes firstBytes = allocateBytes(firstArena, firstPlan.linkedLength);
     long firstWritten = writeConstantImport(
       firstImportedSource,
@@ -185,7 +185,7 @@ classical class CompilerGraphs {
       assert(0 == 1);
     }
 
-    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes secondBytes = allocateBytes(secondArena, secondPlan.linkedLength);
     long secondWritten = writeConstantImport(
       secondImportedSource,
@@ -219,7 +219,7 @@ classical class CompilerGraphs {
       return new GraphCompilation(0, 0);
     }
 
-    region middleArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region middleArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes middleBytes = allocateBytes(middleArena, leafPlan.linkedLength);
     long middleWritten = writeConstantImport(leafSource, middleSource, leafPlan, middleBytes);
     assert(middleWritten == leafPlan.linkedLength);
@@ -236,7 +236,7 @@ classical class CompilerGraphs {
       return new GraphCompilation(0, 0);
     }
 
-    region dependentArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region dependentArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes dependentBytes = allocateBytes(dependentArena, middlePlan.linkedLength);
     long dependentWritten = writeConstantImport(
       linkedMiddleSource,
@@ -260,7 +260,7 @@ classical class CompilerGraphs {
       return new GraphCompilation(0, 0);
     }
 
-    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region rootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes rootBytes = allocateBytes(rootArena, rootPlan.linkedLength);
     long rootWritten = writeConstantImport(
       linkedDependentSource,
@@ -296,7 +296,7 @@ classical class CompilerGraphs {
       return new GraphCompilation(0, 0);
     }
 
-    region firstArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes firstBytes = allocateBytes(firstArena, firstLeafPlan.linkedLength);
     long firstWritten = writeConstantImport(
       firstLeafSource,
@@ -318,7 +318,7 @@ classical class CompilerGraphs {
       return new GraphCompilation(0, 0);
     }
 
-    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes secondBytes = allocateBytes(secondArena, secondLeafPlan.linkedLength);
     long secondWritten = writeConstantImport(
       secondLeafSource,
@@ -342,7 +342,7 @@ classical class CompilerGraphs {
       return new GraphCompilation(0, 0);
     }
 
-    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region rootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes rootBytes = allocateBytes(rootArena, rootPlan.linkedLength);
     long rootWritten = writeConstantImport(
       linkedDependentSource,
@@ -378,7 +378,7 @@ classical class CompilerGraphs {
       return new GraphCompilation(0, 0);
     }
 
-    region dependentArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region dependentArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes dependentBytes = allocateBytes(dependentArena, leafPlan.linkedLength);
     long dependentWritten = writeConstantImport(
       leafSource,
@@ -400,7 +400,7 @@ classical class CompilerGraphs {
       return new GraphCompilation(0, 0);
     }
 
-    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region rootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes rootBytes = allocateBytes(rootArena, dependentPlan.linkedLength);
     long rootWritten = writeConstantImport(
       linkedDependentSource,
@@ -424,7 +424,7 @@ classical class CompilerGraphs {
       return new GraphCompilation(0, 0);
     }
 
-    region finalArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region finalArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes finalBytes = allocateBytes(finalArena, directPlan.linkedLength);
     long finalWritten = writeConstantImport(
       directSource,
@@ -452,7 +452,7 @@ classical class CompilerGraphs {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    region firstArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedFirst = copySelectedThreeSource(
       structure.first,
       firstSource,
@@ -460,7 +460,7 @@ classical class CompilerGraphs {
       thirdSource,
       firstArena
     );
-    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedSecond = copySelectedThreeSource(
       structure.second,
       firstSource,
@@ -468,7 +468,7 @@ classical class CompilerGraphs {
       thirdSource,
       secondArena
     );
-    region thirdArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedThird = copySelectedThreeSource(
       structure.third,
       firstSource,
@@ -555,7 +555,7 @@ classical class CompilerGraphs {
       assert(0 == 1);
     }
 
-    region firstArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes firstBytes = allocateBytes(firstArena, firstPlan.linkedLength);
     long firstWritten = writeConstantImport(
       firstImportedSource,
@@ -575,7 +575,7 @@ classical class CompilerGraphs {
       assert(0 == 1);
     }
 
-    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes secondBytes = allocateBytes(secondArena, secondPlan.linkedLength);
     long secondWritten = writeConstantImport(
       secondImportedSource,
@@ -595,7 +595,7 @@ classical class CompilerGraphs {
       assert(0 == 1);
     }
 
-    region thirdArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes thirdBytes = allocateBytes(thirdArena, thirdPlan.linkedLength);
     long thirdWritten = writeConstantImport(
       thirdImportedSource,

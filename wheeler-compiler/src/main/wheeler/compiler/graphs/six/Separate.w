@@ -29,7 +29,7 @@ classical class SixSeparateGraph {
       /* expectedImportCount= */ TWO_IMPORTS
     );
     assert(firstForkPlan.valid);
-    region firstForkArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstForkArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes firstForkBytes = allocateBytes(firstForkArena, firstForkPlan.linkedLength);
     long firstForkWritten = writeConstantImport(
       firstForkLeafSource,
@@ -46,7 +46,10 @@ classical class SixSeparateGraph {
       /* expectedImportCount= */ TWO_IMPORTS
     );
     assert(secondForkPlan.valid);
-    region secondForkArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondForkArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     bytes secondForkBytes = allocateBytes(secondForkArena, secondForkPlan.linkedLength);
     long secondForkWritten = writeConstantImport(
       secondForkLeafSource,
@@ -63,7 +66,7 @@ classical class SixSeparateGraph {
       /* expectedImportCount= */ 1
     );
     assert(chainPlan.valid);
-    region chainArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region chainArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes chainBytes = allocateBytes(chainArena, chainPlan.linkedLength);
     long chainWritten = writeConstantImport(
       chainLeafSource,
@@ -80,7 +83,7 @@ classical class SixSeparateGraph {
       /* expectedImportCount= */ THREE_IMPORTS
     );
     assert(forkRootPlan.valid);
-    region forkRootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region forkRootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes forkRootBytes = allocateBytes(forkRootArena, forkRootPlan.linkedLength);
     long forkRootWritten = writeConstantImport(
       linkedForkSource,
@@ -97,7 +100,7 @@ classical class SixSeparateGraph {
       /* expectedImportCount= */ THREE_IMPORTS
     );
     assert(chainRootPlan.valid);
-    region chainRootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region chainRootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes chainRootBytes = allocateBytes(chainRootArena, chainRootPlan.linkedLength);
     long chainRootWritten = writeConstantImport(
       linkedChainSource,
@@ -114,7 +117,7 @@ classical class SixSeparateGraph {
       /* expectedImportCount= */ THREE_IMPORTS
     );
     assert(directPlan.valid);
-    region finalArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region finalArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes finalBytes = allocateBytes(finalArena, directPlan.linkedLength);
     long finalWritten = writeConstantImport(
       directSource,
@@ -157,7 +160,10 @@ classical class SixSeparateGraph {
       /* expectedImportCount= */ 1
     );
     assert(firstChainPlan.valid);
-    region firstChainArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstChainArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     bytes firstChainBytes = allocateBytes(firstChainArena, firstChainPlan.linkedLength);
     long firstChainWritten = writeConstantImport(
       firstLeafSource,
@@ -174,7 +180,10 @@ classical class SixSeparateGraph {
       /* expectedImportCount= */ 1
     );
     assert(secondChainPlan.valid);
-    region secondChainArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondChainArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     bytes secondChainBytes = allocateBytes(secondChainArena, secondChainPlan.linkedLength);
     long secondChainWritten = writeConstantImport(
       secondLeafSource,
@@ -191,7 +200,10 @@ classical class SixSeparateGraph {
       /* expectedImportCount= */ 1
     );
     assert(thirdChainPlan.valid);
-    region thirdChainArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region thirdChainArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     bytes thirdChainBytes = allocateBytes(thirdChainArena, thirdChainPlan.linkedLength);
     long thirdChainWritten = writeConstantImport(
       thirdLeafSource,
@@ -208,7 +220,7 @@ classical class SixSeparateGraph {
       /* expectedImportCount= */ THREE_IMPORTS
     );
     assert(firstRootPlan.valid);
-    region firstRootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstRootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes firstRootBytes = allocateBytes(firstRootArena, firstRootPlan.linkedLength);
     long firstRootWritten = writeConstantImport(
       linkedFirstChainSource,
@@ -225,7 +237,10 @@ classical class SixSeparateGraph {
       /* expectedImportCount= */ THREE_IMPORTS
     );
     assert(secondRootPlan.valid);
-    region secondRootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondRootArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     bytes secondRootBytes = allocateBytes(secondRootArena, secondRootPlan.linkedLength);
     long secondRootWritten = writeConstantImport(
       linkedSecondChainSource,
@@ -242,7 +257,7 @@ classical class SixSeparateGraph {
       /* expectedImportCount= */ THREE_IMPORTS
     );
     assert(thirdRootPlan.valid);
-    region finalArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region finalArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes finalBytes = allocateBytes(finalArena, thirdRootPlan.linkedLength);
     long finalWritten = writeConstantImport(
       linkedThirdChainSource,
@@ -285,7 +300,7 @@ classical class SixSeparateGraph {
       /* expectedImportCount= */ 1
     );
     assert(longLeafPlan.valid);
-    region longLeafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region longLeafArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes longLeafBytes = allocateBytes(longLeafArena, longLeafPlan.linkedLength);
     long longLeafWritten = writeConstantImport(
       longLeafSource,
@@ -302,7 +317,10 @@ classical class SixSeparateGraph {
       /* expectedImportCount= */ 1
     );
     assert(longDependentPlan.valid);
-    region longDependentArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region longDependentArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     bytes longDependentBytes = allocateBytes(longDependentArena, longDependentPlan.linkedLength);
     long longDependentWritten = writeConstantImport(
       linkedMiddleSource,
@@ -319,7 +337,7 @@ classical class SixSeparateGraph {
       /* expectedImportCount= */ 1
     );
     assert(shortPlan.valid);
-    region shortArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region shortArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes shortBytes = allocateBytes(shortArena, shortPlan.linkedLength);
     long shortWritten = writeConstantImport(
       shortLeafSource,
@@ -336,7 +354,7 @@ classical class SixSeparateGraph {
       /* expectedImportCount= */ THREE_IMPORTS
     );
     assert(longRootPlan.valid);
-    region longRootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region longRootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes longRootBytes = allocateBytes(longRootArena, longRootPlan.linkedLength);
     long longRootWritten = writeConstantImport(
       linkedLongSource,
@@ -353,7 +371,7 @@ classical class SixSeparateGraph {
       /* expectedImportCount= */ THREE_IMPORTS
     );
     assert(shortRootPlan.valid);
-    region shortRootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region shortRootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes shortRootBytes = allocateBytes(shortRootArena, shortRootPlan.linkedLength);
     long shortRootWritten = writeConstantImport(
       linkedShortSource,
@@ -370,7 +388,7 @@ classical class SixSeparateGraph {
       /* expectedImportCount= */ THREE_IMPORTS
     );
     assert(directPlan.valid);
-    region finalArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region finalArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes finalBytes = allocateBytes(finalArena, directPlan.linkedLength);
     long finalWritten = writeConstantImport(
       directSource,

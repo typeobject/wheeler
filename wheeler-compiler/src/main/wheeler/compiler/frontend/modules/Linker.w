@@ -11,7 +11,7 @@ import wheeler.lexer.scanner;
 
 classical class ModuleLinker {
   /// Caps the first native linked-source slice.
-  public const long MAX_LINKED_SOURCE_BYTES = 16384;
+  public const long MAX_LINKED_SOURCE_BYTES = 32768;
   /// Caps canonical qualification rewrites in one linked root.
   public const long MAX_LINKED_QUALIFICATIONS = 64;
   /// Names the two-byte canonical module separator.

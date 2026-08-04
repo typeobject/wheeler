@@ -43,19 +43,19 @@ classical class CompilerGraphSeven {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    region firstArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 firstLinkedSource = linkDirect(firstImportedSource, rootSource, firstArena);
-    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 secondLinkedSource = linkDirect(secondImportedSource, firstLinkedSource, secondArena);
-    region thirdArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 thirdLinkedSource = linkDirect(thirdImportedSource, secondLinkedSource, thirdArena);
-    region fourthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 fourthLinkedSource = linkDirect(fourthImportedSource, thirdLinkedSource, fourthArena);
-    region fifthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region fifthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 fifthLinkedSource = linkDirect(fifthImportedSource, fourthLinkedSource, fifthArena);
-    region sixthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region sixthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 sixthLinkedSource = linkDirect(sixthImportedSource, fifthLinkedSource, sixthArena);
-    region seventhArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region seventhArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 seventhLinkedSource = linkDirect(seventhImportedSource, sixthLinkedSource, seventhArena);
 
     CoreCompilation compiled = compileMinimalCore(seventhLinkedSource, output);

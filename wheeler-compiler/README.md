@@ -85,8 +85,10 @@ the five-module direct star, chain, four-leaf fork, three-leaf fork beside a dir
 export becomes private inside its dependent, so a root cannot acquire transitive access by
 spelling the leaf name loudly. Executable imported
 members, mismatched module names, unsupported four-module DAGs, unsupported five-module graphs, other six- and seven-module graphs, and eight or more root imports fail closed. General symbol resolution remains future work. Entry and helper bodies
-admit at most sixty-four statements. Scanner metadata admits 2,048 tokens across a 16,384-byte
-physical or linked source window. The current slice covers typed signed and Boolean locals,
+admit at most sixty-four statements. Scanner metadata admits 2,048 tokens across a 32,768-byte
+physical or linked source window. Linked graph arenas admit 32,768 bytes. A four-helper differential
+crosses the former 16 KiB line, and a padded two-import source pins the new refusal boundary. The
+current slice covers typed signed and Boolean locals,
 assertions, assignments, checked scalar operations, calls, results, and narrow explicitly limited
 loops.
 
@@ -106,8 +108,8 @@ one- or two-argument scalar helper calls,
 right operands of signed arithmetic and ordering expressions, signed or Boolean equality and
 inequality expressions,
 signed arithmetic or typed scalar comparison returns, signed or Boolean equality assertions, signed ordering assertions, conditions and their
-state-update values, and bounded
-loop conditions and limits. Calls and mutations
+state-update values, bounded loop conditions and limits, and affine-region byte and allocation
+limits. Calls and mutations
 may mix constants with prior locals. Helper parameters and locals cannot reuse constant names.
 Constants create no global, initializer, lookup, or declaration-order artifact noise. The
 native header path accepts direct import declarations. The linker resolves bounded public

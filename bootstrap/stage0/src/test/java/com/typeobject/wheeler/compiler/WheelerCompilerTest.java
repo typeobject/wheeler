@@ -840,6 +840,45 @@ class WheelerCompilerTest {
   }
 
   @Test
+  void importedConstantsBoundRegionAllocation() {
+    String limits = """
+        module limits;
+        classical class Limits {
+          public const long BYTES = 32;
+          public const long OBJECTS = 1;
+        }
+        """;
+    String root = """
+        module root;
+        import limits;
+        classical class Root {
+          entry void main() {
+            region arena = new region(BYTES, OBJECTS);
+            words values = allocate(arena, 4);
+            drop(values);
+            drop(arena);
+          }
+        }
+        """;
+    Program program = new WheelerCompiler().compileModuleFiles(
+        Map.of("Limits.w", limits, "Root.w", root),
+        "root");
+
+    VirtualMachine machine = new VirtualMachine(program);
+    machine.run();
+
+    assertEquals(0, program.globals().size());
+    assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compile("""
+            classical class WrongRegionLimit {
+              const boolean BYTES = true;
+              entry void main() { region arena = new region(BYTES, 1); }
+            }
+            """));
+  }
+
+  @Test
   void publicConstantsResolveAcrossModulesWithoutAmbientOverrides() {
     String values = """
         module values;

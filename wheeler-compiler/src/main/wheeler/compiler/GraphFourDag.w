@@ -32,7 +32,10 @@ classical class CompilerGraphFourDag {
       return new FourDagCompilation(0, 0);
     }
 
-    region firstDependentArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region firstDependentArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     bytes firstDependentBytes = allocateBytes(firstDependentArena, firstLeafPlan.linkedLength);
     long firstDependentWritten = writeConstantImport(
       leafSource,
@@ -54,7 +57,10 @@ classical class CompilerGraphFourDag {
       return new FourDagCompilation(0, 0);
     }
 
-    region secondDependentArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondDependentArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     bytes secondDependentBytes = allocateBytes(secondDependentArena, secondLeafPlan.linkedLength);
     long secondDependentWritten = writeConstantImport(
       leafSource,
@@ -78,7 +84,7 @@ classical class CompilerGraphFourDag {
       return new FourDagCompilation(0, 0);
     }
 
-    region joinArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region joinArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes joinBytes = allocateBytes(joinArena, firstJoinPlan.linkedLength);
     long firstJoinWritten = writeConstantImport(
       linkedFirstDependentSource,
@@ -104,7 +110,10 @@ classical class CompilerGraphFourDag {
       return new FourDagCompilation(0, 0);
     }
 
-    region linkedJoinArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region linkedJoinArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     bytes linkedJoinBytes = allocateBytes(linkedJoinArena, secondJoinPlan.linkedLength);
     long secondJoinWritten = writeConstantImport(
       linkedSecondDependentSource,
@@ -132,7 +141,7 @@ classical class CompilerGraphFourDag {
       return new FourDagCompilation(0, 0);
     }
 
-    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region rootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes rootBytes = allocateBytes(rootArena, rootPlan.linkedLength);
     long rootWritten = writeConstantImport(linkedJoinSource, rootSource, rootPlan, rootBytes);
     assert(rootWritten == rootPlan.linkedLength);

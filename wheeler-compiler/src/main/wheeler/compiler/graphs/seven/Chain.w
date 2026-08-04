@@ -80,7 +80,7 @@ classical class SevenConstantChain {
     assert(plan.valid);
     assert(plan.topology == SEVEN_PLAN_CHAIN);
 
-    region leafArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region leafArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 leafSource = copySelectedSevenSource(
       plan.first,
       firstSource,
@@ -92,7 +92,7 @@ classical class SevenConstantChain {
       seventhSource,
       leafArena
     );
-    region secondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 orderedSecondSource = copySelectedSevenSource(
       plan.second,
       firstSource,
@@ -104,14 +104,17 @@ classical class SevenConstantChain {
       seventhSource,
       secondArena
     );
-    region linkedSecondArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region linkedSecondArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 linkedSecondSource = linkPrivateLeaf(leafSource, orderedSecondSource, linkedSecondArena);
     drop(orderedSecondSource);
     drop(secondArena);
     drop(leafSource);
     drop(leafArena);
 
-    region thirdArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 orderedThirdSource = copySelectedSevenSource(
       plan.third,
       firstSource,
@@ -123,7 +126,10 @@ classical class SevenConstantChain {
       seventhSource,
       thirdArena
     );
-    region linkedThirdArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region linkedThirdArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 linkedThirdSource = linkPrivateResolved(
       linkedSecondSource,
       orderedThirdSource,
@@ -134,7 +140,7 @@ classical class SevenConstantChain {
     drop(linkedSecondSource);
     drop(linkedSecondArena);
 
-    region fourthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 orderedFourthSource = copySelectedSevenSource(
       plan.fourth,
       firstSource,
@@ -146,7 +152,10 @@ classical class SevenConstantChain {
       seventhSource,
       fourthArena
     );
-    region linkedFourthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region linkedFourthArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 linkedFourthSource = linkPrivateResolved(
       linkedThirdSource,
       orderedFourthSource,
@@ -157,7 +166,7 @@ classical class SevenConstantChain {
     drop(linkedThirdSource);
     drop(linkedThirdArena);
 
-    region fifthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region fifthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 orderedFifthSource = copySelectedSevenSource(
       plan.fifth,
       firstSource,
@@ -169,7 +178,10 @@ classical class SevenConstantChain {
       seventhSource,
       fifthArena
     );
-    region linkedFifthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region linkedFifthArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 linkedFifthSource = linkPrivateResolved(
       linkedFourthSource,
       orderedFifthSource,
@@ -180,7 +192,7 @@ classical class SevenConstantChain {
     drop(linkedFourthSource);
     drop(linkedFourthArena);
 
-    region sixthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region sixthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 orderedSixthSource = copySelectedSevenSource(
       plan.sixth,
       firstSource,
@@ -192,7 +204,10 @@ classical class SevenConstantChain {
       seventhSource,
       sixthArena
     );
-    region linkedSixthArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region linkedSixthArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 linkedSixthSource = linkPrivateResolved(
       linkedFifthSource,
       orderedSixthSource,
@@ -203,7 +218,7 @@ classical class SevenConstantChain {
     drop(linkedFifthSource);
     drop(linkedFifthArena);
 
-    region seventhArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region seventhArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 orderedSeventhSource = copySelectedSevenSource(
       plan.seventh,
       firstSource,
@@ -215,7 +230,10 @@ classical class SevenConstantChain {
       seventhSource,
       seventhArena
     );
-    region linkedSeventhArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region linkedSeventhArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
     utf8 linkedSeventhSource = linkPrivateResolved(
       linkedSixthSource,
       orderedSeventhSource,
@@ -226,7 +244,7 @@ classical class SevenConstantChain {
     drop(linkedSixthSource);
     drop(linkedSixthArena);
 
-    region rootArena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region rootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 linkedRootSource = linkRoot(linkedSeventhSource, rootSource, rootArena);
     CoreCompilation compiled = compileMinimalCore(linkedRootSource, output);
     drop(linkedRootSource);
