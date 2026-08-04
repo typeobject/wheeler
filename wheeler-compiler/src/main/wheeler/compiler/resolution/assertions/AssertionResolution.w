@@ -4,7 +4,8 @@ module wheeler.compiler.assertion_resolution;
 
 import wheeler.compiler.class_constants;
 import wheeler.compiler.local_resolution;
-import wheeler.compiler.tokens;
+import wheeler.compiler.resolved_statements;
+import wheeler.compiler.statement_kinds;
 
 classical class AssertionResolution {
   /// Carries one optional assertion after exact typed-name resolution.

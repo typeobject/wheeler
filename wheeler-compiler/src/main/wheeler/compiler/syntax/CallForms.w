@@ -2,6 +2,7 @@
 
 module wheeler.compiler.call_forms;
 
+import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
 
 classical class CallForms {

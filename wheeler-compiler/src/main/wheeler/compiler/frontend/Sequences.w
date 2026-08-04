@@ -8,7 +8,7 @@ import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_statements;
 import wheeler.compiler.operands;
 import wheeler.compiler.statement_forms;
-import wheeler.compiler.tokens;
+import wheeler.compiler.statement_kinds;
 
 classical class StatementSequences {
   private long resolutionPrefix(borrow mut words statementStarts) {

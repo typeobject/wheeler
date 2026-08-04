@@ -17,7 +17,7 @@ The package keeps responsibilities narrow:
 - `compiler/syntax` owns statement and call shapes.
 - `compiler/resolution` owns typed locals, helper calls, operands, and scalar class
   constants.
-- `compiler/ir` owns opcode, instruction-form, type, and proof identities.
+- `compiler/ir` owns statement, opcode, instruction-form, type, and proof identities.
 - `compiler/backend` owns type tables, strings, control flow, returns, and encoding.
 - `compiler/Core.w` assembles and verifies one already linked source.
 - `compiler/Graphs.w` executes one- through three-module graph plans before invoking the core.
@@ -66,11 +66,14 @@ entryless library. That path accepts zero or one general helper, or two through 
 public or private one-parameter scalar helpers. Signed-parameter Boolean and signed helpers may
 contain bounded equality guards or one same-module Boolean call with typed early returns. A fifth
 helper fails before publication. The checked-in `compiler/ir/Opcodes.w`,
-`compiler/ir/ProofRules.w`, `compiler/ir/StorageOpcodes.w`, `compiler/ir/TypeCodes.w`,
+`compiler/ir/ProofRules.w`, `compiler/ir/ResolvedStatements.w`,
+`compiler/ir/StatementKinds.w`, `compiler/ir/StorageOpcodes.w`, `compiler/ir/TypeCodes.w`,
 imported-constant `compiler/ir/OpcodeKinds.w`, imported-constant `compiler/ir/TypeKinds.w`, and
 imported-constant `compiler/ir/InstructionForms.w` modules compile byte for byte with stage 0.
-Seven real self-source modules beat six motivational slides. The bar has filed an appeal.
-A modular source may carry up to sixty-four sorted unique direct imports.
+`StatementKinds.w` owns 128 unresolved and form identities. `ResolvedStatements.w` owns seventy-two
+resolved columns. `Tokens.w` now sticks to lexical work instead of running a parser-IR registry from
+the back room. Nine real self-source modules beat eight motivational slides. The bar has retained
+counsel. A modular source may carry up to sixty-four sorted unique direct imports.
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
 or excess imports before publication. `compileMinimalWithConstantImport`,
 `compileMinimalWithConstantImports`, `compileMinimalWithThreeConstantImports`, and

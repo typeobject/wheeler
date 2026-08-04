@@ -2,7 +2,8 @@
 
 module wheeler.compiler.scalar_opcodes;
 
-import wheeler.compiler.tokens;
+import wheeler.compiler.resolved_statements;
+import wheeler.compiler.statement_kinds;
 
 classical class ScalarOpcodes {
   /// Checks whether an opcode carries a resolved signed less-than assertion source.

@@ -11,6 +11,7 @@ import wheeler.compiler.scalar_helper_libraries;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.sequences;
 import wheeler.compiler.statement_forms;
+import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statements;
 import wheeler.compiler.structure;
 import wheeler.compiler.tokens;

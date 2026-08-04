@@ -8,10 +8,11 @@ import wheeler.compiler.encoding;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.loop_codegen;
 import wheeler.compiler.opcodes;
+import wheeler.compiler.resolved_statements;
 import wheeler.compiler.return_codegen;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
-import wheeler.compiler.tokens;
+import wheeler.compiler.statement_kinds;
 
 classical class Codegen {
   /// Aliases named instruction forms for compact emitter calls.

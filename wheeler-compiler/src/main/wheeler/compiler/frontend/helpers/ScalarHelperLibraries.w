@@ -11,6 +11,7 @@ import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.sequences;
 import wheeler.compiler.statement_forms;
+import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
 
 classical class ScalarHelperLibraries {

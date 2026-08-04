@@ -5,7 +5,7 @@ module wheeler.compiler.loop_codegen;
 import wheeler.compiler.encoding;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.scalar_opcodes;
-import wheeler.compiler.tokens;
+import wheeler.compiler.statement_kinds;
 
 classical class LoopCodegen {
   private const long FORM_UNARY = INSTRUCTION_FORM_UNARY;

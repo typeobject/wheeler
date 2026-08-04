@@ -9,7 +9,7 @@ import wheeler.compiler.encoding;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
-import wheeler.compiler.tokens;
+import wheeler.compiler.statement_kinds;
 import wheeler.compiler.type_codes;
 
 classical class LocalTypes {

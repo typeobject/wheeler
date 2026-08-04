@@ -4,7 +4,7 @@ module wheeler.compiler.call_resolution;
 
 import wheeler.compiler.call_forms;
 import wheeler.compiler.scalar_references;
-import wheeler.compiler.tokens;
+import wheeler.compiler.statement_kinds;
 
 classical class CallResolution {
   /// Classifies one named argument as a prior local or substituted literal.

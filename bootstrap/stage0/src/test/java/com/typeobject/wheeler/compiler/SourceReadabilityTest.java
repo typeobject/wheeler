@@ -25,6 +25,8 @@ class SourceReadabilityTest {
       "if \\(opcode == OPCODE_([A-Z0-9_]+)\\) \\{\\s+return ([0-9]+);");
   private static final Pattern WHEELER_OPCODE_TEST = Pattern.compile(
       "opcode == OPCODE_([A-Z0-9_]+)");
+  private static final Pattern WHEELER_STATEMENT_IDENTITY = Pattern.compile(
+      "public const long (STATEMENT_[A-Z0-9_]+) = ([0-9]+);");
   private static final Pattern JAVA_TYPE = Pattern.compile(
       "case ([A-Z0-9_]+) -> ([0-9]+);");
   private static final Pattern WHEELER_TYPE = Pattern.compile(
@@ -121,6 +123,21 @@ class SourceReadabilityTest {
   }
 
   @Test
+  void nativeStatementIdentitiesHaveBoundedSingleOwners() throws Exception {
+    String tokens = Files.readString(Path.of(
+        "src/main/wheeler/compiler/frontend/Tokens.w"));
+    String kinds = Files.readString(Path.of(
+        "src/main/wheeler/compiler/ir/StatementKinds.w"));
+    String resolved = Files.readString(Path.of(
+        "src/main/wheeler/compiler/ir/ResolvedStatements.w"));
+
+    assertEquals(java.util.Map.of(), statementIdentities(tokens));
+    assertEquals(128, statementIdentities(kinds).size());
+    assertEquals(72, statementIdentities(resolved).size());
+    assertEquals(200, statementIdentities(kinds + resolved).size());
+  }
+
+  @Test
   void maintainedCompilerSourcesPassReadabilityChecks() throws Exception {
     Path root = Path.of("../wheeler-compiler/src/main/wheeler");
     List<String> diagnostics = new ArrayList<>();
@@ -155,6 +172,18 @@ class SourceReadabilityTest {
     while (matches.find()) {
       if (result.put(matches.group(1), Integer.parseInt(matches.group(2))) != null) {
         throw new AssertionError("Duplicate scalar type " + matches.group(1));
+      }
+    }
+    return java.util.Map.copyOf(result);
+  }
+
+  private static java.util.Map<String, Integer> statementIdentities(String source) {
+    var result = new java.util.LinkedHashMap<String, Integer>();
+    var matches = WHEELER_STATEMENT_IDENTITY.matcher(source);
+    while (matches.find()) {
+      String name = matches.group(1);
+      if (result.put(name, Integer.parseInt(matches.group(2))) != null) {
+        throw new AssertionError("Duplicate statement identity " + name);
       }
     }
     return java.util.Map.copyOf(result);

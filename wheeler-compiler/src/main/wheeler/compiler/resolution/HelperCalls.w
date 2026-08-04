@@ -5,6 +5,7 @@ module wheeler.compiler.helper_calls;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.ir;
 import wheeler.compiler.statement_forms;
+import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statements;
 import wheeler.compiler.tokens;
 

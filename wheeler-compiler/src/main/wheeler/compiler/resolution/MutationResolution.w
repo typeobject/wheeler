@@ -4,9 +4,11 @@ module wheeler.compiler.mutation_resolution;
 
 import wheeler.compiler.class_constants;
 import wheeler.compiler.local_resolution;
+import wheeler.compiler.resolved_statements;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.scalar_references;
 import wheeler.compiler.statement_forms;
+import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
 
 classical class MutationResolution {

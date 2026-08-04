@@ -7,7 +7,7 @@ import wheeler.compiler.encoding;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.statement_forms;
-import wheeler.compiler.tokens;
+import wheeler.compiler.statement_kinds;
 
 classical class ReturnCodegen {
   private const long FORM_UNARY = INSTRUCTION_FORM_UNARY;

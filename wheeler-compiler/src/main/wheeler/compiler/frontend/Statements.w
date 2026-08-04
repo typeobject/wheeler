@@ -10,6 +10,7 @@ import wheeler.compiler.local_opcodes;
 import wheeler.compiler.loop_forms;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
+import wheeler.compiler.statement_kinds;
 import wheeler.compiler.structure;
 import wheeler.compiler.tokens;
 

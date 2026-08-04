@@ -2,6 +2,7 @@
 
 module wheeler.compiler.boolean_declarations;
 
+import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
 
 classical class BooleanDeclarations {

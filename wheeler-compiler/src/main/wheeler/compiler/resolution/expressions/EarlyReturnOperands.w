@@ -6,6 +6,7 @@ import wheeler.compiler.class_constants;
 import wheeler.compiler.early_return_opcodes;
 import wheeler.compiler.loop_forms;
 import wheeler.compiler.statement_forms;
+import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
 
 classical class EarlyReturnOperands {

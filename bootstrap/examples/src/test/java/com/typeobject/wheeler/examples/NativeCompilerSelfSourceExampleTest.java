@@ -28,6 +28,20 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalStatementKindsByteForByte() throws Exception {
+    assertConstantOnlyCompilerLibrary(
+        "compiler/ir/StatementKinds.w",
+        "wheeler.compiler.statement_kinds");
+  }
+
+  @Test
+  void compilesCanonicalResolvedStatementsByteForByte() throws Exception {
+    assertConstantOnlyCompilerLibrary(
+        "compiler/ir/ResolvedStatements.w",
+        "wheeler.compiler.resolved_statements");
+  }
+
+  @Test
   void compilesTheCanonicalTypeCodeOwnerByteForByte() throws Exception {
     assertConstantOnlyCompilerLibrary(
         "compiler/ir/TypeCodes.w",

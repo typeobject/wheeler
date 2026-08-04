@@ -2,6 +2,8 @@
 
 module wheeler.compiler.conditionals;
 
+import wheeler.compiler.resolved_statements;
+import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
 
 classical class Conditionals {

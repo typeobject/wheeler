@@ -2,7 +2,8 @@
 
 module wheeler.compiler.early_return_opcodes;
 
-import wheeler.compiler.tokens;
+import wheeler.compiler.resolved_statements;
+import wheeler.compiler.statement_kinds;
 
 classical class EarlyReturnOpcodes {
   /// Bounds one resolved opcode column over source-local indices.

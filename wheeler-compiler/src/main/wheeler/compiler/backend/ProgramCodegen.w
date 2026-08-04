@@ -9,9 +9,10 @@ import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_types;
 import wheeler.compiler.opcodes;
+import wheeler.compiler.resolved_statements;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
-import wheeler.compiler.tokens;
+import wheeler.compiler.statement_kinds;
 
 classical class ProgramCodegen {
   private const long FORM_UNARY = INSTRUCTION_FORM_UNARY;

@@ -5,9 +5,10 @@ module wheeler.compiler.local_opcodes;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_return_opcodes;
+import wheeler.compiler.resolved_statements;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
-import wheeler.compiler.tokens;
+import wheeler.compiler.statement_kinds;
 
 classical class LocalOpcodes {
   /// Starts resolved signed-local return opcodes.
