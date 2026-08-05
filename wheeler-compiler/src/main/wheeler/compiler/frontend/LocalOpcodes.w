@@ -11,6 +11,7 @@ import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.resolved_early_result_kinds;
 import wheeler.compiler.resolved_literal_comparison_kinds;
 import wheeler.compiler.resolved_local_conditional_kinds;
+import wheeler.compiler.resolved_local_returns;
 import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.scalar_opcodes;
@@ -19,38 +20,6 @@ import wheeler.compiler.statement_kinds;
 import wheeler.compiler.two_argument_call_kinds;
 
 classical class LocalOpcodes {
-  /// Starts resolved signed-local return opcodes.
-  public const long STATEMENT_RETURN_SIGNED_LOCAL_BASE = 14336;
-  /// Starts resolved Boolean-local return opcodes.
-  public const long STATEMENT_RETURN_BOOLEAN_LOCAL_BASE = 14592;
-
-  /// Checks whether an opcode returns one resolved local.
-  public boolean resolvedLocalReturn(long opcode) {
-    if (opcode < STATEMENT_RETURN_SIGNED_LOCAL_BASE) {
-      return false;
-    }
-
-    return opcode < STATEMENT_RETURN_BOOLEAN_LOCAL_BASE + 256;
-  }
-
-  /// Reports whether a resolved local return carries a signed value.
-  public boolean resolvedSignedLocalReturn(long opcode) {
-    if (opcode < STATEMENT_RETURN_SIGNED_LOCAL_BASE) {
-      return false;
-    }
-
-    return opcode < STATEMENT_RETURN_BOOLEAN_LOCAL_BASE;
-  }
-
-  /// Returns the source local carried by a resolved return opcode.
-  public long resolvedLocalReturnSource(long opcode) {
-    if (resolvedSignedLocalReturn(opcode)) {
-      return opcode - STATEMENT_RETURN_SIGNED_LOCAL_BASE;
-    }
-
-    return opcode - STATEMENT_RETURN_BOOLEAN_LOCAL_BASE;
-  }
-
   /// Checks for a named signed-local and literal binary declaration.
   public boolean namedLongBinary(long opcode) {
     if (opcode == STATEMENT_LOCAL_LONG_ADD_NAMED) {

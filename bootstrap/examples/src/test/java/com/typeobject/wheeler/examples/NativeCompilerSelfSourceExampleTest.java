@@ -461,6 +461,18 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalResolvedLocalReturnsByteForByte() throws Exception {
+    Program decoded = assertCompilerLibrary(
+        "compiler/syntax/returns/ResolvedLocalReturns.w",
+        "wheeler.compiler.resolved_local_returns");
+    assertEquals(
+        "wheeler.compiler.resolved_local_returns::resolvedLocalReturn",
+        decoded.functions().getFirst().name());
+    assertEquals(4, decoded.functions().size());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesCanonicalReturnOpcodeKindsByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/resolution/returns/ReturnOpcodeKinds.w",
@@ -897,7 +909,7 @@ final class NativeCompilerSelfSourceExampleTest {
     return new BytecodeReader().read(artifact);
   }
 
-  private static void assertConstantOnlyCompilerLibrary(
+  private static Program assertCompilerLibrary(
       String logicalPath,
       String moduleName) throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
@@ -910,7 +922,13 @@ final class NativeCompilerSelfSourceExampleTest {
         moduleName);
     byte[] artifact = writer.hostOutput();
     assertArrayEquals(new BytecodeWriter().write(expected), artifact);
-    Program decoded = new BytecodeReader().read(artifact);
+    return new BytecodeReader().read(artifact);
+  }
+
+  private static void assertConstantOnlyCompilerLibrary(
+      String logicalPath,
+      String moduleName) throws Exception {
+    Program decoded = assertCompilerLibrary(logicalPath, moduleName);
     assertEquals("$library", decoded.functions().getFirst().name());
     VirtualMachine library = new VirtualMachine(decoded);
     library.run();

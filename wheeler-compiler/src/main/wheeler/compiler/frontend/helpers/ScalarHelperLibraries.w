@@ -10,6 +10,7 @@ import wheeler.compiler.encoding;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.resolved_early_result_kinds;
+import wheeler.compiler.resolved_local_returns;
 import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.sequences;
 import wheeler.compiler.statement_forms;

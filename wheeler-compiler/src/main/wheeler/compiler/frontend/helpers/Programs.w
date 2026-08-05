@@ -9,6 +9,7 @@ import wheeler.compiler.helper_calls;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.one_argument_calls;
+import wheeler.compiler.resolved_local_returns;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.sequences;
