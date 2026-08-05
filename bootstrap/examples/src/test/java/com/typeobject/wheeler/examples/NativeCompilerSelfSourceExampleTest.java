@@ -461,6 +461,19 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalNamedLongOperationsByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/syntax/locals/NamedLongOperations.w",
+        "wheeler.compiler.named_long_operations",
+        "compiler/ir/StatementKinds.w");
+    assertEquals(
+        "wheeler.compiler.named_long_operations::namedLongBinary",
+        decoded.functions().getFirst().name());
+    assertEquals(4, decoded.functions().size());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesCanonicalResolvedLongOperationsByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/syntax/locals/ResolvedLongOperations.w",

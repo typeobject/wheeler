@@ -14,6 +14,7 @@ import wheeler.compiler.loop_forms;
 import wheeler.compiler.mutation_resolution;
 import wheeler.compiler.named_literal_comparison_kinds;
 import wheeler.compiler.named_local_conditional_kinds;
+import wheeler.compiler.named_long_operations;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.resolved_local_conditional_kinds;
 import wheeler.compiler.resolved_local_pair_assertions;
