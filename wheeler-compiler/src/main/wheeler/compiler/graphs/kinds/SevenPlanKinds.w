@@ -33,4 +33,6 @@ classical class SevenPlanKinds {
   public const long SEVEN_PLAN_LONG_SHORT_CHAINS_AND_DIRECTS = 14;
   /// Names one two-leaf fork and one two-module chain beside two direct imports.
   public const long SEVEN_PLAN_FORK_CHAIN_AND_DIRECTS = 15;
+  /// Names two three-module chains beside one direct root import.
+  public const long SEVEN_PLAN_TWO_LONG_CHAINS_AND_DIRECT = 16;
 }

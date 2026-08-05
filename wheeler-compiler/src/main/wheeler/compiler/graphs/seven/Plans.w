@@ -334,6 +334,9 @@ classical class SevenGraphPlans {
 
         if (mixedWideFork) {
           result = wideForkAndDirectsPlan(graph, rootDirect);
+          if (result.valid) {} else {
+            result = twoLongChainsAndDirectPlan(graph, rootDirect);
+          }
         }
 
         if (mixedFiveLeafFork) {
