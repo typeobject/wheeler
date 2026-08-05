@@ -8,13 +8,13 @@ import wheeler.compiler.ir;
 classical class LibraryStrings {
   private const long CLASS_NAME = 0;
   private const long FIRST_HELPER = 1;
-  private const long MAX_HELPERS = 4;
+  private const long MAX_HELPERS = MAX_SCALAR_HELPERS;
   private const long MAX_STRING_COUNT = MAX_HELPERS + 2;
 
   /// Defines immutable bounded library string-table plans.
   public record LibraryStringPlan(
     long nameIndex,
-    long[4] helperIndices,
+    long[7] helperIndices,
     long entryIndex,
     long stringCount,
     long encodedLength,
@@ -239,7 +239,7 @@ classical class LibraryStrings {
     return index;
   }
 
-  /// Computes canonical indices and encoded width for two through four helpers.
+  /// Computes canonical indices and encoded width for two through seven helpers.
   public LibraryStringPlan planLibraryStrings(
     borrow utf8 source,
     MinimalProgram program,
@@ -326,6 +326,9 @@ classical class LibraryStrings {
     );
     long thirdIndex = 0;
     long fourthIndex = 0;
+    long fifthIndex = 0;
+    long sixthIndex = 0;
+    long seventhIndex = 0;
     if (2 < program.helperCount) {
       thirdIndex = candidateIndex(
         source,
@@ -350,7 +353,51 @@ classical class LibraryStrings {
       );
     }
 
-    long[4] helperIndices = new long[4](firstIndex, secondIndex, thirdIndex, fourthIndex);
+    if (4 < program.helperCount) {
+      fifthIndex = candidateIndex(
+        source,
+        program,
+        rootModule,
+        importedModule,
+        importedHelperCount,
+        FIRST_HELPER + 4,
+        stringCount
+      );
+    }
+
+    if (5 < program.helperCount) {
+      sixthIndex = candidateIndex(
+        source,
+        program,
+        rootModule,
+        importedModule,
+        importedHelperCount,
+        FIRST_HELPER + 5,
+        stringCount
+      );
+    }
+
+    if (6 < program.helperCount) {
+      seventhIndex = candidateIndex(
+        source,
+        program,
+        rootModule,
+        importedModule,
+        importedHelperCount,
+        FIRST_HELPER + 6,
+        stringCount
+      );
+    }
+
+    long[7] helperIndices = new long[7](
+      firstIndex,
+      secondIndex,
+      thirdIndex,
+      fourthIndex,
+      fifthIndex,
+      sixthIndex,
+      seventhIndex
+    );
     return new LibraryStringPlan(
       candidateIndex(
         source,

@@ -34,7 +34,7 @@ final class NativeBootstrapModulesIdentityExampleTest {
   void validatesThePhysicalBoundedCompilerClosure() throws Exception {
     BootstrapModuleManifest manifest = CompilerSources.bootstrapModuleManifest();
 
-    assertEquals(60_006, manifest.canonicalBytes().length);
+    assertEquals(60_396, manifest.canonicalBytes().length);
     VirtualMachine machine = vm(program(), manifest.canonicalBytes());
     long transitions = 0;
     while (machine.status() != MachineStatus.HALTED
@@ -43,13 +43,13 @@ final class NativeBootstrapModulesIdentityExampleTest {
       transitions += 1;
     }
 
-    assertEquals(20_167_289, transitions);
+    assertEquals(20_285_497, transitions);
     assertEquals(MachineStatus.HALTED, machine.status());
     assertArrayEquals(MessageDigest.getInstance("SHA-256").digest(manifest.canonicalBytes()),
         machine.hostOutput());
-    assertEquals(146, machine.global("moduleCount"));
+    assertEquals(147, machine.global("moduleCount"));
     assertEquals(1, machine.global("externalCount"));
-    assertEquals(644, machine.global("importCount"));
+    assertEquals(648, machine.global("importCount"));
     assertEquals(1, machine.global("published"));
   }
 

@@ -102,6 +102,9 @@ classical class CompilerCore {
           emptyHelperBody(),
           emptyHelperBody(),
           emptyHelperBody(),
+          emptyHelperBody(),
+          emptyHelperBody(),
+          emptyHelperBody(),
           scanGlobal,
           0,
           0,
@@ -153,6 +156,9 @@ classical class CompilerCore {
               emptyStatementOperands(),
               emptyStatementOperands(),
               0,
+              emptyHelperBody(),
+              emptyHelperBody(),
+              emptyHelperBody(),
               emptyHelperBody(),
               emptyHelperBody(),
               emptyHelperBody(),
@@ -216,7 +222,7 @@ classical class CompilerCore {
   private long boundedHelperTypeOffset(MinimalProgram program, long index) {
     long offset = 0;
     long helper = 0;
-    while (helper < index) limit 4 {
+    while (helper < index) limit MAX_SCALAR_HELPERS {
       offset += boundedHelperLocalCount(helperAt(program, helper)) + 1;
       helper += 1;
     }
@@ -404,7 +410,7 @@ classical class CompilerCore {
       codeLength = entryForwardLength;
       entryTypeOffset = 0;
       long helper = 0;
-      while (helper < program.helperCount) limit 4 {
+      while (helper < program.helperCount) limit MAX_SCALAR_HELPERS {
         HelperBody body = helperAt(program, helper);
         entryTypeOffset += boundedHelperLocalCount(body) + 1;
         codeLength += boundedHelperForwardLength(body);
@@ -491,7 +497,7 @@ classical class CompilerCore {
     if (1 < program.helperCount) {
       long helperCodeOffset = 0;
       long descriptorHelper = 0;
-      while (descriptorHelper < program.helperCount) limit 4 {
+      while (descriptorHelper < program.helperCount) limit MAX_SCALAR_HELPERS {
         HelperBody descriptorBody = helperAt(program, descriptorHelper);
         cursor = writeFunctionDescriptor(
           output,
@@ -526,7 +532,7 @@ classical class CompilerCore {
         entryTypeOffset
       );
       long typedHelper = 0;
-      while (typedHelper < program.helperCount) limit 4 {
+      while (typedHelper < program.helperCount) limit MAX_SCALAR_HELPERS {
         HelperBody typedBody = helperAt(program, typedHelper);
         if (booleanResultHelper(typedBody.kind)) {
           cursor = writeBooleanLocalType(output, cursor);

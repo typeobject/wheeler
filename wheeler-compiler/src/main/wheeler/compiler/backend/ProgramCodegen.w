@@ -832,7 +832,7 @@ classical class ProgramCodegen {
     cursor = writeHelperBody(output, cursor, program, helperLocalBase, resultSlotProgram);
     if (1 < program.helperCount) {
       long helper = 1;
-      while (helper < program.helperCount) limit 4 {
+      while (helper < program.helperCount) limit MAX_SCALAR_HELPERS {
         HelperBody body = helperAt(program, helper);
         cursor = writeSequence(
           output,

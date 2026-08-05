@@ -1,0 +1,272 @@
+//! Resolves names and calls in bounded scalar helper tables.
+
+module wheeler.compiler.scalar_helper_tables;
+
+import wheeler.compiler.encoding;
+import wheeler.compiler.ir;
+import wheeler.compiler.resolved_return_call_kinds;
+
+classical class ScalarHelperTables {
+  /// Carries two bounded call targets resolved against one helper table.
+  public record ResolvedCalls(long firstFunction, long secondFunction, boolean valid) {}
+
+  /// Checks whether one helper returns a Boolean scalar.
+  public boolean booleanHelperKind(long kind) {
+    if (kind == HELPER_BOOLEAN) {
+      return true;
+    }
+
+    if (kind == HELPER_BOOLEAN_SIGNED_ONE) {
+      return true;
+    }
+
+    return kind == HELPER_BOOLEAN_SIGNED_TWO;
+  }
+
+  /// Compares two helper names in one source.
+  public long compareHelpers(borrow utf8 source, HelperBody left, HelperBody right) {
+    return compareAsciiSlices(
+      source,
+      left.name.start,
+      left.name.length,
+      right.name.start,
+      right.name.length
+    );
+  }
+
+  /// Selects one helper from eight fixed table slots.
+  public HelperBody selectedBody(
+    HelperBody first,
+    HelperBody second,
+    HelperBody third,
+    HelperBody fourth,
+    HelperBody fifth,
+    HelperBody sixth,
+    HelperBody seventh,
+    long index
+  ) {
+    if (index == 0) {
+      return first;
+    }
+
+    if (index == 1) {
+      return second;
+    }
+
+    if (index == 2) {
+      return third;
+    }
+
+    if (index == 3) {
+      return fourth;
+    }
+
+    if (index == 4) {
+      return fifth;
+    }
+
+    if (index == 5) {
+      return sixth;
+    }
+
+    return seventh;
+  }
+
+  /// Checks that all occupied helper names are distinct.
+  public boolean uniqueHelpers(
+    borrow utf8 source,
+    HelperBody first,
+    HelperBody second,
+    HelperBody third,
+    HelperBody fourth,
+    HelperBody fifth,
+    HelperBody sixth,
+    HelperBody seventh,
+    long helperCount
+  ) {
+    long left = 0;
+    while (left < helperCount) limit MAX_SCALAR_HELPERS {
+      HelperBody leftBody = selectedBody(
+        first,
+        second,
+        third,
+        fourth,
+        fifth,
+        sixth,
+        seventh,
+        left
+      );
+      long right = left + 1;
+      while (right < helperCount) limit MAX_SCALAR_HELPERS {
+        HelperBody rightBody = selectedBody(
+          first,
+          second,
+          third,
+          fourth,
+          fifth,
+          sixth,
+          seventh,
+          right
+        );
+        if (compareHelpers(source, leftBody, rightBody) == 0) {
+          return false;
+        }
+
+        right += 1;
+      }
+
+      left += 1;
+    }
+
+    return true;
+  }
+
+  private long resolveCallFunction(
+    borrow utf8 source,
+    HelperBody caller,
+    SourceRange target,
+    boolean forwarding,
+    long argumentCount,
+    HelperBody first,
+    HelperBody second,
+    HelperBody third,
+    HelperBody fourth,
+    HelperBody fifth,
+    HelperBody sixth,
+    HelperBody seventh,
+    long helperCount
+  ) {
+    if (target.length == 0) {
+      return -1;
+    }
+
+    long found = -1;
+    long helper = 0;
+    while (helper < helperCount) limit MAX_SCALAR_HELPERS {
+      HelperBody candidate = selectedBody(
+        first,
+        second,
+        third,
+        fourth,
+        fifth,
+        sixth,
+        seventh,
+        helper
+      );
+      long order = compareAsciiSlices(
+        source,
+        target.start,
+        target.length,
+        candidate.name.start,
+        candidate.name.length
+      );
+      if (order == 0) {
+        if (forwarding) {
+          if (booleanHelperKind(caller.kind)) {
+            if (booleanHelperKind(candidate.kind)) {
+              if (parameterCountForHelper(candidate.kind) == argumentCount) {
+                found = helper;
+              }
+            }
+          }
+        } else {
+          if (candidate.kind == HELPER_BOOLEAN_SIGNED_ONE) {
+            found = helper;
+          }
+        }
+      }
+
+      helper += 1;
+    }
+
+    return found;
+  }
+
+  /// Resolves both call sites carried by one helper body.
+  public ResolvedCalls resolveCalls(
+    borrow utf8 source,
+    HelperBody caller,
+    HelperBody first,
+    HelperBody second,
+    HelperBody third,
+    HelperBody fourth,
+    HelperBody fifth,
+    HelperBody sixth,
+    HelperBody seventh,
+    long helperCount
+  ) {
+    boolean firstForwarding = caller.firstCallStatement == caller.resultStatement;
+    boolean secondForwarding = caller.secondCallStatement == caller.resultStatement;
+    long firstArgumentCount = 1;
+    if (firstForwarding) {
+      firstArgumentCount = returnHelperCallArity(caller.opcodes[caller.firstCallStatement]);
+    }
+
+    long secondArgumentCount = 1;
+    if (secondForwarding) {
+      secondArgumentCount = returnHelperCallArity(caller.opcodes[caller.secondCallStatement]);
+    }
+
+    long firstFunction = resolveCallFunction(
+      source,
+      caller,
+      caller.firstCallTargetName,
+      firstForwarding,
+      firstArgumentCount,
+      first,
+      second,
+      third,
+      fourth,
+      fifth,
+      sixth,
+      seventh,
+      helperCount
+    );
+    long secondFunction = resolveCallFunction(
+      source,
+      caller,
+      caller.secondCallTargetName,
+      secondForwarding,
+      secondArgumentCount,
+      first,
+      second,
+      third,
+      fourth,
+      fifth,
+      sixth,
+      seventh,
+      helperCount
+    );
+    boolean valid = true;
+    if (0 < caller.firstCallTargetName.length) {
+      valid = -1 < firstFunction;
+    }
+
+    if (valid) {
+      if (0 < caller.secondCallTargetName.length) {
+        valid = -1 < secondFunction;
+      }
+    }
+
+    return new ResolvedCalls(firstFunction, secondFunction, valid);
+  }
+
+  /// Installs resolved call identities in one immutable helper body.
+  public HelperBody withCalls(HelperBody body, ResolvedCalls calls) {
+    return new HelperBody(
+      body.name,
+      body.opcodes,
+      body.operands,
+      body.secondaryOperands,
+      body.kind,
+      body.statementCount,
+      body.resultStatement,
+      body.firstCallTargetName,
+      body.firstCallStatement,
+      calls.firstFunction,
+      body.secondCallTargetName,
+      body.secondCallStatement,
+      calls.secondFunction
+    );
+  }
+}

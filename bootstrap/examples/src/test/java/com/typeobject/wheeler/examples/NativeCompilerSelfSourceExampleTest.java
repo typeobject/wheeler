@@ -755,99 +755,7 @@ final class NativeCompilerSelfSourceExampleTest {
         source.replace("long left, long right", "long left, long left"));
   }
 
-  @Test
-  void compilesFourEntrylessHelpersByteForByte() throws Exception {
-    Program compiler = CompilerSources.minimalCompilerProgram();
-    String source = twoHelperSource("""
-          public long alpha(long value) {
-            return value;
-          }
-
-          public long beta(long value) {
-            return value;
-          }
-
-          public long gamma(long value) {
-            return value;
-          }
-
-          public long omega(long value) {
-            return value;
-          }
-        """);
-    VirtualMachine writer = nativeWriter(compiler, source);
-    CompilerMachineRunner.runWithoutRewindHistory(writer);
-
-    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
-        Map.of("FourHelpers.w", source),
-        "examples.two_helpers");
-    byte[] artifact = writer.hostOutput();
-    assertArrayEquals(new BytecodeWriter().write(expected), artifact);
-    Program decoded = new BytecodeReader().read(artifact);
-    assertEquals("examples.two_helpers::alpha", decoded.functions().get(0).name());
-    assertEquals("examples.two_helpers::omega", decoded.functions().get(3).name());
-    assertEquals("$library", decoded.functions().get(4).name());
-
-    String reordered = twoHelperSource("""
-          public long omega(long value) {
-            return value;
-          }
-
-          public long alpha(long value) {
-            return value;
-          }
-
-          public long gamma(long value) {
-            return value;
-          }
-
-          public long beta(long value) {
-            return value;
-          }
-        """);
-    VirtualMachine reorderedWriter = nativeWriter(compiler, reordered);
-    CompilerMachineRunner.runWithoutRewindHistory(reorderedWriter);
-    Program reorderedExpected = new WheelerCompiler().compileLibraryModuleFiles(
-        Map.of("FourHelpers.w", reordered),
-        "examples.two_helpers");
-    Program reorderedDecoded = new BytecodeReader().read(reorderedWriter.hostOutput());
-    assertEquals("examples.two_helpers::omega", reorderedDecoded.functions().get(0).name());
-    assertEquals("examples.two_helpers::alpha", reorderedDecoded.functions().get(1).name());
-    assertEquals("examples.two_helpers::gamma", reorderedDecoded.functions().get(2).name());
-    assertEquals("examples.two_helpers::beta", reorderedDecoded.functions().get(3).name());
-    assertArrayEquals(
-        new BytecodeWriter().write(reorderedExpected),
-        reorderedWriter.hostOutput());
-  }
-
-  @Test
-  void rejectsExcessEntrylessHelpersBeforePublication() throws Exception {
-    Program compiler = CompilerSources.minimalCompilerProgram();
-    String source = twoHelperSource("""
-          public long alpha(long value) {
-            return value;
-          }
-
-          public long beta(long value) {
-            return value;
-          }
-
-          public long gamma(long value) {
-            return value;
-          }
-
-          public long omega(long value) {
-            return value;
-          }
-
-          public long zeta(long value) {
-            return value;
-          }
-        """);
-    assertNoPublication(compiler, source);
-  }
-
-  private static void assertNoPublication(Program compiler, String source) {
+  static void assertNoPublication(Program compiler, String source) {
     VirtualMachine writer = nativeWriter(compiler, source);
     assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(writer));
     assertArrayEquals(new byte[OUTPUT_CAPACITY], writer.hostOutput());
@@ -869,7 +777,7 @@ final class NativeCompilerSelfSourceExampleTest {
         """.formatted(name);
   }
 
-  private static String twoHelperSource(String members) {
+  static String twoHelperSource(String members) {
     return "module examples.two_helpers;\nclassical class TwoHelpers {\n"
         + members + "}\n";
   }
@@ -930,7 +838,7 @@ final class NativeCompilerSelfSourceExampleTest {
     assertEquals(MachineStatus.HALTED, library.status());
   }
 
-  private static VirtualMachine nativeWriter(Program compiler, String source) {
+  static VirtualMachine nativeWriter(Program compiler, String source) {
     return new VirtualMachine(
         compiler,
         source.getBytes(StandardCharsets.UTF_8),
