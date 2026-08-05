@@ -7,10 +7,10 @@ import wheeler.compiler.call_forms;
 import wheeler.compiler.call_resolution;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.conditionals;
+import wheeler.compiler.local_loop_resolution;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.loop_forms;
-import wheeler.compiler.loop_kinds;
 import wheeler.compiler.mutation_resolution;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.resolved_statements;
@@ -202,83 +202,14 @@ classical class LocalStatements {
     }
 
     if (opcode == STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED) {
-      long whileTargetName = whileTargetToken(source, tokenStarts, statementStart);
-      long whileTarget = resolvePriorDeclaration(
+      return resolveLocalWhileOpcode(
         source,
         tokenStarts,
         tokenLengths,
+        statementStart,
         previousStarts,
-        previousCount,
-        whileTargetName,
-        true
+        previousCount
       );
-      if (whileTarget < 0) {
-        return -1;
-      }
-
-      long whileForm = 0;
-      long whileConditionRight = whileConditionValueToken(source, tokenStarts, statementStart);
-      if (whileReversed(source, tokenStarts, statementStart)) {
-        whileForm += STATEMENT_LOCAL_WHILE_REVERSED_FORM;
-      } else {
-        if (loopOperandNamed(source, tokenStarts, whileConditionRight)) {
-          long whileConditionLocal = resolvePriorDeclaration(
-            source,
-            tokenStarts,
-            tokenLengths,
-            previousStarts,
-            previousCount,
-            whileConditionRight,
-            true
-          );
-          if (-1 < whileConditionLocal) {
-            whileForm += STATEMENT_LOCAL_WHILE_CONDITION_NAMED;
-          } else {
-            ConstantResolution whileConditionConstant = resolveClassConstant(
-              source,
-              tokenStarts,
-              tokenLengths,
-              whileConditionRight,
-              true
-            );
-            if (whileConditionConstant.valid == false) {
-              return -1;
-            }
-          }
-        }
-      }
-
-      long whileLimit = whileLimitToken(source, tokenStarts, statementStart);
-      if (loopOperandNamed(source, tokenStarts, whileLimit)) {
-        long whileLimitLocal = resolvePriorDeclaration(
-          source,
-          tokenStarts,
-          tokenLengths,
-          previousStarts,
-          previousCount,
-          whileLimit,
-          true
-        );
-        if (-1 < whileLimitLocal) {
-          whileForm += STATEMENT_LOCAL_WHILE_LIMIT_NAMED;
-        } else {
-          ConstantResolution whileLimitConstant = resolveClassConstant(
-            source,
-            tokenStarts,
-            tokenLengths,
-            whileLimit,
-            true
-          );
-          if (whileLimitConstant.valid == false) {
-            return -1;
-          }
-        }
-      }
-
-      long whileUpdateTarget = whileUpdateTargetToken(source, tokenStarts, statementStart);
-      whileForm += whileUpdateForm(source, tokenStarts, whileUpdateTarget);
-      return STATEMENT_LOCAL_WHILE_BASE + whileTarget * STATEMENT_LOCAL_WHILE_FORM_COUNT
-        + whileForm;
     }
 
     if (localAssignmentSourceStatement(opcode)) {
@@ -327,6 +258,23 @@ classical class LocalStatements {
         previousCount,
         opcode
       );
+    }
+
+    if (opcode == STATEMENT_RETURN_HELPER_CALL_NAMED) {
+      long callArgument = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3,
+        true
+      );
+      if (-1 < callArgument) {
+        return STATEMENT_RETURN_HELPER_CALL_BASE + callArgument;
+      }
+
+      return -1;
     }
 
     ReturnExpressionResolution returnExpression = resolveReturnExpression(

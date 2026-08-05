@@ -134,10 +134,10 @@ class SourceReadabilityTest {
         "src/main/wheeler/compiler/ir/ResolvedStatements.w"));
 
     assertEquals(java.util.Map.of(), statementIdentities(tokens));
-    assertEquals(126, statementIdentities(kinds).size());
+    assertEquals(127, statementIdentities(kinds).size());
     assertEquals(6, statementIdentities(loopKinds).size());
-    assertEquals(75, statementIdentities(resolved).size());
-    assertEquals(207, statementIdentities(kinds + loopKinds + resolved).size());
+    assertEquals(76, statementIdentities(resolved).size());
+    assertEquals(209, statementIdentities(kinds + loopKinds + resolved).size());
   }
 
   @Test

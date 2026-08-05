@@ -9,6 +9,7 @@ import wheeler.compiler.compiler_graph_seven;
 import wheeler.compiler.compiler_graph_six;
 import wheeler.compiler.graphs.small_structures;
 import wheeler.compiler.graphs.sources;
+import wheeler.compiler.imported_helpers;
 import wheeler.compiler.module_linker;
 
 classical class CompilerGraphs {
@@ -17,6 +18,21 @@ classical class CompilerGraphs {
 
   private GraphCompilation compileGraphSource(borrow utf8 source, borrow mut bytes output) {
     CoreCompilation compiled = compileMinimalCore(source, output);
+    return new GraphCompilation(compiled.length, compiled.codeStart);
+  }
+
+  private GraphCompilation compileGraphSourceWithHelperImport(
+    borrow utf8 source,
+    borrow mut bytes output,
+    LinkPlan plan
+  ) {
+    CoreCompilation compiled = compileMinimalCoreWithHelperImport(
+      source,
+      output,
+      plan.linkedOwnerStart,
+      plan.linkedOwnerLength,
+      plan.importedHelperCount
+    );
     return new GraphCompilation(compiled.length, compiled.codeStart);
   }
 
@@ -73,6 +89,16 @@ classical class CompilerGraphs {
       rootSource,
       /* expectedImportCount= */ 1
     );
+    boolean importedHelpers = false;
+    if (rootPlan.valid) {} else {
+      rootPlan = planResolvedHelperImport(
+        linkedDependentSource,
+        rootSource,
+        /* expectedImportCount= */ 1
+      );
+      importedHelpers = rootPlan.valid;
+    }
+
     if (rootPlan.valid) {} else {
       assert(0 == 1);
     }
@@ -87,7 +113,13 @@ classical class CompilerGraphs {
     );
     assert(rootWritten == rootPlan.linkedLength);
     utf8 linkedRootSource = freezeUtf8(rootBytes);
-    GraphCompilation compiled = compileGraphSource(linkedRootSource, output);
+    GraphCompilation compiled = new GraphCompilation(0, 0);
+    if (importedHelpers) {
+      compiled = compileGraphSourceWithHelperImport(linkedRootSource, output, rootPlan);
+    } else {
+      compiled = compileGraphSource(linkedRootSource, output);
+    }
+
     drop(linkedRootSource);
     drop(rootArena);
     drop(linkedDependentSource);

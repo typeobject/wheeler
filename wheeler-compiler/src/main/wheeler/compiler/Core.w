@@ -225,6 +225,36 @@ classical class CompilerCore {
 
   /// Compiles one bounded bootstrap source into caller-owned artifact storage.
   public CoreCompilation compileMinimalCore(borrow utf8 source, borrow mut bytes output) {
+    SourceRange noImportedModule = new SourceRange(0, 0);
+    return compileMinimalCoreOwned(
+      source,
+      output,
+      noImportedModule,
+      /* importedHelperCount= */ 0
+    );
+  }
+
+  /// Compiles one flattened source while preserving its imported helper owner.
+  public CoreCompilation compileMinimalCoreWithHelperImport(
+    borrow utf8 source,
+    borrow mut bytes output,
+    long importedModuleStart,
+    long importedModuleLength,
+    long importedHelperCount
+  ) {
+    assert(0 < importedModuleLength);
+    assert(importedModuleStart + importedModuleLength < bufferLength(source) + 1);
+    assert(0 < importedHelperCount);
+    SourceRange importedModule = new SourceRange(importedModuleStart, importedModuleLength);
+    return compileMinimalCoreOwned(source, output, importedModule, importedHelperCount);
+  }
+
+  private CoreCompilation compileMinimalCoreOwned(
+    borrow utf8 source,
+    borrow mut bytes output,
+    SourceRange importedModule,
+    long importedHelperCount
+  ) {
     region arena = new region(/* bytes= */ 50208, /* allocations= */ 5);
     words tokenKinds = allocate(arena, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(arena, MAX_COMPILER_TOKENS);
@@ -241,7 +271,13 @@ classical class CompilerCore {
     );
     SourceRange moduleName = new SourceRange(moduleRange[0], moduleRange[1]);
     StringTablePlan strings = planStringTable(source, program, moduleName);
-    LibraryStringPlan libraryStrings = planLibraryStrings(source, program, moduleName);
+    LibraryStringPlan libraryStrings = planLibraryStrings(
+      source,
+      program,
+      moduleName,
+      importedModule,
+      importedHelperCount
+    );
     if (1 < program.helperCount) {
       if (libraryStrings.valid == 0) {
         assert(0 == 1);
@@ -422,6 +458,8 @@ classical class CompilerCore {
         source,
         program,
         moduleName,
+        importedModule,
+        importedHelperCount,
         libraryStrings
       );
     } else {

@@ -25,6 +25,9 @@ classical class ModuleLinker {
     long importedLength,
     long importedModuleStart,
     long importedModuleLength,
+    long linkedOwnerStart,
+    long linkedOwnerLength,
+    long importedHelperCount,
     long rootInsertion,
     long linkedLength,
     long qualificationCount,
@@ -33,8 +36,11 @@ classical class ModuleLinker {
     boolean valid
   ) {}
 
+  /// Carries one selected direct-import name from the root source.
+  public record ImportRange(long start, long length, boolean valid) {}
+
   private LinkPlan invalidPlan() {
-    return new LinkPlan(0, 0, 0, 0, 0, 0, 0, 0, false, false);
+    return new LinkPlan(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false, false);
   }
 
   private long compactTokens(
@@ -62,7 +68,8 @@ classical class ModuleLinker {
     return writeCursor;
   }
 
-  private long scanSemanticTokens(
+  /// Scans one bounded source and removes trivia in place.
+  public long scanSemanticTokens(
     borrow utf8 source,
     borrow mut words tokenKinds,
     borrow mut words tokenStarts,
@@ -80,7 +87,8 @@ classical class ModuleLinker {
     }
   }
 
-  private boolean classPrefixValid(
+  /// Checks the bounded classical-class prefix at one module body.
+  public boolean classPrefixValid(
     borrow utf8 source,
     borrow mut words tokenKinds,
     borrow mut words tokenStarts,
@@ -131,7 +139,8 @@ classical class ModuleLinker {
     return true;
   }
 
-  private boolean selectedImportRange(
+  /// Finds one selected import while checking the complete root import count.
+  public ImportRange selectedImportRange(
     borrow utf8 importedSource,
     long moduleStart,
     long moduleLength,
@@ -145,6 +154,8 @@ classical class ModuleLinker {
     long cursor = 0;
     long importCount = 0;
     long selectedCount = 0;
+    long selectedStart = 0;
+    long selectedLength = 0;
     while (cursor < rootBody) limit MAX_COMPILER_TOKENS {
       if (tokenHash(rootSource, rootStarts, rootLengths, cursor) == TOKEN_IMPORT) {
         importCount += 1;
@@ -166,6 +177,8 @@ classical class ModuleLinker {
               )
             ) {
               selectedCount += 1;
+              selectedStart = rootStarts[name];
+              selectedLength = nameLength;
             }
 
             cursor = semicolon;
@@ -180,13 +193,16 @@ classical class ModuleLinker {
     }
 
     if (importCount == expectedImportCount) {
-      return selectedCount == 1;
+      if (selectedCount == 1) {
+        return new ImportRange(selectedStart, selectedLength, true);
+      }
     }
 
-    return false;
+    return new ImportRange(0, 0, false);
   }
 
-  private boolean rangesEqual(
+  /// Compares two bounded ASCII source ranges.
+  public boolean rangesEqual(
     borrow utf8 leftSource,
     long leftStart,
     long leftLength,
@@ -263,7 +279,8 @@ classical class ModuleLinker {
       == PUNCTUATION_COLON;
   }
 
-  private long qualificationCount(
+  /// Counts canonical qualifications of one imported module in a root source.
+  public long qualificationCount(
     borrow utf8 importedSource,
     long moduleStart,
     long moduleLength,
@@ -293,7 +310,8 @@ classical class ModuleLinker {
     return count;
   }
 
-  private long exportedConstantCount(
+  /// Counts public declarations in one validated constant prefix.
+  public long exportedConstantCount(
     borrow utf8 source,
     borrow mut words tokenKinds,
     borrow mut words tokenStarts,
@@ -338,7 +356,8 @@ classical class ModuleLinker {
     return -1;
   }
 
-  private boolean privateNamesHidden(
+  /// Rejects root references to private names in one constant prefix.
+  public boolean privateConstantNamesHidden(
     borrow utf8 importedSource,
     borrow mut words importedStarts,
     borrow mut words importedLengths,
@@ -477,7 +496,7 @@ classical class ModuleLinker {
 
             if (prefixes) {
               if (0 < importedModule[1]) {
-                boolean direct = selectedImportRange(
+                ImportRange selectedImport = selectedImportRange(
                   importedSource,
                   importedModule[0],
                   importedModule[1],
@@ -489,7 +508,7 @@ classical class ModuleLinker {
                   expectedImportCount
                 );
 
-                if (direct) {
+                if (selectedImport.valid) {
                   long firstDeclaration = importedBody + 4;
                   long memberStart = classMemberStart(
                     importedSource,
@@ -543,7 +562,7 @@ classical class ModuleLinker {
                           memberStart
                         );
                         if (0 < exported) {
-                          boolean privateHidden = privateNamesHidden(
+                          boolean privateHidden = privateConstantNamesHidden(
                             importedSource,
                             importedStarts,
                             importedLengths,
@@ -582,6 +601,9 @@ classical class ModuleLinker {
                                   importedLength,
                                   importedModule[0],
                                   importedModule[1],
+                                  selectedImport.start,
+                                  selectedImport.length,
+                                  /* importedHelperCount= */ 0,
                                   rootInsertion,
                                   linkedLength,
                                   qualifications,
@@ -716,7 +738,7 @@ classical class ModuleLinker {
     return outputStart + length;
   }
 
-  private long copyImportedConstants(
+  private long copyImportedDeclarations(
     borrow utf8 importedSource,
     LinkPlan plan,
     borrow mut bytes output,
@@ -857,7 +879,7 @@ classical class ModuleLinker {
       return -1;
     }
 
-    cursor = copyImportedConstants(importedSource, plan, output, cursor);
+    cursor = copyImportedDeclarations(importedSource, plan, output, cursor);
     if (cursor < 0) {
       return -1;
     }

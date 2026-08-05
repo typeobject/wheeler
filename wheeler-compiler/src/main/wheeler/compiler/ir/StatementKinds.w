@@ -249,6 +249,8 @@ classical class StatementKinds {
   public const long STATEMENT_IF_SIGNED_LT_RETURN_LONG_NAMED = 888;
   /// Parameter less-than guard returning a checked subtraction.
   public const long STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED = 889;
+  /// Scalar helper return forwarding one helper-call result.
+  public const long STATEMENT_RETURN_HELPER_CALL_NAMED = 890;
   /// Checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Checked global subtraction.

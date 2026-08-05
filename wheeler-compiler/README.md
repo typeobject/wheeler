@@ -64,8 +64,9 @@ The bounded compiler accepts one class, zero or one signed global, one optional 
 and one entry. It also emits the canonical unqualified `$library` halt entry for an
 entryless library. That path accepts zero or one general helper, or two through four explicitly
 public or private one-parameter scalar helpers. Signed-parameter Boolean and signed helpers may
-contain bounded equality or less-than guards, or one same-module Boolean call, with typed early
-returns. A signed less-than guard may return its parameter minus one scalar. A fifth helper fails
+contain bounded equality or less-than guards and up to two same-module Boolean calls with typed
+early returns. A final Boolean return may forward one helper call. A signed less-than guard may
+return its parameter minus one scalar. A fifth helper fails
 before publication. The checked-in `compiler/ir/Opcodes.w`,
 `compiler/ir/ProofRules.w`, `compiler/ir/ResolvedStatements.w`,
 `compiler/ir/StatementKinds.w`, `compiler/ir/StorageOpcodes.w`, `compiler/ir/TypeCodes.w`,
@@ -77,12 +78,14 @@ imported-constant `compiler/ir/InstructionForms.w`, imported-constant
 `compiler/syntax/calls/OneArgumentCalls.w`, imported-constant
 `compiler/syntax/calls/TwoArgumentCallKinds.w`, imported-constant
 `compiler/syntax/returns/EarlyReturnSources.w`, imported-constant
-`compiler/syntax/returns/ResolvedEarlyComparisonKinds.w`, and imported-constant
-`compiler/syntax/returns/ResolvedEarlyResultKinds.w` modules compile byte for byte with stage 0.
-`StatementKinds.w` owns 126 unresolved statement identities. `LoopKinds.w` owns six loop-form
-identities. `ResolvedStatements.w` owns seventy-five resolved columns. `Tokens.w` now sticks to lexical work instead of running a parser-IR registry from
-the back room. Eighteen real self-source modules beat seventeen motivational slides. The bar has retained
-counsel. A modular source may carry up to sixty-four sorted unique direct imports.
+`compiler/syntax/returns/ResolvedEarlyComparisonKinds.w`, imported-constant
+`compiler/syntax/returns/ResolvedEarlyResultKinds.w`, imported-function
+`compiler/syntax/returns/EarlyComparisonForms.w`, and imported-constant
+`compiler/syntax/returns/ResolvedReturnCallKinds.w` modules compile byte for byte with stage 0.
+`StatementKinds.w` owns 127 unresolved statement identities. `LoopKinds.w` owns six loop-form
+identities. `ResolvedStatements.w` owns seventy-six resolved columns. `Tokens.w` now sticks to
+lexical work instead of running a parser-IR registry from the back room. Twenty real self-source
+modules beat nineteen motivational slides. The bar has retained counsel. A modular source may carry up to sixty-four sorted unique direct imports.
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
 or excess imports before publication. `compileMinimalWithConstantImport`,
 `compileMinimalWithConstantImports`, `compileMinimalWithThreeConstantImports`, and
@@ -91,8 +94,12 @@ four imported scalar-constant modules plus one shared-dependency diamond.
 `compileMinimalWithFiveConstantImports` first builds a closed topology plan, then links
 the five-module direct star, chain, four-leaf fork, three-leaf fork beside a direct import, one chain edge beside three direct imports, a two-leaf fork beside two direct imports, two independent chains beside a direct import, a three-module chain beside two direct imports, a four-module chain beside a direct import, a nested two-leaf fork beside a direct import, two nested fork levels, or a shared diamond with a side leaf. `compileMinimalWithSixConstantImports` links the six-module direct star, full chain, five-leaf fork, one three-leaf fork beside two direct imports, one nested two-leaf fork beside two direct imports, one uneven two-branch tree beside two direct imports, one fork beside one chain and one direct import, three independent chains, one three-module chain beside one two-module chain and one direct import, one chain edge beside four direct imports, one two-leaf fork beside three direct imports, one three-module chain beside three direct imports, one four-module chain beside two direct imports, and two independent chains beside two direct imports. `compileMinimalWithSevenConstantImports` links a seven-module direct star, full chain, or six-leaf fork. Differential fixtures exhaust all 120 five-module orders and all 720 orders of each six-module graph. Fourteen orders of each seven-module graph put every source in every frame position in forward and reverse rings. Every two- through seven-module planner records exact edges, roots, topological order, private visibility, and shared-dependency facts before topology dispatch. Two- through seven-module chain and fork executors consume their canonical source order before rewriting. Every four- and five-module executor and the six-module root-branch executors also consume exact topology-specific role order. A leaf
 export becomes private inside its dependent, so a root cannot acquire transitive access by
-spelling the leaf name loudly. Executable imported
-members, mismatched module names, unsupported four-module DAGs, unsupported five-module graphs, other six- and seven-module graphs, and eight or more root imports fail closed. General symbol resolution remains future work. Entry and helper bodies
+spelling the leaf name loudly. One bounded three-module chain may link a constant owner, a
+two-helper executable dependency, and a one-helper root while preserving the
+dependency's function names and private visibility. Other executable imported members,
+mismatched module names, unsupported four-module DAGs, unsupported five-module graphs, other
+six- and seven-module graphs, and eight or more root imports fail closed. General symbol
+resolution remains future work. Entry and helper bodies
 admit at most sixty-four statements. Scanner metadata admits 2,048 tokens across a 32,768-byte
 physical or linked source window. Linked graph arenas admit 32,768 bytes. A four-helper differential
 crosses the former 16 KiB line, and a padded two-import source pins the new refusal boundary. The

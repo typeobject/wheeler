@@ -59,8 +59,12 @@ classical class CompilerIr {
     long kind,
     long statementCount,
     long resultStatement,
-    SourceRange callTargetName,
-    long callFunction
+    SourceRange firstCallTargetName,
+    long firstCallStatement,
+    long firstCallFunction,
+    SourceRange secondCallTargetName,
+    long secondCallStatement,
+    long secondCallFunction
   ) {}
 
   /// Defines immutable `MinimalProgram` values for this module.
@@ -114,6 +118,10 @@ classical class CompilerIr {
       0,
       0,
       new SourceRange(0, 0),
+      -1,
+      -1,
+      new SourceRange(0, 0),
+      -1,
       -1
     );
   }

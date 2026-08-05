@@ -163,6 +163,42 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesAFinalSameModuleCallByteForByte() throws Exception {
+    String source = """
+        module examples.final_call;
+        classical class FinalCall {
+          public boolean base(long opcode) {
+            return opcode == 1;
+          }
+
+          public boolean combined(long opcode) {
+            return base(opcode);
+          }
+        }
+        """;
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    VirtualMachine writer = nativeWriter(compiler, source);
+    CompilerMachineRunner.runWithoutRewindHistory(writer);
+
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("FinalCall.w", source),
+        "examples.final_call");
+    byte[] artifact = writer.hostOutput();
+    assertArrayEquals(new BytecodeWriter().write(expected), artifact);
+    Program decoded = new BytecodeReader().read(artifact);
+    assertEquals(4, decoded.functions().get(1).localCount());
+    assertEquals(4, decoded.functions().get(1).forward().size());
+    assertNoPublication(compiler, source.replace("return base(opcode);", "return missing(opcode);"));
+    assertNoPublication(
+        compiler,
+        source.replace(
+            "return base(opcode);",
+            "if (base(opcode)) { return true; }\n"
+                + "    if (base(opcode)) { return false; }\n"
+                + "    return base(opcode);"));
+  }
+
+  @Test
   void compilesAnEarlySameModuleCallByteForByte() throws Exception {
     String source = """
         module examples.early_call;
@@ -448,6 +484,60 @@ final class NativeCompilerSelfSourceExampleTest {
         "wheeler.compiler.resolved_early_result_kinds::resolvedEarlyHelperReturn",
         decoded.functions().getFirst().name());
     assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
+  void compilesCanonicalResolvedReturnCallKindsByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/syntax/returns/ResolvedReturnCallKinds.w",
+        "wheeler.compiler.resolved_return_call_kinds");
+    assertEquals(
+        "wheeler.compiler.resolved_return_call_kinds::resolvedReturnHelperCall",
+        decoded.functions().getFirst().name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
+  void compilesCanonicalImportedComparisonHelpersByteForByte() throws Exception {
+    Program compiler = NativeModuleCompilerHarness.program();
+    String constants = CompilerSources.read("compiler/ir/ResolvedStatements.w");
+    String dependency = CompilerSources.read(
+        "compiler/syntax/returns/ResolvedEarlyComparisonKinds.w");
+    String root = CompilerSources.read("compiler/syntax/returns/EarlyComparisonForms.w");
+
+    byte[] artifact = NativeModuleCompilerHarness.compile(
+        compiler,
+        List.of(constants, dependency),
+        root);
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of(
+            "compiler/ir/ResolvedStatements.w", constants,
+            "compiler/syntax/returns/ResolvedEarlyComparisonKinds.w", dependency,
+            "compiler/syntax/returns/EarlyComparisonForms.w", root),
+        "wheeler.compiler.early_comparison_forms");
+    byte[] expectedArtifact = new BytecodeWriter().write(expected);
+    assertArrayEquals(expectedArtifact, artifact);
+    assertArrayEquals(
+        expectedArtifact,
+        NativeModuleCompilerHarness.compile(compiler, List.of(dependency, constants), root));
+    Program decoded = new BytecodeReader().read(artifact);
+    assertEquals(
+        "wheeler.compiler.resolved_early_comparison_kinds::resolvedEarlyEqualityReturn",
+        decoded.functions().getFirst().name());
+    assertEquals(
+        "wheeler.compiler.early_comparison_forms::resolvedEarlyComparisonReturn",
+        decoded.functions().get(2).name());
+    assertEquals(8, decoded.functions().get(2).localCount());
+    assertEquals(11, decoded.functions().get(2).forward().size());
+    assertEquals("$library", decoded.functions().getLast().name());
+
+    String privateDependency = dependency.replace(
+        "public boolean resolvedEarlyLessReturn",
+        "private boolean resolvedEarlyLessReturn");
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(constants, privateDependency),
+        root);
   }
 
   @Test

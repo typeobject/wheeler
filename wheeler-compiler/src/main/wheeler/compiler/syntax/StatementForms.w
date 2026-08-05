@@ -32,6 +32,10 @@ classical class StatementForms {
       return true;
     }
 
+    if (opcode == STATEMENT_RETURN_HELPER_CALL_NAMED) {
+      return true;
+    }
+
     if (returnComparisonStatement(opcode)) {
       return true;
     }
@@ -291,6 +295,10 @@ classical class StatementForms {
 
       if (identifierStart(returnedScalar)) {
         long returnOperator = utf8Scalar(source, tokenStarts[statementStart + 2]);
+        if (returnOperator == PUNCTUATION_OPEN_PAREN) {
+          return STATEMENT_RETURN_HELPER_CALL_NAMED;
+        }
+
         boolean returnRightNamed = identifierStart(
           utf8Scalar(source, tokenStarts[statementStart + 3])
         );

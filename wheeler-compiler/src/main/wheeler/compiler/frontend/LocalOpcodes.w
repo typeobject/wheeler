@@ -7,6 +7,7 @@ import wheeler.compiler.conditionals;
 import wheeler.compiler.early_comparison_forms;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.resolved_early_result_kinds;
+import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
@@ -316,6 +317,10 @@ classical class LocalOpcodes {
 
     if (opcode == STATEMENT_RETURN_LONG) {
       return 1;
+    }
+
+    if (resolvedReturnHelperCall(opcode)) {
+      return 3;
     }
 
     if (resolvedLocalReturn(opcode)) {
@@ -706,6 +711,10 @@ classical class LocalOpcodes {
 
     if (opcode == STATEMENT_RETURN_LONG) {
       return 40;
+    }
+
+    if (resolvedReturnHelperCall(opcode)) {
+      return 104;
     }
 
     if (resolvedLocalReturn(opcode)) {

@@ -10,6 +10,7 @@ import wheeler.compiler.encoding;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.resolved_early_result_kinds;
+import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.sequences;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
@@ -18,6 +19,9 @@ import wheeler.compiler.tokens;
 classical class ScalarHelperLibraries {
   /// Carries one complete scalar helper and the following declaration token.
   private record ParsedScalarHelper(HelperBody body, long nextToken, boolean valid) {}
+
+  /// Carries two bounded call targets resolved against one helper table.
+  private record ResolvedCalls(long firstFunction, long secondFunction, boolean valid) {}
 
   private ParsedScalarHelper invalidHelper() {
     return new ParsedScalarHelper(emptyHelperBody(), 0, false);
@@ -49,6 +53,10 @@ classical class ScalarHelperLibraries {
     }
 
     if (returnComparisonStatement(opcode)) {
+      return true;
+    }
+
+    if (resolvedReturnHelperCall(opcode)) {
       return true;
     }
 
@@ -194,7 +202,10 @@ classical class ScalarHelperLibraries {
       return invalidHelper();
     }
 
-    SourceRange callTarget = new SourceRange(0, 0);
+    SourceRange firstCallTarget = new SourceRange(0, 0);
+    SourceRange secondCallTarget = new SourceRange(0, 0);
+    long firstCallStatement = -1;
+    long secondCallStatement = -1;
     long callCount = 0;
     long sourceStatement = 0;
     while (sourceStatement < statements.count) limit MAX_MINIMAL_STATEMENTS {
@@ -213,16 +224,32 @@ classical class ScalarHelperLibraries {
         helperCall = true;
       }
 
+      long targetToken = statementStarts[sourceStatement] + 2;
+      if (sourceOpcode == STATEMENT_RETURN_HELPER_CALL_NAMED) {
+        helperCall = true;
+        targetToken = statementStarts[sourceStatement] + 1;
+      }
+
       if (helperCall) {
-        long targetToken = statementStarts[sourceStatement] + 2;
-        callTarget = new SourceRange(tokenStarts[targetToken], tokenLengths[targetToken]);
+        SourceRange target = new SourceRange(
+          tokenStarts[targetToken],
+          tokenLengths[targetToken]
+        );
+        if (callCount == 0) {
+          firstCallTarget = target;
+          firstCallStatement = sourceStatement;
+        } else {
+          secondCallTarget = target;
+          secondCallStatement = sourceStatement;
+        }
+
         callCount += 1;
       }
 
       sourceStatement += 1;
     }
 
-    if (callCount < 2) {} else {
+    if (callCount < 3) {} else {
       return invalidHelper();
     }
 
@@ -252,7 +279,11 @@ classical class ScalarHelperLibraries {
       kind,
       sequence.count,
       sequence.count - 1,
-      callTarget,
+      firstCallTarget,
+      firstCallStatement,
+      -1,
+      secondCallTarget,
+      secondCallStatement,
       -1
     );
     return new ParsedScalarHelper(body, statements.end + 1, true);
@@ -293,13 +324,15 @@ classical class ScalarHelperLibraries {
   private long resolveCallFunction(
     borrow utf8 source,
     HelperBody caller,
+    SourceRange target,
+    boolean forwarding,
     HelperBody first,
     HelperBody second,
     HelperBody third,
     HelperBody fourth,
     long helperCount
   ) {
-    if (caller.callTargetName.length == 0) {
+    if (target.length == 0) {
       return -1;
     }
 
@@ -309,14 +342,20 @@ classical class ScalarHelperLibraries {
       HelperBody candidate = selectedBody(first, second, third, fourth, helper);
       long order = compareAsciiSlices(
         source,
-        caller.callTargetName.start,
-        caller.callTargetName.length,
+        target.start,
+        target.length,
         candidate.name.start,
         candidate.name.length
       );
       if (order == 0) {
-        if (candidate.kind == HELPER_BOOLEAN_SIGNED_ONE) {
-          found = helper;
+        if (forwarding) {
+          if (candidate.kind == caller.kind) {
+            found = helper;
+          }
+        } else {
+          if (candidate.kind == HELPER_BOOLEAN_SIGNED_ONE) {
+            found = helper;
+          }
         }
       }
 
@@ -326,7 +365,54 @@ classical class ScalarHelperLibraries {
     return found;
   }
 
-  private HelperBody withCallFunction(HelperBody body, long callFunction) {
+  private ResolvedCalls resolveCalls(
+    borrow utf8 source,
+    HelperBody caller,
+    HelperBody first,
+    HelperBody second,
+    HelperBody third,
+    HelperBody fourth,
+    long helperCount
+  ) {
+    boolean firstForwarding = caller.firstCallStatement == caller.resultStatement;
+    boolean secondForwarding = caller.secondCallStatement == caller.resultStatement;
+    long firstFunction = resolveCallFunction(
+      source,
+      caller,
+      caller.firstCallTargetName,
+      firstForwarding,
+      first,
+      second,
+      third,
+      fourth,
+      helperCount
+    );
+    long secondFunction = resolveCallFunction(
+      source,
+      caller,
+      caller.secondCallTargetName,
+      secondForwarding,
+      first,
+      second,
+      third,
+      fourth,
+      helperCount
+    );
+    boolean valid = true;
+    if (0 < caller.firstCallTargetName.length) {
+      valid = -1 < firstFunction;
+    }
+
+    if (valid) {
+      if (0 < caller.secondCallTargetName.length) {
+        valid = -1 < secondFunction;
+      }
+    }
+
+    return new ResolvedCalls(firstFunction, secondFunction, valid);
+  }
+
+  private HelperBody withCalls(HelperBody body, ResolvedCalls calls) {
     return new HelperBody(
       body.name,
       body.opcodes,
@@ -335,8 +421,12 @@ classical class ScalarHelperLibraries {
       body.kind,
       body.statementCount,
       body.resultStatement,
-      body.callTargetName,
-      callFunction
+      body.firstCallTargetName,
+      body.firstCallStatement,
+      calls.firstFunction,
+      body.secondCallTargetName,
+      body.secondCallStatement,
+      calls.secondFunction
     );
   }
 
@@ -461,7 +551,7 @@ classical class ScalarHelperLibraries {
       }
     }
 
-    long firstCallFunction = resolveCallFunction(
+    ResolvedCalls firstCalls = resolveCalls(
       source,
       firstBody,
       firstBody,
@@ -470,7 +560,7 @@ classical class ScalarHelperLibraries {
       fourthBody,
       helperCount
     );
-    long secondCallFunction = resolveCallFunction(
+    ResolvedCalls secondCalls = resolveCalls(
       source,
       secondBody,
       firstBody,
@@ -479,7 +569,7 @@ classical class ScalarHelperLibraries {
       fourthBody,
       helperCount
     );
-    long thirdCallFunction = resolveCallFunction(
+    ResolvedCalls thirdCalls = resolveCalls(
       source,
       thirdBody,
       firstBody,
@@ -488,7 +578,7 @@ classical class ScalarHelperLibraries {
       fourthBody,
       helperCount
     );
-    long fourthCallFunction = resolveCallFunction(
+    ResolvedCalls fourthCalls = resolveCalls(
       source,
       fourthBody,
       firstBody,
@@ -497,38 +587,30 @@ classical class ScalarHelperLibraries {
       fourthBody,
       helperCount
     );
-    if (0 < firstBody.callTargetName.length) {
-      if (-1 < firstCallFunction) {} else {
-        return new MinimalProgramResult.Error(0);
-      }
+    if (firstCalls.valid) {} else {
+      return new MinimalProgramResult.Error(0);
     }
 
-    if (0 < secondBody.callTargetName.length) {
-      if (-1 < secondCallFunction) {} else {
-        return new MinimalProgramResult.Error(0);
-      }
+    if (secondCalls.valid) {} else {
+      return new MinimalProgramResult.Error(0);
     }
 
     if (2 < helperCount) {
-      if (0 < thirdBody.callTargetName.length) {
-        if (-1 < thirdCallFunction) {} else {
-          return new MinimalProgramResult.Error(0);
-        }
+      if (thirdCalls.valid) {} else {
+        return new MinimalProgramResult.Error(0);
       }
     }
 
     if (3 < helperCount) {
-      if (0 < fourthBody.callTargetName.length) {
-        if (-1 < fourthCallFunction) {} else {
-          return new MinimalProgramResult.Error(0);
-        }
+      if (fourthCalls.valid) {} else {
+        return new MinimalProgramResult.Error(0);
       }
     }
 
-    firstBody = withCallFunction(firstBody, firstCallFunction);
-    secondBody = withCallFunction(secondBody, secondCallFunction);
-    thirdBody = withCallFunction(thirdBody, thirdCallFunction);
-    fourthBody = withCallFunction(fourthBody, fourthCallFunction);
+    firstBody = withCalls(firstBody, firstCalls);
+    secondBody = withCalls(secondBody, secondCalls);
+    thirdBody = withCalls(thirdBody, thirdCalls);
+    fourthBody = withCalls(fourthBody, fourthCalls);
 
     SourceRange name = new SourceRange(tokenStarts[2], tokenLengths[2]);
     SourceRange absent = new SourceRange(0, 0);

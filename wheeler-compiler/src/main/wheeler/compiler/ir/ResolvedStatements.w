@@ -143,6 +143,8 @@ classical class ResolvedStatements {
   public const long STATEMENT_IF_SIGNED_LT_RETURN_LONG_BASE = 27136;
   /// Starts resolved parameter less-than guards returning checked subtraction.
   public const long STATEMENT_IF_SIGNED_LT_RETURN_SUB_BASE = 27392;
+  /// Starts resolved scalar helper returns forwarding one call result.
+  public const long STATEMENT_RETURN_HELPER_CALL_BASE = 27648;
   /// Starts resolved bounded signed-local while loops.
   public const long STATEMENT_LOCAL_WHILE_BASE = 18688;
   /// Starts resolved signed-local less-than assertions against literals.

@@ -519,11 +519,23 @@ classical class ProgramCodegen {
     long[64] secondaryOperands,
     long count,
     long localBase,
-    long callFunction
+    long firstCallStatement,
+    long firstCallFunction,
+    long secondCallStatement,
+    long secondCallFunction
   ) {
     long index = 0;
     long instructionBase = 0;
     while (index < count) limit MAX_MINIMAL_STATEMENTS {
+      long callFunction = -1;
+      if (index == firstCallStatement) {
+        callFunction = firstCallFunction;
+      }
+
+      if (index == secondCallStatement) {
+        callFunction = secondCallFunction;
+      }
+
       cursor = writeStatement(
         output,
         cursor,
@@ -708,7 +720,10 @@ classical class ProgramCodegen {
       helperAt(program, 0).secondaryOperands,
       helperAt(program, 0).statementCount,
       helperLocalBase,
-      helperAt(program, 0).callFunction
+      helperAt(program, 0).firstCallStatement,
+      helperAt(program, 0).firstCallFunction,
+      helperAt(program, 0).secondCallStatement,
+      helperAt(program, 0).secondCallFunction
     );
     if (HELPER_REVERSIBLE < helperAt(program, 0).kind) {
       return cursor;
@@ -804,6 +819,9 @@ classical class ProgramCodegen {
         program.statementSecondaryOperands,
         program.statementCount,
         0,
+        -1,
+        -1,
+        -1,
         -1
       );
     }
@@ -821,7 +839,10 @@ classical class ProgramCodegen {
           body.secondaryOperands,
           body.statementCount,
           parameterCountForHelper(body.kind),
-          body.callFunction
+          body.firstCallStatement,
+          body.firstCallFunction,
+          body.secondCallStatement,
+          body.secondCallFunction
         );
         helper += 1;
       }
@@ -849,6 +870,9 @@ classical class ProgramCodegen {
         program.statementSecondaryOperands,
         program.statementCount,
         0,
+        -1,
+        -1,
+        -1,
         -1
       );
     }
