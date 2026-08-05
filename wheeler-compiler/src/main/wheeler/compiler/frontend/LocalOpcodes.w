@@ -319,6 +319,10 @@ classical class LocalOpcodes {
       return 1;
     }
 
+    if (resolvedReturnHelperCallZero(opcode)) {
+      return 1;
+    }
+
     if (resolvedReturnHelperCall(opcode)) {
       return 3;
     }
@@ -713,6 +717,10 @@ classical class LocalOpcodes {
       return 40;
     }
 
+    if (resolvedReturnHelperCallZero(opcode)) {
+      return 56;
+    }
+
     if (resolvedReturnHelperCall(opcode)) {
       return 104;
     }
@@ -916,6 +924,10 @@ classical class LocalOpcodes {
     }
 
     if (length == 48) {
+      return 2;
+    }
+
+    if (length == 56) {
       return 2;
     }
 

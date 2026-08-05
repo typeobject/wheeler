@@ -44,6 +44,17 @@ classical class ReturnCodegen {
     long instructionBase,
     long callFunction
   ) {
+    if (resolvedReturnHelperCallZero(opcode)) {
+      assert(-1 < callFunction);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_CALL_VALUE, FORM_QUATERNARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, callFunction, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, /* argumentBase= */ 0, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, /* argumentCount= */ 0, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN_VALUE, FORM_UNARY);
+      return writeUnsignedLittleEndian(output, cursor, localBase, U64);
+    }
+
     if (resolvedReturnHelperCall(opcode)) {
       assert(-1 < callFunction);
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);

@@ -678,8 +678,12 @@ final class NativeCompilerSelfSourceExampleTest {
             return 7;
           }
 
-          public boolean ready() {
+          private boolean flag() {
             return true;
+          }
+
+          public boolean ready() {
+            return flag();
           }
 
           public long identity(long value) {
@@ -697,8 +701,12 @@ final class NativeCompilerSelfSourceExampleTest {
     Program decoded = new BytecodeReader().read(artifact);
     assertEquals(0, decoded.functions().get(0).parameterCount());
     assertEquals(0, decoded.functions().get(1).parameterCount());
-    assertEquals(1, decoded.functions().get(2).parameterCount());
-    assertEquals("$library", decoded.functions().get(3).name());
+    assertEquals(0, decoded.functions().get(2).parameterCount());
+    assertEquals(1, decoded.functions().get(3).parameterCount());
+    assertEquals(1, decoded.functions().get(2).localCount());
+    assertEquals(2, decoded.functions().get(2).forward().size());
+    assertEquals("$library", decoded.functions().get(4).name());
+    assertNoPublication(compiler, source.replace("return flag();", "return missing();"));
   }
 
   @Test

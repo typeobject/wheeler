@@ -136,8 +136,8 @@ class SourceReadabilityTest {
     assertEquals(java.util.Map.of(), statementIdentities(tokens));
     assertEquals(127, statementIdentities(kinds).size());
     assertEquals(6, statementIdentities(loopKinds).size());
-    assertEquals(76, statementIdentities(resolved).size());
-    assertEquals(209, statementIdentities(kinds + loopKinds + resolved).size());
+    assertEquals(77, statementIdentities(resolved).size());
+    assertEquals(210, statementIdentities(kinds + loopKinds + resolved).size());
   }
 
   @Test
