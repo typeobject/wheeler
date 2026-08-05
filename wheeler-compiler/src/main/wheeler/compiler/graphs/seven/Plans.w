@@ -13,6 +13,8 @@ classical class SevenGraphPlans {
   private const long SINGLE_IMPORT = 1;
   private const long TWO_EDGES = 2;
   private const long TWO_IMPORTS = 2;
+  private const long THREE_EDGES = 3;
+  private const long FOUR_IMPORTS = 4;
   private const long FIVE_IMPORTS = 5;
   private const long SIX_EDGES = 6;
   private const long SIX_IMPORTS = 6;
@@ -63,6 +65,10 @@ classical class SevenGraphPlans {
     }
 
     if (dependency.importCount == SINGLE_IMPORT) {
+      return dependency.importsCandidate;
+    }
+
+    if (dependency.importCount == FOUR_IMPORTS) {
       return dependency.importsCandidate;
     }
 
@@ -229,6 +235,17 @@ classical class SevenGraphPlans {
     return count;
   }
 
+  private long outgoingCount(borrow mut words graph, long source) {
+    long count = 0;
+    long dependent = 0;
+    while (dependent < MODULE_COUNT) limit MODULE_COUNT {
+      count += graph[source * MODULE_COUNT + dependent];
+      dependent += 1;
+    }
+
+    return count;
+  }
+
   private SevenGraphPlan forkAndDirectsPlan(borrow mut words graph, borrow mut words rootDirect) {
     long dependent = -1;
     long firstLeaf = -1;
@@ -376,6 +393,96 @@ classical class SevenGraphPlans {
     );
   }
 
+  private SevenGraphPlan threeChainsAndDirectPlan(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long firstLeaf = -1;
+    long firstDependent = -1;
+    long secondLeaf = -1;
+    long secondDependent = -1;
+    long thirdLeaf = -1;
+    long thirdDependent = -1;
+    long direct = -1;
+    long leafCount = 0;
+    long source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      long incoming = incomingCount(graph, source);
+      long outgoing = outgoingCount(graph, source);
+      if (outgoing == SINGLE_EDGE) {
+        if (incoming == 0) {} else {
+          return invalidPlan();
+        }
+
+        if (rootDirect[source] == 0) {} else {
+          return invalidPlan();
+        }
+
+        long dependent = 0;
+        while (dependent < MODULE_COUNT) limit MODULE_COUNT {
+          if (graph[source * MODULE_COUNT + dependent] == 1) {
+            if (rootDirect[dependent] == 1) {} else {
+              return invalidPlan();
+            }
+
+            if (leafCount == 0) {
+              firstLeaf = source;
+              firstDependent = dependent;
+            }
+
+            if (leafCount == 1) {
+              secondLeaf = source;
+              secondDependent = dependent;
+            }
+
+            if (leafCount == 2) {
+              thirdLeaf = source;
+              thirdDependent = dependent;
+            }
+          }
+
+          dependent += 1;
+        }
+
+        leafCount += 1;
+      } else {
+        if (incoming == 0) {
+          if (rootDirect[source] == 1) {
+            direct = source;
+          } else {
+            return invalidPlan();
+          }
+        } else {
+          if (incoming == SINGLE_EDGE) {} else {
+            return invalidPlan();
+          }
+        }
+      }
+
+      source += 1;
+    }
+
+    if (leafCount == THREE_EDGES) {} else {
+      return invalidPlan();
+    }
+
+    if (direct < 0) {
+      return invalidPlan();
+    }
+
+    return new SevenGraphPlan(
+      SEVEN_PLAN_THREE_CHAINS_AND_DIRECT,
+      firstLeaf,
+      firstDependent,
+      secondLeaf,
+      secondDependent,
+      thirdLeaf,
+      thirdDependent,
+      direct,
+      true
+    );
+  }
+
   private SevenGraphPlan structuredGraph(
     borrow utf8 firstSource,
     borrow utf8 secondSource,
@@ -429,6 +536,11 @@ classical class SevenGraphPlans {
       mixedFork = rootCount == FIVE_IMPORTS;
     }
 
+    boolean mixedThreeChains = false;
+    if (edgeCount == THREE_EDGES) {
+      mixedThreeChains = rootCount == FOUR_IMPORTS;
+    }
+
     boolean valid = direct;
     if (structured) {
       valid = true;
@@ -439,6 +551,10 @@ classical class SevenGraphPlans {
     }
 
     if (mixedFork) {
+      valid = true;
+    }
+
+    if (mixedThreeChains) {
       valid = true;
     }
 
@@ -477,6 +593,10 @@ classical class SevenGraphPlans {
           if (result.valid) {} else {
             result = pairsAndDirectsPlan(graph, rootDirect);
           }
+        }
+
+        if (mixedThreeChains) {
+          result = threeChainsAndDirectPlan(graph, rootDirect);
         }
 
         boolean chain = writeChainOrder(graph, rootDirect, MODULE_COUNT, order);

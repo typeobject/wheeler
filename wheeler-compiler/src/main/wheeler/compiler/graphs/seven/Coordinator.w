@@ -195,6 +195,22 @@ classical class CompilerGraphSeven {
       return new SevenGraphCompilation(mixedPairs.length, mixedPairs.codeStart);
     }
 
+    if (plan.topology == SEVEN_PLAN_THREE_CHAINS_AND_DIRECT) {
+      SevenMixedCompilation threeChains = compileSevenThreeChainsAndDirect(
+        plan,
+        firstImportedSource,
+        secondImportedSource,
+        thirdImportedSource,
+        fourthImportedSource,
+        fifthImportedSource,
+        sixthImportedSource,
+        seventhImportedSource,
+        rootSource,
+        output
+      );
+      return new SevenGraphCompilation(threeChains.length, threeChains.codeStart);
+    }
+
     assert(plan.topology == SEVEN_PLAN_DIRECT);
     return new SevenGraphCompilation(0, 0);
   }
