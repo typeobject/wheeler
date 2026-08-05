@@ -27,6 +27,11 @@ classical class ScalarHelperPrograms {
     HelperBody ninth,
     HelperBody tenth,
     HelperBody eleventh,
+    HelperBody twelfth,
+    HelperBody thirteenth,
+    HelperBody fourteenth,
+    HelperBody fifteenth,
+    HelperBody sixteenth,
     long helperCount
   ) {
     ResolvedCalls calls = resolveCalls(
@@ -43,12 +48,17 @@ classical class ScalarHelperPrograms {
       ninth,
       tenth,
       eleventh,
+      twelfth,
+      thirteenth,
+      fourteenth,
+      fifteenth,
+      sixteenth,
       helperCount
     );
     return new ResolvedHelperBody(withCalls(body, calls), calls.valid);
   }
 
-  /// Parses two through eleven scalar helpers in source declaration order.
+  /// Parses two through sixteen scalar helpers in source declaration order.
   public MinimalProgramResult parseScalarHelperLibrary(
     borrow utf8 source,
     borrow mut words tokenKinds,
@@ -97,6 +107,11 @@ classical class ScalarHelperPrograms {
     ParsedScalarHelper ninth = invalidHelper();
     ParsedScalarHelper tenth = invalidHelper();
     ParsedScalarHelper eleventh = invalidHelper();
+    ParsedScalarHelper twelfth = invalidHelper();
+    ParsedScalarHelper thirteenth = invalidHelper();
+    ParsedScalarHelper fourteenth = invalidHelper();
+    ParsedScalarHelper fifteenth = invalidHelper();
+    ParsedScalarHelper sixteenth = invalidHelper();
     if (
       punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
     ) {
@@ -269,6 +284,101 @@ classical class ScalarHelperPrograms {
     }
 
     if (
+      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
+    ) {
+      twelfth = parseScalarHelper(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        statementStarts,
+        classClose
+      );
+      if (twelfth.valid) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+
+      helperCount = 12;
+      classClose = twelfth.nextToken;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
+    ) {
+      thirteenth = parseScalarHelper(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        statementStarts,
+        classClose
+      );
+      if (thirteenth.valid) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+
+      helperCount = 13;
+      classClose = thirteenth.nextToken;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
+    ) {
+      fourteenth = parseScalarHelper(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        statementStarts,
+        classClose
+      );
+      if (fourteenth.valid) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+
+      helperCount = 14;
+      classClose = fourteenth.nextToken;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
+    ) {
+      fifteenth = parseScalarHelper(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        statementStarts,
+        classClose
+      );
+      if (fifteenth.valid) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+
+      helperCount = 15;
+      classClose = fifteenth.nextToken;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
+    ) {
+      sixteenth = parseScalarHelper(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        statementStarts,
+        classClose
+      );
+      if (sixteenth.valid) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+
+      helperCount = 16;
+      classClose = sixteenth.nextToken;
+    }
+
+    if (
       punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE)
     ) {} else {
       return new MinimalProgramResult.Error(0);
@@ -289,6 +399,11 @@ classical class ScalarHelperPrograms {
     HelperBody ninthBody = ninth.body;
     HelperBody tenthBody = tenth.body;
     HelperBody eleventhBody = eleventh.body;
+    HelperBody twelfthBody = twelfth.body;
+    HelperBody thirteenthBody = thirteenth.body;
+    HelperBody fourteenthBody = fourteenth.body;
+    HelperBody fifteenthBody = fifteenth.body;
+    HelperBody sixteenthBody = sixteenth.body;
     if (
       uniqueHelpers(
         source,
@@ -303,6 +418,11 @@ classical class ScalarHelperPrograms {
         ninthBody,
         tenthBody,
         eleventhBody,
+        twelfthBody,
+        thirteenthBody,
+        fourteenthBody,
+        fifteenthBody,
+        sixteenthBody,
         helperCount
       )
     ) {} else {
@@ -323,6 +443,11 @@ classical class ScalarHelperPrograms {
       ninthBody,
       tenthBody,
       eleventhBody,
+      twelfthBody,
+      thirteenthBody,
+      fourteenthBody,
+      fifteenthBody,
+      sixteenthBody,
       helperCount
     );
     ResolvedHelperBody secondResolved = resolvedHelperBody(
@@ -339,6 +464,11 @@ classical class ScalarHelperPrograms {
       ninthBody,
       tenthBody,
       eleventhBody,
+      twelfthBody,
+      thirteenthBody,
+      fourteenthBody,
+      fifteenthBody,
+      sixteenthBody,
       helperCount
     );
     ResolvedHelperBody thirdResolved = resolvedHelperBody(
@@ -355,6 +485,11 @@ classical class ScalarHelperPrograms {
       ninthBody,
       tenthBody,
       eleventhBody,
+      twelfthBody,
+      thirteenthBody,
+      fourteenthBody,
+      fifteenthBody,
+      sixteenthBody,
       helperCount
     );
     ResolvedHelperBody fourthResolved = resolvedHelperBody(
@@ -371,6 +506,11 @@ classical class ScalarHelperPrograms {
       ninthBody,
       tenthBody,
       eleventhBody,
+      twelfthBody,
+      thirteenthBody,
+      fourteenthBody,
+      fifteenthBody,
+      sixteenthBody,
       helperCount
     );
     ResolvedHelperBody fifthResolved = resolvedHelperBody(
@@ -387,6 +527,11 @@ classical class ScalarHelperPrograms {
       ninthBody,
       tenthBody,
       eleventhBody,
+      twelfthBody,
+      thirteenthBody,
+      fourteenthBody,
+      fifteenthBody,
+      sixteenthBody,
       helperCount
     );
     ResolvedHelperBody sixthResolved = resolvedHelperBody(
@@ -403,6 +548,11 @@ classical class ScalarHelperPrograms {
       ninthBody,
       tenthBody,
       eleventhBody,
+      twelfthBody,
+      thirteenthBody,
+      fourteenthBody,
+      fifteenthBody,
+      sixteenthBody,
       helperCount
     );
     ResolvedHelperBody seventhResolved = resolvedHelperBody(
@@ -419,6 +569,11 @@ classical class ScalarHelperPrograms {
       ninthBody,
       tenthBody,
       eleventhBody,
+      twelfthBody,
+      thirteenthBody,
+      fourteenthBody,
+      fifteenthBody,
+      sixteenthBody,
       helperCount
     );
     ResolvedHelperBody eighthResolved = resolvedHelperBody(
@@ -435,6 +590,11 @@ classical class ScalarHelperPrograms {
       ninthBody,
       tenthBody,
       eleventhBody,
+      twelfthBody,
+      thirteenthBody,
+      fourteenthBody,
+      fifteenthBody,
+      sixteenthBody,
       helperCount
     );
     ResolvedHelperBody ninthResolved = resolvedHelperBody(
@@ -451,6 +611,11 @@ classical class ScalarHelperPrograms {
       ninthBody,
       tenthBody,
       eleventhBody,
+      twelfthBody,
+      thirteenthBody,
+      fourteenthBody,
+      fifteenthBody,
+      sixteenthBody,
       helperCount
     );
     ResolvedHelperBody tenthResolved = resolvedHelperBody(
@@ -467,6 +632,11 @@ classical class ScalarHelperPrograms {
       ninthBody,
       tenthBody,
       eleventhBody,
+      twelfthBody,
+      thirteenthBody,
+      fourteenthBody,
+      fifteenthBody,
+      sixteenthBody,
       helperCount
     );
     ResolvedHelperBody eleventhResolved = resolvedHelperBody(
@@ -483,6 +653,116 @@ classical class ScalarHelperPrograms {
       ninthBody,
       tenthBody,
       eleventhBody,
+      twelfthBody,
+      thirteenthBody,
+      fourteenthBody,
+      fifteenthBody,
+      sixteenthBody,
+      helperCount
+    );
+    ResolvedHelperBody twelfthResolved = resolvedHelperBody(
+      source,
+      twelfthBody,
+      firstBody,
+      secondBody,
+      thirdBody,
+      fourthBody,
+      fifthBody,
+      sixthBody,
+      seventhBody,
+      eighthBody,
+      ninthBody,
+      tenthBody,
+      eleventhBody,
+      twelfthBody,
+      thirteenthBody,
+      fourteenthBody,
+      fifteenthBody,
+      sixteenthBody,
+      helperCount
+    );
+    ResolvedHelperBody thirteenthResolved = resolvedHelperBody(
+      source,
+      thirteenthBody,
+      firstBody,
+      secondBody,
+      thirdBody,
+      fourthBody,
+      fifthBody,
+      sixthBody,
+      seventhBody,
+      eighthBody,
+      ninthBody,
+      tenthBody,
+      eleventhBody,
+      twelfthBody,
+      thirteenthBody,
+      fourteenthBody,
+      fifteenthBody,
+      sixteenthBody,
+      helperCount
+    );
+    ResolvedHelperBody fourteenthResolved = resolvedHelperBody(
+      source,
+      fourteenthBody,
+      firstBody,
+      secondBody,
+      thirdBody,
+      fourthBody,
+      fifthBody,
+      sixthBody,
+      seventhBody,
+      eighthBody,
+      ninthBody,
+      tenthBody,
+      eleventhBody,
+      twelfthBody,
+      thirteenthBody,
+      fourteenthBody,
+      fifteenthBody,
+      sixteenthBody,
+      helperCount
+    );
+    ResolvedHelperBody fifteenthResolved = resolvedHelperBody(
+      source,
+      fifteenthBody,
+      firstBody,
+      secondBody,
+      thirdBody,
+      fourthBody,
+      fifthBody,
+      sixthBody,
+      seventhBody,
+      eighthBody,
+      ninthBody,
+      tenthBody,
+      eleventhBody,
+      twelfthBody,
+      thirteenthBody,
+      fourteenthBody,
+      fifteenthBody,
+      sixteenthBody,
+      helperCount
+    );
+    ResolvedHelperBody sixteenthResolved = resolvedHelperBody(
+      source,
+      sixteenthBody,
+      firstBody,
+      secondBody,
+      thirdBody,
+      fourthBody,
+      fifthBody,
+      sixthBody,
+      seventhBody,
+      eighthBody,
+      ninthBody,
+      tenthBody,
+      eleventhBody,
+      twelfthBody,
+      thirteenthBody,
+      fourteenthBody,
+      fifteenthBody,
+      sixteenthBody,
       helperCount
     );
     if (firstResolved.valid) {} else {
@@ -547,6 +827,36 @@ classical class ScalarHelperPrograms {
       }
     }
 
+    if (11 < helperCount) {
+      if (twelfthResolved.valid) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+    }
+
+    if (12 < helperCount) {
+      if (thirteenthResolved.valid) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+    }
+
+    if (13 < helperCount) {
+      if (fourteenthResolved.valid) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+    }
+
+    if (14 < helperCount) {
+      if (fifteenthResolved.valid) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+    }
+
+    if (15 < helperCount) {
+      if (sixteenthResolved.valid) {} else {
+        return new MinimalProgramResult.Error(0);
+      }
+    }
+
     firstBody = firstResolved.body;
     secondBody = secondResolved.body;
     thirdBody = thirdResolved.body;
@@ -558,6 +868,11 @@ classical class ScalarHelperPrograms {
     ninthBody = ninthResolved.body;
     tenthBody = tenthResolved.body;
     eleventhBody = eleventhResolved.body;
+    twelfthBody = twelfthResolved.body;
+    thirteenthBody = thirteenthResolved.body;
+    fourteenthBody = fourteenthResolved.body;
+    fifteenthBody = fifteenthResolved.body;
+    sixteenthBody = sixteenthResolved.body;
 
     SourceRange name = new SourceRange(tokenStarts[2], tokenLengths[2]);
     SourceRange absent = new SourceRange(0, 0);
@@ -582,6 +897,11 @@ classical class ScalarHelperPrograms {
       ninthBody,
       tenthBody,
       eleventhBody,
+      twelfthBody,
+      thirteenthBody,
+      fourteenthBody,
+      fifteenthBody,
+      sixteenthBody,
       absent,
       0,
       0,

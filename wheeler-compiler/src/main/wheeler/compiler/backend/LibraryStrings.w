@@ -15,7 +15,7 @@ classical class LibraryStrings {
   /// Defines immutable bounded library string-table plans.
   public record LibraryStringPlan(
     long nameIndex,
-    long[11] helperIndices,
+    long[16] helperIndices,
     long entryIndex,
     long stringCount,
     long encodedLength,
@@ -240,7 +240,7 @@ classical class LibraryStrings {
     return index;
   }
 
-  /// Computes canonical indices and encoded width for two through eleven helpers.
+  /// Computes canonical indices and encoded width for two through sixteen helpers.
   public LibraryStringPlan planLibraryStrings(
     borrow utf8 source,
     MinimalProgram program,
@@ -334,6 +334,11 @@ classical class LibraryStrings {
     long ninthIndex = 0;
     long tenthIndex = 0;
     long eleventhIndex = 0;
+    long twelfthIndex = 0;
+    long thirteenthIndex = 0;
+    long fourteenthIndex = 0;
+    long fifteenthIndex = 0;
+    long sixteenthIndex = 0;
     if (2 < program.helperCount) {
       thirdIndex = candidateIndex(
         source,
@@ -442,7 +447,67 @@ classical class LibraryStrings {
       );
     }
 
-    long[11] helperIndices = new long[11](
+    if (11 < program.helperCount) {
+      twelfthIndex = candidateIndex(
+        source,
+        program,
+        rootModule,
+        importedModule,
+        importedHelperCount,
+        FIRST_HELPER + 11,
+        stringCount
+      );
+    }
+
+    if (12 < program.helperCount) {
+      thirteenthIndex = candidateIndex(
+        source,
+        program,
+        rootModule,
+        importedModule,
+        importedHelperCount,
+        FIRST_HELPER + 12,
+        stringCount
+      );
+    }
+
+    if (13 < program.helperCount) {
+      fourteenthIndex = candidateIndex(
+        source,
+        program,
+        rootModule,
+        importedModule,
+        importedHelperCount,
+        FIRST_HELPER + 13,
+        stringCount
+      );
+    }
+
+    if (14 < program.helperCount) {
+      fifteenthIndex = candidateIndex(
+        source,
+        program,
+        rootModule,
+        importedModule,
+        importedHelperCount,
+        FIRST_HELPER + 14,
+        stringCount
+      );
+    }
+
+    if (15 < program.helperCount) {
+      sixteenthIndex = candidateIndex(
+        source,
+        program,
+        rootModule,
+        importedModule,
+        importedHelperCount,
+        FIRST_HELPER + 15,
+        stringCount
+      );
+    }
+
+    long[16] helperIndices = new long[16](
       firstIndex,
       secondIndex,
       thirdIndex,
@@ -453,7 +518,12 @@ classical class LibraryStrings {
       eighthIndex,
       ninthIndex,
       tenthIndex,
-      eleventhIndex
+      eleventhIndex,
+      twelfthIndex,
+      thirteenthIndex,
+      fourteenthIndex,
+      fifteenthIndex,
+      sixteenthIndex
     );
     return new LibraryStringPlan(
       candidateIndex(

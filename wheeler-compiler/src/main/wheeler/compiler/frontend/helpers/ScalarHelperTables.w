@@ -36,7 +36,7 @@ classical class ScalarHelperTables {
     );
   }
 
-  /// Selects one helper from eleven fixed table slots.
+  /// Selects one helper from sixteen fixed table slots.
   public HelperBody selectedBody(
     HelperBody first,
     HelperBody second,
@@ -49,6 +49,11 @@ classical class ScalarHelperTables {
     HelperBody ninth,
     HelperBody tenth,
     HelperBody eleventh,
+    HelperBody twelfth,
+    HelperBody thirteenth,
+    HelperBody fourteenth,
+    HelperBody fifteenth,
+    HelperBody sixteenth,
     long index
   ) {
     if (index == 0) {
@@ -91,7 +96,27 @@ classical class ScalarHelperTables {
       return tenth;
     }
 
-    return eleventh;
+    if (index == 10) {
+      return eleventh;
+    }
+
+    if (index == 11) {
+      return twelfth;
+    }
+
+    if (index == 12) {
+      return thirteenth;
+    }
+
+    if (index == 13) {
+      return fourteenth;
+    }
+
+    if (index == 14) {
+      return fifteenth;
+    }
+
+    return sixteenth;
   }
 
   /// Checks that all occupied helper names are distinct.
@@ -108,6 +133,11 @@ classical class ScalarHelperTables {
     HelperBody ninth,
     HelperBody tenth,
     HelperBody eleventh,
+    HelperBody twelfth,
+    HelperBody thirteenth,
+    HelperBody fourteenth,
+    HelperBody fifteenth,
+    HelperBody sixteenth,
     long helperCount
   ) {
     long left = 0;
@@ -124,6 +154,11 @@ classical class ScalarHelperTables {
         ninth,
         tenth,
         eleventh,
+        twelfth,
+        thirteenth,
+        fourteenth,
+        fifteenth,
+        sixteenth,
         left
       );
       long right = left + 1;
@@ -140,6 +175,11 @@ classical class ScalarHelperTables {
           ninth,
           tenth,
           eleventh,
+          twelfth,
+          thirteenth,
+          fourteenth,
+          fifteenth,
+          sixteenth,
           right
         );
         if (compareHelpers(source, leftBody, rightBody) == 0) {
@@ -172,6 +212,11 @@ classical class ScalarHelperTables {
     HelperBody ninth,
     HelperBody tenth,
     HelperBody eleventh,
+    HelperBody twelfth,
+    HelperBody thirteenth,
+    HelperBody fourteenth,
+    HelperBody fifteenth,
+    HelperBody sixteenth,
     long helperCount
   ) {
     if (target.length == 0) {
@@ -193,6 +238,11 @@ classical class ScalarHelperTables {
         ninth,
         tenth,
         eleventh,
+        twelfth,
+        thirteenth,
+        fourteenth,
+        fifteenth,
+        sixteenth,
         helper
       );
       long order = compareAsciiSlices(
@@ -239,6 +289,11 @@ classical class ScalarHelperTables {
     HelperBody ninth,
     HelperBody tenth,
     HelperBody eleventh,
+    HelperBody twelfth,
+    HelperBody thirteenth,
+    HelperBody fourteenth,
+    HelperBody fifteenth,
+    HelperBody sixteenth,
     long helperCount
   ) {
     boolean firstForwarding = caller.firstCallStatement == caller.resultStatement;
@@ -270,6 +325,11 @@ classical class ScalarHelperTables {
       ninth,
       tenth,
       eleventh,
+      twelfth,
+      thirteenth,
+      fourteenth,
+      fifteenth,
+      sixteenth,
       helperCount
     );
     long secondFunction = resolveCallFunction(
@@ -289,6 +349,11 @@ classical class ScalarHelperTables {
       ninth,
       tenth,
       eleventh,
+      twelfth,
+      thirteenth,
+      fourteenth,
+      fifteenth,
+      sixteenth,
       helperCount
     );
     boolean valid = true;
