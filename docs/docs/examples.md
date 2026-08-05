@@ -276,7 +276,7 @@ Expected behavior:
 - Empty, `abc`, 55/56/64-byte padding boundaries, and 100 arbitrary binary bytes match the JDK SHA-256 oracle.
 - Output is exactly 32 bytes and the empty-input run rewinds exactly.
 - Full 64-byte input blocks bypass padding-byte synthesis. The final partial block still uses the same checked padding relation.
-- The current 51,149-byte compiler manifest hashes in 9,799,412 history-free transitions under a 10,000,000-transition evidence ceiling. This checks bytes, not the patience of a progress bar.
+- SHA evidence receives 1,000,000 startup transitions plus 200 transitions per input byte. The current 51,149-byte compiler manifest hashes in 9,799,412 history-free transitions under its 11,229,800-transition budget. This checks linear work, not the patience of a progress bar.
 
 ### `NativeBytecodeCodec.w`
 

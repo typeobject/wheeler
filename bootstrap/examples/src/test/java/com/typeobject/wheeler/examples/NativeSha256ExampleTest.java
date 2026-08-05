@@ -16,15 +16,19 @@ import org.junit.jupiter.api.Test;
 
 /** Conformance tests for the provider-free Wheeler SHA-256 implementation. */
 class NativeSha256ExampleTest {
-  private static final long MAX_PHYSICAL_MANIFEST_TRANSITIONS = 10_000_000;
+  private static final long PHYSICAL_MANIFEST_BASE_TRANSITIONS = 1_000_000;
+  private static final long MAX_TRANSITIONS_PER_INPUT_BYTE = 200;
 
   @Test
   void hashesThePhysicalBoundedCompilerManifest() throws Exception {
     byte[] input = CompilerSources.bootstrapModuleManifest().canonicalBytes();
     VirtualMachine machine = VirtualMachine.withBinaryInput(program(), input, 32);
+    long transitionBudget = Math.addExact(
+        PHYSICAL_MANIFEST_BASE_TRANSITIONS,
+        Math.multiplyExact(MAX_TRANSITIONS_PER_INPUT_BYTE, input.length));
     long transitions = 0;
     while (machine.status() != MachineStatus.HALTED
-        && transitions < MAX_PHYSICAL_MANIFEST_TRANSITIONS) {
+        && transitions < transitionBudget) {
       machine.stepWithoutRewindHistory();
       transitions += 1;
     }
