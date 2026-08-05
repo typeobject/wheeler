@@ -12,6 +12,7 @@ import wheeler.compiler.module_linker;
 
 classical class SevenLongChainGraphs {
   private const long SINGLE_IMPORT = 1;
+  private const long TWO_IMPORTS = 2;
   private const long THREE_IMPORTS = 3;
   private const long FOUR_IMPORTS = 4;
 
@@ -439,6 +440,221 @@ classical class SevenLongChainGraphs {
     drop(firstDirectSource);
     drop(sixthArena);
     drop(dependentSource);
+    drop(fifthArena);
+    drop(thirdMiddleSource);
+    drop(fourthArena);
+    drop(secondMiddleSource);
+    drop(thirdArena);
+    drop(firstMiddleSource);
+    drop(secondArena);
+    drop(leafSource);
+    drop(firstArena);
+    return compiled;
+  }
+
+  private SevenMixedCompilation compileOrderedSixChainAndDirect(
+    borrow utf8 leafSource,
+    borrow utf8 firstMiddleSource,
+    borrow utf8 secondMiddleSource,
+    borrow utf8 thirdMiddleSource,
+    borrow utf8 fourthMiddleSource,
+    borrow utf8 dependentSource,
+    borrow utf8 directSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    region firstMiddleArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
+    utf8 linkedFirstMiddleSource = linkSevenPrivateConstant(
+      leafSource,
+      firstMiddleSource,
+      SINGLE_IMPORT,
+      firstMiddleArena
+    );
+    region secondMiddleArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
+    utf8 linkedSecondMiddleSource = linkSevenPrivateResolvedConstant(
+      linkedFirstMiddleSource,
+      secondMiddleSource,
+      SINGLE_IMPORT,
+      secondMiddleArena
+    );
+    region thirdMiddleArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
+    utf8 linkedThirdMiddleSource = linkSevenPrivateResolvedConstant(
+      linkedSecondMiddleSource,
+      thirdMiddleSource,
+      SINGLE_IMPORT,
+      thirdMiddleArena
+    );
+    region fourthMiddleArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
+    utf8 linkedFourthMiddleSource = linkSevenPrivateResolvedConstant(
+      linkedThirdMiddleSource,
+      fourthMiddleSource,
+      SINGLE_IMPORT,
+      fourthMiddleArena
+    );
+    region dependentArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 linkedDependentSource = linkSevenPrivateResolvedConstant(
+      linkedFourthMiddleSource,
+      dependentSource,
+      SINGLE_IMPORT,
+      dependentArena
+    );
+    region rootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 firstLinkedRootSource = linkSevenResolvedConstant(
+      linkedDependentSource,
+      rootSource,
+      TWO_IMPORTS,
+      rootArena
+    );
+    region directArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 linkedRootSource = linkSevenDirectConstant(
+      directSource,
+      firstLinkedRootSource,
+      TWO_IMPORTS,
+      directArena
+    );
+    CoreCompilation compiled = compileMinimalCore(linkedRootSource, output);
+    drop(linkedRootSource);
+    drop(directArena);
+    drop(firstLinkedRootSource);
+    drop(rootArena);
+    drop(linkedDependentSource);
+    drop(dependentArena);
+    drop(linkedFourthMiddleSource);
+    drop(fourthMiddleArena);
+    drop(linkedThirdMiddleSource);
+    drop(thirdMiddleArena);
+    drop(linkedSecondMiddleSource);
+    drop(secondMiddleArena);
+    drop(linkedFirstMiddleSource);
+    drop(firstMiddleArena);
+    return new SevenMixedCompilation(compiled.length, compiled.codeStart);
+  }
+
+  /// Compiles one planned six-module chain beside one direct root import.
+  public SevenMixedCompilation compileSevenSixChainAndDirect(
+    SevenGraphPlan plan,
+    borrow utf8 firstSource,
+    borrow utf8 secondSource,
+    borrow utf8 thirdSource,
+    borrow utf8 fourthSource,
+    borrow utf8 fifthSource,
+    borrow utf8 sixthSource,
+    borrow utf8 seventhSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 leafSource = copySelectedSevenSource(
+      plan.first,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      sixthSource,
+      seventhSource,
+      firstArena
+    );
+    region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 firstMiddleSource = copySelectedSevenSource(
+      plan.second,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      sixthSource,
+      seventhSource,
+      secondArena
+    );
+    region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 secondMiddleSource = copySelectedSevenSource(
+      plan.third,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      sixthSource,
+      seventhSource,
+      thirdArena
+    );
+    region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 thirdMiddleSource = copySelectedSevenSource(
+      plan.fourth,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      sixthSource,
+      seventhSource,
+      fourthArena
+    );
+    region fifthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 fourthMiddleSource = copySelectedSevenSource(
+      plan.fifth,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      sixthSource,
+      seventhSource,
+      fifthArena
+    );
+    region sixthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 dependentSource = copySelectedSevenSource(
+      plan.sixth,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      sixthSource,
+      seventhSource,
+      sixthArena
+    );
+    region seventhArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 directSource = copySelectedSevenSource(
+      plan.seventh,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      sixthSource,
+      seventhSource,
+      seventhArena
+    );
+    SevenMixedCompilation compiled = compileOrderedSixChainAndDirect(
+      leafSource,
+      firstMiddleSource,
+      secondMiddleSource,
+      thirdMiddleSource,
+      fourthMiddleSource,
+      dependentSource,
+      directSource,
+      rootSource,
+      output
+    );
+    drop(directSource);
+    drop(seventhArena);
+    drop(dependentSource);
+    drop(sixthArena);
+    drop(fourthMiddleSource);
     drop(fifthArena);
     drop(thirdMiddleSource);
     drop(fourthArena);

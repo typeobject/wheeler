@@ -37,4 +37,6 @@ classical class SevenPlanKinds {
   public const long SEVEN_PLAN_TWO_LONG_CHAINS_AND_DIRECT = 16;
   /// Names one five-module chain beside two direct root imports.
   public const long SEVEN_PLAN_FIVE_CHAIN_AND_DIRECTS = 17;
+  /// Names one six-module chain beside one direct root import.
+  public const long SEVEN_PLAN_SIX_CHAIN_AND_DIRECT = 18;
 }

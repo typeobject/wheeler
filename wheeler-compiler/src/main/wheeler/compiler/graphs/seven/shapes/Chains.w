@@ -7,6 +7,7 @@ import wheeler.compiler.graphs.seven_plan_kinds;
 
 classical class SevenChainPlanShapes {
   private const long MODULE_COUNT = 7;
+  private const long SINGLE_DIRECT = 1;
   private const long SINGLE_EDGE = 1;
   private const long TWO_EDGES = 2;
   private const long TWO_DIRECTS = 2;
@@ -544,6 +545,104 @@ classical class SevenChainPlanShapes {
       dependent,
       firstDirect,
       secondDirect,
+      true
+    );
+  }
+
+  /// Assigns one six-module chain beside one direct root import.
+  public SevenGraphPlan sixChainAndDirectPlan(borrow mut words graph, borrow mut words rootDirect) {
+    long leaf = -1;
+    long candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (incomingCount(graph, candidate) == 0) {
+        if (outgoingCount(graph, candidate) == SINGLE_EDGE) {
+          long firstCandidate = outgoingTarget(graph, candidate);
+          if (outgoingCount(graph, firstCandidate) == SINGLE_EDGE) {
+            long secondCandidate = outgoingTarget(graph, firstCandidate);
+            if (outgoingCount(graph, secondCandidate) == SINGLE_EDGE) {
+              long thirdCandidate = outgoingTarget(graph, secondCandidate);
+              if (outgoingCount(graph, thirdCandidate) == SINGLE_EDGE) {
+                long fourthCandidate = outgoingTarget(graph, thirdCandidate);
+                if (outgoingCount(graph, fourthCandidate) == SINGLE_EDGE) {
+                  leaf = candidate;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      candidate += 1;
+    }
+
+    if (leaf < 0) {
+      return invalidPlan();
+    }
+
+    long firstMiddle = outgoingTarget(graph, leaf);
+    long secondMiddle = outgoingTarget(graph, firstMiddle);
+    long thirdMiddle = outgoingTarget(graph, secondMiddle);
+    long fourthMiddle = outgoingTarget(graph, thirdMiddle);
+    long dependent = outgoingTarget(graph, fourthMiddle);
+    if (dependent < 0) {
+      return invalidPlan();
+    }
+
+    if (outgoingCount(graph, dependent) == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[leaf] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[firstMiddle] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[secondMiddle] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[thirdMiddle] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[fourthMiddle] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[dependent] == 1) {} else {
+      return invalidPlan();
+    }
+
+    long direct = -1;
+    long directCount = 0;
+    long source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (rootDirect[source] == 1) {
+        if (source == dependent) {} else {
+          direct = source;
+          directCount += 1;
+        }
+      }
+
+      source += 1;
+    }
+
+    if (directCount == SINGLE_DIRECT) {} else {
+      return invalidPlan();
+    }
+
+    return new SevenGraphPlan(
+      SEVEN_PLAN_SIX_CHAIN_AND_DIRECT,
+      leaf,
+      firstMiddle,
+      secondMiddle,
+      thirdMiddle,
+      fourthMiddle,
+      dependent,
+      direct,
       true
     );
   }

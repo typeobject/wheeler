@@ -345,6 +345,9 @@ classical class SevenGraphPlans {
 
         if (mixedFiveLeafFork) {
           result = fiveLeafForkAndDirectPlan(graph, rootDirect);
+          if (result.valid) {} else {
+            result = sixChainAndDirectPlan(graph, rootDirect);
+          }
         }
 
         boolean chain = writeChainOrder(graph, rootDirect, MODULE_COUNT, order);
