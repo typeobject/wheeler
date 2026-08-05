@@ -10,6 +10,7 @@ import wheeler.compiler.early_return_operands;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.loop_forms;
+import wheeler.compiler.named_literal_comparison_kinds;
 import wheeler.compiler.operands;
 import wheeler.compiler.return_expressions;
 import wheeler.compiler.scalar_opcodes;

@@ -2,6 +2,8 @@
 
 module wheeler.compiler.conditionals;
 
+import wheeler.compiler.named_literal_comparison_kinds;
+import wheeler.compiler.resolved_literal_comparison_kinds;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
@@ -342,71 +344,13 @@ classical class Conditionals {
     return operandToken;
   }
 
-  /// Checks for a named signed literal-comparison condition.
-  public boolean namedLiteralComparisonConditional(long opcode) {
-    if (opcode == STATEMENT_IF_LOCAL_EQ_LITERAL_ADD_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_LOCAL_EQ_LITERAL_SUB_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_LOCAL_EQ_LITERAL_XOR_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_ADD_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_SUB_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_XOR_NAMED) {
-      return true;
-    }
-
-    return opcode == STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_NAMED;
-  }
-
-  /// Checks for a resolved signed literal-comparison condition.
-  public boolean resolvedLiteralComparisonConditional(long opcode) {
-    if (opcode < STATEMENT_IF_LOCAL_EQ_LITERAL_ADD_BASE) {
-      return false;
-    }
-
-    return opcode < STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_BASE + 256;
-  }
-
   /// Checks whether a condition compares with signed less-than.
   public boolean literalComparisonConditionalLessThan(long opcode) {
-    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_ADD_NAMED) {
+    if (namedLiteralComparisonConditionalLessThan(opcode)) {
       return true;
     }
 
-    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_SUB_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_XOR_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_NAMED) {
-      return true;
-    }
-
-    if (opcode < STATEMENT_IF_LOCAL_LT_LITERAL_ADD_BASE) {
-      return false;
-    }
-
-    return opcode < STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_BASE + 256;
+    return resolvedLiteralComparisonConditionalLessThan(opcode);
   }
 
   /// Returns the signed source local carried by a comparison condition.

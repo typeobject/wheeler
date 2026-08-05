@@ -454,6 +454,29 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalNamedLiteralComparisonKindsByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/syntax/conditionals/NamedLiteralComparisonKinds.w",
+        "wheeler.compiler.named_literal_comparison_kinds",
+        "compiler/ir/StatementKinds.w");
+    assertEquals(
+        "wheeler.compiler.named_literal_comparison_kinds::namedLiteralComparisonConditional",
+        decoded.functions().getFirst().name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
+  void compilesCanonicalResolvedLiteralComparisonKindsByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/syntax/conditionals/ResolvedLiteralComparisonKinds.w",
+        "wheeler.compiler.resolved_literal_comparison_kinds");
+    assertEquals(
+        "wheeler.compiler.resolved_literal_comparison_kinds::resolvedLiteralComparisonConditional",
+        decoded.functions().getFirst().name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesCanonicalReturnOpcodeKindsByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/resolution/returns/ReturnOpcodeKinds.w",
