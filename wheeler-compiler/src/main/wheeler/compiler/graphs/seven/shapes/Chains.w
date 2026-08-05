@@ -38,6 +38,20 @@ classical class SevenChainPlanShapes {
     return count;
   }
 
+  private long outgoingTarget(borrow mut words graph, long source) {
+    long target = -1;
+    long dependent = 0;
+    while (dependent < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[source * MODULE_COUNT + dependent] == 1) {
+        target = dependent;
+      }
+
+      dependent += 1;
+    }
+
+    return target;
+  }
+
   /// Assigns long and short chains beside two direct root imports.
   public SevenGraphPlan longShortChainsAndDirectsPlan(
     borrow mut words graph,
@@ -429,6 +443,107 @@ classical class SevenChainPlanShapes {
       secondMiddle,
       secondDependent,
       direct,
+      true
+    );
+  }
+
+  /// Assigns one five-module chain beside two direct root imports.
+  public SevenGraphPlan fiveChainAndDirectsPlan(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long leaf = -1;
+    long candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (incomingCount(graph, candidate) == 0) {
+        if (outgoingCount(graph, candidate) == SINGLE_EDGE) {
+          long firstCandidate = outgoingTarget(graph, candidate);
+          if (incomingCount(graph, firstCandidate) == SINGLE_EDGE) {
+            if (outgoingCount(graph, firstCandidate) == SINGLE_EDGE) {
+              long secondCandidate = outgoingTarget(graph, firstCandidate);
+              if (outgoingCount(graph, secondCandidate) == SINGLE_EDGE) {
+                long thirdCandidate = outgoingTarget(graph, secondCandidate);
+                if (outgoingCount(graph, thirdCandidate) == SINGLE_EDGE) {
+                  leaf = candidate;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      candidate += 1;
+    }
+
+    if (leaf < 0) {
+      return invalidPlan();
+    }
+
+    long firstMiddle = outgoingTarget(graph, leaf);
+    long secondMiddle = outgoingTarget(graph, firstMiddle);
+    long thirdMiddle = outgoingTarget(graph, secondMiddle);
+    long dependent = outgoingTarget(graph, thirdMiddle);
+    if (dependent < 0) {
+      return invalidPlan();
+    }
+
+    if (outgoingCount(graph, dependent) == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[leaf] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[firstMiddle] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[secondMiddle] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[thirdMiddle] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[dependent] == 1) {} else {
+      return invalidPlan();
+    }
+
+    long firstDirect = -1;
+    long secondDirect = -1;
+    long directCount = 0;
+    long source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (rootDirect[source] == 1) {
+        if (source == dependent) {} else {
+          if (directCount == 0) {
+            firstDirect = source;
+          } else {
+            secondDirect = source;
+          }
+
+          directCount += 1;
+        }
+      }
+
+      source += 1;
+    }
+
+    if (directCount == TWO_DIRECTS) {} else {
+      return invalidPlan();
+    }
+
+    return new SevenGraphPlan(
+      SEVEN_PLAN_FIVE_CHAIN_AND_DIRECTS,
+      leaf,
+      firstMiddle,
+      secondMiddle,
+      thirdMiddle,
+      dependent,
+      firstDirect,
+      secondDirect,
       true
     );
   }

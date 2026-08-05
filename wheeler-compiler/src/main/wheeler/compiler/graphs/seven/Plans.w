@@ -337,6 +337,10 @@ classical class SevenGraphPlans {
           if (result.valid) {} else {
             result = twoLongChainsAndDirectPlan(graph, rootDirect);
           }
+
+          if (result.valid) {} else {
+            result = fiveChainAndDirectsPlan(graph, rootDirect);
+          }
         }
 
         if (mixedFiveLeafFork) {
