@@ -744,6 +744,14 @@ final class NativeCompilerSelfSourceExampleTest {
           public boolean thirdReady(long first, long second, long third) {
             return true;
           }
+
+          public long fourth(long first, long second, long third, long value) {
+            return value;
+          }
+
+          public boolean fourthReady(long first, long second, long third, long fourth) {
+            return false;
+          }
         """);
     VirtualMachine writer = nativeWriter(compiler, source);
     CompilerMachineRunner.runWithoutRewindHistory(writer);
@@ -760,6 +768,8 @@ final class NativeCompilerSelfSourceExampleTest {
     assertEquals(2, decoded.functions().get(3).parameterCount());
     assertEquals(3, decoded.functions().get(4).parameterCount());
     assertEquals(3, decoded.functions().get(5).parameterCount());
+    assertEquals(4, decoded.functions().get(6).parameterCount());
+    assertEquals(4, decoded.functions().get(7).parameterCount());
     assertEquals(2, decoded.functions().get(1).localCount());
     assertEquals(2, decoded.functions().get(1).forward().size());
     assertEquals(7, decoded.functions().get(3).localCount());
@@ -775,6 +785,11 @@ final class NativeCompilerSelfSourceExampleTest {
     assertNoPublication(
         compiler,
         source.replace("long first, long second, long value", "long first, long second, long first"));
+    assertNoPublication(
+        compiler,
+        source.replace(
+            "long first, long second, long third, long value",
+            "long first, long second, long third, long second"));
   }
 
   static void assertNoPublication(Program compiler, String source) {
