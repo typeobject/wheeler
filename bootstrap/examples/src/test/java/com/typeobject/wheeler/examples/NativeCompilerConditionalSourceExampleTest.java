@@ -84,6 +84,20 @@ class NativeCompilerConditionalSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalResolvedLocalConditionalOperandsByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/syntax/conditionals/ResolvedLocalConditionalOperands.w",
+        "wheeler.compiler.resolved_local_conditional_operands");
+    assertEquals(
+        "wheeler.compiler.resolved_local_conditional_operands::resolvedLocalConditionalSource",
+        decoded.functions().getFirst().name());
+    assertEquals(28, decoded.functions().getFirst().localCount());
+    assertEquals(40, decoded.functions().getFirst().forward().size());
+    assertEquals(2, decoded.functions().size());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesCanonicalResolvedLocalConditionalSourcesByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/syntax/conditionals/ResolvedLocalConditionalSources.w",

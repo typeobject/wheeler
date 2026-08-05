@@ -474,6 +474,10 @@ classical class StatementForms {
               return STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED;
             }
 
+            if (guardReturnOperator == PUNCTUATION_PERCENT) {
+              return STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_NAMED;
+            }
+
             return STATEMENT_IF_SIGNED_LT_RETURN_LONG_NAMED;
           }
 

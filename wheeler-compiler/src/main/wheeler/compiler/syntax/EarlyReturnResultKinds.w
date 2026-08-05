@@ -20,11 +20,24 @@ classical class EarlyReturnResultKinds {
       return true;
     }
 
-    return sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED;
+    if (sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED) {
+      return true;
+    }
+
+    return sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_NAMED;
   }
 
   /// Checks whether one comparison guard computes its result.
   public boolean comparisonGuardResultComputed(long sourceOpcode) {
-    return sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED;
+    if (sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED) {
+      return true;
+    }
+
+    return sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_NAMED;
+  }
+
+  /// Checks whether one comparison guard computes checked remainder.
+  public boolean comparisonGuardResultRemainder(long sourceOpcode) {
+    return sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_NAMED;
   }
 }

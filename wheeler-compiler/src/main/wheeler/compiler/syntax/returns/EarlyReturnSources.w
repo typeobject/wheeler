@@ -32,6 +32,10 @@ classical class EarlyReturnSources {
       return opcode - STATEMENT_IF_SIGNED_LT_RETURN_LONG_BASE;
     }
 
-    return opcode - STATEMENT_IF_SIGNED_LT_RETURN_SUB_BASE;
+    if (opcode < STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_BASE) {
+      return opcode - STATEMENT_IF_SIGNED_LT_RETURN_SUB_BASE;
+    }
+
+    return opcode - STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_BASE;
   }
 }

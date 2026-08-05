@@ -170,6 +170,10 @@ classical class LocalStatements {
       earlyLessReturn = true;
     }
 
+    if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_NAMED) {
+      earlyLessReturn = true;
+    }
+
     if (earlyLessReturn) {
       earlyComparisonReturn = true;
     }
@@ -198,6 +202,10 @@ classical class LocalStatements {
 
           if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED) {
             comparisonReturnBase = STATEMENT_IF_SIGNED_LT_RETURN_SUB_BASE;
+          }
+
+          if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_NAMED) {
+            comparisonReturnBase = STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_BASE;
           }
         }
 

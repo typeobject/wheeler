@@ -43,6 +43,10 @@ classical class EarlyReturnKinds {
       return true;
     }
 
-    return opcode == STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED;
+    if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_NAMED;
   }
 }

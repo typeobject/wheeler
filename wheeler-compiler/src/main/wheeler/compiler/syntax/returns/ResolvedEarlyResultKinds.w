@@ -22,6 +22,9 @@ classical class ResolvedEarlyResultKinds {
   /// Ends resolved computed ordering guards.
   private const long SIGNED_LT_RETURN_SUB_END = STATEMENT_IF_SIGNED_LT_RETURN_SUB_BASE
     + RESOLVED_SOURCE_COUNT;
+  /// Ends resolved remainder ordering guards.
+  private const long SIGNED_LT_RETURN_REMAINDER_END = STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_BASE
+    + RESOLVED_SOURCE_COUNT;
 
   /// Checks whether an opcode guards one resolved helper call.
   public boolean resolvedEarlyHelperReturn(long opcode) {
@@ -70,7 +73,15 @@ classical class ResolvedEarlyResultKinds {
       return false;
     }
 
-    return opcode < SIGNED_LT_RETURN_SUB_END;
+    if (opcode < SIGNED_LT_RETURN_SUB_END) {
+      return true;
+    }
+
+    if (opcode < STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_BASE) {
+      return false;
+    }
+
+    return opcode < SIGNED_LT_RETURN_REMAINDER_END;
   }
 
   /// Checks whether one resolved guard computes a signed result.
@@ -79,6 +90,23 @@ classical class ResolvedEarlyResultKinds {
       return false;
     }
 
-    return opcode < SIGNED_LT_RETURN_SUB_END;
+    if (opcode < SIGNED_LT_RETURN_SUB_END) {
+      return true;
+    }
+
+    if (opcode < STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_BASE) {
+      return false;
+    }
+
+    return opcode < SIGNED_LT_RETURN_REMAINDER_END;
+  }
+
+  /// Checks whether one resolved guard computes checked remainder.
+  public boolean resolvedEarlyRemainderReturn(long opcode) {
+    if (opcode < STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_BASE) {
+      return false;
+    }
+
+    return opcode < SIGNED_LT_RETURN_REMAINDER_END;
   }
 }

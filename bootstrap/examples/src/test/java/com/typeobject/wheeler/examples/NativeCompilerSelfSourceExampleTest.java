@@ -141,6 +141,10 @@ final class NativeCompilerSelfSourceExampleTest {
               return opcode - LIMIT;
             }
 
+            if (opcode < 4) {
+              return opcode % LIMIT;
+            }
+
             return 9;
           }
         }
@@ -160,6 +164,9 @@ final class NativeCompilerSelfSourceExampleTest {
     assertNoPublication(
         compiler,
         source.replace("return opcode - LIMIT;", "return LIMIT - opcode;"));
+    assertNoPublication(
+        compiler,
+        source.replace("return opcode % LIMIT;", "return LIMIT % opcode;"));
   }
 
   @Test
@@ -448,8 +455,8 @@ final class NativeCompilerSelfSourceExampleTest {
     assertEquals(
         "wheeler.compiler.early_return_kinds::earlyReturnStatement",
         decoded.functions().getFirst().name());
-    assertEquals(40, decoded.functions().getFirst().localCount());
-    assertEquals(67, decoded.functions().getFirst().forward().size());
+    assertEquals(44, decoded.functions().getFirst().localCount());
+    assertEquals(74, decoded.functions().getFirst().forward().size());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 

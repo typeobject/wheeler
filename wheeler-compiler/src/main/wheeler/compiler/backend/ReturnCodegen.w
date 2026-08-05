@@ -176,7 +176,12 @@ classical class ReturnCodegen {
         cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
         cursor = writeUnsignedLittleEndian(output, cursor, localBase + 4, U64);
         cursor = writeSignedLittleEndian(output, cursor, secondaryOperand, U64);
-        cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_SUB, FORM_TERNARY);
+        long computedOpcode = OPCODE_LOCAL_SUB;
+        if (resolvedEarlyRemainderReturn(opcode)) {
+          computedOpcode = OPCODE_LOCAL_MOD;
+        }
+
+        cursor = writeInstructionHeader(output, cursor, computedOpcode, FORM_TERNARY);
         cursor = writeUnsignedLittleEndian(output, cursor, localBase + 5, U64);
         cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
         cursor = writeUnsignedLittleEndian(output, cursor, localBase + 4, U64);

@@ -22,6 +22,9 @@ classical class ResolvedEarlyComparisonKinds {
   /// Ends resolved computed ordering guards.
   private const long SIGNED_LT_RETURN_SUB_END = STATEMENT_IF_SIGNED_LT_RETURN_SUB_BASE
     + RESOLVED_SOURCE_COUNT;
+  /// Ends resolved remainder ordering guards.
+  private const long SIGNED_LT_RETURN_REMAINDER_END = STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_BASE
+    + RESOLVED_SOURCE_COUNT;
 
   /// Checks whether an opcode guards one resolved parameter equality.
   public boolean resolvedEarlyEqualityReturn(long opcode) {
@@ -62,7 +65,15 @@ classical class ResolvedEarlyComparisonKinds {
       return false;
     }
 
-    return opcode < SIGNED_LT_RETURN_SUB_END;
+    if (opcode < SIGNED_LT_RETURN_SUB_END) {
+      return true;
+    }
+
+    if (opcode < STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_BASE) {
+      return false;
+    }
+
+    return opcode < SIGNED_LT_RETURN_REMAINDER_END;
   }
 
 }

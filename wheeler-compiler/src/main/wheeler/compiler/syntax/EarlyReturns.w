@@ -303,8 +303,13 @@ classical class EarlyReturnForms {
         return -1;
       }
 
+      long resultOperator = PUNCTUATION_MINUS;
+      if (comparisonGuardResultRemainder(sourceOpcode)) {
+        resultOperator = PUNCTUATION_PERCENT;
+      }
+
       if (
-        punctuationAt(source, tokenKinds, tokenStarts, returnedToken + 1, PUNCTUATION_MINUS)
+        punctuationAt(source, tokenKinds, tokenStarts, returnedToken + 1, resultOperator)
       ) {} else {
         return -1;
       }
