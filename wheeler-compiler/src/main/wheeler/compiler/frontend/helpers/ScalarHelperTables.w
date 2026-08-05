@@ -36,7 +36,7 @@ classical class ScalarHelperTables {
     );
   }
 
-  /// Selects one helper from twenty-two fixed table slots.
+  /// Selects one helper from twenty-three fixed table slots.
   public HelperBody selectedBody(
     HelperBody first,
     HelperBody second,
@@ -60,6 +60,7 @@ classical class ScalarHelperTables {
     HelperBody twentieth,
     HelperBody twentyFirst,
     HelperBody twentySecond,
+    HelperBody twentyThird,
     long index
   ) {
     if (index == 0) {
@@ -146,7 +147,11 @@ classical class ScalarHelperTables {
       return twentyFirst;
     }
 
-    return twentySecond;
+    if (index == 21) {
+      return twentySecond;
+    }
+
+    return twentyThird;
   }
 
   /// Checks that all occupied helper names are distinct.
@@ -174,6 +179,7 @@ classical class ScalarHelperTables {
     HelperBody twentieth,
     HelperBody twentyFirst,
     HelperBody twentySecond,
+    HelperBody twentyThird,
     long helperCount
   ) {
     long left = 0;
@@ -201,6 +207,7 @@ classical class ScalarHelperTables {
         twentieth,
         twentyFirst,
         twentySecond,
+        twentyThird,
         left
       );
       long right = left + 1;
@@ -228,6 +235,7 @@ classical class ScalarHelperTables {
           twentieth,
           twentyFirst,
           twentySecond,
+          twentyThird,
           right
         );
         if (compareHelpers(source, leftBody, rightBody) == 0) {
@@ -271,6 +279,7 @@ classical class ScalarHelperTables {
     HelperBody twentieth,
     HelperBody twentyFirst,
     HelperBody twentySecond,
+    HelperBody twentyThird,
     long helperCount
   ) {
     if (target.length == 0) {
@@ -303,6 +312,7 @@ classical class ScalarHelperTables {
         twentieth,
         twentyFirst,
         twentySecond,
+        twentyThird,
         helper
       );
       long order = compareAsciiSlices(
@@ -360,6 +370,7 @@ classical class ScalarHelperTables {
     HelperBody twentieth,
     HelperBody twentyFirst,
     HelperBody twentySecond,
+    HelperBody twentyThird,
     long helperCount
   ) {
     boolean firstForwarding = caller.firstCallStatement == caller.resultStatement;
@@ -402,6 +413,7 @@ classical class ScalarHelperTables {
       twentieth,
       twentyFirst,
       twentySecond,
+      twentyThird,
       helperCount
     );
     long secondFunction = resolveCallFunction(
@@ -432,6 +444,7 @@ classical class ScalarHelperTables {
       twentieth,
       twentyFirst,
       twentySecond,
+      twentyThird,
       helperCount
     );
     boolean valid = true;

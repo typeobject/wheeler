@@ -60,6 +60,7 @@ classical class CompilerIr {
     HelperBody twentiethHelper,
     HelperBody twentyFirstHelper,
     HelperBody twentySecondHelper,
+    HelperBody twentyThirdHelper,
     SourceRange proofName,
     long proofCount,
     long helperCallCount,
@@ -153,7 +154,11 @@ classical class CompilerIr {
       return program.twentyFirstHelper;
     }
 
-    return program.twentySecondHelper;
+    if (index == 21) {
+      return program.twentySecondHelper;
+    }
+
+    return program.twentyThirdHelper;
   }
 
   /// Returns one absent helper used to fill a bounded helper table.

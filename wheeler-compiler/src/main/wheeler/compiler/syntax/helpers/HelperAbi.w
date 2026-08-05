@@ -40,7 +40,7 @@ classical class HelperAbi {
   /// Names one binary fill-and-return result-slot body width.
   public const long RESULT_SLOT_BINARY_BODY_LENGTH = 56;
   /// Caps scalar helpers in one bounded entryless library.
-  public const long MAX_SCALAR_HELPERS = 22;
+  public const long MAX_SCALAR_HELPERS = 23;
   /// Caps helpers owned by one direct executable dependency.
   public const long MAX_IMPORTED_SCALAR_HELPERS = 21;
 }

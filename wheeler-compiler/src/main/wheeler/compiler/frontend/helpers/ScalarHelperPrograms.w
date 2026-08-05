@@ -8,7 +8,7 @@ import wheeler.compiler.scalar_helper_parsing;
 import wheeler.compiler.scalar_helper_resolution;
 
 classical class ScalarHelperPrograms {
-  /// Builds one resolved library from two through twenty-two scalar helpers.
+  /// Builds one resolved library from two through twenty-three scalar helpers.
   public MinimalProgramResult parseScalarHelperLibrary(
     borrow utf8 source,
     borrow mut words tokenKinds,
@@ -55,6 +55,7 @@ classical class ScalarHelperPrograms {
     HelperBody twentiethBody = resolved.twentieth;
     HelperBody twentyFirstBody = resolved.twentyFirst;
     HelperBody twentySecondBody = resolved.twentySecond;
+    HelperBody twentyThirdBody = resolved.twentyThird;
     SourceRange name = new SourceRange(tokenStarts[2], tokenLengths[2]);
     SourceRange absent = new SourceRange(0, 0);
     MinimalProgram program = new MinimalProgram(
@@ -89,6 +90,7 @@ classical class ScalarHelperPrograms {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       absent,
       0,
       0,

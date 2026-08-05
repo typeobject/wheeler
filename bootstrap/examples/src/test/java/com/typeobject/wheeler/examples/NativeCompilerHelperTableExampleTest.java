@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 /** Differential evidence for bounded native scalar helper tables. */
 final class NativeCompilerHelperTableExampleTest {
   private static final String[] HELPER_NAMES = {
-      "omega", "alpha", "theta", "beta", "zeta", "gamma", "sigma", "delta", "kappa", "lambda", "iota", "mu", "nu", "xi", "omicron", "pi", "rho", "tau", "upsilon", "phi", "chi", "psi", "eta"
+      "omega", "alpha", "theta", "beta", "zeta", "gamma", "sigma", "delta", "kappa", "lambda", "iota", "mu", "nu", "xi", "omicron", "pi", "rho", "tau", "upsilon", "phi", "chi", "psi", "eta", "omegaTwo"
   };
 
   @Test
@@ -44,26 +44,26 @@ final class NativeCompilerHelperTableExampleTest {
   }
 
   @Test
-  void compilesTwentyTwoEntrylessHelpersByteForByte() throws Exception {
+  void compilesTwentyThreeEntrylessHelpersByteForByte() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
-    String source = helperSource(22);
+    String source = helperSource(23);
     VirtualMachine writer = nativeWriter(compiler, source);
     CompilerMachineRunner.runWithoutRewindHistory(writer);
 
     Program expected = new WheelerCompiler().compileLibraryModuleFiles(
-        Map.of("TwentyTwoHelpers.w", source),
+        Map.of("TwentyThreeHelpers.w", source),
         "examples.two_helpers");
     byte[] artifact = writer.hostOutput();
     assertArrayEquals(new BytecodeWriter().write(expected), artifact);
     Program decoded = new BytecodeReader().read(artifact);
     assertEquals("examples.two_helpers::omega", decoded.functions().getFirst().name());
-    assertEquals("examples.two_helpers::psi", decoded.functions().get(21).name());
+    assertEquals("examples.two_helpers::eta", decoded.functions().get(22).name());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 
   @Test
-  void rejectsTwentyThirdEntrylessHelperBeforePublication() throws Exception {
-    assertNoPublication(CompilerSources.minimalCompilerProgram(), helperSource(23));
+  void rejectsTwentyFourthEntrylessHelperBeforePublication() throws Exception {
+    assertNoPublication(CompilerSources.minimalCompilerProgram(), helperSource(24));
   }
 
   private static String helperSource(int count) {

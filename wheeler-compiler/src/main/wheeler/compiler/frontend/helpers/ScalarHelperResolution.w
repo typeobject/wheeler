@@ -33,12 +33,14 @@ classical class ScalarHelperResolution {
     HelperBody twentieth,
     HelperBody twentyFirst,
     HelperBody twentySecond,
+    HelperBody twentyThird,
     boolean valid
   ) {}
 
   private ResolvedScalarHelperTable invalidResolvedTable() {
     return new ResolvedScalarHelperTable(
       0,
+      emptyHelperBody(),
       emptyHelperBody(),
       emptyHelperBody(),
       emptyHelperBody(),
@@ -97,6 +99,7 @@ classical class ScalarHelperResolution {
     HelperBody twentiethBody = parsed.twentieth;
     HelperBody twentyFirstBody = parsed.twentyFirst;
     HelperBody twentySecondBody = parsed.twentySecond;
+    HelperBody twentyThirdBody = parsed.twentyThird;
     if (
       uniqueHelpers(
         source,
@@ -122,6 +125,7 @@ classical class ScalarHelperResolution {
         twentiethBody,
         twentyFirstBody,
         twentySecondBody,
+        twentyThirdBody,
         helperCount
       )
     ) {} else {
@@ -153,6 +157,7 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       helperCount
     );
     ResolvedHelperBody secondResolved = resolvedHelperBody(
@@ -180,6 +185,7 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       helperCount
     );
     ResolvedHelperBody thirdResolved = resolvedHelperBody(
@@ -207,6 +213,7 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       helperCount
     );
     ResolvedHelperBody fourthResolved = resolvedHelperBody(
@@ -234,6 +241,7 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       helperCount
     );
     ResolvedHelperBody fifthResolved = resolvedHelperBody(
@@ -261,6 +269,7 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       helperCount
     );
     ResolvedHelperBody sixthResolved = resolvedHelperBody(
@@ -288,6 +297,7 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       helperCount
     );
     ResolvedHelperBody seventhResolved = resolvedHelperBody(
@@ -315,6 +325,7 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       helperCount
     );
     ResolvedHelperBody eighthResolved = resolvedHelperBody(
@@ -342,6 +353,7 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       helperCount
     );
     ResolvedHelperBody ninthResolved = resolvedHelperBody(
@@ -369,6 +381,7 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       helperCount
     );
     ResolvedHelperBody tenthResolved = resolvedHelperBody(
@@ -396,6 +409,7 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       helperCount
     );
     ResolvedHelperBody eleventhResolved = resolvedHelperBody(
@@ -423,6 +437,7 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       helperCount
     );
     ResolvedHelperBody twelfthResolved = resolvedHelperBody(
@@ -450,6 +465,7 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       helperCount
     );
     ResolvedHelperBody thirteenthResolved = resolvedHelperBody(
@@ -477,6 +493,7 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       helperCount
     );
     ResolvedHelperBody fourteenthResolved = resolvedHelperBody(
@@ -504,6 +521,7 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       helperCount
     );
     ResolvedHelperBody fifteenthResolved = resolvedHelperBody(
@@ -531,6 +549,7 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       helperCount
     );
     ResolvedHelperBody sixteenthResolved = resolvedHelperBody(
@@ -558,6 +577,7 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       helperCount
     );
     ResolvedHelperBody seventeenthResolved = resolvedHelperBody(
@@ -585,6 +605,7 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       helperCount
     );
     ResolvedHelperBody eighteenthResolved = resolvedHelperBody(
@@ -612,6 +633,7 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       helperCount
     );
     ResolvedHelperBody nineteenthResolved = resolvedHelperBody(
@@ -639,6 +661,7 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       helperCount
     );
     ResolvedHelperBody twentiethResolved = resolvedHelperBody(
@@ -666,6 +689,7 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       helperCount
     );
     ResolvedHelperBody twentyFirstResolved = resolvedHelperBody(
@@ -693,6 +717,7 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       helperCount
     );
     ResolvedHelperBody twentySecondResolved = resolvedHelperBody(
@@ -720,6 +745,35 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
+      helperCount
+    );
+    ResolvedHelperBody twentyThirdResolved = resolvedHelperBody(
+      source,
+      twentyThirdBody,
+      firstBody,
+      secondBody,
+      thirdBody,
+      fourthBody,
+      fifthBody,
+      sixthBody,
+      seventhBody,
+      eighthBody,
+      ninthBody,
+      tenthBody,
+      eleventhBody,
+      twelfthBody,
+      thirteenthBody,
+      fourteenthBody,
+      fifteenthBody,
+      sixteenthBody,
+      seventeenthBody,
+      eighteenthBody,
+      nineteenthBody,
+      twentiethBody,
+      twentyFirstBody,
+      twentySecondBody,
+      twentyThirdBody,
       helperCount
     );
     if (firstResolved.valid) {} else {
@@ -850,6 +904,12 @@ classical class ScalarHelperResolution {
       }
     }
 
+    if (22 < helperCount) {
+      if (twentyThirdResolved.valid) {} else {
+        return invalidResolvedTable();
+      }
+    }
+
     firstBody = firstResolved.body;
     secondBody = secondResolved.body;
     thirdBody = thirdResolved.body;
@@ -872,6 +932,7 @@ classical class ScalarHelperResolution {
     twentiethBody = twentiethResolved.body;
     twentyFirstBody = twentyFirstResolved.body;
     twentySecondBody = twentySecondResolved.body;
+    twentyThirdBody = twentyThirdResolved.body;
 
     return new ResolvedScalarHelperTable(
       helperCount,
@@ -897,6 +958,7 @@ classical class ScalarHelperResolution {
       twentiethBody,
       twentyFirstBody,
       twentySecondBody,
+      twentyThirdBody,
       true
     );
   }

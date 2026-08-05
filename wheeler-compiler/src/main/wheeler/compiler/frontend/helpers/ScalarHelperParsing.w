@@ -34,6 +34,7 @@ classical class ScalarHelperParsing {
     HelperBody twentieth,
     HelperBody twentyFirst,
     HelperBody twentySecond,
+    HelperBody twentyThird,
     boolean valid
   ) {}
 
@@ -62,11 +63,12 @@ classical class ScalarHelperParsing {
       emptyHelperBody(),
       emptyHelperBody(),
       emptyHelperBody(),
+      emptyHelperBody(),
       false
     );
   }
 
-  /// Parses two through twenty-two scalar helper declarations in source order.
+  /// Parses two through twenty-three scalar helper declarations in source order.
   public ScalarHelperTable parseScalarHelpers(
     borrow utf8 source,
     borrow mut words tokenKinds,
@@ -126,6 +128,7 @@ classical class ScalarHelperParsing {
     ParsedScalarHelper twentieth = invalidHelper();
     ParsedScalarHelper twentyFirst = invalidHelper();
     ParsedScalarHelper twentySecond = invalidHelper();
+    ParsedScalarHelper twentyThird = invalidHelper();
     if (
       punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
     ) {
@@ -507,6 +510,25 @@ classical class ScalarHelperParsing {
     }
 
     if (
+      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
+    ) {
+      twentyThird = parseScalarHelper(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        statementStarts,
+        classClose
+      );
+      if (twentyThird.valid) {} else {
+        return invalidTable();
+      }
+
+      helperCount = 23;
+      classClose = twentyThird.nextToken;
+    }
+
+    if (
       punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE)
     ) {} else {
       return invalidTable();
@@ -540,6 +562,7 @@ classical class ScalarHelperParsing {
       twentieth.body,
       twentyFirst.body,
       twentySecond.body,
+      twentyThird.body,
       true
     );
   }

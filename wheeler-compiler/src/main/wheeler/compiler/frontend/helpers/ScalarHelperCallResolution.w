@@ -35,6 +35,7 @@ classical class ScalarHelperCallResolution {
     HelperBody twentieth,
     HelperBody twentyFirst,
     HelperBody twentySecond,
+    HelperBody twentyThird,
     long helperCount
   ) {
     ResolvedCalls calls = resolveCalls(
@@ -62,6 +63,7 @@ classical class ScalarHelperCallResolution {
       twentieth,
       twentyFirst,
       twentySecond,
+      twentyThird,
       helperCount
     );
     return new ResolvedHelperBody(withCalls(body, calls), calls.valid);
