@@ -67,7 +67,7 @@ public or private zero-, one-, or two-parameter scalar helpers. Signed-parameter
 contain bounded equality or less-than guards, computed signed-local preludes, and up to two same-module Boolean calls with typed
 early returns. A final Boolean return may forward one zero-, one-, or two-argument helper call. A signed less-than guard may
 return its parameter minus or modulo one scalar. A ninth helper fails
-before publication. The checked-in `compiler/backend/EncodingWidths.w`, `compiler/graphs/kinds/FivePlanKinds.w`,
+before publication. The checked-in `compiler/backend/EncodingWidths.w`, `compiler/graphs/kinds/FivePlanKinds.w`, `compiler/graphs/kinds/SixGraphKinds.w`,
 `compiler/ir/Opcodes.w`,
 `compiler/ir/ProofRules.w`, `compiler/ir/ResolvedStatements.w`,
 `compiler/ir/StatementKinds.w`, `compiler/ir/StorageOpcodes.w`, `compiler/ir/TypeCodes.w`,
@@ -124,7 +124,7 @@ imported-constant `compiler/syntax/helpers/HelperValueKinds.w`, imported-constan
 and imported-constant `compiler/syntax/returns/ResolvedReturnCallKinds.w` modules compile byte for byte with stage 0.
 `StatementKinds.w` owns 128 unresolved statement identities. `LoopKinds.w` owns six loop-form
 identities. `ResolvedStatements.w` owns seventy-nine resolved columns. `Tokens.w` now sticks to
-lexical work instead of running a parser-IR registry from the back room. Sixty-seven real self-source modules beat sixty-one motivational slides. One of them now owns conditional base mapping instead of leaving it in the parser's coat pocket. The bar has retained counsel. A modular source may carry up to sixty-four sorted unique direct imports.
+lexical work instead of running a parser-IR registry from the back room. Sixty-eight real self-source modules beat sixty-one motivational slides. One of them now owns conditional base mapping instead of leaving it in the parser's coat pocket. The bar has retained counsel. A modular source may carry up to sixty-four sorted unique direct imports.
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
 or excess imports before publication. `compileMinimalWithConstantImport`,
 `compileMinimalWithConstantImports`, `compileMinimalWithThreeConstantImports`, and

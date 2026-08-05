@@ -4,6 +4,7 @@ module wheeler.compiler.graphs.six.fork;
 
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.graphs.six.plans;
+import wheeler.compiler.graphs.six_graph_kinds;
 import wheeler.compiler.graphs.sources;
 import wheeler.compiler.module_linker;
 

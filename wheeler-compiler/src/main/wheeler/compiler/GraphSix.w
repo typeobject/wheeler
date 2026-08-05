@@ -11,6 +11,7 @@ import wheeler.compiler.graphs.six.pairs;
 import wheeler.compiler.graphs.six.plans;
 import wheeler.compiler.graphs.six.separate;
 import wheeler.compiler.graphs.six.uneven;
+import wheeler.compiler.graphs.six_graph_kinds;
 import wheeler.compiler.graphs.sources;
 import wheeler.compiler.module_linker;
 
