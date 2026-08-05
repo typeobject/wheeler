@@ -23,6 +23,10 @@ classical class HelperAbi {
   public const long HELPER_BOOLEAN_SIGNED_ONE = 8;
   /// Names a two-signed-parameter Boolean-result helper.
   public const long HELPER_BOOLEAN_SIGNED_TWO = 9;
+  /// Names a three-parameter signed-result helper.
+  public const long HELPER_SIGNED_THREE = 13;
+  /// Names a three-signed-parameter Boolean-result helper.
+  public const long HELPER_BOOLEAN_SIGNED_THREE = 14;
   /// Names a zero-argument reversible signed result-slot helper.
   public const long HELPER_REVERSIBLE_SIGNED = 10;
   /// Names a one-parameter reversible signed result-slot helper.
@@ -39,6 +43,8 @@ classical class HelperAbi {
   public const long RESULT_SLOT_BODY_LENGTH = 40;
   /// Names one binary fill-and-return result-slot body width.
   public const long RESULT_SLOT_BINARY_BODY_LENGTH = 56;
+  /// Caps signed scalar parameters in one bounded helper.
+  public const long MAX_SCALAR_HELPER_PARAMETERS = 3;
   /// Caps scalar helpers in one bounded entryless library.
   public const long MAX_SCALAR_HELPERS = 23;
   /// Caps helpers owned by one direct executable dependency.

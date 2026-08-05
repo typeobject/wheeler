@@ -39,6 +39,14 @@ classical class HelperSignatures {
       return 2;
     }
 
+    if (helperKind == HELPER_SIGNED_THREE) {
+      return 3;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_THREE) {
+      return 3;
+    }
+
     return 0;
   }
 
@@ -82,7 +90,11 @@ classical class HelperSignatures {
       return true;
     }
 
-    return helperKind == HELPER_BOOLEAN_SIGNED_TWO;
+    if (helperKind == HELPER_BOOLEAN_SIGNED_TWO) {
+      return true;
+    }
+
+    return helperKind == HELPER_BOOLEAN_SIGNED_THREE;
   }
 
   /// Checks whether one helper receives Boolean parameters.

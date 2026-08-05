@@ -22,7 +22,11 @@ classical class ScalarHelperTables {
       return true;
     }
 
-    return kind == HELPER_BOOLEAN_SIGNED_TWO;
+    if (kind == HELPER_BOOLEAN_SIGNED_TWO) {
+      return true;
+    }
+
+    return kind == HELPER_BOOLEAN_SIGNED_THREE;
   }
 
   /// Compares two helper names in one source.

@@ -579,7 +579,8 @@ classical class CompilerCore {
         }
 
         long parameterType = 0;
-        while (parameterType < parameterCountForHelper(typedBody.kind)) limit 2 {
+        while (parameterType
+          < parameterCountForHelper(typedBody.kind)) limit MAX_SCALAR_HELPER_PARAMETERS {
           if (booleanParameterHelper(typedBody.kind)) {
             cursor = writeBooleanLocalType(output, cursor);
           } else {
@@ -652,7 +653,7 @@ classical class CompilerCore {
         }
 
         long helperParameterIndex = 0;
-        while (helperParameterIndex < helperParameterCount) limit 2 {
+        while (helperParameterIndex < helperParameterCount) limit MAX_SCALAR_HELPER_PARAMETERS {
           if (booleanParameterHelper(helperAt(program, 0).kind)) {
             cursor = writeBooleanLocalType(output, cursor);
           } else {

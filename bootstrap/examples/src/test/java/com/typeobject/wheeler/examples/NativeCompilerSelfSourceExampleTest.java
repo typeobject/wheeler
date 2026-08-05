@@ -736,6 +736,14 @@ final class NativeCompilerSelfSourceExampleTest {
           public boolean accepted(long left, long right) {
             return ordered(left, right);
           }
+
+          public long third(long first, long second, long value) {
+            return value;
+          }
+
+          public boolean thirdReady(long first, long second, long third) {
+            return true;
+          }
         """);
     VirtualMachine writer = nativeWriter(compiler, source);
     CompilerMachineRunner.runWithoutRewindHistory(writer);
@@ -750,11 +758,13 @@ final class NativeCompilerSelfSourceExampleTest {
     assertEquals(1, decoded.functions().get(1).parameterCount());
     assertEquals(2, decoded.functions().get(2).parameterCount());
     assertEquals(2, decoded.functions().get(3).parameterCount());
+    assertEquals(3, decoded.functions().get(4).parameterCount());
+    assertEquals(3, decoded.functions().get(5).parameterCount());
     assertEquals(2, decoded.functions().get(1).localCount());
     assertEquals(2, decoded.functions().get(1).forward().size());
     assertEquals(7, decoded.functions().get(3).localCount());
     assertEquals(6, decoded.functions().get(3).forward().size());
-    assertEquals("$library", decoded.functions().get(4).name());
+    assertEquals("$library", decoded.functions().getLast().name());
     assertNoPublication(compiler, source.replace("return flag();", "return missing();"));
     assertNoPublication(
         compiler,
@@ -762,6 +772,9 @@ final class NativeCompilerSelfSourceExampleTest {
     assertNoPublication(
         compiler,
         source.replace("long left, long right", "long left, long left"));
+    assertNoPublication(
+        compiler,
+        source.replace("long first, long second, long value", "long first, long second, long first"));
   }
 
   static void assertNoPublication(Program compiler, String source) {

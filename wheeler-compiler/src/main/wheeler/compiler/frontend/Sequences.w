@@ -19,6 +19,9 @@ classical class StatementSequences {
       prefix = 1;
       if (statementStarts[1] < 0) {
         prefix = 2;
+        if (statementStarts[2] < 0) {
+          prefix = 3;
+        }
       }
     }
 

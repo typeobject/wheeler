@@ -174,6 +174,7 @@ classical class ScalarHelperLibraries {
     long parameterCount = 0;
     long firstParameterToken = 0;
     long secondParameterToken = 0;
+    long thirdParameterToken = 0;
     long bodyOpen = start + 5;
     if (
       punctuationAt(source, tokenKinds, tokenStarts, start + 4, PUNCTUATION_CLOSE_PAREN)
@@ -233,17 +234,76 @@ classical class ScalarHelperLibraries {
         }
 
         if (
-          punctuationAt(source, tokenKinds, tokenStarts, start + 9, PUNCTUATION_CLOSE_PAREN)
-        ) {} else {
-          return invalidHelper();
-        }
+          punctuationAt(source, tokenKinds, tokenStarts, start + 9, PUNCTUATION_COMMA)
+        ) {
+          if (tokenHash(source, tokenStarts, tokenLengths, start + 10) == TOKEN_LONG) {} else {
+            return invalidHelper();
+          }
 
-        parameterCount = 2;
-        bodyOpen = start + 10;
-        if (returnType == TOKEN_LONG) {
-          kind = HELPER_SIGNED_TWO;
+          thirdParameterToken = start + 11;
+          if (tokenKinds[thirdParameterToken] == 1) {} else {
+            return invalidHelper();
+          }
+
+          if (tokenLengths[thirdParameterToken] < 257) {} else {
+            return invalidHelper();
+          }
+
+          if (
+            classConstantNameExists(source, tokenStarts, tokenLengths, thirdParameterToken)
+          ) {
+            return invalidHelper();
+          }
+
+          long firstThirdOrder = compareAsciiSlices(
+            source,
+            tokenStarts[firstParameterToken],
+            tokenLengths[firstParameterToken],
+            tokenStarts[thirdParameterToken],
+            tokenLengths[thirdParameterToken]
+          );
+          long secondThirdOrder = compareAsciiSlices(
+            source,
+            tokenStarts[secondParameterToken],
+            tokenLengths[secondParameterToken],
+            tokenStarts[thirdParameterToken],
+            tokenLengths[thirdParameterToken]
+          );
+          if (firstThirdOrder == 0) {
+            return invalidHelper();
+          }
+
+          if (secondThirdOrder == 0) {
+            return invalidHelper();
+          }
+
+          if (
+            punctuationAt(source, tokenKinds, tokenStarts, start + 12, PUNCTUATION_CLOSE_PAREN)
+          ) {} else {
+            return invalidHelper();
+          }
+
+          parameterCount = 3;
+          bodyOpen = start + 13;
+          if (returnType == TOKEN_LONG) {
+            kind = HELPER_SIGNED_THREE;
+          } else {
+            kind = HELPER_BOOLEAN_SIGNED_THREE;
+          }
         } else {
-          kind = HELPER_BOOLEAN_SIGNED_TWO;
+          if (
+            punctuationAt(source, tokenKinds, tokenStarts, start + 9, PUNCTUATION_CLOSE_PAREN)
+          ) {} else {
+            return invalidHelper();
+          }
+
+          parameterCount = 2;
+          bodyOpen = start + 10;
+          if (returnType == TOKEN_LONG) {
+            kind = HELPER_SIGNED_TWO;
+          } else {
+            kind = HELPER_BOOLEAN_SIGNED_TWO;
+          }
         }
       } else {
         if (
@@ -343,8 +403,12 @@ classical class ScalarHelperLibraries {
       }
 
       set(statementStarts, 0, 0 - firstParameterToken);
-      if (parameterCount == 2) {
+      if (1 < parameterCount) {
         set(statementStarts, 1, 0 - secondParameterToken);
+      }
+
+      if (parameterCount == 3) {
+        set(statementStarts, 2, 0 - thirdParameterToken);
       }
     }
 
