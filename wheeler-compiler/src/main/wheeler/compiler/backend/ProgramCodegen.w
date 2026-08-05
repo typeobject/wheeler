@@ -5,6 +5,7 @@ module wheeler.compiler.program_codegen;
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.codegen;
+import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.encoding;
 import wheeler.compiler.helper_abi;
 import wheeler.compiler.ir;

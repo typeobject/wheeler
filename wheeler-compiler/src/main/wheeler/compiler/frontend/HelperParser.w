@@ -5,6 +5,7 @@ module wheeler.compiler.helper_parser;
 import wheeler.compiler.body_parser;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.class_layouts;
+import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.helper_abi;
 import wheeler.compiler.helper_calls;
 import wheeler.compiler.helper_programs;

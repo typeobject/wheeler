@@ -2,6 +2,7 @@
 
 module wheeler.compiler.body_parser;
 
+import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.ir;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statements;

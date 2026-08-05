@@ -5,6 +5,7 @@ module wheeler.compiler.scalar_helper_libraries;
 import wheeler.compiler.body_parser;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.class_layouts;
+import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.early_comparison_forms;
 import wheeler.compiler.encoding;
 import wheeler.compiler.helper_abi;

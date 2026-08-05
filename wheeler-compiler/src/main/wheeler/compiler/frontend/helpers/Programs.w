@@ -5,6 +5,7 @@ module wheeler.compiler.helper_programs;
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.class_layouts;
+import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.helper_abi;
 import wheeler.compiler.helper_calls;

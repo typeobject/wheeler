@@ -3,6 +3,7 @@
 module wheeler.compiler.sequences;
 
 import wheeler.compiler.class_constants;
+import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_statements;
