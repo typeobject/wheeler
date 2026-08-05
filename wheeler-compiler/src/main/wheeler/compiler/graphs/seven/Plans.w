@@ -11,6 +11,9 @@ classical class SevenGraphPlans {
   private const long MODULE_COUNT = 7;
   private const long SINGLE_EDGE = 1;
   private const long SINGLE_IMPORT = 1;
+  private const long TWO_EDGES = 2;
+  private const long TWO_IMPORTS = 2;
+  private const long FIVE_IMPORTS = 5;
   private const long SIX_EDGES = 6;
   private const long SIX_IMPORTS = 6;
   private const long SEVEN_IMPORTS = 7;
@@ -42,6 +45,10 @@ classical class SevenGraphPlans {
       return dependency.importsCandidate;
     }
 
+    if (dependency.importCount == TWO_IMPORTS) {
+      return dependency.importsCandidate;
+    }
+
     if (dependency.importCount == SIX_IMPORTS) {
       return dependency.importsCandidate;
     }
@@ -56,6 +63,10 @@ classical class SevenGraphPlans {
     }
 
     if (dependency.importCount == SINGLE_IMPORT) {
+      return dependency.importsCandidate;
+    }
+
+    if (dependency.importCount == FIVE_IMPORTS) {
       return dependency.importsCandidate;
     }
 
@@ -207,6 +218,82 @@ classical class SevenGraphPlans {
     );
   }
 
+  private long incomingCount(borrow mut words graph, long dependent) {
+    long count = 0;
+    long source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      count += graph[source * MODULE_COUNT + dependent];
+      source += 1;
+    }
+
+    return count;
+  }
+
+  private SevenGraphPlan forkAndDirectsPlan(borrow mut words graph, borrow mut words rootDirect) {
+    long dependent = -1;
+    long firstLeaf = -1;
+    long secondLeaf = -1;
+    long firstDirect = -1;
+    long secondDirect = -1;
+    long thirdDirect = -1;
+    long fourthDirect = -1;
+    long candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (incomingCount(graph, candidate) == TWO_EDGES) {
+        dependent = candidate;
+      }
+
+      candidate += 1;
+    }
+
+    if (dependent < 0) {
+      return invalidPlan();
+    }
+
+    long source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[source * MODULE_COUNT + dependent] == 1) {
+        if (firstLeaf < 0) {
+          firstLeaf = source;
+        } else {
+          secondLeaf = source;
+        }
+      }
+
+      if (rootDirect[source] == 1) {
+        if (source == dependent) {} else {
+          if (firstDirect < 0) {
+            firstDirect = source;
+          } else {
+            if (secondDirect < 0) {
+              secondDirect = source;
+            } else {
+              if (thirdDirect < 0) {
+                thirdDirect = source;
+              } else {
+                fourthDirect = source;
+              }
+            }
+          }
+        }
+      }
+
+      source += 1;
+    }
+
+    return new SevenGraphPlan(
+      SEVEN_PLAN_FORK_AND_DIRECTS,
+      firstLeaf,
+      secondLeaf,
+      dependent,
+      firstDirect,
+      secondDirect,
+      thirdDirect,
+      fourthDirect,
+      true
+    );
+  }
+
   private SevenGraphPlan structuredGraph(
     borrow utf8 firstSource,
     borrow utf8 secondSource,
@@ -250,9 +337,14 @@ classical class SevenGraphPlans {
       structured = rootCount == SINGLE_IMPORT;
     }
 
-    boolean mixed = false;
+    boolean mixedChain = false;
     if (edgeCount == SINGLE_EDGE) {
-      mixed = rootCount == SIX_IMPORTS;
+      mixedChain = rootCount == SIX_IMPORTS;
+    }
+
+    boolean mixedFork = false;
+    if (edgeCount == TWO_EDGES) {
+      mixedFork = rootCount == FIVE_IMPORTS;
     }
 
     boolean valid = direct;
@@ -260,7 +352,11 @@ classical class SevenGraphPlans {
       valid = true;
     }
 
-    if (mixed) {
+    if (mixedChain) {
+      valid = true;
+    }
+
+    if (mixedFork) {
       valid = true;
     }
 
@@ -290,8 +386,12 @@ classical class SevenGraphPlans {
           true
         );
       } else {
-        if (mixed) {
+        if (mixedChain) {
           result = chainAndDirectsPlan(graph, rootDirect);
+        }
+
+        if (mixedFork) {
+          result = forkAndDirectsPlan(graph, rootDirect);
         }
 
         boolean chain = writeChainOrder(graph, rootDirect, MODULE_COUNT, order);

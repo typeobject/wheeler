@@ -163,6 +163,22 @@ classical class CompilerGraphSeven {
       return new SevenGraphCompilation(mixed.length, mixed.codeStart);
     }
 
+    if (plan.topology == SEVEN_PLAN_FORK_AND_DIRECTS) {
+      SevenMixedCompilation mixedFork = compileSevenForkAndDirects(
+        plan,
+        firstImportedSource,
+        secondImportedSource,
+        thirdImportedSource,
+        fourthImportedSource,
+        fifthImportedSource,
+        sixthImportedSource,
+        seventhImportedSource,
+        rootSource,
+        output
+      );
+      return new SevenGraphCompilation(mixedFork.length, mixedFork.codeStart);
+    }
+
     assert(plan.topology == SEVEN_PLAN_DIRECT);
     return new SevenGraphCompilation(0, 0);
   }
