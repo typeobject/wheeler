@@ -441,6 +441,15 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalFivePlanKindsByteForByte() throws Exception {
+    Program decoded = assertCompilerLibrary(
+        "compiler/graphs/kinds/FivePlanKinds.w",
+        "wheeler.compiler.graphs.five_plan_kinds");
+    assertEquals("$library", decoded.functions().getFirst().name());
+    assertEquals(1, decoded.functions().size());
+  }
+
+  @Test
   void compilesCanonicalEncodingWidthsByteForByte() throws Exception {
     Program decoded = assertCompilerLibrary(
         "compiler/backend/EncodingWidths.w",

@@ -3,6 +3,7 @@
 module wheeler.compiler.graphs.five_chain;
 
 import wheeler.compiler.compiler_core;
+import wheeler.compiler.graphs.five_plan_kinds;
 import wheeler.compiler.graphs.plans;
 import wheeler.compiler.graphs.sources;
 import wheeler.compiler.module_linker;
