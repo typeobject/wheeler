@@ -36,13 +36,19 @@ classical class CompilerGraphs {
     return new GraphCompilation(compiled.length, compiled.codeStart);
   }
 
-  /// Compiles one root with one direct scalar-constant module.
+  /// Compiles one root with one direct scalar-constant or scalar-helper module.
   public GraphCompilation compileGraphWithConstantImport(
     borrow utf8 importedSource,
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
     LinkPlan plan = planConstantImport(importedSource, rootSource, /* expectedImportCount= */ 1);
+    boolean importedHelpers = false;
+    if (plan.valid) {} else {
+      plan = planResolvedHelperImport(importedSource, rootSource, /* expectedImportCount= */ 1);
+      importedHelpers = plan.valid;
+    }
+
     if (plan.valid) {} else {
       assert(0 == 1);
     }
@@ -52,7 +58,13 @@ classical class CompilerGraphs {
     long written = writeConstantImport(importedSource, rootSource, plan, linkedBytes);
     assert(written == plan.linkedLength);
     utf8 linkedSource = freezeUtf8(linkedBytes);
-    GraphCompilation compiled = compileGraphSource(linkedSource, output);
+    GraphCompilation compiled = new GraphCompilation(0, 0);
+    if (importedHelpers) {
+      compiled = compileGraphSourceWithHelperImport(linkedSource, output, plan);
+    } else {
+      compiled = compileGraphSource(linkedSource, output);
+    }
+
     drop(linkedSource);
     drop(linkedArena);
     return compiled;
