@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.examples;
 
 import static com.typeobject.wheeler.examples.NativeCompilerSelfSourceExampleTest.assertCompilerLibrary;
+import static com.typeobject.wheeler.examples.NativeCompilerSelfSourceExampleTest.assertImportedConstantCompilerLibrary;
 import static com.typeobject.wheeler.examples.NativeCompilerSelfSourceExampleTest.assertNoPublication;
 import static com.typeobject.wheeler.examples.NativeCompilerSelfSourceExampleTest.nativeWriter;
 import static com.typeobject.wheeler.examples.NativeCompilerSelfSourceExampleTest.twoHelperSource;
@@ -27,6 +28,19 @@ final class NativeCompilerHelperTableExampleTest {
         "compiler/syntax/helpers/HelperAbi.w",
         "wheeler.compiler.helper_abi");
     assertEquals("$library", decoded.functions().getFirst().name());
+  }
+
+  @Test
+  void compilesCanonicalHelperSignaturesByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/syntax/helpers/HelperSignatures.w",
+        "wheeler.compiler.helper_signatures",
+        "compiler/syntax/helpers/HelperAbi.w");
+    assertEquals(
+        "wheeler.compiler.helper_signatures::parameterCountForHelper",
+        decoded.functions().getFirst().name());
+    assertEquals(6, decoded.functions().size());
+    assertEquals("$library", decoded.functions().getLast().name());
   }
 
   @Test

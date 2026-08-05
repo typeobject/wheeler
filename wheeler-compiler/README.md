@@ -105,7 +105,8 @@ imported-constant `compiler/resolution/returns/ReturnOpcodeKinds.w`, imported-co
 imported-constant `compiler/ir/InstructionForms.w`, imported-constant
 `compiler/syntax/BooleanDeclarationKinds.w`, `compiler/syntax/IdentifierStarts.w`,
 `compiler/syntax/tokens/CompilerTokenLimits.w`, `compiler/syntax/tokens/KeywordTokens.w`, `compiler/syntax/tokens/SourceScalars.w`,
-`compiler/syntax/helpers/HelperAbi.w`, imported-constant `compiler/syntax/helpers/HelperValueKinds.w`, imported-constant
+`compiler/syntax/helpers/HelperAbi.w`, imported-constant `compiler/syntax/helpers/HelperSignatures.w`,
+imported-constant `compiler/syntax/helpers/HelperValueKinds.w`, imported-constant
 `compiler/syntax/EarlyReturnKinds.w`, imported-constant
 `compiler/syntax/EarlyReturnResultKinds.w`, `compiler/syntax/LoopKinds.w`, imported-constant
 `compiler/syntax/calls/CallArgumentSources.w`, imported-constant
@@ -122,7 +123,7 @@ imported-constant `compiler/ir/InstructionForms.w`, imported-constant
 and imported-constant `compiler/syntax/returns/ResolvedReturnCallKinds.w` modules compile byte for byte with stage 0.
 `StatementKinds.w` owns 128 unresolved statement identities. `LoopKinds.w` owns six loop-form
 identities. `ResolvedStatements.w` owns seventy-nine resolved columns. `Tokens.w` now sticks to
-lexical work instead of running a parser-IR registry from the back room. Sixty-four real self-source modules beat sixty-one motivational slides. One of them now owns conditional base mapping instead of leaving it in the parser's coat pocket. The bar has retained counsel. A modular source may carry up to sixty-four sorted unique direct imports.
+lexical work instead of running a parser-IR registry from the back room. Sixty-five real self-source modules beat sixty-one motivational slides. One of them now owns conditional base mapping instead of leaving it in the parser's coat pocket. The bar has retained counsel. A modular source may carry up to sixty-four sorted unique direct imports.
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
 or excess imports before publication. `compileMinimalWithConstantImport`,
 `compileMinimalWithConstantImports`, `compileMinimalWithThreeConstantImports`, and

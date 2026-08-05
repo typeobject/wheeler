@@ -9,6 +9,7 @@ import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.helper_abi;
 import wheeler.compiler.helper_calls;
 import wheeler.compiler.helper_programs;
+import wheeler.compiler.helper_signatures;
 import wheeler.compiler.ir;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.named_return_arithmetic_kinds;
