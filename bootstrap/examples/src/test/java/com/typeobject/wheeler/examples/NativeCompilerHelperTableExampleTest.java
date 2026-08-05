@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 /** Differential evidence for bounded native scalar helper tables. */
 final class NativeCompilerHelperTableExampleTest {
   private static final String[] HELPER_NAMES = {
-      "omega", "alpha", "theta", "beta", "zeta", "gamma", "sigma", "delta", "kappa", "lambda", "iota"
+      "omega", "alpha", "theta", "beta", "zeta", "gamma", "sigma", "delta", "kappa", "lambda", "iota", "mu"
   };
 
   @Test
@@ -44,26 +44,26 @@ final class NativeCompilerHelperTableExampleTest {
   }
 
   @Test
-  void compilesTenEntrylessHelpersByteForByte() throws Exception {
+  void compilesElevenEntrylessHelpersByteForByte() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
-    String source = helperSource(10);
+    String source = helperSource(11);
     VirtualMachine writer = nativeWriter(compiler, source);
     CompilerMachineRunner.runWithoutRewindHistory(writer);
 
     Program expected = new WheelerCompiler().compileLibraryModuleFiles(
-        Map.of("TenHelpers.w", source),
+        Map.of("ElevenHelpers.w", source),
         "examples.two_helpers");
     byte[] artifact = writer.hostOutput();
     assertArrayEquals(new BytecodeWriter().write(expected), artifact);
     Program decoded = new BytecodeReader().read(artifact);
     assertEquals("examples.two_helpers::omega", decoded.functions().getFirst().name());
-    assertEquals("examples.two_helpers::lambda", decoded.functions().get(9).name());
+    assertEquals("examples.two_helpers::iota", decoded.functions().get(10).name());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 
   @Test
-  void rejectsEleventhEntrylessHelperBeforePublication() throws Exception {
-    assertNoPublication(CompilerSources.minimalCompilerProgram(), helperSource(11));
+  void rejectsTwelfthEntrylessHelperBeforePublication() throws Exception {
+    assertNoPublication(CompilerSources.minimalCompilerProgram(), helperSource(12));
   }
 
   private static String helperSource(int count) {
