@@ -4,10 +4,8 @@ module wheeler.compiler.scalar_helper_programs;
 
 import wheeler.compiler.class_layouts;
 import wheeler.compiler.ir;
-import wheeler.compiler.scalar_helper_libraries;
+import wheeler.compiler.scalar_helper_parsing;
 import wheeler.compiler.scalar_helper_tables;
-import wheeler.compiler.source_scalars;
-import wheeler.compiler.tokens;
 
 classical class ScalarHelperPrograms {
   /// Carries one helper after bounded call resolution.
@@ -58,7 +56,7 @@ classical class ScalarHelperPrograms {
     return new ResolvedHelperBody(withCalls(body, calls), calls.valid);
   }
 
-  /// Parses two through sixteen scalar helpers in source declaration order.
+  /// Builds one resolved library from two through sixteen scalar helpers.
   public MinimalProgramResult parseScalarHelperLibrary(
     borrow utf8 source,
     borrow mut words tokenKinds,
@@ -68,342 +66,36 @@ classical class ScalarHelperPrograms {
     long count,
     ClassLayout layout
   ) {
-    if (layout.globalCount == 0) {} else {
-      return new MinimalProgramResult.Error(0);
-    }
-
-    ParsedScalarHelper first = parseScalarHelper(
+    ScalarHelperTable parsed = parseScalarHelpers(
       source,
       tokenKinds,
       tokenStarts,
       tokenLengths,
       statementStarts,
-      layout.memberStart
+      count,
+      layout
     );
-    if (first.valid) {} else {
+    if (parsed.valid) {} else {
       return new MinimalProgramResult.Error(0);
     }
 
-    ParsedScalarHelper second = parseScalarHelper(
-      source,
-      tokenKinds,
-      tokenStarts,
-      tokenLengths,
-      statementStarts,
-      first.nextToken
-    );
-    if (second.valid) {} else {
-      return new MinimalProgramResult.Error(0);
-    }
-
-    long helperCount = 2;
-    long classClose = second.nextToken;
-    ParsedScalarHelper third = invalidHelper();
-    ParsedScalarHelper fourth = invalidHelper();
-    ParsedScalarHelper fifth = invalidHelper();
-    ParsedScalarHelper sixth = invalidHelper();
-    ParsedScalarHelper seventh = invalidHelper();
-    ParsedScalarHelper eighth = invalidHelper();
-    ParsedScalarHelper ninth = invalidHelper();
-    ParsedScalarHelper tenth = invalidHelper();
-    ParsedScalarHelper eleventh = invalidHelper();
-    ParsedScalarHelper twelfth = invalidHelper();
-    ParsedScalarHelper thirteenth = invalidHelper();
-    ParsedScalarHelper fourteenth = invalidHelper();
-    ParsedScalarHelper fifteenth = invalidHelper();
-    ParsedScalarHelper sixteenth = invalidHelper();
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
-      third = parseScalarHelper(
-        source,
-        tokenKinds,
-        tokenStarts,
-        tokenLengths,
-        statementStarts,
-        classClose
-      );
-      if (third.valid) {} else {
-        return new MinimalProgramResult.Error(0);
-      }
-
-      helperCount = 3;
-      classClose = third.nextToken;
-    }
-
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
-      fourth = parseScalarHelper(
-        source,
-        tokenKinds,
-        tokenStarts,
-        tokenLengths,
-        statementStarts,
-        classClose
-      );
-      if (fourth.valid) {} else {
-        return new MinimalProgramResult.Error(0);
-      }
-
-      helperCount = 4;
-      classClose = fourth.nextToken;
-    }
-
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
-      fifth = parseScalarHelper(
-        source,
-        tokenKinds,
-        tokenStarts,
-        tokenLengths,
-        statementStarts,
-        classClose
-      );
-      if (fifth.valid) {} else {
-        return new MinimalProgramResult.Error(0);
-      }
-
-      helperCount = 5;
-      classClose = fifth.nextToken;
-    }
-
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
-      sixth = parseScalarHelper(
-        source,
-        tokenKinds,
-        tokenStarts,
-        tokenLengths,
-        statementStarts,
-        classClose
-      );
-      if (sixth.valid) {} else {
-        return new MinimalProgramResult.Error(0);
-      }
-
-      helperCount = 6;
-      classClose = sixth.nextToken;
-    }
-
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
-      seventh = parseScalarHelper(
-        source,
-        tokenKinds,
-        tokenStarts,
-        tokenLengths,
-        statementStarts,
-        classClose
-      );
-      if (seventh.valid) {} else {
-        return new MinimalProgramResult.Error(0);
-      }
-
-      helperCount = 7;
-      classClose = seventh.nextToken;
-    }
-
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
-      eighth = parseScalarHelper(
-        source,
-        tokenKinds,
-        tokenStarts,
-        tokenLengths,
-        statementStarts,
-        classClose
-      );
-      if (eighth.valid) {} else {
-        return new MinimalProgramResult.Error(0);
-      }
-
-      helperCount = 8;
-      classClose = eighth.nextToken;
-    }
-
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
-      ninth = parseScalarHelper(
-        source,
-        tokenKinds,
-        tokenStarts,
-        tokenLengths,
-        statementStarts,
-        classClose
-      );
-      if (ninth.valid) {} else {
-        return new MinimalProgramResult.Error(0);
-      }
-
-      helperCount = 9;
-      classClose = ninth.nextToken;
-    }
-
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
-      tenth = parseScalarHelper(
-        source,
-        tokenKinds,
-        tokenStarts,
-        tokenLengths,
-        statementStarts,
-        classClose
-      );
-      if (tenth.valid) {} else {
-        return new MinimalProgramResult.Error(0);
-      }
-
-      helperCount = 10;
-      classClose = tenth.nextToken;
-    }
-
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
-      eleventh = parseScalarHelper(
-        source,
-        tokenKinds,
-        tokenStarts,
-        tokenLengths,
-        statementStarts,
-        classClose
-      );
-      if (eleventh.valid) {} else {
-        return new MinimalProgramResult.Error(0);
-      }
-
-      helperCount = 11;
-      classClose = eleventh.nextToken;
-    }
-
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
-      twelfth = parseScalarHelper(
-        source,
-        tokenKinds,
-        tokenStarts,
-        tokenLengths,
-        statementStarts,
-        classClose
-      );
-      if (twelfth.valid) {} else {
-        return new MinimalProgramResult.Error(0);
-      }
-
-      helperCount = 12;
-      classClose = twelfth.nextToken;
-    }
-
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
-      thirteenth = parseScalarHelper(
-        source,
-        tokenKinds,
-        tokenStarts,
-        tokenLengths,
-        statementStarts,
-        classClose
-      );
-      if (thirteenth.valid) {} else {
-        return new MinimalProgramResult.Error(0);
-      }
-
-      helperCount = 13;
-      classClose = thirteenth.nextToken;
-    }
-
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
-      fourteenth = parseScalarHelper(
-        source,
-        tokenKinds,
-        tokenStarts,
-        tokenLengths,
-        statementStarts,
-        classClose
-      );
-      if (fourteenth.valid) {} else {
-        return new MinimalProgramResult.Error(0);
-      }
-
-      helperCount = 14;
-      classClose = fourteenth.nextToken;
-    }
-
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
-      fifteenth = parseScalarHelper(
-        source,
-        tokenKinds,
-        tokenStarts,
-        tokenLengths,
-        statementStarts,
-        classClose
-      );
-      if (fifteenth.valid) {} else {
-        return new MinimalProgramResult.Error(0);
-      }
-
-      helperCount = 15;
-      classClose = fifteenth.nextToken;
-    }
-
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
-      sixteenth = parseScalarHelper(
-        source,
-        tokenKinds,
-        tokenStarts,
-        tokenLengths,
-        statementStarts,
-        classClose
-      );
-      if (sixteenth.valid) {} else {
-        return new MinimalProgramResult.Error(0);
-      }
-
-      helperCount = 16;
-      classClose = sixteenth.nextToken;
-    }
-
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE)
-    ) {} else {
-      return new MinimalProgramResult.Error(0);
-    }
-
-    if (count == classClose + 1) {} else {
-      return new MinimalProgramResult.Error(0);
-    }
-
-    HelperBody firstBody = first.body;
-    HelperBody secondBody = second.body;
-    HelperBody thirdBody = third.body;
-    HelperBody fourthBody = fourth.body;
-    HelperBody fifthBody = fifth.body;
-    HelperBody sixthBody = sixth.body;
-    HelperBody seventhBody = seventh.body;
-    HelperBody eighthBody = eighth.body;
-    HelperBody ninthBody = ninth.body;
-    HelperBody tenthBody = tenth.body;
-    HelperBody eleventhBody = eleventh.body;
-    HelperBody twelfthBody = twelfth.body;
-    HelperBody thirteenthBody = thirteenth.body;
-    HelperBody fourteenthBody = fourteenth.body;
-    HelperBody fifteenthBody = fifteenth.body;
-    HelperBody sixteenthBody = sixteenth.body;
+    long helperCount = parsed.helperCount;
+    HelperBody firstBody = parsed.first;
+    HelperBody secondBody = parsed.second;
+    HelperBody thirdBody = parsed.third;
+    HelperBody fourthBody = parsed.fourth;
+    HelperBody fifthBody = parsed.fifth;
+    HelperBody sixthBody = parsed.sixth;
+    HelperBody seventhBody = parsed.seventh;
+    HelperBody eighthBody = parsed.eighth;
+    HelperBody ninthBody = parsed.ninth;
+    HelperBody tenthBody = parsed.tenth;
+    HelperBody eleventhBody = parsed.eleventh;
+    HelperBody twelfthBody = parsed.twelfth;
+    HelperBody thirteenthBody = parsed.thirteenth;
+    HelperBody fourteenthBody = parsed.fourteenth;
+    HelperBody fifteenthBody = parsed.fifteenth;
+    HelperBody sixteenthBody = parsed.sixteenth;
     if (
       uniqueHelpers(
         source,

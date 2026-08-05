@@ -62,7 +62,7 @@ control.
 
 The bounded compiler accepts one class, zero or one signed global, one optional helper,
 and one entry. It also emits the canonical unqualified `$library` halt entry for an
-entryless library. `frontend/helpers/ScalarHelperTables.w` owns bounded helper lookup, duplicate checks, and call resolution. `ScalarHelperLibraries.w` parses members, and `ScalarHelperPrograms.w` assembles the complete table. That path accepts zero or one general helper, or two through sixteen explicitly
+entryless library. `frontend/helpers/ScalarHelperTables.w` owns bounded helper lookup, duplicate checks, and call resolution. `ScalarHelperLibraries.w` parses members. `ScalarHelperParsing.w` assembles declarations, and `ScalarHelperPrograms.w` resolves calls and constructs the IR. That path accepts zero or one general helper, or two through sixteen explicitly
 public or private zero-, one-, or two-parameter scalar helpers. Signed-parameter Boolean and signed helpers may
 contain bounded equality or less-than guards, computed signed-local preludes, and up to two same-module Boolean calls with typed
 early returns. A final Boolean return may forward one zero-, one-, or two-argument helper call. A signed less-than guard may
