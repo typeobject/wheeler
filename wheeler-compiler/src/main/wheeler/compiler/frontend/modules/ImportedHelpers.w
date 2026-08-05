@@ -11,7 +11,7 @@ import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
 
 classical class ImportedHelpers {
-  private const long MAX_IMPORTED_HELPERS = 8;
+  private const long MAX_IMPORTED_HELPERS = 9;
 
   private record HelperFacts(
     long count,
