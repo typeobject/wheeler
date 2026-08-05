@@ -15,7 +15,7 @@ classical class LibraryStrings {
   /// Defines immutable bounded library string-table plans.
   public record LibraryStringPlan(
     long nameIndex,
-    long[9] helperIndices,
+    long[10] helperIndices,
     long entryIndex,
     long stringCount,
     long encodedLength,
@@ -240,7 +240,7 @@ classical class LibraryStrings {
     return index;
   }
 
-  /// Computes canonical indices and encoded width for two through nine helpers.
+  /// Computes canonical indices and encoded width for two through ten helpers.
   public LibraryStringPlan planLibraryStrings(
     borrow utf8 source,
     MinimalProgram program,
@@ -332,6 +332,7 @@ classical class LibraryStrings {
     long seventhIndex = 0;
     long eighthIndex = 0;
     long ninthIndex = 0;
+    long tenthIndex = 0;
     if (2 < program.helperCount) {
       thirdIndex = candidateIndex(
         source,
@@ -416,7 +417,19 @@ classical class LibraryStrings {
       );
     }
 
-    long[9] helperIndices = new long[9](
+    if (9 < program.helperCount) {
+      tenthIndex = candidateIndex(
+        source,
+        program,
+        rootModule,
+        importedModule,
+        importedHelperCount,
+        FIRST_HELPER + 9,
+        stringCount
+      );
+    }
+
+    long[10] helperIndices = new long[10](
       firstIndex,
       secondIndex,
       thirdIndex,
@@ -425,7 +438,8 @@ classical class LibraryStrings {
       sixthIndex,
       seventhIndex,
       eighthIndex,
-      ninthIndex
+      ninthIndex,
+      tenthIndex
     );
     return new LibraryStringPlan(
       candidateIndex(

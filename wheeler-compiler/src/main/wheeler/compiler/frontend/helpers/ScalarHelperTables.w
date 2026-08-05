@@ -36,7 +36,7 @@ classical class ScalarHelperTables {
     );
   }
 
-  /// Selects one helper from nine fixed table slots.
+  /// Selects one helper from ten fixed table slots.
   public HelperBody selectedBody(
     HelperBody first,
     HelperBody second,
@@ -47,6 +47,7 @@ classical class ScalarHelperTables {
     HelperBody seventh,
     HelperBody eighth,
     HelperBody ninth,
+    HelperBody tenth,
     long index
   ) {
     if (index == 0) {
@@ -81,7 +82,11 @@ classical class ScalarHelperTables {
       return eighth;
     }
 
-    return ninth;
+    if (index == 8) {
+      return ninth;
+    }
+
+    return tenth;
   }
 
   /// Checks that all occupied helper names are distinct.
@@ -96,6 +101,7 @@ classical class ScalarHelperTables {
     HelperBody seventh,
     HelperBody eighth,
     HelperBody ninth,
+    HelperBody tenth,
     long helperCount
   ) {
     long left = 0;
@@ -110,6 +116,7 @@ classical class ScalarHelperTables {
         seventh,
         eighth,
         ninth,
+        tenth,
         left
       );
       long right = left + 1;
@@ -124,6 +131,7 @@ classical class ScalarHelperTables {
           seventh,
           eighth,
           ninth,
+          tenth,
           right
         );
         if (compareHelpers(source, leftBody, rightBody) == 0) {
@@ -154,6 +162,7 @@ classical class ScalarHelperTables {
     HelperBody seventh,
     HelperBody eighth,
     HelperBody ninth,
+    HelperBody tenth,
     long helperCount
   ) {
     if (target.length == 0) {
@@ -173,6 +182,7 @@ classical class ScalarHelperTables {
         seventh,
         eighth,
         ninth,
+        tenth,
         helper
       );
       long order = compareAsciiSlices(
@@ -217,6 +227,7 @@ classical class ScalarHelperTables {
     HelperBody seventh,
     HelperBody eighth,
     HelperBody ninth,
+    HelperBody tenth,
     long helperCount
   ) {
     boolean firstForwarding = caller.firstCallStatement == caller.resultStatement;
@@ -246,6 +257,7 @@ classical class ScalarHelperTables {
       seventh,
       eighth,
       ninth,
+      tenth,
       helperCount
     );
     long secondFunction = resolveCallFunction(
@@ -263,6 +275,7 @@ classical class ScalarHelperTables {
       seventh,
       eighth,
       ninth,
+      tenth,
       helperCount
     );
     boolean valid = true;
