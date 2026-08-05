@@ -3,6 +3,7 @@
 module wheeler.compiler.shared_declarations;
 
 import wheeler.compiler.class_constants;
+import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.constant_declarations;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.tokens;

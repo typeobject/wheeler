@@ -3,6 +3,7 @@
 module wheeler.compiler.local_resolution;
 
 import wheeler.compiler.call_forms;
+import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.named_local_update_kinds;

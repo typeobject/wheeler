@@ -2,6 +2,7 @@
 
 module wheeler.compiler.class_constants;
 
+import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.constant_declarations;
 import wheeler.compiler.constant_expressions;
 import wheeler.compiler.statement_kinds;

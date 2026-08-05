@@ -3,6 +3,7 @@
 module wheeler.compiler.statement_opcodes;
 
 import wheeler.compiler.boolean_tokens;
+import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.identifier_starts;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.source_scalars;

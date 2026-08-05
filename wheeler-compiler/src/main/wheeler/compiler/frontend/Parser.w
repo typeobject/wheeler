@@ -5,6 +5,7 @@ module wheeler.compiler.parser;
 import wheeler.compiler.body_parser;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.class_layouts;
+import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.helper_parser;
 import wheeler.compiler.ir;
 import wheeler.compiler.named_local_assignment_kinds;

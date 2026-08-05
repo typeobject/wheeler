@@ -3,6 +3,7 @@
 module wheeler.compiler.imported_helpers;
 
 import wheeler.compiler.class_constants;
+import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.module_headers;
 import wheeler.compiler.module_linker;

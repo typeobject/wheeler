@@ -2,6 +2,7 @@
 
 module wheeler.compiler.constant_declarations;
 
+import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;

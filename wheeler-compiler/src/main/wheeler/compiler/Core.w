@@ -2,6 +2,7 @@
 
 module wheeler.compiler.compiler_core;
 
+import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.encoding;
 import wheeler.compiler.ir;
 import wheeler.compiler.library_strings;

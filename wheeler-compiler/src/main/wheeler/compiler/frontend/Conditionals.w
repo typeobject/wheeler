@@ -2,6 +2,7 @@
 
 module wheeler.compiler.conditionals;
 
+import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.named_literal_comparison_kinds;
 import wheeler.compiler.named_literal_comparison_operations;
 import wheeler.compiler.named_local_conditional_kinds;

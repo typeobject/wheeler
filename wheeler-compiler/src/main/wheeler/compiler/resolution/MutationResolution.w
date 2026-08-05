@@ -4,6 +4,7 @@ module wheeler.compiler.mutation_resolution;
 
 import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.class_constants;
+import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.resolved_local_assignments;
 import wheeler.compiler.resolved_local_updates;
