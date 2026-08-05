@@ -10,6 +10,78 @@ import org.junit.jupiter.api.Test;
 /** Differential self-source tests for bounded local opcode families. */
 class NativeCompilerLocalSourceExampleTest {
   @Test
+  void compilesCanonicalResolvedBooleanLiteralAssertionsByteForByte() throws Exception {
+    assertCanonicalLocalModule(
+        "syntax/assertions/ResolvedBooleanLiteralAssertions.w",
+        "resolved_boolean_literal_assertions",
+        "resolvedBooleanLiteralAssertion",
+        3);
+  }
+
+  @Test
+  void compilesCanonicalResolvedBooleanLiteralComparisonsByteForByte() throws Exception {
+    assertCanonicalLocalModule(
+        "syntax/booleans/ResolvedBooleanLiteralComparisons.w",
+        "resolved_boolean_literal_comparisons",
+        "resolvedBooleanLiteralEquality",
+        5);
+  }
+
+  @Test
+  void compilesCanonicalResolvedLocalCopyKindsByteForByte() throws Exception {
+    assertCanonicalLocalModule(
+        "syntax/locals/ResolvedLocalCopyKinds.w",
+        "resolved_local_copy_kinds",
+        "resolvedLocalLongAssertion",
+        5);
+  }
+
+  @Test
+  void compilesCanonicalResolvedLocalEqualityKindsByteForByte() throws Exception {
+    assertCanonicalLocalModule(
+        "syntax/locals/ResolvedLocalEqualityKinds.w",
+        "resolved_local_equality_kinds",
+        "resolvedLocalEquality",
+        4);
+  }
+
+  @Test
+  void compilesCanonicalResolvedLocalInequalityKindsByteForByte() throws Exception {
+    assertCanonicalLocalModule(
+        "syntax/locals/ResolvedLocalInequalityKinds.w",
+        "resolved_local_inequality_kinds",
+        "resolvedLocalInequality",
+        4);
+  }
+
+  @Test
+  void compilesCanonicalResolvedLocalLessThanKindsByteForByte() throws Exception {
+    assertCanonicalLocalModule(
+        "syntax/locals/ResolvedLocalLessThanKinds.w",
+        "resolved_local_less_than_kinds",
+        "resolvedLocalLongLessThan",
+        2);
+  }
+
+  @Test
+  void compilesCanonicalResolvedLocalLiteralComparisonSourcesByteForByte() throws Exception {
+    assertCanonicalLocalModule(
+        "syntax/locals/ResolvedLocalLiteralComparisonSources.w",
+        "resolved_local_literal_comparison_sources",
+        "resolvedLocalLiteralComparisonSource",
+        2);
+  }
+
+  @Test
+  void compilesCanonicalResolvedLocalLiteralComparisonsByteForByte() throws Exception {
+    assertCanonicalLocalModule(
+        "syntax/locals/ResolvedLocalLiteralComparisons.w",
+        "resolved_local_literal_comparisons",
+        "resolvedLocalLiteralEquality",
+        5);
+  }
+
+  @Test
   void compilesCanonicalNamedLongOperationsByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/syntax/locals/NamedLongOperations.w",
@@ -67,6 +139,18 @@ class NativeCompilerLocalSourceExampleTest {
         "wheeler.compiler.resolved_local_returns::resolvedLocalReturn",
         decoded.functions().getFirst().name());
     assertEquals(4, decoded.functions().size());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  private static void assertCanonicalLocalModule(
+      String logicalPath, String moduleName, String firstFunction, int functionCount)
+      throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/" + logicalPath, "wheeler.compiler." + moduleName);
+    assertEquals(
+        "wheeler.compiler." + moduleName + "::" + firstFunction,
+        decoded.functions().getFirst().name());
+    assertEquals(functionCount, decoded.functions().size());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 }
