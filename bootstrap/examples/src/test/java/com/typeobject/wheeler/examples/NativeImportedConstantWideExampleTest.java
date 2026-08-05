@@ -11,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
-import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -786,16 +785,32 @@ class NativeImportedConstantWideExampleTest {
     machine.run();
     assertEquals(53, machine.global("outcome"));
 
-    List<String> twoChains = new ArrayList<>(imported);
-    twoChains.set(
-        2,
-        "module examples.gamma; import examples.alpha; classical class Gamma { "
-            + "public const long GAMMA = ALPHA + 3; }");
-    twoChains.set(
-        3,
-        "module examples.seven; import examples.beta; classical class Seven { "
-            + "public const long SEVEN = BETA + 4; }");
-    assertTrap(program(), twoChains, root);
+  }
+
+  @Test
+  void linksTwoSevenModuleChainsBesideThreeDirectImports() throws Exception {
+    List<String> imported = List.of(
+        "module examples.alpha; classical class Alpha { public const long ALPHA = 2; }",
+        "module examples.beta; import examples.alpha; classical class Beta { "
+            + "public const long BETA = ALPHA + 1; }",
+        "module examples.gamma; classical class Gamma { public const long GAMMA = 5; }",
+        "module examples.delta; import examples.gamma; classical class Delta { "
+            + "public const long DELTA = GAMMA + 2; }",
+        "module examples.eleven; classical class Eleven { public const long ELEVEN = 11; }",
+        "module examples.thirteen; classical class Thirteen { "
+            + "public const long THIRTEEN = 13; }",
+        "module examples.seventeen; classical class Seventeen { "
+            + "public const long SEVENTEEN = 17; }");
+    String root = "module examples.root; import examples.beta; import examples.delta; "
+        + "import examples.eleven; import examples.seventeen; import examples.thirteen; "
+        + "classical class Root { state long outcome = 0; entry void main() { "
+        + "outcome += BETA; outcome += DELTA; outcome += ELEVEN; outcome += THIRTEEN; "
+        + "outcome += SEVENTEEN; } }";
+
+    byte[] expected = assertOrdersMatchStageZero(imported, root, rotationsAndReversals(imported));
+    VirtualMachine machine = new VirtualMachine(new BytecodeReader().read(expected));
+    machine.run();
+    assertEquals(51, machine.global("outcome"));
   }
 
   @Test

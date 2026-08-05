@@ -294,6 +294,88 @@ classical class SevenGraphPlans {
     );
   }
 
+  private SevenGraphPlan pairsAndDirectsPlan(borrow mut words graph, borrow mut words rootDirect) {
+    long firstLeaf = -1;
+    long firstDependent = -1;
+    long secondLeaf = -1;
+    long secondDependent = -1;
+    long source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      long candidate = 0;
+      while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+        if (graph[source * MODULE_COUNT + candidate] == 1) {
+          if (firstLeaf < 0) {
+            firstLeaf = source;
+            firstDependent = candidate;
+          } else {
+            secondLeaf = source;
+            secondDependent = candidate;
+          }
+        }
+
+        candidate += 1;
+      }
+
+      source += 1;
+    }
+
+    if (secondLeaf < 0) {
+      return invalidPlan();
+    }
+
+    if (firstDependent == secondLeaf) {
+      return invalidPlan();
+    }
+
+    if (secondDependent == firstLeaf) {
+      return invalidPlan();
+    }
+
+    if (rootDirect[firstDependent] == 1) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[secondDependent] == 1) {} else {
+      return invalidPlan();
+    }
+
+    long firstDirect = -1;
+    long secondDirect = -1;
+    long thirdDirect = -1;
+    source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (rootDirect[source] == 1) {
+        if (source == firstDependent) {} else {
+          if (source == secondDependent) {} else {
+            if (firstDirect < 0) {
+              firstDirect = source;
+            } else {
+              if (secondDirect < 0) {
+                secondDirect = source;
+              } else {
+                thirdDirect = source;
+              }
+            }
+          }
+        }
+      }
+
+      source += 1;
+    }
+
+    return new SevenGraphPlan(
+      SEVEN_PLAN_PAIRS_AND_DIRECTS,
+      firstLeaf,
+      firstDependent,
+      secondLeaf,
+      secondDependent,
+      firstDirect,
+      secondDirect,
+      thirdDirect,
+      true
+    );
+  }
+
   private SevenGraphPlan structuredGraph(
     borrow utf8 firstSource,
     borrow utf8 secondSource,
@@ -392,6 +474,9 @@ classical class SevenGraphPlans {
 
         if (mixedFork) {
           result = forkAndDirectsPlan(graph, rootDirect);
+          if (result.valid) {} else {
+            result = pairsAndDirectsPlan(graph, rootDirect);
+          }
         }
 
         boolean chain = writeChainOrder(graph, rootDirect, MODULE_COUNT, order);
