@@ -179,13 +179,30 @@ classical class Sha256 {
     long totalLength = paddedLength(inputLength);
     long blockStart = 0;
     while (blockStart < totalLength) limit 4096 {
+      boolean fullInputBlock = false;
+      if (blockStart < inputLength) {
+        if (63 < inputLength - blockStart) {
+          fullInputBlock = true;
+        }
+      }
+
       long wordIndex = 0;
       while (wordIndex < 16) limit 16 {
         long sourceIndex = blockStart + wordIndex * 4;
-        long word = paddedByte(input, inputStart, inputLength, totalLength, sourceIndex) * 16777216;
-        word += paddedByte(input, inputStart, inputLength, totalLength, sourceIndex + 1) * 65536;
-        word += paddedByte(input, inputStart, inputLength, totalLength, sourceIndex + 2) * 256;
-        word += paddedByte(input, inputStart, inputLength, totalLength, sourceIndex + 3);
+        long word = 0;
+        if (fullInputBlock) {
+          long inputIndex = inputStart + sourceIndex;
+          word = input[inputIndex] * 16777216;
+          word += input[inputIndex + 1] * 65536;
+          word += input[inputIndex + 2] * 256;
+          word += input[inputIndex + 3];
+        } else {
+          word = paddedByte(input, inputStart, inputLength, totalLength, sourceIndex) * 16777216;
+          word += paddedByte(input, inputStart, inputLength, totalLength, sourceIndex + 1) * 65536;
+          word += paddedByte(input, inputStart, inputLength, totalLength, sourceIndex + 2) * 256;
+          word += paddedByte(input, inputStart, inputLength, totalLength, sourceIndex + 3);
+        }
+
         set(schedule, wordIndex, word);
         wordIndex += 1;
       }

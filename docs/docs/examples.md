@@ -179,7 +179,7 @@ Files: [`NativeBootstrapModulesIdentity.w`](../../wheeler-examples/src/main/whee
 
 Covers: One through 256 sorted local source modules, zero through sixty-four externals, 576 total imports, unique paths, complete binding, rooted reachability, cycle rejection, bounded names and paths, lowercase source identities, exact schema bytes, SHA-256 publication, and rewind.
 
-Expected behavior: Empty-import one-module, two-external one-module, and three-, five-, nine-, and seventeen-module rooted DAG closures plus a sixty-five-module star and 128- and 256-module chains reproduce stage 0. A sixty-six-module star exceeds the per-module import bound. Nine- and ten-module DAGs over sixty-four externals pin the 512- and 576-import boundaries. Sorted module and external tables use bounded binary lookup. The parser checks a 577th edge before append, and a source guard test pins that check. The exact oversized fixture still spends 80,000,000 transitions parsing its way there, so binary lookup does not put it in the quick gate. A cycle, unreachable module, duplicate path, 257th local module, sixty-fifth external, unsorted external, unbound import, mismatched root, uppercase digest, traversal path, or input beyond 65,536 bytes publishes nothing. The current physical compiler closure has 122 modules, 528 imports, and 47,865 canonical bytes. The packaged executable reproduces its stage-0 identity in 16,547,883 transitions. The 256-module native bound is still deliberately smaller than the 10,000-module schema. Pretending otherwise would merely give the graph a fake moustache too.
+Expected behavior: Empty-import one-module, two-external one-module, and three-, five-, nine-, and seventeen-module rooted DAG closures plus a sixty-five-module star and 128- and 256-module chains reproduce stage 0. A sixty-six-module star exceeds the per-module import bound. Nine- and ten-module DAGs over sixty-four externals pin the 512- and 576-import boundaries. Sorted module and external tables use bounded binary lookup. The parser checks a 577th edge before append, and a source guard test pins that check. The exact oversized fixture still spends 80,000,000 transitions parsing its way there, so binary lookup does not put it in the quick gate. A cycle, unreachable module, duplicate path, 257th local module, sixty-fifth external, unsorted external, unbound import, mismatched root, uppercase digest, traversal path, or input beyond 65,536 bytes publishes nothing. The current physical compiler closure has 122 modules, 528 imports, and 47,865 canonical bytes. The packaged executable reproduces its stage-0 identity in 15,807,006 transitions. The 256-module native bound is still deliberately smaller than the 10,000-module schema. Pretending otherwise would merely give the graph a fake moustache too.
 
 ### `NativeCompilerLimitsIdentity.w`
 
@@ -275,7 +275,8 @@ Expected behavior:
 
 - Empty, `abc`, 55/56/64-byte padding boundaries, and 100 arbitrary binary bytes match the JDK SHA-256 oracle.
 - Output is exactly 32 bytes and the empty-input run rewinds exactly.
-- The current 47,865-byte compiler manifest hashes in 9,916,965 history-free transitions under a 10,000,000-transition evidence ceiling. This checks bytes, not the patience of a progress bar.
+- Full 64-byte input blocks bypass padding-byte synthesis. The final partial block still uses the same checked padding relation.
+- The current 47,865-byte compiler manifest hashes in 9,176,088 history-free transitions under a 10,000,000-transition evidence ceiling. This checks bytes, not the patience of a progress bar.
 
 ### `NativeBytecodeCodec.w`
 
