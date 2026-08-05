@@ -110,6 +110,7 @@ imported-constant `compiler/syntax/EarlyReturnKinds.w`, imported-constant
 `compiler/syntax/returns/EarlyReturnSources.w`, imported-constant
 `compiler/syntax/returns/NamedBooleanReturnKinds.w`, imported-constant
 `compiler/syntax/returns/NamedReturnArithmeticKinds.w`, imported-constant
+`compiler/syntax/returns/NamedReturnComparisonOperands.w`, imported-constant
 `compiler/syntax/returns/NamedSignedReturnKinds.w`, imported-constant
 `compiler/syntax/returns/ResolvedEarlyComparisonKinds.w`, imported-constant
 `compiler/syntax/returns/ResolvedEarlyResultKinds.w`, imported-function
@@ -117,7 +118,7 @@ imported-constant `compiler/syntax/EarlyReturnKinds.w`, imported-constant
 and imported-constant `compiler/syntax/returns/ResolvedReturnCallKinds.w` modules compile byte for byte with stage 0.
 `StatementKinds.w` owns 128 unresolved statement identities. `LoopKinds.w` owns six loop-form
 identities. `ResolvedStatements.w` owns seventy-nine resolved columns. `Tokens.w` now sticks to
-lexical work instead of running a parser-IR registry from the back room. Fifty-six real self-source modules beat fifty-five motivational slides. The bar has retained counsel. A modular source may carry up to sixty-four sorted unique direct imports.
+lexical work instead of running a parser-IR registry from the back room. Fifty-seven real self-source modules beat fifty-six motivational slides. The bar has retained counsel. A modular source may carry up to sixty-four sorted unique direct imports.
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
 or excess imports before publication. `compileMinimalWithConstantImport`,
 `compileMinimalWithConstantImports`, `compileMinimalWithThreeConstantImports`, and

@@ -6,6 +6,7 @@ import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.named_return_arithmetic_kinds;
+import wheeler.compiler.named_return_comparison_operands;
 import wheeler.compiler.named_signed_return_kinds;
 import wheeler.compiler.return_opcode_kinds;
 import wheeler.compiler.statement_forms;

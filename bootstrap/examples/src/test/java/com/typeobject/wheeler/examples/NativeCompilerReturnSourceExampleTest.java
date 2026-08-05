@@ -27,6 +27,15 @@ final class NativeCompilerReturnSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalNamedReturnComparisonOperandsByteForByte() throws Exception {
+    assertCanonicalReturnModule(
+        "NamedReturnComparisonOperands.w",
+        "named_return_comparison_operands",
+        "returnComparisonLocalRight",
+        2);
+  }
+
+  @Test
   void compilesCanonicalNamedSignedReturnKindsByteForByte() throws Exception {
     assertCanonicalReturnModule(
         "NamedSignedReturnKinds.w",

@@ -96,27 +96,6 @@ classical class StatementForms {
     return returnSignedLessThanStatement(opcode);
   }
 
-  /// Checks whether one direct comparison reads a prior right local.
-  public boolean returnComparisonLocalRight(long opcode) {
-    if (opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_RETURN_BOOLEAN_NE_LOCAL_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_RETURN_SIGNED_EQ_LOCAL_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_RETURN_SIGNED_NE_LOCAL_NAMED) {
-      return true;
-    }
-
-    return opcode == STATEMENT_RETURN_SIGNED_LT_LOCAL_NAMED;
-  }
-
   /// Maps one statement token to its bounded parser opcode.
   public long statementOpcode(
     borrow utf8 source,

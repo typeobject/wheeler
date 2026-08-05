@@ -7,6 +7,7 @@ import wheeler.compiler.early_return_sources;
 import wheeler.compiler.encoding;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.named_return_arithmetic_kinds;
+import wheeler.compiler.named_return_comparison_operands;
 import wheeler.compiler.named_signed_return_kinds;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.resolved_early_comparison_kinds;
