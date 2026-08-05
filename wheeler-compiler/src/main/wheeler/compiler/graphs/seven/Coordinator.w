@@ -246,6 +246,22 @@ classical class CompilerGraphSeven {
       return new SevenGraphCompilation(wideFork.length, wideFork.codeStart);
     }
 
+    if (plan.topology == SEVEN_PLAN_FIVE_LEAF_FORK_AND_DIRECT) {
+      SevenWideForkCompilation fiveLeafFork = compileSevenFiveLeafForkAndDirect(
+        plan,
+        firstImportedSource,
+        secondImportedSource,
+        thirdImportedSource,
+        fourthImportedSource,
+        fifthImportedSource,
+        sixthImportedSource,
+        seventhImportedSource,
+        rootSource,
+        output
+      );
+      return new SevenGraphCompilation(fiveLeafFork.length, fiveLeafFork.codeStart);
+    }
+
     assert(plan.topology == SEVEN_PLAN_DIRECT);
     return new SevenGraphCompilation(0, 0);
   }

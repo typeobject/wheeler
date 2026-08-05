@@ -210,6 +210,32 @@ class NativeImportedConstantSevenExampleTest {
   }
 
   @Test
+  void linksAFiveLeafForkBesideOneDirectImport() throws Exception {
+    List<String> imported = List.of(
+        "module examples.alpha; classical class Alpha { public const long ALPHA = 2; }",
+        "module examples.beta; classical class Beta { public const long BETA = 3; }",
+        "module examples.gamma; classical class Gamma { public const long GAMMA = 5; }",
+        "module examples.delta; classical class Delta { public const long DELTA = 7; }",
+        "module examples.epsilon; classical class Epsilon { public const long EPSILON = 11; }",
+        "module examples.eta; import examples.alpha; import examples.beta; "
+            + "import examples.delta; import examples.epsilon; import examples.gamma; "
+            + "classical class Eta { private const long LEFT = ALPHA + BETA; "
+            + "private const long MIDDLE = GAMMA + DELTA; "
+            + "private const long PARTIAL = LEFT + MIDDLE; "
+            + "public const long ETA = PARTIAL + EPSILON; }",
+        "module examples.thirteen; classical class Thirteen { "
+            + "public const long THIRTEEN = 13; }");
+    String root = "module examples.root; import examples.eta; import examples.thirteen; "
+        + "classical class Root { state long outcome = 0; entry void main() { "
+        + "outcome += ETA; outcome += THIRTEEN; } }";
+
+    byte[] expected = assertOrdersMatchStageZero(imported, root, rotationsAndReversals(imported));
+    VirtualMachine machine = new VirtualMachine(new BytecodeReader().read(expected));
+    machine.run();
+    assertEquals(41, machine.global("outcome"));
+  }
+
+  @Test
   void linksASevenModuleConstantChainAcrossEveryInputPosition() throws Exception {
     String alpha = "module examples.alpha; classical class Alpha { "
         + "private const long HIDDEN = 1; public const long BASE = HIDDEN + 1; }";

@@ -19,6 +19,7 @@ classical class SevenGraphPlans {
   private const long THREE_IMPORTS = 3;
   private const long FOUR_EDGES = 4;
   private const long FOUR_IMPORTS = 4;
+  private const long FIVE_EDGES = 5;
   private const long FIVE_IMPORTS = 5;
   private const long SIX_EDGES = 6;
   private const long SIX_IMPORTS = 6;
@@ -46,6 +47,10 @@ classical class SevenGraphPlans {
       return dependency.importsCandidate;
     }
 
+    if (dependency.importCount == FIVE_IMPORTS) {
+      return dependency.importsCandidate;
+    }
+
     if (dependency.importCount == SIX_IMPORTS) {
       return dependency.importsCandidate;
     }
@@ -60,6 +65,10 @@ classical class SevenGraphPlans {
     }
 
     if (dependency.importCount == SINGLE_IMPORT) {
+      return dependency.importsCandidate;
+    }
+
+    if (dependency.importCount == TWO_IMPORTS) {
       return dependency.importsCandidate;
     }
 
@@ -223,6 +232,11 @@ classical class SevenGraphPlans {
       mixedWideFork = rootCount == THREE_IMPORTS;
     }
 
+    boolean mixedFiveLeafFork = false;
+    if (edgeCount == FIVE_EDGES) {
+      mixedFiveLeafFork = rootCount == TWO_IMPORTS;
+    }
+
     boolean valid = direct;
     if (structured) {
       valid = true;
@@ -241,6 +255,10 @@ classical class SevenGraphPlans {
     }
 
     if (mixedWideFork) {
+      valid = true;
+    }
+
+    if (mixedFiveLeafFork) {
       valid = true;
     }
 
@@ -291,6 +309,10 @@ classical class SevenGraphPlans {
 
         if (mixedWideFork) {
           result = wideForkAndDirectsPlan(graph, rootDirect);
+        }
+
+        if (mixedFiveLeafFork) {
+          result = fiveLeafForkAndDirectPlan(graph, rootDirect);
         }
 
         boolean chain = writeChainOrder(graph, rootDirect, MODULE_COUNT, order);
