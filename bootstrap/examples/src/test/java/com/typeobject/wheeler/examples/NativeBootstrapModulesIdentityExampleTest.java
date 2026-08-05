@@ -3,6 +3,7 @@ package com.typeobject.wheeler.examples;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.Program;
@@ -24,6 +25,9 @@ import org.junit.jupiter.api.Test;
 final class NativeBootstrapModulesIdentityExampleTest {
   private static final Path ROOT = Path.of("src/main/wheeler/native/bootstrap");
   private static final String IDENTITY = "ab".repeat(32);
+  private static final int COMPACT_DENSE_GRAPH_LIMIT = 512;
+  private static final int COMPACT_DENSE_GRAPH_MODULES = 9;
+  private static final int WIDE_DENSE_GRAPH_MODULES = 10;
   private static final long MAX_CLOSURE_TRANSITIONS = 70_000_000;
   private static final long MAX_LARGE_GRAPH_TRANSITIONS = 80_000_000;
 
@@ -48,6 +52,14 @@ final class NativeBootstrapModulesIdentityExampleTest {
     assertEquals(1, machine.global("externalCount"));
     assertEquals(472, machine.global("importCount"));
     assertEquals(1, machine.global("published"));
+  }
+
+  @Test
+  void pinsTheNativeImportCapacityGuard() throws Exception {
+    String source = Files.readString(ROOT.resolve("NativeBootstrapModulesIdentity.w"));
+
+    assertTrue(source.contains("private const long MAX_IMPORTS = 576;"));
+    assertTrue(source.contains("requireMetadata(parsedImports < MAX_IMPORTS, source);"));
   }
 
   @Test
@@ -134,6 +146,8 @@ final class NativeBootstrapModulesIdentityExampleTest {
     assertLargeNoIdentity(program, oneHundredTwentyNineModules.canonicalBytes());
     BootstrapModuleManifest fiveHundredTwelveImports = generatedDenseGraph(512);
     assertLargeIdentity(program, fiveHundredTwelveImports, 9, 64, 512);
+    BootstrapModuleManifest fiveHundredSeventySixImports = generatedDenseGraph(576);
+    assertLargeIdentity(program, fiveHundredSeventySixImports, 10, 64, 576);
     BootstrapModuleManifest sixtyFourExternals = generatedExternalGraph(64);
     assertLargeIdentity(program, sixtyFourExternals, 1, 64, 0);
     BootstrapModuleManifest sixtyFiveExternals = generatedExternalGraph(65);
@@ -207,15 +221,18 @@ final class NativeBootstrapModulesIdentityExampleTest {
 
     List<Module> rows = new ArrayList<>();
     List<String> rootImports = new ArrayList<>();
-    for (int module = 1; module < 9; module++) {
+    int moduleCount = edgeLimit <= COMPACT_DENSE_GRAPH_LIMIT
+        ? COMPACT_DENSE_GRAPH_MODULES
+        : WIDE_DENSE_GRAPH_MODULES;
+    for (int module = 1; module < moduleCount; module++) {
       rootImports.add("b.m%02d".formatted(module));
     }
     rows.add(new Module("b.m00", "s/M00.w", "20".repeat(32), rootImports));
 
     int edges = rootImports.size();
-    for (int owner = 1; owner < 9; owner++) {
+    for (int owner = 1; owner < moduleCount; owner++) {
       List<String> imports = new ArrayList<>();
-      int ownerLimit = owner == 8 ? 64 : 63;
+      int ownerLimit = owner + 1 == moduleCount ? 64 : 63;
       for (int external = 0; external < ownerLimit && edges < edgeLimit; external++) {
         imports.add("e.x%02d".formatted(external));
         edges += 1;
