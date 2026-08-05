@@ -1,31 +1,28 @@
-//! Resolves one nested two-leaf constant fork beside three direct root imports.
+//! Resolves deep and uneven nested seven-module constant branches.
 
-module wheeler.compiler.graphs.seven.nested;
+module wheeler.compiler.graphs.seven.executors.nested_branches;
 
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.graphs.seven.linking;
+import wheeler.compiler.graphs.seven.nested;
 import wheeler.compiler.graphs.seven.plan_shapes;
 import wheeler.compiler.graphs.seven.plans;
 import wheeler.compiler.graphs.sources;
 import wheeler.compiler.module_linker;
 
-classical class SevenNestedGraph {
+classical class SevenNestedBranchGraphs {
   private const long SINGLE_IMPORT = 1;
   private const long TWO_IMPORTS = 2;
   private const long THREE_IMPORTS = 3;
-  private const long FOUR_IMPORTS = 4;
 
-  /// Carries one nested seven-module compilation.
-  public record SevenNestedCompilation(long length, long codeStart) {}
-
-  private SevenNestedCompilation compileOrderedNestedFork(
+  private SevenNestedCompilation compileOrderedDeepNestedFork(
     borrow utf8 firstLeafSource,
     borrow utf8 secondLeafSource,
     borrow utf8 middleSource,
+    borrow utf8 secondMiddleSource,
     borrow utf8 dependentSource,
     borrow utf8 firstDirectSource,
     borrow utf8 secondDirectSource,
-    borrow utf8 thirdDirectSource,
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
@@ -46,9 +43,19 @@ classical class SevenNestedGraph {
       TWO_IMPORTS,
       secondLeafArena
     );
+    region secondMiddleArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
+    utf8 linkedSecondMiddleSource = linkSevenPrivateResolvedConstant(
+      linkedMiddleSource,
+      secondMiddleSource,
+      SINGLE_IMPORT,
+      secondMiddleArena
+    );
     region dependentArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 linkedDependentSource = linkSevenPrivateResolvedConstant(
-      linkedMiddleSource,
+      linkedSecondMiddleSource,
       dependentSource,
       SINGLE_IMPORT,
       dependentArena
@@ -57,7 +64,7 @@ classical class SevenNestedGraph {
     utf8 firstLinkedRootSource = linkSevenResolvedConstant(
       linkedDependentSource,
       rootSource,
-      FOUR_IMPORTS,
+      THREE_IMPORTS,
       rootArena
     );
     region firstDirectArena = new region(
@@ -67,33 +74,21 @@ classical class SevenNestedGraph {
     utf8 secondLinkedRootSource = linkSevenDirectConstant(
       firstDirectSource,
       firstLinkedRootSource,
-      FOUR_IMPORTS,
+      THREE_IMPORTS,
       firstDirectArena
     );
     region secondDirectArena = new region(
       /* bytes= */ MAX_LINKED_SOURCE_BYTES,
       /* allocations= */ 1
     );
-    utf8 thirdLinkedRootSource = linkSevenDirectConstant(
+    utf8 linkedRootSource = linkSevenDirectConstant(
       secondDirectSource,
       secondLinkedRootSource,
-      FOUR_IMPORTS,
+      THREE_IMPORTS,
       secondDirectArena
-    );
-    region thirdDirectArena = new region(
-      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
-      /* allocations= */ 1
-    );
-    utf8 linkedRootSource = linkSevenDirectConstant(
-      thirdDirectSource,
-      thirdLinkedRootSource,
-      FOUR_IMPORTS,
-      thirdDirectArena
     );
     CoreCompilation compiled = compileMinimalCore(linkedRootSource, output);
     drop(linkedRootSource);
-    drop(thirdDirectArena);
-    drop(thirdLinkedRootSource);
     drop(secondDirectArena);
     drop(secondLinkedRootSource);
     drop(firstDirectArena);
@@ -101,6 +96,8 @@ classical class SevenNestedGraph {
     drop(rootArena);
     drop(linkedDependentSource);
     drop(dependentArena);
+    drop(linkedSecondMiddleSource);
+    drop(secondMiddleArena);
     drop(linkedMiddleSource);
     drop(secondLeafArena);
     drop(firstLinkedMiddleSource);
@@ -108,8 +105,8 @@ classical class SevenNestedGraph {
     return new SevenNestedCompilation(compiled.length, compiled.codeStart);
   }
 
-  /// Compiles one planned nested two-leaf fork beside three direct root imports.
-  public SevenNestedCompilation compileSevenNestedForkAndDirects(
+  /// Compiles one planned deep nested fork beside two direct root imports.
+  public SevenNestedCompilation compileSevenDeepNestedForkAndDirects(
     SevenGraphPlan plan,
     borrow utf8 firstSource,
     borrow utf8 secondSource,
@@ -158,7 +155,7 @@ classical class SevenNestedGraph {
       thirdArena
     );
     region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 dependentSource = copySelectedSevenSource(
+    utf8 secondMiddleSource = copySelectedSevenSource(
       plan.fourth,
       firstSource,
       secondSource,
@@ -170,7 +167,7 @@ classical class SevenNestedGraph {
       fourthArena
     );
     region fifthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 firstDirectSource = copySelectedSevenSource(
+    utf8 dependentSource = copySelectedSevenSource(
       plan.fifth,
       firstSource,
       secondSource,
@@ -182,7 +179,7 @@ classical class SevenNestedGraph {
       fifthArena
     );
     region sixthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 secondDirectSource = copySelectedSevenSource(
+    utf8 firstDirectSource = copySelectedSevenSource(
       plan.sixth,
       firstSource,
       secondSource,
@@ -194,7 +191,7 @@ classical class SevenNestedGraph {
       sixthArena
     );
     region seventhArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 thirdDirectSource = copySelectedSevenSource(
+    utf8 secondDirectSource = copySelectedSevenSource(
       plan.seventh,
       firstSource,
       secondSource,
@@ -205,24 +202,24 @@ classical class SevenNestedGraph {
       seventhSource,
       seventhArena
     );
-    SevenNestedCompilation compiled = compileOrderedNestedFork(
+    SevenNestedCompilation compiled = compileOrderedDeepNestedFork(
       firstLeafSource,
       secondLeafSource,
       middleSource,
+      secondMiddleSource,
       dependentSource,
       firstDirectSource,
       secondDirectSource,
-      thirdDirectSource,
       rootSource,
       output
     );
-    drop(thirdDirectSource);
-    drop(seventhArena);
     drop(secondDirectSource);
-    drop(sixthArena);
+    drop(seventhArena);
     drop(firstDirectSource);
-    drop(fifthArena);
+    drop(sixthArena);
     drop(dependentSource);
+    drop(fifthArena);
+    drop(secondMiddleSource);
     drop(fourthArena);
     drop(middleSource);
     drop(thirdArena);
@@ -233,11 +230,11 @@ classical class SevenNestedGraph {
     return compiled;
   }
 
-  private SevenNestedCompilation compileOrderedNestedThreeFork(
+  private SevenNestedCompilation compileOrderedUnevenNestedFork(
     borrow utf8 firstLeafSource,
     borrow utf8 secondLeafSource,
-    borrow utf8 thirdLeafSource,
     borrow utf8 middleSource,
+    borrow utf8 sideLeafSource,
     borrow utf8 dependentSource,
     borrow utf8 firstDirectSource,
     borrow utf8 secondDirectSource,
@@ -248,31 +245,31 @@ classical class SevenNestedGraph {
     utf8 firstLinkedMiddleSource = linkSevenPrivateConstant(
       firstLeafSource,
       middleSource,
-      THREE_IMPORTS,
+      TWO_IMPORTS,
       firstLeafArena
     );
     region secondLeafArena = new region(
       /* bytes= */ MAX_LINKED_SOURCE_BYTES,
       /* allocations= */ 1
     );
-    utf8 secondLinkedMiddleSource = linkSevenPrivateConstant(
+    utf8 linkedMiddleSource = linkSevenPrivateConstant(
       secondLeafSource,
       firstLinkedMiddleSource,
-      THREE_IMPORTS,
+      TWO_IMPORTS,
       secondLeafArena
     );
-    region thirdLeafArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 linkedMiddleSource = linkSevenPrivateConstant(
-      thirdLeafSource,
-      secondLinkedMiddleSource,
-      THREE_IMPORTS,
-      thirdLeafArena
+    region sideLeafArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 firstLinkedDependentSource = linkSevenPrivateConstant(
+      sideLeafSource,
+      dependentSource,
+      TWO_IMPORTS,
+      sideLeafArena
     );
     region dependentArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 linkedDependentSource = linkSevenPrivateResolvedConstant(
       linkedMiddleSource,
-      dependentSource,
-      SINGLE_IMPORT,
+      firstLinkedDependentSource,
+      TWO_IMPORTS,
       dependentArena
     );
     region rootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
@@ -311,17 +308,17 @@ classical class SevenNestedGraph {
     drop(rootArena);
     drop(linkedDependentSource);
     drop(dependentArena);
+    drop(firstLinkedDependentSource);
+    drop(sideLeafArena);
     drop(linkedMiddleSource);
-    drop(thirdLeafArena);
-    drop(secondLinkedMiddleSource);
     drop(secondLeafArena);
     drop(firstLinkedMiddleSource);
     drop(firstLeafArena);
     return new SevenNestedCompilation(compiled.length, compiled.codeStart);
   }
 
-  /// Compiles one planned nested three-leaf fork beside two direct root imports.
-  public SevenNestedCompilation compileSevenNestedThreeForkAndDirects(
+  /// Compiles one planned uneven nested fork beside two direct root imports.
+  public SevenNestedCompilation compileSevenUnevenNestedForkAndDirects(
     SevenGraphPlan plan,
     borrow utf8 firstSource,
     borrow utf8 secondSource,
@@ -358,7 +355,7 @@ classical class SevenNestedGraph {
       secondArena
     );
     region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 thirdLeafSource = copySelectedSevenSource(
+    utf8 middleSource = copySelectedSevenSource(
       plan.third,
       firstSource,
       secondSource,
@@ -370,7 +367,7 @@ classical class SevenNestedGraph {
       thirdArena
     );
     region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 middleSource = copySelectedSevenSource(
+    utf8 sideLeafSource = copySelectedSevenSource(
       plan.fourth,
       firstSource,
       secondSource,
@@ -417,11 +414,11 @@ classical class SevenNestedGraph {
       seventhSource,
       seventhArena
     );
-    SevenNestedCompilation compiled = compileOrderedNestedThreeFork(
+    SevenNestedCompilation compiled = compileOrderedUnevenNestedFork(
       firstLeafSource,
       secondLeafSource,
-      thirdLeafSource,
       middleSource,
+      sideLeafSource,
       dependentSource,
       firstDirectSource,
       secondDirectSource,
@@ -434,9 +431,9 @@ classical class SevenNestedGraph {
     drop(sixthArena);
     drop(dependentSource);
     drop(fifthArena);
-    drop(middleSource);
+    drop(sideLeafSource);
     drop(fourthArena);
-    drop(thirdLeafSource);
+    drop(middleSource);
     drop(thirdArena);
     drop(secondLeafSource);
     drop(secondArena);
@@ -444,5 +441,4 @@ classical class SevenNestedGraph {
     drop(firstArena);
     return compiled;
   }
-
 }
