@@ -8,6 +8,7 @@ import wheeler.compiler.library_strings;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_types;
 import wheeler.compiler.module_headers;
+import wheeler.compiler.named_return_arithmetic_kinds;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.parser;
 import wheeler.compiler.program_codegen;

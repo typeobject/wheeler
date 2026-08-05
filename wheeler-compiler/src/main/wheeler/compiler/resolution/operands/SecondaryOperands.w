@@ -11,6 +11,7 @@ import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.loop_forms;
 import wheeler.compiler.named_literal_comparison_kinds;
+import wheeler.compiler.named_return_arithmetic_kinds;
 import wheeler.compiler.operands;
 import wheeler.compiler.resolved_local_loop_forms;
 import wheeler.compiler.resolved_local_loop_kinds;

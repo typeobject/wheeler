@@ -3,6 +3,9 @@
 module wheeler.compiler.statement_forms;
 
 import wheeler.compiler.call_forms;
+import wheeler.compiler.named_boolean_return_kinds;
+import wheeler.compiler.named_return_arithmetic_kinds;
+import wheeler.compiler.named_signed_return_kinds;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
@@ -67,90 +70,6 @@ classical class StatementForms {
     }
 
     return opcode < STATEMENT_RETURN_LOCAL_MOD_NAMED + 1;
-  }
-
-  /// Checks for a signed helper return with a literal right operand.
-  public boolean returnLocalBinaryStatement(long opcode) {
-    if (STATEMENT_RETURN_LOCAL_ADD_NAMED - 1 < opcode) {
-      if (opcode < STATEMENT_RETURN_LOCAL_MOD_NAMED + 1) {
-        return true;
-      }
-    }
-
-    if (opcode == STATEMENT_RETURN_LOCAL_XOR_NAMED) {
-      return true;
-    }
-
-    return opcode == STATEMENT_RETURN_LOCAL_AND_NAMED;
-  }
-
-  /// Checks for a signed helper return using two parameter locals.
-  public boolean returnLocalPairStatement(long opcode) {
-    if (STATEMENT_RETURN_LOCAL_ADD_LOCAL_NAMED - 1 < opcode) {
-      if (opcode < STATEMENT_RETURN_LOCAL_MOD_LOCAL_NAMED + 1) {
-        return true;
-      }
-    }
-
-    if (opcode == STATEMENT_RETURN_LOCAL_XOR_LOCAL_NAMED) {
-      return true;
-    }
-
-    return opcode == STATEMENT_RETURN_LOCAL_AND_LOCAL_NAMED;
-  }
-
-  /// Checks for a Boolean helper equality return.
-  public boolean returnBooleanEqualityStatement(long opcode) {
-    if (opcode == STATEMENT_RETURN_BOOLEAN_EQ_LITERAL_NAMED) {
-      return true;
-    }
-
-    return opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED;
-  }
-
-  /// Checks for a Boolean helper inequality return.
-  public boolean returnBooleanInequalityStatement(long opcode) {
-    if (opcode == STATEMENT_RETURN_BOOLEAN_NE_LITERAL_NAMED) {
-      return true;
-    }
-
-    return opcode == STATEMENT_RETURN_BOOLEAN_NE_LOCAL_NAMED;
-  }
-
-  /// Checks for any direct Boolean comparison helper return.
-  public boolean returnBooleanComparisonStatement(long opcode) {
-    if (returnBooleanEqualityStatement(opcode)) {
-      return true;
-    }
-
-    return returnBooleanInequalityStatement(opcode);
-  }
-
-  /// Checks for a direct signed equality helper return.
-  public boolean returnSignedEqualityStatement(long opcode) {
-    if (opcode == STATEMENT_RETURN_SIGNED_EQ_LITERAL_NAMED) {
-      return true;
-    }
-
-    return opcode == STATEMENT_RETURN_SIGNED_EQ_LOCAL_NAMED;
-  }
-
-  /// Checks for a direct signed inequality helper return.
-  public boolean returnSignedInequalityStatement(long opcode) {
-    if (opcode == STATEMENT_RETURN_SIGNED_NE_LITERAL_NAMED) {
-      return true;
-    }
-
-    return opcode == STATEMENT_RETURN_SIGNED_NE_LOCAL_NAMED;
-  }
-
-  /// Checks for a direct signed less-than helper return.
-  public boolean returnSignedLessThanStatement(long opcode) {
-    if (opcode == STATEMENT_RETURN_SIGNED_LT_LITERAL_NAMED) {
-      return true;
-    }
-
-    return opcode == STATEMENT_RETURN_SIGNED_LT_LOCAL_NAMED;
   }
 
   /// Checks for any direct typed comparison helper return.

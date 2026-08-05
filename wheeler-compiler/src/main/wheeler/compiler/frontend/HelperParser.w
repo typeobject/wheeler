@@ -8,6 +8,7 @@ import wheeler.compiler.class_layouts;
 import wheeler.compiler.helper_calls;
 import wheeler.compiler.helper_programs;
 import wheeler.compiler.ir;
+import wheeler.compiler.named_return_arithmetic_kinds;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.statements;
 import wheeler.compiler.structure;

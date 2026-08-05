@@ -9,6 +9,7 @@ import wheeler.compiler.encoding;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_types;
+import wheeler.compiler.named_return_arithmetic_kinds;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.resolved_local_copy_kinds;

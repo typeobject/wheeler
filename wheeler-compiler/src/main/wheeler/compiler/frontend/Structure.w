@@ -4,6 +4,9 @@ module wheeler.compiler.structure;
 
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
+import wheeler.compiler.named_boolean_return_kinds;
+import wheeler.compiler.named_return_arithmetic_kinds;
+import wheeler.compiler.named_signed_return_kinds;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;

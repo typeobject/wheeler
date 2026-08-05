@@ -23,6 +23,7 @@ import wheeler.compiler.named_local_conditional_kinds;
 import wheeler.compiler.named_local_conditional_values;
 import wheeler.compiler.named_local_update_kinds;
 import wheeler.compiler.named_long_operations;
+import wheeler.compiler.named_return_arithmetic_kinds;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.resolved_local_assignments;
 import wheeler.compiler.resolved_local_loop_forms;
