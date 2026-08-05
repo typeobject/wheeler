@@ -6,6 +6,7 @@ import wheeler.compiler.compiler_core;
 import wheeler.compiler.graphs.seven.chain;
 import wheeler.compiler.graphs.seven.fork;
 import wheeler.compiler.graphs.seven.plans;
+import wheeler.compiler.graphs.seven_plan_kinds;
 import wheeler.compiler.module_linker;
 
 classical class CompilerGraphSeven {

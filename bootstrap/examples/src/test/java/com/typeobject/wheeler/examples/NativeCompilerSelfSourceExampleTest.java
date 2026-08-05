@@ -441,6 +441,15 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalSevenPlanKindsByteForByte() throws Exception {
+    Program decoded = assertCompilerLibrary(
+        "compiler/graphs/kinds/SevenPlanKinds.w",
+        "wheeler.compiler.graphs.seven_plan_kinds");
+    assertEquals("$library", decoded.functions().getFirst().name());
+    assertEquals(1, decoded.functions().size());
+  }
+
+  @Test
   void compilesCanonicalSixGraphKindsByteForByte() throws Exception {
     Program decoded = assertCompilerLibrary(
         "compiler/graphs/kinds/SixGraphKinds.w",

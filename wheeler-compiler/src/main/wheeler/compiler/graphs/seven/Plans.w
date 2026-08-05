@@ -3,15 +3,10 @@
 module wheeler.compiler.graphs.seven.plans;
 
 import wheeler.compiler.graphs.matrix;
+import wheeler.compiler.graphs.seven_plan_kinds;
 import wheeler.compiler.module_headers;
 
 classical class SevenGraphPlans {
-  /// Names the seven-module direct-star plan.
-  public const long SEVEN_PLAN_DIRECT = 1;
-  /// Names the seven-module full-chain plan.
-  public const long SEVEN_PLAN_CHAIN = 2;
-  /// Names the seven-module six-leaf-fork plan.
-  public const long SEVEN_PLAN_FORK = 3;
 
   private const long MODULE_COUNT = 7;
   private const long SINGLE_IMPORT = 1;

@@ -1,0 +1,12 @@
+//! Owns the closed seven-module graph-plan identities.
+
+module wheeler.compiler.graphs.seven_plan_kinds;
+
+classical class SevenPlanKinds {
+  /// Names the seven-module direct-star plan.
+  public const long SEVEN_PLAN_DIRECT = 1;
+  /// Names the seven-module full-chain plan.
+  public const long SEVEN_PLAN_CHAIN = 2;
+  /// Names the seven-module six-leaf-fork plan.
+  public const long SEVEN_PLAN_FORK = 3;
+}
