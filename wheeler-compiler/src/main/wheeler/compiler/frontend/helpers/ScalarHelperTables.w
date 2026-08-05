@@ -3,6 +3,7 @@
 module wheeler.compiler.scalar_helper_tables;
 
 import wheeler.compiler.encoding;
+import wheeler.compiler.helper_abi;
 import wheeler.compiler.ir;
 import wheeler.compiler.resolved_return_call_kinds;
 

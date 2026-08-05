@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.examples;
 
+import static com.typeobject.wheeler.examples.NativeCompilerSelfSourceExampleTest.assertCompilerLibrary;
 import static com.typeobject.wheeler.examples.NativeCompilerSelfSourceExampleTest.assertNoPublication;
 import static com.typeobject.wheeler.examples.NativeCompilerSelfSourceExampleTest.nativeWriter;
 import static com.typeobject.wheeler.examples.NativeCompilerSelfSourceExampleTest.twoHelperSource;
@@ -19,6 +20,14 @@ final class NativeCompilerHelperTableExampleTest {
   private static final String[] HELPER_NAMES = {
       "omega", "alpha", "theta", "beta", "zeta", "gamma", "sigma", "delta", "kappa"
   };
+
+  @Test
+  void compilesCanonicalHelperAbiByteForByte() throws Exception {
+    Program decoded = assertCompilerLibrary(
+        "compiler/syntax/helpers/HelperAbi.w",
+        "wheeler.compiler.helper_abi");
+    assertEquals("$library", decoded.functions().getFirst().name());
+  }
 
   @Test
   void compilesEightEntrylessHelpersByteForByte() throws Exception {

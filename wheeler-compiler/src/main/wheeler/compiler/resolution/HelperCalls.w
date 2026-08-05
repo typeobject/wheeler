@@ -3,6 +3,7 @@
 module wheeler.compiler.helper_calls;
 
 import wheeler.compiler.call_forms;
+import wheeler.compiler.helper_abi;
 import wheeler.compiler.ir;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.source_scalars;

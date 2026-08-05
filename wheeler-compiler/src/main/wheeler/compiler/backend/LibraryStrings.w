@@ -3,6 +3,7 @@
 module wheeler.compiler.library_strings;
 
 import wheeler.compiler.encoding;
+import wheeler.compiler.helper_abi;
 import wheeler.compiler.ir;
 
 classical class LibraryStrings {
