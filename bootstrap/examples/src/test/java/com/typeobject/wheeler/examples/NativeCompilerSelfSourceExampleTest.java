@@ -441,6 +441,15 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalEncodingWidthsByteForByte() throws Exception {
+    Program decoded = assertCompilerLibrary(
+        "compiler/backend/EncodingWidths.w",
+        "wheeler.compiler.encoding_widths");
+    assertEquals("$library", decoded.functions().getFirst().name());
+    assertEquals(1, decoded.functions().size());
+  }
+
+  @Test
   void compilesCanonicalCompilerProgramLimitsByteForByte() throws Exception {
     Program decoded = assertCompilerLibrary(
         "compiler/ir/limits/CompilerProgramLimits.w",

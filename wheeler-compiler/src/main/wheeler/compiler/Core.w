@@ -5,6 +5,7 @@ module wheeler.compiler.compiler_core;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.encoding;
+import wheeler.compiler.encoding_widths;
 import wheeler.compiler.helper_abi;
 import wheeler.compiler.helper_signatures;
 import wheeler.compiler.ir;
