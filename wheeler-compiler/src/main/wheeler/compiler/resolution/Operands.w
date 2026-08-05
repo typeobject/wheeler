@@ -18,6 +18,7 @@ import wheeler.compiler.local_statements;
 import wheeler.compiler.loop_forms;
 import wheeler.compiler.loop_kinds;
 import wheeler.compiler.mutation_resolution;
+import wheeler.compiler.named_comparison_kinds;
 import wheeler.compiler.named_literal_comparison_kinds;
 import wheeler.compiler.named_local_assignment_kinds;
 import wheeler.compiler.named_local_conditional_kinds;

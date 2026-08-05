@@ -9,6 +9,7 @@ import wheeler.compiler.early_comparison_forms;
 import wheeler.compiler.encoding;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
+import wheeler.compiler.named_comparison_kinds;
 import wheeler.compiler.named_return_arithmetic_kinds;
 import wheeler.compiler.resolved_early_result_kinds;
 import wheeler.compiler.resolved_local_returns;

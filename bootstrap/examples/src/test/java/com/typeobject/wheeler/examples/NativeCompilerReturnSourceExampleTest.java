@@ -9,6 +9,19 @@ import org.junit.jupiter.api.Test;
 /** Differential self-source tests for unresolved scalar return families. */
 final class NativeCompilerReturnSourceExampleTest {
   @Test
+  void compilesCanonicalNamedComparisonKindsByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/syntax/comparisons/NamedComparisonKinds.w",
+        "wheeler.compiler.named_comparison_kinds",
+        "compiler/ir/StatementKinds.w");
+    assertEquals(
+        "wheeler.compiler.named_comparison_kinds::returnComparisonStatement",
+        decoded.functions().getFirst().name());
+    assertEquals(4, decoded.functions().size());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesCanonicalNamedBooleanReturnKindsByteForByte() throws Exception {
     assertCanonicalReturnModule(
         "NamedBooleanReturnKinds.w",

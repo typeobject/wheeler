@@ -5,9 +5,8 @@ module wheeler.compiler.statement_forms;
 import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.identifier_starts;
-import wheeler.compiler.named_boolean_return_kinds;
+import wheeler.compiler.named_comparison_kinds;
 import wheeler.compiler.named_return_arithmetic_kinds;
-import wheeler.compiler.named_signed_return_kinds;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
@@ -55,45 +54,6 @@ classical class StatementForms {
     }
 
     return opcode < STATEMENT_RETURN_LOCAL_MOD_NAMED + 1;
-  }
-
-  /// Checks for any direct typed comparison helper return.
-  public boolean returnComparisonStatement(long opcode) {
-    if (returnBooleanComparisonStatement(opcode)) {
-      return true;
-    }
-
-    if (returnSignedEqualityStatement(opcode)) {
-      return true;
-    }
-
-    if (returnSignedInequalityStatement(opcode)) {
-      return true;
-    }
-
-    return returnSignedLessThanStatement(opcode);
-  }
-
-  /// Checks for any direct typed inequality helper return.
-  public boolean returnInequalityStatement(long opcode) {
-    if (returnBooleanInequalityStatement(opcode)) {
-      return true;
-    }
-
-    return returnSignedInequalityStatement(opcode);
-  }
-
-  /// Checks whether one direct comparison receives signed values.
-  public boolean returnComparisonSigned(long opcode) {
-    if (returnSignedEqualityStatement(opcode)) {
-      return true;
-    }
-
-    if (returnSignedInequalityStatement(opcode)) {
-      return true;
-    }
-
-    return returnSignedLessThanStatement(opcode);
   }
 
   /// Maps one statement token to its bounded parser opcode.
