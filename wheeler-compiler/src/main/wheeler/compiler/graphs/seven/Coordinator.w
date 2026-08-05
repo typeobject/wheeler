@@ -6,6 +6,7 @@ import wheeler.compiler.compiler_core;
 import wheeler.compiler.graphs.seven.chain;
 import wheeler.compiler.graphs.seven.fork;
 import wheeler.compiler.graphs.seven.mixed;
+import wheeler.compiler.graphs.seven.plan_shapes;
 import wheeler.compiler.graphs.seven.plans;
 import wheeler.compiler.graphs.seven.separate;
 import wheeler.compiler.graphs.seven.wide_fork;

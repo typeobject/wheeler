@@ -4,6 +4,7 @@ module wheeler.compiler.graphs.seven.mixed;
 
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.graphs.seven.linking;
+import wheeler.compiler.graphs.seven.plan_shapes;
 import wheeler.compiler.graphs.seven.plans;
 import wheeler.compiler.graphs.sources;
 import wheeler.compiler.module_linker;

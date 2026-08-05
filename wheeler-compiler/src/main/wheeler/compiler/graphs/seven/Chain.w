@@ -3,6 +3,7 @@
 module wheeler.compiler.graphs.seven.chain;
 
 import wheeler.compiler.compiler_core;
+import wheeler.compiler.graphs.seven.plan_shapes;
 import wheeler.compiler.graphs.seven.plans;
 import wheeler.compiler.graphs.seven_plan_kinds;
 import wheeler.compiler.graphs.sources;
