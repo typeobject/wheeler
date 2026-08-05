@@ -8,6 +8,7 @@ import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_return_forms;
 import wheeler.compiler.early_return_kinds;
+import wheeler.compiler.helper_value_kinds;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.loop_forms;
 import wheeler.compiler.named_literal_comparison_kinds;

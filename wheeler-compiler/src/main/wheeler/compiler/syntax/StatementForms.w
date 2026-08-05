@@ -3,59 +3,11 @@
 module wheeler.compiler.statement_forms;
 
 import wheeler.compiler.boolean_tokens;
-import wheeler.compiler.call_forms;
 import wheeler.compiler.identifier_starts;
-import wheeler.compiler.named_comparison_kinds;
-import wheeler.compiler.named_return_arithmetic_kinds;
-import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
-import wheeler.compiler.two_argument_call_kinds;
 
 classical class StatementForms {
-  /// Checks for one bounded helper value statement.
-  public boolean helperValueStatement(long opcode) {
-    if (opcode == STATEMENT_RETURN_BOOLEAN_NOT_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_RETURN_HELPER_CALL_NAMED) {
-      return true;
-    }
-
-    if (returnComparisonStatement(opcode)) {
-      return true;
-    }
-
-    if (STATEMENT_LOCAL_BOOLEAN_CALL_NAMED - 1 < opcode) {
-      if (opcode < STATEMENT_RETURN_BOOLEAN + 1) {
-        return true;
-      }
-    }
-
-    if (oneArgumentCallStatement(opcode)) {
-      return true;
-    }
-
-    if (twoArgumentCallStatement(opcode)) {
-      return true;
-    }
-
-    if (returnLocalBinaryStatement(opcode)) {
-      return true;
-    }
-
-    if (returnLocalPairStatement(opcode)) {
-      return true;
-    }
-
-    if (opcode < STATEMENT_LOCAL_CALL_NAMED) {
-      return false;
-    }
-
-    return opcode < STATEMENT_RETURN_LOCAL_MOD_NAMED + 1;
-  }
-
   /// Maps one statement token to its bounded parser opcode.
   public long statementOpcode(
     borrow utf8 source,

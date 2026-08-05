@@ -463,6 +463,18 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalHelperValueKindsByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/syntax/helpers/HelperValueKinds.w",
+        "wheeler.compiler.helper_value_kinds",
+        "compiler/ir/StatementKinds.w");
+    assertEquals(
+        "wheeler.compiler.helper_value_kinds::helperValueStatement",
+        decoded.functions().getFirst().name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesCanonicalEarlyReturnKindsByteForByte() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
     String dependency = CompilerSources.read("compiler/ir/StatementKinds.w");
