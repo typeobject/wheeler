@@ -76,17 +76,20 @@ classical class NativeBootstrapModulesIdentity {
     long right,
     long rightLength
   ) {
-    boolean same = leftLength == rightLength;
+    if (leftLength == rightLength) {} else {
+      return false;
+    }
+
     long index = 0;
     while (index < leftLength) limit 128 {
       if ((source[left + index] == source[right + index]) == false) {
-        same = false;
+        return false;
       }
 
       index += 1;
     }
 
-    return same;
+    return true;
   }
 
   private boolean orderedAfter(
@@ -102,26 +105,19 @@ classical class NativeBootstrapModulesIdentity {
     }
 
     long index = 0;
-    long relation = 0;
     while (index < common) limit 128 {
-      if (relation == 0) {
-        if (source[previous + index] < source[current + index]) {
-          relation = 1;
-        }
+      if (source[previous + index] < source[current + index]) {
+        return true;
+      }
 
-        if (source[current + index] < source[previous + index]) {
-          relation = -1;
-        }
+      if (source[current + index] < source[previous + index]) {
+        return false;
       }
 
       index += 1;
     }
 
-    if (relation == 0) {
-      return previousLength < currentLength;
-    }
-
-    return relation == 1;
+    return previousLength < currentLength;
   }
 
   private long consumeSourcePath(borrow byteview source, long cursor) {
@@ -193,19 +189,7 @@ classical class NativeBootstrapModulesIdentity {
     long candidate,
     long candidateLength
   ) {
-    boolean found = false;
-    long index = 0;
-    while (index < count) limit MAX_LOCAL_MODULES {
-      if (
-        sameText(source, starts[index], lengths[index], candidate, candidateLength)
-      ) {
-        found = true;
-      }
-
-      index += 1;
-    }
-
-    return found;
+    return -1 < listedIndex(source, starts, lengths, count, candidate, candidateLength);
   }
 
   private boolean samePath(
@@ -215,17 +199,20 @@ classical class NativeBootstrapModulesIdentity {
     long right,
     long rightLength
   ) {
-    boolean same = leftLength == rightLength;
+    if (leftLength == rightLength) {} else {
+      return false;
+    }
+
     long index = 0;
     while (index < leftLength) limit 256 {
       if ((source[left + index] == source[right + index]) == false) {
-        same = false;
+        return false;
       }
 
       index += 1;
     }
 
-    return same;
+    return true;
   }
 
   private long listedIndex(
@@ -236,19 +223,26 @@ classical class NativeBootstrapModulesIdentity {
     long candidate,
     long candidateLength
   ) {
-    long found = -1;
-    long index = 0;
-    while (index < count) limit MAX_LOCAL_MODULES {
+    long low = 0;
+    long high = count;
+    while (low < high) limit MAX_LOCAL_MODULES {
+      long middle = (low + high) / 2;
       if (
-        sameText(source, starts[index], lengths[index], candidate, candidateLength)
+        sameText(source, starts[middle], lengths[middle], candidate, candidateLength)
       ) {
-        found = index;
+        return middle;
       }
 
-      index += 1;
+      if (
+        orderedAfter(source, starts[middle], lengths[middle], candidate, candidateLength)
+      ) {
+        low = middle + 1;
+      } else {
+        high = middle;
+      }
     }
 
-    return found;
+    return -1;
   }
 
   /// Publishes SHA-256 for up to 128 rooted modules and sixty-four externals.
