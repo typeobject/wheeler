@@ -2,35 +2,17 @@
 
 module wheeler.compiler.loop_forms;
 
+import wheeler.compiler.identifier_starts;
 import wheeler.compiler.loop_kinds;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
 
 classical class LoopForms {
-  private const long ASCII_BEFORE_UPPER = 64;
-  private const long ASCII_AFTER_UPPER = 91;
-  private const long ASCII_UNDERSCORE = 95;
-  private const long ASCII_BEFORE_LOWER = 96;
-  private const long ASCII_AFTER_LOWER = 123;
-
   /// Checks whether one loop operand token starts an identifier.
   public boolean loopOperandNamed(borrow utf8 source, borrow mut words tokenStarts, long token) {
     long scalar = utf8Scalar(source, tokenStarts[token]);
-    boolean named = scalar == ASCII_UNDERSCORE;
-    if (ASCII_BEFORE_UPPER < scalar) {
-      if (scalar < ASCII_AFTER_UPPER) {
-        named = true;
-      }
-    }
-
-    if (ASCII_BEFORE_LOWER < scalar) {
-      if (scalar < ASCII_AFTER_LOWER) {
-        named = true;
-      }
-    }
-
-    return named;
+    return identifierStart(scalar);
   }
 
   /// Checks whether one loop compares zero with its target local.
