@@ -16,7 +16,7 @@ final class NativeCompilerImportedHelperExampleTest {
   @Test
   void compilesEveryElevenHelperOwnerSplitByteForByte() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
-    for (int importedCount = 1; importedCount < 10; importedCount += 1) {
+    for (int importedCount = 1; importedCount < 11; importedCount += 1) {
       String dependency = splitDependency(importedCount);
       String root = splitRoot(11 - importedCount);
       byte[] artifact = NativeModuleCompilerHarness.compile(
@@ -38,7 +38,7 @@ final class NativeCompilerImportedHelperExampleTest {
   }
 
   @Test
-  void compilesUpToNineDirectImportedHelpersByteForByte() throws Exception {
+  void compilesUpToTenDirectImportedHelpersByteForByte() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
     String dependency = sevenHelperDependency();
     String root = String.join("\n",
@@ -112,7 +112,23 @@ final class NativeCompilerImportedHelperExampleTest {
             + "    return value == 10;\n"
             + "  }\n"
             + "}\n");
-    NativeModuleCompilerHarness.assertTrap(compiler, List.of(tenHelpers), root);
+    byte[] tenArtifact = NativeModuleCompilerHarness.compile(
+        compiler,
+        List.of(tenHelpers),
+        root);
+    Program tenExpected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("Predicates.w", tenHelpers, "Use.w", root),
+        "example.use");
+    assertArrayEquals(new BytecodeWriter().write(tenExpected), tenArtifact);
+
+    String elevenHelpers = tenHelpers.replace(
+        "  }\n}\n",
+        "  }\n\n"
+            + "  private boolean finalSpare(long value) {\n"
+            + "    return value == 11;\n"
+            + "  }\n"
+            + "}\n");
+    NativeModuleCompilerHarness.assertTrap(compiler, List.of(elevenHelpers), root);
   }
 
   @Test
