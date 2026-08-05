@@ -59,7 +59,7 @@ final class NativeBootstrapModulesIdentityExampleTest {
 
     assertTrue(source.contains("private const long MAX_LOCAL_MODULES = 256;"));
     assertTrue(source.contains("requireMetadata(parsedModules < MAX_LOCAL_MODULES, source);"));
-    assertTrue(source.contains("private const long MAX_IMPORTS = 768;"));
+    assertTrue(source.contains("private const long MAX_IMPORTS = 1024;"));
     assertTrue(source.contains("requireMetadata(parsedImports < MAX_IMPORTS, source);"));
   }
 
