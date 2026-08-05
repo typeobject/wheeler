@@ -15,6 +15,7 @@ import wheeler.compiler.resolved_local_conditional_kinds;
 import wheeler.compiler.resolved_local_conditional_operands;
 import wheeler.compiler.resolved_local_conditional_sources;
 import wheeler.compiler.resolved_local_pair_assertions;
+import wheeler.compiler.resolved_long_operations;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.return_codegen;
 import wheeler.compiler.scalar_opcodes;

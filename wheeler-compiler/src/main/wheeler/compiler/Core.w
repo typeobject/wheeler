@@ -11,6 +11,7 @@ import wheeler.compiler.module_headers;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.parser;
 import wheeler.compiler.program_codegen;
+import wheeler.compiler.resolved_long_operations;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.string_table;
 import wheeler.compiler.tokens;
