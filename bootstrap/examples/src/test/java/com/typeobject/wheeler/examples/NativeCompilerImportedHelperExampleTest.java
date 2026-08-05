@@ -16,7 +16,7 @@ final class NativeCompilerImportedHelperExampleTest {
   @Test
   void compilesEveryNineHelperOwnerSplitByteForByte() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
-    for (int importedCount = 1; importedCount < 8; importedCount += 1) {
+    for (int importedCount = 1; importedCount < 9; importedCount += 1) {
       String dependency = splitDependency(importedCount);
       String root = splitRoot(9 - importedCount);
       byte[] artifact = NativeModuleCompilerHarness.compile(
@@ -38,7 +38,7 @@ final class NativeCompilerImportedHelperExampleTest {
   }
 
   @Test
-  void compilesSevenDirectImportedHelpersByteForByte() throws Exception {
+  void compilesUpToEightDirectImportedHelpersByteForByte() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
     String dependency = sevenHelperDependency();
     String root = String.join("\n",
@@ -73,16 +73,30 @@ final class NativeCompilerImportedHelperExampleTest {
         compiler,
         List.of(dependency.replace("public boolean below", "private boolean below")),
         root);
-    NativeModuleCompilerHarness.assertTrap(
+    String eightHelpers = dependency.replace(
+        "  }\n}\n",
+        "  }\n\n"
+            + "  private boolean spare(long value) {\n"
+            + "    return value == 8;\n"
+            + "  }\n"
+            + "}\n");
+    byte[] eightArtifact = NativeModuleCompilerHarness.compile(
         compiler,
-        List.of(dependency.replace(
-            "  }\n}\n",
-            "  }\n\n"
-                + "  private boolean spare(long value) {\n"
-                + "    return value == 8;\n"
-                + "  }\n"
-                + "}\n")),
+        List.of(eightHelpers),
         root);
+    Program eightExpected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("Predicates.w", eightHelpers, "Use.w", root),
+        "example.use");
+    assertArrayEquals(new BytecodeWriter().write(eightExpected), eightArtifact);
+
+    String nineHelpers = eightHelpers.replace(
+        "  }\n}\n",
+        "  }\n\n"
+            + "  private boolean overflow(long value) {\n"
+            + "    return value == 9;\n"
+            + "  }\n"
+            + "}\n");
+    NativeModuleCompilerHarness.assertTrap(compiler, List.of(nineHelpers), root);
   }
 
   @Test
