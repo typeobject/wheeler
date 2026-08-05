@@ -4,6 +4,7 @@ module wheeler.compiler.return_expressions;
 
 import wheeler.compiler.class_constants;
 import wheeler.compiler.local_resolution;
+import wheeler.compiler.return_opcode_kinds;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
@@ -32,62 +33,6 @@ classical class ReturnExpressions {
     }
 
     return statementStart + 4;
-  }
-
-  private long signedAmbiguousOpcode(long opcode) {
-    if (opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED) {
-      return STATEMENT_RETURN_SIGNED_EQ_LOCAL_NAMED;
-    }
-
-    return STATEMENT_RETURN_SIGNED_NE_LOCAL_NAMED;
-  }
-
-  private long literalComparisonOpcode(long opcode) {
-    if (opcode == STATEMENT_RETURN_BOOLEAN_EQ_LOCAL_NAMED) {
-      return STATEMENT_RETURN_BOOLEAN_EQ_LITERAL_NAMED;
-    }
-
-    if (opcode == STATEMENT_RETURN_BOOLEAN_NE_LOCAL_NAMED) {
-      return STATEMENT_RETURN_BOOLEAN_NE_LITERAL_NAMED;
-    }
-
-    if (opcode == STATEMENT_RETURN_SIGNED_EQ_LOCAL_NAMED) {
-      return STATEMENT_RETURN_SIGNED_EQ_LITERAL_NAMED;
-    }
-
-    if (opcode == STATEMENT_RETURN_SIGNED_NE_LOCAL_NAMED) {
-      return STATEMENT_RETURN_SIGNED_NE_LITERAL_NAMED;
-    }
-
-    return STATEMENT_RETURN_SIGNED_LT_LITERAL_NAMED;
-  }
-
-  private long literalReturnOpcode(long opcode) {
-    if (opcode == STATEMENT_RETURN_LOCAL_ADD_LOCAL_NAMED) {
-      return STATEMENT_RETURN_LOCAL_ADD_NAMED;
-    }
-
-    if (opcode == STATEMENT_RETURN_LOCAL_SUB_LOCAL_NAMED) {
-      return STATEMENT_RETURN_LOCAL_SUB_NAMED;
-    }
-
-    if (opcode == STATEMENT_RETURN_LOCAL_MUL_LOCAL_NAMED) {
-      return STATEMENT_RETURN_LOCAL_MUL_NAMED;
-    }
-
-    if (opcode == STATEMENT_RETURN_LOCAL_DIV_LOCAL_NAMED) {
-      return STATEMENT_RETURN_LOCAL_DIV_NAMED;
-    }
-
-    if (opcode == STATEMENT_RETURN_LOCAL_MOD_LOCAL_NAMED) {
-      return STATEMENT_RETURN_LOCAL_MOD_NAMED;
-    }
-
-    if (opcode == STATEMENT_RETURN_LOCAL_XOR_LOCAL_NAMED) {
-      return STATEMENT_RETURN_LOCAL_XOR_NAMED;
-    }
-
-    return STATEMENT_RETURN_LOCAL_AND_NAMED;
   }
 
   private ReturnExpressionResolution binaryRight(

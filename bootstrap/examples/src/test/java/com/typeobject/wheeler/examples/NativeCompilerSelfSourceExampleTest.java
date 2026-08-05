@@ -454,6 +454,18 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalReturnOpcodeKindsByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/resolution/returns/ReturnOpcodeKinds.w",
+        "wheeler.compiler.return_opcode_kinds",
+        "compiler/ir/StatementKinds.w");
+    assertEquals(
+        "wheeler.compiler.return_opcode_kinds::signedAmbiguousOpcode",
+        decoded.functions().getFirst().name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesCanonicalEarlyReturnResultKindsByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/syntax/EarlyReturnResultKinds.w",
