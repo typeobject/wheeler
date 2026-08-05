@@ -2,6 +2,7 @@
 
 module wheeler.compiler.return_expressions;
 
+import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.named_return_arithmetic_kinds;

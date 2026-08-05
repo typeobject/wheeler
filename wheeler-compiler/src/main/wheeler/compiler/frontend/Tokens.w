@@ -64,10 +64,6 @@ classical class Tokens {
   public const long TOKEN_LONG = 3327612;
   /// Names the stable token hash for `boolean`.
   public const long TOKEN_BOOLEAN = 90259024936;
-  /// Names the stable token hash for `true`.
-  public const long TOKEN_TRUE = 3569038;
-  /// Names the stable token hash for `false`.
-  public const long TOKEN_FALSE = 97196323;
   /// Names the byte width of `rotateRight32`.
   public const long ROTATE_RIGHT_32_NAME_BYTES = 13;
   /// Names the prefix width used for bounded `rotateRight32` hashing.

@@ -75,7 +75,8 @@ imported-constant `compiler/resolution/returns/ReturnOpcodeKinds.w`, imported-co
 `compiler/syntax/assignments/ResolvedLocalAssignments.w`, imported-constant
 `compiler/syntax/assertions/ResolvedBooleanLiteralAssertions.w`, imported-constant
 `compiler/syntax/assertions/ResolvedLessThanAssertions.w`, imported-constant
-`compiler/syntax/assertions/ResolvedLocalPairAssertions.w`, imported-constant
+`compiler/syntax/assertions/ResolvedLocalPairAssertions.w`,
+`compiler/syntax/booleans/BooleanTokens.w`, imported-constant
 `compiler/syntax/booleans/ResolvedBooleanLiteralComparisons.w`, imported-constant
 `compiler/syntax/conditionals/NamedLiteralComparisonKinds.w`, imported-constant
 `compiler/syntax/conditionals/NamedLiteralComparisonOperations.w`, imported-constant
@@ -100,8 +101,8 @@ imported-constant `compiler/resolution/returns/ReturnOpcodeKinds.w`, imported-co
 `compiler/syntax/updates/NamedLocalUpdateKinds.w`, imported-constant
 `compiler/syntax/updates/ResolvedLocalUpdates.w`, imported-constant `compiler/ir/OpcodeKinds.w`, imported-constant `compiler/ir/TypeKinds.w`,
 imported-constant `compiler/ir/InstructionForms.w`, imported-constant
-`compiler/syntax/BooleanDeclarationKinds.w`, imported-constant
-`compiler/syntax/EarlyReturnKinds.w`, imported-constant
+`compiler/syntax/BooleanDeclarationKinds.w`, `compiler/syntax/IdentifierStarts.w`,
+imported-constant `compiler/syntax/EarlyReturnKinds.w`, imported-constant
 `compiler/syntax/EarlyReturnResultKinds.w`, `compiler/syntax/LoopKinds.w`, imported-constant
 `compiler/syntax/calls/CallArgumentSources.w`, imported-constant
 `compiler/syntax/calls/OneArgumentCalls.w`, imported-constant
@@ -116,7 +117,7 @@ imported-constant `compiler/ir/InstructionForms.w`, imported-constant
 and imported-constant `compiler/syntax/returns/ResolvedReturnCallKinds.w` modules compile byte for byte with stage 0.
 `StatementKinds.w` owns 128 unresolved statement identities. `LoopKinds.w` owns six loop-form
 identities. `ResolvedStatements.w` owns seventy-nine resolved columns. `Tokens.w` now sticks to
-lexical work instead of running a parser-IR registry from the back room. Fifty-four real self-source modules beat fifty-three motivational slides. The bar has retained counsel. A modular source may carry up to sixty-four sorted unique direct imports.
+lexical work instead of running a parser-IR registry from the back room. Fifty-six real self-source modules beat fifty-five motivational slides. The bar has retained counsel. A modular source may carry up to sixty-four sorted unique direct imports.
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
 or excess imports before publication. `compileMinimalWithConstantImport`,
 `compileMinimalWithConstantImports`, `compileMinimalWithThreeConstantImports`, and

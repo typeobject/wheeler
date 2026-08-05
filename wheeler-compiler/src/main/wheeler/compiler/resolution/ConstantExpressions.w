@@ -2,6 +2,7 @@
 
 module wheeler.compiler.constant_expressions;
 
+import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.constant_declarations;
 import wheeler.compiler.tokens;
 

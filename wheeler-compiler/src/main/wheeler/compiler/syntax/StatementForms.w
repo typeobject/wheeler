@@ -2,7 +2,9 @@
 
 module wheeler.compiler.statement_forms;
 
+import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.call_forms;
+import wheeler.compiler.identifier_starts;
 import wheeler.compiler.named_boolean_return_kinds;
 import wheeler.compiler.named_return_arithmetic_kinds;
 import wheeler.compiler.named_signed_return_kinds;
@@ -12,23 +14,6 @@ import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
 
 classical class StatementForms {
-  private boolean identifierStart(long scalar) {
-    boolean accepted = scalar == 95;
-    if (64 < scalar) {
-      accepted = scalar < 91;
-    }
-
-    if (96 < scalar) {
-      accepted = scalar < 123;
-    }
-
-    if (scalar == 95) {
-      accepted = true;
-    }
-
-    return accepted;
-  }
-
   /// Checks for one bounded helper value statement.
   public boolean helperValueStatement(long opcode) {
     if (opcode == STATEMENT_RETURN_BOOLEAN_NOT_NAMED) {
@@ -130,15 +115,6 @@ classical class StatementForms {
     }
 
     return opcode == STATEMENT_RETURN_SIGNED_LT_LOCAL_NAMED;
-  }
-
-  /// Checks the closed pair of Boolean literal token hashes.
-  public boolean booleanTokenHash(long hash) {
-    if (hash == TOKEN_TRUE) {
-      return true;
-    }
-
-    return hash == TOKEN_FALSE;
   }
 
   /// Maps one statement token to its bounded parser opcode.

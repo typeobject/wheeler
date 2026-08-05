@@ -3,6 +3,7 @@
 module wheeler.compiler.operands;
 
 import wheeler.compiler.assertion_resolution;
+import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.class_constants;

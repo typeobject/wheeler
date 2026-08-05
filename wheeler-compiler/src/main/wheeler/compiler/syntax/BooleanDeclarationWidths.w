@@ -2,6 +2,7 @@
 
 module wheeler.compiler.boolean_declaration_widths;
 
+import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
 

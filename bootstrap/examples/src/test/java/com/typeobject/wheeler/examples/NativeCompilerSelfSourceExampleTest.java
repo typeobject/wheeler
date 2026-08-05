@@ -441,6 +441,28 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalBooleanTokensByteForByte() throws Exception {
+    Program decoded = assertCompilerLibrary(
+        "compiler/syntax/booleans/BooleanTokens.w",
+        "wheeler.compiler.boolean_tokens");
+    assertEquals(
+        "wheeler.compiler.boolean_tokens::booleanTokenHash",
+        decoded.functions().getFirst().name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
+  void compilesCanonicalIdentifierStartsByteForByte() throws Exception {
+    Program decoded = assertCompilerLibrary(
+        "compiler/syntax/IdentifierStarts.w",
+        "wheeler.compiler.identifier_starts");
+    assertEquals(
+        "wheeler.compiler.identifier_starts::identifierStart",
+        decoded.functions().getFirst().name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesCanonicalEarlyReturnKindsByteForByte() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
     String dependency = CompilerSources.read("compiler/ir/StatementKinds.w");
