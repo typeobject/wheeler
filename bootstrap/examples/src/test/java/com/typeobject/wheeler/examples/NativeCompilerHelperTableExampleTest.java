@@ -17,30 +17,30 @@ import org.junit.jupiter.api.Test;
 /** Differential evidence for bounded native scalar helper tables. */
 final class NativeCompilerHelperTableExampleTest {
   private static final String[] HELPER_NAMES = {
-      "omega", "alpha", "theta", "beta", "zeta", "gamma", "sigma", "delta"
+      "omega", "alpha", "theta", "beta", "zeta", "gamma", "sigma", "delta", "kappa"
   };
 
   @Test
-  void compilesSevenEntrylessHelpersByteForByte() throws Exception {
+  void compilesEightEntrylessHelpersByteForByte() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
-    String source = helperSource(7);
+    String source = helperSource(8);
     VirtualMachine writer = nativeWriter(compiler, source);
     CompilerMachineRunner.runWithoutRewindHistory(writer);
 
     Program expected = new WheelerCompiler().compileLibraryModuleFiles(
-        Map.of("SevenHelpers.w", source),
+        Map.of("EightHelpers.w", source),
         "examples.two_helpers");
     byte[] artifact = writer.hostOutput();
     assertArrayEquals(new BytecodeWriter().write(expected), artifact);
     Program decoded = new BytecodeReader().read(artifact);
     assertEquals("examples.two_helpers::omega", decoded.functions().getFirst().name());
-    assertEquals("examples.two_helpers::sigma", decoded.functions().get(6).name());
+    assertEquals("examples.two_helpers::delta", decoded.functions().get(7).name());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 
   @Test
-  void rejectsEighthEntrylessHelperBeforePublication() throws Exception {
-    assertNoPublication(CompilerSources.minimalCompilerProgram(), helperSource(8));
+  void rejectsNinthEntrylessHelperBeforePublication() throws Exception {
+    assertNoPublication(CompilerSources.minimalCompilerProgram(), helperSource(9));
   }
 
   private static String helperSource(int count) {

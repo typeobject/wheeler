@@ -40,7 +40,7 @@ classical class CompilerIr {
   /// Names one binary fill-and-return result-slot body width.
   public const long RESULT_SLOT_BINARY_BODY_LENGTH = 56;
   /// Caps scalar helpers in one bounded entryless library.
-  public const long MAX_SCALAR_HELPERS = 7;
+  public const long MAX_SCALAR_HELPERS = 8;
   /// Caps source statements in one bounded entry or helper body.
   public const long MAX_MINIMAL_STATEMENTS = 64;
   /// Holds two parameter names before a full helper statement table.
@@ -87,6 +87,7 @@ classical class CompilerIr {
     HelperBody fifthHelper,
     HelperBody sixthHelper,
     HelperBody seventhHelper,
+    HelperBody eighthHelper,
     SourceRange proofName,
     long proofCount,
     long helperCallCount,
@@ -120,7 +121,11 @@ classical class CompilerIr {
       return program.sixthHelper;
     }
 
-    return program.seventhHelper;
+    if (index == 6) {
+      return program.seventhHelper;
+    }
+
+    return program.eighthHelper;
   }
 
   /// Returns one absent helper used to fill a bounded helper table.

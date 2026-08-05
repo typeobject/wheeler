@@ -43,6 +43,7 @@ classical class ScalarHelperTables {
     HelperBody fifth,
     HelperBody sixth,
     HelperBody seventh,
+    HelperBody eighth,
     long index
   ) {
     if (index == 0) {
@@ -69,7 +70,11 @@ classical class ScalarHelperTables {
       return sixth;
     }
 
-    return seventh;
+    if (index == 6) {
+      return seventh;
+    }
+
+    return eighth;
   }
 
   /// Checks that all occupied helper names are distinct.
@@ -82,6 +87,7 @@ classical class ScalarHelperTables {
     HelperBody fifth,
     HelperBody sixth,
     HelperBody seventh,
+    HelperBody eighth,
     long helperCount
   ) {
     long left = 0;
@@ -94,6 +100,7 @@ classical class ScalarHelperTables {
         fifth,
         sixth,
         seventh,
+        eighth,
         left
       );
       long right = left + 1;
@@ -106,6 +113,7 @@ classical class ScalarHelperTables {
           fifth,
           sixth,
           seventh,
+          eighth,
           right
         );
         if (compareHelpers(source, leftBody, rightBody) == 0) {
@@ -134,6 +142,7 @@ classical class ScalarHelperTables {
     HelperBody fifth,
     HelperBody sixth,
     HelperBody seventh,
+    HelperBody eighth,
     long helperCount
   ) {
     if (target.length == 0) {
@@ -151,6 +160,7 @@ classical class ScalarHelperTables {
         fifth,
         sixth,
         seventh,
+        eighth,
         helper
       );
       long order = compareAsciiSlices(
@@ -193,6 +203,7 @@ classical class ScalarHelperTables {
     HelperBody fifth,
     HelperBody sixth,
     HelperBody seventh,
+    HelperBody eighth,
     long helperCount
   ) {
     boolean firstForwarding = caller.firstCallStatement == caller.resultStatement;
@@ -220,6 +231,7 @@ classical class ScalarHelperTables {
       fifth,
       sixth,
       seventh,
+      eighth,
       helperCount
     );
     long secondFunction = resolveCallFunction(
@@ -235,6 +247,7 @@ classical class ScalarHelperTables {
       fifth,
       sixth,
       seventh,
+      eighth,
       helperCount
     );
     boolean valid = true;

@@ -107,7 +107,7 @@ classical class Opcodes {
   /// Names the compile-time `INTERPRETER_FRAME_COUNT` value owned by this module.
   public const long INTERPRETER_FRAME_COUNT = 8;
   /// Names the compile-time `INTERPRETER_FUNCTION_COUNT` value owned by this module.
-  public const long INTERPRETER_FUNCTION_COUNT = 8;
+  public const long INTERPRETER_FUNCTION_COUNT = 9;
   /// Names the compile-time `INTERPRETER_GLOBAL_COUNT` value owned by this module.
   public const long INTERPRETER_GLOBAL_COUNT = 8;
   /// Names the compile-time `INTERPRETER_LOCAL_CAPACITY` value owned by this module.
