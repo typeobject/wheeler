@@ -4,6 +4,7 @@ module wheeler.compiler.compiler_graph_seven;
 
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.graphs.seven.chain;
+import wheeler.compiler.graphs.seven.executors.separate_branches;
 import wheeler.compiler.graphs.seven.fork;
 import wheeler.compiler.graphs.seven.mixed;
 import wheeler.compiler.graphs.seven.nested;
