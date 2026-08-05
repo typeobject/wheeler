@@ -443,6 +443,134 @@ classical class SevenGraphPlanShapes {
     );
   }
 
+  /// Assigns one four-module chain and three direct root imports.
+  public SevenGraphPlan fourChainAndDirectsPlan(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long leaf = -1;
+    long firstMiddle = -1;
+    long secondMiddle = -1;
+    long dependent = -1;
+    long candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (incomingCount(graph, candidate) == 0) {
+        if (outgoingCount(graph, candidate) == SINGLE_EDGE) {
+          if (rootDirect[candidate] == 0) {
+            long target = 0;
+            while (target < MODULE_COUNT) limit MODULE_COUNT {
+              if (graph[candidate * MODULE_COUNT + target] == 1) {
+                if (incomingCount(graph, target) == SINGLE_EDGE) {
+                  if (outgoingCount(graph, target) == SINGLE_EDGE) {
+                    leaf = candidate;
+                    firstMiddle = target;
+                  }
+                }
+              }
+
+              target += 1;
+            }
+          }
+        }
+      }
+
+      candidate += 1;
+    }
+
+    if (firstMiddle < 0) {
+      return invalidPlan();
+    }
+
+    candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[firstMiddle * MODULE_COUNT + candidate] == 1) {
+        secondMiddle = candidate;
+      }
+
+      candidate += 1;
+    }
+
+    if (secondMiddle < 0) {
+      return invalidPlan();
+    }
+
+    if (incomingCount(graph, secondMiddle) == SINGLE_EDGE) {} else {
+      return invalidPlan();
+    }
+
+    if (outgoingCount(graph, secondMiddle) == SINGLE_EDGE) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[firstMiddle] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[secondMiddle] == 0) {} else {
+      return invalidPlan();
+    }
+
+    candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[secondMiddle * MODULE_COUNT + candidate] == 1) {
+        dependent = candidate;
+      }
+
+      candidate += 1;
+    }
+
+    if (dependent < 0) {
+      return invalidPlan();
+    }
+
+    if (rootDirect[dependent] == 1) {} else {
+      return invalidPlan();
+    }
+
+    long firstDirect = -1;
+    long secondDirect = -1;
+    long thirdDirect = -1;
+    long directCount = 0;
+    long source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (rootDirect[source] == 1) {
+        if (source == dependent) {} else {
+          if (directCount == 0) {
+            firstDirect = source;
+          }
+
+          if (directCount == 1) {
+            secondDirect = source;
+          }
+
+          if (directCount == 2) {
+            thirdDirect = source;
+          }
+
+          directCount += 1;
+        }
+      }
+
+      source += 1;
+    }
+
+    if (directCount == THREE_DIRECTS) {} else {
+      return invalidPlan();
+    }
+
+    return new SevenGraphPlan(
+      SEVEN_PLAN_FOUR_CHAIN_AND_DIRECTS,
+      leaf,
+      firstMiddle,
+      secondMiddle,
+      dependent,
+      firstDirect,
+      secondDirect,
+      thirdDirect,
+      true
+    );
+  }
+
   /// Assigns one nested two-leaf fork and three direct root imports.
   public SevenGraphPlan nestedForkAndDirectsPlan(
     borrow mut words graph,
