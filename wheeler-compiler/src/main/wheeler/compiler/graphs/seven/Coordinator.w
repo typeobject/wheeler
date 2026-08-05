@@ -180,6 +180,22 @@ classical class CompilerGraphSeven {
       return new SevenGraphCompilation(mixedFork.length, mixedFork.codeStart);
     }
 
+    if (plan.topology == SEVEN_PLAN_LONG_CHAIN_AND_DIRECTS) {
+      SevenMixedCompilation longChain = compileSevenLongChainAndDirects(
+        plan,
+        firstImportedSource,
+        secondImportedSource,
+        thirdImportedSource,
+        fourthImportedSource,
+        fifthImportedSource,
+        sixthImportedSource,
+        seventhImportedSource,
+        rootSource,
+        output
+      );
+      return new SevenGraphCompilation(longChain.length, longChain.codeStart);
+    }
+
     if (plan.topology == SEVEN_PLAN_PAIRS_AND_DIRECTS) {
       SevenSeparateCompilation mixedPairs = compileSevenPairsAndDirects(
         plan,

@@ -311,6 +311,93 @@ classical class SevenGraphPlans {
     );
   }
 
+  private SevenGraphPlan longChainAndDirectsPlan(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long leaf = -1;
+    long middle = -1;
+    long dependent = -1;
+    long candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (incomingCount(graph, candidate) == SINGLE_EDGE) {
+        if (outgoingCount(graph, candidate) == SINGLE_EDGE) {
+          middle = candidate;
+        }
+      }
+
+      candidate += 1;
+    }
+
+    if (middle < 0) {
+      return invalidPlan();
+    }
+
+    long source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[source * MODULE_COUNT + middle] == 1) {
+        leaf = source;
+      }
+
+      if (graph[middle * MODULE_COUNT + source] == 1) {
+        dependent = source;
+      }
+
+      source += 1;
+    }
+
+    if (rootDirect[leaf] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[middle] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[dependent] == 1) {} else {
+      return invalidPlan();
+    }
+
+    long firstDirect = -1;
+    long secondDirect = -1;
+    long thirdDirect = -1;
+    long fourthDirect = -1;
+    source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (rootDirect[source] == 1) {
+        if (source == dependent) {} else {
+          if (firstDirect < 0) {
+            firstDirect = source;
+          } else {
+            if (secondDirect < 0) {
+              secondDirect = source;
+            } else {
+              if (thirdDirect < 0) {
+                thirdDirect = source;
+              } else {
+                fourthDirect = source;
+              }
+            }
+          }
+        }
+      }
+
+      source += 1;
+    }
+
+    return new SevenGraphPlan(
+      SEVEN_PLAN_LONG_CHAIN_AND_DIRECTS,
+      leaf,
+      middle,
+      dependent,
+      firstDirect,
+      secondDirect,
+      thirdDirect,
+      fourthDirect,
+      true
+    );
+  }
+
   private SevenGraphPlan pairsAndDirectsPlan(borrow mut words graph, borrow mut words rootDirect) {
     long firstLeaf = -1;
     long firstDependent = -1;
@@ -592,6 +679,10 @@ classical class SevenGraphPlans {
           result = forkAndDirectsPlan(graph, rootDirect);
           if (result.valid) {} else {
             result = pairsAndDirectsPlan(graph, rootDirect);
+          }
+
+          if (result.valid) {} else {
+            result = longChainAndDirectsPlan(graph, rootDirect);
           }
         }
 
