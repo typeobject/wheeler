@@ -67,16 +67,25 @@ classical class ScalarHelperLibraries {
     return false;
   }
 
+  private boolean booleanHelperKind(long kind) {
+    if (kind == HELPER_BOOLEAN) {
+      return true;
+    }
+
+    if (kind == HELPER_BOOLEAN_SIGNED_ONE) {
+      return true;
+    }
+
+    return kind == HELPER_BOOLEAN_SIGNED_TWO;
+  }
+
   private boolean scalarSequenceValid(StatementSequence sequence, long kind) {
     if (0 < sequence.count) {} else {
       return false;
     }
 
     long result = sequence.count - 1;
-    boolean booleanHelper = kind == HELPER_BOOLEAN;
-    if (kind == HELPER_BOOLEAN_SIGNED_ONE) {
-      booleanHelper = true;
-    }
+    boolean booleanHelper = booleanHelperKind(kind);
 
     boolean validResult = signedResult(sequence.opcodes[result]);
     if (booleanHelper) {
@@ -161,7 +170,8 @@ classical class ScalarHelperLibraries {
     }
 
     long parameterCount = 0;
-    long parameterToken = 0;
+    long firstParameterToken = 0;
+    long secondParameterToken = 0;
     long bodyOpen = start + 5;
     if (
       punctuationAt(source, tokenKinds, tokenStarts, start + 4, PUNCTUATION_CLOSE_PAREN)
@@ -170,31 +180,81 @@ classical class ScalarHelperLibraries {
         return invalidHelper();
       }
 
-      parameterToken = start + 5;
-      if (tokenKinds[parameterToken] == 1) {} else {
+      firstParameterToken = start + 5;
+      if (tokenKinds[firstParameterToken] == 1) {} else {
         return invalidHelper();
       }
 
-      if (tokenLengths[parameterToken] < 257) {} else {
-        return invalidHelper();
-      }
-
-      if (classConstantNameExists(source, tokenStarts, tokenLengths, parameterToken)) {
+      if (tokenLengths[firstParameterToken] < 257) {} else {
         return invalidHelper();
       }
 
       if (
-        punctuationAt(source, tokenKinds, tokenStarts, start + 6, PUNCTUATION_CLOSE_PAREN)
-      ) {} else {
+        classConstantNameExists(source, tokenStarts, tokenLengths, firstParameterToken)
+      ) {
         return invalidHelper();
       }
 
       parameterCount = 1;
       bodyOpen = start + 7;
-      if (returnType == TOKEN_LONG) {
-        kind = HELPER_SIGNED_ONE;
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, start + 6, PUNCTUATION_COMMA)
+      ) {
+        if (tokenHash(source, tokenStarts, tokenLengths, start + 7) == TOKEN_LONG) {} else {
+          return invalidHelper();
+        }
+
+        secondParameterToken = start + 8;
+        if (tokenKinds[secondParameterToken] == 1) {} else {
+          return invalidHelper();
+        }
+
+        if (tokenLengths[secondParameterToken] < 257) {} else {
+          return invalidHelper();
+        }
+
+        if (
+          classConstantNameExists(source, tokenStarts, tokenLengths, secondParameterToken)
+        ) {
+          return invalidHelper();
+        }
+
+        long parameterOrder = compareAsciiSlices(
+          source,
+          tokenStarts[firstParameterToken],
+          tokenLengths[firstParameterToken],
+          tokenStarts[secondParameterToken],
+          tokenLengths[secondParameterToken]
+        );
+        if (parameterOrder == 0) {
+          return invalidHelper();
+        }
+
+        if (
+          punctuationAt(source, tokenKinds, tokenStarts, start + 9, PUNCTUATION_CLOSE_PAREN)
+        ) {} else {
+          return invalidHelper();
+        }
+
+        parameterCount = 2;
+        bodyOpen = start + 10;
+        if (returnType == TOKEN_LONG) {
+          kind = HELPER_SIGNED_TWO;
+        } else {
+          kind = HELPER_BOOLEAN_SIGNED_TWO;
+        }
       } else {
-        kind = HELPER_BOOLEAN_SIGNED_ONE;
+        if (
+          punctuationAt(source, tokenKinds, tokenStarts, start + 6, PUNCTUATION_CLOSE_PAREN)
+        ) {} else {
+          return invalidHelper();
+        }
+
+        if (returnType == TOKEN_LONG) {
+          kind = HELPER_SIGNED_ONE;
+        } else {
+          kind = HELPER_BOOLEAN_SIGNED_ONE;
+        }
       }
     }
 
@@ -273,14 +333,17 @@ classical class ScalarHelperLibraries {
       return invalidHelper();
     }
 
-    if (parameterCount == 1) {
+    if (0 < parameterCount) {
       long shifted = statements.count;
       while (0 < shifted) limit MAX_MINIMAL_STATEMENTS {
-        set(statementStarts, shifted, statementStarts[shifted - 1]);
+        set(statementStarts, shifted + parameterCount - 1, statementStarts[shifted - 1]);
         shifted -= 1;
       }
 
-      set(statementStarts, 0, 0 - parameterToken);
+      set(statementStarts, 0, 0 - firstParameterToken);
+      if (parameterCount == 2) {
+        set(statementStarts, 1, 0 - secondParameterToken);
+      }
     }
 
     StatementSequence sequence = parseStatementSequence(
@@ -349,6 +412,7 @@ classical class ScalarHelperLibraries {
     HelperBody caller,
     SourceRange target,
     boolean forwarding,
+    long argumentCount,
     HelperBody first,
     HelperBody second,
     HelperBody third,
@@ -372,8 +436,12 @@ classical class ScalarHelperLibraries {
       );
       if (order == 0) {
         if (forwarding) {
-          if (candidate.kind == caller.kind) {
-            found = helper;
+          if (booleanHelperKind(caller.kind)) {
+            if (booleanHelperKind(candidate.kind)) {
+              if (parameterCountForHelper(candidate.kind) == argumentCount) {
+                found = helper;
+              }
+            }
           }
         } else {
           if (candidate.kind == HELPER_BOOLEAN_SIGNED_ONE) {
@@ -399,11 +467,26 @@ classical class ScalarHelperLibraries {
   ) {
     boolean firstForwarding = caller.firstCallStatement == caller.resultStatement;
     boolean secondForwarding = caller.secondCallStatement == caller.resultStatement;
+    long firstArgumentCount = 1;
+    if (firstForwarding) {
+      if (resolvedReturnHelperCallZero(caller.opcodes[caller.firstCallStatement])) {
+        firstArgumentCount = 0;
+      }
+    }
+
+    long secondArgumentCount = 1;
+    if (secondForwarding) {
+      if (resolvedReturnHelperCallZero(caller.opcodes[caller.secondCallStatement])) {
+        secondArgumentCount = 0;
+      }
+    }
+
     long firstFunction = resolveCallFunction(
       source,
       caller,
       caller.firstCallTargetName,
       firstForwarding,
+      firstArgumentCount,
       first,
       second,
       third,
@@ -415,6 +498,7 @@ classical class ScalarHelperLibraries {
       caller,
       caller.secondCallTargetName,
       secondForwarding,
+      secondArgumentCount,
       first,
       second,
       third,

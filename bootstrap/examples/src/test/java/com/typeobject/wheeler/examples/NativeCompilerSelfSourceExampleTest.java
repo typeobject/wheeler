@@ -510,6 +510,10 @@ final class NativeCompilerSelfSourceExampleTest {
         "  private boolean ready() {",
         "    return true;",
         "  }",
+        "",
+        "  private boolean ordered(long left, long right) {",
+        "    return left < right;",
+        "  }",
         "}",
         "");
     String root = String.join("\n",
@@ -535,9 +539,10 @@ final class NativeCompilerSelfSourceExampleTest {
     Program decoded = new BytecodeReader().read(artifact);
     assertEquals("example.predicates::below", decoded.functions().getFirst().name());
     assertEquals("example.predicates::ready", decoded.functions().get(1).name());
-    assertEquals("example.use::accepted", decoded.functions().get(2).name());
-    assertEquals(8, decoded.functions().get(2).localCount());
-    assertEquals(11, decoded.functions().get(2).forward().size());
+    assertEquals("example.predicates::ordered", decoded.functions().get(2).name());
+    assertEquals("example.use::accepted", decoded.functions().get(3).name());
+    assertEquals(8, decoded.functions().get(3).localCount());
+    assertEquals(11, decoded.functions().get(3).forward().size());
     assertEquals("$library", decoded.functions().getLast().name());
 
     NativeModuleCompilerHarness.assertTrap(
@@ -671,7 +676,7 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
-  void compilesMixedZeroAndOneParameterHelpersByteForByte() throws Exception {
+  void compilesMixedScalarHelperSignaturesByteForByte() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
     String source = twoHelperSource("""
           private long fixed() {
@@ -682,12 +687,12 @@ final class NativeCompilerSelfSourceExampleTest {
             return true;
           }
 
-          public boolean ready() {
+          public boolean ready(long ignored) {
             return flag();
           }
 
-          public long identity(long value) {
-            return value;
+          public boolean ordered(long left, long right) {
+            return left < right;
           }
         """);
     VirtualMachine writer = nativeWriter(compiler, source);
@@ -701,12 +706,15 @@ final class NativeCompilerSelfSourceExampleTest {
     Program decoded = new BytecodeReader().read(artifact);
     assertEquals(0, decoded.functions().get(0).parameterCount());
     assertEquals(0, decoded.functions().get(1).parameterCount());
-    assertEquals(0, decoded.functions().get(2).parameterCount());
-    assertEquals(1, decoded.functions().get(3).parameterCount());
-    assertEquals(1, decoded.functions().get(2).localCount());
+    assertEquals(1, decoded.functions().get(2).parameterCount());
+    assertEquals(2, decoded.functions().get(3).parameterCount());
+    assertEquals(2, decoded.functions().get(2).localCount());
     assertEquals(2, decoded.functions().get(2).forward().size());
     assertEquals("$library", decoded.functions().get(4).name());
     assertNoPublication(compiler, source.replace("return flag();", "return missing();"));
+    assertNoPublication(
+        compiler,
+        source.replace("long left, long right", "long left, long left"));
   }
 
   @Test
