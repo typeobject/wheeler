@@ -3,12 +3,11 @@
 module wheeler.compiler.conditionals;
 
 import wheeler.compiler.compiler_token_limits;
+import wheeler.compiler.literal_comparison_operations;
 import wheeler.compiler.named_literal_comparison_kinds;
-import wheeler.compiler.named_literal_comparison_operations;
 import wheeler.compiler.named_local_conditional_kinds;
 import wheeler.compiler.named_local_conditional_values;
 import wheeler.compiler.resolved_literal_comparison_kinds;
-import wheeler.compiler.resolved_literal_comparison_operations;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
@@ -348,42 +347,6 @@ classical class Conditionals {
     }
 
     return operandToken;
-  }
-
-  /// Checks whether a condition compares with signed less-than.
-  public boolean literalComparisonConditionalLessThan(long opcode) {
-    if (namedLiteralComparisonConditionalLessThan(opcode)) {
-      return true;
-    }
-
-    return resolvedLiteralComparisonConditionalLessThan(opcode);
-  }
-
-  /// Checks whether a comparison condition guards subtraction.
-  public boolean literalComparisonConditionalSubtract(long opcode) {
-    if (namedLiteralComparisonConditionalSubtract(opcode)) {
-      return true;
-    }
-
-    return resolvedLiteralComparisonConditionalSubtract(opcode);
-  }
-
-  /// Checks whether a comparison condition guards XOR.
-  public boolean literalComparisonConditionalXor(long opcode) {
-    if (namedLiteralComparisonConditionalXor(opcode)) {
-      return true;
-    }
-
-    return resolvedLiteralComparisonConditionalXor(opcode);
-  }
-
-  /// Checks whether a comparison condition guards assignment.
-  public boolean literalComparisonConditionalAssignment(long opcode) {
-    if (namedLiteralComparisonConditionalAssignment(opcode)) {
-      return true;
-    }
-
-    return resolvedLiteralComparisonConditionalAssignment(opcode);
   }
 
   /// Returns the resolved base for one signed comparison condition.

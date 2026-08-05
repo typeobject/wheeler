@@ -18,15 +18,6 @@ classical class ResolvedLiteralComparisonKinds {
     return opcode < RESOLVED_LITERAL_COMPARISON_END;
   }
 
-  /// Checks whether a resolved condition compares with signed less-than.
-  public boolean resolvedLiteralComparisonConditionalLessThan(long opcode) {
-    if (opcode < STATEMENT_IF_LOCAL_LT_LITERAL_ADD_BASE) {
-      return false;
-    }
-
-    return opcode < RESOLVED_LITERAL_COMPARISON_END;
-  }
-
   /// Returns the signed source local carried by a comparison condition.
   public long resolvedLiteralComparisonConditionalSource(long opcode) {
     if (opcode < STATEMENT_IF_LOCAL_EQ_LITERAL_SUB_BASE) {

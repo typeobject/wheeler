@@ -14,6 +14,30 @@ import org.junit.jupiter.api.Test;
 /** Differential evidence for bounded native imported scalar helpers. */
 final class NativeCompilerImportedHelperExampleTest {
   @Test
+  void compilesEveryEightHelperOwnerSplitByteForByte() throws Exception {
+    Program compiler = NativeModuleCompilerHarness.program();
+    for (int importedCount = 1; importedCount < 8; importedCount += 1) {
+      String dependency = splitDependency(importedCount);
+      String root = splitRoot(8 - importedCount);
+      byte[] artifact = NativeModuleCompilerHarness.compile(
+          compiler,
+          List.of(dependency),
+          root);
+      Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+          Map.of("Dependency.w", dependency, "Root.w", root),
+          "example.root");
+      assertArrayEquals(
+          new BytecodeWriter().write(expected),
+          artifact,
+          "owner split " + importedCount + "+" + (8 - importedCount));
+      Program decoded = new BytecodeReader().read(artifact);
+      assertEquals("example.split::dep0", decoded.functions().getFirst().name());
+      assertEquals("example.root::root0", decoded.functions().get(importedCount).name());
+      assertEquals("$library", decoded.functions().getLast().name());
+    }
+  }
+
+  @Test
   void compilesSevenDirectImportedHelpersByteForByte() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
     String dependency = sevenHelperDependency();
@@ -102,6 +126,36 @@ final class NativeCompilerImportedHelperExampleTest {
         compiler,
         List.of(constants, privateDependency),
         root);
+  }
+
+  private static String splitDependency(int count) {
+    StringBuilder source = new StringBuilder(
+        "module example.split;\nclassical class Dependency {\n");
+    for (int index = 0; index < count; index += 1) {
+      source.append("  public boolean dep")
+          .append(index)
+          .append("(long value) {\n    return value == ")
+          .append(index)
+          .append(";\n  }\n\n");
+    }
+    return source.append("}\n").toString();
+  }
+
+  private static String splitRoot(int count) {
+    StringBuilder source = new StringBuilder(
+        "module example.root;\nimport example.split;\nclassical class Root {\n");
+    for (int index = 0; index < count; index += 1) {
+      source.append("  public boolean root")
+          .append(index)
+          .append("(long value) {\n    return ");
+      if (index == 0) {
+        source.append("dep0(value)");
+      } else {
+        source.append("value == ").append(index + 8);
+      }
+      source.append(";\n  }\n\n");
+    }
+    return source.append("}\n").toString();
   }
 
   private static String sevenHelperDependency() {

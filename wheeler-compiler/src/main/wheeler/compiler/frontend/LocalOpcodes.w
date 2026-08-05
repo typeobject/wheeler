@@ -5,6 +5,7 @@ module wheeler.compiler.local_opcodes;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_comparison_forms;
+import wheeler.compiler.literal_comparison_operations;
 import wheeler.compiler.named_boolean_return_kinds;
 import wheeler.compiler.named_literal_comparison_kinds;
 import wheeler.compiler.named_local_conditional_kinds;

@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 /** Differential coverage for the Wheeler-native scalar class-constant slice. */
 class MinimalCompilerConstantExampleTest {
   private static final int OUTPUT_CAPACITY = 8_192;
-  private static final int MAX_NATIVE_CONSTANTS = 128;
+  private static final int MAX_NATIVE_CONSTANTS = 256;
   private static final int MAX_NATIVE_DEPENDENCY_DEPTH = 64;
 
   @Test
@@ -322,8 +322,8 @@ class MinimalCompilerConstantExampleTest {
       source.append("const long VALUE_").append(index).append(" = ")
           .append(index).append("; ");
     }
-    source.append("entry void main() { long value = VALUE_127; ")
-        .append("assert(value == 127); } }");
+    source.append("entry void main() { long value = VALUE_255; ")
+        .append("assert(value == 255); } }");
 
     assertDifferentialHalt(compiler, source.toString());
   }

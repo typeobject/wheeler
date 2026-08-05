@@ -6,6 +6,7 @@ import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.encoding;
+import wheeler.compiler.literal_comparison_operations;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.loop_codegen;
 import wheeler.compiler.named_long_operations;

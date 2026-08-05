@@ -35,27 +35,19 @@ class NativeCompilerConditionalSourceExampleTest {
   }
 
   @Test
-  void compilesCanonicalNamedLiteralComparisonOperationsByteForByte() throws Exception {
+  void compilesCanonicalLiteralComparisonOperationsByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
-        "compiler/syntax/conditionals/NamedLiteralComparisonOperations.w",
-        "wheeler.compiler.named_literal_comparison_operations",
+        "compiler/syntax/conditionals/LiteralComparisonOperations.w",
+        "wheeler.compiler.literal_comparison_operations",
+        "compiler/ir/ResolvedStatements.w",
         "compiler/ir/StatementKinds.w");
     assertEquals(
-        "wheeler.compiler.named_literal_comparison_operations::namedLiteralComparisonConditionalSubtract",
+        "wheeler.compiler.literal_comparison_operations::literalComparisonConditionalLessThan",
         decoded.functions().getFirst().name());
-    assertEquals(4, decoded.functions().size());
-    assertEquals("$library", decoded.functions().getLast().name());
-  }
-
-  @Test
-  void compilesCanonicalResolvedLiteralComparisonOperationsByteForByte() throws Exception {
-    Program decoded = assertImportedConstantCompilerLibrary(
-        "compiler/syntax/conditionals/ResolvedLiteralComparisonOperations.w",
-        "wheeler.compiler.resolved_literal_comparison_operations");
     assertEquals(
-        "wheeler.compiler.resolved_literal_comparison_operations::resolvedLiteralComparisonConditionalSubtract",
-        decoded.functions().getFirst().name());
-    assertEquals(4, decoded.functions().size());
+        "wheeler.compiler.literal_comparison_operations::literalComparisonConditionalAssignment",
+        decoded.functions().get(3).name());
+    assertEquals(5, decoded.functions().size());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 
@@ -122,8 +114,8 @@ class NativeCompilerConditionalSourceExampleTest {
         decoded.functions().getFirst().name());
     assertEquals(
         "wheeler.compiler.resolved_literal_comparison_kinds::resolvedLiteralComparisonConditionalSource",
-        decoded.functions().get(2).name());
-    assertEquals(4, decoded.functions().size());
+        decoded.functions().get(1).name());
+    assertEquals(3, decoded.functions().size());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 }

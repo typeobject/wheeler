@@ -37,21 +37,4 @@ classical class NamedLiteralComparisonKinds {
 
     return opcode == STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_NAMED;
   }
-
-  /// Checks whether a named condition compares with signed less-than.
-  public boolean namedLiteralComparisonConditionalLessThan(long opcode) {
-    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_ADD_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_SUB_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_XOR_NAMED) {
-      return true;
-    }
-
-    return opcode == STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_NAMED;
-  }
 }
