@@ -7,6 +7,7 @@ import wheeler.compiler.graphs.seven.chain;
 import wheeler.compiler.graphs.seven.fork;
 import wheeler.compiler.graphs.seven.mixed;
 import wheeler.compiler.graphs.seven.plans;
+import wheeler.compiler.graphs.seven.separate;
 import wheeler.compiler.graphs.seven_plan_kinds;
 import wheeler.compiler.module_linker;
 
@@ -180,7 +181,7 @@ classical class CompilerGraphSeven {
     }
 
     if (plan.topology == SEVEN_PLAN_PAIRS_AND_DIRECTS) {
-      SevenMixedCompilation mixedPairs = compileSevenPairsAndDirects(
+      SevenSeparateCompilation mixedPairs = compileSevenPairsAndDirects(
         plan,
         firstImportedSource,
         secondImportedSource,
@@ -196,7 +197,7 @@ classical class CompilerGraphSeven {
     }
 
     if (plan.topology == SEVEN_PLAN_THREE_CHAINS_AND_DIRECT) {
-      SevenMixedCompilation threeChains = compileSevenThreeChainsAndDirect(
+      SevenSeparateCompilation threeChains = compileSevenThreeChainsAndDirect(
         plan,
         firstImportedSource,
         secondImportedSource,
