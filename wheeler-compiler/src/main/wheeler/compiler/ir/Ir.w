@@ -46,6 +46,7 @@ classical class CompilerIr {
     HelperBody sixthHelper,
     HelperBody seventhHelper,
     HelperBody eighthHelper,
+    HelperBody ninthHelper,
     SourceRange proofName,
     long proofCount,
     long helperCallCount,
@@ -83,7 +84,11 @@ classical class CompilerIr {
       return program.seventhHelper;
     }
 
-    return program.eighthHelper;
+    if (index == 7) {
+      return program.eighthHelper;
+    }
+
+    return program.ninthHelper;
   }
 
   /// Returns one absent helper used to fill a bounded helper table.

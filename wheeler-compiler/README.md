@@ -62,11 +62,11 @@ control.
 
 The bounded compiler accepts one class, zero or one signed global, one optional helper,
 and one entry. It also emits the canonical unqualified `$library` halt entry for an
-entryless library. `frontend/helpers/ScalarHelperTables.w` owns bounded helper lookup, duplicate checks, and call resolution. That path accepts zero or one general helper, or two through eight explicitly
+entryless library. `frontend/helpers/ScalarHelperTables.w` owns bounded helper lookup, duplicate checks, and call resolution. That path accepts zero or one general helper, or two through nine explicitly
 public or private zero-, one-, or two-parameter scalar helpers. Signed-parameter Boolean and signed helpers may
 contain bounded equality or less-than guards, computed signed-local preludes, and up to two same-module Boolean calls with typed
 early returns. A final Boolean return may forward one zero-, one-, or two-argument helper call. A signed less-than guard may
-return its parameter minus or modulo one scalar. A ninth helper fails
+return its parameter minus or modulo one scalar. A tenth helper fails
 before publication. The checked-in `compiler/backend/EncodingWidths.w`, `compiler/graphs/kinds/FivePlanKinds.w`, `compiler/graphs/kinds/SixGraphKinds.w`,
 `compiler/graphs/kinds/SevenPlanKinds.w`, `compiler/ir/Opcodes.w`,
 `compiler/ir/ProofRules.w`, `compiler/ir/ResolvedStatements.w`,
@@ -133,7 +133,7 @@ four imported scalar-constant modules plus one shared-dependency diamond.
 `compileMinimalWithFiveConstantImports` first builds a closed topology plan, then links
 the five-module direct star, chain, four-leaf fork, three-leaf fork beside a direct import, one chain edge beside three direct imports, a two-leaf fork beside two direct imports, two independent chains beside a direct import, a three-module chain beside two direct imports, a four-module chain beside a direct import, a nested two-leaf fork beside a direct import, two nested fork levels, or a shared diamond with a side leaf. `compileMinimalWithSixConstantImports` links the six-module direct star, full chain, five-leaf fork, one three-leaf fork beside two direct imports, one nested two-leaf fork beside two direct imports, one uneven two-branch tree beside two direct imports, one fork beside one chain and one direct import, three independent chains, one three-module chain beside one two-module chain and one direct import, one chain edge beside four direct imports, one two-leaf fork beside three direct imports, one three-module chain beside three direct imports, one four-module chain beside two direct imports, and two independent chains beside two direct imports. `compileMinimalWithSevenConstantImports` links a seven-module direct star, full chain, six-leaf fork, one chain edge beside five direct imports, one two-leaf fork beside four direct imports, two independent chains beside three direct imports, three independent chains beside one direct import, or one three-module chain beside four direct imports. Differential fixtures exhaust all 120 five-module orders and all 720 orders of each six-module graph. Fourteen orders of each seven-module graph put every source in every frame position in forward and reverse rings. Every two- through seven-module planner records exact edges, roots, topological order, private visibility, and shared-dependency facts before topology dispatch. Two- through seven-module chain and fork executors consume their canonical source order before rewriting. Every four- and five-module executor, the six-module root-branch executors, and the seven-module mixed executor also consume exact topology-specific role order. A leaf
 export becomes private inside its dependent, so a root cannot acquire transitive access by
-spelling the leaf name loudly. One bounded direct edge may link up to seven dependency helpers beside one root helper.
+spelling the leaf name loudly. One bounded direct edge may give a dependency one through seven helpers while the root owns the remainder of the nine-helper table.
 An eighth dependency helper fails before publication. One three-module chain may first resolve a constant owner into that dependency. Both paths preserve
 dependency function names and private visibility. Other executable imported members,
 mismatched module names, unsupported four-module DAGs, unsupported five-module graphs, other

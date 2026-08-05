@@ -589,6 +589,7 @@ classical class HelperPrograms {
       emptyHelperBody(),
       emptyHelperBody(),
       emptyHelperBody(),
+      emptyHelperBody(),
       proof,
       proofCount,
       helperCallCount,
