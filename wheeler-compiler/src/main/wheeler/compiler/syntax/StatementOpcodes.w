@@ -1,13 +1,13 @@
-//! Classifies bounded source statements and helper value forms.
+//! Maps bounded source statement tokens to unresolved opcode identities.
 
-module wheeler.compiler.statement_forms;
+module wheeler.compiler.statement_opcodes;
 
 import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.identifier_starts;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
 
-classical class StatementForms {
+classical class StatementOpcodes {
   /// Maps one statement token to its bounded parser opcode.
   public long statementOpcode(
     borrow utf8 source,

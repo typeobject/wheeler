@@ -9,8 +9,8 @@ import wheeler.compiler.resolved_local_assignments;
 import wheeler.compiler.resolved_local_updates;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.scalar_references;
-import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
+import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
 
 classical class MutationResolution {

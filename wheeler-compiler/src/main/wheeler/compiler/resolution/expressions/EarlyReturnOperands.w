@@ -7,8 +7,8 @@ import wheeler.compiler.early_comparison_forms;
 import wheeler.compiler.loop_forms;
 import wheeler.compiler.resolved_early_comparison_kinds;
 import wheeler.compiler.resolved_early_result_kinds;
-import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
+import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
 
 classical class EarlyReturnOperands {

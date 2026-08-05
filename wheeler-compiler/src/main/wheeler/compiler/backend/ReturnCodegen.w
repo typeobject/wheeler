@@ -15,8 +15,8 @@ import wheeler.compiler.resolved_early_comparison_kinds;
 import wheeler.compiler.resolved_early_result_kinds;
 import wheeler.compiler.resolved_local_returns;
 import wheeler.compiler.resolved_return_call_kinds;
-import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
+import wheeler.compiler.statement_opcodes;
 
 classical class ReturnCodegen {
   private const long FORM_UNARY = INSTRUCTION_FORM_UNARY;

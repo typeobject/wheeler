@@ -6,8 +6,8 @@ import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.early_return_result_kinds;
 import wheeler.compiler.loop_forms;
-import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
+import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
 
 classical class EarlyReturnForms {

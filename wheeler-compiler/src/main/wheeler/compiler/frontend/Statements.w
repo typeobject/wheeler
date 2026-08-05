@@ -16,8 +16,8 @@ import wheeler.compiler.named_local_assignment_kinds;
 import wheeler.compiler.named_local_conditional_kinds;
 import wheeler.compiler.named_local_update_kinds;
 import wheeler.compiler.named_long_operations;
-import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
+import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.structure;
 import wheeler.compiler.tokens;
 

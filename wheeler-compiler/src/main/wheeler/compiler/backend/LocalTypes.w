@@ -26,8 +26,8 @@ import wheeler.compiler.resolved_local_pair_assertions;
 import wheeler.compiler.resolved_local_returns;
 import wheeler.compiler.resolved_local_updates;
 import wheeler.compiler.resolved_return_call_kinds;
-import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
+import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.type_codes;
 

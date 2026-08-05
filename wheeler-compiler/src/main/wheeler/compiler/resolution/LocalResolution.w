@@ -8,8 +8,8 @@ import wheeler.compiler.local_opcodes;
 import wheeler.compiler.named_local_update_kinds;
 import wheeler.compiler.named_long_operations;
 import wheeler.compiler.one_argument_calls;
-import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
+import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
 
