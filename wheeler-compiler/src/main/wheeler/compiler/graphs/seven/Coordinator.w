@@ -8,6 +8,7 @@ import wheeler.compiler.graphs.seven.fork;
 import wheeler.compiler.graphs.seven.mixed;
 import wheeler.compiler.graphs.seven.plans;
 import wheeler.compiler.graphs.seven.separate;
+import wheeler.compiler.graphs.seven.wide_fork;
 import wheeler.compiler.graphs.seven_plan_kinds;
 import wheeler.compiler.module_linker;
 
@@ -226,6 +227,22 @@ classical class CompilerGraphSeven {
         output
       );
       return new SevenGraphCompilation(threeChains.length, threeChains.codeStart);
+    }
+
+    if (plan.topology == SEVEN_PLAN_WIDE_FORK_AND_DIRECTS) {
+      SevenWideForkCompilation wideFork = compileSevenWideForkAndDirects(
+        plan,
+        firstImportedSource,
+        secondImportedSource,
+        thirdImportedSource,
+        fourthImportedSource,
+        fifthImportedSource,
+        sixthImportedSource,
+        seventhImportedSource,
+        rootSource,
+        output
+      );
+      return new SevenGraphCompilation(wideFork.length, wideFork.codeStart);
     }
 
     assert(plan.topology == SEVEN_PLAN_DIRECT);

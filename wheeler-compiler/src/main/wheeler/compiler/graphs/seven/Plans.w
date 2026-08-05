@@ -11,9 +11,12 @@ classical class SevenGraphPlans {
   private const long MODULE_COUNT = 7;
   private const long SINGLE_EDGE = 1;
   private const long SINGLE_IMPORT = 1;
+  private const long TWO_DIRECTS = 2;
   private const long TWO_EDGES = 2;
   private const long TWO_IMPORTS = 2;
   private const long THREE_EDGES = 3;
+  private const long THREE_IMPORTS = 3;
+  private const long FOUR_EDGES = 4;
   private const long FOUR_IMPORTS = 4;
   private const long FIVE_IMPORTS = 5;
   private const long SIX_EDGES = 6;
@@ -51,6 +54,10 @@ classical class SevenGraphPlans {
       return dependency.importsCandidate;
     }
 
+    if (dependency.importCount == FOUR_IMPORTS) {
+      return dependency.importsCandidate;
+    }
+
     if (dependency.importCount == SIX_IMPORTS) {
       return dependency.importsCandidate;
     }
@@ -65,6 +72,10 @@ classical class SevenGraphPlans {
     }
 
     if (dependency.importCount == SINGLE_IMPORT) {
+      return dependency.importsCandidate;
+    }
+
+    if (dependency.importCount == THREE_IMPORTS) {
       return dependency.importsCandidate;
     }
 
@@ -570,6 +581,98 @@ classical class SevenGraphPlans {
     );
   }
 
+  private SevenGraphPlan wideForkAndDirectsPlan(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long dependent = -1;
+    long candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (incomingCount(graph, candidate) == FOUR_EDGES) {
+        dependent = candidate;
+      }
+
+      candidate += 1;
+    }
+
+    if (dependent < 0) {
+      return invalidPlan();
+    }
+
+    if (rootDirect[dependent] == 1) {} else {
+      return invalidPlan();
+    }
+
+    long firstLeaf = -1;
+    long secondLeaf = -1;
+    long thirdLeaf = -1;
+    long fourthLeaf = -1;
+    long firstDirect = -1;
+    long secondDirect = -1;
+    long leafCount = 0;
+    long directCount = 0;
+    long source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[source * MODULE_COUNT + dependent] == 1) {
+        if (rootDirect[source] == 0) {} else {
+          return invalidPlan();
+        }
+
+        if (leafCount == 0) {
+          firstLeaf = source;
+        }
+
+        if (leafCount == 1) {
+          secondLeaf = source;
+        }
+
+        if (leafCount == 2) {
+          thirdLeaf = source;
+        }
+
+        if (leafCount == 3) {
+          fourthLeaf = source;
+        }
+
+        leafCount += 1;
+      } else {
+        if (rootDirect[source] == 1) {
+          if (source == dependent) {} else {
+            if (directCount == 0) {
+              firstDirect = source;
+            } else {
+              secondDirect = source;
+            }
+
+            directCount += 1;
+          }
+        }
+      }
+
+      source += 1;
+    }
+
+    if (leafCount == FOUR_EDGES) {} else {
+      return invalidPlan();
+    }
+
+    if (directCount == TWO_DIRECTS) {} else {
+      return invalidPlan();
+    }
+
+    return new SevenGraphPlan(
+      SEVEN_PLAN_WIDE_FORK_AND_DIRECTS,
+      firstLeaf,
+      secondLeaf,
+      thirdLeaf,
+      fourthLeaf,
+      dependent,
+      firstDirect,
+      secondDirect,
+      true
+    );
+  }
+
   private SevenGraphPlan structuredGraph(
     borrow utf8 firstSource,
     borrow utf8 secondSource,
@@ -628,6 +731,11 @@ classical class SevenGraphPlans {
       mixedThreeChains = rootCount == FOUR_IMPORTS;
     }
 
+    boolean mixedWideFork = false;
+    if (edgeCount == FOUR_EDGES) {
+      mixedWideFork = rootCount == THREE_IMPORTS;
+    }
+
     boolean valid = direct;
     if (structured) {
       valid = true;
@@ -642,6 +750,10 @@ classical class SevenGraphPlans {
     }
 
     if (mixedThreeChains) {
+      valid = true;
+    }
+
+    if (mixedWideFork) {
       valid = true;
     }
 
@@ -688,6 +800,10 @@ classical class SevenGraphPlans {
 
         if (mixedThreeChains) {
           result = threeChainsAndDirectPlan(graph, rootDirect);
+        }
+
+        if (mixedWideFork) {
+          result = wideForkAndDirectsPlan(graph, rootDirect);
         }
 
         boolean chain = writeChainOrder(graph, rootDirect, MODULE_COUNT, order);
