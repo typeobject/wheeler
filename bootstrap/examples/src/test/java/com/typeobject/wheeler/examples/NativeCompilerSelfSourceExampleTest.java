@@ -454,6 +454,18 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalEarlyReturnResultKindsByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/syntax/EarlyReturnResultKinds.w",
+        "wheeler.compiler.early_return_result_kinds",
+        "compiler/ir/StatementKinds.w");
+    assertEquals(
+        "wheeler.compiler.early_return_result_kinds::helperGuardResultSigned",
+        decoded.functions().getFirst().name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesCanonicalEarlyReturnSourcesByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/syntax/returns/EarlyReturnSources.w",
@@ -844,15 +856,23 @@ final class NativeCompilerSelfSourceExampleTest {
   private static Program assertImportedConstantCompilerLibrary(
       String logicalPath,
       String moduleName) throws Exception {
+    return assertImportedConstantCompilerLibrary(
+        logicalPath,
+        moduleName,
+        "compiler/ir/ResolvedStatements.w");
+  }
+
+  private static Program assertImportedConstantCompilerLibrary(
+      String logicalPath,
+      String moduleName,
+      String dependencyPath) throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
-    String dependency = CompilerSources.read("compiler/ir/ResolvedStatements.w");
+    String dependency = CompilerSources.read(dependencyPath);
     String root = CompilerSources.read(logicalPath);
 
     byte[] artifact = NativeModuleCompilerHarness.compile(compiler, dependency, root);
     Program expected = new WheelerCompiler().compileLibraryModuleFiles(
-        Map.of(
-            "compiler/ir/ResolvedStatements.w", dependency,
-            logicalPath, root),
+        Map.of(dependencyPath, dependency, logicalPath, root),
         moduleName);
     assertArrayEquals(new BytecodeWriter().write(expected), artifact);
     return new BytecodeReader().read(artifact);

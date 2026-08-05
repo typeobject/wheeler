@@ -3,6 +3,7 @@
 module wheeler.compiler.early_return_forms;
 
 import wheeler.compiler.class_constants;
+import wheeler.compiler.early_return_result_kinds;
 import wheeler.compiler.loop_forms;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
@@ -46,26 +47,6 @@ classical class EarlyReturnForms {
     }
 
     return -1;
-  }
-
-  private boolean helperGuardResultSigned(long sourceOpcode) {
-    return sourceOpcode == STATEMENT_IF_HELPER_CALL_RETURN_LONG_NAMED;
-  }
-
-  private boolean comparisonGuardResultSigned(long sourceOpcode) {
-    if (sourceOpcode == STATEMENT_IF_SIGNED_EQ_RETURN_LONG_NAMED) {
-      return true;
-    }
-
-    if (sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_LONG_NAMED) {
-      return true;
-    }
-
-    return sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED;
-  }
-
-  private boolean comparisonGuardResultComputed(long sourceOpcode) {
-    return sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED;
   }
 
   /// Returns the exact width of one helper-call guard and scalar return.
