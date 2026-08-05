@@ -12,6 +12,7 @@ import wheeler.compiler.ir;
 import wheeler.compiler.named_local_assignment_kinds;
 import wheeler.compiler.named_local_update_kinds;
 import wheeler.compiler.scalar_helper_libraries;
+import wheeler.compiler.scalar_helper_programs;
 import wheeler.compiler.sequences;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
