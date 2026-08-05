@@ -466,6 +466,33 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalResolvedLocalConditionalKindsByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/syntax/conditionals/ResolvedLocalConditionalKinds.w",
+        "wheeler.compiler.resolved_local_conditional_kinds");
+    assertEquals(
+        "wheeler.compiler.resolved_local_conditional_kinds::resolvedLocalConditional",
+        decoded.functions().getFirst().name());
+    assertEquals(5, decoded.functions().size());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
+  void compilesCanonicalResolvedLocalConditionalSourcesByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/syntax/conditionals/ResolvedLocalConditionalSources.w",
+        "wheeler.compiler.resolved_local_conditional_sources");
+    assertEquals(
+        "wheeler.compiler.resolved_local_conditional_sources::resolvedLocalConditionalValue",
+        decoded.functions().getFirst().name());
+    assertEquals(
+        "wheeler.compiler.resolved_local_conditional_sources::resolvedLocalConditionalXor",
+        decoded.functions().get(2).name());
+    assertEquals(4, decoded.functions().size());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesCanonicalResolvedLiteralComparisonKindsByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/syntax/conditionals/ResolvedLiteralComparisonKinds.w",
@@ -473,6 +500,10 @@ final class NativeCompilerSelfSourceExampleTest {
     assertEquals(
         "wheeler.compiler.resolved_literal_comparison_kinds::resolvedLiteralComparisonConditional",
         decoded.functions().getFirst().name());
+    assertEquals(
+        "wheeler.compiler.resolved_literal_comparison_kinds::resolvedLiteralComparisonConditionalSource",
+        decoded.functions().get(2).name());
+    assertEquals(4, decoded.functions().size());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 

@@ -26,4 +26,37 @@ classical class ResolvedLiteralComparisonKinds {
 
     return opcode < RESOLVED_LITERAL_COMPARISON_END;
   }
+
+  /// Returns the signed source local carried by a comparison condition.
+  public long resolvedLiteralComparisonConditionalSource(long opcode) {
+    if (opcode < STATEMENT_IF_LOCAL_EQ_LITERAL_SUB_BASE) {
+      return opcode - STATEMENT_IF_LOCAL_EQ_LITERAL_ADD_BASE;
+    }
+
+    if (opcode < STATEMENT_IF_LOCAL_EQ_LITERAL_XOR_BASE) {
+      return opcode - STATEMENT_IF_LOCAL_EQ_LITERAL_SUB_BASE;
+    }
+
+    if (opcode < STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_BASE) {
+      return opcode - STATEMENT_IF_LOCAL_EQ_LITERAL_XOR_BASE;
+    }
+
+    if (opcode < STATEMENT_IF_LOCAL_LT_LITERAL_ADD_BASE) {
+      return opcode - STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_BASE;
+    }
+
+    if (opcode < STATEMENT_IF_LOCAL_LT_LITERAL_SUB_BASE) {
+      return opcode - STATEMENT_IF_LOCAL_LT_LITERAL_ADD_BASE;
+    }
+
+    if (opcode < STATEMENT_IF_LOCAL_LT_LITERAL_XOR_BASE) {
+      return opcode - STATEMENT_IF_LOCAL_LT_LITERAL_SUB_BASE;
+    }
+
+    if (opcode < STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_BASE) {
+      return opcode - STATEMENT_IF_LOCAL_LT_LITERAL_XOR_BASE;
+    }
+
+    return opcode - STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_BASE;
+  }
 }

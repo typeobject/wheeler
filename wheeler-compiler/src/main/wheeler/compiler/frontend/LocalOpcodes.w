@@ -9,6 +9,7 @@ import wheeler.compiler.named_literal_comparison_kinds;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.resolved_early_result_kinds;
 import wheeler.compiler.resolved_literal_comparison_kinds;
+import wheeler.compiler.resolved_local_conditional_kinds;
 import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.scalar_opcodes;
