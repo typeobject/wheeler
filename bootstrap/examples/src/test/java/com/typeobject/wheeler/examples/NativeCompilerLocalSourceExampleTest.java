@@ -35,6 +35,18 @@ class NativeCompilerLocalSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalResolvedLessThanAssertionsByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/syntax/assertions/ResolvedLessThanAssertions.w",
+        "wheeler.compiler.resolved_less_than_assertions");
+    assertEquals(
+        "wheeler.compiler.resolved_less_than_assertions::resolvedLocalLessThanAssertion",
+        decoded.functions().getFirst().name());
+    assertEquals(4, decoded.functions().size());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesCanonicalResolvedLocalPairAssertionsByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/syntax/assertions/ResolvedLocalPairAssertions.w",

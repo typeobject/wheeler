@@ -3,33 +3,11 @@
 module wheeler.compiler.scalar_opcodes;
 
 import wheeler.compiler.loop_kinds;
+import wheeler.compiler.resolved_less_than_assertions;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.statement_kinds;
 
 classical class ScalarOpcodes {
-  /// Checks whether an opcode carries a resolved signed less-than assertion source.
-  public boolean resolvedLocalLessThanAssertion(long opcode) {
-    if (opcode < STATEMENT_ASSERT_LONG_LT_BASE) {
-      return false;
-    }
-
-    return opcode < STATEMENT_ASSERT_LONG_LT_BASE + 256;
-  }
-
-  /// Checks whether an opcode carries a resolved signed less-than literal assertion.
-  public boolean resolvedLiteralLessThanAssertion(long opcode) {
-    if (opcode < STATEMENT_ASSERT_LONG_LT_LITERAL_BASE) {
-      return false;
-    }
-
-    return opcode < STATEMENT_ASSERT_LONG_LT_LITERAL_BASE + 256;
-  }
-
-  /// Returns the signed local carried by a less-than literal assertion.
-  public long resolvedLiteralLessThanAssertionSource(long opcode) {
-    return opcode - STATEMENT_ASSERT_LONG_LT_LITERAL_BASE;
-  }
-
   /// Checks whether an opcode carries signed equality with a literal.
   public boolean resolvedLocalLiteralEquality(long opcode) {
     if (opcode < STATEMENT_LOCAL_LONG_EQ_LITERAL_BASE) {
