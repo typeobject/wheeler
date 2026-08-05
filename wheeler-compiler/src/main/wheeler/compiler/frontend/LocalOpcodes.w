@@ -11,6 +11,7 @@ import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.resolved_early_result_kinds;
 import wheeler.compiler.resolved_literal_comparison_kinds;
 import wheeler.compiler.resolved_local_conditional_kinds;
+import wheeler.compiler.resolved_local_pair_assertions;
 import wheeler.compiler.resolved_local_returns;
 import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.resolved_statements;
@@ -89,33 +90,6 @@ classical class LocalOpcodes {
     }
 
     return opcode == STATEMENT_UPDATE_XOR_LOCAL_NAMED;
-  }
-
-  /// Checks whether an opcode carries a resolved two-local equality assertion.
-  public boolean resolvedLocalPairAssertion(long opcode) {
-    if (opcode < STATEMENT_ASSERT_LONG_PAIR_BASE) {
-      return false;
-    }
-
-    return opcode < STATEMENT_ASSERT_BOOLEAN_PAIR_BASE + 256;
-  }
-
-  /// Reports whether a resolved two-local assertion compares signed values.
-  public boolean resolvedLocalPairAssertionSigned(long opcode) {
-    if (opcode < STATEMENT_ASSERT_LONG_PAIR_BASE) {
-      return false;
-    }
-
-    return opcode < STATEMENT_ASSERT_BOOLEAN_PAIR_BASE;
-  }
-
-  /// Returns the left source carried by a resolved two-local assertion.
-  public long resolvedLocalPairAssertionSource(long opcode) {
-    if (resolvedLocalPairAssertionSigned(opcode)) {
-      return opcode - STATEMENT_ASSERT_LONG_PAIR_BASE;
-    }
-
-    return opcode - STATEMENT_ASSERT_BOOLEAN_PAIR_BASE;
   }
 
   /// Checks whether an opcode carries a resolved signed-local binary source.
