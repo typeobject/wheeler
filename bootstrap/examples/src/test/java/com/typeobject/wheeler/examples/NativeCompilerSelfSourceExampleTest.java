@@ -679,10 +679,6 @@ final class NativeCompilerSelfSourceExampleTest {
   void compilesMixedScalarHelperSignaturesByteForByte() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
     String source = twoHelperSource("""
-          private long fixed() {
-            return 7;
-          }
-
           private boolean flag() {
             return true;
           }
@@ -693,6 +689,10 @@ final class NativeCompilerSelfSourceExampleTest {
 
           public boolean ordered(long left, long right) {
             return left < right;
+          }
+
+          public boolean accepted(long left, long right) {
+            return ordered(left, right);
           }
         """);
     VirtualMachine writer = nativeWriter(compiler, source);
@@ -705,13 +705,18 @@ final class NativeCompilerSelfSourceExampleTest {
     assertArrayEquals(new BytecodeWriter().write(expected), artifact);
     Program decoded = new BytecodeReader().read(artifact);
     assertEquals(0, decoded.functions().get(0).parameterCount());
-    assertEquals(0, decoded.functions().get(1).parameterCount());
-    assertEquals(1, decoded.functions().get(2).parameterCount());
+    assertEquals(1, decoded.functions().get(1).parameterCount());
+    assertEquals(2, decoded.functions().get(2).parameterCount());
     assertEquals(2, decoded.functions().get(3).parameterCount());
-    assertEquals(2, decoded.functions().get(2).localCount());
-    assertEquals(2, decoded.functions().get(2).forward().size());
+    assertEquals(2, decoded.functions().get(1).localCount());
+    assertEquals(2, decoded.functions().get(1).forward().size());
+    assertEquals(7, decoded.functions().get(3).localCount());
+    assertEquals(6, decoded.functions().get(3).forward().size());
     assertEquals("$library", decoded.functions().get(4).name());
     assertNoPublication(compiler, source.replace("return flag();", "return missing();"));
+    assertNoPublication(
+        compiler,
+        source.replace("return ordered(left, right);", "return ready(left, right);"));
     assertNoPublication(
         compiler,
         source.replace("long left, long right", "long left, long left"));

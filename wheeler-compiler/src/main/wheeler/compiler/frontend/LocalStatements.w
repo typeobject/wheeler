@@ -22,6 +22,8 @@ import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
 
 classical class LocalStatements {
+  private const long RETURN_HELPER_CALL_SOURCE_COUNT = 256;
+
   private long namedLongLiteralBase(long opcode) {
     if (opcode == STATEMENT_LOCAL_LONG_ADD_NAMED) {
       return STATEMENT_LOCAL_LONG_ADD_BASE;
@@ -278,6 +280,24 @@ classical class LocalStatements {
         true
       );
       if (-1 < callArgument) {
+        if (utf8Scalar(source, tokenStarts[statementStart + 4]) == PUNCTUATION_COMMA) {
+          long secondCallArgument = resolvePriorDeclaration(
+            source,
+            tokenStarts,
+            tokenLengths,
+            previousStarts,
+            previousCount,
+            statementStart + 5,
+            true
+          );
+          if (-1 < secondCallArgument) {
+            return STATEMENT_RETURN_HELPER_CALL_TWO_BASE + callArgument
+              * RETURN_HELPER_CALL_SOURCE_COUNT + secondCallArgument;
+          }
+
+          return -1;
+        }
+
         return STATEMENT_RETURN_HELPER_CALL_BASE + callArgument;
       }
 

@@ -147,6 +147,8 @@ classical class ResolvedStatements {
   public const long STATEMENT_RETURN_HELPER_CALL_BASE = 27648;
   /// Names a resolved scalar helper return forwarding a zero-argument call result.
   public const long STATEMENT_RETURN_HELPER_CALL_ZERO = 27904;
+  /// Starts resolved scalar helper returns forwarding a two-argument call result.
+  public const long STATEMENT_RETURN_HELPER_CALL_TWO_BASE = 65536;
   /// Starts resolved bounded signed-local while loops.
   public const long STATEMENT_LOCAL_WHILE_BASE = 18688;
   /// Starts resolved signed-local less-than assertions against literals.

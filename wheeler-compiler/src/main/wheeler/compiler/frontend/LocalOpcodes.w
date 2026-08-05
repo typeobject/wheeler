@@ -319,8 +319,12 @@ classical class LocalOpcodes {
       return 1;
     }
 
-    if (resolvedReturnHelperCallZero(opcode)) {
+    if (returnHelperCallArity(opcode) == 0) {
       return 1;
+    }
+
+    if (returnHelperCallArity(opcode) == 2) {
+      return 5;
     }
 
     if (resolvedReturnHelperCall(opcode)) {
@@ -717,8 +721,12 @@ classical class LocalOpcodes {
       return 40;
     }
 
-    if (resolvedReturnHelperCallZero(opcode)) {
+    if (returnHelperCallArity(opcode) == 0) {
       return 56;
+    }
+
+    if (returnHelperCallArity(opcode) == 2) {
+      return 152;
     }
 
     if (resolvedReturnHelperCall(opcode)) {

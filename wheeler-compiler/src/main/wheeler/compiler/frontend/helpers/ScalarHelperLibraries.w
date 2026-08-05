@@ -469,16 +469,12 @@ classical class ScalarHelperLibraries {
     boolean secondForwarding = caller.secondCallStatement == caller.resultStatement;
     long firstArgumentCount = 1;
     if (firstForwarding) {
-      if (resolvedReturnHelperCallZero(caller.opcodes[caller.firstCallStatement])) {
-        firstArgumentCount = 0;
-      }
+      firstArgumentCount = returnHelperCallArity(caller.opcodes[caller.firstCallStatement]);
     }
 
     long secondArgumentCount = 1;
     if (secondForwarding) {
-      if (resolvedReturnHelperCallZero(caller.opcodes[caller.secondCallStatement])) {
-        secondArgumentCount = 0;
-      }
+      secondArgumentCount = returnHelperCallArity(caller.opcodes[caller.secondCallStatement]);
     }
 
     long firstFunction = resolveCallFunction(

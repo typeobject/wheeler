@@ -65,7 +65,7 @@ and one entry. It also emits the canonical unqualified `$library` halt entry for
 entryless library. That path accepts zero or one general helper, or two through four explicitly
 public or private zero-, one-, or two-parameter scalar helpers. Signed-parameter Boolean and signed helpers may
 contain bounded equality or less-than guards and up to two same-module Boolean calls with typed
-early returns. A final Boolean return may forward one zero- or one-argument helper call. A signed less-than guard may
+early returns. A final Boolean return may forward one zero-, one-, or two-argument helper call. A signed less-than guard may
 return its parameter minus one scalar. A fifth helper fails
 before publication. The checked-in `compiler/ir/Opcodes.w`,
 `compiler/ir/ProofRules.w`, `compiler/ir/ResolvedStatements.w`,
@@ -83,7 +83,7 @@ imported-constant `compiler/ir/InstructionForms.w`, imported-constant
 `compiler/syntax/returns/EarlyComparisonForms.w`, and imported-constant
 `compiler/syntax/returns/ResolvedReturnCallKinds.w` modules compile byte for byte with stage 0.
 `StatementKinds.w` owns 127 unresolved statement identities. `LoopKinds.w` owns six loop-form
-identities. `ResolvedStatements.w` owns seventy-seven resolved columns. `Tokens.w` now sticks to
+identities. `ResolvedStatements.w` owns seventy-eight resolved columns. `Tokens.w` now sticks to
 lexical work instead of running a parser-IR registry from the back room. Twenty real self-source
 modules beat nineteen motivational slides. The bar has retained counsel. A modular source may carry up to sixty-four sorted unique direct imports.
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
