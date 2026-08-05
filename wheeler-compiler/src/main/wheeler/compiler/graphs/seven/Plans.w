@@ -346,6 +346,10 @@ classical class SevenGraphPlans {
           if (result.valid) {} else {
             result = nestedThreeForkAndDirectsPlan(graph, rootDirect);
           }
+
+          if (result.valid) {} else {
+            result = deepNestedForkAndDirectsPlan(graph, rootDirect);
+          }
         }
 
         if (mixedFiveLeafFork) {

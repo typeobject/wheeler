@@ -255,4 +255,127 @@ classical class SevenNestedPlanShapes {
     );
   }
 
+  /// Assigns one deep nested two-leaf fork and two direct root imports.
+  public SevenGraphPlan deepNestedForkAndDirectsPlan(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long middle = -1;
+    long candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (incomingCount(graph, candidate) == TWO_EDGES) {
+        if (outgoingCount(graph, candidate) == SINGLE_EDGE) {
+          middle = candidate;
+        }
+      }
+
+      candidate += 1;
+    }
+
+    if (middle < 0) {
+      return invalidPlan();
+    }
+
+    long firstLeaf = -1;
+    long secondLeaf = -1;
+    long secondMiddle = -1;
+    long source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[source * MODULE_COUNT + middle] == 1) {
+        if (firstLeaf < 0) {
+          firstLeaf = source;
+        } else {
+          secondLeaf = source;
+        }
+      }
+
+      if (graph[middle * MODULE_COUNT + source] == 1) {
+        secondMiddle = source;
+      }
+
+      source += 1;
+    }
+
+    if (secondMiddle < 0) {
+      return invalidPlan();
+    }
+
+    if (incomingCount(graph, secondMiddle) == SINGLE_EDGE) {} else {
+      return invalidPlan();
+    }
+
+    if (outgoingCount(graph, secondMiddle) == SINGLE_EDGE) {} else {
+      return invalidPlan();
+    }
+
+    long dependent = -1;
+    source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[secondMiddle * MODULE_COUNT + source] == 1) {
+        dependent = source;
+      }
+
+      source += 1;
+    }
+
+    if (dependent < 0) {
+      return invalidPlan();
+    }
+
+    if (rootDirect[firstLeaf] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[secondLeaf] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[middle] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[secondMiddle] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[dependent] == 1) {} else {
+      return invalidPlan();
+    }
+
+    long firstDirect = -1;
+    long secondDirect = -1;
+    long directCount = 0;
+    source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (rootDirect[source] == 1) {
+        if (source == dependent) {} else {
+          if (directCount == 0) {
+            firstDirect = source;
+          } else {
+            secondDirect = source;
+          }
+
+          directCount += 1;
+        }
+      }
+
+      source += 1;
+    }
+
+    if (directCount == TWO_DIRECTS) {} else {
+      return invalidPlan();
+    }
+
+    return new SevenGraphPlan(
+      SEVEN_PLAN_DEEP_NESTED_FORK_AND_DIRECTS,
+      firstLeaf,
+      secondLeaf,
+      middle,
+      secondMiddle,
+      dependent,
+      firstDirect,
+      secondDirect,
+      true
+    );
+  }
 }

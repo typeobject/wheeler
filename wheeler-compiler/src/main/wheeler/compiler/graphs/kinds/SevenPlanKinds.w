@@ -41,4 +41,6 @@ classical class SevenPlanKinds {
   public const long SEVEN_PLAN_SIX_CHAIN_AND_DIRECT = 18;
   /// Names one nested three-leaf fork beside two direct root imports.
   public const long SEVEN_PLAN_NESTED_THREE_FORK_AND_DIRECTS = 19;
+  /// Names one deep nested two-leaf fork beside two direct root imports.
+  public const long SEVEN_PLAN_DEEP_NESTED_FORK_AND_DIRECTS = 20;
 }
