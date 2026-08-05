@@ -311,6 +311,22 @@ classical class CompilerGraphSeven {
       return new SevenGraphCompilation(fourChain.length, fourChain.codeStart);
     }
 
+    if (plan.topology == SEVEN_PLAN_LONG_SHORT_CHAINS_AND_DIRECTS) {
+      SevenSeparateCompilation longShort = compileSevenLongShortChainsAndDirects(
+        plan,
+        firstImportedSource,
+        secondImportedSource,
+        thirdImportedSource,
+        fourthImportedSource,
+        fifthImportedSource,
+        sixthImportedSource,
+        seventhImportedSource,
+        rootSource,
+        output
+      );
+      return new SevenGraphCompilation(longShort.length, longShort.codeStart);
+    }
+
     assert(plan.topology == SEVEN_PLAN_DIRECT);
     return new SevenGraphCompilation(0, 0);
   }

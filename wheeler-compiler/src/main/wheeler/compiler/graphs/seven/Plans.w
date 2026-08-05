@@ -321,6 +321,10 @@ classical class SevenGraphPlans {
           if (result.valid) {} else {
             result = fourChainAndDirectsPlan(graph, rootDirect);
           }
+
+          if (result.valid) {} else {
+            result = longShortChainsAndDirectsPlan(graph, rootDirect);
+          }
         }
 
         if (mixedWideFork) {

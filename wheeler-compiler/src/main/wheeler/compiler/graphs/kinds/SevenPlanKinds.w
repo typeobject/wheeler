@@ -29,4 +29,6 @@ classical class SevenPlanKinds {
   public const long SEVEN_PLAN_NESTED_FORK_AND_DIRECTS = 12;
   /// Names one four-module chain beside three direct root imports.
   public const long SEVEN_PLAN_FOUR_CHAIN_AND_DIRECTS = 13;
+  /// Names one three-module chain and one two-module chain beside two direct imports.
+  public const long SEVEN_PLAN_LONG_SHORT_CHAINS_AND_DIRECTS = 14;
 }

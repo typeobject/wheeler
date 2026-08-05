@@ -443,6 +443,156 @@ classical class SevenGraphPlanShapes {
     );
   }
 
+  /// Assigns long and short chains beside two direct root imports.
+  public SevenGraphPlan longShortChainsAndDirectsPlan(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long longLeaf = -1;
+    long middle = -1;
+    long longDependent = -1;
+    long candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (incomingCount(graph, candidate) == SINGLE_EDGE) {
+        if (outgoingCount(graph, candidate) == SINGLE_EDGE) {
+          middle = candidate;
+        }
+      }
+
+      candidate += 1;
+    }
+
+    if (middle < 0) {
+      return invalidPlan();
+    }
+
+    long source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[source * MODULE_COUNT + middle] == 1) {
+        longLeaf = source;
+      }
+
+      if (graph[middle * MODULE_COUNT + source] == 1) {
+        longDependent = source;
+      }
+
+      source += 1;
+    }
+
+    if (longLeaf < 0) {
+      return invalidPlan();
+    }
+
+    if (longDependent < 0) {
+      return invalidPlan();
+    }
+
+    if (incomingCount(graph, longLeaf) == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[longLeaf] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[middle] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[longDependent] == 1) {} else {
+      return invalidPlan();
+    }
+
+    long shortLeaf = -1;
+    long shortDependent = -1;
+    source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      long dependent = 0;
+      while (dependent < MODULE_COUNT) limit MODULE_COUNT {
+        if (graph[source * MODULE_COUNT + dependent] == 1) {
+          boolean longFirstEdge = source == longLeaf;
+          if (longFirstEdge) {
+            longFirstEdge = dependent == middle;
+          }
+
+          boolean longSecondEdge = source == middle;
+          if (longSecondEdge) {
+            longSecondEdge = dependent == longDependent;
+          }
+
+          if (longFirstEdge) {} else {
+            if (longSecondEdge) {} else {
+              shortLeaf = source;
+              shortDependent = dependent;
+            }
+          }
+        }
+
+        dependent += 1;
+      }
+
+      source += 1;
+    }
+
+    if (shortLeaf < 0) {
+      return invalidPlan();
+    }
+
+    if (incomingCount(graph, shortLeaf) == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (outgoingCount(graph, shortDependent) == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[shortLeaf] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[shortDependent] == 1) {} else {
+      return invalidPlan();
+    }
+
+    long firstDirect = -1;
+    long secondDirect = -1;
+    long directCount = 0;
+    source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (rootDirect[source] == 1) {
+        if (source == longDependent) {} else {
+          if (source == shortDependent) {} else {
+            if (directCount == 0) {
+              firstDirect = source;
+            } else {
+              secondDirect = source;
+            }
+
+            directCount += 1;
+          }
+        }
+      }
+
+      source += 1;
+    }
+
+    if (directCount == TWO_DIRECTS) {} else {
+      return invalidPlan();
+    }
+
+    return new SevenGraphPlan(
+      SEVEN_PLAN_LONG_SHORT_CHAINS_AND_DIRECTS,
+      longLeaf,
+      middle,
+      longDependent,
+      shortLeaf,
+      shortDependent,
+      firstDirect,
+      secondDirect,
+      true
+    );
+  }
+
   /// Assigns one four-module chain and three direct root imports.
   public SevenGraphPlan fourChainAndDirectsPlan(
     borrow mut words graph,
