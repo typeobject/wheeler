@@ -4,6 +4,7 @@ module wheeler.compiler.imported_helpers;
 
 import wheeler.compiler.class_constants;
 import wheeler.compiler.compiler_token_limits;
+import wheeler.compiler.helper_abi;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.module_headers;
 import wheeler.compiler.module_linker;
@@ -11,8 +12,6 @@ import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
 
 classical class ImportedHelpers {
-  private const long MAX_IMPORTED_HELPERS = 21;
-
   private record HelperFacts(
     long count,
     long exportedCount,
@@ -118,7 +117,7 @@ classical class ImportedHelpers {
     long cursor = memberStart;
     long count = 0;
     long exported = 0;
-    while (cursor < closeToken) limit MAX_IMPORTED_HELPERS {
+    while (cursor < closeToken) limit MAX_IMPORTED_SCALAR_HELPERS {
       long visibility = tokenHash(importedSource, importedStarts, importedLengths, cursor);
       if (visibility == TOKEN_PUBLIC) {
         exported += 1;
