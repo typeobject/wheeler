@@ -9,4 +9,6 @@ classical class SevenPlanKinds {
   public const long SEVEN_PLAN_CHAIN = 2;
   /// Names the seven-module six-leaf-fork plan.
   public const long SEVEN_PLAN_FORK = 3;
+  /// Names one chain edge beside five direct root imports.
+  public const long SEVEN_PLAN_CHAIN_AND_DIRECTS = 4;
 }

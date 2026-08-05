@@ -5,6 +5,7 @@ module wheeler.compiler.compiler_graph_seven;
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.graphs.seven.chain;
 import wheeler.compiler.graphs.seven.fork;
+import wheeler.compiler.graphs.seven.mixed;
 import wheeler.compiler.graphs.seven.plans;
 import wheeler.compiler.graphs.seven_plan_kinds;
 import wheeler.compiler.module_linker;
@@ -144,6 +145,22 @@ classical class CompilerGraphSeven {
         output
       );
       return new SevenGraphCompilation(fork.length, fork.codeStart);
+    }
+
+    if (plan.topology == SEVEN_PLAN_CHAIN_AND_DIRECTS) {
+      SevenMixedCompilation mixed = compileSevenChainAndDirects(
+        plan,
+        firstImportedSource,
+        secondImportedSource,
+        thirdImportedSource,
+        fourthImportedSource,
+        fifthImportedSource,
+        sixthImportedSource,
+        seventhImportedSource,
+        rootSource,
+        output
+      );
+      return new SevenGraphCompilation(mixed.length, mixed.codeStart);
     }
 
     assert(plan.topology == SEVEN_PLAN_DIRECT);

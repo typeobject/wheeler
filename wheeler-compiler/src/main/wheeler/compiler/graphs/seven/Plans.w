@@ -9,8 +9,10 @@ import wheeler.compiler.module_headers;
 classical class SevenGraphPlans {
 
   private const long MODULE_COUNT = 7;
+  private const long SINGLE_EDGE = 1;
   private const long SINGLE_IMPORT = 1;
   private const long SIX_EDGES = 6;
+  private const long SIX_IMPORTS = 6;
   private const long SEVEN_IMPORTS = 7;
 
   /// Carries one validated topology and its leaf-to-root source order.
@@ -40,7 +42,7 @@ classical class SevenGraphPlans {
       return dependency.importsCandidate;
     }
 
-    if (dependency.importCount == SIX_EDGES) {
+    if (dependency.importCount == SIX_IMPORTS) {
       return dependency.importsCandidate;
     }
 
@@ -54,6 +56,10 @@ classical class SevenGraphPlans {
     }
 
     if (dependency.importCount == SINGLE_IMPORT) {
+      return dependency.importsCandidate;
+    }
+
+    if (dependency.importCount == SIX_IMPORTS) {
       return dependency.importsCandidate;
     }
 
@@ -138,6 +144,69 @@ classical class SevenGraphPlans {
     return 0;
   }
 
+  private SevenGraphPlan chainAndDirectsPlan(borrow mut words graph, borrow mut words rootDirect) {
+    long leaf = -1;
+    long dependent = -1;
+    long firstDirect = -1;
+    long secondDirect = -1;
+    long thirdDirect = -1;
+    long fourthDirect = -1;
+    long fifthDirect = -1;
+    long source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      long candidate = 0;
+      while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+        if (graph[source * MODULE_COUNT + candidate] == 1) {
+          leaf = source;
+          dependent = candidate;
+        }
+
+        candidate += 1;
+      }
+
+      source += 1;
+    }
+
+    source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (rootDirect[source] == 1) {
+        if (source == dependent) {} else {
+          if (firstDirect < 0) {
+            firstDirect = source;
+          } else {
+            if (secondDirect < 0) {
+              secondDirect = source;
+            } else {
+              if (thirdDirect < 0) {
+                thirdDirect = source;
+              } else {
+                if (fourthDirect < 0) {
+                  fourthDirect = source;
+                } else {
+                  fifthDirect = source;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      source += 1;
+    }
+
+    return new SevenGraphPlan(
+      SEVEN_PLAN_CHAIN_AND_DIRECTS,
+      leaf,
+      dependent,
+      firstDirect,
+      secondDirect,
+      thirdDirect,
+      fourthDirect,
+      fifthDirect,
+      true
+    );
+  }
+
   private SevenGraphPlan structuredGraph(
     borrow utf8 firstSource,
     borrow utf8 secondSource,
@@ -181,8 +250,17 @@ classical class SevenGraphPlans {
       structured = rootCount == SINGLE_IMPORT;
     }
 
+    boolean mixed = false;
+    if (edgeCount == SINGLE_EDGE) {
+      mixed = rootCount == SIX_IMPORTS;
+    }
+
     boolean valid = direct;
     if (structured) {
+      valid = true;
+    }
+
+    if (mixed) {
       valid = true;
     }
 
@@ -212,6 +290,10 @@ classical class SevenGraphPlans {
           true
         );
       } else {
+        if (mixed) {
+          result = chainAndDirectsPlan(graph, rootDirect);
+        }
+
         boolean chain = writeChainOrder(graph, rootDirect, MODULE_COUNT, order);
         if (chain) {
           result = new SevenGraphPlan(

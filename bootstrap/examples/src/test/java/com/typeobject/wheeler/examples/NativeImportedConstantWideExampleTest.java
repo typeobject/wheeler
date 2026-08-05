@@ -721,17 +721,6 @@ class NativeImportedConstantWideExampleTest {
     machine.run();
     assertEquals(58, machine.global("outcome"));
 
-    List<String> nonStar = new ArrayList<>(imported);
-    nonStar.set(
-        1,
-        "module examples.three; import examples.two; classical class Three { "
-            + "public const long THREE = TWO + 1; }");
-    String nonStarRoot = root
-        .replace("import examples.two; ", "")
-        .replace("outcome += TWO; ", "");
-    Program compiler = program();
-    assertTrap(compiler, nonStar, nonStarRoot);
-
     List<String> disconnectedCycle = List.of(
         "module examples.alpha; import examples.beta; classical class Alpha { "
             + "public const long ALPHA = BETA + 1; }",
@@ -748,7 +737,32 @@ class NativeImportedConstantWideExampleTest {
             + "public const long ETA = ZETA + 1; }");
     String cycleRoot = "module examples.root; import examples.eta; classical class Root { "
         + "entry void main() {} }";
-    assertTrap(compiler, disconnectedCycle, cycleRoot);
+    assertTrap(program(), disconnectedCycle, cycleRoot);
+  }
+
+  @Test
+  void linksASevenModuleChainBesideFiveDirectImports() throws Exception {
+    List<String> imported = List.of(
+        "module examples.two; classical class Two { public const long TWO = 2; }",
+        "module examples.three; import examples.two; classical class Three { "
+            + "public const long THREE = TWO + 1; }",
+        "module examples.five; classical class Five { public const long FIVE = 5; }",
+        "module examples.seven; classical class Seven { public const long SEVEN = 7; }",
+        "module examples.eleven; classical class Eleven { public const long ELEVEN = 11; }",
+        "module examples.thirteen; classical class Thirteen { "
+            + "public const long THIRTEEN = 13; }",
+        "module examples.seventeen; classical class Seventeen { "
+            + "public const long SEVENTEEN = 17; }");
+    String root = "module examples.root; import examples.eleven; import examples.five; "
+        + "import examples.seven; import examples.seventeen; import examples.thirteen; "
+        + "import examples.three; classical class Root { state long outcome = 0; "
+        + "entry void main() { outcome += THREE; outcome += FIVE; outcome += SEVEN; "
+        + "outcome += ELEVEN; outcome += THIRTEEN; outcome += SEVENTEEN; } }";
+
+    byte[] expected = assertOrdersMatchStageZero(imported, root, rotationsAndReversals(imported));
+    VirtualMachine machine = new VirtualMachine(new BytecodeReader().read(expected));
+    machine.run();
+    assertEquals(56, machine.global("outcome"));
   }
 
   @Test
