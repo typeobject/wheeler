@@ -210,6 +210,30 @@ class NativeImportedConstantSevenExampleTest {
   }
 
   @Test
+  void linksAForkAndChainBesideTwoDirectImports() throws Exception {
+    List<String> imported = List.of(
+        "module examples.alpha; classical class Alpha { public const long ALPHA = 2; }",
+        "module examples.beta; classical class Beta { public const long BETA = 3; }",
+        "module examples.gamma; import examples.alpha; import examples.beta; "
+            + "classical class Gamma { public const long GAMMA = ALPHA + BETA; }",
+        "module examples.delta; classical class Delta { public const long DELTA = 7; }",
+        "module examples.epsilon; import examples.delta; classical class Epsilon { "
+            + "public const long EPSILON = DELTA + 4; }",
+        "module examples.eleven; classical class Eleven { public const long ELEVEN = 11; }",
+        "module examples.thirteen; classical class Thirteen { "
+            + "public const long THIRTEEN = 13; }");
+    String root = "module examples.root; import examples.eleven; import examples.epsilon; "
+        + "import examples.gamma; import examples.thirteen; classical class Root { "
+        + "state long outcome = 0; entry void main() { outcome += GAMMA; "
+        + "outcome += EPSILON; outcome += ELEVEN; outcome += THIRTEEN; } }";
+
+    byte[] expected = assertOrdersMatchStageZero(imported, root, rotationsAndReversals(imported));
+    VirtualMachine machine = new VirtualMachine(new BytecodeReader().read(expected));
+    machine.run();
+    assertEquals(40, machine.global("outcome"));
+  }
+
+  @Test
   void linksLongAndShortChainsBesideTwoDirectImports() throws Exception {
     List<String> imported = List.of(
         "module examples.alpha; classical class Alpha { public const long ALPHA = 2; }",
