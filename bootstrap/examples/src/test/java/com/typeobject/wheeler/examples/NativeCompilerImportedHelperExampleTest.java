@@ -16,7 +16,7 @@ final class NativeCompilerImportedHelperExampleTest {
   @Test
   void compilesEverySixteenHelperOwnerSplitByteForByte() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
-    for (int importedCount = 1; importedCount < 11; importedCount += 1) {
+    for (int importedCount = 1; importedCount < 16; importedCount += 1) {
       String dependency = splitDependency(importedCount);
       String root = splitRoot(16 - importedCount);
       byte[] artifact = NativeModuleCompilerHarness.compile(
@@ -35,10 +35,15 @@ final class NativeCompilerImportedHelperExampleTest {
       assertEquals("example.root::root0", decoded.functions().get(importedCount).name());
       assertEquals("$library", decoded.functions().getLast().name());
     }
+
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(splitDependency(16)),
+        splitRoot(1));
   }
 
   @Test
-  void compilesUpToTenDirectImportedHelpersByteForByte() throws Exception {
+  void compilesDirectImportedVisibilityByteForByte() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
     String dependency = sevenHelperDependency();
     String root = String.join("\n",
@@ -121,14 +126,6 @@ final class NativeCompilerImportedHelperExampleTest {
         "example.use");
     assertArrayEquals(new BytecodeWriter().write(tenExpected), tenArtifact);
 
-    String elevenHelpers = tenHelpers.replace(
-        "  }\n}\n",
-        "  }\n\n"
-            + "  private boolean finalSpare(long value) {\n"
-            + "    return value == 11;\n"
-            + "  }\n"
-            + "}\n");
-    NativeModuleCompilerHarness.assertTrap(compiler, List.of(elevenHelpers), root);
   }
 
   @Test
