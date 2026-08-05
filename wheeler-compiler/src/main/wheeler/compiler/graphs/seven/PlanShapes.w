@@ -10,6 +10,7 @@ classical class SevenGraphPlanShapes {
   private const long SINGLE_EDGE = 1;
   private const long TWO_DIRECTS = 2;
   private const long TWO_EDGES = 2;
+  private const long THREE_DIRECTS = 3;
   private const long THREE_EDGES = 3;
   private const long FOUR_EDGES = 4;
   private const long FIVE_EDGES = 5;
@@ -441,6 +442,101 @@ classical class SevenGraphPlanShapes {
       thirdLeaf,
       thirdDependent,
       direct,
+      true
+    );
+  }
+
+  /// Assigns one three-leaf fork and three direct root imports.
+  public SevenGraphPlan threeLeafForkAndDirectsPlan(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long dependent = -1;
+    long candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (incomingCount(graph, candidate) == THREE_EDGES) {
+        dependent = candidate;
+      }
+
+      candidate += 1;
+    }
+
+    if (dependent < 0) {
+      return invalidPlan();
+    }
+
+    if (rootDirect[dependent] == 1) {} else {
+      return invalidPlan();
+    }
+
+    long firstLeaf = -1;
+    long secondLeaf = -1;
+    long thirdLeaf = -1;
+    long firstDirect = -1;
+    long secondDirect = -1;
+    long thirdDirect = -1;
+    long leafCount = 0;
+    long directCount = 0;
+    long source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[source * MODULE_COUNT + dependent] == 1) {
+        if (rootDirect[source] == 0) {} else {
+          return invalidPlan();
+        }
+
+        if (leafCount == 0) {
+          firstLeaf = source;
+        }
+
+        if (leafCount == 1) {
+          secondLeaf = source;
+        }
+
+        if (leafCount == 2) {
+          thirdLeaf = source;
+        }
+
+        leafCount += 1;
+      } else {
+        if (rootDirect[source] == 1) {
+          if (source == dependent) {} else {
+            if (directCount == 0) {
+              firstDirect = source;
+            }
+
+            if (directCount == 1) {
+              secondDirect = source;
+            }
+
+            if (directCount == 2) {
+              thirdDirect = source;
+            }
+
+            directCount += 1;
+          }
+        }
+      }
+
+      source += 1;
+    }
+
+    if (leafCount == THREE_EDGES) {} else {
+      return invalidPlan();
+    }
+
+    if (directCount == THREE_DIRECTS) {} else {
+      return invalidPlan();
+    }
+
+    return new SevenGraphPlan(
+      SEVEN_PLAN_THREE_LEAF_FORK_AND_DIRECTS,
+      firstLeaf,
+      secondLeaf,
+      thirdLeaf,
+      dependent,
+      firstDirect,
+      secondDirect,
+      thirdDirect,
       true
     );
   }

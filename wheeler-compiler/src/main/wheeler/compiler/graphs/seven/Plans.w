@@ -43,6 +43,10 @@ classical class SevenGraphPlans {
       return dependency.importsCandidate;
     }
 
+    if (dependency.importCount == THREE_IMPORTS) {
+      return dependency.importsCandidate;
+    }
+
     if (dependency.importCount == FOUR_IMPORTS) {
       return dependency.importsCandidate;
     }
@@ -305,6 +309,9 @@ classical class SevenGraphPlans {
 
         if (mixedThreeChains) {
           result = threeChainsAndDirectPlan(graph, rootDirect);
+          if (result.valid) {} else {
+            result = threeLeafForkAndDirectsPlan(graph, rootDirect);
+          }
         }
 
         if (mixedWideFork) {
