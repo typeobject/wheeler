@@ -6,11 +6,12 @@ import examples.bootstrap.syntax;
 import wheeler.crypto.content_identity;
 
 classical class NativeBootstrapModulesIdentity {
-  private const long MAX_LOCAL_MODULES = 128;
+  private const long MAX_LOCAL_MODULES = 256;
   private const long MAX_EXTERNAL_MODULES = 64;
   private const long MAX_IMPORTS_PER_MODULE = 64;
   private const long MAX_IMPORTS = 576;
   private const long MAX_MANIFEST_BYTES = 65536;
+  private const long MODULE_ARENA_BYTES = 786432;
 
   state long moduleCount = 0;
   state long externalCount = 0;
@@ -245,13 +246,13 @@ classical class NativeBootstrapModulesIdentity {
     return -1;
   }
 
-  /// Publishes SHA-256 for up to 128 rooted modules and sixty-four externals.
+  /// Publishes SHA-256 for up to 256 rooted modules and sixty-four externals.
   ///
   /// - Effects: Mutates fixture state and caller-owned identity output.
   entry void main(borrow byteview source, borrow mut bytes identity) {
     requireMetadata(bufferLength(source) < MAX_MANIFEST_BYTES + 1, source);
     requireMetadata(31 < bufferLength(identity), source);
-    region arena = new region(/* bytes= */ 196608, /* allocations= */ 23);
+    region arena = new region(/* bytes= */ MODULE_ARENA_BYTES, /* allocations= */ 23);
     bytes expected = allocateBytes(arena, /* length= */ 256);
     words externalStarts = allocate(arena, MAX_EXTERNAL_MODULES);
     words externalLengths = allocate(arena, MAX_EXTERNAL_MODULES);
