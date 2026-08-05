@@ -5,6 +5,7 @@ module wheeler.compiler.structure;
 import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
+import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.named_boolean_return_kinds;
 import wheeler.compiler.named_comparison_kinds;
 import wheeler.compiler.named_return_arithmetic_kinds;

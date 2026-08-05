@@ -4,6 +4,7 @@ module wheeler.compiler.shared_declarations;
 
 import wheeler.compiler.class_constants;
 import wheeler.compiler.constant_declarations;
+import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.tokens;
 
 classical class SharedDeclarations {
