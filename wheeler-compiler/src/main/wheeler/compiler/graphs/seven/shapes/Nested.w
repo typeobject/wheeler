@@ -378,4 +378,134 @@ classical class SevenNestedPlanShapes {
       true
     );
   }
+
+  /// Assigns one uneven nested fork and two direct root imports.
+  public SevenGraphPlan unevenNestedForkAndDirectsPlan(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long middle = -1;
+    long candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (incomingCount(graph, candidate) == TWO_EDGES) {
+        if (outgoingCount(graph, candidate) == SINGLE_EDGE) {
+          long possibleDependent = -1;
+          long target = 0;
+          while (target < MODULE_COUNT) limit MODULE_COUNT {
+            if (graph[candidate * MODULE_COUNT + target] == 1) {
+              possibleDependent = target;
+            }
+
+            target += 1;
+          }
+
+          if (incomingCount(graph, possibleDependent) == TWO_EDGES) {
+            middle = candidate;
+          }
+        }
+      }
+
+      candidate += 1;
+    }
+
+    if (middle < 0) {
+      return invalidPlan();
+    }
+
+    long firstLeaf = -1;
+    long secondLeaf = -1;
+    long dependent = -1;
+    long source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[source * MODULE_COUNT + middle] == 1) {
+        if (firstLeaf < 0) {
+          firstLeaf = source;
+        } else {
+          secondLeaf = source;
+        }
+      }
+
+      if (graph[middle * MODULE_COUNT + source] == 1) {
+        dependent = source;
+      }
+
+      source += 1;
+    }
+
+    if (dependent < 0) {
+      return invalidPlan();
+    }
+
+    long sideLeaf = -1;
+    source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[source * MODULE_COUNT + dependent] == 1) {
+        if (source == middle) {} else {
+          sideLeaf = source;
+        }
+      }
+
+      source += 1;
+    }
+
+    if (sideLeaf < 0) {
+      return invalidPlan();
+    }
+
+    if (rootDirect[firstLeaf] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[secondLeaf] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[middle] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[sideLeaf] == 0) {} else {
+      return invalidPlan();
+    }
+
+    if (rootDirect[dependent] == 1) {} else {
+      return invalidPlan();
+    }
+
+    long firstDirect = -1;
+    long secondDirect = -1;
+    long directCount = 0;
+    source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (rootDirect[source] == 1) {
+        if (source == dependent) {} else {
+          if (directCount == 0) {
+            firstDirect = source;
+          } else {
+            secondDirect = source;
+          }
+
+          directCount += 1;
+        }
+      }
+
+      source += 1;
+    }
+
+    if (directCount == TWO_DIRECTS) {} else {
+      return invalidPlan();
+    }
+
+    return new SevenGraphPlan(
+      SEVEN_PLAN_UNEVEN_NESTED_FORK_AND_DIRECTS,
+      firstLeaf,
+      secondLeaf,
+      middle,
+      sideLeaf,
+      dependent,
+      firstDirect,
+      secondDirect,
+      true
+    );
+  }
 }
