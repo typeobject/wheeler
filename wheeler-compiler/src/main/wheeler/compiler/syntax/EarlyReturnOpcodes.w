@@ -3,36 +3,10 @@
 module wheeler.compiler.early_return_opcodes;
 
 import wheeler.compiler.resolved_statements;
-import wheeler.compiler.statement_kinds;
 
 classical class EarlyReturnOpcodes {
   /// Bounds one resolved opcode column over source-local indices.
   private const long RESOLVED_SOURCE_COUNT = 256;
-
-  /// Checks whether one unresolved statement is a supported scalar guard return.
-  public boolean earlyReturnStatement(long opcode) {
-    if (opcode == STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_SIGNED_EQ_RETURN_FALSE_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_SIGNED_EQ_RETURN_LONG_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_HELPER_CALL_RETURN_TRUE_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_HELPER_CALL_RETURN_FALSE_NAMED) {
-      return true;
-    }
-
-    return opcode == STATEMENT_IF_HELPER_CALL_RETURN_LONG_NAMED;
-  }
 
   /// Checks whether an opcode guards one resolved helper call.
   public boolean resolvedEarlyHelperReturn(long opcode) {
