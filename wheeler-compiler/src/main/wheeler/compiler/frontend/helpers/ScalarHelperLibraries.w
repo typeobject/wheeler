@@ -11,6 +11,7 @@ import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.resolved_early_result_kinds;
 import wheeler.compiler.resolved_local_returns;
+import wheeler.compiler.resolved_long_operations;
 import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.sequences;
 import wheeler.compiler.statement_forms;
@@ -105,17 +106,24 @@ classical class ScalarHelperLibraries {
         earlyReturn = true;
       }
 
-      if (earlyReturn) {} else {
-        return false;
-      }
-
-      boolean signedEarlyReturn = resolvedEarlySignedReturn(earlyOpcode);
-      if (booleanHelper) {
-        if (signedEarlyReturn) {
-          return false;
+      if (earlyReturn) {
+        boolean signedEarlyReturn = resolvedEarlySignedReturn(earlyOpcode);
+        if (booleanHelper) {
+          if (signedEarlyReturn) {
+            return false;
+          }
+        } else {
+          if (signedEarlyReturn == false) {
+            return false;
+          }
         }
       } else {
-        if (signedEarlyReturn == false) {
+        boolean signedPrelude = resolvedLocalLongBinary(earlyOpcode);
+        if (resolvedLocalLongPair(earlyOpcode)) {
+          signedPrelude = true;
+        }
+
+        if (signedPrelude == false) {
           return false;
         }
       }

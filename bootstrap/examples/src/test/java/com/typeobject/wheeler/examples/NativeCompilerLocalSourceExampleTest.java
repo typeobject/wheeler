@@ -60,6 +60,17 @@ class NativeCompilerLocalSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalResolvedLocalLoopOperandsByteForByte() throws Exception {
+    assertCanonicalLocalModule(
+        "syntax/loops/ResolvedLocalLoopOperands.w",
+        "resolved_local_loop_operands",
+        "resolvedLocalWhileTarget",
+        3,
+        "compiler/syntax/LoopKinds.w",
+        "compiler/ir/ResolvedStatements.w");
+  }
+
+  @Test
   void compilesCanonicalResolvedLocalUpdatesByteForByte() throws Exception {
     assertCanonicalLocalModule(
         "syntax/updates/ResolvedLocalUpdates.w",

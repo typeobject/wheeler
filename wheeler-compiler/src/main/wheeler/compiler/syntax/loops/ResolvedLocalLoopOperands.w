@@ -8,11 +8,15 @@ import wheeler.compiler.resolved_statements;
 classical class ResolvedLocalLoopOperands {
   /// Returns the target local carried by one resolved while opcode.
   public long resolvedLocalWhileTarget(long opcode) {
-    return(opcode - STATEMENT_LOCAL_WHILE_BASE) / STATEMENT_LOCAL_WHILE_FORM_COUNT;
+    long relative = opcode - STATEMENT_LOCAL_WHILE_BASE;
+    long target = relative / STATEMENT_LOCAL_WHILE_FORM_COUNT;
+    return target;
   }
 
   /// Returns the form bits carried by one resolved while opcode.
   public long resolvedLocalWhileForm(long opcode) {
-    return(opcode - STATEMENT_LOCAL_WHILE_BASE) % STATEMENT_LOCAL_WHILE_FORM_COUNT;
+    long relative = opcode - STATEMENT_LOCAL_WHILE_BASE;
+    long form = relative % STATEMENT_LOCAL_WHILE_FORM_COUNT;
+    return form;
   }
 }
