@@ -87,6 +87,70 @@ classical class HelperSignatures {
       return 8;
     }
 
+    if (helperKind == HELPER_SIGNED_NINE) {
+      return 9;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_NINE) {
+      return 9;
+    }
+
+    if (helperKind == HELPER_SIGNED_TEN) {
+      return 10;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_TEN) {
+      return 10;
+    }
+
+    if (helperKind == HELPER_SIGNED_ELEVEN) {
+      return 11;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_ELEVEN) {
+      return 11;
+    }
+
+    if (helperKind == HELPER_SIGNED_TWELVE) {
+      return 12;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_TWELVE) {
+      return 12;
+    }
+
+    if (helperKind == HELPER_SIGNED_THIRTEEN) {
+      return 13;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_THIRTEEN) {
+      return 13;
+    }
+
+    if (helperKind == HELPER_SIGNED_FOURTEEN) {
+      return 14;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_FOURTEEN) {
+      return 14;
+    }
+
+    if (helperKind == HELPER_SIGNED_FIFTEEN) {
+      return 15;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_FIFTEEN) {
+      return 15;
+    }
+
+    if (helperKind == HELPER_SIGNED_SIXTEEN) {
+      return 16;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_SIXTEEN) {
+      return 16;
+    }
+
     return 0;
   }
 
@@ -128,10 +192,42 @@ classical class HelperSignatures {
       return HELPER_SIGNED_EIGHT;
     }
 
+    if (parameterCount == 9) {
+      return HELPER_SIGNED_NINE;
+    }
+
+    if (parameterCount == 10) {
+      return HELPER_SIGNED_TEN;
+    }
+
+    if (parameterCount == 11) {
+      return HELPER_SIGNED_ELEVEN;
+    }
+
+    if (parameterCount == 12) {
+      return HELPER_SIGNED_TWELVE;
+    }
+
+    if (parameterCount == 13) {
+      return HELPER_SIGNED_THIRTEEN;
+    }
+
+    if (parameterCount == 14) {
+      return HELPER_SIGNED_FOURTEEN;
+    }
+
+    if (parameterCount == 15) {
+      return HELPER_SIGNED_FIFTEEN;
+    }
+
+    if (parameterCount == 16) {
+      return HELPER_SIGNED_SIXTEEN;
+    }
+
     return -1;
   }
 
-  /// Returns one boolean helper kind for an exact signed-parameter count.
+  /// Returns one Boolean helper kind for an exact signed-parameter count.
   public long booleanScalarHelperKind(long parameterCount) {
     if (parameterCount == 0) {
       return HELPER_BOOLEAN;
@@ -169,6 +265,38 @@ classical class HelperSignatures {
       return HELPER_BOOLEAN_SIGNED_EIGHT;
     }
 
+    if (parameterCount == 9) {
+      return HELPER_BOOLEAN_SIGNED_NINE;
+    }
+
+    if (parameterCount == 10) {
+      return HELPER_BOOLEAN_SIGNED_TEN;
+    }
+
+    if (parameterCount == 11) {
+      return HELPER_BOOLEAN_SIGNED_ELEVEN;
+    }
+
+    if (parameterCount == 12) {
+      return HELPER_BOOLEAN_SIGNED_TWELVE;
+    }
+
+    if (parameterCount == 13) {
+      return HELPER_BOOLEAN_SIGNED_THIRTEEN;
+    }
+
+    if (parameterCount == 14) {
+      return HELPER_BOOLEAN_SIGNED_FOURTEEN;
+    }
+
+    if (parameterCount == 15) {
+      return HELPER_BOOLEAN_SIGNED_FIFTEEN;
+    }
+
+    if (parameterCount == 16) {
+      return HELPER_BOOLEAN_SIGNED_SIXTEEN;
+    }
+
     return -1;
   }
 
@@ -204,11 +332,19 @@ classical class HelperSignatures {
 
   /// Checks whether one helper returns a Boolean value.
   public boolean booleanResultHelper(long helperKind) {
-    if (helperKind < HELPER_BOOLEAN) {
-      return false;
+    if (helperKind == HELPER_BOOLEAN) {
+      return true;
     }
 
-    if (helperKind < HELPER_BOOLEAN_SIGNED_TWO) {
+    if (helperKind == HELPER_BOOLEAN_ONE) {
+      return true;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_TWO) {
+      return true;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_ONE) {
       return true;
     }
 
@@ -236,7 +372,43 @@ classical class HelperSignatures {
       return true;
     }
 
-    return helperKind == HELPER_BOOLEAN_SIGNED_EIGHT;
+    if (helperKind == HELPER_BOOLEAN_SIGNED_EIGHT) {
+      return true;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_NINE) {
+      return true;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_TEN) {
+      return true;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_ELEVEN) {
+      return true;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_TWELVE) {
+      return true;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_THIRTEEN) {
+      return true;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_FOURTEEN) {
+      return true;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_FIFTEEN) {
+      return true;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_SIXTEEN) {
+      return true;
+    }
+
+    return false;
   }
 
   /// Checks whether one helper receives Boolean parameters.

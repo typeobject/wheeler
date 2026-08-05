@@ -23,30 +23,62 @@ classical class HelperAbi {
   public const long HELPER_BOOLEAN_SIGNED_ONE = 8;
   /// Names a two-signed-parameter Boolean-result helper.
   public const long HELPER_BOOLEAN_SIGNED_TWO = 9;
-  /// Names a three-parameter signed-result helper.
-  public const long HELPER_SIGNED_THREE = 13;
-  /// Names a three-signed-parameter Boolean-result helper.
-  public const long HELPER_BOOLEAN_SIGNED_THREE = 14;
-  /// Names a four-parameter signed-result helper.
-  public const long HELPER_SIGNED_FOUR = 15;
-  /// Names a four-signed-parameter Boolean-result helper.
-  public const long HELPER_BOOLEAN_SIGNED_FOUR = 16;
-  /// Names a five-parameter signed-result helper.
-  public const long HELPER_SIGNED_FIVE = 17;
-  /// Names a five-signed-parameter Boolean-result helper.
-  public const long HELPER_BOOLEAN_SIGNED_FIVE = 18;
-  /// Names a six-parameter signed-result helper.
-  public const long HELPER_SIGNED_SIX = 19;
-  /// Names a six-signed-parameter Boolean-result helper.
-  public const long HELPER_BOOLEAN_SIGNED_SIX = 20;
-  /// Names a seven-parameter signed-result helper.
-  public const long HELPER_SIGNED_SEVEN = 21;
-  /// Names a seven-signed-parameter Boolean-result helper.
-  public const long HELPER_BOOLEAN_SIGNED_SEVEN = 22;
-  /// Names an eight-parameter signed-result helper.
-  public const long HELPER_SIGNED_EIGHT = 23;
-  /// Names an eight-signed-parameter Boolean-result helper.
-  public const long HELPER_BOOLEAN_SIGNED_EIGHT = 24;
+  /// Names a 3-parameter signed-result helper.
+  public const long HELPER_SIGNED_THREE = 35;
+  /// Names a 3-signed-parameter Boolean-result helper.
+  public const long HELPER_BOOLEAN_SIGNED_THREE = 67;
+  /// Names a 4-parameter signed-result helper.
+  public const long HELPER_SIGNED_FOUR = 36;
+  /// Names a 4-signed-parameter Boolean-result helper.
+  public const long HELPER_BOOLEAN_SIGNED_FOUR = 68;
+  /// Names a 5-parameter signed-result helper.
+  public const long HELPER_SIGNED_FIVE = 37;
+  /// Names a 5-signed-parameter Boolean-result helper.
+  public const long HELPER_BOOLEAN_SIGNED_FIVE = 69;
+  /// Names a 6-parameter signed-result helper.
+  public const long HELPER_SIGNED_SIX = 38;
+  /// Names a 6-signed-parameter Boolean-result helper.
+  public const long HELPER_BOOLEAN_SIGNED_SIX = 70;
+  /// Names a 7-parameter signed-result helper.
+  public const long HELPER_SIGNED_SEVEN = 39;
+  /// Names a 7-signed-parameter Boolean-result helper.
+  public const long HELPER_BOOLEAN_SIGNED_SEVEN = 71;
+  /// Names a 8-parameter signed-result helper.
+  public const long HELPER_SIGNED_EIGHT = 40;
+  /// Names a 8-signed-parameter Boolean-result helper.
+  public const long HELPER_BOOLEAN_SIGNED_EIGHT = 72;
+  /// Names a 9-parameter signed-result helper.
+  public const long HELPER_SIGNED_NINE = 41;
+  /// Names a 9-signed-parameter Boolean-result helper.
+  public const long HELPER_BOOLEAN_SIGNED_NINE = 73;
+  /// Names a 10-parameter signed-result helper.
+  public const long HELPER_SIGNED_TEN = 42;
+  /// Names a 10-signed-parameter Boolean-result helper.
+  public const long HELPER_BOOLEAN_SIGNED_TEN = 74;
+  /// Names a 11-parameter signed-result helper.
+  public const long HELPER_SIGNED_ELEVEN = 43;
+  /// Names a 11-signed-parameter Boolean-result helper.
+  public const long HELPER_BOOLEAN_SIGNED_ELEVEN = 75;
+  /// Names a 12-parameter signed-result helper.
+  public const long HELPER_SIGNED_TWELVE = 44;
+  /// Names a 12-signed-parameter Boolean-result helper.
+  public const long HELPER_BOOLEAN_SIGNED_TWELVE = 76;
+  /// Names a 13-parameter signed-result helper.
+  public const long HELPER_SIGNED_THIRTEEN = 45;
+  /// Names a 13-signed-parameter Boolean-result helper.
+  public const long HELPER_BOOLEAN_SIGNED_THIRTEEN = 77;
+  /// Names a 14-parameter signed-result helper.
+  public const long HELPER_SIGNED_FOURTEEN = 46;
+  /// Names a 14-signed-parameter Boolean-result helper.
+  public const long HELPER_BOOLEAN_SIGNED_FOURTEEN = 78;
+  /// Names a 15-parameter signed-result helper.
+  public const long HELPER_SIGNED_FIFTEEN = 47;
+  /// Names a 15-signed-parameter Boolean-result helper.
+  public const long HELPER_BOOLEAN_SIGNED_FIFTEEN = 79;
+  /// Names a 16-parameter signed-result helper.
+  public const long HELPER_SIGNED_SIXTEEN = 48;
+  /// Names a 16-signed-parameter Boolean-result helper.
+  public const long HELPER_BOOLEAN_SIGNED_SIXTEEN = 80;
   /// Names a zero-argument reversible signed result-slot helper.
   public const long HELPER_REVERSIBLE_SIGNED = 10;
   /// Names a one-parameter reversible signed result-slot helper.
@@ -64,7 +96,9 @@ classical class HelperAbi {
   /// Names one binary fill-and-return result-slot body width.
   public const long RESULT_SLOT_BINARY_BODY_LENGTH = 56;
   /// Caps signed scalar parameters in one bounded helper.
-  public const long MAX_SCALAR_HELPER_PARAMETERS = 8;
+  public const long MAX_SCALAR_HELPER_PARAMETERS = 16;
+  /// Names the exclusive end of accepted scalar helper parameter counts.
+  public const long SCALAR_HELPER_PARAMETER_END = 17;
   /// Caps scalar helpers in one bounded entryless library.
   public const long MAX_SCALAR_HELPERS = 23;
   /// Caps helpers owned by one direct executable dependency.
