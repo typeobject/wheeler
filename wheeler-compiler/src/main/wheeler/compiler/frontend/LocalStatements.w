@@ -10,6 +10,7 @@ import wheeler.compiler.conditionals;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.loop_forms;
+import wheeler.compiler.loop_kinds;
 import wheeler.compiler.mutation_resolution;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.resolved_statements;
@@ -141,16 +142,33 @@ classical class LocalStatements {
       return -1;
     }
 
-    boolean earlyEqualityReturn = opcode == STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED;
+    boolean earlyComparisonReturn = opcode == STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED;
     if (opcode == STATEMENT_IF_SIGNED_EQ_RETURN_FALSE_NAMED) {
-      earlyEqualityReturn = true;
+      earlyComparisonReturn = true;
     }
 
     if (opcode == STATEMENT_IF_SIGNED_EQ_RETURN_LONG_NAMED) {
-      earlyEqualityReturn = true;
+      earlyComparisonReturn = true;
     }
 
-    if (earlyEqualityReturn) {
+    boolean earlyLessReturn = opcode == STATEMENT_IF_SIGNED_LT_RETURN_TRUE_NAMED;
+    if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_FALSE_NAMED) {
+      earlyLessReturn = true;
+    }
+
+    if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_LONG_NAMED) {
+      earlyLessReturn = true;
+    }
+
+    if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED) {
+      earlyLessReturn = true;
+    }
+
+    if (earlyLessReturn) {
+      earlyComparisonReturn = true;
+    }
+
+    if (earlyComparisonReturn) {
       long earlySourceLocal = resolvePriorDeclaration(
         source,
         tokenStarts,
@@ -161,12 +179,23 @@ classical class LocalStatements {
         true
       );
       if (-1 < earlySourceLocal) {
-        long equalityReturnBase = STATEMENT_IF_SIGNED_EQ_RETURN_BASE;
+        long comparisonReturnBase = STATEMENT_IF_SIGNED_EQ_RETURN_BASE;
         if (opcode == STATEMENT_IF_SIGNED_EQ_RETURN_LONG_NAMED) {
-          equalityReturnBase = STATEMENT_IF_SIGNED_EQ_RETURN_LONG_BASE;
+          comparisonReturnBase = STATEMENT_IF_SIGNED_EQ_RETURN_LONG_BASE;
         }
 
-        return equalityReturnBase + earlySourceLocal;
+        if (earlyLessReturn) {
+          comparisonReturnBase = STATEMENT_IF_SIGNED_LT_RETURN_BASE;
+          if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_LONG_NAMED) {
+            comparisonReturnBase = STATEMENT_IF_SIGNED_LT_RETURN_LONG_BASE;
+          }
+
+          if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED) {
+            comparisonReturnBase = STATEMENT_IF_SIGNED_LT_RETURN_SUB_BASE;
+          }
+        }
+
+        return comparisonReturnBase + earlySourceLocal;
       }
 
       return -1;

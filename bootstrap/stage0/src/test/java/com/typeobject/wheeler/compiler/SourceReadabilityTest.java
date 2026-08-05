@@ -128,13 +128,16 @@ class SourceReadabilityTest {
         "src/main/wheeler/compiler/frontend/Tokens.w"));
     String kinds = Files.readString(Path.of(
         "src/main/wheeler/compiler/ir/StatementKinds.w"));
+    String loopKinds = Files.readString(Path.of(
+        "src/main/wheeler/compiler/syntax/LoopKinds.w"));
     String resolved = Files.readString(Path.of(
         "src/main/wheeler/compiler/ir/ResolvedStatements.w"));
 
     assertEquals(java.util.Map.of(), statementIdentities(tokens));
-    assertEquals(128, statementIdentities(kinds).size());
-    assertEquals(72, statementIdentities(resolved).size());
-    assertEquals(200, statementIdentities(kinds + resolved).size());
+    assertEquals(126, statementIdentities(kinds).size());
+    assertEquals(6, statementIdentities(loopKinds).size());
+    assertEquals(75, statementIdentities(resolved).size());
+    assertEquals(207, statementIdentities(kinds + loopKinds + resolved).size());
   }
 
   @Test

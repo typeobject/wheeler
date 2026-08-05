@@ -5,10 +5,11 @@ module wheeler.compiler.scalar_helper_libraries;
 import wheeler.compiler.body_parser;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.class_layouts;
-import wheeler.compiler.early_return_opcodes;
+import wheeler.compiler.early_comparison_forms;
 import wheeler.compiler.encoding;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
+import wheeler.compiler.resolved_early_result_kinds;
 import wheeler.compiler.sequences;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
@@ -76,7 +77,7 @@ classical class ScalarHelperLibraries {
     long statement = 0;
     while (statement < result) limit MAX_MINIMAL_STATEMENTS {
       long earlyOpcode = sequence.opcodes[statement];
-      boolean earlyReturn = resolvedEarlyEqualityReturn(earlyOpcode);
+      boolean earlyReturn = resolvedEarlyComparisonReturn(earlyOpcode);
       if (resolvedEarlyHelperReturn(earlyOpcode)) {
         earlyReturn = true;
       }

@@ -52,8 +52,20 @@ classical class EarlyReturnForms {
     return sourceOpcode == STATEMENT_IF_HELPER_CALL_RETURN_LONG_NAMED;
   }
 
-  private boolean equalityGuardResultSigned(long sourceOpcode) {
-    return sourceOpcode == STATEMENT_IF_SIGNED_EQ_RETURN_LONG_NAMED;
+  private boolean comparisonGuardResultSigned(long sourceOpcode) {
+    if (sourceOpcode == STATEMENT_IF_SIGNED_EQ_RETURN_LONG_NAMED) {
+      return true;
+    }
+
+    if (sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_LONG_NAMED) {
+      return true;
+    }
+
+    return sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED;
+  }
+
+  private boolean comparisonGuardResultComputed(long sourceOpcode) {
+    return sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED;
   }
 
   /// Returns the exact width of one helper-call guard and scalar return.
@@ -191,8 +203,8 @@ classical class EarlyReturnForms {
     return -1;
   }
 
-  /// Returns the exact width of one scalar equality guard and scalar return.
-  public long earlyEqualityReturnWidth(
+  /// Returns the exact width of one scalar comparison guard and scalar return.
+  public long earlyComparisonReturnWidth(
     borrow utf8 source,
     borrow mut words tokenKinds,
     borrow mut words tokenStarts,
@@ -215,19 +227,25 @@ classical class EarlyReturnForms {
       return -1;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, statementStart + 3, PUNCTUATION_ASSIGN)
-    ) {} else {
+    long comparisonOperator = utf8Scalar(source, tokenStarts[statementStart + 3]);
+    long comparisonOperatorWidth = 0;
+    if (comparisonOperator == PUNCTUATION_LESS_THAN) {
+      comparisonOperatorWidth = 1;
+    }
+
+    if (comparisonOperator == PUNCTUATION_ASSIGN) {
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, statementStart + 4, PUNCTUATION_ASSIGN)
+      ) {
+        comparisonOperatorWidth = 2;
+      }
+    }
+
+    if (0 < comparisonOperatorWidth) {} else {
       return -1;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, statementStart + 4, PUNCTUATION_ASSIGN)
-    ) {} else {
-      return -1;
-    }
-
-    long comparisonToken = statementStart + 5;
+    long comparisonToken = statementStart + 3 + comparisonOperatorWidth;
     long comparisonWidth = signedNumberWidth(source, tokenKinds, tokenStarts, comparisonToken);
     if (loopOperandNamed(source, tokenStarts, comparisonToken)) {
       comparisonWidth = 1;
@@ -248,14 +266,9 @@ classical class EarlyReturnForms {
       }
     }
 
+    long closeCondition = comparisonToken + comparisonWidth;
     if (
-      punctuationAt(
-        source,
-        tokenKinds,
-        tokenStarts,
-        statementStart + 5 + comparisonWidth,
-        PUNCTUATION_CLOSE_PAREN
-      )
+      punctuationAt(source, tokenKinds, tokenStarts, closeCondition, PUNCTUATION_CLOSE_PAREN)
     ) {} else {
       return -1;
     }
@@ -265,7 +278,7 @@ classical class EarlyReturnForms {
         source,
         tokenKinds,
         tokenStarts,
-        statementStart + 6 + comparisonWidth,
+        closeCondition + 1,
         PUNCTUATION_OPEN_BRACE
       )
     ) {} else {
@@ -273,8 +286,7 @@ classical class EarlyReturnForms {
     }
 
     if (
-      tokenHash(source, tokenStarts, tokenLengths, statementStart + 7 + comparisonWidth)
-        == TOKEN_RETURN
+      tokenHash(source, tokenStarts, tokenLengths, closeCondition + 2) == TOKEN_RETURN
     ) {} else {
       return -1;
     }
@@ -285,7 +297,15 @@ classical class EarlyReturnForms {
       knownForm = true;
     }
 
-    if (equalityGuardResultSigned(sourceOpcode)) {
+    if (sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_TRUE_NAMED) {
+      knownForm = true;
+    }
+
+    if (sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_FALSE_NAMED) {
+      knownForm = true;
+    }
+
+    if (comparisonGuardResultSigned(sourceOpcode)) {
       knownForm = true;
     }
 
@@ -293,15 +313,43 @@ classical class EarlyReturnForms {
       return -1;
     }
 
-    long returnedToken = statementStart + 8 + comparisonWidth;
-    long returnWidth = scalarReturnWidth(
-      source,
-      tokenKinds,
-      tokenStarts,
-      tokenLengths,
-      returnedToken,
-      equalityGuardResultSigned(sourceOpcode)
-    );
+    long returnedToken = closeCondition + 3;
+    long returnWidth = -1;
+    if (comparisonGuardResultComputed(sourceOpcode)) {
+      if (
+        sameTokenText(source, tokenStarts, tokenLengths, statementStart + 2, returnedToken)
+      ) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, returnedToken + 1, PUNCTUATION_MINUS)
+      ) {} else {
+        return -1;
+      }
+
+      long rightWidth = scalarReturnWidth(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        returnedToken + 2,
+        true
+      );
+      if (0 < rightWidth) {
+        returnWidth = rightWidth + 2;
+      }
+    } else {
+      returnWidth = scalarReturnWidth(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        returnedToken,
+        comparisonGuardResultSigned(sourceOpcode)
+      );
+    }
+
     if (returnWidth < 1) {
       return -1;
     }

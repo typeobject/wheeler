@@ -27,6 +27,22 @@ classical class EarlyReturnKinds {
       return true;
     }
 
-    return opcode == STATEMENT_IF_HELPER_CALL_RETURN_LONG_NAMED;
+    if (opcode == STATEMENT_IF_HELPER_CALL_RETURN_LONG_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_TRUE_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_FALSE_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_LONG_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED;
   }
 }

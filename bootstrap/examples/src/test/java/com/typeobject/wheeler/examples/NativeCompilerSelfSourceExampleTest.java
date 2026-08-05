@@ -36,6 +36,13 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalLoopKindsByteForByte() throws Exception {
+    assertConstantOnlyCompilerLibrary(
+        "compiler/syntax/LoopKinds.w",
+        "wheeler.compiler.loop_kinds");
+  }
+
+  @Test
   void compilesCanonicalResolvedStatementsByteForByte() throws Exception {
     assertConstantOnlyCompilerLibrary(
         "compiler/ir/ResolvedStatements.w",
@@ -115,6 +122,47 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesEarlyOrderingReturnsByteForByte() throws Exception {
+    String source = """
+        module examples.early_ordering;
+        classical class EarlyOrdering {
+          public const long LIMIT = 3;
+
+          public boolean below(long opcode) {
+            if (opcode < LIMIT) {
+              return true;
+            }
+
+            return opcode < 9;
+          }
+
+          public long classify(long opcode) {
+            if (opcode < -1) {
+              return opcode - LIMIT;
+            }
+
+            return 9;
+          }
+        }
+        """;
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    VirtualMachine writer = nativeWriter(compiler, source);
+    CompilerMachineRunner.runWithoutRewindHistory(writer);
+
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("EarlyOrdering.w", source),
+        "examples.early_ordering");
+    assertArrayEquals(new BytecodeWriter().write(expected), writer.hostOutput());
+    assertNoPublication(compiler, source.replace("return true;", "return 1;"));
+    assertNoPublication(
+        compiler,
+        source.replace("return opcode - LIMIT;", "return false;"));
+    assertNoPublication(
+        compiler,
+        source.replace("return opcode - LIMIT;", "return LIMIT - opcode;"));
+  }
+
+  @Test
   void compilesAnEarlySameModuleCallByteForByte() throws Exception {
     String source = """
         module examples.early_call;
@@ -191,7 +239,7 @@ final class NativeCompilerSelfSourceExampleTest {
     assertNoPublication(compiler, wrongBoolean);
     String wrongSigned = source.replace("return THREE;", "return true;");
     assertNoPublication(compiler, wrongSigned);
-    assertNoPublication(compiler, source.replace("opcode == 1", "opcode < 1"));
+    assertNoPublication(compiler, source.replace("opcode == 1", "opcode > 1"));
   }
 
   @Test
@@ -364,8 +412,41 @@ final class NativeCompilerSelfSourceExampleTest {
     assertEquals(
         "wheeler.compiler.early_return_kinds::earlyReturnStatement",
         decoded.functions().getFirst().name());
-    assertEquals(24, decoded.functions().getFirst().localCount());
-    assertEquals(39, decoded.functions().getFirst().forward().size());
+    assertEquals(40, decoded.functions().getFirst().localCount());
+    assertEquals(67, decoded.functions().getFirst().forward().size());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
+  void compilesCanonicalEarlyReturnSourcesByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/syntax/returns/EarlyReturnSources.w",
+        "wheeler.compiler.early_return_sources");
+    assertEquals(
+        "wheeler.compiler.early_return_sources::earlyHelperReturnSource",
+        decoded.functions().getFirst().name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
+  void compilesCanonicalResolvedEarlyComparisonKindsByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/syntax/returns/ResolvedEarlyComparisonKinds.w",
+        "wheeler.compiler.resolved_early_comparison_kinds");
+    assertEquals(
+        "wheeler.compiler.resolved_early_comparison_kinds::resolvedEarlyEqualityReturn",
+        decoded.functions().getFirst().name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
+  void compilesCanonicalResolvedEarlyResultKindsByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/syntax/returns/ResolvedEarlyResultKinds.w",
+        "wheeler.compiler.resolved_early_result_kinds");
+    assertEquals(
+        "wheeler.compiler.resolved_early_result_kinds::resolvedEarlyHelperReturn",
+        decoded.functions().getFirst().name());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 
@@ -567,6 +648,23 @@ final class NativeCompilerSelfSourceExampleTest {
   private static String twoHelperSource(String members) {
     return "module examples.two_helpers;\nclassical class TwoHelpers {\n"
         + members + "}\n";
+  }
+
+  private static Program assertImportedConstantCompilerLibrary(
+      String logicalPath,
+      String moduleName) throws Exception {
+    Program compiler = NativeModuleCompilerHarness.program();
+    String dependency = CompilerSources.read("compiler/ir/ResolvedStatements.w");
+    String root = CompilerSources.read(logicalPath);
+
+    byte[] artifact = NativeModuleCompilerHarness.compile(compiler, dependency, root);
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of(
+            "compiler/ir/ResolvedStatements.w", dependency,
+            logicalPath, root),
+        moduleName);
+    assertArrayEquals(new BytecodeWriter().write(expected), artifact);
+    return new BytecodeReader().read(artifact);
   }
 
   private static void assertConstantOnlyCompilerLibrary(

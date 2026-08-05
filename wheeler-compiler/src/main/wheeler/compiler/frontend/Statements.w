@@ -7,7 +7,6 @@ import wheeler.compiler.boolean_declaration_widths;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_return_forms;
 import wheeler.compiler.early_return_kinds;
-import wheeler.compiler.early_return_opcodes;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.loop_forms;
 import wheeler.compiler.scalar_opcodes;
@@ -168,7 +167,7 @@ classical class Statements {
     }
 
     if (earlyReturnStatement(statementKind)) {
-      return earlyEqualityReturnWidth(
+      return earlyComparisonReturnWidth(
         source,
         tokenKinds,
         tokenStarts,

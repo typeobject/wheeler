@@ -2,6 +2,7 @@
 
 module wheeler.compiler.scalar_opcodes;
 
+import wheeler.compiler.loop_kinds;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.statement_kinds;
 

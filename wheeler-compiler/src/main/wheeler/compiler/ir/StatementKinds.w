@@ -241,18 +241,14 @@ classical class StatementKinds {
   public const long STATEMENT_IF_SIGNED_EQ_RETURN_LONG_NAMED = 884;
   /// Scalar helper-call guard returning a signed literal.
   public const long STATEMENT_IF_HELPER_CALL_RETURN_LONG_NAMED = 885;
-  /// Marks while condition whose right operand names a prior local.
-  public const long STATEMENT_LOCAL_WHILE_CONDITION_NAMED = 1;
-  /// Marks while limit that names a prior local.
-  public const long STATEMENT_LOCAL_WHILE_LIMIT_NAMED = 2;
-  /// Checked subtraction for a resolved while update.
-  public const long STATEMENT_LOCAL_WHILE_SUB_FORM = 4;
-  /// Bitwise XOR for a resolved while update.
-  public const long STATEMENT_LOCAL_WHILE_XOR_FORM = 8;
-  /// Marks zero-to-local less-than condition.
-  public const long STATEMENT_LOCAL_WHILE_REVERSED_FORM = 16;
-  /// Bounds the closed while form column encoded beside one target local.
-  public const long STATEMENT_LOCAL_WHILE_FORM_COUNT = 24;
+  /// Parameter less-than guard returning true.
+  public const long STATEMENT_IF_SIGNED_LT_RETURN_TRUE_NAMED = 886;
+  /// Parameter less-than guard returning false.
+  public const long STATEMENT_IF_SIGNED_LT_RETURN_FALSE_NAMED = 887;
+  /// Parameter less-than guard returning a signed literal.
+  public const long STATEMENT_IF_SIGNED_LT_RETURN_LONG_NAMED = 888;
+  /// Parameter less-than guard returning a checked subtraction.
+  public const long STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED = 889;
   /// Checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Checked global subtraction.

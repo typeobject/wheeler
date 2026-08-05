@@ -450,19 +450,34 @@ classical class StatementForms {
         }
 
         long bodyStart = comparisonLiteralToken + 2 + comparisonWidth;
-        if (lessThanComparison == false) {
-          if (tokenHash(source, tokenStarts, tokenLengths, bodyStart) == TOKEN_RETURN) {
-            long returned = tokenHash(source, tokenStarts, tokenLengths, bodyStart + 1);
+        if (tokenHash(source, tokenStarts, tokenLengths, bodyStart) == TOKEN_RETURN) {
+          long returned = tokenHash(source, tokenStarts, tokenLengths, bodyStart + 1);
+          if (lessThanComparison) {
             if (returned == TOKEN_TRUE) {
-              return STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED;
+              return STATEMENT_IF_SIGNED_LT_RETURN_TRUE_NAMED;
             }
 
             if (returned == TOKEN_FALSE) {
-              return STATEMENT_IF_SIGNED_EQ_RETURN_FALSE_NAMED;
+              return STATEMENT_IF_SIGNED_LT_RETURN_FALSE_NAMED;
             }
 
-            return STATEMENT_IF_SIGNED_EQ_RETURN_LONG_NAMED;
+            long guardReturnOperator = utf8Scalar(source, tokenStarts[bodyStart + 2]);
+            if (guardReturnOperator == PUNCTUATION_MINUS) {
+              return STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED;
+            }
+
+            return STATEMENT_IF_SIGNED_LT_RETURN_LONG_NAMED;
           }
+
+          if (returned == TOKEN_TRUE) {
+            return STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED;
+          }
+
+          if (returned == TOKEN_FALSE) {
+            return STATEMENT_IF_SIGNED_EQ_RETURN_FALSE_NAMED;
+          }
+
+          return STATEMENT_IF_SIGNED_EQ_RETURN_LONG_NAMED;
         }
 
         long comparisonBodyOperator = utf8Scalar(

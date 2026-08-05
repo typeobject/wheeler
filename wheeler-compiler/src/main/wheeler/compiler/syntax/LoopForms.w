@@ -2,6 +2,7 @@
 
 module wheeler.compiler.loop_forms;
 
+import wheeler.compiler.loop_kinds;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
 

@@ -4,8 +4,9 @@ module wheeler.compiler.local_opcodes;
 
 import wheeler.compiler.call_forms;
 import wheeler.compiler.conditionals;
-import wheeler.compiler.early_return_opcodes;
+import wheeler.compiler.early_comparison_forms;
 import wheeler.compiler.one_argument_calls;
+import wheeler.compiler.resolved_early_result_kinds;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
@@ -249,7 +250,11 @@ classical class LocalOpcodes {
       return 4;
     }
 
-    if (resolvedEarlyEqualityReturn(opcode)) {
+    if (resolvedEarlyComputedReturn(opcode)) {
+      return 6;
+    }
+
+    if (resolvedEarlyComparisonReturn(opcode)) {
       return 4;
     }
 
@@ -635,7 +640,11 @@ classical class LocalOpcodes {
       return 168;
     }
 
-    if (resolvedEarlyEqualityReturn(opcode)) {
+    if (resolvedEarlyComputedReturn(opcode)) {
+      return 216;
+    }
+
+    if (resolvedEarlyComparisonReturn(opcode)) {
       return 160;
     }
 
@@ -864,7 +873,11 @@ classical class LocalOpcodes {
       return 7;
     }
 
-    if (resolvedEarlyEqualityReturn(opcode)) {
+    if (resolvedEarlyComputedReturn(opcode)) {
+      return 9;
+    }
+
+    if (resolvedEarlyComparisonReturn(opcode)) {
       return 7;
     }
 

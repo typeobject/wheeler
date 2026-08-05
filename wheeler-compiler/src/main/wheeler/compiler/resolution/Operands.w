@@ -8,7 +8,6 @@ import wheeler.compiler.call_forms;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_return_kinds;
-import wheeler.compiler.early_return_opcodes;
 import wheeler.compiler.early_return_operands;
 import wheeler.compiler.expression_operands;
 import wheeler.compiler.ir;

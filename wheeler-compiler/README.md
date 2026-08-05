@@ -64,20 +64,24 @@ The bounded compiler accepts one class, zero or one signed global, one optional 
 and one entry. It also emits the canonical unqualified `$library` halt entry for an
 entryless library. That path accepts zero or one general helper, or two through four explicitly
 public or private one-parameter scalar helpers. Signed-parameter Boolean and signed helpers may
-contain bounded equality guards or one same-module Boolean call with typed early returns. A fifth
-helper fails before publication. The checked-in `compiler/ir/Opcodes.w`,
+contain bounded equality or less-than guards, or one same-module Boolean call, with typed early
+returns. A signed less-than guard may return its parameter minus one scalar. A fifth helper fails
+before publication. The checked-in `compiler/ir/Opcodes.w`,
 `compiler/ir/ProofRules.w`, `compiler/ir/ResolvedStatements.w`,
 `compiler/ir/StatementKinds.w`, `compiler/ir/StorageOpcodes.w`, `compiler/ir/TypeCodes.w`,
 imported-constant `compiler/ir/OpcodeKinds.w`, imported-constant `compiler/ir/TypeKinds.w`,
 imported-constant `compiler/ir/InstructionForms.w`, imported-constant
 `compiler/syntax/BooleanDeclarationKinds.w`, imported-constant
-`compiler/syntax/EarlyReturnKinds.w`, imported-constant
+`compiler/syntax/EarlyReturnKinds.w`, `compiler/syntax/LoopKinds.w`, imported-constant
 `compiler/syntax/calls/CallArgumentSources.w`, imported-constant
-`compiler/syntax/calls/OneArgumentCalls.w`, and imported-constant
-`compiler/syntax/calls/TwoArgumentCallKinds.w` modules compile byte for byte with stage 0.
-`StatementKinds.w` owns 128 unresolved and form identities. `ResolvedStatements.w` owns seventy-two
-resolved columns. `Tokens.w` now sticks to lexical work instead of running a parser-IR registry from
-the back room. Fourteen real self-source modules beat thirteen motivational slides. The bar has retained
+`compiler/syntax/calls/OneArgumentCalls.w`, imported-constant
+`compiler/syntax/calls/TwoArgumentCallKinds.w`, imported-constant
+`compiler/syntax/returns/EarlyReturnSources.w`, imported-constant
+`compiler/syntax/returns/ResolvedEarlyComparisonKinds.w`, and imported-constant
+`compiler/syntax/returns/ResolvedEarlyResultKinds.w` modules compile byte for byte with stage 0.
+`StatementKinds.w` owns 126 unresolved statement identities. `LoopKinds.w` owns six loop-form
+identities. `ResolvedStatements.w` owns seventy-five resolved columns. `Tokens.w` now sticks to lexical work instead of running a parser-IR registry from
+the back room. Eighteen real self-source modules beat seventeen motivational slides. The bar has retained
 counsel. A modular source may carry up to sixty-four sorted unique direct imports.
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
 or excess imports before publication. `compileMinimalWithConstantImport`,

@@ -3,6 +3,7 @@
 module wheeler.compiler.loop_codegen;
 
 import wheeler.compiler.encoding;
+import wheeler.compiler.loop_kinds;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_kinds;

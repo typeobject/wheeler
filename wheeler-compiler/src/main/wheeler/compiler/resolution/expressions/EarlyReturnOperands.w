@@ -3,8 +3,10 @@
 module wheeler.compiler.early_return_operands;
 
 import wheeler.compiler.class_constants;
-import wheeler.compiler.early_return_opcodes;
+import wheeler.compiler.early_comparison_forms;
 import wheeler.compiler.loop_forms;
+import wheeler.compiler.resolved_early_comparison_kinds;
+import wheeler.compiler.resolved_early_result_kinds;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
@@ -49,8 +51,12 @@ classical class EarlyReturnOperands {
       return new EarlyReturnOperand(0, true, true);
     }
 
-    if (resolvedEarlyEqualityReturn(opcode)) {
+    if (resolvedEarlyComparisonReturn(opcode)) {
       long comparisonToken = statementStart + 5;
+      if (resolvedEarlyLessReturn(opcode)) {
+        comparisonToken = statementStart + 4;
+      }
+
       if (loopOperandNamed(source, tokenStarts, comparisonToken)) {
         ConstantResolution comparisonConstant = resolveClassConstant(
           source,
@@ -83,8 +89,12 @@ classical class EarlyReturnOperands {
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
     if (resolvedEarlySignedReturn(opcode)) {
       long returnToken = statementStart + 9;
-      if (resolvedEarlyEqualityReturn(opcode)) {
+      if (resolvedEarlyComparisonReturn(opcode)) {
         long comparisonToken = statementStart + 5;
+        if (resolvedEarlyLessReturn(opcode)) {
+          comparisonToken = statementStart + 4;
+        }
+
         long comparisonWidth = 1;
         if (loopOperandNamed(source, tokenStarts, comparisonToken) == false) {
           if (utf8Scalar(source, tokenStarts[comparisonToken]) == PUNCTUATION_MINUS) {
@@ -92,7 +102,10 @@ classical class EarlyReturnOperands {
           }
         }
 
-        returnToken = statementStart + 8 + comparisonWidth;
+        returnToken = comparisonToken + comparisonWidth + 3;
+        if (resolvedEarlyComputedReturn(opcode)) {
+          returnToken += 2;
+        }
       }
 
       return signedReturnOperand(source, tokenStarts, tokenLengths, returnToken);
@@ -106,8 +119,13 @@ classical class EarlyReturnOperands {
       return new EarlyReturnOperand(0, true, true);
     }
 
-    if (resolvedEarlyEqualityReturn(opcode)) {
-      if (sourceOpcode == STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED) {
+    if (resolvedEarlyComparisonReturn(opcode)) {
+      boolean returnsTrue = sourceOpcode == STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED;
+      if (sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_TRUE_NAMED) {
+        returnsTrue = true;
+      }
+
+      if (returnsTrue) {
         return new EarlyReturnOperand(1, true, true);
       }
 
