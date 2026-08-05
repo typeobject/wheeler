@@ -393,6 +393,10 @@ classical class SevenChainPlanShapes {
       return invalidPlan();
     }
 
+    if (firstDependent == secondDependent) {
+      return invalidPlan();
+    }
+
     if (rootDirect[firstLeaf] == 0) {} else {
       return invalidPlan();
     }

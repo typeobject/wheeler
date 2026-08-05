@@ -442,6 +442,22 @@ classical class CompilerGraphSeven {
       return new SevenGraphCompilation(unevenNested.length, unevenNested.codeStart);
     }
 
+    if (plan.topology == SEVEN_PLAN_PAIRED_NESTED_CHAINS_AND_DIRECTS) {
+      SevenNestedCompilation pairedNested = compileSevenPairedNestedChainsAndDirects(
+        plan,
+        firstImportedSource,
+        secondImportedSource,
+        thirdImportedSource,
+        fourthImportedSource,
+        fifthImportedSource,
+        sixthImportedSource,
+        seventhImportedSource,
+        rootSource,
+        output
+      );
+      return new SevenGraphCompilation(pairedNested.length, pairedNested.codeStart);
+    }
+
     assert(plan.topology == SEVEN_PLAN_DIRECT);
     return new SevenGraphCompilation(0, 0);
   }
