@@ -47,4 +47,6 @@ classical class SevenPlanKinds {
   public const long SEVEN_PLAN_UNEVEN_NESTED_FORK_AND_DIRECTS = 21;
   /// Names two chained branches joined below two direct root imports.
   public const long SEVEN_PLAN_PAIRED_NESTED_CHAINS_AND_DIRECTS = 22;
+  /// Names one extended three-branch fork beside two direct root imports.
+  public const long SEVEN_PLAN_EXTENDED_FORK_AND_DIRECTS = 23;
 }

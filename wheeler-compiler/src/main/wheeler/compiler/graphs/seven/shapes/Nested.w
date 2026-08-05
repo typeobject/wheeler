@@ -624,4 +624,133 @@ classical class SevenNestedPlanShapes {
       true
     );
   }
+
+  /// Assigns one extended three-branch fork beside two direct root imports.
+  public SevenGraphPlan extendedForkAndDirectsPlan(
+    borrow mut words graph,
+    borrow mut words rootDirect
+  ) {
+    long dependent = -1;
+    long candidate = 0;
+    while (candidate < MODULE_COUNT) limit MODULE_COUNT {
+      if (incomingCount(graph, candidate) == THREE_EDGES) {
+        if (outgoingCount(graph, candidate) == 0) {
+          if (rootDirect[candidate] == 1) {
+            dependent = candidate;
+          }
+        }
+      }
+
+      candidate += 1;
+    }
+
+    if (dependent < 0) {
+      return invalidPlan();
+    }
+
+    long chainLeaf = -1;
+    long middle = -1;
+    long firstLeaf = -1;
+    long secondLeaf = -1;
+    long leafCount = 0;
+    long source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[source * MODULE_COUNT + dependent] == 1) {
+        if (rootDirect[source] == 0) {} else {
+          return invalidPlan();
+        }
+
+        if (incomingCount(graph, source) == SINGLE_EDGE) {
+          if (middle < 0) {} else {
+            return invalidPlan();
+          }
+
+          if (outgoingCount(graph, source) == SINGLE_EDGE) {} else {
+            return invalidPlan();
+          }
+
+          middle = source;
+        } else {
+          if (incomingCount(graph, source) == 0) {} else {
+            return invalidPlan();
+          }
+
+          if (outgoingCount(graph, source) == SINGLE_EDGE) {} else {
+            return invalidPlan();
+          }
+
+          if (leafCount == 0) {
+            firstLeaf = source;
+          } else {
+            secondLeaf = source;
+          }
+
+          leafCount += 1;
+        }
+      }
+
+      source += 1;
+    }
+
+    if (middle < 0) {
+      return invalidPlan();
+    }
+
+    if (leafCount == TWO_EDGES) {} else {
+      return invalidPlan();
+    }
+
+    source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (graph[source * MODULE_COUNT + middle] == 1) {
+        chainLeaf = source;
+      }
+
+      source += 1;
+    }
+
+    if (chainLeaf < 0) {
+      return invalidPlan();
+    }
+
+    if (rootDirect[chainLeaf] == 0) {} else {
+      return invalidPlan();
+    }
+
+    long firstDirect = -1;
+    long secondDirect = -1;
+    long directCount = 0;
+    source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      if (rootDirect[source] == 1) {
+        if (source == dependent) {} else {
+          if (directCount == 0) {
+            firstDirect = source;
+          } else {
+            secondDirect = source;
+          }
+
+          directCount += 1;
+        }
+      }
+
+      source += 1;
+    }
+
+    if (directCount == TWO_DIRECTS) {} else {
+      return invalidPlan();
+    }
+
+    return new SevenGraphPlan(
+      SEVEN_PLAN_EXTENDED_FORK_AND_DIRECTS,
+      chainLeaf,
+      middle,
+      firstLeaf,
+      secondLeaf,
+      dependent,
+      firstDirect,
+      secondDirect,
+      true
+    );
+  }
 }

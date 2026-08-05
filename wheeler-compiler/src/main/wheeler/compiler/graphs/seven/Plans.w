@@ -340,6 +340,10 @@ classical class SevenGraphPlans {
           }
 
           if (result.valid) {} else {
+            result = extendedForkAndDirectsPlan(graph, rootDirect);
+          }
+
+          if (result.valid) {} else {
             result = twoLongChainsAndDirectPlan(graph, rootDirect);
           }
 
