@@ -36,7 +36,7 @@ classical class ScalarHelperTables {
     );
   }
 
-  /// Selects one helper from sixteen fixed table slots.
+  /// Selects one helper from twenty-two fixed table slots.
   public HelperBody selectedBody(
     HelperBody first,
     HelperBody second,
@@ -54,6 +54,12 @@ classical class ScalarHelperTables {
     HelperBody fourteenth,
     HelperBody fifteenth,
     HelperBody sixteenth,
+    HelperBody seventeenth,
+    HelperBody eighteenth,
+    HelperBody nineteenth,
+    HelperBody twentieth,
+    HelperBody twentyFirst,
+    HelperBody twentySecond,
     long index
   ) {
     if (index == 0) {
@@ -116,7 +122,31 @@ classical class ScalarHelperTables {
       return fifteenth;
     }
 
-    return sixteenth;
+    if (index == 15) {
+      return sixteenth;
+    }
+
+    if (index == 16) {
+      return seventeenth;
+    }
+
+    if (index == 17) {
+      return eighteenth;
+    }
+
+    if (index == 18) {
+      return nineteenth;
+    }
+
+    if (index == 19) {
+      return twentieth;
+    }
+
+    if (index == 20) {
+      return twentyFirst;
+    }
+
+    return twentySecond;
   }
 
   /// Checks that all occupied helper names are distinct.
@@ -138,6 +168,12 @@ classical class ScalarHelperTables {
     HelperBody fourteenth,
     HelperBody fifteenth,
     HelperBody sixteenth,
+    HelperBody seventeenth,
+    HelperBody eighteenth,
+    HelperBody nineteenth,
+    HelperBody twentieth,
+    HelperBody twentyFirst,
+    HelperBody twentySecond,
     long helperCount
   ) {
     long left = 0;
@@ -159,6 +195,12 @@ classical class ScalarHelperTables {
         fourteenth,
         fifteenth,
         sixteenth,
+        seventeenth,
+        eighteenth,
+        nineteenth,
+        twentieth,
+        twentyFirst,
+        twentySecond,
         left
       );
       long right = left + 1;
@@ -180,6 +222,12 @@ classical class ScalarHelperTables {
           fourteenth,
           fifteenth,
           sixteenth,
+          seventeenth,
+          eighteenth,
+          nineteenth,
+          twentieth,
+          twentyFirst,
+          twentySecond,
           right
         );
         if (compareHelpers(source, leftBody, rightBody) == 0) {
@@ -217,6 +265,12 @@ classical class ScalarHelperTables {
     HelperBody fourteenth,
     HelperBody fifteenth,
     HelperBody sixteenth,
+    HelperBody seventeenth,
+    HelperBody eighteenth,
+    HelperBody nineteenth,
+    HelperBody twentieth,
+    HelperBody twentyFirst,
+    HelperBody twentySecond,
     long helperCount
   ) {
     if (target.length == 0) {
@@ -243,6 +297,12 @@ classical class ScalarHelperTables {
         fourteenth,
         fifteenth,
         sixteenth,
+        seventeenth,
+        eighteenth,
+        nineteenth,
+        twentieth,
+        twentyFirst,
+        twentySecond,
         helper
       );
       long order = compareAsciiSlices(
@@ -294,6 +354,12 @@ classical class ScalarHelperTables {
     HelperBody fourteenth,
     HelperBody fifteenth,
     HelperBody sixteenth,
+    HelperBody seventeenth,
+    HelperBody eighteenth,
+    HelperBody nineteenth,
+    HelperBody twentieth,
+    HelperBody twentyFirst,
+    HelperBody twentySecond,
     long helperCount
   ) {
     boolean firstForwarding = caller.firstCallStatement == caller.resultStatement;
@@ -330,6 +396,12 @@ classical class ScalarHelperTables {
       fourteenth,
       fifteenth,
       sixteenth,
+      seventeenth,
+      eighteenth,
+      nineteenth,
+      twentieth,
+      twentyFirst,
+      twentySecond,
       helperCount
     );
     long secondFunction = resolveCallFunction(
@@ -354,6 +426,12 @@ classical class ScalarHelperTables {
       fourteenth,
       fifteenth,
       sixteenth,
+      seventeenth,
+      eighteenth,
+      nineteenth,
+      twentieth,
+      twentyFirst,
+      twentySecond,
       helperCount
     );
     boolean valid = true;

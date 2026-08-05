@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 /** Differential evidence for bounded native scalar helper tables. */
 final class NativeCompilerHelperTableExampleTest {
   private static final String[] HELPER_NAMES = {
-      "omega", "alpha", "theta", "beta", "zeta", "gamma", "sigma", "delta", "kappa", "lambda", "iota", "mu", "nu", "xi", "omicron", "pi", "rho"
+      "omega", "alpha", "theta", "beta", "zeta", "gamma", "sigma", "delta", "kappa", "lambda", "iota", "mu", "nu", "xi", "omicron", "pi", "rho", "tau", "upsilon", "phi", "chi", "psi", "eta"
   };
 
   @Test
@@ -44,26 +44,26 @@ final class NativeCompilerHelperTableExampleTest {
   }
 
   @Test
-  void compilesSixteenEntrylessHelpersByteForByte() throws Exception {
+  void compilesTwentyTwoEntrylessHelpersByteForByte() throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
-    String source = helperSource(16);
+    String source = helperSource(22);
     VirtualMachine writer = nativeWriter(compiler, source);
     CompilerMachineRunner.runWithoutRewindHistory(writer);
 
     Program expected = new WheelerCompiler().compileLibraryModuleFiles(
-        Map.of("SixteenHelpers.w", source),
+        Map.of("TwentyTwoHelpers.w", source),
         "examples.two_helpers");
     byte[] artifact = writer.hostOutput();
     assertArrayEquals(new BytecodeWriter().write(expected), artifact);
     Program decoded = new BytecodeReader().read(artifact);
     assertEquals("examples.two_helpers::omega", decoded.functions().getFirst().name());
-    assertEquals("examples.two_helpers::pi", decoded.functions().get(15).name());
+    assertEquals("examples.two_helpers::psi", decoded.functions().get(21).name());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 
   @Test
-  void rejectsSeventeenthEntrylessHelperBeforePublication() throws Exception {
-    assertNoPublication(CompilerSources.minimalCompilerProgram(), helperSource(17));
+  void rejectsTwentyThirdEntrylessHelperBeforePublication() throws Exception {
+    assertNoPublication(CompilerSources.minimalCompilerProgram(), helperSource(23));
   }
 
   private static String helperSource(int count) {

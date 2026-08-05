@@ -28,6 +28,12 @@ classical class ScalarHelperParsing {
     HelperBody fourteenth,
     HelperBody fifteenth,
     HelperBody sixteenth,
+    HelperBody seventeenth,
+    HelperBody eighteenth,
+    HelperBody nineteenth,
+    HelperBody twentieth,
+    HelperBody twentyFirst,
+    HelperBody twentySecond,
     boolean valid
   ) {}
 
@@ -50,11 +56,17 @@ classical class ScalarHelperParsing {
       emptyHelperBody(),
       emptyHelperBody(),
       emptyHelperBody(),
+      emptyHelperBody(),
+      emptyHelperBody(),
+      emptyHelperBody(),
+      emptyHelperBody(),
+      emptyHelperBody(),
+      emptyHelperBody(),
       false
     );
   }
 
-  /// Parses two through sixteen scalar helper declarations in source order.
+  /// Parses two through twenty-two scalar helper declarations in source order.
   public ScalarHelperTable parseScalarHelpers(
     borrow utf8 source,
     borrow mut words tokenKinds,
@@ -108,6 +120,12 @@ classical class ScalarHelperParsing {
     ParsedScalarHelper fourteenth = invalidHelper();
     ParsedScalarHelper fifteenth = invalidHelper();
     ParsedScalarHelper sixteenth = invalidHelper();
+    ParsedScalarHelper seventeenth = invalidHelper();
+    ParsedScalarHelper eighteenth = invalidHelper();
+    ParsedScalarHelper nineteenth = invalidHelper();
+    ParsedScalarHelper twentieth = invalidHelper();
+    ParsedScalarHelper twentyFirst = invalidHelper();
+    ParsedScalarHelper twentySecond = invalidHelper();
     if (
       punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
     ) {
@@ -375,6 +393,120 @@ classical class ScalarHelperParsing {
     }
 
     if (
+      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
+    ) {
+      seventeenth = parseScalarHelper(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        statementStarts,
+        classClose
+      );
+      if (seventeenth.valid) {} else {
+        return invalidTable();
+      }
+
+      helperCount = 17;
+      classClose = seventeenth.nextToken;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
+    ) {
+      eighteenth = parseScalarHelper(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        statementStarts,
+        classClose
+      );
+      if (eighteenth.valid) {} else {
+        return invalidTable();
+      }
+
+      helperCount = 18;
+      classClose = eighteenth.nextToken;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
+    ) {
+      nineteenth = parseScalarHelper(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        statementStarts,
+        classClose
+      );
+      if (nineteenth.valid) {} else {
+        return invalidTable();
+      }
+
+      helperCount = 19;
+      classClose = nineteenth.nextToken;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
+    ) {
+      twentieth = parseScalarHelper(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        statementStarts,
+        classClose
+      );
+      if (twentieth.valid) {} else {
+        return invalidTable();
+      }
+
+      helperCount = 20;
+      classClose = twentieth.nextToken;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
+    ) {
+      twentyFirst = parseScalarHelper(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        statementStarts,
+        classClose
+      );
+      if (twentyFirst.valid) {} else {
+        return invalidTable();
+      }
+
+      helperCount = 21;
+      classClose = twentyFirst.nextToken;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
+    ) {
+      twentySecond = parseScalarHelper(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        statementStarts,
+        classClose
+      );
+      if (twentySecond.valid) {} else {
+        return invalidTable();
+      }
+
+      helperCount = 22;
+      classClose = twentySecond.nextToken;
+    }
+
+    if (
       punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE)
     ) {} else {
       return invalidTable();
@@ -402,6 +534,12 @@ classical class ScalarHelperParsing {
       fourteenth.body,
       fifteenth.body,
       sixteenth.body,
+      seventeenth.body,
+      eighteenth.body,
+      nineteenth.body,
+      twentieth.body,
+      twentyFirst.body,
+      twentySecond.body,
       true
     );
   }

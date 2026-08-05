@@ -54,6 +54,12 @@ classical class CompilerIr {
     HelperBody fourteenthHelper,
     HelperBody fifteenthHelper,
     HelperBody sixteenthHelper,
+    HelperBody seventeenthHelper,
+    HelperBody eighteenthHelper,
+    HelperBody nineteenthHelper,
+    HelperBody twentiethHelper,
+    HelperBody twentyFirstHelper,
+    HelperBody twentySecondHelper,
     SourceRange proofName,
     long proofCount,
     long helperCallCount,
@@ -123,7 +129,31 @@ classical class CompilerIr {
       return program.fifteenthHelper;
     }
 
-    return program.sixteenthHelper;
+    if (index == 15) {
+      return program.sixteenthHelper;
+    }
+
+    if (index == 16) {
+      return program.seventeenthHelper;
+    }
+
+    if (index == 17) {
+      return program.eighteenthHelper;
+    }
+
+    if (index == 18) {
+      return program.nineteenthHelper;
+    }
+
+    if (index == 19) {
+      return program.twentiethHelper;
+    }
+
+    if (index == 20) {
+      return program.twentyFirstHelper;
+    }
+
+    return program.twentySecondHelper;
   }
 
   /// Returns one absent helper used to fill a bounded helper table.

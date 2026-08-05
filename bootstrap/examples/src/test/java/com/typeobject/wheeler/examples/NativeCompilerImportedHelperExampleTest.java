@@ -14,11 +14,11 @@ import org.junit.jupiter.api.Test;
 /** Differential evidence for bounded native imported scalar helpers. */
 final class NativeCompilerImportedHelperExampleTest {
   @Test
-  void compilesEverySixteenHelperOwnerSplitByteForByte() throws Exception {
+  void compilesEveryTwentyTwoHelperOwnerSplitByteForByte() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
     for (int importedCount = 1; importedCount < 16; importedCount += 1) {
       String dependency = splitDependency(importedCount);
-      String root = splitRoot(16 - importedCount);
+      String root = splitRoot(22 - importedCount);
       byte[] artifact = NativeModuleCompilerHarness.compile(
           compiler,
           List.of(dependency),
@@ -29,7 +29,7 @@ final class NativeCompilerImportedHelperExampleTest {
       assertArrayEquals(
           new BytecodeWriter().write(expected),
           artifact,
-          "owner split " + importedCount + "+" + (16 - importedCount));
+          "owner split " + importedCount + "+" + (22 - importedCount));
       Program decoded = new BytecodeReader().read(artifact);
       assertEquals("example.split::dep0", decoded.functions().getFirst().name());
       assertEquals("example.root::root0", decoded.functions().get(importedCount).name());
@@ -38,7 +38,7 @@ final class NativeCompilerImportedHelperExampleTest {
 
     NativeModuleCompilerHarness.assertTrap(
         compiler,
-        List.of(splitDependency(16)),
+        List.of(splitDependency(22)),
         splitRoot(1));
   }
 
