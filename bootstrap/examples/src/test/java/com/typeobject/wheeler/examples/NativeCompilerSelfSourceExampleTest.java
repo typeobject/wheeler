@@ -507,8 +507,8 @@ final class NativeCompilerSelfSourceExampleTest {
         "    return value < 4;",
         "  }",
         "",
-        "  private boolean empty(long value) {",
-        "    return value == 0;",
+        "  private boolean ready() {",
+        "    return true;",
         "  }",
         "}",
         "");
@@ -534,7 +534,7 @@ final class NativeCompilerSelfSourceExampleTest {
     assertArrayEquals(expectedArtifact, artifact);
     Program decoded = new BytecodeReader().read(artifact);
     assertEquals("example.predicates::below", decoded.functions().getFirst().name());
-    assertEquals("example.predicates::empty", decoded.functions().get(1).name());
+    assertEquals("example.predicates::ready", decoded.functions().get(1).name());
     assertEquals("example.use::accepted", decoded.functions().get(2).name());
     assertEquals(8, decoded.functions().get(2).localCount());
     assertEquals(11, decoded.functions().get(2).forward().size());
@@ -668,6 +668,37 @@ final class NativeCompilerSelfSourceExampleTest {
     assertEquals("examples.two_helpers::first", decoded.functions().get(0).name());
     assertEquals("examples.two_helpers::second", decoded.functions().get(1).name());
     assertEquals("$library", decoded.functions().get(2).name());
+  }
+
+  @Test
+  void compilesMixedZeroAndOneParameterHelpersByteForByte() throws Exception {
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    String source = twoHelperSource("""
+          private long fixed() {
+            return 7;
+          }
+
+          public boolean ready() {
+            return true;
+          }
+
+          public long identity(long value) {
+            return value;
+          }
+        """);
+    VirtualMachine writer = nativeWriter(compiler, source);
+    CompilerMachineRunner.runWithoutRewindHistory(writer);
+
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("MixedHelpers.w", source),
+        "examples.two_helpers");
+    byte[] artifact = writer.hostOutput();
+    assertArrayEquals(new BytecodeWriter().write(expected), artifact);
+    Program decoded = new BytecodeReader().read(artifact);
+    assertEquals(0, decoded.functions().get(0).parameterCount());
+    assertEquals(0, decoded.functions().get(1).parameterCount());
+    assertEquals(1, decoded.functions().get(2).parameterCount());
+    assertEquals("$library", decoded.functions().get(3).name());
   }
 
   @Test

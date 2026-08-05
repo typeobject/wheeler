@@ -73,8 +73,13 @@ classical class ScalarHelperLibraries {
     }
 
     long result = sequence.count - 1;
-    boolean validResult = signedResult(sequence.opcodes[result]);
+    boolean booleanHelper = kind == HELPER_BOOLEAN;
     if (kind == HELPER_BOOLEAN_SIGNED_ONE) {
+      booleanHelper = true;
+    }
+
+    boolean validResult = signedResult(sequence.opcodes[result]);
+    if (booleanHelper) {
       validResult = booleanResult(sequence.opcodes[result]);
     }
 
@@ -95,7 +100,7 @@ classical class ScalarHelperLibraries {
       }
 
       boolean signedEarlyReturn = resolvedEarlySignedReturn(earlyOpcode);
-      if (kind == HELPER_BOOLEAN_SIGNED_ONE) {
+      if (booleanHelper) {
         if (signedEarlyReturn) {
           return false;
         }
@@ -127,22 +132,17 @@ classical class ScalarHelperLibraries {
     }
 
     long returnType = tokenHash(source, tokenStarts, tokenLengths, start + 1);
-    long kind = HELPER_SIGNED_ONE;
+    long kind = HELPER_SIGNED;
     if (returnType == TOKEN_LONG) {} else {
       if (returnType == TOKEN_BOOLEAN) {
-        kind = HELPER_BOOLEAN_SIGNED_ONE;
+        kind = HELPER_BOOLEAN;
       } else {
         return invalidHelper();
       }
     }
 
     long nameToken = start + 2;
-    long parameterToken = start + 5;
     if (tokenKinds[nameToken] == 1) {} else {
-      return invalidHelper();
-    }
-
-    if (tokenKinds[parameterToken] == 1) {} else {
       return invalidHelper();
     }
 
@@ -150,15 +150,7 @@ classical class ScalarHelperLibraries {
       return invalidHelper();
     }
 
-    if (tokenLengths[parameterToken] < 257) {} else {
-      return invalidHelper();
-    }
-
     if (classConstantNameExists(source, tokenStarts, tokenLengths, nameToken)) {
-      return invalidHelper();
-    }
-
-    if (classConstantNameExists(source, tokenStarts, tokenLengths, parameterToken)) {
       return invalidHelper();
     }
 
@@ -168,18 +160,46 @@ classical class ScalarHelperLibraries {
       return invalidHelper();
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, start + 4) == TOKEN_LONG) {} else {
-      return invalidHelper();
-    }
-
+    long parameterCount = 0;
+    long parameterToken = 0;
+    long bodyOpen = start + 5;
     if (
-      punctuationAt(source, tokenKinds, tokenStarts, start + 6, PUNCTUATION_CLOSE_PAREN)
+      punctuationAt(source, tokenKinds, tokenStarts, start + 4, PUNCTUATION_CLOSE_PAREN)
     ) {} else {
-      return invalidHelper();
+      if (tokenHash(source, tokenStarts, tokenLengths, start + 4) == TOKEN_LONG) {} else {
+        return invalidHelper();
+      }
+
+      parameterToken = start + 5;
+      if (tokenKinds[parameterToken] == 1) {} else {
+        return invalidHelper();
+      }
+
+      if (tokenLengths[parameterToken] < 257) {} else {
+        return invalidHelper();
+      }
+
+      if (classConstantNameExists(source, tokenStarts, tokenLengths, parameterToken)) {
+        return invalidHelper();
+      }
+
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, start + 6, PUNCTUATION_CLOSE_PAREN)
+      ) {} else {
+        return invalidHelper();
+      }
+
+      parameterCount = 1;
+      bodyOpen = start + 7;
+      if (returnType == TOKEN_LONG) {
+        kind = HELPER_SIGNED_ONE;
+      } else {
+        kind = HELPER_BOOLEAN_SIGNED_ONE;
+      }
     }
 
     if (
-      punctuationAt(source, tokenKinds, tokenStarts, start + 7, PUNCTUATION_OPEN_BRACE)
+      punctuationAt(source, tokenKinds, tokenStarts, bodyOpen, PUNCTUATION_OPEN_BRACE)
     ) {} else {
       return invalidHelper();
     }
@@ -190,7 +210,7 @@ classical class ScalarHelperLibraries {
       tokenStarts,
       tokenLengths,
       statementStarts,
-      start + 8
+      bodyOpen + 1
     );
     if (statements.valid) {} else {
       return invalidHelper();
@@ -253,13 +273,16 @@ classical class ScalarHelperLibraries {
       return invalidHelper();
     }
 
-    long shifted = statements.count;
-    while (0 < shifted) limit MAX_MINIMAL_STATEMENTS {
-      set(statementStarts, shifted, statementStarts[shifted - 1]);
-      shifted -= 1;
+    if (parameterCount == 1) {
+      long shifted = statements.count;
+      while (0 < shifted) limit MAX_MINIMAL_STATEMENTS {
+        set(statementStarts, shifted, statementStarts[shifted - 1]);
+        shifted -= 1;
+      }
+
+      set(statementStarts, 0, 0 - parameterToken);
     }
 
-    set(statementStarts, 0, 0 - (nameToken + 3));
     StatementSequence sequence = parseStatementSequence(
       source,
       tokenStarts,
