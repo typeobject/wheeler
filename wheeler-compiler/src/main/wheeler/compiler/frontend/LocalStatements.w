@@ -13,6 +13,7 @@ import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.loop_forms;
 import wheeler.compiler.mutation_resolution;
+import wheeler.compiler.named_conditional_bases;
 import wheeler.compiler.named_literal_comparison_kinds;
 import wheeler.compiler.named_local_assignment_kinds;
 import wheeler.compiler.named_local_conditional_kinds;

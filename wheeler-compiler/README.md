@@ -80,6 +80,7 @@ imported-constant `compiler/resolution/returns/ReturnOpcodeKinds.w`, imported-co
 `compiler/syntax/booleans/ResolvedBooleanLiteralComparisons.w`, imported-constant
 `compiler/syntax/comparisons/NamedComparisonKinds.w`, imported-constant
 `compiler/syntax/conditionals/LiteralComparisonOperations.w`, imported-constant
+`compiler/syntax/conditionals/NamedConditionalBases.w`, imported-constant
 `compiler/syntax/conditionals/NamedLiteralComparisonKinds.w`, imported-constant
 `compiler/syntax/conditionals/NamedLocalConditionalKinds.w`, imported-constant
 `compiler/syntax/conditionals/NamedLocalConditionalValues.w`, imported-constant
@@ -120,7 +121,7 @@ imported-constant `compiler/ir/InstructionForms.w`, imported-constant
 and imported-constant `compiler/syntax/returns/ResolvedReturnCallKinds.w` modules compile byte for byte with stage 0.
 `StatementKinds.w` owns 128 unresolved statement identities. `LoopKinds.w` owns six loop-form
 identities. `ResolvedStatements.w` owns seventy-nine resolved columns. `Tokens.w` now sticks to
-lexical work instead of running a parser-IR registry from the back room. Sixty-one real self-source modules beat sixty-one motivational slides, because the code now needs one fewer module. The bar has retained counsel. A modular source may carry up to sixty-four sorted unique direct imports.
+lexical work instead of running a parser-IR registry from the back room. Sixty-two real self-source modules beat sixty-one motivational slides. One of them now owns conditional base mapping instead of leaving it in the parser's coat pocket. The bar has retained counsel. A modular source may carry up to sixty-four sorted unique direct imports.
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
 or excess imports before publication. `compileMinimalWithConstantImport`,
 `compileMinimalWithConstantImports`, `compileMinimalWithThreeConstantImports`, and

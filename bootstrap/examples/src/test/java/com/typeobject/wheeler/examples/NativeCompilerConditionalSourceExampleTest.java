@@ -52,6 +52,23 @@ class NativeCompilerConditionalSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalNamedConditionalBasesByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/syntax/conditionals/NamedConditionalBases.w",
+        "wheeler.compiler.named_conditional_bases",
+        "compiler/ir/ResolvedStatements.w",
+        "compiler/ir/StatementKinds.w");
+    assertEquals(
+        "wheeler.compiler.named_conditional_bases::namedLiteralComparisonConditionalBase",
+        decoded.functions().getFirst().name());
+    assertEquals(
+        "wheeler.compiler.named_conditional_bases::namedLocalConditionalBase",
+        decoded.functions().get(1).name());
+    assertEquals(3, decoded.functions().size());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesCanonicalNamedLiteralComparisonKindsByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/syntax/conditionals/NamedLiteralComparisonKinds.w",
