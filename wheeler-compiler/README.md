@@ -71,6 +71,8 @@ before publication. The checked-in `compiler/ir/Opcodes.w`,
 `compiler/ir/ProofRules.w`, `compiler/ir/ResolvedStatements.w`,
 `compiler/ir/StatementKinds.w`, `compiler/ir/StorageOpcodes.w`, `compiler/ir/TypeCodes.w`,
 imported-constant `compiler/resolution/returns/ReturnOpcodeKinds.w`, imported-constant
+`compiler/syntax/assignments/NamedLocalAssignmentKinds.w`, imported-constant
+`compiler/syntax/assignments/ResolvedLocalAssignments.w`, imported-constant
 `compiler/syntax/assertions/ResolvedBooleanLiteralAssertions.w`, imported-constant
 `compiler/syntax/assertions/ResolvedLessThanAssertions.w`, imported-constant
 `compiler/syntax/assertions/ResolvedLocalPairAssertions.w`, imported-constant
@@ -91,7 +93,11 @@ imported-constant `compiler/resolution/returns/ReturnOpcodeKinds.w`, imported-co
 `compiler/syntax/locals/ResolvedLocalLessThanKinds.w`, imported-constant
 `compiler/syntax/locals/ResolvedLocalLiteralComparisons.w`, imported-constant
 `compiler/syntax/locals/ResolvedLocalLiteralComparisonSources.w`, imported-constant
-`compiler/syntax/locals/ResolvedLongOperations.w`, imported-constant `compiler/ir/OpcodeKinds.w`, imported-constant `compiler/ir/TypeKinds.w`,
+`compiler/syntax/locals/ResolvedLongOperations.w`, imported-constant
+`compiler/syntax/loops/ResolvedLocalLoopForms.w`, imported-constant
+`compiler/syntax/loops/ResolvedLocalLoopKinds.w`, imported-constant
+`compiler/syntax/updates/NamedLocalUpdateKinds.w`, imported-constant
+`compiler/syntax/updates/ResolvedLocalUpdates.w`, imported-constant `compiler/ir/OpcodeKinds.w`, imported-constant `compiler/ir/TypeKinds.w`,
 imported-constant `compiler/ir/InstructionForms.w`, imported-constant
 `compiler/syntax/BooleanDeclarationKinds.w`, imported-constant
 `compiler/syntax/EarlyReturnKinds.w`, imported-constant
@@ -106,7 +112,7 @@ imported-constant `compiler/ir/InstructionForms.w`, imported-constant
 and imported-constant `compiler/syntax/returns/ResolvedReturnCallKinds.w` modules compile byte for byte with stage 0.
 `StatementKinds.w` owns 128 unresolved statement identities. `LoopKinds.w` owns six loop-form
 identities. `ResolvedStatements.w` owns seventy-nine resolved columns. `Tokens.w` now sticks to
-lexical work instead of running a parser-IR registry from the back room. Forty-four real self-source modules beat forty-three motivational slides. The bar has retained counsel. A modular source may carry up to sixty-four sorted unique direct imports.
+lexical work instead of running a parser-IR registry from the back room. Fifty real self-source modules beat forty-nine motivational slides. The bar has retained counsel. A modular source may carry up to sixty-four sorted unique direct imports.
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
 or excess imports before publication. `compileMinimalWithConstantImport`,
 `compileMinimalWithConstantImports`, `compileMinimalWithThreeConstantImports`, and

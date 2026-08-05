@@ -16,7 +16,6 @@ import wheeler.compiler.resolved_local_pair_assertions;
 import wheeler.compiler.resolved_local_returns;
 import wheeler.compiler.resolved_long_operations;
 import wheeler.compiler.resolved_statements;
-import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.two_argument_call_kinds;

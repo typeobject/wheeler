@@ -12,14 +12,18 @@ import wheeler.compiler.local_resolution;
 import wheeler.compiler.loop_forms;
 import wheeler.compiler.named_literal_comparison_kinds;
 import wheeler.compiler.operands;
+import wheeler.compiler.resolved_local_loop_forms;
+import wheeler.compiler.resolved_local_loop_kinds;
+import wheeler.compiler.resolved_local_loop_operands;
 import wheeler.compiler.return_expressions;
-import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
 
 classical class SecondaryOperands {
+  private const long LOOP_SOURCE_FORM_COUNT = 2;
+
   /// Resolves the optional second scalar operand for one statement.
   public long sequenceStatementSecondaryOperand(
     borrow utf8 source,
@@ -51,7 +55,9 @@ classical class SecondaryOperands {
 
     if (resolvedLocalWhile(opcode)) {
       long loopLimit = whileLimitToken(source, tokenStarts, statementStart);
-      if (resolvedLocalWhileLimitNamed(opcode)) {
+      if (
+        localWhileLimitPair(resolvedLocalWhileForm(opcode)) % LOOP_SOURCE_FORM_COUNT == 1
+      ) {
         return resolvePriorDeclaration(
           source,
           tokenStarts,

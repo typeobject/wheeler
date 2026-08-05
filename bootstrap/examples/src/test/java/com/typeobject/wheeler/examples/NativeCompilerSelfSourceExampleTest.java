@@ -13,6 +13,8 @@ import com.typeobject.wheeler.core.vm.MachineStatus;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -884,15 +886,20 @@ final class NativeCompilerSelfSourceExampleTest {
   static Program assertImportedConstantCompilerLibrary(
       String logicalPath,
       String moduleName,
-      String dependencyPath) throws Exception {
+      String... dependencyPaths) throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
-    String dependency = CompilerSources.read(dependencyPath);
+    List<String> dependencies = new ArrayList<>();
+    Map<String, String> sources = new LinkedHashMap<>();
+    for (String dependencyPath : dependencyPaths) {
+      String dependency = CompilerSources.read(dependencyPath);
+      dependencies.add(dependency);
+      sources.put(dependencyPath, dependency);
+    }
     String root = CompilerSources.read(logicalPath);
+    sources.put(logicalPath, root);
 
-    byte[] artifact = NativeModuleCompilerHarness.compile(compiler, dependency, root);
-    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
-        Map.of(dependencyPath, dependency, logicalPath, root),
-        moduleName);
+    byte[] artifact = NativeModuleCompilerHarness.compile(compiler, dependencies, root);
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(sources, moduleName);
     assertArrayEquals(new BytecodeWriter().write(expected), artifact);
     return new BytecodeReader().read(artifact);
   }

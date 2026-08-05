@@ -15,14 +15,21 @@ import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.local_statements;
 import wheeler.compiler.loop_forms;
+import wheeler.compiler.loop_kinds;
 import wheeler.compiler.mutation_resolution;
 import wheeler.compiler.named_literal_comparison_kinds;
+import wheeler.compiler.named_local_assignment_kinds;
 import wheeler.compiler.named_local_conditional_kinds;
 import wheeler.compiler.named_local_conditional_values;
+import wheeler.compiler.named_local_update_kinds;
 import wheeler.compiler.named_long_operations;
 import wheeler.compiler.one_argument_calls;
+import wheeler.compiler.resolved_local_assignments;
+import wheeler.compiler.resolved_local_loop_forms;
+import wheeler.compiler.resolved_local_loop_kinds;
+import wheeler.compiler.resolved_local_loop_operands;
+import wheeler.compiler.resolved_local_updates;
 import wheeler.compiler.return_expressions;
-import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
@@ -390,7 +397,10 @@ classical class Operands {
 
     if (resolvedLocalWhile(opcode)) {
       long whileConditionRight = whileConditionValueToken(source, tokenStarts, statementStart);
-      if (resolvedLocalWhileConditionNamed(opcode)) {
+      if (
+        localWhileConditionBit(resolvedLocalWhileForm(opcode))
+          == STATEMENT_LOCAL_WHILE_CONDITION_NAMED
+      ) {
         return resolvePriorDeclaration(
           source,
           tokenStarts,

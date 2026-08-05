@@ -5,7 +5,8 @@ module wheeler.compiler.loop_codegen;
 import wheeler.compiler.encoding;
 import wheeler.compiler.loop_kinds;
 import wheeler.compiler.opcodes;
-import wheeler.compiler.scalar_opcodes;
+import wheeler.compiler.resolved_local_loop_forms;
+import wheeler.compiler.resolved_local_loop_operands;
 import wheeler.compiler.statement_kinds;
 
 classical class LoopCodegen {
@@ -13,6 +14,8 @@ classical class LoopCodegen {
   private const long FORM_BINARY = INSTRUCTION_FORM_BINARY;
   private const long FORM_TERNARY = INSTRUCTION_FORM_TERNARY;
   private const long U64 = INSTRUCTION_OPERAND_WIDTH;
+  private const long LOOP_SOURCE_FORM_COUNT = 2;
+  private const long LOOP_UPDATE_FORM_WIDTH = 4;
 
   /// Emits one resolved signed-local while loop.
   public long writeLocalWhile(
@@ -25,8 +28,9 @@ classical class LoopCodegen {
     long instructionBase
   ) {
     long target = resolvedLocalWhileTarget(opcode);
+    long form = resolvedLocalWhileForm(opcode);
     long limitOpcode = OPCODE_LOCAL_CONST;
-    if (resolvedLocalWhileLimitNamed(opcode)) {
+    if (localWhileLimitPair(form) % LOOP_SOURCE_FORM_COUNT == 1) {
       limitOpcode = OPCODE_LOCAL_MOVE;
     }
 
@@ -41,11 +45,11 @@ classical class LoopCodegen {
     long leftOperand = target;
     long conditionOpcode = OPCODE_LOCAL_CONST;
     long conditionOperand = operand;
-    if (resolvedLocalWhileConditionNamed(opcode)) {
+    if (localWhileConditionBit(form) == STATEMENT_LOCAL_WHILE_CONDITION_NAMED) {
       conditionOpcode = OPCODE_LOCAL_MOVE;
     }
 
-    if (resolvedLocalWhileReversed(opcode)) {
+    if (localWhileReversed(form)) {
       leftOpcode = OPCODE_LOCAL_CONST;
       leftOperand = operand;
       conditionOpcode = OPCODE_LOCAL_MOVE;
@@ -72,12 +76,13 @@ classical class LoopCodegen {
     cursor = writeUnsignedLittleEndian(output, cursor, localBase + 5, U64);
     cursor = writeSignedLittleEndian(output, cursor, /* value= */ 1, U64);
 
+    long updateForm = localWhileUpdateBits(form) / LOOP_UPDATE_FORM_WIDTH * LOOP_UPDATE_FORM_WIDTH;
     long updateOpcode = OPCODE_LOCAL_ADD;
-    if (resolvedLocalWhileUpdateForm(opcode) == STATEMENT_LOCAL_WHILE_SUB_FORM) {
+    if (updateForm == STATEMENT_LOCAL_WHILE_SUB_FORM) {
       updateOpcode = OPCODE_LOCAL_SUB;
     }
 
-    if (resolvedLocalWhileUpdateForm(opcode) == STATEMENT_LOCAL_WHILE_XOR_FORM) {
+    if (updateForm == STATEMENT_LOCAL_WHILE_XOR_FORM) {
       updateOpcode = OPCODE_LOCAL_XOR;
     }
 

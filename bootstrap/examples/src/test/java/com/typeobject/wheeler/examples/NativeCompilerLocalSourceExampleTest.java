@@ -10,6 +10,65 @@ import org.junit.jupiter.api.Test;
 /** Differential self-source tests for bounded local opcode families. */
 class NativeCompilerLocalSourceExampleTest {
   @Test
+  void compilesCanonicalNamedLocalAssignmentKindsByteForByte() throws Exception {
+    assertCanonicalLocalModule(
+        "syntax/assignments/NamedLocalAssignmentKinds.w",
+        "named_local_assignment_kinds",
+        "localAssignmentSourceStatement",
+        2,
+        "compiler/ir/StatementKinds.w");
+  }
+
+  @Test
+  void compilesCanonicalNamedLocalUpdateKindsByteForByte() throws Exception {
+    assertCanonicalLocalModule(
+        "syntax/updates/NamedLocalUpdateKinds.w",
+        "named_local_update_kinds",
+        "localUpdateSourceStatement",
+        2,
+        "compiler/ir/StatementKinds.w");
+  }
+
+  @Test
+  void compilesCanonicalResolvedLocalAssignmentsByteForByte() throws Exception {
+    assertCanonicalLocalModule(
+        "syntax/assignments/ResolvedLocalAssignments.w",
+        "resolved_local_assignments",
+        "resolvedLocalAssignment",
+        5);
+  }
+
+  @Test
+  void compilesCanonicalResolvedLocalLoopFormsByteForByte() throws Exception {
+    assertCanonicalLocalModule(
+        "syntax/loops/ResolvedLocalLoopForms.w",
+        "resolved_local_loop_forms",
+        "localWhileConditionBit",
+        5,
+        "compiler/syntax/LoopKinds.w");
+  }
+
+  @Test
+  void compilesCanonicalResolvedLocalLoopKindsByteForByte() throws Exception {
+    assertCanonicalLocalModule(
+        "syntax/loops/ResolvedLocalLoopKinds.w",
+        "resolved_local_loop_kinds",
+        "resolvedLocalWhile",
+        2,
+        "compiler/syntax/LoopKinds.w",
+        "compiler/ir/ResolvedStatements.w");
+  }
+
+  @Test
+  void compilesCanonicalResolvedLocalUpdatesByteForByte() throws Exception {
+    assertCanonicalLocalModule(
+        "syntax/updates/ResolvedLocalUpdates.w",
+        "resolved_local_updates",
+        "resolvedLocalUpdate",
+        4);
+  }
+
+  @Test
   void compilesCanonicalResolvedBooleanLiteralAssertionsByteForByte() throws Exception {
     assertCanonicalLocalModule(
         "syntax/assertions/ResolvedBooleanLiteralAssertions.w",
@@ -143,10 +202,19 @@ class NativeCompilerLocalSourceExampleTest {
   }
 
   private static void assertCanonicalLocalModule(
-      String logicalPath, String moduleName, String firstFunction, int functionCount)
+      String logicalPath,
+      String moduleName,
+      String firstFunction,
+      int functionCount,
+      String... dependencyPaths)
       throws Exception {
+    if (dependencyPaths.length == 0) {
+      dependencyPaths = new String[] {"compiler/ir/ResolvedStatements.w"};
+    }
     Program decoded = assertImportedConstantCompilerLibrary(
-        "compiler/" + logicalPath, "wheeler.compiler." + moduleName);
+        "compiler/" + logicalPath,
+        "wheeler.compiler." + moduleName,
+        dependencyPaths);
     assertEquals(
         "wheeler.compiler." + moduleName + "::" + firstFunction,
         decoded.functions().getFirst().name());

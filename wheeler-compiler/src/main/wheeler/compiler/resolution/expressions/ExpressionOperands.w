@@ -12,7 +12,6 @@ import wheeler.compiler.resolved_local_inequality_kinds;
 import wheeler.compiler.resolved_local_less_than_kinds;
 import wheeler.compiler.resolved_local_literal_comparisons;
 import wheeler.compiler.resolved_long_operations;
-import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;
 
