@@ -42,5 +42,5 @@ classical class HelperAbi {
   /// Caps scalar helpers in one bounded entryless library.
   public const long MAX_SCALAR_HELPERS = 23;
   /// Caps helpers owned by one direct executable dependency.
-  public const long MAX_IMPORTED_SCALAR_HELPERS = 21;
+  public const long MAX_IMPORTED_SCALAR_HELPERS = 22;
 }

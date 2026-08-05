@@ -16,7 +16,7 @@ final class NativeCompilerImportedHelperExampleTest {
   @Test
   void compilesEveryTwentyThreeHelperOwnerSplitByteForByte() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
-    for (int importedCount = 1; importedCount < 22; importedCount += 1) {
+    for (int importedCount = 1; importedCount < 23; importedCount += 1) {
       String dependency = splitDependency(importedCount);
       String root = splitRoot(23 - importedCount);
       byte[] artifact = NativeModuleCompilerHarness.compile(
