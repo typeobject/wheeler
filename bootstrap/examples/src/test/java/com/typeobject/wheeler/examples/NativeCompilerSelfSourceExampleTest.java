@@ -454,6 +454,32 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalNamedLocalConditionalKindsByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/syntax/conditionals/NamedLocalConditionalKinds.w",
+        "wheeler.compiler.named_local_conditional_kinds",
+        "compiler/ir/StatementKinds.w");
+    assertEquals(
+        "wheeler.compiler.named_local_conditional_kinds::namedLocalConditional",
+        decoded.functions().getFirst().name());
+    assertEquals(5, decoded.functions().size());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
+  void compilesCanonicalNamedLocalConditionalValuesByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/syntax/conditionals/NamedLocalConditionalValues.w",
+        "wheeler.compiler.named_local_conditional_values",
+        "compiler/ir/StatementKinds.w");
+    assertEquals(
+        "wheeler.compiler.named_local_conditional_values::namedLocalConditionalValue",
+        decoded.functions().getFirst().name());
+    assertEquals(2, decoded.functions().size());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesCanonicalNamedLiteralComparisonKindsByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/syntax/conditionals/NamedLiteralComparisonKinds.w",

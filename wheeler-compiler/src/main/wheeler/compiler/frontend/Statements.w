@@ -10,6 +10,7 @@ import wheeler.compiler.early_return_kinds;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.loop_forms;
 import wheeler.compiler.named_literal_comparison_kinds;
+import wheeler.compiler.named_local_conditional_kinds;
 import wheeler.compiler.scalar_opcodes;
 import wheeler.compiler.statement_forms;
 import wheeler.compiler.statement_kinds;

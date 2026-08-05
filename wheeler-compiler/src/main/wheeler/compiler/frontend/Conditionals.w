@@ -3,6 +3,8 @@
 module wheeler.compiler.conditionals;
 
 import wheeler.compiler.named_literal_comparison_kinds;
+import wheeler.compiler.named_local_conditional_kinds;
+import wheeler.compiler.named_local_conditional_values;
 import wheeler.compiler.resolved_literal_comparison_kinds;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.statement_kinds;
@@ -452,71 +454,6 @@ classical class Conditionals {
     return STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_BASE;
   }
 
-  /// Checks for a named one-arm Boolean condition guarding a global update.
-  public boolean namedLocalConditional(long opcode) {
-    if (opcode == STATEMENT_IF_LOCAL_ADD_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_LOCAL_SUB_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_LOCAL_XOR_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_NOT_LOCAL_ADD_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_NOT_LOCAL_SUB_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_NOT_LOCAL_XOR_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_LOCAL_ASSIGN_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_NOT_LOCAL_ASSIGN_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_LOCAL_ASSIGN_VALUE_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_LOCAL_ADD_VALUE_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_LOCAL_SUB_VALUE_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_LOCAL_XOR_VALUE_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_NOT_LOCAL_ADD_VALUE_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_NOT_LOCAL_SUB_VALUE_NAMED) {
-      return true;
-    }
-
-    return opcode == STATEMENT_IF_NOT_LOCAL_XOR_VALUE_NAMED;
-  }
-
   /// Returns the resolved opcode base for one named local condition.
   public long namedLocalConditionalBase(long opcode) {
     if (opcode == STATEMENT_IF_LOCAL_ADD_NAMED) {
@@ -580,94 +517,6 @@ classical class Conditionals {
     }
 
     return STATEMENT_IF_NOT_LOCAL_XOR_VALUE_BASE;
-  }
-
-  /// Checks whether a named local condition negates its Boolean source.
-  public boolean namedLocalConditionalNegated(long opcode) {
-    if (opcode == STATEMENT_IF_NOT_LOCAL_ADD_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_NOT_LOCAL_SUB_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_NOT_LOCAL_XOR_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_NOT_LOCAL_ASSIGN_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_NOT_LOCAL_ADD_VALUE_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_NOT_LOCAL_SUB_VALUE_NAMED) {
-      return true;
-    }
-
-    return opcode == STATEMENT_IF_NOT_LOCAL_XOR_VALUE_NAMED;
-  }
-
-  /// Checks whether a named local condition guards assignment.
-  public boolean namedLocalConditionalAssignment(long opcode) {
-    if (opcode == STATEMENT_IF_LOCAL_ASSIGN_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_NOT_LOCAL_ASSIGN_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_LOCAL_ASSIGN_VALUE_NAMED) {
-      return true;
-    }
-
-    return opcode == STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_NAMED;
-  }
-
-  /// Checks whether a named local condition assigns another local.
-  public boolean namedLocalConditionalAssignmentValue(long opcode) {
-    if (opcode == STATEMENT_IF_LOCAL_ASSIGN_VALUE_NAMED) {
-      return true;
-    }
-
-    return opcode == STATEMENT_IF_NOT_LOCAL_ASSIGN_VALUE_NAMED;
-  }
-
-  /// Checks whether a named local condition reads a prior signed value.
-  public boolean namedLocalConditionalValue(long opcode) {
-    if (namedLocalConditionalAssignmentValue(opcode)) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_LOCAL_ADD_VALUE_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_LOCAL_SUB_VALUE_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_LOCAL_XOR_VALUE_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_NOT_LOCAL_ADD_VALUE_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_IF_NOT_LOCAL_SUB_VALUE_NAMED) {
-      return true;
-    }
-
-    return opcode == STATEMENT_IF_NOT_LOCAL_XOR_VALUE_NAMED;
   }
 
   /// Returns the condition local carried by a resolved conditional opcode.
