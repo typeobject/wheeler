@@ -312,6 +312,10 @@ classical class SevenGraphPlans {
           if (result.valid) {} else {
             result = threeLeafForkAndDirectsPlan(graph, rootDirect);
           }
+
+          if (result.valid) {} else {
+            result = nestedForkAndDirectsPlan(graph, rootDirect);
+          }
         }
 
         if (mixedWideFork) {

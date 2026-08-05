@@ -6,6 +6,7 @@ import wheeler.compiler.compiler_core;
 import wheeler.compiler.graphs.seven.chain;
 import wheeler.compiler.graphs.seven.fork;
 import wheeler.compiler.graphs.seven.mixed;
+import wheeler.compiler.graphs.seven.nested;
 import wheeler.compiler.graphs.seven.plan_shapes;
 import wheeler.compiler.graphs.seven.plans;
 import wheeler.compiler.graphs.seven.separate;
@@ -276,6 +277,22 @@ classical class CompilerGraphSeven {
         output
       );
       return new SevenGraphCompilation(threeLeafFork.length, threeLeafFork.codeStart);
+    }
+
+    if (plan.topology == SEVEN_PLAN_NESTED_FORK_AND_DIRECTS) {
+      SevenNestedCompilation nestedFork = compileSevenNestedForkAndDirects(
+        plan,
+        firstImportedSource,
+        secondImportedSource,
+        thirdImportedSource,
+        fourthImportedSource,
+        fifthImportedSource,
+        sixthImportedSource,
+        seventhImportedSource,
+        rootSource,
+        output
+      );
+      return new SevenGraphCompilation(nestedFork.length, nestedFork.codeStart);
     }
 
     assert(plan.topology == SEVEN_PLAN_DIRECT);
