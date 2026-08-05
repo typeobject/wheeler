@@ -2,6 +2,7 @@
 
 module wheeler.compiler.module_headers;
 
+import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
 import wheeler.lexer.scanner;
 

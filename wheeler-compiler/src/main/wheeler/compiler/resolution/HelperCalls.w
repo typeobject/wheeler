@@ -5,6 +5,7 @@ module wheeler.compiler.helper_calls;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.ir;
 import wheeler.compiler.one_argument_calls;
+import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.statements;

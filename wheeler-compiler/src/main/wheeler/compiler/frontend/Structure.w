@@ -11,6 +11,7 @@ import wheeler.compiler.named_return_arithmetic_kinds;
 import wheeler.compiler.named_return_comparison_operands;
 import wheeler.compiler.named_signed_return_kinds;
 import wheeler.compiler.one_argument_calls;
+import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;

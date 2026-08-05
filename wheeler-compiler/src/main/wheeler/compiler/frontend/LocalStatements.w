@@ -30,6 +30,7 @@ import wheeler.compiler.resolved_local_updates;
 import wheeler.compiler.resolved_long_operations;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.return_expressions;
+import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;

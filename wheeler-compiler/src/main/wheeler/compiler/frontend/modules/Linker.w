@@ -6,6 +6,7 @@ import wheeler.compiler.class_constants;
 import wheeler.compiler.constant_declarations;
 import wheeler.compiler.module_headers;
 import wheeler.compiler.shared_declarations;
+import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
 import wheeler.lexer.scanner;
 

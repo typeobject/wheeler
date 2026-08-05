@@ -2,6 +2,7 @@
 
 module wheeler.compiler.constant_declarations;
 
+import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
 
 classical class ConstantDeclarations {

@@ -17,6 +17,7 @@ import wheeler.compiler.resolved_long_operations;
 import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.scalar_helper_tables;
 import wheeler.compiler.sequences;
+import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;

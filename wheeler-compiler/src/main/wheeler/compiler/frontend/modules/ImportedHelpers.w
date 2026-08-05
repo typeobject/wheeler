@@ -5,6 +5,7 @@ module wheeler.compiler.imported_helpers;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.module_headers;
 import wheeler.compiler.module_linker;
+import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
 
 classical class ImportedHelpers {

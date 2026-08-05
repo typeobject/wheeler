@@ -9,6 +9,7 @@ import wheeler.compiler.named_local_conditional_values;
 import wheeler.compiler.resolved_literal_comparison_kinds;
 import wheeler.compiler.resolved_literal_comparison_operations;
 import wheeler.compiler.resolved_statements;
+import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
 

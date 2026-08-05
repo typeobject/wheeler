@@ -9,6 +9,7 @@ import wheeler.compiler.helper_calls;
 import wheeler.compiler.helper_programs;
 import wheeler.compiler.ir;
 import wheeler.compiler.named_return_arithmetic_kinds;
+import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.statements;
 import wheeler.compiler.structure;

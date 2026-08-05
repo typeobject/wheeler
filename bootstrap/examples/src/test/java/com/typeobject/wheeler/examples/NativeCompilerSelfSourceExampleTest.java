@@ -441,6 +441,15 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalSourceScalarsByteForByte() throws Exception {
+    Program decoded = assertCompilerLibrary(
+        "compiler/syntax/tokens/SourceScalars.w",
+        "wheeler.compiler.source_scalars");
+    assertEquals("$library", decoded.functions().getFirst().name());
+    assertEquals(1, decoded.functions().size());
+  }
+
+  @Test
   void compilesCanonicalBooleanTokensByteForByte() throws Exception {
     Program decoded = assertCompilerLibrary(
         "compiler/syntax/booleans/BooleanTokens.w",
