@@ -55,7 +55,121 @@ classical class HelperSignatures {
       return 4;
     }
 
+    if (helperKind == HELPER_SIGNED_FIVE) {
+      return 5;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_FIVE) {
+      return 5;
+    }
+
+    if (helperKind == HELPER_SIGNED_SIX) {
+      return 6;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_SIX) {
+      return 6;
+    }
+
+    if (helperKind == HELPER_SIGNED_SEVEN) {
+      return 7;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_SEVEN) {
+      return 7;
+    }
+
+    if (helperKind == HELPER_SIGNED_EIGHT) {
+      return 8;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_EIGHT) {
+      return 8;
+    }
+
     return 0;
+  }
+
+  /// Returns one signed helper kind for an exact signed-parameter count.
+  public long signedScalarHelperKind(long parameterCount) {
+    if (parameterCount == 0) {
+      return HELPER_SIGNED;
+    }
+
+    if (parameterCount == 1) {
+      return HELPER_SIGNED_ONE;
+    }
+
+    if (parameterCount == 2) {
+      return HELPER_SIGNED_TWO;
+    }
+
+    if (parameterCount == 3) {
+      return HELPER_SIGNED_THREE;
+    }
+
+    if (parameterCount == 4) {
+      return HELPER_SIGNED_FOUR;
+    }
+
+    if (parameterCount == 5) {
+      return HELPER_SIGNED_FIVE;
+    }
+
+    if (parameterCount == 6) {
+      return HELPER_SIGNED_SIX;
+    }
+
+    if (parameterCount == 7) {
+      return HELPER_SIGNED_SEVEN;
+    }
+
+    if (parameterCount == 8) {
+      return HELPER_SIGNED_EIGHT;
+    }
+
+    return -1;
+  }
+
+  /// Returns one boolean helper kind for an exact signed-parameter count.
+  public long booleanScalarHelperKind(long parameterCount) {
+    if (parameterCount == 0) {
+      return HELPER_BOOLEAN;
+    }
+
+    if (parameterCount == 1) {
+      return HELPER_BOOLEAN_SIGNED_ONE;
+    }
+
+    if (parameterCount == 2) {
+      return HELPER_BOOLEAN_SIGNED_TWO;
+    }
+
+    if (parameterCount == 3) {
+      return HELPER_BOOLEAN_SIGNED_THREE;
+    }
+
+    if (parameterCount == 4) {
+      return HELPER_BOOLEAN_SIGNED_FOUR;
+    }
+
+    if (parameterCount == 5) {
+      return HELPER_BOOLEAN_SIGNED_FIVE;
+    }
+
+    if (parameterCount == 6) {
+      return HELPER_BOOLEAN_SIGNED_SIX;
+    }
+
+    if (parameterCount == 7) {
+      return HELPER_BOOLEAN_SIGNED_SEVEN;
+    }
+
+    if (parameterCount == 8) {
+      return HELPER_BOOLEAN_SIGNED_EIGHT;
+    }
+
+    return -1;
   }
 
   /// Checks whether one helper uses generated inverse code.
@@ -106,7 +220,23 @@ classical class HelperSignatures {
       return true;
     }
 
-    return helperKind == HELPER_BOOLEAN_SIGNED_FOUR;
+    if (helperKind == HELPER_BOOLEAN_SIGNED_FOUR) {
+      return true;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_FIVE) {
+      return true;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_SIX) {
+      return true;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_SEVEN) {
+      return true;
+    }
+
+    return helperKind == HELPER_BOOLEAN_SIGNED_EIGHT;
   }
 
   /// Checks whether one helper receives Boolean parameters.

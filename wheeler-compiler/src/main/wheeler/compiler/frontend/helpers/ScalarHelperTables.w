@@ -14,23 +14,7 @@ classical class ScalarHelperTables {
 
   /// Checks whether one helper returns a Boolean scalar.
   public boolean booleanHelperKind(long kind) {
-    if (kind == HELPER_BOOLEAN) {
-      return true;
-    }
-
-    if (kind == HELPER_BOOLEAN_SIGNED_ONE) {
-      return true;
-    }
-
-    if (kind == HELPER_BOOLEAN_SIGNED_TWO) {
-      return true;
-    }
-
-    if (kind == HELPER_BOOLEAN_SIGNED_THREE) {
-      return true;
-    }
-
-    return kind == HELPER_BOOLEAN_SIGNED_FOUR;
+    return booleanResultHelper(kind);
   }
 
   /// Compares two helper names in one source.

@@ -4,6 +4,7 @@ module wheeler.compiler.sequences;
 
 import wheeler.compiler.class_constants;
 import wheeler.compiler.compiler_program_limits;
+import wheeler.compiler.helper_abi;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_statements;
@@ -15,16 +16,11 @@ import wheeler.compiler.statement_opcodes;
 classical class StatementSequences {
   private long resolutionPrefix(borrow mut words statementStarts) {
     long prefix = 0;
-    if (statementStarts[0] < 0) {
-      prefix = 1;
-      if (statementStarts[1] < 0) {
-        prefix = 2;
-        if (statementStarts[2] < 0) {
-          prefix = 3;
-          if (statementStarts[3] < 0) {
-            prefix = 4;
-          }
-        }
+    while (prefix < MAX_SCALAR_HELPER_PARAMETERS) limit MAX_SCALAR_HELPER_PARAMETERS {
+      if (statementStarts[prefix] < 0) {
+        prefix += 1;
+      } else {
+        return prefix;
       }
     }
 

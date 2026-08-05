@@ -8,6 +8,7 @@ import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.early_comparison_forms;
 import wheeler.compiler.encoding;
 import wheeler.compiler.helper_abi;
+import wheeler.compiler.helper_signatures;
 import wheeler.compiler.ir;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.local_opcodes;
@@ -143,11 +144,8 @@ classical class ScalarHelperLibraries {
     }
 
     long returnType = tokenHash(source, tokenStarts, tokenLengths, start + 1);
-    long kind = HELPER_SIGNED;
     if (returnType == TOKEN_LONG) {} else {
-      if (returnType == TOKEN_BOOLEAN) {
-        kind = HELPER_BOOLEAN;
-      } else {
+      if (returnType == TOKEN_BOOLEAN) {} else {
         return invalidHelper();
       }
     }
@@ -172,237 +170,73 @@ classical class ScalarHelperLibraries {
     }
 
     long parameterCount = 0;
-    long firstParameterToken = 0;
-    long secondParameterToken = 0;
-    long thirdParameterToken = 0;
-    long fourthParameterToken = 0;
-    long bodyOpen = start + 5;
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, start + 4, PUNCTUATION_CLOSE_PAREN)
-    ) {} else {
-      if (tokenHash(source, tokenStarts, tokenLengths, start + 4) == TOKEN_LONG) {} else {
-        return invalidHelper();
-      }
-
-      firstParameterToken = start + 5;
-      if (tokenKinds[firstParameterToken] == 1) {} else {
-        return invalidHelper();
-      }
-
-      if (tokenLengths[firstParameterToken] < 257) {} else {
-        return invalidHelper();
-      }
-
-      if (
-        classConstantNameExists(source, tokenStarts, tokenLengths, firstParameterToken)
-      ) {
-        return invalidHelper();
-      }
-
-      parameterCount = 1;
-      bodyOpen = start + 7;
-      if (
-        punctuationAt(source, tokenKinds, tokenStarts, start + 6, PUNCTUATION_COMMA)
-      ) {
-        if (tokenHash(source, tokenStarts, tokenLengths, start + 7) == TOKEN_LONG) {} else {
-          return invalidHelper();
-        }
-
-        secondParameterToken = start + 8;
-        if (tokenKinds[secondParameterToken] == 1) {} else {
-          return invalidHelper();
-        }
-
-        if (tokenLengths[secondParameterToken] < 257) {} else {
-          return invalidHelper();
-        }
-
+    long parameterCursor = start + 4;
+    while (
+      punctuationAt(source, tokenKinds, tokenStarts, parameterCursor, PUNCTUATION_CLOSE_PAREN)
+        == false
+    ) limit MAX_SCALAR_HELPER_PARAMETERS {
+      if (0 < parameterCount) {
         if (
-          classConstantNameExists(source, tokenStarts, tokenLengths, secondParameterToken)
-        ) {
+          punctuationAt(source, tokenKinds, tokenStarts, parameterCursor, PUNCTUATION_COMMA)
+        ) {} else {
           return invalidHelper();
         }
 
+        parameterCursor += 1;
+      }
+
+      if (tokenHash(source, tokenStarts, tokenLengths, parameterCursor) == TOKEN_LONG) {} else {
+        return invalidHelper();
+      }
+
+      long parameterName = parameterCursor + 1;
+      if (tokenKinds[parameterName] == 1) {} else {
+        return invalidHelper();
+      }
+
+      if (tokenLengths[parameterName] < 257) {} else {
+        return invalidHelper();
+      }
+
+      if (classConstantNameExists(source, tokenStarts, tokenLengths, parameterName)) {
+        return invalidHelper();
+      }
+
+      long priorParameter = 0;
+      while (priorParameter < parameterCount) limit MAX_SCALAR_HELPER_PARAMETERS {
+        long priorName = start + 5 + priorParameter * 3;
         long parameterOrder = compareAsciiSlices(
           source,
-          tokenStarts[firstParameterToken],
-          tokenLengths[firstParameterToken],
-          tokenStarts[secondParameterToken],
-          tokenLengths[secondParameterToken]
+          tokenStarts[priorName],
+          tokenLengths[priorName],
+          tokenStarts[parameterName],
+          tokenLengths[parameterName]
         );
         if (parameterOrder == 0) {
           return invalidHelper();
         }
 
-        if (
-          punctuationAt(source, tokenKinds, tokenStarts, start + 9, PUNCTUATION_COMMA)
-        ) {
-          if (tokenHash(source, tokenStarts, tokenLengths, start + 10) == TOKEN_LONG) {} else {
-            return invalidHelper();
-          }
-
-          thirdParameterToken = start + 11;
-          if (tokenKinds[thirdParameterToken] == 1) {} else {
-            return invalidHelper();
-          }
-
-          if (tokenLengths[thirdParameterToken] < 257) {} else {
-            return invalidHelper();
-          }
-
-          if (
-            classConstantNameExists(source, tokenStarts, tokenLengths, thirdParameterToken)
-          ) {
-            return invalidHelper();
-          }
-
-          long firstThirdOrder = compareAsciiSlices(
-            source,
-            tokenStarts[firstParameterToken],
-            tokenLengths[firstParameterToken],
-            tokenStarts[thirdParameterToken],
-            tokenLengths[thirdParameterToken]
-          );
-          long secondThirdOrder = compareAsciiSlices(
-            source,
-            tokenStarts[secondParameterToken],
-            tokenLengths[secondParameterToken],
-            tokenStarts[thirdParameterToken],
-            tokenLengths[thirdParameterToken]
-          );
-          if (firstThirdOrder == 0) {
-            return invalidHelper();
-          }
-
-          if (secondThirdOrder == 0) {
-            return invalidHelper();
-          }
-
-          if (
-            punctuationAt(source, tokenKinds, tokenStarts, start + 12, PUNCTUATION_COMMA)
-          ) {
-            if (
-              tokenHash(source, tokenStarts, tokenLengths, start + 13) == TOKEN_LONG
-            ) {} else {
-              return invalidHelper();
-            }
-
-            fourthParameterToken = start + 14;
-            if (tokenKinds[fourthParameterToken] == 1) {} else {
-              return invalidHelper();
-            }
-
-            if (tokenLengths[fourthParameterToken] < 257) {} else {
-              return invalidHelper();
-            }
-
-            if (
-              classConstantNameExists(source, tokenStarts, tokenLengths, fourthParameterToken)
-            ) {
-              return invalidHelper();
-            }
-
-            long firstFourthOrder = compareAsciiSlices(
-              source,
-              tokenStarts[firstParameterToken],
-              tokenLengths[firstParameterToken],
-              tokenStarts[fourthParameterToken],
-              tokenLengths[fourthParameterToken]
-            );
-            long secondFourthOrder = compareAsciiSlices(
-              source,
-              tokenStarts[secondParameterToken],
-              tokenLengths[secondParameterToken],
-              tokenStarts[fourthParameterToken],
-              tokenLengths[fourthParameterToken]
-            );
-            long thirdFourthOrder = compareAsciiSlices(
-              source,
-              tokenStarts[thirdParameterToken],
-              tokenLengths[thirdParameterToken],
-              tokenStarts[fourthParameterToken],
-              tokenLengths[fourthParameterToken]
-            );
-            if (firstFourthOrder == 0) {
-              return invalidHelper();
-            }
-
-            if (secondFourthOrder == 0) {
-              return invalidHelper();
-            }
-
-            if (thirdFourthOrder == 0) {
-              return invalidHelper();
-            }
-
-            if (
-              punctuationAt(
-                source,
-                tokenKinds,
-                tokenStarts,
-                start + 15,
-                PUNCTUATION_CLOSE_PAREN
-              )
-            ) {} else {
-              return invalidHelper();
-            }
-
-            parameterCount = 4;
-            bodyOpen = start + 16;
-            if (returnType == TOKEN_LONG) {
-              kind = HELPER_SIGNED_FOUR;
-            } else {
-              kind = HELPER_BOOLEAN_SIGNED_FOUR;
-            }
-          } else {
-            if (
-              punctuationAt(
-                source,
-                tokenKinds,
-                tokenStarts,
-                start + 12,
-                PUNCTUATION_CLOSE_PAREN
-              )
-            ) {} else {
-              return invalidHelper();
-            }
-
-            parameterCount = 3;
-            bodyOpen = start + 13;
-            if (returnType == TOKEN_LONG) {
-              kind = HELPER_SIGNED_THREE;
-            } else {
-              kind = HELPER_BOOLEAN_SIGNED_THREE;
-            }
-          }
-        } else {
-          if (
-            punctuationAt(source, tokenKinds, tokenStarts, start + 9, PUNCTUATION_CLOSE_PAREN)
-          ) {} else {
-            return invalidHelper();
-          }
-
-          parameterCount = 2;
-          bodyOpen = start + 10;
-          if (returnType == TOKEN_LONG) {
-            kind = HELPER_SIGNED_TWO;
-          } else {
-            kind = HELPER_BOOLEAN_SIGNED_TWO;
-          }
-        }
-      } else {
-        if (
-          punctuationAt(source, tokenKinds, tokenStarts, start + 6, PUNCTUATION_CLOSE_PAREN)
-        ) {} else {
-          return invalidHelper();
-        }
-
-        if (returnType == TOKEN_LONG) {
-          kind = HELPER_SIGNED_ONE;
-        } else {
-          kind = HELPER_BOOLEAN_SIGNED_ONE;
-        }
+        priorParameter += 1;
       }
+
+      parameterCount += 1;
+      parameterCursor += 2;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, parameterCursor, PUNCTUATION_CLOSE_PAREN)
+    ) {} else {
+      return invalidHelper();
+    }
+
+    long bodyOpen = parameterCursor + 1;
+    long kind = signedScalarHelperKind(parameterCount);
+    if (returnType == TOKEN_BOOLEAN) {
+      kind = booleanScalarHelperKind(parameterCount);
+    }
+
+    if (-1 < kind) {} else {
+      return invalidHelper();
     }
 
     if (
@@ -487,17 +321,11 @@ classical class ScalarHelperLibraries {
         shifted -= 1;
       }
 
-      set(statementStarts, 0, 0 - firstParameterToken);
-      if (1 < parameterCount) {
-        set(statementStarts, 1, 0 - secondParameterToken);
-      }
-
-      if (2 < parameterCount) {
-        set(statementStarts, 2, 0 - thirdParameterToken);
-      }
-
-      if (parameterCount == 4) {
-        set(statementStarts, 3, 0 - fourthParameterToken);
+      long parameter = 0;
+      while (parameter < parameterCount) limit MAX_SCALAR_HELPER_PARAMETERS {
+        long resolvedParameterName = start + 5 + parameter * 3;
+        set(statementStarts, parameter, 0 - resolvedParameterName);
+        parameter += 1;
       }
     }
 

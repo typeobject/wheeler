@@ -39,7 +39,7 @@ final class NativeCompilerHelperTableExampleTest {
     assertEquals(
         "wheeler.compiler.helper_signatures::parameterCountForHelper",
         decoded.functions().getFirst().name());
-    assertEquals(6, decoded.functions().size());
+    assertEquals(8, decoded.functions().size());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 
