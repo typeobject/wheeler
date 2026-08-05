@@ -72,9 +72,11 @@ before publication. The checked-in `compiler/ir/Opcodes.w`,
 `compiler/ir/StatementKinds.w`, `compiler/ir/StorageOpcodes.w`, `compiler/ir/TypeCodes.w`,
 imported-constant `compiler/resolution/returns/ReturnOpcodeKinds.w`, imported-constant
 `compiler/syntax/conditionals/NamedLiteralComparisonKinds.w`, imported-constant
+`compiler/syntax/conditionals/NamedLiteralComparisonOperations.w`, imported-constant
 `compiler/syntax/conditionals/NamedLocalConditionalKinds.w`, imported-constant
 `compiler/syntax/conditionals/NamedLocalConditionalValues.w`, imported-constant
 `compiler/syntax/conditionals/ResolvedLiteralComparisonKinds.w`, imported-constant
+`compiler/syntax/conditionals/ResolvedLiteralComparisonOperations.w`, imported-constant
 `compiler/syntax/conditionals/ResolvedLocalConditionalKinds.w`, imported-constant
 `compiler/syntax/conditionals/ResolvedLocalConditionalSources.w`,
 imported-constant `compiler/ir/OpcodeKinds.w`, imported-constant `compiler/ir/TypeKinds.w`,
@@ -92,8 +94,7 @@ imported-constant `compiler/ir/InstructionForms.w`, imported-constant
 `compiler/syntax/returns/ResolvedReturnCallKinds.w` modules compile byte for byte with stage 0.
 `StatementKinds.w` owns 127 unresolved statement identities. `LoopKinds.w` owns six loop-form
 identities. `ResolvedStatements.w` owns seventy-eight resolved columns. `Tokens.w` now sticks to
-lexical work instead of running a parser-IR registry from the back room. Twenty-eight real self-source
-modules beat twenty-seven motivational slides. The bar has retained counsel. A modular source may carry up to sixty-four sorted unique direct imports.
+lexical work instead of running a parser-IR registry from the back room. Thirty real self-source modules beat twenty-nine motivational slides. The bar has retained counsel. A modular source may carry up to sixty-four sorted unique direct imports.
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
 or excess imports before publication. `compileMinimalWithConstantImport`,
 `compileMinimalWithConstantImports`, `compileMinimalWithThreeConstantImports`, and

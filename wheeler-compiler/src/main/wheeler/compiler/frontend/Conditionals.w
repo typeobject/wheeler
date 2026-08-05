@@ -3,9 +3,11 @@
 module wheeler.compiler.conditionals;
 
 import wheeler.compiler.named_literal_comparison_kinds;
+import wheeler.compiler.named_literal_comparison_operations;
 import wheeler.compiler.named_local_conditional_kinds;
 import wheeler.compiler.named_local_conditional_values;
 import wheeler.compiler.resolved_literal_comparison_kinds;
+import wheeler.compiler.resolved_literal_comparison_operations;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
@@ -357,68 +359,29 @@ classical class Conditionals {
 
   /// Checks whether a comparison condition guards subtraction.
   public boolean literalComparisonConditionalSubtract(long opcode) {
-    if (opcode == STATEMENT_IF_LOCAL_EQ_LITERAL_SUB_NAMED) {
+    if (namedLiteralComparisonConditionalSubtract(opcode)) {
       return true;
     }
 
-    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_SUB_NAMED) {
-      return true;
-    }
-
-    boolean equalitySubtract = STATEMENT_IF_LOCAL_EQ_LITERAL_SUB_BASE - 1 < opcode;
-    if (opcode < STATEMENT_IF_LOCAL_EQ_LITERAL_XOR_BASE) {
-      return equalitySubtract;
-    }
-
-    if (opcode < STATEMENT_IF_LOCAL_LT_LITERAL_SUB_BASE) {
-      return false;
-    }
-
-    return opcode < STATEMENT_IF_LOCAL_LT_LITERAL_XOR_BASE;
+    return resolvedLiteralComparisonConditionalSubtract(opcode);
   }
 
   /// Checks whether a comparison condition guards XOR.
   public boolean literalComparisonConditionalXor(long opcode) {
-    if (opcode == STATEMENT_IF_LOCAL_EQ_LITERAL_XOR_NAMED) {
+    if (namedLiteralComparisonConditionalXor(opcode)) {
       return true;
     }
 
-    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_XOR_NAMED) {
-      return true;
-    }
-
-    boolean equalityXor = STATEMENT_IF_LOCAL_EQ_LITERAL_XOR_BASE - 1 < opcode;
-    if (opcode < STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_BASE) {
-      return equalityXor;
-    }
-
-    if (opcode < STATEMENT_IF_LOCAL_LT_LITERAL_XOR_BASE) {
-      return false;
-    }
-
-    return opcode < STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_BASE;
+    return resolvedLiteralComparisonConditionalXor(opcode);
   }
 
   /// Checks whether a comparison condition guards assignment.
   public boolean literalComparisonConditionalAssignment(long opcode) {
-    if (opcode == STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_NAMED) {
+    if (namedLiteralComparisonConditionalAssignment(opcode)) {
       return true;
     }
 
-    if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_NAMED) {
-      return true;
-    }
-
-    boolean equalityAssignment = STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_BASE - 1 < opcode;
-    if (opcode < STATEMENT_IF_LOCAL_LT_LITERAL_ADD_BASE) {
-      return equalityAssignment;
-    }
-
-    if (opcode < STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_BASE) {
-      return false;
-    }
-
-    return opcode < STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_BASE + 256;
+    return resolvedLiteralComparisonConditionalAssignment(opcode);
   }
 
   /// Returns the resolved base for one signed comparison condition.
