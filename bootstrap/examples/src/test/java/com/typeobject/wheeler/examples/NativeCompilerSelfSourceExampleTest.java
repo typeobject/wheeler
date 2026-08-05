@@ -461,55 +461,6 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
-  void compilesCanonicalNamedLongOperationsByteForByte() throws Exception {
-    Program decoded = assertImportedConstantCompilerLibrary(
-        "compiler/syntax/locals/NamedLongOperations.w",
-        "wheeler.compiler.named_long_operations",
-        "compiler/ir/StatementKinds.w");
-    assertEquals(
-        "wheeler.compiler.named_long_operations::namedLongBinary",
-        decoded.functions().getFirst().name());
-    assertEquals(4, decoded.functions().size());
-    assertEquals("$library", decoded.functions().getLast().name());
-  }
-
-  @Test
-  void compilesCanonicalResolvedLongOperationsByteForByte() throws Exception {
-    Program decoded = assertImportedConstantCompilerLibrary(
-        "compiler/syntax/locals/ResolvedLongOperations.w",
-        "wheeler.compiler.resolved_long_operations");
-    assertEquals(
-        "wheeler.compiler.resolved_long_operations::resolvedLocalLongBinary",
-        decoded.functions().getFirst().name());
-    assertEquals(5, decoded.functions().size());
-    assertEquals("$library", decoded.functions().getLast().name());
-  }
-
-  @Test
-  void compilesCanonicalResolvedLocalPairAssertionsByteForByte() throws Exception {
-    Program decoded = assertImportedConstantCompilerLibrary(
-        "compiler/syntax/assertions/ResolvedLocalPairAssertions.w",
-        "wheeler.compiler.resolved_local_pair_assertions");
-    assertEquals(
-        "wheeler.compiler.resolved_local_pair_assertions::resolvedLocalPairAssertion",
-        decoded.functions().getFirst().name());
-    assertEquals(4, decoded.functions().size());
-    assertEquals("$library", decoded.functions().getLast().name());
-  }
-
-  @Test
-  void compilesCanonicalResolvedLocalReturnsByteForByte() throws Exception {
-    Program decoded = assertCompilerLibrary(
-        "compiler/syntax/returns/ResolvedLocalReturns.w",
-        "wheeler.compiler.resolved_local_returns");
-    assertEquals(
-        "wheeler.compiler.resolved_local_returns::resolvedLocalReturn",
-        decoded.functions().getFirst().name());
-    assertEquals(4, decoded.functions().size());
-    assertEquals("$library", decoded.functions().getLast().name());
-  }
-
-  @Test
   void compilesCanonicalReturnOpcodeKindsByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/resolution/returns/ReturnOpcodeKinds.w",
@@ -946,7 +897,7 @@ final class NativeCompilerSelfSourceExampleTest {
     return new BytecodeReader().read(artifact);
   }
 
-  private static Program assertCompilerLibrary(
+  static Program assertCompilerLibrary(
       String logicalPath,
       String moduleName) throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
