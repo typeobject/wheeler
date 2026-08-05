@@ -25,9 +25,8 @@ import org.junit.jupiter.api.Test;
 final class NativeBootstrapModulesIdentityExampleTest {
   private static final Path ROOT = Path.of("src/main/wheeler/native/bootstrap");
   private static final String IDENTITY = "ab".repeat(32);
-  private static final int COMPACT_DENSE_GRAPH_LIMIT = 512;
-  private static final int COMPACT_DENSE_GRAPH_MODULES = 9;
-  private static final int WIDE_DENSE_GRAPH_MODULES = 10;
+  private static final int DENSE_GRAPH_ROOT_EDGE_ADJUSTMENT = 63;
+  private static final int DENSE_GRAPH_IMPORTS_PER_MODULE = 64;
   private static final long MAX_CLOSURE_TRANSITIONS = 70_000_000;
   private static final long MAX_LARGE_GRAPH_TRANSITIONS = 80_000_000;
 
@@ -60,7 +59,7 @@ final class NativeBootstrapModulesIdentityExampleTest {
 
     assertTrue(source.contains("private const long MAX_LOCAL_MODULES = 256;"));
     assertTrue(source.contains("requireMetadata(parsedModules < MAX_LOCAL_MODULES, source);"));
-    assertTrue(source.contains("private const long MAX_IMPORTS = 576;"));
+    assertTrue(source.contains("private const long MAX_IMPORTS = 768;"));
     assertTrue(source.contains("requireMetadata(parsedImports < MAX_IMPORTS, source);"));
   }
 
@@ -152,6 +151,8 @@ final class NativeBootstrapModulesIdentityExampleTest {
     assertLargeIdentity(program, fiveHundredTwelveImports, 9, 64, 512);
     BootstrapModuleManifest fiveHundredSeventySixImports = generatedDenseGraph(576);
     assertLargeIdentity(program, fiveHundredSeventySixImports, 10, 64, 576);
+    BootstrapModuleManifest sevenHundredSixtyEightImports = generatedDenseGraph(768);
+    assertLargeIdentity(program, sevenHundredSixtyEightImports, 13, 64, 768);
     BootstrapModuleManifest sixtyFourExternals = generatedExternalGraph(64);
     assertLargeIdentity(program, sixtyFourExternals, 1, 64, 0);
     BootstrapModuleManifest sixtyFiveExternals = generatedExternalGraph(65);
@@ -225,9 +226,9 @@ final class NativeBootstrapModulesIdentityExampleTest {
 
     List<Module> rows = new ArrayList<>();
     List<String> rootImports = new ArrayList<>();
-    int moduleCount = edgeLimit <= COMPACT_DENSE_GRAPH_LIMIT
-        ? COMPACT_DENSE_GRAPH_MODULES
-        : WIDE_DENSE_GRAPH_MODULES;
+    int moduleCount = Math.ceilDiv(
+        edgeLimit + DENSE_GRAPH_ROOT_EDGE_ADJUSTMENT,
+        DENSE_GRAPH_IMPORTS_PER_MODULE);
     for (int module = 1; module < moduleCount; module++) {
       rootImports.add("b.m%02d".formatted(module));
     }

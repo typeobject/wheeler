@@ -9,7 +9,7 @@ classical class NativeBootstrapModulesIdentity {
   private const long MAX_LOCAL_MODULES = 256;
   private const long MAX_EXTERNAL_MODULES = 64;
   private const long MAX_IMPORTS_PER_MODULE = 64;
-  private const long MAX_IMPORTS = 576;
+  private const long MAX_IMPORTS = 768;
   private const long MAX_MANIFEST_BYTES = 65536;
   private const long MODULE_ARENA_BYTES = 786432;
 
