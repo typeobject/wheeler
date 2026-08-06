@@ -819,6 +819,14 @@ classical class LocalStatements {
 
   /// Checks whether a resolved statement operand names a valid prior local.
   public boolean sequenceOperandValid(long opcode, long operand) {
+    if (opcode == STATEMENT_SET_WORD) {
+      return -1 < operand;
+    }
+
+    if (opcode == STATEMENT_SET_BYTE) {
+      return -1 < operand;
+    }
+
     if (opcode == STATEMENT_LOCAL_BUFFER_GET) {
       return -1 < operand;
     }

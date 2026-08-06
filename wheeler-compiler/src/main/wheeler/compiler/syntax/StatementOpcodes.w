@@ -20,6 +20,14 @@ classical class StatementOpcodes {
     long statementStart
   ) {
     long keyword = tokenHash(source, tokenStarts, tokenLengths, statementStart);
+    if (keyword == TOKEN_SET) {
+      return STATEMENT_SET_WORD_NAMED;
+    }
+
+    if (keyword == TOKEN_SET_BYTE) {
+      return STATEMENT_SET_BYTE_NAMED;
+    }
+
     if (keyword == TOKEN_WHILE) {
       return STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED;
     }

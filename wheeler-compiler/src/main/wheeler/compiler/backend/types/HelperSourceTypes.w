@@ -24,6 +24,14 @@ classical class HelperSourceTypes {
     long[16] parameterTypes,
     long parameterCount
   ) {
+    if (opcode == STATEMENT_SET_WORD) {
+      return sequenceLocalType(parameterTypes, parameterCount, operand);
+    }
+
+    if (opcode == STATEMENT_SET_BYTE) {
+      return sequenceLocalType(parameterTypes, parameterCount, operand);
+    }
+
     if (opcode == STATEMENT_LOCAL_BUFFER_GET) {
       return sequenceLocalType(parameterTypes, parameterCount, operand);
     }

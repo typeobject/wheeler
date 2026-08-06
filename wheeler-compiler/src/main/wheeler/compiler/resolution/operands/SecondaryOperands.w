@@ -47,6 +47,39 @@ classical class SecondaryOperands {
       previousCount
     );
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    boolean borrowedWrite = sourceOpcode == STATEMENT_SET_WORD_NAMED;
+    if (sourceOpcode == STATEMENT_SET_BYTE_NAMED) {
+      borrowedWrite = true;
+    }
+
+    if (borrowedWrite) {
+      long writeIndex = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 4,
+        true
+      );
+      long writeValue = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 6,
+        true
+      );
+      if (-1 < writeIndex) {
+        if (-1 < writeValue) {
+          return writeIndex * INTRINSIC_LOCAL_SOURCE_COUNT + writeValue;
+        }
+      }
+
+      return -1;
+    }
+
     if (sourceOpcode == STATEMENT_LOCAL_BUFFER_GET_NAMED) {
       return resolvePriorDeclaration(
         source,

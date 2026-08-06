@@ -3,6 +3,8 @@
 module wheeler.compiler.borrowed_intrinsic_kinds;
 
 classical class BorrowedIntrinsicKinds {
+  /// Bounds packed local sources for three-operand borrowed writes.
+  public const long INTRINSIC_LOCAL_SOURCE_COUNT = 256;
   /// Names a signed return of an intrinsic borrowed-buffer length.
   public const long STATEMENT_RETURN_BUFFER_LENGTH_NAMED = 893;
   /// Names a local declaration initialized from an intrinsic borrowed-buffer length.
@@ -23,4 +25,12 @@ classical class BorrowedIntrinsicKinds {
   public const long STATEMENT_LOCAL_UTF8_WIDTH_NAMED = 897;
   /// Names a resolved local initialized from one borrowed UTF-8 width.
   public const long STATEMENT_LOCAL_UTF8_WIDTH = 131076;
+  /// Names a mutable word-loan element write.
+  public const long STATEMENT_SET_WORD_NAMED = 898;
+  /// Names a resolved mutable word-loan element write.
+  public const long STATEMENT_SET_WORD = 131077;
+  /// Names a mutable byte-loan element write.
+  public const long STATEMENT_SET_BYTE_NAMED = 899;
+  /// Names a resolved mutable byte-loan element write.
+  public const long STATEMENT_SET_BYTE = 131078;
 }

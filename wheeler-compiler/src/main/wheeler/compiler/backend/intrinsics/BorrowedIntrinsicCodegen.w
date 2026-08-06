@@ -1,4 +1,4 @@
-//! Encodes bounded reads through primitive borrowed buffers.
+//! Encodes bounded operations through primitive borrowed buffers.
 
 module wheeler.compiler.borrowed_intrinsic_codegen;
 
@@ -38,6 +38,34 @@ classical class BorrowedIntrinsicCodegen {
     long localBase,
     long firstSourceType
   ) {
+    boolean borrowedWrite = opcode == STATEMENT_SET_WORD;
+    if (opcode == STATEMENT_SET_BYTE) {
+      borrowedWrite = true;
+    }
+
+    if (borrowedWrite) {
+      long writeIndex = secondaryOperand / INTRINSIC_LOCAL_SOURCE_COUNT;
+      long writeValue = secondaryOperand % INTRINSIC_LOCAL_SOURCE_COUNT;
+      long writeOpcode = OPCODE_WORDS_SET;
+      if (opcode == STATEMENT_SET_BYTE) {
+        writeOpcode = OPCODE_BYTES_SET;
+      }
+
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, operand, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, writeIndex, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, writeValue, U64);
+      cursor = writeInstructionHeader(output, cursor, writeOpcode, FORM_TERNARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+    }
+
     if (opcode == STATEMENT_LOCAL_BUFFER_GET) {
       long getOpcode = OPCODE_BYTES_GET;
       if (firstSourceType == TYPE_WORDS_BORROW) {

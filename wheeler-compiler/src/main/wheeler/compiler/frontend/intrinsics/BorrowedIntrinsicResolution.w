@@ -1,4 +1,4 @@
-//! Resolves bounded primitive borrowed reads against typed local history.
+//! Resolves bounded primitive borrowed operations against typed local history.
 
 module wheeler.compiler.borrowed_intrinsic_resolution;
 
@@ -19,6 +19,55 @@ classical class BorrowedIntrinsicResolution {
     long statementStart,
     long sourceOpcode
   ) {
+    boolean borrowedWrite = sourceOpcode == STATEMENT_SET_WORD_NAMED;
+    if (sourceOpcode == STATEMENT_SET_BYTE_NAMED) {
+      borrowedWrite = true;
+    }
+
+    if (borrowedWrite) {
+      long writeOwner = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 2,
+        true
+      );
+      long writeIndex = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 4,
+        true
+      );
+      long writeValue = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 6,
+        true
+      );
+      if (-1 < writeOwner) {
+        if (-1 < writeIndex) {
+          if (-1 < writeValue) {
+            long resolvedWrite = STATEMENT_SET_WORD;
+            if (sourceOpcode == STATEMENT_SET_BYTE_NAMED) {
+              resolvedWrite = STATEMENT_SET_BYTE;
+            }
+
+            return new ResolvedBorrowedIntrinsic(resolvedWrite, true);
+          }
+        }
+      }
+
+      return new ResolvedBorrowedIntrinsic(-1, true);
+    }
+
     if (sourceOpcode == STATEMENT_LOCAL_BUFFER_GET_NAMED) {
       long bufferSource = resolvePriorDeclaration(
         source,

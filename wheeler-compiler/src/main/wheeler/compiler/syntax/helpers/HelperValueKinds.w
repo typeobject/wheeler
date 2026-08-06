@@ -8,6 +8,14 @@ import wheeler.compiler.statement_kinds;
 classical class HelperValueKinds {
   /// Checks for one bounded helper value statement.
   public boolean helperValueStatement(long opcode) {
+    if (opcode == STATEMENT_SET_WORD_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_SET_BYTE_NAMED) {
+      return true;
+    }
+
     if (opcode < STATEMENT_LOCAL_CALL_NAMED) {
       return false;
     }

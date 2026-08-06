@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-/** Differential evidence for intrinsic reads through primitive loans. */
+/** Differential evidence for intrinsic access through primitive loans. */
 final class NativeCompilerBorrowedIntrinsicExampleTest {
   @Test
   void compilesBufferLengthByteForByte() throws Exception {
@@ -109,6 +109,39 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
         NativeModuleCompilerHarness.program(),
         List.of(),
         source.replace("long index", "borrow utf8 index"));
+  }
+
+  @Test
+  void compilesPrimitiveLoanWritesByteForByte() throws Exception {
+    String source = """
+        module example.borrowed_loan_write;
+        classical class BorrowedLoanWrite {
+          public long word(borrow mut words values, long index, long element) {
+            set(values, index, element);
+            return element;
+          }
+          public long octet(borrow mut bytes values, long index, long element) {
+            setByte(values, index, element);
+            return element;
+          }
+          public long dummy() { return 0; }
+        }
+        """;
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("BorrowedLoanWrite.w", source), "example.borrowed_loan_write"));
+    byte[] actual = NativeModuleCompilerHarness.compile(
+        NativeModuleCompilerHarness.program(), List.of(), source);
+    assertArrayEquals(expected, actual);
+
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace("borrow mut words values", "borrow mut region values"));
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace("borrow mut bytes values", "borrow byteview values"));
   }
 
   @Test

@@ -67,6 +67,10 @@ classical class KeywordTokens {
   public const long TOKEN_UTF8_SCALAR = 3195229610631869;
   /// Names the stable token hash for intrinsic `utf8Width`.
   public const long TOKEN_UTF8_WIDTH = 103071926799573;
+  /// Names the stable token hash for intrinsic `set`.
+  public const long TOKEN_SET = 113762;
+  /// Names the stable token hash for intrinsic `setByte`.
+  public const long TOKEN_SET_BYTE = 105063682186;
   /// Names the stable token hash for `return`.
   public const long TOKEN_RETURN = 3360570672;
 }

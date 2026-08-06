@@ -44,6 +44,22 @@ classical class LocalOpcodes {
 
   /// Returns the typed-local width required by one parsed statement.
   public long statementLocalCount(long opcode) {
+    if (opcode == STATEMENT_SET_WORD_NAMED) {
+      return 3;
+    }
+
+    if (opcode == STATEMENT_SET_WORD) {
+      return 3;
+    }
+
+    if (opcode == STATEMENT_SET_BYTE_NAMED) {
+      return 3;
+    }
+
+    if (opcode == STATEMENT_SET_BYTE) {
+      return 3;
+    }
+
     if (resolvedEarlyHelperForwardingReturn(opcode)) {
       return EARLY_FORWARD_LOCAL_COUNT;
     }
@@ -518,6 +534,14 @@ classical class LocalOpcodes {
 
   /// Returns the encoded byte width of one parsed statement.
   public long statementCodeLength(long opcode) {
+    if (opcode == STATEMENT_SET_WORD) {
+      return 104;
+    }
+
+    if (opcode == STATEMENT_SET_BYTE) {
+      return 104;
+    }
+
     if (resolvedEarlyHelperForwardingReturn(opcode)) {
       return EARLY_FORWARD_CODE_LENGTH;
     }
@@ -787,6 +811,14 @@ classical class LocalOpcodes {
 
   /// Returns the instruction count emitted by one parsed statement.
   public long statementInstructionCount(long opcode) {
+    if (opcode == STATEMENT_SET_WORD) {
+      return 4;
+    }
+
+    if (opcode == STATEMENT_SET_BYTE) {
+      return 4;
+    }
+
     if (resolvedEarlyHelperForwardingReturn(opcode)) {
       return EARLY_FORWARD_INSTRUCTION_COUNT;
     }

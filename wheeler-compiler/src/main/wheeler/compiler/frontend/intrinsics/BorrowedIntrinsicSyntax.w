@@ -1,4 +1,4 @@
-//! Validates bounded source forms for primitive borrowed reads.
+//! Validates bounded source forms for primitive borrowed operations.
 
 module wheeler.compiler.borrowed_intrinsic_syntax;
 
@@ -9,6 +9,14 @@ import wheeler.compiler.tokens;
 classical class BorrowedIntrinsicSyntax {
   /// Reports whether one source identity belongs to this closed intrinsic family.
   public boolean borrowedIntrinsicSourceStatement(long kind) {
+    if (kind == STATEMENT_SET_WORD_NAMED) {
+      return true;
+    }
+
+    if (kind == STATEMENT_SET_BYTE_NAMED) {
+      return true;
+    }
+
     if (kind == STATEMENT_RETURN_BUFFER_LENGTH_NAMED) {
       return true;
     }
@@ -95,6 +103,69 @@ classical class BorrowedIntrinsicSyntax {
       punctuationAt(source, tokenKinds, tokenStarts, statementStart + 5, PUNCTUATION_SEMICOLON)
     ) {
       return 6;
+    }
+
+    return -1;
+  }
+
+  private long borrowedWriteWidth(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    long statementStart
+  ) {
+    if (
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        statementStart + 1,
+        PUNCTUATION_OPEN_PAREN
+      )
+    ) {} else {
+      return -1;
+    }
+
+    if (tokenKinds[statementStart + 2] == 1) {} else {
+      return -1;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, statementStart + 3, PUNCTUATION_COMMA)
+    ) {} else {
+      return -1;
+    }
+
+    if (tokenKinds[statementStart + 4] == 1) {} else {
+      return -1;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, statementStart + 5, PUNCTUATION_COMMA)
+    ) {} else {
+      return -1;
+    }
+
+    if (tokenKinds[statementStart + 6] == 1) {} else {
+      return -1;
+    }
+
+    if (
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        statementStart + 7,
+        PUNCTUATION_CLOSE_PAREN
+      )
+    ) {} else {
+      return -1;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, statementStart + 8, PUNCTUATION_SEMICOLON)
+    ) {
+      return 9;
     }
 
     return -1;
@@ -216,6 +287,14 @@ classical class BorrowedIntrinsicSyntax {
     long statementStart,
     long kind
   ) {
+    if (kind == STATEMENT_SET_WORD_NAMED) {
+      return borrowedWriteWidth(source, tokenKinds, tokenStarts, statementStart);
+    }
+
+    if (kind == STATEMENT_SET_BYTE_NAMED) {
+      return borrowedWriteWidth(source, tokenKinds, tokenStarts, statementStart);
+    }
+
     if (kind == STATEMENT_LOCAL_BUFFER_LENGTH_NAMED) {
       return localBufferLengthWidth(source, tokenKinds, tokenStarts, statementStart);
     }
