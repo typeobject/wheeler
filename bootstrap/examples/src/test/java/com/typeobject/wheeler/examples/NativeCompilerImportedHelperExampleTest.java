@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 /** Differential evidence for bounded native imported scalar helpers. */
 final class NativeCompilerImportedHelperExampleTest {
   @Test
-  void resolvesSignedLocalCallFunctionByteForByte() throws Exception {
+  void resolvesScalarLocalCallFunctionsByteForByte() throws Exception {
     String dependency = """
         module example.local_values;
         classical class LocalValues {
@@ -27,6 +27,10 @@ final class NativeCompilerImportedHelperExampleTest {
           public long identity(long value) {
             return value;
           }
+
+          public long answer() {
+            return 42;
+          }
         }
         """;
     String root = """
@@ -35,6 +39,11 @@ final class NativeCompilerImportedHelperExampleTest {
         classical class LocalValueRoot {
           public long copied(long value) {
             long result = identity(value);
+            return result;
+          }
+
+          public long fixed() {
+            long result = answer();
             return result;
           }
         }
@@ -48,7 +57,15 @@ final class NativeCompilerImportedHelperExampleTest {
     Program decoded = new BytecodeReader().read(actual);
     assertEquals(
         1,
-        decoded.functions().get(2).forward().stream()
+        decoded.functions().get(3).forward().stream()
+            .filter(instruction -> instruction.opcode() == Opcode.CALL_VALUE)
+            .findFirst()
+            .orElseThrow()
+            .operands()
+            .getFirst());
+    assertEquals(
+        2,
+        decoded.functions().get(4).forward().stream()
             .filter(instruction -> instruction.opcode() == Opcode.CALL_VALUE)
             .findFirst()
             .orElseThrow()

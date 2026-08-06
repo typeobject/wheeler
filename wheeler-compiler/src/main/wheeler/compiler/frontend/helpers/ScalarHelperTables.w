@@ -9,6 +9,7 @@ import wheeler.compiler.helper_signatures;
 import wheeler.compiler.ir;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.resolved_return_call_kinds;
+import wheeler.compiler.statement_kinds;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.void_call_kinds;
 import wheeler.compiler.void_call_widths;
@@ -320,6 +321,26 @@ classical class ScalarHelperTables {
     return true;
   }
 
+  private boolean localScalarCallMatches(HelperBody candidate, long opcode) {
+    if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
+      if (candidate.kind == HELPER_SIGNED) {
+        return candidate.parameterCount == 0;
+      }
+
+      return false;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED) {
+      if (candidate.kind == HELPER_BOOLEAN) {
+        return candidate.parameterCount == 0;
+      }
+
+      return false;
+    }
+
+    return localOneArgumentCallMatches(candidate, opcode);
+  }
+
   private boolean localOneArgumentCallMatches(HelperBody candidate, long opcode) {
     if (candidate.parameterCount == 1) {} else {
       return false;
@@ -463,7 +484,7 @@ classical class ScalarHelperTables {
             }
           } else {
             if (scalarResultCallStatement(callOpcode)) {
-              if (localOneArgumentCallMatches(candidate, callOpcode)) {
+              if (localScalarCallMatches(candidate, callOpcode)) {
                 found = helper;
               }
             } else {
