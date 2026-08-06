@@ -4,7 +4,7 @@ module wheeler.compiler.operands;
 
 import wheeler.compiler.assertion_resolution;
 import wheeler.compiler.boolean_tokens;
-import wheeler.compiler.borrowed_intrinsic_kinds;
+import wheeler.compiler.borrowed_intrinsic_resolution;
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.class_constants;
@@ -194,131 +194,17 @@ classical class Operands {
       );
     }
 
-    boolean borrowedMutation = sourceOpcode == STATEMENT_SET_WORD_NAMED;
-    if (sourceOpcode == STATEMENT_SET_BYTE_NAMED) {
-      borrowedMutation = true;
-    }
-
-    if (sourceOpcode == STATEMENT_MAP_PUT_NAMED) {
-      borrowedMutation = true;
-    }
-
-    if (borrowedMutation) {
-      return resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 2,
-        true
-      );
-    }
-
-    if (sourceOpcode == STATEMENT_RETURN_BUFFER_GET_NAMED) {
-      return resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 1,
-        true
-      );
-    }
-
-    boolean directIndexedIntrinsic = sourceOpcode == STATEMENT_RETURN_UTF8_SCALAR_NAMED;
-    if (sourceOpcode == STATEMENT_RETURN_UTF8_WIDTH_NAMED) {
-      directIndexedIntrinsic = true;
-    }
-
-    if (sourceOpcode == STATEMENT_RETURN_MAP_GET_NAMED) {
-      directIndexedIntrinsic = true;
-    }
-
-    if (sourceOpcode == STATEMENT_RETURN_MAP_HAS_NAMED) {
-      directIndexedIntrinsic = true;
-    }
-
-    if (directIndexedIntrinsic) {
-      return resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 3,
-        true
-      );
-    }
-
-    if (sourceOpcode == STATEMENT_LOCAL_BUFFER_GET_NAMED) {
-      return resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 3,
-        true
-      );
-    }
-
-    boolean indexedIntrinsic = sourceOpcode == STATEMENT_LOCAL_UTF8_WIDTH_NAMED;
-    if (sourceOpcode == STATEMENT_LOCAL_MAP_GET_NAMED) {
-      indexedIntrinsic = true;
-    }
-
-    if (sourceOpcode == STATEMENT_LOCAL_MAP_HAS_NAMED) {
-      indexedIntrinsic = true;
-    }
-
-    if (indexedIntrinsic) {
-      return resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 5,
-        true
-      );
-    }
-
-    if (sourceOpcode == STATEMENT_LOCAL_UTF8_SCALAR_NAMED) {
-      return resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 5,
-        true
-      );
-    }
-
-    if (sourceOpcode == STATEMENT_LOCAL_BUFFER_LENGTH_NAMED) {
-      return resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 5,
-        true
-      );
-    }
-
-    if (sourceOpcode == STATEMENT_RETURN_BUFFER_LENGTH_NAMED) {
-      return resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 3,
-        true
-      );
+    BorrowedIntrinsicOperand intrinsicOperand = resolveBorrowedIntrinsicOperand(
+      source,
+      tokenStarts,
+      tokenLengths,
+      previousStarts,
+      previousCount,
+      statementStart,
+      sourceOpcode
+    );
+    if (intrinsicOperand.applies) {
+      return intrinsicOperand.value;
     }
 
     EarlyReturnOperand earlyReturn = resolveEarlyReturnOperand(

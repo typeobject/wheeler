@@ -9,6 +9,103 @@ classical class BorrowedIntrinsicResolution {
   /// Carries one resolved intrinsic opcode and whether this owner applies.
   public record ResolvedBorrowedIntrinsic(long opcode, boolean applies) {}
 
+  /// Carries one primary source local and whether this owner applies.
+  public record BorrowedIntrinsicOperand(long value, boolean applies) {}
+
+  private long borrowedPrimaryTokenOffset(long sourceOpcode) {
+    boolean mutation = sourceOpcode == STATEMENT_SET_WORD_NAMED;
+    if (sourceOpcode == STATEMENT_SET_BYTE_NAMED) {
+      mutation = true;
+    }
+
+    if (sourceOpcode == STATEMENT_MAP_PUT_NAMED) {
+      mutation = true;
+    }
+
+    if (mutation) {
+      return 2;
+    }
+
+    if (sourceOpcode == STATEMENT_RETURN_BUFFER_GET_NAMED) {
+      return 1;
+    }
+
+    boolean directIndexed = sourceOpcode == STATEMENT_RETURN_UTF8_SCALAR_NAMED;
+    if (sourceOpcode == STATEMENT_RETURN_UTF8_WIDTH_NAMED) {
+      directIndexed = true;
+    }
+
+    if (sourceOpcode == STATEMENT_RETURN_MAP_GET_NAMED) {
+      directIndexed = true;
+    }
+
+    if (sourceOpcode == STATEMENT_RETURN_MAP_HAS_NAMED) {
+      directIndexed = true;
+    }
+
+    if (directIndexed) {
+      return 3;
+    }
+
+    if (sourceOpcode == STATEMENT_LOCAL_BUFFER_GET_NAMED) {
+      return 3;
+    }
+
+    boolean localIndexed = sourceOpcode == STATEMENT_LOCAL_UTF8_SCALAR_NAMED;
+    if (sourceOpcode == STATEMENT_LOCAL_UTF8_WIDTH_NAMED) {
+      localIndexed = true;
+    }
+
+    if (sourceOpcode == STATEMENT_LOCAL_MAP_GET_NAMED) {
+      localIndexed = true;
+    }
+
+    if (sourceOpcode == STATEMENT_LOCAL_MAP_HAS_NAMED) {
+      localIndexed = true;
+    }
+
+    if (localIndexed) {
+      return 5;
+    }
+
+    if (sourceOpcode == STATEMENT_LOCAL_BUFFER_LENGTH_NAMED) {
+      return 5;
+    }
+
+    if (sourceOpcode == STATEMENT_RETURN_BUFFER_LENGTH_NAMED) {
+      return 3;
+    }
+
+    return -1;
+  }
+
+  /// Resolves one intrinsic's primary source local, when applicable.
+  public BorrowedIntrinsicOperand resolveBorrowedIntrinsicOperand(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    borrow mut words previousStarts,
+    long previousCount,
+    long statementStart,
+    long sourceOpcode
+  ) {
+    long tokenOffset = borrowedPrimaryTokenOffset(sourceOpcode);
+    if (tokenOffset < 0) {
+      return new BorrowedIntrinsicOperand(-1, false);
+    }
+
+    long value = resolvePriorDeclaration(
+      source,
+      tokenStarts,
+      tokenLengths,
+      previousStarts,
+      previousCount,
+      statementStart + tokenOffset,
+      true
+    );
+    return new BorrowedIntrinsicOperand(value, true);
+  }
+
   /// Resolves one source intrinsic without consuming unrelated statements.
   public ResolvedBorrowedIntrinsic resolveBorrowedIntrinsic(
     borrow utf8 source,
