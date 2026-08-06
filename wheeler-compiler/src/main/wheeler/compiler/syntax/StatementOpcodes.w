@@ -710,7 +710,14 @@ classical class StatementOpcodes {
       }
 
       if (argumentEnd == PUNCTUATION_COMMA) {
-        return STATEMENT_CALL_VOID_TWO_NAMED;
+        long secondArgumentEnd = utf8Scalar(source, tokenStarts[statementStart + 5]);
+        if (secondArgumentEnd == PUNCTUATION_CLOSE_PAREN) {
+          return STATEMENT_CALL_VOID_TWO_NAMED;
+        }
+
+        if (secondArgumentEnd == PUNCTUATION_COMMA) {
+          return STATEMENT_CALL_VOID_THREE_NAMED;
+        }
       }
 
       return -1;

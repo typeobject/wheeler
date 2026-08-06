@@ -48,7 +48,12 @@ classical class SecondaryOperands {
       previousCount
     );
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
-    if (sourceOpcode == STATEMENT_CALL_VOID_TWO_NAMED) {
+    boolean wideVoidCall = sourceOpcode == STATEMENT_CALL_VOID_TWO_NAMED;
+    if (sourceOpcode == STATEMENT_CALL_VOID_THREE_NAMED) {
+      wideVoidCall = true;
+    }
+
+    if (wideVoidCall) {
       return resolvePriorDeclaration(
         source,
         tokenStarts,

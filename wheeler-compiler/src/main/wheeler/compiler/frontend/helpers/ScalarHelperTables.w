@@ -81,7 +81,16 @@ classical class ScalarHelperTables {
       return true;
     }
 
-    return callerLocalType(caller, secondSource) == candidate.parameterTypes[1];
+    if (callerLocalType(caller, secondSource) == candidate.parameterTypes[1]) {} else {
+      return false;
+    }
+
+    if (argumentCount == 2) {
+      return true;
+    }
+
+    long thirdSource = voidCallThirdSource(opcode);
+    return callerLocalType(caller, thirdSource) == candidate.parameterTypes[2];
   }
 
   /// Compares two helper names in one source.

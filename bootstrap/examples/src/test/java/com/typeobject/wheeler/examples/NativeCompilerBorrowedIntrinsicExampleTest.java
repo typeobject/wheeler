@@ -130,6 +130,7 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
             idle();
             inspect(output);
             locate(values, index);
+            octet(output, index, index);
           }
           private long dispatch(borrow mut bytes output, long index) {
             inspect(output);
@@ -166,6 +167,10 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
         NativeModuleCompilerHarness.program(),
         List.of(),
         source.replace("idle();", "dummy();"));
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace("octet(output, index, index);", "octet(output, index, output);"));
   }
 
   @Test

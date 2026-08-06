@@ -76,6 +76,16 @@ classical class HelperSourceTypes {
     return TYPE_SIGNED;
   }
 
+  /// Returns the canonical third source type for one typed statement.
+  public long helperThirdSourceType(long opcode, long[16] parameterTypes, long parameterCount) {
+    long thirdSource = voidCallThirdSource(opcode);
+    if (-1 < thirdSource) {
+      return sequenceLocalType(parameterTypes, parameterCount, thirdSource);
+    }
+
+    return TYPE_SIGNED;
+  }
+
   /// Returns the canonical second source type for one typed statement.
   public long helperSecondSourceType(
     long opcode,

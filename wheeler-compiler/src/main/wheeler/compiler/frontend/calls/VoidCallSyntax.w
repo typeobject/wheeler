@@ -105,6 +105,44 @@ classical class VoidCallSyntax {
       return -1;
     }
 
+    if (kind == STATEMENT_CALL_VOID_THREE_NAMED) {
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, statementStart + 5, PUNCTUATION_COMMA)
+      ) {} else {
+        return -1;
+      }
+
+      if (tokenKinds[statementStart + 6] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 7,
+          PUNCTUATION_CLOSE_PAREN
+        )
+      ) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 8,
+          PUNCTUATION_SEMICOLON
+        )
+      ) {
+        return 9;
+      }
+
+      return -1;
+    }
+
     if (
       punctuationAt(
         source,

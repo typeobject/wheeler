@@ -259,6 +259,7 @@ classical class CompilerCore {
         body.parameterTypes,
         body.parameterCount
       );
+      long thirdType = helperThirdSourceType(opcode, body.parameterTypes, body.parameterCount);
 
       long callCursor = writeHelperCallLocalTypes(
         output,
@@ -266,7 +267,8 @@ classical class CompilerCore {
         opcode,
         resultType,
         firstType,
-        secondType
+        secondType,
+        thirdType
       );
       if (-1 < callCursor) {
         cursor = callCursor;

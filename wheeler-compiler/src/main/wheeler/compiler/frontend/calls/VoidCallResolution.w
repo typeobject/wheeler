@@ -53,8 +53,27 @@ classical class VoidCallResolution {
       statementStart + 4,
       true
     );
-    if (-1 < secondSource) {
+    if (-1 < secondSource) {} else {
+      return new ResolvedVoidCall(-1, true);
+    }
+
+    if (sourceOpcode == STATEMENT_CALL_VOID_TWO_NAMED) {
       return new ResolvedVoidCall(STATEMENT_CALL_VOID_TWO, true);
+    }
+
+    long thirdSource = resolvePriorDeclaration(
+      source,
+      tokenStarts,
+      tokenLengths,
+      previousStarts,
+      previousCount,
+      statementStart + 6,
+      true
+    );
+    if (-1 < thirdSource) {
+      if (thirdSource < VOID_CALL_LOCAL_SOURCE_COUNT) {
+        return new ResolvedVoidCall(STATEMENT_CALL_VOID_THREE_BASE + thirdSource, true);
+      }
     }
 
     return new ResolvedVoidCall(-1, true);

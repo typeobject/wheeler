@@ -61,7 +61,8 @@ classical class LocalTypes {
     long opcode,
     long resultType,
     long firstSourceType,
-    long secondSourceType
+    long secondSourceType,
+    long thirdSourceType
   ) {
     long voidArity = voidCallArity(opcode);
     if (voidArity == 0) {
@@ -78,6 +79,15 @@ classical class LocalTypes {
       cursor = writeLocalType(output, cursor, secondSourceType);
       cursor = writeLocalType(output, cursor, firstSourceType);
       return writeLocalType(output, cursor, secondSourceType);
+    }
+
+    if (voidArity == 3) {
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      cursor = writeLocalType(output, cursor, secondSourceType);
+      cursor = writeLocalType(output, cursor, thirdSourceType);
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      cursor = writeLocalType(output, cursor, secondSourceType);
+      return writeLocalType(output, cursor, thirdSourceType);
     }
 
     if (opcode == STATEMENT_SET_WORD) {

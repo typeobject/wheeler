@@ -46,7 +46,8 @@ classical class VoidCallCodegen {
     long localBase,
     long function,
     long firstType,
-    long secondType
+    long secondType,
+    long thirdType
   ) {
     long arity = voidCallArity(opcode);
     if (arity < 0) {
@@ -60,14 +61,27 @@ classical class VoidCallCodegen {
     }
 
     cursor = writeEvaluatedArgument(output, cursor, localBase, firstSource);
-    if (arity == 2) {
+    if (1 < arity) {
       cursor = writeEvaluatedArgument(output, cursor, localBase + 1, secondSource);
+    }
+
+    if (arity == 3) {
+      cursor = writeEvaluatedArgument(
+        output,
+        cursor,
+        localBase + 2,
+        voidCallThirdSource(opcode)
+      );
     }
 
     long argumentBase = localBase + arity;
     cursor = writeCallArgument(output, cursor, argumentBase, localBase, firstType);
-    if (arity == 2) {
+    if (1 < arity) {
       cursor = writeCallArgument(output, cursor, argumentBase + 1, localBase + 1, secondType);
+    }
+
+    if (arity == 3) {
+      cursor = writeCallArgument(output, cursor, argumentBase + 2, localBase + 2, thirdType);
     }
 
     cursor = writeInstructionHeader(output, cursor, OPCODE_CALL_VOID, FORM_TERNARY);

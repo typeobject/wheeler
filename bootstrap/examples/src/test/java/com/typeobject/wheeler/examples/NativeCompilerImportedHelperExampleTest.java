@@ -21,6 +21,7 @@ final class NativeCompilerImportedHelperExampleTest {
         classical class Sinks {
           public void accept(borrow mut bytes values) {}
           public void locate(borrow mut words values, long index) {}
+          public void write(borrow mut bytes values, long index, long element) {}
         }
         """;
     String root = """
@@ -30,6 +31,7 @@ final class NativeCompilerImportedHelperExampleTest {
           private void relay(borrow mut bytes output, borrow mut words values, long index) {
             accept(output);
             locate(values, index);
+            write(output, index, index);
           }
           private long dummy() { return 0; }
         }
@@ -48,6 +50,10 @@ final class NativeCompilerImportedHelperExampleTest {
         compiler,
         List.of(dependency),
         root.replace("accept(output);", "accept(values);"));
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(dependency),
+        root.replace("write(output, index, index);", "write(output, index, output);"));
   }
 
   @Test

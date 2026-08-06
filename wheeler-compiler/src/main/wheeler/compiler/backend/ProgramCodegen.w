@@ -560,6 +560,7 @@ classical class ProgramCodegen {
 
       long firstSourceType = TYPE_SIGNED;
       long secondSourceType = TYPE_SIGNED;
+      long thirdSourceType = TYPE_SIGNED;
       if (typedHelper) {
         long opcode = opcodes[index];
         firstSourceType = helperFirstSourceType(
@@ -574,6 +575,7 @@ classical class ProgramCodegen {
           parameterTypes,
           parameterCount
         );
+        thirdSourceType = helperThirdSourceType(opcode, parameterTypes, parameterCount);
 
         cursor = writeHelperStatement(
           output,
@@ -585,7 +587,8 @@ classical class ProgramCodegen {
           instructionBase,
           callFunction,
           firstSourceType,
-          secondSourceType
+          secondSourceType,
+          thirdSourceType
         );
       } else {
         cursor = writeStatement(
