@@ -40,6 +40,7 @@ import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.void_call_kinds;
+import wheeler.compiler.void_call_source_kinds;
 
 classical class Operands {
   /// Selects the typed opcode used for operand resolution.

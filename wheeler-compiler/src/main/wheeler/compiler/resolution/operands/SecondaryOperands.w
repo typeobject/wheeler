@@ -26,6 +26,7 @@ import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.void_call_kinds;
+import wheeler.compiler.void_call_source_kinds;
 
 classical class SecondaryOperands {
   private const long LOOP_SOURCE_FORM_COUNT = 2;

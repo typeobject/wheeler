@@ -4,7 +4,7 @@ module wheeler.compiler.compiler_token_limits;
 
 classical class CompilerTokenLimits {
   /// Caps compiler token metadata before comment compaction.
-  public const long MAX_COMPILER_TOKENS = 2048;
+  public const long MAX_COMPILER_TOKENS = 4096;
   /// Reserves the unused final token cell for the resolved global name.
   public const long COMPILER_GLOBAL_NAME_TOKEN = MAX_COMPILER_TOKENS - 1;
   /// Distinguishes Boolean parameter markers from signed parameter markers.

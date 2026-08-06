@@ -4,6 +4,7 @@ module wheeler.compiler.void_call_resolution;
 
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.void_call_kinds;
+import wheeler.compiler.void_call_source_kinds;
 
 classical class VoidCallResolution {
   /// Carries one resolved void-call identity and whether this owner applies.

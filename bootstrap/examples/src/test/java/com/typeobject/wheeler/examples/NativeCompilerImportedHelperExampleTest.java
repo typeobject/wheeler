@@ -15,6 +15,64 @@ import org.junit.jupiter.api.Test;
 /** Differential evidence for bounded native imported scalar helpers. */
 final class NativeCompilerImportedHelperExampleTest {
   @Test
+  void compilesOneHelperBesideTwoConstantOwnersByteForByte() throws Exception {
+    String firstConstants = """
+        module example.constants_alpha;
+        classical class ConstantsAlpha {
+          public const long FIRST = 1;
+        }
+        """;
+    String secondConstants = """
+        module example.constants_beta;
+        classical class ConstantsBeta {
+          public const long SECOND = 2;
+        }
+        """;
+    String predicate = """
+        module example.predicate;
+        classical class Predicate {
+          public boolean selected(long value) {
+            return value == 3;
+          }
+        }
+        """;
+    String root = """
+        module example.mixed_root;
+        import example.constants_alpha;
+        import example.constants_beta;
+        import example.predicate;
+        classical class MixedRoot {
+          public boolean accepted(long value) {
+            if (selected(value)) {
+              return true;
+            }
+
+            return value == FIRST;
+          }
+        }
+        """;
+    Program compiler = NativeModuleCompilerHarness.program();
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of(
+            "ConstantsAlpha.w", firstConstants,
+            "ConstantsBeta.w", secondConstants,
+            "Predicate.w", predicate,
+            "MixedRoot.w", root),
+        "example.mixed_root");
+    byte[] expectedBytes = new BytecodeWriter().write(expected);
+    List<String> sources = List.of(firstConstants, secondConstants, predicate);
+    for (int rotation = 0; rotation < sources.size(); rotation += 1) {
+      List<String> arrival = List.of(
+          sources.get(rotation),
+          sources.get((rotation + 1) % sources.size()),
+          sources.get((rotation + 2) % sources.size()));
+      assertArrayEquals(
+          expectedBytes,
+          NativeModuleCompilerHarness.compile(compiler, arrival, root));
+    }
+  }
+
+  @Test
   void compilesImportedPrimitiveLoanVoidCallsByteForByte() throws Exception {
     String dependency = """
         module example.sinks;

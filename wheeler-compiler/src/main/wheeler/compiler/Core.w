@@ -30,6 +30,8 @@ import wheeler.compiler.verifier;
 import wheeler.lexer.scanner;
 
 classical class CompilerCore {
+  private const long COMPILER_PARSE_ARENA_BYTES = 99360;
+
   /// Carries the exact bounds of one verified compiler artifact.
   public record CoreCompilation(long length, long codeStart) {}
 
@@ -369,7 +371,7 @@ classical class CompilerCore {
     borrow mut bytes output,
     HelperOwners owners
   ) {
-    region arena = new region(/* bytes= */ 50208, /* allocations= */ 5);
+    region arena = new region(/* bytes= */ COMPILER_PARSE_ARENA_BYTES, /* allocations= */ 5);
     words tokenKinds = allocate(arena, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(arena, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(arena, MAX_COMPILER_TOKENS);

@@ -12,6 +12,8 @@ import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
 
 classical class ImportedHelpers {
+  private const long IMPORTED_HELPER_ARENA_BYTES = 196640;
+
   private record HelperFacts(
     long count,
     long exportedCount,
@@ -185,7 +187,7 @@ classical class ImportedHelpers {
     borrow utf8 rootSource,
     long expectedImportCount
   ) {
-    region scratch = new region(/* bytes= */ 98336, /* allocations= */ 8);
+    region scratch = new region(/* bytes= */ IMPORTED_HELPER_ARENA_BYTES, /* allocations= */ 8);
     words importedKinds = allocate(scratch, MAX_COMPILER_TOKENS);
     words importedStarts = allocate(scratch, MAX_COMPILER_TOKENS);
     words importedLengths = allocate(scratch, MAX_COMPILER_TOKENS);

@@ -7,6 +7,7 @@ import wheeler.compiler.compiler_graph_five;
 import wheeler.compiler.compiler_graph_four;
 import wheeler.compiler.compiler_graph_seven;
 import wheeler.compiler.compiler_graph_six;
+import wheeler.compiler.graphs.direct.mixed_three;
 import wheeler.compiler.graphs.small_structures;
 import wheeler.compiler.graphs.sources;
 import wheeler.compiler.helper_owners;
@@ -599,6 +600,17 @@ classical class CompilerGraphs {
         rootSource,
         output
       );
+    }
+
+    MixedThreeCompilation mixed = compileMixedThreeDirectGraph(
+      firstImportedSource,
+      secondImportedSource,
+      thirdImportedSource,
+      rootSource,
+      output
+    );
+    if (0 < mixed.length) {
+      return new GraphCompilation(mixed.length, mixed.codeStart);
     }
 
     LinkPlan firstPlan = planConstantImport(

@@ -4,7 +4,7 @@ module wheeler.compiler.helper_value_kinds;
 
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.statement_kinds;
-import wheeler.compiler.void_call_kinds;
+import wheeler.compiler.void_call_source_kinds;
 
 classical class HelperValueKinds {
   /// Checks for one bounded helper value statement.

@@ -13,6 +13,9 @@ import wheeler.compiler.tokens;
 import wheeler.lexer.scanner;
 
 classical class ModuleLinker {
+  private const long LINKER_SCRATCH_ARENA_BYTES = 196640;
+  private const long LINKER_TOKEN_ARENA_BYTES = 98304;
+
   /// Caps the first native linked-source slice.
   public const long MAX_LINKED_SOURCE_BYTES = 32768;
   /// Caps canonical qualification rewrites in one linked root.
@@ -430,7 +433,7 @@ classical class ModuleLinker {
     boolean privatizeExports,
     boolean deduplicateSharedPrefix
   ) {
-    region scratch = new region(/* bytes= */ 98336, /* allocations= */ 8);
+    region scratch = new region(/* bytes= */ LINKER_SCRATCH_ARENA_BYTES, /* allocations= */ 8);
     words importedKinds = allocate(scratch, MAX_COMPILER_TOKENS);
     words importedStarts = allocate(scratch, MAX_COMPILER_TOKENS);
     words importedLengths = allocate(scratch, MAX_COMPILER_TOKENS);
@@ -757,7 +760,7 @@ classical class ModuleLinker {
       );
     }
 
-    region scratch = new region(/* bytes= */ 49152, /* allocations= */ 3);
+    region scratch = new region(/* bytes= */ LINKER_TOKEN_ARENA_BYTES, /* allocations= */ 3);
     words tokenKinds = allocate(scratch, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(scratch, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(scratch, MAX_COMPILER_TOKENS);

@@ -2,15 +2,9 @@
 
 module wheeler.compiler.void_call_kinds;
 
+import wheeler.compiler.void_call_source_kinds;
+
 classical class VoidCallKinds {
-  /// Names a source zero-argument void call.
-  public const long STATEMENT_CALL_VOID_ZERO_NAMED = 900;
-  /// Names a source one-argument void call over a prior local.
-  public const long STATEMENT_CALL_VOID_ONE_NAMED = 901;
-  /// Names a source two-argument void call over prior locals.
-  public const long STATEMENT_CALL_VOID_TWO_NAMED = 902;
-  /// Names a source three-argument void call over prior locals.
-  public const long STATEMENT_CALL_VOID_THREE_NAMED = 903;
   /// Names a resolved zero-argument void call.
   public const long STATEMENT_CALL_VOID_ZERO = 131079;
   /// Names a resolved one-argument void call.
@@ -21,23 +15,6 @@ classical class VoidCallKinds {
   public const long STATEMENT_CALL_VOID_THREE_BASE = 131082;
   /// Names the bounded local-source column width encoded in a call identity.
   public const long VOID_CALL_LOCAL_SOURCE_COUNT = 256;
-
-  /// Reports whether one identity is an unresolved void call.
-  public boolean voidCallSourceStatement(long kind) {
-    if (kind == STATEMENT_CALL_VOID_ZERO_NAMED) {
-      return true;
-    }
-
-    if (kind == STATEMENT_CALL_VOID_ONE_NAMED) {
-      return true;
-    }
-
-    if (kind == STATEMENT_CALL_VOID_TWO_NAMED) {
-      return true;
-    }
-
-    return kind == STATEMENT_CALL_VOID_THREE_NAMED;
-  }
 
   /// Reports whether one identity is a resolved void call.
   public boolean voidCallStatement(long kind) {

@@ -9,6 +9,8 @@ import wheeler.compiler.tokens;
 import wheeler.lexer.scanner;
 
 classical class ModuleHeaders {
+  private const long HEADER_DEPENDENCY_ARENA_BYTES = 196640;
+
   /// Carries exact direct-import membership for two validated module headers.
   public record HeaderDependency(long importCount, boolean importsCandidate, boolean valid) {}
 
@@ -264,7 +266,7 @@ classical class ModuleHeaders {
     borrow utf8 candidateSource,
     borrow utf8 dependentSource
   ) {
-    region arena = new region(/* bytes= */ 98336, /* allocations= */ 8);
+    region arena = new region(/* bytes= */ HEADER_DEPENDENCY_ARENA_BYTES, /* allocations= */ 8);
     words candidateKinds = allocate(arena, MAX_COMPILER_TOKENS);
     words candidateStarts = allocate(arena, MAX_COMPILER_TOKENS);
     words candidateLengths = allocate(arena, MAX_COMPILER_TOKENS);

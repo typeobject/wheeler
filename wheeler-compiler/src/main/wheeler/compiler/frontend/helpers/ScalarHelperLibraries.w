@@ -28,6 +28,7 @@ import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.void_call_kinds;
+import wheeler.compiler.void_call_source_kinds;
 
 classical class ScalarHelperLibraries {
   /// Carries one complete scalar helper and the following declaration token.
