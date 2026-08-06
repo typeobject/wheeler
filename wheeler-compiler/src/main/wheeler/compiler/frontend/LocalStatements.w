@@ -36,6 +36,7 @@ import wheeler.compiler.resolved_local_updates;
 import wheeler.compiler.resolved_long_operations;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.return_expressions;
+import wheeler.compiler.scalar_return_call_resolution;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
@@ -45,9 +46,6 @@ import wheeler.compiler.void_call_kinds;
 import wheeler.compiler.void_call_resolution;
 
 classical class LocalStatements {
-  private const long RETURN_HELPER_CALL_SOURCE_COUNT = 256;
-  private const long RETURN_HELPER_CALL_TWO_SOURCE_COUNT = 65536;
-
   private long namedLongLiteralBase(long opcode) {
     if (opcode == STATEMENT_LOCAL_LONG_ADD_NAMED) {
       return STATEMENT_LOCAL_LONG_ADD_BASE;
@@ -235,66 +233,17 @@ classical class LocalStatements {
       return intrinsic.opcode;
     }
 
-    if (opcode == STATEMENT_RETURN_HELPER_CALL_NAMED) {
-      if (
-        utf8Scalar(source, tokenStarts[statementStart + 3]) == PUNCTUATION_CLOSE_PAREN
-      ) {
-        return STATEMENT_RETURN_HELPER_CALL_ZERO;
-      }
-
-      long callArgument = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 3,
-        true
-      );
-      if (-1 < callArgument) {
-        if (utf8Scalar(source, tokenStarts[statementStart + 4]) == PUNCTUATION_COMMA) {
-          long secondCallArgument = resolvePriorDeclaration(
-            source,
-            tokenStarts,
-            tokenLengths,
-            previousStarts,
-            previousCount,
-            statementStart + 5,
-            true
-          );
-          if (-1 < secondCallArgument) {
-            if (
-              utf8Scalar(source, tokenStarts[statementStart + 6]) == PUNCTUATION_COMMA
-            ) {
-              long thirdCallArgument = resolvePriorDeclaration(
-                source,
-                tokenStarts,
-                tokenLengths,
-                previousStarts,
-                previousCount,
-                statementStart + 7,
-                true
-              );
-              if (-1 < thirdCallArgument) {
-                return STATEMENT_RETURN_HELPER_CALL_THREE_BASE + callArgument
-                  * RETURN_HELPER_CALL_TWO_SOURCE_COUNT + secondCallArgument
-                  * RETURN_HELPER_CALL_SOURCE_COUNT + thirdCallArgument;
-              }
-
-              return -1;
-            }
-
-            return STATEMENT_RETURN_HELPER_CALL_TWO_BASE + callArgument
-              * RETURN_HELPER_CALL_SOURCE_COUNT + secondCallArgument;
-          }
-
-          return -1;
-        }
-
-        return STATEMENT_RETURN_HELPER_CALL_BASE + callArgument;
-      }
-
-      return -1;
+    ResolvedScalarReturnCall scalarReturnCall = resolveScalarReturnCall(
+      source,
+      tokenStarts,
+      tokenLengths,
+      previousStarts,
+      previousCount,
+      statementStart,
+      opcode
+    );
+    if (scalarReturnCall.applies) {
+      return scalarReturnCall.opcode;
     }
 
     ReturnExpressionResolution returnExpression = resolveReturnExpression(
