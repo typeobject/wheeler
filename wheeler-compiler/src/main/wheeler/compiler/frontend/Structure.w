@@ -23,6 +23,8 @@ import wheeler.compiler.void_call_kinds;
 import wheeler.compiler.void_call_syntax;
 
 classical class Structure {
+  private const long MAX_SCALAR_RETURN_ARGUMENTS = 4;
+
   /// Returns the first source offset inside the bounded entry body.
   public long minimalBodyStart(
     borrow utf8 source,
@@ -150,6 +152,71 @@ classical class Structure {
     return -1;
   }
 
+  private long scalarReturnCallWidth(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    long statementStart
+  ) {
+    if (tokenKinds[statementStart + 1] == 1) {} else {
+      return -1;
+    }
+
+    if (
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        statementStart + 2,
+        PUNCTUATION_OPEN_PAREN
+      )
+    ) {} else {
+      return -1;
+    }
+
+    long cursor = statementStart + 3;
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_CLOSE_PAREN)
+    ) {
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, cursor + 1, PUNCTUATION_SEMICOLON)
+      ) {
+        return cursor + 2 - statementStart;
+      }
+
+      return -1;
+    }
+
+    long arguments = 0;
+    while (arguments < MAX_SCALAR_RETURN_ARGUMENTS) limit MAX_SCALAR_RETURN_ARGUMENTS {
+      if (tokenKinds[cursor] == 1) {} else {
+        return -1;
+      }
+
+      cursor += 1;
+      arguments += 1;
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_CLOSE_PAREN)
+      ) {
+        if (
+          punctuationAt(source, tokenKinds, tokenStarts, cursor + 1, PUNCTUATION_SEMICOLON)
+        ) {
+          return cursor + 2 - statementStart;
+        }
+
+        return -1;
+      }
+
+      if (punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_COMMA)) {} else {
+        return -1;
+      }
+
+      cursor += 1;
+    }
+
+    return -1;
+  }
+
   /// Validates and sizes one bounded helper value statement.
   public long helperValueStatementWidth(
     borrow utf8 source,
@@ -262,183 +329,7 @@ classical class Structure {
     }
 
     if (statementKind == STATEMENT_RETURN_HELPER_CALL_NAMED) {
-      if (tokenKinds[statementStart + 1] == 1) {} else {
-        return -1;
-      }
-
-      if (
-        punctuationAt(
-          source,
-          tokenKinds,
-          tokenStarts,
-          statementStart + 2,
-          PUNCTUATION_OPEN_PAREN
-        )
-      ) {} else {
-        return -1;
-      }
-
-      if (
-        punctuationAt(
-          source,
-          tokenKinds,
-          tokenStarts,
-          statementStart + 3,
-          PUNCTUATION_CLOSE_PAREN
-        )
-      ) {
-        if (
-          punctuationAt(
-            source,
-            tokenKinds,
-            tokenStarts,
-            statementStart + 4,
-            PUNCTUATION_SEMICOLON
-          )
-        ) {
-          return 5;
-        }
-
-        return -1;
-      }
-
-      if (tokenKinds[statementStart + 3] == 1) {} else {
-        return -1;
-      }
-
-      if (
-        punctuationAt(source, tokenKinds, tokenStarts, statementStart + 4, PUNCTUATION_COMMA)
-      ) {
-        if (tokenKinds[statementStart + 5] == 1) {} else {
-          return -1;
-        }
-
-        if (
-          punctuationAt(source, tokenKinds, tokenStarts, statementStart + 6, PUNCTUATION_COMMA)
-        ) {
-          if (tokenKinds[statementStart + 7] == 1) {} else {
-            return -1;
-          }
-
-          if (
-            punctuationAt(
-              source,
-              tokenKinds,
-              tokenStarts,
-              statementStart + 8,
-              PUNCTUATION_COMMA
-            )
-          ) {
-            if (tokenKinds[statementStart + 9] == 1) {} else {
-              return -1;
-            }
-
-            if (
-              punctuationAt(
-                source,
-                tokenKinds,
-                tokenStarts,
-                statementStart + 10,
-                PUNCTUATION_CLOSE_PAREN
-              )
-            ) {} else {
-              return -1;
-            }
-
-            if (
-              punctuationAt(
-                source,
-                tokenKinds,
-                tokenStarts,
-                statementStart + 11,
-                PUNCTUATION_SEMICOLON
-              )
-            ) {
-              return 12;
-            }
-
-            return -1;
-          }
-
-          if (
-            punctuationAt(
-              source,
-              tokenKinds,
-              tokenStarts,
-              statementStart + 8,
-              PUNCTUATION_CLOSE_PAREN
-            )
-          ) {} else {
-            return -1;
-          }
-
-          if (
-            punctuationAt(
-              source,
-              tokenKinds,
-              tokenStarts,
-              statementStart + 9,
-              PUNCTUATION_SEMICOLON
-            )
-          ) {
-            return 10;
-          }
-
-          return -1;
-        }
-
-        if (
-          punctuationAt(
-            source,
-            tokenKinds,
-            tokenStarts,
-            statementStart + 6,
-            PUNCTUATION_CLOSE_PAREN
-          )
-        ) {} else {
-          return -1;
-        }
-
-        if (
-          punctuationAt(
-            source,
-            tokenKinds,
-            tokenStarts,
-            statementStart + 7,
-            PUNCTUATION_SEMICOLON
-          )
-        ) {
-          return 8;
-        }
-
-        return -1;
-      }
-
-      if (
-        punctuationAt(
-          source,
-          tokenKinds,
-          tokenStarts,
-          statementStart + 4,
-          PUNCTUATION_CLOSE_PAREN
-        )
-      ) {} else {
-        return -1;
-      }
-
-      if (
-        punctuationAt(
-          source,
-          tokenKinds,
-          tokenStarts,
-          statementStart + 5,
-          PUNCTUATION_SEMICOLON
-        )
-      ) {
-        return 6;
-      }
-
-      return -1;
+      return scalarReturnCallWidth(source, tokenKinds, tokenStarts, statementStart);
     }
 
     if (statementKind == STATEMENT_RETURN_LOCAL_NAMED) {
