@@ -73,6 +73,10 @@ classical class KeywordTokens {
   public const long TOKEN_SET_BYTE = 105063682186;
   /// Names the stable token hash for intrinsic `put`.
   public const long TOKEN_PUT = 111375;
+  /// Names the stable token hash for intrinsic `mapGet`.
+  public const long TOKEN_MAP_GET = 3213567066;
+  /// Names the stable token hash for intrinsic `mapHas`.
+  public const long TOKEN_MAP_HAS = 3213567902;
   /// Names the stable token hash for `return`.
   public const long TOKEN_RETURN = 3360570672;
 }

@@ -69,6 +69,14 @@ classical class HelperValueKinds {
       return true;
     }
 
+    if (opcode == STATEMENT_LOCAL_MAP_GET_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_MAP_HAS_NAMED) {
+      return true;
+    }
+
     return opcode == STATEMENT_LOCAL_BUFFER_GET_NAMED;
   }
 }

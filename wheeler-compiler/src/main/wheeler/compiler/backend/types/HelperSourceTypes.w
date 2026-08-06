@@ -41,6 +41,14 @@ classical class HelperSourceTypes {
       return sequenceLocalType(parameterTypes, parameterCount, operand);
     }
 
+    if (opcode == STATEMENT_LOCAL_MAP_GET) {
+      return sequenceLocalType(parameterTypes, parameterCount, operand);
+    }
+
+    if (opcode == STATEMENT_LOCAL_MAP_HAS) {
+      return sequenceLocalType(parameterTypes, parameterCount, operand);
+    }
+
     if (opcode == STATEMENT_LOCAL_BUFFER_GET) {
       return sequenceLocalType(parameterTypes, parameterCount, operand);
     }
@@ -98,6 +106,14 @@ classical class HelperSourceTypes {
     long parameterCount
   ) {
     if (voidCallArity(opcode) == 2) {
+      return sequenceLocalType(parameterTypes, parameterCount, secondaryOperand);
+    }
+
+    if (opcode == STATEMENT_LOCAL_MAP_GET) {
+      return sequenceLocalType(parameterTypes, parameterCount, secondaryOperand);
+    }
+
+    if (opcode == STATEMENT_LOCAL_MAP_HAS) {
       return sequenceLocalType(parameterTypes, parameterCount, secondaryOperand);
     }
 

@@ -37,4 +37,12 @@ classical class BorrowedIntrinsicKinds {
   public const long STATEMENT_MAP_PUT_NAMED = 904;
   /// Names a resolved mutable signed-map entry write.
   public const long STATEMENT_MAP_PUT = 131338;
+  /// Names a signed local initialized from a signed-map entry.
+  public const long STATEMENT_LOCAL_MAP_GET_NAMED = 905;
+  /// Names a resolved signed local initialized from a signed-map entry.
+  public const long STATEMENT_LOCAL_MAP_GET = 131339;
+  /// Names a Boolean local initialized from signed-map membership.
+  public const long STATEMENT_LOCAL_MAP_HAS_NAMED = 906;
+  /// Names a resolved Boolean local initialized from signed-map membership.
+  public const long STATEMENT_LOCAL_MAP_HAS = 131340;
 }

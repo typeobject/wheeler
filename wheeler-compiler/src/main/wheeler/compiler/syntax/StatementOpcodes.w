@@ -449,6 +449,10 @@ classical class StatementOpcodes {
             return STATEMENT_LOCAL_UTF8_WIDTH_NAMED;
           }
 
+          if (initializerHash == TOKEN_MAP_GET) {
+            return STATEMENT_LOCAL_MAP_GET_NAMED;
+          }
+
           long callArgument = utf8Scalar(source, tokenStarts[statementStart + 5]);
           if (callArgument == PUNCTUATION_CLOSE_PAREN) {
             return STATEMENT_LOCAL_CALL_NAMED;
@@ -568,6 +572,10 @@ classical class StatementOpcodes {
 
       long equality = utf8Scalar(source, tokenStarts[statementStart + 4]);
       if (equality == PUNCTUATION_OPEN_PAREN) {
+        if (booleanInitializer == TOKEN_MAP_HAS) {
+          return STATEMENT_LOCAL_MAP_HAS_NAMED;
+        }
+
         long firstArgumentToken = statementStart + 5;
         long firstArgumentScalar = utf8Scalar(source, tokenStarts[firstArgumentToken]);
         if (firstArgumentScalar == PUNCTUATION_CLOSE_PAREN) {

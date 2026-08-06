@@ -108,6 +108,20 @@ classical class LocalTypes {
       return writeLocalType(output, cursor, TYPE_SIGNED);
     }
 
+    if (opcode == STATEMENT_LOCAL_MAP_GET) {
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      cursor = writeLocalType(output, cursor, secondSourceType);
+      cursor = writeLocalType(output, cursor, TYPE_SIGNED);
+      return writeLocalType(output, cursor, TYPE_SIGNED);
+    }
+
+    if (opcode == STATEMENT_LOCAL_MAP_HAS) {
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      cursor = writeLocalType(output, cursor, secondSourceType);
+      cursor = writeLocalType(output, cursor, TYPE_BOOLEAN);
+      return writeLocalType(output, cursor, TYPE_BOOLEAN);
+    }
+
     if (opcode == STATEMENT_LOCAL_BUFFER_GET) {
       cursor = writeLocalType(output, cursor, firstSourceType);
       cursor = writeLocalType(output, cursor, secondSourceType);
@@ -181,6 +195,20 @@ classical class LocalTypes {
       cursor = writeLocalType(output, cursor, TYPE_LONG_MAP_BORROW);
       cursor = writeLocalType(output, cursor, TYPE_SIGNED);
       return writeLocalType(output, cursor, TYPE_SIGNED);
+    }
+
+    if (opcode == STATEMENT_LOCAL_MAP_GET) {
+      cursor = writeLocalType(output, cursor, TYPE_LONG_MAP_BORROW);
+      cursor = writeLocalType(output, cursor, TYPE_SIGNED);
+      cursor = writeLocalType(output, cursor, TYPE_SIGNED);
+      return writeLocalType(output, cursor, TYPE_SIGNED);
+    }
+
+    if (opcode == STATEMENT_LOCAL_MAP_HAS) {
+      cursor = writeLocalType(output, cursor, TYPE_LONG_MAP_BORROW);
+      cursor = writeLocalType(output, cursor, TYPE_SIGNED);
+      cursor = writeLocalType(output, cursor, TYPE_BOOLEAN);
+      return writeLocalType(output, cursor, TYPE_BOOLEAN);
     }
 
     if (opcode == STATEMENT_LOCAL_BUFFER_GET) {

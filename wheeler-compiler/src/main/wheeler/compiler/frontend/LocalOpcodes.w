@@ -2,7 +2,7 @@
 
 module wheeler.compiler.local_opcodes;
 
-import wheeler.compiler.borrowed_intrinsic_kinds;
+import wheeler.compiler.borrowed_intrinsic_shapes;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_comparison_forms;
@@ -50,28 +50,9 @@ classical class LocalOpcodes {
       return voidCallLocals;
     }
 
-    if (opcode == STATEMENT_SET_WORD_NAMED) {
-      return 3;
-    }
-
-    if (opcode == STATEMENT_SET_WORD) {
-      return 3;
-    }
-
-    if (opcode == STATEMENT_SET_BYTE_NAMED) {
-      return 3;
-    }
-
-    if (opcode == STATEMENT_SET_BYTE) {
-      return 3;
-    }
-
-    if (opcode == STATEMENT_MAP_PUT_NAMED) {
-      return 3;
-    }
-
-    if (opcode == STATEMENT_MAP_PUT) {
-      return 3;
+    long intrinsicLocals = borrowedIntrinsicLocalCount(opcode);
+    if (-1 < intrinsicLocals) {
+      return intrinsicLocals;
     }
 
     if (resolvedEarlyHelperForwardingReturn(opcode)) {
@@ -159,42 +140,6 @@ classical class LocalOpcodes {
     }
 
     if (resolvedReturnHelperCall(opcode)) {
-      return 3;
-    }
-
-    if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
-      return 2;
-    }
-
-    if (opcode == STATEMENT_LOCAL_BUFFER_GET_NAMED) {
-      return 4;
-    }
-
-    if (opcode == STATEMENT_LOCAL_BUFFER_GET) {
-      return 4;
-    }
-
-    if (opcode == STATEMENT_LOCAL_UTF8_WIDTH_NAMED) {
-      return 4;
-    }
-
-    if (opcode == STATEMENT_LOCAL_UTF8_WIDTH) {
-      return 4;
-    }
-
-    if (opcode == STATEMENT_LOCAL_UTF8_SCALAR_NAMED) {
-      return 4;
-    }
-
-    if (opcode == STATEMENT_LOCAL_UTF8_SCALAR) {
-      return 4;
-    }
-
-    if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH_NAMED) {
-      return 3;
-    }
-
-    if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
       return 3;
     }
 
@@ -439,36 +384,9 @@ classical class LocalOpcodes {
 
   /// Returns the initialized result local for a declaration statement.
   public long statementResultLocal(long opcode, long localBase) {
-    if (opcode == STATEMENT_LOCAL_BUFFER_GET_NAMED) {
-      return localBase + 3;
-    }
-
-    if (opcode == STATEMENT_LOCAL_BUFFER_GET) {
-      return localBase + 3;
-    }
-
-    if (opcode == STATEMENT_LOCAL_UTF8_WIDTH_NAMED) {
-      return localBase + 3;
-    }
-
-    if (opcode == STATEMENT_LOCAL_UTF8_WIDTH) {
-      return localBase + 3;
-    }
-
-    if (opcode == STATEMENT_LOCAL_UTF8_SCALAR_NAMED) {
-      return localBase + 3;
-    }
-
-    if (opcode == STATEMENT_LOCAL_UTF8_SCALAR) {
-      return localBase + 3;
-    }
-
-    if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH_NAMED) {
-      return localBase + 2;
-    }
-
-    if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
-      return localBase + 2;
+    long intrinsicResult = borrowedIntrinsicResultOffset(opcode);
+    if (-1 < intrinsicResult) {
+      return localBase + intrinsicResult;
     }
 
     if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED) {
@@ -553,16 +471,9 @@ classical class LocalOpcodes {
       return voidCallLength;
     }
 
-    if (opcode == STATEMENT_SET_WORD) {
-      return 104;
-    }
-
-    if (opcode == STATEMENT_SET_BYTE) {
-      return 104;
-    }
-
-    if (opcode == STATEMENT_MAP_PUT) {
-      return 104;
+    long intrinsicLength = borrowedIntrinsicCodeLength(opcode);
+    if (-1 < intrinsicLength) {
+      return intrinsicLength;
     }
 
     if (resolvedEarlyHelperForwardingReturn(opcode)) {
@@ -650,26 +561,6 @@ classical class LocalOpcodes {
     }
 
     if (resolvedReturnHelperCall(opcode)) {
-      return 104;
-    }
-
-    if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
-      return 64;
-    }
-
-    if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
-      return 72;
-    }
-
-    if (opcode == STATEMENT_LOCAL_UTF8_SCALAR) {
-      return 104;
-    }
-
-    if (opcode == STATEMENT_LOCAL_UTF8_WIDTH) {
-      return 104;
-    }
-
-    if (opcode == STATEMENT_LOCAL_BUFFER_GET) {
       return 104;
     }
 
@@ -839,16 +730,9 @@ classical class LocalOpcodes {
       return voidCallInstructions;
     }
 
-    if (opcode == STATEMENT_SET_WORD) {
-      return 4;
-    }
-
-    if (opcode == STATEMENT_SET_BYTE) {
-      return 4;
-    }
-
-    if (opcode == STATEMENT_MAP_PUT) {
-      return 4;
+    long intrinsicInstructions = borrowedIntrinsicInstructionCount(opcode);
+    if (-1 < intrinsicInstructions) {
+      return intrinsicInstructions;
     }
 
     if (resolvedEarlyHelperForwardingReturn(opcode)) {
@@ -881,26 +765,6 @@ classical class LocalOpcodes {
 
     if (twoArgumentCallStatement(opcode)) {
       return 6;
-    }
-
-    if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
-      return 3;
-    }
-
-    if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
-      return 3;
-    }
-
-    if (opcode == STATEMENT_LOCAL_UTF8_SCALAR) {
-      return 4;
-    }
-
-    if (opcode == STATEMENT_LOCAL_UTF8_WIDTH) {
-      return 4;
-    }
-
-    if (opcode == STATEMENT_LOCAL_BUFFER_GET) {
-      return 4;
     }
 
     long length = statementCodeLength(opcode);

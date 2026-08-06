@@ -104,6 +104,44 @@ classical class BorrowedIntrinsicResolution {
       return new ResolvedBorrowedIntrinsic(-1, true);
     }
 
+    boolean mapRead = sourceOpcode == STATEMENT_LOCAL_MAP_GET_NAMED;
+    if (sourceOpcode == STATEMENT_LOCAL_MAP_HAS_NAMED) {
+      mapRead = true;
+    }
+
+    if (mapRead) {
+      long mapSource = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 5,
+        true
+      );
+      long mapKey = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 7,
+        true
+      );
+      if (-1 < mapSource) {
+        if (-1 < mapKey) {
+          long mapResolvedOpcode = STATEMENT_LOCAL_MAP_GET;
+          if (sourceOpcode == STATEMENT_LOCAL_MAP_HAS_NAMED) {
+            mapResolvedOpcode = STATEMENT_LOCAL_MAP_HAS;
+          }
+
+          return new ResolvedBorrowedIntrinsic(mapResolvedOpcode, true);
+        }
+      }
+
+      return new ResolvedBorrowedIntrinsic(-1, true);
+    }
+
     boolean utf8IndexedRead = sourceOpcode == STATEMENT_LOCAL_UTF8_SCALAR_NAMED;
     if (sourceOpcode == STATEMENT_LOCAL_UTF8_WIDTH_NAMED) {
       utf8IndexedRead = true;

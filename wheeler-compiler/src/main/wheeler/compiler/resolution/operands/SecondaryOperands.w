@@ -122,7 +122,16 @@ classical class SecondaryOperands {
       );
     }
 
-    if (sourceOpcode == STATEMENT_LOCAL_UTF8_WIDTH_NAMED) {
+    boolean indexedIntrinsic = sourceOpcode == STATEMENT_LOCAL_UTF8_WIDTH_NAMED;
+    if (sourceOpcode == STATEMENT_LOCAL_MAP_GET_NAMED) {
+      indexedIntrinsic = true;
+    }
+
+    if (sourceOpcode == STATEMENT_LOCAL_MAP_HAS_NAMED) {
+      indexedIntrinsic = true;
+    }
+
+    if (indexedIntrinsic) {
       return resolvePriorDeclaration(
         source,
         tokenStarts,

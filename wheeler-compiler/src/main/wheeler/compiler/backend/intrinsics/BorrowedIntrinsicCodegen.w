@@ -74,6 +74,32 @@ classical class BorrowedIntrinsicCodegen {
       return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
     }
 
+    boolean mapRead = opcode == STATEMENT_LOCAL_MAP_GET;
+    if (opcode == STATEMENT_LOCAL_MAP_HAS) {
+      mapRead = true;
+    }
+
+    if (mapRead) {
+      long mapReadOpcode = OPCODE_MAP_GET;
+      if (opcode == STATEMENT_LOCAL_MAP_HAS) {
+        mapReadOpcode = OPCODE_MAP_HAS;
+      }
+
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, operand, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, secondaryOperand, U64);
+      cursor = writeInstructionHeader(output, cursor, mapReadOpcode, FORM_TERNARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
+      return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+    }
+
     if (opcode == STATEMENT_LOCAL_BUFFER_GET) {
       long getOpcode = OPCODE_BYTES_GET;
       if (firstSourceType == TYPE_WORDS_BORROW) {

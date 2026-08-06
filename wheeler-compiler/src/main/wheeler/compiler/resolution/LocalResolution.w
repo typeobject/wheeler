@@ -68,6 +68,10 @@ classical class LocalResolution {
         return true;
       }
 
+      if (opcode == STATEMENT_LOCAL_MAP_GET_NAMED) {
+        return true;
+      }
+
       if (opcode == STATEMENT_LOCAL_LONG) {
         return true;
       }
@@ -104,6 +108,10 @@ classical class LocalResolution {
       }
 
       return namedLongPair(opcode);
+    }
+
+    if (opcode == STATEMENT_LOCAL_MAP_HAS_NAMED) {
+      return true;
     }
 
     if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED) {

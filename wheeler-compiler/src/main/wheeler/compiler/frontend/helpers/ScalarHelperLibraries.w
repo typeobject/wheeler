@@ -155,6 +155,37 @@ classical class ScalarHelperLibraries {
         }
       }
 
+      boolean mapRead = opcode == STATEMENT_LOCAL_MAP_GET;
+      if (opcode == STATEMENT_LOCAL_MAP_HAS) {
+        mapRead = true;
+      }
+
+      if (mapRead) {
+        long mapLocal = sequence.operands[statement];
+        if (mapLocal < 0) {
+          return false;
+        }
+
+        if (mapLocal < parameterCount) {} else {
+          return false;
+        }
+
+        if (parameterTypes[mapLocal] == TYPE_LONG_MAP_BORROW) {} else {
+          return false;
+        }
+
+        long keyLocal = sequence.secondaryOperands[statement];
+        if (keyLocal < 0) {
+          return false;
+        }
+
+        if (keyLocal < parameterCount) {
+          if (parameterTypes[keyLocal] == TYPE_SIGNED) {} else {
+            return false;
+          }
+        }
+      }
+
       if (opcode == STATEMENT_LOCAL_BUFFER_GET) {
         long bufferLocal = sequence.operands[statement];
         if (bufferLocal < 0) {
@@ -352,6 +383,14 @@ classical class ScalarHelperLibraries {
         }
 
         if (earlyOpcode == STATEMENT_LOCAL_BUFFER_GET) {
+          signedPrelude = true;
+        }
+
+        if (earlyOpcode == STATEMENT_LOCAL_MAP_GET) {
+          signedPrelude = true;
+        }
+
+        if (earlyOpcode == STATEMENT_LOCAL_MAP_HAS) {
           signedPrelude = true;
         }
 

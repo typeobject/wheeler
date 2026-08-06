@@ -112,6 +112,39 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
   }
 
   @Test
+  void compilesSignedMapReadsByteForByte() throws Exception {
+    String source = """
+        module example.borrowed_map_read;
+        classical class BorrowedMapRead {
+          public long lookup(borrow mut longmap values, long key) {
+            long element = mapGet(values, key);
+            return element;
+          }
+          public boolean contains(borrow mut longmap values, long key) {
+            boolean present = mapHas(values, key);
+            return present;
+          }
+          public long dummy() { return 0; }
+        }
+        """;
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("BorrowedMapRead.w", source), "example.borrowed_map_read"));
+    byte[] actual = NativeModuleCompilerHarness.compile(
+        NativeModuleCompilerHarness.program(), List.of(), source);
+    assertArrayEquals(expected, actual);
+
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace("borrow mut longmap values", "borrow mut region values"));
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace("long key", "borrow utf8 key"));
+  }
+
+  @Test
   void compilesPrimitiveLoanVoidWritersByteForByte() throws Exception {
     String source = """
         module example.borrowed_loan_void_write;
