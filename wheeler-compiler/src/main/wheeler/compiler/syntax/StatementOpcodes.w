@@ -414,6 +414,16 @@ classical class StatementOpcodes {
       if (identifierStart(initializer)) {
         long initializerOperator = utf8Scalar(source, tokenStarts[statementStart + 4]);
         if (initializerOperator == PUNCTUATION_OPEN_PAREN) {
+          long initializerHash = tokenHash(
+            source,
+            tokenStarts,
+            tokenLengths,
+            statementStart + 3
+          );
+          if (initializerHash == TOKEN_BUFFER_LENGTH) {
+            return STATEMENT_LOCAL_BUFFER_LENGTH_NAMED;
+          }
+
           long callArgument = utf8Scalar(source, tokenStarts[statementStart + 5]);
           if (callArgument == PUNCTUATION_CLOSE_PAREN) {
             return STATEMENT_LOCAL_CALL_NAMED;

@@ -36,6 +36,10 @@ classical class HelperValueKinds {
       return true;
     }
 
-    return opcode == STATEMENT_RETURN_BUFFER_LENGTH_NAMED;
+    if (opcode == STATEMENT_RETURN_BUFFER_LENGTH_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_LOCAL_BUFFER_LENGTH_NAMED;
   }
 }

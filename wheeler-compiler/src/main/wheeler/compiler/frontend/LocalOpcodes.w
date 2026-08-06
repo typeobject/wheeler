@@ -136,6 +136,14 @@ classical class LocalOpcodes {
       return 2;
     }
 
+    if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH_NAMED) {
+      return 3;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
+      return 3;
+    }
+
     if (resolvedLocalReturn(opcode)) {
       return 1;
     }
@@ -377,6 +385,14 @@ classical class LocalOpcodes {
 
   /// Returns the initialized result local for a declaration statement.
   public long statementResultLocal(long opcode, long localBase) {
+    if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH_NAMED) {
+      return localBase + 2;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
+      return localBase + 2;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED) {
       return localBase + 1;
     }
@@ -544,6 +560,10 @@ classical class LocalOpcodes {
 
     if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
       return 64;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
+      return 72;
     }
 
     if (resolvedLocalReturn(opcode)) {
@@ -740,6 +760,10 @@ classical class LocalOpcodes {
     }
 
     if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
+      return 3;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
       return 3;
     }
 

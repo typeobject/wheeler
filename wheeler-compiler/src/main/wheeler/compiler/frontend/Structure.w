@@ -238,6 +238,48 @@ classical class Structure {
       return -1;
     }
 
+    if (statementKind == STATEMENT_LOCAL_BUFFER_LENGTH_NAMED) {
+      if (tokenKinds[statementStart + 1] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, PUNCTUATION_ASSIGN)
+      ) {} else {
+        return -1;
+      }
+
+      if (tokenKinds[statementStart + 5] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 6,
+          PUNCTUATION_CLOSE_PAREN
+        )
+      ) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 7,
+          PUNCTUATION_SEMICOLON
+        )
+      ) {
+        return 8;
+      }
+
+      return -1;
+    }
+
     if (statementKind == STATEMENT_RETURN_BUFFER_LENGTH_NAMED) {
       if (tokenKinds[statementStart + 3] == 1) {} else {
         return -1;

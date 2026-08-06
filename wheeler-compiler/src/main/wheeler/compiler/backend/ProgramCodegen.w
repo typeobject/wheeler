@@ -577,6 +577,10 @@ classical class ProgramCodegen {
           firstSourceType = sequenceLocalType(parameterTypes, parameterCount, operands[index]);
         }
 
+        if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
+          firstSourceType = sequenceLocalType(parameterTypes, parameterCount, operands[index]);
+        }
+
         if (returnHelperCallArity(opcode) == 1) {
           firstSourceType = sequenceLocalType(
             parameterTypes,

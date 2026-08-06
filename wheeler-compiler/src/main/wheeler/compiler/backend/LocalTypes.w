@@ -67,6 +67,12 @@ classical class LocalTypes {
       return writeLocalType(output, cursor, resultType);
     }
 
+    if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      cursor = writeLocalType(output, cursor, TYPE_SIGNED);
+      return writeLocalType(output, cursor, TYPE_SIGNED);
+    }
+
     long arity = returnHelperCallArity(opcode);
     if (arity == 0) {
       return writeLocalType(output, cursor, resultType);
@@ -94,6 +100,12 @@ classical class LocalTypes {
     long count = statementLocalCount(opcode);
     if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
       cursor = writeLocalType(output, cursor, TYPE_BYTES_BORROW);
+      return writeLocalType(output, cursor, TYPE_SIGNED);
+    }
+
+    if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
+      cursor = writeLocalType(output, cursor, TYPE_BYTES_BORROW);
+      cursor = writeLocalType(output, cursor, TYPE_SIGNED);
       return writeLocalType(output, cursor, TYPE_SIGNED);
     }
 

@@ -38,4 +38,29 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
         List.of(),
         source.replace("borrow mut bytes value", "borrow mut region value"));
   }
+
+  @Test
+  void compilesBorrowedLengthLocalByteForByte() throws Exception {
+    String source = """
+        module example.borrowed_intrinsic_local;
+        classical class BorrowedIntrinsicLocal {
+          public long size(borrow byteview value) {
+            long length = bufferLength(value);
+            return length;
+          }
+          public long dummy() { return 0; }
+        }
+        """;
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("BorrowedIntrinsicLocal.w", source), "example.borrowed_intrinsic_local"));
+    byte[] actual = NativeModuleCompilerHarness.compile(
+        NativeModuleCompilerHarness.program(), List.of(), source);
+    assertArrayEquals(expected, actual);
+
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace("borrow byteview value", "long value"));
+  }
 }

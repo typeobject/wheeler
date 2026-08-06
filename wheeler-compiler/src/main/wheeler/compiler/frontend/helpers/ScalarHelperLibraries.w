@@ -90,35 +90,47 @@ classical class ScalarHelperLibraries {
     long[16] parameterTypes,
     long parameterCount
   ) {
-    long opcode = sequence.opcodes[sequence.count - 1];
-    if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {} else {
-      return true;
+    long statement = 0;
+    while (statement < sequence.count) limit MAX_MINIMAL_STATEMENTS {
+      long opcode = sequence.opcodes[statement];
+      boolean bufferLength = opcode == STATEMENT_RETURN_BUFFER_LENGTH;
+      if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
+        bufferLength = true;
+      }
+
+      if (bufferLength) {
+        long sourceLocal = sequence.operands[statement];
+        if (sourceLocal < 0) {
+          return false;
+        }
+
+        if (sourceLocal < parameterCount) {} else {
+          return false;
+        }
+
+        long sourceType = parameterTypes[sourceLocal];
+        boolean buffer = sourceType == TYPE_UTF8_BORROW;
+        if (sourceType == TYPE_BYTE_VIEW) {
+          buffer = true;
+        }
+
+        if (sourceType == TYPE_BYTES_BORROW) {
+          buffer = true;
+        }
+
+        if (sourceType == TYPE_WORDS_BORROW) {
+          buffer = true;
+        }
+
+        if (buffer == false) {
+          return false;
+        }
+      }
+
+      statement += 1;
     }
 
-    long sourceLocal = sequence.operands[sequence.count - 1];
-    if (sourceLocal < 0) {
-      return false;
-    }
-
-    if (sourceLocal < parameterCount) {} else {
-      return false;
-    }
-
-    long sourceType = parameterTypes[sourceLocal];
-    boolean buffer = sourceType == TYPE_UTF8_BORROW;
-    if (sourceType == TYPE_BYTE_VIEW) {
-      buffer = true;
-    }
-
-    if (sourceType == TYPE_BYTES_BORROW) {
-      buffer = true;
-    }
-
-    if (sourceType == TYPE_WORDS_BORROW) {
-      buffer = true;
-    }
-
-    return buffer;
+    return true;
   }
 
   private boolean scalarSequenceValid(
@@ -169,6 +181,10 @@ classical class ScalarHelperLibraries {
       } else {
         boolean signedPrelude = resolvedLocalLongBinary(earlyOpcode);
         if (resolvedLocalLongPair(earlyOpcode)) {
+          signedPrelude = true;
+        }
+
+        if (earlyOpcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
           signedPrelude = true;
         }
 

@@ -2,6 +2,7 @@
 
 module wheeler.compiler.codegen;
 
+import wheeler.compiler.borrowed_intrinsic_codegen;
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.conditionals;
@@ -255,6 +256,17 @@ classical class Codegen {
     long firstSourceType,
     long secondSourceType
   ) {
+    long intrinsicCursor = writeBorrowedIntrinsicStatement(
+      output,
+      cursor,
+      opcode,
+      operand,
+      localBase
+    );
+    if (-1 < intrinsicCursor) {
+      return intrinsicCursor;
+    }
+
     long returnCursor = writeReturnStatement(
       output,
       cursor,

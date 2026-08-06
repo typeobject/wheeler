@@ -264,6 +264,10 @@ classical class CompilerCore {
         firstType = helperLocalType(body, body.operands[statement]);
       }
 
+      if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
+        firstType = helperLocalType(body, body.operands[statement]);
+      }
+
       if (resolvedReturnHelperCall(opcode)) {
         if (returnHelperCallArity(opcode) == 1) {
           firstType = helperLocalType(body, returnHelperCallFirstSource(opcode));

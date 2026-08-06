@@ -205,6 +205,23 @@ classical class LocalStatements {
       );
     }
 
+    if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH_NAMED) {
+      long localBufferSource = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 5,
+        true
+      );
+      if (-1 < localBufferSource) {
+        return STATEMENT_LOCAL_BUFFER_LENGTH;
+      }
+
+      return -1;
+    }
+
     if (opcode == STATEMENT_RETURN_BUFFER_LENGTH_NAMED) {
       long bufferSourceLocal = resolvePriorDeclaration(
         source,
@@ -823,6 +840,10 @@ classical class LocalStatements {
   /// Checks whether a resolved statement operand names a valid prior local.
   public boolean sequenceOperandValid(long opcode, long operand) {
     if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
+      return -1 < operand;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
       return -1 < operand;
     }
 

@@ -2,7 +2,6 @@
 
 module wheeler.compiler.return_codegen;
 
-import wheeler.compiler.borrowed_intrinsic_returns;
 import wheeler.compiler.early_comparison_forms;
 import wheeler.compiler.early_return_sources;
 import wheeler.compiler.encoding;
@@ -83,17 +82,6 @@ classical class ReturnCodegen {
     long firstSourceType,
     long secondSourceType
   ) {
-    if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, operand, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_BUFFER_LENGTH, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN_VALUE, FORM_UNARY);
-      return writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-    }
-
     if (returnHelperCallArity(opcode) == 0) {
       assert(-1 < callFunction);
       cursor = writeInstructionHeader(output, cursor, OPCODE_CALL_VALUE, FORM_QUATERNARY);
