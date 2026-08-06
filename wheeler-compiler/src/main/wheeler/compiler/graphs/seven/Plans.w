@@ -4,6 +4,7 @@ module wheeler.compiler.graphs.seven.plans;
 
 import wheeler.compiler.graphs.matrix;
 import wheeler.compiler.graphs.seven.plan_shapes;
+import wheeler.compiler.graphs.seven.shape_asymmetric;
 import wheeler.compiler.graphs.seven.shape_chains;
 import wheeler.compiler.graphs.seven.shape_forks;
 import wheeler.compiler.graphs.seven.shape_nested;
