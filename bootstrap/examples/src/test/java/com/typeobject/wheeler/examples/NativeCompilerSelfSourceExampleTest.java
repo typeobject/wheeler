@@ -649,8 +649,8 @@ final class NativeCompilerSelfSourceExampleTest {
     assertEquals(
         "wheeler.compiler.early_return_kinds::earlyReturnStatement",
         decoded.functions().getFirst().name());
-    assertEquals(48, decoded.functions().getFirst().localCount());
-    assertEquals(81, decoded.functions().getFirst().forward().size());
+    assertEquals(52, decoded.functions().getFirst().localCount());
+    assertEquals(88, decoded.functions().getFirst().forward().size());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 

@@ -107,8 +107,8 @@ classical class ResolvedReturnCallKinds {
       return opcode / RESOLVED_SOURCE_COUNT;
     }
 
-    if (opcode < RETURN_HELPER_CALL_THREE_END) {
-      long packedThree = opcode - STATEMENT_RETURN_HELPER_CALL_THREE_BASE;
+    long packedThree = opcode - STATEMENT_RETURN_HELPER_CALL_THREE_BASE;
+    if (packedThree < RESOLVED_SOURCE_CUBE) {
       return packedThree / RESOLVED_SOURCE_SQUARE;
     }
 
@@ -122,9 +122,9 @@ classical class ResolvedReturnCallKinds {
       return opcode % RESOLVED_SOURCE_COUNT;
     }
 
-    if (opcode < RETURN_HELPER_CALL_THREE_END) {
-      long packedThree = opcode - STATEMENT_RETURN_HELPER_CALL_THREE_BASE;
-      long quotientThree = packedThree / RESOLVED_SOURCE_COUNT;
+    long packedThree = opcode - STATEMENT_RETURN_HELPER_CALL_THREE_BASE;
+    long quotientThree = packedThree / RESOLVED_SOURCE_COUNT;
+    if (quotientThree < RESOLVED_SOURCE_SQUARE) {
       return quotientThree % RESOLVED_SOURCE_COUNT;
     }
 
@@ -135,8 +135,8 @@ classical class ResolvedReturnCallKinds {
 
   /// Returns the third source local of one resolved three-argument helper call.
   public long returnHelperCallThirdSource(long opcode) {
-    if (opcode < RETURN_HELPER_CALL_THREE_END) {
-      long packedThree = opcode - STATEMENT_RETURN_HELPER_CALL_THREE_BASE;
+    long packedThree = opcode - STATEMENT_RETURN_HELPER_CALL_THREE_BASE;
+    if (packedThree < RESOLVED_SOURCE_CUBE) {
       return packedThree % RESOLVED_SOURCE_COUNT;
     }
 

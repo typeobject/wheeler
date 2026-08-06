@@ -311,6 +311,10 @@ classical class StatementOpcodes {
               return STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_NAMED;
             }
 
+            if (guardReturnOperator == PUNCTUATION_SLASH) {
+              return STATEMENT_IF_SIGNED_LT_RETURN_DIV_NAMED;
+            }
+
             return STATEMENT_IF_SIGNED_LT_RETURN_LONG_NAMED;
           }
 

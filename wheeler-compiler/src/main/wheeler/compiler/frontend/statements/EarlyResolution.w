@@ -40,7 +40,11 @@ classical class EarlyStatementResolution {
       return true;
     }
 
-    return opcode == STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_NAMED;
+    if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_IF_SIGNED_LT_RETURN_DIV_NAMED;
   }
 
   private long helperGuardBase(long opcode) {
@@ -67,6 +71,10 @@ classical class EarlyStatementResolution {
 
       if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_NAMED) {
         return STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_BASE;
+      }
+
+      if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_DIV_NAMED) {
+        return STATEMENT_IF_SIGNED_LT_RETURN_DIV_BASE;
       }
 
       return STATEMENT_IF_SIGNED_LT_RETURN_BASE;

@@ -6,6 +6,7 @@ import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
+import wheeler.compiler.early_return_kinds;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.named_local_update_kinds;
@@ -24,6 +25,11 @@ classical class LocalResolution {
     long statementStart,
     long opcode
   ) {
+    long earlyReturnLocals = sourceEarlyReturnLocalCount(opcode);
+    if (-1 < earlyReturnLocals) {
+      return earlyReturnLocals;
+    }
+
     if (opcode == STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED) {
       return 6;
     }

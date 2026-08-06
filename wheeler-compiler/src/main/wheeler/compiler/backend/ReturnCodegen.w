@@ -387,6 +387,10 @@ classical class ReturnCodegen {
           computedOpcode = OPCODE_LOCAL_MOD;
         }
 
+        if (resolvedEarlyDivisionReturn(opcode)) {
+          computedOpcode = OPCODE_LOCAL_DIV;
+        }
+
         cursor = writeInstructionHeader(output, cursor, computedOpcode, FORM_TERNARY);
         cursor = writeUnsignedLittleEndian(output, cursor, localBase + 5, U64);
         cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);

@@ -24,7 +24,11 @@ classical class EarlyReturnResultKinds {
       return true;
     }
 
-    return sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_NAMED;
+    if (sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_NAMED) {
+      return true;
+    }
+
+    return sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_DIV_NAMED;
   }
 
   /// Checks whether one comparison guard computes its result.
@@ -33,11 +37,21 @@ classical class EarlyReturnResultKinds {
       return true;
     }
 
-    return sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_NAMED;
+    if (sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_NAMED) {
+      return true;
+    }
+
+    return sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_DIV_NAMED;
   }
 
   /// Checks whether one comparison guard computes checked remainder.
   public boolean comparisonGuardResultRemainder(long sourceOpcode) {
     return sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_NAMED;
   }
+
+  /// Checks whether one comparison guard computes checked division.
+  public boolean comparisonGuardResultDivision(long sourceOpcode) {
+    return sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_DIV_NAMED;
+  }
+
 }
