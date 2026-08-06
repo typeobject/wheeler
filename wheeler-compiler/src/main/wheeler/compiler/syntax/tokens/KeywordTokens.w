@@ -43,6 +43,22 @@ classical class KeywordTokens {
   public const long TOKEN_LIMIT = 102976443;
   /// Names the stable token hash for `long`.
   public const long TOKEN_LONG = 3327612;
+  /// Names the stable token hash for `borrow`.
+  public const long TOKEN_BORROW = 2911676917;
+  /// Names the stable token hash for `mut`.
+  public const long TOKEN_MUT = 108492;
+  /// Names the stable token hash for `utf8`.
+  public const long TOKEN_UTF8 = 3600241;
+  /// Names the stable token hash for `bytes`.
+  public const long TOKEN_BYTES = 94224491;
+  /// Names the stable token hash for `byteview`.
+  public const long TOKEN_BYTEVIEW = 2807042004909;
+  /// Names the stable token hash for `words`.
+  public const long TOKEN_WORDS = 113318569;
+  /// Names the stable token hash for `region`.
+  public const long TOKEN_REGION = 3360171764;
+  /// Names the stable token hash for `longmap`.
+  public const long TOKEN_LONGMAP = 99132996960;
   /// Names the stable token hash for `boolean`.
   public const long TOKEN_BOOLEAN = 90259024936;
   /// Names the stable token hash for `return`.

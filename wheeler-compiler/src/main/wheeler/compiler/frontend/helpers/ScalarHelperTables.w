@@ -7,6 +7,7 @@ import wheeler.compiler.helper_abi;
 import wheeler.compiler.helper_signatures;
 import wheeler.compiler.ir;
 import wheeler.compiler.resolved_return_call_kinds;
+import wheeler.compiler.type_codes;
 
 classical class ScalarHelperTables {
   /// Carries bounded call targets resolved against one helper table.
@@ -15,6 +16,23 @@ classical class ScalarHelperTables {
   /// Checks whether one helper returns a Boolean scalar.
   public boolean booleanHelperKind(long kind) {
     return booleanResultHelper(kind);
+  }
+
+  private boolean signedCallParameters(HelperBody body, long argumentCount) {
+    if (body.parameterCount == argumentCount) {} else {
+      return false;
+    }
+
+    long parameter = 0;
+    while (parameter < argumentCount) limit MAX_SCALAR_HELPER_PARAMETERS {
+      if (body.parameterTypes[parameter] == TYPE_SIGNED) {} else {
+        return false;
+      }
+
+      parameter += 1;
+    }
+
+    return true;
   }
 
   /// Compares two helper names in one source.
@@ -318,14 +336,16 @@ classical class ScalarHelperTables {
         if (forwarding) {
           if (booleanHelperKind(caller.kind)) {
             if (booleanHelperKind(candidate.kind)) {
-              if (candidate.parameterCount == argumentCount) {
+              if (signedCallParameters(candidate, argumentCount)) {
                 found = helper;
               }
             }
           }
         } else {
           if (candidate.kind == HELPER_BOOLEAN_SIGNED_ONE) {
-            found = helper;
+            if (signedCallParameters(candidate, 1)) {
+              found = helper;
+            }
           }
         }
       }

@@ -8,6 +8,7 @@ import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.early_comparison_forms;
 import wheeler.compiler.encoding;
 import wheeler.compiler.helper_abi;
+import wheeler.compiler.helper_parameter_types;
 import wheeler.compiler.helper_signatures;
 import wheeler.compiler.ir;
 import wheeler.compiler.keyword_tokens;
@@ -185,30 +186,40 @@ classical class ScalarHelperLibraries {
         parameterCursor += 1;
       }
 
-      if (tokenHash(source, tokenStarts, tokenLengths, parameterCursor) == TOKEN_LONG) {} else {
+      HelperParameter parsedParameter = parseHelperParameter(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        parameterCursor
+      );
+      if (parsedParameter.valid) {} else {
         return invalidHelper();
       }
 
-      long parameterName = parameterCursor + 1;
-      if (tokenKinds[parameterName] == 1) {} else {
-        return invalidHelper();
-      }
-
-      if (tokenLengths[parameterName] < 257) {} else {
-        return invalidHelper();
-      }
-
+      long parameterName = parsedParameter.nameToken;
       if (classConstantNameExists(source, tokenStarts, tokenLengths, parameterName)) {
         return invalidHelper();
       }
 
       long priorParameter = 0;
       while (priorParameter < parameterCount) limit MAX_SCALAR_HELPER_PARAMETERS {
-        long priorName = start + 5 + priorParameter * 3;
+        HelperParameter prior = helperParameterAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          tokenLengths,
+          start,
+          priorParameter
+        );
+        if (prior.valid) {} else {
+          return invalidHelper();
+        }
+
         long parameterOrder = compareAsciiSlices(
           source,
-          tokenStarts[priorName],
-          tokenLengths[priorName],
+          tokenStarts[prior.nameToken],
+          tokenLengths[prior.nameToken],
           tokenStarts[parameterName],
           tokenLengths[parameterName]
         );
@@ -220,7 +231,7 @@ classical class ScalarHelperLibraries {
       }
 
       parameterCount += 1;
-      parameterCursor += 2;
+      parameterCursor = parsedParameter.nextToken;
     }
 
     if (
@@ -337,8 +348,16 @@ classical class ScalarHelperLibraries {
 
       long parameter = 0;
       while (parameter < parameterCount) limit MAX_SCALAR_HELPER_PARAMETERS {
-        long resolvedParameterName = start + 5 + parameter * 3;
-        set(statementStarts, parameter, 0 - resolvedParameterName);
+        HelperParameter resolvedParameter = helperParameterAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          tokenLengths,
+          start,
+          parameter
+        );
+        assert(resolvedParameter.valid);
+        set(statementStarts, parameter, 0 - resolvedParameter.nameToken);
         parameter += 1;
       }
     }
@@ -374,7 +393,14 @@ classical class ScalarHelperLibraries {
       sequence.secondaryOperands,
       kind,
       parameterCount,
-      scalarHelperParameterTypes(kind, parameterCount),
+      parsedHelperParameterTypes(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        start,
+        parameterCount
+      ),
       sequence.count,
       sequence.count - 1,
       callTargetStarts,
