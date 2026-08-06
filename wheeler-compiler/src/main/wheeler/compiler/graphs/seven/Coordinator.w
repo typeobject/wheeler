@@ -20,6 +20,7 @@ import wheeler.compiler.graphs.seven.separate;
 import wheeler.compiler.graphs.seven.wide_fork;
 import wheeler.compiler.graphs.seven_plan_kinds;
 import wheeler.compiler.module_linker;
+import wheeler.compiler.seven_imported_helpers;
 
 classical class CompilerGraphSeven {
   private const long SEVEN_IMPORTS = 7;
@@ -56,6 +57,26 @@ classical class CompilerGraphSeven {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
+    LinkPlan firstPlan = planConstantImport(
+      firstImportedSource,
+      rootSource,
+      /* expectedImportCount= */ SEVEN_IMPORTS
+    );
+    if (firstPlan.valid) {} else {
+      CoreCompilation compiledHelpers = compileSevenHelperOwners(
+        firstImportedSource,
+        secondImportedSource,
+        thirdImportedSource,
+        fourthImportedSource,
+        fifthImportedSource,
+        sixthImportedSource,
+        seventhImportedSource,
+        rootSource,
+        output
+      );
+      return new SevenGraphCompilation(compiledHelpers.length, compiledHelpers.codeStart);
+    }
+
     region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 firstLinkedSource = linkDirect(firstImportedSource, rootSource, firstArena);
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
