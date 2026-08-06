@@ -189,6 +189,77 @@ final class NativeCompilerImportedHelperExampleTest {
   }
 
   @Test
+  void compilesThreeDirectHelperOwnersByteForByte() throws Exception {
+    Program compiler = NativeModuleCompilerHarness.program();
+    String alpha = helperOwner("example.alpha", "Alpha", "alpha", 8);
+    String beta = helperOwner("example.beta", "Beta", "beta", 7);
+    String gamma = helperOwner("example.gamma", "Gamma", "gamma", 7);
+    String root = String.join("\n",
+        "module example.use_three;",
+        "import example.alpha;",
+        "import example.beta;",
+        "import example.gamma;",
+        "classical class UseThree {",
+        "  public boolean accepted(long value) {",
+        "    if (alpha0(value)) { return true; }",
+        "    if (beta0(value)) { return false; }",
+        "    return gamma0(value);",
+        "  }",
+        "}",
+        "");
+
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("Alpha.w", alpha, "Beta.w", beta, "Gamma.w", gamma, "UseThree.w", root),
+        "example.use_three");
+    byte[] expectedArtifact = new BytecodeWriter().write(expected);
+    List<List<String>> orders = List.of(
+        List.of(alpha, beta, gamma),
+        List.of(alpha, gamma, beta),
+        List.of(beta, alpha, gamma),
+        List.of(beta, gamma, alpha),
+        List.of(gamma, alpha, beta),
+        List.of(gamma, beta, alpha));
+    for (List<String> order : orders) {
+      assertArrayEquals(expectedArtifact, NativeModuleCompilerHarness.compile(compiler, order, root));
+    }
+
+    Program decoded = new BytecodeReader().read(expectedArtifact);
+    assertEquals("example.alpha::alpha0", decoded.functions().getFirst().name());
+    assertEquals("example.alpha::alpha7", decoded.functions().get(7).name());
+    assertEquals("example.beta::beta0", decoded.functions().get(8).name());
+    assertEquals("example.beta::beta6", decoded.functions().get(14).name());
+    assertEquals("example.gamma::gamma0", decoded.functions().get(15).name());
+    assertEquals("example.gamma::gamma6", decoded.functions().get(21).name());
+    assertEquals("example.use_three::accepted", decoded.functions().get(22).name());
+    assertEquals("$library", decoded.functions().getLast().name());
+
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(alpha, beta, gamma.replace("public boolean gamma0", "private boolean gamma0")),
+        root);
+
+    String delta = helperOwner("example.delta", "Delta", "delta", 1);
+    String fourOwnerRoot = String.join("\n",
+        "module example.use_four;",
+        "import example.alpha;",
+        "import example.beta;",
+        "import example.delta;",
+        "import example.gamma;",
+        "classical class UseFour {",
+        "  public boolean accepted(long value) { return alpha0(value); }",
+        "}",
+        "");
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(
+            helperOwner("example.alpha", "Alpha", "alpha", 1),
+            helperOwner("example.beta", "Beta", "beta", 1),
+            delta,
+            helperOwner("example.gamma", "Gamma", "gamma", 1)),
+        fourOwnerRoot);
+  }
+
+  @Test
   void compilesCanonicalImportedComparisonHelpersByteForByte() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
     String constants = CompilerSources.read("compiler/ir/ResolvedStatements.w");

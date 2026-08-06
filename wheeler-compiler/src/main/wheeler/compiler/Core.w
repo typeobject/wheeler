@@ -275,7 +275,9 @@ classical class CompilerCore {
       noImportedModule,
       /* firstHelperCount= */ 0,
       noImportedModule,
-      /* secondHelperCount= */ 0
+      /* secondHelperCount= */ 0,
+      noImportedModule,
+      /* thirdHelperCount= */ 0
     );
     return compileMinimalCoreOwned(source, output, owners);
   }
@@ -292,12 +294,14 @@ classical class CompilerCore {
     assert(importedModuleStart + importedModuleLength < bufferLength(source) + 1);
     assert(0 < importedHelperCount);
     SourceRange importedModule = new SourceRange(importedModuleStart, importedModuleLength);
-    SourceRange noSecondModule = new SourceRange(0, 0);
+    SourceRange noAdditionalModule = new SourceRange(0, 0);
     HelperOwners owners = new HelperOwners(
       importedModule,
       importedHelperCount,
-      noSecondModule,
-      /* secondHelperCount= */ 0
+      noAdditionalModule,
+      /* secondHelperCount= */ 0,
+      noAdditionalModule,
+      /* thirdHelperCount= */ 0
     );
     return compileMinimalCoreOwned(source, output, owners);
   }
@@ -319,11 +323,48 @@ classical class CompilerCore {
     assert(0 < secondModuleLength);
     assert(secondModuleStart + secondModuleLength < bufferLength(source) + 1);
     assert(0 < secondHelperCount);
+    SourceRange noThirdModule = new SourceRange(0, 0);
     HelperOwners owners = new HelperOwners(
       new SourceRange(firstModuleStart, firstModuleLength),
       firstHelperCount,
       new SourceRange(secondModuleStart, secondModuleLength),
-      secondHelperCount
+      secondHelperCount,
+      noThirdModule,
+      /* thirdHelperCount= */ 0
+    );
+    return compileMinimalCoreOwned(source, output, owners);
+  }
+
+  /// Compiles one flattened source while preserving three imported helper owners.
+  public CoreCompilation compileMinimalCoreWithThreeHelperImports(
+    borrow utf8 source,
+    borrow mut bytes output,
+    long firstModuleStart,
+    long firstModuleLength,
+    long firstHelperCount,
+    long secondModuleStart,
+    long secondModuleLength,
+    long secondHelperCount,
+    long thirdModuleStart,
+    long thirdModuleLength,
+    long thirdHelperCount
+  ) {
+    assert(0 < firstModuleLength);
+    assert(firstModuleStart + firstModuleLength < bufferLength(source) + 1);
+    assert(0 < firstHelperCount);
+    assert(0 < secondModuleLength);
+    assert(secondModuleStart + secondModuleLength < bufferLength(source) + 1);
+    assert(0 < secondHelperCount);
+    assert(0 < thirdModuleLength);
+    assert(thirdModuleStart + thirdModuleLength < bufferLength(source) + 1);
+    assert(0 < thirdHelperCount);
+    HelperOwners owners = new HelperOwners(
+      new SourceRange(firstModuleStart, firstModuleLength),
+      firstHelperCount,
+      new SourceRange(secondModuleStart, secondModuleLength),
+      secondHelperCount,
+      new SourceRange(thirdModuleStart, thirdModuleLength),
+      thirdHelperCount
     );
     return compileMinimalCoreOwned(source, output, owners);
   }

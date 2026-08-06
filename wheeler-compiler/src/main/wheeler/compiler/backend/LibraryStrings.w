@@ -27,7 +27,9 @@ classical class LibraryStrings {
     SourceRange firstModule,
     long firstHelperCount,
     SourceRange secondModule,
-    long secondHelperCount
+    long secondHelperCount,
+    SourceRange thirdModule,
+    long thirdHelperCount
   ) {}
 
   private long libraryScalar(long index) {
@@ -83,6 +85,12 @@ classical class LibraryStrings {
 
       if (helper < owners.firstHelperCount + owners.secondHelperCount) {
         return owners.secondModule;
+      }
+
+      if (
+        helper < owners.firstHelperCount + owners.secondHelperCount + owners.thirdHelperCount
+      ) {
+        return owners.thirdModule;
       }
     }
 
@@ -228,7 +236,8 @@ classical class LibraryStrings {
       valid = 0;
     }
 
-    long importedHelperCount = owners.firstHelperCount + owners.secondHelperCount;
+    long importedHelperCount = owners.firstHelperCount + owners.secondHelperCount
+      + owners.thirdHelperCount;
     if (importedHelperCount < program.helperCount + 1) {} else {
       valid = 0;
     }
@@ -241,6 +250,12 @@ classical class LibraryStrings {
 
     if (0 < owners.secondHelperCount) {
       if (0 < owners.secondModule.length) {} else {
+        valid = 0;
+      }
+    }
+
+    if (0 < owners.thirdHelperCount) {
+      if (0 < owners.thirdModule.length) {} else {
         valid = 0;
       }
     }

@@ -603,7 +603,14 @@ classical class CompilerGraphs {
       /* expectedImportCount= */ 3
     );
     if (firstPlan.valid) {} else {
-      assert(0 == 1);
+      CoreCompilation compiledHelpers = compileThreeHelperOwners(
+        firstImportedSource,
+        secondImportedSource,
+        thirdImportedSource,
+        rootSource,
+        output
+      );
+      return new GraphCompilation(compiledHelpers.length, compiledHelpers.codeStart);
     }
 
     region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
