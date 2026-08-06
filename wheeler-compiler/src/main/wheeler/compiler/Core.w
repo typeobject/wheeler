@@ -338,6 +338,18 @@ classical class CompilerCore {
     return compileMinimalCoreWithHelperOwners(source, output, noHelperOwners());
   }
 
+  /// Compiles one flattened source with one canonical imported helper owner.
+  public CoreCompilation compileMinimalCoreWithHelperOwner(
+    borrow utf8 source,
+    borrow mut bytes output,
+    long ownerStart,
+    long ownerLength,
+    long helperCount
+  ) {
+    HelperOwner owner = importedHelperOwner(ownerStart, ownerLength, helperCount);
+    return compileMinimalCoreWithHelperOwners(source, output, oneHelperOwner(owner));
+  }
+
   /// Compiles one flattened source with validated canonical imported helper owners.
   public CoreCompilation compileMinimalCoreWithHelperOwners(
     borrow utf8 source,

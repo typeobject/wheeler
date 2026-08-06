@@ -616,6 +616,71 @@ final class NativeCompilerImportedHelperExampleTest {
   }
 
   @Test
+  void compilesHelperChainBesideDirectConstantsByteForByte() throws Exception {
+    String leaf = """
+        module example.a_limits;
+        classical class Limits { public const long LIMIT = 4; }
+        """;
+    String dependency = """
+        module example.b_predicate;
+        import example.a_limits;
+        classical class Predicate {
+          public boolean below(long value) { return value < LIMIT; }
+        }
+        """;
+    String first = """
+        module example.c_first;
+        classical class First { public const long FIRST = 1; }
+        """;
+    String second = """
+        module example.d_second;
+        classical class Second { public const long SECOND = 2; }
+        """;
+    String third = """
+        module example.e_third;
+        classical class Third { public const long THIRD = 3; }
+        """;
+    String root = """
+        module example.f_use;
+        import example.b_predicate;
+        import example.c_first;
+        import example.d_second;
+        import example.e_third;
+        classical class Use {
+          public boolean accepted(long value) {
+            long first = FIRST;
+            long second = SECOND;
+            long third = THIRD;
+            return below(third);
+          }
+        }
+        """;
+    Program compiler = NativeModuleCompilerHarness.program();
+    List<String> sources = List.of(leaf, dependency, first, second, third);
+    byte[] artifact = NativeModuleCompilerHarness.compile(compiler, sources, root);
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of(
+            "Limits.w", leaf,
+            "Predicate.w", dependency,
+            "First.w", first,
+            "Second.w", second,
+            "Third.w", third,
+            "Use.w", root),
+        "example.f_use");
+    byte[] expectedArtifact = new BytecodeWriter().write(expected);
+    assertArrayEquals(expectedArtifact, artifact);
+    assertArrayEquals(
+        expectedArtifact,
+        NativeModuleCompilerHarness.compile(compiler, sources.reversed(), root));
+
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(leaf, dependency.replace("public boolean below", "private boolean below"),
+            first, second, third),
+        root);
+  }
+
+  @Test
   void compilesCanonicalImportedComparisonHelpersByteForByte() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
     String constants = CompilerSources.read("compiler/ir/ResolvedStatements.w");
