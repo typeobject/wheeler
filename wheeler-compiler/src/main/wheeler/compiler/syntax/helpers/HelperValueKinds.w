@@ -44,6 +44,10 @@ classical class HelperValueKinds {
       return true;
     }
 
-    return opcode == STATEMENT_LOCAL_UTF8_SCALAR_NAMED;
+    if (opcode == STATEMENT_LOCAL_UTF8_SCALAR_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_LOCAL_BUFFER_GET_NAMED;
   }
 }

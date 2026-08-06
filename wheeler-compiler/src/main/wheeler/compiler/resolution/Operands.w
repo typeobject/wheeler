@@ -160,6 +160,18 @@ classical class Operands {
       previousCount
     );
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (sourceOpcode == STATEMENT_LOCAL_BUFFER_GET_NAMED) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3,
+        true
+      );
+    }
+
     if (sourceOpcode == STATEMENT_LOCAL_UTF8_SCALAR_NAMED) {
       return resolvePriorDeclaration(
         source,

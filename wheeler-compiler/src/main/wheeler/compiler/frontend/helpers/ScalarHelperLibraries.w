@@ -98,6 +98,42 @@ classical class ScalarHelperLibraries {
         bufferLength = true;
       }
 
+      if (opcode == STATEMENT_LOCAL_BUFFER_GET) {
+        long bufferLocal = sequence.operands[statement];
+        if (bufferLocal < 0) {
+          return false;
+        }
+
+        if (bufferLocal < parameterCount) {} else {
+          return false;
+        }
+
+        long bufferType = parameterTypes[bufferLocal];
+        boolean indexableBuffer = bufferType == TYPE_BYTE_VIEW;
+        if (bufferType == TYPE_BYTES_BORROW) {
+          indexableBuffer = true;
+        }
+
+        if (bufferType == TYPE_WORDS_BORROW) {
+          indexableBuffer = true;
+        }
+
+        if (indexableBuffer == false) {
+          return false;
+        }
+
+        long bufferIndex = sequence.secondaryOperands[statement];
+        if (bufferIndex < 0) {
+          return false;
+        }
+
+        if (bufferIndex < parameterCount) {
+          if (parameterTypes[bufferIndex] == TYPE_SIGNED) {} else {
+            return false;
+          }
+        }
+      }
+
       if (opcode == STATEMENT_LOCAL_UTF8_SCALAR) {
         long utf8Local = sequence.operands[statement];
         if (utf8Local < 0) {
@@ -219,6 +255,10 @@ classical class ScalarHelperLibraries {
         }
 
         if (earlyOpcode == STATEMENT_LOCAL_UTF8_SCALAR) {
+          signedPrelude = true;
+        }
+
+        if (earlyOpcode == STATEMENT_LOCAL_BUFFER_GET) {
           signedPrelude = true;
         }
 

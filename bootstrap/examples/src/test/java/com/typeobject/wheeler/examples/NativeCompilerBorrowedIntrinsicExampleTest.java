@@ -74,6 +74,40 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
   }
 
   @Test
+  void compilesBorrowedBufferElementLocalByteForByte() throws Exception {
+    String source = """
+        module example.borrowed_buffer_element;
+        classical class BorrowedBufferElement {
+          public long word(borrow mut words value, long index) {
+            long element = value[index];
+            return element;
+          }
+          public long octet(borrow byteview value) {
+            long index = 1;
+            long element = value[index];
+            return element;
+          }
+          public long dummy() { return 0; }
+        }
+        """;
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("BorrowedBufferElement.w", source), "example.borrowed_buffer_element"));
+    byte[] actual = NativeModuleCompilerHarness.compile(
+        NativeModuleCompilerHarness.program(), List.of(), source);
+    assertArrayEquals(expected, actual);
+
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace("borrow mut words value", "borrow mut region value"));
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace("long index", "borrow utf8 index"));
+  }
+
+  @Test
   void compilesBorrowedLengthLocalByteForByte() throws Exception {
     String source = """
         module example.borrowed_intrinsic_local;

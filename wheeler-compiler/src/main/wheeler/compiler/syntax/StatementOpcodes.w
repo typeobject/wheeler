@@ -413,6 +413,10 @@ classical class StatementOpcodes {
       long initializer = utf8Scalar(source, tokenStarts[statementStart + 3]);
       if (identifierStart(initializer)) {
         long initializerOperator = utf8Scalar(source, tokenStarts[statementStart + 4]);
+        if (initializerOperator == PUNCTUATION_OPEN_SQUARE) {
+          return STATEMENT_LOCAL_BUFFER_GET_NAMED;
+        }
+
         if (initializerOperator == PUNCTUATION_OPEN_PAREN) {
           long initializerHash = tokenHash(
             source,

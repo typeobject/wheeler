@@ -262,7 +262,8 @@ classical class Codegen {
       opcode,
       operand,
       secondaryOperand,
-      localBase
+      localBase,
+      firstSourceType
     );
     if (-1 < intrinsicCursor) {
       return intrinsicCursor;

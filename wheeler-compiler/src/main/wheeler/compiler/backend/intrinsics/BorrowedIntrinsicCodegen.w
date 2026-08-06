@@ -6,6 +6,7 @@ import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.encoding;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.storage_opcodes;
+import wheeler.compiler.type_codes;
 
 classical class BorrowedIntrinsicCodegen {
   private const long FORM_UNARY = INSTRUCTION_FORM_UNARY;
@@ -34,8 +35,30 @@ classical class BorrowedIntrinsicCodegen {
     long opcode,
     long operand,
     long secondaryOperand,
-    long localBase
+    long localBase,
+    long firstSourceType
   ) {
+    if (opcode == STATEMENT_LOCAL_BUFFER_GET) {
+      long getOpcode = OPCODE_BYTES_GET;
+      if (firstSourceType == TYPE_WORDS_BORROW) {
+        getOpcode = OPCODE_WORDS_GET;
+      }
+
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, operand, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, secondaryOperand, U64);
+      cursor = writeInstructionHeader(output, cursor, getOpcode, FORM_TERNARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
+      return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+    }
+
     if (opcode == STATEMENT_LOCAL_UTF8_SCALAR) {
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);

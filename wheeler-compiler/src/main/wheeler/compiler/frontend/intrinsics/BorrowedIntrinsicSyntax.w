@@ -17,7 +17,11 @@ classical class BorrowedIntrinsicSyntax {
       return true;
     }
 
-    return kind == STATEMENT_LOCAL_UTF8_SCALAR_NAMED;
+    if (kind == STATEMENT_LOCAL_UTF8_SCALAR_NAMED) {
+      return true;
+    }
+
+    return kind == STATEMENT_LOCAL_BUFFER_GET_NAMED;
   }
 
   private long localBufferLengthWidth(
@@ -92,6 +96,63 @@ classical class BorrowedIntrinsicSyntax {
     return -1;
   }
 
+  private long localBufferGetWidth(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    long statementStart
+  ) {
+    if (tokenKinds[statementStart + 1] == 1) {} else {
+      return -1;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, PUNCTUATION_ASSIGN)
+    ) {} else {
+      return -1;
+    }
+
+    if (tokenKinds[statementStart + 3] == 1) {} else {
+      return -1;
+    }
+
+    if (
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        statementStart + 4,
+        PUNCTUATION_OPEN_SQUARE
+      )
+    ) {} else {
+      return -1;
+    }
+
+    if (tokenKinds[statementStart + 5] == 1) {} else {
+      return -1;
+    }
+
+    if (
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        statementStart + 6,
+        PUNCTUATION_CLOSE_SQUARE
+      )
+    ) {} else {
+      return -1;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, statementStart + 7, PUNCTUATION_SEMICOLON)
+    ) {
+      return 8;
+    }
+
+    return -1;
+  }
+
   private long localUtf8ScalarWidth(
     borrow utf8 source,
     borrow mut words tokenKinds,
@@ -161,6 +222,10 @@ classical class BorrowedIntrinsicSyntax {
 
     if (kind == STATEMENT_LOCAL_UTF8_SCALAR_NAMED) {
       return localUtf8ScalarWidth(source, tokenKinds, tokenStarts, statementStart);
+    }
+
+    if (kind == STATEMENT_LOCAL_BUFFER_GET_NAMED) {
+      return localBufferGetWidth(source, tokenKinds, tokenStarts, statementStart);
     }
 
     return -1;
