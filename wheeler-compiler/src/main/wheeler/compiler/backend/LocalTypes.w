@@ -41,7 +41,8 @@ classical class LocalTypes {
   /// Writes one validated canonical local type code.
   public long writeLocalType(borrow mut bytes output, long cursor, long type) {
     assert(0 < type);
-    return writeUnsignedLittleEndian(output, cursor, type, 4);
+    long canonicalType = type % TYPE_SOURCE_METADATA_SCALE;
+    return writeUnsignedLittleEndian(output, cursor, canonicalType, 4);
   }
 
   /// Writes one canonical signed local type code.

@@ -101,9 +101,14 @@ classical class BorrowedIntrinsicCodegen {
     }
 
     if (opcode == STATEMENT_LOCAL_BUFFER_GET) {
+      long canonicalSourceType = firstSourceType % TYPE_SOURCE_METADATA_SCALE;
       long getOpcode = OPCODE_BYTES_GET;
-      if (firstSourceType == TYPE_WORDS_BORROW) {
+      if (canonicalSourceType == TYPE_WORDS_BORROW) {
         getOpcode = OPCODE_WORDS_GET;
+      }
+
+      if (canonicalSourceType == TYPE_ARRAY) {
+        getOpcode = OPCODE_ARRAY_GET;
       }
 
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);

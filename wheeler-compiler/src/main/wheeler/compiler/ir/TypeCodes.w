@@ -42,4 +42,10 @@ classical class TypeCodes {
   public const long TYPE_ARRAY = 0x30000000;
   /// Names the compile-time `TYPE_SLICE` value owned by this module.
   public const long TYPE_SLICE = 0x40000000;
+  /// Keeps bounded source-only array lengths above the canonical 32-bit code.
+  public const long TYPE_SOURCE_METADATA_SCALE = 4294967296;
+  /// Caps each native fixed array at the machine's local bound.
+  public const long MAX_NATIVE_FIXED_ARRAY_LENGTH = 64;
+  /// Caps unique encounter-ordered fixed-array descriptors in one module graph.
+  public const long MAX_NATIVE_FIXED_ARRAY_TYPES = 16;
 }

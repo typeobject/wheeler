@@ -196,8 +196,12 @@ classical class ScalarHelperLibraries {
           return false;
         }
 
-        long bufferType = parameterTypes[bufferLocal];
-        boolean indexableBuffer = bufferType == TYPE_BYTE_VIEW;
+        long bufferType = parameterTypes[bufferLocal] % TYPE_SOURCE_METADATA_SCALE;
+        boolean indexableBuffer = bufferType == TYPE_ARRAY;
+        if (bufferType == TYPE_BYTE_VIEW) {
+          indexableBuffer = true;
+        }
+
         if (bufferType == TYPE_BYTES_BORROW) {
           indexableBuffer = true;
         }
@@ -263,7 +267,7 @@ classical class ScalarHelperLibraries {
           return false;
         }
 
-        long sourceType = parameterTypes[sourceLocal];
+        long sourceType = parameterTypes[sourceLocal] % TYPE_SOURCE_METADATA_SCALE;
         boolean buffer = sourceType == TYPE_UTF8_BORROW;
         if (sourceType == TYPE_BYTE_VIEW) {
           buffer = true;

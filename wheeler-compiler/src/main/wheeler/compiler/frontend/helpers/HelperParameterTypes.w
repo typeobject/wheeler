@@ -4,6 +4,7 @@ module wheeler.compiler.helper_parameter_types;
 
 import wheeler.compiler.helper_abi;
 import wheeler.compiler.keyword_tokens;
+import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
 import wheeler.compiler.type_codes;
 
@@ -26,7 +27,38 @@ classical class HelperParameterTypes {
     long typeHash = tokenHash(source, tokenStarts, tokenLengths, cursor);
     long type = TYPE_SIGNED;
     long nameToken = cursor + 1;
-    if (typeHash == TOKEN_LONG) {} else {
+    if (typeHash == TOKEN_LONG) {
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, cursor + 1, PUNCTUATION_OPEN_SQUARE)
+      ) {
+        long lengthToken = cursor + 2;
+        if (tokenKinds[lengthToken] == 2) {} else {
+          return invalidParameter();
+        }
+
+        if (signedNumberValid(source, tokenStarts, tokenLengths, lengthToken)) {} else {
+          return invalidParameter();
+        }
+
+        long arrayLength = parsedSignedNumber(source, tokenStarts, tokenLengths, lengthToken);
+        if (0 < arrayLength) {} else {
+          return invalidParameter();
+        }
+
+        if (arrayLength < MAX_NATIVE_FIXED_ARRAY_LENGTH + 1) {} else {
+          return invalidParameter();
+        }
+
+        if (
+          punctuationAt(source, tokenKinds, tokenStarts, cursor + 3, PUNCTUATION_CLOSE_SQUARE)
+        ) {} else {
+          return invalidParameter();
+        }
+
+        type = TYPE_ARRAY + arrayLength * TYPE_SOURCE_METADATA_SCALE;
+        nameToken = cursor + 4;
+      }
+    } else {
       if (typeHash == TOKEN_BORROW) {} else {
         return invalidParameter();
       }

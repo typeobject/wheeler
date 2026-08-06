@@ -57,6 +57,43 @@ final class NativeCompilerImportedHelperExampleTest {
   }
 
   @Test
+  void compilesImportedFixedArrayReadsByteForByte() throws Exception {
+    String dependency = """
+        module example.array_reader;
+        classical class ArrayReader {
+          public long lookup(long[4] values, long index) {
+            long element = values[index];
+            return element;
+          }
+        }
+        """;
+    String root = """
+        module example.use_array_reader;
+        import example.array_reader;
+        classical class UseArrayReader {
+          public long relay(long[4] values, long index) {
+            return lookup(values, index);
+          }
+        }
+        """;
+    Program compiler = NativeModuleCompilerHarness.program();
+    byte[] actual = NativeModuleCompilerHarness.compile(compiler, List.of(dependency), root);
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("ArrayReader.w", dependency, "UseArrayReader.w", root),
+        "example.use_array_reader");
+    assertArrayEquals(new BytecodeWriter().write(expected), actual);
+
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(dependency.replace("public long lookup", "private long lookup")),
+        root);
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(dependency),
+        root.replace("long[4] values", "long[3] values"));
+  }
+
+  @Test
   void compilesEveryTwentyThreeHelperOwnerSplitByteForByte() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
     for (int importedCount = 1; importedCount < 23; importedCount += 1) {

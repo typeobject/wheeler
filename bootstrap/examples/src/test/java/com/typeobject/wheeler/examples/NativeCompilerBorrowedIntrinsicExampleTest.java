@@ -145,6 +145,58 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
   }
 
   @Test
+  void compilesFixedSignedArrayReadsByteForByte() throws Exception {
+    String source = """
+        module example.fixed_array_read;
+        classical class FixedArrayRead {
+          public long lookup(long[4] values, long index) {
+            long element = values[index];
+            return element;
+          }
+          public long second(long[4] values) {
+            long index = 1;
+            long element = values[index];
+            return element;
+          }
+          public long relay(long[4] values, long index) {
+            return lookup(values, index);
+          }
+          public long other(long[3] values, long index) {
+            long element = values[index];
+            return element;
+          }
+          public long dummy() { return 0; }
+        }
+        """;
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("FixedArrayRead.w", source), "example.fixed_array_read"));
+    byte[] actual = NativeModuleCompilerHarness.compile(
+        NativeModuleCompilerHarness.program(), List.of(), source);
+    assertArrayEquals(expected, actual);
+
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(), List.of(), source.replace("long[4]", "long[0]"));
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(), List.of(), source.replace("long[4]", "long[65]"));
+
+    StringBuilder tooManyTypes = new StringBuilder("""
+        module example.too_many_array_types;
+        classical class TooManyArrayTypes {
+        """);
+    for (int length = 1; length <= 17; length += 1) {
+      tooManyTypes.append("  public long read")
+          .append(length)
+          .append("(long[")
+          .append(length)
+          .append("] values, long index) { long value = values[index]; return value; }\n");
+    }
+    tooManyTypes.append("}\n");
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(), List.of(), tooManyTypes.toString());
+  }
+
+  @Test
   void compilesPrimitiveLoanVoidWritersByteForByte() throws Exception {
     String source = """
         module example.borrowed_loan_void_write;

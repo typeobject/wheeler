@@ -6,6 +6,7 @@ import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.encoding;
 import wheeler.compiler.encoding_widths;
+import wheeler.compiler.fixed_array_types;
 import wheeler.compiler.helper_abi;
 import wheeler.compiler.helper_owners;
 import wheeler.compiler.helper_signatures;
@@ -237,6 +238,7 @@ classical class CompilerCore {
   private long writeHelperSequenceLocalTypes(
     borrow mut bytes output,
     long cursor,
+    MinimalProgram program,
     HelperBody body
   ) {
     long resultType = TYPE_SIGNED;
@@ -260,6 +262,9 @@ classical class CompilerCore {
         body.parameterCount
       );
       long thirdType = helperThirdSourceType(opcode, body.parameterTypes, body.parameterCount);
+      firstType = canonicalProgramType(program, firstType);
+      secondType = canonicalProgramType(program, secondType);
+      thirdType = canonicalProgramType(program, thirdType);
 
       long callCursor = writeHelperCallLocalTypes(
         output,
@@ -388,10 +393,8 @@ classical class CompilerCore {
       stringsLength = libraryStrings.encodedLength;
     }
 
-    long typesLength = 16;
-    if (program.globalCount == 1) {
-      typesLength = 32;
-    }
+    long arrayTypeCount = programArrayTypeCount(program);
+    long typesLength = 16 + program.globalCount * 16 + arrayTypeCount * 12;
 
     long sectionCount = 6 + program.proofCount;
     long manifestOffset = align8(40 + sectionCount * 32);
@@ -561,10 +564,29 @@ classical class CompilerCore {
       cursor = writeSignedLittleEndian(output, cursor, program.initialValue, ENCODING_WIDTH_U64);
     }
 
-    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, ENCODING_WIDTH_U32);
-    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, ENCODING_WIDTH_U32);
-    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, ENCODING_WIDTH_U32);
-    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, ENCODING_WIDTH_U32);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* recordCount= */ 0, ENCODING_WIDTH_U32);
+    cursor = writeUnsignedLittleEndian(output, cursor, arrayTypeCount, ENCODING_WIDTH_U32);
+    long arrayType = 0;
+    while (arrayType < arrayTypeCount) limit MAX_NATIVE_FIXED_ARRAY_TYPES {
+      cursor = writeUnsignedLittleEndian(output, cursor, arrayType, ENCODING_WIDTH_U32);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, ENCODING_WIDTH_U32);
+      cursor = writeUnsignedLittleEndian(
+        output,
+        cursor,
+        programArrayTypeLength(program, arrayType),
+        ENCODING_WIDTH_U32
+      );
+      arrayType += 1;
+    }
+
+    cursor = writeUnsignedLittleEndian(output, cursor, /* sliceCount= */ 0, ENCODING_WIDTH_U32);
+    cursor = align8(cursor);
+    cursor = writeUnsignedLittleEndian(
+      output,
+      cursor,
+      /* variantCount= */ 0,
+      ENCODING_WIDTH_U32
+    );
     cursor = align8(cursor);
 
     cursor = writeUnsignedLittleEndian(
@@ -628,11 +650,15 @@ classical class CompilerCore {
 
         long parameterType = 0;
         while (parameterType < typedBody.parameterCount) limit MAX_SCALAR_HELPER_PARAMETERS {
-          cursor = writeLocalType(output, cursor, typedBody.parameterTypes[parameterType]);
+          cursor = writeLocalType(
+            output,
+            cursor,
+            canonicalProgramType(program, typedBody.parameterTypes[parameterType])
+          );
           parameterType += 1;
         }
 
-        cursor = writeHelperSequenceLocalTypes(output, cursor, typedBody);
+        cursor = writeHelperSequenceLocalTypes(output, cursor, program, typedBody);
         typedHelper += 1;
       }
 
@@ -694,7 +720,10 @@ classical class CompilerCore {
           cursor = writeLocalType(
             output,
             cursor,
-            helperAt(program, 0).parameterTypes[helperParameterIndex]
+            canonicalProgramType(
+              program,
+              helperAt(program, 0).parameterTypes[helperParameterIndex]
+            )
           );
           helperParameterIndex += 1;
         }
@@ -704,7 +733,12 @@ classical class CompilerCore {
             cursor = writeBooleanLocalType(output, cursor);
             cursor = writeSignedLocalType(output, cursor);
           } else {
-            cursor = writeHelperSequenceLocalTypes(output, cursor, helperAt(program, 0));
+            cursor = writeHelperSequenceLocalTypes(
+              output,
+              cursor,
+              program,
+              helperAt(program, 0)
+            );
           }
         }
 
