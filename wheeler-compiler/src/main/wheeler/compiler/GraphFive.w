@@ -18,6 +18,7 @@ import wheeler.compiler.graphs.five_plan_kinds;
 import wheeler.compiler.graphs.plans;
 import wheeler.compiler.graphs.sources;
 import wheeler.compiler.module_linker;
+import wheeler.compiler.wide_imported_helpers;
 
 classical class CompilerGraphFive {
   private const long FIVE_IMPORTS = 5;
@@ -42,7 +43,16 @@ classical class CompilerGraphFive {
       /* expectedImportCount= */ FIVE_IMPORTS
     );
     if (firstPlan.valid) {} else {
-      assert(INVALID_COMPILATION_LENGTH == VALID_COMPILATION_LENGTH);
+      CoreCompilation compiledHelpers = compileFiveHelperOwners(
+        firstImportedSource,
+        secondImportedSource,
+        thirdImportedSource,
+        fourthImportedSource,
+        fifthImportedSource,
+        rootSource,
+        output
+      );
+      return new FiveGraphCompilation(compiledHelpers.length, compiledHelpers.codeStart);
     }
 
     region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);

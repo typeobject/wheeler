@@ -304,8 +304,17 @@ final class NativeCompilerImportedHelperExampleTest {
             delta,
             gamma.replace("public boolean gamma0", "private boolean gamma0")),
         root);
+  }
 
-    String fiveOwnerRoot = String.join("\n",
+  @Test
+  void compilesFiveDirectHelperOwnersByteForByte() throws Exception {
+    Program compiler = NativeModuleCompilerHarness.program();
+    String alpha = helperOwner("example.alpha", "Alpha", "alpha", 5);
+    String beta = helperOwner("example.beta", "Beta", "beta", 5);
+    String delta = helperOwner("example.delta", "Delta", "delta", 4);
+    String epsilon = helperOwner("example.epsilon", "Epsilon", "epsilon", 4);
+    String gamma = helperOwner("example.gamma", "Gamma", "gamma", 4);
+    String root = String.join("\n",
         "module example.use_five;",
         "import example.alpha;",
         "import example.beta;",
@@ -313,9 +322,65 @@ final class NativeCompilerImportedHelperExampleTest {
         "import example.epsilon;",
         "import example.gamma;",
         "classical class UseFive {",
-        "  public boolean accepted(long value) { return alpha0(value); }",
+        "  public boolean accepted(long value) {",
+        "    if (alpha0(value)) { return true; }",
+        "    if (beta0(value)) { return false; }",
+        "    if (delta0(value)) { return true; }",
+        "    if (epsilon0(value)) { return false; }",
+        "    return gamma0(value);",
+        "  }",
         "}",
         "");
+
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of(
+            "Alpha.w", alpha,
+            "Beta.w", beta,
+            "Delta.w", delta,
+            "Epsilon.w", epsilon,
+            "Gamma.w", gamma,
+            "UseFive.w", root),
+        "example.use_five");
+    byte[] expectedArtifact = new BytecodeWriter().write(expected);
+    List<List<String>> orders = List.of(
+        List.of(alpha, beta, delta, epsilon, gamma),
+        List.of(beta, delta, epsilon, gamma, alpha),
+        List.of(delta, epsilon, gamma, alpha, beta),
+        List.of(epsilon, gamma, alpha, beta, delta),
+        List.of(gamma, alpha, beta, delta, epsilon),
+        List.of(gamma, epsilon, delta, beta, alpha),
+        List.of(epsilon, delta, beta, alpha, gamma),
+        List.of(delta, beta, alpha, gamma, epsilon),
+        List.of(beta, alpha, gamma, epsilon, delta),
+        List.of(alpha, gamma, epsilon, delta, beta));
+    for (List<String> order : orders) {
+      assertArrayEquals(expectedArtifact, NativeModuleCompilerHarness.compile(compiler, order, root));
+    }
+
+    Program decoded = new BytecodeReader().read(expectedArtifact);
+    assertEquals("example.alpha::alpha4", decoded.functions().get(4).name());
+    assertEquals("example.beta::beta0", decoded.functions().get(5).name());
+    assertEquals("example.delta::delta0", decoded.functions().get(10).name());
+    assertEquals("example.epsilon::epsilon0", decoded.functions().get(14).name());
+    assertEquals("example.gamma::gamma0", decoded.functions().get(18).name());
+    assertEquals("example.gamma::gamma3", decoded.functions().get(21).name());
+    assertEquals("example.use_five::accepted", decoded.functions().get(22).name());
+    assertEquals("$library", decoded.functions().getLast().name());
+
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(
+            alpha,
+            beta,
+            delta,
+            epsilon,
+            gamma.replace("public boolean gamma0", "private boolean gamma0")),
+        root);
+
+    String zeta = helperOwner("example.zeta", "Zeta", "zeta", 1);
+    String sixOwnerRoot = root
+        .replace("module example.use_five;", "module example.use_six;")
+        .replace("import example.gamma;", "import example.gamma;\nimport example.zeta;");
     NativeModuleCompilerHarness.assertTrap(
         compiler,
         List.of(
@@ -323,8 +388,9 @@ final class NativeCompilerImportedHelperExampleTest {
             helperOwner("example.beta", "Beta", "beta", 1),
             helperOwner("example.delta", "Delta", "delta", 1),
             helperOwner("example.epsilon", "Epsilon", "epsilon", 1),
-            helperOwner("example.gamma", "Gamma", "gamma", 1)),
-        fiveOwnerRoot);
+            helperOwner("example.gamma", "Gamma", "gamma", 1),
+            zeta),
+        sixOwnerRoot);
   }
 
   @Test
