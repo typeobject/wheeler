@@ -62,8 +62,7 @@ final class NativeCompilerImportedHelperExampleTest {
         module example.array_reader;
         classical class ArrayReader {
           public long lookup(long[4] values, long index) {
-            long element = values[index];
-            return element;
+            return values[index];
           }
         }
         """;

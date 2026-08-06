@@ -91,6 +91,9 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
             long element = value[index];
             return element;
           }
+          public long direct(borrow mut words value, long index) {
+            return value[index];
+          }
           public long dummy() { return 0; }
         }
         """;
@@ -164,6 +167,9 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
           public long other(long[3] values, long index) {
             long element = values[index];
             return element;
+          }
+          public long direct(long[3] values, long index) {
+            return values[index];
           }
           public long dummy() { return 0; }
         }

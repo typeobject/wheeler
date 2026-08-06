@@ -25,6 +25,10 @@ classical class BorrowedIntrinsicSyntax {
       return true;
     }
 
+    if (kind == STATEMENT_RETURN_BUFFER_GET_NAMED) {
+      return true;
+    }
+
     if (kind == STATEMENT_LOCAL_BUFFER_LENGTH_NAMED) {
       return true;
     }
@@ -183,6 +187,53 @@ classical class BorrowedIntrinsicSyntax {
     return -1;
   }
 
+  private long returnBufferGetWidth(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    long statementStart
+  ) {
+    if (tokenKinds[statementStart + 1] == 1) {} else {
+      return -1;
+    }
+
+    if (
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        statementStart + 2,
+        PUNCTUATION_OPEN_SQUARE
+      )
+    ) {} else {
+      return -1;
+    }
+
+    if (tokenKinds[statementStart + 3] == 1) {} else {
+      return -1;
+    }
+
+    if (
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        statementStart + 4,
+        PUNCTUATION_CLOSE_SQUARE
+      )
+    ) {} else {
+      return -1;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, statementStart + 5, PUNCTUATION_SEMICOLON)
+    ) {
+      return 6;
+    }
+
+    return -1;
+  }
+
   private long localBufferGetWidth(
     borrow utf8 source,
     borrow mut words tokenKinds,
@@ -317,6 +368,10 @@ classical class BorrowedIntrinsicSyntax {
 
     if (kind == STATEMENT_RETURN_BUFFER_LENGTH_NAMED) {
       return returnBufferLengthWidth(source, tokenKinds, tokenStarts, statementStart);
+    }
+
+    if (kind == STATEMENT_RETURN_BUFFER_GET_NAMED) {
+      return returnBufferGetWidth(source, tokenKinds, tokenStarts, statementStart);
     }
 
     if (kind == STATEMENT_LOCAL_UTF8_SCALAR_NAMED) {

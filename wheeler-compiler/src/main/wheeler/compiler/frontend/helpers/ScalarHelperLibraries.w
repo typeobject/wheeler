@@ -59,6 +59,10 @@ classical class ScalarHelperLibraries {
       return true;
     }
 
+    if (opcode == STATEMENT_RETURN_BUFFER_GET) {
+      return true;
+    }
+
     return returnLocalPairStatement(opcode);
   }
 
@@ -186,7 +190,12 @@ classical class ScalarHelperLibraries {
         }
       }
 
-      if (opcode == STATEMENT_LOCAL_BUFFER_GET) {
+      boolean indexedBufferRead = opcode == STATEMENT_LOCAL_BUFFER_GET;
+      if (opcode == STATEMENT_RETURN_BUFFER_GET) {
+        indexedBufferRead = true;
+      }
+
+      if (indexedBufferRead) {
         long bufferLocal = sequence.operands[statement];
         if (bufferLocal < 0) {
           return false;

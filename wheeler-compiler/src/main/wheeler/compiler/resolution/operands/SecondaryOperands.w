@@ -110,6 +110,18 @@ classical class SecondaryOperands {
       return -1;
     }
 
+    if (sourceOpcode == STATEMENT_RETURN_BUFFER_GET_NAMED) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3,
+        true
+      );
+    }
+
     if (sourceOpcode == STATEMENT_LOCAL_BUFFER_GET_NAMED) {
       return resolvePriorDeclaration(
         source,

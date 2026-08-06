@@ -106,6 +106,10 @@ classical class StatementOpcodes {
           return STATEMENT_RETURN_HELPER_CALL_NAMED;
         }
 
+        if (returnOperator == PUNCTUATION_OPEN_SQUARE) {
+          return STATEMENT_RETURN_BUFFER_GET_NAMED;
+        }
+
         boolean returnRightNamed = identifierStart(
           utf8Scalar(source, tokenStarts[statementStart + 3])
         );

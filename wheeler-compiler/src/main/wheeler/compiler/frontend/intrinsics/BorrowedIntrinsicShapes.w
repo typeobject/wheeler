@@ -79,6 +79,14 @@ classical class BorrowedIntrinsicShapes {
       return 4;
     }
 
+    if (opcode == STATEMENT_RETURN_BUFFER_GET_NAMED) {
+      return 3;
+    }
+
+    if (opcode == STATEMENT_RETURN_BUFFER_GET) {
+      return 3;
+    }
+
     if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
       return 2;
     }
@@ -133,6 +141,10 @@ classical class BorrowedIntrinsicShapes {
       return 64;
     }
 
+    if (opcode == STATEMENT_RETURN_BUFFER_GET) {
+      return 96;
+    }
+
     if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
       return 72;
     }
@@ -173,6 +185,10 @@ classical class BorrowedIntrinsicShapes {
 
     if (length == 72) {
       return 3;
+    }
+
+    if (length == 96) {
+      return 4;
     }
 
     if (length == 104) {

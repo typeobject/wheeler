@@ -215,6 +215,18 @@ classical class Operands {
       );
     }
 
+    if (sourceOpcode == STATEMENT_RETURN_BUFFER_GET_NAMED) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 1,
+        true
+      );
+    }
+
     if (sourceOpcode == STATEMENT_LOCAL_BUFFER_GET_NAMED) {
       return resolvePriorDeclaration(
         source,

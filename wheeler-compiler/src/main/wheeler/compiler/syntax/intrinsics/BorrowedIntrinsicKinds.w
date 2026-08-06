@@ -45,4 +45,8 @@ classical class BorrowedIntrinsicKinds {
   public const long STATEMENT_LOCAL_MAP_HAS_NAMED = 906;
   /// Names a resolved Boolean local initialized from signed-map membership.
   public const long STATEMENT_LOCAL_MAP_HAS = 131340;
+  /// Names a signed return of one indexed buffer or fixed-array element.
+  public const long STATEMENT_RETURN_BUFFER_GET_NAMED = 907;
+  /// Names a resolved signed return of one indexed buffer or fixed-array element.
+  public const long STATEMENT_RETURN_BUFFER_GET = 131341;
 }

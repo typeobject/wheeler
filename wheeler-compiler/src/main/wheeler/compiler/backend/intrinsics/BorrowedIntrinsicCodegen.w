@@ -100,7 +100,12 @@ classical class BorrowedIntrinsicCodegen {
       return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
     }
 
-    if (opcode == STATEMENT_LOCAL_BUFFER_GET) {
+    boolean indexedBufferRead = opcode == STATEMENT_LOCAL_BUFFER_GET;
+    if (opcode == STATEMENT_RETURN_BUFFER_GET) {
+      indexedBufferRead = true;
+    }
+
+    if (indexedBufferRead) {
       long canonicalSourceType = firstSourceType % TYPE_SOURCE_METADATA_SCALE;
       long getOpcode = OPCODE_BYTES_GET;
       if (canonicalSourceType == TYPE_WORDS_BORROW) {
@@ -121,6 +126,11 @@ classical class BorrowedIntrinsicCodegen {
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      if (opcode == STATEMENT_RETURN_BUFFER_GET) {
+        cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN_VALUE, FORM_UNARY);
+        return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+      }
+
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
       return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);

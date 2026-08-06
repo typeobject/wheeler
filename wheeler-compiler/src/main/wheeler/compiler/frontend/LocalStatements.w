@@ -846,6 +846,10 @@ classical class LocalStatements {
       return -1 < operand;
     }
 
+    if (opcode == STATEMENT_RETURN_BUFFER_GET) {
+      return -1 < operand;
+    }
+
     if (opcode == STATEMENT_LOCAL_UTF8_WIDTH) {
       return -1 < operand;
     }

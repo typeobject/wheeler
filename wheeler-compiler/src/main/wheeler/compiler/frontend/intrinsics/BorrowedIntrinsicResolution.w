@@ -76,6 +76,34 @@ classical class BorrowedIntrinsicResolution {
       return new ResolvedBorrowedIntrinsic(-1, true);
     }
 
+    if (sourceOpcode == STATEMENT_RETURN_BUFFER_GET_NAMED) {
+      long directReturnBufferSource = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 1,
+        true
+      );
+      long directReturnBufferIndex = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3,
+        true
+      );
+      if (-1 < directReturnBufferSource) {
+        if (-1 < directReturnBufferIndex) {
+          return new ResolvedBorrowedIntrinsic(STATEMENT_RETURN_BUFFER_GET, true);
+        }
+      }
+
+      return new ResolvedBorrowedIntrinsic(-1, true);
+    }
+
     if (sourceOpcode == STATEMENT_LOCAL_BUFFER_GET_NAMED) {
       long bufferSource = resolvePriorDeclaration(
         source,
