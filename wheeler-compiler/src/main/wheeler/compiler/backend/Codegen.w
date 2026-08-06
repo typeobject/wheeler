@@ -389,7 +389,8 @@ classical class Codegen {
       opcode,
       operand,
       secondaryOperand,
-      localBase
+      localBase,
+      callFunction
     );
     if (-1 < valueCallCursor) {
       return valueCallCursor;

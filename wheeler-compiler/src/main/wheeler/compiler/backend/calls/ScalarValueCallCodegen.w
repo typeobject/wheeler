@@ -13,7 +13,6 @@ classical class ScalarValueCallCodegen {
   private const long FORM_BINARY = INSTRUCTION_FORM_BINARY;
   private const long FORM_QUATERNARY = INSTRUCTION_FORM_QUATERNARY;
   private const long U64 = INSTRUCTION_OPERAND_WIDTH;
-  private const long VALUE_CALL_FUNCTION = 0;
 
   private long writeScalarOperand(
     borrow mut bytes output,
@@ -33,7 +32,8 @@ classical class ScalarValueCallCodegen {
     long cursor,
     long sourceOpcode,
     long source,
-    long localBase
+    long localBase,
+    long callFunction
   ) {
     cursor = writeInstructionHeader(output, cursor, sourceOpcode, FORM_BINARY);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
@@ -42,7 +42,7 @@ classical class ScalarValueCallCodegen {
     cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
     cursor = writeInstructionHeader(output, cursor, OPCODE_CALL_VALUE, FORM_QUATERNARY);
-    cursor = writeUnsignedLittleEndian(output, cursor, VALUE_CALL_FUNCTION, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, callFunction, U64);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
     cursor = writeUnsignedLittleEndian(output, cursor, /* argumentCount= */ 1, U64);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
@@ -58,7 +58,8 @@ classical class ScalarValueCallCodegen {
     long opcode,
     long operand,
     long secondaryOperand,
-    long localBase
+    long localBase,
+    long callFunction
   ) {
     if (twoArgumentCallStatement(opcode)) {
       long firstArgumentOpcode = OPCODE_LOCAL_CONST;
@@ -84,7 +85,7 @@ classical class ScalarValueCallCodegen {
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
       cursor = writeInstructionHeader(output, cursor, OPCODE_CALL_VALUE, FORM_QUATERNARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, VALUE_CALL_FUNCTION, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, callFunction, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, /* argumentCount= */ 2, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 4, U64);
@@ -94,7 +95,14 @@ classical class ScalarValueCallCodegen {
     }
 
     if (oneArgumentCallNamed(opcode)) {
-      return writeOneArgumentCall(output, cursor, OPCODE_LOCAL_MOVE, operand, localBase);
+      return writeOneArgumentCall(
+        output,
+        cursor,
+        OPCODE_LOCAL_MOVE,
+        operand,
+        localBase,
+        callFunction
+      );
     }
 
     boolean literalOneArgumentCall = oneArgumentCallStatement(opcode);
@@ -103,7 +111,14 @@ classical class ScalarValueCallCodegen {
     }
 
     if (literalOneArgumentCall) {
-      return writeOneArgumentCall(output, cursor, OPCODE_LOCAL_CONST, operand, localBase);
+      return writeOneArgumentCall(
+        output,
+        cursor,
+        OPCODE_LOCAL_CONST,
+        operand,
+        localBase,
+        callFunction
+      );
     }
 
     boolean zeroArgumentCall = opcode == STATEMENT_LOCAL_CALL_NAMED;
@@ -113,7 +128,7 @@ classical class ScalarValueCallCodegen {
 
     if (zeroArgumentCall) {
       cursor = writeInstructionHeader(output, cursor, OPCODE_CALL_VALUE, FORM_QUATERNARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, VALUE_CALL_FUNCTION, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, callFunction, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, /* argumentBase= */ 0, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, /* argumentCount= */ 0, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);

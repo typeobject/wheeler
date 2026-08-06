@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
+import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.MachineStatus;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
@@ -605,6 +606,29 @@ final class NativeCompilerSelfSourceExampleTest {
     assertEquals(
         "wheeler.compiler.void_call_kinds::voidCallStatement",
         decoded.functions().getFirst().name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
+  void compilesCanonicalVoidCallWidthsByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/syntax/calls/VoidCallWidths.w",
+        "wheeler.compiler.void_call_widths",
+        "compiler/syntax/calls/VoidCallKinds.w");
+    assertEquals(
+        "wheeler.compiler.void_call_kinds::voidCallStatement",
+        decoded.functions().getFirst().name());
+    assertEquals(
+        "wheeler.compiler.void_call_widths::voidCallCodeLength",
+        decoded.functions().get(2).name());
+    assertEquals(
+        1,
+        decoded.functions().get(2).forward().stream()
+            .filter(instruction -> instruction.opcode() == Opcode.CALL_VALUE)
+            .findFirst()
+            .orElseThrow()
+            .operands()
+            .getFirst());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 

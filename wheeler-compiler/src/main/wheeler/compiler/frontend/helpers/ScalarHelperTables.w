@@ -2,10 +2,12 @@
 
 module wheeler.compiler.scalar_helper_tables;
 
+import wheeler.compiler.call_forms;
 import wheeler.compiler.encoding;
 import wheeler.compiler.helper_abi;
 import wheeler.compiler.helper_signatures;
 import wheeler.compiler.ir;
+import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.void_call_kinds;
@@ -18,23 +20,6 @@ classical class ScalarHelperTables {
   /// Checks whether one helper returns a Boolean scalar.
   public boolean booleanHelperKind(long kind) {
     return booleanResultHelper(kind);
-  }
-
-  private boolean signedCallParameters(HelperBody body, long argumentCount) {
-    if (body.parameterCount == argumentCount) {} else {
-      return false;
-    }
-
-    long parameter = 0;
-    while (parameter < argumentCount) limit MAX_SCALAR_HELPER_PARAMETERS {
-      if (body.parameterTypes[parameter] == TYPE_SIGNED) {} else {
-        return false;
-      }
-
-      parameter += 1;
-    }
-
-    return true;
   }
 
   private long callerLocalType(HelperBody caller, long local) {
@@ -335,6 +320,36 @@ classical class ScalarHelperTables {
     return true;
   }
 
+  private boolean localOneArgumentCallMatches(HelperBody candidate, long opcode) {
+    if (candidate.parameterCount == 1) {} else {
+      return false;
+    }
+
+    if (oneArgumentBooleanSignedCall(opcode)) {
+      if (candidate.kind == HELPER_BOOLEAN_SIGNED_ONE) {
+        return candidate.parameterTypes[0] == TYPE_SIGNED;
+      }
+
+      return false;
+    }
+
+    if (oneArgumentBooleanCall(opcode)) {
+      if (candidate.kind == HELPER_BOOLEAN_ONE) {
+        return candidate.parameterTypes[0] == TYPE_BOOLEAN;
+      }
+
+      return false;
+    }
+
+    if (oneArgumentCallStatement(opcode)) {
+      if (candidate.kind == HELPER_SIGNED_ONE) {
+        return candidate.parameterTypes[0] == TYPE_SIGNED;
+      }
+    }
+
+    return false;
+  }
+
   private long resolveCallFunction(
     borrow utf8 source,
     HelperBody caller,
@@ -447,9 +462,17 @@ classical class ScalarHelperTables {
               }
             }
           } else {
-            if (candidate.kind == HELPER_BOOLEAN_SIGNED_ONE) {
-              if (signedCallParameters(candidate, 1)) {
+            if (scalarResultCallStatement(callOpcode)) {
+              if (localOneArgumentCallMatches(candidate, callOpcode)) {
                 found = helper;
+              }
+            } else {
+              if (candidate.kind == HELPER_BOOLEAN_SIGNED_ONE) {
+                if (candidate.parameterCount == 1) {
+                  if (candidate.parameterTypes[0] == TYPE_SIGNED) {
+                    found = helper;
+                  }
+                }
               }
             }
           }

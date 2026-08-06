@@ -4,6 +4,7 @@ module wheeler.compiler.scalar_helper_libraries;
 
 import wheeler.compiler.body_parser;
 import wheeler.compiler.borrowed_intrinsic_kinds;
+import wheeler.compiler.call_forms;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.early_comparison_forms;
@@ -452,6 +453,10 @@ classical class ScalarHelperLibraries {
           signedPrelude = true;
         }
 
+        if (scalarResultCallStatement(earlyOpcode)) {
+          signedPrelude = true;
+        }
+
         if (signedPrelude == false) {
           return false;
         }
@@ -651,6 +656,11 @@ classical class ScalarHelperLibraries {
       if (sourceOpcode == STATEMENT_RETURN_HELPER_CALL_NAMED) {
         helperCall = true;
         targetToken = statementStarts[sourceStatement] + 1;
+      }
+
+      if (scalarResultCallStatement(sourceOpcode)) {
+        helperCall = true;
+        targetToken = statementStarts[sourceStatement] + 3;
       }
 
       if (helperCall) {

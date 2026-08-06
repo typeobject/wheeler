@@ -14,7 +14,7 @@ classical class VoidCallKinds {
   /// Names the bounded local-source column width encoded in a call identity.
   public const long VOID_CALL_LOCAL_SOURCE_COUNT = 256;
   /// Ends the resolved three-argument source-local column.
-  private const long VOID_CALL_THREE_LIMIT = STATEMENT_CALL_VOID_THREE_BASE
+  public const long STATEMENT_CALL_VOID_THREE_LIMIT = STATEMENT_CALL_VOID_THREE_BASE
     + VOID_CALL_LOCAL_SOURCE_COUNT;
 
   /// Reports whether one identity is a resolved void call.
@@ -35,7 +35,7 @@ classical class VoidCallKinds {
       return false;
     }
 
-    return kind < VOID_CALL_THREE_LIMIT;
+    return kind < STATEMENT_CALL_VOID_THREE_LIMIT;
   }
 
   /// Returns the exact argument count for one resolved void call.
@@ -56,7 +56,7 @@ classical class VoidCallKinds {
       return -1;
     }
 
-    if (kind < VOID_CALL_THREE_LIMIT) {
+    if (kind < STATEMENT_CALL_VOID_THREE_LIMIT) {
       return 3;
     }
 

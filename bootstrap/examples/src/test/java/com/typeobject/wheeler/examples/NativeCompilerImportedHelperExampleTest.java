@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
+import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,52 @@ import org.junit.jupiter.api.Test;
 
 /** Differential evidence for bounded native imported scalar helpers. */
 final class NativeCompilerImportedHelperExampleTest {
+  @Test
+  void resolvesSignedLocalCallFunctionByteForByte() throws Exception {
+    String dependency = """
+        module example.local_values;
+        classical class LocalValues {
+          public boolean skipped(long value) {
+            return false;
+          }
+
+          public long identity(long value) {
+            return value;
+          }
+        }
+        """;
+    String root = """
+        module example.local_value_root;
+        import example.local_values;
+        classical class LocalValueRoot {
+          public long copied(long value) {
+            long result = identity(value);
+            return result;
+          }
+        }
+        """;
+    Program compiler = NativeModuleCompilerHarness.program();
+    byte[] actual = NativeModuleCompilerHarness.compile(compiler, List.of(dependency), root);
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("LocalValues.w", dependency, "LocalValueRoot.w", root),
+        "example.local_value_root");
+    assertArrayEquals(new BytecodeWriter().write(expected), actual);
+    Program decoded = new BytecodeReader().read(actual);
+    assertEquals(
+        1,
+        decoded.functions().get(2).forward().stream()
+            .filter(instruction -> instruction.opcode() == Opcode.CALL_VALUE)
+            .findFirst()
+            .orElseThrow()
+            .operands()
+            .getFirst());
+
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(dependency),
+        root.replace("identity(value)", "skipped(value)"));
+  }
+
   @Test
   void compilesOneHelperBesideTwoConstantOwnersByteForByte() throws Exception {
     String firstConstants = """
