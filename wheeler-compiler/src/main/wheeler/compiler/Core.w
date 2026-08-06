@@ -233,7 +233,7 @@ classical class CompilerCore {
   }
 
   private long boundedHelperLocalCount(HelperBody body) {
-    long count = parameterCountForHelper(body.kind);
+    long count = body.parameterCount;
     long statement = 0;
     while (statement < body.statementCount) limit MAX_MINIMAL_STATEMENTS {
       count += statementLocalCount(body.opcodes[statement]);
@@ -360,7 +360,7 @@ classical class CompilerCore {
     long entryLocalCount = localCount;
     long entryStatementLength = codeLength - 8;
     long functionsLength = 44 + localCount * 4;
-    long helperParameterCount = parameterCountForHelper(helperAt(program, 0).kind);
+    long helperParameterCount = helperAt(program, 0).parameterCount;
     long helperLocalCount = helperParameterCount;
     long helperLocalBase = helperParameterCount;
     long helperForwardLength = 8;
@@ -529,7 +529,7 @@ classical class CompilerCore {
           /* flags= */ 4,
           4294967295,
           0,
-          parameterCountForHelper(descriptorBody.kind),
+          descriptorBody.parameterCount,
           boundedHelperLocalCount(descriptorBody),
           boundedHelperTypeOffset(program, descriptorHelper)
         );
@@ -561,8 +561,7 @@ classical class CompilerCore {
         }
 
         long parameterType = 0;
-        while (parameterType
-          < parameterCountForHelper(typedBody.kind)) limit MAX_SCALAR_HELPER_PARAMETERS {
+        while (parameterType < typedBody.parameterCount) limit MAX_SCALAR_HELPER_PARAMETERS {
           if (booleanParameterHelper(typedBody.kind)) {
             cursor = writeBooleanLocalType(output, cursor);
           } else {

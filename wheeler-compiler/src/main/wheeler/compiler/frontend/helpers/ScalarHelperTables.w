@@ -318,7 +318,7 @@ classical class ScalarHelperTables {
         if (forwarding) {
           if (booleanHelperKind(caller.kind)) {
             if (booleanHelperKind(candidate.kind)) {
-              if (parameterCountForHelper(candidate.kind) == argumentCount) {
+              if (candidate.parameterCount == argumentCount) {
                 found = helper;
               }
             }
@@ -433,6 +433,7 @@ classical class ScalarHelperTables {
       body.operands,
       body.secondaryOperands,
       body.kind,
+      body.parameterCount,
       body.statementCount,
       body.resultStatement,
       body.callTargetStarts,

@@ -853,7 +853,7 @@ classical class ProgramCodegen {
           body.operands,
           body.secondaryOperands,
           body.statementCount,
-          parameterCountForHelper(body.kind),
+          body.parameterCount,
           body.callStatements,
           body.callFunctions,
           body.callCount

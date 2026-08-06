@@ -573,6 +573,7 @@ classical class HelperPrograms {
         helperSequence.operands,
         helperSequence.secondaryOperands,
         helperKind,
+        parameterCount,
         helperSequence.count,
         helperResultStatement,
         emptyHelperCallOffsets(),

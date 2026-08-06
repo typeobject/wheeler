@@ -373,6 +373,7 @@ classical class ScalarHelperLibraries {
       sequence.operands,
       sequence.secondaryOperands,
       kind,
+      parameterCount,
       sequence.count,
       sequence.count - 1,
       callTargetStarts,
