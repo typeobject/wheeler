@@ -14,6 +14,52 @@ import org.junit.jupiter.api.Test;
 /** Differential evidence for primitive borrows in native helper signatures. */
 final class NativeCompilerBorrowedSignatureExampleTest {
   @Test
+  void forwardsSignedHelperResultsByteForByte() throws Exception {
+    String source = """
+        module example.signed_forward;
+        classical class SignedForward {
+          public long inspect(long value) { return 13; }
+          public long forward(long value) { return inspect(value); }
+        }
+        """;
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("SignedForward.w", source), "example.signed_forward"));
+    byte[] actual = NativeModuleCompilerHarness.compile(
+        NativeModuleCompilerHarness.program(), List.of(), source);
+    assertArrayEquals(expected, actual);
+  }
+
+  @Test
+  void forwardsBorrowedParametersAcrossADirectImportByteForByte() throws Exception {
+    String dependency = """
+        module example.borrowed_dependency;
+        classical class BorrowedDependency {
+          public boolean inspect(borrow utf8 source) { return true; }
+        }
+        """;
+    String root = """
+        module example.borrowed_root;
+        import example.borrowed_dependency;
+        classical class BorrowedRoot {
+          public boolean forward(borrow utf8 source) { return inspect(source); }
+        }
+        """;
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("BorrowedDependency.w", dependency, "BorrowedRoot.w", root),
+            "example.borrowed_root"));
+    byte[] actual = NativeModuleCompilerHarness.compile(
+        NativeModuleCompilerHarness.program(), List.of(dependency), root);
+    assertArrayEquals(expected, actual);
+
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(dependency.replace("public boolean inspect", "private boolean inspect")),
+        root);
+  }
+
+  @Test
   void compilesBorrowedUtf8AndMutableBytesParametersByteForByte() throws Exception {
     String source = """
         module example.borrowed_signatures;
@@ -26,6 +72,28 @@ final class NativeCompilerBorrowedSignatureExampleTest {
           public long ignoreWords(borrow mut words values) { return 12; }
           public boolean mixed(long value, borrow utf8 text, borrow mut bytes output) {
             return true;
+          }
+          public boolean inspect(borrow utf8 source) { return true; }
+          public boolean forwardText(borrow utf8 source) { return inspect(source); }
+          public boolean acceptBytes(borrow mut bytes value) { return true; }
+          public boolean forwardBytes(borrow mut bytes value) { return acceptBytes(value); }
+          public boolean acceptMap(borrow mut longmap value) { return true; }
+          public boolean forwardMap(borrow mut longmap value) { return acceptMap(value); }
+          public boolean acceptRegion(borrow mut region value) { return true; }
+          public boolean forwardRegion(borrow mut region value) { return acceptRegion(value); }
+          public boolean acceptView(borrow byteview value) { return true; }
+          public boolean forwardView(borrow byteview value) { return acceptView(value); }
+          public boolean acceptWords(borrow mut words value) { return true; }
+          public boolean forwardWords(borrow mut words value) { return acceptWords(value); }
+          public boolean acceptMixed(long value, borrow utf8 text) { return true; }
+          public boolean forwardMixed(long value, borrow utf8 text) {
+            return acceptMixed(value, text);
+          }
+          public boolean acceptPair(borrow utf8 text, borrow mut bytes output) {
+            return true;
+          }
+          public boolean forwardPair(borrow utf8 text, borrow mut bytes output) {
+            return acceptPair(text, output);
           }
         }
         """;
@@ -51,7 +119,13 @@ final class NativeCompilerBorrowedSignatureExampleTest {
     assertEquals(ValueType.SIGNED, decoded.functions().get(6).localType(0));
     assertEquals(ValueType.UTF8_BORROW, decoded.functions().get(6).localType(1));
     assertEquals(ValueType.BYTES_BORROW, decoded.functions().get(6).localType(2));
+    assertEquals(ValueType.UTF8_BORROW, decoded.functions().get(7).localType(0));
+    assertEquals(ValueType.UTF8_BORROW, decoded.functions().get(8).localType(0));
 
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace("return acceptBytes(value);", "return inspect(value);"));
     NativeModuleCompilerHarness.assertTrap(
         NativeModuleCompilerHarness.program(),
         List.of(),

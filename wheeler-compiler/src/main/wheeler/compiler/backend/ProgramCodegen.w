@@ -20,10 +20,12 @@ import wheeler.compiler.resolved_local_copy_kinds;
 import wheeler.compiler.resolved_local_pair_assertions;
 import wheeler.compiler.resolved_local_returns;
 import wheeler.compiler.resolved_long_operations;
+import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.two_argument_call_kinds;
+import wheeler.compiler.type_codes;
 
 classical class ProgramCodegen {
   private const long FORM_UNARY = INSTRUCTION_FORM_UNARY;
@@ -519,6 +521,16 @@ classical class ProgramCodegen {
     return cursor;
   }
 
+  private long sequenceLocalType(long[16] parameterTypes, long parameterCount, long local) {
+    if (local < 0) {} else {
+      if (local < parameterCount) {
+        return parameterTypes[local];
+      }
+    }
+
+    return TYPE_SIGNED;
+  }
+
   private long writeSequence(
     borrow mut bytes output,
     long cursor,
@@ -526,6 +538,9 @@ classical class ProgramCodegen {
     long[64] operands,
     long[64] secondaryOperands,
     long count,
+    long[16] parameterTypes,
+    long parameterCount,
+    boolean typedHelper,
     long localBase,
     long[64] callStatements,
     long[64] callFunctions,
@@ -553,16 +568,56 @@ classical class ProgramCodegen {
         callFunction = callFunction * MAX_SCALAR_HELPERS + secondCallFunction;
       }
 
-      cursor = writeStatement(
-        output,
-        cursor,
-        opcodes[index],
-        operands[index],
-        secondaryOperands[index],
-        localBase,
-        instructionBase,
-        callFunction
-      );
+      long firstSourceType = TYPE_SIGNED;
+      long secondSourceType = TYPE_SIGNED;
+      if (typedHelper) {
+        long opcode = opcodes[index];
+        if (returnHelperCallArity(opcode) == 1) {
+          firstSourceType = sequenceLocalType(
+            parameterTypes,
+            parameterCount,
+            returnHelperCallFirstSource(opcode)
+          );
+        }
+
+        if (returnHelperCallArity(opcode) == 2) {
+          firstSourceType = sequenceLocalType(
+            parameterTypes,
+            parameterCount,
+            returnHelperCallFirstSource(opcode) - RETURN_HELPER_CALL_TWO_SOURCE_OFFSET
+          );
+          secondSourceType = sequenceLocalType(
+            parameterTypes,
+            parameterCount,
+            returnHelperCallSecondSource(opcode)
+          );
+        }
+
+        cursor = writeHelperStatement(
+          output,
+          cursor,
+          opcode,
+          operands[index],
+          secondaryOperands[index],
+          localBase,
+          instructionBase,
+          callFunction,
+          firstSourceType,
+          secondSourceType
+        );
+      } else {
+        cursor = writeStatement(
+          output,
+          cursor,
+          opcodes[index],
+          operands[index],
+          secondaryOperands[index],
+          localBase,
+          instructionBase,
+          callFunction
+        );
+      }
+
       localBase += statementLocalCount(opcodes[index]);
       instructionBase += statementInstructionCount(opcodes[index]);
       index += 1;
@@ -736,6 +791,9 @@ classical class ProgramCodegen {
       helperAt(program, 0).operands,
       helperAt(program, 0).secondaryOperands,
       helperAt(program, 0).statementCount,
+      helperAt(program, 0).parameterTypes,
+      helperAt(program, 0).parameterCount,
+      true,
       helperLocalBase,
       helperAt(program, 0).callStatements,
       helperAt(program, 0).callFunctions,
@@ -834,6 +892,9 @@ classical class ProgramCodegen {
         program.statementOperands,
         program.statementSecondaryOperands,
         program.statementCount,
+        emptyHelperBody().parameterTypes,
+        0,
+        false,
         0,
         emptyHelperCallIdentities(),
         emptyHelperCallIdentities(),
@@ -853,6 +914,9 @@ classical class ProgramCodegen {
           body.operands,
           body.secondaryOperands,
           body.statementCount,
+          body.parameterTypes,
+          body.parameterCount,
+          true,
           body.parameterCount,
           body.callStatements,
           body.callFunctions,
@@ -883,6 +947,9 @@ classical class ProgramCodegen {
         program.statementOperands,
         program.statementSecondaryOperands,
         program.statementCount,
+        emptyHelperBody().parameterTypes,
+        0,
+        false,
         0,
         emptyHelperCallIdentities(),
         emptyHelperCallIdentities(),

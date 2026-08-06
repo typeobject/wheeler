@@ -18,6 +18,8 @@ import wheeler.compiler.resolved_local_returns;
 import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
+import wheeler.compiler.storage_opcodes;
+import wheeler.compiler.type_codes;
 
 classical class ReturnCodegen {
   private const long FORM_UNARY = INSTRUCTION_FORM_UNARY;
@@ -25,6 +27,34 @@ classical class ReturnCodegen {
   private const long FORM_TERNARY = INSTRUCTION_FORM_TERNARY;
   private const long FORM_QUATERNARY = INSTRUCTION_FORM_QUATERNARY;
   private const long U64 = INSTRUCTION_OPERAND_WIDTH;
+
+  private long callArgumentOpcode(long type) {
+    if (type == TYPE_UTF8_BORROW) {
+      return OPCODE_UTF8_BORROW;
+    }
+
+    if (type == TYPE_LONG_MAP_BORROW) {
+      return OPCODE_MAP_BORROW;
+    }
+
+    if (type == TYPE_REGION_BORROW) {
+      return OPCODE_REGION_BORROW;
+    }
+
+    if (type == TYPE_WORDS_BORROW) {
+      return OPCODE_BUFFER_BORROW;
+    }
+
+    if (type == TYPE_BYTES_BORROW) {
+      return OPCODE_BUFFER_BORROW;
+    }
+
+    if (type == TYPE_BYTE_VIEW) {
+      return OPCODE_BUFFER_BORROW;
+    }
+
+    return OPCODE_LOCAL_MOVE;
+  }
 
   private long writeReturnScalarOperand(
     borrow mut bytes output,
@@ -48,7 +78,9 @@ classical class ReturnCodegen {
     long secondaryOperand,
     long localBase,
     long instructionBase,
-    long callFunction
+    long callFunction,
+    long firstSourceType,
+    long secondSourceType
   ) {
     if (returnHelperCallArity(opcode) == 0) {
       assert(-1 < callFunction);
@@ -79,10 +111,20 @@ classical class ReturnCodegen {
         returnHelperCallSecondSource(opcode),
         U64
       );
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        callArgumentOpcode(firstSourceType),
+        FORM_BINARY
+      );
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        callArgumentOpcode(secondSourceType),
+        FORM_BINARY
+      );
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
       cursor = writeInstructionHeader(output, cursor, OPCODE_CALL_VALUE, FORM_QUATERNARY);
@@ -104,7 +146,12 @@ classical class ReturnCodegen {
         returnHelperCallFirstSource(opcode),
         U64
       );
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        callArgumentOpcode(firstSourceType),
+        FORM_BINARY
+      );
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
       cursor = writeInstructionHeader(output, cursor, OPCODE_CALL_VALUE, FORM_QUATERNARY);

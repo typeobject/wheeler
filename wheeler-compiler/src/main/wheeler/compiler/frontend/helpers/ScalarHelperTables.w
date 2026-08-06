@@ -35,6 +35,49 @@ classical class ScalarHelperTables {
     return true;
   }
 
+  private long callerLocalType(HelperBody caller, long local) {
+    if (local < 0) {
+      return 0;
+    }
+
+    if (local < caller.parameterCount) {
+      return caller.parameterTypes[local];
+    }
+
+    return TYPE_SIGNED;
+  }
+
+  private boolean forwardingCallParametersMatch(
+    HelperBody caller,
+    HelperBody candidate,
+    long opcode,
+    long argumentCount
+  ) {
+    if (candidate.parameterCount == argumentCount) {} else {
+      return false;
+    }
+
+    if (argumentCount == 0) {
+      return true;
+    }
+
+    long firstSource = returnHelperCallFirstSource(opcode);
+    if (argumentCount == 2) {
+      firstSource -= RETURN_HELPER_CALL_TWO_SOURCE_OFFSET;
+    }
+
+    if (callerLocalType(caller, firstSource) == candidate.parameterTypes[0]) {} else {
+      return false;
+    }
+
+    if (argumentCount == 1) {
+      return true;
+    }
+
+    long secondSource = returnHelperCallSecondSource(opcode);
+    return callerLocalType(caller, secondSource) == candidate.parameterTypes[1];
+  }
+
   /// Compares two helper names in one source.
   public long compareHelpers(borrow utf8 source, HelperBody left, HelperBody right) {
     return compareAsciiSlices(
@@ -266,6 +309,7 @@ classical class ScalarHelperTables {
     HelperBody caller,
     SourceRange target,
     boolean forwarding,
+    long callOpcode,
     long argumentCount,
     HelperBody first,
     HelperBody second,
@@ -334,11 +378,14 @@ classical class ScalarHelperTables {
       );
       if (order == 0) {
         if (forwarding) {
-          if (booleanHelperKind(caller.kind)) {
-            if (booleanHelperKind(candidate.kind)) {
-              if (signedCallParameters(candidate, argumentCount)) {
-                found = helper;
-              }
+          boolean sameResultKind = booleanHelperKind(caller.kind) == booleanHelperKind(
+            candidate.kind
+          );
+          if (sameResultKind) {
+            if (
+              forwardingCallParametersMatch(caller, candidate, callOpcode, argumentCount)
+            ) {
+              found = helper;
             }
           }
         } else {
@@ -403,6 +450,7 @@ classical class ScalarHelperTables {
           caller,
           new SourceRange(caller.callTargetStarts[call], caller.callTargetLengths[call]),
           forwarding,
+          caller.opcodes[callStatement],
           argumentCount,
           first,
           second,

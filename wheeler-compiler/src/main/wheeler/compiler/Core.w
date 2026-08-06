@@ -19,9 +19,11 @@ import wheeler.compiler.opcodes;
 import wheeler.compiler.parser;
 import wheeler.compiler.program_codegen;
 import wheeler.compiler.resolved_long_operations;
+import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.string_table;
 import wheeler.compiler.tokens;
+import wheeler.compiler.type_codes;
 import wheeler.compiler.verifier;
 import wheeler.lexer.scanner;
 
@@ -227,6 +229,65 @@ classical class CompilerCore {
     while (index < count) limit MAX_MINIMAL_STATEMENTS {
       cursor = writeStatementLocalTypes(output, cursor, opcodes[index]);
       index += 1;
+    }
+
+    return cursor;
+  }
+
+  private long helperLocalType(HelperBody body, long local) {
+    if (local < 0) {} else {
+      if (local < body.parameterCount) {
+        return body.parameterTypes[local];
+      }
+    }
+
+    return TYPE_SIGNED;
+  }
+
+  private long writeHelperSequenceLocalTypes(
+    borrow mut bytes output,
+    long cursor,
+    HelperBody body
+  ) {
+    long resultType = TYPE_SIGNED;
+    if (booleanResultHelper(body.kind)) {
+      resultType = TYPE_BOOLEAN;
+    }
+
+    long statement = 0;
+    while (statement < body.statementCount) limit MAX_MINIMAL_STATEMENTS {
+      long opcode = body.opcodes[statement];
+      long firstType = TYPE_SIGNED;
+      long secondType = TYPE_SIGNED;
+      if (resolvedReturnHelperCall(opcode)) {
+        if (returnHelperCallArity(opcode) == 1) {
+          firstType = helperLocalType(body, returnHelperCallFirstSource(opcode));
+        }
+
+        if (returnHelperCallArity(opcode) == 2) {
+          firstType = helperLocalType(
+            body,
+            returnHelperCallFirstSource(opcode) - RETURN_HELPER_CALL_TWO_SOURCE_OFFSET
+          );
+          secondType = helperLocalType(body, returnHelperCallSecondSource(opcode));
+        }
+      }
+
+      long callCursor = writeHelperCallLocalTypes(
+        output,
+        cursor,
+        opcode,
+        resultType,
+        firstType,
+        secondType
+      );
+      if (-1 < callCursor) {
+        cursor = callCursor;
+      } else {
+        cursor = writeStatementLocalTypes(output, cursor, opcode);
+      }
+
+      statement += 1;
     }
 
     return cursor;
@@ -566,12 +627,7 @@ classical class CompilerCore {
           parameterType += 1;
         }
 
-        cursor = writeSequenceLocalTypes(
-          output,
-          cursor,
-          typedBody.opcodes,
-          typedBody.statementCount
-        );
+        cursor = writeHelperSequenceLocalTypes(output, cursor, typedBody);
         typedHelper += 1;
       }
 
@@ -643,12 +699,7 @@ classical class CompilerCore {
             cursor = writeBooleanLocalType(output, cursor);
             cursor = writeSignedLocalType(output, cursor);
           } else {
-            cursor = writeSequenceLocalTypes(
-              output,
-              cursor,
-              helperAt(program, 0).opcodes,
-              helperAt(program, 0).statementCount
-            );
+            cursor = writeHelperSequenceLocalTypes(output, cursor, helperAt(program, 0));
           }
         }
 

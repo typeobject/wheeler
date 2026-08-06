@@ -52,6 +52,37 @@ classical class LocalTypes {
     return writeLocalType(output, cursor, TYPE_BOOLEAN);
   }
 
+  /// Writes canonical local types for a helper call with its resolved signature types.
+  public long writeHelperCallLocalTypes(
+    borrow mut bytes output,
+    long cursor,
+    long opcode,
+    long resultType,
+    long firstSourceType,
+    long secondSourceType
+  ) {
+    long arity = returnHelperCallArity(opcode);
+    if (arity == 0) {
+      return writeLocalType(output, cursor, resultType);
+    }
+
+    if (arity == 2) {
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      cursor = writeLocalType(output, cursor, secondSourceType);
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      cursor = writeLocalType(output, cursor, secondSourceType);
+      return writeLocalType(output, cursor, resultType);
+    }
+
+    if (resolvedReturnHelperCall(opcode)) {
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      return writeLocalType(output, cursor, resultType);
+    }
+
+    return -1;
+  }
+
   /// Writes canonical local type codes for one parsed statement.
   public long writeStatementLocalTypes(borrow mut bytes output, long cursor, long opcode) {
     long count = statementLocalCount(opcode);

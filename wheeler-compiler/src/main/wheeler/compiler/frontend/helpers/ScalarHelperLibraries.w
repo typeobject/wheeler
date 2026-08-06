@@ -48,6 +48,10 @@ classical class ScalarHelperLibraries {
       return true;
     }
 
+    if (resolvedReturnHelperCall(opcode)) {
+      return true;
+    }
+
     return returnLocalPairStatement(opcode);
   }
 

@@ -35,6 +35,7 @@ import wheeler.compiler.return_codegen;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.two_argument_call_kinds;
+import wheeler.compiler.type_codes;
 
 classical class Codegen {
   /// Aliases named instruction forms for compact emitter calls.
@@ -241,6 +242,47 @@ classical class Codegen {
     return writeSignedLittleEndian(output, cursor, operand, U64);
   }
 
+  /// Writes a helper statement with canonical borrowed-call argument opcodes.
+  public long writeHelperStatement(
+    borrow mut bytes output,
+    long cursor,
+    long opcode,
+    long operand,
+    long secondaryOperand,
+    long localBase,
+    long instructionBase,
+    long callFunction,
+    long firstSourceType,
+    long secondSourceType
+  ) {
+    long returnCursor = writeReturnStatement(
+      output,
+      cursor,
+      opcode,
+      operand,
+      secondaryOperand,
+      localBase,
+      instructionBase,
+      callFunction,
+      firstSourceType,
+      secondSourceType
+    );
+    if (-1 < returnCursor) {
+      return returnCursor;
+    }
+
+    return writeStatement(
+      output,
+      cursor,
+      opcode,
+      operand,
+      secondaryOperand,
+      localBase,
+      instructionBase,
+      callFunction
+    );
+  }
+
   /// Writes `statement` into caller-owned bounded output.
   public long writeStatement(
     borrow mut bytes output,
@@ -406,7 +448,9 @@ classical class Codegen {
       secondaryOperand,
       localBase,
       instructionBase,
-      callFunction
+      callFunction,
+      TYPE_SIGNED,
+      TYPE_SIGNED
     );
     if (-1 < returnCursor) {
       return returnCursor;
