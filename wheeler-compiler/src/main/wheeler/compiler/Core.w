@@ -306,11 +306,20 @@ classical class CompilerCore {
     return length;
   }
 
+  private long helperResultTypeCount(HelperBody body) {
+    if (body.kind == HELPER_VOID) {
+      return 0;
+    }
+
+    return 1;
+  }
+
   private long boundedHelperTypeOffset(MinimalProgram program, long index) {
     long offset = 0;
     long helper = 0;
     while (helper < index) limit MAX_SCALAR_HELPERS {
-      offset += boundedHelperLocalCount(helperAt(program, helper)) + 1;
+      HelperBody body = helperAt(program, helper);
+      offset += boundedHelperLocalCount(body) + helperResultTypeCount(body);
       helper += 1;
     }
 
@@ -481,7 +490,7 @@ classical class CompilerCore {
       long helper = 0;
       while (helper < program.helperCount) limit MAX_SCALAR_HELPERS {
         HelperBody body = helperAt(program, helper);
-        entryTypeOffset += boundedHelperLocalCount(body) + 1;
+        entryTypeOffset += boundedHelperLocalCount(body) + helperResultTypeCount(body);
         codeLength += boundedHelperForwardLength(body);
         helper += 1;
       }
@@ -567,6 +576,11 @@ classical class CompilerCore {
       long descriptorHelper = 0;
       while (descriptorHelper < program.helperCount) limit MAX_SCALAR_HELPERS {
         HelperBody descriptorBody = helperAt(program, descriptorHelper);
+        long descriptorFlags = 4;
+        if (descriptorBody.kind == HELPER_VOID) {
+          descriptorFlags = 0;
+        }
+
         cursor = writeFunctionDescriptor(
           output,
           cursor,
@@ -574,7 +588,7 @@ classical class CompilerCore {
           libraryStrings.helperIndices[descriptorHelper],
           helperCodeOffset,
           boundedHelperForwardLength(descriptorBody),
-          /* flags= */ 4,
+          descriptorFlags,
           4294967295,
           0,
           descriptorBody.parameterCount,
@@ -602,10 +616,12 @@ classical class CompilerCore {
       long typedHelper = 0;
       while (typedHelper < program.helperCount) limit MAX_SCALAR_HELPERS {
         HelperBody typedBody = helperAt(program, typedHelper);
-        if (booleanResultHelper(typedBody.kind)) {
-          cursor = writeBooleanLocalType(output, cursor);
-        } else {
-          cursor = writeSignedLocalType(output, cursor);
+        if (typedBody.kind == HELPER_VOID) {} else {
+          if (booleanResultHelper(typedBody.kind)) {
+            cursor = writeBooleanLocalType(output, cursor);
+          } else {
+            cursor = writeSignedLocalType(output, cursor);
+          }
         }
 
         long parameterType = 0;

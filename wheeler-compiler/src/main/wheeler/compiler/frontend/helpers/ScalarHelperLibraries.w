@@ -254,11 +254,30 @@ classical class ScalarHelperLibraries {
     long[16] parameterTypes,
     long parameterCount
   ) {
-    if (0 < sequence.count) {} else {
+    if (intrinsicSourcesValid(sequence, parameterTypes, parameterCount)) {} else {
       return false;
     }
 
-    if (intrinsicSourcesValid(sequence, parameterTypes, parameterCount)) {} else {
+    if (kind == HELPER_VOID) {
+      long voidStatement = 0;
+      while (voidStatement < sequence.count) limit MAX_MINIMAL_STATEMENTS {
+        long voidOpcode = sequence.opcodes[voidStatement];
+        boolean write = voidOpcode == STATEMENT_SET_WORD;
+        if (voidOpcode == STATEMENT_SET_BYTE) {
+          write = true;
+        }
+
+        if (write) {} else {
+          return false;
+        }
+
+        voidStatement += 1;
+      }
+
+      return true;
+    }
+
+    if (0 < sequence.count) {} else {
       return false;
     }
 
@@ -357,7 +376,9 @@ classical class ScalarHelperLibraries {
     long returnType = tokenHash(source, tokenStarts, tokenLengths, start + 1);
     if (returnType == TOKEN_LONG) {} else {
       if (returnType == TOKEN_BOOLEAN) {} else {
-        return invalidHelper();
+        if (returnType == TOKEN_VOID) {} else {
+          return invalidHelper();
+        }
       }
     }
 
@@ -454,6 +475,10 @@ classical class ScalarHelperLibraries {
     long kind = signedScalarHelperKind(parameterCount);
     if (returnType == TOKEN_BOOLEAN) {
       kind = booleanScalarHelperKind(parameterCount);
+    }
+
+    if (returnType == TOKEN_VOID) {
+      kind = HELPER_VOID;
     }
 
     if (-1 < kind) {} else {

@@ -112,6 +112,40 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
   }
 
   @Test
+  void compilesPrimitiveLoanVoidWritersByteForByte() throws Exception {
+    String source = """
+        module example.borrowed_loan_void_write;
+        classical class BorrowedLoanVoidWrite {
+          private void octet(borrow mut bytes values, long index, long element) {
+            setByte(values, index, element);
+          }
+          private long dummy() { return 0; }
+          private void word(borrow mut words values, long index, long element) {
+            set(values, index, element);
+          }
+          private void idle() {}
+        }
+        """;
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("BorrowedLoanVoidWrite.w", source), "example.borrowed_loan_void_write"));
+    byte[] actual = NativeModuleCompilerHarness.compile(
+        NativeModuleCompilerHarness.program(), List.of(), source);
+    assertArrayEquals(expected, actual);
+
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace(
+            "set(values, index, element);\n  }",
+            "set(values, index, element);\n    return element;\n  }"));
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace("private long dummy() { return 0; }", "private long dummy() {}"));
+  }
+
+  @Test
   void compilesPrimitiveLoanWritesByteForByte() throws Exception {
     String source = """
         module example.borrowed_loan_write;

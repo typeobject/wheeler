@@ -904,6 +904,15 @@ classical class ProgramCodegen {
           body.callFunctions,
           body.callCount
         );
+        if (body.kind == HELPER_VOID) {
+          cursor = writeInstructionHeader(
+            output,
+            cursor,
+            OPCODE_RETURN,
+            INSTRUCTION_FORM_NULLARY
+          );
+        }
+
         helper += 1;
       }
 

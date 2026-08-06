@@ -378,9 +378,11 @@ classical class ScalarHelperTables {
       );
       if (order == 0) {
         if (forwarding) {
-          boolean sameResultKind = booleanHelperKind(caller.kind) == booleanHelperKind(
-            candidate.kind
-          );
+          boolean sameResultKind = candidate.kind != HELPER_VOID;
+          if (sameResultKind) {
+            sameResultKind = booleanHelperKind(caller.kind) == booleanHelperKind(candidate.kind);
+          }
+
           if (sameResultKind) {
             if (
               forwardingCallParametersMatch(caller, candidate, callOpcode, argumentCount)
