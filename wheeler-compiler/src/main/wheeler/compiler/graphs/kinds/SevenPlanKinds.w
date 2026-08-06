@@ -55,4 +55,6 @@ classical class SevenPlanKinds {
   public const long SEVEN_PLAN_ASYMMETRIC_NESTED_FORK_AND_DIRECTS = 25;
   /// Names one shared diamond beside three direct root imports.
   public const long SEVEN_PLAN_SHARED_DIAMOND_AND_DIRECTS = 26;
+  /// Names one shared diamond with a side leaf beside two direct imports.
+  public const long SEVEN_PLAN_SHARED_DIAMOND_SIDE_AND_DIRECTS = 27;
 }

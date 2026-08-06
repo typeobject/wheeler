@@ -525,6 +525,22 @@ classical class CompilerGraphSeven {
       return new SevenGraphCompilation(sharedDiamond.length, sharedDiamond.codeStart);
     }
 
+    if (plan.topology == SEVEN_PLAN_SHARED_DIAMOND_SIDE_AND_DIRECTS) {
+      SevenDagCompilation diamondSide = compileSevenSharedDiamondSideAndDirects(
+        plan,
+        firstImportedSource,
+        secondImportedSource,
+        thirdImportedSource,
+        fourthImportedSource,
+        fifthImportedSource,
+        sixthImportedSource,
+        seventhImportedSource,
+        rootSource,
+        output
+      );
+      return new SevenGraphCompilation(diamondSide.length, diamondSide.codeStart);
+    }
+
     assert(plan.topology == SEVEN_PLAN_DIRECT);
     return new SevenGraphCompilation(0, 0);
   }

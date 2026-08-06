@@ -251,6 +251,11 @@ classical class SevenGraphPlans {
       mixedFiveLeafFork = rootCount == TWO_IMPORTS;
     }
 
+    boolean mixedSharedDiamondSide = false;
+    if (edgeCount == FIVE_EDGES) {
+      mixedSharedDiamondSide = rootCount == THREE_IMPORTS;
+    }
+
     boolean valid = direct;
     if (structured) {
       valid = true;
@@ -277,6 +282,10 @@ classical class SevenGraphPlans {
     }
 
     if (mixedSharedDiamond) {
+      valid = true;
+    }
+
+    if (mixedSharedDiamondSide) {
       valid = true;
     }
 
@@ -385,6 +394,10 @@ classical class SevenGraphPlans {
 
         if (mixedSharedDiamond) {
           result = sharedDiamondAndDirectsPlan(graph, rootDirect);
+        }
+
+        if (mixedSharedDiamondSide) {
+          result = sharedDiamondSideAndDirectsPlan(graph, rootDirect);
         }
 
         if (mixedFiveLeafFork) {
