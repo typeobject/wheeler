@@ -190,6 +190,16 @@ classical class LocalTypes {
       return writeLocalType(output, cursor, resultType);
     }
 
+    if (arity == 3) {
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      cursor = writeLocalType(output, cursor, secondSourceType);
+      cursor = writeLocalType(output, cursor, thirdSourceType);
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      cursor = writeLocalType(output, cursor, secondSourceType);
+      cursor = writeLocalType(output, cursor, thirdSourceType);
+      return writeLocalType(output, cursor, resultType);
+    }
+
     if (arity == 2) {
       cursor = writeLocalType(output, cursor, firstSourceType);
       cursor = writeLocalType(output, cursor, secondSourceType);

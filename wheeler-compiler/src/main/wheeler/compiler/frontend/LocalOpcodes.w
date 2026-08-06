@@ -135,6 +135,10 @@ classical class LocalOpcodes {
       return 1;
     }
 
+    if (returnHelperCallArity(opcode) == 3) {
+      return 7;
+    }
+
     if (returnHelperCallArity(opcode) == 2) {
       return 5;
     }
@@ -556,6 +560,10 @@ classical class LocalOpcodes {
       return 56;
     }
 
+    if (returnHelperCallArity(opcode) == 3) {
+      return 200;
+    }
+
     if (returnHelperCallArity(opcode) == 2) {
       return 152;
     }
@@ -802,6 +810,10 @@ classical class LocalOpcodes {
 
     if (length == 168) {
       return 7;
+    }
+
+    if (length == 200) {
+      return 8;
     }
 
     if (length == 224) {

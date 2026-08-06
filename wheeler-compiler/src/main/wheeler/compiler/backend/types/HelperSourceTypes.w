@@ -97,6 +97,14 @@ classical class HelperSourceTypes {
       );
     }
 
+    if (returnHelperCallArity(opcode) == 3) {
+      return sequenceLocalType(
+        parameterTypes,
+        parameterCount,
+        returnHelperCallFirstSource(opcode)
+      );
+    }
+
     if (returnHelperCallArity(opcode) == 2) {
       return sequenceLocalType(
         parameterTypes,
@@ -111,6 +119,10 @@ classical class HelperSourceTypes {
   /// Returns the canonical third source type for one typed statement.
   public long helperThirdSourceType(long opcode, long[16] parameterTypes, long parameterCount) {
     long thirdSource = voidCallThirdSource(opcode);
+    if (returnHelperCallArity(opcode) == 3) {
+      thirdSource = returnHelperCallThirdSource(opcode);
+    }
+
     if (-1 < thirdSource) {
       return sequenceLocalType(parameterTypes, parameterCount, thirdSource);
     }
@@ -169,7 +181,16 @@ classical class HelperSourceTypes {
       return sequenceLocalType(parameterTypes, parameterCount, secondaryOperand);
     }
 
-    if (returnHelperCallArity(opcode) == 2) {
+    long returnArity = returnHelperCallArity(opcode);
+    if (returnArity == 2) {
+      return sequenceLocalType(
+        parameterTypes,
+        parameterCount,
+        returnHelperCallSecondSource(opcode)
+      );
+    }
+
+    if (returnArity == 3) {
       return sequenceLocalType(
         parameterTypes,
         parameterCount,

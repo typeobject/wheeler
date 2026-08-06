@@ -314,6 +314,40 @@ classical class Structure {
         }
 
         if (
+          punctuationAt(source, tokenKinds, tokenStarts, statementStart + 6, PUNCTUATION_COMMA)
+        ) {
+          if (tokenKinds[statementStart + 7] == 1) {} else {
+            return -1;
+          }
+
+          if (
+            punctuationAt(
+              source,
+              tokenKinds,
+              tokenStarts,
+              statementStart + 8,
+              PUNCTUATION_CLOSE_PAREN
+            )
+          ) {} else {
+            return -1;
+          }
+
+          if (
+            punctuationAt(
+              source,
+              tokenKinds,
+              tokenStarts,
+              statementStart + 9,
+              PUNCTUATION_SEMICOLON
+            )
+          ) {
+            return 10;
+          }
+
+          return -1;
+        }
+
+        if (
           punctuationAt(
             source,
             tokenKinds,

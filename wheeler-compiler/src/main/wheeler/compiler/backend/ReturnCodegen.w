@@ -52,7 +52,8 @@ classical class ReturnCodegen {
     long instructionBase,
     long callFunction,
     long firstSourceType,
-    long secondSourceType
+    long secondSourceType,
+    long thirdSourceType
   ) {
     if (returnHelperCallArity(opcode) == 0) {
       assert(-1 < callFunction);
@@ -63,6 +64,65 @@ classical class ReturnCodegen {
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
       cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN_VALUE, FORM_UNARY);
       return writeUnsignedLittleEndian(output, cursor, localBase, U64);
+    }
+
+    if (returnHelperCallArity(opcode) == 3) {
+      assert(-1 < callFunction);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeUnsignedLittleEndian(
+        output,
+        cursor,
+        returnHelperCallFirstSource(opcode),
+        U64
+      );
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      cursor = writeUnsignedLittleEndian(
+        output,
+        cursor,
+        returnHelperCallSecondSource(opcode),
+        U64
+      );
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+      cursor = writeUnsignedLittleEndian(
+        output,
+        cursor,
+        returnHelperCallThirdSource(opcode),
+        U64
+      );
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        callArgumentOpcode(firstSourceType),
+        FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        callArgumentOpcode(secondSourceType),
+        FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 4, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        callArgumentOpcode(thirdSourceType),
+        FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 5, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_CALL_VALUE, FORM_QUATERNARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, callFunction, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, /* argumentCount= */ 3, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 6, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN_VALUE, FORM_UNARY);
+      return writeUnsignedLittleEndian(output, cursor, localBase + 6, U64);
     }
 
     if (returnHelperCallArity(opcode) == 2) {

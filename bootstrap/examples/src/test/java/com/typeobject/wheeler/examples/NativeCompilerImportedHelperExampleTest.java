@@ -64,6 +64,9 @@ final class NativeCompilerImportedHelperExampleTest {
           public long lookup(long[4] values, long index) {
             return values[index];
           }
+          public long choose(long[4] values, long index, long fallback) {
+            return values[index];
+          }
         }
         """;
     String root = """
@@ -72,6 +75,9 @@ final class NativeCompilerImportedHelperExampleTest {
         classical class UseArrayReader {
           public long relay(long[4] values, long index) {
             return lookup(values, index);
+          }
+          public long relayThree(long[4] values, long index, long fallback) {
+            return choose(values, index, fallback);
           }
         }
         """;

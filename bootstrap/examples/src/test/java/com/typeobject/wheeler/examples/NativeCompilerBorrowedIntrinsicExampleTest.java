@@ -63,6 +63,12 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
           public long directWidth(borrow utf8 value, long index) {
             return utf8Width(value, index);
           }
+          private long select(borrow utf8 value, long index, long fallback) {
+            return utf8Scalar(value, index);
+          }
+          public long relay(borrow utf8 value, long index, long fallback) {
+            return select(value, index, fallback);
+          }
           public long dummy() { return 0; }
         }
         """;
@@ -183,6 +189,12 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
           public long direct(long[3] values, long index) {
             return values[index];
           }
+          private long choose(long[4] values, long index, long fallback) {
+            return values[index];
+          }
+          public long relayThree(long[4] values, long index, long fallback) {
+            return choose(values, index, fallback);
+          }
           public long dummy() { return 0; }
         }
         """;
@@ -197,6 +209,10 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
         NativeModuleCompilerHarness.program(), List.of(), source.replace("long[4]", "long[0]"));
     NativeModuleCompilerHarness.assertTrap(
         NativeModuleCompilerHarness.program(), List.of(), source.replace("long[4]", "long[65]"));
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(), List.of(),
+        source.replace("choose(values, index, fallback)",
+            "choose(values, index, fallback, index)"));
 
     StringBuilder tooManyTypes = new StringBuilder("""
         module example.too_many_array_types;

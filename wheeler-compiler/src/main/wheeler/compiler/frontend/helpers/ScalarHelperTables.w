@@ -90,6 +90,12 @@ classical class ScalarHelperTables {
     }
 
     long thirdSource = voidCallThirdSource(opcode);
+    if (argumentCount == 3) {
+      if (voidCallStatement(opcode)) {} else {
+        thirdSource = returnHelperCallThirdSource(opcode);
+      }
+    }
+
     return callerLocalType(caller, thirdSource) == candidate.parameterTypes[2];
   }
 

@@ -6,10 +6,13 @@ import wheeler.compiler.resolved_statements;
 
 classical class ResolvedReturnCallKinds {
   private const long RESOLVED_SOURCE_COUNT = 256;
+  private const long RESOLVED_SOURCE_SQUARE = 65536;
   private const long RETURN_HELPER_CALL_END = STATEMENT_RETURN_HELPER_CALL_BASE
     + RESOLVED_SOURCE_COUNT;
   private const long RETURN_HELPER_CALL_TWO_END = STATEMENT_RETURN_HELPER_CALL_TWO_BASE
     + RESOLVED_SOURCE_COUNT * RESOLVED_SOURCE_COUNT;
+  private const long RETURN_HELPER_CALL_THREE_END = STATEMENT_RETURN_HELPER_CALL_THREE_BASE
+    + RESOLVED_SOURCE_SQUARE * RESOLVED_SOURCE_COUNT;
   /// Removes the aligned two-argument opcode column from its first source.
   public const long RETURN_HELPER_CALL_TWO_SOURCE_OFFSET = 256;
 
@@ -31,7 +34,15 @@ classical class ResolvedReturnCallKinds {
       return false;
     }
 
-    return opcode < RETURN_HELPER_CALL_TWO_END;
+    if (opcode < RETURN_HELPER_CALL_TWO_END) {
+      return true;
+    }
+
+    if (opcode < STATEMENT_RETURN_HELPER_CALL_THREE_BASE) {
+      return false;
+    }
+
+    return opcode < RETURN_HELPER_CALL_THREE_END;
   }
 
   /// Returns the call arity, or minus one when the opcode is not this family.
@@ -56,6 +67,14 @@ classical class ResolvedReturnCallKinds {
       return 2;
     }
 
+    if (opcode < STATEMENT_RETURN_HELPER_CALL_THREE_BASE) {
+      return -1;
+    }
+
+    if (opcode < RETURN_HELPER_CALL_THREE_END) {
+      return 3;
+    }
+
     return -1;
   }
 
@@ -65,11 +84,28 @@ classical class ResolvedReturnCallKinds {
       return opcode - STATEMENT_RETURN_HELPER_CALL_BASE;
     }
 
-    return opcode / RESOLVED_SOURCE_COUNT;
+    if (opcode < RETURN_HELPER_CALL_TWO_END) {
+      return opcode / RESOLVED_SOURCE_COUNT;
+    }
+
+    long packed = opcode - STATEMENT_RETURN_HELPER_CALL_THREE_BASE;
+    return packed / RESOLVED_SOURCE_SQUARE;
   }
 
-  /// Returns the second source local of one resolved two-argument helper call.
+  /// Returns the second source local of one resolved multi-argument helper call.
   public long returnHelperCallSecondSource(long opcode) {
-    return opcode % RESOLVED_SOURCE_COUNT;
+    if (opcode < RETURN_HELPER_CALL_TWO_END) {
+      return opcode % RESOLVED_SOURCE_COUNT;
+    }
+
+    long packed = opcode - STATEMENT_RETURN_HELPER_CALL_THREE_BASE;
+    long quotient = packed / RESOLVED_SOURCE_COUNT;
+    return quotient % RESOLVED_SOURCE_COUNT;
+  }
+
+  /// Returns the third source local of one resolved three-argument helper call.
+  public long returnHelperCallThirdSource(long opcode) {
+    long packed = opcode - STATEMENT_RETURN_HELPER_CALL_THREE_BASE;
+    return packed % RESOLVED_SOURCE_COUNT;
   }
 }

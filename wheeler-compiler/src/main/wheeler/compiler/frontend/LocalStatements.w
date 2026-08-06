@@ -46,6 +46,7 @@ import wheeler.compiler.void_call_resolution;
 
 classical class LocalStatements {
   private const long RETURN_HELPER_CALL_SOURCE_COUNT = 256;
+  private const long RETURN_HELPER_CALL_TWO_SOURCE_COUNT = 65536;
 
   private long namedLongLiteralBase(long opcode) {
     if (opcode == STATEMENT_LOCAL_LONG_ADD_NAMED) {
@@ -262,6 +263,27 @@ classical class LocalStatements {
             true
           );
           if (-1 < secondCallArgument) {
+            if (
+              utf8Scalar(source, tokenStarts[statementStart + 6]) == PUNCTUATION_COMMA
+            ) {
+              long thirdCallArgument = resolvePriorDeclaration(
+                source,
+                tokenStarts,
+                tokenLengths,
+                previousStarts,
+                previousCount,
+                statementStart + 7,
+                true
+              );
+              if (-1 < thirdCallArgument) {
+                return STATEMENT_RETURN_HELPER_CALL_THREE_BASE + callArgument
+                  * RETURN_HELPER_CALL_TWO_SOURCE_COUNT + secondCallArgument
+                  * RETURN_HELPER_CALL_SOURCE_COUNT + thirdCallArgument;
+              }
+
+              return -1;
+            }
+
             return STATEMENT_RETURN_HELPER_CALL_TWO_BASE + callArgument
               * RETURN_HELPER_CALL_SOURCE_COUNT + secondCallArgument;
           }

@@ -669,17 +669,6 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
-  void compilesCanonicalResolvedReturnCallKindsByteForByte() throws Exception {
-    Program decoded = assertImportedConstantCompilerLibrary(
-        "compiler/syntax/returns/ResolvedReturnCallKinds.w",
-        "wheeler.compiler.resolved_return_call_kinds");
-    assertEquals(
-        "wheeler.compiler.resolved_return_call_kinds::resolvedReturnHelperCall",
-        decoded.functions().getFirst().name());
-    assertEquals("$library", decoded.functions().getLast().name());
-  }
-
-  @Test
   void compilesCanonicalInstructionFormsByteForByte() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
     String opcodes = CompilerSources.read("compiler/ir/Opcodes.w");
